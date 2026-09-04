@@ -2,7 +2,8 @@
   "branch_name": "fn-2-the-twig-layer-the-branching-order",
   "created_at": "2026-09-04T19:24:19.172570Z",
   "depends_on_epics": [
-    "fn-1-the-canopy-real-leaf-geometry-culled-to"
+    "fn-1-the-canopy-real-leaf-geometry-culled-to",
+    "fn-3-branching-depth-the-dial-the-skeleton"
   ],
   "id": "fn-2-the-twig-layer-the-branching-order",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T19:24:36.846659Z"
+  "updated_at": "2026-09-04T19:38:17.560607Z"
 }
