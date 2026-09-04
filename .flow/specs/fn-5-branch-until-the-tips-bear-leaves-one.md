@@ -123,12 +123,28 @@ npm run dev         # the clay harness, where R6 is measured and R8 is judged
 - **Rejected: letting the local rules ignore the bias field.** It is the smaller implementation and it is wrong for these trees. The bias field is the whole of what makes them supernatural, it is a noise lookup that costs nothing at twig scale, and contorted hazel is twisted to the twig, so the botany does not object either. [user]
 - **Rejected: treating "realistic structure" as satisfied by count and ratio alone.** A tree with the right leaf count and the right twig diameter can still fork like a broom. The local rules rest on botanical defaults with sources so that realism is the starting state, and the owner's eye in R8 judges the whole rather than standing in for a structural criterion. [paraphrase]
 
+## Measured
+
+The frame target in R6, taken by the conductor on the named machine: an RTX 3080 (ANGLE, OpenGL ES 3.2), Chromium with vsync and the frame-rate limit disabled, `devicePixelRatio` 2, GPU timer queries through the canopy work's rig, the panel's default 24 m tree with the `orders` dial swept. Medians as the rig reports them, at applied pixel ratio 1.00.
+
+| orders | nodes | triangles in the tree | leaves | CPU build | GPU per frame |
+|---|---|---|---|---|---|
+| 0 | 1,280 | 58,880 | 4,070 | 0.10 s | 0.20 ms |
+| 4 | 4,923 | 273,520 | 18,329 | 0.20 s | 0.45 ms |
+| 6 | 16,132 | 945,240 | 53,253 | 0.80 s | 0.45 ms |
+| 8 | 60,863 | 3,628,680 | 189,843 | 2.12 s | 1.28 ms |
+| 10 | 212,430 (ceiling) | 12,722,000 | 644,440 | 4.06 s | not read: the ceiling notice displaced the sweep line |
+
+Three things follow. **The frame is not the constraint.** Eight orders cost 1.28 ms of a 16.7 ms frame, and the curve is flat across the resolution sweep (1.09 to 1.28 ms from 0.25 to 1.00), so the cost is vertex-bound rather than fill-bound and native pixel ratio adds little. R6's target holds with an order of magnitude to spare through eight orders; Laurelin's 19.6 M triangles at eight orders scale to roughly 7 ms by the same slope. **The constraint is the CPU build**: 2.1 s at eight orders and 4.1 s at ten, against 0.1 s today, which is what task .5's settle-after-the-last-notch exists for and what the "snappy" principle is now measured against. **No impostor is demanded.** Instance memory is 8 MB at eight orders and 107 MB at the node ceiling, and the GPU has headroom at every depth the ceiling allows; the Boundary against an impostor stands, on a number rather than an assertion.
+
+The surface stage is no longer the cheap half. At eight orders the swept surface is 3.1 M of the 3.6 M triangles and 0.37 s of the build; at ten it is 2.5 s of 4.1 s. That closes a parked unknown the other way from the hope.
+
+Two points were not taken. The ten-order GPU figure was displaced on the panel by the node-ceiling notice, which shares its line; and the sweep drove the panel's default tree rather than the presets, because both presets ship at zero orders until R8 sets their depth. The presets' own numbers at the shipping depth are R8's to take with the same rig.
+
 ## Parked unknowns
 
-- Where the crossover between colonization and local rules should sit. It is a measurement against the cost curve and the clay, not a number decidable here. [inferred]
-- Whether interactive build at depth needs debouncing, a coarse preview while dragging, or nothing. [inferred]
-- Whether the surface stage stays the cheap half at millions of triangles, or becomes the thing worth optimising. [inferred]
-- What depth the presets ship at, which is the owner's judgement in clay against the cost curve, and is R8. [paraphrase]
+- What depth the presets ship at, which is the owner's judgement in clay against the cost curve above, and is R8. The measurement bounds it: six to eight orders on the frame, and the build time is the cost being traded. [paraphrase]
+- The crossover sits wherever colonization's tips are at the chosen step; the local pass continues from every tip, so its position is the step dial's, not a separate number. Resolved by construction in task .3. [paraphrase]
 
 ## Early proof point
 
