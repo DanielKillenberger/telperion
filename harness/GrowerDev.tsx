@@ -47,6 +47,13 @@ import "./grower-dev.css";
  *  value put a single dial at two precisions on either side of 0.1:
  *  the trunk dial, whose step is 0.001, read `0.050` and then `0.15`
  *  on two adjacent notches, as if it had skipped a hundred of them. */
+/** A build this cheap, in milliseconds, runs on every notch of a dial;
+ *  a dearer one waits `BUILD_SETTLE_MS` after the last notch. About
+ *  five frames: the default tree builds inside it and the deep ones -
+ *  a second or two at eight twig orders - do not. */
+const BUILD_LIVE_MS = 80;
+const BUILD_SETTLE_MS = 250;
+
 function format(value: number, step: number): string {
   const decimals = Math.max(0, Math.ceil(-Math.log10(step) - 1e-9));
   return value.toFixed(decimals);
@@ -81,6 +88,14 @@ export function GrowerDev() {
   // the tube viewer did; it is not allowed to cost it silently, so the
   // panel says the number every time a dial moves.
   const [stats, setStats] = useState<TreeStats | null>(null);
+  /* What the last build cost, for deciding whether the next one may
+     run on the dial's every notch. Measured at eight twig orders a
+     build is one second on Telperion and two on Laurelin, and a build
+     that runs on every input event holds the slider still for that
+     long per notch; the default tree builds in a tenth of that and
+     wants no delay at all. A ref, not state: the number steers the
+     effect and must not re-run it. */
+  const lastBuildMs = useRef(0);
   /* The flag under suspicion. It is a renderer CONSTRUCTION flag, so
      turning it over is not a setter: it builds a new renderer, and a
      WebGL canvas hands out one context for its whole life, so the
@@ -112,20 +127,41 @@ export function GrowerDev() {
   }, [logDepth]);
 
   useEffect(() => {
-    // `setTree` calls its builder synchronously, so the stats are in
-    // hand by the time it returns.
-    let built: TreeStats | null = null;
-    stageRef.current?.setTree((clay) => {
-      if (compare) {
-        const result = buildComparison(PRESETS, clay);
-        built = result.stats;
-        return result.group;
-      }
-      const result = buildTree(params, clay);
-      built = result.stats;
-      return result.tree;
-    });
-    setStats(built);
+    const build = (): void => {
+      // `setTree` calls its builder synchronously, so the stats are in
+      // hand by the time it returns.
+      const built: { stats: TreeStats | null } = { stats: null };
+      stageRef.current?.setTree((clay) => {
+        if (compare) {
+          const result = buildComparison(PRESETS, clay);
+          built.stats = result.stats;
+          return result.group;
+        }
+        const result = buildTree(params, clay);
+        built.stats = result.stats;
+        return result.tree;
+      });
+      setStats(built.stats);
+      lastBuildMs.current = built.stats?.buildMs ?? 0;
+      stageRef.current?.frameIfWaiting(
+        compare ? tallestPresetHeight() : params.height,
+      );
+    };
+
+    /* A cheap tree rebuilds on every notch; an expensive one waits for
+       the dial to rest. The threshold is the build cost itself, which
+       is the one number that says whether rebuilding per notch would
+       hold the slider still: under it the drag reads as live, over it
+       the build runs once the events stop arriving. A tree at depth
+       is still built at depth - this defers, it does not coarsen. */
+    if (lastBuildMs.current <= BUILD_LIVE_MS) {
+      build();
+    } else {
+      const handle = window.setTimeout(build, BUILD_SETTLE_MS);
+      return () => {
+        window.clearTimeout(handle);
+      };
+    }
 
     /* Frame once, off the first real tree, and then never again on the
        camera's own initiative. A camera that re-frames whenever the
@@ -140,9 +176,6 @@ export function GrowerDev() {
        one, disposes it and builds a second - so a latch held here
        would be spent on a stage that no longer exists and would leave
        the live one unframed. */
-    stageRef.current?.frameIfWaiting(
-      compare ? tallestPresetHeight() : params.height,
-    );
     /* `logDepth` is in the deps of this effect and of every other one
        that configures the stage, because turning it over replaces the
        stage: a fresh one has no subject, no lighting mode and no pinned
@@ -414,8 +447,19 @@ export function GrowerDev() {
         <p className="gd-note">
           {stats === null
             ? "building..."
-            : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.drawCalls.toLocaleString()} draws, ${stats.instances.toLocaleString()} instances, ${stats.buildMs.toFixed(1)} ms`}
+            : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.drawCalls.toLocaleString()} draws, ${stats.instances.toLocaleString()} leaves, ${stats.buildMs.toFixed(1)} ms`}
         </p>
+
+        {/* The ceiling, in words. A capped tree is the ceiling's shape
+            and not the envelope's, and a node count alone cannot say
+            which it was - so the stop is never silent. */}
+        {stats?.capped ? (
+          <p className="gd-note gd-warn">
+            node ceiling reached: growth was stopped, not finished. this
+            tree is the ceiling&apos;s shape, not the envelope&apos;s - raise
+            the step or lower the orders.
+          </p>
+        ) : null}
 
         {/* The renderer's half, which the build cannot know: what the
             scene actually cost last frame, at what resolution, and how

@@ -18,11 +18,7 @@ import {
 } from "../src/mesh/surface";
 import type { TreePreset } from "../src/presets";
 import { solveRadii, type RadiusParams } from "../src/radius";
-import {
-  growSkeleton,
-  resolveGrowth,
-  type SkeletonParams,
-} from "../src/skeleton/grow";
+import { growReport, type SkeletonParams } from "../src/skeleton/grow";
 
 import type { GrowerParams } from "./params";
 import type { Clay } from "./stage";
@@ -193,15 +189,17 @@ export interface TreeStats {
    *  and what every other number here scales with. */
   nodes: number;
   /** Whether the growth stopped at its node ceiling rather than
-   *  finishing the crown. A capped tree is the ceiling's shape and not
-   *  the envelope's, and `nodes` alone cannot say which it was. */
+   *  finishing the crown or the twigs. A capped tree is the ceiling's
+   *  shape and not the envelope's, and `nodes` alone cannot say which
+   *  it was - so the panel says it in words. */
   capped: boolean;
   /** What the subject costs the renderer in draw calls: one per
    *  renderable in it. The canopy's claim is that a whole crown is one
    *  of these, so this is the number that claim is read off. */
   drawCalls: number;
-  /** Instanced copies across the subject: the canopy's elements,
-   *  after culling, and nothing else instances. Read beside
+  /** Instanced copies across the subject: the canopy's elements -
+   *  the leaf count, after the twigs are shed and the canopy is
+   *  culled - and nothing else instances. Read beside
    *  `drawCalls` this is R4's whole claim - a crown of thousands of
    *  leaves arriving as one draw.
    *
@@ -393,7 +391,8 @@ function build(
   clay: Clay,
 ): { tree: THREE.Group; stats: TreeStats } {
   const started = performance.now();
-  const skeleton = growSkeleton(skeletonParams);
+  const grown = growReport(skeletonParams);
+  const skeleton = grown.skeleton;
   const field = solveRadii(skeleton, skeletonParams.envelope, radii);
   const surface = buildSurface(
     skeleton,
@@ -448,10 +447,11 @@ function build(
       triangles: surface.triangles,
       vertices: surface.vertices,
       nodes: skeleton.nodes.length,
-      /* Read off the ceiling the skeleton was actually grown under,
-         which is the library's merge of the derived distances and the
-         caller's overrides; colonization stops exactly at it. */
-      capped: skeleton.nodes.length >= resolveGrowth(skeletonParams).maxNodes,
+      /* The library's own word for it: the finished skeleton is
+         smaller than the count that hit the ceiling once the shell
+         rule has shed its interior twigs, so the node count cannot
+         say whether growth was stopped. */
+      capped: grown.capped,
       drawCalls: draws.drawCalls,
       instances: draws.instances,
       buildMs: performance.now() - started,
