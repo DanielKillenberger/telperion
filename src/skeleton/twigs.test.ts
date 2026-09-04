@@ -8,7 +8,7 @@ import { LAURELIN, TELPERION } from "../presets/two-trees";
 import { solveRadii } from "../radius";
 import { createGrowthBias, DEFAULT_BIAS, NO_BIAS } from "../torsion";
 import type { GrowthConfig, Skeleton } from "./colonize";
-import { growSkeleton, resolveGrowth, type SkeletonParams } from "./grow";
+import { growReport, growSkeleton, resolveGrowth, type SkeletonParams } from "./grow";
 import {
   branchTwigs,
   DEFAULT_TWIGS,
@@ -202,7 +202,17 @@ describe("branchTwigs", () => {
       twigs: { levels: 6 },
       growth: { maxNodes: baseCount + 100 },
     });
-    expect(capped.nodes.length).toBe(baseCount + 100);
+    /* Shedding runs inside growSkeleton after the twig pass, so the
+       finished tree is smaller than the ceiling it hit; the ceiling is
+       asserted where the count is whole, on the report. */
+    expect(capped.nodes.length).toBeLessThanOrEqual(baseCount + 100);
+    const report = growReport({
+      ...params,
+      twigs: { ...params.twigs, levels: 4 },
+      growth: { maxNodes: baseCount + 100 },
+    });
+    expect(report.skeleton.nodes.length + report.shed).toBe(baseCount + 100);
+    expect(report.capped).toBe(true);
   });
 
   it.each([

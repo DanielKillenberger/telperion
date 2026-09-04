@@ -131,6 +131,10 @@ export interface GrowerParams {
    *  the longest unbranched run in the tree, so this is most of what a
    *  trunk's silhouette does between the ground and the first fork. */
   lengthTaper: number;
+  /** The fine orders' thinning exponent, `RadiusParams.twigTaper`: how
+   *  much a twig thins for being shorter than its parent, below the
+   *  crossover only. Not the twig pass's own length `taper`. */
+  twigThinning: number;
   /** Fraction of the height below which there is no crown: bare trunk.
    *  Big trees shed their lower limbs, so a tall tree wants more of
    *  this than a small one. */
@@ -292,6 +296,9 @@ export const SLIDERS: readonly SliderSpec[] = [
   // up, on exactly the trees the 400 m height ceiling was added for.
   { key: "trunkRadius", label: "trunk", min: 0.004, max: 0.085, step: 0.001, unit: "h" },
   { key: "lengthTaper", label: "length taper", min: 0, max: 2, step: 0.05, unit: "" },
+  // Below the crossover only: 0 is area conservation alone (about 2 to 1
+  // leaf to twig at eight orders), 0.7 the measured botanical 25 to 1.
+  { key: "twigThinning", label: "twig thinning", min: 0, max: 4, step: 0.05, unit: "" },
   { group: "envelope", key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
   /* The last two terms of the authored silhouette. `spread` says how
      far the crown reaches and these two say what shape it is on the
@@ -361,6 +368,7 @@ export const DEFAULT_PARAMS: GrowerParams = {
   twigTaper: DEFAULT_TWIGS.taper,
   taper: DEFAULT_RADII.forkExponent,
   trunkRadius: DEFAULT_RADII.trunkRadius,
+  twigThinning: DEFAULT_RADII.twigTaper ?? 0.7,
   lengthTaper: DEFAULT_RADII.lengthTaper,
   crownBase: DEFAULT_ENVELOPE.crownBase,
   fullness: DEFAULT_ENVELOPE.fullness,

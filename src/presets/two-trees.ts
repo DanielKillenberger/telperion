@@ -140,6 +140,10 @@ export const TELPERION: TreePreset = {
     // Just above area-conserving. Forks shed close to their area, so
     // the run from trunk to twig is long and the twigs come out fine.
     forkExponent: 2.15,
+    // The fine orders' own thinning, below the crossover only. 0.7 is
+    // where this tree's leaf meets its twig at about 25 to 1 at eight
+    // orders, measured; area conservation alone gave 2 to 1.
+    twigTaper: 0.7,
     // The long bare trunk is the tree's longest unbranched run, so
     // this is most of what its silhouette does below the crown. High
     // enough that the trunk visibly narrows on the way up.
@@ -278,6 +282,9 @@ export const LAURELIN: TreePreset = {
     // Low. The short bare trunk is a column that keeps its girth right
     // up to the first fork.
     lengthTaper: 0.35,
+    // Same thinning exponent as Telperion: its own fork exponent is what
+    // keeps Laurelin's twigs stouter (about 15 to 1 at eight orders).
+    twigTaper: 0.7,
   },
   surface: {
     radialSegments: 12,

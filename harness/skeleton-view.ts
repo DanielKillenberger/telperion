@@ -125,6 +125,7 @@ export function toRadiusParams(params: GrowerParams): RadiusParams {
     forkExponent: params.taper,
     trunkRadius: params.trunkRadius,
     lengthTaper: params.lengthTaper,
+    twigTaper: params.twigThinning,
   };
 }
 
@@ -298,6 +299,7 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
     lengthTaper: preset.radii.lengthTaper,
+    twigThinning: preset.radii.twigTaper ?? 0.7,
     lobes: preset.surface.lobes,
     lobeDepth: preset.surface.lobeDepth,
     twistRate: preset.surface.twistRate,

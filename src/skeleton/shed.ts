@@ -6,6 +6,7 @@ import {
   type Envelope,
 } from "../envelope";
 import type { Skeleton, SkeletonNode } from "./colonize";
+import type { TwiggedSkeleton } from "./twigs";
 
 /* ------------------------------------------------------------------ *
  * SHEDDING: THE SHELL RULE, ONE LEVEL UP
@@ -123,10 +124,14 @@ export function shedTwigs(
   from: number,
   envelope: Envelope,
   params: CullParams = DEFAULT_SHED,
-): Skeleton {
+): TwiggedSkeleton {
   const nodes = skeleton.nodes;
   const first = Math.max(1, Math.floor(held(from, nodes.length)));
-  if (first >= nodes.length) return { nodes: nodes.slice() };
+  /* Shedding removes nodes at or after `first` only, so the colonization
+     prefix is intact and the crossover the thickness solve keys on is
+     exactly `first`. It is carried through rather than dropped: a plain
+     `{ nodes }` here made the solve read the whole tree as limb. */
+  if (first >= nodes.length) return { nodes: nodes.slice(), crossover: nodes.length };
 
   const maxRadius = envelopeMaxRadius(envelope);
   const shell =
@@ -167,5 +172,5 @@ export function shedTwigs(
       i < first ? node : { position: node.position, parent: index[node.parent] },
     );
   }
-  return { nodes: out };
+  return { nodes: out, crossover: first };
 }

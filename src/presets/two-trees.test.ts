@@ -245,6 +245,7 @@ describe("the preset registry", () => {
         "forkExponent",
         "lengthTaper",
         "trunkRadius",
+        "twigTaper",
       ]);
       expect(Object.keys(preset.surface).sort()).toEqual([
         "flareDepth",

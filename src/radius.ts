@@ -139,6 +139,7 @@ export const DEFAULT_RADII: RadiusParams = {
   trunkRadius: 0.02,
   forkExponent: 2,
   lengthTaper: 0.6,
+  twigTaper: DEFAULT_TWIG_TAPER,
 };
 
 /** Floor under the trunk radius, as a fraction of envelope height. A
