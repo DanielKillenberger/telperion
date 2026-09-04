@@ -6,11 +6,7 @@ import {
   DEFAULT_SURFACE,
   type SurfaceParams,
 } from "@/lib/grower/mesh/surface";
-import {
-  DEFAULT_RADII,
-  solveRadii,
-  type RadiusParams,
-} from "@/lib/grower/radius";
+import { solveRadii, type RadiusParams } from "@/lib/grower/radius";
 import { growSkeleton, type SkeletonParams } from "@/lib/grower/skeleton/grow";
 
 import type { GrowerParams } from "./params";
@@ -62,6 +58,7 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
       ...DEFAULT_ENVELOPE,
       height: params.height,
       spread: params.spread,
+      crownBase: params.crownBase,
     },
     attractors: Math.round(
       ATTRACTORS_MIN + params.density * (ATTRACTORS_MAX - ATTRACTORS_MIN),
@@ -82,14 +79,21 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
   };
 }
 
-/** The panel's `taper` dial, as the radius solve's arguments. The
- *  other two terms of the solve - how stout the trunk is and how fast
- *  a limb thins along its own length - keep the library's defaults,
- *  because no dial has been asked for and inventing panel values for
- *  them would give the harness a second opinion about what a tree
- *  looks like. */
+/** The panel's three thickness dials, as the radius solve's arguments.
+ *  All three carry the library's own names and units, so there is
+ *  nothing here to translate and nothing to drift.
+ *
+ *  `trunkRadius` is the one that answers "is this a big tree": the
+ *  library states it as a fraction of height and does not scale it
+ *  with height, so a 60 m tree is exactly as slender in proportion as
+ *  a 4 m one until somebody says otherwise. Saying otherwise is the
+ *  dial, and later the preset. */
 export function toRadiusParams(params: GrowerParams): RadiusParams {
-  return { ...DEFAULT_RADII, forkExponent: params.taper };
+  return {
+    forkExponent: params.taper,
+    trunkRadius: params.trunkRadius,
+    lengthTaper: params.lengthTaper,
+  };
 }
 
 

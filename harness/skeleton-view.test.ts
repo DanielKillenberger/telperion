@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
 import { DEFAULT_SURFACE } from "@/lib/grower/mesh/surface";
 import { DEFAULT_RADII, solveRadii } from "@/lib/grower/radius";
 import { growSkeleton } from "@/lib/grower/skeleton/grow";
@@ -166,14 +167,29 @@ describe("toRadiusParams", () => {
     );
   });
 
-  it("leaves the solve's other two terms at the library's own defaults", () => {
-    // The panel is not allowed a second opinion about how stout a tree
-    // is; the day one of these gets a dial it gets one here, not a
-    // number invented in the harness.
-    const mapped = toRadiusParams(DEFAULT_PARAMS);
-    expect(mapped.trunkRadius).toBe(DEFAULT_RADII.trunkRadius);
-    expect(mapped.lengthTaper).toBe(DEFAULT_RADII.lengthTaper);
+  it("hands the solve's other two terms over as dials", () => {
+    /* They used to be defaults with no dial, and the note here said
+       the day one of them got a dial it would get one here rather than
+       a number invented in the harness. This is that day: how stout a
+       tree is at the ground is what makes a 60 m tree read as 60 m,
+       and the library will not do it on its own. */
+    const mapped = toRadiusParams({
+      ...DEFAULT_PARAMS,
+      trunkRadius: 0.032,
+      lengthTaper: 0.9,
+    });
+    expect(mapped.trunkRadius).toBe(0.032);
+    expect(mapped.lengthTaper).toBe(0.9);
+    // Out of the box the panel still has no opinion of its own.
     expect(toRadiusParams(DEFAULT_PARAMS)).toEqual(DEFAULT_RADII);
+  });
+
+  it("hands the bare-trunk height over as the envelope term it is", () => {
+    expect(toSkeletonParams({ ...DEFAULT_PARAMS, crownBase: 0.45 }).envelope)
+      .toMatchObject({ crownBase: 0.45 });
+    expect(toSkeletonParams(DEFAULT_PARAMS).envelope.crownBase).toBe(
+      DEFAULT_ENVELOPE.crownBase,
+    );
   });
 });
 

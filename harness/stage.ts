@@ -54,6 +54,28 @@ const FRAME_MARGIN = 1.3;
  *  angle is authored. */
 const FRAME_DIRECTION = new THREE.Vector3(0.62, 0.28, 1).normalize();
 
+/** The ground disc's built radius, in metres. Everything else about
+ *  the room is scaled off the subject at framing time, this included -
+ *  it is the unit the scale is applied to, not a size in its own
+ *  right. */
+const GROUND_RADIUS = 400;
+
+/** How far the room reaches past the camera, as a multiple of the
+ *  camera's own distance from the subject. The horizon has to be well
+ *  outside the frame or the tree stands on a visible disc floating in
+ *  the void, and the far plane has to be outside the horizon or the
+ *  disc is cut off instead. Six is comfortably past both.
+ *
+ *  It is a multiple rather than a number of metres because the subject
+ *  spans two orders of magnitude: a 4 m sapling and a 400 m Telperion
+ *  need the same room in proportion and wildly different rooms in
+ *  metres. */
+const ROOM_REACH = 6;
+
+/** Where the lighting check's key light stands, as a direction. Its
+ *  distance, like the room's, comes from the subject. */
+const KEY_DIRECTION = new THREE.Vector3(24, 40, 18).normalize();
+
 /** The clay, in the two forms a subject can take. A builder is handed
  *  these rather than choosing a material, because clay is the only
  *  mode the tree is ever judged in and a caller must not be able to
@@ -109,16 +131,10 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
      shadowless fill opposite it: the pair that shows how form takes a
      hard light. Neither is in the scene until asked for. */
   const key = new THREE.DirectionalLight(0xff_ff_ff, 2.2);
-  key.position.set(24, 40, 18);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   const shadowCamera = key.shadow.camera;
   shadowCamera.near = 1;
-  shadowCamera.far = 400;
-  shadowCamera.left = -80;
-  shadowCamera.right = 80;
-  shadowCamera.top = 120;
-  shadowCamera.bottom = -20;
 
   const fill = new THREE.DirectionalLight(0xff_ff_ff, 0.9);
   fill.position.set(-30, 20, -14);
@@ -140,7 +156,7 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
     metalness: 0,
   });
 
-  const groundGeometry = new THREE.CircleGeometry(400, 96);
+  const groundGeometry = new THREE.CircleGeometry(GROUND_RADIUS, 96);
   const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
@@ -227,6 +243,34 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
       .addScaledVector(FRAME_DIRECTION, Math.max(distance, 1));
     // Never underground, however low the subject's centre sits.
     camera.position.y = Math.max(camera.position.y, FIGURE_HEIGHT);
+
+    /* Grow the room to fit. The subject runs from a 4 m sapling to a
+       tree of the Two Trees' order, hundreds of metres, and a room
+       built for one of those is wrong for the other in both
+       directions: too small and the tree stands on a visible disc in
+       the void with the horizon inside the frame, too large and the
+       depth buffer is spending its precision on empty distance. So the
+       ground, the far plane, the orbit's reach and the key light's
+       stand-off are all multiples of how far back the camera had to
+       go - the one number that already knows how big the subject is. */
+    const reach = Math.max(GROUND_RADIUS, distance * ROOM_REACH);
+    ground.scale.setScalar(reach / GROUND_RADIUS);
+    camera.far = reach * 2;
+    camera.updateProjectionMatrix();
+    controls.maxDistance = reach;
+    controls.minDistance = Math.min(1, distance * 0.01);
+
+    /* The shadow camera is an orthographic box and it has to contain
+       the subject or the lighting check drops the shadows outside it. */
+    const extent = Math.max(size.x, size.y, size.z) * 0.75 + 1;
+    key.position.copy(KEY_DIRECTION).multiplyScalar(extent * 3);
+    shadowCamera.left = -extent * 2;
+    shadowCamera.right = extent * 2;
+    shadowCamera.top = extent * 2;
+    shadowCamera.bottom = -extent * 2;
+    shadowCamera.far = extent * 8;
+    shadowCamera.updateProjectionMatrix();
+
     controls.update();
   };
 

@@ -23,10 +23,15 @@
  * principle rules out.
  *
  * The radius solve's other two terms - how stout the trunk is and how
- * fast a limb thins along its length - are library parameters with
- * documented defaults and no dial, on the same footing as the growth
- * distances in grow.ts: nothing has asked to turn them live yet, and
- * each is one line in SLIDERS the day something does.
+ * fast a limb thins along its length - now have dials too, and so does
+ * the envelope's bare-trunk height. They are the three that decide
+ * whether a tall tree reads as a tall tree rather than as a small one
+ * photographed close up, and the library is scale-free on purpose: it
+ * states every length as a fraction of height, so nothing in it makes
+ * a 60 m trunk proportionally stouter than a 24 m one. That is the
+ * right split - physics is a preset's business, not a hidden rule
+ * inside the generator - but it only holds if the terms can be
+ * reached, and until now they could not be.
  *
  * The bias dials are five and not one, because a single number mixes
  * qualities that are independent - a tree that leans is a different
@@ -44,6 +49,7 @@
  * be walked to one at a time.
  * ------------------------------------------------------------------ */
 
+import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
 import { DEFAULT_SURFACE } from "@/lib/grower/mesh/surface";
 import { DEFAULT_RADII } from "@/lib/grower/radius";
 import { DEFAULT_MAX_TURN_PER_STEP } from "@/lib/grower/skeleton/colonize";
@@ -89,6 +95,21 @@ export interface GrowerParams {
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
   taper: number;
+  /** How stout the tree is at the ground, as a fraction of height.
+   *  Scale-independent by design, which means a taller tree is NOT
+   *  automatically a stouter one in proportion - a 60 m tree wants
+   *  this dialled up from a 24 m tree's, and this is the dial that
+   *  does it. */
+  trunkRadius: number;
+  /** How fast a limb thins where nothing branches off it, in
+   *  e-foldings per envelope height. The bare trunk below the crown is
+   *  the longest unbranched run in the tree, so this is most of what a
+   *  trunk's silhouette does between the ground and the first fork. */
+  lengthTaper: number;
+  /** Fraction of the height below which there is no crown: bare trunk.
+   *  Big trees shed their lower limbs, so a tall tree wants more of
+   *  this than a small one. */
+  crownBase: number;
   /** Lobes on the swept cross section: how many strands a limb reads
    *  as. 0 is the circle everyone else extrudes. */
   lobes: number;
@@ -115,7 +136,13 @@ export interface SliderSpec {
 }
 
 export const SLIDERS: readonly SliderSpec[] = [
-  { key: "height", label: "height", min: 4, max: 60, step: 0.5, unit: "m" },
+  /* Up to four hundred metres, because the subject is the Two Trees
+     and they are not a tall oak - the references put them on the scale
+     of a landscape feature, with a city at their feet. The bottom of
+     the range stays at a sapling: the generator is a standalone
+     library and its acceptance is that one algorithm covers the range,
+     not that it covers Valinor. */
+  { key: "height", label: "height", min: 4, max: 400, step: 0.5, unit: "m" },
   { key: "spread", label: "spread", min: 0.12, max: 0.65, step: 0.01, unit: "" },
   // The bias dials run well past what looks good. The owner has to be
   // able to see where too much is, or the usable range sits at the
@@ -139,6 +166,17 @@ export const SLIDERS: readonly SliderSpec[] = [
   // as limbs. The dial spans both sides of that so the good range is
   // visibly a choice.
   { key: "taper", label: "taper", min: 1.4, max: 3.6, step: 0.05, unit: "n" },
+  /* The other two terms of the radius solve, and the envelope's bare
+     trunk. They are here because scale is one dial and everything else
+     is stated as a fraction of it: nothing in the library makes a
+     60 m tree stouter in proportion than a 24 m one, or bares more of
+     its trunk, and both of those are things a big tree does. That is
+     deliberate - the library stays scale-free and a preset says what
+     size a tree is being - but it only works if the terms are
+     reachable, and these three were the ones that were not. */
+  { key: "trunkRadius", label: "trunk", min: 0.004, max: 0.05, step: 0.001, unit: "h" },
+  { key: "lengthTaper", label: "length taper", min: 0, max: 2, step: 0.05, unit: "" },
+  { key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
   // The surface dials. `lobes` is a count and steps by one; the other
   // three run from the circular, straight, unflared surface every other
   // procedural tree has out to well past what looks good, on the same
@@ -167,6 +205,9 @@ export const DEFAULT_PARAMS: GrowerParams = {
   maxTurnPerStep: DEFAULT_MAX_TURN_PER_STEP,
   density: 0.5,
   taper: DEFAULT_RADII.forkExponent,
+  trunkRadius: DEFAULT_RADII.trunkRadius,
+  lengthTaper: DEFAULT_RADII.lengthTaper,
+  crownBase: DEFAULT_ENVELOPE.crownBase,
   lobes: DEFAULT_SURFACE.lobes,
   lobeDepth: DEFAULT_SURFACE.lobeDepth,
   twistRate: DEFAULT_SURFACE.twistRate,

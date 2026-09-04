@@ -28,6 +28,13 @@ import { buildTree, type TreeStats } from "./skeleton-view";
 import { createStage, type Stage } from "./stage";
 import "./grower-dev.css";
 
+/** A dial's value, at a precision that can tell its own steps apart.
+ *  Two places is right for most of them and hides the whole range of
+ *  the trunk dial, which lives between 0.004 and 0.05. */
+function format(value: number): string {
+  return Math.abs(value) < 0.1 ? value.toFixed(3) : value.toFixed(2);
+}
+
 export function GrowerDev() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<Stage | null>(null);
@@ -138,7 +145,7 @@ export function GrowerDev() {
               {spec.label}
             </label>
             <span className="gd-value">
-              {params[spec.key].toFixed(2)}
+              {format(params[spec.key])}
               {spec.unit}
             </span>
             <input
