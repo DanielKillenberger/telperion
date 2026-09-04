@@ -1,19 +1,17 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
+import { DEFAULT_SURFACE } from "@/lib/grower/mesh/surface";
 import { DEFAULT_RADII, solveRadii } from "@/lib/grower/radius";
-import type { Skeleton } from "@/lib/grower/skeleton/colonize";
 import { growSkeleton } from "@/lib/grower/skeleton/grow";
 import { DEFAULT_BIAS } from "@/lib/grower/torsion";
 
 import { DEFAULT_PARAMS, type GrowerParams } from "./params";
 import {
-  branchGeometry,
   buildTree,
-  TUBE_SIDES,
   toRadiusParams,
   toSkeletonParams,
+  toSurfaceParams,
 } from "./skeleton-view";
 
 /* The panel's promise is that a seed change and a slider move produce a
@@ -28,7 +26,7 @@ const clay = {
 };
 
 function tree(overrides: Partial<GrowerParams> = {}): THREE.Mesh {
-  return buildTree({ ...DEFAULT_PARAMS, ...overrides }, clay);
+  return buildTree({ ...DEFAULT_PARAMS, ...overrides }, clay).tree;
 }
 
 function positions(mesh: THREE.Mesh): Float32Array {
@@ -132,6 +130,35 @@ describe("toSkeletonParams", () => {
   });
 });
 
+describe("toSurfaceParams", () => {
+  it("hands the four surface dials over under the library's names", () => {
+    const mapped = toSurfaceParams({
+      ...DEFAULT_PARAMS,
+      lobes: 7,
+      lobeDepth: 0.23,
+      twistRate: -2.5,
+      flareRadius: 3.1,
+    });
+    expect(mapped).toEqual({
+      ...DEFAULT_SURFACE,
+      lobes: 7,
+      lobeDepth: 0.23,
+      twistRate: -2.5,
+      flareRadius: 3.1,
+    });
+  });
+
+  it("leaves the surface twist outside the torsion master", () => {
+    /* `torsion` gathers the three terms that bend the CENTRELINE. The
+       plait is the skin winding about that path - a different
+       mechanism, and one dial meaning both is exactly what the spec's
+       parameter principle rules out. */
+    const straight = { ...DEFAULT_PARAMS, torsion: 0, twistRate: 2 };
+    expect(toSurfaceParams(straight).twistRate).toBe(2);
+    expect(toSkeletonParams(straight).bias?.spiralRate).toBe(0);
+  });
+});
+
 describe("toRadiusParams", () => {
   it("hands the taper dial over as the fork exponent", () => {
     expect(toRadiusParams({ ...DEFAULT_PARAMS, taper: 2.6 }).forkExponent).toBe(
@@ -150,82 +177,40 @@ describe("toRadiusParams", () => {
   });
 });
 
-describe("branchGeometry", () => {
-  const straight: Skeleton = {
-    nodes: [
-      { position: new THREE.Vector3(0, 0, 0), parent: -1 },
-      { position: new THREE.Vector3(0, 1, 0), parent: 0 },
-      { position: new THREE.Vector3(1, 2, 0), parent: 1 },
-    ],
-  };
-
-  it("builds one closed tube per branch and nothing for the root", () => {
-    const field = solveRadii(straight, DEFAULT_ENVELOPE, DEFAULT_RADII);
-    const geometry = branchGeometry(straight, field);
-    // Two branches, two rings each, and two triangles per side.
-    expect(geometry.getAttribute("position").count).toBe(2 * 2 * TUBE_SIDES);
-    expect(geometry.getIndex()!.count).toBe(2 * TUBE_SIDES * 6);
-  });
-
-  it("puts each ring at the radius the solve gave that end", () => {
-    const field = solveRadii(straight, DEFAULT_ENVELOPE, DEFAULT_RADII);
-    const geometry = branchGeometry(straight, field);
-    const points = geometry.getAttribute("position").array as Float32Array;
-
-    // The first ring sits about the root, at the trunk's own radius:
-    // the tube is a viewer for the field, so a vertex that disagreed
-    // with it would be the harness inventing a thickness of its own.
-    for (let side = 0; side < TUBE_SIDES; side += 1) {
-      const at = side * 3;
-      const offset = new THREE.Vector3(points[at], points[at + 1], points[at + 2]);
-      expect(offset.length()).toBeCloseTo(field.startRadius[1], 5);
-    }
-  });
-
-  it("draws nothing for a skeleton that never grew", () => {
-    const lone: Skeleton = {
-      nodes: [{ position: new THREE.Vector3(0, 0, 0), parent: -1 }],
-    };
-    const geometry = branchGeometry(
-      lone,
-      solveRadii(lone, DEFAULT_ENVELOPE, DEFAULT_RADII),
-    );
-    expect(geometry.getAttribute("position").count).toBe(0);
-    expect(geometry.getIndex()!.count).toBe(0);
-  });
-
-  it("skips a zero-length branch rather than emitting NaN vertices", () => {
-    // Normalising a zero axis is the one way this geometry can put a
-    // NaN on screen, and a NaN vertex takes the whole draw call with it.
-    const doubled: Skeleton = {
-      nodes: [
-        { position: new THREE.Vector3(0, 0, 0), parent: -1 },
-        { position: new THREE.Vector3(0, 0, 0), parent: 0 },
-        { position: new THREE.Vector3(0, 1, 0), parent: 1 },
-      ],
-    };
-    const geometry = branchGeometry(
-      doubled,
-      solveRadii(doubled, DEFAULT_ENVELOPE, DEFAULT_RADII),
-    );
-    expect(geometry.getAttribute("position").count).toBe(2 * TUBE_SIDES);
-    for (const value of geometry.getAttribute("position").array) {
-      expect(Number.isFinite(value)).toBe(true);
-    }
-  });
-});
-
 describe("buildTree", () => {
   it("produces a solid the stage can draw, in clay", () => {
     const mesh = tree();
     expect(mesh).toBeInstanceOf(THREE.Mesh);
     expect(mesh.material).toBe(clay.surface);
     expect(positions(mesh).length).toBeGreaterThan(0);
-    // One ring per branch end, three floats a vertex.
-    expect(positions(mesh).length % (TUBE_SIDES * 2 * 3)).toBe(0);
     expect(mesh.geometry.getAttribute("normal")).toBeDefined();
     for (const value of positions(mesh)) {
       expect(Number.isFinite(value)).toBe(true);
+    }
+  });
+
+  it("reports what the build cost, for the panel to show", () => {
+    // The surface is allowed to cost more than the tube viewer did.
+    // It is not allowed to cost it silently.
+    const { tree: mesh, stats } = buildTree(DEFAULT_PARAMS, clay);
+    expect(stats.triangles * 3).toBe(mesh.geometry.getIndex()!.count);
+    expect(stats.vertices * 3).toBe(positions(mesh).length);
+    expect(stats.nodes).toBe(
+      growSkeleton(toSkeletonParams(DEFAULT_PARAMS)).nodes.length,
+    );
+    expect(stats.buildMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it("every surface dial reaches the geometry", () => {
+    // A dial that renders and does nothing is worse than no dial.
+    const plain = [...positions(tree())];
+    for (const dial of [
+      { lobes: 0 },
+      { lobeDepth: 0.4 },
+      { twistRate: -3 },
+      { flareRadius: 4 },
+    ]) {
+      expect([...positions(tree(dial))]).not.toEqual(plain);
     }
   });
 
@@ -260,8 +245,16 @@ describe("buildTree", () => {
       crownNarrowest = Math.min(crownNarrowest, solved.radius[node]);
     }
 
+    /* At the foot the drawn surface is deliberately wider than the
+       solve's trunk radius: the root flare spreads it into the ground,
+       and the lobes cut in and out around it. Both are stated
+       multipliers, so the widest vertex down there is exactly the two
+       of them on the trunk radius and nothing else. */
     const trunk = DEFAULT_RADII.trunkRadius * height;
-    expect(footWidth).toBeCloseTo(trunk, 2);
+    const flared =
+      trunk * DEFAULT_PARAMS.flareRadius * (1 + DEFAULT_PARAMS.lobeDepth);
+    expect(footWidth).toBeGreaterThan(trunk);
+    expect(footWidth).toBeLessThanOrEqual(flared * 1.001);
     expect(crownWidest).toBeLessThan(trunk);
     expect(crownNarrowest * 20).toBeLessThan(trunk);
   });

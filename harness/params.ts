@@ -11,8 +11,16 @@
  * `height` and `spread` are the authored envelope, the five bias dials
  * are the growth bias field's own five terms under their own names,
  * `taper` is the radius solve's fork exponent, `density` is how many
- * attractors the envelope gets. Nothing is a knob invented for the
+ * attractors the envelope gets, and the four surface dials are the
+ * swept section's own terms. Nothing is a knob invented for the
  * panel's sake.
+ *
+ * The two twists are two dials and are never folded together. `spiral`
+ * bends the centreline - the path the limb takes through the air.
+ * `surface twist` winds the cross section about that path - the plait
+ * on the skin. A tree can have either without the other, and a single
+ * dial for both would be exactly the lumping the spec's parameter
+ * principle rules out.
  *
  * The radius solve's other two terms - how stout the trunk is and how
  * fast a limb thins along its length - are library parameters with
@@ -36,6 +44,7 @@
  * be walked to one at a time.
  * ------------------------------------------------------------------ */
 
+import { DEFAULT_SURFACE } from "@/lib/grower/mesh/surface";
 import { DEFAULT_RADII } from "@/lib/grower/radius";
 import { DEFAULT_MAX_TURN_PER_STEP } from "@/lib/grower/skeleton/colonize";
 import { DEFAULT_BIAS } from "@/lib/grower/torsion";
@@ -80,6 +89,19 @@ export interface GrowerParams {
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
   taper: number;
+  /** Lobes on the swept cross section: how many strands a limb reads
+   *  as. 0 is the circle everyone else extrudes. */
+  lobes: number;
+  /** How deep the lobes cut, as a fraction of the radius. */
+  lobeDepth: number;
+  /** Turns of the cross section about its own axis over the tree's
+   *  height. This is the SURFACE winding - the plaited rope quality -
+   *  and it is a different mechanism from `spiralRate`, which bends the
+   *  centreline. Outside `torsion` for that reason. */
+  twistRate: number;
+  /** How much wider the trunk is where it meets the ground, as a
+   *  multiple of its radius there. 1 is no flare. */
+  flareRadius: number;
 }
 
 export interface SliderSpec {
@@ -117,6 +139,19 @@ export const SLIDERS: readonly SliderSpec[] = [
   // as limbs. The dial spans both sides of that so the good range is
   // visibly a choice.
   { key: "taper", label: "taper", min: 1.4, max: 3.6, step: 0.05, unit: "n" },
+  // The surface dials. `lobes` is a count and steps by one; the other
+  // three run from the circular, straight, unflared surface every other
+  // procedural tree has out to well past what looks good, on the same
+  // principle as the bias dials - the owner has to be able to see where
+  // too much is.
+  { key: "lobes", label: "lobes", min: 0, max: 9, step: 1, unit: "" },
+  { key: "lobeDepth", label: "lobe depth", min: 0, max: 0.4, step: 0.01, unit: "" },
+  // Signed, because a plait winding the other way is a different tree
+  // and not a smaller one. Stops at three turns either side: the section
+  // is sampled once per growth step, and past about six turns over the
+  // height the winding outruns the sampling and reads as chatter.
+  { key: "twistRate", label: "surface twist", min: -3, max: 3, step: 0.1, unit: "turns" },
+  { key: "flareRadius", label: "root flare", min: 1, max: 4, step: 0.05, unit: "x" },
 ];
 
 export const DEFAULT_PARAMS: GrowerParams = {
@@ -132,6 +167,10 @@ export const DEFAULT_PARAMS: GrowerParams = {
   maxTurnPerStep: DEFAULT_MAX_TURN_PER_STEP,
   density: 0.5,
   taper: DEFAULT_RADII.forkExponent,
+  lobes: DEFAULT_SURFACE.lobes,
+  lobeDepth: DEFAULT_SURFACE.lobeDepth,
+  twistRate: DEFAULT_SURFACE.twistRate,
+  flareRadius: DEFAULT_SURFACE.flareRadius,
 };
 
 /** The seed field is the one free-text surface on the panel, so it is

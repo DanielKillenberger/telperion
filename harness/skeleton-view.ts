@@ -2,12 +2,15 @@ import * as THREE from "three";
 
 import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
 import {
+  buildSurface,
+  DEFAULT_SURFACE,
+  type SurfaceParams,
+} from "@/lib/grower/mesh/surface";
+import {
   DEFAULT_RADII,
   solveRadii,
-  type RadiusField,
   type RadiusParams,
 } from "@/lib/grower/radius";
-import type { Skeleton } from "@/lib/grower/skeleton/colonize";
 import { growSkeleton, type SkeletonParams } from "@/lib/grower/skeleton/grow";
 
 import type { GrowerParams } from "./params";
@@ -23,15 +26,13 @@ import type { Clay } from "./stage";
  * is what "the generator is a standalone library" has to mean in
  * practice.
  *
- * It draws each branch as a tapered tube of circular section, which
- * is a viewer for the radius solve and nothing more. fn-11.5 sweeps
- * the real surface in the library - non-circular, rotating along its
- * length, with a root flare - and deletes this. The line separating
- * the two is deliberate: what is on screen here is the thickness
- * hierarchy and only the thickness hierarchy, because that is what
- * this task is judged on, and a proxy that started reaching for the
- * look of the surface would be answering fn-11.5's question badly
- * instead of this one honestly.
+ * The surface itself is the library's, and all of it: growing the
+ * skeleton, solving the radii and sweeping the skin are three library
+ * calls, and what is left here is the translation either side of them
+ * plus the cost of the build, which the panel reports. The tapered
+ * proxy tubes this file used to draw are gone - they were a viewer for
+ * the radius solve while there was no surface to look at, and every
+ * gap the owner screenshotted was theirs.
  * ------------------------------------------------------------------ */
 
 /** What the density dial spans, in attractors. The floor is a tree
@@ -91,105 +92,54 @@ export function toRadiusParams(params: GrowerParams): RadiusParams {
   return { ...DEFAULT_RADII, forkExponent: params.taper };
 }
 
-/** Sides on the proxy tube's cross section. Enough that a trunk beside
- *  a 1.8 m figure reads as round rather than as a prism, few enough
- *  that a 1600-attractor tree is still one cheap draw call. It is not
- *  a look decision: fn-11.5's section is not a circle at all. */
-export const TUBE_SIDES = 8;
 
-/** One tapered tube per branch, in one geometry and one draw call.
+/** The panel's four surface dials, as the sweep's arguments. The rest
+ *  of `SurfaceParams` - how finely the section is sampled, how deep a
+ *  child sockets into its parent and how much it swells leaving it,
+ *  how far the flare decays and how far it sinks - keep the library's
+ *  defaults, on the same footing as the growth distances in grow.ts:
+ *  they are structure and cost rather than look, nothing has asked to
+ *  turn them live, and each is one line in SLIDERS the day something
+ *  does.
  *
- *  Each tube runs from its parent's position at `startRadius` to its
- *  own at `radius`, which is what the radius solve means by those two
- *  numbers - so along an unbranched run consecutive tubes meet at
- *  exactly the same width and the limb reads as continuous, while at a
- *  fork each limb leaves the trunk at its own width.
- *
- *  Ring orientation comes from a fixed world reference rather than
- *  from the branch it follows, so two consecutive tubes pointing
- *  nearly the same way get nearly the same ring and the joint does not
- *  visibly twist. A real swept frame, carried along the branch, is
- *  fn-11.5's. */
-export function branchGeometry(
-  skeleton: Skeleton,
-  field: RadiusField,
-): THREE.BufferGeometry {
-  const edges: number[] = [];
-  skeleton.nodes.forEach((node, index) => {
-    if (node.parent < 0) return;
-    if (node.position.distanceTo(skeleton.nodes[node.parent].position) > 0) {
-      edges.push(index);
-    }
-  });
-
-  const ring = TUBE_SIDES;
-  const positions = new Float32Array(edges.length * ring * 2 * 3);
-  const indices = new Uint32Array(edges.length * ring * 6);
-
-  const axis = new THREE.Vector3();
-  const reference = new THREE.Vector3();
-  const across = new THREE.Vector3();
-  const up = new THREE.Vector3();
-  const offset = new THREE.Vector3();
-
-  edges.forEach((node, edge) => {
-    const from = skeleton.nodes[skeleton.nodes[node].parent].position;
-    const to = skeleton.nodes[node].position;
-    axis.subVectors(to, from).normalize();
-
-    // The world axis this branch is least aligned with; crossing with
-    // the one it points most nearly along would be a degenerate basis.
-    const ax = Math.abs(axis.x);
-    const ay = Math.abs(axis.y);
-    const az = Math.abs(axis.z);
-    if (ax <= ay && ax <= az) reference.set(1, 0, 0);
-    else if (ay <= az) reference.set(0, 1, 0);
-    else reference.set(0, 0, 1);
-    across.crossVectors(axis, reference).normalize();
-    up.crossVectors(axis, across);
-
-    const base = edge * ring * 2;
-    for (let side = 0; side < ring; side += 1) {
-      const angle = (side / ring) * Math.PI * 2;
-      offset
-        .copy(across)
-        .multiplyScalar(Math.cos(angle))
-        .addScaledVector(up, Math.sin(angle));
-
-      const start = (base + side) * 3;
-      positions[start] = from.x + offset.x * field.startRadius[node];
-      positions[start + 1] = from.y + offset.y * field.startRadius[node];
-      positions[start + 2] = from.z + offset.z * field.startRadius[node];
-
-      const end = (base + ring + side) * 3;
-      positions[end] = to.x + offset.x * field.radius[node];
-      positions[end + 1] = to.y + offset.y * field.radius[node];
-      positions[end + 2] = to.z + offset.z * field.radius[node];
-    }
-
-    for (let side = 0; side < ring; side += 1) {
-      const next = (side + 1) % ring;
-      const at = (edge * ring + side) * 6;
-      indices[at] = base + side;
-      indices[at + 1] = base + next;
-      indices[at + 2] = base + ring + side;
-      indices[at + 3] = base + next;
-      indices[at + 4] = base + ring + next;
-      indices[at + 5] = base + ring + side;
-    }
-  });
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  // Shared ring vertices, so this smooths around the tube and leaves
-  // the joints between tubes as the only hard edges.
-  geometry.computeVertexNormals();
-  return geometry;
+ *  `twistRate` is the surface's rotation and it is deliberately not
+ *  scaled by the panel's `torsion` master: `torsion` gathers the three
+ *  terms that bend the CENTRELINE, and the plait is a different
+ *  mechanism that happens to the skin. Folding them together would
+ *  make one dial mean two things, which is the thing the spec's
+ *  parameter principle exists to stop. */
+export function toSurfaceParams(params: GrowerParams): SurfaceParams {
+  return {
+    ...DEFAULT_SURFACE,
+    lobes: params.lobes,
+    lobeDepth: params.lobeDepth,
+    twistRate: params.twistRate,
+    flareRadius: params.flareRadius,
+  };
 }
 
-/** The subject the stage draws: this tree, in clay, with thickness. */
-export function buildTree(params: GrowerParams, clay: Clay): THREE.Mesh {
+/** What the surface cost to build, for the panel to report. The owner
+ *  is entitled to know what a dial just spent: the swept skin is
+ *  allowed to cost more than the fn-11.4 viewer did, but not silently. */
+export interface TreeStats {
+  triangles: number;
+  vertices: number;
+  /** Skeleton nodes, which is what the density dial moves and what
+   *  every other number here scales with. */
+  nodes: number;
+  /** Wall-clock milliseconds for the whole build: grow, solve, sweep. */
+  buildMs: number;
+}
+
+/** The subject the stage draws: this tree, in clay, skinned.
+ *
+ *  Deterministic in `params` - same seed and dials, same mesh, vertex
+ *  for vertex - because every stage of it is. */
+export function buildTree(
+  params: GrowerParams,
+  clay: Clay,
+): { tree: THREE.Mesh; stats: TreeStats } {
+  const started = performance.now();
   const skeletonParams = toSkeletonParams(params);
   const skeleton = growSkeleton(skeletonParams);
   const field = solveRadii(
@@ -197,7 +147,33 @@ export function buildTree(params: GrowerParams, clay: Clay): THREE.Mesh {
     skeletonParams.envelope,
     toRadiusParams(params),
   );
-  const tree = new THREE.Mesh(branchGeometry(skeleton, field), clay.surface);
+  const surface = buildSurface(
+    skeleton,
+    field,
+    skeletonParams.envelope,
+    toSurfaceParams(params),
+  );
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(surface.positions, 3),
+  );
+  geometry.setIndex(new THREE.BufferAttribute(surface.indices, 1));
+  /* Shared ring vertices carry a shared normal, so this smooths around
+     the section and along the sweep in one pass. There are no joints
+     left for it to smooth over: the surface has none. */
+  geometry.computeVertexNormals();
+
+  const tree = new THREE.Mesh(geometry, clay.surface);
   tree.name = "grower-tree";
-  return tree;
+  return {
+    tree,
+    stats: {
+      triangles: surface.triangles,
+      vertices: surface.vertices,
+      nodes: skeleton.nodes.length,
+      buildMs: performance.now() - started,
+    },
+  };
 }

@@ -24,7 +24,7 @@ import {
   randomSeed,
   readSlider,
 } from "./params";
-import { buildTree } from "./skeleton-view";
+import { buildTree, type TreeStats } from "./skeleton-view";
 import { createStage, type Stage } from "./stage";
 import "./grower-dev.css";
 
@@ -37,6 +37,10 @@ export function GrowerDev() {
   // away mid-keystroke; `params.seed` only moves when it parses.
   const [seedText, setSeedText] = useState(String(DEFAULT_PARAMS.seed));
   const [lightingCheck, setLightingCheck] = useState(false);
+  // What the last build cost. The surface is allowed to cost more than
+  // the tube viewer did; it is not allowed to cost it silently, so the
+  // panel says the number every time a dial moves.
+  const [stats, setStats] = useState<TreeStats | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,7 +55,15 @@ export function GrowerDev() {
   }, []);
 
   useEffect(() => {
-    stageRef.current?.setTree((clay) => buildTree(params, clay));
+    // `setTree` calls its builder synchronously, so the stats are in
+    // hand by the time it returns.
+    let built: TreeStats | null = null;
+    stageRef.current?.setTree((clay) => {
+      const result = buildTree(params, clay);
+      built = result.stats;
+      return result.tree;
+    });
+    setStats(built);
   }, [params]);
 
   useEffect(() => {
@@ -153,11 +165,17 @@ export function GrowerDev() {
           </button>
         </div>
 
+        <p className="gd-note">
+          {stats === null
+            ? "building..."
+            : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.buildMs.toFixed(1)} ms`}
+        </p>
+
         <p className="gd-note gd-warn">
-          structure and thickness: branches are round tubes, a viewer for
-          the radius solve. taper is its fork exponent - 2 conserves
-          cross-sectional area. the real surface, non-circular and
-          rotating with a root flare, lands in fn-11.5.
+          one swept surface, lobed section winding along its own length,
+          flared into the ground. spiral bends the centreline; surface
+          twist winds the skin. no foliage yet - fn-11.6 emits the
+          frames, the consumer places what goes on them.
         </p>
       </aside>
     </div>
