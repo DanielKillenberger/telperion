@@ -45,6 +45,15 @@ It also runs out. Each halving of the step costs about 2.3 times the nodes, so t
 - **Leaves attach where wood is leaf-scale**, which the recursion now reaches, so foliage placement stops needing a special rule about which wood is young enough. [paraphrase]
 - **Both presets state the depth terms**, as they state every other term. [paraphrase]
 
+### Grounded by research
+
+- **Switching method by scale is standard practice, not a compromise.** Weber and Penn, SpeedTree and Runions all generate per branch order with different rule sets per order, and Runions' paper scopes space colonization to macro structure explicitly. What is unusual here is only the continuity assertion: a survey of open implementations found none that transitions in place and asserts continuity at the seam. R2 is the contribution; the rest is well-trodden. [paraphrase]
+- **Child radius interpolates from the parent's local cross-section at the fork, not from a global taper curve.** This is the mechanism that makes R2 satisfiable rather than merely required, and it is what ez-tree does. A global curve evaluated on both sides of a method change is exactly what produces a step. [paraphrase]
+- **The local stage inherits the colonization stage's exit state** as explicit boundary conditions: position, terminal tangent, radius, and remaining vigour. Reseeding direction at the crossover shows as a visible kink, and the argument is structural rather than aesthetic: a tree is a cantilever, and an abrupt direction change is a discontinuous bending moment. [paraphrase]
+- **The fine orders need their own taper law.** An area-conservation exponent authored for order 0 and 1 produces visibly wrong twigs at order 8. The local law is steeper and anchored to the parent's actual radius at handoff. [paraphrase]
+- **Below the crossover the recursion is level-capped, not scale-searched.** Every rule-based generator stops on a level counter sized to real twig counts. Shrinking a search radius toward zero is the failure mode, not the method. [paraphrase]
+- **Keep a lightweight sibling-collision check per whorl even after leaving colonization.** Blind local replacement with no neighbour awareness is the documented weakness of pure rule systems, and this repo has a separate spec measuring exactly that defect. [inferred]
+
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
@@ -55,11 +64,26 @@ It also runs out. Each halving of the step costs about 2.3 times the nodes, so t
 - **Depth multiplies limb interpenetration**, which is measured and specced separately; any baseline for that work is taken at a stated depth. [paraphrase]
 - **Twigs below the crossover are not grown, and that is a stated approximation.** Real twigs compete for light and space; rule-generated ones do not. Scatter and phyllotaxis hide much of it, and at very close range it remains an approximation rather than a simulation. [inferred]
 - **Judged in clay**, and the leaf stays the flat grey placeholder until the texturing spec. Structure is what is being judged here, not surface. [paraphrase]
+- **Per-instance transform memory is the ceiling nobody budgets for.** A 4x4 transform is 64 bytes, so eight million twigs is about 512 MB before a single vertex of geometry. A packed per-instance format, position plus rotation plus scale rather than a full matrix, is the difference between the top of R5's range being reachable and being arithmetic. [paraphrase]
+- **This collides with the Boundary against an impostor, and the collision is stated rather than resolved.** The Boundaries below rule out an LOD ladder and admit a far impostor only if the measurement demands one. The research says the measurement will demand one somewhere inside R5's own 10^5 to 10^7 range. R6 is where that is settled with a number; nobody relaxes the Boundary by assertion, and nobody discovers it at 400 MB. [paraphrase]
+- **WebGL2 has no compute and no writable storage buffers**, so instance transforms are built on the CPU and uploaded, and the upload is the bottleneck as counts rise. A WebGPU path moves that into a compute pass behind one instanced draw. Changing renderer is out of scope here and the constraint is recorded because it bounds what the top of R5's range can mean on the current backend. [paraphrase]
+- **Attractor association is O(new nodes x attractors) per round today, a linear scan with no spatial index.** Every serious implementation uses a grid or kd-tree, and at the node counts this spec reaches it stops being optional. [paraphrase]
+- **`InstancedMesh` count is immutable after construction in three 0.185**, so a depth dial that changes counts rebuilds the mesh rather than resizing it. `BatchedMesh` is stable in this version and does support `setInstanceCount`, and it suits many differing twig geometries where `InstancedMesh` wants identical ones. Its per-instance matrices live in a `DataTexture`, so `maxTextureSize` becomes a real ceiling at the top of the rail. [paraphrase]
+- **A geometry crossing 65,535 vertices silently doubles its index memory**, since three promotes the index to `Uint32`. That belongs in the cost table rather than in a profile. [paraphrase]
+
+## Quick commands
+
+```bash
+npx vitest run      # 268 tests green at plan time
+npx tsc --noEmit    # clean at plan time
+npm run build       # clean at plan time
+npm run dev         # the clay harness, where R6 is measured and R8 is judged
+```
 
 ## Acceptance Criteria
 
 - **R1:** The generator branches as one recursion from trunk to leaf-bearing tips, with branching depth a named parameter carrying a documented rail, and the change of method by scale invisible in the output structure. Errors: non-finite parameters fall back to documented defaults through the same rail idiom the other stages use; a degenerate skeleton with fewer than two nodes yields no tips rather than throwing. [user]
-- **R2:** Radius, direction and taper are continuous across the crossover, asserted by a test that finds no discontinuity in the radius ratio between a node and its parent, and no direction change beyond the turn limit, anywhere the method changes. Errors: a tree whose parameters put the crossover outside the grown range still passes, because a recursion with no crossover has no discontinuity to find. [paraphrase]
+- **R2:** Radius, direction and taper are continuous across the crossover. "Continuous" means exactly these three things and nothing added later by comment: the parent-to-child radius ratio at the crossover falls inside the range that same ratio takes over the ten generations above it; the direction change at the crossover is no larger than the turn limit already enforced during growth; and the taper rate, measured as radius change per unit length, is within a stated tolerance of the rate immediately above. Continuity is sampled at several generations either side of the crossover, never only at the boundary edge, and each sample is asserted against the envelope's own local dimensions rather than as a bare comparison between two numbers, so a region where both sides are zero fails the test rather than passing it. The tolerance is measured before it is chosen: the tight case is run first, what fails is recorded, and the number that ships is the one that admits only the cases a clay render cannot distinguish. The test asserts on the surface as drawn, at every vertex of the junction ring, not on skeleton centres. Errors: a parameter set whose crossover falls outside the grown range is reported as untested rather than passing vacuously, because a recursion with no crossover has no discontinuity to find and must not be mistaken for one that has none. [paraphrase]
 - **R3:** Terminal wood reaches leaf scale, measured as a leaf length that is a multiple of the diameter of the wood it attaches to rather than a fraction of it, on both presets. The baseline is today's 0.15 to 1; the target is the botanical relationship rather than a round number. Errors: no error surface beyond R1's rails. [user]
 - **R4:** No combination of depth and attractor count reachable from the panel starves the growth. The attractor search radius accounts for how far apart the attractors actually are, not purely for the step, so branching more finely cannot blind the search. Errors: the measured collapse at a 0.44 m step with 1,600 attractors, today yielding 186 nodes and 4 runs, is the regression test and it passes by growing a whole tree. [user]
 - **R5:** Leaf count reaches the order a tree this size carries, stated against the botanical range of 10^5 to 10^7 and measured on both presets, with the count reachable at the top of the depth rail reported. Errors: a count the frame budget cannot carry is reported as the measured ceiling rather than quietly clamped. [user]
@@ -96,15 +120,22 @@ It also runs out. Each halving of the step costs about 2.3 times the nodes, so t
 - Whether the surface stage stays the cheap half at millions of triangles, or becomes the thing worth optimising. [inferred]
 - What depth the presets ship at, which is the owner's judgement in clay against the cost curve, and is R8. [paraphrase]
 
+## Early proof point
+
+Task fn-5-branch-until-the-tips-bear-leaves-one.1 validates the approach: that the attractor search radius can be derived from attractor spacing, that it resolves to today's radius at today's step and density so every existing tree stays byte-identical, and that the measured 186-node collapse becomes a whole tree.
+
+It runs first because nothing deeper works without it. Every step below today's is the regime where the current derivation starves the growth, so a depth dial built on the old radius would produce stumps at exactly the settings the spec exists to reach. If the derivation cannot be made both spacing-aware and byte-identical at the default, R7's attributability requirement and R1's rail are in conflict, and that conflict is worth discovering in one task rather than at the end of six.
+
 ## Requirement coverage
 
-| R-ID | Task |
-|------|------|
-| R1 | TBD — populate via /flow-next:plan |
-| R2 | TBD — populate via /flow-next:plan |
-| R3 | TBD — populate via /flow-next:plan |
-| R4 | TBD — populate via /flow-next:plan |
-| R5 | TBD — populate via /flow-next:plan |
-| R6 | TBD — populate via /flow-next:plan |
-| R7 | TBD — populate via /flow-next:plan |
-| R8 | TBD — populate via /flow-next:plan |
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1 | One recursion, trunk to leaf-bearing tips, depth a named parameter | .2, .3 | — |
+| R2 | Radius, direction and taper continuous across the crossover | .4 | — |
+| R3 | Terminal wood reaches leaf scale, measured as leaf-to-twig ratio | .3, .4 | — |
+| R4 | No reachable depth starves the growth | .1 | — |
+| R5 | Leaf count reaches the botanical order | .5 | — |
+| R6 | Cost curve measured; maxNodes reported; build stays usable | .5 | — |
+| R7 | Determinism, and the default reproduces today byte-identically | .1, .2 | — |
+| R8 | Owner confirms in clay and states the shipping depth | .6 | Manual gate; .6 prepares the comparison the judgement is made against |
+
