@@ -1,14 +1,14 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE, type Envelope } from "@/lib/grower/envelope";
+import { DEFAULT_ENVELOPE, type Envelope } from "./envelope";
 import {
   DEFAULT_RADII,
   solveRadii,
   type RadiusParams,
-} from "@/lib/grower/radius";
-import type { Skeleton } from "@/lib/grower/skeleton/colonize";
-import { growSkeleton } from "@/lib/grower/skeleton/grow";
+} from "./radius";
+import type { Skeleton } from "./skeleton/colonize";
+import { growSkeleton } from "./skeleton/grow";
 
 /* The radius solve makes three claims that a box with no GPU can hold
    to account, and they are the whole of the task's acceptance: the

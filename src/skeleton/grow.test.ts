@@ -5,10 +5,10 @@ import {
   DEFAULT_ENVELOPE,
   envelopeRadiusAt,
   type Envelope,
-} from "@/lib/grower/envelope";
-import type { GrowthConfig, Skeleton } from "@/lib/grower/skeleton/colonize";
-import { defaultGrowth, growSkeleton } from "@/lib/grower/skeleton/grow";
-import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "@/lib/grower/torsion";
+} from "../envelope";
+import type { GrowthConfig, Skeleton } from "./colonize";
+import { defaultGrowth, growSkeleton } from "./grow";
+import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "../torsion";
 
 /* The spec's word is "consistently", and this is where that is held to
    account end to end: seed and envelope in, the same skeleton out, and

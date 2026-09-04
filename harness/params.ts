@@ -49,11 +49,11 @@
  * be walked to one at a time.
  * ------------------------------------------------------------------ */
 
-import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
-import { DEFAULT_SURFACE } from "@/lib/grower/mesh/surface";
-import { DEFAULT_RADII } from "@/lib/grower/radius";
-import { DEFAULT_MAX_TURN_PER_STEP } from "@/lib/grower/skeleton/colonize";
-import { DEFAULT_BIAS } from "@/lib/grower/torsion";
+import { DEFAULT_ENVELOPE } from "../src/envelope";
+import { DEFAULT_SURFACE } from "../src/mesh/surface";
+import { DEFAULT_RADII } from "../src/radius";
+import { DEFAULT_MAX_TURN_PER_STEP } from "../src/skeleton/colonize";
+import { DEFAULT_BIAS } from "../src/torsion";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
 export const SEED_MAX = 0xff_ff_ff_ff;

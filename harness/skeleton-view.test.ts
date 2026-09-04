@@ -1,13 +1,13 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
-import { DEFAULT_SURFACE } from "@/lib/grower/mesh/surface";
-import { DEFAULT_RADII, solveRadii } from "@/lib/grower/radius";
-import { growSkeleton } from "@/lib/grower/skeleton/grow";
-import { DEFAULT_BIAS } from "@/lib/grower/torsion";
+import { DEFAULT_ENVELOPE } from "../src/envelope";
+import { DEFAULT_SURFACE } from "../src/mesh/surface";
+import { DEFAULT_RADII, solveRadii } from "../src/radius";
+import { growSkeleton } from "../src/skeleton/grow";
+import { DEFAULT_BIAS } from "../src/torsion";
 
-import { LAURELIN, PRESETS } from "@/lib/grower/presets";
+import { LAURELIN, PRESETS } from "../src/presets";
 
 import { DEFAULT_PARAMS, SLIDERS, type GrowerParams } from "./params";
 import {

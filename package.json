@@ -1,0 +1,55 @@
+{
+  "name": "telperion",
+  "version": "0.1.0",
+  "description": "A procedural tree generator. Authored silhouette, space colonization, conserved thickness, one continuous plaited surface.",
+  "keywords": [
+    "procedural",
+    "tree",
+    "generator",
+    "three",
+    "threejs",
+    "space-colonization",
+    "geometry",
+    "webgl"
+  ],
+  "license": "MIT",
+  "author": "Daniel Killenberger",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/telperion.js",
+  "module": "./dist/telperion.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/telperion.js"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.build.json && vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "three": ">=0.160.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "@types/three": "^0.185.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "three": "^0.185.0",
+    "typescript": "5.7.2",
+    "vite": "^6.0.0",
+    "vitest": "^4.1.11"
+  }
+}

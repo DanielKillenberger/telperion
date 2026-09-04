@@ -1,17 +1,17 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
+import { DEFAULT_ENVELOPE } from "../envelope";
 import {
   buildSurface,
   DEFAULT_SURFACE,
   type SurfaceMesh,
   type SurfaceParams,
-} from "@/lib/grower/mesh/surface";
-import { DEFAULT_RADII, solveRadii } from "@/lib/grower/radius";
-import type { Skeleton } from "@/lib/grower/skeleton/colonize";
-import { growSkeleton, type SkeletonParams } from "@/lib/grower/skeleton/grow";
-import { DEFAULT_BIAS, NO_BIAS } from "@/lib/grower/torsion";
+} from "./surface";
+import { DEFAULT_RADII, solveRadii } from "../radius";
+import type { Skeleton } from "../skeleton/colonize";
+import { growSkeleton, type SkeletonParams } from "../skeleton/grow";
+import { DEFAULT_BIAS, NO_BIAS } from "../torsion";
 
 /* ------------------------------------------------------------------ *
  * There is no browser on this box and no eye on this file, so nothing

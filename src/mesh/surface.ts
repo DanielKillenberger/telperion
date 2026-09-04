@@ -1,10 +1,10 @@
 import * as THREE from "three";
 
-import { DEFAULT_ENVELOPE, type Envelope } from "@/lib/grower/envelope";
-import { transportFrames } from "@/lib/grower/mesh/frames";
-import { branchPaths } from "@/lib/grower/mesh/paths";
-import type { RadiusField } from "@/lib/grower/radius";
-import type { Skeleton } from "@/lib/grower/skeleton/colonize";
+import { DEFAULT_ENVELOPE, type Envelope } from "../envelope";
+import { transportFrames } from "./frames";
+import { branchPaths } from "./paths";
+import type { RadiusField } from "../radius";
+import type { Skeleton } from "../skeleton/colonize";
 
 /* ------------------------------------------------------------------ *
  * THE SURFACE

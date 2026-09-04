@@ -1,7 +1,7 @@
-import type { SurfaceParams } from "@/lib/grower/mesh/surface";
-import type { RadiusParams } from "@/lib/grower/radius";
-import type { SkeletonParams } from "@/lib/grower/skeleton/grow";
-import type { BiasParams } from "@/lib/grower/torsion";
+import type { SurfaceParams } from "../mesh/surface";
+import type { RadiusParams } from "../radius";
+import type { SkeletonParams } from "../skeleton/grow";
+import type { BiasParams } from "../torsion";
 
 /* ------------------------------------------------------------------ *
  * WHAT A PRESET IS

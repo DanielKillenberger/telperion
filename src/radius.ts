@@ -1,5 +1,5 @@
-import { DEFAULT_ENVELOPE, type Envelope } from "@/lib/grower/envelope";
-import type { Skeleton } from "@/lib/grower/skeleton/colonize";
+import { DEFAULT_ENVELOPE, type Envelope } from "./envelope";
+import type { Skeleton } from "./skeleton/colonize";
 
 /* ------------------------------------------------------------------ *
  * THE RADIUS SOLVE

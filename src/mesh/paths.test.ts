@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
-import { branchPaths } from "@/lib/grower/mesh/paths";
-import { DEFAULT_RADII, solveRadii } from "@/lib/grower/radius";
-import type { Skeleton } from "@/lib/grower/skeleton/colonize";
-import { growSkeleton } from "@/lib/grower/skeleton/grow";
+import { DEFAULT_ENVELOPE } from "../envelope";
+import { branchPaths } from "./paths";
+import { DEFAULT_RADII, solveRadii } from "../radius";
+import type { Skeleton } from "../skeleton/colonize";
+import { growSkeleton } from "../skeleton/grow";
 
 /* The decomposition is what makes a continuous surface possible at
    all: a run is swept once, with one ring per node, so there are no

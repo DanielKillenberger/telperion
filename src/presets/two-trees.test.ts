@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { buildSurface } from "@/lib/grower/mesh/surface";
-import { solveRadii } from "@/lib/grower/radius";
+import { buildSurface } from "../mesh/surface";
+import { solveRadii } from "../radius";
 import {
   growSkeleton,
   type SkeletonParams,
-} from "@/lib/grower/skeleton/grow";
+} from "../skeleton/grow";
 
 import { getPreset, PRESETS } from "./index";
 import type { TreePreset } from "./preset";

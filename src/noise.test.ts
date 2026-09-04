@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { createNoise } from "@/lib/grower/noise";
+import { createNoise } from "./noise";
 
 /* The spec's line is "structured noise only, never white noise", and
    that is a testable claim rather than a stylistic one: white noise has

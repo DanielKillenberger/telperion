@@ -1,9 +1,9 @@
 import * as THREE from "three";
 
-import type { Envelope } from "@/lib/grower/envelope";
-import { createNoise } from "@/lib/grower/noise";
-import { createRng } from "@/lib/grower/rng";
-import type { GrowthBias } from "@/lib/grower/skeleton/colonize";
+import type { Envelope } from "./envelope";
+import { createNoise } from "./noise";
+import { createRng } from "./rng";
+import type { GrowthBias } from "./skeleton/colonize";
 
 /* ------------------------------------------------------------------ *
  * THE GROWTH BIAS FIELD

@@ -4,10 +4,10 @@ import {
   buildSurface,
   DEFAULT_SURFACE,
   type SurfaceParams,
-} from "@/lib/grower/mesh/surface";
-import type { TreePreset } from "@/lib/grower/presets";
-import { solveRadii, type RadiusParams } from "@/lib/grower/radius";
-import { growSkeleton, type SkeletonParams } from "@/lib/grower/skeleton/grow";
+} from "../src/mesh/surface";
+import type { TreePreset } from "../src/presets";
+import { solveRadii, type RadiusParams } from "../src/radius";
+import { growSkeleton, type SkeletonParams } from "../src/skeleton/grow";
 
 import type { GrowerParams } from "./params";
 import type { Clay } from "./stage";

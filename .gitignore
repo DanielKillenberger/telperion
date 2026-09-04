@@ -1,0 +1,7 @@
+node_modules
+dist
+*.tsbuildinfo
+
+# reference art, kept local: third-party concept art used only to
+# art-direct against. Never committed, never published.
+.refs/

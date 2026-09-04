@@ -1,14 +1,14 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE, type Envelope } from "@/lib/grower/envelope";
+import { DEFAULT_ENVELOPE, type Envelope } from "../envelope";
 import {
   colonize,
   DEFAULT_MAX_TURN_PER_STEP,
   type GrowthConfig,
-} from "@/lib/grower/skeleton/colonize";
-import { defaultGrowth, growSkeleton } from "@/lib/grower/skeleton/grow";
-import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "@/lib/grower/torsion";
+} from "./colonize";
+import { defaultGrowth, growSkeleton } from "./grow";
+import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "../torsion";
 
 /* ------------------------------------------------------------------ *
  * DIRECTIONAL PERSISTENCE, MEASURED

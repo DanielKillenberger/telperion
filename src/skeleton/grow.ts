@@ -1,17 +1,17 @@
 import * as THREE from "three";
 
-import { sampleEnvelope, type Envelope } from "@/lib/grower/envelope";
-import { createRng } from "@/lib/grower/rng";
+import { sampleEnvelope, type Envelope } from "../envelope";
+import { createRng } from "../rng";
 import {
   colonize,
   type GrowthConfig,
   type Skeleton,
-} from "@/lib/grower/skeleton/colonize";
+} from "./colonize";
 import {
   createGrowthBias,
   DEFAULT_BIAS,
   type BiasParams,
-} from "@/lib/grower/torsion";
+} from "../torsion";
 
 /* ------------------------------------------------------------------ *
  * THE GENERATOR'S FRONT DOOR

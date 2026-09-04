@@ -1,5 +1,5 @@
-import type { RadiusField } from "@/lib/grower/radius";
-import type { Skeleton } from "@/lib/grower/skeleton/colonize";
+import type { RadiusField } from "../radius";
+import type { Skeleton } from "../skeleton/colonize";
 
 /* ------------------------------------------------------------------ *
  * THE SKELETON, CUT INTO RUNS

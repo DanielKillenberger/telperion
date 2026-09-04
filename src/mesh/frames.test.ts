@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { transportFrames } from "@/lib/grower/mesh/frames";
+import { transportFrames } from "./frames";
 
 /* The frame is what decides where the cross section's angle zero sits,
    and every visible failure of a swept surface that is not a gap is a

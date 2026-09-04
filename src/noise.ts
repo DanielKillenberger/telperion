@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { createRng } from "@/lib/grower/rng";
+import { createRng } from "./rng";
 
 /* ------------------------------------------------------------------ *
  * STRUCTURED NOISE

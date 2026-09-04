@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { PRESETS, type TreePreset } from "@/lib/grower/presets";
+import { PRESETS, type TreePreset } from "../src/presets";
 
 import {
   DEFAULT_PARAMS,

@@ -1,15 +1,15 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
-import { defaultGrowth } from "@/lib/grower/skeleton/grow";
+import { DEFAULT_ENVELOPE } from "./envelope";
+import { defaultGrowth } from "./skeleton/grow";
 import {
   createGrowthBias,
   DEFAULT_BIAS,
   MIN_STEPS_PER_BEND,
   NO_BIAS,
   type BiasParams,
-} from "@/lib/grower/torsion";
+} from "./torsion";
 
 /* Two things are being held to account here. That the five terms are
    really five - each one reaches the result on its own, which is the
