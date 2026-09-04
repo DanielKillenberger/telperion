@@ -128,6 +128,14 @@ const EXTREMES: { label: string; bias: Partial<BiasParams> }[] = [
       spiralRate: 12,
     },
   },
+  /* And torsion's other end. Not the same tree as no bias at all:
+     torsion at 0 zeroes the three departures from vertical and leaves
+     gravitropism exactly where the owner set it, so this is a tree
+     that is dead straight and still pulling hard at the sky. */
+  {
+    label: "torsion at zero, gravitropism untouched",
+    bias: { ...DEFAULT_BIAS, lean: 0, writheAmplitude: 0, spiralRate: 0 },
+  },
   { label: "no bias at all", bias: NO_BIAS },
   { label: "defaults", bias: DEFAULT_BIAS },
   { label: "no gravitropism", bias: { ...DEFAULT_BIAS, gravitropism: 0 } },
