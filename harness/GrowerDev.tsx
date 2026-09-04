@@ -14,7 +14,7 @@
  * reload and no route change anywhere in the loop.
  * ------------------------------------------------------------------ */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { PRESETS, type TreePreset } from "../src/presets";
 
@@ -304,29 +304,34 @@ export function GrowerDev() {
         </div>
 
         {SLIDERS.map((spec) => (
-          <div className="gd-slider" key={spec.key}>
-            <label className="gd-label" htmlFor={`gd-${spec.key}`}>
-              {spec.label}
-            </label>
-            <span className="gd-value">
-              {format(params[spec.key], spec.step)}
-              {spec.unit}
-            </span>
-            <input
-              id={`gd-${spec.key}`}
-              type="range"
-              min={spec.min}
-              max={spec.max}
-              step={spec.step}
-              value={params[spec.key]}
-              onChange={(event) =>
-                setParams((prev) => ({
-                  ...prev,
-                  [spec.key]: readSlider(spec, event.target.value),
-                }))
-              }
-            />
-          </div>
+          <Fragment key={spec.key}>
+            {spec.group === undefined ? null : (
+              <h3 className="gd-group">{spec.group}</h3>
+            )}
+            <div className="gd-slider">
+              <label className="gd-label" htmlFor={`gd-${spec.key}`}>
+                {spec.label}
+              </label>
+              <span className="gd-value">
+                {format(params[spec.key], spec.step)}
+                {spec.unit}
+              </span>
+              <input
+                id={`gd-${spec.key}`}
+                type="range"
+                min={spec.min}
+                max={spec.max}
+                step={spec.step}
+                value={params[spec.key]}
+                onChange={(event) =>
+                  setParams((prev) => ({
+                    ...prev,
+                    [spec.key]: readSlider(spec, event.target.value),
+                  }))
+                }
+              />
+            </div>
+          </Fragment>
         ))}
 
         <div className="gd-row">

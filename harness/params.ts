@@ -185,6 +185,12 @@ export interface SliderSpec {
   step: number;
   /** Suffix shown next to the value. Empty for a bare ratio. */
   unit: string;
+  /** Names the stage this dial belongs to, on the FIRST dial of that
+   *  stage only. The panel draws a heading where one appears. The list
+   *  already runs in pipeline order; thirty dials without the stage
+   *  boundaries drawn is a list you scroll rather than read, and the
+   *  canopy's ten sit at the far end of it. */
+  group?: string;
 }
 
 export const SLIDERS: readonly SliderSpec[] = [
@@ -194,7 +200,7 @@ export const SLIDERS: readonly SliderSpec[] = [
      the range stays at a sapling: the generator is a standalone
      library and its acceptance is that one algorithm covers the range,
      not that it covers Valinor. */
-  { key: "height", label: "height", min: 4, max: 400, step: 0.5, unit: "m" },
+  { group: "skeleton", key: "height", label: "height", min: 4, max: 400, step: 0.5, unit: "m" },
   { key: "spread", label: "spread", min: 0.12, max: 0.65, step: 0.01, unit: "" },
   // The bias dials run well past what looks good. The owner has to be
   // able to see where too much is, or the usable range sits at the
@@ -217,7 +223,7 @@ export const SLIDERS: readonly SliderSpec[] = [
   // trunk to threads; above 3 the limbs stop thinning enough to read
   // as limbs. The dial spans both sides of that so the good range is
   // visibly a choice.
-  { key: "taper", label: "taper", min: 1.4, max: 3.6, step: 0.05, unit: "n" },
+  { group: "thickness", key: "taper", label: "taper", min: 1.4, max: 3.6, step: 0.05, unit: "n" },
   /* The other two terms of the radius solve, and the envelope's bare
      trunk. They are here because scale is one dial and everything else
      is stated as a fraction of it: nothing in the library makes a
@@ -234,7 +240,7 @@ export const SLIDERS: readonly SliderSpec[] = [
   // up, on exactly the trees the 400 m height ceiling was added for.
   { key: "trunkRadius", label: "trunk", min: 0.004, max: 0.085, step: 0.001, unit: "h" },
   { key: "lengthTaper", label: "length taper", min: 0, max: 2, step: 0.05, unit: "" },
-  { key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
+  { group: "envelope", key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
   /* The last two terms of the authored silhouette. `spread` says how
      far the crown reaches and these two say what shape it is on the
      way out, which is most of the difference between a narrow upright
@@ -249,7 +255,7 @@ export const SLIDERS: readonly SliderSpec[] = [
   // procedural tree has out to well past what looks good, on the same
   // principle as the bias dials - the owner has to be able to see where
   // too much is.
-  { key: "lobes", label: "lobes", min: 0, max: 9, step: 1, unit: "" },
+  { group: "surface", key: "lobes", label: "lobes", min: 0, max: 9, step: 1, unit: "" },
   { key: "lobeDepth", label: "lobe depth", min: 0, max: 0.4, step: 0.01, unit: "" },
   // Signed, because a plait winding the other way is a different tree
   // and not a smaller one. Stops at three turns either side: the section
@@ -270,7 +276,7 @@ export const SLIDERS: readonly SliderSpec[] = [
      leaves. The rest run to the library's own rails - clump to 64,
      scatter to 90 degrees, size variation stopping short of 1, which
      is an element scaled to nothing. */
-  { key: "shootRadius", label: "shoot radius", min: 0.02, max: 1, step: 0.01, unit: "r" },
+  { group: "canopy", key: "shootRadius", label: "shoot radius", min: 0.02, max: 1, step: 0.01, unit: "r" },
   { key: "spacing", label: "leaf spacing", min: 0.0015, max: 0.03, step: 0.0005, unit: "h" },
   { key: "divergence", label: "divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
   { key: "clump", label: "clump", min: 0, max: 64, step: 1, unit: "" },
