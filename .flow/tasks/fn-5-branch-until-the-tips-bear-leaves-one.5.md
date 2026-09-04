@@ -7,8 +7,8 @@ satisfies: [R5, R6]
 Measures what the recursion costs and whether the counts reach the botanical order (R5, R6). Separate from the branching work because the measurement is most of the job and because the answer decides whether the spec's Boundary against an impostor survives.
 
 **Size:** M
-**Files:** `src/skeleton/colonize.ts`, `harness/skeleton-view.ts`, `harness/GrowerDev.tsx`
-**Touches:** [src/skeleton/colonize.ts, harness/skeleton-view.ts, harness/GrowerDev.tsx]
+**Files:** `src/skeleton/colonize.ts`, `src/skeleton/grow.ts` (the node ceiling must scale with twig orders as well as step), `src/skeleton/shed.ts` (interior shedding as its own pass after the twigs, so it never collides with .4's continuity work in twigs.ts), `harness/skeleton-view.ts`, `harness/GrowerDev.tsx`
+**Touches:** [src/skeleton/colonize.ts, src/skeleton/grow.ts, src/skeleton/shed.ts, src/skeleton/shed.test.ts, harness/skeleton-view.ts, harness/GrowerDev.tsx]
 
 ### Approach
 
