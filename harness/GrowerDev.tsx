@@ -47,7 +47,6 @@ export function GrowerDev() {
     if (canvas === null) return;
     const stage = createStage(canvas);
     stageRef.current = stage;
-    stage.frame(DEFAULT_PARAMS.height);
     return () => {
       stage.dispose();
       stageRef.current = null;
@@ -65,6 +64,17 @@ export function GrowerDev() {
     });
     setStats(built);
   }, [params]);
+
+  /* Reframe when the tree changes SIZE. The height dial spans four to
+     sixty metres, so a camera left where it was framed for the last
+     tree either clips the crown or leaves the new one a speck - and
+     the owner judges what is on screen. Height only, and after the
+     tree is built so there is something to measure: reframing on every
+     dial would take the camera back off the owner mid-orbit, which is
+     what the reframe button is for. */
+  useEffect(() => {
+    stageRef.current?.frame(params.height);
+  }, [params.height]);
 
   useEffect(() => {
     stageRef.current?.setLightingCheck(lightingCheck);

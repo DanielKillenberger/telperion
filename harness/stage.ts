@@ -41,6 +41,19 @@ const FIGURE_RADIUS = 0.28;
 const FIGURE_BODY = 1.24;
 const FIGURE_HEIGHT = FIGURE_BODY + FIGURE_RADIUS * 2;
 
+/** How much of the frame is air around the subject. Framing is the one
+ *  composition decision the clay room makes, so it is a number with a
+ *  reason rather than a camera distance someone once liked: a quarter
+ *  again the tree's own extent leaves it clear of every edge while it
+ *  is being orbited, and clear of the panel down the left. */
+const FRAME_MARGIN = 1.3;
+
+/** Where the camera stands, as a direction from the subject's centre:
+ *  a three-quarter view from the front right, a little above the
+ *  middle. The distance along it is solved from the subject; only the
+ *  angle is authored. */
+const FRAME_DIRECTION = new THREE.Vector3(0.62, 0.28, 1).normalize();
+
 /** The clay, in the two forms a subject can take. A builder is handed
  *  these rather than choosing a material, because clay is the only
  *  mode the tree is ever judged in and a caller must not be able to
@@ -58,7 +71,10 @@ export interface Stage {
   setTree(build: (clay: Clay) => THREE.Object3D): void;
   /** Opt-in key and fill. Off - sky light alone - is the judging mode. */
   setLightingCheck(on: boolean): void;
-  /** Pulls the camera back to frame a tree of `height` metres. */
+  /** Frames the subject currently on the stage, fitting the camera to
+   *  what it actually measures. `height` places the scale figure, and
+   *  stands in for the subject on the first frame, before there is
+   *  one. */
   frame(height: number): void;
   dispose(): void;
 }
@@ -170,11 +186,47 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
   };
 
   const frame: Stage["frame"] = (height) => {
-    // Stand the figure clear of the root flare, and put the camera far
-    // enough back that both it and the crown are in shot.
+    // Stand the figure clear of the root flare.
     figure.position.set(height * 0.16 + 1.2, FIGURE_HEIGHT / 2, height * 0.2);
-    controls.target.set(0, height * 0.45, 0);
-    camera.position.set(height * 0.85, height * 0.55, height * 1.35);
+
+    /* Frame the subject that is actually there, not a column of the
+       height the dial says. The two differ by more than a nicety: the
+       crown's mass sits well above the middle of the envelope, its
+       spread runs to one and a third of its height, and both move
+       under the dials - so a camera placed at fixed multiples of
+       `height` clips the crown at one setting and leaves the tree a
+       speck at another. Falls back to a column of `height` when there
+       is nothing on the stage yet, which is the first frame. */
+    const box = new THREE.Box3();
+    if (tree !== null) box.setFromObject(tree);
+    if (box.isEmpty()) {
+      const half = height * 0.35;
+      box.set(
+        new THREE.Vector3(-half, 0, -half),
+        new THREE.Vector3(half, height, half),
+      );
+    }
+    const size = box.getSize(new THREE.Vector3());
+    const centre = box.getCenter(new THREE.Vector3());
+
+    /* Far enough back that the subject fits both ways. The vertical
+       half-angle is the camera's own; the horizontal one is that times
+       the aspect, so a wide window pulls in and a tall one pulls
+       back. */
+    const halfAngle = THREE.MathUtils.degToRad(camera.fov) / 2;
+    const across = Math.max(size.x, size.z) / 2;
+    const distance =
+      Math.max(
+        size.y / 2 / Math.tan(halfAngle),
+        across / (Math.tan(halfAngle) * Math.max(0.1, camera.aspect)),
+      ) * FRAME_MARGIN;
+
+    controls.target.copy(centre);
+    camera.position
+      .copy(centre)
+      .addScaledVector(FRAME_DIRECTION, Math.max(distance, 1));
+    // Never underground, however low the subject's centre sits.
+    camera.position.y = Math.max(camera.position.y, FIGURE_HEIGHT);
     controls.update();
   };
 
