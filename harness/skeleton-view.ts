@@ -63,8 +63,8 @@ const ATTRACTORS_MAX = 1600;
  *  move takes the tree from straight to writhing without walking three
  *  sliders. Gravitropism is deliberately outside it - a tree that wants
  *  to grow up still wants to when it is not twisting.
- *  `density` is the attractor count, and `step` goes through under
- *  the library's own name. `taper` is not a skeleton argument at all -
+ *  `density` is the attractor count, and `step` and the six twig
+ *  rules go through under the library's own names. `taper` is not a skeleton argument at all -
  *  thickness is solved over the skeleton once it has grown, so it
  *  travels through `toRadiusParams`. */
 export function toSkeletonParams(params: GrowerParams): SkeletonParams {
@@ -87,6 +87,18 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
       ATTRACTORS_MIN + params.density * (ATTRACTORS_MAX - ATTRACTORS_MIN),
     ),
     step: params.step,
+    // The second pass's six rules, every member named for the reason
+    // the envelope's are: a `twigs` assembled by spread would drop
+    // whichever term the panel forgot, and the round trip would not
+    // notice until a preset asked for it.
+    twigs: {
+      levels: params.twigLevels,
+      children: params.twigChildren,
+      angle: params.twigAngle,
+      divergence: params.twigDivergence,
+      internode: params.twigInternode,
+      taper: params.twigTaper,
+    },
     bias: {
       gravitropism: params.gravitropism,
       lean: params.lean * params.torsion,
@@ -279,6 +291,12 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     density: (preset.skeleton.attractors - ATTRACTORS_MIN) /
       (ATTRACTORS_MAX - ATTRACTORS_MIN),
     step: preset.skeleton.step,
+    twigLevels: preset.skeleton.twigs.levels,
+    twigChildren: preset.skeleton.twigs.children,
+    twigAngle: preset.skeleton.twigs.angle,
+    twigDivergence: preset.skeleton.twigs.divergence,
+    twigInternode: preset.skeleton.twigs.internode,
+    twigTaper: preset.skeleton.twigs.taper,
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
     lengthTaper: preset.radii.lengthTaper,

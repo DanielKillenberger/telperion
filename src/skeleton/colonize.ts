@@ -148,7 +148,7 @@ export interface GrowthConfig {
  *  only path that keeps the whole of the wanted direction that fits
  *  inside the limit - clamping a component or blending linearly would
  *  drag the result toward one or the other. */
-function limitTurn(
+export function limitTurn(
   from: THREE.Vector3 | null,
   wanted: THREE.Vector3,
   maxRadians: number,

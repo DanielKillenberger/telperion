@@ -12,6 +12,7 @@ import {
   DEFAULT_BIAS,
   type BiasParams,
 } from "../torsion";
+import { branchTwigs, resolveTwigs, type TwigParams } from "./twigs";
 
 /* ------------------------------------------------------------------ *
  * THE GENERATOR'S FRONT DOOR
@@ -40,6 +41,15 @@ import {
  * distance is still an argument in metres through `growth`, which
  * overrides any of them individually for a caller with distances of
  * its own.
+ *
+ * The skeleton is one structure built in two passes. Colonization
+ * runs to completion while its attractors mean something; then
+ * `branchTwigs` continues from every tip it left, under local rules
+ * and the same bias field, `twigs.levels` orders down toward
+ * leaf-bearing wood, appending into the same node array. `twigs` is
+ * the second pass's dials, and at its default of zero orders the
+ * second pass appends nothing, so a tree that states no twigs is the
+ * tree it was before the pass existed.
  * ------------------------------------------------------------------ */
 
 export interface SkeletonParams {
@@ -70,6 +80,11 @@ export interface SkeletonParams {
    *  come from `DEFAULT_BIAS`. This is the shape of the preset fn-11.7
    *  authors Telperion and Laurelin as. */
   bias?: Partial<BiasParams>;
+  /** The local rules below the crossover - orders, children, angle,
+   *  divergence, internode and taper - each a dial resting on a
+   *  botanical default; the rest come from `DEFAULT_TWIGS`, whose
+   *  `levels` is zero. See twigs.ts for the rules and their sources. */
+  twigs?: Partial<TwigParams>;
   /** Overrides for any growth distance, in metres; the rest come from
    *  `defaultGrowth(envelope, attractors, step)`. A `bias` given here
    *  wins over the field built from `SkeletonParams.bias`, which is
@@ -248,13 +263,15 @@ export function resolveGrowth(
   };
 }
 
-/** Grows one skeleton. Deterministic in `params`. */
+/** Grows one skeleton: colonization, then the twigs from its tips.
+ *  Deterministic in `params`. */
 export function growSkeleton(params: SkeletonParams): Skeleton {
   const rng = createRng(params.seed);
   const attractors = sampleEnvelope(params.envelope, params.attractors, rng);
-  return colonize(
-    attractors,
-    new THREE.Vector3(0, 0, 0),
-    resolveGrowth(params, attractors.length),
+  const config = resolveGrowth(params, attractors.length);
+  return branchTwigs(
+    colonize(attractors, new THREE.Vector3(0, 0, 0), config),
+    config,
+    resolveTwigs(params.twigs),
   );
 }

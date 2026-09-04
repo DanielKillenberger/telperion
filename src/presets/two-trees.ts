@@ -113,6 +113,21 @@ export const TELPERION: TreePreset = {
       // turns about the axis over the height.
       spiralRate: 2.6,
     },
+    /* The recursion below colonization's tips, at rest: no orders yet,
+       so this is still the tree the owner has seen, and the shipping
+       depth is the owner's to state in clay. When it has orders they
+       are alternate broadleaf twigs at the botanical defaults twigs.ts
+       cites - a leader and one lateral per node, 45 degrees, the
+       golden angle, and each order six tenths the length of the one
+       above - held to this tree's own 26-degree stiffness. */
+    twigs: {
+      levels: 0,
+      children: 2,
+      angle: 45,
+      divergence: 137.508,
+      internode: 1,
+      taper: 0.6,
+    },
     // Stiff, at a little over half Laurelin's. A limb that commits to
     // a direction, which is what a narrow crown of long
     // straight-running limbs needs.
@@ -232,6 +247,19 @@ export const LAURELIN: TreePreset = {
       // Barely half a turn over the height. The plait on this tree is
       // in the skin, not in the centreline.
       spiralRate: 0.6,
+    },
+    /* Zero orders for the reason Telperion states it. The same
+       resting twig as Telperion's: what differs between the two trees
+       at twig scale is the field that bends them and the 46-degree
+       looseness that lets a lateral leave at its full angle, not the
+       rule that makes them. */
+    twigs: {
+      levels: 0,
+      children: 2,
+      angle: 45,
+      divergence: 137.508,
+      internode: 1,
+      taper: 0.6,
     },
     // Loose and searching, so the crown reaches out to the far edge of
     // a very wide envelope instead of driving straight up through it.

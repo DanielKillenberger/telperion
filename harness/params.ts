@@ -12,7 +12,8 @@
  * are the growth bias field's own five terms under their own names,
  * `taper` is the radius solve's fork exponent, `density` is how many
  * attractors the envelope gets, `growth step` is how finely the
- * growth answers them, and the four surface dials are the
+ * growth answers them, the six twig dials are the local pass's own
+ * six rules under their own names, and the four surface dials are the
  * swept section's own terms, and the ten canopy dials are the
  * placement stage's ten under its own names. Nothing is a knob
  * invented for the panel's sake.
@@ -57,6 +58,7 @@ import { DEFAULT_SURFACE } from "../src/mesh/surface";
 import { DEFAULT_RADII } from "../src/radius";
 import { DEFAULT_MAX_TURN_PER_STEP } from "../src/skeleton/colonize";
 import { DEFAULT_STEP } from "../src/skeleton/grow";
+import { DEFAULT_TWIGS, MAX_TWIG_LEVELS } from "../src/skeleton/twigs";
 import { DEFAULT_BIAS } from "../src/torsion";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
@@ -101,6 +103,19 @@ export interface GrowerParams {
    *  finer wood and more tips. Finer is to the LEFT, as `leaf spacing`
    *  is: the library's own term, under its own name and unit. */
   step: number;
+  /** The local pass below colonization's tips: the six rules of
+   *  twigs.ts under their own names, prefixed only because the panel
+   *  already has a `taper` (the fork exponent) and a `divergence` (the
+   *  leaves'). `twigLevels` is how many orders are appended - zero is
+   *  the tree colonization alone makes - and the other five are the
+   *  twig at rest, a real broadleaf twig with its sources beside it in
+   *  twigs.ts. */
+  twigLevels: number;
+  twigChildren: number;
+  twigAngle: number;
+  twigDivergence: number;
+  twigInternode: number;
+  twigTaper: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
@@ -237,6 +252,24 @@ export const SLIDERS: readonly SliderSpec[] = [
      getting usefully finer, and the notch is fine enough to walk the
      bottom of the rail where each one costs the most. */
   { key: "step", label: "growth step", min: 0.003, max: 0.022, step: 0.0005, unit: "h" },
+  /* The recursion below colonization's tips, its own stage because it
+     is its own pass. `orders` is the level cap and the only one of the
+     six with no botanical resting value: zero is the tree the owner
+     has already seen, and where it ships is the owner's to say in
+     clay. Measured at rest, eight orders is where both presets' finest
+     wood reaches leaf scale, at 41,000 nodes on Telperion and 165,000
+     on Laurelin; the rail runs to the twelve generations the spec
+     counts from today's terminal wood to a 2.5 mm twig. The other
+     five run either side of their resting values so the good range is
+     visibly a choice: a whorl of four is a brush, a branch angle past
+     the turn limit is held to it, and a twig taper of one is orders
+     that never shrink. */
+  { group: "twigs", key: "twigLevels", label: "orders", min: 0, max: MAX_TWIG_LEVELS, step: 1, unit: "" },
+  { key: "twigChildren", label: "children", min: 1, max: 4, step: 1, unit: "" },
+  { key: "twigAngle", label: "branch angle", min: 0, max: 90, step: 1, unit: "deg" },
+  { key: "twigDivergence", label: "twig divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
+  { key: "twigInternode", label: "internode", min: 0.1, max: 4, step: 0.05, unit: "step" },
+  { key: "twigTaper", label: "twig taper", min: 0.3, max: 1, step: 0.01, unit: "" },
   // The fork exponent, under the name the owner already turns. Below
   // 2 a fork sheds more than area and the tree runs from a heavy
   // trunk to threads; above 3 the limbs stop thinning enough to read
@@ -320,6 +353,12 @@ export const DEFAULT_PARAMS: GrowerParams = {
   maxTurnPerStep: DEFAULT_MAX_TURN_PER_STEP,
   density: 0.5,
   step: DEFAULT_STEP,
+  twigLevels: DEFAULT_TWIGS.levels,
+  twigChildren: DEFAULT_TWIGS.children,
+  twigAngle: DEFAULT_TWIGS.angle,
+  twigDivergence: DEFAULT_TWIGS.divergence,
+  twigInternode: DEFAULT_TWIGS.internode,
+  twigTaper: DEFAULT_TWIGS.taper,
   taper: DEFAULT_RADII.forkExponent,
   trunkRadius: DEFAULT_RADII.trunkRadius,
   lengthTaper: DEFAULT_RADII.lengthTaper,

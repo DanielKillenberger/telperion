@@ -217,6 +217,7 @@ describe("the preset registry", () => {
         "growth",
         "seed",
         "step",
+        "twigs",
       ]);
       expect(Object.keys(skeleton.envelope).sort()).toEqual([
         "crownBase",
@@ -231,6 +232,14 @@ describe("the preset registry", () => {
         "spiralRate",
         "writheAmplitude",
         "writheWavelength",
+      ]);
+      expect(Object.keys(skeleton.twigs).sort()).toEqual([
+        "angle",
+        "children",
+        "divergence",
+        "internode",
+        "levels",
+        "taper",
       ]);
       expect(Object.keys(preset.radii).sort()).toEqual([
         "forkExponent",

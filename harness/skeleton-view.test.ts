@@ -151,6 +151,23 @@ describe("toSkeletonParams", () => {
     expect(mapped.growth).toEqual({ maxTurnPerStep: DEFAULT_PARAMS.maxTurnPerStep });
   });
 
+  it("hands the six twig rules over under the library's own names", () => {
+    // Every member of `twigs` named, so the panel cannot drop one; and
+    // the orders dial reaches the tree - finer wood and more tips.
+    const mapped = toSkeletonParams({ ...DEFAULT_PARAMS, twigLevels: 3, twigChildren: 3 });
+    expect(mapped.twigs).toEqual({
+      levels: 3,
+      children: 3,
+      angle: DEFAULT_PARAMS.twigAngle,
+      divergence: DEFAULT_PARAMS.twigDivergence,
+      internode: DEFAULT_PARAMS.twigInternode,
+      taper: DEFAULT_PARAMS.twigTaper,
+    });
+    expect(positions(tree({ twigLevels: 3 })).length).toBeGreaterThan(
+      positions(tree({ twigLevels: 0 })).length * 2,
+    );
+  });
+
   it("turns density into an attractor count", () => {
     expect(toSkeletonParams({ ...DEFAULT_PARAMS, density: 0 }).attractors).toBe(
       250,
