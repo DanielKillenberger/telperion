@@ -161,15 +161,29 @@ const EXTREMES: { label: string; bias: Partial<BiasParams> }[] = [
 ];
 
 describe("directional persistence", () => {
-  it("holds every continuation inside the limit, at every extreme", () => {
+  /* Five hundred and ten trees, and the whole point of a sweep is its
+     tail, so this is a slow test on purpose - it was 3.7 s at three
+     envelopes on a loaded box, against vitest's 5 s default, and it
+     failed about one run in three. That is not a slow test, it is a
+     flake, and it was flaking in the test that guards the defect this
+     file exists for. A timeout is a hang detector and not a
+     performance budget, so this one is set well clear of the two
+     envelopes since added (3.3 s at five, idle) rather than trimmed to
+     the measurement. */
+  it("holds every continuation inside the limit, at every extreme", { timeout: 30_000 }, () => {
     /* The panel's envelope dials are in the sweep too: the limit is
-       per step and the step is a fraction of height, so a 4 m tree and
-       a 60 m tree are two different curvatures on the ground and both
-       have to hold. */
+       per step and the step is a fraction of height, so the same dial
+       setting is a different curvature on the ground at every size,
+       and all of them have to hold. The heights are the height dial's
+       own range end to end - 4 m sapling to the 400 m of a tree of the
+       Two Trees' order - at the spread each of them would plausibly be
+       given. */
     const envelopes: Envelope[] = [
       DEFAULT_ENVELOPE,
       { ...DEFAULT_ENVELOPE, height: 4, spread: 0.12 },
       { ...DEFAULT_ENVELOPE, height: 60, spread: 0.65 },
+      { ...DEFAULT_ENVELOPE, height: 150, spread: 0.4 },
+      { ...DEFAULT_ENVELOPE, height: 400, spread: 0.5 },
     ];
     // Collected rather than asserted one at a time, so a failure names
     // the dial and the seed that broke it instead of the first one.

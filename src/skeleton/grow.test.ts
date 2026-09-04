@@ -129,15 +129,19 @@ describe("growSkeleton", () => {
     expect(spreading).toBeGreaterThan(upright * 3);
   });
 
-  it("branches the same way at any scale", () => {
-    // Every growth distance is a fraction of height, so a 4 m tree and
-    // a 60 m tree are the same tree at different sizes - the small one
-    // is not a bare fork and the large one is not a solid mat.
+  it("branches the same way at every height on the dial", () => {
+    /* Every growth distance is a fraction of height, so the tree at
+       the bottom of the height dial and the tree at the top of it are
+       one tree at two sizes - the small one is not a bare fork and the
+       large one is not a solid mat. The band is the dial's, 4 m to
+       400 m, and not the 60 m the dial used to stop at. */
     const nodes = (height: number): number =>
       growSkeleton({ ...params, envelope: { ...DEFAULT_ENVELOPE, height } })
         .nodes.length;
-    expect(nodes(4)).toBe(nodes(60));
-    expect(nodes(4)).toBe(nodes(DEFAULT_ENVELOPE.height));
+    const sapling = nodes(4);
+    for (const height of [DEFAULT_ENVELOPE.height, 60, 150, 400]) {
+      expect(nodes(height), `${height} m`).toBe(sapling);
+    }
   });
 
   it("grows a denser tree from more attractors", () => {

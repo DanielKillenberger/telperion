@@ -180,16 +180,25 @@ describe("solveRadii - the parameters are the whole of the look", () => {
     expect(field.startRadius[0]).toBe(field.radius[0]);
   });
 
-  it("keeps the same proportions at any envelope height", () => {
-    // The same tree at two sizes: positions scaled by fifteen and the
-    // envelope with them. Everything the solve does is a fraction of
-    // height, so the radii have to come back scaled by fifteen too - a
-    // 4 m tree is not a 60 m tree's twig.
-    const small = solveRadii(forked(4), { ...DEFAULT_ENVELOPE, height: 4 }, params());
-    const large = solveRadii(forked(60), { ...DEFAULT_ENVELOPE, height: 60 }, params());
-    small.radius.forEach((value, index) => {
-      expect(large.radius[index] / value).toBeCloseTo(15, 9);
-    });
+  it("keeps the same proportions at every height on the dial", () => {
+    /* The same tree at five sizes: positions scaled with the envelope
+       each time. Everything the solve does is a fraction of height, so
+       every radius has to come back scaled by exactly the same factor
+       - a 4 m tree is not a 400 m tree's twig. The heights are the
+       height dial's own range end to end, because that is the range
+       the claim is made over and 60 m stopped being the top of it. */
+    const at = (height: number) =>
+      solveRadii(forked(height), { ...DEFAULT_ENVELOPE, height }, params());
+    const sapling = at(4);
+    for (const height of [24, 60, 150, 400]) {
+      const grown = at(height);
+      sapling.radius.forEach((value, index) => {
+        expect(
+          grown.radius[index] / value,
+          `node ${index} at ${height} m`,
+        ).toBeCloseTo(height / 4, 9);
+      });
+    }
   });
 
   it("changes the taper visibly when the exponent moves, and only the taper", () => {

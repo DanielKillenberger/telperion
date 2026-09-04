@@ -212,31 +212,30 @@ describe("createGrowthBias", () => {
     ).toBeGreaterThan(1e-6);
   });
 
-  it("bends a 4 m tree and a 60 m tree the same way", () => {
-    // Every term is a fraction of height or a count of turns over it,
-    // for the same reason grow.ts derives its distances that way.
-    const small = createGrowthBias(
-      { ...DEFAULT_ENVELOPE, height: 4 },
-      1,
-      DEFAULT_BIAS,
-    );
-    const large = createGrowthBias(
-      { ...DEFAULT_ENVELOPE, height: 60 },
-      1,
-      DEFAULT_BIAS,
-    );
+  it("bends a tree the same way at every height on the dial", () => {
+    /* Every term is a fraction of height or a count of turns over it,
+       for the same reason grow.ts derives its distances that way - so
+       the same point of the way up gets the same bend whatever size
+       the tree is. The heights are the dial's own range end to end:
+       the 4 m sapling at the bottom of it and the 400 m at the top,
+       which is the range the library is claimed to be scale-free
+       over. */
+    const bendAt = (height: number, t: number): THREE.Vector3 => {
+      const envelope = { ...DEFAULT_ENVELOPE, height };
+      return createGrowthBias(envelope, 1, DEFAULT_BIAS)(
+        new THREE.Vector3(0.05 * height, t * height, 0),
+        UP,
+        defaultGrowth(envelope).stepDistance,
+      );
+    };
     for (const t of [0.1, 0.35, 0.6, 0.9]) {
-      const a = small(
-        new THREE.Vector3(0.05 * 4, t * 4, 0),
-        UP,
-        defaultGrowth({ ...DEFAULT_ENVELOPE, height: 4 }).stepDistance,
-      );
-      const b = large(
-        new THREE.Vector3(0.05 * 60, t * 60, 0),
-        UP,
-        defaultGrowth({ ...DEFAULT_ENVELOPE, height: 60 }).stepDistance,
-      );
-      expect(a.distanceTo(b)).toBeLessThan(1e-9);
+      const sapling = bendAt(4, t);
+      for (const height of [24, 60, 150, 400]) {
+        expect(
+          bendAt(height, t).distanceTo(sapling),
+          `${height} m at ${t} of the way up`,
+        ).toBeLessThan(1e-9);
+      }
     }
   });
 });

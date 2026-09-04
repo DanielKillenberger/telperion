@@ -28,11 +28,14 @@ import { buildTree, type TreeStats } from "./skeleton-view";
 import { createStage, type Stage } from "./stage";
 import "./grower-dev.css";
 
-/** A dial's value, at a precision that can tell its own steps apart.
- *  Two places is right for most of them and hides the whole range of
- *  the trunk dial, which lives between 0.004 and 0.05. */
-function format(value: number): string {
-  return Math.abs(value) < 0.1 ? value.toFixed(3) : value.toFixed(2);
+/** A dial's value, at a precision that can tell its own steps apart -
+ *  which is the STEP's business and not the value's. Keying it off the
+ *  value put a single dial at two precisions on either side of 0.1:
+ *  the trunk dial, whose step is 0.001, read `0.050` and then `0.15`
+ *  on two adjacent notches, as if it had skipped a hundred of them. */
+function format(value: number, step: number): string {
+  const decimals = Math.max(0, Math.ceil(-Math.log10(step) - 1e-9));
+  return value.toFixed(decimals);
 }
 
 export function GrowerDev() {
@@ -48,9 +51,6 @@ export function GrowerDev() {
   // the tube viewer did; it is not allowed to cost it silently, so the
   // panel says the number every time a dial moves.
   const [stats, setStats] = useState<TreeStats | null>(null);
-  // Whether the camera has been placed on the subject yet. It is a ref
-  // and not state because nothing renders differently for it.
-  const framed = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -80,11 +80,14 @@ export function GrowerDev() {
        it is being dragged, which reads as the room moving rather than
        the tree growing - the owner's word for it was disorienting. So
        the camera moves when it is asked to and at no other time:
-       reframe, reset, or the mouse. */
-    if (!framed.current) {
-      framed.current = true;
-      stageRef.current?.frame(params.height);
-    }
+       reframe, reset, or the mouse.
+
+       "Once" belongs to the stage and is latched there. This component
+       outlives its own stage - React's development double-mount builds
+       one, disposes it and builds a second - so a latch held here
+       would be spent on a stage that no longer exists and would leave
+       the live one unframed. */
+    stageRef.current?.frameIfWaiting(params.height);
   }, [params]);
 
   useEffect(() => {
@@ -105,8 +108,18 @@ export function GrowerDev() {
 
   const reset = useCallback(() => {
     setSeedText(String(DEFAULT_PARAMS.seed));
-    setParams(DEFAULT_PARAMS);
-    stageRef.current?.frame(DEFAULT_PARAMS.height);
+    // A fresh object rather than DEFAULT_PARAMS itself: reset from an
+    // already-default state still has to rebuild and re-frame, and
+    // React elides a state write that is the same reference.
+    setParams({ ...DEFAULT_PARAMS });
+    /* Not `frame()`. `setParams` is asynchronous and the tree standing
+       on the stage right now is the one being replaced - framing it
+       measures the outgoing subject, which at 400 m parks the camera
+       758 m out looking at y=200 and then installs a 24 m tree at the
+       origin. `frameNext` frames the tree this click actually builds,
+       which is what makes reset at least as good as reframe at
+       recovering a lost view rather than strictly worse. */
+    stageRef.current?.frameNext();
   }, []);
 
   const seedValid = normalizeSeed(seedText) !== null;
@@ -145,7 +158,7 @@ export function GrowerDev() {
               {spec.label}
             </label>
             <span className="gd-value">
-              {format(params[spec.key])}
+              {format(params[spec.key], spec.step)}
               {spec.unit}
             </span>
             <input
