@@ -46,9 +46,60 @@ Exports the canopy stage and retires every claim in the repo that the library st
 - [ ] TBD
 
 ## Done summary
-TBD
+Exports the canopy stage from the barrel with the group banner-comment
+convention - `buildElement`/`buildCanopy`/`cullCanopy`/`shoots` with their
+parameter types and defaults - and retires the claim that this library grows
+branches and stops, in all five places it was still made: the `src/index.ts`
+header (four stages, "emits geometry and attachment frames"), the README
+pipeline table and its "Four stages" lead-in, the README light section and
+Status paragraph, `package.json`'s description and keywords, and the harness
+caption.
 
+**The silhouette judgement .4 left open: `src/canopy/silhouette.ts` is not
+exported, and `src/index.ts` says why in three lines.** It is pure library code
+with no test-only dependency, so it could ship - but it is a screen-space
+instrument for holding the culler to account, not a way to grow a tree.
+Exporting it puts eleven names into the public surface for something that is
+not a stage, and semver-pins a raster resolution and six fixed view directions
+whose only job is to make one test's tolerance honest. A consumer that wants an
+outline has a camera and wants its own. The comment exists so the omission does
+not read as an oversight to whoever reads the barrel next.
+
+**The README quickstart was already broken before this task.**
+`solveRadii(skeleton, envelope, params)` and `buildSurface(skeleton, field,
+envelope, params)` both take the envelope; the documented snippet passed
+neither, so the only executable thing in the README had never compiled. Fixed
+here because the block was being rewritten anyway, and the replacement was
+compiled against the real barrel as a standalone file before being written into
+the README - not read for plausibility.
+
+**Two stale strings outside this task's Touches, left for the conductor:**
+`src/presets/index.ts:8-9` ("hands its three members") and
+`src/presets/preset.ts:11-12` ("the three argument objects") are both wrong
+since `TreePreset` gained a required `canopy` in .3 - four now. Same staleness
+class this task existed to clear, in files it was forbidden to touch.
+
+The harness caption is written about the library rather than about the frame,
+so it is true whether or not .5's instanced draw lands in the same integration:
+"foliage grows on the young wood at the end of every shoot and is culled to a
+shell, so what you are looking at is the outside of the canopy and not its
+filling."
+
+Acceptance, all met: canopy exports present with the banner convention; the
+header names five stages and no longer stops at attachment frames; README table
+carries a canopy row and the count is corrected; README light section and
+Status no longer say foliage is unbuilt; the harness caption no longer says it;
+`package.json` description and keywords name foliage; `npx vitest run` (18
+files / 251 tests) and `npx tsc --noEmit` green.
+
+baseline: green via handoff (18 files / 251 tests at a69a0cb, verified by the
+conductor); no linter or formatter is configured in this repo.
+
+Sibling note at
+`.git/flow-notes/fn-1-the-canopy-real-leaf-geometry-culled-to-20260904T174358Z-527372/t6-public-surface.md`.
+
+stage: impl-review - skipped(policy: parallel wave - the conductor reviews after it integrates)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6eab840, HEAD
+- Tests: npx vitest run (18 files / 251 tests passed on the integrated target), npx tsc --noEmit (clean on the integrated target), README quickstart extracted and typechecked standalone against the real barrel: clean
 - PRs:
