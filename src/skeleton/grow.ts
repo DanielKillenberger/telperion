@@ -1,8 +1,17 @@
 import * as THREE from "three";
 
-import { sampleEnvelope, type Envelope } from "../envelope";
-import { createRng } from "../rng";
-import { colonize, type GrowthConfig, type Skeleton } from "./colonize";
+import { sampleEnvelope, type Envelope } from "@/lib/grower/envelope";
+import { createRng } from "@/lib/grower/rng";
+import {
+  colonize,
+  type GrowthConfig,
+  type Skeleton,
+} from "@/lib/grower/skeleton/colonize";
+import {
+  createGrowthBias,
+  DEFAULT_BIAS,
+  type BiasParams,
+} from "@/lib/grower/torsion";
 
 /* ------------------------------------------------------------------ *
  * THE GENERATOR'S FRONT DOOR
@@ -11,6 +20,13 @@ import { colonize, type GrowthConfig, type Skeleton } from "./colonize";
  * The same arguments return the same nodes in the same order on any
  * machine: the only source of chance is `createRng(seed)`, and
  * colonization downstream of it is deterministic.
+ *
+ * Direction is the other half of the arguments. `bias` is the growth
+ * bias field - gravitropism, lean, writhe and spiral - and it defaults
+ * to something on rather than to nothing, because a tree with no
+ * opinion about direction is the fn-11.2 output: 22.2% of its growth
+ * steps went downward and its trunk was a straight line. `NO_BIAS` is
+ * the way back to that, and it is what the baseline is measured with.
  *
  * The growth distances default to fractions of the envelope's height
  * rather than to absolute metres, so a 4 m tree and a 60 m tree get
@@ -29,8 +45,14 @@ export interface SkeletonParams {
   /** How many attractors the envelope gets - branch count, not
    *  leaves. More is a denser, finer tree, not a bigger one. */
   attractors: number;
+  /** Overrides for any of the growth bias field's five terms; the rest
+   *  come from `DEFAULT_BIAS`. This is the shape of the preset fn-11.7
+   *  authors Telperion and Laurelin as. */
+  bias?: Partial<BiasParams>;
   /** Overrides for any growth distance; the rest come from
-   *  `defaultGrowth(envelope)`. */
+   *  `defaultGrowth(envelope)`. A `bias` given here wins over the field
+   *  built from `SkeletonParams.bias`, which is the escape hatch for a
+   *  caller with a field of its own. */
   growth?: Partial<GrowthConfig>;
 }
 
@@ -60,6 +82,10 @@ export function defaultGrowth(envelope: Envelope): GrowthConfig {
 export function growSkeleton(params: SkeletonParams): Skeleton {
   const rng = createRng(params.seed);
   const attractors = sampleEnvelope(params.envelope, params.attractors, rng);
-  const growth = { ...defaultGrowth(params.envelope), ...params.growth };
+  const bias = createGrowthBias(params.envelope, params.seed, {
+    ...DEFAULT_BIAS,
+    ...params.bias,
+  });
+  const growth = { ...defaultGrowth(params.envelope), bias, ...params.growth };
   return colonize(attractors, new THREE.Vector3(0, 0, 0), growth);
 }

@@ -154,9 +154,9 @@ export function GrowerDev() {
         </div>
 
         <p className="gd-note gd-warn">
-          skeleton only: branching structure, drawn as lines. torsion
-          lands in fn-11.3, thickness in fn-11.4, a surface in fn-11.5 -
-          those two dials reach nothing yet.
+          skeleton only: branching structure, drawn as lines. thickness
+          lands in fn-11.4 and a surface in fn-11.5 - taper is the one
+          dial that reaches nothing yet.
         </p>
       </aside>
     </div>

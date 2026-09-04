@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_BIAS } from "@/lib/grower/torsion";
+
 import { DEFAULT_PARAMS, type GrowerParams } from "./params";
 import {
   buildSkeletonLines,
@@ -28,6 +30,30 @@ function positions(mesh: THREE.LineSegments): Float32Array {
 }
 
 describe("toSkeletonParams", () => {
+  it("hands the bias dials over under the library's own names", () => {
+    const mapped = toSkeletonParams({
+      ...DEFAULT_PARAMS,
+      gravitropism: 0.9,
+      lean: 0.21,
+      writheAmplitude: 0.13,
+      writheWavelength: 0.31,
+      spiralRate: 2.5,
+    });
+    expect(mapped.bias).toEqual({
+      gravitropism: 0.9,
+      lean: 0.21,
+      writheAmplitude: 0.13,
+      writheWavelength: 0.31,
+      spiralRate: 2.5,
+    });
+  });
+
+  it("defaults every bias dial to the library's own default", () => {
+    // The panel is not allowed a second opinion about what a tree looks
+    // like out of the box; fn-11.7's presets are the library's business.
+    expect(toSkeletonParams(DEFAULT_PARAMS).bias).toEqual(DEFAULT_BIAS);
+  });
+
   it("passes the envelope dials straight through", () => {
     const mapped = toSkeletonParams({
       ...DEFAULT_PARAMS,
@@ -116,6 +142,30 @@ describe("buildSkeletonLines", () => {
       return Math.max(box.max.x, box.max.z, -box.min.x, -box.min.z);
     };
     expect(widest(1.2)).toBeGreaterThan(widest(0.2) * 3);
+  });
+
+  it("every bias dial reaches the geometry", () => {
+    /* The panel promised for two tasks that torsion would land in
+       fn-11.3 and reached nothing in the meantime. Five dials now, one
+       per term of the growth bias field, and each one has to move the
+       tree on its own - a dial that renders and does nothing is worse
+       than no dial. */
+    const straight = {
+      gravitropism: 0,
+      lean: 0,
+      writheAmplitude: 0,
+      spiralRate: 0,
+    };
+    const flat = [...positions(lines(straight))];
+    for (const dial of [
+      { gravitropism: 0.9 },
+      { lean: 0.4 },
+      { writheAmplitude: 0.15, writheWavelength: 0.5 },
+      { writheAmplitude: 0.15, writheWavelength: 0.1 },
+      { writheAmplitude: 0.15, spiralRate: 4 },
+    ]) {
+      expect([...positions(lines({ ...straight, ...dial }))]).not.toEqual(flat);
+    }
   });
 
   it("the density dial reaches the branch count", () => {

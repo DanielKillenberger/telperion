@@ -5,9 +5,10 @@ import {
   DEFAULT_ENVELOPE,
   envelopeRadiusAt,
   type Envelope,
-} from "../envelope";
-import type { Skeleton } from "./colonize";
-import { defaultGrowth, growSkeleton } from "./grow";
+} from "@/lib/grower/envelope";
+import type { Skeleton } from "@/lib/grower/skeleton/colonize";
+import { defaultGrowth, growSkeleton } from "@/lib/grower/skeleton/grow";
+import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "@/lib/grower/torsion";
 
 /* The spec's word is "consistently", and this is where that is held to
    account end to end: seed and envelope in, the same skeleton out, and
@@ -94,14 +95,24 @@ describe("growSkeleton", () => {
        enough: the influence radius is wide, so the lowest attractors
        are within reach of the trunk long before it has climbed to the
        crown, and the tree starts forking at half its intended trunk
-       height. */
+       height.
+
+       Bare is counted as forks, not as distance from the y axis. It
+       used to be the latter, which was only ever a proxy - it worked
+       while the trunk was a straight vertical extrusion and stopped
+       meaning anything the moment the bias field was allowed to bend
+       it. A trunk that leans and S-curves up to the crown is off the
+       axis at every node and has still branched nowhere. */
     const envelope = DEFAULT_ENVELOPE;
     const step = defaultGrowth(envelope).stepDistance;
     const crownBase = envelope.height * envelope.crownBase;
     for (const seed of [1, 2, 3, 4, 5]) {
-      for (const node of growSkeleton({ ...params, seed, envelope }).nodes) {
-        if (Math.hypot(node.position.x, node.position.z) > 1e-9) {
-          expect(node.position.y).toBeGreaterThan(crownBase - step);
+      const nodes = growSkeleton({ ...params, seed, envelope }).nodes;
+      const children = new Int32Array(nodes.length);
+      for (const node of nodes) if (node.parent >= 0) children[node.parent] += 1;
+      for (let i = 0; i < nodes.length; i += 1) {
+        if (nodes[i].position.y < crownBase - step) {
+          expect(children[i]).toBeLessThanOrEqual(1);
         }
       }
     }
@@ -146,6 +157,143 @@ describe("growSkeleton", () => {
     expect(
       signature(growSkeleton({ ...params, growth: { killDistance: derived.killDistance * 3 } })),
     ).not.toBe(signature(growSkeleton(params)));
+  });
+
+  it("grows up: downward steps fall well below the unbiased baseline", () => {
+    /* The term the spec originally missed. Without a bias field the
+       generator has no notion that a tree wants to grow up, and
+       branches wander back down through their own crown; both figures
+       are computed here rather than pinned, so the claim is a
+       comparison and not a number someone typed in.
+
+       The conductor's own sweep of the fn-11.2 skeleton reported 22.2%
+       under its metric. This one counts a step as downward when the
+       child sits lower than its parent, which is stricter about what
+       counts and reports about 16% for the same skeleton - the same
+       finding, measured a different way. What matters is the gap. */
+    const share = (bias: Partial<BiasParams>): number => {
+      const nodes = growSkeleton({ ...params, attractors: 800, bias }).nodes;
+      let down = 0;
+      let steps = 0;
+      for (const node of nodes) {
+        if (node.parent < 0) continue;
+        steps += 1;
+        if (node.position.y < nodes[node.parent].position.y) down += 1;
+      }
+      return down / steps;
+    };
+
+    const baseline = share(NO_BIAS);
+    const biased = share(DEFAULT_BIAS);
+    expect(baseline).toBeGreaterThan(0.15);
+    expect(biased).toBeLessThan(baseline * 0.7);
+  });
+
+  it("bends the trunk off a straight line", () => {
+    /* The bare trunk used to be a mathematically straight extrusion:
+       14 nodes on one line over the lowest 7.2 m of a 24 m tree. The
+       climb runs through the bias field now, so it leans and wanders -
+       and it is measured as a departure from the straight line through
+       its own ends, so a trunk that merely leans does not pass. */
+    const envelope = DEFAULT_ENVELOPE;
+    const crownBase = envelope.height * envelope.crownBase;
+
+    const trunk = (bias: Partial<BiasParams>): THREE.Vector3[] => {
+      const points = growSkeleton({ ...params, envelope, bias }).nodes
+        .filter((node) => node.position.y <= crownBase)
+        .map((node) => node.position);
+      expect(points.length).toBeGreaterThan(8);
+      return points;
+    };
+
+    /** Worst departure from the straight line through the trunk's own
+     *  two ends. A trunk that only leans has a bow of zero. */
+    const bow = (bias: Partial<BiasParams>): number => {
+      const points = trunk(bias);
+      const first = points[0];
+      const axis = points[points.length - 1].clone().sub(first).normalize();
+      let worst = 0;
+      for (const point of points) {
+        const offset = point.clone().sub(first);
+        worst = Math.max(
+          worst,
+          offset.clone().addScaledVector(axis, -offset.dot(axis)).length(),
+        );
+      }
+      return worst;
+    };
+
+    /** How far the trunk gets from the tree's own root axis. */
+    const drift = (bias: Partial<BiasParams>): number =>
+      trunk(bias).reduce(
+        (worst, point) => Math.max(worst, Math.hypot(point.x, point.z)),
+        0,
+      );
+
+    expect(bow(NO_BIAS)).toBeLessThan(1e-9);
+    expect(bow(DEFAULT_BIAS)).toBeGreaterThan(0.2);
+    // The amplitude dial is what governs how far it gets, and it has
+    // headroom well past the default.
+    expect(drift(NO_BIAS)).toBeLessThan(1e-9);
+    expect(drift({ ...DEFAULT_BIAS, writheAmplitude: 0.25 })).toBeGreaterThan(
+      drift(DEFAULT_BIAS) * 1.5,
+    );
+  });
+
+  it("stays a well-formed tree however hard the field is driven", () => {
+    /* The dials run past what looks good on purpose, so the invariants
+       have to hold at the ceiling and not only at the defaults: nothing
+       below the ground, a trunk that only ever gains height so it can
+       never turn back through the crown it just left, and a parent
+       always ahead of its child in the array. */
+    const extremes: Partial<BiasParams>[] = [
+      NO_BIAS,
+      DEFAULT_BIAS,
+      { ...DEFAULT_BIAS, lean: 0.5 },
+      { ...DEFAULT_BIAS, writheAmplitude: 0.25, writheWavelength: 0.08 },
+      { ...DEFAULT_BIAS, spiralRate: 6 },
+      {
+        gravitropism: 1.3,
+        lean: 0.5,
+        writheAmplitude: 0.25,
+        writheWavelength: 0.08,
+        spiralRate: 6,
+      },
+    ];
+    const envelope = DEFAULT_ENVELOPE;
+    const crownBase = envelope.height * envelope.crownBase;
+    for (const bias of extremes) {
+      for (const seed of [1, 2, 3]) {
+        const nodes = growSkeleton({ ...params, seed, envelope, bias }).nodes;
+        expect(nodes.length).toBeGreaterThan(100);
+        expect(nodes.length).toBeLessThan(defaultGrowth(envelope).maxNodes);
+        for (let i = 0; i < nodes.length; i += 1) {
+          const node = nodes[i];
+          expect(Number.isFinite(node.position.lengthSq())).toBe(true);
+          expect(node.position.y).toBeGreaterThanOrEqual(0);
+          expect(node.parent).toBeLessThan(i);
+          if (node.parent >= 0 && node.position.y <= crownBase) {
+            // The trunk only ever climbs.
+            expect(node.position.y).toBeGreaterThan(
+              nodes[node.parent].position.y,
+            );
+          }
+        }
+      }
+    }
+  });
+
+  it("stays deterministic through the bias field", () => {
+    const bias = { ...DEFAULT_BIAS, writheAmplitude: 0.18, spiralRate: 3 };
+    expect(signature(growSkeleton({ ...params, bias }))).toBe(
+      signature(growSkeleton({ ...params, bias })),
+    );
+    expect(signature(growSkeleton({ ...params, bias }))).not.toBe(
+      signature(growSkeleton({ ...params, bias, seed: 2 })),
+    );
+    expect(signature(growSkeleton({ ...params, bias }))).not.toBe(
+      signature(growSkeleton({ ...params, bias: DEFAULT_BIAS })),
+    );
   });
 
   it("survives an envelope with nothing to fill", () => {

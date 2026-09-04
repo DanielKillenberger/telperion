@@ -1,11 +1,8 @@
 import * as THREE from "three";
 
-import { DEFAULT_ENVELOPE } from "../../../lib/grower/envelope";
-import type { Skeleton } from "../../../lib/grower/skeleton/colonize";
-import {
-  growSkeleton,
-  type SkeletonParams,
-} from "../../../lib/grower/skeleton/grow";
+import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
+import type { Skeleton } from "@/lib/grower/skeleton/colonize";
+import { growSkeleton, type SkeletonParams } from "@/lib/grower/skeleton/grow";
 
 import type { GrowerParams } from "./params";
 import type { Clay } from "./stage";
@@ -36,11 +33,12 @@ const ATTRACTORS_MAX = 1600;
 /** The panel's dials, as the generator's arguments.
  *
  *  `height` and `spread` are the authored envelope and go straight
- *  through. `density` is the attractor count. `torsion` and `taper`
- *  reach nothing yet and the panel says so - torsion is fn-11.3's
- *  field and taper is fn-11.4's radius solve, and wiring either to
- *  something that merely looks related would be worse than leaving it
- *  visibly inert. */
+ *  through, and so do the five bias dials - they carry the library's
+ *  own names and units, so there is nothing here to translate and
+ *  nothing to drift. `density` is the attractor count. `taper` reaches
+ *  nothing yet and the panel says so: it is fn-11.4's radius solve, and
+ *  wiring it to something that merely looks related would be worse than
+ *  leaving it visibly inert. */
 export function toSkeletonParams(params: GrowerParams): SkeletonParams {
   return {
     seed: params.seed,
@@ -52,6 +50,13 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
     attractors: Math.round(
       ATTRACTORS_MIN + params.density * (ATTRACTORS_MAX - ATTRACTORS_MIN),
     ),
+    bias: {
+      gravitropism: params.gravitropism,
+      lean: params.lean,
+      writheAmplitude: params.writheAmplitude,
+      writheWavelength: params.writheWavelength,
+      spiralRate: params.spiralRate,
+    },
   };
 }
 

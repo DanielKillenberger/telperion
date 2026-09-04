@@ -20,8 +20,14 @@ import * as THREE from "three";
  * scattered. Ties go to the earlier node, so growth order decides
  * nothing the geometry has not already decided.
  *
+ * The one thing it has an opinion about beyond the attractors is
+ * whatever `config.bias` hands back. Direction is not the attractors'
+ * business - they say where to go, not how to get there - so the field
+ * that says a tree grows up, leans, and writhes on the way lives in
+ * torsion.ts and reaches every step through that one hook.
+ *
  * The output is topology only - positions and parents. Thickness is
- * fn-11.4's, torsion is fn-11.3's, and a surface is fn-11.5's.
+ * fn-11.4's and a surface is fn-11.5's.
  * ------------------------------------------------------------------ */
 
 /** Dot product above which two unit directions are the same direction.
@@ -29,6 +35,19 @@ import * as THREE from "three";
  *  identical computation, never two branches a fork could tell
  *  apart. */
 const SAME_DIRECTION = 1 - 1e-9;
+
+/** Bends one growth step. Given the node the step leaves from and the
+ *  direction colonization chose, it returns the direction actually
+ *  taken, as a unit vector.
+ *
+ *  Pure in its arguments, which is what keeps the skeleton a pure
+ *  function of the generator's inputs - and it must never return a
+ *  direction that reverses the one it was given, or the trunk's climb
+ *  stops gaining height. torsion.ts holds itself to both. */
+export type GrowthBias = (
+  position: THREE.Vector3,
+  direction: THREE.Vector3,
+) => THREE.Vector3;
 
 export interface SkeletonNode {
   /** Position in metres, with the root at the origin on the ground. */
@@ -61,6 +80,10 @@ export interface GrowthConfig {
   trunkHeight: number;
   /** Hard bound on node count. A stop, not a target. */
   maxNodes: number;
+  /** Bends every step this run takes, the trunk's climb included.
+   *  Absent is the unbiased algorithm: straight up the trunk, and
+   *  wherever the attractors say after that. */
+  bias?: GrowthBias;
 }
 
 /**
@@ -146,8 +169,15 @@ export function colonize(
     (nodes[nodes.length - 1].position.y < config.trunkHeight || !anyInReach())
   ) {
     const tip = nodes.length - 1;
+    // The climb runs through the bias field like every other step, which
+    // is what stops the bare trunk being a mathematically straight line.
+    // The field promises never to reverse `up`, so the loop still gains
+    // height every round and still terminates on its own conditions.
+    const heading = config.bias
+      ? config.bias(nodes[tip].position, up)
+      : up;
     nodes.push({
-      position: nodes[tip].position.clone().addScaledVector(up, step),
+      position: nodes[tip].position.clone().addScaledVector(heading, step),
       parent: tip,
     });
     settle();
@@ -165,6 +195,17 @@ export function colonize(
     for (let a = 0; a < count; a += 1) {
       if (alive[a] === 0 || nearestSq[a] > influenceSq) continue;
       const parent = nearest[a];
+      /* Nothing below the bare-trunk height may branch, whoever is
+         nearest. The climb loop above only decides where the trunk
+         stops; it does not stop a low trunk node from being some
+         attractor's nearest and sprouting a limb out in the open, where
+         the envelope has no width at all. That used to hold by luck -
+         on a dead straight trunk the tip was nearest to everything in
+         reach - and the luck ran out the moment the bias field was
+         allowed to bend the trunk toward one side of the crown. An
+         attractor whose only candidate is down there goes unreached,
+         which is the truth about it. */
+      if (nodes[parent].position.y < config.trunkHeight) continue;
       const direction = attractors[a].clone().sub(nodes[parent].position);
       const length = direction.length();
       if (length === 0) continue;
@@ -184,7 +225,10 @@ export function colonize(
       if (nodes.length >= config.maxNodes) break;
       const length = sum.length();
       if (length === 0) continue; // pulls cancelled exactly; no direction
-      const direction = sum.divideScalar(length);
+      const chosen = sum.divideScalar(length);
+      const direction = config.bias
+        ? config.bias(nodes[parent].position, chosen)
+        : chosen;
 
       /* A node grows in any one direction exactly once, ever. Without
          this the algorithm does not terminate: an attractor whose pull
