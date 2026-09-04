@@ -442,8 +442,9 @@ export function GrowerDev() {
         <p className="gd-note gd-warn">
           one swept surface, lobed section winding along its own length,
           flared into the ground. spiral bends the centreline; surface
-          twist winds the skin. no foliage yet - fn-11.6 emits the
-          frames, the consumer places what goes on them.
+          twist winds the skin. foliage grows on the young wood at the
+          end of every shoot and is culled to a shell, so what you are
+          looking at is the outside of the canopy and not its filling.
         </p>
       </aside>
     </div>

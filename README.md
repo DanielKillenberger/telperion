@@ -5,15 +5,28 @@ A procedural tree generator. Parameters and a seed in, geometry out.
 Named for the elder of the Two Trees of Valinor, from which every other notable tree in Tolkien's legendarium descends. It ships with two presets, and the other one is Laurelin.
 
 ```ts
-import { growSkeleton, solveRadii, buildSurface, getPreset } from "telperion";
+import {
+  growSkeleton, solveRadii, buildSurface,
+  buildElement, buildCanopy, cullCanopy,
+  DEFAULT_ELEMENT, DEFAULT_CULL, getPreset,
+} from "telperion";
 
-const { skeleton: params, radii, surface } = getPreset("telperion")!;
+const { skeleton: params, radii, surface, canopy } = getPreset("telperion")!;
+const { envelope, seed } = params;
+
 const skeleton = growSkeleton(params);
-const field = solveRadii(skeleton, radii);
-const mesh = buildSurface(skeleton, field, surface);
+const field = solveRadii(skeleton, envelope, radii);
+const mesh = buildSurface(skeleton, field, envelope, surface);
 // mesh.positions / .normals / .indices — hand them to three, or to anything.
-```
 
+const leaf = buildElement(DEFAULT_ELEMENT);
+const shell = cullCanopy(
+  buildCanopy(skeleton, field, envelope, seed, canopy),
+  leaf, envelope, DEFAULT_CULL,
+);
+// leaf is one mesh; shell.matrices is one 4x4 per element, column-major,
+// straight into an InstancedMesh — one draw call for the whole canopy.
+```
 `three` is a peer dependency and the only one.
 
 ## Why it does not look like other procedural trees
@@ -31,7 +44,7 @@ Four things follow from that, and together they are most of the difference:
 
 ## The pipeline
 
-Four stages, each usable on its own.
+Five stages, each usable on its own.
 
 | stage | in | out |
 |---|---|---|
@@ -39,6 +52,7 @@ Four stages, each usable on its own.
 | `skeleton` | envelope, seed, bias field | nodes and parent links |
 | `radius` | skeleton, fork exponent, trunk radius | a thickness per node |
 | `surface` | skeleton, radii, lobes, twist, flare | one continuous mesh |
+| `canopy` | skeleton, radii, envelope, seed, leaf shape, spacing, phyllotaxis, clumping, bias | one leaf mesh, and a transform per element, culled to a shell |
 
 ## Everything that affects the look is a named parameter
 
@@ -50,7 +64,7 @@ Scale is the preset's business too. Every length in the library is a fraction of
 
 ## It knows nothing about light
 
-The library emits geometry and attachment frames. Materials, lights, exposure, bloom and post are the consumer's business, always.
+The library emits geometry and the transforms that place it. Materials, lights, exposure, bloom and post are the consumer's business, always — the canopy included, which is why it hands you a leaf mesh and a list of transforms and lets you own the draw.
 
 Which is why the development harness renders in **clay** — flat grey, one neutral sky light, no bloom, no shadows for drama. If a tree is beautiful naked it is beautiful anywhere, and nothing is covering for weak geometry. Lighting is a toggle for checking, never the mode anything is judged in.
 
@@ -62,7 +76,7 @@ npm test
 
 ## Status
 
-The generator is complete and its output has been judged. Foliage is not built yet: the library grows branches and emits the frames foliage would attach to, and nothing more. Leaves, and the procedural leaf texturing that should come with them, are the next two pieces.
+The generator is complete and its output has been judged. The canopy is built: real leaf geometry fitted to its own silhouette rather than a card, placed on the young wood at the end of every shoot, and culled to a shell so the interior a camera never sees is not paid for. Procedural leaf texturing — venation, masks, albedo, translucency — is the next piece; until it lands the leaf is a flat placeholder, and the canopy is judged in clay on its structure.
 
 ## License
 

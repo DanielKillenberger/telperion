@@ -1,7 +1,7 @@
 {
   "name": "telperion",
   "version": "0.1.0",
-  "description": "A procedural tree generator. Authored silhouette, space colonization, conserved thickness, one continuous plaited surface.",
+  "description": "A procedural tree generator. Authored silhouette, space colonization, conserved thickness, one continuous plaited surface, and foliage culled to a shell for one instanced draw.",
   "keywords": [
     "procedural",
     "tree",
@@ -9,6 +9,8 @@
     "three",
     "threejs",
     "space-colonization",
+    "foliage",
+    "canopy",
     "geometry",
     "webgl"
   ],
