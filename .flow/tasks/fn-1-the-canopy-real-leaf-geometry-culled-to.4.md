@@ -34,17 +34,13 @@ Culls the interior elements the camera never sees, and builds the screen-space s
 - Tolerance on the silhouette comparison is sized by the failure being corrected, not by the thing being protected. A prior slack-band bug in this repo came from the other choice.
 
 ### Acceptance
-
+## Acceptance
 - [ ] Interior elements are culled, conservative at the silhouette (R3)
 - [ ] The test asserts element count both falls and stays above zero, so a culler removing everything fails it (R3 error case)
 - [ ] The fixture is dense enough that a no-op culler also fails the test (R3 error case)
 - [ ] Classification tests every vertex under the instance transform, never the centroid (R3 error case)
 - [ ] Silhouette compared before and after and unchanged within a stated tolerance, with the tolerance's basis written down
 - [ ] `npx vitest run` and `npx tsc --noEmit` green
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 Culls the canopy to a shell beneath the authored envelope and ships the
 screen-space silhouette helper that holds the culling to account - depth

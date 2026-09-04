@@ -35,7 +35,7 @@ Builds the foliage element itself (R1) and the silhouette fit that R4 requires o
 - Project memory, zero width is not no constraint: a degenerate parameter set must not produce a vacuously valid mesh. The prevention note on that entry names foliage as one of the surfaces still at risk.
 
 ### Acceptance
-
+## Acceptance
 - [ ] Element geometry is generated procedurally from named parameters with a `DEFAULT_` const and per-field JSDoc (R1)
 - [ ] The outline fits the leaf silhouette rather than a bounding quad (R4)
 - [ ] A bounding-quad card is reachable by parameter and off by default (R1)
@@ -43,10 +43,6 @@ Builds the foliage element itself (R1) and the silhouette fit that R4 requires o
 - [ ] Non-finite and out-of-range parameters fall back to documented defaults through `held`, with a test (R1 error case)
 - [ ] Assertions are vertex-level, not centroid or bounding box
 - [ ] `npx vitest run` and `npx tsc --noEmit` green
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 Built the foliage element as a new `src/canopy/` stage: `buildElement` turns
 named shape parameters into one leaf authored in the local frame placement is

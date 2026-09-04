@@ -33,7 +33,7 @@ Exports the canopy stage and retires every claim in the repo that the library st
 - No linter or formatter is configured. Match the surrounding file style by eye.
 
 ### Acceptance
-
+## Acceptance
 - [ ] Canopy exports present in the barrel with the group banner-comment convention
 - [ ] `src/index.ts` header names five stages and no longer claims the library stops at attachment frames
 - [ ] README pipeline table carries a canopy row and the stage count is corrected
@@ -41,10 +41,6 @@ Exports the canopy stage and retires every claim in the repo that the library st
 - [ ] The harness caption no longer says there is no foliage
 - [ ] `package.json` description and keywords name foliage
 - [ ] `npx vitest run` and `npx tsc --noEmit` green
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 Exports the canopy stage from the barrel with the group banner-comment
 convention - `buildElement`/`buildCanopy`/`cullCanopy`/`shoots` with their

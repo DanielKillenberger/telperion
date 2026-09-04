@@ -39,7 +39,7 @@ Stands up honest fill measurement in the harness before any leaf exists (R5). Sp
 - This task produces the number R5 needs. Record the measured budget for the named machine and the logarithmicDepthBuffer verdict in the done summary; the spec's parked unknowns are closed by what this task measures.
 
 ### Acceptance
-
+## Acceptance
 - [ ] `TreeStats` carries draw calls, instance count, raw `devicePixelRatio`, applied pixel ratio, and build time
 - [ ] Forest aggregation sums the new counts across both trees without double counting
 - [ ] The panel renders the new fields
@@ -49,10 +49,6 @@ Stands up honest fill measurement in the harness before any leaf exists (R5). Sp
 - [ ] A sweep interrupted by context loss or resize reports partial results marked incomplete (R5 error case)
 - [ ] The done summary states the measured frame budget for the named machine and the logarithmicDepthBuffer verdict
 - [ ] `npx vitest run` and `npx tsc --noEmit` stay green
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 The harness can now measure its own fill cost honestly, and it did: `TreeStats`
 carries draw calls and instances beside triangles, vertices, nodes and build

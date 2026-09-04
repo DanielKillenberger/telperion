@@ -39,7 +39,7 @@ Puts the canopy on screen: one instanced draw per element type with alpha test (
 - Vitest cannot observe WebGL state. Assert instance counts and draw counts on the CPU-side data.
 
 ### Acceptance
-
+## Acceptance
 - [ ] One instanced draw per element type, confirmed by the panel's draw-call count (R4)
 - [ ] Cutout transparency by alpha test or alpha-to-coverage, never blending (R4)
 - [ ] Clay judging-mode defaults unchanged and the lighting check still opt-in and off (R6)
@@ -50,10 +50,6 @@ Puts the canopy on screen: one instanced draw per element type with alpha test (
 - [ ] Regenerating the tree releases instance attribute buffers
 - [ ] Owner sign-off recorded: the canopy reads as worth building a scene on, judged in clay (R7 manual gate)
 - [ ] `npx vitest run` and `npx tsc --noEmit` green
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 The canopy is on screen: each tree is a group of two renderables - the swept
 trunk and the whole crown as one `THREE.InstancedMesh`, drawn in the room's own

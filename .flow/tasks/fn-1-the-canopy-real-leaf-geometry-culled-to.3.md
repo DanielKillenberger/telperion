@@ -39,7 +39,7 @@ Derives shoots from the skeleton and places elements along them (R2), and pins t
 - No repeated-run determinism test exists anywhere in the repo today. Seeds appear only in fixtures, so this is a new pattern rather than one to copy.
 
 ### Acceptance
-
+## Acceptance
 - [ ] Shoots derived as terminal runs through `branchPaths`, reusing `stands[]` rather than re-deriving it
 - [ ] Phyllotaxis along the shoot, clumping at its end, and outward and upward orientation bias, each a named parameter with a default (R2)
 - [ ] A skeleton with fewer than two nodes, or with no terminal runs, yields an empty canopy without throwing (R2 error case)
@@ -49,10 +49,6 @@ Derives shoots from the skeleton and places elements along them (R2), and pins t
 - [ ] Existing skeleton and surface tests still pass byte-identical, since no earlier stage calls the canopy (R7 error case)
 - [ ] Telperion and Laurelin each state a canopy parameter block
 - [ ] `npx vitest run` and `npx tsc --noEmit` green
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 Derives shoots as the young-wood end of every terminal `branchPaths` run and
 places elements along them - phyllotaxis, a clump at the tip, outward and
