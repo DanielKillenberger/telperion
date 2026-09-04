@@ -123,6 +123,20 @@ import {
  * twigs show comes from the field and the limbs they continue.
  * ------------------------------------------------------------------ */
 
+/** The one skeleton the two passes build, with the seam between them
+ *  named: `crossover` is the index of the first node the twig pass
+ *  appended, so `nodes[0, crossover)` are colonization's and
+ *  `nodes[crossover, length)` are the twigs. Equal to `nodes.length`
+ *  when the pass appended nothing - zero orders, a bare skeleton, or a
+ *  node ceiling already reached - which is how a consumer tells a tree
+ *  with no crossover from one whose crossover it has failed to find.
+ *  The radius solve reads it to know where the fine orders' own taper
+ *  law begins; nothing else downstream needs to know which pass made
+ *  a node. */
+export interface TwiggedSkeleton extends Skeleton {
+  crossover: number;
+}
+
 export interface TwigParams {
   /** Orders of local branching appended below colonization's tips.
    *  Zero is none, and both presets ship at zero until the owner has
@@ -271,7 +285,8 @@ interface Shoot {
 /**
  * Continues `skeleton` from every tip colonization left, `twigs.levels`
  * orders down, and returns the one skeleton with the twig nodes
- * appended after the nodes it was given.
+ * appended after the nodes it was given and `crossover` naming where
+ * the appending began.
  *
  * `config` is the growth configuration the skeleton was grown under:
  * the step is the resolution the tips hand over, the bias field and
@@ -288,11 +303,14 @@ export function branchTwigs(
   skeleton: Skeleton,
   config: GrowthConfig,
   twigs: TwigParams,
-): Skeleton {
+): TwiggedSkeleton {
   const base = skeleton.nodes;
   const nodes: SkeletonNode[] = base.slice();
+  const crossover = base.length;
   const step = config.stepDistance;
-  if (base.length < 2 || twigs.levels < 1 || !(step > 0)) return { nodes };
+  if (base.length < 2 || twigs.levels < 1 || !(step > 0)) {
+    return { nodes, crossover };
+  }
 
   const maxTurn =
     Math.max(0, config.maxTurnPerStep ?? DEFAULT_MAX_TURN_PER_STEP) *
@@ -353,7 +371,7 @@ export function branchTwigs(
       accepted.length = 0;
 
       for (let c = 0; c <= laterals; c += 1) {
-        if (nodes.length >= config.maxNodes) return { nodes };
+        if (nodes.length >= config.maxNodes) return { nodes, crossover };
 
         /* The leader carries on; a lateral leaves at the branching
            angle, at its place round the whorl. Both are then what
@@ -412,5 +430,5 @@ export function branchTwigs(
     if (frontier.length === 0) break;
   }
 
-  return { nodes };
+  return { nodes, crossover };
 }

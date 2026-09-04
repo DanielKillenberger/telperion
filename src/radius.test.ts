@@ -4,11 +4,14 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_ENVELOPE, type Envelope } from "./envelope";
 import {
   DEFAULT_RADII,
+  DEFAULT_TWIG_TAPER,
   solveRadii,
   type RadiusParams,
 } from "./radius";
+import { LAURELIN, TELPERION } from "./presets/two-trees";
 import type { Skeleton } from "./skeleton/colonize";
 import { growSkeleton } from "./skeleton/grow";
+import type { TwiggedSkeleton } from "./skeleton/twigs";
 
 /* The radius solve makes three claims that a box with no GPU can hold
    to account, and they are the whole of the task's acceptance: the
@@ -267,5 +270,106 @@ describe("solveRadii - no zero or negative radii, whatever it is handed", () => 
     const field = solveRadii({ nodes: [] }, DEFAULT_ENVELOPE, params());
     expect(field.radius.length).toBe(0);
     expect(field.startRadius.length).toBe(0);
+  });
+});
+
+describe("solveRadii - the fine orders below the crossover", () => {
+  /** A preset with `levels` twig orders and the ceiling lifted. */
+  const twigged = (preset: typeof TELPERION, levels: number): TwiggedSkeleton =>
+    growSkeleton({
+      ...preset.skeleton,
+      twigs: { ...preset.skeleton.twigs, levels },
+      growth: { ...preset.skeleton.growth, maxNodes: 4_000_000 },
+    }) as TwiggedSkeleton;
+
+  it.each([
+    ["Telperion", TELPERION],
+    ["Laurelin", LAURELIN],
+  ] as const)("leaves the trunk-to-limb field of %s byte for byte where it was, at any number of orders", (_name, preset) => {
+    /* Above the crossover a tree with twigs is solved exactly as the
+       same tree without them: the same operations in the same order,
+       so the same bytes, not merely close ones. And at zero orders the
+       whole field is the field of a skeleton that never met the twig
+       pass. */
+    const rested = twigged(preset, 0);
+    const envelope = preset.skeleton.envelope;
+    const today = solveRadii({ nodes: rested.nodes }, envelope, preset.radii);
+    const atRest = solveRadii(rested, envelope, preset.radii);
+    expect(rested.crossover).toBe(rested.nodes.length);
+    expect([...atRest.radius]).toEqual([...today.radius]);
+    expect([...atRest.startRadius]).toEqual([...today.startRadius]);
+
+    for (const levels of [1, 8]) {
+      const grown = twigged(preset, levels);
+      const field = solveRadii(grown, envelope, preset.radii);
+      expect(grown.crossover).toBe(rested.nodes.length);
+      expect([...field.radius.subarray(0, grown.crossover)]).toEqual([...today.radius]);
+      expect([...field.startRadius.subarray(0, grown.crossover)]).toEqual([...today.startRadius]);
+    }
+  });
+
+  it("starts every twig from its parent's actual radius, shared by the fork rule and thinned by its length", () => {
+    /* R2's mechanism: the child's start radius is the parent's own
+       radius at the fork, times the balanced share among the parent's
+       children, times the ratio of the two edges' lengths to the twig
+       taper; then the same length taper along the edge the limbs
+       carry. No global curve is consulted. */
+    const preset = TELPERION;
+    const skeleton = twigged(preset, 4);
+    const envelope = preset.skeleton.envelope;
+    const radii = { ...preset.radii, twigTaper: 0.7 };
+    const field = solveRadii(skeleton, envelope, radii);
+    const children = childrenOf(skeleton);
+    let checked = 0;
+    for (let i = skeleton.crossover; i < skeleton.nodes.length; i += 1) {
+      const node = skeleton.nodes[i];
+      const parent = skeleton.nodes[node.parent];
+      const length = parent.position.distanceTo(node.position);
+      const above = skeleton.nodes[parent.parent];
+      const parentLength = above.position.distanceTo(parent.position);
+      const share = children[node.parent].length ** (-1 / radii.forkExponent);
+      const expected =
+        field.radius[node.parent] * share * Math.min(1, length / parentLength) ** radii.twigTaper;
+      expect(field.startRadius[i] / expected).toBeCloseTo(1, 12);
+      const shed = Math.exp((-radii.lengthTaper * length) / envelope.height);
+      expect(field.radius[i] / (field.startRadius[i] * shed)).toBeCloseTo(1, 12);
+      checked += 1;
+    }
+    expect(checked).toBeGreaterThan(1000);
+  });
+
+  it.each([
+    ["a twig taper left out", {}],
+    ["a twig taper that is not a number", { twigTaper: Number.NaN }],
+  ] as const)("holds %s to the default, and a negative one to zero", (_name, overrides) => {
+    const skeleton = twigged(TELPERION, 3);
+    const envelope = TELPERION.skeleton.envelope;
+    const { twigTaper: _stated, ...unstated } = TELPERION.radii;
+    const stated = solveRadii(skeleton, envelope, { ...unstated, twigTaper: DEFAULT_TWIG_TAPER });
+    const railed = solveRadii(skeleton, envelope, { ...unstated, ...overrides });
+    expect([...railed.radius]).toEqual([...stated.radius]);
+    const zero = solveRadii(skeleton, envelope, { ...unstated, twigTaper: 0 });
+    const negative = solveRadii(skeleton, envelope, { ...unstated, twigTaper: -3 });
+    expect([...negative.radius]).toEqual([...zero.radius]);
+  });
+
+  it("never thickens toward a twig, even when the first internode is longer than the step", () => {
+    /* The monotonicity promise held below the crossover, on the case
+       that would break it: an internode of four growth steps, where the
+       ratio of lengths is above one and is clamped to one. */
+    const preset = LAURELIN;
+    const skeleton = growSkeleton({
+      ...preset.skeleton,
+      twigs: { ...preset.skeleton.twigs, levels: 3, internode: 4 },
+      growth: { ...preset.skeleton.growth, maxNodes: 4_000_000 },
+    }) as TwiggedSkeleton;
+    const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
+    expect(skeleton.crossover).toBeLessThan(skeleton.nodes.length);
+    for (let i = skeleton.crossover; i < skeleton.nodes.length; i += 1) {
+      const parent = skeleton.nodes[i].parent;
+      expect(field.radius[parent]).toBeGreaterThanOrEqual(field.startRadius[i]);
+      expect(field.startRadius[i]).toBeGreaterThan(field.radius[i]);
+      expect(field.radius[i]).toBeGreaterThan(0);
+    }
   });
 });
