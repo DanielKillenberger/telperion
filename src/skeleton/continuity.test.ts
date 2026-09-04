@@ -53,22 +53,27 @@ const ORDERS_BELOW = 4;
  *  purpose: twigs and the tips they leave cross the crown's top, where
  *  the authored width is zero, and wood there is wood. */
 const MIN_WOOD = 1e-5;
-/** How far, in degrees of taper half-angle, the drawn slope of a run
- *  below the seam may differ from the slope immediately above it, for
- *  nine runs in ten. Measured tight first, at 0.5 deg, on both presets
- *  at the resting twig and eight orders: Telperion 109 of 133 runs
- *  over, median 1.9, 90th percentile 5.6, worst 16.4 deg; Laurelin
- *  364 of 375 over, median 3.4, 90th percentile 5.3, worst 39.9. The
- *  body of that is the law itself, not a step in any radius: the
- *  twigs fork at every node where the limbs above fork every few
- *  steps, and each fork sheds its balanced share, so a run's drawn
- *  slope is a fork-density statement and steepens where the forks
- *  thicken. 6 deg admits that and no more - a twig collapsing to the
- *  floor in one step at Telperion's terminal wood is 11 deg. The tail
- *  past the ninetieth percentile is the blunt-tip defect, a limb that
- *  ends as one full-radius tip and hands the twigs a limb's radius to
- *  shed; it is measured by its own spec and is not a seam. */
-const TAPER_TOLERANCE_DEG = 6;
+/** Taper tolerance at the seam, in degrees of drawn half-angle, on the
+ *  ninetieth percentile of runs. Measured tight on the seam edge alone,
+ *  which is the edge the criterion is about: Telperion median 1.3, p90
+ *  7.75, worst 19.9; Laurelin median 1.4, p90 7.44, worst 42.5. The
+ *  worst cases are blunt tips handing a limb's radius to twigs, which
+ *  is fn-4's spec. An earlier version averaged the seam edge with the
+ *  four below it and read p90 5.6 and 5.3, and the audit showed a x0.5
+ *  step at the seam hiding inside that mean; 8 on the seam edge alone
+ *  is the number the shipped law measures at. Its reach is bounded by
+ *  twig radii: half-angles at twig scale are small, so by mutation this
+ *  bound catches a x0.25 taper jump along the fine-order edges and not
+ *  a x0.5 one, and a twigTaper of 2.0 does not move it at all because
+ *  that exponent scales a length ratio near one at rest. The seam's
+ *  radius bound and the junction-ring bound are the load-bearing ones;
+ *  this is the backstop for a taper failure they would not see. */
+const TAPER_TOLERANCE_DEG = 8;
+/** How far under the law's own share a seam edge may sit. Set from the
+ *  tight measurement on both presets (printed with any failure); a
+ *  thinning of x3.7 at the seam, which the range test admitted, lands at
+ *  0.27 of the share and fails here. */
+const SEAM_SHARE_FLOOR = 0.8;
 /** Slack on a per-vertex containment, in units of the vertex's own
  *  magnitude: the mesh stores float32, whose spacing at 100 m from the
  *  origin is 7.6e-6 m, and a 6 cm ring drawn there carries that error
@@ -203,15 +208,36 @@ describe("the crossover: radius", () => {
 
     /* The seam and the orders below it: the boundary edge (order 1)
        and every edge down to ORDERS_BELOW, each inside that range. */
+    /* The range above is the crown's loosest fork, and the audit showed
+       a deliberate x3.7 thinning at the seam sliding under it. So the
+       seam edge itself is bound to the law it must obey: a child of a
+       parent with k children leaves it at k^(-1/n) of the parent's
+       radius, thinned only by its own length ratio, which at rest is
+       one step against one step. Above SEAM_SHARE_FLOOR of that share
+       and never over it. Measured tight on both presets: the minimum
+       seam ratio over share is printed with the failure so the floor
+       is set from the trees, not the other way round. */
+    const kids = childrenOf(skeleton);
+    const exponent = preset.radii.forkExponent;
     const seen = new Int32Array(ORDERS_BELOW + 1);
+    let seamOverShareMin = Number.POSITIVE_INFINITY;
     for (let i = crossover; i < skeleton.nodes.length; i += 1) {
       if (order[i] > ORDERS_BELOW) continue;
       held(envelope, skeleton, field, i);
-      const ratio = field.startRadius[i] / field.radius[skeleton.nodes[i].parent];
-      expect(ratio, `order ${order[i]} edge into node ${i}`).toBeGreaterThanOrEqual(low);
-      expect(ratio, `order ${order[i]} edge into node ${i}`).toBeLessThanOrEqual(high);
+      const parent = skeleton.nodes[i].parent;
+      const ratio = field.startRadius[i] / field.radius[parent];
+      if (order[i] === 1) {
+        const share = kids[parent].length ** (-1 / exponent);
+        seamOverShareMin = Math.min(seamOverShareMin, ratio / share);
+        expect(ratio / share, `seam edge into node ${i}: ratio ${ratio.toFixed(4)} against share ${share.toFixed(4)}`).toBeGreaterThanOrEqual(SEAM_SHARE_FLOOR);
+        expect(ratio, `seam edge into node ${i}`).toBeLessThanOrEqual(share * (1 + 1e-9));
+      } else {
+        expect(ratio, `order ${order[i]} edge into node ${i}`).toBeGreaterThanOrEqual(low);
+        expect(ratio, `order ${order[i]} edge into node ${i}`).toBeLessThanOrEqual(high);
+      }
       seen[order[i]] += 1;
     }
+    expect(seamOverShareMin, `tightest seam ratio over share: ${seamOverShareMin.toFixed(4)}`).toBeGreaterThanOrEqual(SEAM_SHARE_FLOOR);
     for (let k = 1; k <= ORDERS_BELOW; k += 1) expect(seen[k]).toBeGreaterThan(100);
   });
 });
@@ -292,14 +318,12 @@ describe("the crossover: taper", () => {
       }
       if (countAbove === 0) continue;
       // Below: the seam edge and the orders after it along this run.
-      let sumBelow = 0;
-      let countBelow = 0;
-      for (let k = cross; k < nodes.length && order[nodes[k]] <= ORDERS_BELOW; k += 1) {
-        held(envelope, skeleton, field, nodes[k]);
-        sumBelow += slope(nodes[k - 1], nodes[k]);
-        countBelow += 1;
-      }
-      const difference = Math.abs(sumBelow / countBelow - sumAbove / countAbove);
+      /* The seam edge alone. Averaging it with the orders after it let a
+         x0.5 step at the seam hide inside the mean; the audit executed
+         that and the p90 stayed under tolerance. The edge that crosses
+         the method boundary is the one the criterion is about. */
+      held(envelope, skeleton, field, nodes[cross]);
+      const difference = Math.abs(slope(nodes[cross - 1], nodes[cross]) - sumAbove / countAbove);
       differences.push(difference);
       worst = Math.max(worst, difference);
       runs += 1;

@@ -726,4 +726,19 @@ describe("the forest's own numbers", () => {
     expect(forest.drawCalls).toBe(PRESETS.length * 2);
     expect(forest.instances).toBeGreaterThan(0);
   });
+  it("builds the same tree bare when foliage is off", () => {
+    /* Foliage off is an empty canopy, not a second code path: no leaf
+       is placed, the mesh builder returns null, and the trunk is the
+       one renderable. The skeleton underneath is byte for byte the
+       tree with foliage on. */
+    const on = buildTree(DEFAULT_PARAMS, clay);
+    const off = buildTree(DEFAULT_PARAMS, clay, false);
+    expect(off.stats.instances).toBe(0);
+    expect(off.tree.children.length).toBe(1);
+    expect(on.stats.instances).toBeGreaterThan(0);
+    // Leaves are instances, not surface triangles; the surface is the same.
+    expect(off.stats.triangles).toBe(on.stats.triangles);
+    expect(off.stats.nodes).toBe(on.stats.nodes);
+  });
+
 });

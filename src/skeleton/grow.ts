@@ -13,7 +13,7 @@ import {
   type BiasParams,
 } from "../torsion";
 import { shedTwigs } from "./shed";
-import { branchTwigs, resolveTwigs, type TwigParams } from "./twigs";
+import { branchTwigs, resolveTwigs, type TwigParams, type TwiggedSkeleton } from "./twigs";
 
 /* ------------------------------------------------------------------ *
  * THE GENERATOR'S FRONT DOOR
@@ -313,7 +313,10 @@ export function resolveGrowth(
  *  caller that reports the build reads them here rather than
  *  re-deriving them wrong. */
 export interface GrowthReport {
-  skeleton: Skeleton;
+  /** Carries `crossover`, the index where the twig pass began, because
+   *  the thickness solve keys on it: a consumer that rebuilt a plain
+   *  `{ nodes }` would have every twig solved as a limb, silently. */
+  skeleton: TwiggedSkeleton;
   /** Whether the node ceiling stopped growth before the crown, or the
    *  twig pass, was finished. A capped tree is the ceiling's shape and
    *  not the envelope's, and it is reported rather than truncated
@@ -342,6 +345,6 @@ export function growReport(params: SkeletonParams): GrowthReport {
 
 /** Grows one skeleton: colonization, the twigs from its tips, and the
  *  shell rule over the twigs. Deterministic in `params`. */
-export function growSkeleton(params: SkeletonParams): Skeleton {
+export function growSkeleton(params: SkeletonParams): TwiggedSkeleton {
   return growReport(params).skeleton;
 }
