@@ -382,14 +382,21 @@ describe("buildSurface", () => {
        the swell would take its first ring to 0.95 of it: centred inside
        and protruding, with its back cap showing through the parent's
        skin as a flat crescent - a seam at the one junction all this
-       socketing exists to hide. Every ring point within the parent's
-       own radius of the fork node is that containment, stated exactly.
-       The clamp is what makes it true; the swell is only postponed, to
-       the next ring, which is outside the parent where a fillet
-       belongs. */
+       socketing exists to hide. The bound is the parent's INSCRIBED
+       radius, not its mean: the parent is a lobed section too, and it
+       is only reliably solid out to where its own lobes cut in. Every
+       ring point inside that sphere about the fork node is inside the
+       drawn
+       parent's surface whatever angle the child leaves at. The clamp
+       is what makes it true; the swell is only postponed, to the next
+       ring, which is outside the parent where a fillet belongs. */
+    const inscribed =
+      field.radius[1] *
+      (1 - DEFAULT_SURFACE.lobeDepth) *
+      Math.cos(Math.PI / segments);
     for (const vertex of start) {
       expect(vertex.distanceTo(fork)).toBeLessThanOrEqual(
-        field.radius[1] * (1 + 1e-6),
+        inscribed * (1 + 1e-6),
       );
     }
     expect(boundary(mesh)).toEqual({ open: 0, repeated: 0 });

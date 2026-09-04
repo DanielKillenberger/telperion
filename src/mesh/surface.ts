@@ -181,10 +181,10 @@ const MIN_SEGMENTS_PER_LOBE = 4;
  *  drawn is a lie about what the section is. */
 const MAX_LOBES = Math.floor(MAX_RADIAL_SEGMENTS / MIN_SEGMENTS_PER_LOBE);
 
-/** How far back a child may socket into its parent, in parent radii.
- *  Under 1 by construction: the socket ring has to fit inside the
- *  parent alongside the offset, and at 1 there is no room left for it
- *  at all. */
+/** How far back a child may socket into its parent, as a fraction of
+ *  the distance to the parent's own skin. Under 1 by construction: the
+ *  socket ring has to fit inside the parent alongside the sink, and at
+ *  1 there is no width left for it at all. */
 const MAX_FORK_SOCKET = 0.9;
 
 const TWO_PI = Math.PI * 2;
@@ -347,9 +347,9 @@ export function buildSurface(
       }
     } else {
       /* A child run. It starts back inside the parent, along its own
-         axis - the fork node is on the parent's centreline, so any
-         step shorter than the parent's radius from there is still
-         inside the parent's solid - and it leaves the fork swollen,
+         axis - the fork node is on the parent's centreline, so a short
+         enough step back from there is still inside the parent's solid
+         - and it leaves the fork swollen,
          decaying over one parent radius. Together those are what make
          the junction read as a limb dividing rather than as two tubes
          crossing. */
@@ -364,28 +364,44 @@ export function buildSurface(
         1 + (forkSwell - 1) * Math.exp(-along / Math.max(1e-9, parentRadius));
 
       /* The socket ring has to FIT inside the parent, not merely be
-         centred inside it. Sunk `forkSocket` parent radii back, the
-         furthest a ring point can be from the parent's centreline is
-         the hypotenuse of the offset and the ring's own radius, so the
-         widest ring that is still contained is the other leg,
-         parentRadius * sqrt(1 - forkSocket^2), taken down by the
-         deepest the lobes bulge out - the section's mean radius is what
-         is being set, and its widest vertex is (1 + lobeDepth) of that.
-         Without the clamp a
-         balanced fork - two children at 1/sqrt(2) of the parent, swollen
-         - starts at 0.95 of the parent's radius and its back cap
-         protrudes through the parent's skin as a flat crescent, which is
-         a seam at exactly the junction this socketing exists to hide.
-         The swell is not lost, only postponed: it is at full strength a
-         ring later, outside the parent, which is where a fillet belongs
-         anyway. */
+         centred inside it, and "inside the parent" is inside a LOBED
+         section rather than inside a circle. The parent is solid in
+         every direction only out to its inscribed radius, (1 -
+         lobeDepth) of its mean; the ring is sunk `socketDepth` back
+         along its own axis, and its own widest vertex is (1 +
+         lobeDepth) of the mean set here. A ring point is then at most
+         the hypotenuse of the sink and its own width from the fork
+         node, so the widest ring that still fits is the other leg of
+         that triangle.
+
+         Without the clamp a balanced fork - two children at 1/sqrt(2)
+         of the parent, swollen - starts at 0.95 of the parent's radius,
+         and its back cap protrudes through the parent's skin as a flat
+         crescent: a seam at exactly the junction this socketing exists
+         to hide. The swell is not lost, only postponed - it is at full
+         strength a ring later, outside the parent, which is where a
+         fillet belongs anyway. */
+      /* The parent as DRAWN, not as meant: a lobed section sampled
+         `segments` ways is a polygon, and a polygon's own inscribed
+         radius is cos(pi/segments) of the circle through its vertices.
+         Both factors are the same kind of conservatism - the smallest
+         the parent's skin is anywhere around it. */
+      const inscribed =
+        parentRadius * (1 - lobeDepth) * Math.cos(Math.PI / segments);
+      // Sunk at most `MAX_FORK_SOCKET` of the way to the parent's own
+      // skin, so there is always some width left for the ring: a ring
+      // clamped to nothing is a band of degenerate triangles.
+      const socketDepth = Math.min(
+        forkSocket * parentRadius,
+        MAX_FORK_SOCKET * inscribed,
+      );
       const contained =
-        (parentRadius * Math.sqrt(Math.max(0, 1 - forkSocket * forkSocket))) /
+        Math.sqrt(Math.max(0, inscribed * inscribed - socketDepth * socketDepth)) /
         (1 + lobeDepth);
       samples.push({
         position: nodes[attach].position
           .clone()
-          .addScaledVector(away, -forkSocket * parentRadius),
+          .addScaledVector(away, -socketDepth),
         radius:
           Math.min(field.startRadius[first] * forkSwell, contained) *
           flare(nodes[attach].position.y),
