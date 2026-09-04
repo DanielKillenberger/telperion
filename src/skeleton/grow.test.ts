@@ -7,7 +7,13 @@ import {
   type Envelope,
 } from "../envelope";
 import type { GrowthConfig, Skeleton } from "./colonize";
-import { defaultGrowth, growSkeleton } from "./grow";
+import {
+  defaultGrowth,
+  growSkeleton,
+  influenceRadiusFor,
+  type SkeletonParams,
+} from "./grow";
+import { LAURELIN, TELPERION } from "../presets/two-trees";
 import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "../torsion";
 
 /* The spec's word is "consistently", and this is where that is held to
@@ -29,6 +35,36 @@ function distanceOutside(envelope: Envelope, point: THREE.Vector3): number {
     if (nearest === 0) break;
   }
   return nearest;
+}
+
+/** Node count and terminal-run count: the two numbers a starved tree
+ *  cannot fake. A collapse is a few dozen nodes on a handful of tips
+ *  whatever else is measured about it. */
+function census(skeleton: Skeleton): { nodes: number; tips: number } {
+  const nodes = skeleton.nodes;
+  const children = new Int32Array(nodes.length);
+  for (const node of nodes) if (node.parent >= 0) children[node.parent] += 1;
+  let tips = 0;
+  for (let i = 1; i < nodes.length; i += 1) if (children[i] === 0) tips += 1;
+  return { nodes: nodes.length, tips };
+}
+
+/** Growth distances for a step other than the default, derived the way
+ *  a depth dial will derive them: step and kill distance scaled
+ *  together, the search radius recomputed from the step and the
+ *  attractor count rather than scaled with them. */
+function growthAtStep(
+  envelope: Envelope,
+  step: number,
+  attractors: number,
+): Partial<GrowthConfig> {
+  return {
+    stepDistance: step,
+    killDistance: step * 2,
+    influenceRadius: influenceRadiusFor(envelope, step, attractors),
+    // Lifted so that a fine step is measured, not truncated.
+    maxNodes: 60000,
+  };
 }
 
 function signature(skeleton: Skeleton): string {
@@ -323,10 +359,155 @@ describe("growSkeleton", () => {
   });
 });
 
+describe("the search radius and the attractor spacing", () => {
+  it("resolves to nine steps at today's step, on every tree there is", () => {
+    /* R7. The spacing floor is added under the nine-step radius, and at
+       today's step it must be under it everywhere: both presets, and
+       every envelope and attractor count the rest of this suite grows.
+       Not "close": the same tree, byte for byte, or a later change in
+       any of them is no longer attributable to a dial. The last fixture
+       is the sparsest scatter in the suite, where nine steps is only
+       1.229 spacings and the floor comes nearest to moving. */
+    const trees: SkeletonParams[] = [
+      TELPERION.skeleton,
+      LAURELIN.skeleton,
+      params,
+      { ...params, attractors: 200 },
+      { ...params, attractors: 800 },
+      { ...params, attractors: 1600 },
+      { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 0.2 } },
+      { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 1.2 } },
+      { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 0.2, shoulder: 1.2 } },
+      { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 1.4, shoulder: 4, height: 50 } },
+    ];
+    for (const tree of trees) {
+      const nineSteps = defaultGrowth(tree.envelope).stepDistance * 9;
+      expect(
+        signature(growSkeleton(tree)),
+        `${tree.envelope.height} m, ${tree.attractors} attractors`,
+      ).toBe(
+        signature(
+          growSkeleton({
+            ...tree,
+            growth: { ...tree.growth, influenceRadius: nineSteps },
+          }),
+        ),
+      );
+    }
+  });
+
+  it("grows a whole tree where nine steps grew a stump", () => {
+    /* R4's regression case, measured before the floor existed: Telperion
+       at a 0.44 m step with 1,600 attractors. Nine steps is 3.96 m
+       against a 4.96 m spacing, and the growth dies at the crown base
+       with the crown untouched. Both halves are asserted - the collapse
+       under the old radius, so the case cannot quietly stop being one,
+       and the tree under the derived radius, grown rather than
+       reported. */
+    const tree = TELPERION.skeleton;
+    const step = 0.44;
+    const growth = growthAtStep(tree.envelope, step, tree.attractors);
+
+    const stump = census(
+      growSkeleton({
+        ...tree,
+        growth: { ...growth, influenceRadius: step * 9 },
+      }),
+    );
+    expect(stump.nodes).toBeLessThan(250);
+    expect(stump.tips).toBeLessThanOrEqual(4);
+
+    const whole = growSkeleton({ ...tree, growth });
+    const grown = census(whole);
+    expect(grown.nodes).toBeGreaterThan(5000);
+    expect(grown.tips).toBeGreaterThan(500);
+    // And it is the crown that grew, not a mast: the tree reaches most
+    // of the height and width the envelope authored for it.
+    const envelope = tree.envelope;
+    let top = 0;
+    let widest = 0;
+    for (const node of whole.nodes) {
+      top = Math.max(top, node.position.y);
+      widest = Math.max(widest, Math.hypot(node.position.x, node.position.z));
+    }
+    expect(top).toBeGreaterThan(envelope.height * 0.9);
+    expect(widest).toBeGreaterThan(envelope.height * envelope.spread * 0.6);
+  });
+
+  it("does not starve anywhere on the panel as the step shrinks", () => {
+    /* The panel's density dial runs 250 to 1,600 attractors, and the
+       depth rail runs from today's step down to about a seventh of it.
+       Across that range, on both presets and the default envelope, a
+       finer step must give more nodes and more terminal runs than
+       today's step, never fewer - a step that halves is a limb
+       subdivided twice as finely before it is anything else, so fewer
+       nodes is not a sparser tree, it is the collapse.
+
+       What this does and does not prove. It holds the deterministic
+       collapse - the one that struck every seed the moment the radius
+       fell below the spacing - off the whole panel. It does not make
+       starvation impossible: at 1.2 spacings an exhausted tip early in
+       growth sees nothing ahead a few per cent of the time, and in a
+       survey of twelve seeds over nine of these cells three draws still
+       stalled at the crown base. The floor is pinned there by R7 - see
+       `influenceRadiusFor` - so the seeds here are the presets' own and
+       the survey's result is recorded rather than asserted. */
+    const trees: SkeletonParams[] = [
+      TELPERION.skeleton,
+      LAURELIN.skeleton,
+      params,
+    ];
+    for (const tree of trees) {
+      for (const attractors of [250, 1600]) {
+        const today = census(growSkeleton({ ...tree, attractors }));
+        expect(today.tips).toBeGreaterThan(50);
+        for (const fraction of [0.011, 0.0055, 0.003]) {
+          const step = tree.envelope.height * fraction;
+          const finer = census(
+            growSkeleton({
+              ...tree,
+              attractors,
+              growth: growthAtStep(tree.envelope, step, attractors),
+            }),
+          );
+          const label = `${tree.envelope.height} m, ${attractors} attractors, step ${step.toFixed(2)} m`;
+          expect(finer.nodes, label).toBeGreaterThan(today.nodes);
+          expect(finer.tips, label).toBeGreaterThan(today.tips);
+        }
+      }
+    }
+  });
+
+  it("holds the radius at nine steps until the spacing overtakes it", () => {
+    const envelope = TELPERION.skeleton.envelope;
+    const count = TELPERION.skeleton.attractors;
+    const step = defaultGrowth(envelope).stepDistance;
+    expect(influenceRadiusFor(envelope, step, count)).toBe(step * 9);
+    expect(influenceRadiusFor(envelope, step / 2, count)).toBe((step / 2) * 9);
+    // Shrinking the step past the floor leaves the radius where it is.
+    const floor = influenceRadiusFor(envelope, step / 16, count);
+    expect(floor).toBeGreaterThan((step / 16) * 9);
+    expect(influenceRadiusFor(envelope, step / 32, count)).toBe(floor);
+    // Fewer attractors are further apart, and the floor rises with them.
+    expect(influenceRadiusFor(envelope, step / 16, count / 8)).toBeCloseTo(
+      floor * 2,
+      10,
+    );
+    // No count is no floor: a caller scattering its own attractors gets
+    // the nine-step radius it always did.
+    expect(influenceRadiusFor(envelope, step / 32, 0)).toBe((step / 32) * 9);
+  });
+});
+
 describe("defaultGrowth", () => {
   it("scales every distance with the envelope", () => {
-    const small = defaultGrowth({ ...DEFAULT_ENVELOPE, height: 10 });
-    const large = defaultGrowth({ ...DEFAULT_ENVELOPE, height: 40 });
+    // The spacing floor included: for a fixed attractor count the crown
+    // volume goes as the cube of height, so the spacing is a fraction
+    // of height like every other distance here. The count is small
+    // enough that the floor, not the nine-step multiple, is the radius.
+    const small = defaultGrowth({ ...DEFAULT_ENVELOPE, height: 10 }, 20);
+    const large = defaultGrowth({ ...DEFAULT_ENVELOPE, height: 40 }, 20);
+    expect(large.influenceRadius).toBeGreaterThan(large.stepDistance * 9);
     expect(large.stepDistance).toBeCloseTo(small.stepDistance * 4, 10);
     expect(large.influenceRadius).toBeCloseTo(small.influenceRadius * 4, 10);
     expect(large.killDistance).toBeCloseTo(small.killDistance * 4, 10);
