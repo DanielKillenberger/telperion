@@ -38,6 +38,17 @@ The ask is "a high perf high fidelity tree generator" [user] and both halves are
 - **Alpha test, never blending** — but knowing what it costs. A shader that discards defeats early-Z on an immediate-mode GPU, and measured benchmarks put the loss at more than half the frame rate in a fill-heavy case. Front-to-back ordering still buys roughly 10% even after discard has compromised early-Z. [paraphrase]
 - **The library generates what the tree is; the consumer brings only lights.** Geometry now, and venation, masks, albedo, roughness and translucency when the texturing spec lands. Lights, shading model, exposure and post stay outside. [user]
 
+### Contracts settled during planning
+
+These five were open questions at capture time. Planning closes them, because each one sets a function signature that several tasks would otherwise have to guess at.
+
+- **The canopy is a fifth pure stage with its own result type**, parallel to the surface mesh rather than bolted onto it. The four existing stages never call it. That separation is what keeps their existing byte comparisons valid when the canopy lands, and it preserves the property that every stage is usable on its own.
+- **The element's local frame is the seam between geometry and placement.** An element is authored with its petiole at the origin, its axis along +Y and its face normal along +Z. Placement emits transforms against that frame and never inspects the element's vertices. Stating the frame here is what lets the element and the placement be built in parallel without either one waiting on the other.
+- **The library emits geometry and per-instance transforms. The consumer owns the draw.** The instanced mesh, the alpha-tested material and the draw call all live in the harness, because R6 forbids the library from emitting a material. "One instanced draw per element type" is therefore a claim about the consumer, verified in the panel's draw-call count, not a unit test.
+- **A shoot is a terminal run**, meaning a branch run whose final node has no children. A tree with no laterals has exactly one shoot, its trunk tip. A skeleton too small to produce a run has none, and yields an empty canopy.
+- **The canopy draws chance from its own XOR-derived sub-stream.** One existing stream uses `0x5b_f0_3d_11`; the skeleton and the noise field take the caller's seed raw. The canopy takes a constant not yet in use, so adding it leaves every existing stream's output untouched.
+- **Both presets state a canopy block.** The preset convention is that every term is stated and none inherited, so a canopy parameter set that the presets do not name would break that convention on the day it lands.
+
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
@@ -50,16 +61,27 @@ The ask is "a high perf high fidelity tree generator" [user] and both halves are
 - **Wind and motion are out of scope.** Separate system, separate budget, and a canopy that cannot stand still convincingly will not be rescued by moving. [inferred]
 - **Procedural texturing is out of scope**, its own spec: venation by space colonization at leaf scale (the algorithm's original 2005 application), albedo, translucency, masks. This spec ships a flat placeholder the texturing spec replaces. [user]
 - **No LOD ladder** — a stated budget, and a far impostor only if the measurement demands one. [paraphrase]
+- **The canopy widens the subject, and the stage frames the subject.** Room fit, orbit pivot and the near and far planes are tuned against branch-only spans today. Foliage spread is the first thing to change that, and a prior bug in this repo put the orbit pivot off the subject through exactly this kind of bounds change. [inferred]
+- **Nothing here is verifiable in the test suite beyond CPU-side data.** Vitest runs in Node with no GPU and no canvas, so draw counts, instance counts and geometry are asserted on the arrays, and the frame budget is a harness procedure the owner runs. A task that goes looking for an automated check on real WebGL state will stall on one that cannot exist. [inferred]
+
+## Quick commands
+
+```bash
+npx vitest run      # 193 tests green at plan time; the canopy adds to this
+npx tsc --noEmit    # clean at plan time
+npm run dev         # the clay harness, where R5 is measured and R7 is judged
+```
 
 ## Acceptance Criteria
 
-- **R1:** The foliage element is real 3D geometry generated procedurally, its shape a set of named parameters, not an authored asset and not a flat card by default. [user]
-- **R2:** Elements are placed on shoots rather than one per attachment frame, with phyllotaxis along the shoot, clumping at its end, and outward and upward orientation bias, each a named parameter. [inferred]
-- **R3:** Interior elements the camera cannot see are culled, with a test showing the silhouette unchanged while element count falls substantially. [paraphrase]
-- **R4:** The canopy renders in one instanced draw per element type, with cutout transparency by alpha test or alpha-to-coverage rather than blending, and geometry fitted to the leaf silhouette rather than a bounding quad. [paraphrase]
-- **R5:** The panel reports triangles, draw calls, instance count, `devicePixelRatio` and build time. The frame budget is stated for a named machine and measured with GPU timer queries at vsync off, across a four-point resolution sweep — never from a vsync-pinned frame time. [user]
-- **R6:** The canopy is judged in clay with a flat placeholder element, and nothing in this spec emits a material, a colour or a light. [paraphrase]
-- **R7:** Same seed and parameters yield an identical canopy, and the owner confirms the canopy reads as worth building a scene on, judged in clay. [paraphrase]
+- **R1:** The foliage element is real 3D geometry generated procedurally, its shape a set of named parameters, not an authored asset and not a flat card by default. [user] Errors: non-finite or out-of-range shape parameters fall back to their documented defaults through the `held` rail the other stages use; card mode is reachable as a named parameter and is off by default.
+- **R2:** Elements are placed on shoots rather than one per attachment frame, with phyllotaxis along the shoot, clumping at its end, and outward and upward orientation bias, each a named parameter. Errors: a skeleton with fewer than two nodes, or one with no terminal runs, yields an empty canopy rather than throwing; non-finite placement parameters fall back through the same rail; candidate iteration is array-backed, so placement never depends on `Map` or `Set` ordering.
+- **R3:** Interior elements the camera cannot see are culled, with a test showing the silhouette unchanged while element count falls substantially. [paraphrase] Errors: the test asserts the count both falls and stays above zero, so a culler that removes everything fails it; the fixture is dense enough that a no-op culler fails it too; an element is classified by every one of its vertices against the shell, never by its centroid.
+- **R4:** The canopy renders in one instanced draw per element type, with cutout transparency by alpha test or alpha-to-coverage rather than blending, and geometry fitted to the leaf silhouette rather than a bounding quad. [paraphrase] Errors: no error surface beyond R5's reporting. Instance count and draw-call count are asserted on the CPU-side data, because vitest runs in Node with no GPU or canvas.
+- **R5:** The panel reports triangles, draw calls, instance count, `devicePixelRatio` and build time. The frame budget is stated for a named machine and measured with GPU timer queries at vsync off, across a four-point resolution sweep — never from a vsync-pinned frame time. [user] Errors: when the GPU timer-query extension is unavailable the panel says so and reports no timing number, rather than falling back to a vsync-pinned frame time; a sweep interrupted by context loss or a resize reports its partial results marked incomplete.
+- **R6:** The canopy is judged in clay with a flat placeholder element, and nothing in this spec emits a material, a colour or a light. [paraphrase] Errors: no error surface beyond R4. The clay room's judging-mode defaults are unchanged and the lighting-check extra stays opt-in and off.
+- **R7:** Same seed and parameters yield an identical canopy, and the owner confirms the canopy reads as worth building a scene on, judged in clay. [paraphrase] Errors: determinism is asserted by building twice from one seed and comparing the emitted typed arrays; adding the canopy stage leaves the existing skeleton and surface comparisons byte-identical, because the canopy is a separate stage the earlier ones never call.
+- **R8:** The canopy contributes to the stage's subject bounds, so room fit, orbit pivot and the near and far planes account for foliage spread rather than trunk taper alone. Errors: an instanced mesh whose bounding volume was never computed must not contribute zero extent silently; a canopy with zero elements leaves framing identical to the branch-only framing.
 
 ## Boundaries
 
@@ -79,20 +101,35 @@ The ask is "a high perf high fidelity tree generator" [user] and both halves are
 - **WebGPU is strictly better than WebGL2 for this canopy** and worth recording even though the harness is WebGL today: the spec normatively permits skipping a fragment invocation when the depth test fails, and `discard` is not excluded from that, so alpha-tested leaves keep early-Z by guarantee. WGSL also has `sample_mask`, which WebGL2 lacks entirely, so per-sample hashed alpha is only reachable there. [inferred]
 - **The risk is stated rather than hidden.** Foliage is where procedural trees usually fail, and it fails differently from branches: fill explodes, the interior fills with leaves a real tree would have shed, and leaves read as plastic unless the material does what diffuse cannot. Done badly it wastes the branches rather than crowning them. [inferred]
 
+### Implementation Tradeoffs
+<!-- scope: technical -->
+
+- **The measurement rig goes first, before any leaf exists.** Two of this spec's three parked unknowns were the frame budget and whether `logarithmicDepthBuffer` earns its cost, and both read as blocked on the canopy. They are not. The flag is set once on the renderer and the existing branch surface already spans four orders of magnitude, so toggling it and reading GPU timer queries settles it against the tree that is there today. Ordering the rig first turns two parked unknowns into a measured answer before the work they would otherwise gate, and gives R3 and R4 a baseline to be judged against instead of a guess.
+- **Culling is judged against a silhouette the repo cannot currently draw.** Nothing in the codebase projects geometry to a screen-space outline, so R3's test needs a new helper before it can assert anything. That helper is the reason culling is its own task rather than a clause inside placement: the test is most of the work.
+- **The element and the placement are split on the local-frame contract, not on convenience.** With the frame stated above, the two have no shared file and no shared type beyond it, so they run at the same time. Without it they would serialize on a convention neither one owns.
+- **Rejected as overkill: a leaf-level LOD ladder.** The spec already cut it, and the measurement rig is what would justify reopening it. Rejected too: exporting a shared `held` helper while touching these files, since the idiom is deliberately local at each call site in the two stages that use it.
+- **Alpha test is chosen knowing it costs early-Z on the target machine.** The spec records the benchmark, and the rig in the first task is what turns that from a quoted figure into this project's number.
+
 ## Parked unknowns
 
-- The frame budget in R5 is not yet a number. It resolves on the first honest measurement at a realistic element count, and nothing before that is better than a guess. [inferred]
-- Whether `logarithmicDepthBuffer` survives is the same measurement. It may turn out to cost more than the z-fighting it fixes. [inferred]
-- Whether a far impostor is needed at all follows from both. [inferred]
+- Whether a far impostor is needed at all follows from the measurement in fn-1-the-canopy-real-leaf-geometry-culled-to.1. Nothing in this spec decides it. [inferred]
+
+## Early proof point
+
+Task fn-1-the-canopy-real-leaf-geometry-culled-to.1 validates the core approach: that this project can measure its own fill cost honestly, with GPU timer queries at vsync off across a four-point resolution sweep, and can state what `logarithmicDepthBuffer` and an uncapped `devicePixelRatio` actually cost on the named machine.
+
+It runs first because it needs no canopy. If the timer-query path turns out to be unreachable in this harness, the frame budget in R5 cannot be stated at all, and the performance half of "high perf high fidelity" has no evidence behind it. Re-evaluate the measurement approach before building the canopy that would be judged against it.
 
 ## Requirement coverage
 
-| R-ID | Task |
-|------|------|
-| R1 | TBD — populate via /flow-next:plan |
-| R2 | TBD — populate via /flow-next:plan |
-| R3 | TBD — populate via /flow-next:plan |
-| R4 | TBD — populate via /flow-next:plan |
-| R5 | TBD — populate via /flow-next:plan |
-| R6 | TBD — populate via /flow-next:plan |
-| R7 | TBD — populate via /flow-next:plan |
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1 | Real parameterized leaf geometry, not a card by default | fn-1-the-canopy-real-leaf-geometry-culled-to.2 | — |
+| R2 | Placement on shoots: phyllotaxis, clumping, orientation bias | fn-1-the-canopy-real-leaf-geometry-culled-to.3 | — |
+| R3 | Interior culling, silhouette unchanged, count falls | fn-1-the-canopy-real-leaf-geometry-culled-to.4 | — |
+| R4 | One instanced draw per element type, alpha test, fitted silhouette | fn-1-the-canopy-real-leaf-geometry-culled-to.2, fn-1-the-canopy-real-leaf-geometry-culled-to.5 | — |
+| R5 | Panel metrics and a measured frame budget | fn-1-the-canopy-real-leaf-geometry-culled-to.1 | — |
+| R6 | Judged in clay, no material, colour or light from the library | fn-1-the-canopy-real-leaf-geometry-culled-to.5 | — |
+| R7 | Same seed and parameters yield an identical canopy | fn-1-the-canopy-real-leaf-geometry-culled-to.3 | Owner sign-off in clay is a manual gate on .5, not an automated check |
+| R8 | Canopy contributes to subject bounds so framing stays on the subject | fn-1-the-canopy-real-leaf-geometry-culled-to.5 | — |
+

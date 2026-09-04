@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T17:12:02.453934Z",
+  "depends_on": [
+    "fn-1-the-canopy-real-leaf-geometry-culled-to.2",
+    "fn-1-the-canopy-real-leaf-geometry-culled-to.3",
+    "fn-1-the-canopy-real-leaf-geometry-culled-to.4"
+  ],
+  "id": "fn-1-the-canopy-real-leaf-geometry-culled-to.6",
+  "priority": null,
+  "spec": "fn-1-the-canopy-real-leaf-geometry-culled-to",
+  "spec_path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.6.md",
+  "status": "todo",
+  "title": "Public surface and the docs that still say there is no foliage",
+  "updated_at": "2026-09-04T17:12:02.453934Z"
+}
