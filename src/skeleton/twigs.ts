@@ -92,12 +92,13 @@ import {
  *                 both Quaking Aspen and Black Tupelo and 0.4 at Tupelo's
  *                 level 3; Corner's second rule is the same statement
  *                 without a number. This is the fine orders' own taper
- *                 law: thickness is not known during this pass - the
- *                 radius solve runs after it and is depth-agnostic - so
- *                 the taper authored here is in length and fork count,
- *                 and the solve conserves area through every fork this
- *                 pass adds, anchored to the parent's actual radius at
- *                 the handoff.
+ *                 law in length and fork count: thickness is not known
+ *                 during this pass. The radius solve runs after it and,
+ *                 below the crossover this pass exposes, applies its own
+ *                 steeper law (`RadiusParams.twigTaper`) anchored to the
+ *                 parent's actual radius at the handoff - area alone gave
+ *                 2 to 1 leaf to twig at eight orders where the botany
+ *                 is 25 to 1.
  *
  * LEVEL-CAPPED, NOT SCALE-SEARCHED. The recursion stops on `levels`, a
  * counter sized to real twig counts - a leader-and-lateral tree adds
@@ -161,7 +162,9 @@ export interface TwigParams {
   internode: number;
   /** Each order's internode as a fraction of the one above. Held to
    *  `MIN_TAPER` through 1: an order that grows longer than its
-   *  parent is not a taper and is not a twig. */
+   *  parent is not a taper and is not a twig.
+   *  This is the twig's LENGTH per order. `RadiusParams.twigTaper` is
+   *  its thickness, applied by the radius solve below the crossover. */
   taper: number;
 }
 
@@ -176,9 +179,10 @@ export const DEFAULT_TWIGS: TwigParams = {
   taper: 0.6,
 };
 
-/** Twelve orders: the generations the spec counts from today's
+/** Twelve orders: one more than the eleven the spec counts from today's
  *  terminal wood to a 2.5 mm twig - twenty-three from the trunk, less
- *  the twelve colonization makes. A stop, not a target. */
+ *  the twelve colonization makes - so the rail's end is reachable with
+ *  an order to spare. A stop, not a target. */
 export const MAX_TWIG_LEVELS = 12;
 /** Past eight children at a node the whorl is a brush, and with
  *  twelve orders under it the count is astronomical before the node

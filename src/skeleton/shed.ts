@@ -1,10 +1,5 @@
 import { DEFAULT_CULL, type CullParams } from "../canopy/cull";
-import {
-  DEFAULT_ENVELOPE,
-  envelopeMaxRadius,
-  envelopeRadiusAt,
-  type Envelope,
-} from "../envelope";
+import { DEFAULT_ENVELOPE, distanceToProfile, envelopeMaxRadius, envelopeProfile, envelopeRadiusAt, type Envelope } from "../envelope";
 import type { Skeleton, SkeletonNode } from "./colonize";
 import type { TwiggedSkeleton } from "./twigs";
 
@@ -54,57 +49,6 @@ export const DEFAULT_SHED: CullParams = DEFAULT_CULL;
    propagates it rather than clamping it. */
 const held = (value: number, fallback: number): number =>
   Number.isFinite(value) ? value : fallback;
-
-/** How finely the authored profile is sampled into the curve depth is
- *  measured against - the culler's figure, for the culler's reason:
- *  the chord sits under the true curve by well under a millimetre. */
-const PROFILE_SAMPLES = 128;
-
-/* The profile curve and the distance to it restate `cull.ts` line for
-   line rather than importing them, because the culler keeps them
-   private; lifting both onto the envelope module is the follow-up that
-   ends the duplicate, and until then the two are held equal by the
-   test that runs the culler's fixture through this pass. */
-
-/** The envelope's own profile curve as `r, y` pairs from the crown
- *  base to the tip, sampled from `envelopeRadiusAt` so there is one
- *  description of the shape. */
-function envelopeProfile(envelope: Envelope): Float64Array {
-  const out = new Float64Array((PROFILE_SAMPLES + 1) * 2);
-  const base = envelope.height * envelope.crownBase;
-  const span = envelope.height - base;
-  for (let i = 0; i <= PROFILE_SAMPLES; i += 1) {
-    const y = base + (span * i) / PROFILE_SAMPLES;
-    out[i * 2] = envelopeRadiusAt(envelope, y);
-    out[i * 2 + 1] = y;
-  }
-  return out;
-}
-
-/** Distance from `r, y` to the nearest point of `profile`, in metres. */
-function distanceToProfile(
-  profile: Float64Array,
-  r: number,
-  y: number,
-): number {
-  let best = Infinity;
-  for (let i = 0; i + 3 < profile.length; i += 2) {
-    const ar = profile[i];
-    const ay = profile[i + 1];
-    const br = profile[i + 2];
-    const by = profile[i + 3];
-    const dr = br - ar;
-    const dy = by - ay;
-    const lengthSq = dr * dr + dy * dy;
-    let t = lengthSq > 0 ? ((r - ar) * dr + (y - ay) * dy) / lengthSq : 0;
-    t = t < 0 ? 0 : t > 1 ? 1 : t;
-    const er = r - (ar + dr * t);
-    const ey = y - (ay + dy * t);
-    const distance = Math.hypot(er, ey);
-    if (distance < best) best = distance;
-  }
-  return best;
-}
 
 /**
  * Removes the twigs of `skeleton` that sit deep inside `envelope`.

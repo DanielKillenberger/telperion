@@ -112,15 +112,15 @@ export interface RadiusParams {
    *  longer than its twig is wide. Held to 0 through
    *  `MAX_TWIG_TAPER`; a child edge longer than its parent's never
    *  thickens. Optional, defaulting to `DEFAULT_TWIG_TAPER`, and
-   *  without effect on a skeleton with no twig orders. */
+   *  without effect on a skeleton with no twig orders.
+   *  This is the twig's THICKNESS. `TwigParams.taper` is its length per
+   *  order, authored by the twig pass. */
   twigTaper?: number;
 }
 
 /** The twig taper a `RadiusParams` that leaves `twigTaper` unstated
- *  gets - not a member of `DEFAULT_RADII`, whose three terms are the
- *  three every preset and every panel states today; a fourth there
- *  would be a term the presets do not state and the panel does not
- *  carry, and stating it is theirs to do. Measured on both presets at eight orders
+ *  gets, and the value `DEFAULT_RADII` carries, both presets state and
+ *  the panel's `twig thinning` dial reads. Measured on both presets at eight orders
  *  against the leaf each places, as the median terminal diameter from
  *  the solve the tree actually runs: at 0 (area alone) Telperion is
  *  2.1 to 1 and Laurelin 1.2; at 0.5, 12.5 and 7.4; at 0.7, 25.5 and

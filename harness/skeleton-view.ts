@@ -17,7 +17,7 @@ import {
   type SurfaceParams,
 } from "../src/mesh/surface";
 import type { TreePreset } from "../src/presets";
-import { solveRadii, type RadiusParams } from "../src/radius";
+import { DEFAULT_TWIG_TAPER, solveRadii, type RadiusParams } from "../src/radius";
 import { growReport, type SkeletonParams } from "../src/skeleton/grow";
 
 import type { GrowerParams } from "./params";
@@ -93,7 +93,7 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
       angle: params.twigAngle,
       divergence: params.twigDivergence,
       internode: params.twigInternode,
-      taper: params.twigTaper,
+      taper: params.twigLengthTaper,
     },
     bias: {
       gravitropism: params.gravitropism,
@@ -295,11 +295,11 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     twigAngle: preset.skeleton.twigs.angle,
     twigDivergence: preset.skeleton.twigs.divergence,
     twigInternode: preset.skeleton.twigs.internode,
-    twigTaper: preset.skeleton.twigs.taper,
+    twigLengthTaper: preset.skeleton.twigs.taper,
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
     lengthTaper: preset.radii.lengthTaper,
-    twigThinning: preset.radii.twigTaper ?? 0.7,
+    twigThinning: preset.radii.twigTaper ?? DEFAULT_TWIG_TAPER,
     lobes: preset.surface.lobes,
     lobeDepth: preset.surface.lobeDepth,
     twistRate: preset.surface.twistRate,

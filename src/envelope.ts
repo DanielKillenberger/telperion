@@ -148,3 +148,62 @@ export function sampleEnvelope(
   }
   return points;
 }
+
+/** How finely the authored profile is sampled into the curve depth is
+ *  measured against. The profile is smooth and this is a chord
+ *  approximation of it: at 128 samples the chord sits under the true
+ *  curve by well under a millimetre on either preset, which is three
+ *  orders below the shell it is used to measure. */
+const PROFILE_SAMPLES = 128;
+
+/** The envelope's own profile curve: the outline of the solid of
+ *  revolution in the half-plane it is turned in, as `r, y` pairs from
+ *  the crown base up to the tip.
+ *
+ *  Sampled from `envelopeRadiusAt` rather than derived a second time,
+ *  so there is exactly one description of the shape in the library and
+ *  a degenerate envelope produces a degenerate curve here rather than
+ *  a disagreement. It lives beside the envelope because two callers
+ *  need it - the leaf culler and the twig shedder - and a second copy
+ *  in either would be free to drift from the other. */
+export function envelopeProfile(envelope: Envelope): Float64Array {
+  const out = new Float64Array((PROFILE_SAMPLES + 1) * 2);
+  const base = envelope.height * envelope.crownBase;
+  const span = envelope.height - base;
+  for (let i = 0; i <= PROFILE_SAMPLES; i += 1) {
+    const y = base + (span * i) / PROFILE_SAMPLES;
+    out[i * 2] = envelopeRadiusAt(envelope, y);
+    out[i * 2 + 1] = y;
+  }
+  return out;
+}
+
+/** Distance from `r, y` to the nearest point of `profile`, in metres.
+ *
+ *  Plain minimum over the chords: the profile has 128 of them and this
+ *  runs per vertex, but callers settle the common case on a radial
+ *  slack alone and only reach here for a point that is a candidate for
+ *  removal. */
+export function distanceToProfile(
+  profile: Float64Array,
+  r: number,
+  y: number,
+): number {
+  let best = Infinity;
+  for (let i = 0; i + 3 < profile.length; i += 2) {
+    const ar = profile[i];
+    const ay = profile[i + 1];
+    const br = profile[i + 2];
+    const by = profile[i + 3];
+    const dr = br - ar;
+    const dy = by - ay;
+    const lengthSq = dr * dr + dy * dy;
+    let t = lengthSq > 0 ? ((r - ar) * dr + (y - ay) * dy) / lengthSq : 0;
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    const er = r - (ar + dr * t);
+    const ey = y - (ay + dy * t);
+    const distance = Math.hypot(er, ey);
+    if (distance < best) best = distance;
+  }
+  return best;
+}

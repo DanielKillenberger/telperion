@@ -167,8 +167,8 @@ describe("branchTwigs", () => {
        the handoff and `taper` of the order above after that, whatever
        the field does to its direction. Thickness is the radius solve's
        and runs after this pass; length and fork count are what this
-       pass can author, and the solve conserves area through every fork
-       it adds. */
+       pass can author, and below the crossover the solve applies its
+       own steeper law to what it is handed. */
     const tree = params;
     const step = resolveGrowth(tree).stepDistance;
     const skeleton = grown(tree, { levels: 5, ...twigs });

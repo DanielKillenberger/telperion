@@ -1,9 +1,4 @@
-import {
-  DEFAULT_ENVELOPE,
-  envelopeMaxRadius,
-  envelopeRadiusAt,
-  type Envelope,
-} from "../envelope";
+import { DEFAULT_ENVELOPE, distanceToProfile, envelopeMaxRadius, envelopeProfile, envelopeRadiusAt, type Envelope } from "../envelope";
 import type { ElementMesh } from "./element";
 import type { Canopy } from "./place";
 
@@ -116,63 +111,6 @@ const held = (value: number, fallback: number): number =>
 /** A canopy with nothing in it, built fresh each time so a caller that
  *  writes into one result cannot reach another's. */
 const empty = (): Canopy => ({ matrices: new Float32Array(0), count: 0 });
-
-/** How finely the authored profile is sampled into the curve depth is
- *  measured against. The profile is smooth and this is a chord
- *  approximation of it: at 128 samples the chord sits under the true
- *  curve by well under a millimetre on either preset, which is three
- *  orders below the shell it is used to measure. */
-const PROFILE_SAMPLES = 128;
-
-/** The envelope's own profile curve: the outline of the solid of
- *  revolution in the half-plane it is turned in, as `r, y` pairs from
- *  the crown base up to the tip.
- *
- *  Sampled from `envelopeRadiusAt` rather than derived a second time,
- *  so there is exactly one description of the shape in the library and
- *  a degenerate envelope produces a degenerate curve here rather than
- *  a disagreement. */
-function envelopeProfile(envelope: Envelope): Float64Array {
-  const out = new Float64Array((PROFILE_SAMPLES + 1) * 2);
-  const base = envelope.height * envelope.crownBase;
-  const span = envelope.height - base;
-  for (let i = 0; i <= PROFILE_SAMPLES; i += 1) {
-    const y = base + (span * i) / PROFILE_SAMPLES;
-    out[i * 2] = envelopeRadiusAt(envelope, y);
-    out[i * 2 + 1] = y;
-  }
-  return out;
-}
-
-/** Distance from `r, y` to the nearest point of `profile`, in metres.
- *
- *  Plain minimum over the chords: the profile has 128 of them and this
- *  runs per vertex, but the caller settles the common case on the
- *  radial slack alone and only reaches here for a point that is a
- *  candidate for removal. */
-function distanceToProfile(
-  profile: Float64Array,
-  r: number,
-  y: number,
-): number {
-  let best = Infinity;
-  for (let i = 0; i + 3 < profile.length; i += 2) {
-    const ar = profile[i];
-    const ay = profile[i + 1];
-    const br = profile[i + 2];
-    const by = profile[i + 3];
-    const dr = br - ar;
-    const dy = by - ay;
-    const lengthSq = dr * dr + dy * dy;
-    let t = lengthSq > 0 ? ((r - ar) * dr + (y - ay) * dy) / lengthSq : 0;
-    t = t < 0 ? 0 : t > 1 ? 1 : t;
-    const er = r - (ar + dr * t);
-    const ey = y - (ay + dy * t);
-    const distance = Math.hypot(er, ey);
-    if (distance < best) best = distance;
-  }
-  return best;
-}
 
 /** How many whole instances a canopy actually carries: the smaller of
  *  what it claims and what its buffer holds. */

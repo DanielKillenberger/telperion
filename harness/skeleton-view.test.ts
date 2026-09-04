@@ -161,7 +161,7 @@ describe("toSkeletonParams", () => {
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
       internode: DEFAULT_PARAMS.twigInternode,
-      taper: DEFAULT_PARAMS.twigTaper,
+      taper: DEFAULT_PARAMS.twigLengthTaper,
     });
     expect(positions(tree({ twigLevels: 3 })).length).toBeGreaterThan(
       positions(tree({ twigLevels: 0 })).length * 2,

@@ -55,7 +55,7 @@
 import { DEFAULT_CANOPY } from "../src/canopy/place";
 import { DEFAULT_ENVELOPE } from "../src/envelope";
 import { DEFAULT_SURFACE } from "../src/mesh/surface";
-import { DEFAULT_RADII } from "../src/radius";
+import { DEFAULT_RADII, DEFAULT_TWIG_TAPER } from "../src/radius";
 import { DEFAULT_MAX_TURN_PER_STEP } from "../src/skeleton/colonize";
 import { DEFAULT_STEP } from "../src/skeleton/grow";
 import { DEFAULT_TWIGS, MAX_TWIG_LEVELS } from "../src/skeleton/twigs";
@@ -115,7 +115,7 @@ export interface GrowerParams {
   twigAngle: number;
   twigDivergence: number;
   twigInternode: number;
-  twigTaper: number;
+  twigLengthTaper: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
@@ -273,7 +273,7 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "twigAngle", label: "branch angle", min: 0, max: 90, step: 1, unit: "deg" },
   { key: "twigDivergence", label: "twig divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
   { key: "twigInternode", label: "internode", min: 0.1, max: 4, step: 0.05, unit: "step" },
-  { key: "twigTaper", label: "twig taper", min: 0.3, max: 1, step: 0.01, unit: "" },
+  { key: "twigLengthTaper", label: "twig length taper", min: 0.3, max: 1, step: 0.01, unit: "" },
   // The fork exponent, under the name the owner already turns. Below
   // 2 a fork sheds more than area and the tree runs from a heavy
   // trunk to threads; above 3 the limbs stop thinning enough to read
@@ -365,10 +365,10 @@ export const DEFAULT_PARAMS: GrowerParams = {
   twigAngle: DEFAULT_TWIGS.angle,
   twigDivergence: DEFAULT_TWIGS.divergence,
   twigInternode: DEFAULT_TWIGS.internode,
-  twigTaper: DEFAULT_TWIGS.taper,
+  twigLengthTaper: DEFAULT_TWIGS.taper,
   taper: DEFAULT_RADII.forkExponent,
   trunkRadius: DEFAULT_RADII.trunkRadius,
-  twigThinning: DEFAULT_RADII.twigTaper ?? 0.7,
+  twigThinning: DEFAULT_RADII.twigTaper ?? DEFAULT_TWIG_TAPER,
   lengthTaper: DEFAULT_RADII.lengthTaper,
   crownBase: DEFAULT_ENVELOPE.crownBase,
   fullness: DEFAULT_ENVELOPE.fullness,
