@@ -46,7 +46,7 @@ export interface Envelope {
 export const DEFAULT_ENVELOPE: Envelope = {
   height: 24,
   crownBase: 0.3,
-  spread: 0.75,
+  spread: 0.3,
   fullness: 0.45,
   shoulder: 2.2,
 };

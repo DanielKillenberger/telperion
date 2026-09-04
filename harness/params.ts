@@ -22,8 +22,12 @@ export interface GrowerParams {
   seed: number;
   /** Envelope height, in metres. The tree is judged at human scale. */
   height: number;
-  /** Envelope half-width as a fraction of height. Low is Telperion-ish
-   *  and upright, high is Laurelin-ish and domed. */
+  /** Envelope half-width as a fraction of height, so the crown's width
+   *  over the tree's height is twice this. The range spans real trees:
+   *  0.12 is a narrow upright Telperion at about a quarter as wide as
+   *  tall, 0.65 a broad domed Laurelin at about one and a third. Above
+   *  that a crown stops reading as a tree and starts reading as a
+   *  hedge. */
   spread: number;
   /** Spiral bias around the trunk axis, 0 (straight) to 1 (wrung out). */
   torsion: number;
@@ -45,7 +49,7 @@ export interface SliderSpec {
 
 export const SLIDERS: readonly SliderSpec[] = [
   { key: "height", label: "height", min: 4, max: 60, step: 0.5, unit: "m" },
-  { key: "spread", label: "spread", min: 0.15, max: 1.6, step: 0.01, unit: "" },
+  { key: "spread", label: "spread", min: 0.12, max: 0.65, step: 0.01, unit: "" },
   { key: "torsion", label: "torsion", min: 0, max: 1, step: 0.01, unit: "" },
   { key: "density", label: "density", min: 0, max: 1, step: 0.01, unit: "" },
   { key: "taper", label: "taper", min: 0.5, max: 1, step: 0.01, unit: "" },
@@ -54,7 +58,7 @@ export const SLIDERS: readonly SliderSpec[] = [
 export const DEFAULT_PARAMS: GrowerParams = {
   seed: 1,
   height: 24,
-  spread: 0.75,
+  spread: 0.3,
   torsion: 0.35,
   density: 0.5,
   taper: 0.78,
