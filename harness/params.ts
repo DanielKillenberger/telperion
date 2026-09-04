@@ -10,8 +10,15 @@
  * Every name here points at a mechanism the spec already committed to:
  * `height` and `spread` are the authored envelope, the five bias dials
  * are the growth bias field's own five terms under their own names,
- * `taper` feeds the radius solve, `density` is how many attractors the
- * envelope gets. Nothing is a knob invented for the panel's sake.
+ * `taper` is the radius solve's fork exponent, `density` is how many
+ * attractors the envelope gets. Nothing is a knob invented for the
+ * panel's sake.
+ *
+ * The radius solve's other two terms - how stout the trunk is and how
+ * fast a limb thins along its length - are library parameters with
+ * documented defaults and no dial, on the same footing as the growth
+ * distances in grow.ts: nothing has asked to turn them live yet, and
+ * each is one line in SLIDERS the day something does.
  *
  * The bias dials are five and not one, because a single number mixes
  * qualities that are independent - a tree that leans is a different
@@ -29,6 +36,7 @@
  * be walked to one at a time.
  * ------------------------------------------------------------------ */
 
+import { DEFAULT_RADII } from "@/lib/grower/radius";
 import { DEFAULT_BIAS } from "@/lib/grower/torsion";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
@@ -62,7 +70,9 @@ export interface GrowerParams {
   spiralRate: number;
   /** How thickly the envelope is populated: branch count, not leaves. */
   density: number;
-  /** Radius falloff through a fork, 0.5 (abrupt) to 1 (none). */
+  /** The radius solve's fork exponent: what a fork does to thickness,
+   *  and so the contrast between trunk and twig. 2 conserves
+   *  cross-sectional area exactly. */
   taper: number;
 }
 
@@ -89,7 +99,12 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "writheWavelength", label: "bend length", min: 0.08, max: 1.2, step: 0.01, unit: "" },
   { key: "spiralRate", label: "spiral", min: 0, max: 6, step: 0.1, unit: "" },
   { key: "density", label: "density", min: 0, max: 1, step: 0.01, unit: "" },
-  { key: "taper", label: "taper", min: 0.5, max: 1, step: 0.01, unit: "" },
+  // The fork exponent, under the name the owner already turns. Below
+  // 2 a fork sheds more than area and the tree runs from a heavy
+  // trunk to threads; above 3 the limbs stop thinning enough to read
+  // as limbs. The dial spans both sides of that so the good range is
+  // visibly a choice.
+  { key: "taper", label: "taper", min: 1.4, max: 3.6, step: 0.05, unit: "n" },
 ];
 
 export const DEFAULT_PARAMS: GrowerParams = {
@@ -103,7 +118,7 @@ export const DEFAULT_PARAMS: GrowerParams = {
   writheWavelength: DEFAULT_BIAS.writheWavelength,
   spiralRate: DEFAULT_BIAS.spiralRate,
   density: 0.5,
-  taper: 0.78,
+  taper: DEFAULT_RADII.forkExponent,
 };
 
 /** The seed field is the one free-text surface on the panel, so it is

@@ -24,7 +24,7 @@ import {
   randomSeed,
   readSlider,
 } from "./params";
-import { buildSkeletonLines } from "./skeleton-view";
+import { buildTree } from "./skeleton-view";
 import { createStage, type Stage } from "./stage";
 import "./grower-dev.css";
 
@@ -51,7 +51,7 @@ export function GrowerDev() {
   }, []);
 
   useEffect(() => {
-    stageRef.current?.setTree((clay) => buildSkeletonLines(params, clay));
+    stageRef.current?.setTree((clay) => buildTree(params, clay));
   }, [params]);
 
   useEffect(() => {
@@ -154,9 +154,10 @@ export function GrowerDev() {
         </div>
 
         <p className="gd-note gd-warn">
-          skeleton only: branching structure, drawn as lines. thickness
-          lands in fn-11.4 and a surface in fn-11.5 - taper is the one
-          dial that reaches nothing yet.
+          structure and thickness: branches are round tubes, a viewer for
+          the radius solve. taper is its fork exponent - 2 conserves
+          cross-sectional area. the real surface, non-circular and
+          rotating with a root flare, lands in fn-11.5.
         </p>
       </aside>
     </div>
