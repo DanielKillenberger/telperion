@@ -11,7 +11,8 @@
  * `height` and `spread` are the authored envelope, the five bias dials
  * are the growth bias field's own five terms under their own names,
  * `taper` is the radius solve's fork exponent, `density` is how many
- * attractors the envelope gets, and the four surface dials are the
+ * attractors the envelope gets, `growth step` is how finely the
+ * growth answers them, and the four surface dials are the
  * swept section's own terms, and the ten canopy dials are the
  * placement stage's ten under its own names. Nothing is a knob
  * invented for the panel's sake.
@@ -55,6 +56,7 @@ import { DEFAULT_ENVELOPE } from "../src/envelope";
 import { DEFAULT_SURFACE } from "../src/mesh/surface";
 import { DEFAULT_RADII } from "../src/radius";
 import { DEFAULT_MAX_TURN_PER_STEP } from "../src/skeleton/colonize";
+import { DEFAULT_STEP } from "../src/skeleton/grow";
 import { DEFAULT_BIAS } from "../src/torsion";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
@@ -93,6 +95,12 @@ export interface GrowerParams {
   maxTurnPerStep: number;
   /** How thickly the envelope is populated: branch count, not leaves. */
   density: number;
+  /** The growth step as a fraction of height: the branching depth.
+   *  `density` says where the tree is asked to grow and this says how
+   *  finely it answers, so a finer step branches further down into
+   *  finer wood and more tips. Finer is to the LEFT, as `leaf spacing`
+   *  is: the library's own term, under its own name and unit. */
+  step: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
@@ -218,6 +226,17 @@ export const SLIDERS: readonly SliderSpec[] = [
   // end is a bug.
   { key: "maxTurnPerStep", label: "turn limit", min: 5, max: 90, step: 1, unit: "deg/step" },
   { key: "density", label: "density", min: 0, max: 1, step: 0.01, unit: "" },
+  /* The branching depth, beside the density it works with: attractors
+     decide where the tree is asked to grow, the step how finely it
+     answers. The rail's ends are the measured range and not round
+     numbers. The top is the step every tree so far was grown at, 3.26 m
+     on Telperion, 808 nodes; the bottom is 0.44 m on the same tree,
+     14,100 nodes and nine times the tips, and on the widest crown this
+     panel can ask for at full density it is 42,000 nodes and a fifth of
+     a second to grow. Past that the count runs away without the wood
+     getting usefully finer, and the notch is fine enough to walk the
+     bottom of the rail where each one costs the most. */
+  { key: "step", label: "growth step", min: 0.003, max: 0.022, step: 0.0005, unit: "h" },
   // The fork exponent, under the name the owner already turns. Below
   // 2 a fork sheds more than area and the tree runs from a heavy
   // trunk to threads; above 3 the limbs stop thinning enough to read
@@ -300,6 +319,7 @@ export const DEFAULT_PARAMS: GrowerParams = {
   spiralRate: DEFAULT_BIAS.spiralRate,
   maxTurnPerStep: DEFAULT_MAX_TURN_PER_STEP,
   density: 0.5,
+  step: DEFAULT_STEP,
   taper: DEFAULT_RADII.forkExponent,
   trunkRadius: DEFAULT_RADII.trunkRadius,
   lengthTaper: DEFAULT_RADII.lengthTaper,

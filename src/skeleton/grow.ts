@@ -31,10 +31,15 @@ import {
  * The growth distances default to fractions of the envelope's height
  * rather than to absolute metres, so a 4 m tree and a 60 m tree get
  * the same branching character instead of the small one coming out a
- * bare fork and the large one a solid mat. Every one of them is still
- * an argument: `growth` overrides any of them individually, which is
- * how kill distance and influence radius are exposed for art
- * direction without adding a dial nobody has asked for yet.
+ * bare fork and the large one a solid mat. `step` is the one of them
+ * that is a dial: the growth step as a fraction of height, which is
+ * how finely the tree answers its attractors and so how far down it
+ * branches. Kill distance follows it at a fixed ratio and the search
+ * radius is derived from it, so one number moves the three together
+ * and their ratios stay the art direction this file states. Every
+ * distance is still an argument in metres through `growth`, which
+ * overrides any of them individually for a caller with distances of
+ * its own.
  * ------------------------------------------------------------------ */
 
 export interface SkeletonParams {
@@ -45,20 +50,38 @@ export interface SkeletonParams {
   /** How many attractors the envelope gets - branch count, not
    *  leaves. More is a denser, finer tree, not a bigger one. */
   attractors: number;
+  /** The growth step as a fraction of envelope height: the branching
+   *  depth dial. Attractors decide where the tree is asked to grow and
+   *  the step decides how finely it answers, so a finer step is a tree
+   *  that keeps forking further down - finer wood, more tips - and not
+   *  a smaller one. Kill distance moves with it at two steps; the
+   *  search radius is derived from it by `influenceRadiusFor` rather
+   *  than scaled with it, so shrinking the step cannot blind the
+   *  search.
+   *
+   *  Defaults to `DEFAULT_STEP`, 0.022, which every tree before this
+   *  dial existed was grown at; the useful rail runs down to about
+   *  0.003, where Telperion is 14,100 nodes on 1,200 tips against 808
+   *  on 133 at the default, and Laurelin's widest panel setting is
+   *  42,000 nodes. Non-finite falls back to the default. The node
+   *  ceiling scales with it - see `defaultGrowth`. */
+  step?: number;
   /** Overrides for any of the growth bias field's five terms; the rest
    *  come from `DEFAULT_BIAS`. This is the shape of the preset fn-11.7
    *  authors Telperion and Laurelin as. */
   bias?: Partial<BiasParams>;
-  /** Overrides for any growth distance; the rest come from
-   *  `defaultGrowth(envelope)`. A `bias` given here wins over the field
-   *  built from `SkeletonParams.bias`, which is the escape hatch for a
-   *  caller with a field of its own. */
+  /** Overrides for any growth distance, in metres; the rest come from
+   *  `defaultGrowth(envelope, attractors, step)`. A `bias` given here
+   *  wins over the field built from `SkeletonParams.bias`, which is
+   *  the escape hatch for a caller with a field of its own. */
   growth?: Partial<GrowthConfig>;
 }
 
-/** Growth step as a fraction of envelope height. About two per cent is
- *  fine enough that a limb reads as a curve. */
-const STEP_FRACTION = 0.022;
+/** The default growth step as a fraction of envelope height. About two
+ *  per cent is fine enough that a limb reads as a curve, and it is the
+ *  step every tree was grown at before the step was a dial, so a tree
+ *  at this value is the tree it always was. */
+export const DEFAULT_STEP = 0.022;
 /** Kill distance in steps. Two stops a branch orbiting an attractor it
  *  has already arrived at. */
 const KILL_STEPS = 2;
@@ -69,6 +92,15 @@ const INFLUENCE_STEPS = 9;
 /** Search radius floor, in attractor spacings. See `influenceRadiusFor`
  *  for what this number is and why it is not larger. */
 const INFLUENCE_SPACINGS = 1.2;
+/** The node ceiling at the default step. A stop, not a target: a tree
+ *  that wants more nodes than this at today's step has been asked for
+ *  something the panel should not be asking for. It is stated at the
+ *  default step and scaled by the step's inverse in `defaultGrowth`,
+ *  because the nodes a crown takes go roughly as one over the step -
+ *  measured, each halving costs 1.7 to 2.2 times the nodes - so a
+ *  fixed ceiling would either truncate the fine end of the rail or be
+ *  no stop at all at the coarse end. */
+const NODE_BUDGET = 8000;
 /** Midpoint-rule samples for the crown volume. The profile is smooth
  *  between its ends and the volume only sets a floor, so this is far
  *  more than the derivation needs; it is fixed so that the same
@@ -144,28 +176,63 @@ export function influenceRadiusFor(
   return Math.max(bySteps, spacing * INFLUENCE_SPACINGS);
 }
 
-/** Growth distances for `envelope`, all but `maxNodes` proportional to
- *  its height: a step of about two per cent of it, a kill distance of
- *  two steps, and a search radius of nine steps or 1.2 attractor
- *  spacings, whichever is wider - `influenceRadiusFor` carries the
- *  derivation and the reason for it.
+/** NaN is the one value `Math.max` and `Math.min` pass through rather
+ *  than pin, and a NaN step is a tree that never grows. */
+const held = (value: number, fallback: number): number =>
+  Number.isFinite(value) ? value : fallback;
+
+/** Growth distances for `envelope`, all proportional to its height: a
+ *  step of `step` times it, a kill distance of two steps, a search
+ *  radius of nine steps or 1.2 attractor spacings, whichever is wider -
+ *  `influenceRadiusFor` carries the derivation and the reason for it -
+ *  and a node ceiling of `NODE_BUDGET` at the default step, growing as
+ *  the step shrinks so that the whole rail fits under it.
  *
  *  `attractors` is how many the envelope is scattered with, which the
  *  spacing floor is derived from. Left out, the radius is nine steps
  *  alone, which is exact at today's step and the collapse below it;
- *  `growSkeleton` always passes the count it scattered. */
-export function defaultGrowth(envelope: Envelope, attractors = 0): GrowthConfig {
-  const step = envelope.height * STEP_FRACTION;
+ *  `growSkeleton` always passes the count it scattered. `step` is the
+ *  branching depth as `SkeletonParams.step` states it, held to
+ *  `DEFAULT_STEP` when it is not a number. */
+export function defaultGrowth(
+  envelope: Envelope,
+  attractors = 0,
+  step = DEFAULT_STEP,
+): GrowthConfig {
+  const fraction = held(step, DEFAULT_STEP);
+  const stepDistance = envelope.height * fraction;
   return {
-    stepDistance: step,
-    killDistance: step * KILL_STEPS,
-    influenceRadius: influenceRadiusFor(envelope, step, attractors),
+    stepDistance,
+    killDistance: stepDistance * KILL_STEPS,
+    influenceRadius: influenceRadiusFor(envelope, stepDistance, attractors),
     // The envelope's own bare-trunk height: below it the silhouette
     // has no width, so nothing may branch there.
     trunkHeight: envelope.height * envelope.crownBase,
-    // A stop, not a target: a tree that wants more nodes than this has
-    // been asked for something the panel should not be asking for.
-    maxNodes: 8000,
+    maxNodes: Math.round(NODE_BUDGET * (DEFAULT_STEP / fraction)),
+  };
+}
+
+/** The growth configuration `growSkeleton` runs `params` under: the
+ *  derived distances, the bias field built from `params.bias`, and
+ *  then `params.growth` over both. Exported so a caller can read the
+ *  ceiling a skeleton was grown under and say whether it was reached,
+ *  rather than re-deriving the merge and drifting from it.
+ *
+ *  `scattered` is the attractor count the spacing floor is derived
+ *  from; `growSkeleton` passes the count it actually placed, which is
+ *  `params.attractors` except in an envelope with no volume. */
+export function resolveGrowth(
+  params: SkeletonParams,
+  scattered = params.attractors,
+): GrowthConfig {
+  const bias = createGrowthBias(params.envelope, params.seed, {
+    ...DEFAULT_BIAS,
+    ...params.bias,
+  });
+  return {
+    ...defaultGrowth(params.envelope, scattered, params.step),
+    bias,
+    ...params.growth,
   };
 }
 
@@ -173,14 +240,9 @@ export function defaultGrowth(envelope: Envelope, attractors = 0): GrowthConfig 
 export function growSkeleton(params: SkeletonParams): Skeleton {
   const rng = createRng(params.seed);
   const attractors = sampleEnvelope(params.envelope, params.attractors, rng);
-  const bias = createGrowthBias(params.envelope, params.seed, {
-    ...DEFAULT_BIAS,
-    ...params.bias,
-  });
-  const growth = {
-    ...defaultGrowth(params.envelope, attractors.length),
-    bias,
-    ...params.growth,
-  };
-  return colonize(attractors, new THREE.Vector3(0, 0, 0), growth);
+  return colonize(
+    attractors,
+    new THREE.Vector3(0, 0, 0),
+    resolveGrowth(params, attractors.length),
+  );
 }

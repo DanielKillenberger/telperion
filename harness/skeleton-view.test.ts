@@ -143,6 +143,14 @@ describe("toSkeletonParams", () => {
     });
   });
 
+  it("hands the growth step over under the library's own name", () => {
+    // A sibling of the attractor count, not a growth override: the
+    // library derives the distances from it.
+    const mapped = toSkeletonParams({ ...DEFAULT_PARAMS, step: 0.011 });
+    expect(mapped.step).toBe(0.011);
+    expect(mapped.growth).toEqual({ maxTurnPerStep: DEFAULT_PARAMS.maxTurnPerStep });
+  });
+
   it("turns density into an attractor count", () => {
     expect(toSkeletonParams({ ...DEFAULT_PARAMS, density: 0 }).attractors).toBe(
       250,
@@ -546,6 +554,30 @@ describe("presetToParams", () => {
       }
     },
   );
+});
+
+describe("the node ceiling", () => {
+  it("is reported when the growth stops at it, and not otherwise", () => {
+    /* Reaching the ceiling is a tree cut off rather than finished, and
+       `nodes` alone cannot say which happened. Asserted both ways on
+       the same preset: as authored it finishes its crown, and under a
+       ceiling low enough to hit it stops exactly there and says so. */
+    const finished = buildPreset(LAURELIN, clay).stats;
+    expect(finished.capped).toBe(false);
+
+    const cutOff = buildPreset(
+      {
+        ...LAURELIN,
+        skeleton: {
+          ...LAURELIN.skeleton,
+          growth: { ...LAURELIN.skeleton.growth, maxNodes: 200 },
+        },
+      },
+      clay,
+    ).stats;
+    expect(cutOff.nodes).toBe(200);
+    expect(cutOff.capped).toBe(true);
+  });
 });
 
 describe("buildComparison", () => {

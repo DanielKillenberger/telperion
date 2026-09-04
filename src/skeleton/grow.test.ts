@@ -8,6 +8,7 @@ import {
 } from "../envelope";
 import type { GrowthConfig, Skeleton } from "./colonize";
 import {
+  DEFAULT_STEP,
   defaultGrowth,
   growSkeleton,
   influenceRadiusFor,
@@ -496,6 +497,70 @@ describe("the search radius and the attractor spacing", () => {
     // No count is no floor: a caller scattering its own attractors gets
     // the nine-step radius it always did.
     expect(influenceRadiusFor(envelope, step / 32, 0)).toBe((step / 32) * 9);
+  });
+});
+
+describe("the growth step", () => {
+  it.each([
+    ["Telperion", TELPERION.skeleton],
+    ["Laurelin", LAURELIN.skeleton],
+    ["the default envelope", params],
+  ] as const)("at its default, %s is the tree it was before the dial existed", (_name, tree) => {
+    /* R7, and R1's error case in the same breath. A step left out, a
+       step stated at the default, and a step that is not a number at
+       all are one tree, byte for byte - the last two through the
+       `held` rail - so that any tree that differs from today's does so
+       because someone moved the dial. */
+    const { step: _stated, ...unstated } = tree;
+    const today = signature(growSkeleton(unstated));
+    expect(signature(growSkeleton({ ...unstated, step: DEFAULT_STEP }))).toBe(today);
+    expect(signature(growSkeleton({ ...unstated, step: Number.NaN }))).toBe(today);
+    expect(signature(growSkeleton({ ...unstated, step: Number.POSITIVE_INFINITY }))).toBe(today);
+  });
+
+  it("moves step and kill distance together, and derives the rest", () => {
+    /* One dial, not three: the kill distance keeps the ratio the
+       default encodes, the search radius is recomputed from the new
+       step rather than scaled with it, and the node ceiling grows as
+       the step shrinks so the fine end of the rail is measured rather
+       than truncated. */
+    const envelope = TELPERION.skeleton.envelope;
+    const count = TELPERION.skeleton.attractors;
+    const today = defaultGrowth(envelope, count);
+    const finer = defaultGrowth(envelope, count, 0.011);
+    expect(finer.stepDistance).toBe(envelope.height * 0.011);
+    expect(finer.killDistance / finer.stepDistance).toBe(
+      today.killDistance / today.stepDistance,
+    );
+    expect(finer.influenceRadius).toBe(
+      influenceRadiusFor(envelope, finer.stepDistance, count),
+    );
+    expect(finer.trunkHeight).toBe(today.trunkHeight);
+    expect(today.maxNodes).toBe(8000);
+    expect(finer.maxNodes).toBe(16000);
+  });
+
+  it("fits the whole rail under the node ceiling", () => {
+    /* The bottom of the panel's rail on the widest crown the panel can
+       ask for, at full density: measured at 42,414 nodes, which the old
+       fixed ceiling of 8,000 cut off before the middle of the rail. The
+       scaled ceiling has to hold it with room, or the dial's fine end
+       is the ceiling's shape and not the envelope's. */
+    const widest: SkeletonParams = {
+      seed: 1,
+      envelope: { height: 148, spread: 0.65, crownBase: 0, fullness: 0.05, shoulder: 4 },
+      attractors: 1600,
+      step: 0.003,
+    };
+    const ceiling = defaultGrowth(widest.envelope, widest.attractors, widest.step).maxNodes;
+    const grown = census(growSkeleton(widest));
+    expect(grown.nodes).toBeGreaterThan(30000);
+    expect(grown.nodes).toBeLessThan(ceiling);
+    // And the dial reaches the tree: finer is deeper, not smaller.
+    const today = census(growSkeleton(params));
+    const finer = census(growSkeleton({ ...params, step: 0.011 }));
+    expect(finer.nodes).toBeGreaterThan(today.nodes);
+    expect(finer.tips).toBeGreaterThan(today.tips);
   });
 });
 
