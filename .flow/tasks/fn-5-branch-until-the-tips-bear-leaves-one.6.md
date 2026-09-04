@@ -48,9 +48,20 @@ Retires every claim that the skeleton is space colonization alone, and re-measur
 - [ ] `npx vitest run`, `npx tsc --noEmit` and `npm run build` green
 - [ ] The clay comparison shows both presets at their shipping depth with every supernatural term at its preset value, so R8 can judge that Telperion still reads as Telperion and Laurelin as Laurelin (R8)
 ## Done summary
-TBD
+Every claim that the skeleton is space colonization alone is retired: the README bullet and pipeline table, the index.ts header, package.json's description and colonize.ts's header now describe colonization as the upper structure handed at a crossover to local rules that branch on to leaf-bearing twigs, and the skeleton row names the depth inputs. src/index.ts re-exports the whole depth surface five tasks left reachable only by module path (growReport, resolveGrowth, influenceRadiusFor, DEFAULT_STEP, GrowthReport; branchTwigs, resolveTwigs, DEFAULT_TWIGS, TwigParams, TwiggedSkeleton; shedTwigs, DEFAULT_SHED; DEFAULT_TWIG_TAPER), under the one-line-banner-per-group convention, and the README quickstart was extracted and typechecked against that barrel (rc 0, with a negative control that fails). fn-1's Measured section keeps its three pre-fn-5 figures marked superseded and carries a "Re-measured after fn-5" table taken on the CPU at this commit: shedding removes 8-9% of twig nodes on both presets, the leaf cull then finds 0.4-3.3% on Telperion and under 1% on Laurelin, leaves are 136,808 / 766,435 at eight orders, and the frame budget is stated as awaiting the owner's GPU sweep with no number invented. fn-1 stays open on its R8.
 
+Verified rather than redone: grow.ts's defaultGrowth comment (rewritten by .1, no falsified text remains), preset.ts's "only bending stiffness" (still true; step is a sibling of growth), and the R8 comparison (buildComparison builds each preset wholesale, so both stand at their stated depth with every bias term at preset value; the shipping depth is the owner's call and both presets state zero orders until then).
+
+Commit: 831692a on base 4f24688 (workspace wt/fn5-6). Files: README.md, src/index.ts, package.json, src/skeleton/colonize.ts, .flow/specs/fn-1-the-canopy-real-leaf-geometry-culled-to.md. grow.ts unchanged after verification. Nothing outside Touches.
+
+baseline: green via handoff (conductor: 21 files / 325 tests at 4f24688; no gate receipt existed for HEAD, so gate check returned RUN for all three)
+verify: green (npx vitest run 21 files / 325 tests; npx tsc --noEmit; npm run build 48.25 kB); gate classify: FULL (package.json); receipts written for unittest, typecheck, build at 831692a3
+
+Run note: /home/daniel/Projects/telperion/.git/flow-notes/fn-5-branch-until-the-tips-bear-leaves-one-20260904T203339Z-685936/fn5-t6-docs.md
+Measurements: scratchpad fn5-t6-measure.tsv (script fn5-t6-measure.ts), fn5-t6-quickstart-tsc.log, fn5-t6-verify-{vitest,tsc,build}.log
+
+stage: impl-review - skipped(policy: parallel-wave - conductor reviews after integration; REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 831692a, 60805ae
+- Tests: npx vitest run (21 files / 325 tests on the joined target), npx tsc --noEmit clean, npm run build clean, README quickstart extracted and typechecked against the real barrel by the conductor: clean, all thirteen depth-work exports present in src/index.ts, checked by name
 - PRs:
