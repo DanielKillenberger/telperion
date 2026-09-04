@@ -44,9 +44,16 @@ Derives the attractor search radius from attractor spacing instead of purely fro
 - [ ] The `defaultGrowth` doc comment describes the derivation that now exists
 - [ ] `npx vitest run`, `npx tsc --noEmit` and `npm run build` green
 ## Done summary
-TBD
+The attractor search radius is now the wider of nine growth steps and 1.2 attractor spacings, the spacing being the cube root of the crown's volume per attractor with the volume integrated from the envelope's own profile (`influenceRadiusFor` in `src/skeleton/grow.ts`; `defaultGrowth` takes the attractor count and `growSkeleton` passes the count it scattered). At today's step the floor sits under nine steps at both presets and every fixture the suite grows, asserted by signature equality against the nine-step radius (R7); Telperion at a 0.44 m step with 1,600 attractors grows a 14,000-node, 1,200-tip tree where nine steps grew a 169-node, 3-tip stump, both halves asserted (R4). The `defaultGrowth` comment is rewritten around the derivation, and `influenceRadiusFor` carries the argument and the reason the floor is not larger.
 
+Finding the conductor asked for, with the numbers: R4 with margin and R7 at the letter cannot both hold with a floor under the nine-step multiple. R7 pins the floor under 1.229 spacings (the suite's sparsest fixture: 50 m tall, spread 1.4, shoulder 4, 900 attractors - off-panel; the spread-1.2 fixture is next at 1.463; Laurelin at the panel's 250 attractors is 1.432). Starvation is seed-dependent right up to that ceiling: over 12 seeds x 9 panel-range cells, 1.2 spacings starves 3 of 108 draws (default envelope / 1,600 attractors / step 0.0055h seed 3 -> 74 nodes; Telperion / 1,600 / 0.003h seed 11 -> 155; Telperion / 700 / 0.003h seed 11 -> 169), 1.229 and above starve 0 of 108, and 1.0 starves Telperion at 250 attractors on every seed. Every starved tree died at the crown base with 2-4 attractors killed and nothing living within reach of any tip, because `colonize` ends the tree the moment no node sees an attractor. Shipped at 1.2 because the task names R7 as the hard constraint; the sweep test runs at the presets' own seeds and states the tail in its comment rather than asserting it away. The real fix is in `colonize.ts` (outside this task's Touches): a tip with nothing in reach should not end the tree while living attractors remain. Full table in the run note `fn5-t1-search-radius-floor.md`.
+
+Tests: `src/skeleton/grow.test.ts` - "resolves to nine steps at today's step, on every tree there is" (R7), "grows a whole tree where nine steps grew a stump" (R4 error case), "does not starve anywhere on the panel as the step shrinks" (R4 sweep), "holds the radius at nine steps until the spacing overtakes it", and the scale test extended to the floor. `colonize.test.ts` needed no change. New tests confirmed red against the old derivation (189 nodes vs 5,000; 94 vs 437) before the fix.
+
+baseline: green (npx vitest run 268/268, npx tsc --noEmit, npm run build at 97684f0)
+
+stage: impl-review - skipped(policy: parallel-wave - conductor owns the review after integration)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 24aa80d8b2307df4b702f6e43e598859a18bffe7
+- Tests: npx vitest run (18 files / 272 tests on the integrated target; the 268 pre-existing pass unchanged, which is the byte-identity proof), npx tsc --noEmit clean, npm run build clean, R4 regression: Telperion 0.44 m / 1,600 attractors grows ~14,000 nodes / ~1,200 tips where nine steps grew 169 / 3, Residual: at k=1.2 spacings, 3 of 108 seed x panel-cell draws still starve (seed-dependent); root cause is colonize ending the tree when no tip sees an attractor while living attractors remain - outside this task's Touches, carried forward
 - PRs:
