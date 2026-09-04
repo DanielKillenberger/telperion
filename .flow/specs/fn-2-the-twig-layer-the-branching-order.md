@@ -1,5 +1,8 @@
 # The twig layer: the branching order between shoots and leaves
 
+> **SUPERSEDED, not shipped.** This spec was merged into `fn-5-branch-until-the-tips-bear-leaves-one` before any work started. It is closed because it no longer describes work to do, not because the work was done. The merge happened because a tree is one branching recursion: splitting depth from twigs put the crossover between them in neither spec's acceptance criteria, which is how 5 mm twigs end up on 20 cm logs. The measurements and reasoning here were carried into fn-5 verbatim.
+
+
 ## Conversation Evidence
 
 > user: "there's a problem with how leaves attach though? This doesn't seem natural to me. The leaves themselves seem fine but i guess we'd smaller branches to attach them to?"

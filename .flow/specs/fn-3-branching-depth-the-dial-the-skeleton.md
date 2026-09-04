@@ -1,5 +1,8 @@
 # Branching depth: the dial the skeleton never exposed
 
+> **SUPERSEDED, not shipped.** This spec was merged into `fn-5-branch-until-the-tips-bear-leaves-one` before any work started. It is closed because it no longer describes work to do, not because the work was done. The merge happened because a tree is one branching recursion: splitting depth from twigs put the crossover between them in neither spec's acceptance criteria, which is how 5 mm twigs end up on 20 cm logs. The measurements and reasoning here were carried into fn-5 verbatim.
+
+
 ## Conversation Evidence
 
 > user: "Which of these 2 specs should add the ability to increase the branching depth? i don't see one in the parameters?"

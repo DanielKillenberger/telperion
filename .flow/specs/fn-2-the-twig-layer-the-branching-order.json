@@ -10,7 +10,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-2-the-twig-layer-the-branching-order.md",
-  "status": "open",
+  "status": "done",
   "title": "The twig layer: the branching order between shoots and leaves",
   "tracker": {
     "baseHashFlow": null,
@@ -23,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T19:38:17.560607Z"
+  "updated_at": "2026-09-04T19:59:26.555469Z"
 }

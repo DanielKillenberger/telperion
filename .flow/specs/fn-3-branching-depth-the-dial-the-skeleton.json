@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-3-branching-depth-the-dial-the-skeleton.md",
-  "status": "open",
+  "status": "done",
   "title": "Branching depth: the dial the skeleton never exposed",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T19:38:03.835106Z"
+  "updated_at": "2026-09-04T19:59:26.978467Z"
 }
