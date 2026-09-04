@@ -122,7 +122,9 @@ The rig in fn-1-the-canopy-real-leaf-geometry-culled-to.1 ran on the named machi
 | 0.50 | - | 0.13 ms | 0.12 ms |
 | 0.25 | 430x180 | 0.13 ms | 0.12 ms |
 
-At 60 Hz the frame is 16.7 ms and the whole branch-only room spends 0.21 ms of it, a little over one percent, so the canopy inherits essentially the entire budget. The curve flattens onto a floor near 0.12 ms below dpr 0.5, which is fixed per-frame cost rather than fill, so only about 0.08 ms of the top point is fill: this scene is not yet fill-bound. The harness's own default on that display is dpr 2.00, four times the fragments of the sweep's top point, so what the owner normally looks at sits above the top of the measured curve.
+At 60 Hz the frame is 16.7 ms and the whole branch-only room spends 0.21 ms of it, a little over one percent, so the canopy inherits essentially the entire budget.
+
+**What culling buys is smaller than this spec assumed, and the reason is worth keeping.** R3 was written expecting a large drop. Measured in fn-1-the-canopy-real-leaf-geometry-culled-to.4, the default shell removes about 15% of the preset canopies and 16% of an envelope-filling one. Placement already puts foliage on distal shoots, and distal shoots sit near the crown's surface, so a well-placed canopy is most of the way to being a shell before the culler ever sees it. The elements it does take are the ones that grew on inner wood. Density is the lever: a shallower shell removes a third but eats the outline on the sparse presets, and at four times the preset spacing the same shell removes more because there is more interior to remove. If the clay judgement in .5 raises density, this number is re-measured rather than reused. The curve flattens onto a floor near 0.12 ms below dpr 0.5, which is fixed per-frame cost rather than fill, so only about 0.08 ms of the top point is fill: this scene is not yet fill-bound. The harness's own default on that display is dpr 2.00, four times the fragments of the sweep's top point, so what the owner normally looks at sits above the top of the measured curve.
 
 ## Parked unknowns
 
