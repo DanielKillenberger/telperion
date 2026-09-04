@@ -175,7 +175,9 @@ describe("buildSurface", () => {
        part company. One ring per node cannot part company with itself,
        and the vertex count is where that shows. */
     const segments = 8;
-    const mesh = surface(straight, { radialSegments: segments });
+    // No lobes, so the requested resolution is the resolution: the lobe
+    // count raises it when it needs more samples than this.
+    const mesh = surface(straight, { radialSegments: segments, lobes: 0 });
     // Three nodes plus the buried base ring, and one centre vertex per
     // end cap.
     expect(mesh.vertices).toBe(4 * segments + 2);
@@ -224,11 +226,13 @@ describe("buildSurface", () => {
       flareRadius: 1,
       lobes: 0,
     });
-    const flat = ring(circular, 2, segments).map((v) => v.radius);
-    // Six places, not twelve: the vertices are stored as float32, so
-    // "the same radius all the way round" is only ever true to about a
-    // part in ten million.
-    expect(Math.max(...flat) - Math.min(...flat)).toBeCloseTo(0, 6);
+    // No lobes is a circle AT THE SOLVE'S RADIUS. Left to the cosine it
+    // would be cos(0) every time round, which is a tree uniformly
+    // fattened by the lobe depth - a dial doing something nobody asked
+    // of it. Six places, not twelve: vertices are stored as float32.
+    for (const { radius } of ring(circular, 2, segments)) {
+      expect(radius).toBeCloseTo(field.radius[1], 6);
+    }
   });
 
   it("winds the section along the length at the stated rate", () => {
@@ -284,6 +288,32 @@ describe("buildSurface", () => {
     }
   });
 
+  it("draws the lobe count it was asked for rather than aliasing it", () => {
+    /* Twelve vertices cannot carry seven lobes: sampled that coarsely
+       they come back as five, and the dial has lied about what it did.
+       Same argument as torsion.ts's floor on steps per bend, one
+       dimension over - so the lobe count raises the sampling. */
+    const lobes = 7;
+    const mesh = surface(straight, { radialSegments: 12, lobes });
+    // Four samples per node ring - three nodes and the buried base -
+    // plus a centre vertex at each end cap.
+    const segments = (mesh.vertices - 2) / 4;
+    expect(segments).toBe(lobes * 4);
+
+    // And they really are seven: the section's energy sits at the lobe
+    // frequency, not at the five it would alias to.
+    const power = (harmonic: number): number => {
+      let real = 0;
+      let imaginary = 0;
+      for (const { angle, radius } of ring(mesh, 1, segments)) {
+        real += radius * Math.cos(harmonic * angle);
+        imaginary -= radius * Math.sin(harmonic * angle);
+      }
+      return Math.hypot(real, imaginary);
+    };
+    expect(power(lobes)).toBeGreaterThan(power(5) * 100);
+  });
+
   it("flares into the ground instead of ending on a flat disc at y=0", () => {
     const flareRadius = 2.5;
     const mesh = surface(straight, { flareRadius, lobeDepth: 0, lobes: 0 });
@@ -319,8 +349,11 @@ describe("buildSurface", () => {
       ],
     };
     const field = solveRadii(forked, DEFAULT_ENVELOPE, DEFAULT_RADII);
-    const segments = DEFAULT_SURFACE.radialSegments;
-    const mesh = surface(forked, { flareRadius: 1 });
+    // Asked for outright, so that the ring indices below are the ones
+    // the section is actually drawn at: five lobes would raise a
+    // smaller request to twenty.
+    const segments = 24;
+    const mesh = surface(forked, { flareRadius: 1, radialSegments: segments });
 
     // Two runs: the trunk with its buried base, then the side limb.
     // The trunk run comes first: its buried base ring, its three
@@ -328,20 +361,37 @@ describe("buildSurface", () => {
     const sideRun = 4 * segments + 2;
     const fork = forked.nodes[1].position;
     const centre = new THREE.Vector3();
+    const start: THREE.Vector3[] = [];
     for (let k = 0; k < segments; k += 1) {
       const at3 = (sideRun + k) * 3;
-      centre.add(
-        new THREE.Vector3(
-          mesh.positions[at3],
-          mesh.positions[at3 + 1],
-          mesh.positions[at3 + 2],
-        ),
+      const vertex = new THREE.Vector3(
+        mesh.positions[at3],
+        mesh.positions[at3 + 1],
+        mesh.positions[at3 + 2],
       );
+      start.push(vertex);
+      centre.add(vertex);
     }
     centre.divideScalar(segments);
     // Started back inside the parent's solid, not out at its surface.
     expect(centre.distanceTo(fork)).toBeLessThan(field.radius[1]);
     expect(centre.distanceTo(fork)).toBeGreaterThan(0);
+
+    /* And the WHOLE ring is inside it, not just its centre. This is a
+       balanced fork, where each child is 1/sqrt(2) of the parent, and
+       the swell would take its first ring to 0.95 of it: centred inside
+       and protruding, with its back cap showing through the parent's
+       skin as a flat crescent - a seam at the one junction all this
+       socketing exists to hide. Every ring point within the parent's
+       own radius of the fork node is that containment, stated exactly.
+       The clamp is what makes it true; the swell is only postponed, to
+       the next ring, which is outside the parent where a fillet
+       belongs. */
+    for (const vertex of start) {
+      expect(vertex.distanceTo(fork)).toBeLessThanOrEqual(
+        field.radius[1] * (1 + 1e-6),
+      );
+    }
     expect(boundary(mesh)).toEqual({ open: 0, repeated: 0 });
   });
 
@@ -363,20 +413,41 @@ describe("buildSurface", () => {
     // The panel clamps its own dials; a library caller does not, and a
     // section of two sides or a lobe deeper than the radius is a fold
     // through the centreline rather than a look.
-    const mesh = surface(grown(), {
-      radialSegments: 1,
-      lobes: -4,
-      lobeDepth: 8,
-      flareRadius: 0,
-      flareFalloff: 0,
-      forkSocket: -1,
-      forkSwell: -3,
-      twistRate: Number.NaN,
-    });
-    expect(boundary(mesh)).toEqual({ open: 0, repeated: 0 });
-    expect(smallestArea(mesh)).toBeGreaterThan(0);
-    for (const value of mesh.positions) {
-      expect(Number.isFinite(value)).toBe(true);
+    const hostile: Partial<SurfaceParams>[] = [
+      {
+        radialSegments: 1,
+        lobes: -4,
+        lobeDepth: 8,
+        flareRadius: 0,
+        flareFalloff: 0,
+        forkSocket: -1,
+        forkSwell: -3,
+        twistRate: Number.NaN,
+      },
+      // A flare with no depth to sink into would put the buried ring
+      // exactly on the root's own: a band of zero-area triangles.
+      { flareDepth: 0 },
+      // Finite, enormous, and every one of them a multiplier on a
+      // vertex that is stored as float32 - so an unbounded parameter
+      // arrives as Infinity rather than as a big number.
+      {
+        flareRadius: Number.MAX_VALUE,
+        flareDepth: Number.MAX_VALUE,
+        flareFalloff: Number.MAX_VALUE,
+        twistRate: Number.MAX_VALUE,
+        forkSocket: Number.MAX_VALUE,
+        forkSwell: Number.MAX_VALUE,
+        lobes: Number.MAX_VALUE,
+        radialSegments: Number.MAX_VALUE,
+      },
+    ];
+    for (const params of hostile) {
+      const mesh = surface(grown(), params);
+      expect(boundary(mesh)).toEqual({ open: 0, repeated: 0 });
+      expect(smallestArea(mesh)).toBeGreaterThan(0);
+      for (const value of mesh.positions) {
+        expect(Number.isFinite(value)).toBe(true);
+      }
     }
   });
 
