@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-1-the-canopy-real-leaf-geometry-culled-to",
+  "created_at": "2026-09-04T16:49:43.661040Z",
+  "depends_on_epics": [],
+  "id": "fn-1-the-canopy-real-leaf-geometry-culled-to",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-1-the-canopy-real-leaf-geometry-culled-to.md",
+  "status": "open",
+  "title": "The canopy: real leaf geometry, culled to a shell, in one instanced draw",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T16:49:43.666193Z"
+}
