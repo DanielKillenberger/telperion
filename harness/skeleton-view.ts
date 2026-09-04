@@ -35,7 +35,12 @@ const ATTRACTORS_MAX = 1600;
  *  `height` and `spread` are the authored envelope and go straight
  *  through, and so do the five bias dials - they carry the library's
  *  own names and units, so there is nothing here to translate and
- *  nothing to drift. `density` is the attractor count. `taper` reaches
+ *  nothing to drift. `torsion` is the one dial that is not a library
+ *  term: it scales the three that are departures from vertical, so one
+ *  move takes the tree from straight to writhing without walking three
+ *  sliders. Gravitropism is deliberately outside it - a tree that wants
+ *  to grow up still wants to when it is not twisting.
+ *  `density` is the attractor count. `taper` reaches
  *  nothing yet and the panel says so: it is fn-11.4's radius solve, and
  *  wiring it to something that merely looks related would be worse than
  *  leaving it visibly inert. */
@@ -52,10 +57,10 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
     ),
     bias: {
       gravitropism: params.gravitropism,
-      lean: params.lean,
-      writheAmplitude: params.writheAmplitude,
+      lean: params.lean * params.torsion,
+      writheAmplitude: params.writheAmplitude * params.torsion,
       writheWavelength: params.writheWavelength,
-      spiralRate: params.spiralRate,
+      spiralRate: params.spiralRate * params.torsion,
     },
   };
 }

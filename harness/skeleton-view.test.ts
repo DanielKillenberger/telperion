@@ -54,6 +54,30 @@ describe("toSkeletonParams", () => {
     expect(toSkeletonParams(DEFAULT_PARAMS).bias).toEqual(DEFAULT_BIAS);
   });
 
+  it("scales the three departure-from-vertical terms by torsion", () => {
+    /* One move from straight to writhing. Gravitropism is outside it:
+       a tree that wants to grow up still wants to when it is not
+       twisting, and folding it in would make torsion 0 a tree with no
+       opinion about direction at all. */
+    const straight = toSkeletonParams({ ...DEFAULT_PARAMS, torsion: 0 });
+    expect(straight.bias).toEqual({
+      gravitropism: DEFAULT_BIAS.gravitropism,
+      lean: 0,
+      writheAmplitude: 0,
+      writheWavelength: DEFAULT_BIAS.writheWavelength,
+      spiralRate: 0,
+    });
+
+    const doubled = toSkeletonParams({ ...DEFAULT_PARAMS, torsion: 2 });
+    expect(doubled.bias).toEqual({
+      gravitropism: DEFAULT_BIAS.gravitropism,
+      lean: DEFAULT_BIAS.lean * 2,
+      writheAmplitude: DEFAULT_BIAS.writheAmplitude * 2,
+      writheWavelength: DEFAULT_BIAS.writheWavelength,
+      spiralRate: DEFAULT_BIAS.spiralRate * 2,
+    });
+  });
+
   it("passes the envelope dials straight through", () => {
     const mapped = toSkeletonParams({
       ...DEFAULT_PARAMS,
@@ -142,6 +166,55 @@ describe("buildSkeletonLines", () => {
       return Math.max(box.max.x, box.max.z, -box.min.x, -box.min.z);
     };
     expect(widest(1.2)).toBeGreaterThan(widest(0.2) * 3);
+  });
+
+  it("the torsion dial takes the tree from straight to writhing", () => {
+    /* The spec's own acceptance, in one move: at zero the trunk is a
+       mathematically straight line and at the top of the dial it is
+       not, with connectivity intact at both ends - every segment still
+       joins its parent, which is what "without breaking connectivity"
+       means for a skeleton drawn as lines. */
+    const trunkBow = (torsion: number): number => {
+      const points = positions(lines({ torsion }));
+      // Segment endpoints below the crown base: the bare trunk.
+      const crownBase = DEFAULT_PARAMS.height * 0.3;
+      const trunk: THREE.Vector3[] = [];
+      for (let i = 0; i < points.length; i += 3) {
+        const point = new THREE.Vector3(
+          points[i],
+          points[i + 1],
+          points[i + 2],
+        );
+        if (point.y <= crownBase) trunk.push(point);
+      }
+      expect(trunk.length).toBeGreaterThan(8);
+      const first = trunk[0];
+      const axis = trunk[trunk.length - 1].clone().sub(first).normalize();
+      return trunk.reduce((worst, point) => {
+        const offset = point.clone().sub(first);
+        return Math.max(
+          worst,
+          offset.clone().addScaledVector(axis, -offset.dot(axis)).length(),
+        );
+      }, 0);
+    };
+
+    expect(trunkBow(0)).toBeLessThan(1e-6);
+    expect(trunkBow(1)).toBeGreaterThan(0.2);
+    expect(trunkBow(2)).toBeGreaterThan(trunkBow(1));
+
+    // Connectivity: every segment starts where some earlier segment or
+    // the root ended, at both ends of the dial.
+    for (const torsion of [0, 2]) {
+      const points = positions(lines({ torsion }));
+      const ends = new Set(["0,0,0"]);
+      for (let i = 0; i < points.length; i += 6) {
+        expect(
+          ends.has(`${points[i]},${points[i + 1]},${points[i + 2]}`),
+        ).toBe(true);
+        ends.add(`${points[i + 3]},${points[i + 4]},${points[i + 5]}`);
+      }
+    }
   });
 
   it("every bias dial reaches the geometry", () => {

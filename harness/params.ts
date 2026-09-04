@@ -13,13 +13,20 @@
  * `taper` feeds the radius solve, `density` is how many attractors the
  * envelope gets. Nothing is a knob invented for the panel's sake.
  *
- * The bias dials are five and not one on purpose. A single "torsion"
- * number mixes qualities that are independent - a tree that leans is a
- * different tree from one that wanders, and amplitude and wavelength
- * are the difference between a slow S-curve and a corkscrew - so it
- * cannot be art-directed. Their names and units are the library's,
- * unchanged, so skeleton-view.ts hands them straight over and there is
- * no translation to drift.
+ * The bias dials are five and not one, because a single number mixes
+ * qualities that are independent - a tree that leans is a different
+ * tree from one that wanders, and amplitude and wavelength are the
+ * difference between a slow S-curve and a corkscrew. Their names and
+ * units are the library's, unchanged, so there is no translation to
+ * drift.
+ *
+ * `torsion` sits above the three of them that are departures from
+ * vertical and scales all three at once, which is the "straight to
+ * writhing in one move" the spec asks for. It is a master over the
+ * shape those five describe, not a sixth quality: at 0 the tree is
+ * dead straight whatever the others say, at 1 it is exactly what they
+ * say, and it runs to 2 for a look the individual dials would have to
+ * be walked to one at a time.
  * ------------------------------------------------------------------ */
 
 import { DEFAULT_BIAS } from "@/lib/grower/torsion";
@@ -39,6 +46,9 @@ export interface GrowerParams {
    *  that a crown stops reading as a tree and starts reading as a
    *  hedge. */
   spread: number;
+  /** Master over `lean`, `writheAmplitude` and `spiralRate`: 0 leaves
+   *  the tree dead straight, 1 is the three of them as dialled. */
+  torsion: number;
   /** Upward pull on every growth step. */
   gravitropism: number;
   /** Steady departure from vertical: horizontal metres per metre climbed. */
@@ -72,6 +82,7 @@ export const SLIDERS: readonly SliderSpec[] = [
   // The bias dials run well past what looks good. The owner has to be
   // able to see where too much is, or the usable range sits at the
   // ceiling and reads as a limit rather than as a choice.
+  { key: "torsion", label: "torsion", min: 0, max: 2, step: 0.01, unit: "x" },
   { key: "gravitropism", label: "gravitropism", min: 0, max: 1.3, step: 0.01, unit: "" },
   { key: "lean", label: "lean", min: 0, max: 0.5, step: 0.01, unit: "" },
   { key: "writheAmplitude", label: "writhe", min: 0, max: 0.25, step: 0.01, unit: "" },
@@ -85,6 +96,7 @@ export const DEFAULT_PARAMS: GrowerParams = {
   seed: 1,
   height: 24,
   spread: 0.3,
+  torsion: 1,
   gravitropism: DEFAULT_BIAS.gravitropism,
   lean: DEFAULT_BIAS.lean,
   writheAmplitude: DEFAULT_BIAS.writheAmplitude,
