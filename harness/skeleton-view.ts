@@ -18,7 +18,11 @@ import {
 } from "../src/mesh/surface";
 import type { TreePreset } from "../src/presets";
 import { solveRadii, type RadiusParams } from "../src/radius";
-import { growSkeleton, type SkeletonParams } from "../src/skeleton/grow";
+import {
+  growSkeleton,
+  resolveGrowth,
+  type SkeletonParams,
+} from "../src/skeleton/grow";
 
 import type { GrowerParams } from "./params";
 import type { Clay } from "./stage";
@@ -59,9 +63,10 @@ const ATTRACTORS_MAX = 1600;
  *  move takes the tree from straight to writhing without walking three
  *  sliders. Gravitropism is deliberately outside it - a tree that wants
  *  to grow up still wants to when it is not twisting.
- *  `density` is the attractor count. `taper` is not a skeleton
- *  argument at all - thickness is solved over the skeleton once it has
- *  grown, so it travels through `toRadiusParams`. */
+ *  `density` is the attractor count, and `step` goes through under
+ *  the library's own name. `taper` is not a skeleton argument at all -
+ *  thickness is solved over the skeleton once it has grown, so it
+ *  travels through `toRadiusParams`. */
 export function toSkeletonParams(params: GrowerParams): SkeletonParams {
   return {
     seed: params.seed,
@@ -81,6 +86,7 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
     attractors: Math.round(
       ATTRACTORS_MIN + params.density * (ATTRACTORS_MAX - ATTRACTORS_MIN),
     ),
+    step: params.step,
     bias: {
       gravitropism: params.gravitropism,
       lean: params.lean * params.torsion,
@@ -171,9 +177,13 @@ export function toCanopyParams(params: GrowerParams): CanopyParams {
 export interface TreeStats {
   triangles: number;
   vertices: number;
-  /** Skeleton nodes, which is what the density dial moves and what
-   *  every other number here scales with. */
+  /** Skeleton nodes, which is what the density and step dials move
+   *  and what every other number here scales with. */
   nodes: number;
+  /** Whether the growth stopped at its node ceiling rather than
+   *  finishing the crown. A capped tree is the ceiling's shape and not
+   *  the envelope's, and `nodes` alone cannot say which it was. */
+  capped: boolean;
   /** What the subject costs the renderer in draw calls: one per
    *  renderable in it. The canopy's claim is that a whole crown is one
    *  of these, so this is the number that claim is read off. */
@@ -268,6 +278,7 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     maxTurnPerStep: preset.skeleton.growth.maxTurnPerStep,
     density: (preset.skeleton.attractors - ATTRACTORS_MIN) /
       (ATTRACTORS_MAX - ATTRACTORS_MIN),
+    step: preset.skeleton.step,
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
     lengthTaper: preset.radii.lengthTaper,
@@ -419,6 +430,10 @@ function build(
       triangles: surface.triangles,
       vertices: surface.vertices,
       nodes: skeleton.nodes.length,
+      /* Read off the ceiling the skeleton was actually grown under,
+         which is the library's merge of the derived distances and the
+         caller's overrides; colonization stops exactly at it. */
+      capped: skeleton.nodes.length >= resolveGrowth(skeletonParams).maxNodes,
       drawCalls: draws.drawCalls,
       instances: draws.instances,
       buildMs: performance.now() - started,
@@ -511,6 +526,8 @@ export function buildComparison(
       triangles: built.reduce((total, one) => total + one.stats.triangles, 0),
       vertices: built.reduce((total, one) => total + one.stats.vertices, 0),
       nodes: built.reduce((total, one) => total + one.stats.nodes, 0),
+      // One capped tree is a comparison that cannot be judged.
+      capped: built.some((one) => one.stats.capped),
       /* Draws and instances sum the same way the rest do, because two
          trees standing side by side really are two subjects' worth of
          work: each carries its own surface and, when the canopy lands,

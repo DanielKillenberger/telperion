@@ -216,6 +216,7 @@ describe("the preset registry", () => {
         "envelope",
         "growth",
         "seed",
+        "step",
       ]);
       expect(Object.keys(skeleton.envelope).sort()).toEqual([
         "crownBase",

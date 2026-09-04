@@ -36,13 +36,19 @@ import type { BiasParams } from "../torsion";
  * is a deferral rather than an inherited constant.
  * ------------------------------------------------------------------ */
 
-/** The skeleton half of a preset: `SkeletonParams` with the two
+/** The skeleton half of a preset: `SkeletonParams` with its three
  *  optional members stated in full, because a preset is a complete
- *  answer and not a set of overrides. `growth` carries only bending
- *  stiffness - every other growth distance in `defaultGrowth` is a
- *  fraction of envelope height and so already scales with the tree,
- *  and neither of the Two Trees has asked to depart from one. */
+ *  answer and not a set of overrides. `step` is the branching depth,
+ *  a fraction of envelope height like every other authored term, and
+ *  it sits beside `attractors` rather than inside `growth` because
+ *  `growth` is the escape hatch in metres: the two distances the step
+ *  drives are derived from it by `defaultGrowth`, not written out.
+ *  `growth` itself carries only bending stiffness - every other growth
+ *  distance in `defaultGrowth` is a fraction of envelope height and so
+ *  already scales with the tree, and neither of the Two Trees has
+ *  asked to depart from one. */
 export interface PresetSkeleton extends SkeletonParams {
+  step: number;
   bias: BiasParams;
   growth: { maxTurnPerStep: number };
 }

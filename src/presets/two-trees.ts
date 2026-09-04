@@ -90,6 +90,14 @@ export const TELPERION: TreePreset = {
        median twig comes out at 6.4% of its trunk radius against
        Laurelin's 8.0%, and that is `forkExponent`'s doing. */
     attractors: 1600,
+    /* The step every tree was grown at before it was a dial: 3.26 m
+       on this tree, and 808 nodes on 133 tips. Stated at the default
+       so that Telperion is the tree the owner has already seen, and
+       any change to it is a change someone made. Finer is deeper -
+       the same crown at 0.003 is 14,100 nodes on 1,200 tips - and
+       where this tree ships on that rail is the owner's to say in
+       clay. */
+    step: 0.022,
     bias: {
       // Nearly the maximum. Everything below bends this tree and this
       // is what will not let it lean away from vertical.
@@ -205,6 +213,11 @@ export const LAURELIN: TreePreset = {
        more - and what the sparser scatter buys is that they are long
        heavy limbs rather than twigs. */
     attractors: 1060,
+    /* The default step, for the reason Telperion states it: this is
+       the tree that has been seen. 2.9 m here, and 2,442 nodes on 376
+       tips; at 0.003 the same crown is 23,800 nodes on 880 tips, and
+       a crown this size is where the rail costs most. */
+    step: 0.022,
     bias: {
       // Lower than Telperion's on purpose: the upward pull is what
       // stops limbs going out and down, and going out is the whole

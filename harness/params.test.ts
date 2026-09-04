@@ -55,6 +55,22 @@ describe("readSlider", () => {
     },
   );
 
+  it("puts the growth step beside density, in the skeleton's stage", () => {
+    /* SLIDERS runs in pipeline order and a dial's place states where
+       it acts: the step answers the attractors density scatters, so it
+       follows density and stays inside the skeleton group rather than
+       opening one of its own. */
+    const keys = SLIDERS.map((spec) => spec.key);
+    const step = SLIDERS[keys.indexOf("step")];
+    expect(keys.indexOf("step")).toBe(keys.indexOf("density") + 1);
+    expect(step.group).toBeUndefined();
+    const groupBefore = SLIDERS.slice(0, keys.indexOf("step"))
+      .map((spec) => spec.group)
+      .filter((group) => group !== undefined)
+      .pop();
+    expect(groupBefore).toBe("skeleton");
+  });
+
   it("every slider's default sits inside its own range", () => {
     for (const spec of SLIDERS) {
       const value = DEFAULT_PARAMS[spec.key];
