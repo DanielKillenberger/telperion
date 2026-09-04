@@ -391,6 +391,7 @@ function build(
   surfaceParams: SurfaceParams,
   canopyParams: CanopyParams,
   clay: Clay,
+  withFoliage = true,
 ): { tree: THREE.Group; stats: TreeStats } {
   const started = performance.now();
   const grown = growReport(skeletonParams);
@@ -423,18 +424,23 @@ function build(
      thinned to a shell - `cullCanopy` takes and returns a `Canopy`, so
      it sits between the two with nothing else knowing it ran. */
   const element = buildElement(DEFAULT_ELEMENT);
-  const canopy = cullCanopy(
-    buildCanopy(
-      skeleton,
-      field,
-      skeletonParams.envelope,
-      skeletonParams.seed,
-      canopyParams,
-    ),
-    element,
-    skeletonParams.envelope,
-    DEFAULT_CULL,
-  );
+  /* Foliage off is an empty canopy, not a different code path: the
+     mesh builder returns null for it and the stats read zero leaves,
+     so the branching can be judged bare without a second build. */
+  const canopy = withFoliage
+    ? cullCanopy(
+        buildCanopy(
+          skeleton,
+          field,
+          skeletonParams.envelope,
+          skeletonParams.seed,
+          canopyParams,
+        ),
+        element,
+        skeletonParams.envelope,
+        DEFAULT_CULL,
+      )
+    : { matrices: new Float32Array(0), count: 0 };
   const foliage = buildCanopyMesh(canopy, element, clay.element);
 
   const tree = new THREE.Group();
@@ -468,6 +474,7 @@ function build(
 export function buildTree(
   params: GrowerParams,
   clay: Clay,
+  withFoliage = true,
 ): { tree: THREE.Group; stats: TreeStats } {
   return build(
     toSkeletonParams(params),
@@ -475,6 +482,7 @@ export function buildTree(
     toSurfaceParams(params),
     toCanopyParams(params),
     clay,
+    withFoliage,
   );
 }
 

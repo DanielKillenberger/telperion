@@ -79,6 +79,10 @@ export function GrowerDev() {
   // away mid-keystroke; `params.seed` only moves when it parses.
   const [seedText, setSeedText] = useState(String(DEFAULT_PARAMS.seed));
   const [lightingCheck, setLightingCheck] = useState(false);
+  /* Foliage off shows the branching bare. It is a view of the same tree,
+     not a parameter of it, so it lives beside the lighting check rather
+     than in the dials a preset would have to state. */
+  const [foliage, setFoliage] = useState(true);
   /* The spec's acceptance test: both presets on the ground together,
      built from the library's own objects rather than from the dials,
      so what stands there is what the preset file says. The dials keep
@@ -137,7 +141,7 @@ export function GrowerDev() {
           built.stats = result.stats;
           return result.group;
         }
-        const result = buildTree(params, clay);
+        const result = buildTree(params, clay, foliage);
         built.stats = result.stats;
         return result.tree;
       });
@@ -185,7 +189,7 @@ export function GrowerDev() {
        Every read of "what is on the stage" is a call site of that
        replacement, and the ones outside the effect that builds it are
        the ones that get missed. */
-  }, [params, compare, logDepth]);
+  }, [params, compare, logDepth, foliage]);
 
   useEffect(() => {
     stageRef.current?.setLightingCheck(lightingCheck);
@@ -375,6 +379,14 @@ export function GrowerDev() {
               onChange={(event) => setLightingCheck(event.target.checked)}
             />
             lighting check
+          </label>
+          <label className="gd-check">
+            <input
+              type="checkbox"
+              checked={foliage}
+              onChange={(event) => setFoliage(event.target.checked)}
+            />
+            foliage
           </label>
           <button
             className="gd-button"
