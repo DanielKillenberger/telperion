@@ -54,9 +54,72 @@ Derives shoots from the skeleton and places elements along them (R2), and pins t
 - [ ] TBD
 
 ## Done summary
-TBD
+Derives shoots as the young-wood end of every terminal `branchPaths` run and
+places elements along them - phyllotaxis, a clump at the tip, outward and
+upward orientation bias - emitting one column-major 4x4 per element against
+the element's stated local frame, from an XOR-derived sub-stream that leaves
+every existing stream untouched. Telperion and Laurelin each state a canopy
+block in full.
 
+stage: impl-review - skipped(policy: parallel wave - conductor reviews after integration)
+
+### What landed
+
+- `src/canopy/shoots.ts` - `shoots(skeleton, field, maxRadius)`. A shoot is the
+  distal stretch of a run where the wood is thin enough to bear foliage. Every
+  run `branchPaths` emits already ends at a childless tip, so the terminal-run
+  rule is satisfied by taking its output - which is also what inherits its
+  `stands[]` zero-length fold instead of re-deriving it.
+- `src/canopy/place.ts` - `buildCanopy(skeleton, field, envelope, seed, params)`
+  returning `{ matrices: Float32Array, count }`, 16 floats per element in
+  `THREE.Matrix4.elements` order. Ten named parameters, each with a default in
+  `DEFAULT_CANOPY`, each pinned on the same local `held` rail `surface.ts` and
+  `radius.ts` use.
+- `src/canopy/place.test.ts` - 21 tests.
+- `src/presets/preset.ts` - `TreePreset` gained a required `canopy`.
+- `src/presets/two-trees.ts` - both canopy blocks, every term stated.
+
+### Acceptance
+
+| AC | Where |
+|---|---|
+| Shoots as terminal runs through `branchPaths`, reusing `stands[]` | `shoots.ts`; tests "takes the young-wood end of a terminal run" and "inherits the zero-length fold rather than re-deriving it" |
+| Phyllotaxis, clumping, orientation bias, each named with a default | `CanopyParams` / `DEFAULT_CANOPY`; tests "turns each element by the divergence angle", "gathers a clump into the last stretch", "turns elements outward/upward when the bias asks" |
+| < 2 nodes, or no terminal runs, yields an empty canopy without throwing | test "yields an empty canopy for %s, without throwing" (3 cases) plus "when no wood is thin enough" |
+| Non-finite placement parameters fall back through the same rail | test "falls back to the defaults for every non-finite parameter" - every dial NaN/Infinity, plus a NaN envelope height, byte-equal to the stated build |
+| Candidate iteration array-backed, no `Map`/`Set` | test "iterates arrays, never a Map or a Set" (source guard; verified red by inserting a `new Set` before it went green) |
+| Determinism: two builds from one seed, identical typed arrays | tests "builds the same canopy twice from one seed" and "gives two seeds two canopies" |
+| Existing skeleton and surface tests byte-identical | all 193 pre-existing tests untouched and green; plus test "leaves the stages before it byte-identical" (skeleton positions, radius field and `buildSurface` output unchanged across a canopy build) |
+| Both presets state a canopy block | tests "%s states its canopy in full" and "%s carries foliage, and none of it below its crown" |
+| `npx vitest run` and `npx tsc --noEmit` green | 16 files / 214 tests; tsc clean |
+
+### Judgement calls the conductor should see
+
+- **Three parameters beyond the four the AC names.** `shootRadius` bounds a
+  shoot to young wood: without it the trunk run is a shoot along its whole
+  length and a 7 m-radius column grows leaves, which shell culling in .4 would
+  not remove because they are on the silhouette. `size` and `sizeVariation`
+  carry the element's scale, because placement is the stage that knows how big
+  the tree is and the spec's own words are "per-instance transform plus
+  variation". `scatter` is orientation disorder - a canopy with none reads as a
+  diagram of a canopy.
+- **The element is assumed to be authored at unit scale**, sized by the
+  transform. If task .2 sizes its geometry to the tree, one of the two has to
+  give at integration.
+- **Laurelin diverges at the Lucas angle (99.502) where Telperion takes the
+  golden one.** A real botanical alternative, one number in the same mechanism,
+  and it is the massed reading against Telperion's open one.
+- **`TreePreset.canopy` is required, not optional.** Nothing outside
+  `two-trees.ts` constructs a preset literal today, so nothing else broke - but
+  .5 and .6 should know.
+- `src/index.ts` is deliberately untouched; the barrel export is task .6's.
+
+Measured: Telperion 133 shoots / 3407 elements, Laurelin 376 / 8679, both
+entirely above their own crown base. `spacing` is the dial if .5's clay
+judgement wants more.
+
+Sibling note written to the run-notes surface as `t3-placement-surface.md`.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 412c47d8b6182bd26d8c53deefbb61504c41095e, 368ad5a
+- Tests: npx vitest run (16 files / 214 tests passed on the integrated target; baseline 15 / 193), npx tsc --noEmit (clean on the integrated target)
 - PRs:

@@ -294,7 +294,7 @@ describe("buildCanopy", () => {
     expect(canopy.count).toBeGreaterThan(0);
     expect(canopy.matrices).toHaveLength(canopy.count * 16);
 
-    const size = DEFAULT_CANOPY.size * DEFAULT_ENVELOPE.height;
+    const size = DEFAULT_CANOPY.size;
     for (let i = 0; i < canopy.count; i += 1) {
       const { side, axis, face, position } = element(canopy.matrices, i);
       for (const value of [...side.toArray(), ...position.toArray()]) {
@@ -314,6 +314,31 @@ describe("buildCanopy", () => {
         axis.clone().cross(face).normalize().dot(side.clone().normalize()),
       ).toBeCloseTo(1, 5);
     }
+  });
+
+  it("scales the element it is given, not the tree it is on", () => {
+    /* `size` multiplies the element's own authored dimensions. It is
+       not a fraction of envelope height, and this test is here because
+       it once was: placement and the element each stated a scale
+       convention, the two disagreed, and nothing composed them until
+       the draw. A leaf does not grow because its tree is tall - a
+       148 m tree carrying a leaf sized off its own height would be
+       carrying 1.5 m fronds - so the same dials on a tall tree and a
+       short one give the same scale, and only `size` moves it. */
+    const scaleOf = (height: number, size: number): number => {
+      const canopy = build(
+        forked,
+        { ...dense, size, sizeVariation: 0 },
+        7,
+        { ...DEFAULT_ENVELOPE, height },
+      );
+      expect(canopy.count).toBeGreaterThan(0);
+      return element(canopy.matrices, 0).axis.length();
+    };
+
+    expect(scaleOf(24, 1)).toBeCloseTo(1, 6);
+    expect(scaleOf(148, 1)).toBeCloseTo(1, 6);
+    expect(scaleOf(148, 2.5)).toBeCloseTo(2.5, 6);
   });
 });
 

@@ -161,9 +161,10 @@ export const TELPERION: TreePreset = {
     // The least disorder of the two. Telperion is the finely made one
     // and the arrangement should survive being looked at.
     scatter: 14,
-    // 1.5 m of leaf on a 148 m tree, beside the harness's 1.8 m figure
-    // at the foot. Small, and the smaller of the two.
-    size: 0.01,
+    // The element at the size it is authored. Leaf size is the
+    // element's own business; this dial only says whether a tree
+    // wants more or less of it, and Telperion wants the smaller.
+    size: 1,
     sizeVariation: 0.28,
   },
 };
@@ -280,9 +281,9 @@ export const LAURELIN: TreePreset = {
     // Looser. A broad tree read from further back wants its disorder
     // where the eye can find it.
     scatter: 22,
-    // Half again Telperion's, on a tree slightly shorter: about 2 m of
-    // leaf. Broad and heavy at every scale it has one.
-    size: 0.015,
+    // Half again Telperion's. Broad and heavy at every scale it has
+    // one, and that reads at the leaf as much as at the limb.
+    size: 1.5,
     sizeVariation: 0.4,
   },
 };

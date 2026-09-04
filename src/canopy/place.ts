@@ -115,12 +115,15 @@ export interface CanopyParams {
   /** Random spread about the direction the three terms above ask for,
    *  in degrees. Zero is a diagram; a canopy needs some. */
   scatter: number;
-  /** Element size, as a fraction of envelope height. The element is
-   *  authored at unit scale and sized here, because this is the stage
-   *  that knows how big the tree is. */
+  /** Multiplier on the element's own authored size. The element owns
+   *  its absolute dimensions - a leaf is a leaf whatever the tree is
+   *  doing, and a blade sized as a fraction of envelope height would
+   *  make a 148 m tree carry 1.5 m fronds - so this stage scales what
+   *  it is given rather than deciding how big a leaf is. 1 is the
+   *  element at the size it was authored. */
   size: number;
-  /** Random variation of that size, 0 to 1: at 0.3 elements run from
-   *  70% to 130% of `size`. */
+  /** Random variation of that multiplier, 0 to 1: at 0.3 elements run
+   *  from 70% to 130% of `size`. */
   sizeVariation: number;
 }
 
@@ -137,7 +140,7 @@ export const DEFAULT_CANOPY: CanopyParams = {
   outward: 0.6,
   upward: 0.35,
   scatter: 18,
-  size: 0.012,
+  size: 1,
   sizeVariation: 0.35,
 };
 
@@ -214,8 +217,7 @@ export function buildCanopy(
   const upward = clamp(held(params.upward, DEFAULT_CANOPY.upward), 0, 1);
   const scatter =
     clamp(held(params.scatter, DEFAULT_CANOPY.scatter), 0, MAX_SCATTER) * DEG;
-  const size =
-    Math.max(0, held(params.size, DEFAULT_CANOPY.size)) * height;
+  const size = Math.max(0, held(params.size, DEFAULT_CANOPY.size));
   const sizeVariation = clamp(
     held(params.sizeVariation, DEFAULT_CANOPY.sizeVariation),
     0,
