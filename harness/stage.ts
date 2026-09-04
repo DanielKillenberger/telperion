@@ -21,11 +21,16 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
  * one, a 24 m tree and a 4 m tree render identically.
  * ------------------------------------------------------------------ */
 
-/** Flat grey clay, one value for the subject and two supporting tones
- *  so ground and figure separate without introducing colour. */
-const CLAY = 0xa8_a6_a1;
-const CLAY_GROUND = 0x8e_8c_88;
-const CLAY_FIGURE = 0x77_75_71;
+/** The subject stays a warm neutral clay; the room around it is cool.
+ *  Hue does the separating so the tree reads as a silhouette against
+ *  the background and off the ground, while the subject itself keeps a
+ *  single flat value and still shows form honestly. Nothing here is
+ *  allowed to colour the tree - the warm/cool split is between the
+ *  subject and everything that is not the subject. */
+const CLAY = 0x9d_96_8c;
+const CLAY_BACKGROUND = 0xc6_ce_d5;
+const CLAY_GROUND = 0xa9_b1_b8;
+const CLAY_FIGURE = 0x6b_67_63;
 
 /** 1.8 m: radius 0.28 twice, plus a 1.24 m body. */
 const FIGURE_RADIUS = 0.28;
@@ -54,7 +59,7 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xd8_d7_d4);
+  scene.background = new THREE.Color(CLAY_BACKGROUND);
 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 4000);
   const controls = new OrbitControls(camera, canvas);
