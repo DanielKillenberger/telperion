@@ -92,12 +92,21 @@ export function envelopeRadiusAt(envelope: Envelope, y: number): number {
   return maxRadius * Math.pow(1 - Math.pow(v, shoulder), 1 / shoulder);
 }
 
-/** Whether `point` lies in the solid, within `tolerance` metres. */
+/** Whether `point` lies in the solid, within `tolerance` metres.
+ *
+ *  The height check is not redundant with the radius one. The radius is
+ *  zero on the axis outside the crown, so a containment test written as
+ *  a radius comparison alone answers "inside" for the entire trunk axis
+ *  extended to infinity - the ground beneath the tree and the sky above
+ *  its tip included. */
 export function envelopeContains(
   envelope: Envelope,
   point: THREE.Vector3,
   tolerance = 0,
 ): boolean {
+  if (point.y < -tolerance || point.y > envelope.height + tolerance) {
+    return false;
+  }
   const radius = envelopeRadiusAt(envelope, point.y) + tolerance;
   return Math.hypot(point.x, point.z) <= radius;
 }

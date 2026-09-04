@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -60,6 +61,23 @@ describe("envelopeRadiusAt", () => {
     expect(envelopeRadiusAt(domed, y)).toBeGreaterThan(
       envelopeRadiusAt(pointed, y) * 1.5,
     );
+  });
+
+  it("is nothing to contain outside the tree's own height", () => {
+    // Radius is zero on the axis outside the crown, so a containment
+    // test written as a radius comparison alone reports the whole
+    // axis - the sky above the tip included - as inside.
+    const { height } = DEFAULT_ENVELOPE;
+    expect(envelopeContains(DEFAULT_ENVELOPE, new THREE.Vector3(0, -1, 0)))
+      .toBe(false);
+    expect(envelopeContains(DEFAULT_ENVELOPE, new THREE.Vector3(0, height + 1, 0)))
+      .toBe(false);
+    // The trunk axis inside the tree's own height is still inside it.
+    expect(envelopeContains(DEFAULT_ENVELOPE, new THREE.Vector3(0, height * 0.1, 0)))
+      .toBe(true);
+    // A tolerance loosens the ends the same way it loosens the sides.
+    expect(envelopeContains(DEFAULT_ENVELOPE, new THREE.Vector3(0, -0.5, 0), 1))
+      .toBe(true);
   });
 
   it("has no width at all when there is no crown to fill", () => {

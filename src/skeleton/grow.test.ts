@@ -87,6 +87,26 @@ describe("growSkeleton", () => {
     }
   });
 
+  it("keeps the trunk bare all the way to the crown base", () => {
+    /* The envelope has no width below its crown base, so a branch down
+       there is outside the authored silhouette however plausible it
+       looks. Reaching only until some attractor is in range is not
+       enough: the influence radius is wide, so the lowest attractors
+       are within reach of the trunk long before it has climbed to the
+       crown, and the tree starts forking at half its intended trunk
+       height. */
+    const envelope = DEFAULT_ENVELOPE;
+    const step = defaultGrowth(envelope).stepDistance;
+    const crownBase = envelope.height * envelope.crownBase;
+    for (const seed of [1, 2, 3, 4, 5]) {
+      for (const node of growSkeleton({ ...params, seed, envelope }).nodes) {
+        if (Math.hypot(node.position.x, node.position.z) > 1e-9) {
+          expect(node.position.y).toBeGreaterThan(crownBase - step);
+        }
+      }
+    }
+  });
+
   it("changes the silhouette when the envelope changes", () => {
     const widest = (envelope: Envelope): number =>
       growSkeleton({ ...params, envelope }).nodes.reduce(

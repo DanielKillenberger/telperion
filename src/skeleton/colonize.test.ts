@@ -12,6 +12,7 @@ const config: GrowthConfig = {
   stepDistance: 0.5,
   killDistance: 1,
   influenceRadius: 4.5,
+  trunkHeight: 6,
   maxNodes: 4000,
 };
 
@@ -85,6 +86,20 @@ describe("colonize", () => {
     expect(skeleton.nodes[1].position.x).toBe(0);
     expect(skeleton.nodes[1].position.z).toBe(0);
     expect(skeleton.nodes[1].position.y).toBeCloseTo(config.stepDistance, 10);
+  });
+
+  it("holds the trunk bare to the height it was given", () => {
+    /* The influence radius is nine times the step, so the cloud is
+       within reach of the trunk long before the trunk has climbed to
+       it. Without an explicit trunk height the tree forks out in the
+       open, below where its crown is supposed to start. */
+    for (const node of colonize(cloud(300), origin, config).nodes) {
+      if (Math.hypot(node.position.x, node.position.z) > 1e-9) {
+        expect(node.position.y).toBeGreaterThan(
+          config.trunkHeight - config.stepDistance,
+        );
+      }
+    }
   });
 
   it("forks", () => {

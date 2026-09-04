@@ -47,6 +47,9 @@ export function defaultGrowth(envelope: Envelope): GrowthConfig {
     stepDistance: step,
     killDistance: step * 2,
     influenceRadius: step * 9,
+    // The envelope's own bare-trunk height: below it the silhouette
+    // has no width, so nothing may branch there.
+    trunkHeight: envelope.height * envelope.crownBase,
     // A stop, not a target: a tree that wants more nodes than this has
     // been asked for something the panel should not be asking for.
     maxNodes: 8000,

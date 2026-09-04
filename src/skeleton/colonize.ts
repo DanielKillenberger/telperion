@@ -54,6 +54,11 @@ export interface GrowthConfig {
   /** The length of one growth step, in metres. This is the resolution
    *  of the whole skeleton. */
   stepDistance: number;
+  /** How high the trunk climbs before any branching is allowed, in
+   *  metres. Below it the authored envelope has no width at all, so a
+   *  branch down there is outside the silhouette however plausible it
+   *  looks on its own. */
+  trunkHeight: number;
   /** Hard bound on node count. A stop, not a target. */
   maxNodes: number;
 }
@@ -120,9 +125,17 @@ export function colonize(
   /* Reach. The root stands on the ground and the crown starts well
      above it, so at the outset nothing is within reach of anything and
      the algorithm proper has nothing to do. The trunk climbs straight
-     up until the lowest attractors come into range - and never past
-     the highest one, which is what stops an unreachable crown from
-     growing a flagpole all the way to maxNodes. */
+     up to the bare-trunk height, and then on until the lowest
+     attractors come into range - but never past the highest one, which
+     is what stops an unreachable crown from growing a flagpole all the
+     way to maxNodes.
+
+     Climbing to `trunkHeight` is not the same as climbing until
+     something is in reach, and stopping at the latter alone was a bug:
+     the influence radius is several times the step, so the lowest
+     attractors come into range of the trunk long before it has reached
+     the crown, and the tree forks at half its intended trunk height -
+     out in the open, where the envelope says it has no width. */
   let ceiling = Number.NEGATIVE_INFINITY;
   for (const attractor of attractors) ceiling = Math.max(ceiling, attractor.y);
   const up = new THREE.Vector3(0, 1, 0);
@@ -130,7 +143,7 @@ export function colonize(
   while (
     nodes.length < config.maxNodes &&
     nodes[nodes.length - 1].position.y <= ceiling &&
-    !anyInReach()
+    (nodes[nodes.length - 1].position.y < config.trunkHeight || !anyInReach())
   ) {
     const tip = nodes.length - 1;
     nodes.push({
