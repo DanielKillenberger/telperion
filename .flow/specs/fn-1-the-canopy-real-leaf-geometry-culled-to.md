@@ -122,9 +122,9 @@ The rig in fn-1-the-canopy-real-leaf-geometry-culled-to.1 ran on the named machi
 | 0.50 | - | 0.13 ms | 0.12 ms |
 | 0.25 | 430x180 | 0.13 ms | 0.12 ms |
 
-At 60 Hz the frame is 16.7 ms and the whole branch-only room spends 0.21 ms of it, a little over one percent, so the canopy inherits essentially the entire budget.
+At 60 Hz the frame is 16.7 ms and the whole branch-only room spends 0.21 ms of it, a little over one percent, so the canopy inherits essentially the entire budget. **Superseded** as a statement of what the canopy has to spend: that 0.21 ms was the bare tree at 58,880 triangles, and the tree fn-5 grows carries millions of triangles and hundreds of thousands of leaves at the depths it is judged at - see "Re-measured after fn-5" below.
 
-**What culling buys is smaller than this spec assumed, and smaller than an earlier draft of this section claimed.** R3 was written expecting a large drop. Measured on the presets as they ship, at three densities:
+**What culling buys is smaller than this spec assumed, and smaller than an earlier draft of this section claimed.** R3 was written expecting a large drop. Measured on the presets as they shipped before fn-5, with no twig pass - a tree whose finest wood was 0.79 m and which carried 2,904 leaves on Telperion and 8,115 on Laurelin - at three densities (**superseded** for any tree with twig orders above zero, see below; still exact at zero orders, which is what both presets state until R8 of fn-5 sets their depth):
 
 | subject | x1 density | x2 | x4 |
 |---|---|---|---|
@@ -134,6 +134,29 @@ At 60 Hz the frame is 16.7 ms and the whole branch-only room spends 0.21 ms of i
 Placement already puts foliage on distal shoots, and distal shoots sit near the crown's surface, so a well-placed canopy is most of the way to being a shell before the culler ever sees it. Laurelin's broad domed crown puts even more of its foliage near the surface than Telperion's does, which is why it has the least to cull. The elements the shell does take are the ones that grew on inner wood.
 
 **Density is not the lever.** An earlier draft of this section said it was, and the measurement says otherwise: four times the density moves Telperion by 0.4 points and moves Laurelin down. Placement decides where foliage sits, and volume does not change that. What does move the fraction is a shallower shell, which removes a third and eats the outline on the sparse presets, or `shootRadius` and `outward`, which change where the foliage sits rather than how much of it there is. The curve flattens onto a floor near 0.12 ms below dpr 0.5, which is fixed per-frame cost rather than fill, so only about 0.08 ms of the top point is fill: this scene is not yet fill-bound. The harness's own default on that display is dpr 2.00, four times the fragments of the sweep's top point, so what the owner normally looks at sits above the top of the measured curve.
+
+### Re-measured after fn-5
+
+fn-5 branched the tree on below colonization's tips, under local rules, down to leaf-bearing wood, and shed the interior twigs by this spec's own shell rule one level up. Three of the numbers above were taken on a tree that no longer exists at any twig order above zero: the frame budget, the shell-cull fractions, and the leaf count. Re-measured on the CPU at fn-5's landing commit, both presets at the default growth step, every other term at its preset value, the twig orders dialled from zero (the tree as shipped, byte-identical to the rows above) to eight (where the leaf-to-twig ratio crosses the botanical target on both trees). `cull` is the leaf culler's share of the leaves placed; `shed` is the shell rule's share of the twig nodes, taken before any leaf is placed; build is grow, radii, surface and canopy on one core.
+
+| preset | twig orders | twigs shed | leaves placed | leaves kept | cull | surface triangles | instance memory | build (CPU) |
+|---|---|---|---|---|---|---|---|---|
+| Telperion | 0 | - | 3,407 | 2,904 | 14.8% | 52,696 | 0.2 MB | 141 ms |
+| Telperion | 4 | 8.7% | 14,912 | 14,423 | 3.3% | 247,352 | 0.9 MB | 143 ms |
+| Telperion | 6 | 8.5% | 41,126 | 40,628 | 1.2% | 827,344 | 2.5 MB | 245 ms |
+| Telperion | 8 | 8.5% | 137,324 | 136,808 | 0.4% | 3,127,656 | 8.4 MB | 686 ms |
+| Laurelin | 0 | - | 8,679 | 8,115 | 6.5% | 90,176 | 0.5 MB | 69 ms |
+| Laurelin | 4 | 7.9% | 59,747 | 59,183 | 0.9% | 516,640 | 3.6 MB | 193 ms |
+| Laurelin | 6 | 8.1% | 204,924 | 204,319 | 0.3% | 1,868,288 | 12.5 MB | 613 ms |
+| Laurelin | 8 | 8.3% | 767,061 | 766,435 | 0.08% | 7,265,664 | 46.8 MB | 3,083 ms |
+
+**The shell-cull fractions of 14.8% and 6.5% are superseded above zero orders.** The shell rule now runs on the wood before the leaves exist - `shedTwigs`, at the leaf culler's own depth - and takes 8 to 9% of the twig nodes on both presets at every order measured. The leaf culler that follows finds almost nothing left to remove: 3.3% at four orders on Telperion and under half a percent at eight, under one percent at every order on Laurelin. The two rules are one rule at two levels, and the wood pays for it before the foliage is placed, which is the cheaper place to pay. fn-5's own measurement (its task .5, taken two commits earlier at a 400,000-node ceiling and before the fine orders' taper law) found the same shape: 8 to 11% shed, under 1% culled after.
+
+**The leaf count of 2,904 is superseded** except at zero orders, where it holds to the leaf. At eight orders the count is 136,808 on Telperion and 766,435 on Laurelin, inside the 10^5 to 10^7 range a tree this size carries; fn-5's task .5 measured the same tree at 136,686 and 766,390 before the taper law moved the radii the leaves attach against, and 519,001 on Telperion at ten orders. Which order the presets ship at is fn-5's R8, the owner's judgement in clay, and until it is made both presets state zero.
+
+**The frame budget is not re-measured here and no number is stated for it.** The 0.21 ms above was the bare tree in a scene this library no longer produces at depth: at eight orders the scene is 3.1 M surface triangles plus 137 k leaves at 16 triangles each on Telperion and 7.3 M plus 766 k leaves on Laurelin, against the 58,880 triangles the rig measured. Vitest runs in Node with no GPU, so what those scenes cost inside the 16.7 ms frame is the rig's business - timer queries at vsync off, the four-point sweep, on the named RTX 3080 - and that sweep is being run by the owner now, at depth, on both presets. Its result sets the shipping depth, and it is the one measurement that can say whether a far impostor is demanded, which the Boundaries admit only on that evidence. Nothing in this section should be read as that number.
+
+None of this closes fn-1. It stays open on R8, the owner's sign-off in clay, and the figures above are what that sign-off is now made against.
 
 ## Parked unknowns
 
