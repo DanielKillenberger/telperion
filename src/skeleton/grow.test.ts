@@ -13,6 +13,8 @@ import {
   growSkeleton,
   influenceRadiusFor,
   type SkeletonParams,
+  growReport,
+  resolveGrowth,
 } from "./grow";
 import { LAURELIN, TELPERION } from "../presets/two-trees";
 import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "../torsion";
@@ -602,5 +604,44 @@ describe("defaultGrowth", () => {
     const growth = defaultGrowth(DEFAULT_ENVELOPE);
     expect(growth.killDistance).toBeGreaterThanOrEqual(growth.stepDistance);
     expect(growth.influenceRadius).toBeGreaterThan(growth.killDistance);
+  });
+});
+
+describe("the node ceiling under twigs", () => {
+  it("is exactly the step's ceiling at zero orders and grows with the orders and children", () => {
+    const params = { ...TELPERION.skeleton };
+    const rest = resolveGrowth(params).maxNodes;
+    expect(rest).toBe(8000);
+
+    const orders = (levels: number, children = 2): number =>
+      resolveGrowth({
+        ...params,
+        twigs: { ...params.twigs, levels, children },
+      }).maxNodes;
+    // 1 + 0.25 x (2 + 4 + 8 + 16): a stop that scales with what the
+    // tips could add, never the count they do add.
+    expect(orders(4)).toBe(8000 * (1 + 0.25 * 30));
+    expect(orders(8)).toBeGreaterThan(orders(4));
+    expect(orders(4, 3)).toBeGreaterThan(orders(4));
+    // And never past the ceiling's own ceiling.
+    expect(orders(12, 8)).toBe(250000);
+    expect(orders(12, 8)).toBe(orders(12, 7));
+  });
+
+  it("reports reaching the ceiling, after the shell rule has made the tree smaller than it", () => {
+    const params = {
+      ...TELPERION.skeleton,
+      twigs: { ...TELPERION.skeleton.twigs, levels: 6 },
+    };
+    const finished = growReport(params);
+    expect(finished.capped).toBe(false);
+    expect(finished.shed).toBeGreaterThan(0);
+
+    const cutOff = growReport({ ...params, growth: { maxNodes: 3000 } });
+    expect(cutOff.capped).toBe(true);
+    // Smaller than the ceiling it hit: the count alone would have said
+    // it finished.
+    expect(cutOff.skeleton.nodes.length).toBeLessThan(3000);
+    expect(cutOff.skeleton.nodes.length + cutOff.shed).toBe(3000);
   });
 });

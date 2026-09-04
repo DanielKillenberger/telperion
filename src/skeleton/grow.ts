@@ -12,6 +12,7 @@ import {
   DEFAULT_BIAS,
   type BiasParams,
 } from "../torsion";
+import { shedTwigs } from "./shed";
 import { branchTwigs, resolveTwigs, type TwigParams } from "./twigs";
 
 /* ------------------------------------------------------------------ *
@@ -49,7 +50,11 @@ import { branchTwigs, resolveTwigs, type TwigParams } from "./twigs";
  * leaf-bearing wood, appending into the same node array. `twigs` is
  * the second pass's dials, and at its default of zero orders the
  * second pass appends nothing, so a tree that states no twigs is the
- * tree it was before the pass existed.
+ * tree it was before the pass existed. The twigs that pass appends
+ * deep inside the crown are then shed by the shell rule the leaf
+ * culler uses - `shedTwigs` - before any later stage sees them, so
+ * the skeleton that leaves here is the crown's shell and not its
+ * filling.
  * ------------------------------------------------------------------ */
 
 export interface SkeletonParams {
@@ -114,15 +119,44 @@ const INFLUENCE_STEPS = 9;
  *  5.9 and 2.3 spacings, so nine steps still binds for them. See
  *  `influenceRadiusFor`. */
 const INFLUENCE_SPACINGS = 2.0;
-/** The node ceiling at the default step. A stop, not a target: a tree
- *  that wants more nodes than this at today's step has been asked for
- *  something the panel should not be asking for. It is stated at the
- *  default step and scaled by the step's inverse in `defaultGrowth`,
- *  because the nodes a crown takes go roughly as one over the step -
- *  measured, each halving costs 1.7 to 2.2 times the nodes - so a
- *  fixed ceiling would either truncate the fine end of the rail or be
- *  no stop at all at the coarse end. */
+/** The node ceiling at the default step and no twigs. A stop, not a
+ *  target: a tree that wants more nodes than this at today's step has
+ *  been asked for something the panel should not be asking for. It is
+ *  stated at the default step and scaled by the step's inverse in
+ *  `defaultGrowth`, because the nodes a crown takes go roughly as one
+ *  over the step - measured, each halving costs 1.7 to 2.2 times the
+ *  nodes - so a fixed ceiling would either truncate the fine end of
+ *  the rail or be no stop at all at the coarse end. The twig orders
+ *  scale it again, by `twigHeadroom`. */
 const NODE_BUDGET = 8000;
+/** The share of colonization's nodes that are tips, which is what the
+ *  twig pass multiplies. Measured on both presets at the default step
+ *  and at the bottom of the rail: 0.16 to 0.19 of the nodes are tips.
+ *  Stated above that so the ceiling is a stop and never the shape of
+ *  the tree - see `twigHeadroom`. */
+const TIP_SHARE = 0.25;
+/** The ceiling's own ceiling, in nodes, whatever the step and orders
+ *  ask for. Measured: 400,000 nodes sweep to 17 to 30 million
+ *  triangles and take five to nine seconds to build on either preset,
+ *  which is neither interactive nor a picture the frame can carry;
+ *  this stop sits under that at about four seconds. A depth that would
+ *  pass it is reported as capped rather than hanging the tab. */
+const NODE_CEILING = 250_000;
+
+/** How many times the colonization ceiling a twig pass may add: one
+ *  for the crown, plus a tip's whole recursion for every tip the crown
+ *  could have. A leader-and-lateral tree adds `c + c^2 + ... + c^L`
+ *  nodes per tip at `c` children and `L` orders, so the ceiling grows
+ *  with the orders dial the way the tree does and a deep tree is
+ *  measured rather than truncated. Exactly 1 at zero orders, so a tree
+ *  that states no twigs keeps the ceiling it always had, bit for bit. */
+function twigHeadroom(twigs: TwigParams): number {
+  let perTip = 0;
+  for (let order = 1; order <= twigs.levels; order += 1) {
+    perTip += twigs.children ** order;
+  }
+  return 1 + TIP_SHARE * perTip;
+}
 /** Midpoint-rule samples for the crown volume. The profile is smooth
  *  between its ends and the volume only sets a floor, so this is far
  *  more than the derivation needs; it is fixed so that the same
@@ -212,8 +246,9 @@ const held = (value: number, fallback: number): number =>
  *  step of `step` times it, a kill distance of two steps, a search
  *  radius of nine steps or 2.0 attractor spacings, whichever is wider -
  *  `influenceRadiusFor` carries the derivation and the reason for it -
- *  and a node ceiling of `NODE_BUDGET` at the default step, growing as
- *  the step shrinks so that the whole rail fits under it.
+ *  and a node ceiling of `NODE_BUDGET` at the default step and no
+ *  twigs, growing as the step shrinks and as the twig orders deepen so
+ *  that the whole rail fits under it, and never past `NODE_CEILING`.
  *
  *  `attractors` is how many the envelope is scattered with, which the
  *  spacing floor is derived from. Left out, the radius is nine steps
@@ -225,6 +260,7 @@ export function defaultGrowth(
   envelope: Envelope,
   attractors = 0,
   step = DEFAULT_STEP,
+  twigs?: Partial<TwigParams>,
 ): GrowthConfig {
   const fraction = held(step, DEFAULT_STEP);
   const stepDistance = envelope.height * fraction;
@@ -235,7 +271,14 @@ export function defaultGrowth(
     // The envelope's own bare-trunk height: below it the silhouette
     // has no width, so nothing may branch there.
     trunkHeight: envelope.height * envelope.crownBase,
-    maxNodes: Math.round(NODE_BUDGET * (DEFAULT_STEP / fraction)),
+    maxNodes: Math.min(
+      NODE_CEILING,
+      Math.round(
+        NODE_BUDGET *
+          (DEFAULT_STEP / fraction) *
+          twigHeadroom(resolveTwigs(twigs)),
+      ),
+    ),
   };
 }
 
@@ -257,21 +300,48 @@ export function resolveGrowth(
     ...params.bias,
   });
   return {
-    ...defaultGrowth(params.envelope, scattered, params.step),
+    ...defaultGrowth(params.envelope, scattered, params.step, params.twigs),
     bias,
     ...params.growth,
   };
 }
 
-/** Grows one skeleton: colonization, then the twigs from its tips.
+/** One skeleton and what growing it cost in nodes: whether growth
+ *  stopped at its ceiling rather than finishing, and how many twigs
+ *  the shell rule shed. Both are facts the finished skeleton cannot
+ *  carry - a shed tree is smaller than the ceiling it hit - and a
+ *  caller that reports the build reads them here rather than
+ *  re-deriving them wrong. */
+export interface GrowthReport {
+  skeleton: Skeleton;
+  /** Whether the node ceiling stopped growth before the crown, or the
+   *  twig pass, was finished. A capped tree is the ceiling's shape and
+   *  not the envelope's, and it is reported rather than truncated
+   *  silently. */
+  capped: boolean;
+  /** Twig nodes removed by the shell rule. */
+  shed: number;
+}
+
+/** Grows one skeleton and reports the growth: colonization, then the
+ *  twigs from its tips, then the shell rule over the twigs.
  *  Deterministic in `params`. */
-export function growSkeleton(params: SkeletonParams): Skeleton {
+export function growReport(params: SkeletonParams): GrowthReport {
   const rng = createRng(params.seed);
   const attractors = sampleEnvelope(params.envelope, params.attractors, rng);
   const config = resolveGrowth(params, attractors.length);
-  return branchTwigs(
-    colonize(attractors, new THREE.Vector3(0, 0, 0), config),
-    config,
-    resolveTwigs(params.twigs),
-  );
+  const colonized = colonize(attractors, new THREE.Vector3(0, 0, 0), config);
+  const twigged = branchTwigs(colonized, config, resolveTwigs(params.twigs));
+  const skeleton = shedTwigs(twigged, colonized.nodes.length, params.envelope);
+  return {
+    skeleton,
+    capped: twigged.nodes.length >= config.maxNodes,
+    shed: twigged.nodes.length - skeleton.nodes.length,
+  };
+}
+
+/** Grows one skeleton: colonization, the twigs from its tips, and the
+ *  shell rule over the twigs. Deterministic in `params`. */
+export function growSkeleton(params: SkeletonParams): Skeleton {
+  return growReport(params).skeleton;
 }

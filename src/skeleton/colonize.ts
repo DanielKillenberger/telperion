@@ -191,6 +191,94 @@ export function limitTurn(
     .normalize();
 }
 
+/** Cells per axis the attractor grid is held to. Past this a cell is
+ *  wider than the reach and a query walks a few more attractors than
+ *  it needs; below it, a tiny reach over a large cloud would allocate
+ *  a cell table far larger than the cloud it indexes. The bound is on
+ *  cost only - a cell wider than the reach still holds everything
+ *  within it, so the answer never changes. */
+const GRID_CELLS_PER_AXIS = 32;
+
+interface AttractorGrid {
+  minX: number;
+  minY: number;
+  minZ: number;
+  nx: number;
+  ny: number;
+  nz: number;
+  /** Cell width in metres; infinite when the whole cloud is one cell. */
+  size: number;
+  /** Attractor indices sorted by cell, and the offset each cell starts
+   *  at, one past the last cell included. */
+  items: Int32Array;
+  start: Int32Array;
+  cellAt(coordinate: number, min: number, cells: number): number;
+}
+
+/** `attractors` binned into a uniform grid whose cells are at least
+ *  `reach` wide, so every attractor within `reach` of a point lies in
+ *  the point's own cell or one of its neighbours. Built once per run;
+ *  the attractors never move.
+ *
+ *  A reach that is not a positive finite number - no radius, or one
+ *  that covers everything - puts the whole cloud in one cell, which is
+ *  the plain scan and exact. */
+function indexAttractors(
+  attractors: readonly THREE.Vector3[],
+  reach: number,
+): AttractorGrid {
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let minZ = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  let maxZ = Number.NEGATIVE_INFINITY;
+  for (const point of attractors) {
+    if (point.x < minX) minX = point.x;
+    if (point.y < minY) minY = point.y;
+    if (point.z < minZ) minZ = point.z;
+    if (point.x > maxX) maxX = point.x;
+    if (point.y > maxY) maxY = point.y;
+    if (point.z > maxZ) maxZ = point.z;
+  }
+  const extent = Math.max(maxX - minX, maxY - minY, maxZ - minZ);
+  const size =
+    Number.isFinite(reach) && reach > 0 && Number.isFinite(extent)
+      ? Math.max(reach, extent / GRID_CELLS_PER_AXIS)
+      : Number.POSITIVE_INFINITY;
+  const cellAt = (coordinate: number, min: number, cells: number): number => {
+    const index = Math.floor((coordinate - min) / size);
+    // A node outside the cloud's bounds is measured from the edge cell,
+    // whose neighbourhood still covers everything within reach of it.
+    return index < 0 ? 0 : index >= cells ? cells - 1 : index;
+  };
+  const cellsAlong = (span: number): number =>
+    Number.isFinite(size) && Number.isFinite(span) ? Math.floor(span / size) + 1 : 1;
+  const nx = cellsAlong(maxX - minX);
+  const ny = cellsAlong(maxY - minY);
+  const nz = cellsAlong(maxZ - minZ);
+
+  const cells = nx * ny * nz;
+  const cellOf = new Int32Array(attractors.length);
+  const start = new Int32Array(cells + 1);
+  for (let a = 0; a < attractors.length; a += 1) {
+    const point = attractors[a];
+    const cell =
+      (cellAt(point.x, minX, nx) * ny + cellAt(point.y, minY, ny)) * nz +
+      cellAt(point.z, minZ, nz);
+    cellOf[a] = cell;
+    start[cell + 1] += 1;
+  }
+  for (let c = 0; c < cells; c += 1) start[c + 1] += start[c];
+  const fill = start.slice(0, cells);
+  const items = new Int32Array(attractors.length);
+  for (let a = 0; a < attractors.length; a += 1) {
+    items[fill[cellOf[a]]] = a;
+    fill[cellOf[a]] += 1;
+  }
+  return { minX, minY, minZ, nx, ny, nz, size, items, start, cellAt };
+}
+
 /**
  * Grows a skeleton from `start` into `attractors`.
  *
@@ -233,27 +321,55 @@ export function colonize(
   const nearestSq = new Float64Array(count).fill(Number.POSITIVE_INFINITY);
   let scanned = 0;
 
+  /* An attractor's running nearest is only ever read while it is within
+     reach of that node - in the search radius, or close enough to be
+     retired - so a new node need only be measured against the
+     attractors within the wider of the two, and a uniform grid over
+     the cloud finds exactly those. The rest keep their old distance or
+     stay at infinity, and every comparison made of them - "out of
+     reach", "not reached" - reads the same either way. */
+  const reach = Math.max(config.influenceRadius, config.killDistance);
+  const grid = indexAttractors(attractors, reach);
+  const reachSq = reach * reach;
+
   /* Folds every node added since the last call into each attractor's
      running nearest, then retires the attractors that nearest has
      reached. Nodes are only ever appended and never moved, so a
      running minimum is exact - rescanning the whole tree each round
      would return the same answer for O(nodes x attractors) more work,
      which is the difference between the panel answering a slider drag
-     and stalling on it. */
+     and stalling on it. Nodes are folded in index order under a strict
+     comparison, so a tie still goes to the earlier node: the grid
+     changes what is measured, never what is chosen. */
   const settle = (): void => {
-    for (let a = 0; a < count; a += 1) {
-      if (alive[a] === 0) continue;
-      const target = attractors[a];
-      for (let n = scanned; n < nodes.length; n += 1) {
-        const distance = nodes[n].position.distanceToSquared(target);
-        if (distance < nearestSq[a]) {
-          nearestSq[a] = distance;
-          nearest[a] = n;
+    for (let n = scanned; n < nodes.length; n += 1) {
+      const position = nodes[n].position;
+      const x0 = grid.cellAt(position.x, grid.minX, grid.nx);
+      const y0 = grid.cellAt(position.y, grid.minY, grid.ny);
+      const z0 = grid.cellAt(position.z, grid.minZ, grid.nz);
+      for (let cx = Math.max(0, x0 - 1); cx <= Math.min(grid.nx - 1, x0 + 1); cx += 1) {
+        for (let cy = Math.max(0, y0 - 1); cy <= Math.min(grid.ny - 1, y0 + 1); cy += 1) {
+          for (let cz = Math.max(0, z0 - 1); cz <= Math.min(grid.nz - 1, z0 + 1); cz += 1) {
+            const cell = (cx * grid.ny + cy) * grid.nz + cz;
+            const end = grid.start[cell + 1];
+            for (let i = grid.start[cell]; i < end; i += 1) {
+              const a = grid.items[i];
+              if (alive[a] === 0) continue;
+              const distance = position.distanceToSquared(attractors[a]);
+              if (distance > reachSq) continue;
+              if (distance < nearestSq[a]) {
+                nearestSq[a] = distance;
+                nearest[a] = n;
+              }
+            }
+          }
         }
       }
-      if (nearestSq[a] <= killSq) alive[a] = 0;
     }
     scanned = nodes.length;
+    for (let a = 0; a < count; a += 1) {
+      if (alive[a] === 1 && nearestSq[a] <= killSq) alive[a] = 0;
+    }
   };
 
   const anyInReach = (): boolean => {
