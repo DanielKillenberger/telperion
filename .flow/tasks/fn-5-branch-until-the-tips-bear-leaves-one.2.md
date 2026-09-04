@@ -49,9 +49,17 @@ Exposes branching depth as one named parameter that scales the growth distances 
 - [ ] Any doc comment the parameter's placement falsifies is rewritten in this change
 - [ ] `npx vitest run`, `npx tsc --noEmit` and `npm run build` green
 ## Done summary
-TBD
+Branching depth is one parameter, `SkeletonParams.step` - the growth step as a fraction of envelope height, a sibling of `attractors` (not inside `growth`, which stays the metres-denominated override bag). Kill distance follows at two steps, the search radius composes through `influenceRadiusFor`, and `maxNodes` scales as 8000 x (0.022 / step) so the rail's bottom (42,414 nodes on the panel's widest crown at 0.003 h) fits under it; `resolveGrowth` exposes the config a tree grew under and `TreeStats.capped` reports growth that stopped at the ceiling. Non-finite steps are held to `DEFAULT_STEP` = 0.022. Both presets state `step: 0.022`; the panel carries `growth step` right after `density` under the skeleton group, rail 0.003..0.022 h, notch 0.0005. The doc comment the placement falsified - preset.ts "the two optional members stated in full" - is rewritten (the "`growth` carries only bending stiffness" claim stays true because the step is a sibling). R7: 12 pinned skeleton signatures (both presets, every R7 fixture, panel default and panel-dense) byte-identical before and after.
 
+baseline: green (npx vitest run 18 files / 272 tests; npx tsc --noEmit; npm run build) at 24aa80d8
+verify: green (npx vitest run 18 files / 280 tests; npx tsc --noEmit; npm run build) at a5f2a319; gate classify: FULL (harness/params.test.ts); receipts unittest/typecheck/build written
+tests added: grow.test.ts "at its default ... is the tree it was before the dial existed" (R7 + R1 non-finite error case), "moves step and kill distance together, and derives the rest", "fits the whole rail under the node ceiling"; skeleton-view.test.ts "hands the growth step over", "the node ceiling is reported when the growth stops at it"; params.test.ts "puts the growth step beside density"; two-trees.test.ts key list gains "step"
+outside Touches (tests only): src/presets/two-trees.test.ts, src/skeleton/grow.test.ts, harness/skeleton-view.test.ts, harness/params.test.ts
+follow-ups (not built): GrowerDev.tsx:417 stats line does not render `capped`; src/index.ts does not re-export DEFAULT_STEP / resolveGrowth
+run-note: /home/daniel/Projects/telperion/.git/flow-notes/fn-5-branch-until-the-tips-bear-leaves-one-20260904T203339Z-685936/fn5-t2-step-dial.md
+
+stage: impl-review - skipped(policy: parallel-wave - conductor reviews after integration; REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a5f2a31996f7f91c7a17603715c5029e2f01bbce
+- Tests: npx vitest run (18 files / 280 tests on the integrated target), npx tsc --noEmit clean, npm run build clean, byte-identity at the dial's default verified by the conductor with an independent node hash: Telperion 808 nodes / Laurelin 2442 nodes, hashes unchanged from the pre-task tree
 - PRs:
