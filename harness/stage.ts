@@ -94,6 +94,11 @@ export interface Clay {
   surface: THREE.Material;
   /** For line work: a skeleton, before there is a surface to judge. */
   line: THREE.Material;
+  /** For foliage: the same clay, cut out rather than blended and drawn
+   *  from both faces. A leaf is an open sheet with no back, and a
+   *  canopy is the one thing in this room that needs a material the
+   *  trunk's cannot be. Same colour, because the room is one clay. */
+  element: THREE.Material;
 }
 
 /* ------------------------------------------------------------------ *
@@ -289,6 +294,58 @@ export function pivotOn(box: THREE.Box3, pivot: THREE.Vector3): THREE.Vector3 {
   return box.clampPoint(pivot, new THREE.Vector3());
 }
 
+/** What the subject actually occupies, in world space.
+ *
+ *  Pure, and exported, because everything the room does is measured
+ *  from it and a subject can now arrive carrying geometry that does
+ *  not measure itself. AN INSTANCED MESH KEEPS ITS OWN BOUNDING BOX
+ *  AND THREE NEVER RECOMPUTES IT: the box is computed from the
+ *  instance transforms once, on demand, and cached, so a mesh whose
+ *  bounds were taken before its matrices were written reports one
+ *  element sitting at the origin - a canopy tens of metres across
+ *  contributing a hand's width of extent, or none at all next to a
+ *  400 m tree. Framing would then be branch-only and silently so,
+ *  which is the failure R8 names.
+ *
+ *  So the bounds are recomputed here rather than trusted. The builder
+ *  handed to `setTree` is a caller's function and the stage cannot
+ *  know what it did or when; recomputing costs one pass over the
+ *  instance transforms, once per new subject, against the alternative
+ *  of a room fitted to a tree that is not the one on stage. */
+export function measureSubject(object: THREE.Object3D): THREE.Box3 {
+  object.traverse((node) => {
+    if (node instanceof THREE.InstancedMesh) node.computeBoundingBox();
+  });
+  return new THREE.Box3().setFromObject(object);
+}
+
+/** Releases everything a subject holds on the GPU.
+ *
+ *  Pure, and exported, for the same reason `pivotOn` is: it is the
+ *  corrective half of a change and the stage it belongs to needs a GPU
+ *  to build, so this is the only surface a test can hold to account.
+ *
+ *  Two kinds of buffer, and the second is the one that is easy to
+ *  leak. `geometry.dispose()` releases the vertex buffers, and it
+ *  catches lines as well as meshes because a skeleton is
+ *  `LineSegments`. The instance transforms are NOT in the geometry -
+ *  they hang off the mesh as its own attribute - and the renderer
+ *  frees them only when the mesh dispatches its `dispose` event, which
+ *  is `InstancedMesh.dispose()` and nothing else. A canopy regenerated
+ *  on every slider drag would otherwise leave one Float32Array per
+ *  build on the GPU, sized by the element count, which is the largest
+ *  buffer in the room. */
+export function disposeSubject(object: THREE.Object3D): void {
+  object.traverse((node) => {
+    // InstancedMesh extends Mesh, so both of these run for one: the
+    // instance attribute first, then the geometry it shares.
+    if (node instanceof THREE.InstancedMesh) node.dispose();
+    if (node instanceof THREE.Mesh || node instanceof THREE.Line) {
+      node.geometry.dispose();
+    }
+  });
+}
+
 export function solveRoom(
   span: number,
   orbitRadius: number,
@@ -426,6 +483,34 @@ export function createStage(
     metalness: 0,
   });
   const clayLine = new THREE.LineBasicMaterial({ color: CLAY_LINE });
+  /* The canopy's clay. Three departures from the trunk's, and each one
+     is the geometry's rather than a look:
+       - DOUBLE SIDED, because a leaf is an open sheet. Backface
+         culling would delete half of every element seen from behind.
+       - ALPHA TEST, NEVER BLENDING. A cutout keeps the depth buffer
+         honest and needs no sort; blending across tens of thousands of
+         overlapping elements does, and gets it wrong. It costs early-Z
+         on the target machine, which is exactly the cost the rig
+         measures and the reason the log-depth question was parked for
+         this task. The placeholder element carries no mask yet, so
+         nothing is discarded today - the shader's discard is compiled
+         in either way, which is what makes the measurement the real
+         one, and the texturing spec drops a mask in without touching
+         this line.
+       - FLAT SHADED, because the blade's own vertex normals are
+         smoothed around a fold and a leaf reads as a leaf by its
+         silhouette, not by a gradient across three centimetres.
+     The colour is CLAY, unchanged. Nothing here colours the foliage
+     differently from the wood: the canopy is judged on placement. */
+  const clayElement = new THREE.MeshStandardMaterial({
+    color: CLAY,
+    roughness: 0.92,
+    metalness: 0,
+    side: THREE.DoubleSide,
+    flatShading: true,
+    alphaTest: 0.5,
+    transparent: false,
+  });
   const groundMaterial = new THREE.MeshStandardMaterial({
     color: CLAY_GROUND,
     roughness: 1,
@@ -473,13 +558,7 @@ export function createStage(
   const disposeTree = (): void => {
     if (tree === null) return;
     scene.remove(tree);
-    tree.traverse((node) => {
-      // Lines as well as meshes: the skeleton is LineSegments, and a
-      // Mesh-only sweep would leak a geometry on every regenerate.
-      if (node instanceof THREE.Mesh || node instanceof THREE.Line) {
-        node.geometry.dispose();
-      }
-    });
+    disposeSubject(tree);
     tree = null;
   };
 
@@ -488,8 +567,7 @@ export function createStage(
    *  yields no renderable geometry measures an empty box, and a room
    *  solved from a zero-sized subject has a zero-sized everything. */
   const subjectBox = (fallbackHeight: number): THREE.Box3 => {
-    const box = new THREE.Box3();
-    if (tree !== null) box.setFromObject(tree);
+    const box = tree === null ? new THREE.Box3() : measureSubject(tree);
     if (box.isEmpty()) {
       const height = Math.max(fallbackHeight, MIN_SUBJECT);
       const half = height * 0.35;
@@ -557,7 +635,7 @@ export function createStage(
 
   const setTree: Stage["setTree"] = (build) => {
     disposeTree();
-    tree = build({ surface: clay, line: clayLine });
+    tree = build({ surface: clay, line: clayLine, element: clayElement });
     tree.traverse((node) => {
       if (node instanceof THREE.Mesh) {
         node.castShadow = true;
@@ -628,7 +706,12 @@ export function createStage(
     else scene.remove(key, fill);
     // A material compiled without shadows has to be recompiled with
     // them; three only notices when it is told.
-    for (const material of [clay, groundMaterial, figureMaterial]) {
+    for (const material of [
+      clay,
+      clayElement,
+      groundMaterial,
+      figureMaterial,
+    ]) {
       material.needsUpdate = true;
     }
   };
@@ -838,6 +921,7 @@ export function createStage(
       figureGeometry.dispose();
       clay.dispose();
       clayLine.dispose();
+      clayElement.dispose();
       groundMaterial.dispose();
       figureMaterial.dispose();
       renderer.dispose();
