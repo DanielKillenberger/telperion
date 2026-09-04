@@ -110,6 +110,13 @@ export interface GrowerParams {
    *  Big trees shed their lower limbs, so a tall tree wants more of
    *  this than a small one. */
   crownBase: number;
+  /** Where the crown is widest, 0 at its base and 1 at its tip. Low is
+   *  bottom-heavy and spreading, high is a crown carrying its mass up
+   *  top. */
+  fullness: number;
+  /** The envelope's profile exponent: 1 is a straight-sided cone, 2 an
+   *  ellipse, and above that the shoulders square off into a dome. */
+  shoulder: number;
   /** Lobes on the swept cross section: how many strands a limb reads
    *  as. 0 is the circle everyone else extrudes. */
   lobes: number;
@@ -183,6 +190,15 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "trunkRadius", label: "trunk", min: 0.004, max: 0.085, step: 0.001, unit: "h" },
   { key: "lengthTaper", label: "length taper", min: 0, max: 2, step: 0.05, unit: "" },
   { key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
+  /* The last two terms of the authored silhouette. `spread` says how
+     far the crown reaches and these two say what shape it is on the
+     way out, which is most of the difference between a narrow upright
+     Telperion and a broad domed Laurelin - so leaving them pinned to a
+     constant would have made the spec's own acceptance test the one
+     thing the panel could not reach. Guarded away from the ends, where
+     the profile is degenerate rather than extreme. */
+  { key: "fullness", label: "fullness", min: 0.05, max: 0.95, step: 0.01, unit: "" },
+  { key: "shoulder", label: "shoulder", min: 1, max: 4, step: 0.05, unit: "n" },
   // The surface dials. `lobes` is a count and steps by one; the other
   // three run from the circular, straight, unflared surface every other
   // procedural tree has out to well past what looks good, on the same
@@ -214,6 +230,8 @@ export const DEFAULT_PARAMS: GrowerParams = {
   trunkRadius: DEFAULT_RADII.trunkRadius,
   lengthTaper: DEFAULT_RADII.lengthTaper,
   crownBase: DEFAULT_ENVELOPE.crownBase,
+  fullness: DEFAULT_ENVELOPE.fullness,
+  shoulder: DEFAULT_ENVELOPE.shoulder,
   lobes: DEFAULT_SURFACE.lobes,
   lobeDepth: DEFAULT_SURFACE.lobeDepth,
   twistRate: DEFAULT_SURFACE.twistRate,

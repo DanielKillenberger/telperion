@@ -1,11 +1,11 @@
 import * as THREE from "three";
 
-import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
 import {
   buildSurface,
   DEFAULT_SURFACE,
   type SurfaceParams,
 } from "@/lib/grower/mesh/surface";
+import type { TreePreset } from "@/lib/grower/presets";
 import { solveRadii, type RadiusParams } from "@/lib/grower/radius";
 import { growSkeleton, type SkeletonParams } from "@/lib/grower/skeleton/grow";
 
@@ -54,11 +54,18 @@ const ATTRACTORS_MAX = 1600;
 export function toSkeletonParams(params: GrowerParams): SkeletonParams {
   return {
     seed: params.seed,
+    /* Every member of `Envelope`, named. Spreading the default and
+       overriding three of them was fine while the other two were
+       constants nobody could reach; now that they are dials, an
+       envelope assembled by spread would silently drop whichever term
+       the panel forgot to list, which is exactly the drift the
+       preset round-trip test exists to catch. */
     envelope: {
-      ...DEFAULT_ENVELOPE,
       height: params.height,
       spread: params.spread,
       crownBase: params.crownBase,
+      fullness: params.fullness,
+      shoulder: params.shoulder,
     },
     attractors: Math.round(
       ATTRACTORS_MIN + params.density * (ATTRACTORS_MAX - ATTRACTORS_MIN),
@@ -135,27 +142,68 @@ export interface TreeStats {
   buildMs: number;
 }
 
-/** The subject the stage draws: this tree, in clay, skinned.
+/** A preset's parameters, as the panel's dials.
  *
- *  Deterministic in `params` - same seed and dials, same mesh, vertex
- *  for vertex - because every stage of it is. */
-export function buildTree(
-  params: GrowerParams,
+ *  The dials and a preset are two ways of writing down the same
+ *  argument triple, so this is a rename and not a translation: every
+ *  member of `GrowerParams` comes from the preset and nothing is
+ *  invented here. `torsion` is the one term with no counterpart, and
+ *  it is 1 by definition - a preset states the three bias terms it
+ *  wants, and the master that scales them is a convenience for
+ *  dragging, not part of the tree.
+ *
+ *  Exact in both directions: `toSkeletonParams`, `toRadiusParams` and
+ *  `toSurfaceParams` applied to the result reproduce the preset
+ *  member for member. That round trip is asserted, because a panel
+ *  that silently dropped one of a preset's terms would show the owner
+ *  a tree nobody authored. */
+export function presetToParams(preset: TreePreset): GrowerParams {
+  const { envelope, bias } = preset.skeleton;
+  return {
+    seed: preset.skeleton.seed,
+    height: envelope.height,
+    spread: envelope.spread,
+    crownBase: envelope.crownBase,
+    fullness: envelope.fullness,
+    shoulder: envelope.shoulder,
+    torsion: 1,
+    gravitropism: bias.gravitropism,
+    lean: bias.lean,
+    writheAmplitude: bias.writheAmplitude,
+    writheWavelength: bias.writheWavelength,
+    spiralRate: bias.spiralRate,
+    maxTurnPerStep: preset.skeleton.growth.maxTurnPerStep,
+    density: (preset.skeleton.attractors - ATTRACTORS_MIN) /
+      (ATTRACTORS_MAX - ATTRACTORS_MIN),
+    taper: preset.radii.forkExponent,
+    trunkRadius: preset.radii.trunkRadius,
+    lengthTaper: preset.radii.lengthTaper,
+    lobes: preset.surface.lobes,
+    lobeDepth: preset.surface.lobeDepth,
+    twistRate: preset.surface.twistRate,
+    flareRadius: preset.surface.flareRadius,
+  };
+}
+
+/** The one build. Skeleton, radii, surface, mesh - and the only thing
+ *  that varies between one tree and another is the three argument
+ *  objects handed in, which is the spec's acceptance test stated as a
+ *  function signature: Telperion and Laurelin reach this with
+ *  different numbers and by no other difference. */
+function build(
+  skeletonParams: SkeletonParams,
+  radii: RadiusParams,
+  surfaceParams: SurfaceParams,
   clay: Clay,
 ): { tree: THREE.Mesh; stats: TreeStats } {
   const started = performance.now();
-  const skeletonParams = toSkeletonParams(params);
   const skeleton = growSkeleton(skeletonParams);
-  const field = solveRadii(
-    skeleton,
-    skeletonParams.envelope,
-    toRadiusParams(params),
-  );
+  const field = solveRadii(skeleton, skeletonParams.envelope, radii);
   const surface = buildSurface(
     skeleton,
     field,
     skeletonParams.envelope,
-    toSurfaceParams(params),
+    surfaceParams,
   );
 
   const geometry = new THREE.BufferGeometry();
@@ -178,6 +226,89 @@ export function buildTree(
       vertices: surface.vertices,
       nodes: skeleton.nodes.length,
       buildMs: performance.now() - started,
+    },
+  };
+}
+
+/** The subject the stage draws: this tree, in clay, skinned.
+ *
+ *  Deterministic in `params` - same seed and dials, same mesh, vertex
+ *  for vertex - because every stage of it is. */
+export function buildTree(
+  params: GrowerParams,
+  clay: Clay,
+): { tree: THREE.Mesh; stats: TreeStats } {
+  return build(
+    toSkeletonParams(params),
+    toRadiusParams(params),
+    toSurfaceParams(params),
+    clay,
+  );
+}
+
+/** One named tree, exactly as authored. Straight from the preset's own
+ *  three objects rather than round-tripped through the dials, so what
+ *  the owner judges is what the library file says and not what the
+ *  panel could express of it. */
+export function buildPreset(
+  preset: TreePreset,
+  clay: Clay,
+): { tree: THREE.Mesh; stats: TreeStats } {
+  return build(preset.skeleton, preset.radii, preset.surface, clay);
+}
+
+/** The gap between two trees standing side by side, as a fraction of
+ *  the wider one's crown. Enough air that the two silhouettes are read
+ *  as two trees rather than as one thicket, and no more - the whole
+ *  point of the comparison is that they are close enough to judge
+ *  against each other in one glance. */
+const COMPARISON_GAP = 0.18;
+
+/** The spec's acceptance test, standing on the ground together: every
+ *  preset in a row, each built by `buildPreset` and moved sideways.
+ *  Nothing about a tree changes here but where it stands - the
+ *  comparison is a translation and not a second way of growing a tree.
+ *
+ *  Laid out by crown width rather than at a fixed pitch, because the
+ *  trees being compared differ in width by a factor of three and a
+ *  fixed pitch would either overlap the broad one or strand the narrow
+ *  one. Centred on the origin so the stage's own framing sees a
+ *  balanced subject. */
+export function buildComparison(
+  presets: readonly TreePreset[],
+  clay: Clay,
+): { group: THREE.Group; stats: TreeStats } {
+  const group = new THREE.Group();
+  group.name = "grower-comparison";
+
+  const built = presets.map((preset) => ({
+    preset,
+    ...buildPreset(preset, clay),
+  }));
+
+  const widths = built.map(
+    ({ preset }) =>
+      2 * preset.skeleton.envelope.height * preset.skeleton.envelope.spread,
+  );
+  const gap = Math.max(0, ...widths) * COMPARISON_GAP;
+  const span =
+    widths.reduce((total, width) => total + width, 0) +
+    gap * Math.max(0, widths.length - 1);
+
+  let cursor = -span / 2;
+  built.forEach(({ tree }, index) => {
+    tree.position.x = cursor + widths[index] / 2;
+    cursor += widths[index] + gap;
+    group.add(tree);
+  });
+
+  return {
+    group,
+    stats: {
+      triangles: built.reduce((total, one) => total + one.stats.triangles, 0),
+      vertices: built.reduce((total, one) => total + one.stats.vertices, 0),
+      nodes: built.reduce((total, one) => total + one.stats.nodes, 0),
+      buildMs: built.reduce((total, one) => total + one.stats.buildMs, 0),
     },
   };
 }

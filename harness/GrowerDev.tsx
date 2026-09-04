@@ -16,6 +16,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { PRESETS, type TreePreset } from "@/lib/grower/presets";
+
 import {
   DEFAULT_PARAMS,
   SLIDERS,
@@ -24,7 +26,12 @@ import {
   randomSeed,
   readSlider,
 } from "./params";
-import { buildTree, type TreeStats } from "./skeleton-view";
+import {
+  buildComparison,
+  buildTree,
+  presetToParams,
+  type TreeStats,
+} from "./skeleton-view";
 import { createStage, type Stage } from "./stage";
 import "./grower-dev.css";
 
@@ -38,6 +45,17 @@ function format(value: number, step: number): string {
   return value.toFixed(decimals);
 }
 
+/** What the scale figure is standing next to when the comparison is
+ *  up: the taller of the trees on the ground. The stage frames the
+ *  subject it can measure and uses this only to place the figure, so
+ *  the tallest is the right answer - it is the one whose foot the
+ *  figure has to look small beside. */
+function tallestPresetHeight(): number {
+  return Math.max(
+    ...PRESETS.map((preset) => preset.skeleton.envelope.height),
+  );
+}
+
 export function GrowerDev() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<Stage | null>(null);
@@ -47,6 +65,11 @@ export function GrowerDev() {
   // away mid-keystroke; `params.seed` only moves when it parses.
   const [seedText, setSeedText] = useState(String(DEFAULT_PARAMS.seed));
   const [lightingCheck, setLightingCheck] = useState(false);
+  /* The spec's acceptance test: both presets on the ground together,
+     built from the library's own objects rather than from the dials,
+     so what stands there is what the preset file says. The dials keep
+     their own tree and get it back the moment this goes off. */
+  const [compare, setCompare] = useState(false);
   // What the last build cost. The surface is allowed to cost more than
   // the tube viewer did; it is not allowed to cost it silently, so the
   // panel says the number every time a dial moves.
@@ -68,6 +91,11 @@ export function GrowerDev() {
     // hand by the time it returns.
     let built: TreeStats | null = null;
     stageRef.current?.setTree((clay) => {
+      if (compare) {
+        const result = buildComparison(PRESETS, clay);
+        built = result.stats;
+        return result.group;
+      }
       const result = buildTree(params, clay);
       built = result.stats;
       return result.tree;
@@ -87,8 +115,10 @@ export function GrowerDev() {
        one, disposes it and builds a second - so a latch held here
        would be spent on a stage that no longer exists and would leave
        the live one unframed. */
-    stageRef.current?.frameIfWaiting(params.height);
-  }, [params]);
+    stageRef.current?.frameIfWaiting(
+      compare ? tallestPresetHeight() : params.height,
+    );
+  }, [params, compare]);
 
   useEffect(() => {
     stageRef.current?.setLightingCheck(lightingCheck);
@@ -106,8 +136,30 @@ export function GrowerDev() {
     setParams((prev) => ({ ...prev, seed }));
   }, []);
 
+  /* Loads a named tree onto the dials. Every dial, exactly: the panel
+     reaches all of the preset's terms, so this puts the owner ON the
+     authored tree rather than near it, with the whole parameter set
+     under their hands to argue with. Leaves the comparison, because
+     picking a tree to steer is a request to look at that one. */
+  const loadPreset = useCallback((preset: TreePreset) => {
+    const loaded = presetToParams(preset);
+    setSeedText(String(loaded.seed));
+    setParams(loaded);
+    setCompare(false);
+    stageRef.current?.frameNext();
+  }, []);
+
+  const toggleCompare = useCallback(() => {
+    setCompare((prev) => !prev);
+    // The subject is about to change size by a factor of three, so the
+    // camera has to move; `frameNext` frames whatever the effect
+    // builds rather than the tree standing there now.
+    stageRef.current?.frameNext();
+  }, []);
+
   const reset = useCallback(() => {
     setSeedText(String(DEFAULT_PARAMS.seed));
+    setCompare(false);
     // A fresh object rather than DEFAULT_PARAMS itself: reset from an
     // already-default state still has to rebuild and re-frame, and
     // React elides a state write that is the same reference.
@@ -149,6 +201,28 @@ export function GrowerDev() {
           />
           <button className="gd-button" type="button" onClick={reroll}>
             reroll
+          </button>
+        </div>
+
+        <div className="gd-row">
+          {PRESETS.map((preset) => (
+            <button
+              className="gd-button"
+              type="button"
+              key={preset.id}
+              title={preset.note}
+              onClick={() => loadPreset(preset)}
+            >
+              {preset.name.toLowerCase()}
+            </button>
+          ))}
+          <button
+            className={compare ? "gd-button gd-button-on" : "gd-button"}
+            type="button"
+            aria-pressed={compare}
+            onClick={toggleCompare}
+          >
+            both
           </button>
         </div>
 
@@ -204,6 +278,14 @@ export function GrowerDev() {
             ? "building..."
             : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.buildMs.toFixed(1)} ms`}
         </p>
+
+        {compare ? (
+          <p className="gd-note gd-warn">
+            both presets, as authored in the library. the dials below are
+            not what is standing there - pick telperion or laurelin to
+            put one of them under the dials.
+          </p>
+        ) : null}
 
         <p className="gd-note gd-warn">
           one swept surface, lobed section winding along its own length,

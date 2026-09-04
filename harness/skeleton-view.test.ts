@@ -7,9 +7,14 @@ import { DEFAULT_RADII, solveRadii } from "@/lib/grower/radius";
 import { growSkeleton } from "@/lib/grower/skeleton/grow";
 import { DEFAULT_BIAS } from "@/lib/grower/torsion";
 
-import { DEFAULT_PARAMS, type GrowerParams } from "./params";
+import { LAURELIN, PRESETS } from "@/lib/grower/presets";
+
+import { DEFAULT_PARAMS, SLIDERS, type GrowerParams } from "./params";
 import {
+  buildComparison,
+  buildPreset,
   buildTree,
+  presetToParams,
   toRadiusParams,
   toSkeletonParams,
   toSurfaceParams,
@@ -385,6 +390,93 @@ describe("buildTree", () => {
   it("the density dial reaches the branch count", () => {
     expect(positions(tree({ density: 1 })).length).toBeGreaterThan(
       positions(tree({ density: 0 })).length * 2,
+    );
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * THE PRESETS, THROUGH THE PANEL
+ *
+ * A preset is the generator's arguments written down, and the dials
+ * are the same arguments under the owner's hands. The two only stay
+ * the same thing while the panel can express every term a preset
+ * states - and the failure if it cannot is silent: the owner picks
+ * Laurelin, the panel drops the one term it has no dial for, and what
+ * stands on the stage is a tree nobody authored.
+ * ------------------------------------------------------------------ */
+
+describe("presetToParams", () => {
+  it.each(PRESETS.map((preset) => [preset.id, preset] as const))(
+    "%s round-trips through the dials, term for term",
+    (_id, preset) => {
+      const dialled = presetToParams(preset);
+      expect(toSkeletonParams(dialled)).toEqual(preset.skeleton);
+      expect(toRadiusParams(dialled)).toEqual(preset.radii);
+      expect(toSurfaceParams(dialled)).toEqual(preset.surface);
+    },
+  );
+
+  it.each(PRESETS.map((preset) => [preset.id, preset] as const))(
+    "%s sits inside every slider's own range",
+    (_id, preset) => {
+      // A preset the panel clamps on arrival is a preset the owner
+      // cannot get back to after one drag of the slider it fell
+      // outside of.
+      const dialled = presetToParams(preset);
+      for (const spec of SLIDERS) {
+        expect(dialled[spec.key]).toBeGreaterThanOrEqual(spec.min);
+        expect(dialled[spec.key]).toBeLessThanOrEqual(spec.max);
+      }
+    },
+  );
+});
+
+describe("buildComparison", () => {
+  it("stands every preset on the ground, side by side and clear", () => {
+    const { group } = buildComparison(PRESETS, clay);
+    expect(group.children).toHaveLength(PRESETS.length);
+
+    // Each tree keeps its own foot on the ground: the layout moves
+    // trees sideways and does nothing else to them.
+    for (const child of group.children) {
+      expect(child.position.y).toBe(0);
+      expect(child.position.z).toBe(0);
+    }
+
+    // No two crowns overlap. Read off the envelopes rather than off
+    // the meshes, because that is what the layout is spacing by.
+    const placed = PRESETS.map((preset, index) => ({
+      x: group.children[index].position.x,
+      half: preset.skeleton.envelope.height * preset.skeleton.envelope.spread,
+    })).sort((a, b) => a.x - b.x);
+    for (let i = 1; i < placed.length; i += 1) {
+      expect(placed[i].x - placed[i - 1].x).toBeGreaterThan(
+        placed[i].half + placed[i - 1].half,
+      );
+    }
+  });
+
+  it("builds each tree exactly as its preset says, not as the dials do", () => {
+    /* The comparison is the acceptance test, so what stands on it has
+       to be the library's own objects. Checked by rebuilding one
+       preset on its own and matching the geometry vertex for vertex -
+       a comparison that quietly went through the panel's defaults
+       would differ here. */
+    const { group } = buildComparison([LAURELIN], clay);
+    const alone = buildPreset(LAURELIN, clay).tree;
+    const placed = group.children[0] as THREE.Mesh;
+    expect([...positions(placed)]).toEqual([...positions(alone)]);
+  });
+
+  it("centres the row on the origin", () => {
+    const { group } = buildComparison(PRESETS, clay);
+    const box = new THREE.Box3().setFromObject(group);
+    const centre = box.getCenter(new THREE.Vector3());
+    // Within a metre on trees over a hundred metres wide: the row is
+    // laid out by envelope and the growth fills each envelope its own
+    // way, so this is centred, not symmetrical.
+    expect(Math.abs(centre.x)).toBeLessThan(
+      LAURELIN.skeleton.envelope.height * 0.05,
     );
   });
 });

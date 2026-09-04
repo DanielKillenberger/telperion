@@ -95,6 +95,16 @@
   background: #e4e4e0;
 }
 
+/* A pressed toggle, for the comparison: while it is up the stage is
+   showing the presets and not the dials, and the panel has to say so
+   at a glance rather than in prose alone. */
+.gd-button-on,
+.gd-button-on:hover {
+  background: #2f2f2c;
+  border-color: #2f2f2c;
+  color: #f4f4f1;
+}
+
 .gd-slider {
   display: grid;
   grid-template-columns: 52px 1fr;
