@@ -7,8 +7,8 @@ satisfies: [R2, R3]
 Makes radius, direction and taper continuous where the method changes, and proves it (R2). A survey of open tree generators found none that transitions in place and asserts continuity at the seam, so there is no reference test to copy and the whole risk of this task is writing one that passes for the wrong reason.
 
 **Size:** M
-**Files:** `src/skeleton/twigs.ts`, `src/skeleton/continuity.test.ts`
-**Touches:** [src/skeleton/twigs.ts, src/skeleton/continuity.test.ts]
+**Files:** `src/skeleton/twigs.ts`, `src/skeleton/continuity.test.ts`, `src/radius.ts` (the fine-order taper law lives in the thickness solve, and no other task owns it)
+**Touches:** [src/skeleton/twigs.ts, src/skeleton/continuity.test.ts, src/radius.ts, src/radius.test.ts]
 
 ### Approach
 
