@@ -12,9 +12,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
  * tree is beautiful naked it is beautiful anywhere.
  *
  * `setLightingCheck` is the one exception and it is explicit, opt-in
- * and off by default: a shadow-casting key for checking how form reads
- * under a hard light. It is a check, never the mode the owner judges
- * in.
+ * and off by default: a shadow-casting key and a fill, for checking
+ * how form reads under a hard light. Every light beyond the sky lives
+ * behind it. It is a check, never the mode the owner judges in.
  *
  * The scale figure is not decoration. Every Two Trees reference
  * establishes monumentality with something tiny at the base; without
@@ -38,7 +38,7 @@ export interface Stage {
    *  because clay is the only mode the tree is ever judged in and a
    *  caller must not be able to opt out of it. */
   setTree(build: (material: THREE.Material) => THREE.Object3D): void;
-  /** Opt-in hard key light. Off is the judging mode. */
+  /** Opt-in key and fill. Off - sky light alone - is the judging mode. */
   setLightingCheck(on: boolean): void;
   /** Pulls the camera back to frame a tree of `height` metres. */
   frame(height: number): void;
@@ -63,17 +63,17 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
   controls.minDistance = 1;
   controls.maxDistance = 1200;
 
-  /* Neutral sky plus one weak, shadowless fill. The hemisphere alone
-     is the classic clay dome and reads top-lit; the fill only keeps
-     the shaded side from going to a single flat value, which is what
-     hides silhouette errors. */
-  const sky = new THREE.HemisphereLight(0xff_ff_ff, 0x6a_69_66, 2.6);
-  const fill = new THREE.DirectionalLight(0xff_ff_ff, 1.1);
-  fill.position.set(-1, 1.4, 0.8);
-  scene.add(sky, fill);
+  /* The judging mode is one neutral sky light and nothing else. A
+     hemisphere alone is the clay dome: form reads off the surface
+     normal, and there is no key, no fill and no direction for weak
+     geometry to hide behind. Everything else is an extra. */
+  const sky = new THREE.HemisphereLight(0xff_ff_ff, 0x6a_69_66, 3.1);
+  scene.add(sky);
 
-  /* The opt-in check light, built once and only ever added or removed
-     from the scene, so toggling it costs nothing. */
+  /* The extras, built once and only ever added to or removed from the
+     scene, so toggling costs nothing. A shadow-casting key and a weak
+     shadowless fill opposite it: the pair that shows how form takes a
+     hard light. Neither is in the scene until asked for. */
   const key = new THREE.DirectionalLight(0xff_ff_ff, 2.2);
   key.position.set(24, 40, 18);
   key.castShadow = true;
@@ -85,6 +85,9 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
   shadowCamera.right = 80;
   shadowCamera.top = 120;
   shadowCamera.bottom = -20;
+
+  const fill = new THREE.DirectionalLight(0xff_ff_ff, 0.9);
+  fill.position.set(-30, 20, -14);
 
   const clay = new THREE.MeshStandardMaterial({
     color: CLAY,
@@ -156,8 +159,8 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
     if (on === lightingCheck) return;
     lightingCheck = on;
     renderer.shadowMap.enabled = on;
-    if (on) scene.add(key);
-    else scene.remove(key);
+    if (on) scene.add(key, fill);
+    else scene.remove(key, fill);
     // A material compiled without shadows has to be recompiled with
     // them; three only notices when it is told.
     for (const material of [clay, groundMaterial, figureMaterial]) {
