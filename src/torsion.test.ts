@@ -2,9 +2,11 @@ import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
 import { DEFAULT_ENVELOPE } from "@/lib/grower/envelope";
+import { defaultGrowth } from "@/lib/grower/skeleton/grow";
 import {
   createGrowthBias,
   DEFAULT_BIAS,
+  MIN_STEPS_PER_BEND,
   NO_BIAS,
   type BiasParams,
 } from "@/lib/grower/torsion";
@@ -14,6 +16,12 @@ import {
    whole reason they are not one "torsion" number - and that the field
    keeps the promise colonize.ts relies on: a unit vector that never
    reverses the step it was given, whatever the dials are set to. */
+
+/* The field is sampled by a growth step, and it will not hand out a
+   bend that step is too coarse to draw - so every probe below is taken
+   at the step the generator actually uses for that envelope, the same
+   way colonize.ts takes it. */
+const STEP = defaultGrowth(DEFAULT_ENVELOPE).stepDistance;
 
 const UP = new THREE.Vector3(0, 1, 0);
 const DOWN = new THREE.Vector3(0, -1, 0);
@@ -49,7 +57,7 @@ describe("createGrowthBias", () => {
     const bias = field();
     for (const position of PROBES) {
       for (const direction of DIRECTIONS) {
-        expect(bias(position, direction).length()).toBeCloseTo(1, 10);
+        expect(bias(position, direction, STEP).length()).toBeCloseTo(1, 10);
       }
     }
   });
@@ -60,7 +68,7 @@ describe("createGrowthBias", () => {
     const bias = createGrowthBias(DEFAULT_ENVELOPE, 1, NO_BIAS);
     for (const position of PROBES) {
       for (const direction of DIRECTIONS) {
-        const out = bias(position, direction);
+        const out = bias(position, direction, STEP);
         expect(out.distanceTo(direction)).toBeLessThan(1e-12);
       }
     }
@@ -72,15 +80,15 @@ describe("createGrowthBias", () => {
     const bias = field({ ...NO_BIAS, gravitropism: 1 });
     for (const position of PROBES) {
       const shallow = new THREE.Vector3(1, -0.35, 0).normalize();
-      expect(bias(position, shallow).y).toBeGreaterThan(shallow.y);
+      expect(bias(position, shallow, STEP).y).toBeGreaterThan(shallow.y);
     }
   });
 
   it("pulls hardest low and least at the tips", () => {
     const bias = field({ ...NO_BIAS, gravitropism: 1 });
     const flat = new THREE.Vector3(1, 0, 0);
-    const low = bias(new THREE.Vector3(0, 1, 0), flat).y;
-    const high = bias(new THREE.Vector3(0, 23, 0), flat).y;
+    const low = bias(new THREE.Vector3(0, 1, 0), flat, STEP).y;
+    const high = bias(new THREE.Vector3(0, 23, 0), flat, STEP).y;
     expect(low).toBeGreaterThan(high);
     // Never all the way to nothing: a tip with no upward pull is where
     // the diving twigs come from.
@@ -101,7 +109,7 @@ describe("createGrowthBias", () => {
         spiralRate: 40,
       });
       for (const position of PROBES) {
-        expect(bias(position, UP).y).toBeGreaterThan(0);
+        expect(bias(position, UP, STEP).y).toBeGreaterThan(0);
       }
     }
   });
@@ -118,18 +126,18 @@ describe("createGrowthBias", () => {
         spiralRate: -5,
       },
     );
-    const out = bias(new THREE.Vector3(0, 0, 0), UP);
+    const out = bias(new THREE.Vector3(0, 0, 0), UP, STEP);
     expect(Number.isFinite(out.x + out.y + out.z)).toBe(true);
     expect(out.length()).toBeCloseTo(1, 10);
   });
 
   it("is deterministic in the seed, and the seed changes the field", () => {
     const probe = new THREE.Vector3(0, 5, 0);
-    expect(field({}, 7)(probe, UP).toArray()).toEqual(
-      field({}, 7)(probe, UP).toArray(),
+    expect(field({}, 7)(probe, UP, STEP).toArray()).toEqual(
+      field({}, 7)(probe, UP, STEP).toArray(),
     );
-    expect(field({}, 7)(probe, UP).toArray()).not.toEqual(
-      field({}, 8)(probe, UP).toArray(),
+    expect(field({}, 7)(probe, UP, STEP).toArray()).not.toEqual(
+      field({}, 8)(probe, UP, STEP).toArray(),
     );
   });
 
@@ -141,7 +149,7 @@ describe("createGrowthBias", () => {
     // Not straight up: gravitropism only ever adds height, so a step
     // already pointing at the sky is the one direction it cannot move.
     const heading = new THREE.Vector3(0.8, -0.2, 0.4).normalize();
-    const base = createGrowthBias(DEFAULT_ENVELOPE, 1, NO_BIAS)(probe, heading);
+    const base = createGrowthBias(DEFAULT_ENVELOPE, 1, NO_BIAS)(probe, heading, STEP);
     const moved: Partial<BiasParams>[] = [
       { gravitropism: 0.8 },
       { lean: 0.3 },
@@ -153,6 +161,7 @@ describe("createGrowthBias", () => {
       createGrowthBias(DEFAULT_ENVELOPE, 1, { ...NO_BIAS, ...overrides })(
         probe,
         heading,
+        STEP,
       ),
     );
     for (const result of results) {
@@ -161,6 +170,46 @@ describe("createGrowthBias", () => {
     // Amplitude and wavelength are not the same dial wearing two
     // labels: same stray budget, different bend length, different tree.
     expect(results[2].distanceTo(results[3])).toBeGreaterThan(1e-3);
+  });
+
+  it("will not hand out a bend the growth step cannot sample", () => {
+    /* The panel's shortest bend length was 1.92 m against a 0.528 m
+       step - 3.6 samples per period, which is a sawtooth however
+       smooth the function behind it. The floor is the library's, not
+       the panel's, so asking for anything below it is not a way to get
+       an aliased field; it is the same field as asking for the floor. */
+    const floor = (MIN_STEPS_PER_BEND * STEP) / DEFAULT_ENVELOPE.height;
+    const aliased = field({ writheWavelength: 0.001 });
+    const panelFloor = field({ writheWavelength: 0.08 });
+    const clamped = field({ writheWavelength: floor });
+    for (const position of PROBES) {
+      expect(aliased(position, UP, STEP).distanceTo(clamped(position, UP, STEP)))
+        .toBeLessThan(1e-12);
+      expect(panelFloor(position, UP, STEP).distanceTo(clamped(position, UP, STEP)))
+        .toBeLessThan(1e-12);
+    }
+    // And a bend the step can sample is left exactly as it was asked for.
+    const longer = field({ writheWavelength: floor * 2 });
+    expect(
+      longer(PROBES[3], UP, STEP).distanceTo(clamped(PROBES[3], UP, STEP)),
+    ).toBeGreaterThan(1e-6);
+  });
+
+  it("holds the spiral to the same sampling floor", () => {
+    // One turn of spiral is a wave in height like the writhe is, and
+    // the same growth step samples it.
+    const turns = DEFAULT_ENVELOPE.height / (MIN_STEPS_PER_BEND * STEP);
+    const asked = field({ writheAmplitude: 0.1, spiralRate: 40 });
+    const clamped = field({ writheAmplitude: 0.1, spiralRate: turns });
+    for (const position of PROBES) {
+      expect(
+        asked(position, UP, STEP).distanceTo(clamped(position, UP, STEP)),
+      ).toBeLessThan(1e-12);
+    }
+    const slower = field({ writheAmplitude: 0.1, spiralRate: turns / 2 });
+    expect(
+      slower(PROBES[3], UP, STEP).distanceTo(clamped(PROBES[3], UP, STEP)),
+    ).toBeGreaterThan(1e-6);
   });
 
   it("bends a 4 m tree and a 60 m tree the same way", () => {
@@ -177,8 +226,16 @@ describe("createGrowthBias", () => {
       DEFAULT_BIAS,
     );
     for (const t of [0.1, 0.35, 0.6, 0.9]) {
-      const a = small(new THREE.Vector3(0.05 * 4, t * 4, 0), UP);
-      const b = large(new THREE.Vector3(0.05 * 60, t * 60, 0), UP);
+      const a = small(
+        new THREE.Vector3(0.05 * 4, t * 4, 0),
+        UP,
+        defaultGrowth({ ...DEFAULT_ENVELOPE, height: 4 }).stepDistance,
+      );
+      const b = large(
+        new THREE.Vector3(0.05 * 60, t * 60, 0),
+        UP,
+        defaultGrowth({ ...DEFAULT_ENVELOPE, height: 60 }).stepDistance,
+      );
       expect(a.distanceTo(b)).toBeLessThan(1e-9);
     }
   });

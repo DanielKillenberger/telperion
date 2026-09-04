@@ -107,6 +107,18 @@ describe("toSkeletonParams", () => {
     expect(mapped.envelope.spread).toBe(0.42);
   });
 
+  it("hands the turn limit over as the growth argument it is", () => {
+    // Not a bias term: persistence is about the step, not about the
+    // field, so it travels in `growth` under the library's own name.
+    expect(toSkeletonParams({ ...DEFAULT_PARAMS, maxTurnPerStep: 18 }).growth)
+      .toEqual({ maxTurnPerStep: 18 });
+    // And it is outside torsion - a stiff tree is stiff whether or not
+    // it is writhing.
+    expect(toSkeletonParams({ ...DEFAULT_PARAMS, torsion: 0 }).growth).toEqual({
+      maxTurnPerStep: DEFAULT_PARAMS.maxTurnPerStep,
+    });
+  });
+
   it("turns density into an attractor count", () => {
     expect(toSkeletonParams({ ...DEFAULT_PARAMS, density: 0 }).attractors).toBe(
       250,

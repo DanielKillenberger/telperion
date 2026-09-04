@@ -61,10 +61,14 @@ export interface BiasParams {
    *  fraction of the envelope's height. */
   writheAmplitude: number;
   /** The length of one bend, as a fraction of the envelope's height.
-   *  Large is one slow sweep over the whole tree; small is a kink every
-   *  few steps. */
+   *  Large is one slow sweep over the whole tree; small is a tighter
+   *  wave. Not arbitrarily small: a bend the growth step cannot sample
+   *  is raised to the field's own floor of `MIN_STEPS_PER_BEND` steps,
+   *  because below that it is not a shorter bend, it is a sawtooth. */
   writheWavelength: number;
-  /** Turns about the mean path over the envelope's full height. */
+  /** Turns about the mean path over the envelope's full height. Held
+   *  to the same sampling floor as `writheWavelength`: a spiral that
+   *  turns faster than the growth can follow is a zigzag. */
   spiralRate: number;
 }
 
@@ -106,6 +110,23 @@ const GRAVITROPISM_TIP = 0.55;
  *  so can neither stall against `maxNodes` nor turn back at the ground.
  *  A 0.9 rail still allows a 42-degree kink on a single step. */
 const WRITHE_CEILING = 0.9;
+
+/** The finest bend the field will hand out, in growth steps per full
+ *  bend. A wave is only a wave if it is sampled often enough to be
+ *  one: at the panel's shortest bend length the field was being read
+ *  3.6 times per period, and a sinusoid sampled that coarsely is a
+ *  sawtooth by construction - it moved the median turn angle between
+ *  consecutive steps from 12 degrees to 30 and put 20 outright
+ *  reversals into one crown.
+ *
+ *  Nyquist's floor is 2 samples per period, and that only guarantees
+ *  the frequency survives; 8 is what a bend needs to read to the eye
+ *  as a curve rather than as a kink. The clamp lives here rather than
+ *  in the panel's slider range because the panel is not the only
+ *  caller, and an aliased field should be reachable by none of them.
+ *  It binds the spiral as well as the writhe: both are waves in
+ *  height, and the same growth step samples both. */
+export const MIN_STEPS_PER_BEND = 8;
 
 /** How hard the centreline is pulled back onto its mean path once it
  *  has strayed the full amplitude. Above the sideways terms it fights
@@ -158,7 +179,8 @@ export function createGrowthBias(
   const gravitropism = Math.max(0, params.gravitropism);
   const lean = Math.max(0, params.lean);
   const amplitude = Math.max(0, params.writheAmplitude);
-  const wavelength = Math.max(1e-3, params.writheWavelength);
+  const askedWavelength = Math.max(1e-3, params.writheWavelength);
+  const askedSpiralRate = Math.max(0, params.spiralRate);
 
   const leanDirection = new THREE.Vector3(
     Math.cos(bearing),
@@ -173,9 +195,30 @@ export function createGrowthBias(
      numbers the panel hands over are therefore shape, and the strength
      that produces that shape is derived rather than dialled separately. */
   const strayLimit = amplitude * height;
-  const curlLength = wavelength * height;
-  const curlGain = (TAU * amplitude) / wavelength;
-  const spiralGain = TAU * Math.max(0, params.spiralRate) * amplitude;
+  let wavelength = askedWavelength;
+  let spiralRate = askedSpiralRate;
+  let curlLength = wavelength * height;
+  let curlGain = (TAU * amplitude) / wavelength;
+  let spiralGain = TAU * spiralRate * amplitude;
+
+  /* Retuned to the step the caller is actually taking, so that neither
+     wave is asked for a bend the growth is too coarse to draw. Both
+     periods are lengths up the tree - `wavelength` as a fraction of
+     height, one turn of spiral as height/spiralRate - so both floors
+     fall straight out of MIN_STEPS_PER_BEND. Growth takes one step
+     length for a whole run, so this recomputes once and then does
+     nothing. */
+  let sampledStep = Number.NaN;
+  const retune = (step: number): void => {
+    if (step === sampledStep || !(step > 0)) return;
+    sampledStep = step;
+    wavelength = Math.max(askedWavelength, (MIN_STEPS_PER_BEND * step) / height);
+    const maxTurns = height / (MIN_STEPS_PER_BEND * step);
+    spiralRate = Math.min(askedSpiralRate, maxTurns);
+    curlLength = wavelength * height;
+    curlGain = (TAU * amplitude) / wavelength;
+    spiralGain = TAU * spiralRate * amplitude;
+  };
 
   const crownBase = height * envelope.crownBase;
 
@@ -188,7 +231,12 @@ export function createGrowthBias(
   const curl = new THREE.Vector3();
   const biased = new THREE.Vector3();
 
-  return (position: THREE.Vector3, direction: THREE.Vector3): THREE.Vector3 => {
+  return (
+    position: THREE.Vector3,
+    direction: THREE.Vector3,
+    stepDistance: number,
+  ): THREE.Vector3 => {
+    retune(stepDistance);
     const t = Math.min(1, Math.max(0, position.y / height));
 
     // Where the mean path is at this height, and how far off it we are.
@@ -208,7 +256,7 @@ export function createGrowthBias(
     // into a trunk that has nothing else to bend it - and crosses over
     // to a true tangential swirl as the branch moves outward.
     if (spiralGain > 0) {
-      const theta = TAU * (params.spiralRate * t) + phase;
+      const theta = TAU * (spiralRate * t) + phase;
       helix.set(Math.cos(theta), 0, Math.sin(theta));
       if (strayed > 1e-9) {
         tangent.set(-stray.z, 0, stray.x).divideScalar(strayed);

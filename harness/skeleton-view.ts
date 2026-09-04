@@ -72,6 +72,12 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
       writheWavelength: params.writheWavelength,
       spiralRate: params.spiralRate * params.torsion,
     },
+    // Persistence is a growth distance's kind of parameter rather than
+    // a bias term - it is about the step, not about the field - so it
+    // travels in `growth`, which is where the library keeps the rest of
+    // them. Outside `torsion` on purpose: a stiff tree is stiff whether
+    // or not it is writhing.
+    growth: { maxTurnPerStep: params.maxTurnPerStep },
   };
 }
 

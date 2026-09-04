@@ -37,6 +37,7 @@
  * ------------------------------------------------------------------ */
 
 import { DEFAULT_RADII } from "@/lib/grower/radius";
+import { DEFAULT_MAX_TURN_PER_STEP } from "@/lib/grower/skeleton/colonize";
 import { DEFAULT_BIAS } from "@/lib/grower/torsion";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
@@ -68,6 +69,11 @@ export interface GrowerParams {
   writheWavelength: number;
   /** Turns about the trunk axis over the tree's full height. */
   spiralRate: number;
+  /** Directional persistence: how far one growth step may turn from
+   *  the step before it, in degrees. Bending stiffness - low is a limb
+   *  that commits to a direction, high is one that follows whatever is
+   *  nearest. */
+  maxTurnPerStep: number;
   /** How thickly the envelope is populated: branch count, not leaves. */
   density: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
@@ -98,6 +104,12 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "writheAmplitude", label: "writhe", min: 0, max: 0.25, step: 0.01, unit: "" },
   { key: "writheWavelength", label: "bend length", min: 0.08, max: 1.2, step: 0.01, unit: "" },
   { key: "spiralRate", label: "spiral", min: 0, max: 6, step: 0.1, unit: "" },
+  // Stiffness, and the one dial that is a rail as well as a look: past
+  // about 90 a step can turn back on the one before it and the crown
+  // starts drawing the sawtooth fn-11.8 was about, so the dial stops
+  // where the rail does rather than showing the owner a range whose top
+  // end is a bug.
+  { key: "maxTurnPerStep", label: "turn limit", min: 5, max: 90, step: 1, unit: "deg/step" },
   { key: "density", label: "density", min: 0, max: 1, step: 0.01, unit: "" },
   // The fork exponent, under the name the owner already turns. Below
   // 2 a fork sheds more than area and the tree runs from a heavy
@@ -117,6 +129,7 @@ export const DEFAULT_PARAMS: GrowerParams = {
   writheAmplitude: DEFAULT_BIAS.writheAmplitude,
   writheWavelength: DEFAULT_BIAS.writheWavelength,
   spiralRate: DEFAULT_BIAS.spiralRate,
+  maxTurnPerStep: DEFAULT_MAX_TURN_PER_STEP,
   density: 0.5,
   taper: DEFAULT_RADII.forkExponent,
 };
