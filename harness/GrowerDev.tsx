@@ -16,7 +16,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { buildPlaceholderTree } from "./placeholder";
 import {
   DEFAULT_PARAMS,
   SLIDERS,
@@ -25,6 +24,7 @@ import {
   randomSeed,
   readSlider,
 } from "./params";
+import { buildSkeletonLines } from "./skeleton-view";
 import { createStage, type Stage } from "./stage";
 import "./grower-dev.css";
 
@@ -51,9 +51,7 @@ export function GrowerDev() {
   }, []);
 
   useEffect(() => {
-    stageRef.current?.setTree((material) =>
-      buildPlaceholderTree(params, material),
-    );
+    stageRef.current?.setTree((clay) => buildSkeletonLines(params, clay));
   }, [params]);
 
   useEffect(() => {
@@ -156,7 +154,9 @@ export function GrowerDev() {
         </div>
 
         <p className="gd-note gd-warn">
-          the tree is a placeholder. the generator lands in fn-11.2.
+          skeleton only: branching structure, drawn as lines. torsion
+          lands in fn-11.3, thickness in fn-11.4, a surface in fn-11.5 -
+          those two dials reach nothing yet.
         </p>
       </aside>
     </div>

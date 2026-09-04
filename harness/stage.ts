@@ -28,6 +28,10 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
  *  allowed to colour the tree - the warm/cool split is between the
  *  subject and everything that is not the subject. */
 const CLAY = 0x9d_96_8c;
+/** The same subject hue taken darker, because a one-pixel line at the
+ *  clay value disappears into the room. Structural line work is still
+ *  the subject, so it stays on the warm side of the split. */
+const CLAY_LINE = 0x6f_66_5c;
 const CLAY_BACKGROUND = 0xc6_ce_d5;
 const CLAY_GROUND = 0xa9_b1_b8;
 const CLAY_FIGURE = 0x6b_67_63;
@@ -37,12 +41,21 @@ const FIGURE_RADIUS = 0.28;
 const FIGURE_BODY = 1.24;
 const FIGURE_HEIGHT = FIGURE_BODY + FIGURE_RADIUS * 2;
 
+/** The clay, in the two forms a subject can take. A builder is handed
+ *  these rather than choosing a material, because clay is the only
+ *  mode the tree is ever judged in and a caller must not be able to
+ *  opt out of it. Which form it uses is its own business; what colour
+ *  clay is, is not. */
+export interface Clay {
+  /** For solid geometry: the surface the tree is judged on. */
+  surface: THREE.Material;
+  /** For line work: a skeleton, before there is a surface to judge. */
+  line: THREE.Material;
+}
+
 export interface Stage {
-  /** Replaces the subject, disposing whatever stood there before. The
-   *  builder is handed the clay rather than choosing a material,
-   *  because clay is the only mode the tree is ever judged in and a
-   *  caller must not be able to opt out of it. */
-  setTree(build: (material: THREE.Material) => THREE.Object3D): void;
+  /** Replaces the subject, disposing whatever stood there before. */
+  setTree(build: (clay: Clay) => THREE.Object3D): void;
   /** Opt-in key and fill. Off - sky light alone - is the judging mode. */
   setLightingCheck(on: boolean): void;
   /** Pulls the camera back to frame a tree of `height` metres. */
@@ -99,6 +112,7 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
     roughness: 0.92,
     metalness: 0,
   });
+  const clayLine = new THREE.LineBasicMaterial({ color: CLAY_LINE });
   const groundMaterial = new THREE.MeshStandardMaterial({
     color: CLAY_GROUND,
     roughness: 1,
@@ -134,14 +148,18 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
     if (tree === null) return;
     scene.remove(tree);
     tree.traverse((node) => {
-      if (node instanceof THREE.Mesh) node.geometry.dispose();
+      // Lines as well as meshes: the skeleton is LineSegments, and a
+      // Mesh-only sweep would leak a geometry on every regenerate.
+      if (node instanceof THREE.Mesh || node instanceof THREE.Line) {
+        node.geometry.dispose();
+      }
     });
     tree = null;
   };
 
   const setTree: Stage["setTree"] = (build) => {
     disposeTree();
-    tree = build(clay);
+    tree = build({ surface: clay, line: clayLine });
     tree.traverse((node) => {
       if (node instanceof THREE.Mesh) {
         node.castShadow = true;
@@ -205,6 +223,7 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
       groundGeometry.dispose();
       figureGeometry.dispose();
       clay.dispose();
+      clayLine.dispose();
       groundMaterial.dispose();
       figureMaterial.dispose();
       renderer.dispose();
