@@ -38,7 +38,7 @@ Exposes branching depth as one named parameter that scales the growth distances 
 - R7 is why the default matters. Depth at its default must reproduce today's trees byte-identically so any later visual change is attributable to a dial the owner moved.
 
 ### Acceptance
-
+## Acceptance
 - [ ] Branching depth is one named parameter with a documented rail whose ends are the measured range (R1)
 - [ ] It scales the growth distances together, preserving the ratios the defaults encode
 - [ ] Non-finite values fall back to the documented default through the `held` rail idiom (R1 error case)
@@ -48,10 +48,6 @@ Exposes branching depth as one named parameter that scales the growth distances 
 - [ ] `maxNodes` accommodates the rail, and reaching it is reported rather than silently truncating
 - [ ] Any doc comment the parameter's placement falsifies is rewritten in this change
 - [ ] `npx vitest run`, `npx tsc --noEmit` and `npm run build` green
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 

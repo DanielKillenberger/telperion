@@ -39,7 +39,7 @@ Measures what the recursion costs and whether the counts reach the botanical ord
 - Vitest runs in Node with no GPU, so anything about draw counts or frame cost is asserted on CPU-side data and the frame budget is a harness procedure the owner runs.
 
 ### Acceptance
-
+## Acceptance
 - [ ] Attractor association uses a spatial index rather than a linear scan, with the speedup measured at the top of the rail
 - [ ] The cost curve is recorded across the depth range on both presets: nodes, tips, finest wood, triangles, build time, GPU frame cost (R6)
 - [ ] Leaf count is measured on both presets and stated against the 10^5 to 10^7 range, with the reachable ceiling reported (R5)
@@ -49,10 +49,11 @@ Measures what the recursion costs and whether the counts reach the botanical ord
 - [ ] When the timer-query extension is unavailable the panel says so and reports no timing number (R6 error case)
 - [ ] The done summary states whether the measurement demands an impostor, with the number behind the answer
 - [ ] `npx vitest run`, `npx tsc --noEmit` and `npm run build` green
-
-## Acceptance
-- [ ] TBD
-
+- [ ] Interior twigs are shed by the shell rule the leaf culler already uses, and the leaf count is reported after shedding (R5)
+- [ ] A shell rule that sheds everything or nothing fails, by the same floor-and-ceiling guard the leaf culler carries (R5 error case)
+- [ ] The depth both presets ship at renders inside 16.7 ms at the display's native pixel ratio on the RTX 3080, measured with the rig at vsync off (R6)
+- [ ] The reachable ceiling in R5 is the count inside that frame, not the count before the tab dies (R5)
+- [ ] A shipping depth that cannot meet the frame is reported as the reason an impostor is demanded (R6 error case)
 ## Done summary
 TBD
 

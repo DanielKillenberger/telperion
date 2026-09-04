@@ -36,17 +36,13 @@ Derives the attractor search radius from attractor spacing instead of purely fro
 - The `defaultGrowth` doc comment states the nine-step multiple as art direction and claims it is "narrow enough that the crown does not collapse to a single mast." That claim is measurably false at small steps and the comment is rewritten with the change, not left behind it.
 
 ### Acceptance
-
+## Acceptance
 - [ ] The search radius accounts for attractor spacing as well as step size (R4)
 - [ ] At today's step and attractor density the derived radius equals today's value, and every existing test plus both presets produce byte-identical trees (R7)
 - [ ] The measured collapse at 0.44 m / 1,600 attractors grows a whole tree, asserted as a regression test (R4 error case)
 - [ ] No reachable combination of step and attractor count in the panel's range starves the growth, asserted across a swept range rather than at one point
 - [ ] The `defaultGrowth` doc comment describes the derivation that now exists
 - [ ] `npx vitest run`, `npx tsc --noEmit` and `npm run build` green
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 

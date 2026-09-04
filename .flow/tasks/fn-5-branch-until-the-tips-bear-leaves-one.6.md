@@ -37,7 +37,7 @@ Retires every claim that the skeleton is space colonization alone, and re-measur
 - fn-1 is open only because its R8 owner sign-off is a no. Updating its numbers does not close it and must not pretend to.
 
 ### Acceptance
-
+## Acceptance
 - [ ] README no longer states space colonization as the whole skeleton technique, and the skeleton row names the depth input
 - [ ] `src/index.ts` header carries the same correction
 - [ ] `colonize.ts`'s header describes its actual scope and points at the local pass
@@ -46,10 +46,7 @@ Retires every claim that the skeleton is space colonization alone, and re-measur
 - [ ] `preset.ts`'s "only bending stiffness" claim is checked and corrected only if task .2 falsified it
 - [ ] fn-1's frame budget, shell-cull fractions and leaf count are re-measured and updated in its spec body, with superseded figures marked as such
 - [ ] `npx vitest run`, `npx tsc --noEmit` and `npm run build` green
-
-## Acceptance
-- [ ] TBD
-
+- [ ] The clay comparison shows both presets at their shipping depth with every supernatural term at its preset value, so R8 can judge that Telperion still reads as Telperion and Laurelin as Laurelin (R8)
 ## Done summary
 TBD
 

@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R3]
+satisfies: [R1, R3, R9]
 ---
 # fn-5-branch-until-the-tips-bear-leaves-one.3 Local-rule branching below the crossover, down to leaf scale
 
@@ -40,7 +40,7 @@ Carries the recursion from where colonization stops down to leaf-bearing twigs (
 - Determinism is array-backed iteration only. A `Map` or `Set` in the candidate path is how R7 fails intermittently on someone else's machine.
 
 ### Acceptance
-
+## Acceptance
 - [ ] The recursion continues from colonization's tips to leaf-bearing twigs, appending into one skeleton (R1)
 - [ ] Every appended node satisfies `parent < self` with strictly increasing indices, asserted over the whole skeleton
 - [ ] Direction inherits the terminal tangent through `limitTurn`; no reseed at the handoff
@@ -51,10 +51,10 @@ Carries the recursion from where colonization stops down to leaf-bearing twigs (
 - [ ] No `Map` or `Set` in the candidate path; determinism asserted by building twice from one seed
 - [ ] The four stages before this produce byte-identical output
 - [ ] `npx vitest run`, `npx tsc --noEmit` and `npm run build` green
-
-## Acceptance
-- [ ] TBD
-
+- [ ] Every twig node's direction passes through the same growth-bias function colonization uses, at the same position and step (R9)
+- [ ] A test drives one bias term to an extreme and asserts the twigs move with the limbs (R9)
+- [ ] Every bias term at zero reproduces an unbiased local recursion byte-identically (R9 error case)
+- [ ] The local rules' resting values are botanical defaults, with their sources stated beside them (R1)
 ## Done summary
 TBD
 

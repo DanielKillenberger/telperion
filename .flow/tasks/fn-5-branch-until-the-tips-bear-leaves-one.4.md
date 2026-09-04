@@ -39,7 +39,7 @@ Makes radius, direction and taper continuous where the method changes, and prove
 - The structural argument for direction continuity: a tree is a cantilever, so an abrupt direction change is a discontinuous bending moment. It reads as a kink because it is one.
 
 ### Acceptance
-
+## Acceptance
 - [ ] Child radius interpolates from the parent's local cross-section at the fork (R2)
 - [ ] Radius ratio at the crossover falls inside the range that ratio takes over the ten generations above it
 - [ ] Direction change at the crossover is within the turn limit already enforced during growth
@@ -50,10 +50,6 @@ Makes radius, direction and taper continuous where the method changes, and prove
 - [ ] Junction-ring assertions are per-vertex against the drawn surface
 - [ ] A parameter set whose crossover falls outside the grown range is reported as untested, not passed (R2 error case)
 - [ ] `npx vitest run`, `npx tsc --noEmit` and `npm run build` green
-
-## Acceptance
-- [ ] TBD
-
 ## Done summary
 TBD
 
