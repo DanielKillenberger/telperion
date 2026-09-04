@@ -174,7 +174,13 @@ export const SLIDERS: readonly SliderSpec[] = [
      deliberate - the library stays scale-free and a preset says what
      size a tree is being - but it only works if the terms are
      reachable, and these three were the ones that were not. */
-  { key: "trunkRadius", label: "trunk", min: 0.004, max: 0.05, step: 0.001, unit: "h" },
+  // The ceiling is elastic similarity at the top of the height dial.
+  // A self-supporting trunk's diameter goes as height^1.5, so as a
+  // FRACTION of height it goes as height^0.5: from 0.020 at 24 m, a
+  // 300 m tree wants 0.071 and a 400 m one 0.082. A 0.05 ceiling put
+  // every tree over about 150 m at least a third too spindly to stand
+  // up, on exactly the trees the 400 m height ceiling was added for.
+  { key: "trunkRadius", label: "trunk", min: 0.004, max: 0.085, step: 0.001, unit: "h" },
   { key: "lengthTaper", label: "length taper", min: 0, max: 2, step: 0.05, unit: "" },
   { key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
   // The surface dials. `lobes` is a count and steps by one; the other
