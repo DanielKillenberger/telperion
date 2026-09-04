@@ -1,5 +1,16 @@
 import * as THREE from "three";
 
+import { cullCanopy, DEFAULT_CULL } from "../src/canopy/cull";
+import {
+  buildElement,
+  DEFAULT_ELEMENT,
+  type ElementMesh,
+} from "../src/canopy/element";
+import {
+  buildCanopy,
+  type Canopy,
+  type CanopyParams,
+} from "../src/canopy/place";
 import {
   buildSurface,
   DEFAULT_SURFACE,
@@ -129,6 +140,31 @@ export function toSurfaceParams(params: GrowerParams): SurfaceParams {
   };
 }
 
+/** The panel's ten canopy dials, as the placement stage's arguments.
+ *
+ *  A rename and nothing else: every term carries the library's own
+ *  name and unit, so there is nothing here to translate and nothing to
+ *  drift - the same footing the bias and surface dials are on. All ten
+ *  are stated rather than spread over `DEFAULT_CANOPY`, for the reason
+ *  the envelope in `toSkeletonParams` is: a set assembled by spread
+ *  silently keeps a default for whichever term the panel forgot, and a
+ *  preset loaded onto the dials would then be built from a canopy
+ *  nobody authored. */
+export function toCanopyParams(params: GrowerParams): CanopyParams {
+  return {
+    shootRadius: params.shootRadius,
+    spacing: params.spacing,
+    divergence: params.divergence,
+    clump: params.clump,
+    clumpSpan: params.clumpSpan,
+    outward: params.outward,
+    upward: params.upward,
+    scatter: params.scatter,
+    size: params.size,
+    sizeVariation: params.sizeVariation,
+  };
+}
+
 /** What the surface cost to build, for the panel to report. The owner
  *  is entitled to know what a dial just spent: the swept skin is
  *  allowed to cost more than the fn-11.4 viewer did, but not silently. */
@@ -142,10 +178,16 @@ export interface TreeStats {
    *  renderable in it. The canopy's claim is that a whole crown is one
    *  of these, so this is the number that claim is read off. */
   drawCalls: number;
-  /** Instanced copies across the subject. One today would be a
-   *  surprise - nothing here instances yet - and the field exists
-   *  because the number it will carry is the one the canopy is judged
-   *  by. */
+  /** Instanced copies across the subject: the canopy's elements,
+   *  after culling, and nothing else instances. Read beside
+   *  `drawCalls` this is R4's whole claim - a crown of thousands of
+   *  leaves arriving as one draw.
+   *
+   *  Their triangles are deliberately NOT in `triangles` above, which
+   *  stays the branch surface's: a canopy's triangle bill is
+   *  `instances` times the element's own count, and the renderer's own
+   *  figure beside this one in the panel is what reports what was
+   *  actually drawn. */
   instances: number;
   /** Wall-clock milliseconds for the whole build: grow, solve, sweep. */
   buildMs: number;
@@ -200,13 +242,16 @@ export function countDraws(object: THREE.Object3D): {
  *  wants, and the master that scales them is a convenience for
  *  dragging, not part of the tree.
  *
- *  Exact in both directions: `toSkeletonParams`, `toRadiusParams` and
- *  `toSurfaceParams` applied to the result reproduce the preset
- *  member for member. That round trip is asserted, because a panel
- *  that silently dropped one of a preset's terms would show the owner
- *  a tree nobody authored. */
+ *  Exact in both directions: `toSkeletonParams`, `toRadiusParams`,
+ *  `toSurfaceParams` and `toCanopyParams` applied to the result
+ *  reproduce the preset member for member. That round trip is
+ *  asserted, because a panel that silently dropped one of a preset's
+ *  terms would show the owner a tree nobody authored - and the canopy
+ *  is where that would bite hardest, since Laurelin's divergence is
+ *  not the golden angle the default is. */
 export function presetToParams(preset: TreePreset): GrowerParams {
   const { envelope, bias } = preset.skeleton;
+  const canopy = preset.canopy;
   return {
     seed: preset.skeleton.seed,
     height: envelope.height,
@@ -230,20 +275,94 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     lobeDepth: preset.surface.lobeDepth,
     twistRate: preset.surface.twistRate,
     flareRadius: preset.surface.flareRadius,
+    shootRadius: canopy.shootRadius,
+    spacing: canopy.spacing,
+    divergence: canopy.divergence,
+    clump: canopy.clump,
+    clumpSpan: canopy.clumpSpan,
+    outward: canopy.outward,
+    upward: canopy.upward,
+    scatter: canopy.scatter,
+    size: canopy.size,
+    sizeVariation: canopy.sizeVariation,
   };
 }
 
-/** The one build. Skeleton, radii, surface, mesh - and the only thing
- *  that varies between one tree and another is the three argument
- *  objects handed in, which is the spec's acceptance test stated as a
- *  function signature: Telperion and Laurelin reach this with
- *  different numbers and by no other difference. */
+/** The canopy as one draw: every element of it, one instanced mesh,
+ *  or `null` for a canopy with nothing in it.
+ *
+ *  `null` and not an empty `InstancedMesh`, because a mesh drawing
+ *  zero copies is still a draw call the panel would report and still
+ *  an object the stage would measure. A tree the canopy found no
+ *  shoots on has to leave the draw count and the framing exactly where
+ *  the branch-only tree left them, and the honest way to say "there is
+ *  no canopy" to a scene graph is to put nothing in it.
+ *
+ *  THE BOUNDING VOLUME IS COMPUTED HERE, LAST, AFTER THE MATRICES ARE
+ *  IN. An `InstancedMesh` carries its own bounds and three computes
+ *  them from the instance transforms, so a mesh measured before its
+ *  matrices are written measures one leaf at the origin - which for a
+ *  24 m tree is indistinguishable from no extent at all, and framing
+ *  would silently ignore the whole crown. Ordering is the whole of the
+ *  fix, so the order is stated rather than left to read. */
+export function buildCanopyMesh(
+  canopy: Canopy,
+  element: ElementMesh,
+  material: THREE.Material,
+): THREE.InstancedMesh | null {
+  /* A `Canopy` is read the way the library's own culler reads one: the
+     count it claims, floored by the transforms it actually carries. A
+     mesh drawing more copies than there are matrices reads whatever
+     the attribute buffer was left holding. */
+  const count = Math.max(
+    0,
+    Math.min(
+      Number.isFinite(canopy.count) ? Math.floor(canopy.count) : 0,
+      Math.floor(canopy.matrices.length / 16),
+    ),
+  );
+  if (count === 0) return null;
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(element.positions, 3),
+  );
+  geometry.setIndex(new THREE.BufferAttribute(element.indices, 1));
+  /* The blade is one open sheet drawn from both faces, so its normals
+     come from the winding exactly as the trunk's do. */
+  geometry.computeVertexNormals();
+
+  const mesh = new THREE.InstancedMesh(geometry, material, count);
+  mesh.name = "grower-canopy";
+  /* The library emits `THREE.Matrix4.elements` order, packed end to
+     end, which is the layout the instance attribute already has - so
+     this is a copy and not a conversion. */
+  mesh.instanceMatrix.array.set(canopy.matrices.subarray(0, count * 16));
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.computeBoundingBox();
+  mesh.computeBoundingSphere();
+  return mesh;
+}
+
+/** The one build. Skeleton, radii, surface, canopy, mesh - and the
+ *  only thing that varies between one tree and another is the four
+ *  argument objects handed in, which is the spec's acceptance test
+ *  stated as a function signature: Telperion and Laurelin reach this
+ *  with different numbers and by no other difference.
+ *
+ *  The subject is a group of two renderables now rather than a single
+ *  mesh: the swept trunk, and the crown as one instanced draw. The
+ *  canopy is a stage of its own and the three before it never call it,
+ *  which is why the skeleton, the radii and the surface come out of
+ *  here byte for byte what they came out as before. */
 function build(
   skeletonParams: SkeletonParams,
   radii: RadiusParams,
   surfaceParams: SurfaceParams,
+  canopyParams: CanopyParams,
   clay: Clay,
-): { tree: THREE.Mesh; stats: TreeStats } {
+): { tree: THREE.Group; stats: TreeStats } {
   const started = performance.now();
   const skeleton = growSkeleton(skeletonParams);
   const field = solveRadii(skeleton, skeletonParams.envelope, radii);
@@ -265,8 +384,34 @@ function build(
      left for it to smooth over: the surface has none. */
   geometry.computeVertexNormals();
 
-  const tree = new THREE.Mesh(geometry, clay.surface);
+  const trunk = new THREE.Mesh(geometry, clay.surface);
+  trunk.name = "grower-trunk";
+
+  /* The element is the spec's flat placeholder, at the library's own
+     defaults: this task proves canopy STRUCTURE, and the leaf's own
+     shape is the texturing spec's. The canopy is placed and then
+     thinned to a shell - `cullCanopy` takes and returns a `Canopy`, so
+     it sits between the two with nothing else knowing it ran. */
+  const element = buildElement(DEFAULT_ELEMENT);
+  const canopy = cullCanopy(
+    buildCanopy(
+      skeleton,
+      field,
+      skeletonParams.envelope,
+      skeletonParams.seed,
+      canopyParams,
+    ),
+    element,
+    skeletonParams.envelope,
+    DEFAULT_CULL,
+  );
+  const foliage = buildCanopyMesh(canopy, element, clay.element);
+
+  const tree = new THREE.Group();
   tree.name = "grower-tree";
+  tree.add(trunk);
+  if (foliage !== null) tree.add(foliage);
+
   const draws = countDraws(tree);
   return {
     tree,
@@ -288,11 +433,12 @@ function build(
 export function buildTree(
   params: GrowerParams,
   clay: Clay,
-): { tree: THREE.Mesh; stats: TreeStats } {
+): { tree: THREE.Group; stats: TreeStats } {
   return build(
     toSkeletonParams(params),
     toRadiusParams(params),
     toSurfaceParams(params),
+    toCanopyParams(params),
     clay,
   );
 }
@@ -304,8 +450,14 @@ export function buildTree(
 export function buildPreset(
   preset: TreePreset,
   clay: Clay,
-): { tree: THREE.Mesh; stats: TreeStats } {
-  return build(preset.skeleton, preset.radii, preset.surface, clay);
+): { tree: THREE.Group; stats: TreeStats } {
+  return build(
+    preset.skeleton,
+    preset.radii,
+    preset.surface,
+    preset.canopy,
+    clay,
+  );
 }
 
 /** The gap between two trees standing side by side, as a fraction of

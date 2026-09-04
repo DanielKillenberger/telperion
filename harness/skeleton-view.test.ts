@@ -16,6 +16,7 @@ import {
   buildTree,
   countDraws,
   presetToParams,
+  toCanopyParams,
   toRadiusParams,
   toSkeletonParams,
   toSurfaceParams,
@@ -30,10 +31,28 @@ import {
 const clay = {
   surface: new THREE.MeshStandardMaterial(),
   line: new THREE.LineBasicMaterial(),
+  element: new THREE.MeshStandardMaterial(),
 };
 
+/** The swept trunk out of a built subject. The subject is a group of
+ *  two renderables now - the trunk and the crown as one instanced draw
+ *  - and every assertion about branch geometry is about the first of
+ *  them. Named by the object rather than by index, because a subject
+ *  with no canopy has one child and one with a canopy has two. */
+function trunkOf(subject: THREE.Object3D): THREE.Mesh {
+  const found = subject.getObjectByName("grower-trunk");
+  expect(found).toBeInstanceOf(THREE.Mesh);
+  return found as THREE.Mesh;
+}
+
+/** The crown, or null on a tree that grew none. */
+function canopyOf(subject: THREE.Object3D): THREE.InstancedMesh | null {
+  const found = subject.getObjectByName("grower-canopy") ?? null;
+  return found as THREE.InstancedMesh | null;
+}
+
 function tree(overrides: Partial<GrowerParams> = {}): THREE.Mesh {
-  return buildTree({ ...DEFAULT_PARAMS, ...overrides }, clay).tree;
+  return trunkOf(buildTree({ ...DEFAULT_PARAMS, ...overrides }, clay).tree);
 }
 
 function positions(mesh: THREE.Mesh): Float32Array {
@@ -214,7 +233,8 @@ describe("buildTree", () => {
   it("reports what the build cost, for the panel to show", () => {
     // The surface is allowed to cost more than the tube viewer did.
     // It is not allowed to cost it silently.
-    const { tree: mesh, stats } = buildTree(DEFAULT_PARAMS, clay);
+    const { tree: subject, stats } = buildTree(DEFAULT_PARAMS, clay);
+    const mesh = trunkOf(subject);
     expect(stats.triangles * 3).toBe(mesh.geometry.getIndex()!.count);
     expect(stats.vertices * 3).toBe(positions(mesh).length);
     expect(stats.nodes).toBe(
@@ -223,16 +243,99 @@ describe("buildTree", () => {
     expect(stats.buildMs).toBeGreaterThanOrEqual(0);
   });
 
-  it("reports what the subject costs to draw, and what it instances", () => {
-    /* The two numbers the canopy will be judged by, on the subject
-       that exists today: one swept surface is one draw call and
-       nothing here instances yet. The claim a canopy has to make is
-       that a whole crown adds ONE more draw and tens of thousands of
-       instances, and a stats object that cannot say either could not
-       catch a crown that quietly added one draw per leaf. */
-    const { stats } = buildTree(DEFAULT_PARAMS, clay);
-    expect(stats.drawCalls).toBe(1);
-    expect(stats.instances).toBe(0);
+  it("draws the whole crown in one call, however many leaves it has", () => {
+    /* R4, stated as the two numbers the panel reports. A tree is two
+       draws - the swept surface and the crown - whatever the canopy
+       costs, and the instance count is what a crown that quietly added
+       one draw per leaf would fail on. Thousands and not tens, because
+       the default dials are one 24 m tree; the claim is one draw at
+       any count, not a count. */
+    const { tree: subject, stats } = buildTree(DEFAULT_PARAMS, clay);
+    const crown = canopyOf(subject);
+    expect(crown).not.toBeNull();
+    expect(stats.drawCalls).toBe(2);
+    expect(stats.instances).toBeGreaterThan(1000);
+    expect(stats.instances).toBe(crown!.count);
+  });
+
+  it("cuts the foliage out rather than blending it, from both faces", () => {
+    /* Alpha test, never blending, and a leaf is an open sheet with no
+       back face. Both are the harness's material rather than the
+       library's - the canopy arrives as geometry and transforms - so
+       this asserts that the crown is drawn with the clay the room
+       handed it and nothing else. */
+    const crown = canopyOf(buildTree(DEFAULT_PARAMS, clay).tree);
+    expect(crown!.material).toBe(clay.element);
+  });
+
+  it("measures a crown that is there, before anything frames it", () => {
+    /* R8's integration risk. An InstancedMesh carries its own bounding
+       box and three computes it once, from the instance transforms -
+       so one built before its matrices are written measures a single
+       leaf at the origin, and a stage that trusts it frames the
+       branches alone. The mesh leaves the builder with bounds that
+       cover the crown, which on this tree is metres and not
+       centimetres. */
+    const crown = canopyOf(buildTree(DEFAULT_PARAMS, clay).tree)!;
+    expect(crown.boundingBox).not.toBeNull();
+    const span = crown
+      .boundingBox!.getSize(new THREE.Vector3())
+      .length();
+    const oneLeaf = crown.geometry.boundingBox!.getSize(
+      new THREE.Vector3(),
+    ).length();
+    expect(span).toBeGreaterThan(oneLeaf * 20);
+    expect(span).toBeGreaterThan(DEFAULT_PARAMS.height * 0.3);
+  });
+
+  it("puts the crown on the tree, not beside it", () => {
+    /* The transforms are the library's and this is the one thing the
+       harness could get wrong about them: a column-major buffer read
+       as row-major puts every leaf somewhere else entirely. The
+       crown's bounds sit inside the branches' own, give or take a leaf
+       - foliage grows on wood. */
+    const subject = buildTree(DEFAULT_PARAMS, clay).tree;
+    const wood = new THREE.Box3().setFromObject(trunkOf(subject));
+    const crown = canopyOf(subject)!.boundingBox!;
+    const leaf = 0.3;
+    expect(crown.min.y).toBeGreaterThan(wood.min.y - leaf);
+    expect(crown.max.y).toBeLessThan(wood.max.y + leaf);
+    expect(crown.max.x - crown.min.x).toBeLessThan(
+      (wood.max.x - wood.min.x) * 1.5 + leaf,
+    );
+  });
+
+  it("leaves no canopy at all rather than an empty draw", () => {
+    /* R8's error case, at its source. A tree whose wood is everywhere
+       too thick to bear foliage grows nothing, and "nothing" in a
+       scene graph is an absent object: an InstancedMesh drawing zero
+       copies is still a draw call the panel reports and still an
+       object the stage measures, so the branch-only subject has to
+       come out exactly as it did before there was a canopy stage. */
+    const bare = buildTree({ ...DEFAULT_PARAMS, shootRadius: 0 }, clay);
+    expect(canopyOf(bare.tree)).toBeNull();
+    expect(bare.stats.drawCalls).toBe(1);
+    expect(bare.stats.instances).toBe(0);
+  });
+
+  it("the leaf spacing dial reaches the element count", () => {
+    // The density lever, and the one the clay judgement drags.
+    const sparse = buildTree({ ...DEFAULT_PARAMS, spacing: 0.02 }, clay);
+    const dense = buildTree({ ...DEFAULT_PARAMS, spacing: 0.003 }, clay);
+    expect(dense.stats.instances).toBeGreaterThan(
+      sparse.stats.instances * 2,
+    );
+  });
+
+  it("grows the same canopy from the same seed, transform for transform", () => {
+    /* R7 on the harness's side of the seam. The canopy is placed from
+       its own sub-stream, so a canopy that drifted between two builds
+       of one seed would be a stage reaching into another's chance. */
+    const first = canopyOf(buildTree(DEFAULT_PARAMS, clay).tree)!;
+    const second = canopyOf(buildTree(DEFAULT_PARAMS, clay).tree)!;
+    expect([...(first.instanceMatrix.array as Float32Array)]).toEqual([
+      ...(second.instanceMatrix.array as Float32Array),
+    ]);
   });
 
   it("every surface dial reaches the geometry", () => {
@@ -426,6 +529,7 @@ describe("presetToParams", () => {
       expect(toSkeletonParams(dialled)).toEqual(preset.skeleton);
       expect(toRadiusParams(dialled)).toEqual(preset.radii);
       expect(toSurfaceParams(dialled)).toEqual(preset.surface);
+      expect(toCanopyParams(dialled)).toEqual(preset.canopy);
     },
   );
 
@@ -477,8 +581,16 @@ describe("buildComparison", () => {
        would differ here. */
     const { group } = buildComparison([LAURELIN], clay);
     const alone = buildPreset(LAURELIN, clay).tree;
-    const placed = group.children[0] as THREE.Mesh;
-    expect([...positions(placed)]).toEqual([...positions(alone)]);
+    const placed = group.children[0];
+    expect([...positions(trunkOf(placed))]).toEqual([
+      ...positions(trunkOf(alone)),
+    ]);
+    /* The canopy too, and by its transforms rather than its geometry:
+       a comparison built through the panel's defaults would carry the
+       golden angle where Laurelin is authored with the Lucas one, and
+       the trunks would match all the same. */
+    expect([...(canopyOf(placed)!.instanceMatrix.array as Float32Array)])
+      .toEqual([...(canopyOf(alone)!.instanceMatrix.array as Float32Array)]);
   });
 
   it("centres the row on the origin", () => {
@@ -559,9 +671,10 @@ describe("the forest's own numbers", () => {
     expect(forest.instances).toBe(
       alone.reduce((total, one) => total + one.instances, 0),
     );
-    // And the number itself, so a per-tree count that drifted to a
-    // per-forest one still fails here.
-    expect(forest.drawCalls).toBe(PRESETS.length);
-    expect(forest.instances).toBe(0);
+    // And the numbers themselves, so a per-tree count that drifted to
+    // a per-forest one still fails here: every tree brings its surface
+    // and its crown, and every leaf on both trees is instanced.
+    expect(forest.drawCalls).toBe(PRESETS.length * 2);
+    expect(forest.instances).toBeGreaterThan(0);
   });
 });

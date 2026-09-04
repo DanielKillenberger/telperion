@@ -12,8 +12,9 @@
  * are the growth bias field's own five terms under their own names,
  * `taper` is the radius solve's fork exponent, `density` is how many
  * attractors the envelope gets, and the four surface dials are the
- * swept section's own terms. Nothing is a knob invented for the
- * panel's sake.
+ * swept section's own terms, and the ten canopy dials are the
+ * placement stage's ten under its own names. Nothing is a knob
+ * invented for the panel's sake.
  *
  * The two twists are two dials and are never folded together. `spiral`
  * bends the centreline - the path the limb takes through the air.
@@ -49,6 +50,7 @@
  * be walked to one at a time.
  * ------------------------------------------------------------------ */
 
+import { DEFAULT_CANOPY } from "../src/canopy/place";
 import { DEFAULT_ENVELOPE } from "../src/envelope";
 import { DEFAULT_SURFACE } from "../src/mesh/surface";
 import { DEFAULT_RADII } from "../src/radius";
@@ -130,6 +132,49 @@ export interface GrowerParams {
   /** How much wider the trunk is where it meets the ground, as a
    *  multiple of its radius there. 1 is no flare. */
   flareRadius: number;
+
+  /* The canopy's ten terms, under the library's own names.
+   *
+   *  All ten and not the two or three the clay judgement needs to
+   *  drag, because a preset states its canopy in full and
+   *  `presetToParams` has to be able to say what it says: a panel
+   *  carrying three of the ten would load Laurelin and then build it
+   *  with the default divergence, which is a tree nobody authored -
+   *  the exact drift the preset round trip is asserted against. Ten
+   *  dials is what a complete answer costs, and the panel renders
+   *  whatever is in SLIDERS for free. */
+  /** The wood at or below this fraction of the trunk's radius bears
+   *  foliage; everything thicker is bark. */
+  shootRadius: number;
+  /** Distance along a shoot between elements, as a fraction of
+   *  envelope height. The density lever: halve it for twice the
+   *  canopy. */
+  spacing: number;
+  /** The phyllotactic divergence angle, in degrees. 137.508 is the
+   *  golden angle almost every plant uses; 99.502 is the Lucas angle
+   *  Laurelin is authored with. */
+  divergence: number;
+  /** Elements gathered at the growing tip on top of what `spacing`
+   *  already puts there: the difference between a beaded shoot and a
+   *  spray. */
+  clump: number;
+  /** The stretch at the tip the clump gathers into, as a fraction of
+   *  the shoot's length. */
+  clumpSpan: number;
+  /** How far an element turns away from the tree's axis, 0 to 1. */
+  outward: number;
+  /** How far an element turns toward the sky, 0 to 1. */
+  upward: number;
+  /** Random spread about the direction those two ask for, in degrees.
+   *  Zero is a diagram. */
+  scatter: number;
+  /** Multiplier on the element's own authored size. The element owns
+   *  its absolute dimensions - a leaf does not grow because its tree
+   *  is tall - so this says whether a tree wants more or less of it. */
+  size: number;
+  /** Random variation of that multiplier, 0 to 1: at 0.3 elements run
+   *  from 70% to 130% of `size`. */
+  sizeVariation: number;
 }
 
 export interface SliderSpec {
@@ -212,6 +257,29 @@ export const SLIDERS: readonly SliderSpec[] = [
   // height the winding outruns the sampling and reads as chatter.
   { key: "twistRate", label: "surface twist", min: -3, max: 3, step: 0.1, unit: "turns" },
   { key: "flareRadius", label: "root flare", min: 1, max: 4, step: 0.05, unit: "x" },
+  /* The canopy. `leaf spacing` is the density lever and the one the
+     clay judgement actually drags: it runs from a third of the
+     presets' spacing - four times their foliage, where the shell cull
+     starts having real interior to take - out to a shoot with a few
+     leaves on it. The floor is above the library's own MIN_SPACING so
+     the panel cannot ask for the element count a spacing of zero
+     means.
+     `divergence` steps in thousandths on purpose and is the one dial
+     here that is not taste: a spiral is periodic or it is not, and
+     137.5 and 137.508 are different canopies over three thousand
+     leaves. The rest run to the library's own rails - clump to 64,
+     scatter to 90 degrees, size variation stopping short of 1, which
+     is an element scaled to nothing. */
+  { key: "shootRadius", label: "shoot radius", min: 0.02, max: 1, step: 0.01, unit: "r" },
+  { key: "spacing", label: "leaf spacing", min: 0.0015, max: 0.03, step: 0.0005, unit: "h" },
+  { key: "divergence", label: "divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
+  { key: "clump", label: "clump", min: 0, max: 64, step: 1, unit: "" },
+  { key: "clumpSpan", label: "clump span", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "outward", label: "leaf outward", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "upward", label: "leaf upward", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "scatter", label: "leaf scatter", min: 0, max: 90, step: 1, unit: "deg" },
+  { key: "size", label: "leaf size", min: 0.2, max: 4, step: 0.05, unit: "x" },
+  { key: "sizeVariation", label: "leaf size spread", min: 0, max: 0.9, step: 0.01, unit: "" },
 ];
 
 export const DEFAULT_PARAMS: GrowerParams = {
@@ -236,6 +304,16 @@ export const DEFAULT_PARAMS: GrowerParams = {
   lobeDepth: DEFAULT_SURFACE.lobeDepth,
   twistRate: DEFAULT_SURFACE.twistRate,
   flareRadius: DEFAULT_SURFACE.flareRadius,
+  shootRadius: DEFAULT_CANOPY.shootRadius,
+  spacing: DEFAULT_CANOPY.spacing,
+  divergence: DEFAULT_CANOPY.divergence,
+  clump: DEFAULT_CANOPY.clump,
+  clumpSpan: DEFAULT_CANOPY.clumpSpan,
+  outward: DEFAULT_CANOPY.outward,
+  upward: DEFAULT_CANOPY.upward,
+  scatter: DEFAULT_CANOPY.scatter,
+  size: DEFAULT_CANOPY.size,
+  sizeVariation: DEFAULT_CANOPY.sizeVariation,
 };
 
 /** The seed field is the one free-text surface on the panel, so it is
