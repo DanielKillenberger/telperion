@@ -48,8 +48,17 @@ import * as THREE from "three";
  *   branch with nowhere to grow stops, and every node it would have
  *   spent oscillating in place is a node the rest of the crown gets.
  *
- * The output is topology only - positions and parents. Thickness is
- * fn-11.4's and a surface is fn-11.5's.
+ * The output is topology only - positions and parents - and it is the
+ * skeleton's upper structure, not the whole of it. Colonization runs
+ * while its attractors mean something, which on a tree of this size
+ * is about twelve fork generations from the trunk with eleven still
+ * to go before the wood is fine enough to bear a leaf. twigs.ts
+ * continues from every tip this pass leaves, under local rules and
+ * the same bias field, appending into the same node array; the seam
+ * is `crossover` on the `TwiggedSkeleton` it returns, the index of the
+ * first node it appended, and grow.ts runs the two passes in order and
+ * then sheds the interior twigs. Thickness is fn-11.4's and a surface
+ * is fn-11.5's.
  * ------------------------------------------------------------------ */
 
 /** Dot product above which two unit directions are the same direction.

@@ -6,7 +6,9 @@
  * The pipeline is five stages and each is usable on its own:
  *
  *   envelope  -> the authored silhouette, as a solid of revolution
- *   skeleton  -> space colonization fills it, biased by a growth field
+ *   skeleton  -> space colonization fills it, then local rules branch
+ *                on from every tip to leaf-bearing twigs, one bias
+ *                field shaping both passes
  *   radius    -> a thickness per node, conserving area through forks
  *   surface   -> one continuous swept mesh, plaited and root-flared
  *   canopy    -> a leaf on the young wood, culled to a shell, one
@@ -45,7 +47,8 @@ export {
   createGrowthBias,
 } from "./torsion";
 
-// Space colonization, and the front door that drives it.
+// The skeleton's first pass, space colonization, and the front door
+// that runs both passes.
 export {
   colonize,
   type Skeleton,
@@ -56,14 +59,31 @@ export {
 } from "./skeleton/colonize";
 export {
   growSkeleton,
+  growReport,
   defaultGrowth,
+  resolveGrowth,
+  influenceRadiusFor,
+  DEFAULT_STEP,
   type SkeletonParams,
+  type GrowthReport,
 } from "./skeleton/grow";
 
-// Thickness.
+// The second pass: local rules from every tip down to leaf-bearing
+// wood, and the shell rule that sheds the twigs the crown would shade.
+export {
+  branchTwigs,
+  resolveTwigs,
+  DEFAULT_TWIGS,
+  type TwigParams,
+  type TwiggedSkeleton,
+} from "./skeleton/twigs";
+export { shedTwigs, DEFAULT_SHED } from "./skeleton/shed";
+
+// Thickness, and the fine orders' own taper law below the crossover.
 export {
   solveRadii,
   DEFAULT_RADII,
+  DEFAULT_TWIG_TAPER,
   type RadiusParams,
   type RadiusField,
 } from "./radius";

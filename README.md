@@ -37,7 +37,7 @@ This inverts the problem. **You author the silhouette and the algorithm finds a 
 
 Four things follow from that, and together they are most of the difference:
 
-- **Space colonization** ([Runions et al. 2007](http://algorithmicbotany.org/papers/colonization.egwnp2007.html)) grows branches toward attractor points scattered inside the envelope. Its ancestor is the same authors' [leaf venation work](http://algorithmicbotany.org/papers/venation.sig2005.html) from 2005, which is a good hint about where this library goes next.
+- **Space colonization** ([Runions et al. 2007](http://algorithmicbotany.org/papers/colonization.egwnp2007.html)) grows the upper structure toward attractor points scattered inside the envelope, and runs only while those attractors mean something. Below that scale a second pass continues from every tip it left under local rules — children per node, branching angle, divergence, internode and taper, each resting on a stated botanical default — down to twigs fine enough to bear leaves, appending into the same skeleton. Radius, direction and taper are asserted continuous across the crossover, so nothing downstream can tell which pass made a node; the twigs the crown would shade out are shed by the same shell rule the canopy is culled by. Colonization's ancestor is the same authors' [leaf venation work](http://algorithmicbotany.org/papers/venation.sig2005.html) from 2005, which is a good hint about where this library goes next.
 - **A growth bias field** with named terms: gravitropism, lean, writhe amplitude and wavelength, spiral rate, and a per-step turn limit. A tree with no upward bias wanders down through its own crown and reads as brambles; a tree with no turn limit reverses on itself and draws visible zigzags. Both were measured, not guessed.
 - **Thickness that conserves cross-sectional area through a fork**, roughly da Vinci's rule, with a tunable exponent. This is the single biggest reason CG branch junctions read as wrong.
 - **One continuous swept surface** with a non-circular cross section that rotates along its length, which gives the plaited, rope-like trunk. Everyone else extrudes circles.
@@ -49,7 +49,7 @@ Five stages, each usable on its own.
 | stage | in | out |
 |---|---|---|
 | `envelope` | height, spread, crown base, fullness, shoulder | a solid of revolution, and points sampled inside it |
-| `skeleton` | envelope, seed, bias field | nodes and parent links |
+| `skeleton` | envelope, seed, bias field, branching depth (growth step, twig orders and the local rules) | nodes and parent links |
 | `radius` | skeleton, fork exponent, trunk radius | a thickness per node |
 | `surface` | skeleton, radii, lobes, twist, flare | one continuous mesh |
 | `canopy` | skeleton, radii, envelope, seed, leaf shape, spacing, phyllotaxis, clumping, bias | one leaf mesh, and a transform per element, culled to a shell |
