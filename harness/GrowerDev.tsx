@@ -41,6 +41,9 @@ export function GrowerDev() {
   // the tube viewer did; it is not allowed to cost it silently, so the
   // panel says the number every time a dial moves.
   const [stats, setStats] = useState<TreeStats | null>(null);
+  // Whether the camera has been placed on the subject yet. It is a ref
+  // and not state because nothing renders differently for it.
+  const framed = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -63,18 +66,19 @@ export function GrowerDev() {
       return result.tree;
     });
     setStats(built);
-  }, [params]);
 
-  /* Reframe when the tree changes SIZE. The height dial spans four to
-     sixty metres, so a camera left where it was framed for the last
-     tree either clips the crown or leaves the new one a speck - and
-     the owner judges what is on screen. Height only, and after the
-     tree is built so there is something to measure: reframing on every
-     dial would take the camera back off the owner mid-orbit, which is
-     what the reframe button is for. */
-  useEffect(() => {
-    stageRef.current?.frame(params.height);
-  }, [params.height]);
+    /* Frame once, off the first real tree, and then never again on the
+       camera's own initiative. A camera that re-frames whenever the
+       tree changes size follows the height dial around the scene while
+       it is being dragged, which reads as the room moving rather than
+       the tree growing - the owner's word for it was disorienting. So
+       the camera moves when it is asked to and at no other time:
+       reframe, reset, or the mouse. */
+    if (!framed.current) {
+      framed.current = true;
+      stageRef.current?.frame(params.height);
+    }
+  }, [params]);
 
   useEffect(() => {
     stageRef.current?.setLightingCheck(lightingCheck);
