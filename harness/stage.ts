@@ -60,16 +60,17 @@ const FRAME_DIRECTION = new THREE.Vector3(0.62, 0.28, 1).normalize();
  *  right. */
 const GROUND_RADIUS = 400;
 
-/** How far the room reaches past the camera, as a multiple of the
- *  camera's own distance from the subject. The horizon has to be well
- *  outside the frame or the tree stands on a visible disc floating in
- *  the void, and the far plane has to be outside the horizon or the
- *  disc is cut off instead. Six is comfortably past both.
+/** How far the room reaches, as a multiple of the subject's own
+ *  longest side. The horizon has to be well outside the frame or the
+ *  tree stands on a visible disc floating in the void; the far plane
+ *  has to be outside the horizon or the disc is cut off instead; and
+ *  the orbit has to reach past the framing distance, which is about
+ *  twice the tree's height, or the owner cannot pull back far enough
+ *  to see what he just grew. Six clears all three.
  *
- *  It is a multiple rather than a number of metres because the subject
- *  spans two orders of magnitude: a 4 m sapling and a 400 m Telperion
- *  need the same room in proportion and wildly different rooms in
- *  metres. */
+ *  A multiple rather than a number of metres because the subject spans
+ *  two orders of magnitude: a 4 m sapling and a 400 m Telperion need
+ *  the same room in proportion and wildly different rooms in metres. */
 const ROOM_REACH = 6;
 
 /** Where the lighting check's key light stands, as a direction. Its
@@ -189,6 +190,61 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
     tree = null;
   };
 
+  /** The subject's bounds, or a column of `fallbackHeight` when there
+   *  is nothing on the stage yet. */
+  const subjectBox = (fallbackHeight: number): THREE.Box3 => {
+    const box = new THREE.Box3();
+    if (tree !== null) box.setFromObject(tree);
+    if (box.isEmpty()) {
+      const half = fallbackHeight * 0.35;
+      box.set(
+        new THREE.Vector3(-half, 0, -half),
+        new THREE.Vector3(half, fallbackHeight, half),
+      );
+    }
+    return box;
+  };
+
+  /** Sizes the room to the subject: the ground, the far plane, how far
+   *  the orbit may pull back, and where the lighting check's key
+   *  stands.
+   *
+   *  It runs on every new tree and NOT only when the camera is placed,
+   *  which is the whole point. The subject runs from a 4 m sapling to
+   *  a tree of the Two Trees' order, hundreds of metres, and the room
+   *  has to be able to hold whichever is on the stage right now: too
+   *  small and the tree stands on a visible disc in the void, or the
+   *  orbit stops before you are far enough out to see it at all; too
+   *  large and the depth buffer spends its precision on empty
+   *  distance. Tying it to the camera's last framing instead meant a
+   *  tree grown to 300 m was still living in the room its 24 m
+   *  predecessor was framed in, and could not be zoomed out to.
+   *
+   *  Silent by design: it never moves the camera. */
+  const fitRoom = (box: THREE.Box3): void => {
+    const size = box.getSize(new THREE.Vector3());
+    const span = Math.max(size.x, size.y, size.z);
+
+    const reach = Math.max(GROUND_RADIUS, span * ROOM_REACH);
+    ground.scale.setScalar(reach / GROUND_RADIUS);
+    camera.far = reach * 2;
+    camera.updateProjectionMatrix();
+    controls.maxDistance = reach;
+    controls.minDistance = Math.min(1, span * 0.005);
+
+    /* The shadow camera is an orthographic box and it has to contain
+       the subject, or the lighting check drops every shadow outside
+       it. */
+    const extent = span * 0.75 + 1;
+    key.position.copy(KEY_DIRECTION).multiplyScalar(extent * 3);
+    shadowCamera.left = -extent * 2;
+    shadowCamera.right = extent * 2;
+    shadowCamera.top = extent * 2;
+    shadowCamera.bottom = -extent * 2;
+    shadowCamera.far = extent * 8;
+    shadowCamera.updateProjectionMatrix();
+  };
+
   const setTree: Stage["setTree"] = (build) => {
     disposeTree();
     tree = build({ surface: clay, line: clayLine });
@@ -199,6 +255,9 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
       }
     });
     scene.add(tree);
+    // The room fits the tree that is there now, whether or not anyone
+    // asks for the camera to be moved.
+    fitRoom(subjectBox(0));
   };
 
   const frame: Stage["frame"] = (height) => {
@@ -211,17 +270,8 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
        spread runs to one and a third of its height, and both move
        under the dials - so a camera placed at fixed multiples of
        `height` clips the crown at one setting and leaves the tree a
-       speck at another. Falls back to a column of `height` when there
-       is nothing on the stage yet, which is the first frame. */
-    const box = new THREE.Box3();
-    if (tree !== null) box.setFromObject(tree);
-    if (box.isEmpty()) {
-      const half = height * 0.35;
-      box.set(
-        new THREE.Vector3(-half, 0, -half),
-        new THREE.Vector3(half, height, half),
-      );
-    }
+       speck at another. */
+    const box = subjectBox(height);
     const size = box.getSize(new THREE.Vector3());
     const centre = box.getCenter(new THREE.Vector3());
 
@@ -244,33 +294,9 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
     // Never underground, however low the subject's centre sits.
     camera.position.y = Math.max(camera.position.y, FIGURE_HEIGHT);
 
-    /* Grow the room to fit. The subject runs from a 4 m sapling to a
-       tree of the Two Trees' order, hundreds of metres, and a room
-       built for one of those is wrong for the other in both
-       directions: too small and the tree stands on a visible disc in
-       the void with the horizon inside the frame, too large and the
-       depth buffer is spending its precision on empty distance. So the
-       ground, the far plane, the orbit's reach and the key light's
-       stand-off are all multiples of how far back the camera had to
-       go - the one number that already knows how big the subject is. */
-    const reach = Math.max(GROUND_RADIUS, distance * ROOM_REACH);
-    ground.scale.setScalar(reach / GROUND_RADIUS);
-    camera.far = reach * 2;
-    camera.updateProjectionMatrix();
-    controls.maxDistance = reach;
-    controls.minDistance = Math.min(1, distance * 0.01);
-
-    /* The shadow camera is an orthographic box and it has to contain
-       the subject or the lighting check drops the shadows outside it. */
-    const extent = Math.max(size.x, size.y, size.z) * 0.75 + 1;
-    key.position.copy(KEY_DIRECTION).multiplyScalar(extent * 3);
-    shadowCamera.left = -extent * 2;
-    shadowCamera.right = extent * 2;
-    shadowCamera.top = extent * 2;
-    shadowCamera.bottom = -extent * 2;
-    shadowCamera.far = extent * 8;
-    shadowCamera.updateProjectionMatrix();
-
+    // On the first frame the room has not seen a tree yet, so it is
+    // sized from the same fallback the camera just used.
+    fitRoom(box);
     controls.update();
   };
 
