@@ -32,7 +32,14 @@ import {
   presetToParams,
   type TreeStats,
 } from "./skeleton-view";
-import { createStage, type Stage } from "./stage";
+import {
+  createStage,
+  describeSweep,
+  SWEEP_RATIOS,
+  type FrameStats,
+  type Stage,
+  type SweepResult,
+} from "./stage";
 import "./grower-dev.css";
 
 /** A dial's value, at a precision that can tell its own steps apart -
@@ -74,17 +81,35 @@ export function GrowerDev() {
   // the tube viewer did; it is not allowed to cost it silently, so the
   // panel says the number every time a dial moves.
   const [stats, setStats] = useState<TreeStats | null>(null);
+  /* The flag under suspicion. It is a renderer CONSTRUCTION flag, so
+     turning it over is not a setter: it builds a new renderer, and a
+     WebGL canvas hands out one context for its whole life, so the
+     canvas goes with it. Hence the key on the element below - React
+     puts a fresh canvas in the DOM and the stage effect builds the
+     stage on it. Expensive, and a dev harness measuring itself can
+     afford it once per click. */
+  const [logDepth, setLogDepth] = useState(true);
+  /* What the renderer is told to draw at, or null for the harness
+     default of min(dpr, 2). Not a GrowerParams member and deliberately
+     not: it is a property of the picture's resolution, not of the tree,
+     and a preset that carried one would be authoring a frame rate. */
+  const [pixelRatio, setPixelRatio] = useState<number | null>(null);
+  // What the renderer did on the last frame, polled - it changes when
+  // the camera moves, which no React state does.
+  const [frameStats, setFrameStats] = useState<FrameStats | null>(null);
+  const [sweep, setSweep] = useState<SweepResult | null>(null);
+  const [sweeping, setSweeping] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas === null) return;
-    const stage = createStage(canvas);
+    const stage = createStage(canvas, { logarithmicDepthBuffer: logDepth });
     stageRef.current = stage;
     return () => {
       stage.dispose();
       stageRef.current = null;
     };
-  }, []);
+  }, [logDepth]);
 
   useEffect(() => {
     // `setTree` calls its builder synchronously, so the stats are in
@@ -118,11 +143,39 @@ export function GrowerDev() {
     stageRef.current?.frameIfWaiting(
       compare ? tallestPresetHeight() : params.height,
     );
-  }, [params, compare]);
+    /* `logDepth` is in the deps of this effect and of every other one
+       that configures the stage, because turning it over replaces the
+       stage: a fresh one has no subject, no lighting mode and no pinned
+       resolution until it is told again. The stage effect is declared
+       above this one, so on the commit where the flag changes React
+       runs it first and this rebuilds onto the stage that now exists.
+       Every read of "what is on the stage" is a call site of that
+       replacement, and the ones outside the effect that builds it are
+       the ones that get missed. */
+  }, [params, compare, logDepth]);
 
   useEffect(() => {
     stageRef.current?.setLightingCheck(lightingCheck);
-  }, [lightingCheck]);
+  }, [lightingCheck, logDepth]);
+
+  useEffect(() => {
+    stageRef.current?.setPixelRatio(pixelRatio);
+  }, [pixelRatio, logDepth]);
+
+  /* The renderer's own numbers, four times a second. They belong to
+     frames rather than to renders the panel asked for - the draw count
+     moves when the camera moves and the pixel ratio moves when the
+     display does - so nothing but a poll sees them. */
+  useEffect(() => {
+    const read = (): void => {
+      setFrameStats(stageRef.current?.stats() ?? null);
+    };
+    read();
+    const handle = window.setInterval(read, 250);
+    return () => {
+      window.clearInterval(handle);
+    };
+  }, [logDepth]);
 
   const commitSeed = useCallback((raw: string) => {
     setSeedText(raw);
@@ -174,11 +227,35 @@ export function GrowerDev() {
     stageRef.current?.frameNext();
   }, []);
 
+  /* The measurement. It drives the applied pixel ratio through the
+     four points itself and restores whatever was pinned before, so the
+     only thing the owner has to bring is vsync off - which is a browser
+     flag and cannot be asserted from in here. */
+  const runSweep = useCallback(async () => {
+    const stage = stageRef.current;
+    if (stage === null) return;
+    setSweeping(true);
+    setSweep(null);
+    try {
+      setSweep(await stage.sweep());
+    } finally {
+      setSweeping(false);
+    }
+  }, []);
+
   const seedValid = normalizeSeed(seedText) !== null;
 
   return (
     <div className="gd">
-      <canvas className="gd-canvas" ref={canvasRef} />
+      {/* Keyed on the depth-buffer flag: a WebGL canvas hands out one
+          context for its whole life, so a renderer built the other way
+          needs a canvas of its own. React replacing the element is what
+          makes the flag togglable at all. */}
+      <canvas
+        className="gd-canvas"
+        key={logDepth ? "log-depth" : "linear-depth"}
+        ref={canvasRef}
+      />
 
       <aside className="gd-panel">
         <h1 className="gd-title">grower</h1>
@@ -280,10 +357,78 @@ export function GrowerDev() {
           </button>
         </div>
 
+        <div className="gd-row">
+          <label className="gd-check">
+            <input
+              type="checkbox"
+              checked={logDepth}
+              onChange={(event) => setLogDepth(event.target.checked)}
+            />
+            log depth
+          </label>
+          <button
+            className="gd-button"
+            type="button"
+            disabled={sweeping}
+            onClick={() => {
+              void runSweep();
+            }}
+          >
+            {sweeping ? "sweeping..." : "sweep"}
+          </button>
+        </div>
+
+        {/* The applied pixel ratio, by hand. `auto` is what the harness
+            has always drawn at - min(dpr, 2) - and the other four are
+            the sweep's own points, so the owner can sit at one of them
+            and look at the tree rather than only read a number. */}
+        <div className="gd-row">
+          <button
+            className={pixelRatio === null ? "gd-button gd-button-on" : "gd-button"}
+            type="button"
+            aria-pressed={pixelRatio === null}
+            onClick={() => setPixelRatio(null)}
+          >
+            dpr auto
+          </button>
+          {SWEEP_RATIOS.map((ratio) => (
+            <button
+              className={
+                pixelRatio === ratio ? "gd-button gd-button-on" : "gd-button"
+              }
+              type="button"
+              key={ratio}
+              aria-pressed={pixelRatio === ratio}
+              onClick={() => setPixelRatio(ratio)}
+            >
+              {ratio.toFixed(2)}
+            </button>
+          ))}
+        </div>
+
         <p className="gd-note">
           {stats === null
             ? "building..."
-            : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.buildMs.toFixed(1)} ms`}
+            : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.drawCalls.toLocaleString()} draws, ${stats.instances.toLocaleString()} instances, ${stats.buildMs.toFixed(1)} ms`}
+        </p>
+
+        {/* The renderer's half, which the build cannot know: what the
+            scene actually cost last frame, at what resolution, and how
+            the two suspect settings are standing. `dpr` is reported
+            raw and applied because the gap between them is the largest
+            single fill term in this room. */}
+        <p className="gd-note">
+          {frameStats === null
+            ? "no renderer yet"
+            : `${frameStats.drawCalls.toLocaleString()} scene draws, ${frameStats.triangles.toLocaleString()} tris drawn, dpr ${frameStats.pixelRatioRaw.toFixed(2)} raw / ${frameStats.pixelRatioApplied.toFixed(2)} applied, log depth ${frameStats.logarithmicDepthBuffer ? "on" : "off"}, gpu timer ${frameStats.gpuTimer ? "available" : "unavailable"}`}
+        </p>
+
+        <p className="gd-note gd-warn">
+          {sweeping
+            ? "sweeping 1.00 / 0.70 / 0.50 / 0.25 - do not resize the window"
+            : sweep === null
+              ? "no sweep yet. run it with vsync off: google-chrome --disable-gpu-vsync --disable-frame-rate-limit"
+              : describeSweep(sweep)}
         </p>
 
         {compare ? (
