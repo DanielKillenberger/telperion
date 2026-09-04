@@ -442,4 +442,57 @@ describe("the two trees", () => {
       expect(element(canopy.matrices, i).position.y).toBeGreaterThan(base);
     }
   });
+
+  it("thins the whole shoot when it saturates, never bares the tip", () => {
+    /* The per-shoot cap is a stop, and a stop has to take from
+       everywhere. Stations accumulate from the shoot's base, so a cap
+       on the walk's loop condition truncates the DISTAL end: it strips
+       the growing tip - this season's leaves, and where the clump goes
+       - and leaves the old wood behind it fully clothed. That inverts
+       what a shoot means, and it is reachable from the panel by
+       widening `shootRadius` and tightening `spacing`. */
+    const saturating: CanopyParams = {
+      ...dense,
+      spacing: 0.001,
+      clump: 8,
+      clumpSpan: 0.25,
+      scatter: 0,
+      sizeVariation: 0,
+    };
+    /* Spacing is a fraction of envelope height and floored as one, so
+       a short envelope over this four-metre shoot is what drives the
+       station count past the cap: 0.001 x 4 m asks for a thousand. */
+    const canopy = build(straight, saturating, 7, {
+      ...DEFAULT_ENVELOPE,
+      height: 4,
+    });
+
+    // The shoot runs the fixture's full height; foliage must reach it.
+    const tip = straight.nodes[straight.nodes.length - 1].position.y;
+    const foot = straight.nodes[0].position.y;
+    let highest = -Infinity;
+    for (let i = 0; i < canopy.count; i += 1) {
+      highest = Math.max(highest, element(canopy.matrices, i).position.y);
+    }
+
+    expect(canopy.count).toBeGreaterThan(400);
+    // Within one widened step of the tip, not stranded down the stem.
+    expect(highest).toBeGreaterThan(foot + (tip - foot) * 0.95);
+  });
+
+  it("keeps every transform finite however large `size` is asked to be", () => {
+    /* `held` catches a NaN and not a finite enormity. Unrailed, a huge
+       multiplier arrives through the float32 multiply as Infinity; the
+       culler's fail-safe predicate then KEEPS every one of those
+       elements, and the instanced mesh's bounds take the room's
+       framing with them. `buildCanopy` is a public export, so the
+       panel's own slider range is not the bound that matters. */
+    for (const size of [1e6, 1e30, 1e39, Number.MAX_VALUE]) {
+      const canopy = build(forked, { ...dense, size });
+      expect(canopy.count).toBeGreaterThan(0);
+      for (let i = 0; i < canopy.matrices.length; i += 1) {
+        expect(Number.isFinite(canopy.matrices[i])).toBe(true);
+      }
+    }
+  });
 });

@@ -76,9 +76,21 @@ const TINY = 1e-12;
  *  unbounded element count on a finite shoot, and a size variation of
  *  one is an element scaled to nothing. */
 const MIN_SPACING = 1e-3;
+/** A floor in metres as well as in fraction. The fraction alone bounds
+ *  nothing when the envelope is short: at a height of zero it lets
+ *  spacing collapse to nanometres and the element count run to the
+ *  per-shoot cap on every shoot. */
+const MIN_SPACING_METRES = 1e-4;
 const MAX_CLUMP = 64;
 const MAX_SCATTER = 90;
 const MAX_SIZE_VARIATION = 0.9;
+/** `size` multiplies vertices stored as float32. `held` catches a NaN
+ *  but not a finite enormity: 1e39 through the multiply arrives as
+ *  Infinity, the culler's fail-safe predicate then KEEPS every one of
+ *  those elements, and the instanced mesh's bounds take the room's
+ *  framing with them. The element caps its own metres for this reason;
+ *  the multiplier needs the same. */
+const MAX_SIZE = 1e3;
 
 /** A stop, not a target. A shoot asking for more elements than this
  *  has been handed a spacing the panel should not be offering, and the
@@ -89,11 +101,15 @@ export interface CanopyParams {
   /** The wood at or below this fraction of the trunk's own radius
    *  bears foliage. Everything thicker is bark. Around 0.1 puts the
    *  canopy on the last few growth steps of every limb; at 1 the whole
-   *  tree is a shoot, trunk included. */
+   *  tree is a shoot, trunk included. Held to 0 through 1. */
   shootRadius: number;
   /** Distance along a shoot between successive elements, as a fraction
    *  of envelope height - like every other length in the library, so a
-   *  148 m tree and a 24 m one come out in the same proportion. */
+   *  148 m tree and a 24 m one come out in the same proportion. Held
+   *  above a thousandth of the height and above a tenth of a
+   *  millimetre, whichever is larger; a shoot that still asks for more
+   *  stations than the per-shoot cap allows is thinned along its whole
+   *  length rather than truncated at the tip. */
   spacing: number;
   /** The phyllotactic divergence angle, in degrees: how far round the
    *  shoot each element sits from the one before it. 137.508 is the
@@ -102,10 +118,12 @@ export interface CanopyParams {
   divergence: number;
   /** Elements gathered at the growing tip, on top of what `spacing`
    *  already puts there. This is the difference between a shoot that
-   *  reads as evenly beaded and one that reads as a spray. */
+   *  reads as evenly beaded and one that reads as a spray. Rounded to
+   *  an integer and held to 0 through 64, and reserved out of the
+   *  per-shoot budget before the walk spends it. */
   clump: number;
   /** The stretch at the tip the clump is gathered into, as a fraction
-   *  of the shoot's own length. */
+   *  of the shoot's own length. Held to 0 through 1. */
   clumpSpan: number;
   /** How far an element turns away from the tree's vertical axis, 0 to
    *  1. Zero leaves it sticking straight off the shoot. */
@@ -113,17 +131,21 @@ export interface CanopyParams {
   /** How far an element turns toward the sky, 0 to 1. */
   upward: number;
   /** Random spread about the direction the three terms above ask for,
-   *  in degrees. Zero is a diagram; a canopy needs some. */
+   *  in degrees. Zero is a diagram; a canopy needs some. Held to 0
+   *  through 90. */
   scatter: number;
   /** Multiplier on the element's own authored size. The element owns
    *  its absolute dimensions - a leaf is a leaf whatever the tree is
    *  doing, and a blade sized as a fraction of envelope height would
    *  make a 148 m tree carry 1.5 m fronds - so this stage scales what
    *  it is given rather than deciding how big a leaf is. 1 is the
-   *  element at the size it was authored. */
+   *  element at the size it was authored. Held to 0 through 1000: a
+   *  finite enormity multiplies into float32 as Infinity, and the
+   *  culler's fail-safe predicate keeps rather than drops those. */
   size: number;
   /** Random variation of that multiplier, 0 to 1: at 0.3 elements run
-   *  from 70% to 130% of `size`. */
+   *  from 70% to 130% of `size`. Held to 0 through 0.9, since 1 is an
+   *  element scaled to nothing. */
   sizeVariation: number;
 }
 
@@ -200,9 +222,11 @@ export function buildCanopy(
   const maxRadius =
     (Number.isFinite(trunkRadius) ? trunkRadius : 0) *
     clamp(held(params.shootRadius, DEFAULT_CANOPY.shootRadius), 0, 1);
-  const spacing =
+  const spacing = Math.max(
+    MIN_SPACING_METRES,
     Math.max(MIN_SPACING, held(params.spacing, DEFAULT_CANOPY.spacing)) *
-    height;
+      height,
+  );
   const divergence =
     held(params.divergence, DEFAULT_CANOPY.divergence) * DEG;
   const clump = Math.round(
@@ -217,7 +241,7 @@ export function buildCanopy(
   const upward = clamp(held(params.upward, DEFAULT_CANOPY.upward), 0, 1);
   const scatter =
     clamp(held(params.scatter, DEFAULT_CANOPY.scatter), 0, MAX_SCATTER) * DEG;
-  const size = Math.max(0, held(params.size, DEFAULT_CANOPY.size));
+  const size = clamp(held(params.size, DEFAULT_CANOPY.size), 0, MAX_SIZE);
   const sizeVariation = clamp(
     held(params.sizeVariation, DEFAULT_CANOPY.sizeVariation),
     0,
@@ -265,11 +289,24 @@ export function buildCanopy(
        drawn against them: the walk up the shoot, then the clump at its
        tip. The phyllotactic index runs across both, so the clump
        carries on the spiral instead of restarting it. */
+    /* The clump is reserved out of the budget before the walk spends
+       it, and the walk's step widens to cover the whole shoot rather
+       than stopping partway up. Both are the same bug: stations
+       accumulate from the base, so a cap applied to the loop condition
+       truncates the DISTAL end - it strips the growing tip, which is
+       where this season's leaves are and where the clump was going to
+       go, and leaves the old wood behind it fully clothed. That is the
+       exact inverse of what the shoot means, and it is reachable from
+       the panel by widening `shootRadius` and tightening `spacing`.
+       Saturation has to thin the whole shoot instead. */
+    const walkBudget = Math.max(1, MAX_PER_SHOOT - clump);
+    const step = Math.max(spacing, length / walkBudget);
+
     const stations: number[] = [];
     for (
       let distance = 0;
-      distance < length && stations.length < MAX_PER_SHOOT;
-      distance += spacing
+      distance < length && stations.length < walkBudget;
+      distance += step
     ) {
       stations.push(distance);
     }

@@ -100,8 +100,9 @@ export function viewAlong(direction: THREE.Vector3): View {
 
 /** The fixed set of directions a canopy is judged from.
  *
- *  Four horizontal quarter turns and two looking down from thirty
- *  degrees up. Horizontal is where a tree is looked at and where the
+ *  Four horizontal views an eighth of a turn apart, spanning a half
+ *  turn, and two looking down from thirty degrees up. Horizontal is
+ *  where a tree is looked at and where the
  *  crown's own width is on show; the elevated pair is what catches a
  *  culler that keeps a convincing waistline and hollows out the top,
  *  which no horizontal view can distinguish from honest thinning.

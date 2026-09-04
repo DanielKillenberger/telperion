@@ -25,7 +25,15 @@ import type { BiasParams } from "../torsion";
  * library's defaults and overrode four fields would be a tree whose
  * look is partly authored here and partly a constant somewhere else,
  * and "there are no magic constants" is exactly the principle that
- * rules out. Reading a preset tells you the whole tree.
+ * rules out.
+ *
+ * One term is deliberately absent, and naming it is the point. A
+ * preset says where its foliage sits and how much of it there is; it
+ * does not say what one leaf looks like. The element's own shape is
+ * the texturing spec's to author, and until that lands a consumer
+ * builds the placeholder from `DEFAULT_ELEMENT` itself. So reading a
+ * preset tells you the whole tree except the shape of its leaf, which
+ * is a deferral rather than an inherited constant.
  * ------------------------------------------------------------------ */
 
 /** The skeleton half of a preset: `SkeletonParams` with the two
