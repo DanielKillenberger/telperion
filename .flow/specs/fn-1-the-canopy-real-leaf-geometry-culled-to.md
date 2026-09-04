@@ -124,7 +124,16 @@ The rig in fn-1-the-canopy-real-leaf-geometry-culled-to.1 ran on the named machi
 
 At 60 Hz the frame is 16.7 ms and the whole branch-only room spends 0.21 ms of it, a little over one percent, so the canopy inherits essentially the entire budget.
 
-**What culling buys is smaller than this spec assumed, and the reason is worth keeping.** R3 was written expecting a large drop. Measured in fn-1-the-canopy-real-leaf-geometry-culled-to.4, the default shell removes about 15% of the preset canopies and 16% of an envelope-filling one. Placement already puts foliage on distal shoots, and distal shoots sit near the crown's surface, so a well-placed canopy is most of the way to being a shell before the culler ever sees it. The elements it does take are the ones that grew on inner wood. Density is the lever: a shallower shell removes a third but eats the outline on the sparse presets, and at four times the preset spacing the same shell removes more because there is more interior to remove. If the clay judgement in .5 raises density, this number is re-measured rather than reused. The curve flattens onto a floor near 0.12 ms below dpr 0.5, which is fixed per-frame cost rather than fill, so only about 0.08 ms of the top point is fill: this scene is not yet fill-bound. The harness's own default on that display is dpr 2.00, four times the fragments of the sweep's top point, so what the owner normally looks at sits above the top of the measured curve.
+**What culling buys is smaller than this spec assumed, and smaller than an earlier draft of this section claimed.** R3 was written expecting a large drop. Measured on the presets as they ship, at three densities:
+
+| subject | x1 density | x2 | x4 |
+|---|---|---|---|
+| Telperion | 14.8% removed | 15.0% | 15.2% |
+| Laurelin | 6.5% removed | 6.2% | 5.9% |
+
+Placement already puts foliage on distal shoots, and distal shoots sit near the crown's surface, so a well-placed canopy is most of the way to being a shell before the culler ever sees it. Laurelin's broad domed crown puts even more of its foliage near the surface than Telperion's does, which is why it has the least to cull. The elements the shell does take are the ones that grew on inner wood.
+
+**Density is not the lever.** An earlier draft of this section said it was, and the measurement says otherwise: four times the density moves Telperion by 0.4 points and moves Laurelin down. Placement decides where foliage sits, and volume does not change that. What does move the fraction is a shallower shell, which removes a third and eats the outline on the sparse presets, or `shootRadius` and `outward`, which change where the foliage sits rather than how much of it there is. The curve flattens onto a floor near 0.12 ms below dpr 0.5, which is fixed per-frame cost rather than fill, so only about 0.08 ms of the top point is fill: this scene is not yet fill-bound. The harness's own default on that display is dpr 2.00, four times the fragments of the sweep's top point, so what the owner normally looks at sits above the top of the measured curve.
 
 ## Parked unknowns
 
