@@ -5,9 +5,9 @@ import { LAURELIN, TELPERION } from "./two-trees";
  * THE PRESET REGISTRY
  *
  * A list and a lookup, and nothing that generates anything. A consumer
- * takes a `TreePreset` from here and hands its three members to
- * `growSkeleton`, `solveRadii` and `buildSurface` - the same three
- * calls it would make with parameters of its own.
+ * takes a `TreePreset` from here and hands its four members to
+ * `growSkeleton`, `solveRadii`, `buildSurface` and `buildCanopy` - the
+ * same calls it would make with parameters of its own.
  *
  * Telperion first, because he is the elder.
  * ------------------------------------------------------------------ */

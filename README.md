@@ -17,7 +17,7 @@ const { envelope, seed } = params;
 const skeleton = growSkeleton(params);
 const field = solveRadii(skeleton, envelope, radii);
 const mesh = buildSurface(skeleton, field, envelope, surface);
-// mesh.positions / .normals / .indices — hand them to three, or to anything.
+// mesh.positions / .indices — hand them to three, or to anything.
 
 const leaf = buildElement(DEFAULT_ELEMENT);
 const shell = cullCanopy(

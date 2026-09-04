@@ -8,8 +8,9 @@ import type { BiasParams } from "../torsion";
  * WHAT A PRESET IS
  *
  * A parameter set. Nothing else, and deliberately nothing else: a
- * preset is the three argument objects `growSkeleton`, `solveRadii`
- * and `buildSurface` already take, written down under a name. There is
+ * preset is the four argument objects `growSkeleton`, `solveRadii`,
+ * `buildSurface` and `buildCanopy` already take, written down under a
+ * name. There is
  * no preset hook in the generator, no branch keyed on an id, and
  * nothing here a caller could not have typed out by hand.
  *
