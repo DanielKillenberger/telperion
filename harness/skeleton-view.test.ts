@@ -14,6 +14,7 @@ import {
   buildComparison,
   buildPreset,
   buildTree,
+  countDraws,
   presetToParams,
   toRadiusParams,
   toSkeletonParams,
@@ -220,6 +221,18 @@ describe("buildTree", () => {
       growSkeleton(toSkeletonParams(DEFAULT_PARAMS)).nodes.length,
     );
     expect(stats.buildMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it("reports what the subject costs to draw, and what it instances", () => {
+    /* The two numbers the canopy will be judged by, on the subject
+       that exists today: one swept surface is one draw call and
+       nothing here instances yet. The claim a canopy has to make is
+       that a whole crown adds ONE more draw and tens of thousands of
+       instances, and a stats object that cannot say either could not
+       catch a crown that quietly added one draw per leaf. */
+    const { stats } = buildTree(DEFAULT_PARAMS, clay);
+    expect(stats.drawCalls).toBe(1);
+    expect(stats.instances).toBe(0);
   });
 
   it("every surface dial reaches the geometry", () => {
@@ -478,5 +491,77 @@ describe("buildComparison", () => {
     expect(Math.abs(centre.x)).toBeLessThan(
       LAURELIN.skeleton.envelope.height * 0.05,
     );
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * WHAT THE SUBJECT COSTS TO DRAW
+ *
+ * Counted off the object graph, because the renderer's own number is
+ * the whole scene's - ground disc and scale figure included - and
+ * because there is no renderer in this runner at all. That is the
+ * whole reason the count lives in the builder: a number that only
+ * exists inside a browser is a number nothing can hold to account, and
+ * "one instanced draw per element type" is the canopy's central
+ * performance claim.
+ * ------------------------------------------------------------------ */
+
+describe("countDraws", () => {
+  it("counts one call per renderable, and none for what is not drawn", () => {
+    const group = new THREE.Group();
+    group.add(new THREE.Object3D()); // a bare transform draws nothing
+    group.add(new THREE.Mesh(new THREE.BoxGeometry(), clay.surface));
+    group.add(
+      new THREE.LineSegments(new THREE.BufferGeometry(), clay.line),
+    );
+    expect(countDraws(group)).toEqual({ drawCalls: 2, instances: 0 });
+  });
+
+  it("counts an instanced mesh as one draw carrying its copies", () => {
+    // The canopy's shape, stated as an assertion: however many leaves,
+    // one call. An InstancedMesh IS a Mesh, so a count that asked the
+    // wrong question first would report its copies as zero.
+    const crown = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(),
+      clay.surface,
+      5000,
+    );
+    expect(countDraws(crown)).toEqual({ drawCalls: 1, instances: 5000 });
+  });
+
+  it("counts draws, not geometries, when two of them share one", () => {
+    /* A shared geometry is one buffer and two draw calls, and both
+       halves of that matter. Draws are what the GPU is asked for, so
+       they are counted per mesh; triangles are what the buffer holds,
+       so they are never counted per copy of it - which is why they
+       come from the surface each tree built and not from this. */
+    const shared = new THREE.BoxGeometry();
+    const group = new THREE.Group();
+    group.add(new THREE.InstancedMesh(shared, clay.surface, 12));
+    group.add(new THREE.InstancedMesh(shared, clay.surface, 30));
+    expect(countDraws(group)).toEqual({ drawCalls: 2, instances: 42 });
+  });
+});
+
+describe("the forest's own numbers", () => {
+  it("sums draws and instances across the trees standing there", () => {
+    /* Two trees really are two subjects' worth of work - each carries
+       its own surface, and its own crown when there is one - so the
+       new counts sum exactly the way triangles and nodes already do.
+       Checked against the trees built one at a time, which is the only
+       way to catch an aggregate that summed one tree twice. */
+    const forest = buildComparison(PRESETS, clay).stats;
+    const alone = PRESETS.map((preset) => buildPreset(preset, clay).stats);
+
+    expect(forest.drawCalls).toBe(
+      alone.reduce((total, one) => total + one.drawCalls, 0),
+    );
+    expect(forest.instances).toBe(
+      alone.reduce((total, one) => total + one.instances, 0),
+    );
+    // And the number itself, so a per-tree count that drifted to a
+    // per-forest one still fails here.
+    expect(forest.drawCalls).toBe(PRESETS.length);
+    expect(forest.instances).toBe(0);
   });
 });

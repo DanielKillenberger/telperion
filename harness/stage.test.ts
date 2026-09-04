@@ -3,7 +3,14 @@ import { readFileSync } from "node:fs";
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { pivotOn, solveRoom } from "./stage";
+import {
+  describeSweep,
+  medianMs,
+  pivotOn,
+  solveRoom,
+  SWEEP_RATIOS,
+  type SweepResult,
+} from "./stage";
 
 /* ------------------------------------------------------------------ *
  * THE ROOM, AND THE LATCH THAT PLACES THE CAMERA IN IT
@@ -235,5 +242,118 @@ describe("the framing latch belongs to the stage", () => {
       component,
       "a boolean ref in the component outlives the stage it was latched for",
     ).not.toMatch(/useRef(<boolean.*?>)?\((false|true)\)/);
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * THE MEASUREMENT RIG, AT THE ONE POINT IT IS TESTABLE
+ *
+ * The rig needs a GPU, a canvas and a timer-query extension, and this
+ * box has none of the three - so what can be held to account is what
+ * the panel is allowed to SAY. That is not a consolation prize either:
+ * the failure this rig exists to prevent is a number that reads like a
+ * measurement and is not one. A frame time pinned to a 60 Hz refresh
+ * is 16.7 ms whatever the GPU did, and quoting it as the budget would
+ * be worse than quoting nothing, because nothing is visibly nothing.
+ *
+ * So: without the extension there is no millisecond figure anywhere in
+ * the string, and a run cut short says so and keeps what it got.
+ * ------------------------------------------------------------------ */
+
+/** Any millisecond figure at all. The unsupported case must not
+ *  produce one, and this is what "must not" means. */
+const A_TIMING_NUMBER = /\d+(\.\d+)?\s*ms/;
+
+function result(over: Partial<SweepResult> = {}): SweepResult {
+  return { supported: true, complete: true, points: [], note: "", ...over };
+}
+
+const FOUR_POINTS = [
+  { pixelRatio: 1, gpuMs: 8.42, samples: 20 },
+  { pixelRatio: 0.7, gpuMs: 4.31, samples: 20 },
+  { pixelRatio: 0.5, gpuMs: 2.28, samples: 20 },
+  { pixelRatio: 0.25, gpuMs: 0.71, samples: 20 },
+];
+
+describe("the sweep's shape", () => {
+  it("runs four points, and the four the budget is read from", () => {
+    /* Two points cannot separate the two things that scale here:
+       covered-area work goes with a triangle's area and quad-overshading
+       waste goes with its perimeter, and any two points lie on a line.
+       Four is the smallest set with a shape to read. */
+    expect([...SWEEP_RATIOS]).toEqual([1, 0.7, 0.5, 0.25]);
+  });
+});
+
+describe("describeSweep", () => {
+  it("reports no timing number at all when there is no gpu timer", () => {
+    // The R5 error case. A vsync-pinned fallback would read exactly
+    // like a measurement, so there is no fallback to write.
+    const text = describeSweep(
+      result({
+        supported: false,
+        complete: false,
+        note: "EXT_disjoint_timer_query_webgl2 is not exposed by this browser",
+      }),
+    );
+    expect(text).toContain("no gpu timing available");
+    expect(text).not.toMatch(A_TIMING_NUMBER);
+  });
+
+  it("marks a run cut short as incomplete and keeps what it got", () => {
+    // The other R5 error case: a context loss or a resize mid-sweep.
+    // The points either side of a resize are not comparable, so the
+    // run stops - but two honest points labelled as two are still
+    // evidence, and throwing them away would not be more honest.
+    const text = describeSweep(
+      result({
+        complete: false,
+        points: FOUR_POINTS.slice(0, 2),
+        note: "canvas resized mid-sweep",
+      }),
+    );
+    expect(text).toContain("incomplete");
+    expect(text).toContain("canvas resized mid-sweep");
+    expect(text).toContain("dpr 1.00 8.42 ms");
+    expect(text).toContain("dpr 0.70 4.31 ms");
+    expect(text).not.toContain("dpr 0.25");
+  });
+
+  it("says so when it was cut short before any point landed", () => {
+    const text = describeSweep(
+      result({ complete: false, note: "webgl context lost" }),
+    );
+    expect(text).toContain("incomplete");
+    expect(text).toContain("no points");
+    expect(text).not.toMatch(A_TIMING_NUMBER);
+  });
+
+  it("reads out every point of a clean run", () => {
+    const text = describeSweep(result({ points: FOUR_POINTS }));
+    expect(text).not.toContain("incomplete");
+    for (const point of FOUR_POINTS) {
+      expect(text).toContain(`dpr ${point.pixelRatio.toFixed(2)}`);
+    }
+    // The condition no code can assert, said out loud where the number
+    // is quoted, because the number means nothing without it.
+    expect(text).toContain("vsync");
+  });
+});
+
+describe("medianMs", () => {
+  it("takes the middle sample, not the mean of a hitch", () => {
+    // One frame that stalled must not move the point it is in. A mean
+    // over these is 24 ms; the middle of them is 4.
+    expect(medianMs([4.1, 3.9, 4, 4.2, 104])).toBe(4.1);
+  });
+
+  it("averages the two middles of an even run, in any order", () => {
+    expect(medianMs([4, 2, 8, 6])).toBe(5);
+  });
+
+  it("reports zero rather than a NaN when there is nothing to take", () => {
+    // The sweep never files a point it took no samples for, so this is
+    // about what the panel would render if it ever did.
+    expect(medianMs([])).toBe(0);
   });
 });

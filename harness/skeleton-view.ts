@@ -138,8 +138,56 @@ export interface TreeStats {
   /** Skeleton nodes, which is what the density dial moves and what
    *  every other number here scales with. */
   nodes: number;
+  /** What the subject costs the renderer in draw calls: one per
+   *  renderable in it. The canopy's claim is that a whole crown is one
+   *  of these, so this is the number that claim is read off. */
+  drawCalls: number;
+  /** Instanced copies across the subject. One today would be a
+   *  surprise - nothing here instances yet - and the field exists
+   *  because the number it will carry is the one the canopy is judged
+   *  by. */
+  instances: number;
   /** Wall-clock milliseconds for the whole build: grow, solve, sweep. */
   buildMs: number;
+}
+
+/** What an object costs to draw, counted off the object graph.
+ *
+ *  Counted here rather than read from `renderer.info.render` for two
+ *  reasons, and neither is convenience. The renderer's number is the
+ *  whole SCENE's - ground disc, scale figure and all - so it answers a
+ *  different question from "what did this subject cost"; and there is
+ *  no renderer in the test runner, so a subject's draw count read off
+ *  the renderer is a number nothing can hold to account. The stage
+ *  reports the renderer's own figure beside this one, and the two
+ *  differing by the room's fixtures is the expected reading.
+ *
+ *  Draws, not geometries: two instanced meshes sharing one geometry
+ *  are two draw calls, because that is what the GPU is asked for. What
+ *  must not be double counted is a shared geometry's TRIANGLES, and
+ *  those are summed per built tree from the surface that produced
+ *  them, never per instance. */
+export function countDraws(object: THREE.Object3D): {
+  drawCalls: number;
+  instances: number;
+} {
+  let drawCalls = 0;
+  let instances = 0;
+  object.traverse((node) => {
+    // InstancedMesh extends Mesh, so it is asked about first: one draw
+    // whatever its count, and the count is the instances.
+    if (node instanceof THREE.InstancedMesh) {
+      drawCalls += 1;
+      instances += node.count;
+    } else if (
+      node instanceof THREE.Mesh ||
+      node instanceof THREE.Line ||
+      node instanceof THREE.Points
+    ) {
+      drawCalls += 1;
+    }
+  });
+  return { drawCalls, instances };
 }
 
 /** A preset's parameters, as the panel's dials.
@@ -219,12 +267,15 @@ function build(
 
   const tree = new THREE.Mesh(geometry, clay.surface);
   tree.name = "grower-tree";
+  const draws = countDraws(tree);
   return {
     tree,
     stats: {
       triangles: surface.triangles,
       vertices: surface.vertices,
       nodes: skeleton.nodes.length,
+      drawCalls: draws.drawCalls,
+      instances: draws.instances,
       buildMs: performance.now() - started,
     },
   };
@@ -308,6 +359,15 @@ export function buildComparison(
       triangles: built.reduce((total, one) => total + one.stats.triangles, 0),
       vertices: built.reduce((total, one) => total + one.stats.vertices, 0),
       nodes: built.reduce((total, one) => total + one.stats.nodes, 0),
+      /* Draws and instances sum the same way the rest do, because two
+         trees standing side by side really are two subjects' worth of
+         work: each carries its own surface and, when the canopy lands,
+         its own instanced crown. What is NOT summed twice is a
+         geometry either of them might share - that would be counting
+         one buffer's triangles per copy of it, and triangles come from
+         the surface each tree built rather than from the graph. */
+      drawCalls: built.reduce((total, one) => total + one.stats.drawCalls, 0),
+      instances: built.reduce((total, one) => total + one.stats.instances, 0),
       buildMs: built.reduce((total, one) => total + one.stats.buildMs, 0),
     },
   };

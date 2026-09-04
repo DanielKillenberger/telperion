@@ -96,11 +96,136 @@ export interface Clay {
   line: THREE.Material;
 }
 
+/* ------------------------------------------------------------------ *
+ * THE MEASUREMENT RIG
+ *
+ * What the room costs to draw, measured rather than guessed, and
+ * measured honestly enough to be worth quoting. Three things make the
+ * difference between a number and a story:
+ *
+ * 1. GPU TIME, NOT FRAME TIME. A frame time read off the main thread
+ *    is pinned to the display's refresh: 16.7 ms on a monitor doing
+ *    60 Hz, whatever the GPU actually did. `EXT_disjoint_timer_query_webgl2`
+ *    times the draw on the GPU's own clock. Without the extension
+ *    there is no number, and the panel says exactly that rather than
+ *    quoting a vsync-pinned one.
+ *
+ * 2. VSYNC OFF, which no code here can assert. It is a browser and
+ *    driver condition, so it is procedure:
+ *      google-chrome --disable-gpu-vsync --disable-frame-rate-limit
+ *    Even with GPU timing, a vsync-throttled renderer changes what the
+ *    GPU is asked to do per second, so the sweep is run with it off.
+ *
+ * 3. FOUR POINTS, NOT TWO. Fill work scales with the AREA a triangle
+ *    covers; the quad-overshading waste at its edges scales with its
+ *    PERIMETER. Two resolutions cannot tell those apart - any two
+ *    points lie on a line - so the sweep runs 1.0, 0.7, 0.5 and 0.25
+ *    and the shape of the curve is the reading.
+ *
+ * And the term the harness was hiding: `setPixelRatio(min(dpr, 2))`.
+ * On a HiDPI display that is four times the fragments of a ratio of 1,
+ * which is larger than overdraw and larger than triangle size, and it
+ * never appeared in the panel. Both ratios are reported now - what the
+ * display asks for and what the renderer applied.
+ * ------------------------------------------------------------------ */
+
+/** The sweep's four points, as applied pixel ratios. */
+export const SWEEP_RATIOS: readonly number[] = [1, 0.7, 0.5, 0.25];
+
+/** What the renderer is actually doing, which no build can know. */
+export interface FrameStats {
+  /** `renderer.info.render.calls` for the last frame: the whole scene,
+   *  ground disc and scale figure included, so it reads above the
+   *  subject's own count by the room's fixtures. */
+  drawCalls: number;
+  /** The renderer's own triangle count for the last frame. */
+  triangles: number;
+  /** `window.devicePixelRatio`, uncapped - what the display asks for. */
+  pixelRatioRaw: number;
+  /** What the renderer was told to use. Where the fill bill is paid. */
+  pixelRatioApplied: number;
+  /** Which way the flag under suspicion is set on this renderer. */
+  logarithmicDepthBuffer: boolean;
+  /** Whether a GPU timing number is reachable at all in this browser. */
+  gpuTimer: boolean;
+}
+
+/** One resolution's result. `gpuMs` is a median over the samples that
+ *  came back undisjoint, because a mean is one hitched frame away from
+ *  being about the hitch. */
+export interface SweepPoint {
+  pixelRatio: number;
+  gpuMs: number;
+  samples: number;
+}
+
+export interface SweepResult {
+  /** Whether GPU timing was reachable. False means no number, ever -
+   *  not a fallback to a frame time. */
+  supported: boolean;
+  /** Whether every requested ratio produced a point. */
+  complete: boolean;
+  points: readonly SweepPoint[];
+  /** Why it is unsupported or incomplete. Empty on a clean run. */
+  note: string;
+}
+
+/** The middle sample. Total, so an empty run reports zero rather than
+ *  a NaN the panel would render as "NaN ms" - though the sweep never
+ *  files a point it took no samples for. */
+export function medianMs(samples: readonly number[]): number {
+  if (samples.length === 0) return 0;
+  const sorted = [...samples].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+/** The sweep as the panel says it, and the one place the rig's honesty
+ *  rule is enforced: WITHOUT THE EXTENSION THERE IS NO MILLISECOND
+ *  FIGURE IN THIS STRING. A vsync-pinned fallback would read exactly
+ *  like a measurement and mean nothing, so there is no fallback to
+ *  write. A run cut short by a lost context or a resize keeps the
+ *  points it got and is marked incomplete, because partial evidence
+ *  labelled as partial is still evidence. Pure, and the rig's only
+ *  testable surface: everything else it does needs a GPU. */
+export function describeSweep(result: SweepResult): string {
+  if (!result.supported) {
+    return `no gpu timing available${result.note === "" ? "" : `: ${result.note}`} - no frame time reported, a vsync-pinned one would not be a measurement`;
+  }
+  const points = result.points
+    .map(
+      (point) =>
+        `dpr ${point.pixelRatio.toFixed(2)} ${point.gpuMs.toFixed(2)} ms`,
+    )
+    .join(" · ");
+  if (result.complete) return `gpu ${points} (vsync must be off)`;
+  const partial = result.points.length === 0 ? "no points" : points;
+  return `incomplete: ${partial}${result.note === "" ? "" : ` - ${result.note}`}`;
+}
+
+export interface StageOptions {
+  /** The flag under suspicion. Set on the renderer at construction, so
+   *  changing it means a new renderer on a new canvas - which is the
+   *  caller's job, and why it arrives here as an option rather than as
+   *  a setter. */
+  logarithmicDepthBuffer?: boolean;
+}
+
 export interface Stage {
   /** Replaces the subject, disposing whatever stood there before. */
   setTree(build: (clay: Clay) => THREE.Object3D): void;
   /** Opt-in key and fill. Off - sky light alone - is the judging mode. */
   setLightingCheck(on: boolean): void;
+  /** What the renderer did on the last frame, and at what resolution. */
+  stats(): FrameStats;
+  /** Pins the applied pixel ratio, or `null` for the harness default
+   *  of `min(devicePixelRatio, 2)`. */
+  setPixelRatio(ratio: number | null): void;
+  /** Runs the resolution sweep, timing each point on the GPU's clock.
+   *  Restores the pixel ratio it found, whether it finishes or not. */
+  sweep(ratios?: readonly number[]): Promise<SweepResult>;
   /** Frames the subject currently on the stage, fitting the camera to
    *  what it actually measures. `height` places the scale figure, and
    *  stands in for the subject on the first frame, before there is
@@ -189,7 +314,36 @@ export function solveRoom(
   };
 }
 
-export function createStage(canvas: HTMLCanvasElement): Stage {
+/** The harness's own cap on the applied pixel ratio when nothing has
+ *  pinned it. Kept because it is what the harness has always drawn at
+ *  and the sweep is measured against that, not because 2 is a
+ *  defensible number - it is the term the rig exists to expose. */
+const PIXEL_RATIO_CAP = 2;
+
+/** Frames drawn at a new resolution before any of them is timed: long
+ *  enough for the driver to have finished reallocating the targets and
+ *  for the pipeline to be full. */
+const SWEEP_WARMUP_FRAMES = 8;
+/** Timed frames per point. Twenty at 60 Hz is a third of a second per
+ *  ratio, which the median has enough of to shrug off one hitch. */
+const SWEEP_SAMPLE_FRAMES = 20;
+/** How long one query is waited on before the sweep gives up on it. A
+ *  timer query normally resolves within a frame or two of the draw. */
+const SWEEP_QUERY_FRAMES = 120;
+
+/** The extension's two constants. It is not in lib.dom, so its shape
+ *  is stated here rather than cast away to `any`. */
+interface DisjointTimerQuery {
+  readonly TIME_ELAPSED_EXT: number;
+  readonly GPU_DISJOINT_EXT: number;
+}
+
+export function createStage(
+  canvas: HTMLCanvasElement,
+  options: StageOptions = {},
+): Stage {
+  const logarithmicDepthBuffer = options.logarithmicDepthBuffer ?? true;
+
   /* The depth buffer is logarithmic, and it has to be: this room spans
      four orders of magnitude - a 1.8 m figure at the roots of a 400 m
      tree, with the orbit allowed within a metre of either.
@@ -207,13 +361,28 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
      plane is exactly what is wanted. A logarithmic buffer spends its
      precision per octave of distance rather than per metre, which is
      the shape this scene actually has. It costs a per-fragment depth
-     write, which a dev harness with one tree in it can afford. */
+     write, and "which a dev harness with one tree in it can afford"
+     was an assumption, not a measurement: writing depth from the
+     fragment shader defeats early-Z, and the canopy about to land is
+     fill-bound and alpha-tested, which is exactly the case that pays
+     for it. So the flag is now an argument and both settings are
+     measurable. It stays on by default until the sweep says
+     otherwise - the z-fighting it fixes is real. */
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
-    logarithmicDepthBuffer: true,
+    logarithmicDepthBuffer,
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  /* What the display asks for, and what we give it. The two are not
+     the same number and the gap is the largest single fill term in
+     this scene, so both are reported and the applied one can be
+     pinned - by the sweep, or by hand from the panel. */
+  const rawPixelRatio = (): number => window.devicePixelRatio;
+  let pixelRatioPin: number | null = null;
+  const appliedPixelRatio = (): number =>
+    pixelRatioPin ?? Math.min(rawPixelRatio(), PIXEL_RATIO_CAP);
+  renderer.setPixelRatio(appliedPixelRatio());
   // No tone mapping and no exposure games: what the geometry does to
   // the light is the only thing on screen.
   renderer.toneMapping = THREE.NoToneMapping;
@@ -464,9 +633,31 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
     }
   };
 
+  /* Two things a measurement cannot survive, both of them outside the
+     rig's control: the canvas changing size under it - which changes
+     the fragment count, so the points either side of it are not
+     comparable - and the context going away, which invalidates every
+     query in flight. Neither is an error. Both end the sweep, and what
+     it had is reported as partial. */
+  let resizeEpoch = 0;
+  let contextLost = false;
+  const onContextLost = (): void => {
+    contextLost = true;
+  };
+  canvas.addEventListener("webglcontextlost", onContextLost);
+
+  let viewWidth = 0;
+  let viewHeight = 0;
   const resize = (): void => {
     const width = canvas.clientWidth || 1;
     const height = canvas.clientHeight || 1;
+    // Only a real change counts as one: the observer fires once on
+    // being attached, and a sweep that read that as a resize would
+    // abort itself on its own first frame.
+    if (width === viewWidth && height === viewHeight) return;
+    viewWidth = width;
+    viewHeight = height;
+    resizeEpoch += 1;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
@@ -476,23 +667,171 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
   const observer = new ResizeObserver(resize);
   observer.observe(canvas);
 
+  /* While the sweep is running it owns the renders, because each timed
+     one is bracketed by a query and an untimed one in between would be
+     work the query never sees. The controls keep updating either way -
+     damping that stops for the length of a sweep reads as a stutter. */
+  let sweeping = false;
   let frameHandle = 0;
   const tick = (): void => {
     frameHandle = requestAnimationFrame(tick);
     controls.update();
-    renderer.render(scene, camera);
+    if (!sweeping) renderer.render(scene, camera);
   };
   tick();
+
+  const gl = renderer.getContext();
+  /** The extension, or null. Asked for once: `getExtension` is cheap
+   *  but the answer cannot change for the life of a context. */
+  const timer: DisjointTimerQuery | null =
+    typeof (gl as WebGL2RenderingContext).createQuery === "function"
+      ? ((gl.getExtension(
+          "EXT_disjoint_timer_query_webgl2",
+        ) as DisjointTimerQuery | null) ?? null)
+      : null;
+
+  const stats: Stage["stats"] = () => ({
+    drawCalls: renderer.info.render.calls,
+    triangles: renderer.info.render.triangles,
+    pixelRatioRaw: rawPixelRatio(),
+    pixelRatioApplied: renderer.getPixelRatio(),
+    logarithmicDepthBuffer,
+    gpuTimer: timer !== null,
+  });
+
+  const setPixelRatio: Stage["setPixelRatio"] = (ratio) => {
+    pixelRatioPin = ratio;
+    // three's setPixelRatio re-applies the current size itself, so
+    // this is the whole of applying it.
+    renderer.setPixelRatio(appliedPixelRatio());
+  };
+
+  const nextFrame = (): Promise<void> =>
+    new Promise((resolve) => {
+      requestAnimationFrame(() => resolve());
+    });
+
+  /** Why the sweep must stop, or empty while it may go on. */
+  const interruption = (epoch: number): string => {
+    if (contextLost) return "webgl context lost";
+    if (resizeEpoch !== epoch) return "canvas resized mid-sweep";
+    return "";
+  };
+
+  /** One timed frame, in milliseconds, or null when the sample is not
+   *  usable - a disjoint (the GPU was preempted, so the number is
+   *  meaningless and the spec says to throw it away) or a query that
+   *  never resolved. A dropped sample is not an interruption; the
+   *  point simply rests on the ones that did come back. */
+  const sampleFrame = async (
+    gl2: WebGL2RenderingContext,
+    ext: DisjointTimerQuery,
+  ): Promise<number | null> => {
+    const query = gl2.createQuery();
+    if (query === null) return null;
+    gl2.beginQuery(ext.TIME_ELAPSED_EXT, query);
+    renderer.render(scene, camera);
+    gl2.endQuery(ext.TIME_ELAPSED_EXT);
+
+    for (let waited = 0; waited < SWEEP_QUERY_FRAMES; waited += 1) {
+      await nextFrame();
+      if (gl2.getParameter(ext.GPU_DISJOINT_EXT) === true) {
+        gl2.deleteQuery(query);
+        return null;
+      }
+      if (
+        gl2.getQueryParameter(query, gl2.QUERY_RESULT_AVAILABLE) === true
+      ) {
+        const nanoseconds = gl2.getQueryParameter(
+          query,
+          gl2.QUERY_RESULT,
+        ) as number;
+        gl2.deleteQuery(query);
+        return nanoseconds / 1e6;
+      }
+    }
+    gl2.deleteQuery(query);
+    return null;
+  };
+
+  const sweep: Stage["sweep"] = async (ratios = SWEEP_RATIOS) => {
+    if (timer === null) {
+      return {
+        supported: false,
+        complete: false,
+        points: [],
+        note: "EXT_disjoint_timer_query_webgl2 is not exposed by this browser",
+      };
+    }
+    if (sweeping) {
+      return {
+        supported: true,
+        complete: false,
+        points: [],
+        note: "a sweep is already running",
+      };
+    }
+
+    const gl2 = gl as WebGL2RenderingContext;
+    const epoch = resizeEpoch;
+    const restore = pixelRatioPin;
+    const points: SweepPoint[] = [];
+    let note = "";
+
+    sweeping = true;
+    try {
+      for (const ratio of ratios) {
+        setPixelRatio(ratio);
+        for (let i = 0; i < SWEEP_WARMUP_FRAMES; i += 1) {
+          await nextFrame();
+          renderer.render(scene, camera);
+        }
+
+        const samples: number[] = [];
+        for (let i = 0; i < SWEEP_SAMPLE_FRAMES; i += 1) {
+          note = interruption(epoch);
+          if (note !== "") break;
+          const elapsed = await sampleFrame(gl2, timer);
+          if (elapsed !== null) samples.push(elapsed);
+        }
+
+        if (note !== "") break;
+        if (samples.length === 0) {
+          note = `no usable sample at dpr ${ratio.toFixed(2)}`;
+          break;
+        }
+        points.push({
+          pixelRatio: ratio,
+          gpuMs: medianMs(samples),
+          samples: samples.length,
+        });
+      }
+    } finally {
+      sweeping = false;
+      setPixelRatio(restore);
+    }
+
+    return {
+      supported: true,
+      complete: note === "" && points.length === ratios.length,
+      points,
+      note,
+    };
+  };
 
   return {
     setTree,
     setLightingCheck,
+    stats,
+    setPixelRatio,
+    sweep,
     frame,
     frameIfWaiting,
     frameNext,
     dispose(): void {
       cancelAnimationFrame(frameHandle);
       observer.disconnect();
+      canvas.removeEventListener("webglcontextlost", onContextLost);
       controls.dispose();
       disposeTree();
       groundGeometry.dispose();
