@@ -102,7 +102,7 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "gravitropism", label: "gravitropism", min: 0, max: 1.3, step: 0.01, unit: "" },
   { key: "lean", label: "lean", min: 0, max: 0.5, step: 0.01, unit: "" },
   { key: "writheAmplitude", label: "writhe", min: 0, max: 0.25, step: 0.01, unit: "" },
-  { key: "writheWavelength", label: "bend length", min: 0.08, max: 1.2, step: 0.01, unit: "" },
+  { key: "writheWavelength", label: "bend length", min: 0.18, max: 1.2, step: 0.01, unit: "" },
   { key: "spiralRate", label: "spiral", min: 0, max: 6, step: 0.1, unit: "" },
   // Stiffness, and the one dial that is a rail as well as a look: past
   // about 90 a step can turn back on the one before it and the crown
