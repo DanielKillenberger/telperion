@@ -361,14 +361,14 @@ describe("growSkeleton", () => {
 });
 
 describe("the search radius and the attractor spacing", () => {
-  it("resolves to nine steps at today's step, on every tree there is", () => {
-    /* R7. The spacing floor is added under the nine-step radius, and at
-       today's step it must be under it everywhere: both presets, and
-       every envelope and attractor count the rest of this suite grows.
-       Not "close": the same tree, byte for byte, or a later change in
-       any of them is no longer attributable to a dial. The last fixture
-       is the sparsest scatter in the suite, where nine steps is only
-       1.229 spacings and the floor comes nearest to moving. */
+  it("resolves to nine steps at today's step, on both presets and every fixture above the floor", () => {
+    /* R7, as narrowed when the floor was raised to 2.0 spacings: both
+       presets as shipped, and every fixture whose nine-step radius is
+       wider than the floor, are the same tree byte for byte. Not
+       "close" - or a later change in any of them is no longer
+       attributable to a dial. The two fixtures the floor does move are
+       asserted the other way round in the next test, so the narrowing
+       is written down rather than silent. */
     const trees: SkeletonParams[] = [
       TELPERION.skeleton,
       LAURELIN.skeleton,
@@ -377,9 +377,7 @@ describe("the search radius and the attractor spacing", () => {
       { ...params, attractors: 800 },
       { ...params, attractors: 1600 },
       { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 0.2 } },
-      { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 1.2 } },
       { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 0.2, shoulder: 1.2 } },
-      { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 1.4, shoulder: 4, height: 50 } },
     ];
     for (const tree of trees) {
       const nineSteps = defaultGrowth(tree.envelope).stepDistance * 9;
@@ -394,6 +392,27 @@ describe("the search radius and the attractor spacing", () => {
           }),
         ),
       );
+    }
+  });
+
+  it("lets the floor bind on the two fixtures R7 no longer covers, and only there", () => {
+    /* The other half of the narrowing. On the suite's two sparsest
+       scatters nine steps is 1.229 and 1.463 spacings, under the 2.0
+       floor, so the derived radius is wider than nine steps and the
+       tree they grow is a different tree. That is the cost of R4's
+       margin and it is stated here so it can never be mistaken for
+       drift. Both presets stay above the floor. */
+    const moved: SkeletonParams[] = [
+      { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 1.2 } },
+      { ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 1.4, shoulder: 4, height: 50 } },
+    ];
+    for (const tree of moved) {
+      const growth = defaultGrowth(tree.envelope, tree.attractors);
+      expect(growth.influenceRadius).toBeGreaterThan(growth.stepDistance * 9);
+    }
+    for (const tree of [TELPERION.skeleton, LAURELIN.skeleton]) {
+      const growth = defaultGrowth(tree.envelope, tree.attractors);
+      expect(growth.influenceRadius).toBe(growth.stepDistance * 9);
     }
   });
 

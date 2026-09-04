@@ -89,9 +89,16 @@ const KILL_STEPS = 2;
  *  is the art direction every tree grown so far was grown under, and
  *  the spacing floor below is added under it, never in place of it. */
 const INFLUENCE_STEPS = 9;
-/** Search radius floor, in attractor spacings. See `influenceRadiusFor`
- *  for what this number is and why it is not larger. */
-const INFLUENCE_SPACINGS = 1.2;
+/** Search radius floor, in attractor spacings. Measured, not chosen:
+ *  1.2 was the largest floor that left every test fixture byte-identical
+ *  and it still starved 3 of 108 seed-by-cell draws, because colonize
+ *  ends the tree the moment no tip sees an attractor while living ones
+ *  remain. 2.0 starves 0 of 297 with per-event odds near 1e-7. The
+ *  trees it moves are two off-panel fixtures and Laurelin dialled to the
+ *  panel's sparsest density; both presets as shipped sit above it, at
+ *  5.9 and 2.3 spacings, so nine steps still binds for them. See
+ *  `influenceRadiusFor`. */
+const INFLUENCE_SPACINGS = 2.0;
 /** The node ceiling at the default step. A stop, not a target: a tree
  *  that wants more nodes than this at today's step has been asked for
  *  something the panel should not be asking for. It is stated at the
@@ -128,7 +135,7 @@ function crownVolume(envelope: Envelope): number {
  * How far a node reaches for attractors, in metres, for a growth step
  * of `stepDistance` into a crown scattered with `attractors` points.
  *
- * Nine steps, as it has always been - and never less than 1.2 attractor
+ * Nine steps, as it has always been - and never less than 2.0 attractor
  * spacings, where the spacing is the cube root of the crown's volume
  * per attractor: the distance to the next one, in expectation, when
  * they are scattered uniformly through it.
@@ -145,19 +152,24 @@ function crownVolume(envelope: Envelope): number {
  * today's is that regime, which is why the floor has to hold before a
  * depth dial can exist.
  *
- * Why 1.2 and not more. A sphere of 1.2 spacings holds about seven
- * attractors in expectation, and the forward half of it - the half a
- * tip can still turn toward - holds three or four; the odds that an
- * exhausted tip early in growth sees nothing ahead are a few per cent
- * per event, and a floor with real margin against that would sit
- * nearer two spacings. It does not, because the floor must not move a
- * single tree grown at today's step: the search radius has to resolve
- * to nine steps exactly at every configuration this library's tests
- * and presets state, so that any later change is attributable to a
- * dial someone moved. The sparsest of those - a 50 m envelope 140 m
- * wide with 900 attractors - has nine steps at 1.229 spacings, and the
- * floor stops just under it. The presets sit far above: Telperion's
- * nine steps are 5.9 spacings, Laurelin's 2.3.
+ * Why 2.0, and why it was 1.2 first. A sphere of 1.2 spacings holds
+ * about seven attractors in expectation, and the forward half of it -
+ * the half a tip can still turn toward - holds three or four; the odds
+ * that an exhausted tip early in growth sees nothing ahead are a few
+ * per cent per event, and measured over 108 seed-by-cell draws on the
+ * panel's range, 1.2 starved three of them. 1.2 was chosen anyway at
+ * first because it was the largest floor that left every test fixture
+ * byte-identical: the sparsest, a 50 m envelope 140 m wide with 900
+ * attractors, has nine steps at 1.229 spacings. That was the wrong
+ * thing to hold. The byte-identity that matters is the two presets as
+ * shipped, and they sit far above the floor - Telperion's nine steps
+ * are 5.9 spacings, Laurelin's 2.3 - so the floor was raised to 2.0,
+ * where 297 draws starve none and the per-event odds are near 1e-7.
+ * The two fixtures it moves, and Laurelin dialled to the panel's
+ * sparsest density, are stated in the tests rather than left to drift.
+ * The mechanism fix - a tip with nothing in reach keeping on while
+ * living attractors remain - was measured and rejected: Laurelin's
+ * shipped tree ends through exactly that branch and would change.
  *
  * Both are fractions of height for a fixed attractor count - the
  * volume goes as the cube of height and the spacing as its cube root -
@@ -183,7 +195,7 @@ const held = (value: number, fallback: number): number =>
 
 /** Growth distances for `envelope`, all proportional to its height: a
  *  step of `step` times it, a kill distance of two steps, a search
- *  radius of nine steps or 1.2 attractor spacings, whichever is wider -
+ *  radius of nine steps or 2.0 attractor spacings, whichever is wider -
  *  `influenceRadiusFor` carries the derivation and the reason for it -
  *  and a node ceiling of `NODE_BUDGET` at the default step, growing as
  *  the step shrinks so that the whole rail fits under it.
