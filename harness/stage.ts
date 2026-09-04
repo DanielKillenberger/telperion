@@ -147,6 +147,23 @@ export interface Room {
  *  yanked from 2408 m to 400 m in one frame, on every intermediate
  *  value of the slider. So both limits open around where the camera is
  *  rather than closing on it. */
+/** Where the orbit's pivot belongs once the subject has been replaced:
+ *  exactly where it was while that is somewhere on the subject, and
+ *  pulled back onto the nearest point of it when it is not.
+ *
+ *  Pure, and returns a new point rather than moving the one it was
+ *  given, so the caller decides what to write and the camera's own
+ *  position is never in reach of this at all. Panning across a crown
+ *  survives it - the whole subject is inside its own bounds - and a
+ *  subject that grows survives it for the same reason, since a box
+ *  that has grown already contains the pivot. What does not survive is
+ *  a pivot left 200 m up when the tree under it shrank to 24: orbit
+ *  from there and the subject swings clean off the frame, which is a
+ *  pivot pointing at a tree that is no longer there. */
+export function pivotOn(box: THREE.Box3, pivot: THREE.Vector3): THREE.Vector3 {
+  return box.clampPoint(pivot, new THREE.Vector3());
+}
+
 export function solveRoom(
   span: number,
   orbitRadius: number,
@@ -338,17 +355,12 @@ export function createStage(canvas: HTMLCanvasElement): Stage {
     const size = box.getSize(new THREE.Vector3());
     const span = Math.max(size.x, size.y, size.z);
 
-    /* The pivot, kept on the subject - and not a camera move:
-       `camera.position` is untouched and panning off the tree to put
-       an eye on one limb still works, because the pivot may sit
-       anywhere within a subject's width of the subject. What it may
-       not do is stay behind when the subject shrinks by an order of
-       magnitude. Orbit a point 200 m above a 24 m tree and the tree
-       swings clean off the frame; the pivot is pointing at a tree that
-       is no longer there. Growing costs nothing, because a box that
-       has grown already contains it. */
-    const reachable = box.clone().expandByScalar(span);
-    reachable.clampPoint(controls.target, controls.target);
+    /* The pivot is put back on the subject before anything is measured
+       from it, because the orbit radius is measured from it. Not a
+       camera move: `camera.position` is untouched, and what the pivot
+       does to the radius is then handed straight to `solveRoom`, which
+       opens the orbit's limits around wherever that leaves it. */
+    controls.target.copy(pivotOn(box, controls.target));
 
     const room = solveRoom(
       span,
