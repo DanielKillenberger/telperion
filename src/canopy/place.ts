@@ -57,10 +57,12 @@ import { shoots } from "./shoots";
  * of thing fails once in twenty runs.
  * ------------------------------------------------------------------ */
 
-/** The canopy's own stream, XOR-derived from the tree's seed. Not one
- *  of the constants already in use - the bias field's `0x5b_f0_3d_11`
- *  or its noise field's `0x1f_83_d9_ab` - so every stream that existed
- *  before the canopy emits exactly what it emitted before. */
+/** The canopy's own stream, XOR-derived from the tree's seed. The bias
+ *  field is the only other XOR-derived stream and it takes
+ *  `0x5b_f0_3d_11`; the skeleton and the noise field take the caller's
+ *  seed raw. A constant none of them uses is what leaves every stream
+ *  that existed before the canopy emitting exactly what it emitted
+ *  before. */
 const CANOPY_STREAM = 0x2c_9e_1a_7f;
 
 const TAU = Math.PI * 2;
