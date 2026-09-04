@@ -44,6 +44,7 @@ These five were open questions at capture time. Planning closes them, because ea
 
 - **The canopy is a fifth pure stage with its own result type**, parallel to the surface mesh rather than bolted onto it. The four existing stages never call it. That separation is what keeps their existing byte comparisons valid when the canopy lands, and it preserves the property that every stage is usable on its own.
 - **The element's local frame is the seam between geometry and placement.** An element is authored with its petiole at the origin, its axis along +Y and its face normal along +Z. Placement emits transforms against that frame and never inspects the element's vertices. Stating the frame here is what lets the element and the placement be built in parallel without either one waiting on the other.
+- **The element owns its absolute size; placement multiplies it.** A leaf is authored in metres and placement's size term is dimensionless, defaulting to 1. The frame contract above did not originally pin scale, and the two stages shipped contradicting conventions that nothing composed until the draw. Scale belongs to the element for the same reason the outline does: a leaf does not grow because its tree is tall, and a blade sized as a fraction of envelope height puts 1.5 m fronds on a tree at Valinor scale.
 - **The library emits geometry and per-instance transforms. The consumer owns the draw.** The instanced mesh, the alpha-tested material and the draw call all live in the harness, because R6 forbids the library from emitting a material. "One instanced draw per element type" is therefore a claim about the consumer, verified in the panel's draw-call count, not a unit test.
 - **A shoot is a terminal run**, meaning a branch run whose final node has no children. A tree with no laterals has exactly one shoot, its trunk tip. A skeleton too small to produce a run has none, and yields an empty canopy.
 - **The canopy draws chance from its own XOR-derived sub-stream.** One existing stream uses `0x5b_f0_3d_11`; the skeleton and the noise field take the caller's seed raw. The canopy takes a constant not yet in use, so adding it leaves every existing stream's output untouched.
@@ -110,9 +111,23 @@ npm run dev         # the clay harness, where R5 is measured and R7 is judged
 - **Rejected as overkill: a leaf-level LOD ladder.** The spec already cut it, and the measurement rig is what would justify reopening it. Rejected too: exporting a shared `held` helper while touching these files, since the idiom is deliberately local at each call site in the two stages that use it.
 - **Alpha test is chosen knowing it costs early-Z on the target machine.** The spec records the benchmark, and the rig in the first task is what turns that from a quoted figure into this project's number.
 
+## Measured
+
+The rig in fn-1-the-canopy-real-leaf-geometry-culled-to.1 ran on the named machine: an RTX 3080 through ANGLE, Chrome with vsync and the frame-rate limit disabled, fullscreen 3440x1440 at `devicePixelRatio` 2, GPU timer queries, median of 20 samples per point. The branch-only subject is 58,880 triangles in one draw call, three draws for the whole room.
+
+| applied dpr | drawing buffer | log depth on | log depth off |
+|---|---|---|---|
+| 1.00 | 1720x720 | 0.21 ms | 0.25 ms |
+| 0.70 | - | 0.16 ms | 0.15 ms |
+| 0.50 | - | 0.13 ms | 0.12 ms |
+| 0.25 | 430x180 | 0.13 ms | 0.12 ms |
+
+At 60 Hz the frame is 16.7 ms and the whole branch-only room spends 0.21 ms of it, a little over one percent, so the canopy inherits essentially the entire budget. The curve flattens onto a floor near 0.12 ms below dpr 0.5, which is fixed per-frame cost rather than fill, so only about 0.08 ms of the top point is fill: this scene is not yet fill-bound. The harness's own default on that display is dpr 2.00, four times the fragments of the sweep's top point, so what the owner normally looks at sits above the top of the measured curve.
+
 ## Parked unknowns
 
-- Whether a far impostor is needed at all follows from the measurement in fn-1-the-canopy-real-leaf-geometry-culled-to.1. Nothing in this spec decides it. [inferred]
+- Whether `logarithmicDepthBuffer` earns its cost is measured but not settled. Both settings land inside the noise floor of a sub-millisecond scene, with "on" reading marginally cheaper, which is noise rather than a result. The flag stays on because the z-fighting it fixes at 400 m is real. The case where a fragment-shader depth write is supposed to cost, an alpha-tested canopy defeating early-Z, does not exist until fn-1-the-canopy-real-leaf-geometry-culled-to.5, and the rig is standing there to re-run the sweep against it. [inferred]
+- Whether a far impostor is needed at all follows from that re-run. Nothing in this spec decides it. [inferred]
 
 ## Early proof point
 

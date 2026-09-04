@@ -54,9 +54,76 @@ Stands up honest fill measurement in the harness before any leaf exists (R5). Sp
 - [ ] TBD
 
 ## Done summary
-TBD
+The harness can now measure its own fill cost honestly, and it did: `TreeStats`
+carries draw calls and instances beside triangles, vertices, nodes and build
+time; the stage reports what the renderer did last frame and both pixel ratios,
+raw and applied; `logarithmicDepthBuffer` is a construction option the panel
+turns over by replacing the canvas; and a four-point sweep at applied dpr
+1.00 / 0.70 / 0.50 / 0.25 times each point with
+`EXT_disjoint_timer_query_webgl2` on the GPU's own clock, restoring the ratio it
+found. Without the extension the panel says so and quotes no millisecond figure
+at all, and a run cut short by a lost context or a resize keeps its points and
+is marked incomplete - both of which are asserted in vitest, because that string
+is the only part of the rig a runner with no GPU can hold to account.
 
+### The measurement (R5), on the named machine
+
+RTX 3080 (ANGLE / OpenGL ES 3.2), chrome with
+`--disable-gpu-vsync --disable-frame-rate-limit`, fullscreen 3440x1440,
+`devicePixelRatio` 2, branch-only subject: 58,880 triangles in one draw call,
+three draws for the whole room. GPU timer queries, median of 20 samples per
+point:
+
+| applied dpr | drawing buffer | log depth on | log depth off |
+|---|---|---|---|
+| 1.00 | 1720x720 | 0.21 ms | 0.25 ms |
+| 0.70 | -        | 0.16 ms | 0.15 ms |
+| 0.50 | -        | 0.13 ms | 0.12 ms |
+| 0.25 | 430x180  | 0.13 ms | 0.12 ms |
+
+**The frame budget: at 60 Hz the frame is 16.7 ms and the whole branch-only room
+spends 0.21 ms of it - a little over one percent.** The canopy about to land
+therefore inherits essentially the entire budget, and nothing in this
+measurement argues for making the branch surface cheaper. The curve flattens
+onto a floor of about 0.12 ms below dpr 0.5, which is the fixed per-frame cost
+(clear, ground disc, scale figure, state setup); only the ~0.08 ms above that
+floor is fill, which is the honest reading of a scene that is not yet
+fill-bound. Worth carrying forward: the harness's own default on this display is
+dpr 2.00, four times the fragments of the sweep's top point, so what the owner
+normally looks at sits above the top of the measured curve.
+
+### The logarithmicDepthBuffer verdict (R5): not settled, and not settleable here
+
+Both settings land inside the noise floor, with "on" measuring marginally
+*cheaper* at dpr 1.00 - which is not a physical result, it is noise, and
+reporting it as a verdict would be exactly the false precision this rig exists
+to prevent. The flag stays on: the z-fighting it fixes at 400 m is real and its
+cost is currently unmeasurable. **The question moves to task .5** - a
+fragment-shader depth write defeats early-Z, and the case where that is supposed
+to cost is an alpha-tested canopy discarding fragments, which does not exist
+yet. Re-run this sweep with the canopy on screen; the rig is now standing there
+for it. This closes the spec's parked unknown as "measured, and the branch-only
+answer is that the flag is free at this scale", not as a number invented to fill
+the slot.
+
+### Notes
+
+- The sweep was driven over CDP from a throwaway script in the scratchpad, not
+  from anything committed; the panel's own `sweep` button does the same thing by
+  hand.
+- Verified rather than assumed: the applied ratio really reaches the drawing
+  buffer (3440x1440 at 2.00, 1720x720 at 1.00, 430x180 at 0.25), and the sweep
+  restores the ratio it found when it finishes.
+- Tests were mutation-checked - a `describeSweep` that fell back to a frame time,
+  a `countDraws` blind to `InstancedMesh`, and an aggregate that counted one tree
+  twice each fail the new tests.
+- Follow-up, not built (YAGNI): the sweep's ratios stop at 1.00 as the spec
+  names them, so the harness's own dpr-2.00 default is outside the curve. If the
+  canopy turns out to be fill-bound, a fifth point at the raw ratio would be one
+  line.
+
+stage: impl-review - skipped(policy: parallel wave - the conductor reviews after it integrates)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 325da1e, dda4879
+- Tests: npx vitest run (17 files / 238 tests passed on the integrated target), npx tsc --noEmit (clean on the integrated target), GPU timer-query sweep on RTX 3080, vsync off, 4 points at applied dpr 1.00/0.70/0.50/0.25, median of 20 samples: branch-only room 0.21 ms of a 16.7 ms frame
 - PRs:
