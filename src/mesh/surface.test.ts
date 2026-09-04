@@ -416,7 +416,12 @@ describe("buildSurface", () => {
     expect(mesh.vertices).toBe(0);
   });
 
-  it("holds a hostile parameter to a surface it can still build", () => {
+  /* 20s, not the 5s default: this one asks the builder for
+     Number.MAX_VALUE radial segments and lobes, so it is expensive by
+     design and lands at 4.7-5.8s depending on what else the machine is
+     doing. On the default it failed about one run in three, which is a
+     flake that trains people to re-run rather than to read. */
+  it("holds a hostile parameter to a surface it can still build", { timeout: 20_000 }, () => {
     // The panel clamps its own dials; a library caller does not, and a
     // section of two sides or a lobe deeper than the radius is a fold
     // through the centreline rather than a look.
