@@ -1,0 +1,124 @@
+/* ------------------------------------------------------------------ *
+ * The panel is a tool, not a design. Neutral grey on the same clay
+ * ground as the stage, because anything with colour or contrast in it
+ * would sit in the corner of every judgement the owner makes about the
+ * tree.
+ * ------------------------------------------------------------------ */
+
+.gd {
+  position: fixed;
+  inset: 0;
+  background: #d8d7d4;
+}
+
+.gd-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.gd-panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 260px;
+  padding: 12px 14px 10px;
+  border: 1px solid rgb(0 0 0 / 0.18);
+  border-radius: 4px;
+  background: rgb(248 248 246 / 0.9);
+  color: #2a2a28;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  user-select: none;
+}
+
+.gd-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gd-note {
+  margin: 2px 0 10px;
+  color: #6b6a66;
+  font-size: 11px;
+}
+
+.gd-warn {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgb(0 0 0 / 0.12);
+}
+
+.gd-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.gd-label {
+  min-width: 52px;
+  color: #6b6a66;
+}
+
+.gd-seed {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 5px;
+  border: 1px solid rgb(0 0 0 / 0.25);
+  border-radius: 3px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+.gd-seed-bad {
+  border-color: #b4483c;
+}
+
+.gd-button {
+  padding: 3px 7px;
+  border: 1px solid rgb(0 0 0 / 0.25);
+  border-radius: 3px;
+  background: #efefec;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.gd-button:hover {
+  background: #e4e4e0;
+}
+
+.gd-slider {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  column-gap: 6px;
+  margin-bottom: 6px;
+}
+
+.gd-value {
+  text-align: right;
+  color: #2a2a28;
+}
+
+.gd-slider input[type="range"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0;
+  accent-color: #6b6a66;
+}
+
+.gd-check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #6b6a66;
+  cursor: pointer;
+}

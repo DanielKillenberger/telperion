@@ -1,0 +1,205 @@
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+/* ------------------------------------------------------------------ *
+ * THE CLAY ROOM
+ *
+ * One grey material, a neutral sky, a ground plane, an orbit camera,
+ * and a 1.8 m figure at the roots. That is the whole room, and it is
+ * deliberately the whole room: the acceptance test for the generator
+ * is a clay render, so nothing in here is allowed to flatter the
+ * geometry. No bloom, no atmosphere, no colour, no darkness. If the
+ * tree is beautiful naked it is beautiful anywhere.
+ *
+ * `setLightingCheck` is the one exception and it is explicit, opt-in
+ * and off by default: a shadow-casting key for checking how form reads
+ * under a hard light. It is a check, never the mode the owner judges
+ * in.
+ *
+ * The scale figure is not decoration. Every Two Trees reference
+ * establishes monumentality with something tiny at the base; without
+ * one, a 24 m tree and a 4 m tree render identically.
+ * ------------------------------------------------------------------ */
+
+/** Flat grey clay, one value for the subject and two supporting tones
+ *  so ground and figure separate without introducing colour. */
+const CLAY = 0xa8_a6_a1;
+const CLAY_GROUND = 0x8e_8c_88;
+const CLAY_FIGURE = 0x77_75_71;
+
+/** 1.8 m: radius 0.28 twice, plus a 1.24 m body. */
+const FIGURE_RADIUS = 0.28;
+const FIGURE_BODY = 1.24;
+const FIGURE_HEIGHT = FIGURE_BODY + FIGURE_RADIUS * 2;
+
+export interface Stage {
+  /** Replaces the subject, disposing whatever stood there before. The
+   *  builder is handed the clay rather than choosing a material,
+   *  because clay is the only mode the tree is ever judged in and a
+   *  caller must not be able to opt out of it. */
+  setTree(build: (material: THREE.Material) => THREE.Object3D): void;
+  /** Opt-in hard key light. Off is the judging mode. */
+  setLightingCheck(on: boolean): void;
+  /** Pulls the camera back to frame a tree of `height` metres. */
+  frame(height: number): void;
+  dispose(): void;
+}
+
+export function createStage(canvas: HTMLCanvasElement): Stage {
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // No tone mapping and no exposure games: what the geometry does to
+  // the light is the only thing on screen.
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xd8_d7_d4);
+
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 4000);
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.maxPolarAngle = Math.PI * 0.495; // never below the ground
+  controls.minDistance = 1;
+  controls.maxDistance = 1200;
+
+  /* Neutral sky plus one weak, shadowless fill. The hemisphere alone
+     is the classic clay dome and reads top-lit; the fill only keeps
+     the shaded side from going to a single flat value, which is what
+     hides silhouette errors. */
+  const sky = new THREE.HemisphereLight(0xff_ff_ff, 0x6a_69_66, 2.6);
+  const fill = new THREE.DirectionalLight(0xff_ff_ff, 1.1);
+  fill.position.set(-1, 1.4, 0.8);
+  scene.add(sky, fill);
+
+  /* The opt-in check light, built once and only ever added or removed
+     from the scene, so toggling it costs nothing. */
+  const key = new THREE.DirectionalLight(0xff_ff_ff, 2.2);
+  key.position.set(24, 40, 18);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  const shadowCamera = key.shadow.camera;
+  shadowCamera.near = 1;
+  shadowCamera.far = 400;
+  shadowCamera.left = -80;
+  shadowCamera.right = 80;
+  shadowCamera.top = 120;
+  shadowCamera.bottom = -20;
+
+  const clay = new THREE.MeshStandardMaterial({
+    color: CLAY,
+    roughness: 0.92,
+    metalness: 0,
+  });
+  const groundMaterial = new THREE.MeshStandardMaterial({
+    color: CLAY_GROUND,
+    roughness: 1,
+    metalness: 0,
+  });
+  const figureMaterial = new THREE.MeshStandardMaterial({
+    color: CLAY_FIGURE,
+    roughness: 0.95,
+    metalness: 0,
+  });
+
+  const groundGeometry = new THREE.CircleGeometry(400, 96);
+  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  const figureGeometry = new THREE.CapsuleGeometry(
+    FIGURE_RADIUS,
+    FIGURE_BODY,
+    6,
+    16,
+  );
+  const figure = new THREE.Mesh(figureGeometry, figureMaterial);
+  figure.name = "scale-figure-1.8m";
+  figure.castShadow = true;
+  scene.add(figure);
+
+  let tree: THREE.Object3D | null = null;
+  let lightingCheck = false;
+
+  const disposeTree = (): void => {
+    if (tree === null) return;
+    scene.remove(tree);
+    tree.traverse((node) => {
+      if (node instanceof THREE.Mesh) node.geometry.dispose();
+    });
+    tree = null;
+  };
+
+  const setTree: Stage["setTree"] = (build) => {
+    disposeTree();
+    tree = build(clay);
+    tree.traverse((node) => {
+      if (node instanceof THREE.Mesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+      }
+    });
+    scene.add(tree);
+  };
+
+  const frame: Stage["frame"] = (height) => {
+    // Stand the figure clear of the root flare, and put the camera far
+    // enough back that both it and the crown are in shot.
+    figure.position.set(height * 0.16 + 1.2, FIGURE_HEIGHT / 2, height * 0.2);
+    controls.target.set(0, height * 0.45, 0);
+    camera.position.set(height * 0.85, height * 0.55, height * 1.35);
+    controls.update();
+  };
+
+  const setLightingCheck: Stage["setLightingCheck"] = (on) => {
+    if (on === lightingCheck) return;
+    lightingCheck = on;
+    renderer.shadowMap.enabled = on;
+    if (on) scene.add(key);
+    else scene.remove(key);
+    // A material compiled without shadows has to be recompiled with
+    // them; three only notices when it is told.
+    for (const material of [clay, groundMaterial, figureMaterial]) {
+      material.needsUpdate = true;
+    }
+  };
+
+  const resize = (): void => {
+    const width = canvas.clientWidth || 1;
+    const height = canvas.clientHeight || 1;
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  };
+  resize();
+
+  const observer = new ResizeObserver(resize);
+  observer.observe(canvas);
+
+  let frameHandle = 0;
+  const tick = (): void => {
+    frameHandle = requestAnimationFrame(tick);
+    controls.update();
+    renderer.render(scene, camera);
+  };
+  tick();
+
+  return {
+    setTree,
+    setLightingCheck,
+    frame,
+    dispose(): void {
+      cancelAnimationFrame(frameHandle);
+      observer.disconnect();
+      controls.dispose();
+      disposeTree();
+      groundGeometry.dispose();
+      figureGeometry.dispose();
+      clay.dispose();
+      groundMaterial.dispose();
+      figureMaterial.dispose();
+      renderer.dispose();
+    },
+  };
+}
