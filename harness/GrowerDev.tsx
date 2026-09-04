@@ -264,7 +264,14 @@ export function GrowerDev() {
           <button
             className="gd-button"
             type="button"
-            onClick={() => stageRef.current?.frame(params.height)}
+            onClick={() =>
+              stageRef.current?.frame(
+                // The subject's height, not a dial's: while the
+                // comparison is up the dials are not what is standing
+                // there, and `height` is what places the scale figure.
+                compare ? tallestPresetHeight() : params.height,
+              )
+            }
           >
             reframe
           </button>
