@@ -18,16 +18,21 @@ import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "@/lib/grower/torsion";
  * step into its single continuing child - forks excluded, because a
  * fork is supposed to change direction and a continuation is not.
  *
- * What the owner screenshotted, on the fn-11.2 generator at seed 1
- * with 800 attractors and no persistence limit:
+ * The owner's own sweep of the fn-11.3 generator, seed 1, 800
+ * attractors, before any of this existed:
  *
  *   config              median   p90    p99    max     reversals >90
- *   NO_BIAS              14.4    52.2    90.4   98.0    7  (1.35%)
- *   DEFAULT_BIAS         11.8    39.8   113.3  172.5   14  (1.78%)
+ *   NO_BIAS              14.4    53.0    91.9  101.3    8  (1.53%)
+ *   DEFAULT_BIAS         12.0    39.4   109.7  176.8   15  (1.79%)
  *
- * A 172-degree turn is a branch going forward and then almost exactly
- * backward. The tests below hold the fix to beating that under the
- * same measurement rather than to a claim about it.
+ * A 176-degree turn is a branch going forward and then almost exactly
+ * backward. Those figures are the specification and they are not
+ * reproducible from here - the generator they were taken on no longer
+ * exists - so what the tests below reproduce is the nearest thing that
+ * is still reachable: this generator with the turn limit off, which
+ * measures 172.5 max and 14 reversals at DEFAULT_BIAS. Slightly better
+ * than the recorded baseline and far worse than the fix, which is the
+ * shape of the claim being made.
  * ------------------------------------------------------------------ */
 
 interface Turns {
@@ -44,11 +49,12 @@ function measure(
   growth?: Partial<GrowthConfig>,
   seed = 1,
   envelope: Envelope = DEFAULT_ENVELOPE,
+  attractors = 800,
 ): Turns {
   const nodes = growSkeleton({
     seed,
     envelope,
-    attractors: 800,
+    attractors,
     bias,
     growth,
   }).nodes;
@@ -92,10 +98,15 @@ function measure(
   };
 }
 
-/** The limit off. 180 degrees is every direction, so this is the
- *  generator as fn-11.2 and fn-11.3 left it - and it stays reachable
- *  precisely so the improvement can be measured against it rather than
- *  asserted. */
+/** The turn limit off - and only the turn limit: 180 degrees is every
+ *  direction, so nothing is refused for turning too far. The other
+ *  half of fn-11.8, ending a branch that closes on nothing, is not a
+ *  parameter and is still in force, so this is not the fn-11.2
+ *  generator restored. It is this generator with persistence taken
+ *  out, which is what makes it the honest measurement of what
+ *  persistence alone is worth. The recorded fn-11.3 baseline, taken
+ *  before either mechanism existed, is 176.8 degrees maximum and 15
+ *  reversals - worse than what this reproduces. */
 const UNLIMITED: Partial<GrowthConfig> = { maxTurnPerStep: 180 };
 
 /** Every dial at each end of the range the panel offers, one at a
@@ -103,6 +114,20 @@ const UNLIMITED: Partial<GrowthConfig> = { maxTurnPerStep: 180 };
  *  tail lives at the extremes: at defaults the old generator already
  *  had a median of 12 degrees and still drew sawtooth. */
 const EXTREMES: { label: string; bias: Partial<BiasParams> }[] = [
+  /* The panel's `torsion` master multiplies lean, writhe and spiral by
+     up to 2 before the library ever sees them, so the reachable
+     ceiling on each of those three is twice its own dial - and that,
+     not the dial, is what the sweep has to cover. */
+  {
+    label: "every dial at its ceiling, torsion doubling all three",
+    bias: {
+      gravitropism: 1.3,
+      lean: 1,
+      writheAmplitude: 0.5,
+      writheWavelength: 0.08,
+      spiralRate: 12,
+    },
+  },
   { label: "no bias at all", bias: NO_BIAS },
   { label: "defaults", bias: DEFAULT_BIAS },
   { label: "no gravitropism", bias: { ...DEFAULT_BIAS, gravitropism: 0 } },
@@ -140,20 +165,25 @@ describe("directional persistence", () => {
     ];
     // Collected rather than asserted one at a time, so a failure names
     // the dial and the seed that broke it instead of the first one.
+    // Both ends of the density dial as well: the attractor count is
+    // what decides how crowded a node's pull is, and a crowded node is
+    // where a reversal came from.
     const over: string[] = [];
     for (const envelope of envelopes) {
       for (const { label, bias } of EXTREMES) {
         for (const seed of [1, 2, 3]) {
-          const turns = measure(bias, undefined, seed, envelope);
-          const where = `${label}, ${envelope.height} m, seed ${seed}`;
-          if (turns.max > DEFAULT_MAX_TURN_PER_STEP + 1e-9) {
-            over.push(`${where}: turned ${turns.max.toFixed(1)} deg`);
-          }
-          if (turns.reversals > 0) {
-            over.push(`${where}: ${turns.reversals} reversals`);
-          }
-          if (turns.continuations < 50) {
-            over.push(`${where}: only ${turns.continuations} continuations`);
+          for (const attractors of [250, 1600]) {
+            const turns = measure(bias, undefined, seed, envelope, attractors);
+            const where = `${label}, ${envelope.height} m, seed ${seed}, ${attractors} attractors`;
+            if (turns.max > DEFAULT_MAX_TURN_PER_STEP + 1e-9) {
+              over.push(`${where}: turned ${turns.max.toFixed(1)} deg`);
+            }
+            if (turns.reversals > 0) {
+              over.push(`${where}: ${turns.reversals} reversals`);
+            }
+            if (turns.continuations < 20) {
+              over.push(`${where}: only ${turns.continuations} continuations`);
+            }
           }
         }
       }

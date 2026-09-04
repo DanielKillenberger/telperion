@@ -283,26 +283,15 @@ describe("growSkeleton", () => {
           expect(Number.isFinite(node.position.lengthSq())).toBe(true);
           expect(node.position.y).toBeGreaterThanOrEqual(0);
           expect(node.parent).toBeLessThan(i);
-          if (
-            node.parent >= 0 &&
-            node.position.y <= crownBase &&
-            nodes[node.parent].position.y <= crownBase
-          ) {
-            // The trunk only ever climbs, so it can never turn back
-            // through the crown it just left.
+          if (node.parent >= 0 && node.position.y <= crownBase) {
+            // The trunk only ever climbs, and nothing descends into the
+            // bare-trunk region from the crown above it either: the
+            // envelope has no width down there, so a step that would
+            // land under the line is refused as no progress at all.
             expect(node.position.y).toBeGreaterThan(
               nodes[node.parent].position.y,
             );
           }
-          /* Only a parent that is itself under the crown base is held
-             to that, and it is not a loosening. A limb leaving a node
-             just over the line may land just under it - the line is
-             not a wall and the step does not know about it - but that
-             one step is as far as it gets, because the rule above then
-             forbids the next one. So nothing can dive under the crown
-             and keep going, which is what the rule is for; one step is
-             all a graze can be. Measured across this sweep, exactly
-             one such graze exists and it is 16 cm on a 24 m tree. */
         }
       }
     }

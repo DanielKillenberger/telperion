@@ -391,6 +391,13 @@ export function colonize(
       candidate
         .copy(nodes[parent].position)
         .addScaledVector(direction, step);
+      /* And a step that leaves the crown is not progress either,
+         whatever it is closing on. The envelope has no width below the
+         bare-trunk height, so a limb down there is outside the authored
+         silhouette - the pull loop already refuses to grow *from* a
+         node below the line, and this is the same rule for a node
+         about to put its child under it. */
+      if (candidate.y < config.trunkHeight) continue;
       if (candidate.distanceToSquared(attractors[a]) < nearestSq[a]) {
         closing.add(parent);
       }
