@@ -1,3 +1,4 @@
+import type { CanopyParams } from "../canopy/place";
 import type { SurfaceParams } from "../mesh/surface";
 import type { RadiusParams } from "../radius";
 import type { SkeletonParams } from "../skeleton/grow";
@@ -38,7 +39,7 @@ export interface PresetSkeleton extends SkeletonParams {
 }
 
 /** One named tree: a seed, an envelope, a bias field, a thickness
- *  solve and a surface. Handed to the same three library calls any
+ *  solve, a surface and a canopy. Handed to the same library calls any
  *  other set of parameters is. */
 export interface TreePreset {
   /** Stable identifier, used to pick a preset from a panel or a URL.
@@ -51,4 +52,8 @@ export interface TreePreset {
   readonly skeleton: PresetSkeleton;
   readonly radii: RadiusParams;
   readonly surface: SurfaceParams;
+  /** The foliage. Stated in full like everything else here, because a
+   *  canopy is most of what a tree looks like and a preset that
+   *  inherited it would be authoring half a tree. */
+  readonly canopy: CanopyParams;
 }

@@ -138,6 +138,34 @@ export const TELPERION: TreePreset = {
     forkSocket: 0.5,
     forkSwell: 1.35,
   },
+  canopy: {
+    // Its twigs come out at 6.4% of the trunk's radius, so a tenth of
+    // the trunk is the last long stretch of young wood on every limb -
+    // a narrow tree clothed to some depth rather than tufted at the
+    // very ends.
+    shootRadius: 0.1,
+    // Close-set. Fineness on this tree is visible in the tips, and a
+    // fine tip carrying widely spaced leaves reads as a bare stick with
+    // things stuck on it.
+    spacing: 0.0045,
+    // The golden angle, which is what almost every plant does.
+    divergence: 137.508,
+    clump: 6,
+    clumpSpan: 0.28,
+    // Held in close. A crown less than half as wide as Laurelin's does
+    // not carry its foliage out to the side, and the upward term is
+    // the same argument gravitropism makes about the limbs: this tree
+    // points at the sky.
+    outward: 0.42,
+    upward: 0.55,
+    // The least disorder of the two. Telperion is the finely made one
+    // and the arrangement should survive being looked at.
+    scatter: 14,
+    // 1.5 m of leaf on a 148 m tree, beside the harness's 1.8 m figure
+    // at the foot. Small, and the smaller of the two.
+    size: 0.01,
+    sizeVariation: 0.28,
+  },
 };
 
 /**
@@ -226,5 +254,35 @@ export const LAURELIN: TreePreset = {
     flareDepth: 0.004,
     forkSocket: 0.5,
     forkSwell: 1.35,
+  },
+  canopy: {
+    // A fork on this tree sheds less than its area, so the wood is
+    // still stout where Telperion's has gone to twig. The threshold
+    // rises with it or the canopy would find almost nothing to sit on.
+    shootRadius: 0.14,
+    // Wider set, on heavier wood, under bigger leaves.
+    spacing: 0.0065,
+    // Not the golden angle: the Lucas angle, the other divergence real
+    // plants use. It closes the spiral in five turns rather than
+    // eight, so leaves gather into blockier ranks - which is the
+    // massed, domed reading, where Telperion's is the open one. Same
+    // mechanism, a different number, which is the whole rule these two
+    // trees are authored under.
+    divergence: 99.502,
+    // Heavy tufts at the ends of heavy limbs, over a longer stretch of
+    // the shoot. This is most of what makes the dome read as solid.
+    clump: 9,
+    clumpSpan: 0.36,
+    // Mass carried sideways, in the foliage as in everything else. The
+    // low upward term is the same low gravitropism the limbs have.
+    outward: 0.72,
+    upward: 0.22,
+    // Looser. A broad tree read from further back wants its disorder
+    // where the eye can find it.
+    scatter: 22,
+    // Half again Telperion's, on a tree slightly shorter: about 2 m of
+    // leaf. Broad and heavy at every scale it has one.
+    size: 0.015,
+    sizeVariation: 0.4,
   },
 };
