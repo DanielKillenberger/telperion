@@ -7,10 +7,11 @@ satisfies: [R3, R4]
 Expose species and anatomy through generated Wasm bindings. See the parent spec for the botanical target and validation contract.
 
 **Size:** M
-**Files:** `crates/telperion-wasm/src/params.rs`, `crates/telperion-wasm/src/lib.rs`, `src/browser/presets.generated.ts`, `src/browser/core.ts`, `scripts/test-wasm.mjs`
-**Touches:** [crates/telperion-wasm/src/params.rs, crates/telperion-wasm/src/lib.rs, src/browser/presets.generated.ts, src/browser/core.ts, scripts/test-wasm.mjs]
+**Files:** `harness/skeleton-view.ts`, `harness/params.ts`, `harness/skeleton-view.test.ts`, `harness/params.test.ts`, `tests/browser/integration.mjs`, `crates/telperion-wasm/src/params.rs`, `crates/telperion-wasm/src/lib.rs`, `src/browser/presets.generated.ts`, `src/browser/core.ts`, `scripts/test-wasm.mjs`
+**Touches:** [harness/skeleton-view.ts, harness/params.ts, harness/skeleton-view.test.ts, harness/params.test.ts, tests/browser/integration.mjs, crates/telperion-wasm/src/params.rs, crates/telperion-wasm/src/lib.rs, src/browser/presets.generated.ts, src/browser/core.ts, scripts/test-wasm.mjs]
 
 ### Approach
+- Propagate changed generated types through existing harness conversion callers/tests so the integrated tree compiles and roundtrips. Task 8 owns new viewer affordances. Replace historical exact Ordinary counts only with explicitly documented current invariants; retain meaningful determinism/ownership coverage.
 - Propagate the finalized native parameters and species identities through the existing fields! schema and packed-output contracts. Regenerate browser metadata with wasm:build; never hand-maintain a second schema.
 - Replace positional family lookup and the hardcoded Two Trees-only public list with explicit identity lookup/catalogue semantics while keeping a clearly named ordinary baseline.
 - Carry foliage biological counts and any actually required geometry buckets through the existing ownership boundary; keep optional structure/surface/foliage/field requests independent.
