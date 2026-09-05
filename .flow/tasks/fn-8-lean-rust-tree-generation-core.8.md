@@ -37,9 +37,23 @@ The approved capture explicitly includes field output. Prior planning's deferral
 
 
 ## Done summary
-TBD
+Implemented owned mesh-free wood and retained-foliage fields with separate occupancy flags and caller-resolution closed cell queries. Private median BVHs prune spatial queries without global giant-leaf scans; the field has no surface dependency and needs only a reusable leaf extent. API and approximation contract: /home/daniel/Projects/telperion/.git/flow-notes/fn8-rust-20260905/field.md.
 
+baseline: none (task and parent define no Quick commands). The focused test first failed because Field was absent. Three final tests pass: empty/invalid queries; tapered wood, flat leaf boundary overlap, simultaneous materials, repeated queries, empty elements and malformed inputs; generated ordinary/giant native block consumers with source independence guards and retained-leaf samples. Formatting, strict core all-target clippy and diff checks pass. Classifier FULL; no nonexistent gate receipts/skips were fabricated.
+
+R3 approximation: wood uses linearly tapered sphere sweeps with rounded ends, and cubic queries use circumsphere inflation, producing conservative corner false positives that reduce with resolution. Leaf occupancy is transformed local-AABB overlap, conservatively enclosing blades and preserving thin cards for finite cells. Its false positives do not vanish with resolution. Nonfinite/negative query values reject InvalidInput; coordinate overflow or allocation failure rejects ResourceLimit. Checked arithmetic/fallible allocations impose no arbitrary low leaf ceiling. Finite coordinates are bounded below the squared-distance overflow range. Both material flags are queried independently. Bounds describe these approximate primitives.
+
+Release single-run field-only evidence (not whole-process RAM or full-generation timing): ordinary 13,264 nodes and 63,029 leaves builds in 15.19 ms; 32,768 cubic queries in 3.10 ms; owned capacity 8,478,152 bytes. Telperion 175,035 nodes and 1,349,630 retained leaves builds in 390.90 ms; same query count in 5.95 ms; owned capacity 163,668,696 bytes. Raw observations: /tmp/fn8-field-test.log. No giant wood mesh is allocated. Storage is O(n); median build O(n log n); worst-case heavily overlapping primitives can still require a scan.
+
+stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
+
+Task remains in_progress. No tracker mutation, review, integration or flowctl done invoked. Commit and handover paths are in /tmp/fn8-field-evidence.json. Shared note creation used the hook-recommended exclusive create after direct redirection into .git notes was rejected; no existing file was overwritten.
+
+Conductor merged the field and verified three release tests on the joined tree.
+stage: impl-review - skipped(user: none)
+stage: wave-join - ran(merge and focused integrated checks)
+stage: plan-sync - skipped(config: false)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d1c4419bb3d0a01a8470cd8cd3f2b7a7e72ba38b
+- Tests: baseline: none (no Quick commands defined), RED: cargo test -p telperion-core --test field; missing Field API, /tmp/fn8-field-red.log, PASS: cargo test -p telperion-core --release --test field -- --nocapture; 3 tests, /tmp/fn8-field-test.log, PASS: cargo clippy -p telperion-core --all-targets -- -D warnings; /tmp/fn8-field-clippy.log, PASS: cargo fmt --all --check, PASS: git diff --check, gate classify: FULL; no spec-defined full gate commands, Conductor: cargo test --release -p telperion-core --test field: 3 passed on integrated tree
 - PRs:
