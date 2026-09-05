@@ -41,9 +41,20 @@ The rewritten parent spec supersedes the earlier plan. Baseline comparisons diag
 - [ ] Clean documented setup builds both targets without /tmp toolchain dependencies.
 
 ## Done summary
-TBD
+Added dependency-free Rust core and thin Wasm foundation with owned tree storage, deterministic math/RNG/envelope/noise/bias primitives, and independently owned stage modules. The native/browser ownership proof passes; final-FN6 provenance, seven reproducible compact fixtures, comparison policy and standard rustup build instructions are in tests/migration/README.md.
 
+baseline: none (the approved parent and task contain no Quick commands). The first new-suite run failed for the expected absent Cargo workspace; final native suite has 5 passing tests. Browser proof compares 192 owned values (max error 0) and verifies idempotent release, reuse, malformed-input clearing, limits, and empty results. Rustfmt, clippy, npm build and reference comparison pass. All seven reference fixtures ran sequentially, including Telperion and Laurelin; large raw buffers remain opt-in and ignored. Tests and raw logs are recorded in the evidence JSON.
+
+Contracts for downstream workers: /home/daniel/Projects/telperion/.git/flow-notes/fn8-rust-20260905/foundation.md. Node.base_radius holds branch allocation independently of solved edge radii. Raw skeleton radii may be zero; validate_solved enforces positive output radii. Stage modules remain empty until their assigned ports; the foundation does not claim a botanical or visual migration comparison is complete. The pinned compiler is installed by rustup and no committed build command depends on /tmp; this execution reused the provided temporary toolchain and Playwright installation via environment variables.
+
+stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
+
+Task remains in_progress. No review or flowctl done was invoked. The conductor authorized .gitignore in addition to the original Touches; no other implementation edits exceeded them.
+
+Integrated and verified on the conductor branch.
+stage: wave-join - ran (model: gpt-6-astra)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b410f3ba1fb304ed0810712262cc1534ea122442
+- Tests: baseline: none (approved parent and task define no Quick commands), Initial red: cargo test --workspace failed because Cargo.toml did not yet exist; /tmp/fn8-foundation-red.log, cargo test --workspace: 5 passed; /tmp/fn8-foundation-final-native.log, cargo clippy --workspace --all-targets -- -D warnings: passed; /tmp/fn8-foundation-clippy.log, cargo fmt --all -- --check: passed, PLAYWRIGHT_MODULE=/tmp/fn20-browser/node_modules/playwright/index.mjs CHROMIUM_EXECUTABLE=/usr/bin/chromium node scripts/test-wasm.mjs: passed; 192 values, native/Wasm maxError=0, ownership/release/reuse/malformed/resource/empty checks; /tmp/fn8-foundation-final-wasm.log, node scripts/export-reference.mjs: all 7 final-FN6 cases passed; /tmp/fn8-foundation-reference-all.log, REFERENCE_OUTPUT=/tmp/fn8-foundation-reference-check node scripts/export-reference.mjs ordinary: passed final provenance metadata; /tmp/fn8-foundation-reference-check.log, node scripts/compare-migration.mjs tests/migration/fixtures tests/migration/generated: passed; /tmp/fn8-foundation-final-compare.log, npm run build: passed; /tmp/fn8-foundation-build.log, git diff --check: passed, flowctl gate classify --base 16070c144b79d6b738d05fc198ba297a52de9248: FULL (executable changes); no spec-defined full gates to receipt, Integrated target: cargo test --workspace (5 passed), Integrated target: cargo fmt --all -- --check (passed), Integrated target: actual Chromium scripts/test-wasm.mjs (192 values, maxError 0, ownership/error checks passed)
 - PRs:
