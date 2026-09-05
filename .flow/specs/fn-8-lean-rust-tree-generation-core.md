@@ -1,75 +1,73 @@
-# Lean Rust tree generation core
+# fn-8-lean-rust-tree-generation-core Lean Rust tree generation core
 
-## Overview
+## Conversation Evidence
 
-Replace the procedural generation core with one native Rust library and a thin browser Wasm binding, while retaining the existing browser controls and renderer. The result should make botanical rules easy to inspect, change and extend toward realistic procedural tree simulation.
+> user (E1): "i'd just like to see if i can push the envelope with tree generation in realtime environments with proc gen. I feel that games have had underwhelming trees in most settings. If we can have high performant trees that can even have a lifecycle with growth etc. That'd be insane step for gaming no?"
+> user (E2): "well the parameters establish the trees "family" of trees and the seed will make an instance/specimen of that right?"
+> user (E3): "we should probably also have presets for certain species"
+> user (E4): "is it worth rewriting the fundamental engine in rust to be much faster/more efficient and we create bindings?"
+> user (E5): "it would also be good if we could ouptut things in ways that are useful to different engines. For example if we made a minecraft mod we wouldn't need an actual surface mesh but only a field that we'd approach with blocks right? allowing for this kind of flexibility in integration should also be a core functionality. Does this make sense?"
+> user (E6): "ok so we wait on this worktree and integrate fn-6 when it's done and test again"
+> user (E7): "i mean the repo is 1 day old. We can just migrate the whole thing. I don't need backwards compatibility"
+> user (E8): "i think it's fine for now we'll do another spec where we try and build all kinds of real trees as templates with visual QA which will definitely find structural issues."
+> user (E9): "have to say the tapered branches look very very pokey now. should we fix it now or do the rust rewrite first"
+> user (E10): "we don't need completion review let's call this done and move on to fn-7 (if we even still need to finish that with new version) and do the rust rewrite in fn-8?"
+> user (E11): "alright sounds good. One requirement for the rust rewrite i want the code to be lean and elegant. It should be easy to change and grow. that should be the mantra overall for this project."
+> user (E12): "Minimalist af. Efficient af and beautiful. In the end we want to get to realistic simulations of trees that are procedurally generated."
 
-## Approach
+## Goal & Context
 
-Keep tree data independent of rendering and binding libraries. Parameters describe the family, species presets provide named parameter sets, and the seed determines the specimen. Preserve final FN-6's generation behaviour as the migration reference, including its provisional pointed branches; improvements to botanical form get their own reference-driven species work.
+<!-- Source: [paraphrase], E1, E4, E7, E11, E12 -->
+Replace the procedural tree engine with a lean Rust core that improves runtime efficiency and stays easy to change. The destination is realistic procedural tree simulation for real-time environments, including growth and lifecycle behaviour. FN-8 establishes the core on which that work can grow.
 
-Use compact owned arrays, explicit stage inputs and outputs, and small modules named for the domain. A native consumer can generate and inspect structure without constructing a mesh; surface and foliage outputs are independently requested from the same solved tree. Prefer safe Rust and straightforward code; every unsafe boundary or additional dependency needs a concrete purpose and a local explanation.
+## Architecture & Data Models
 
-The native contract consists of a validated family/seed request producing an owned solved tree plus generation diagnostics, and separate surface and foliage functions consuming that tree. Tree data retains current parent, lineage, phase, twig and radius information; it introduces no speculative timestep or stable-identity system. Foliage results distinguish leaf-element geometry from transforms so consumers can reuse an element. The browser adapter copies returned arrays into JS ownership before releasing or reusing Wasm storage; zero-copy lifetime machinery is unnecessary until measured transfer costs justify it.
+- Parameters define a tree family, a seed selects a specimen, and species presets supply named parameter sets. [paraphrase] (E2, E3)
+- One Rust core serves different engines through bindings, separating the tree's structure from the representation a consumer requests. [paraphrase] (E4, E5, E7)
+- Small interfaces and explicit data flow keep botanical rules and output representations independently changeable. [strategy:The core and integration]
 
-Preserve the existing deterministic node-cap/partial-tree report. Check buffer-size arithmetic and use fallible allocation for output buffers; output allocation failure returns an error rather than a truncated successful mesh. Retain meaningful finite-input clamping and valid zero modes, while rejecting non-finite or structurally invalid inputs at the new API boundary. Browser initialization may be asynchronous, but FN-8 does not require worker execution or cancellation of a synchronous Wasm call; any asynchronous rebuild path must discard and dispose stale results.
+## API Contracts
 
-```mermaid
-flowchart LR
-    P[Family parameters and specimen seed] --> C[Rust generation core]
-    C --> T[Solved tree state]
-    T --> S[Optional surface]
-    T --> F[Optional foliage]
-    T --> N[Native consumer]
-    S --> W[Thin Wasm binding]
-    F --> W
-    T --> W
-    W --> B[Browser UI and renderer]
-```
+- Consumers can request useful tree representations without being forced through surface-mesh generation; spatial fields must support a block-based consumer. [paraphrase] (E5)
+- Bindings expose the same core to browser and native consumers. [strategy:The core and integration]
 
-## Boundaries / non-goals
+## Edge Cases & Constraints
 
-No compatibility promise for existing TypeScript APIs, saved formats or seed outputs across the migration; equivalent current specimens are a regression check, not a permanent format commitment. Remove the production TypeScript generator at cutover; a frozen reference in Git and verification fixtures may remain for testing. Preserve current supported controls and their meaning.
-
-Lifecycle simulation, new species templates, fixes to pokey branches, fork redesign, GPU generation, multithreading, forest LOD and game-specific adapters are subsequent work. This migration exposes renderer-independent tree state and optional existing representations; a general spatial-field sampler and Minecraft/Valheim integrations remain subsequent consumers, without speculative plugin machinery or empty extension interfaces now.
-
-## Strategy Alignment
-
-- **The core and integration** - one lean Rust core supports native and browser consumers, with generation separated from optional representations.
-- **Growth and botanical fidelity** - explicit botanical stages and reproducible specimens keep later model changes local and testable.
-- **Surface and rendering at scale** - migrate surfaces and foliage with measured build and transfer costs, keeping GPU results separate from CPU improvements.
-- **The supernatural field** - preserve shared field semantics and named controls across the migration.
-
-## Decision context
-
-The owner's mantra is "Minimalist af, efficient af and beautiful". Small domain interfaces, explicit ownership and measured improvements are the architectural standard; a generic engine framework, permanent dual core and compatibility layer add no value to this young project.
-
-FN-7 measured a browser surface-only gain on frozen pre-final-FN-6 inputs. It did not establish whole-generation speed, total memory reduction or GPU improvement. Keep that report as historical evidence and compare FN-8 directly with final FN-6, without refreshing the disposable prototype.
-
-The final FN-6 reference is commit fdafb099b1495519de75a6b9a66d37f7d07e47bd. Its recorded builder medians are 4.9234 s for Telperion and 7.7384 s for the comparison; native-DPR GPU medians are 5.846528 ms and 9.09824 ms respectively. Those are historical observations on the recorded machine; collect a contemporaneous reference under the same measurement conditions before attributing gains to Rust.
+- Existing APIs and formats impose no backwards-compatibility requirement. [paraphrase] (E7)
+- Proposed common error contract for R2-R5: invalid inputs fail clearly; valid empty outputs remain usable; resource limits and binding failures cannot masquerade as a complete successful tree. Exact error and ownership mechanisms belong to the implementation plan. [inferred]
 
 ## Acceptance Criteria
 
-- **R1:** Pin final-FN-6 fixtures and a reproducible equivalence runner for ordinary scale, both giant presets and boundary cases before porting the algorithms. Compare topology, parent ordering, twig/leaf membership and counts exactly, and positions, radii, bounds, mesh attributes and transforms with declared absolute/relative tolerances established before migration results are judged; compare clay views with the same seed, parameters, camera and lighting. Errors: missing reference revision or mismatched fixture provenance fails the comparison; empty/single-edge cases, crown crossings, degenerate edges, capped generation and leaf-free outputs are represented explicitly. Numeric differences that change topology or visible shape fail the pin and require diagnosis rather than silently relaxing it.
-- **R2:** Provide one native Rust core for parameters, presets, deterministic RNG, envelope, shared bias field, colonization, branch generations, twigs, radius solving and shedding. Preserve final-FN-6 control semantics and emit finite parent-before-child structure; repeated builds are byte-identical on each supported target/toolchain, with cross-target differences governed by R1's comparison policy. Errors: non-finite parameters, invalid ranges and invalid tree references return explicit errors; valid zero/empty cases retain their reference meaning, and node limits return an explicit capped result without corrupting structure.
-- **R3:** Generate surface geometry and foliage data through independent requests against the solved tree, using renderer-independent buffers and metadata. A structural-only request creates neither mesh nor foliage output; a surface-only request avoids foliage work; foliage placement and shell culling do not require constructing the wood surface. Errors: empty requested output is a valid empty buffer set; invalid indices, incompatible buffers and unsupported request values fail clearly without partial usable output. Validate winding, normals, bounds and instance membership against R1.
-- **R4:** Expose a small Wasm binding and a native library API over the same core. Specify ownership, release and view lifetime, including whether a later call can invalidate a view; perform coarse stage/build calls and bounded transfers rather than per-node language crossings. Errors: malformed requests, buffer-length mismatches, out-of-range counts and stale/released handles are rejected safely wherever handles are exposed; memory growth and allocation failure must not leave dangling views or a falsely successful build. Wasm traps/load failures surface as errors in the adapter.
-- **R5:** Switch the browser harness to Rust/Wasm, retaining Telperion, Laurelin, comparison mode, all currently supported dials, clay/foliage display, skeleton diagnostics and CPU/GPU measurement controls. Errors: initialization/build failure leaves a visible error and a coherent previous scene; replacement disposes owned resources; if builds become asynchronous, stale completions cannot replace the latest requested tree. Browser tests and matched clay captures verify the port at ordinary and giant scales.
-- **R6:** Demonstrate lower median whole-build browser latency for both giant presets and their comparison against contemporaneous final-FN-6 runs at unchanged output work and measurement conditions. Record warmups, raw samples, environment, stage timings, transfer/materialization costs and native results; establish tolerances and sampling before the comparison, and increase samples when timing variation makes improvement inconclusive. Report peak memory by available measurement domain, repeated build/dispose behaviour, and real GPU timer results independently. Errors: unavailable memory or GPU instrumentation is labelled unavailable, never substituted with a differently named metric; regressions or inconclusive performance fail the CPU improvement gate and require investigation. Existing frame-budget misses remain visible and are not solved by claiming a Rust CPU gain.
-- **R7:** Ship one production core with a clean native/Wasm build, a thin TypeScript consumer and maintained tests/documentation. Port behavioural tests to their owning Rust modules, retain browser integration tests, and remove superseded production algorithms and stale API examples. Document the public data/ownership contract, reproducible setup and final benchmark limits. Errors: a clean checkout with documented prerequisites must build and test without temporary machine-specific paths; missing Wasm artifacts must be built by the documented flow or produce an actionable error. Lean design is checked through concrete dependency/module ownership and absence of duplicate generation or speculative frameworks, not a line-count target.
+- **R1:** Compare the rewrite with finished FN-6 using reproducible inputs and visual checks at ordinary and Telperion scales; diagnose differences without requiring byte-identical old outputs or preserving known structural defects. An unavailable or mismatched reference must be reported. [inferred]
+- **R2:** The complete procedural generation engine runs in Rust, including family parameters, specimen seeds and species presets; repeated identical inputs reproduce a specimen. Boundary handling follows the proposed common error contract. [paraphrase] (E2, E3, E4, E7)
+- **R3:** Mesh-based and mesh-free consumers can obtain suitable representations of the same generated tree, including a spatial field usable by a block-based consumer without constructing a surface mesh. Empty field regions remain valid results; invalid requests follow the common error contract. [paraphrase] (E5)
+- **R4:** Browser and native bindings use the same generation core. Binding failures follow the proposed common error contract. [strategy:The core and integration]
+- **R5:** The current interactive viewer continues to generate and display the Two Trees and parameter-driven specimens through the Rust core; existing useful controls and visual inspection remain available. Build failures are visible and leave the viewer usable. [inferred]
+- **R6:** Measure complete generation latency and memory against finished FN-6 under comparable workloads, including binding costs; demonstrate a generation-speed improvement and report memory or rendering regressions explicitly. Missing or inconclusive measurements are reported as such. [inferred]
+- **R7:** Deliver lean, elegant code whose botanical rules and outputs are easy to change: one production generator, small understandable interfaces and no unnecessary compatibility machinery. Assess this through the resulting module boundaries and representative changes to a botanical rule and an output, without imposing a line-count target; no runtime error surface beyond R2-R5. [inferred]
 
-## Early proof point
+## Boundaries
 
-Task fn-8-lean-rust-tree-generation-core.1 pins the final reference and proves deterministic foundational data can be generated natively and transferred through Wasm with explicit ownership. If the boundary or numerical contract fails, simplify it before migrating the remaining stages.
+- Backwards compatibility is unnecessary. [paraphrase] (E7)
+- Broad real-species templates and their structural visual QA belong to a subsequent spec. [paraphrase] (E8)
+- Full lifecycle simulation is the long-term destination; new lifecycle algorithms and a shipped Minecraft mod are outside this migration, while mesh-free field output is included. [inferred]
+
+## Decision Context
+
+### Motivation
+
+- "Minimalist af. Efficient af and beautiful." [user] (E12)
+- The young repository can undergo a full migration without carrying compatibility obligations. [paraphrase] (E7)
+- Realistic procedural simulation gives the architecture its direction; lean, changeable code is a project-wide requirement. [paraphrase] (E11, E12)
 
 ## Requirement coverage
 
-| Req | Description | Task(s) | Gap justification |
-|-----|-------------|---------|-------------------|
-| R1 | Final reference and equivalence | .1, .2, .3, .4, .5, .6 | None |
-| R2 | Complete botanical generation | .1, .2, .3 | None |
-| R3 | Optional surface and foliage | .4, .5 | None |
-| R4 | Native and Wasm contract | .1, .5, .6 | None |
-| R5 | Browser cutover | .6 | None |
-| R6 | Whole-pipeline measurements | .7 | None |
-| R7 | Lean production cutover and docs | .1, .6, .7 | None |
+| Requirement | Planning handoff |
+|-------------|------------------|
+| R1 | Reconcile existing FN-8 tasks with the captured comparison requirement |
+| R2 | Reconcile existing FN-8 tasks with the complete Rust migration |
+| R3 | Add field-output coverage to the existing representation tasks |
+| R4 | Reconcile existing FN-8 binding tasks |
+| R5 | Reconcile existing FN-8 viewer tasks |
+| R6 | Reconcile existing FN-8 measurement tasks |
+| R7 | Reconcile existing FN-8 tasks with the lean-design requirement |
