@@ -54,7 +54,7 @@
     "completion": 0
   },
   "spec_path": ".flow/specs/fn-7-rust-surface-benchmark-prototype.md",
-  "status": "open",
+  "status": "done",
   "title": "Rust surface benchmark prototype",
   "tracker": {
     "baseHashFlow": null,
@@ -67,5 +67,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T13:10:43.456703Z"
+  "updated_at": "2026-09-05T18:24:51.369747Z"
 }
