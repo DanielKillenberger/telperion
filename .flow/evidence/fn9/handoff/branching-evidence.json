@@ -1,6 +1,6 @@
 {
   "commits": [
-    "04d8ba3ec476eda48d3570d4d10eea91f9fb30a1"
+    "fc2add4a01efdbbe45c63e6084e2606e99f7a747"
   ],
   "base_commit": "de230d59391ead7f1382aae5f695a5c2f5f96754",
   "tests": [
@@ -13,7 +13,11 @@
     "cargo test --release --workspace \u2014 passed before final local bend and minimum leader segment changes; pinned external reference tests ignored by existing annotations",
     "cargo test --release -p telperion-core --test growth \u2014 final code passed 13 tests, /tmp/fn9-branching-green-local-bends.log",
     "cargo fmt --all \u2014 ran before final minimum leader segment signature edit",
-    "Final gate classify/full verification not run: user explicitly stopped implementation; task remains in_progress"
+    "Final gate classify/full verification not run: user explicitly stopped implementation; task remains in_progress",
+    "Integrated HEAD fc2add4a01efdbbe45c63e6084e2606e99f7a747: cargo test --release -p telperion-core --test growth --test colonization \u2014 18 passed; .flow/tmp/fn9-integrated-branching.log",
+    "Integrated: cargo test --release --workspace \u2014 54 passed, 4 existing external-reference tests ignored; .flow/tmp/fn9-integrated-workspace-tests.log",
+    "Integrated: cargo check --workspace; cargo fmt --all --check; git diff --check \u2014 passed",
+    "Integrated: npm run typecheck \u2014 passed after npm ci --ignore-scripts restored missing local dependencies; .flow/tmp/fn9-integrated-typecheck.log"
   ],
   "prs": []
 }

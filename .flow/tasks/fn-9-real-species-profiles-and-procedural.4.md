@@ -38,9 +38,12 @@ cargo test --release -p telperion-core --test foliage --test field
 - [ ] Focused foliage/field regressions pass; any remaining unsupported anatomy is recorded.
 
 ## Done summary
-Blocked:
-Owner requested implementation stop and clean transfer to Forge. Worker has stopped; existing implementation is preserved in the handoff WIP. Temporarily blocking solely to release the claim, then resetting to todo for the successor to verify and complete. No external dependency or human decision blocks resumption.
+Verified integrated foliage implementation at `fc2add4a01efdbbe45c63e6084e2606e99f7a747` after task 3 was marked done. Growth/foliage/field/species_metrics suites passed all 32 tests, including lobed blades and petioles, four-sided needles and pegs, local attachment, continuous station phase across subdivided twigs, connector-excluded transformed measurements, conservative bounds/field coverage, and explicit empty/invalid handling. Workspace compilation, formatting and whitespace checks passed again. Combined release workspace suite and typecheck were already green on this same Rust tree. No Rust edits were needed.
+
+Each instance represents one biological leaf or needle; geometry metadata excludes connectors from unit metrics. Core runtime remains dependency-free, with serde_json dev-only. Named templates/calibration, Wasm/browser exposure and inspected cross-seed visual fidelity remain downstream. No anatomy substitution, gate weakening or browser fixture changes were made.
+
+REVIEW_MODE=none: no reviews invoked. Original source-worker provenance remains in HANDOFF.md; completion evidence commits now reference the integrated handoff SHA.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fc2add4a01efdbbe45c63e6084e2606e99f7a747
+- Tests: baseline: green (cargo test --release -p telperion-core --test growth --test foliage; npm run typecheck), red-to-green: foliage geometry/attachment/invalid connector tests (.flow/tmp/foliage-red.log), red-to-green: transformed species metrics (.flow/tmp/foliage-metrics-red.log), red-to-green: multi-edge same-twig station continuity (.flow/tmp/foliage-continuity-red.log), cargo test --release -p telperion-core --test growth --test foliage (18 passed; .flow/tmp/foliage-verify-parent.log), cargo test --release -p telperion-core --test foliage --test field (14 passed; .flow/tmp/foliage-verify-task.log), cargo test --release -p telperion-core --test species_metrics (5 passed; .flow/tmp/foliage-verify-metrics.log), npm run typecheck (exit 0; .flow/tmp/foliage-verify-typecheck.log), cargo check --workspace (exit 0; .flow/tmp/foliage-verify-workspace.log), rustfmt --edition 2021 (seven touched Rust files), git diff --check (exit 0), Integrated HEAD fc2add4a01efdbbe45c63e6084e2606e99f7a747, after task 3 done: cargo test --release -p telperion-core --test growth --test foliage --test field --test species_metrics — 32 passed; .flow/tmp/fn9-integrated-foliage.log, Integrated: cargo check --workspace; cargo fmt --all --check; git diff --check — passed after task 3 done, Combined tree: cargo test --release --workspace — 54 passed, 4 existing external-reference tests ignored; npm run typecheck — passed
 - PRs:
