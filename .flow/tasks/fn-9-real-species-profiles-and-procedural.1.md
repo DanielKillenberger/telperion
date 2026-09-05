@@ -42,9 +42,8 @@ Selected evidence-ready Oregon white oak and Norway spruce profiles with frozen 
 
 Baseline: green; verification: 14 native tests, typecheck, measure and JSON validation passed. The docs-only classifier returned tier B; native tests/measure were additionally executed rather than claiming skip receipts. No shared gate receipts or tracker mutations were written by the parallel worker.
 
-stage: impl-review - skipped(policy: parallel-wave - conductor owns the gate)
 
-Task remains in_progress for conductor integration. Only the three allowed evidence files changed. No review verdict is claimed. Reference images and baseline captures are local in `/home/daniel/Projects/telperion/.worktrees/fn9-research/.refs/fn9/`; capture script and raw gate logs are in the same worktree `.flow/tmp/`. Baseline attached-twig and junction close-ups are explicitly unassessed, not a fidelity pass; whole/bare and isolated element captures were inspected. Profile readiness is independent of final generated-species validation.
+Conductor integrated the research commit and verified task completion. Only the three allowed evidence files changed. No review verdict is claimed. Reference images and baseline captures are local in `/home/daniel/Projects/telperion/.worktrees/fn9-research/.refs/fn9/`; capture script and raw gate logs are in the same worktree `.flow/tmp/`. Baseline attached-twig and junction close-ups are explicitly unassessed, not a fidelity pass; whole/bare and isolated element captures were inspected. Profile readiness is independent of final generated-species validation.
 
 Downstream note: dimensions exclude petiole/peg connectors. Foliage geometry needs a lightweight blade/needle subset or connector metadata to measure actual transformed dimensions. No need to add JSON serialization to the core just to read research profiles. All selected species use individual foliage units, no fascicles.
 
