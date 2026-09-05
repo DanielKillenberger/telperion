@@ -4,7 +4,9 @@
   "claimed_at": null,
   "created_at": "2026-09-05T18:32:41.368280Z",
   "depends_on": [
-    "fn-8-lean-rust-tree-generation-core.2"
+    "fn-8-lean-rust-tree-generation-core.2",
+    "fn-8-lean-rust-tree-generation-core.4",
+    "fn-8-lean-rust-tree-generation-core.5"
   ],
   "id": "fn-8-lean-rust-tree-generation-core.3",
   "priority": null,
@@ -12,5 +14,5 @@
   "spec_path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.3.md",
   "status": "todo",
   "title": "Port local branches, twigs, radii and preset assembly",
-  "updated_at": "2026-09-05T18:44:25.906675Z"
+  "updated_at": "2026-09-05T19:05:01.002519Z"
 }
