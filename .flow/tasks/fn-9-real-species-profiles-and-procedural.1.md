@@ -38,9 +38,20 @@ cargo run --release -p telperion-core --example measure
 - [ ] Compact evidence persists in the worktree; images can be retrieved from the manifest, with unavailable sources explicitly reported.
 
 ## Done summary
-TBD
+Selected evidence-ready Oregon white oak and Norway spruce profiles with frozen numeric gates, explicit contextual/unknown quantities, anatomy rubrics and fixed/fresh seed protocol. Attributed reference retrieval and inspected Ordinary baseline discrepancies are committed under `.flow/evidence/fn9/`.
 
+Baseline: green; verification: 14 native tests, typecheck, measure and JSON validation passed. The docs-only classifier returned tier B; native tests/measure were additionally executed rather than claiming skip receipts. No shared gate receipts or tracker mutations were written by the parallel worker.
+
+stage: impl-review - skipped(policy: parallel-wave - conductor owns the gate)
+
+Task remains in_progress for conductor integration. Only the three allowed evidence files changed. No review verdict is claimed. Reference images and baseline captures are local in `/home/daniel/Projects/telperion/.worktrees/fn9-research/.refs/fn9/`; capture script and raw gate logs are in the same worktree `.flow/tmp/`. Baseline attached-twig and junction close-ups are explicitly unassessed, not a fidelity pass; whole/bare and isolated element captures were inspected. Profile readiness is independent of final generated-species validation.
+
+Downstream note: dimensions exclude petiole/peg connectors. Foliage geometry needs a lightweight blade/needle subset or connector metadata to measure actual transformed dimensions. No need to add JSON serialization to the core just to read research profiles. All selected species use individual foliage units, no fascicles.
+
+stage: impl-review - skipped(policy: owner requested no implementation review)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: wave-join - ran (research commit integrated and native measure verified)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6e7be26
+- Tests: baseline: green (14 native tests, typecheck, native measure; each exit 0), cargo test --release -p telperion-core --test growth --test foliage (verify: 14 passed, exit 0), npm run typecheck (verify: exit 0), cargo run --release -p telperion-core --example measure (verify: exit 0, six nonempty samples), npm run wasm:build (exit 0, generated tracked metadata unchanged), node .flow/tmp/capture.mjs (exit 0; headless neutral whole/bare/element images inspected), python3 -m json.tool .flow/evidence/fn9/profiles.json (exit 0), gate classify: TIER_B docs-only; native suites were additionally run, not skipped; no fabricated skip receipt, Integrated target: cargo run --release -p telperion-core --example measure passed with six nonempty samples, 13264 nodes/63029 retained; JSON profile validated
 - PRs:
