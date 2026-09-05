@@ -8,9 +8,11 @@ pub mod foliage;
 pub mod math;
 pub mod noise;
 pub mod presets;
+pub mod radius;
 pub mod rng;
 pub mod surface;
 pub mod tree;
+pub mod twigs;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
