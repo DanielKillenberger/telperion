@@ -109,3 +109,16 @@ Only after end-to-end lifecycle and memory evidence should the project commit
 to a broader Rust migration. Growth, radius solving, foliage, renderer upload,
 GPU frame time and native engine integration were not benchmarked here. Surface
 CPU gains imply no GPU-frame or full-lifecycle gain.
+
+## 2026-09-05: FN8 architecture decision
+
+FN8 replaces the complete production generator with one Rust core, exposed through
+native modules and a Wasm browser binding. Structure, wood surface, foliage and
+mesh-free occupancy have separate consumers. The TypeScript generator is removed;
+this experiment and its frozen reference remain historical artifacts. The earlier
+recommendation above belongs to the surface-only experiment and is superseded by
+that architecture decision. Its measured results have not been changed.
+
+The [FN8 report](../../.flow/evidence/fn8/REPORT.md) owns the matched full-builder,
+transfer, memory-domain and GPU observations. None of the surface-only numbers in
+this report establish a whole-engine speedup, total-memory reduction or GPU win.
