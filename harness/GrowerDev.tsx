@@ -16,7 +16,7 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { PRESETS, type TreePreset } from "../src/presets";
+import { PRESETS, initializeTreeCore, type TreePreset } from "../src/browser/core";
 
 import {
   DEFAULT_PARAMS,
@@ -74,6 +74,16 @@ export function GrowerDev() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<Stage | null>(null);
 
+  const [coreReady, setCoreReady] = useState(false);
+  const [buildError, setBuildError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    initializeTreeCore().then(() => { if (active) { setCoreReady(true); setBuildError(null); } },
+      error => { if (active) setBuildError(String(error)); });
+    return () => { active = false; };
+  }, [loadAttempt]);
+
   const [params, setParams] = useState<GrowerParams>(DEFAULT_PARAMS);
   // The seed box is free text so a half-typed number is not thrown
   // away mid-keystroke; `params.seed` only moves when it parses.
@@ -128,25 +138,31 @@ export function GrowerDev() {
   }, [logDepth]);
 
   useEffect(() => {
+    if (!coreReady) return;
     const build = (): void => {
-      // `setTree` calls its builder synchronously, so the stats are in
-      // hand by the time it returns.
-      const built: { stats: TreeStats | null } = { stats: null };
-      stageRef.current?.setTree((clay) => {
-        if (compare) {
-          const result = buildComparison(PRESETS, clay);
+      try {
+        // `setTree` calls its builder synchronously, so the stats are in
+        // hand by the time it returns.
+        const built: { stats: TreeStats | null } = { stats: null };
+        stageRef.current?.setTree((clay) => {
+          if (compare) {
+            const result = buildComparison(PRESETS, clay, foliage);
+            built.stats = result.stats;
+            return result.group;
+          }
+          const result = buildTree(params, clay, foliage);
           built.stats = result.stats;
-          return result.group;
-        }
-        const result = buildTree(params, clay, foliage);
-        built.stats = result.stats;
-        return result.tree;
-      });
-      setStats(built.stats);
-      lastBuildMs.current = built.stats?.buildMs ?? 0;
-      stageRef.current?.frameIfWaiting(
-        compare ? tallestPresetHeight() : params.height,
-      );
+          return result.tree;
+        });
+        setBuildError(null);
+        setStats(built.stats);
+        lastBuildMs.current = built.stats?.buildMs ?? 0;
+        stageRef.current?.frameIfWaiting(
+          compare ? tallestPresetHeight() : params.height,
+        );
+      } catch (error) {
+        setBuildError(String(error));
+      }
     };
 
     /* A cheap tree rebuilds on every notch; an expensive one waits for
@@ -186,7 +202,7 @@ export function GrowerDev() {
        Every read of "what is on the stage" is a call site of that
        replacement, and the ones outside the effect that builds it are
        the ones that get missed. */
-  }, [params, compare, logDepth, foliage]);
+  }, [params, compare, logDepth, foliage, coreReady, loadAttempt]);
 
   useEffect(() => {
     stageRef.current?.setLightingCheck(lightingCheck);
@@ -293,6 +309,11 @@ export function GrowerDev() {
 
       <aside className="gd-panel">
         <h1 className="gd-title">grower</h1>
+        {buildError && <div role="alert" className="gd-note gd-warn">
+          {buildError}
+          <button className="gd-button" onClick={() => setLoadAttempt(n => n + 1)}>retry build</button>
+        </div>}
+        {!coreReady && !buildError && <p role="status" className="gd-note">Loading tree core…</p>}
         <p className="gd-note">
           clay. flat grey, neutral sky, no bloom. this is the judging mode.
         </p>
@@ -466,6 +487,7 @@ export function GrowerDev() {
               : `derived generations min / median / max: ${stats.generations.min} / ${stats.generations.median} / ${stats.generations.max}; ${stats.handoffs.toLocaleString()} surviving handoffs; ${stats.levelCappedHandoffs.toLocaleString()} level-capped by radius law; ${stats.twigs.toLocaleString()} twigs; ${stats.leavesPlaced.toLocaleString()} leaves placed`}
           </p>
         ) : null}
+        {stats?.attractionCapped && <p role="status">Partial tree: attractor resource limit reached.</p>}
         {stats?.levelCapped ? (
           <p className="gd-note gd-warn">
             generation safety cap reached during growth. lower length ratio

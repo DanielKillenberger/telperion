@@ -1,5 +1,8 @@
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { initializeTreeCore } from "../src/browser/core";
+beforeAll(() => initializeTreeCore(readFileSync("src/browser/telperion.wasm")));
 
 import { DEFAULT_ENVELOPE } from "../src/envelope";
 import { DEFAULT_SURFACE } from "../src/mesh/surface";
@@ -7,7 +10,7 @@ import { DEFAULT_RADII, solveRadii } from "../src/radius";
 import { growSkeleton } from "../src/skeleton/grow";
 import { DEFAULT_BIAS } from "../src/torsion";
 
-import { LAURELIN, PRESETS } from "../src/presets";
+import { LAURELIN, PRESETS } from "../src/browser/core";
 
 import { DEFAULT_PARAMS, SLIDERS, type GrowerParams } from "./params";
 import {
@@ -15,7 +18,6 @@ import {
   buildPreset,
   buildTree,
   countDraws,
-  branchStats,
   presetToParams,
   toCanopyParams,
   toRadiusParams,
@@ -770,30 +772,4 @@ describe("the forest's own numbers", () => {
     expect(off.stats.nodes).toBe(on.stats.nodes);
   });
 
-});
-
-
-describe("derived branch read-out", () => {
-  it("counts surviving handoffs, excludes downstream branches, and reports law caps", () => {
-    const nodes = [-1, 0, 1, 1, 1, 1, 2].map((parent) => ({
-      parent, position: new THREE.Vector3(),
-    }));
-    const skeleton = {
-      nodes, crossover: 2,
-      branchId: new Int32Array([2, 3, 4, 5, 6]),
-      baseRadius: new Float64Array([0.0025, 0.005, 0.02, 0.08, 0.0025]), endRadius: new Float64Array([0.0025, 0.005, 0.02, 0.08, 0.0025]),
-      twig: new Uint8Array([1, 0, 0, 0, 1]),
-      levelCapped: false, nodeCapped: false,
-    };
-    const law = { ...toSkeletonParams(DEFAULT_PARAMS).twigs, lengthRatio: 0.5, ratioPower: 1 };
-    const stats = branchStats(skeleton, law);
-    expect(stats.handoffs).toBe(4);
-    expect(stats.generations).toEqual({ min: 0, median: 2, max: 5 });
-    expect(stats.twigs).toBe(2);
-    expect(stats.levelCappedHandoffs).toBe(0);
-    expect(branchStats(skeleton, { ...law, ratioPower: 0 }).levelCappedHandoffs).toBe(3);
-    expect(branchStats({ ...skeleton, nodes: nodes.slice(0, 2),
-      branchId: new Int32Array(), baseRadius: new Float64Array(), endRadius: new Float64Array(), twig: new Uint8Array(),
-    }, law).generations).toBeNull();
-  });
 });

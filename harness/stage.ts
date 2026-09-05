@@ -301,27 +301,11 @@ export function pivotOn(box: THREE.Box3, pivot: THREE.Vector3): THREE.Vector3 {
   return box.clampPoint(pivot, new THREE.Vector3());
 }
 
-/** What the subject actually occupies, in world space.
- *
- *  Pure, and exported, because everything the room does is measured
- *  from it and a subject can now arrive carrying geometry that does
- *  not measure itself. AN INSTANCED MESH KEEPS ITS OWN BOUNDING BOX
- *  AND THREE NEVER RECOMPUTES IT: the box is computed from the
- *  instance transforms once, on demand, and cached, so a mesh whose
- *  bounds were taken before its matrices were written reports one
- *  element sitting at the origin - a canopy tens of metres across
- *  contributing a hand's width of extent, or none at all next to a
- *  400 m tree. Framing would then be branch-only and silently so,
- *  which is the failure R8 names.
- *
- *  So the bounds are recomputed here rather than trusted. The builder
- *  handed to `setTree` is a caller's function and the stage cannot
- *  know what it did or when; recomputing costs one pass over the
- *  instance transforms, once per new subject, against the alternative
- *  of a room fitted to a tree that is not the one on stage. */
+/** World-space bounds. Native adapter meshes carry bounds for immutable buffers;
+ * arbitrary caller-owned instances are remeasured to repair stale cached bounds. */
 export function measureSubject(object: THREE.Object3D): THREE.Box3 {
   object.traverse((node) => {
-    if (node instanceof THREE.InstancedMesh) node.computeBoundingBox();
+    if (node instanceof THREE.InstancedMesh && node.userData.nativeBounds !== true) node.computeBoundingBox();
   });
   return new THREE.Box3().setFromObject(object);
 }
@@ -641,14 +625,15 @@ export function createStage(
   };
 
   const setTree: Stage["setTree"] = (build) => {
-    disposeTree();
-    tree = build({ surface: clay, line: clayLine, element: clayElement });
-    tree.traverse((node) => {
+    const replacement = build({ surface: clay, line: clayLine, element: clayElement });
+    replacement.traverse((node) => {
       if (node instanceof THREE.Mesh) {
         node.castShadow = true;
         node.receiveShadow = true;
       }
     });
+    disposeTree();
+    tree = replacement;
     scene.add(tree);
     // The room fits the tree that is there now, whether or not anyone
     // asks for the camera to be moved.
