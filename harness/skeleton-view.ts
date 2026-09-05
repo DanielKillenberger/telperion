@@ -1,26 +1,12 @@
 import * as THREE from "three";
 
-import { cullCanopy, DEFAULT_CULL } from "../src/canopy/cull";
-import {
-  buildElement,
-  DEFAULT_ELEMENT,
-  type ElementMesh,
-} from "../src/canopy/element";
-import {
-  buildCanopy,
-  type Canopy,
-  type CanopyParams,
-} from "../src/canopy/place";
-import {
-  buildSurface,
-  DEFAULT_SURFACE,
-  type SurfaceParams,
-} from "../src/mesh/surface";
-import type { TreePreset } from "../src/presets";
-import { solveRadii, type RadiusParams } from "../src/radius";
-import { growReport, type SkeletonParams } from "../src/skeleton/grow";
-import { generationsUntilTwig } from "../src/skeleton/law";
-import { MAX_TWIG_LEVELS, resolveTwigs, type TwiggedSkeleton, type TwigParams } from "../src/skeleton/twigs";
+import { ORDINARY, treeCore, type Family, type TreePreset, type Timings } from "../src/browser/core";
+import { materializeTree, disposeTreeGeometry } from "../src/browser/three";
+type SkeletonParams = Family["skeleton"];
+type RadiusParams = Family["radii"];
+type SurfaceParams = Family["surface"];
+type CanopyParams = Family["canopy"];
+const DEFAULT_SURFACE = ORDINARY.surface;
 
 import type { GrowerParams } from "./params";
 import type { Clay } from "./stage";
@@ -172,6 +158,7 @@ export function toSurfaceParams(params: GrowerParams): SurfaceParams {
  *  nobody authored. */
 export function toCanopyParams(params: GrowerParams): CanopyParams {
   return {
+    maxInstances: ORDINARY.canopy.maxInstances,
     shootRadius: params.shootRadius,
     spacing: params.spacing,
     divergence: params.divergence,
@@ -199,6 +186,9 @@ export interface TreeStats {
    *  shape and not the envelope's, and `nodes` alone cannot say which
    *  it was - so the panel says it in words. */
   capped: boolean;
+  attractionCapped: boolean;
+  complete: boolean;
+  timings: Timings & { materializationMs: number };
   /** The pass's actual generation stop, retained even after shedding. */
   levelCapped: boolean;
   /** Surviving edges leaving colonization, including tip leaders and laterals. */
@@ -247,35 +237,6 @@ function generationRange(counts: readonly number[]): TreeStats["generations"] {
   };
   return { min: at(0), median: (at(Math.floor((total - 1) / 2)) + at(Math.floor(total / 2))) / 2,
     max: at(total - 1) };
-}
-
-/** Read the surviving pass records without growing a second tree. A handoff
- * is an appended edge whose parent belongs to colonization. Its recorded
- * base radius already includes the lateral reduction and fixed-twig clamp.
- * The law read-out excludes the terminal twig and describes required depth,
- * rather than the depth collisions and shedding happened to leave visible. */
-export function branchStats(skeleton: TwiggedSkeleton, params?: Partial<TwigParams>): Pick<
-  TreeStats, "handoffs" | "generations" | "generationCounts" | "levelCappedHandoffs" | "twigs"
-> {
-  const twigs = resolveTwigs(params);
-  const generationCounts = Array<number>(MAX_TWIG_LEVELS + 1).fill(0);
-  let handoffs = 0;
-  let levelCappedHandoffs = 0;
-  let twigCount = 0;
-  for (let i = skeleton.crossover; i < skeleton.nodes.length; i++) {
-    const offset = i - skeleton.crossover;
-    twigCount += Number(skeleton.twig[offset] === 1 && skeleton.branchId[offset] === i);
-    if (skeleton.nodes[i].parent >= skeleton.crossover) continue;
-    const derived = generationsUntilTwig(skeleton.baseRadius[offset], {
-      lengthRatio: twigs.lengthRatio, ratioPower: twigs.ratioPower,
-      twigDiameter: twigs.twig.diameter,
-    });
-    handoffs++;
-    generationCounts[derived.generations]++;
-    levelCappedHandoffs += Number(derived.capped);
-  }
-  return { handoffs, generations: generationRange(generationCounts), generationCounts,
-    levelCappedHandoffs, twigs: twigCount };
 }
 
 /** What an object costs to draw, counted off the object graph.
@@ -389,148 +350,31 @@ export function presetToParams(preset: TreePreset): GrowerParams {
   };
 }
 
-/** The canopy as one draw: every element of it, one instanced mesh,
- *  or `null` for a canopy with nothing in it.
- *
- *  `null` and not an empty `InstancedMesh`, because a mesh drawing
- *  zero copies is still a draw call the panel would report and still
- *  an object the stage would measure. A tree the canopy found no
- *  shoots on has to leave the draw count and the framing exactly where
- *  the branch-only tree left them, and the honest way to say "there is
- *  no canopy" to a scene graph is to put nothing in it.
- *
- *  THE BOUNDING VOLUME IS COMPUTED HERE, LAST, AFTER THE MATRICES ARE
- *  IN. An `InstancedMesh` carries its own bounds and three computes
- *  them from the instance transforms, so a mesh measured before its
- *  matrices are written measures one leaf at the origin - which for a
- *  24 m tree is indistinguishable from no extent at all, and framing
- *  would silently ignore the whole crown. Ordering is the whole of the
- *  fix, so the order is stated rather than left to read. */
-export function buildCanopyMesh(
-  canopy: Canopy,
-  element: ElementMesh,
-  material: THREE.Material,
-): THREE.InstancedMesh | null {
-  /* A `Canopy` is read the way the library's own culler reads one: the
-     count it claims, floored by the transforms it actually carries. A
-     mesh drawing more copies than there are matrices reads whatever
-     the attribute buffer was left holding. */
-  const count = Math.max(
-    0,
-    Math.min(
-      Number.isFinite(canopy.count) ? Math.floor(canopy.count) : 0,
-      Math.floor(canopy.matrices.length / 16),
-    ),
-  );
-  if (count === 0) return null;
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.BufferAttribute(element.positions, 3),
-  );
-  geometry.setIndex(new THREE.BufferAttribute(element.indices, 1));
-  /* The blade is one open sheet drawn from both faces, so its normals
-     come from the winding exactly as the trunk's do. */
-  geometry.computeVertexNormals();
-
-  const mesh = new THREE.InstancedMesh(geometry, material, count);
-  mesh.name = "grower-canopy";
-  /* The library emits `THREE.Matrix4.elements` order, packed end to
-     end, which is the layout the instance attribute already has - so
-     this is a copy and not a conversion. */
-  mesh.instanceMatrix.array.set(canopy.matrices.subarray(0, count * 16));
-  mesh.instanceMatrix.needsUpdate = true;
-  mesh.computeBoundingBox();
-  mesh.computeBoundingSphere();
-  return mesh;
-}
-
-/** The one build. Skeleton, radii, surface, canopy, mesh - and the
- *  only thing that varies between one tree and another is the four
- *  argument objects handed in, which is the spec's acceptance test
- *  stated as a function signature: Telperion and Laurelin reach this
- *  with different numbers and by no other difference.
- *
- *  The subject is a group of two renderables now rather than a single
- *  mesh: the swept trunk, and the crown as one instanced draw. The
- *  canopy is a stage of its own and the three before it never call it,
- *  which is why the skeleton, the radii and the surface come out of
- *  here byte for byte what they came out as before. */
 function build(
-  skeletonParams: SkeletonParams,
-  radii: RadiusParams,
-  surfaceParams: SurfaceParams,
-  canopyParams: CanopyParams,
-  clay: Clay,
-  withFoliage = true,
+  family: Family, clay: Clay, withFoliage = true,
 ): { tree: THREE.Group; stats: TreeStats } {
   const started = performance.now();
-  const grown = growReport(skeletonParams, radii);
-  const skeleton = grown.skeleton;
-  const field = solveRadii(skeleton, skeletonParams.envelope, radii);
-  const surface = buildSurface(
-    skeleton,
-    field,
-    skeletonParams.envelope,
-    surfaceParams,
-  );
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.BufferAttribute(surface.positions, 3),
-  );
-  geometry.setIndex(new THREE.BufferAttribute(surface.indices, 1));
-  /* Shared ring vertices carry a shared normal, so this smooths around
-     the section and along the sweep in one pass. There are no joints
-     left for it to smooth over: the surface has none. */
-  geometry.computeVertexNormals();
-
-  const trunk = new THREE.Mesh(geometry, clay.surface);
-  trunk.name = "grower-trunk";
-
-  /* The element is the spec's flat placeholder, at the library's own
-     defaults: this task proves canopy STRUCTURE, and the leaf's own
-     shape is the texturing spec's. The canopy is placed and then
-     thinned to a shell - `cullCanopy` takes and returns a `Canopy`, so
-     it sits between the two with nothing else knowing it ran. */
-  const element = buildElement(DEFAULT_ELEMENT);
-  /* Foliage off is an empty canopy, not a different code path: the
-     mesh builder returns null for it and the stats read zero leaves,
-     so the branching can be judged bare without a second build. */
-  const placed = withFoliage
-    ? buildCanopy(skeleton, field, skeletonParams.envelope, skeletonParams.seed,
-        canopyParams, skeletonParams.twigs?.twig)
-    : { matrices: new Float32Array(0), count: 0 };
-  const canopy = cullCanopy(placed, element, skeletonParams.envelope, DEFAULT_CULL);
-  const foliage = buildCanopyMesh(canopy, element, clay.element);
-
-  const tree = new THREE.Group();
-  tree.name = "grower-tree";
-  tree.add(trunk);
-  if (foliage !== null) tree.add(foliage);
-
-  const draws = countDraws(tree);
-  return {
-    tree,
-    stats: {
-      triangles: surface.triangles,
-      vertices: surface.vertices,
-      nodes: skeleton.nodes.length,
-      /* The library's own word for it: the finished skeleton is
-         smaller than the count that hit the ceiling once the shell
-         rule has shed its interior twigs, so the node count cannot
-         say whether growth was stopped. */
-      capped: grown.capped,
-      levelCapped: grown.levelCapped,
-      ...branchStats(skeleton, skeletonParams.twigs),
-      drawCalls: draws.drawCalls,
-      instances: draws.instances,
-      leavesPlaced: placed.count,
-      buildMs: performance.now() - started,
-    },
-  };
+  const engine = treeCore();
+  try {
+    const output = engine.build(family,
+      { surface: true, foliage: withFoliage });
+    engine.release();
+    const materialization = performance.now();
+    const tree = materializeTree(output, clay);
+    const materializationMs = performance.now() - materialization;
+    const d = output.diagnostics;
+    return { tree, stats: {
+      triangles: (output.surface?.indices.length ?? 0) / 3,
+      vertices: (output.surface?.positions.length ?? 0) / 3,
+      nodes: d.nodes, capped: d.capped, levelCapped: d.levelCapped,
+      attractionCapped: d.attractionCapped, complete: d.complete,
+      handoffs: d.handoffs, generationCounts: d.generationCounts,
+      generations: generationRange(d.generationCounts),
+      levelCappedHandoffs: d.levelCappedHandoffs, twigs: d.twigs,
+      ...countDraws(tree), leavesPlaced: d.leavesPlaced,
+      timings: { ...d.timings, materializationMs }, buildMs: performance.now() - started,
+    } };
+  } finally { engine.release(); }
 }
 
 /** The subject the stage draws: this tree, in clay, skinned.
@@ -543,10 +387,8 @@ export function buildTree(
   withFoliage = true,
 ): { tree: THREE.Group; stats: TreeStats } {
   return build(
-    toSkeletonParams(params),
-    toRadiusParams(params),
-    toSurfaceParams(params),
-    toCanopyParams(params),
+    { ...ORDINARY, skeleton: toSkeletonParams(params), radii: toRadiusParams(params),
+      surface: toSurfaceParams(params), canopy: toCanopyParams(params) },
     clay,
     withFoliage,
   );
@@ -559,13 +401,12 @@ export function buildTree(
 export function buildPreset(
   preset: TreePreset,
   clay: Clay,
+  withFoliage = true,
 ): { tree: THREE.Group; stats: TreeStats } {
   return build(
-    preset.skeleton,
-    preset.radii,
-    preset.surface,
-    preset.canopy,
+    preset,
     clay,
+    withFoliage,
   );
 }
 
@@ -589,14 +430,18 @@ const COMPARISON_GAP = 0.18;
 export function buildComparison(
   presets: readonly TreePreset[],
   clay: Clay,
+  withFoliage = true,
 ): { group: THREE.Group; stats: TreeStats } {
   const group = new THREE.Group();
   group.name = "grower-comparison";
 
-  const built = presets.map((preset) => ({
-    preset,
-    ...buildPreset(preset, clay),
-  }));
+  const built: { preset: TreePreset; tree: THREE.Group; stats: TreeStats }[] = [];
+  try {
+    for (const preset of presets) built.push({ preset, ...buildPreset(preset, clay, withFoliage) });
+  } catch (error) {
+    for (const one of built) disposeTreeGeometry(one.tree);
+    throw error;
+  }
 
   const widths = built.map(
     ({ preset }) =>
@@ -614,7 +459,7 @@ export function buildComparison(
     group.add(tree);
   });
 
-  const generationCounts = Array<number>(MAX_TWIG_LEVELS + 1).fill(0);
+  const generationCounts = Array<number>(Math.max(0, ...built.map(one => one.stats.generationCounts.length))).fill(0);
   for (const one of built) {
     one.stats.generationCounts.forEach((count, generation) => {
       generationCounts[generation] += count;
@@ -628,6 +473,18 @@ export function buildComparison(
       nodes: built.reduce((total, one) => total + one.stats.nodes, 0),
       // One capped tree is a comparison that cannot be judged.
       capped: built.some((one) => one.stats.capped),
+      attractionCapped: built.some(one => one.stats.attractionCapped),
+      complete: built.every(one => one.stats.complete),
+      timings: {
+        growthMs: built.reduce((sum, one) => sum + one.stats.timings.growthMs, 0),
+        surfaceMs: built.reduce((sum, one) => sum + one.stats.timings.surfaceMs, 0),
+        foliageMs: built.reduce((sum, one) => sum + one.stats.timings.foliageMs, 0),
+        fieldMs: built.reduce((sum, one) => sum + one.stats.timings.fieldMs, 0),
+        coreMs: built.reduce((sum, one) => sum + one.stats.timings.coreMs, 0),
+        transferMs: built.reduce((sum, one) => sum + one.stats.timings.transferMs, 0),
+        buildMs: built.reduce((sum, one) => sum + one.stats.timings.buildMs, 0),
+        materializationMs: built.reduce((sum, one) => sum + one.stats.timings.materializationMs, 0),
+      },
       levelCapped: built.some((one) => one.stats.levelCapped),
       handoffs: built.reduce((total, one) => total + one.stats.handoffs, 0),
       generations: generationRange(generationCounts),

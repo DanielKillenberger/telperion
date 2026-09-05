@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from "node:fs";
 
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
+import { materializeTree } from "../src/browser/three";
+import type { TreeOutput } from "../src/browser/core";
 
 import {
   describeSweep,
@@ -241,6 +243,24 @@ function instancedCrown(count = 12, reach = 10): THREE.InstancedMesh {
 }
 
 describe("measureSubject", () => {
+  it("preserves the native adapter's exact leaf bounds while measuring its subject", () => {
+    const matrix = new THREE.Matrix4().makeTranslation(10, 20, 30);
+    const output = { foliage: {
+      positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
+      indices: new Uint32Array([0, 1, 2]),
+      matrices: new Float32Array(matrix.elements),
+      bounds: { min: [10, 20, 30], max: [11, 21, 30] },
+    } } as TreeOutput;
+    const material = new THREE.MeshBasicMaterial();
+    const tree = materializeTree(output, { surface: material, element: material });
+    const mesh = tree.children[0] as THREE.InstancedMesh;
+    mesh.computeBoundingBox = () => { throw Error("native instances must not be rescanned"); };
+    expect(measureSubject(tree)).toEqual(new THREE.Box3(
+      new THREE.Vector3(10, 20, 30), new THREE.Vector3(11, 21, 30),
+    ));
+    disposeSubject(tree); material.dispose();
+  });
+
   it("measures a crown whose bounds were never computed", () => {
     const crown = instancedCrown();
     expect(crown.boundingBox).toBeNull();

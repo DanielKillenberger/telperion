@@ -52,14 +52,8 @@
  * be walked to one at a time.
  * ------------------------------------------------------------------ */
 
-import { DEFAULT_CANOPY } from "../src/canopy/place";
-import { DEFAULT_ENVELOPE } from "../src/envelope";
-import { DEFAULT_SURFACE } from "../src/mesh/surface";
-import { DEFAULT_RADII } from "../src/radius";
-import { DEFAULT_MAX_TURN_PER_STEP } from "../src/skeleton/colonize";
-import { DEFAULT_STEP } from "../src/skeleton/grow";
-import { DEFAULT_TWIGS } from "../src/skeleton/twigs";
-import { DEFAULT_BIAS } from "../src/torsion";
+import { ORDINARY } from "../src/browser/core";
+import { presetToParams } from "./skeleton-view";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
 export const SEED_MAX = 0xff_ff_ff_ff;
@@ -338,53 +332,8 @@ export const SLIDERS: readonly SliderSpec[] = [
 ];
 
 export const DEFAULT_PARAMS: GrowerParams = {
-  seed: 1,
-  height: 24,
-  spread: 0.3,
-  torsion: 1,
-  gravitropism: DEFAULT_BIAS.gravitropism,
-  lean: DEFAULT_BIAS.lean,
-  writheAmplitude: DEFAULT_BIAS.writheAmplitude,
-  writheWavelength: DEFAULT_BIAS.writheWavelength,
-  spiralRate: DEFAULT_BIAS.spiralRate,
-  maxTurnPerStep: DEFAULT_MAX_TURN_PER_STEP,
-  density: 0.5,
-  step: DEFAULT_STEP,
-  twigLength: DEFAULT_TWIGS.twig.length,
-  angleVariation: DEFAULT_TWIGS.angleVariation,
-  vigourVariation: DEFAULT_TWIGS.vigourVariation,
-  twigDiameter: DEFAULT_TWIGS.twig.diameter,
-  twigStationLength: DEFAULT_TWIGS.twig.internodeLength,
-  twigStations: DEFAULT_TWIGS.twig.stationsPerInternode,
-  twigBearing: DEFAULT_TWIGS.twig.bearingDiameter,
-  ratioPower: DEFAULT_TWIGS.ratioPower,
-  limbRadius: DEFAULT_TWIGS.limbRadius,
-  reach: DEFAULT_TWIGS.reach,
-  laterals: DEFAULT_TWIGS.laterals,
-  twigAngle: DEFAULT_TWIGS.angle,
-  twigDivergence: DEFAULT_TWIGS.divergence,
-  internodeFactor: DEFAULT_TWIGS.internodeFactor,
-  lengthRatio: DEFAULT_TWIGS.lengthRatio,
-  taper: DEFAULT_RADII.forkExponent,
-  trunkRadius: DEFAULT_RADII.trunkRadius,
-  lengthTaper: DEFAULT_RADII.lengthTaper,
-  crownBase: DEFAULT_ENVELOPE.crownBase,
-  fullness: DEFAULT_ENVELOPE.fullness,
-  shoulder: DEFAULT_ENVELOPE.shoulder,
-  lobes: DEFAULT_SURFACE.lobes,
-  lobeDepth: DEFAULT_SURFACE.lobeDepth,
-  twistRate: DEFAULT_SURFACE.twistRate,
-  flareRadius: DEFAULT_SURFACE.flareRadius,
-  shootRadius: DEFAULT_CANOPY.shootRadius,
-  spacing: DEFAULT_CANOPY.spacing,
-  divergence: DEFAULT_CANOPY.divergence,
-  clump: DEFAULT_CANOPY.clump,
-  clumpSpan: DEFAULT_CANOPY.clumpSpan,
-  outward: DEFAULT_CANOPY.outward,
-  upward: DEFAULT_CANOPY.upward,
-  scatter: DEFAULT_CANOPY.scatter,
-  size: DEFAULT_CANOPY.size,
-  sizeVariation: DEFAULT_CANOPY.sizeVariation,
+  ...presetToParams({ ...ORDINARY, id: "ordinary", name: "Ordinary", note: "" }),
+  seed: 1, density: 0.5,
 };
 
 /** The seed field is the one free-text surface on the panel, so it is
