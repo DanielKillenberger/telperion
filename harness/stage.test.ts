@@ -1,9 +1,20 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
+import { materializeTree } from "../src/browser/three";
+import type { TreeOutput } from "../src/browser/core";
 
-import { pivotOn, solveRoom } from "./stage";
+import {
+  describeSweep,
+  disposeSubject,
+  measureSubject,
+  medianMs,
+  pivotOn,
+  solveRoom,
+  sweepRatios,
+  type SweepResult,
+} from "./stage";
 
 /* ------------------------------------------------------------------ *
  * THE ROOM, AND THE LATCH THAT PLACES THE CAMERA IN IT
@@ -193,6 +204,258 @@ describe("pivotOn", () => {
   });
 });
 
+/* ------------------------------------------------------------------ *
+ * THE SUBJECT, WHEN PART OF IT IS INSTANCED
+ *
+ * A crown of thousands of leaves arrives as one mesh carrying one
+ * transform per element, and an InstancedMesh answers both of the
+ * questions the stage asks of a subject differently from a plain one.
+ * How big is it: from its own cached bounding box, computed once from
+ * the instance transforms and never refreshed. What does it hold: an
+ * attribute buffer that is not in its geometry and is not freed with
+ * it. Both are the ways R8 and the regenerate path can fail silently,
+ * so both are asserted here on the pure seams.
+ * ------------------------------------------------------------------ */
+
+/** A crown, near enough: one small element, twelve copies of it
+ *  scattered through a 20 m box. Matrices written the way the harness
+ *  writes them, so the mesh is in the state the stage will meet it
+ *  in. */
+function instancedCrown(count = 12, reach = 10): THREE.InstancedMesh {
+  const geometry = new THREE.BoxGeometry(0.12, 0.12, 0.12);
+  const mesh = new THREE.InstancedMesh(
+    geometry,
+    new THREE.MeshBasicMaterial(),
+    count,
+  );
+  const matrix = new THREE.Matrix4();
+  for (let i = 0; i < count; i += 1) {
+    const angle = (i / count) * Math.PI * 2;
+    matrix.makeTranslation(
+      Math.cos(angle) * reach,
+      reach + Math.sin(angle) * reach * 0.5,
+      Math.sin(angle) * reach,
+    );
+    mesh.setMatrixAt(i, matrix);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  return mesh;
+}
+
+describe("measureSubject", () => {
+  it("preserves the native adapter's exact leaf bounds while measuring its subject", () => {
+    const matrix = new THREE.Matrix4().makeTranslation(10, 20, 30);
+    const output = { foliage: {
+      positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
+      indices: new Uint32Array([0, 1, 2]),
+      matrices: new Float32Array(matrix.elements),
+      bounds: { min: [10, 20, 30], max: [11, 21, 30] },
+    } } as TreeOutput;
+    const material = new THREE.MeshBasicMaterial();
+    const tree = materializeTree(output, { surface: material, element: material });
+    const mesh = tree.children[0] as THREE.InstancedMesh;
+    mesh.computeBoundingBox = () => { throw Error("native instances must not be rescanned"); };
+    expect(measureSubject(tree)).toEqual(new THREE.Box3(
+      new THREE.Vector3(10, 20, 30), new THREE.Vector3(11, 21, 30),
+    ));
+    disposeSubject(tree); material.dispose();
+  });
+
+  it("measures a crown whose bounds were never computed", () => {
+    const crown = instancedCrown();
+    expect(crown.boundingBox).toBeNull();
+    const box = measureSubject(crown);
+    expect(box.isEmpty()).toBe(false);
+    expect(spanOf(box)).toBeGreaterThan(15);
+  });
+
+  it("measures a crown whose bounds were computed too early", () => {
+    /* The failure R8 names, and it is not hypothetical: three computes
+       an InstancedMesh's bounding box once and caches it, so a mesh
+       measured before its transforms were written keeps a box the size
+       of one element at the origin for the rest of its life. Against a
+       tree that is metres across, that is zero extent - and the room,
+       the pivot and the near and far planes would all be solved for
+       the branches alone.
+
+       So the stale box is measured here as well, to show what the
+       guard is for: `setFromObject` on its own reports the element and
+       `measureSubject` reports the crown. */
+    const crown = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(0.12, 0.12, 0.12),
+      new THREE.MeshBasicMaterial(),
+      12,
+    );
+    crown.computeBoundingBox();
+    const stale = crown.boundingBox!.clone();
+
+    const placed = instancedCrown();
+    crown.instanceMatrix.copy(placed.instanceMatrix);
+    crown.instanceMatrix.needsUpdate = true;
+
+    expect(spanOf(stale)).toBeLessThan(1);
+    expect(spanOf(new THREE.Box3().setFromObject(crown))).toBeLessThan(1);
+    expect(spanOf(measureSubject(crown))).toBeGreaterThan(15);
+  });
+
+  it("leaves a subject with no crown measuring exactly what it did", () => {
+    /* R8's error case. A tree that grew no foliage carries no
+       instanced mesh at all, and the guard must not move the branch-
+       only framing by so much as a float - the bounds are the same box
+       `setFromObject` has always returned. */
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.4, 0.6, 18, 8),
+      new THREE.MeshBasicMaterial(),
+    );
+    trunk.position.y = 9;
+    const subject = new THREE.Group();
+    subject.add(trunk);
+
+    const plain = new THREE.Box3().setFromObject(subject);
+    const measured = measureSubject(subject);
+    expect(measured.min.toArray()).toEqual(plain.min.toArray());
+    expect(measured.max.toArray()).toEqual(plain.max.toArray());
+  });
+
+  it("takes the crown in with the branches it hangs on", () => {
+    /* The whole subject, not the largest part of it. The crown here
+       reaches wider than the wood and a little above it, which is what
+       a canopy does to a tree - and both are what the room, the pivot
+       and the far plane are then solved from. */
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.4, 0.6, 12, 8),
+      new THREE.MeshBasicMaterial(),
+    );
+    trunk.position.y = 6;
+    const subject = new THREE.Group();
+    subject.add(trunk, instancedCrown());
+
+    const box = measureSubject(subject);
+    expect(box.min.x).toBeLessThan(-9);
+    expect(box.max.x).toBeGreaterThan(9);
+    expect(box.max.y).toBeGreaterThan(12);
+  });
+});
+
+describe("disposeSubject", () => {
+  it("releases the instance transforms, not only the geometry", () => {
+    /* The instance transforms hang off the mesh rather than off its
+       geometry, and the renderer frees them when the mesh dispatches
+       its own `dispose` - which `geometry.dispose()` does not do. A
+       sweep that only disposed geometries would leave one buffer per
+       regenerate on the GPU, sized by the element count, which on a
+       canopy is the largest buffer in the room. */
+    const crown = instancedCrown();
+    let released = false;
+    let geometryReleased = false;
+    crown.addEventListener("dispose", () => {
+      released = true;
+    });
+    crown.geometry.addEventListener("dispose", () => {
+      geometryReleased = true;
+    });
+
+    disposeSubject(crown);
+    expect(released).toBe(true);
+    expect(geometryReleased).toBe(true);
+  });
+
+  it("still releases the line work and the plain meshes under it", () => {
+    // The skeleton is LineSegments and a Mesh-only sweep would leak
+    // one geometry per regenerate. Unchanged by the canopy landing.
+    const subject = new THREE.Group();
+    const trunk = new THREE.Mesh(
+      new THREE.BoxGeometry(),
+      new THREE.MeshBasicMaterial(),
+    );
+    const lines = new THREE.LineSegments(
+      new THREE.BufferGeometry(),
+      new THREE.LineBasicMaterial(),
+    );
+    subject.add(trunk, lines);
+
+    const released: string[] = [];
+    trunk.geometry.addEventListener("dispose", () => released.push("trunk"));
+    lines.geometry.addEventListener("dispose", () => released.push("lines"));
+
+    disposeSubject(subject);
+    expect(released.sort()).toEqual(["lines", "trunk"]);
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * THE CLAY ROOM'S DEFAULTS ARE THE ACCEPTANCE CRITERION
+ *
+ * R6 enumerates what the judging mode contains: one neutral sky light,
+ * flat grey, no colour and no post, with every extra behind an opt-in
+ * toggle that is off - and nothing in the library emitting a material,
+ * a colour or a light at all. An enumerated default state is a test
+ * and not a preference, which is exactly how a "harmless" second light
+ * got into this file once already: a comment argued for it instead of
+ * removing it.
+ *
+ * A canopy is the strongest pull yet on that line - foliage wants to
+ * be green, and a leaf material is one word away from being one - so
+ * the enumeration is written down here rather than trusted.
+ * ------------------------------------------------------------------ */
+describe("the clay room is the only judging mode", () => {
+  const source = (file: string): string =>
+    readFileSync(new URL(file, import.meta.url), "utf8");
+
+  it("the library emits no material, no colour and no light", () => {
+    /* The generator is a standalone library and the consumer brings
+       the lights. It reaches for three's maths - vectors and matrices
+       - and for nothing that decides how anything looks. */
+    const root = new URL("../src/", import.meta.url);
+    const files = readdirSync(root, {
+      recursive: true,
+      encoding: "utf8",
+    }).filter((name) => name.endsWith(".ts") && !name.endsWith(".test.ts"));
+    expect(files.length).toBeGreaterThan(0);
+
+    const banned =
+      /\b(?:new\s+THREE\.\w*(?:Material|Light|Texture)|THREE\.Color|THREE\.Fog|toneMapping|castShadow|receiveShadow)\b/;
+    for (const name of files) {
+      const text = readFileSync(new URL(name, root), "utf8");
+      expect(
+        banned.test(text),
+        `src/${name} decides how something looks; the consumer owns that`,
+      ).toBe(false);
+    }
+  });
+
+  it("puts one light in the scene and the rest behind the toggle", () => {
+    const stage = source("./stage.ts");
+    // The sky is the judging mode's whole lighting rig.
+    expect(stage).toContain("scene.add(sky)");
+    // And the key and the fill reach the scene from one place only,
+    // which is the toggle.
+    expect(stage.split("scene.add(key, fill)").length - 1).toBe(1);
+    expect(stage.indexOf("scene.add(key, fill)")).toBeGreaterThan(
+      stage.indexOf("const setLightingCheck"),
+    );
+    // Nothing else is a light at all.
+    expect(stage).not.toMatch(
+      /new THREE\.(?:Ambient|Point|Spot|RectArea)Light/,
+    );
+    // No exposure games and no fog: what the geometry does to the
+    // light is the only thing on screen.
+    expect(stage).toContain("THREE.NoToneMapping");
+    expect(stage).not.toContain("THREE.Fog");
+  });
+
+  it("cuts the foliage out rather than blending it", () => {
+    /* R4. Blending across tens of thousands of overlapping elements
+       needs a sort the canopy cannot afford and would get wrong; a
+       cutout keeps the depth buffer honest. The cost is early-Z on the
+       target machine, which is measured rather than assumed. */
+    const stage = source("./stage.ts");
+    expect(stage).toContain("alphaTest");
+    expect(stage).not.toContain("transparent: true");
+    expect(stage).not.toContain("blending:");
+  });
+});
+
 /* The framing latch cannot be exercised from here: it belongs to a
    stage, a stage needs a WebGL context, and the double-mount that
    spends it needs React and a DOM. Both are out of this runner's reach
@@ -235,5 +498,119 @@ describe("the framing latch belongs to the stage", () => {
       component,
       "a boolean ref in the component outlives the stage it was latched for",
     ).not.toMatch(/useRef(<boolean.*?>)?\((false|true)\)/);
+  });
+});
+
+/* ------------------------------------------------------------------ *
+ * THE MEASUREMENT RIG, AT THE ONE POINT IT IS TESTABLE
+ *
+ * The rig needs a GPU, a canvas and a timer-query extension, and this
+ * box has none of the three - so what can be held to account is what
+ * the panel is allowed to SAY. That is not a consolation prize either:
+ * the failure this rig exists to prevent is a number that reads like a
+ * measurement and is not one. A frame time pinned to a 60 Hz refresh
+ * is 16.7 ms whatever the GPU did, and quoting it as the budget would
+ * be worse than quoting nothing, because nothing is visibly nothing.
+ *
+ * So: without the extension there is no millisecond figure anywhere in
+ * the string, and a run cut short says so and keeps what it got.
+ * ------------------------------------------------------------------ */
+
+/** Any millisecond figure at all. The unsupported case must not
+ *  produce one, and this is what "must not" means. */
+const A_TIMING_NUMBER = /\d+(\.\d+)?\s*ms/;
+
+function result(over: Partial<SweepResult> = {}): SweepResult {
+  return { supported: true, complete: true, points: [], note: "", ...over };
+}
+
+const FOUR_POINTS = [
+  { pixelRatio: 1, gpuMs: 8.42, samples: 20 },
+  { pixelRatio: 0.7, gpuMs: 4.31, samples: 20 },
+  { pixelRatio: 0.5, gpuMs: 2.28, samples: 20 },
+  { pixelRatio: 0.25, gpuMs: 0.71, samples: 20 },
+];
+
+describe("the sweep's shape", () => {
+  it.each([
+    [1, [2, 1, 0.7, 0.5, 0.25]],
+    [2, [2, 1, 0.7, 0.5, 0.25]],
+    [1.5, [2, 1.5, 1, 0.7, 0.5, 0.25]],
+    [3, [2, 1, 0.7, 0.5, 0.25]],
+  ])("includes the capped native ratio and diagnostics for DPR %s", (raw, expected) => {
+    expect(sweepRatios(raw)).toEqual(expected);
+  });
+});
+
+describe("describeSweep", () => {
+  it("reports no timing number at all when there is no gpu timer", () => {
+    // The R5 error case. A vsync-pinned fallback would read exactly
+    // like a measurement, so there is no fallback to write.
+    const text = describeSweep(
+      result({
+        supported: false,
+        complete: false,
+        note: "EXT_disjoint_timer_query_webgl2 is not exposed by this browser",
+      }),
+    );
+    expect(text).toContain("no gpu timing available");
+    expect(text).not.toMatch(A_TIMING_NUMBER);
+  });
+
+  it("marks a run cut short as incomplete and keeps what it got", () => {
+    // The other R5 error case: a context loss or a resize mid-sweep.
+    // The points either side of a resize are not comparable, so the
+    // run stops - but two honest points labelled as two are still
+    // evidence, and throwing them away would not be more honest.
+    const text = describeSweep(
+      result({
+        complete: false,
+        points: FOUR_POINTS.slice(0, 2),
+        note: "canvas resized mid-sweep",
+      }),
+    );
+    expect(text).toContain("incomplete");
+    expect(text).toContain("canvas resized mid-sweep");
+    expect(text).toContain("dpr 1.00 8.42 ms");
+    expect(text).toContain("dpr 0.70 4.31 ms");
+    expect(text).not.toContain("dpr 0.25");
+  });
+
+  it("says so when it was cut short before any point landed", () => {
+    const text = describeSweep(
+      result({ complete: false, note: "webgl context lost" }),
+    );
+    expect(text).toContain("incomplete");
+    expect(text).toContain("no points");
+    expect(text).not.toMatch(A_TIMING_NUMBER);
+  });
+
+  it("reads out every point of a clean run", () => {
+    const text = describeSweep(result({ points: FOUR_POINTS }));
+    expect(text).not.toContain("incomplete");
+    for (const point of FOUR_POINTS) {
+      expect(text).toContain(`dpr ${point.pixelRatio.toFixed(2)}`);
+    }
+    // The condition no code can assert, said out loud where the number
+    // is quoted, because the number means nothing without it.
+    expect(text).toContain("vsync");
+  });
+});
+
+describe("medianMs", () => {
+  it("takes the middle sample, not the mean of a hitch", () => {
+    // One frame that stalled must not move the point it is in. A mean
+    // over these is 24 ms; the middle of them is 4.
+    expect(medianMs([4.1, 3.9, 4, 4.2, 104])).toBe(4.1);
+  });
+
+  it("averages the two middles of an even run, in any order", () => {
+    expect(medianMs([4, 2, 8, 6])).toBe(5);
+  });
+
+  it("reports zero rather than a NaN when there is nothing to take", () => {
+    // The sweep never files a point it took no samples for, so this is
+    // about what the panel would render if it ever did.
+    expect(medianMs([])).toBe(0);
   });
 });

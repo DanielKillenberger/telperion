@@ -1,0 +1,71 @@
+{
+  "branch_name": "rust-surface-benchmark",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-05T13:10:43.451950Z",
+  "created_at": "2026-09-05T12:40:15.733930Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-7-rust-surface-benchmark-prototype",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "3da769a79ae0220f4510adc8883850fb3e95168fb18eec4aebff195fd745470e",
+      "backend": "codex",
+      "base_sha": "019234b554a1b387e23b05dd3c7e2626f428f907",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7f2de2de3f8f0f243f0c1cac569eaeab1745254c",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 211391,
+      "output_sha256": "90cef193cdccaacf1eb549c791cb257cfb4ac5128b7295a82026fbdc22f534db",
+      "reservation_id": "a40373eb415e48e08850b1ace95d98cb",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-05T13:10:43.445774Z",
+      "tool_calls": 12,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0
+  },
+  "spec_path": ".flow/specs/fn-7-rust-surface-benchmark-prototype.md",
+  "status": "done",
+  "title": "Rust surface benchmark prototype",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T18:24:51.369747Z"
+}

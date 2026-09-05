@@ -1,7 +1,7 @@
 {
   "name": "telperion",
   "version": "0.1.0",
-  "description": "A procedural tree generator. Authored silhouette, space colonization, conserved thickness, one continuous plaited surface.",
+  "description": "A procedural tree generator. Authored silhouette, space colonization continued by local rules down to leaf-bearing twigs, conserved thickness, one continuous plaited surface, and foliage culled to a shell for one instanced draw.",
   "keywords": [
     "procedural",
     "tree",
@@ -9,6 +9,8 @@
     "three",
     "threejs",
     "space-colonization",
+    "foliage",
+    "canopy",
     "geometry",
     "webgl"
   ],
@@ -32,10 +34,15 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -p tsconfig.build.json && vite build",
+    "dev": "npm run wasm:build && vite",
+    "build": "npm run wasm:build && tsc -p tsconfig.build.json && vite build",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "rust:build": "cargo build --release --workspace && cargo build --release --target wasm32-unknown-unknown -p telperion-wasm",
+    "rust:test": "cargo test --release --workspace",
+    "rust:test:wasm": "node scripts/test-wasm.mjs",
+    "migration:reference": "node scripts/export-reference.mjs",
+    "wasm:build": "node scripts/build-wasm.mjs"
   },
   "peerDependencies": {
     "three": ">=0.160.0"
@@ -45,6 +52,7 @@
     "@types/react-dom": "19.0.0",
     "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "playwright": "^1.63.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "three": "^0.185.0",

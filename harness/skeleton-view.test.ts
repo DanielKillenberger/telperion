@@ -1,24 +1,27 @@
 import * as THREE from "three";
-import { describe, expect, it } from "vitest";
-
-import { DEFAULT_ENVELOPE } from "../src/envelope";
-import { DEFAULT_SURFACE } from "../src/mesh/surface";
-import { DEFAULT_RADII, solveRadii } from "../src/radius";
-import { growSkeleton } from "../src/skeleton/grow";
-import { DEFAULT_BIAS } from "../src/torsion";
-
-import { LAURELIN, PRESETS } from "../src/presets";
+import { beforeAll, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { initializeTreeCore, LAURELIN, PRESETS, ORDINARY, treeCore } from "../src/browser/core";
 
 import { DEFAULT_PARAMS, SLIDERS, type GrowerParams } from "./params";
 import {
   buildComparison,
   buildPreset,
   buildTree,
+  countDraws,
   presetToParams,
+  toCanopyParams,
   toRadiusParams,
   toSkeletonParams,
   toSurfaceParams,
 } from "./skeleton-view";
+
+beforeAll(() => initializeTreeCore(readFileSync("src/browser/telperion.wasm")));
+
+const DEFAULT_ENVELOPE = ORDINARY.skeleton.envelope;
+const DEFAULT_SURFACE = ORDINARY.surface;
+const DEFAULT_RADII = ORDINARY.radii;
+const DEFAULT_BIAS = ORDINARY.skeleton.bias;
 
 /* The panel's promise is that a seed change and a slider move produce a
    different tree without a reload. The browser is where that is judged;
@@ -29,10 +32,28 @@ import {
 const clay = {
   surface: new THREE.MeshStandardMaterial(),
   line: new THREE.LineBasicMaterial(),
+  element: new THREE.MeshStandardMaterial(),
 };
 
+/** The swept trunk out of a built subject. The subject is a group of
+ *  two renderables now - the trunk and the crown as one instanced draw
+ *  - and every assertion about branch geometry is about the first of
+ *  them. Named by the object rather than by index, because a subject
+ *  with no canopy has one child and one with a canopy has two. */
+function trunkOf(subject: THREE.Object3D): THREE.Mesh {
+  const found = subject.getObjectByName("grower-trunk");
+  expect(found).toBeInstanceOf(THREE.Mesh);
+  return found as THREE.Mesh;
+}
+
+/** The crown, or null on a tree that grew none. */
+function canopyOf(subject: THREE.Object3D): THREE.InstancedMesh | null {
+  const found = subject.getObjectByName("grower-canopy") ?? null;
+  return found as THREE.InstancedMesh | null;
+}
+
 function tree(overrides: Partial<GrowerParams> = {}): THREE.Mesh {
-  return buildTree({ ...DEFAULT_PARAMS, ...overrides }, clay).tree;
+  return trunkOf(buildTree({ ...DEFAULT_PARAMS, ...overrides }, clay).tree);
 }
 
 function positions(mesh: THREE.Mesh): Float32Array {
@@ -44,10 +65,20 @@ function positions(mesh: THREE.Mesh): Float32Array {
  *  vertices, which sit a branch radius off the centre and would report
  *  a straight trunk as a bent one. */
 function centreline(overrides: Partial<GrowerParams> = {}): THREE.Vector3[] {
-  const skeleton = growSkeleton(
-    toSkeletonParams({ ...DEFAULT_PARAMS, ...overrides }),
-  );
-  return skeleton.nodes.map((node) => node.position);
+  const { values } = structure(overrides);
+  return Array.from({ length: values.length / 6 }, (_, i) =>
+    new THREE.Vector3(values[i * 6], values[i * 6 + 1], values[i * 6 + 2]));
+}
+
+function structure(overrides: Partial<GrowerParams> = {}) {
+  const params = { ...DEFAULT_PARAMS, ...overrides };
+  const output = treeCore().build({
+    ...ORDINARY,
+    skeleton: toSkeletonParams(params),
+    radii: toRadiusParams(params),
+  }, { structure: true });
+  treeCore().release();
+  return output.structure!;
 }
 
 describe("toSkeletonParams", () => {
@@ -121,6 +152,38 @@ describe("toSkeletonParams", () => {
     expect(toSkeletonParams({ ...DEFAULT_PARAMS, torsion: 0 }).growth).toEqual({
       maxTurnPerStep: DEFAULT_PARAMS.maxTurnPerStep,
     });
+  });
+
+  it("hands the growth step over under the library's own name", () => {
+    // A sibling of the attractor count, not a growth override: the
+    // library derives the distances from it.
+    const mapped = toSkeletonParams({ ...DEFAULT_PARAMS, step: 0.011 });
+    expect(mapped.step).toBe(0.011);
+    expect(mapped.growth).toEqual({ maxTurnPerStep: DEFAULT_PARAMS.maxTurnPerStep });
+  });
+
+  it("hands branch anatomy and the law over under the library's own names", () => {
+    // Every member of `twigs` named, so the panel cannot drop one; and
+    // the lateral count reaches the tree and adds branches.
+    const mapped = toSkeletonParams({ ...DEFAULT_PARAMS, laterals: 2 });
+    expect(mapped.twigs).toEqual({
+      twig: { length: DEFAULT_PARAMS.twigLength, diameter: DEFAULT_PARAMS.twigDiameter, internodeLength: DEFAULT_PARAMS.twigStationLength,
+        stationsPerInternode: DEFAULT_PARAMS.twigStations, bearingDiameter: DEFAULT_PARAMS.twigBearing },
+      ratioPower: DEFAULT_PARAMS.ratioPower,
+      limbRadius: DEFAULT_PARAMS.limbRadius,
+      reach: DEFAULT_PARAMS.reach,
+      laterals: 2,
+      angle: DEFAULT_PARAMS.twigAngle,
+      divergence: DEFAULT_PARAMS.twigDivergence,
+      internodeFactor: DEFAULT_PARAMS.internodeFactor,
+      angleVariation: DEFAULT_PARAMS.angleVariation,
+      vigourVariation: DEFAULT_PARAMS.vigourVariation,
+      lengthRatio: DEFAULT_PARAMS.lengthRatio,
+    });
+    expect(mapped.twigs).not.toHaveProperty("levels");
+    expect(positions(tree({ laterals: 2 })).length).toBeGreaterThan(
+      positions(tree({ laterals: 0 })).length * 2,
+    );
   });
 
   it("turns density into an attractor count", () => {
@@ -208,18 +271,112 @@ describe("buildTree", () => {
     for (const value of positions(mesh)) {
       expect(Number.isFinite(value)).toBe(true);
     }
-  });
+  }, 60_000);
 
   it("reports what the build cost, for the panel to show", () => {
     // The surface is allowed to cost more than the tube viewer did.
     // It is not allowed to cost it silently.
-    const { tree: mesh, stats } = buildTree(DEFAULT_PARAMS, clay);
+    const { tree: subject, stats } = buildTree(DEFAULT_PARAMS, clay);
+    const mesh = trunkOf(subject);
     expect(stats.triangles * 3).toBe(mesh.geometry.getIndex()!.count);
     expect(stats.vertices * 3).toBe(positions(mesh).length);
     expect(stats.nodes).toBe(
-      growSkeleton(toSkeletonParams(DEFAULT_PARAMS)).nodes.length,
+      structure().values.length / 6,
     );
     expect(stats.buildMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it("draws the whole crown in one call, however many leaves it has", () => {
+    /* R4, stated as the two numbers the panel reports. A tree is two
+       draws - the swept surface and the crown - whatever the canopy
+       costs, and the instance count is what a crown that quietly added
+       one draw per leaf would fail on. Thousands and not tens, because
+       the default dials are one 24 m tree; the claim is one draw at
+       any count, not a count. */
+    const { tree: subject, stats } = buildTree(DEFAULT_PARAMS, clay);
+    const crown = canopyOf(subject);
+    expect(crown).not.toBeNull();
+    expect(stats.drawCalls).toBe(2);
+    expect(stats.instances).toBeGreaterThan(1000);
+    expect(stats.instances).toBe(crown!.count);
+  });
+
+  it("cuts the foliage out rather than blending it, from both faces", () => {
+    /* Alpha test, never blending, and a leaf is an open sheet with no
+       back face. Both are the harness's material rather than the
+       library's - the canopy arrives as geometry and transforms - so
+       this asserts that the crown is drawn with the clay the room
+       handed it and nothing else. */
+    const crown = canopyOf(buildTree(DEFAULT_PARAMS, clay).tree);
+    expect(crown!.material).toBe(clay.element);
+  });
+
+  it("measures a crown that is there, before anything frames it", () => {
+    /* R8's integration risk. An InstancedMesh carries its own bounding
+       box and three computes it once, from the instance transforms -
+       so one built before its matrices are written measures a single
+       leaf at the origin, and a stage that trusts it frames the
+       branches alone. The mesh leaves the builder with bounds that
+       cover the crown, which on this tree is metres and not
+       centimetres. */
+    const crown = canopyOf(buildTree(DEFAULT_PARAMS, clay).tree)!;
+    expect(crown.boundingBox).not.toBeNull();
+    const span = crown
+      .boundingBox!.getSize(new THREE.Vector3())
+      .length();
+    const oneLeaf = crown.geometry.boundingBox!.getSize(
+      new THREE.Vector3(),
+    ).length();
+    expect(span).toBeGreaterThan(oneLeaf * 20);
+    expect(span).toBeGreaterThan(DEFAULT_PARAMS.height * 0.3);
+  });
+
+  it("puts the crown on the tree, not beside it", () => {
+    /* The transforms are the library's and this is the one thing the
+       harness could get wrong about them: a column-major buffer read
+       as row-major puts every leaf somewhere else entirely. The
+       crown's bounds sit inside the branches' own, give or take a leaf
+       - foliage grows on wood. */
+    const subject = buildTree(DEFAULT_PARAMS, clay).tree;
+    const wood = new THREE.Box3().setFromObject(trunkOf(subject));
+    const crown = canopyOf(subject)!.boundingBox!;
+    const leaf = 0.3;
+    expect(crown.min.y).toBeGreaterThan(wood.min.y - leaf);
+    expect(crown.max.y).toBeLessThan(wood.max.y + leaf);
+    expect(crown.max.x - crown.min.x).toBeLessThan(
+      (wood.max.x - wood.min.x) * 1.5 + leaf,
+    );
+  });
+
+  it("leaves no canopy at all rather than an empty draw", () => {
+    // An empty canopy must leave no instanced object or draw in the scene.
+    const bare = buildTree(DEFAULT_PARAMS, clay, false);
+    expect(canopyOf(bare.tree)).toBeNull();
+    expect(bare.stats.drawCalls).toBe(1);
+    expect(bare.stats.instances).toBe(0);
+  });
+
+  it("passes twig stations through to the placed canopy", () => {
+    const sparse = buildTree({ ...DEFAULT_PARAMS, twigStations: 1 }, clay);
+    const dense = buildTree({ ...DEFAULT_PARAMS, twigStations: 4 }, clay);
+    expect(sparse.stats.instances).toBeGreaterThan(0);
+    expect(dense.stats.instances).toBeGreaterThan(sparse.stats.instances * 2);
+    expect(positions(trunkOf(dense.tree))).toEqual(positions(trunkOf(sparse.tree)));
+    for (const built of [sparse, dense]) built.tree.traverse((object) => {
+      if (object instanceof THREE.Mesh) object.geometry.dispose();
+      if (object instanceof THREE.InstancedMesh) object.dispose();
+    });
+  }, 60_000);
+
+  it("grows the same canopy from the same seed, transform for transform", () => {
+    /* R7 on the harness's side of the seam. The canopy is placed from
+       its own sub-stream, so a canopy that drifted between two builds
+       of one seed would be a stage reaching into another's chance. */
+    const first = canopyOf(buildTree(DEFAULT_PARAMS, clay).tree)!;
+    const second = canopyOf(buildTree(DEFAULT_PARAMS, clay).tree)!;
+    expect([...(first.instanceMatrix.array as Float32Array)]).toEqual([
+      ...(second.instanceMatrix.array as Float32Array),
+    ]);
   });
 
   it("every surface dial reaches the geometry", () => {
@@ -256,14 +413,10 @@ describe("buildTree", () => {
 
     // A ring high in the crown, taken about its own centre: the twigs
     // there are a small fraction of the trunk they hang off.
-    const solved = solveRadii(
-      growSkeleton(toSkeletonParams(DEFAULT_PARAMS)),
-      toSkeletonParams(DEFAULT_PARAMS).envelope,
-      toRadiusParams(DEFAULT_PARAMS),
-    );
-    for (let node = 1; node < solved.radius.length; node += 1) {
-      crownWidest = Math.max(crownWidest, solved.radius[node]);
-      crownNarrowest = Math.min(crownNarrowest, solved.radius[node]);
+    const { values } = structure();
+    for (let node = 1; node < values.length / 6; node += 1) {
+      crownWidest = Math.max(crownWidest, values[node * 6 + 3]);
+      crownNarrowest = Math.min(crownNarrowest, values[node * 6 + 3]);
     }
 
     /* At the foot the drawn surface is deliberately wider than the
@@ -280,13 +433,17 @@ describe("buildTree", () => {
     expect(crownNarrowest * 20).toBeLessThan(trunk);
   });
 
-  it("the taper dial changes the thickness and not the branching", () => {
+  it("the taper dial changes thickness and branch generations while preserving colonization", () => {
     const sharp = tree({ taper: 1.6 });
     const soft = tree({ taper: 3.4 });
     expect([...positions(sharp)]).not.toEqual([...positions(soft)]);
-    // Same skeleton underneath: taper is solved over the branching, it
-    // does not grow a different tree.
-    expect(centreline({ taper: 1.6 })).toEqual(centreline({ taper: 3.4 }));
+    const grown = [1.6, 3.4].map(taper => structure({ taper }));
+    const nodes = (output: ReturnType<typeof structure>, kind: number) =>
+      Array.from({ length: output.values.length / 6 }, (_, i) => i)
+        .filter(i => output.topology[i * 3 + 2] === kind)
+        .map(i => [...output.values.slice(i * 6, i * 6 + 3), output.topology[i * 3]]);
+    expect(nodes(grown[0], 0)).toEqual(nodes(grown[1], 0));
+    expect(nodes(grown[0], 1)).not.toEqual(nodes(grown[1], 1));
   });
 
   it("is deterministic in the seed", () => {
@@ -352,14 +509,12 @@ describe("buildTree", () => {
     // Connectivity: every branch starts where its parent ended, at both
     // ends of the dial, and the tube for it is built over that edge.
     for (const torsion of [0, 2]) {
-      const skeleton = growSkeleton(
-        toSkeletonParams({ ...DEFAULT_PARAMS, torsion }),
-      );
-      skeleton.nodes.forEach((node, index) => {
-        if (index === 0) return expect(node.parent).toBe(-1);
-        expect(node.parent).toBeGreaterThanOrEqual(0);
-        expect(node.parent).toBeLessThan(index);
-      });
+      const { topology } = structure({ torsion });
+      for (let index = 0; index < topology.length / 3; index += 1) {
+        const parent = topology[index * 3];
+        if (index === 0) expect(parent).toBe(0xffffffff);
+        else expect(parent).toBeLessThan(index);
+      }
     }
   });
 
@@ -388,8 +543,11 @@ describe("buildTree", () => {
   });
 
   it("the density dial reaches the branch count", () => {
-    expect(positions(tree({ density: 1 })).length).toBeGreaterThan(
-      positions(tree({ density: 0 })).length * 2,
+    // Hold every handoff at twig scale so the count measures density,
+    // independent of how many radius-driven generations follow it.
+    const twigDiameter = 2 * DEFAULT_PARAMS.height * DEFAULT_PARAMS.trunkRadius;
+    expect(positions(tree({ density: 1, twigDiameter })).length).toBeGreaterThan(
+      positions(tree({ density: 0, twigDiameter })).length * 2,
     );
   });
 });
@@ -413,6 +571,7 @@ describe("presetToParams", () => {
       expect(toSkeletonParams(dialled)).toEqual(preset.skeleton);
       expect(toRadiusParams(dialled)).toEqual(preset.radii);
       expect(toSurfaceParams(dialled)).toEqual(preset.surface);
+      expect(toCanopyParams(dialled)).toEqual(preset.canopy);
     },
   );
 
@@ -429,6 +588,30 @@ describe("presetToParams", () => {
       }
     },
   );
+});
+
+describe("the node ceiling", () => {
+  it("is reported when the growth stops at it, and not otherwise", () => {
+    /* Reaching the ceiling is a tree cut off rather than finished, and
+       `nodes` alone cannot say which happened. Asserted both ways on
+       the same preset: as authored it finishes its crown, and under a
+       ceiling low enough to hit it stops exactly there and says so. */
+    const finished = buildPreset(LAURELIN, clay).stats;
+    expect(finished.capped).toBe(false);
+
+    const cutOff = buildPreset(
+      {
+        ...LAURELIN,
+        skeleton: {
+          ...LAURELIN.skeleton,
+          growth: { ...LAURELIN.skeleton.growth, maxNodes: 200 },
+        },
+      },
+      clay,
+    ).stats;
+    expect(cutOff.nodes).toBe(200);
+    expect(cutOff.capped).toBe(true);
+  }, 60_000);
 });
 
 describe("buildComparison", () => {
@@ -454,7 +637,7 @@ describe("buildComparison", () => {
         placed[i].half + placed[i - 1].half,
       );
     }
-  });
+  }, 60_000);
 
   it("builds each tree exactly as its preset says, not as the dials do", () => {
     /* The comparison is the acceptance test, so what stands on it has
@@ -464,9 +647,17 @@ describe("buildComparison", () => {
        would differ here. */
     const { group } = buildComparison([LAURELIN], clay);
     const alone = buildPreset(LAURELIN, clay).tree;
-    const placed = group.children[0] as THREE.Mesh;
-    expect([...positions(placed)]).toEqual([...positions(alone)]);
-  });
+    const placed = group.children[0];
+    expect([...positions(trunkOf(placed))]).toEqual([
+      ...positions(trunkOf(alone)),
+    ]);
+    /* The canopy too, and by its transforms rather than its geometry:
+       a comparison built through the panel's defaults would carry the
+       golden angle where Laurelin is authored with the Lucas one, and
+       the trunks would match all the same. */
+    expect([...(canopyOf(placed)!.instanceMatrix.array as Float32Array)])
+      .toEqual([...(canopyOf(alone)!.instanceMatrix.array as Float32Array)]);
+  }, 60_000);
 
   it("centres the row on the origin", () => {
     const { group } = buildComparison(PRESETS, clay);
@@ -478,5 +669,108 @@ describe("buildComparison", () => {
     expect(Math.abs(centre.x)).toBeLessThan(
       LAURELIN.skeleton.envelope.height * 0.05,
     );
+  }, 60_000);
+});
+
+/* ------------------------------------------------------------------ *
+ * WHAT THE SUBJECT COSTS TO DRAW
+ *
+ * Counted off the object graph, because the renderer's own number is
+ * the whole scene's - ground disc and scale figure included - and
+ * because there is no renderer in this runner at all. That is the
+ * whole reason the count lives in the builder: a number that only
+ * exists inside a browser is a number nothing can hold to account, and
+ * "one instanced draw per element type" is the canopy's central
+ * performance claim.
+ * ------------------------------------------------------------------ */
+
+describe("countDraws", () => {
+  it("counts one call per renderable, and none for what is not drawn", () => {
+    const group = new THREE.Group();
+    group.add(new THREE.Object3D()); // a bare transform draws nothing
+    group.add(new THREE.Mesh(new THREE.BoxGeometry(), clay.surface));
+    group.add(
+      new THREE.LineSegments(new THREE.BufferGeometry(), clay.line),
+    );
+    expect(countDraws(group)).toEqual({ drawCalls: 2, instances: 0 });
   });
+
+  it("counts an instanced mesh as one draw carrying its copies", () => {
+    // The canopy's shape, stated as an assertion: however many leaves,
+    // one call. An InstancedMesh IS a Mesh, so a count that asked the
+    // wrong question first would report its copies as zero.
+    const crown = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(),
+      clay.surface,
+      5000,
+    );
+    expect(countDraws(crown)).toEqual({ drawCalls: 1, instances: 5000 });
+  });
+
+  it("counts draws, not geometries, when two of them share one", () => {
+    /* A shared geometry is one buffer and two draw calls, and both
+       halves of that matter. Draws are what the GPU is asked for, so
+       they are counted per mesh; triangles are what the buffer holds,
+       so they are never counted per copy of it - which is why they
+       come from the surface each tree built and not from this. */
+    const shared = new THREE.BoxGeometry();
+    const group = new THREE.Group();
+    group.add(new THREE.InstancedMesh(shared, clay.surface, 12));
+    group.add(new THREE.InstancedMesh(shared, clay.surface, 30));
+    expect(countDraws(group)).toEqual({ drawCalls: 2, instances: 42 });
+  });
+});
+
+describe("the forest's own numbers", () => {
+  it("sums draws and instances across the trees standing there", () => {
+    /* Two trees really are two subjects' worth of work - each carries
+       its own surface, and its own crown when there is one - so the
+       new counts sum exactly the way triangles and nodes already do.
+       Checked against the trees built one at a time, which is the only
+       way to catch an aggregate that summed one tree twice. */
+    const forest = buildComparison(PRESETS, clay).stats;
+    const alone = PRESETS.map((preset) => buildPreset(preset, clay).stats);
+
+    expect(forest.drawCalls).toBe(
+      alone.reduce((total, one) => total + one.drawCalls, 0),
+    );
+    expect(forest.instances).toBe(
+      alone.reduce((total, one) => total + one.instances, 0),
+    );
+    // And the numbers themselves, so a per-tree count that drifted to
+    // a per-forest one still fails here: every tree brings its surface
+    // and its crown, and every leaf on both trees is instanced.
+    expect(forest.drawCalls).toBe(PRESETS.length * 2);
+    expect(forest.instances).toBeGreaterThan(0);
+    // Task 8's local taper and crown guard change topology; keep exact
+    // per-preset counts as well as the forest aggregation invariant.
+    expect(alone.map((one) => one.handoffs)).toEqual([1075, 1649]);
+    expect(alone.map((one) => one.twigs)).toEqual([54890, 32153]);
+    for (const key of ["handoffs", "levelCappedHandoffs", "twigs"] as const) {
+      expect(forest[key]).toBe(alone.reduce((sum, one) => sum + one[key], 0));
+    }
+    const pooled = alone.flatMap((one) => one.generationCounts.flatMap(
+      (count, generation) => Array<number>(count).fill(generation),
+    )).sort((a, b) => a - b);
+    expect(forest.generations).toEqual({ min: pooled[0],
+      median: (pooled[Math.floor((pooled.length - 1) / 2)] + pooled[Math.floor(pooled.length / 2)]) / 2,
+      max: pooled[pooled.length - 1] });
+    expect(forest.levelCapped).toBe(false);
+    expect(forest.levelCappedHandoffs).toBe(0);
+  }, 60_000);
+  it("builds the same tree bare when foliage is off", () => {
+    /* Foliage off is an empty canopy, not a second code path: no leaf
+       is placed, the mesh builder returns null, and the trunk is the
+       one renderable. The skeleton underneath is byte for byte the
+       tree with foliage on. */
+    const on = buildTree(DEFAULT_PARAMS, clay);
+    const off = buildTree(DEFAULT_PARAMS, clay, false);
+    expect(off.stats.instances).toBe(0);
+    expect(off.tree.children.length).toBe(1);
+    expect(on.stats.instances).toBeGreaterThan(0);
+    // Leaves are instances, not surface triangles; the surface is the same.
+    expect(off.stats.triangles).toBe(on.stats.triangles);
+    expect(off.stats.nodes).toBe(on.stats.nodes);
+  });
+
 });

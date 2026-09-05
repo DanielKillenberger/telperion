@@ -11,9 +11,12 @@
  * `height` and `spread` are the authored envelope, the five bias dials
  * are the growth bias field's own five terms under their own names,
  * `taper` is the radius solve's fork exponent, `density` is how many
- * attractors the envelope gets, and the four surface dials are the
- * swept section's own terms. Nothing is a knob invented for the
- * panel's sake.
+ * attractors the envelope gets, `growth step` is how finely the
+ * growth answers them, the branch dials are the local pass's
+ * allometric rules, and the four surface dials are the
+ * swept section's own terms, and the canopy dials control leaf
+ * orientation and size. Nothing is a knob
+ * invented for the panel's sake.
  *
  * The two twists are two dials and are never folded together. `spiral`
  * bends the centreline - the path the limb takes through the air.
@@ -49,11 +52,8 @@
  * be walked to one at a time.
  * ------------------------------------------------------------------ */
 
-import { DEFAULT_ENVELOPE } from "../src/envelope";
-import { DEFAULT_SURFACE } from "../src/mesh/surface";
-import { DEFAULT_RADII } from "../src/radius";
-import { DEFAULT_MAX_TURN_PER_STEP } from "../src/skeleton/colonize";
-import { DEFAULT_BIAS } from "../src/torsion";
+import { ORDINARY } from "../src/browser/core";
+import { presetToParams } from "./skeleton-view";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
 export const SEED_MAX = 0xff_ff_ff_ff;
@@ -91,6 +91,30 @@ export interface GrowerParams {
   maxTurnPerStep: number;
   /** How thickly the envelope is populated: branch count, not leaves. */
   density: number;
+  /** The growth step as a fraction of height: the branching depth.
+   *  `density` says where the tree is asked to grow and this says how
+   *  finely it answers, so a finer step branches further down into
+   *  finer wood and more tips. Finer is to the left. */
+  step: number;
+  /** Fixed twig anatomy and branch-law terms carried through preset
+   *  round trips; length ratio and fork exponent have separate owners. */
+  twigLength: number;
+  twigDiameter: number;
+  twigStationLength: number;
+  twigStations: number;
+  /** Metres across the wood that bears twigs: at or under it a branch carries a twig at every station and no lateral branch. */
+  twigBearing: number;
+  ratioPower: number;
+  limbRadius: number;
+  /** Share of the crown's depth colonization leaves for the branches. */
+  reach: number;
+  laterals: number;
+  angleVariation: number;
+  vigourVariation: number;
+  twigAngle: number;
+  twigDivergence: number;
+  internodeFactor: number;
+  lengthRatio: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
@@ -130,6 +154,42 @@ export interface GrowerParams {
   /** How much wider the trunk is where it meets the ground, as a
    *  multiple of its radius there. 1 is no flare. */
   flareRadius: number;
+
+  /* All canopy terms survive preset round trips. shootRadius, spacing,
+     clump and clumpSpan apply only without marked twig anatomy and are
+     therefore carried as values rather than offered as live dials. */
+  /** The wood at or below this fraction of the trunk's radius bears
+   *  foliage; everything thicker is bark. */
+  shootRadius: number;
+  /** Distance along a shoot between elements, as a fraction of
+   *  envelope height. The density lever: halve it for twice the
+   *  canopy. */
+  spacing: number;
+  /** The phyllotactic divergence angle, in degrees. 137.508 is the
+   *  golden angle almost every plant uses; 99.502 is the Lucas angle
+   *  Laurelin is authored with. */
+  divergence: number;
+  /** Elements gathered at the growing tip on top of what `spacing`
+   *  already puts there: the difference between a beaded shoot and a
+   *  spray. */
+  clump: number;
+  /** The stretch at the tip the clump gathers into, as a fraction of
+   *  the shoot's length. */
+  clumpSpan: number;
+  /** How far an element turns away from the tree's axis, 0 to 1. */
+  outward: number;
+  /** How far an element turns toward the sky, 0 to 1. */
+  upward: number;
+  /** Random spread about the direction those two ask for, in degrees.
+   *  Zero is a diagram. */
+  scatter: number;
+  /** Multiplier on the element's own authored size. The element owns
+   *  its absolute dimensions - a leaf does not grow because its tree
+   *  is tall - so this says whether a tree wants more or less of it. */
+  size: number;
+  /** Random variation of that multiplier, 0 to 1: at 0.3 elements run
+   *  from 70% to 130% of `size`. */
+  sizeVariation: number;
 }
 
 export interface SliderSpec {
@@ -140,6 +200,12 @@ export interface SliderSpec {
   step: number;
   /** Suffix shown next to the value. Empty for a bare ratio. */
   unit: string;
+  /** Names the stage this dial belongs to, on the FIRST dial of that
+   *  stage only. The panel draws a heading where one appears. The list
+   *  already runs in pipeline order; thirty dials without the stage
+   *  boundaries drawn is a list you scroll rather than read, and the
+   *  canopy's ten sit at the far end of it. */
+  group?: string;
 }
 
 export const SLIDERS: readonly SliderSpec[] = [
@@ -149,7 +215,7 @@ export const SLIDERS: readonly SliderSpec[] = [
      the range stays at a sapling: the generator is a standalone
      library and its acceptance is that one algorithm covers the range,
      not that it covers Valinor. */
-  { key: "height", label: "height", min: 4, max: 400, step: 0.5, unit: "m" },
+  { group: "skeleton", key: "height", label: "height", min: 4, max: 400, step: 0.5, unit: "m" },
   { key: "spread", label: "spread", min: 0.12, max: 0.65, step: 0.01, unit: "" },
   // The bias dials run well past what looks good. The owner has to be
   // able to see where too much is, or the usable range sits at the
@@ -167,12 +233,52 @@ export const SLIDERS: readonly SliderSpec[] = [
   // end is a bug.
   { key: "maxTurnPerStep", label: "turn limit", min: 5, max: 90, step: 1, unit: "deg/step" },
   { key: "density", label: "density", min: 0, max: 1, step: 0.01, unit: "" },
+  /* The branching depth, beside the density it works with: attractors
+     decide where the tree is asked to grow, the step how finely it
+     answers. The rail's ends are the measured range and not round
+     numbers. The top is the step every tree so far was grown at, 3.26 m
+     on Telperion, 808 nodes; the bottom is 0.44 m on the same tree,
+     14,100 nodes and nine times the tips, and on the widest crown this
+     panel can ask for at full density it is 42,000 nodes and a fifth of
+     a second to grow. Past that the count runs away without the wood
+     getting usefully finer, and the notch is fine enough to walk the
+     bottom of the rail where each one costs the most. */
+  { key: "step", label: "growth step", min: 0.003, max: 0.022, step: 0.0005, unit: "h" },
+  /* Branch-law rails match resolveTwigs. At the shared rest, 0.4^1.3
+     gives a 0.304 radius multiplier per lateral. Ratio 1 or power 0
+     keeps the radius constant; the generation safety stop is reported.
+     Three internodes give two lateral stations and a terminal twig.
+     The integer rails allow 1..32 internodes and 0..7 laterals; their
+     upper ends can reach the node ceiling and are exploration bounds.
+     At rest Telperion / Laurelin have 49,713 / 104,335 surviving nodes.
+     Task 6 measured ratio 0.35 at 26,961 / 67,107 and 0.45 at
+     59,080 / 205,756, so the 0.01 notch can cross a generation boundary.
+     Power 1.5 gives 26,073 / 54,658; two internodes give 8,330 / 18,268;
+     zero laterals give 1,301 / 3,856. These are independent changes to
+     rest, with raw measurements in .flow/tmp/task6-measure.log.
+     Task 4 measured limbRadius 0.075 / 0.1 / 0.15 at 42,006 / 49,713 /
+     56,378 Telperion nodes and 43,199 / 104,335 / 149,826 Laurelin nodes.
+     The 0.005 notch resolves that transition; 0 disables limb laterals,
+     and 1 admits wood below the root radius. */
+  { group: "branches", key: "lengthRatio", label: "length ratio", min: 0.05, max: 1, step: 0.01, unit: "" },
+  { key: "ratioPower", label: "radius power", min: 0, max: 8, step: 0.05, unit: "" },
+  { key: "internodeFactor", label: "internode factor", min: 0.05, max: 32, step: 0.05, unit: "x" },
+  { key: "angleVariation", label: "angle variation", min: 0, max: 90, step: 1, unit: "deg" },
+  { key: "vigourVariation", label: "vigour variation", min: 0, max: 0.95, step: 0.01, unit: "" },
+  { key: "laterals", label: "laterals", min: 0, max: 7, step: 1, unit: "" },
+  { key: "limbRadius", label: "limbRadius", min: 0, max: 1, step: 0.005, unit: "r" },
+  // Measured on Telperion: at 0 the 79 cm colonization tips end at the
+  // shell and 21 m branches reach out past it, the cactus the owner saw;
+  // the rest leaves the outer share of the crown to the pass.
+  { key: "reach", label: "reach", min: 0, max: 0.9, step: 0.01, unit: "" },
+  { key: "twigAngle", label: "branch angle", min: 0, max: 90, step: 1, unit: "deg" },
+  { key: "twigDivergence", label: "branch divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
   // The fork exponent, under the name the owner already turns. Below
   // 2 a fork sheds more than area and the tree runs from a heavy
   // trunk to threads; above 3 the limbs stop thinning enough to read
   // as limbs. The dial spans both sides of that so the good range is
   // visibly a choice.
-  { key: "taper", label: "taper", min: 1.4, max: 3.6, step: 0.05, unit: "n" },
+  { group: "thickness", key: "taper", label: "taper", min: 1.4, max: 3.6, step: 0.05, unit: "n" },
   /* The other two terms of the radius solve, and the envelope's bare
      trunk. They are here because scale is one dial and everything else
      is stated as a fraction of it: nothing in the library makes a
@@ -189,7 +295,7 @@ export const SLIDERS: readonly SliderSpec[] = [
   // up, on exactly the trees the 400 m height ceiling was added for.
   { key: "trunkRadius", label: "trunk", min: 0.004, max: 0.085, step: 0.001, unit: "h" },
   { key: "lengthTaper", label: "length taper", min: 0, max: 2, step: 0.05, unit: "" },
-  { key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
+  { group: "envelope", key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
   /* The last two terms of the authored silhouette. `spread` says how
      far the crown reaches and these two say what shape it is on the
      way out, which is most of the difference between a narrow upright
@@ -204,7 +310,7 @@ export const SLIDERS: readonly SliderSpec[] = [
   // procedural tree has out to well past what looks good, on the same
   // principle as the bias dials - the owner has to be able to see where
   // too much is.
-  { key: "lobes", label: "lobes", min: 0, max: 9, step: 1, unit: "" },
+  { group: "surface", key: "lobes", label: "lobes", min: 0, max: 9, step: 1, unit: "" },
   { key: "lobeDepth", label: "lobe depth", min: 0, max: 0.4, step: 0.01, unit: "" },
   // Signed, because a plait winding the other way is a different tree
   // and not a smaller one. Stops at three turns either side: the section
@@ -212,30 +318,22 @@ export const SLIDERS: readonly SliderSpec[] = [
   // height the winding outruns the sampling and reads as chatter.
   { key: "twistRate", label: "surface twist", min: -3, max: 3, step: 0.1, unit: "turns" },
   { key: "flareRadius", label: "root flare", min: 1, max: 4, step: 0.05, unit: "x" },
+  /* Marked twigs place leaves from their fixed anatomy. shootRadius,
+     spacing, clump and clumpSpan remain in preset round trips for the
+     library's unmarked-skeleton fallback, but have no dials here.
+     Divergence steps in thousandths to retain the authored phyllotaxis;
+     the other leaf controls keep the placement stage's existing rails. */
+  { group: "canopy", key: "divergence", label: "divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
+  { key: "outward", label: "leaf outward", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "upward", label: "leaf upward", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "scatter", label: "leaf scatter", min: 0, max: 90, step: 1, unit: "deg" },
+  { key: "size", label: "leaf size", min: 0.2, max: 4, step: 0.05, unit: "x" },
+  { key: "sizeVariation", label: "leaf size spread", min: 0, max: 0.9, step: 0.01, unit: "" },
 ];
 
 export const DEFAULT_PARAMS: GrowerParams = {
-  seed: 1,
-  height: 24,
-  spread: 0.3,
-  torsion: 1,
-  gravitropism: DEFAULT_BIAS.gravitropism,
-  lean: DEFAULT_BIAS.lean,
-  writheAmplitude: DEFAULT_BIAS.writheAmplitude,
-  writheWavelength: DEFAULT_BIAS.writheWavelength,
-  spiralRate: DEFAULT_BIAS.spiralRate,
-  maxTurnPerStep: DEFAULT_MAX_TURN_PER_STEP,
-  density: 0.5,
-  taper: DEFAULT_RADII.forkExponent,
-  trunkRadius: DEFAULT_RADII.trunkRadius,
-  lengthTaper: DEFAULT_RADII.lengthTaper,
-  crownBase: DEFAULT_ENVELOPE.crownBase,
-  fullness: DEFAULT_ENVELOPE.fullness,
-  shoulder: DEFAULT_ENVELOPE.shoulder,
-  lobes: DEFAULT_SURFACE.lobes,
-  lobeDepth: DEFAULT_SURFACE.lobeDepth,
-  twistRate: DEFAULT_SURFACE.twistRate,
-  flareRadius: DEFAULT_SURFACE.flareRadius,
+  ...presetToParams({ ...ORDINARY, id: "ordinary", name: "Ordinary", note: "" }),
+  seed: 1, density: 0.5,
 };
 
 /** The seed field is the one free-text surface on the panel, so it is

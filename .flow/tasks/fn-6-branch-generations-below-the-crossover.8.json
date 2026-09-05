@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T13:46:29.297893Z",
+  "depends_on": [
+    "fn-6-branch-generations-below-the-crossover.6"
+  ],
+  "id": "fn-6-branch-generations-below-the-crossover.8",
+  "priority": null,
+  "spec": "fn-6-branch-generations-below-the-crossover",
+  "spec_path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.8.md",
+  "status": "todo",
+  "title": "The twig has a length, and the branch its own resolution",
+  "updated_at": "2026-09-05T17:57:43.658638Z"
+}

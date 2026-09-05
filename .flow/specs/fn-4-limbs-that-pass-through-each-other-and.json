@@ -1,0 +1,28 @@
+{
+  "branch_name": "fn-4-limbs-that-pass-through-each-other-and",
+  "created_at": "2026-09-04T19:40:18.311928Z",
+  "depends_on_epics": [
+    "fn-5-branch-until-the-tips-bear-leaves-one",
+    "fn-6-branch-generations-below-the-crossover",
+    "fn-8-lean-rust-tree-generation-core"
+  ],
+  "id": "fn-4-limbs-that-pass-through-each-other-and",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-4-limbs-that-pass-through-each-other-and.md",
+  "status": "open",
+  "title": "Limbs that pass through each other, and the blunt ends they stop at",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T18:32:42.705273Z"
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T20:09:17.511734Z",
+  "depends_on": [
+    "fn-5-branch-until-the-tips-bear-leaves-one.3"
+  ],
+  "id": "fn-5-branch-until-the-tips-bear-leaves-one.5",
+  "priority": null,
+  "spec": "fn-5-branch-until-the-tips-bear-leaves-one",
+  "spec_path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.5.md",
+  "status": "todo",
+  "title": "What it costs: the curve, the counts, and a build you can still drag",
+  "updated_at": "2026-09-04T20:29:49.087577Z"
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T10:48:51.311854Z",
+  "depends_on": [
+    "fn-6-branch-generations-below-the-crossover.4"
+  ],
+  "id": "fn-6-branch-generations-below-the-crossover.5",
+  "priority": null,
+  "spec": "fn-6-branch-generations-below-the-crossover",
+  "spec_path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.5.md",
+  "status": "todo",
+  "title": "Fill, shed, and the leaf on the twig",
+  "updated_at": "2026-09-05T13:04:55.597131Z"
+}

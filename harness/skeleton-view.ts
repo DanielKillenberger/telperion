@@ -1,35 +1,18 @@
 import * as THREE from "three";
 
-import {
-  buildSurface,
-  DEFAULT_SURFACE,
-  type SurfaceParams,
-} from "../src/mesh/surface";
-import type { TreePreset } from "../src/presets";
-import { solveRadii, type RadiusParams } from "../src/radius";
-import { growSkeleton, type SkeletonParams } from "../src/skeleton/grow";
+import { ORDINARY, treeCore, type Family, type TreePreset, type Timings } from "../src/browser/core";
+import { materializeTree, disposeTreeGeometry } from "../src/browser/three";
+type SkeletonParams = Family["skeleton"];
+type RadiusParams = Family["radii"];
+type SurfaceParams = Family["surface"];
+type CanopyParams = Family["canopy"];
+const DEFAULT_SURFACE = ORDINARY.surface;
 
 import type { GrowerParams } from "./params";
 import type { Clay } from "./stage";
 
-/* ------------------------------------------------------------------ *
- * THE PANEL'S HALF OF THE CONTRACT
- *
- * Two jobs, both of them translation. Turn the dials the owner is
- * looking at into the arguments the generator takes, and turn the
- * skeleton it returns into something the clay room can draw. The
- * generator itself knows about neither the panel nor the stage, which
- * is what "the generator is a standalone library" has to mean in
- * practice.
- *
- * The surface itself is the library's, and all of it: growing the
- * skeleton, solving the radii and sweeping the skin are three library
- * calls, and what is left here is the translation either side of them
- * plus the cost of the build, which the panel reports. The tapered
- * proxy tubes this file used to draw are gone - they were a viewer for
- * the radius solve while there was no surface to look at, and every
- * gap the owner screenshotted was theirs.
- * ------------------------------------------------------------------ */
+/** Translates viewer controls to native family parameters and materializes
+ * owned Rust outputs for the clay stage. Botanical generation stays in Rust. */
 
 /** What the density dial spans, in attractors. The floor is a tree
  *  with a readable handful of limbs rather than a bare fork; the
@@ -48,9 +31,11 @@ const ATTRACTORS_MAX = 1600;
  *  move takes the tree from straight to writhing without walking three
  *  sliders. Gravitropism is deliberately outside it - a tree that wants
  *  to grow up still wants to when it is not twisting.
- *  `density` is the attractor count. `taper` is not a skeleton
- *  argument at all - thickness is solved over the skeleton once it has
- *  grown, so it travels through `toRadiusParams`. */
+ *  `density` is the attractor count, and `step` and the branch-law
+ *  rules go through under the library's own names. Twig anatomy stays
+ *  in metres. `taper` travels through `toRadiusParams`: the colonization
+ *  radius solve uses it before branch growth, and the final solve
+ *  preserves the appended branches' recorded local taper. */
 export function toSkeletonParams(params: GrowerParams): SkeletonParams {
   return {
     seed: params.seed,
@@ -70,6 +55,22 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
     attractors: Math.round(
       ATTRACTORS_MIN + params.density * (ATTRACTORS_MAX - ATTRACTORS_MIN),
     ),
+    step: params.step,
+    // Preserve every branch-law and anatomy field through preset round trips.
+    twigs: {
+      twig: { length: params.twigLength, diameter: params.twigDiameter, internodeLength: params.twigStationLength,
+        stationsPerInternode: params.twigStations, bearingDiameter: params.twigBearing },
+      ratioPower: params.ratioPower,
+      limbRadius: params.limbRadius,
+      reach: params.reach,
+      laterals: params.laterals,
+      angleVariation: params.angleVariation,
+      vigourVariation: params.vigourVariation,
+      angle: params.twigAngle,
+      divergence: params.twigDivergence,
+      internodeFactor: params.internodeFactor,
+      lengthRatio: params.lengthRatio,
+    },
     bias: {
       gravitropism: params.gravitropism,
       lean: params.lean * params.torsion,
@@ -108,7 +109,7 @@ export function toRadiusParams(params: GrowerParams): RadiusParams {
  *  of `SurfaceParams` - how finely the section is sampled, how deep a
  *  child sockets into its parent and how much it swells leaving it,
  *  how far the flare decays and how far it sinks - keep the library's
- *  defaults, on the same footing as the growth distances in grow.ts:
+ *  defaults, on the same footing as native growth distances:
  *  they are structure and cost rather than look, nothing has asked to
  *  turn them live, and each is one line in SLIDERS the day something
  *  does.
@@ -129,17 +130,136 @@ export function toSurfaceParams(params: GrowerParams): SurfaceParams {
   };
 }
 
+/** The panel's canopy values, as the placement stage's arguments.
+ *
+ *  A rename and nothing else: every term carries the library's own
+ *  name and unit, so there is nothing here to translate and nothing to
+ *  drift - the same footing the bias and surface dials are on. All ten
+ *  are stated rather than spread over `DEFAULT_CANOPY`, for the reason
+ *  the envelope in `toSkeletonParams` is: a set assembled by spread
+ *  silently keeps a default for whichever term the panel forgot, and a
+ *  preset loaded onto the dials would then be built from a canopy
+ *  nobody authored. */
+export function toCanopyParams(params: GrowerParams): CanopyParams {
+  return {
+    maxInstances: ORDINARY.canopy.maxInstances,
+    shootRadius: params.shootRadius,
+    spacing: params.spacing,
+    divergence: params.divergence,
+    clump: params.clump,
+    clumpSpan: params.clumpSpan,
+    outward: params.outward,
+    upward: params.upward,
+    scatter: params.scatter,
+    size: params.size,
+    sizeVariation: params.sizeVariation,
+  };
+}
+
 /** What the surface cost to build, for the panel to report. The owner
  *  is entitled to know what a dial just spent: the swept skin is
  *  allowed to cost more than the fn-11.4 viewer did, but not silently. */
 export interface TreeStats {
   triangles: number;
   vertices: number;
-  /** Skeleton nodes, which is what the density dial moves and what
-   *  every other number here scales with. */
+  /** Skeleton nodes, which is what the density and step dials move
+   *  and what every other number here scales with. */
   nodes: number;
-  /** Wall-clock milliseconds for the whole build: grow, solve, sweep. */
+  /** Whether the growth stopped at its node ceiling rather than
+   *  finishing the crown or the twigs. A capped tree is the ceiling's
+   *  shape and not the envelope's, and `nodes` alone cannot say which
+   *  it was - so the panel says it in words. */
+  capped: boolean;
+  attractionCapped: boolean;
+  complete: boolean;
+  timings: Timings & { materializationMs: number };
+  /** The pass's actual generation stop, retained even after shedding. */
+  levelCapped: boolean;
+  /** Surviving edges leaving colonization, including tip leaders and laterals. */
+  handoffs: number;
+  /** Radius-law reductions to twig size for surviving handoffs. Empty is null. */
+  generations: { min: number; median: number; max: number } | null;
+  /** Histogram preserves the pooled median when multiple trees are compared. */
+  generationCounts: number[];
+  /** Handoffs whose radius law remains above twig radius at the safety cap.
+   * This prediction can exceed actual stops when collisions or short runs end growth. */
+  levelCappedHandoffs: number;
+  /** Surviving twig marks, independent of the foliage visibility toggle. */
+  twigs: number;
+  /** What the subject costs the renderer in draw calls: one per
+   *  renderable in it. The canopy's claim is that a whole crown is one
+   *  of these, so this is the number that claim is read off. */
+  drawCalls: number;
+  /** Instanced copies across the subject: the canopy's elements -
+   *  the leaf count, after the twigs are shed and the canopy is
+   *  culled - and nothing else instances. Read beside
+   *  `drawCalls` this is R4's whole claim - a crown of thousands of
+   *  leaves arriving as one draw.
+   *
+   *  Their triangles are deliberately NOT in `triangles` above, which
+   *  stays the branch surface's: a canopy's triangle bill is
+   *  `instances` times the element's own count, and the renderer's own
+   *  figure beside this one in the panel is what reports what was
+   *  actually drawn. */
+  instances: number;
+  /** Leaf stations placed before canopy culling (zero with foliage off). */
+  leavesPlaced: number;
+  /** Wall-clock milliseconds for growth, radii, surface, foliage and meshes. */
   buildMs: number;
+}
+
+function generationRange(counts: readonly number[]): TreeStats["generations"] {
+  const total = counts.reduce((sum, count) => sum + count, 0);
+  if (total === 0) return null;
+  const at = (rank: number): number => {
+    let seen = 0;
+    for (let i = 0; i < counts.length; i++) {
+      seen += counts[i];
+      if (seen > rank) return i;
+    }
+    return counts.length - 1;
+  };
+  return { min: at(0), median: (at(Math.floor((total - 1) / 2)) + at(Math.floor(total / 2))) / 2,
+    max: at(total - 1) };
+}
+
+/** What an object costs to draw, counted off the object graph.
+ *
+ *  Counted here rather than read from `renderer.info.render` for two
+ *  reasons, and neither is convenience. The renderer's number is the
+ *  whole SCENE's - ground disc, scale figure and all - so it answers a
+ *  different question from "what did this subject cost"; and there is
+ *  no renderer in the test runner, so a subject's draw count read off
+ *  the renderer is a number nothing can hold to account. The stage
+ *  reports the renderer's own figure beside this one, and the two
+ *  differing by the room's fixtures is the expected reading.
+ *
+ *  Draws, not geometries: two instanced meshes sharing one geometry
+ *  are two draw calls, because that is what the GPU is asked for. What
+ *  must not be double counted is a shared geometry's TRIANGLES, and
+ *  those are summed per built tree from the surface that produced
+ *  them, never per instance. */
+export function countDraws(object: THREE.Object3D): {
+  drawCalls: number;
+  instances: number;
+} {
+  let drawCalls = 0;
+  let instances = 0;
+  object.traverse((node) => {
+    // InstancedMesh extends Mesh, so it is asked about first: one draw
+    // whatever its count, and the count is the instances.
+    if (node instanceof THREE.InstancedMesh) {
+      drawCalls += 1;
+      instances += node.count;
+    } else if (
+      node instanceof THREE.Mesh ||
+      node instanceof THREE.Line ||
+      node instanceof THREE.Points
+    ) {
+      drawCalls += 1;
+    }
+  });
+  return { drawCalls, instances };
 }
 
 /** A preset's parameters, as the panel's dials.
@@ -152,13 +272,16 @@ export interface TreeStats {
  *  wants, and the master that scales them is a convenience for
  *  dragging, not part of the tree.
  *
- *  Exact in both directions: `toSkeletonParams`, `toRadiusParams` and
- *  `toSurfaceParams` applied to the result reproduce the preset
- *  member for member. That round trip is asserted, because a panel
- *  that silently dropped one of a preset's terms would show the owner
- *  a tree nobody authored. */
+ *  Exact in both directions: `toSkeletonParams`, `toRadiusParams`,
+ *  `toSurfaceParams` and `toCanopyParams` applied to the result
+ *  reproduce the preset member for member. That round trip is
+ *  asserted, because a panel that silently dropped one of a preset's
+ *  terms would show the owner a tree nobody authored - and the canopy
+ *  is where that would bite hardest, since Laurelin's divergence is
+ *  not the golden angle the default is. */
 export function presetToParams(preset: TreePreset): GrowerParams {
   const { envelope, bias } = preset.skeleton;
+  const canopy = preset.canopy;
   return {
     seed: preset.skeleton.seed,
     height: envelope.height,
@@ -175,6 +298,22 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     maxTurnPerStep: preset.skeleton.growth.maxTurnPerStep,
     density: (preset.skeleton.attractors - ATTRACTORS_MIN) /
       (ATTRACTORS_MAX - ATTRACTORS_MIN),
+    step: preset.skeleton.step,
+    twigLength: preset.skeleton.twigs.twig.length,
+    angleVariation: preset.skeleton.twigs.angleVariation,
+    vigourVariation: preset.skeleton.twigs.vigourVariation,
+    twigDiameter: preset.skeleton.twigs.twig.diameter,
+    twigStationLength: preset.skeleton.twigs.twig.internodeLength,
+    twigStations: preset.skeleton.twigs.twig.stationsPerInternode,
+    twigBearing: preset.skeleton.twigs.twig.bearingDiameter,
+    ratioPower: preset.skeleton.twigs.ratioPower,
+    limbRadius: preset.skeleton.twigs.limbRadius,
+    reach: preset.skeleton.twigs.reach,
+    laterals: preset.skeleton.twigs.laterals,
+    twigAngle: preset.skeleton.twigs.angle,
+    twigDivergence: preset.skeleton.twigs.divergence,
+    internodeFactor: preset.skeleton.twigs.internodeFactor,
+    lengthRatio: preset.skeleton.twigs.lengthRatio,
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
     lengthTaper: preset.radii.lengthTaper,
@@ -182,52 +321,44 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     lobeDepth: preset.surface.lobeDepth,
     twistRate: preset.surface.twistRate,
     flareRadius: preset.surface.flareRadius,
+    shootRadius: canopy.shootRadius,
+    spacing: canopy.spacing,
+    divergence: canopy.divergence,
+    clump: canopy.clump,
+    clumpSpan: canopy.clumpSpan,
+    outward: canopy.outward,
+    upward: canopy.upward,
+    scatter: canopy.scatter,
+    size: canopy.size,
+    sizeVariation: canopy.sizeVariation,
   };
 }
 
-/** The one build. Skeleton, radii, surface, mesh - and the only thing
- *  that varies between one tree and another is the three argument
- *  objects handed in, which is the spec's acceptance test stated as a
- *  function signature: Telperion and Laurelin reach this with
- *  different numbers and by no other difference. */
 function build(
-  skeletonParams: SkeletonParams,
-  radii: RadiusParams,
-  surfaceParams: SurfaceParams,
-  clay: Clay,
-): { tree: THREE.Mesh; stats: TreeStats } {
+  family: Family, clay: Clay, withFoliage = true,
+): { tree: THREE.Group; stats: TreeStats } {
   const started = performance.now();
-  const skeleton = growSkeleton(skeletonParams);
-  const field = solveRadii(skeleton, skeletonParams.envelope, radii);
-  const surface = buildSurface(
-    skeleton,
-    field,
-    skeletonParams.envelope,
-    surfaceParams,
-  );
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.BufferAttribute(surface.positions, 3),
-  );
-  geometry.setIndex(new THREE.BufferAttribute(surface.indices, 1));
-  /* Shared ring vertices carry a shared normal, so this smooths around
-     the section and along the sweep in one pass. There are no joints
-     left for it to smooth over: the surface has none. */
-  geometry.computeVertexNormals();
-
-  const tree = new THREE.Mesh(geometry, clay.surface);
-  tree.name = "grower-tree";
-  return {
-    tree,
-    stats: {
-      triangles: surface.triangles,
-      vertices: surface.vertices,
-      nodes: skeleton.nodes.length,
-      buildMs: performance.now() - started,
-    },
-  };
+  const engine = treeCore();
+  try {
+    const output = engine.build(family,
+      { surface: true, foliage: withFoliage });
+    engine.release();
+    const materialization = performance.now();
+    const tree = materializeTree(output, clay);
+    const materializationMs = performance.now() - materialization;
+    const d = output.diagnostics;
+    return { tree, stats: {
+      triangles: (output.surface?.indices.length ?? 0) / 3,
+      vertices: (output.surface?.positions.length ?? 0) / 3,
+      nodes: d.nodes, capped: d.capped, levelCapped: d.levelCapped,
+      attractionCapped: d.attractionCapped, complete: d.complete,
+      handoffs: d.handoffs, generationCounts: d.generationCounts,
+      generations: generationRange(d.generationCounts),
+      levelCappedHandoffs: d.levelCappedHandoffs, twigs: d.twigs,
+      ...countDraws(tree), leavesPlaced: d.leavesPlaced,
+      timings: { ...d.timings, materializationMs }, buildMs: performance.now() - started,
+    } };
+  } finally { engine.release(); }
 }
 
 /** The subject the stage draws: this tree, in clay, skinned.
@@ -237,12 +368,13 @@ function build(
 export function buildTree(
   params: GrowerParams,
   clay: Clay,
-): { tree: THREE.Mesh; stats: TreeStats } {
+  withFoliage = true,
+): { tree: THREE.Group; stats: TreeStats } {
   return build(
-    toSkeletonParams(params),
-    toRadiusParams(params),
-    toSurfaceParams(params),
+    { ...ORDINARY, skeleton: toSkeletonParams(params), radii: toRadiusParams(params),
+      surface: toSurfaceParams(params), canopy: toCanopyParams(params) },
     clay,
+    withFoliage,
   );
 }
 
@@ -253,8 +385,13 @@ export function buildTree(
 export function buildPreset(
   preset: TreePreset,
   clay: Clay,
-): { tree: THREE.Mesh; stats: TreeStats } {
-  return build(preset.skeleton, preset.radii, preset.surface, clay);
+  withFoliage = true,
+): { tree: THREE.Group; stats: TreeStats } {
+  return build(
+    preset,
+    clay,
+    withFoliage,
+  );
 }
 
 /** The gap between two trees standing side by side, as a fraction of
@@ -277,14 +414,18 @@ const COMPARISON_GAP = 0.18;
 export function buildComparison(
   presets: readonly TreePreset[],
   clay: Clay,
+  withFoliage = true,
 ): { group: THREE.Group; stats: TreeStats } {
   const group = new THREE.Group();
   group.name = "grower-comparison";
 
-  const built = presets.map((preset) => ({
-    preset,
-    ...buildPreset(preset, clay),
-  }));
+  const built: { preset: TreePreset; tree: THREE.Group; stats: TreeStats }[] = [];
+  try {
+    for (const preset of presets) built.push({ preset, ...buildPreset(preset, clay, withFoliage) });
+  } catch (error) {
+    for (const one of built) disposeTreeGeometry(one.tree);
+    throw error;
+  }
 
   const widths = built.map(
     ({ preset }) =>
@@ -302,12 +443,48 @@ export function buildComparison(
     group.add(tree);
   });
 
+  const generationCounts = Array<number>(Math.max(0, ...built.map(one => one.stats.generationCounts.length))).fill(0);
+  for (const one of built) {
+    one.stats.generationCounts.forEach((count, generation) => {
+      generationCounts[generation] += count;
+    });
+  }
   return {
     group,
     stats: {
       triangles: built.reduce((total, one) => total + one.stats.triangles, 0),
       vertices: built.reduce((total, one) => total + one.stats.vertices, 0),
       nodes: built.reduce((total, one) => total + one.stats.nodes, 0),
+      // One capped tree is a comparison that cannot be judged.
+      capped: built.some((one) => one.stats.capped),
+      attractionCapped: built.some(one => one.stats.attractionCapped),
+      complete: built.every(one => one.stats.complete),
+      timings: {
+        growthMs: built.reduce((sum, one) => sum + one.stats.timings.growthMs, 0),
+        surfaceMs: built.reduce((sum, one) => sum + one.stats.timings.surfaceMs, 0),
+        foliageMs: built.reduce((sum, one) => sum + one.stats.timings.foliageMs, 0),
+        fieldMs: built.reduce((sum, one) => sum + one.stats.timings.fieldMs, 0),
+        coreMs: built.reduce((sum, one) => sum + one.stats.timings.coreMs, 0),
+        transferMs: built.reduce((sum, one) => sum + one.stats.timings.transferMs, 0),
+        buildMs: built.reduce((sum, one) => sum + one.stats.timings.buildMs, 0),
+        materializationMs: built.reduce((sum, one) => sum + one.stats.timings.materializationMs, 0),
+      },
+      levelCapped: built.some((one) => one.stats.levelCapped),
+      handoffs: built.reduce((total, one) => total + one.stats.handoffs, 0),
+      generations: generationRange(generationCounts),
+      generationCounts,
+      levelCappedHandoffs: built.reduce((total, one) => total + one.stats.levelCappedHandoffs, 0),
+      twigs: built.reduce((total, one) => total + one.stats.twigs, 0),
+      /* Draws and instances sum the same way the rest do, because two
+         trees standing side by side really are two subjects' worth of
+         work: each carries its own surface and, when the canopy lands,
+         its own instanced crown. What is NOT summed twice is a
+         geometry either of them might share - that would be counting
+         one buffer's triangles per copy of it, and triangles come from
+         the surface each tree built rather than from the graph. */
+      drawCalls: built.reduce((total, one) => total + one.stats.drawCalls, 0),
+      instances: built.reduce((total, one) => total + one.stats.instances, 0),
+      leavesPlaced: built.reduce((total, one) => total + one.stats.leavesPlaced, 0),
       buildMs: built.reduce((total, one) => total + one.stats.buildMs, 0),
     },
   };

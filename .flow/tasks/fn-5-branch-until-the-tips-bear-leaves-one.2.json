@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T20:09:17.511589Z",
+  "depends_on": [
+    "fn-5-branch-until-the-tips-bear-leaves-one.1"
+  ],
+  "id": "fn-5-branch-until-the-tips-bear-leaves-one.2",
+  "priority": null,
+  "spec": "fn-5-branch-until-the-tips-bear-leaves-one",
+  "spec_path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.2.md",
+  "status": "todo",
+  "title": "Branching depth as a parameter, from the panel to both presets",
+  "updated_at": "2026-09-04T20:29:47.821810Z"
+}

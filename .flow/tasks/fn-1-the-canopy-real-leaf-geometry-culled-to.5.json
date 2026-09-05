@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T17:12:02.453897Z",
+  "depends_on": [
+    "fn-1-the-canopy-real-leaf-geometry-culled-to.1",
+    "fn-1-the-canopy-real-leaf-geometry-culled-to.2",
+    "fn-1-the-canopy-real-leaf-geometry-culled-to.4"
+  ],
+  "id": "fn-1-the-canopy-real-leaf-geometry-culled-to.5",
+  "priority": null,
+  "spec": "fn-1-the-canopy-real-leaf-geometry-culled-to",
+  "spec_path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.5.md",
+  "status": "todo",
+  "title": "The instanced draw, the clay judgment, and framing that includes the canopy",
+  "updated_at": "2026-09-04T20:32:07.144514Z"
+}
