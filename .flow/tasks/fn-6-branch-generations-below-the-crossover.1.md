@@ -41,6 +41,8 @@ A pure module that states the law the pass will grow under, and a measurement of
 - [ ] The numbers are written into the spec's §Measured
 - [ ] `npx vitest run src/skeleton/law.test.ts` and `npx tsc --noEmit` pass; the full suite is unchanged
 ## Done summary
+Implementation is complete and verified. Flow status remains in_progress because the sandbox blocks both Git staging and the runtime lock needed by flowctl done.
+
 Implemented the pure branch law and fixed twig anatomy, the two crown-fill metrics, synthetic checks, and measurements on the unchanged Telperion and Laurelin presets. The spec's Measured section records the biological sources and their caveats, the per-handoff proof, its explicit tip-only topology, and the four tuft baselines.
 
 Task: fn-6-branch-generations-below-the-crossover.1
@@ -78,12 +80,26 @@ Gate classification returned FULL. Typecheck and unittest receipt attempts retur
 
 ### Sandbox restriction and conductor action
 
-Git staging failed with exit 128: fatal: Unable to create '/home/daniel/Projects/telperion/.git/index.lock': Read-only file system. The attempted command began with git add -A and would have committed the task with the required co-author trailer. No implementation commit exists; all five files remain ready to stage. The standard worker sandbox-blocked-commit exception permits flowctl done after passing validation, with this restriction recorded. The conductor must commit the implementation and task receipt; this worker cannot stage either and will not repeat the denied staging operation.
+Git staging failed with exit 128: fatal: Unable to create '/home/daniel/Projects/telperion/.git/index.lock': Read-only file system. The attempted command began with git add -A and would have committed the task with the required co-author trailer. No implementation commit exists; all five files remain ready to stage. The standard worker sandbox-blocked-commit exception permits flowctl done after passing validation, with this restriction recorded. The conductor must commit the implementation, run flowctl done with these handover files, and commit the receipt it then writes. This worker cannot stage and will not repeat the denied staging operation.
 
 Intended implementation subject: feat(skeleton): state and measure the branch law and crown fill
 Task trailer: Task: fn-6-branch-generations-below-the-crossover.1
 Required final trailer: Co-Authored-By: Codex gpt-6-astra <noreply@openai.com>
+
+### Completion attempt
+
+flowctl done fn-6-branch-generations-below-the-crossover.1 --summary-file /tmp/summary.md --evidence-json /tmp/evidence.json failed with exit 1. Runtime lock unavailable. It could not open /home/daniel/Projects/telperion/.git/flow-state/locks/fn-6-branch-generations-below-the-crossover.1.lock because the filesystem is read-only. flowctl wrote the tracked task markdown summary/evidence before the runtime lock failed. That partial receipt is present in .flow/tasks/fn-6-branch-generations-below-the-crossover.1.md, but the authoritative Flow state remains in_progress. This sixth dirty file is the explicitly exempt flowctl done lifecycle write. Both handover copies contain the same summary and evidence as the standard paths.
+
+BLOCKED: TOOLING_FAILURE
+Task: fn-6-branch-generations-below-the-crossover.1
+Summary: Implementation and all required checks are complete, but the sandbox mounts .git read-only and denies staging and flowctl's runtime lock.
+Impact: The task remains in_progress and dependent tasks await the conductor's commit and done transition. The five implementation files and partial task receipt are coherent and uncommitted; no source rollback is needed.
+Suggested resolution: In the conductor's writable checkout, run git add -A, commit with the task id and required co-author trailer, update evidence with that commit, run flowctl done using the handover summary/evidence, then commit the receipt. No review verdict is required because REVIEW_MODE=none.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+conductor: committed as ef90a93 on the worker's behalf (Codex sandbox mounts .git read-only); worker model gpt-6-astra at low
 ## Evidence
-- Commits:
-- Tests: baseline: green; 57 skeleton tests, 139 preset/radius/harness tests, typecheck, and 327 full-suite tests passed pre-edit, red introduction: npx vitest run src/skeleton/law.test.ts src/skeleton/fill.test.ts failed because both new modules were absent; /tmp/fn6-law-fill-red.log, npx vitest run src/skeleton/law.test.ts src/skeleton/fill.test.ts (11 passed; /tmp/fn6-law-fill-final.log), npx vitest run src/skeleton/law.test.ts src/skeleton/fill.test.ts --pool=threads --reporter=verbose --silent=false (11 passed; measurements in /tmp/fn6-law-fill-measure-threads.log), npx vitest run src/skeleton/twigs.test.ts src/skeleton/continuity.test.ts src/skeleton/grow.test.ts (57 passed; /tmp/fn6-retry-verify-skeleton.log), npx vitest run src/presets src/radius.test.ts harness (139 passed; /tmp/fn6-retry-verify-presets.log), npx tsc --noEmit (passed; /tmp/fn6-retry-verify-types.log), npx vitest run (first verify attempt failed two existing 5 s timeouts, 336 passed; /tmp/fn6-retry-verify-full.log), npx vitest run (unchanged retry passed all 338 tests in 23 files; /tmp/fn6-retry-verify-full-retry.log), gate classify: FULL; typecheck and unittest receipt creation refused because sandbox-blocked changes remain uncommitted, git diff --check and five-file whitespace check passed
+- Commits: ef90a93
+- Tests: baseline: green; 57 skeleton tests, 139 preset/radius/harness tests, typecheck, and 327 full-suite tests passed pre-edit, red introduction: npx vitest run src/skeleton/law.test.ts src/skeleton/fill.test.ts failed because both new modules were absent; /tmp/fn6-law-fill-red.log, npx vitest run src/skeleton/law.test.ts src/skeleton/fill.test.ts (11 passed; /tmp/fn6-law-fill-final.log), npx vitest run src/skeleton/law.test.ts src/skeleton/fill.test.ts --pool=threads --reporter=verbose --silent=false (11 passed; measurements in /tmp/fn6-law-fill-measure-threads.log), npx vitest run src/skeleton/twigs.test.ts src/skeleton/continuity.test.ts src/skeleton/grow.test.ts (57 passed; /tmp/fn6-retry-verify-skeleton.log), npx vitest run src/presets src/radius.test.ts harness (139 passed; /tmp/fn6-retry-verify-presets.log), npx tsc --noEmit (passed; /tmp/fn6-retry-verify-types.log), npx vitest run (first verify attempt failed two existing 5 s timeouts, 336 passed; /tmp/fn6-retry-verify-full.log), npx vitest run (unchanged retry passed all 338 tests in 23 files; /tmp/fn6-retry-verify-full-retry.log), gate classify: FULL; typecheck and unittest receipt creation refused because sandbox-blocked changes remain uncommitted, git diff --check and five-file whitespace check passed, conductor verify: npx tsc --noEmit + npx vitest run (338 passed, 23 files) on the handed-over tree before commit
 - PRs:
