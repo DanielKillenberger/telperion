@@ -8,6 +8,8 @@ import { buildSurface, DEFAULT_SURFACE } from "../mesh/surface";
 import { LAURELIN, TELPERION } from "../presets/two-trees";
 import { DEFAULT_RADII, solveRadii, type RadiusField } from "../radius";
 import type { Skeleton } from "../skeleton/colonize";
+import { DEFAULT_TWIG_ANATOMY } from "../skeleton/law";
+import type { TwiggedSkeleton } from "../skeleton/twigs";
 import { growSkeleton } from "../skeleton/grow";
 import { buildCanopy, DEFAULT_CANOPY, type CanopyParams } from "./place";
 import { shoots } from "./shoots";
@@ -499,5 +501,47 @@ describe("the two trees", () => {
         expect(Number.isFinite(canopy.matrices[i])).toBe(true);
       }
     }
+  });
+});
+
+describe("twig anatomy placement", () => {
+  const twigged: TwiggedSkeleton = {
+    nodes: [at(0, 0, 0, -1), at(0, 1, 0, 0), at(0, 1.04, 0, 1), at(1, 2, 0, 1)],
+    crossover: 2, branchId: new Int32Array([2, 3]),
+    baseRadius: new Float64Array([0.0025, 0.1]), twig: new Uint8Array([1, 0]),
+    levelCapped: false, nodeCapped: false,
+  };
+  const field: RadiusField = {
+    radius: new Float64Array([1, 0.5, 0.0025, 0.1]),
+    startRadius: new Float64Array([1, 1, 0.0025, 0.1]),
+  };
+
+  it("places only marked edges at fixed internodes, on their own wood surface", () => {
+    const params = { ...bare, shootRadius: 0, clump: 64 };
+    const anatomy = { ...DEFAULT_TWIG_ANATOMY, stationsPerInternode: 2 };
+    const canopy = buildCanopy(twigged, field, DEFAULT_ENVELOPE, 7, params, anatomy);
+    expect(canopy.count).toBe(4);
+    expect(element(canopy.matrices, 0).axis.dot(element(canopy.matrices, 1).axis))
+      .toBeCloseTo(-1, 6);
+    for (let i = 0; i < canopy.count; i++) {
+      const point = element(canopy.matrices, i).position;
+      expect(point.y).toBeCloseTo(1 + Math.floor(i / 2) * 0.02, 6);
+      expect(Math.hypot(point.x, point.z)).toBeCloseTo(0.0025, 7);
+    }
+    expect(buildCanopy(twigged, field, { ...DEFAULT_ENVELOPE, height: 500 }, 7, params, anatomy))
+      .toEqual(canopy);
+    expect(buildCanopy(twigged, field, DEFAULT_ENVELOPE, 7, params,
+      { ...anatomy, internodeLength: 0.01 }).count).toBe(8);
+    expect(buildCanopy({ ...twigged, twig: new Uint8Array(2) }, field,
+      DEFAULT_ENVELOPE, 7, params, anatomy).count).toBe(0);
+  });
+
+  it("retains the shoot rule without anatomy or without twig records", () => {
+    const plain = { nodes: twigged.nodes };
+    const expected = buildCanopy(plain, field, DEFAULT_ENVELOPE, 7, bare);
+    expect(expected.count).toBeGreaterThan(0);
+    expect(buildCanopy(twigged, field, DEFAULT_ENVELOPE, 7, bare)).toEqual(expected);
+    expect(buildCanopy(plain, field, DEFAULT_ENVELOPE, 7, bare, DEFAULT_TWIG_ANATOMY))
+      .toEqual(expected);
   });
 });

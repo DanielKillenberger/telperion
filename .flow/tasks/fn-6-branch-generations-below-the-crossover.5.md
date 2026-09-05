@@ -8,7 +8,7 @@ The volume-fill criterion becomes a measurement with thresholds taken first, the
 
 **Size:** M
 **Files:** `src/skeleton/fill.test.ts` (measurement on the new trees), `src/skeleton/shed.ts`, `src/skeleton/shed.test.ts`, `src/canopy/place.ts`, `src/canopy/place.test.ts`, `.flow/specs/fn-6-branch-generations-below-the-crossover.md` (§Measured)
-**Touches:** [.flow/specs/fn-6-branch-generations-below-the-crossover.md, src/skeleton/fill.test.ts, src/skeleton/shed.ts, src/skeleton/shed.test.ts, src/canopy/place.ts, src/canopy/place.test.ts, src/index.ts]
+**Touches:** [.flow/specs/fn-6-branch-generations-below-the-crossover.md, src/skeleton/fill.test.ts, harness/skeleton-view.ts, harness/skeleton-view.test.ts, src/skeleton/shed.ts, src/skeleton/shed.test.ts, src/canopy/place.ts, src/canopy/place.test.ts, src/index.ts]
 
 ### Approach
 - The metrics exist from task 1 (`src/skeleton/fill.ts`), in shedding's shell units, with the twig mark as the terminal classification now. Threshold procedure, as fn-5's R2 did: run both presets at rest on the new pass, record both numbers, set them against the tuft baseline task 1 recorded (the shipped eight-order trees), and choose the shipped thresholds at the value a clay render distinguishes; write the new numbers and the chosen thresholds into §Measured beside the baseline.
@@ -27,6 +27,9 @@ The volume-fill criterion becomes a measurement with thresholds taken first, the
 ### Key context
 - Two thinning passes share one shell criterion (shed on wood, cull on leaves); keep the depth number identical at both call sites or wood and leaves visibly disagree.
 - If the shell rule cannot meet the threshold, record it; a light term is a new spec (spec §Parked unknowns).
+### Conductor amendment (2026-09-05, after the first dispatch)
+- Path chosen for the twig's leaf stations: `buildCanopy` gains an optional anatomy argument (the `TwigAnatomy` from the skeleton params) implemented in `src/canopy/place.ts`; the harness build (`harness/skeleton-view.ts`, the `buildCanopy` call at ~435) passes `skeletonParams.twigs.twig`, and a harness test proves the stations parameter reaches actual placement (changing `stationsPerInternode` changes the element count). Without the argument the placement falls back to the shoot rule, so plain skeletons keep working. The alternative, carrying anatomy on `TwiggedSkeleton`, is rejected as widening the skeleton contract for a canopy concern.
+- `harness/skeleton-view.ts` and `harness/skeleton-view.test.ts` join the Touches for that one call site and its test.
 ## Acceptance
 - [ ] Both presets measured at rest on the new pass with the twig mark; thresholds chosen against task 1's tuft baseline by the stated procedure and recorded in §Measured; the shipped trees hold them
 - [ ] Shell rule sheds neither everything nor nothing on both presets

@@ -196,6 +196,82 @@ The voxel edge is **0.02 times envelope height** (2.96 m on Telperion, 2.64 m on
 
 No baseline run hit the node ceiling. These are reference measurements, not the eventual clay-derived R4 thresholds. Reproduce the tables and per-handoff rows with `npx vitest run src/skeleton/law.test.ts src/skeleton/fill.test.ts --pool=threads --reporter=verbose --silent=false`. The default fork pool passes the tests but suppresses worker stdout on this environment; the thread pool exposes the measurement rows. The canonical gates still use their unchanged commands.
 
+### Task 5 shell fill and the leaf on the twig (2026-09-05)
+
+Both trees use their shipped rest parameters, including limbRadius 0.1.
+`growReport` measures after shedding; its surviving twig marks classify the
+leaf-bearing nodes. The grid, 0.05-height clustering distance and shell
+predicate remain exactly those of task 1. No metric was redefined or
+re-baselined.
+
+| preset | nodes after shedding | twig marks | occupied / shell voxels | shell occupancy | near-tip / twig marks | tip clustering | appended nodes shed / grown |
+|---|---|---|---|---|---|---|---|
+| Telperion | 49,713 | 19,744 | 1,282 / 6,352 | 20.1826% | 12,700 / 19,744 | 64.3233% | 5,527 / 54,432 |
+| Laurelin | 104,335 | 40,781 | 6,207 / 74,072 | 8.3797% | 12,759 / 40,781 | 31.2866% | 7,584 / 109,477 |
+
+Occupancy grows 6.64 times on Telperion and 3.55 times on Laurelin against
+the eight-order tuft baseline. Telperion's clustering **worsens**, from
+53.9387% to 64.3233%, while Laurelin's improves from 50.9189% to 31.2866%.
+Laterals can fill previously empty shell cells while staying within the
+same 7.4 m neighbourhood of a Telperion colonization tip. Occupancy is the
+fill criterion; the clustering ceiling guards further concentration and
+does not establish an improvement over the tuft on Telperion. Reconsidering
+that neighbourhood is future measurement work requiring a new baseline.
+
+The tight first bounds were occupancy at least 21% / 9% and clustering at
+most 64% / 31% for Telperion / Laurelin. All four failed before selecting
+the shipped bounds. The nearby limbRadius sweep gave:
+
+| preset | limbRadius | shell occupancy | tip clustering |
+|---|---|---|---|
+| Telperion | 0.09 | 19.4270% | 63.7760% |
+| Telperion | 0.095 | 19.5844% | 64.1895% |
+| Telperion | 0.099 | 20.0724% | 64.3837% |
+| Telperion | 0.1 | 20.1826% | 64.3233% |
+| Laurelin | 0.09, 0.095, 0.099, 0.1 | 8.3797% | 31.2866% |
+
+The 0.099 and 0.1 candidates were compared in grey clay from the front and
+at 45 degrees, with fixed orthographic framing. The software render uses
+the production `buildSurface` triangles, a z-buffer and diffuse grey
+shading, rasterized at 960 by 1200 and reduced to 480 by 600 per view.
+At that whole-tree scale I could not distinguish their crown fill. Laurelin
+has identical geometry throughout this interval. This supports the narrow
+rounding margin around the measured rest, rather than a claim that every
+possible tree with the same voxel fraction looks equivalent.
+
+The shipped occupancy floors are **20% on Telperion and 8.3% on Laurelin**.
+Clustering ceilings are **65% and 32%**, respectively. The Telperion floor
+admits the visually indistinguishable 0.099 candidate and rejects 0.095;
+Laurelin's floor rounds down its unchanged occupancy to the next tenth of
+a percentage point. Both ceilings round up the observed clustering to the
+next percentage point, holding the measured distribution without claiming
+that the clustering metric itself is a visual score. Both shipped trees
+pass, and both tuft baselines fail the occupancy floors.
+
+The render comparison is `.flow/tmp/task5-clay-comparison.png`; its source
+is `.flow/tmp/task5-cpu-clay.ts`. The local server and Chromium were denied
+by the sandbox, so these are software clay comparisons, with no browser,
+GPU or owner approval claimed. R7's owner judgement remains task 6.
+Raw sweep rows are in `.flow/tmp/task5-visual-measure.log`; the tight failed
+run is `.flow/tmp/task5-tight-fill.log`. Reproduce the rest measurements with
+`npx vitest run src/skeleton/fill.test.ts --pool=threads --reporter=verbose --silent=false`.
+
+The shell predicate needed no change. Telperion keeps 89.85% of appended
+nodes and Laurelin 93.07%, inside the existing greater-than-50% and
+less-than-95% guard. `DEFAULT_SHED` remains the same object as `DEFAULT_CULL`,
+so wood and foliage keep the same 0.45 shell depth.
+
+`buildCanopy` accepts optional `TwigAnatomy`; the harness passes the authored
+twig anatomy. With anatomy and pass records, marked incoming twig edges
+bear leaves at metre-based internodes, with the stated stations at each
+internode and the existing divergence between internodes. Two stations
+sit opposite one another. Spacing and tip clumps retain their former shoot
+behaviour when anatomy or records are absent. Petiole offsets use each
+twig edge's start radius, so a thick parent cannot push a leaf off the twig.
+The preset ratio test now measures marked twigs and checks every placed
+petiole against its twig foot. Both presets retain the 5 mm twig and a
+leaf-to-twig diameter ratio above 10.
+
 ### Task 4 limb threshold and build cost (2026-09-05)
 
 `limbRadius` rests at **0.1 times the solved root radius**, with a 0..1 rail.

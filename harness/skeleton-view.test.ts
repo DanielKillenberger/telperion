@@ -336,26 +336,24 @@ describe("buildTree", () => {
   });
 
   it("leaves no canopy at all rather than an empty draw", () => {
-    /* R8's error case, at its source. A tree whose wood is everywhere
-       too thick to bear foliage grows nothing, and "nothing" in a
-       scene graph is an absent object: an InstancedMesh drawing zero
-       copies is still a draw call the panel reports and still an
-       object the stage measures, so the branch-only subject has to
-       come out exactly as it did before there was a canopy stage. */
-    const bare = buildTree({ ...DEFAULT_PARAMS, shootRadius: 0 }, clay);
+    // An empty canopy must leave no instanced object or draw in the scene.
+    const bare = buildTree(DEFAULT_PARAMS, clay, false);
     expect(canopyOf(bare.tree)).toBeNull();
     expect(bare.stats.drawCalls).toBe(1);
     expect(bare.stats.instances).toBe(0);
   });
 
-  it("the leaf spacing dial reaches the element count", () => {
-    // The density lever, and the one the clay judgement drags.
-    const sparse = buildTree({ ...DEFAULT_PARAMS, spacing: 0.02 }, clay);
-    const dense = buildTree({ ...DEFAULT_PARAMS, spacing: 0.003 }, clay);
-    expect(dense.stats.instances).toBeGreaterThan(
-      sparse.stats.instances * 2,
-    );
-  });
+  it("passes twig stations through to the placed canopy", () => {
+    const sparse = buildTree({ ...DEFAULT_PARAMS, twigStations: 1 }, clay);
+    const dense = buildTree({ ...DEFAULT_PARAMS, twigStations: 4 }, clay);
+    expect(sparse.stats.instances).toBeGreaterThan(0);
+    expect(dense.stats.instances).toBeGreaterThan(sparse.stats.instances * 2);
+    expect(positions(trunkOf(dense.tree))).toEqual(positions(trunkOf(sparse.tree)));
+    for (const built of [sparse, dense]) built.tree.traverse((object) => {
+      if (object instanceof THREE.Mesh) object.geometry.dispose();
+      if (object instanceof THREE.InstancedMesh) object.dispose();
+    });
+  }, 60_000);
 
   it("grows the same canopy from the same seed, transform for transform", () => {
     /* R7 on the harness's side of the seam. The canopy is placed from

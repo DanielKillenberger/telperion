@@ -438,6 +438,7 @@ function build(
           skeletonParams.envelope,
           skeletonParams.seed,
           canopyParams,
+          skeletonParams.twigs?.twig,
         ),
         element,
         skeletonParams.envelope,
