@@ -9,7 +9,7 @@ Join the completed stages and cut the browser over to Wasm with a thin Three ada
 
 **Size:** M
 **Files:** browser adapter, public entry, harness build bridge and UI integration tests
-**Touches:** [crates/telperion-wasm/**, Cargo.lock, src/index.ts, src/browser/**, harness/skeleton-view.ts, harness/skeleton-view.test.ts, harness/stage.ts, harness/stage.test.ts, harness/GrowerDev.tsx, harness/params.ts, harness/params.test.ts, package.json, package-lock.json, vite.config.ts, scripts/build-wasm.mjs, scripts/test-wasm.mjs, tests/browser/**]
+**Touches:** [crates/telperion-wasm/**, Cargo.lock, .gitignore, src/index.ts, src/browser/**, harness/skeleton-view.ts, harness/skeleton-view.test.ts, harness/stage.ts, harness/stage.test.ts, harness/GrowerDev.tsx, harness/params.ts, harness/params.test.ts, package.json, package-lock.json, vite.config.ts, scripts/build-wasm.mjs, scripts/test-wasm.mjs, tests/browser/**]
 
 ## Approach
 - Replace production generator imports with Wasm operations and construct Three objects solely in the adapter. Preserve all currently supported controls, compare mode and diagnostics.
