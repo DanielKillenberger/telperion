@@ -53,20 +53,29 @@ Record before/after terminal discontinuities, branch taper, shell fill, counts/c
 - Measured before this task on the shipped presets: internodes 3 → 6 takes Telperion from 49,713 to 214,658 nodes (capped) and Laurelin from 104,335 to 232,127 (capped), with mean first-generation internodes of 3.9 m and 5.1 m. That is the coupling this task removes.
 - R7 is judged again on this task's build; the conductor and owner take it. Leave that box unchecked and say so.
 ## Acceptance
-- [ ] `TwigAnatomy` has a `length`; a twig is ONE edge of that length at the fixed radius and the canopy's station walk places a leaf per internode along it; leaf counts on both presets recorded and inside 10^5 to 10^7
-- [ ] `laterals` counts side branches per branch, spread along its internodes; `internodes` is replaced by an internode-length law with a stated `internodeFactor` dial; the node estimate follows
-- [ ] A lateral departs at the branching angle (bias-bent, turn-limited from that angle), never clamped to the parent's turn cone; the continuity suite distinguishes leader and lateral handoffs on direction; departure distribution recorded before and after
-- [ ] `angleVariation` and `vigourVariation` exist with rails and per-node seeded draws; zero variation is byte-identical to the unvaried recursion; the R8 prefix test still holds
+- [x] `TwigAnatomy` has a `length`; a twig is ONE edge of that length at the fixed radius and the canopy's station walk places a leaf per internode along it; leaf counts on both presets recorded and inside 10^5 to 10^7
+- [x] `laterals` counts side branches per branch, spread along its internodes; `internodes` is replaced by an internode-length law with a stated `internodeFactor` dial; the node estimate follows
+- [x] A lateral departs at the branching angle (bias-bent, turn-limited from that angle), never clamped to the parent's turn cone; the continuity suite distinguishes leader and lateral handoffs on direction; departure distribution recorded before and after
+- [x] `angleVariation` and `vigourVariation` exist with rails and per-node seeded draws; zero variation is byte-identical to the unvaried recursion; the R8 prefix test still holds
 - [ ] Rest values chosen per preset by the recorded sweep: both uncapped under the ceiling (raised to at most 400,000 only under the stated condition, recorded), fill floors met, harness build under about 3 s, the table and the reason in §Measured
-- [ ] Telperion's mean first-generation internode is under 2.5 m at rest, or the measured reason it cannot be is recorded
-- [ ] R4 metrics and the continuity suite re-measured on the chosen rest; any threshold change recorded with its reason
-- [ ] Harness dials and read-outs follow; round-trip and slider-range tests exact; fixtures migrated with intent preserved and listed
-- [ ] `npx tsc --noEmit` and `npx vitest run` green on the whole tree
+- [x] Telperion's mean first-generation internode is under 2.5 m at rest, or the measured reason it cannot be is recorded
+- [x] R4 metrics and the continuity suite re-measured on the chosen rest; any threshold change recorded with its reason
+- [x] Harness dials and read-outs follow; round-trip and slider-range tests exact; fixtures migrated with intent preserved and listed
+- [x] `npx tsc --noEmit` and `npx vitest run` green on the whole tree
 - [ ] R7 judged again by the owner on this build (conductor's box; leave unchecked)
 ## Done summary
-TBD
+Implementation ready, R7 pending. Commit `d9beeb75588a625ef8b9418aa4ba5d9c94bf7081` plans actual shell-limited branch runs, assigns a base-to-fine-tip profile before lateral allocation, preserves complete retained leaders through shedding, and prevents inside-starting crown growth from leaving the shell. Fixed twig anatomy, R8 identity, existing fill limits, seam tolerance and hard ceilings are preserved. The fifth-pass Measured section records the before/after results and superseded attempts.
+
+Whole-tree typecheck and 360 tests pass. No thick local bare endpoint remains on either preset or the ordinary case. Telperion's outside colonization tips are removed; Laurelin retains 14 wholly interior colonization termini after independent subtree shedding, and the ordinary case retains one in-shell short-run limit. The historical approximately-three-second build target is not met by the diagnostic CPU samples, so its compound acceptance box is intentionally unchecked. The host inspected matched diagnostic clay; owner R7 remains pending and task 7 waits.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; user explicitly requested no impl-review)
 
 ## Evidence
-- Commits:
-- Tests:
-- PRs:
+- Commits: `d9beeb75588a625ef8b9418aa4ba5d9c94bf7081` (implementation); the following task-evidence commit only records this handover.
+- Baseline: green, `npx tsc --noEmit` exit 0 and `npx vitest run` exit 0, 354 tests in 23 files.
+- Final: `npx tsc --noEmit` exit 0; `npx vitest run` exit 0, 360 tests in 23 files, 100.74 s. Logs: `.flow/tmp/taper-final3-tsc.log`, `.flow/tmp/taper-final3-tests.log`.
+- Focused: unchanged starvation/persistence and fill tests plus new shell-entry cases passed in `.flow/tmp/taper-entry-focused.log`; red reproductions and measurement sources are listed in the spec.
+- Measurements: `.flow/tmp/taper-measure-baseline-pipeline.log`, `.flow/tmp/taper-measure-final-guard.log`; durable tables in the fifth-pass Measured section.
+- Visuals: `/tmp/fn6-taper-visuals/after-capture.json`, `/tmp/fn6-taper-visuals/telperion-comparison.png`, `/tmp/fn6-taper-visuals/compare.html` — host inspected diagnostic clay, R7 owner pending; SwiftShader, not GPU evidence.
+- Handover: `/tmp/fn6-taper-summary.md`, `/tmp/fn6-taper-evidence.json`.
+- PRs: none.
