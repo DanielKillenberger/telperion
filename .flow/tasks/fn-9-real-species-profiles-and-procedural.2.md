@@ -7,10 +7,11 @@ satisfies: [R2]
 Measure specimens against the botanical profiles. See the parent spec for the botanical target and validation contract.
 
 **Size:** M
-**Files:** `crates/telperion-core/examples/species_measure.rs`, `crates/telperion-core/examples/species_metrics.rs`, `crates/telperion-core/tests/species_metrics.rs`
-**Touches:** [crates/telperion-core/examples/species_measure.rs, crates/telperion-core/examples/species_metrics.rs, crates/telperion-core/tests/species_metrics.rs]
+**Files:** `crates/telperion-core/Cargo.toml`, `Cargo.lock`, `crates/telperion-core/examples/species_measure.rs`, `crates/telperion-core/examples/species_metrics/mod.rs`, `crates/telperion-core/tests/species_metrics.rs`
+**Touches:** [crates/telperion-core/Cargo.toml, Cargo.lock, crates/telperion-core/examples/species_measure.rs, crates/telperion-core/examples/species_metrics/mod.rs, crates/telperion-core/tests/species_metrics.rs]
 
 ### Approach
+- Use a tooling-only serde_json dev dependency if needed to read the profile manifest; do not write a JSON parser or add a runtime core dependency. Cargo files make this task serial at admission. Keep the metrics helper in a subdirectory so Cargo does not discover it as a standalone example binary.
 - Add a native CPU-only runner by reusing the measure example and public structure/foliage outputs. Keep metric helpers in example/test support, not a new public runtime subsystem.
 - Compute actual height/DBH/crown extents, branch runs/order/length and foliage counts/area using task 1 definitions. An unsupported measurement must report unavailable; never derive anatomy from conservative field occupancy.
 - Accept explicit case/profile IDs, seeds and output location. Before presets land, support measuring existing families so this task remains independently verifiable.
