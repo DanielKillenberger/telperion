@@ -62,12 +62,12 @@ Replace the procedural tree engine with a lean Rust core that improves runtime e
 
 ## Requirement coverage
 
-| Requirement | Planning handoff |
-|-------------|------------------|
-| R1 | Reconcile existing FN-8 tasks with the captured comparison requirement |
-| R2 | Reconcile existing FN-8 tasks with the complete Rust migration |
-| R3 | Add field-output coverage to the existing representation tasks |
-| R4 | Reconcile existing FN-8 binding tasks |
-| R5 | Reconcile existing FN-8 viewer tasks |
-| R6 | Reconcile existing FN-8 measurement tasks |
-| R7 | Reconcile existing FN-8 tasks with the lean-design requirement |
+| Requirement | Tasks |
+|-------------|-------|
+| R1 | FN-8.1, FN-8.2, FN-8.3, FN-8.4, FN-8.5, FN-8.6 |
+| R2 | FN-8.1, FN-8.2, FN-8.3 |
+| R3 | FN-8.4, FN-8.5, FN-8.8 |
+| R4 | FN-8.1, FN-8.6 |
+| R5 | FN-8.6 |
+| R6 | FN-8.7 |
+| R7 | FN-8.1, FN-8.6, FN-8.7, FN-8.8 |

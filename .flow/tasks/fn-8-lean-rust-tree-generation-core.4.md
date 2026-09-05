@@ -1,6 +1,7 @@
 ---
 satisfies: [R1, R3]
 ---
+
 # fn-8-lean-rust-tree-generation-core.4 Port the final swept surface to independent Rust output
 
 ## Description
@@ -8,15 +9,15 @@ Port surface generation against frozen solved-tree fixtures, independently of th
 
 **Size:** M
 **Files:** Rust surface/path/frame/normal modules and geometry tests
-**Touches:** [crates/telperion-core/src/surface/**, crates/telperion-core/tests/surface*, tests/migration/surface*]
+**Touches:** [crates/telperion-core/src/surface/**, crates/telperion-core/tests/surface*, crates/telperion-core/tests/surface_reference*]
 
-### Approach
+## Approach
 - Adapt FN7's flat preallocated output patterns to the final FN6 surface contract; account for final endpoint-radius and all current surface details.
 - Keep surface generation independent of foliage and Three objects, exposing positions, indices, normals, bounds and needed diagnostics.
 - Use checked size arithmetic and explicit allocation failure; verify every generated index and vertex.
-- Reuse the task-1 fixture runner for exact topology/winding and tolerance-bound attributes, including degenerate edges, forks, taper and empty surfaces.
+- Reuse the task-1 fixture runner for topology/winding invariants and measured attribute differences, including degenerate edges, forks, taper and empty surfaces.
 
-### Investigation targets
+## Investigation targets
 **Required:**
 - `src/mesh/surface.ts:195`
 - `src/mesh/paths.ts`
@@ -24,6 +25,10 @@ Port surface generation against frozen solved-tree fixtures, independently of th
 - `src/mesh/surface.test.ts`
 - `experiments/rust-surface-benchmark/rust/lib.rs:69`
 - `experiments/rust-surface-benchmark/REPORT.md`
+
+## Approved capture alignment
+The rewritten parent capture is authoritative. Baselines diagnose drift; exact old topology or bytes are not a compatibility requirement, and known structural defects need not be reproduced. Preserve meaningful botanical and geometric invariants and report visual/numeric differences. Keep the core lean and simple.
+
 
 ## Acceptance
 - [ ] Final-FN6 surface fixtures pass geometry equivalence, including normals and bounds.

@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-8-lean-rust-tree-generation-core.3",
     "fn-8-lean-rust-tree-generation-core.4",
-    "fn-8-lean-rust-tree-generation-core.5"
+    "fn-8-lean-rust-tree-generation-core.5",
+    "fn-8-lean-rust-tree-generation-core.8"
   ],
   "id": "fn-8-lean-rust-tree-generation-core.6",
   "priority": null,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.6.md",
   "status": "todo",
   "title": "Switch the browser harness to the Rust core",
-  "updated_at": "2026-09-05T18:32:41.368429Z"
+  "updated_at": "2026-09-05T18:44:28.059579Z"
 }
