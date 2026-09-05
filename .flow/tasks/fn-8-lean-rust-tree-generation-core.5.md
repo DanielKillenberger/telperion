@@ -9,7 +9,7 @@ Port foliage placement/culling and establish representation selection against ta
 
 **Size:** M
 **Files:** Rust foliage modules, representation API, Wasm output bindings and tests
-**Touches:** [crates/telperion-core/src/foliage/**, crates/telperion-core/src/output*, crates/telperion-core/tests/foliage*, crates/telperion-core/tests/foliage_reference*, crates/telperion-core/tests/outputs*]
+**Touches:** [crates/telperion-core/src/foliage/**, crates/telperion-core/src/foliage.rs, crates/telperion-core/src/output*, crates/telperion-core/tests/foliage*, crates/telperion-core/tests/foliage_reference*, crates/telperion-core/tests/outputs*]
 
 ## Approach
 - Port twig-based placement, phyllotaxis, leaf-element geometry, shell culling, transforms and bounds as plain data, retaining the existing silhouette verification as test support, with a reusable element separate from instances.

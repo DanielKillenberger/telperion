@@ -9,7 +9,7 @@ Port surface generation against frozen solved-tree fixtures, independently of th
 
 **Size:** M
 **Files:** Rust surface/path/frame/normal modules and geometry tests
-**Touches:** [crates/telperion-core/src/surface/**, crates/telperion-core/tests/surface*, crates/telperion-core/tests/surface_reference*]
+**Touches:** [crates/telperion-core/src/surface/**, crates/telperion-core/src/surface.rs, crates/telperion-core/tests/surface*, crates/telperion-core/tests/surface_reference*]
 
 ## Approach
 - Adapt FN7's flat preallocated output patterns to the final FN6 surface contract; account for final endpoint-radius and all current surface details.
