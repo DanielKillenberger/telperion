@@ -1,5 +1,7 @@
 # Surface benchmark: measured decision
 
+Historical raw samples, captures, logs and benchmark sources are retained at [commit 1922505](https://github.com/DanielKillenberger/telperion/commit/1922505a8a396d73b335974eabf6a9faf33ccd62). Links to that material below are pinned to this archive; it is no longer copied into the active source tree.
+
 The browser Wasm prototype materially reduces surface-build latency compared with
 the preallocated TypeScript baseline on both shipped presets. This supports a
 bounded surface-core follow-up, but does **not** yet justify a broader Rust core
@@ -8,8 +10,8 @@ migration: comparable total peak memory and full-lifecycle latency remain unmeas
 ## Recorded run
 
 Recorded 2026-09-05T13:00:47.464Z. Raw samples, fixture parameters/hashes, output hashes,
-source hashes and build metadata are in [measurements.json](results/measurements.json).
-Reproduction and timer boundaries are in [README.md](README.md).
+source hashes and build metadata are in [measurements.json](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/experiments/rust-surface-benchmark/results/measurements.json).
+Reproduction and timer boundaries are in [README.md](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/experiments/rust-surface-benchmark/README.md).
 
 Host: AMD Ryzen 9 5950X 16-Core Processor, 32 logical CPUs, 31.26 GiB RAM;
 Linux 7.1.9-arch1-2; Node v26.8.1; Three 0.185.1;

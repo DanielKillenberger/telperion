@@ -79,3 +79,10 @@ The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.
 ## License
 
 MIT
+
+Historical measurement payloads and the frozen FN7 implementation live in Git history. The reports link to their pinned archive. Current browser benchmark runners live in `scripts/benchmarks/` and write results outside the repository by default. Retrieve the old evidence without changing this checkout:
+
+```sh
+mkdir -p /tmp/telperion-history
+git archive 1922505a8a396d73b335974eabf6a9faf33ccd62 .flow/evidence experiments/rust-surface-benchmark | tar -x -C /tmp/telperion-history
+```

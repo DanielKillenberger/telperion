@@ -1,14 +1,16 @@
 # FN8: complete Rust generator measurement
 
+Historical raw samples, captures, logs and benchmark sources are retained at [commit 1922505](https://github.com/DanielKillenberger/telperion/commit/1922505a8a396d73b335974eabf6a9faf33ccd62). Links to that material below are pinned to this archive; it is no longer copied into the active source tree.
+
 Recorded 2026-09-05. The final browser builder is **2.91× faster for Telperion, 2.71× for Laurelin and 2.81× for comparison** than finished FN6, including Wasm request/transfer and Three.js materialization. Every measured build preserves node, vertex, triangle, placed/retained leaf, twig and handoff counts. This is a CPU generation improvement; it does not meet the separate 2 ms GPU rendering target or establish a total-memory reduction.
 
 ## Matched workload and protocol
 
-Reference: final FN6 `fdafb099b1495519de75a6b9a66d37f7d07e47bd`. The reference server's source, harness and lockfile diff against that revision was empty; [context](fn6-context.json) records its served HEAD. Rust starts from integrated task6 `8a56a41c925ad4a7f926e3e2decb4aa3d0438a34`, with the profile-distance optimization described below and removal of unused legacy code. [Final production source hashes](source-hashes.json) identify the resulting implementation.
+Reference: final FN6 `fdafb099b1495519de75a6b9a66d37f7d07e47bd`. The reference server's source, harness and lockfile diff against that revision was empty; [context](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/fn6-context.json) records its served HEAD. Rust starts from integrated task6 `8a56a41c925ad4a7f926e3e2decb4aa3d0438a34`, with the profile-distance optimization described below and removal of unused legacy code. [Final production source hashes](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/source-hashes.json) identify the resulting implementation.
 
 Both browser runs use headless Chromium 151, real NVIDIA RTX 3080 graphics, AMD Ryzen 9 5950X, 1600×1000 CSS pixels, raw/native DPR1, authored preset seeds/parameters, surface and foliage enabled, neutral clay, and the same framing. The machine is a shared interactive Linux workstation, without CPU pinning or clock control. Agent-heavy work was paused during CPU/GPU and native timing. This is one paired session, not a statistical confidence claim.
 
-Protocol: one complete CPU warmup followed by five measured builds per subject; GPU queries use eight warmup frames and twenty samples at each DPR 2, 1, 0.7, 0.5 and 0.25. Vsync-off flags match FN6. Raw samples include warmups, stage timings, renderer/driver/host metadata and real query times: [JS](fn6-headless.json), [Rust](rust-headless.json). Unsupported timer behavior is exercised and reports no frame-time substitute. Earlier headed observations are supplemental only; paired headless runs replace them because the user requested no further visible browser windows.
+Protocol: one complete CPU warmup followed by five measured builds per subject; GPU queries use eight warmup frames and twenty samples at each DPR 2, 1, 0.7, 0.5 and 0.25. Vsync-off flags match FN6. Raw samples include warmups, stage timings, renderer/driver/host metadata and real query times: [JS](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/fn6-headless.json), [Rust](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/rust-headless.json). Unsupported timer behavior is exercised and reports no frame-time substitute. Earlier headed observations are supplemental only; paired headless runs replace them because the user requested no further visible browser windows.
 
 | Subject | Nodes | Wood vertices | Wood triangles | Retained leaves |
 |---|---:|---:|---:|---:|
@@ -38,7 +40,7 @@ These are independent medians and need not add. Core assembly includes diagnosti
 
 ### Investigated regression
 
-The first complete [unoptimized Rust run](rust-before.json) had builder medians 4642.5 / 2514.8 / 7234.2 ms: essentially flat for Telperion/comparison and 15% slower for Laurelin. Telperion foliage alone took about 3.36 s. A sampled [Wasm CPU profile summary](profile-summary.json) ([raw profile](wasm-profile.json)) identified software `hypot` and its software fused multiply-add implementation as the dominant cost.
+The first complete [unoptimized Rust run](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/rust-before.json) had builder medians 4642.5 / 2514.8 / 7234.2 ms: essentially flat for Telperion/comparison and 15% slower for Laurelin. Telperion foliage alone took about 3.36 s. A sampled [Wasm CPU profile summary](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/profile-summary.json) ([raw profile](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/wasm-profile.json)) identified software `hypot` and its software fused multiply-add implementation as the dominant cost.
 
 `envelope::distance_to_profile` previously called `hypot` for every one of 128 profile segments. It now minimizes squared distances and takes one square root; exceptional overflow/underflow uses the robust `hypot` path. The same kernel serves crown sampling, branch shedding and leaf culling. No geometry, sampling resolution, shell rule or foliage count was reduced. `profile_distance.rs` checks projection, duplicates, empty profiles and tiny/huge finite distances against the prior arithmetic; foliage tests and complete frozen-reference browser checks validate retention. The property test passed before and after this performance change; the red evidence is the measured Laurelin performance regression, not a fabricated failing correctness test.
 
@@ -66,7 +68,7 @@ Native release execution uses the same core, one warmup and five samples in one 
 | Telperion | 1224.80 | 293.36 | 361.28 | 184.27 | 312.06 | 72.73 | 518,448 |
 | Laurelin | 611.46 | 152.77 | 128.08 | 111.67 | 174.39 | 43.10 | 255,748 |
 
-[Native raw samples and RSS](native/) come from `crates/telperion-core/examples/measure.rs`. `/proc/self/status` VmHWM is whole-process peak RSS across six builds, including their allocations and benchmark bookkeeping; VmRSS is sampled after drops. Neither is comparable to Wasm capacity or total browser memory.
+[Native raw samples and RSS](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/native/) come from `crates/telperion-core/examples/measure.rs`. `/proc/self/status` VmHWM is whole-process peak RSS across six builds, including their allocations and benchmark bookkeeping; VmRSS is sampled after drops. Neither is comparable to Wasm capacity or total browser memory.
 
 Mesh-free measurements request wood+foliage fields only: no wood surface, render buffers or exact rendered-foliage bounds scan. Both native and browser consumers query 32³ closed cubic cells spanning field bounds, obtaining nonzero wood and foliage occupancy. The browser query time includes packing transfer and copying result flags; native queries return directly.
 
@@ -77,11 +79,11 @@ Mesh-free measurements request wood+foliage fields only: no wood surface, render
 | Native Telperion | 1131.22 | 351.79 | 5.36 | 151,471,384 |
 | Browser Telperion | 1638.50 | 677.10 | 6.40 | 151,471,384 |
 
-Field index time excludes required growth and retained-leaf construction; full field time includes them. [Browser field samples](browser-field.json) record stage selection, query counts and capacity. Native field process peaks were 20,756 KiB ordinary and 353,340 KiB Telperion. Occupancy is the core's tapered-wood/leaf-support approximation, not exact voxelization of the lobed surface.
+Field index time excludes required growth and retained-leaf construction; full field time includes them. [Browser field samples](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/browser-field.json) record stage selection, query counts and capacity. Native field process peaks were 20,756 KiB ordinary and 353,340 KiB Telperion. Occupancy is the core's tapered-wood/leaf-support approximation, not exact voxelization of the lobed surface.
 
 ## Memory domains and release
 
-Separate headless passes use CDP `HeapProfiler.collectGarbage` then `Runtime.getHeapUsage`, after rendered frames, with three build/scene-dispose cycles per subject and a fresh page for each. Forced GC is never part of latency samples. Raw domain records: [JS](fn6-memory.json), [Rust](rust-memory.json).
+Separate headless passes use CDP `HeapProfiler.collectGarbage` then `Runtime.getHeapUsage`, after rendered frames, with three build/scene-dispose cycles per subject and a fresh page for each. Forced GC is never part of latency samples. Raw domain records: [JS](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/fn6-memory.json), [Rust](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/rust-memory.json).
 
 | Subject | JS retained backing bytes | Rust retained backing bytes | Rust Wasm capacity bytes |
 |---|---:|---:|---:|
@@ -99,20 +101,20 @@ Total browser/process peak, live Wasm allocator bytes and GPU allocation bytes a
 
 There is one production generator. The deleted TypeScript code survives only in Git archives for reproducible reference exports. [Test ownership and explicit retirements](../../../tests/migration/README.md#retained-test-ownership) map the removed suites to native and consumer invariants. The same guide demonstrates a botanical branch-law change and an independent surface-resolution change through their owning modules; no compatibility generator or speculative public option was added.
 
-[Raw line counts](loc.json) include comments and blanks, with generated code separated: FN6 core 5,837 lines; final Rust core 3,564 (39% fewer raw core lines), Rust binding 518, browser adapter/public entry 164, generated preset metadata 348. Tests are separate: native integration tests 1,996, native inline tests 64, browser integration runners 237, harness tests 1,494. Native examples add 106. This is not a 39% whole-project reduction, a semantic code-LOC metric, or a target used to shape the implementation.
+[Raw line counts](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/loc.json) include comments and blanks, with generated code separated: FN6 core 5,837 lines; final Rust core 3,564 (39% fewer raw core lines), Rust binding 518, browser adapter/public entry 164, generated preset metadata 348. Tests are separate: native integration tests 1,996, native inline tests 64, browser integration runners 237, harness tests 1,494. Native examples add 106. This is not a 39% whole-project reduction, a semantic code-LOC metric, or a target used to shape the implementation.
 
-Clean `npm ci`, local pinned-toolchain native/Wasm release builds, release workspace tests, rustfmt, strict clippy, all 100 harness tests, typecheck, packaged library build, actual headless binding/UI checks and complete ordinary/Telperion/Laurelin/comparison migration checks are recorded in [verification logs](verification.json). The release suite has 39 passing tests and four optional archived-fixture tests ignored; native growth and foliage comparisons were then explicitly run on all seven frozen classes, in addition to the full browser fixture run. [Current captures and numeric records](browser/migration.json) retain the visual evidence. Numerical comparison retains exact topology/indices and leaf membership, with previously diagnosed small float32 position/normal drift from FN6. Broader species realism, lifecycle simulation and GPU geometry reduction remain outside FN8.
+Clean `npm ci`, local pinned-toolchain native/Wasm release builds, release workspace tests, rustfmt, strict clippy, all 100 harness tests, typecheck, packaged library build, actual headless binding/UI checks and complete ordinary/Telperion/Laurelin/comparison migration checks are recorded in [verification logs](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/verification.json). The release suite has 39 passing tests and four optional archived-fixture tests ignored; native growth and foliage comparisons were then explicitly run on all seven frozen classes, in addition to the full browser fixture run. [Current captures and numeric records](https://github.com/DanielKillenberger/telperion/blob/1922505a8a396d73b335974eabf6a9faf33ccd62/.flow/evidence/fn8/browser/migration.json) retain the visual evidence. Numerical comparison retains exact topology/indices and leaf membership, with previously diagnosed small float32 position/normal drift from FN6. Broader species realism, lifecycle simulation and GPU geometry reduction remain outside FN8.
 
 ## Reproduction
 
 Follow the root README's pinned Rust/npm setup. Start the finished FN6 archive in one checkout/server and this Rust checkout in another. Both benchmark URLs must serve their respective source harness; restart Vite after regenerating Wasm before sampling.
 
 ```sh
-IMPLEMENTATION=fn6 BENCHMARK_URL=http://127.0.0.1:5181 BENCHMARK_OUTPUT=/tmp/fn8-headless-fn6-baseline node .flow/evidence/fn8/measure.mjs
-BENCHMARK_URL=http://127.0.0.1:5185 BENCHMARK_OUTPUT=/tmp/fn8-headless-rust-final node .flow/evidence/fn8/measure.mjs
-IMPLEMENTATION=fn6 BROWSER_URL=http://127.0.0.1:5181 MEMORY_OUTPUT=/tmp/fn8-headless-fn6-memory node .flow/evidence/fn8/memory.mjs
-BROWSER_URL=http://127.0.0.1:5185 MEMORY_OUTPUT=/tmp/fn8-rust-memory node .flow/evidence/fn8/memory.mjs
-BROWSER_URL=http://127.0.0.1:5185 node .flow/evidence/fn8/field.mjs
+IMPLEMENTATION=fn6 BENCHMARK_URL=http://127.0.0.1:5181 BENCHMARK_OUTPUT=/tmp/fn8-headless-fn6-baseline node scripts/benchmarks/measure.mjs
+BENCHMARK_URL=http://127.0.0.1:5185 BENCHMARK_OUTPUT=/tmp/fn8-headless-rust-final node scripts/benchmarks/measure.mjs
+IMPLEMENTATION=fn6 BROWSER_URL=http://127.0.0.1:5181 MEMORY_OUTPUT=/tmp/fn8-headless-fn6-memory node scripts/benchmarks/memory.mjs
+BROWSER_URL=http://127.0.0.1:5185 MEMORY_OUTPUT=/tmp/fn8-rust-memory node scripts/benchmarks/memory.mjs
+BROWSER_URL=http://127.0.0.1:5185 node scripts/benchmarks/field.mjs
 cargo build --release -p telperion-core --example measure
 target/release/examples/measure telperion
 target/release/examples/measure laurelin

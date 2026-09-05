@@ -1,8 +1,0 @@
-    Checking telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn8-finish/crates/telperion-core)
-   Compiling zmij v1.0.23
-   Compiling serde_core v1.0.229
-   Compiling serde_json v1.0.151
-    Checking memchr v2.8.3
-    Checking itoa v1.0.18
-    Checking telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn8-finish/crates/telperion-wasm)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.71s
