@@ -34,7 +34,7 @@ import { LAURELIN, TELPERION } from "./two-trees";
  *  envelope height so the two trees are comparable at different
  *  sizes. */
 function measure(preset: TreePreset) {
-  const skeleton = growSkeleton(preset.skeleton);
+  const skeleton = growSkeleton(preset.skeleton, preset.radii);
   const height = preset.skeleton.envelope.height;
 
   let reach = 0;
@@ -75,7 +75,7 @@ function measure(preset: TreePreset) {
  *  rather than a length, so two trees of different heights and
  *  different girths are still comparable. */
 function tipShare(preset: TreePreset): number {
-  const skeleton = growSkeleton(preset.skeleton);
+  const skeleton = growSkeleton(preset.skeleton, preset.radii);
   const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
 
   const childCount = new Array<number>(skeleton.nodes.length).fill(0);
@@ -98,7 +98,7 @@ describe("the two trees are two of the same generator", () => {
        thing that changes between the runs. If either tree ever needed a
        branch of its own, this loop is where it would not fit. */
     for (const preset of PRESETS) {
-      const skeleton = growSkeleton(preset.skeleton);
+      const skeleton = growSkeleton(preset.skeleton, preset.radii);
       const field = solveRadii(
         skeleton,
         preset.skeleton.envelope,
@@ -119,8 +119,8 @@ describe("the two trees are two of the same generator", () => {
 
   it("is deterministic: the same preset builds the same skeleton twice", () => {
     for (const preset of PRESETS) {
-      const first = growSkeleton(preset.skeleton);
-      const second = growSkeleton(preset.skeleton);
+      const first = growSkeleton(preset.skeleton, preset.radii);
+      const second = growSkeleton(preset.skeleton, preset.radii);
       expect(first.nodes.length).toBe(second.nodes.length);
       expect(first.nodes[first.nodes.length - 1].position.toArray()).toEqual(
         second.nodes[second.nodes.length - 1].position.toArray(),
@@ -135,7 +135,7 @@ describe("the two trees are two of the same generator", () => {
        for, so the library's own report is read rather than a number
        restated here. */
     for (const preset of PRESETS) {
-      expect(growReport(preset.skeleton).capped).toBe(false);
+      expect(growReport(preset.skeleton, preset.radii).capped).toBe(false);
     }
   });
 
@@ -146,7 +146,7 @@ describe("the two trees are two of the same generator", () => {
        diameter of the twig that bears it. Measured at the median tip so
        one stray fine twig cannot pass the crown. */
     for (const preset of PRESETS) {
-      const skeleton = growSkeleton(preset.skeleton);
+      const skeleton = growSkeleton(preset.skeleton, preset.radii);
       const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
       const childCount = new Array<number>(skeleton.nodes.length).fill(0);
       for (const node of skeleton.nodes) {
@@ -263,17 +263,18 @@ describe("the preset registry", () => {
       ]);
       expect(Object.keys(skeleton.twigs).sort()).toEqual([
         "angle",
-        "children",
         "divergence",
-        "internode",
-        "levels",
-        "taper",
+        "internodes",
+        "laterals",
+        "lengthRatio",
+        "ratioPower",
+        "twig",
       ]);
+      expect(Object.keys(skeleton.twigs.twig).sort()).toEqual(["diameter", "internodeLength", "stationsPerInternode"]);
       expect(Object.keys(preset.radii).sort()).toEqual([
         "forkExponent",
         "lengthTaper",
         "trunkRadius",
-        "twigTaper",
       ]);
       expect(Object.keys(preset.surface).sort()).toEqual([
         "flareDepth",

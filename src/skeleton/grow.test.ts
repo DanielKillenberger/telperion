@@ -6,11 +6,14 @@ import {
   envelopeRadiusAt,
   type Envelope,
 } from "../envelope";
-import type { GrowthConfig, Skeleton } from "./colonize";
+import { colonize, type GrowthConfig, type Skeleton } from "./colonize";
+import { sampleEnvelope } from "../envelope";
+import { createRng } from "../rng";
+import { DEFAULT_RADII, solveRadii } from "../radius";
 import {
   DEFAULT_STEP,
   defaultGrowth,
-  growSkeleton,
+  growSkeleton as growWithBranches,
   influenceRadiusFor,
   type SkeletonParams,
   growReport,
@@ -83,32 +86,30 @@ function signature(skeleton: Skeleton): string {
 
 const params = { seed: 1, envelope: DEFAULT_ENVELOPE, attractors: 900 };
 
-/** A preset's colonization alone, its second pass stated at zero
- *  orders. Both presets ship with orders now, and the tests below
- *  reason about the base tree the twigs are appended to, so that base
- *  has to be asked for rather than assumed. */
-const bare = (tree: SkeletonParams): SkeletonParams => ({
-  ...tree,
-  twigs: { ...tree.twigs, levels: 0 },
-});
+/** These envelope/search fixtures measure the colonization stage directly.
+ * Branch generations have their separate radius and seam contracts. */
+function colonized(tree: SkeletonParams): Skeleton {
+  const points = sampleEnvelope(tree.envelope, tree.attractors, createRng(tree.seed));
+  return colonize(points, new THREE.Vector3(), resolveGrowth(tree, points.length));
+}
 
-describe("growSkeleton", () => {
+describe("colonization growth", () => {
   it("grows the same skeleton, byte for byte, from the same seed", () => {
-    expect(signature(growSkeleton(params))).toBe(
-      signature(growSkeleton(params)),
+    expect(signature(colonized(params))).toBe(
+      signature(colonized(params)),
     );
   });
 
   it("grows a different skeleton from a different seed", () => {
-    expect(signature(growSkeleton(params))).not.toBe(
-      signature(growSkeleton({ ...params, seed: 2 })),
+    expect(signature(colonized(params))).not.toBe(
+      signature(colonized({ ...params, seed: 2 })),
     );
   });
 
   it("grows a different skeleton from a different envelope", () => {
-    expect(signature(growSkeleton(params))).not.toBe(
+    expect(signature(colonized(params))).not.toBe(
       signature(
-        growSkeleton({
+        colonized({
           ...params,
           envelope: { ...DEFAULT_ENVELOPE, spread: 0.4 },
         }),
@@ -128,7 +129,7 @@ describe("growSkeleton", () => {
       { ...DEFAULT_ENVELOPE, spread: 1.4, shoulder: 4, height: 50 },
     ]) {
       const allowed = defaultGrowth(envelope).stepDistance * 4;
-      for (const node of growSkeleton({ ...params, envelope }).nodes) {
+      for (const node of colonized({ ...params, envelope }).nodes) {
         expect(distanceOutside(envelope, node.position)).toBeLessThanOrEqual(
           allowed,
         );
@@ -155,7 +156,7 @@ describe("growSkeleton", () => {
     const step = defaultGrowth(envelope).stepDistance;
     const crownBase = envelope.height * envelope.crownBase;
     for (const seed of [1, 2, 3, 4, 5]) {
-      const nodes = growSkeleton({ ...params, seed, envelope }).nodes;
+      const nodes = colonized({ ...params, seed, envelope }).nodes;
       const children = new Int32Array(nodes.length);
       for (const node of nodes) if (node.parent >= 0) children[node.parent] += 1;
       for (let i = 0; i < nodes.length; i += 1) {
@@ -168,7 +169,7 @@ describe("growSkeleton", () => {
 
   it("changes the silhouette when the envelope changes", () => {
     const widest = (envelope: Envelope): number =>
-      growSkeleton({ ...params, envelope }).nodes.reduce(
+      colonized({ ...params, envelope }).nodes.reduce(
         (widest, node) => Math.max(widest, Math.hypot(node.position.x, node.position.z)),
         0,
       );
@@ -184,7 +185,7 @@ describe("growSkeleton", () => {
        large one is not a solid mat. The band is the dial's, 4 m to
        400 m, and not the 60 m the dial used to stop at. */
     const nodes = (height: number): number =>
-      growSkeleton({ ...params, envelope: { ...DEFAULT_ENVELOPE, height } })
+      colonized({ ...params, envelope: { ...DEFAULT_ENVELOPE, height } })
         .nodes.length;
     const sapling = nodes(4);
     for (const height of [DEFAULT_ENVELOPE.height, 60, 150, 400]) {
@@ -193,8 +194,8 @@ describe("growSkeleton", () => {
   });
 
   it("grows a denser tree from more attractors", () => {
-    const sparse = growSkeleton({ ...params, attractors: 200 });
-    const dense = growSkeleton({ ...params, attractors: 1600 });
+    const sparse = colonized({ ...params, attractors: 200 });
+    const dense = colonized({ ...params, attractors: 1600 });
     expect(dense.nodes.length).toBeGreaterThan(sparse.nodes.length * 2);
   });
 
@@ -204,11 +205,11 @@ describe("growSkeleton", () => {
     // algorithm rather than being shadowed by the derived defaults.
     const derived = defaultGrowth(DEFAULT_ENVELOPE);
     expect(
-      signature(growSkeleton({ ...params, growth: { influenceRadius: derived.influenceRadius * 2 } })),
-    ).not.toBe(signature(growSkeleton(params)));
+      signature(colonized({ ...params, growth: { influenceRadius: derived.influenceRadius * 2 } })),
+    ).not.toBe(signature(colonized(params)));
     expect(
-      signature(growSkeleton({ ...params, growth: { killDistance: derived.killDistance * 3 } })),
-    ).not.toBe(signature(growSkeleton(params)));
+      signature(colonized({ ...params, growth: { killDistance: derived.killDistance * 3 } })),
+    ).not.toBe(signature(colonized(params)));
   });
 
   it("grows up: downward steps fall well below the unbiased baseline", () => {
@@ -227,7 +228,7 @@ describe("growSkeleton", () => {
       bias: Partial<BiasParams>,
       growth?: Partial<GrowthConfig>,
     ): number => {
-      const nodes = growSkeleton({ ...params, attractors: 800, bias, growth })
+      const nodes = colonized({ ...params, attractors: 800, bias, growth })
         .nodes;
       let down = 0;
       let steps = 0;
@@ -262,7 +263,7 @@ describe("growSkeleton", () => {
     const crownBase = envelope.height * envelope.crownBase;
 
     const trunk = (bias: Partial<BiasParams>): THREE.Vector3[] => {
-      const points = growSkeleton({ ...params, envelope, bias }).nodes
+      const points = colonized({ ...params, envelope, bias }).nodes
         .filter((node) => node.position.y <= crownBase)
         .map((node) => node.position);
       expect(points.length).toBeGreaterThan(8);
@@ -327,7 +328,7 @@ describe("growSkeleton", () => {
     const crownBase = envelope.height * envelope.crownBase;
     for (const bias of extremes) {
       for (const seed of [1, 2, 3]) {
-        const nodes = growSkeleton({ ...params, seed, envelope, bias }).nodes;
+        const nodes = colonized({ ...params, seed, envelope, bias }).nodes;
         expect(nodes.length).toBeGreaterThan(100);
         expect(nodes.length).toBeLessThan(defaultGrowth(envelope).maxNodes);
         for (let i = 0; i < nodes.length; i += 1) {
@@ -351,19 +352,19 @@ describe("growSkeleton", () => {
 
   it("stays deterministic through the bias field", () => {
     const bias = { ...DEFAULT_BIAS, writheAmplitude: 0.18, spiralRate: 3 };
-    expect(signature(growSkeleton({ ...params, bias }))).toBe(
-      signature(growSkeleton({ ...params, bias })),
+    expect(signature(colonized({ ...params, bias }))).toBe(
+      signature(colonized({ ...params, bias })),
     );
-    expect(signature(growSkeleton({ ...params, bias }))).not.toBe(
-      signature(growSkeleton({ ...params, bias, seed: 2 })),
+    expect(signature(colonized({ ...params, bias }))).not.toBe(
+      signature(colonized({ ...params, bias, seed: 2 })),
     );
-    expect(signature(growSkeleton({ ...params, bias }))).not.toBe(
-      signature(growSkeleton({ ...params, bias: DEFAULT_BIAS })),
+    expect(signature(colonized({ ...params, bias }))).not.toBe(
+      signature(colonized({ ...params, bias: DEFAULT_BIAS })),
     );
   });
 
   it("survives an envelope with nothing to fill", () => {
-    const empty = growSkeleton({
+    const empty = colonized({
       ...params,
       envelope: { ...DEFAULT_ENVELOPE, spread: 0 },
     });
@@ -393,11 +394,11 @@ describe("the search radius and the attractor spacing", () => {
     for (const tree of trees) {
       const nineSteps = defaultGrowth(tree.envelope).stepDistance * 9;
       expect(
-        signature(growSkeleton(tree)),
+        signature(colonized(tree)),
         `${tree.envelope.height} m, ${tree.attractors} attractors`,
       ).toBe(
         signature(
-          growSkeleton({
+          colonized({
             ...tree,
             growth: { ...tree.growth, influenceRadius: nineSteps },
           }),
@@ -435,12 +436,12 @@ describe("the search radius and the attractor spacing", () => {
        under the old radius, so the case cannot quietly stop being one,
        and the tree under the derived radius, grown rather than
        reported. */
-    const tree = bare(TELPERION.skeleton);
+    const tree = TELPERION.skeleton;
     const step = 0.44;
     const growth = growthAtStep(tree.envelope, step, tree.attractors);
 
     const stump = census(
-      growSkeleton({
+      colonized({
         ...tree,
         growth: { ...growth, influenceRadius: step * 9 },
       }),
@@ -448,7 +449,7 @@ describe("the search radius and the attractor spacing", () => {
     expect(stump.nodes).toBeLessThan(250);
     expect(stump.tips).toBeLessThanOrEqual(4);
 
-    const whole = growSkeleton({ ...tree, growth });
+    const whole = colonized({ ...tree, growth });
     const grown = census(whole);
     expect(grown.nodes).toBeGreaterThan(5000);
     expect(grown.tips).toBeGreaterThan(500);
@@ -484,18 +485,18 @@ describe("the search radius and the attractor spacing", () => {
        `influenceRadiusFor` - so the seeds here are the presets' own and
        the survey's result is recorded rather than asserted. */
     const trees: SkeletonParams[] = [
-      bare(TELPERION.skeleton),
-      bare(LAURELIN.skeleton),
+      TELPERION.skeleton,
+      LAURELIN.skeleton,
       params,
     ];
     for (const tree of trees) {
       for (const attractors of [250, 1600]) {
-        const today = census(growSkeleton({ ...tree, attractors }));
+        const today = census(colonized({ ...tree, attractors }));
         expect(today.tips).toBeGreaterThan(50);
         for (const fraction of [0.011, 0.0055, 0.003]) {
           const step = tree.envelope.height * fraction;
           const finer = census(
-            growSkeleton({
+            colonized({
               ...tree,
               attractors,
               growth: growthAtStep(tree.envelope, step, attractors),
@@ -542,10 +543,10 @@ describe("the growth step", () => {
        `held` rail - so that any tree that differs from today's does so
        because someone moved the dial. */
     const { step: _stated, ...unstated } = tree;
-    const today = signature(growSkeleton(unstated));
-    expect(signature(growSkeleton({ ...unstated, step: DEFAULT_STEP }))).toBe(today);
-    expect(signature(growSkeleton({ ...unstated, step: Number.NaN }))).toBe(today);
-    expect(signature(growSkeleton({ ...unstated, step: Number.POSITIVE_INFINITY }))).toBe(today);
+    const today = signature(colonized(unstated));
+    expect(signature(colonized({ ...unstated, step: DEFAULT_STEP }))).toBe(today);
+    expect(signature(colonized({ ...unstated, step: Number.NaN }))).toBe(today);
+    expect(signature(colonized({ ...unstated, step: Number.POSITIVE_INFINITY }))).toBe(today);
   });
 
   it("moves step and kill distance together, and derives the rest", () => {
@@ -566,8 +567,8 @@ describe("the growth step", () => {
       influenceRadiusFor(envelope, finer.stepDistance, count),
     );
     expect(finer.trunkHeight).toBe(today.trunkHeight);
-    expect(today.maxNodes).toBe(8000);
-    expect(finer.maxNodes).toBe(16000);
+    expect(today.maxNodes).toBe(250000);
+    expect(finer.maxNodes).toBe(250000);
   });
 
   it("fits the whole rail under the node ceiling", () => {
@@ -583,12 +584,12 @@ describe("the growth step", () => {
       step: 0.003,
     };
     const ceiling = defaultGrowth(widest.envelope, widest.attractors, widest.step).maxNodes;
-    const grown = census(growSkeleton(widest));
+    const grown = census(colonized(widest));
     expect(grown.nodes).toBeGreaterThan(30000);
     expect(grown.nodes).toBeLessThan(ceiling);
     // And the dial reaches the tree: finer is deeper, not smaller.
-    const today = census(growSkeleton(params));
-    const finer = census(growSkeleton({ ...params, step: 0.011 }));
+    const today = census(colonized(params));
+    const finer = census(colonized({ ...params, step: 0.011 }));
     expect(finer.nodes).toBeGreaterThan(today.nodes);
     expect(finer.tips).toBeGreaterThan(today.tips);
   });
@@ -617,30 +618,42 @@ describe("defaultGrowth", () => {
 });
 
 describe("the node ceiling under twigs", () => {
-  it("is exactly the step's ceiling at zero orders and grows with the orders and children", () => {
-    const params = bare(TELPERION.skeleton);
-    const rest = resolveGrowth(params).maxNodes;
-    expect(rest).toBe(8000);
+  it("keeps the temporary ceiling across branch anatomy and step changes", () => {
+    for (const internodes of [1, 3, 8]) for (const laterals of [0, 1, 7]) {
+      expect(resolveGrowth({ ...TELPERION.skeleton, step: 0.003,
+        twigs: { ...TELPERION.skeleton.twigs, internodes, laterals } }).maxNodes).toBe(250000);
+    }
+  });
 
-    const orders = (levels: number, children = 2): number =>
-      resolveGrowth({
-        ...params,
-        twigs: { ...params.twigs, levels, children },
-      }).maxNodes;
-    // 1 + 0.25 x (2 + 4 + 8 + 16): a stop that scales with what the
-    // tips could add, never the count they do add.
-    expect(orders(4)).toBe(8000 * (1 + 0.25 * 30));
-    expect(orders(8)).toBeGreaterThan(orders(4));
-    expect(orders(4, 3)).toBeGreaterThan(orders(4));
-    // And never past the ceiling's own ceiling.
-    expect(orders(12, 8)).toBe(250000);
-    expect(orders(12, 8)).toBe(orders(12, 7));
+  it("uses the caller's radii before growth and agrees with the final solve above the crossover", () => {
+    const tree = TELPERION.skeleton;
+    const base = colonized(tree);
+    const variants = [TELPERION.radii,
+      { ...TELPERION.radii, trunkRadius: TELPERION.radii.trunkRadius / 10 },
+      { ...TELPERION.radii, forkExponent: 1.4 }];
+    const counts: number[] = [];
+    for (const radii of variants) {
+      const handoff = solveRadii(base, tree.envelope, radii);
+      const grown = growWithBranches(tree, radii);
+      const solved = solveRadii(grown, tree.envelope, radii);
+      expect([...solved.radius.slice(0, grown.crossover)]).toEqual([...handoff.radius]);
+      expect([...solved.startRadius.slice(0, grown.crossover)]).toEqual([...handoff.startRadius]);
+      expect(grown.nodes.slice(0, grown.crossover)).toEqual(base.nodes);
+      for (let k = 0; k < grown.twig.length; k++) {
+        const parent = grown.nodes[k + grown.crossover].parent;
+        if (parent < grown.crossover && !grown.twig[k]) expect(grown.baseRadius[k]).toBe(handoff.radius[parent]);
+      }
+      counts.push(grown.nodes.length);
+    }
+    expect(counts[1]).not.toBe(counts[0]);
+    expect(counts[2]).not.toBe(counts[0]);
+    expect(growWithBranches(params)).toEqual(growWithBranches(params, DEFAULT_RADII));
   });
 
   it("reports reaching the ceiling, after the shell rule has made the tree smaller than it", () => {
     const params = {
       ...TELPERION.skeleton,
-      twigs: { ...TELPERION.skeleton.twigs, levels: 6 },
+      twigs: TELPERION.skeleton.twigs,
     };
     const finished = growReport(params);
     expect(finished.capped).toBe(false);

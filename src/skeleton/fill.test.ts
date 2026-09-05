@@ -64,19 +64,18 @@ describe("crown fill measurements", () => {
       .toEqual({ tested: false, reason: "non-finite-colonization-tip" });
   });
 
-  it.each([TELPERION, LAURELIN])("records the unchanged $name tuft and zero-order baseline", (preset) => {
-    for (const levels of [0, 8]) {
-      const report = growReport({ ...preset.skeleton, twigs: { ...preset.skeleton.twigs, levels } });
+  it.each([TELPERION, LAURELIN])("measures $name branch generations using the pass twig marks", (preset) => {
+    {
+      const report = growReport(preset.skeleton, preset.radii);
       const tree = report.skeleton;
       const terminal = new Uint8Array(tree.nodes.length);
-      terminal.fill(1, tree.crossover);
-      for (let i = 1; i < tree.nodes.length; i += 1) terminal[tree.nodes[i].parent] = 0;
+      terminal.set(tree.twig, tree.crossover);
       const occupancy = shellOccupancy(tree, terminal, preset.skeleton.envelope, 0.02);
       const clustering = tipClustering(tree, tree.crossover, terminal, preset.skeleton.envelope.height * 0.05);
       expect(report.capped).toBe(false);
-      expect(occupancy.tested).toBe(levels > 0);
-      expect(clustering.tested).toBe(levels > 0);
-      process.stdout.write(JSON.stringify({ preset: preset.id, levels, nodes: tree.nodes.length,
+      expect(occupancy.tested).toBe(true);
+      expect(clustering.tested).toBe(true);
+      process.stdout.write(JSON.stringify({ preset: preset.id, pass: "branch-generations", nodes: tree.nodes.length,
         crossover: tree.crossover, terminals: terminal.reduce((sum, mark) => sum + mark, 0),
         cellSizeHeightFraction: 0.02, distanceHeightFraction: 0.05, occupancy, clustering }) + "\n");
     }

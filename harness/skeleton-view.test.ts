@@ -66,6 +66,7 @@ function positions(mesh: THREE.Mesh): Float32Array {
 function centreline(overrides: Partial<GrowerParams> = {}): THREE.Vector3[] {
   const skeleton = growSkeleton(
     toSkeletonParams({ ...DEFAULT_PARAMS, ...overrides }),
+    toRadiusParams({ ...DEFAULT_PARAMS, ...overrides }),
   );
   return skeleton.nodes.map((node) => node.position);
 }
@@ -151,20 +152,23 @@ describe("toSkeletonParams", () => {
     expect(mapped.growth).toEqual({ maxTurnPerStep: DEFAULT_PARAMS.maxTurnPerStep });
   });
 
-  it("hands the six twig rules over under the library's own names", () => {
+  it("hands branch anatomy and the law over under the library's own names", () => {
     // Every member of `twigs` named, so the panel cannot drop one; and
-    // the orders dial reaches the tree - finer wood and more tips.
+    // the lateral count reaches the tree and adds branches.
     const mapped = toSkeletonParams({ ...DEFAULT_PARAMS, twigLevels: 3, twigChildren: 3 });
     expect(mapped.twigs).toEqual({
-      levels: 3,
-      children: 3,
+      twig: { diameter: DEFAULT_PARAMS.twigDiameter, internodeLength: DEFAULT_PARAMS.twigStationLength,
+        stationsPerInternode: DEFAULT_PARAMS.twigStations },
+      ratioPower: DEFAULT_PARAMS.twigRatioPower,
+      laterals: 2,
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
-      internode: DEFAULT_PARAMS.twigInternode,
-      taper: DEFAULT_PARAMS.twigLengthTaper,
+      internodes: DEFAULT_PARAMS.twigInternode,
+      lengthRatio: DEFAULT_PARAMS.twigLengthTaper,
     });
-    expect(positions(tree({ twigLevels: 3 })).length).toBeGreaterThan(
-      positions(tree({ twigLevels: 0 })).length * 2,
+    expect(mapped.twigs).not.toHaveProperty("levels");
+    expect(positions(tree({ twigChildren: 3 })).length).toBeGreaterThan(
+      positions(tree({ twigChildren: 1 })).length * 2,
     );
   });
 
@@ -263,7 +267,7 @@ describe("buildTree", () => {
     expect(stats.triangles * 3).toBe(mesh.geometry.getIndex()!.count);
     expect(stats.vertices * 3).toBe(positions(mesh).length);
     expect(stats.nodes).toBe(
-      growSkeleton(toSkeletonParams(DEFAULT_PARAMS)).nodes.length,
+      growSkeleton(toSkeletonParams(DEFAULT_PARAMS), toRadiusParams(DEFAULT_PARAMS)).nodes.length,
     );
     expect(stats.buildMs).toBeGreaterThanOrEqual(0);
   });
@@ -398,7 +402,7 @@ describe("buildTree", () => {
     // A ring high in the crown, taken about its own centre: the twigs
     // there are a small fraction of the trunk they hang off.
     const solved = solveRadii(
-      growSkeleton(toSkeletonParams(DEFAULT_PARAMS)),
+      growSkeleton(toSkeletonParams(DEFAULT_PARAMS), toRadiusParams(DEFAULT_PARAMS)),
       toSkeletonParams(DEFAULT_PARAMS).envelope,
       toRadiusParams(DEFAULT_PARAMS),
     );
@@ -421,13 +425,16 @@ describe("buildTree", () => {
     expect(crownNarrowest * 20).toBeLessThan(trunk);
   });
 
-  it("the taper dial changes the thickness and not the branching", () => {
+  it("the taper dial changes thickness and branch generations while preserving colonization", () => {
     const sharp = tree({ taper: 1.6 });
     const soft = tree({ taper: 3.4 });
     expect([...positions(sharp)]).not.toEqual([...positions(soft)]);
-    // Same skeleton underneath: taper is solved over the branching, it
-    // does not grow a different tree.
-    expect(centreline({ taper: 1.6 })).toEqual(centreline({ taper: 3.4 }));
+    const grown = [1.6, 3.4].map(taper => {
+      const params = { ...DEFAULT_PARAMS, taper };
+      return growSkeleton(toSkeletonParams(params), toRadiusParams(params));
+    });
+    expect(grown[0].nodes.slice(0, grown[0].crossover)).toEqual(grown[1].nodes.slice(0, grown[1].crossover));
+    expect(grown[0].nodes.slice(grown[0].crossover)).not.toEqual(grown[1].nodes.slice(grown[1].crossover));
   });
 
   it("is deterministic in the seed", () => {
@@ -495,6 +502,7 @@ describe("buildTree", () => {
     for (const torsion of [0, 2]) {
       const skeleton = growSkeleton(
         toSkeletonParams({ ...DEFAULT_PARAMS, torsion }),
+        toRadiusParams(DEFAULT_PARAMS),
       );
       skeleton.nodes.forEach((node, index) => {
         if (index === 0) return expect(node.parent).toBe(-1);
@@ -529,8 +537,11 @@ describe("buildTree", () => {
   });
 
   it("the density dial reaches the branch count", () => {
-    expect(positions(tree({ density: 1 })).length).toBeGreaterThan(
-      positions(tree({ density: 0 })).length * 2,
+    // Hold every handoff at twig scale so the count measures density,
+    // independent of how many radius-driven generations follow it.
+    const twigDiameter = 2 * DEFAULT_PARAMS.height * DEFAULT_PARAMS.trunkRadius;
+    expect(positions(tree({ density: 1, twigDiameter })).length).toBeGreaterThan(
+      positions(tree({ density: 0, twigDiameter })).length * 2,
     );
   });
 });

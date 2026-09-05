@@ -1,10 +1,12 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE } from "../envelope";
+import { DEFAULT_ENVELOPE, sampleEnvelope } from "../envelope";
 import { TELPERION } from "../presets/two-trees";
 import { solveRadii } from "../radius";
-import { growSkeleton } from "../skeleton/grow";
+import { resolveGrowth } from "../skeleton/grow";
+import { colonize } from "../skeleton/colonize";
+import { createRng } from "../rng";
 import { cullCanopy, DEFAULT_CULL } from "./cull";
 import { buildElement, DEFAULT_ELEMENT } from "./element";
 import { buildCanopy, type Canopy } from "./place";
@@ -57,10 +59,9 @@ const filled = (() => {
   // Colonization alone: the shipped preset's twigs are already shed to
   // a shell, and a canopy placed on a shell is not the filled crown
   // this fixture exists to be.
-  const skeleton = growSkeleton({
-    ...preset.skeleton,
-    twigs: { ...preset.skeleton.twigs, levels: 0 },
-  });
+  const tree = preset.skeleton;
+  const attractors = sampleEnvelope(tree.envelope, tree.attractors, createRng(tree.seed));
+  const skeleton = colonize(attractors, new THREE.Vector3(), resolveGrowth(tree, attractors.length));
   const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
   const envelope = preset.skeleton.envelope;
   return {

@@ -77,13 +77,14 @@ export {
   type TwigParams,
   type TwiggedSkeleton,
 } from "./skeleton/twigs";
+export { branchLength, childRadius, generationsUntilTwig,
+  DEFAULT_BRANCH_LAW, DEFAULT_TWIG_ANATOMY, type BranchLawParams, type TwigAnatomy } from "./skeleton/law";
 export { shedTwigs, DEFAULT_SHED } from "./skeleton/shed";
 
 // Thickness, and the fine orders' own taper law below the crossover.
 export {
   solveRadii,
   DEFAULT_RADII,
-  DEFAULT_TWIG_TAPER,
   type RadiusParams,
   type RadiusField,
 } from "./radius";

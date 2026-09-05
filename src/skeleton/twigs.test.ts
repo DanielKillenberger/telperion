@@ -1,455 +1,202 @@
 import { readFileSync } from "node:fs";
-import * as THREE from "three";
+import { Vector3 } from "three";
 import { describe, expect, it } from "vitest";
+import { DEFAULT_ENVELOPE, sampleEnvelope } from "../envelope";
+import { TELPERION, LAURELIN } from "../presets/two-trees";
+import { solveRadii, DEFAULT_RADII, type RadiusField } from "../radius";
+import { createRng } from "../rng";
+import { createGrowthBias, NO_BIAS } from "../torsion";
+import { colonize, type Skeleton, type GrowthConfig } from "./colonize";
+import { growReport, resolveGrowth } from "./grow";
+import { branchLength, childRadius, DEFAULT_TWIG_ANATOMY } from "./law";
+import { branchTwigs, resolveTwigs, DEFAULT_TWIGS, MAX_TWIG_LEVELS } from "./twigs";
 
-import { DEFAULT_ELEMENT } from "../canopy/element";
-import { DEFAULT_ENVELOPE } from "../envelope";
-import { LAURELIN, TELPERION } from "../presets/two-trees";
-import { solveRadii } from "../radius";
-import { createGrowthBias, DEFAULT_BIAS, NO_BIAS } from "../torsion";
-import type { GrowthConfig, Skeleton } from "./colonize";
-import { growReport, growSkeleton, resolveGrowth, type SkeletonParams } from "./grow";
-import {
-  branchTwigs,
-  DEFAULT_TWIGS,
-  MAX_TWIG_CHILDREN,
-  MAX_TWIG_LEVELS,
-  resolveTwigs,
-  type TwigParams,
-} from "./twigs";
-
-/* The second pass, held to what the first pass hands it: one skeleton,
-   the same invariant, the same field and the same turn limit, and a
-   tree that is the tree it was until someone asks for orders. */
-
-const DEG = 180 / Math.PI;
-
-function signature(skeleton: Skeleton): string {
-  return JSON.stringify(
-    skeleton.nodes.map((node) => [
-      node.position.x,
-      node.position.y,
-      node.position.z,
-      node.parent,
-    ]),
-  );
-}
-
-/** How many children each node has. */
-function childCounts(skeleton: Skeleton): Int32Array {
-  const counts = new Int32Array(skeleton.nodes.length);
-  for (const node of skeleton.nodes) if (node.parent >= 0) counts[node.parent] += 1;
-  return counts;
-}
-
-/** Tip indices: every node past the root that nothing grew from. */
-function tips(skeleton: Skeleton): number[] {
-  const counts = childCounts(skeleton);
-  const found: number[] = [];
-  for (let i = 1; i < skeleton.nodes.length; i += 1) if (counts[i] === 0) found.push(i);
-  return found;
-}
-
-/** The unit direction of the step that made node `index`. */
-function arrival(skeleton: Skeleton, index: number): THREE.Vector3 {
-  const node = skeleton.nodes[index];
-  return node.position.clone().sub(skeleton.nodes[node.parent].position).normalize();
-}
-
-/** Mean unit step over nodes `from` (inclusive) to `to` (exclusive). */
-function meanStep(skeleton: Skeleton, from: number, to: number): THREE.Vector3 {
-  const mean = new THREE.Vector3();
-  for (let i = Math.max(1, from); i < to; i += 1) mean.add(arrival(skeleton, i));
-  return mean.divideScalar(Math.max(1, to - from));
-}
-
-/** Orders below the base: 0 for a base node, parent's plus one after. */
-function orders(skeleton: Skeleton, baseCount: number): Int32Array {
-  const order = new Int32Array(skeleton.nodes.length);
-  for (let i = baseCount; i < skeleton.nodes.length; i += 1) {
-    order[i] = order[skeleton.nodes[i].parent] + 1;
-  }
-  return order;
-}
-
-/** A tree with `twigs` on top of `tree`, with the node ceiling lifted
- *  so the orders asked for are measured rather than truncated. */
-function grown(tree: SkeletonParams, twigs: Partial<TwigParams>): Skeleton {
-  return growSkeleton({
-    ...tree,
-    twigs: { ...tree.twigs, ...twigs },
-    growth: { ...tree.growth, maxNodes: 4_000_000 },
-  });
-}
-
-const params: SkeletonParams = { seed: 1, envelope: DEFAULT_ENVELOPE, attractors: 900 };
-
-/** A preset's colonization alone, its second pass stated at zero
- *  orders. Both presets ship with orders now, and the tests below
- *  reason about the base tree the twigs are appended to, so that base
- *  has to be asked for rather than assumed. */
-const bare = (tree: SkeletonParams): SkeletonParams => ({
-  ...tree,
-  twigs: { ...tree.twigs, levels: 0 },
+const base: Skeleton = { nodes: [
+  { position: new Vector3(0, 0, 0), parent: -1 },
+  { position: new Vector3(0, 10, 0), parent: 0 },
+] };
+const config: GrowthConfig = { stepDistance: 1, killDistance: 2, influenceRadius: 9,
+  trunkHeight: 0, maxNodes: 250000, maxTurnPerStep: 90 };
+const field = (radius: number, count = 2): RadiusField => ({
+  radius: new Float64Array(count).fill(radius), startRadius: new Float64Array(count).fill(radius),
 });
+const arrival = (tree: Skeleton, i: number) => tree.nodes[i].position.clone()
+  .sub(tree.nodes[tree.nodes[i].parent].position).normalize();
+const signature = (tree: Skeleton) => JSON.stringify(tree.nodes.map(n => [n.parent, ...n.position.toArray()]));
 
-describe("branchTwigs", () => {
-  it("continues from every tip colonization left, into one skeleton", () => {
-    /* R1. The base comes back first and untouched - the same node
-       objects in the same order - and every node after it hangs off a
-       base tip. One order of a leader and a lateral is at most two
-       children per tip, and at least the leader on every tip whose
-       continuation stays above the bare-trunk line. */
-    const base = growSkeleton({ ...params, bias: NO_BIAS });
-    const config = resolveGrowth({ ...params, bias: NO_BIAS });
-    const twigged = branchTwigs(base, config, resolveTwigs({ levels: 1 }));
-
-    expect(twigged.nodes.slice(0, base.nodes.length)).toEqual(base.nodes);
-    const baseTips = tips(base);
-    const appended = twigged.nodes.length - base.nodes.length;
-    expect(appended).toBeGreaterThan(baseTips.length);
-    expect(appended).toBeLessThanOrEqual(baseTips.length * 2);
-    const isTip = new Set(baseTips);
-    for (let i = base.nodes.length; i < twigged.nodes.length; i += 1) {
-      expect(isTip.has(twigged.nodes[i].parent)).toBe(true);
+describe("branch generations", () => {
+  it("grows internode runs with lateral radii from the law and terminal twigs as the sole radius exception", () => {
+    const params = resolveTwigs({ lengthRatio: 0.4 });
+    const tree = branchTwigs(base, field(0.04), config, params);
+    const counts = new Int32Array(tree.nodes.length);
+    const runs = new Map<number, number[]>();
+    for (let i = 1; i < tree.nodes.length; i++) counts[tree.nodes[i].parent]++;
+    expect(tree.nodes[0].parent).toBe(-1);
+    for (let i = tree.crossover; i < tree.nodes.length; i++) {
+      const k = i - tree.crossover;
+      const node = tree.nodes[i];
+      expect(node.parent).toBeGreaterThanOrEqual(0);
+      expect(node.parent).toBeLessThan(i);
+      const id = tree.branchId[k];
+      expect(id).toBeLessThanOrEqual(i);
+      const run = runs.get(id) ?? [];
+      run.push(i); runs.set(id, run);
+      if (tree.twig[k]) {
+        expect(tree.baseRadius[k]).toBe(params.twig.diameter / 2);
+        expect(node.position.distanceTo(tree.nodes[node.parent].position)).toBeCloseTo(params.twig.internodeLength, 12);
+      } else {
+        const origin = tree.nodes[id].parent;
+        const expected = origin < tree.crossover ? 0.04 : childRadius(
+          tree.baseRadius[origin - tree.crossover], params.lengthRatio, params.ratioPower);
+        expect(tree.baseRadius[k]).toBe(expected);
+      }
+      if (counts[i] === 0) expect(tree.twig[k]).toBe(1);
     }
-    const counts = childCounts(twigged);
-    const bare = baseTips.filter((tip) => counts[tip] === 0);
-    expect(bare.length).toBeLessThan(baseTips.length * 0.05);
-  });
-
-  it.each([
-    ["Telperion", bare(TELPERION.skeleton)],
-    ["Laurelin", bare(LAURELIN.skeleton)],
-  ] as const)("keeps parent before child over the whole of %s, six orders down", (_name, tree) => {
-    /* The invariant radius.ts, paths.ts and surface.ts all do a single
-       forward pass on. Asserted over every node, not only the appended
-       ones, so a pass that reordered the base would fail here too. */
-    const skeleton = grown(tree, { levels: 6 });
-    expect(skeleton.nodes[0].parent).toBe(-1);
-    for (let i = 1; i < skeleton.nodes.length; i += 1) {
-      const parent = skeleton.nodes[i].parent;
-      expect(parent).toBeGreaterThanOrEqual(0);
-      expect(parent).toBeLessThan(i);
-    }
-    expect(skeleton.nodes.length).toBeGreaterThan(growSkeleton(tree).nodes.length * 4);
-  });
-
-  it("inherits the terminal tangent through limitTurn, and never reseeds it", () => {
-    /* At the handoff and at every order below it, a twig step turns no
-       further from the step before it than the run's own limit - the
-       same limit every colonization step is held to, on the tree with
-       the stiffest one. And with no field and no lateral, the leader
-       out of a tip is that tip's own tangent to the bit: nothing is
-       re-chosen at the seam. */
-    const tree = bare(TELPERION.skeleton);
-    const limit = tree.growth.maxTurnPerStep;
-    const skeleton = grown(tree, { levels: 4 });
-    const baseCount = growSkeleton(tree).nodes.length;
-    const order = orders(skeleton, baseCount);
-    let handoffs = 0;
-    for (let i = baseCount; i < skeleton.nodes.length; i += 1) {
-      const parent = skeleton.nodes[i].parent;
-      const turn = Math.acos(
-        Math.min(1, arrival(skeleton, i).dot(arrival(skeleton, parent))),
-      ) * DEG;
-      expect(turn).toBeLessThanOrEqual(limit + 1e-6);
-      if (order[i] === 1) handoffs += 1;
-    }
-    expect(handoffs).toBeGreaterThan(100);
-
-    const base = growSkeleton({ ...tree, bias: NO_BIAS });
-    const config = { ...resolveGrowth({ ...tree, bias: NO_BIAS }), bias: undefined };
-    const leaders = branchTwigs(base, config, resolveTwigs({ levels: 1, children: 1 }));
-    for (let i = base.nodes.length; i < leaders.nodes.length; i += 1) {
-      const parent = leaders.nodes[i].parent;
-      expect(arrival(leaders, i).distanceTo(arrival(leaders, parent))).toBeLessThan(1e-12);
-    }
-  });
-
-  it.each([
-    ["at rest", {}, 1, 0.6],
-    ["with no taper", { taper: 1 }, 1, 1],
-    ["at half an internode", { internode: 0.5 }, 0.5, 0.6],
-  ] as const)("shrinks each order by the taper law, %s", (_name, twigs, internode, taper) => {
-    /* The fine orders' own law: order k is `internode` steps long at
-       the handoff and `taper` of the order above after that, whatever
-       the field does to its direction. Thickness is the radius solve's
-       and runs after this pass; length and fork count are what this
-       pass can author, and below the crossover the solve applies its
-       own steeper law to what it is handed. */
-    const tree = params;
-    const step = resolveGrowth(tree).stepDistance;
-    const skeleton = grown(tree, { levels: 5, ...twigs });
-    const baseCount = growSkeleton(tree).nodes.length;
-    const order = orders(skeleton, baseCount);
-    const seen = new Int32Array(6);
-    for (let i = baseCount; i < skeleton.nodes.length; i += 1) {
-      const node = skeleton.nodes[i];
-      const length = node.position.distanceTo(skeleton.nodes[node.parent].position);
-      const expected = step * internode * taper ** (order[i] - 1);
-      expect(Math.abs(length - expected)).toBeLessThan(1e-9);
-      seen[order[i]] += 1;
-    }
-    for (let k = 1; k <= 5; k += 1) expect(seen[k]).toBeGreaterThan(0);
-  });
-
-  it("stops on the level cap, a named parameter, and on the node ceiling", () => {
-    /* Never on a shrinking search radius: the deepest order below the
-       base is exactly the cap, the cap's rail is `MAX_TWIG_LEVELS`,
-       and the run's node ceiling is the stop it was for colonization. */
-    const baseCount = growSkeleton(params).nodes.length;
-    for (const levels of [1, 3, 7]) {
-      const order = orders(grown(params, { levels }), baseCount);
-      expect(Math.max(...Array.from(order))).toBe(levels);
-    }
-    expect(resolveTwigs({ levels: 99 }).levels).toBe(MAX_TWIG_LEVELS);
-    expect(resolveTwigs({ levels: -3 }).levels).toBe(0);
-
-    const capped = growSkeleton({
-      ...params,
-      twigs: { levels: 6 },
-      growth: { maxNodes: baseCount + 100 },
-    });
-    /* Shedding runs inside growSkeleton after the twig pass, so the
-       finished tree is smaller than the ceiling it hit; the ceiling is
-       asserted where the count is whole, on the report. */
-    expect(capped.nodes.length).toBeLessThanOrEqual(baseCount + 100);
-    const report = growReport({
-      ...params,
-      twigs: { ...params.twigs, levels: 4 },
-      growth: { maxNodes: baseCount + 100 },
-    });
-    expect(report.skeleton.nodes.length + report.shed).toBe(baseCount + 100);
-    expect(report.capped).toBe(true);
-  });
-
-  it.each([
-    ["Telperion", TELPERION],
-    ["Laurelin", LAURELIN],
-  ] as const)("reaches leaf scale on %s at eight orders, from today's 0.15", (_name, preset) => {
-    /* R3, measured rather than rounded: a leaf's length as a multiple
-       of the diameter of the wood it attaches to, the median terminal
-       diameter from the radius solve the tree actually runs, against
-       the leaf the preset actually places. At zero orders the leaf is
-       0.15 of the wood on Telperion and 0.16 on Laurelin; at eight
-       orders under the fine orders' own taper law it is about 25 and
-       15 - the botanical relationship rather than a round number, and
-       the depth both presets now state. Asserted loosely here, above
-       one; the presets' own test holds the shipped depth to ten. */
-    const tree = preset.skeleton;
-    const leaf = DEFAULT_ELEMENT.length * preset.canopy.size;
-    const ratio = (levels: number): number => {
-      const skeleton = grown(tree, { levels });
-      const field = solveRadii(skeleton, tree.envelope, preset.radii);
-      const radii = tips(skeleton).map((tip) => field.radius[tip]).sort((a, b) => a - b);
-      return leaf / (2 * radii[radii.length >> 1]);
-    };
-    const today = ratio(0);
-    expect(today).toBeGreaterThan(0.1);
-    expect(today).toBeLessThan(0.2);
-    expect(ratio(8)).toBeGreaterThan(1);
-  });
-
-  it("checks each whorl for sibling collisions", () => {
-    /* Two children within half the branching angle the tree can make
-       are one twig. At a zero angle every lateral coincides with the
-       leader and is dropped, so a leader-and-lateral tree is the
-       leader-only tree byte for byte; and at rest no node carries two
-       twigs closer than the separation. */
-    expect(signature(grown(params, { levels: 4, angle: 0 }))).toBe(
-      signature(grown(params, { levels: 4, children: 1 })),
-    );
-
-    const tree = bare(TELPERION.skeleton);
-    const separation = Math.min(tree.twigs.angle, tree.growth.maxTurnPerStep) / 2;
-    const skeleton = grown(tree, { levels: 4, children: 4 });
-    const baseCount = growSkeleton(tree).nodes.length;
-    const siblings: number[][] = Array.from({ length: skeleton.nodes.length }, () => []);
-    for (let i = baseCount; i < skeleton.nodes.length; i += 1) {
-      siblings[skeleton.nodes[i].parent].push(i);
-    }
-    let whorls = 0;
-    for (const whorl of siblings) {
-      if (whorl.length < 2) continue;
-      whorls += 1;
-      for (let a = 0; a < whorl.length; a += 1) {
-        for (let b = a + 1; b < whorl.length; b += 1) {
-          const apart = Math.acos(
-            Math.min(1, arrival(skeleton, whorl[a]).dot(arrival(skeleton, whorl[b]))),
-          ) * DEG;
-          expect(apart).toBeGreaterThanOrEqual(separation - 1e-6);
-        }
+    let branches = 0;
+    for (const [id, run] of runs) {
+      if (tree.twig[id - tree.crossover]) { expect(run).toHaveLength(1); continue; }
+      branches++;
+      expect(run).toHaveLength(params.internodes);
+      expect(run.slice(0, -1).map(i => counts[i])).toEqual([2, 2]);
+      const origin = tree.nodes[id].parent;
+      const length = run.reduce((sum, i) => sum + tree.nodes[i].position.distanceTo(tree.nodes[tree.nodes[i].parent].position), 0);
+      if (origin < tree.crossover) expect(length).toBeCloseTo(branchLength(0.04), 12);
+      else {
+        const parentRun = runs.get(tree.branchId[origin - tree.crossover])!;
+        const parentLength = parentRun.reduce((sum, i) => sum + tree.nodes[i].position.distanceTo(tree.nodes[tree.nodes[i].parent].position), 0);
+        expect(length).toBeCloseTo(parentLength * params.lengthRatio, 12);
       }
     }
-    expect(whorls).toBeGreaterThan(100);
+    expect(branches).toBeGreaterThan(1);
+    expect(tree.levelCapped).toBe(false);
   });
 
-  it("builds the same twigs twice from one seed, and iterates arrays only", () => {
-    const twigs = { levels: 5 };
-    const bias = { ...DEFAULT_BIAS, writheAmplitude: 0.18, spiralRate: 3 };
-    expect(signature(growSkeleton({ ...params, bias, twigs }))).toBe(
-      signature(growSkeleton({ ...params, bias, twigs })),
-    );
-    expect(signature(growSkeleton({ ...params, bias, twigs }))).not.toBe(
-      signature(growSkeleton({ ...params, bias, twigs, seed: 2 })),
-    );
-    /* Not a style rule: hash order is stable within a run and this
-       would pass anyway. It is the dependency that surfaces once in
-       twenty builds on somebody else's machine, and the only cheap
-       guard is that the construct is not there. */
+  it.each([0, DEFAULT_TWIG_ANATOMY.diameter / 2, 0.1, 1])("keeps fixed twig dimensions at handoff radius %s", radius => {
+    const tree = branchTwigs(base, field(radius), config, resolveTwigs());
+    expect(tree.twig.some(mark => mark === 1)).toBe(true);
+    for (let k = 0; k < tree.twig.length; k++) if (tree.twig[k]) {
+      const node = tree.nodes[k + tree.crossover];
+      expect(tree.baseRadius[k]).toBe(DEFAULT_TWIG_ANATOMY.diameter / 2);
+      expect(node.position.distanceTo(tree.nodes[node.parent].position)).toBeCloseTo(DEFAULT_TWIG_ANATOMY.internodeLength, 12);
+    }
+    if (radius <= DEFAULT_TWIG_ANATOMY.diameter / 2) expect(tree.twig).toEqual(new Uint8Array([1]));
+  });
+
+  it("collapses a sub-internode branch to one twig", () => {
+    const twig = { ...DEFAULT_TWIG_ANATOMY, internodeLength: 10 };
+    const tree = branchTwigs(base, field(0.01), config, resolveTwigs({ twig }));
+    expect(tree.twig).toEqual(new Uint8Array([1]));
+    expect(tree.baseRadius[0]).toBe(twig.diameter / 2);
+    expect(tree.nodes[2].position.distanceTo(base.nodes[1].position)).toBe(10);
+  });
+
+  it("reports a nonconverging level cap and the node ceiling without calling either a twig", () => {
+    const params = resolveTwigs({ internodes: 2, lengthRatio: 1 });
+    const tree = branchTwigs(base, field(0.1), config, params);
+    expect(tree.levelCapped).toBe(true);
+    const depth = new Int32Array(tree.nodes.length);
+    for (let i = 2; i < tree.nodes.length; i++) {
+      const k = i - 2, parent = tree.nodes[i].parent;
+      depth[i] = depth[parent] + Number(!tree.twig[k] && tree.branchId[k] === i && parent >= 2);
+    }
+    expect(Math.max(...depth)).toBe(MAX_TWIG_LEVELS - 1);
+    const boundary = branchTwigs(base, field(0.0025 * 2 ** MAX_TWIG_LEVELS), config,
+      resolveTwigs({ internodes: 2, lengthRatio: 0.5, ratioPower: 1 }));
+    expect(boundary.levelCapped).toBe(false);
+    const capped = branchTwigs(base, field(1), { ...config, maxNodes: 7 }, resolveTwigs());
+    expect(capped.nodes).toHaveLength(7);
+    expect(capped.nodeCapped).toBe(true);
+  });
+
+  it.each([ ["self", 1], ["forward", 2], ["out-of-range", 20], ["negative", -1] ])("refuses a %s parent unchanged", (_name, parent) => {
+    const invalid = { nodes: [base.nodes[0], { ...base.nodes[1], parent: parent as number }] };
+    const tree = branchTwigs(invalid, field(1), config, resolveTwigs());
+    expect(tree.nodes).toEqual(invalid.nodes);
+    expect(tree.crossover).toBe(2);
+    expect(tree.refused).toBe("invalid-parent");
+    expect(tree.branchId).toHaveLength(0);
+  });
+  it("refuses a wrong-length radius field unchanged", () => {
+    const tree = branchTwigs(base, field(1, 1), config, resolveTwigs());
+    expect(tree.nodes).toEqual(base.nodes);
+    expect(tree.crossover).toBe(2);
+    expect(tree.refused).toBe("radius-length-mismatch");
+  });
+  it("returns empty and root-only skeletons without growing", () => {
+    for (const nodes of [[], base.nodes.slice(0, 1)]) {
+      const tree = branchTwigs({ nodes }, field(1, nodes.length), config, resolveTwigs());
+      expect(tree.nodes).toEqual(nodes);
+      expect(tree.twig).toHaveLength(0);
+    }
+  });
+
+  it("collides laterals against arrival even when the accepted leader bends onto the lateral", () => {
+    const params = resolveTwigs({ internodes: 2, divergence: 0, angle: 45 });
+    const bent = new Vector3(0, 1, -1).normalize();
+    const bias = (p: Vector3, wanted: Vector3) => p.y === 10 ? wanted.clone().normalize() : bent.clone();
+    const tree = branchTwigs(base, field(0.01), { ...config, bias }, params);
+    const children = tree.nodes.map((node, i) => node.parent === 2 ? i : -1).filter(i => i >= 0);
+    // Both depart along bent, away from their parent's vertical arrival.
+    expect(children).toHaveLength(2);
+    expect(arrival(tree, children[0]).distanceTo(arrival(tree, children[1]))).toBeLessThan(1e-10);
+    const folded = branchTwigs(base, field(0.01), { ...config, bias: () => new Vector3(0, 1, 0) }, params);
+    expect(folded.nodes.filter(node => node.parent === 2)).toHaveLength(1);
     const source = readFileSync(new URL("twigs.ts", import.meta.url), "utf8");
     expect(source).not.toMatch(/new (Map|Set|WeakMap|WeakSet)\b/);
   });
 
-  it.each([
-    ["Telperion", TELPERION.skeleton],
-    ["Laurelin", LAURELIN.skeleton],
-    ["the default envelope", params],
-  ] as const)("at zero orders, %s is the tree it was before the pass existed", (_name, tree) => {
-    /* R7, and R1's error case with it. Twigs left out, twigs stated at
-       rest, and a level count that is not a number are one tree byte
-       for byte - the last through the same `held` rail every stage
-       uses - so any tree that differs from today's does so because
-       someone asked for orders. The base's own nodes are returned as
-       they are, not copied. */
-    const { twigs: _stated, ...unstated } = tree;
-    const today = signature(growSkeleton(unstated));
-    expect(signature(growSkeleton({ ...unstated, twigs: DEFAULT_TWIGS }))).toBe(today);
-    expect(signature(growSkeleton({ ...unstated, twigs: { levels: Number.NaN } }))).toBe(today);
-    expect(signature(growSkeleton({ ...unstated, twigs: { levels: 0, children: Number.POSITIVE_INFINITY } }))).toBe(today);
-
-    const base = growSkeleton(unstated);
-    const same = branchTwigs(base, resolveGrowth(unstated), resolveTwigs());
-    expect(same.nodes).toEqual(base.nodes);
-    expect(same.nodes[1]).toBe(base.nodes[1]);
+  it("consults the bias on every internode, limits every turn and guards the candidate's trunk height", () => {
+    let calls = 0;
+    const lean = createGrowthBias(DEFAULT_ENVELOPE, 1, { ...NO_BIAS, lean: 0.5 });
+    const biased = { ...config, maxTurnPerStep: 26, bias: (p: Vector3, wanted: Vector3, step: number) => {
+      calls++; expect(step).toBe(config.stepDistance); return lean(p, wanted, step);
+    } };
+    const tree = branchTwigs(base, field(0.04), biased, resolveTwigs());
+    expect(calls).toBeGreaterThanOrEqual(tree.nodes.length - 2);
+    for (let i = 2; i < tree.nodes.length; i++) expect(arrival(tree, i).dot(arrival(tree, tree.nodes[i].parent)))
+      .toBeGreaterThanOrEqual(Math.cos(26 * Math.PI / 180) - 1e-10);
+    const down = { nodes: [{ ...base.nodes[1], parent: -1 }, { position: new Vector3(0, 0.01, 0), parent: 0 }] };
+    const guarded = branchTwigs(down, field(0.1), config, resolveTwigs());
+    expect(guarded.nodes).toEqual(down.nodes);
+    const zero = createGrowthBias(DEFAULT_ENVELOPE, 1, NO_BIAS);
+    expect(branchTwigs(base, field(0.04), { ...config, bias: zero }, resolveTwigs()))
+      .toEqual(branchTwigs(base, field(0.04), config, resolveTwigs()));
+    expect(signature(tree)).not.toBe(signature(branchTwigs(base, field(0.04), config, resolveTwigs())));
   });
 
-  it("bends every twig through the field that bends the limbs: lean, driven hard", () => {
-    /* R9. One term at an extreme - lean at 0.5, the rest off - and the
-       twigs move with the limbs. The limb with nothing else pulling on
-       it is the trunk, so the trunk's mean step says which way the
-       tree leans; the field's own effect on the twigs is isolated by
-       running the pass twice on one base, under the leaning field and
-       under the zero field, and taking the difference of the mean twig
-       steps. That difference points the way the trunk leans, and it is
-       most of a step's worth - measured, 0.65 on both trees. A straight
-       twig on a leaning limb scores zero here. (The limbs' own mean
-       step is not the reference because colonization spends more steps
-       fighting the lean to reach the attractors upwind of it, so the
-       crown's mean step points against the lean; the trunk does not.) */
-    for (const tree of [bare(TELPERION.skeleton), params]) {
-      const lean = { ...NO_BIAS, lean: 0.5 };
-      const base = growSkeleton({ ...tree, bias: lean });
-      const crownBase = tree.envelope.height * tree.envelope.crownBase;
-      const trunkTop = base.nodes.findIndex((node) => node.position.y > crownBase);
-      const trunk = meanStep(base, 1, trunkTop);
-      const leans = new THREE.Vector3(trunk.x, 0, trunk.z);
-      expect(leans.length()).toBeGreaterThan(0.3);
-      leans.normalize();
-
-      const twigs = resolveTwigs({ levels: 4 });
-      const leaning = { ...resolveGrowth({ ...tree, bias: lean }), maxNodes: 1e6 };
-      const still = { ...leaning, bias: createGrowthBias(tree.envelope, tree.seed, NO_BIAS) };
-      const under = (config: GrowthConfig): THREE.Vector3 => {
-        const grownTree = branchTwigs(base, config, twigs);
-        return meanStep(grownTree, base.nodes.length, grownTree.nodes.length);
-      };
-      const shift = under(leaning).sub(under(still));
-      const sideways = new THREE.Vector3(shift.x, 0, shift.z);
-      expect(sideways.dot(leans)).toBeGreaterThan(0.4);
-      expect(sideways.dot(leans) / sideways.length()).toBeGreaterThan(0.95);
-    }
-  });
-
-  it("makes every term at zero the unbiased recursion, byte for byte", () => {
-    /* R9's error case, so the field's effect below the crossover is
-       attributable: the field with every term off is `direction` made
-       unit, which is exactly what the unbiased pass does to its own
-       wanted direction. One base, three fields. Colonization does not
-       hold this - it hands the field a direction it never re-unitises
-       itself - which is why it is the twig pass, not growSkeleton, that
-       is asserted. */
-    const base = growSkeleton({ ...params, growth: { bias: undefined } });
-    const config = { ...resolveGrowth(params), maxNodes: 1e6 };
-    const twigs = resolveTwigs({ levels: 5 });
-    const zero = branchTwigs(
-      base,
-      { ...config, bias: createGrowthBias(params.envelope, params.seed, NO_BIAS) },
-      twigs,
-    );
-    const none = branchTwigs(base, { ...config, bias: undefined }, twigs);
-    expect(zero.nodes.length).toBeGreaterThan(base.nodes.length * 4);
-    expect(signature(zero)).toBe(signature(none));
-    expect(signature(branchTwigs(base, config, twigs))).not.toBe(signature(none));
-  });
-
-  it("puts no twig below the bare-trunk line", () => {
-    /* Zero width is not no constraint: the envelope has no width below
-       the crown base, and a twig from a tip near it, heading down, is
-       outside the authored silhouette however plausible on its own. */
-    for (const tree of [bare(TELPERION.skeleton), bare(LAURELIN.skeleton), params]) {
-      const trunkHeight = tree.envelope.height * tree.envelope.crownBase;
-      const skeleton = grown({ ...tree, bias: { ...DEFAULT_BIAS, gravitropism: 0 } }, { levels: 6 });
-      const baseCount = growSkeleton({ ...tree, bias: { ...DEFAULT_BIAS, gravitropism: 0 } }).nodes.length;
-      for (let i = baseCount; i < skeleton.nodes.length; i += 1) {
-        expect(skeleton.nodes[i].position.y).toBeGreaterThanOrEqual(trunkHeight);
+  it.each([TELPERION, LAURELIN])("keeps $name colonization byte-identical and only changes appended wood with the field", preset => {
+    const p = preset.skeleton;
+    const cfg = resolveGrowth(p);
+    const colonized = colonize(sampleEnvelope(p.envelope, p.attractors, createRng(p.seed)), new Vector3(), cfg);
+    const radii = solveRadii(colonized, p.envelope, preset.radii);
+    const before = signature(colonized);
+    const a = branchTwigs(colonized, radii, cfg, resolveTwigs(p.twigs));
+    const b = branchTwigs(colonized, radii, cfg, resolveTwigs(p.twigs));
+    expect(a).toEqual(b);
+    const changed = branchTwigs(colonized, field(0.0025, colonized.nodes.length), cfg, resolveTwigs(p.twigs));
+    expect(signature(changed)).not.toBe(signature(a));
+    expect(signature({ nodes: a.nodes.slice(0, a.crossover) })).toBe(before);
+    expect(signature({ nodes: changed.nodes.slice(0, changed.crossover) })).toBe(before);
+    expect(signature(colonized)).toBe(before);
+    for (const height of [p.envelope.height, p.envelope.height / 10]) {
+      const report = growReport({ ...p, envelope: { ...p.envelope, height } }, preset.radii);
+      expect(report.capped).toBe(false);
+      const tree = report.skeleton;
+      expect(tree.twig.some(mark => mark === 1)).toBe(true);
+      for (let k = 0; k < tree.twig.length; k++) if (tree.twig[k]) {
+        expect(tree.baseRadius[k]).toBe(DEFAULT_TWIG_ANATOMY.diameter / 2);
+        const n = tree.nodes[k + tree.crossover];
+        expect(n.position.distanceTo(tree.nodes[n.parent].position)).toBeCloseTo(DEFAULT_TWIG_ANATOMY.internodeLength, 10);
       }
     }
-  });
+  }, 60000);
 
-  it("yields no tips from a skeleton with fewer than two nodes", () => {
-    // R1's other error case: returned as it came, never thrown.
-    const config = resolveGrowth(params);
-    const twigs = resolveTwigs({ levels: 4 });
-    expect(branchTwigs({ nodes: [] }, config, twigs).nodes).toHaveLength(0);
-    const root = { nodes: [{ position: new THREE.Vector3(), parent: -1 }] };
-    expect(branchTwigs(root, config, twigs).nodes).toEqual(root.nodes);
-    expect(growSkeleton({ ...params, envelope: { ...DEFAULT_ENVELOPE, spread: 0 }, twigs })
-      .nodes).toHaveLength(1);
-  });
-
-  it("rests on botanical defaults, and holds every dial to its rail", () => {
-    /* The resting values, pinned so a change to one is a change someone
-       made; the sources are beside them in twigs.ts. And the rails:
-       non-finite is the default, out of range is the nearer end. */
-    expect(DEFAULT_TWIGS).toEqual({
-      levels: 0,
-      children: 2,
-      angle: 45,
-      divergence: 137.508,
-      internode: 1,
-      taper: 0.6,
-    });
-    expect(
-      resolveTwigs({
-        levels: Number.NaN,
-        children: Number.POSITIVE_INFINITY,
-        angle: Number.NaN,
-        divergence: Number.NEGATIVE_INFINITY,
-        internode: Number.NaN,
-        taper: Number.NaN,
-      }),
-    ).toEqual(DEFAULT_TWIGS);
+  it("resolves finite rails and non-finite defaults without a levels key", () => {
     expect(resolveTwigs()).toEqual(DEFAULT_TWIGS);
-    const railed = resolveTwigs({
-      levels: 2.6,
-      children: 0,
-      angle: 120,
-      divergence: -99.5,
-      internode: 0,
-      taper: 2,
-    });
-    expect(railed).toEqual({
-      levels: 3,
-      children: 1,
-      angle: 90,
-      divergence: -99.5,
-      internode: 1e-3,
-      taper: 1,
-    });
-    expect(resolveTwigs({ children: 50 }).children).toBe(MAX_TWIG_CHILDREN);
-    expect(resolveTwigs({ taper: 0 }).taper).toBe(0.05);
-    expect(resolveTwigs({ internode: 100 }).internode).toBe(8);
+    expect(resolveTwigs({ angle: NaN, divergence: Infinity, internodes: NaN, laterals: Infinity,
+      lengthRatio: NaN, ratioPower: Infinity })).toEqual(DEFAULT_TWIGS);
+    expect(resolveTwigs({ internodes: 0, laterals: -1, lengthRatio: 0, ratioPower: 99, angle: 99 }))
+      .toMatchObject({ internodes: 1, laterals: 0, lengthRatio: 0.05, ratioPower: 8, angle: 90 });
+    expect(DEFAULT_TWIGS).not.toHaveProperty("levels");
   });
 });

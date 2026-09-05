@@ -64,18 +64,23 @@ const held = (value: number, fallback: number): number =>
  * position all come back with their nodes intact rather than emptied.
  */
 export function shedTwigs(
-  skeleton: Skeleton,
+  skeleton: Skeleton | TwiggedSkeleton,
   from: number,
   envelope: Envelope,
   params: CullParams = DEFAULT_SHED,
 ): TwiggedSkeleton {
   const nodes = skeleton.nodes;
+  const records = "branchId" in skeleton ? skeleton : undefined;
+  const status = { levelCapped: records?.levelCapped ?? false,
+    nodeCapped: records?.nodeCapped ?? false,
+    ...(records?.refused ? { refused: records.refused } : {}) };
+
   const first = Math.max(1, Math.floor(held(from, nodes.length)));
   /* Shedding removes nodes at or after `first` only, so the colonization
      prefix is intact and the crossover the thickness solve keys on is
      exactly `first`. It is carried through rather than dropped: a plain
      `{ nodes }` here made the solve read the whole tree as limb. */
-  if (first >= nodes.length) return { nodes: nodes.slice(), crossover: nodes.length };
+  if (first >= nodes.length) return { nodes: nodes.slice(), crossover: nodes.length, branchId: new Int32Array(), baseRadius: new Float64Array(), twig: new Uint8Array(), ...status };
 
   const maxRadius = envelopeMaxRadius(envelope);
   const shell =
@@ -116,5 +121,16 @@ export function shedTwigs(
       i < first ? node : { position: node.position, parent: index[node.parent] },
     );
   }
-  return { nodes: out, crossover: first };
+  const branchId = new Int32Array(out.length - first);
+  const baseRadius = new Float64Array(out.length - first);
+  const twig = new Uint8Array(out.length - first);
+  for (let i = first; i < nodes.length; i++) {
+    if (index[i] < 0) continue;
+    const at = index[i] - first;
+    const source = i - (records?.crossover ?? first);
+    branchId[at] = records ? index[records.branchId[source]] : index[i];
+    baseRadius[at] = records?.baseRadius[source] ?? 0;
+    twig[at] = records?.twig[source] ?? 0;
+  }
+  return { nodes: out, crossover: first, branchId, baseRadius, twig, ...status };
 }

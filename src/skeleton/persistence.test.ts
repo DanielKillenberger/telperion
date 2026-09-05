@@ -1,13 +1,14 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE, type Envelope } from "../envelope";
+import { DEFAULT_ENVELOPE, sampleEnvelope, type Envelope } from "../envelope";
 import {
   colonize,
   DEFAULT_MAX_TURN_PER_STEP,
   type GrowthConfig,
 } from "./colonize";
-import { defaultGrowth, growSkeleton } from "./grow";
+import { defaultGrowth, resolveGrowth, type SkeletonParams } from "./grow";
+import { createRng } from "../rng";
 import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "../torsion";
 
 /* ------------------------------------------------------------------ *
@@ -35,6 +36,11 @@ import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "../torsion";
  * shape of the claim being made.
  * ------------------------------------------------------------------ */
 
+function colonized(params: SkeletonParams) {
+  const attractors = sampleEnvelope(params.envelope, params.attractors, createRng(params.seed));
+  return colonize(attractors, new THREE.Vector3(), resolveGrowth(params, attractors.length));
+}
+
 interface Turns {
   nodes: number;
   continuations: number;
@@ -51,7 +57,7 @@ function measure(
   envelope: Envelope = DEFAULT_ENVELOPE,
   attractors = 800,
 ): Turns {
-  const nodes = growSkeleton({
+  const nodes = colonized({
     seed,
     envelope,
     attractors,
@@ -245,7 +251,7 @@ describe("directional persistence", () => {
   it("is the same skeleton, byte for byte, from the same seed", () => {
     const signature = (limit?: number) =>
       JSON.stringify(
-        growSkeleton({
+        colonized({
           seed: 4,
           envelope: DEFAULT_ENVELOPE,
           attractors: 700,
@@ -313,7 +319,7 @@ describe("a branch with nowhere to grow", () => {
     // The guard has to end trapped branches and no others: a tree with
     // a real crown to fill still fills it.
     const growth = defaultGrowth(DEFAULT_ENVELOPE);
-    const grown = growSkeleton({
+    const grown = colonized({
       seed: 1,
       envelope: DEFAULT_ENVELOPE,
       attractors: 800,

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_ENVELOPE } from "../envelope";
+import { DEFAULT_ENVELOPE, sampleEnvelope } from "../envelope";
 import {
   buildSurface,
   DEFAULT_SURFACE,
@@ -9,8 +9,9 @@ import {
   type SurfaceParams,
 } from "./surface";
 import { DEFAULT_RADII, solveRadii } from "../radius";
-import type { Skeleton } from "../skeleton/colonize";
-import { growSkeleton, type SkeletonParams } from "../skeleton/grow";
+import { colonize, type Skeleton } from "../skeleton/colonize";
+import { resolveGrowth, type SkeletonParams } from "../skeleton/grow";
+import { createRng } from "../rng";
 import { DEFAULT_BIAS, NO_BIAS } from "../torsion";
 
 /* ------------------------------------------------------------------ *
@@ -44,12 +45,14 @@ function surface(
 }
 
 function grown(params: Partial<SkeletonParams> = {}): Skeleton {
-  return growSkeleton({
+  const tree = {
     seed: 1,
     envelope: DEFAULT_ENVELOPE,
     attractors: 500,
     ...params,
-  });
+  };
+  const attractors = sampleEnvelope(tree.envelope, tree.attractors, createRng(tree.seed));
+  return colonize(attractors, new THREE.Vector3(), resolveGrowth(tree, attractors.length));
 }
 
 const at = (x: number, y: number, z: number, parent: number) => ({

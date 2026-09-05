@@ -113,24 +113,17 @@ export const TELPERION: TreePreset = {
       // turns about the axis over the height.
       spiralRate: 2.6,
     },
-    /* The recursion below colonization's tips: eight orders of alternate
-       broadleaf twigs at the botanical defaults twigs.ts cites - a leader
-       and one lateral per node, 45 degrees, the golden angle, and each
-       order six tenths the length of the one above - held to this tree's
-       own 26-degree stiffness. Eight is where the sweep puts leaf-bearing
-       wood on this tree: the median tip is 4.7 mm through, a 12 cm leaf
-       is 25 times that, the botanical relationship, and the crown carries
-       137,000 leaves after the shell rule sheds the interior, inside
-       R5's 10^5 floor. Seven orders left 9 mm twigs and 73,000 leaves,
-       under that floor. Proposed for the owner's judgement in clay (R8);
-       the orders dial moves it. */
+    /* Three internodes per branch, two alternate lateral stations and
+       a fixed terminal twig. The measured 0.4 length ratio reaches
+       twig radius in five lateral reductions on this tree. */
     twigs: {
-      levels: 8,
-      children: 2,
+      twig: { diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1 },
+      lengthRatio: 0.4,
+      ratioPower: 1.3,
+      internodes: 3,
+      laterals: 1,
       angle: 45,
       divergence: 137.508,
-      internode: 1,
-      taper: 0.6,
     },
     // Stiff, at a little over half Laurelin's. A limb that commits to
     // a direction, which is what a narrow crown of long
@@ -144,10 +137,6 @@ export const TELPERION: TreePreset = {
     // Just above area-conserving. Forks shed close to their area, so
     // the run from trunk to twig is long and the twigs come out fine.
     forkExponent: 2.15,
-    // The fine orders' own thinning, below the crossover only. 0.7 is
-    // where this tree's leaf meets its twig at about 25 to 1 at eight
-    // orders, measured; area conservation alone gave 2 to 1.
-    twigTaper: 0.7,
     // The long bare trunk is the tree's longest unbranched run, so
     // this is most of what its silhouette does below the crown. High
     // enough that the trunk visibly narrows on the way up.
@@ -256,25 +245,17 @@ export const LAURELIN: TreePreset = {
       // in the skin, not in the centreline.
       spiralRate: 0.6,
     },
-    /* Eight orders, as Telperion, and the same resting twig: what
-       differs between the two trees at twig scale is the field that
-       bends them and the 46-degree looseness that lets a lateral leave
-       at its full angle, not the rule that makes them. This tree's
-       stouter fork exponent keeps its twigs heavier at the same depth -
-       the median tip is 12 mm through, an 18 cm leaf 15 times that -
-       and its dome carries 770,000 leaves on 152,000 nodes and 7.3 M
-       triangles, the largest build of the two: about 1.6 s of pure
-       compute at eight orders against 0.9 s at seven, which would ship
-       22 mm twigs and 390,000 leaves. Proposed for the owner's judgement
-       in clay (R8), with seven the notch below if the build is the cost
-       that decides it. */
+    /* The same branch law and fixed twig as Telperion. This tree's
+       field and stiffness bend the internodes; its solved handoff
+       radius determines the number of lateral generations. */
     twigs: {
-      levels: 8,
-      children: 2,
+      twig: { diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1 },
+      lengthRatio: 0.4,
+      ratioPower: 1.3,
+      internodes: 3,
+      laterals: 1,
       angle: 45,
       divergence: 137.508,
-      internode: 1,
-      taper: 0.6,
     },
     // Loose and searching, so the crown reaches out to the far edge of
     // a very wide envelope instead of driving straight up through it.
@@ -293,9 +274,6 @@ export const LAURELIN: TreePreset = {
     // Low. The short bare trunk is a column that keeps its girth right
     // up to the first fork.
     lengthTaper: 0.35,
-    // Same thinning exponent as Telperion: its own fork exponent is what
-    // keeps Laurelin's twigs stouter (about 15 to 1 at eight orders).
-    twigTaper: 0.7,
   },
   surface: {
     radialSegments: 12,

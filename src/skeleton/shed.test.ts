@@ -4,8 +4,11 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_CULL } from "../canopy/cull";
 import { DEFAULT_ENVELOPE, envelopeRadiusAt } from "../envelope";
 import { LAURELIN, TELPERION } from "../presets/two-trees";
-import type { Skeleton } from "./colonize";
-import { growSkeleton, resolveGrowth } from "./grow";
+import { colonize, type Skeleton } from "./colonize";
+import { sampleEnvelope } from "../envelope";
+import { createRng } from "../rng";
+import { solveRadii } from "../radius";
+import { resolveGrowth } from "./grow";
 import { DEFAULT_SHED, shedTwigs } from "./shed";
 import { branchTwigs, resolveTwigs } from "./twigs";
 
@@ -17,20 +20,13 @@ import { branchTwigs, resolveTwigs } from "./twigs";
  * with their twigs grown to the depth where an interior exists.
  * ------------------------------------------------------------------ */
 
-const ORDERS = 6;
-
-/** Colonization and the twigs of `preset` at `ORDERS`, unshed, with
- *  the index the twig pass started at. */
-function grown(preset: typeof TELPERION): { twigged: Skeleton; from: number } {
-  const params = {
-    ...preset.skeleton,
-    twigs: { ...preset.skeleton.twigs, levels: 0 },
-  };
-  const twigs = { ...preset.skeleton.twigs, levels: ORDERS };
-  const base = growSkeleton(params);
-  // The ceiling the deep tree is grown under, not the bare crown's.
-  const config = resolveGrowth({ ...params, twigs });
-  const twigged = branchTwigs(base, config, resolveTwigs(twigs));
+/** The tip pass before the shell rule, under the preset's own radii. */
+function grown(preset: typeof TELPERION) {
+  const params = preset.skeleton;
+  const config = resolveGrowth(params);
+  const base = colonize(sampleEnvelope(params.envelope, params.attractors, createRng(params.seed)), new THREE.Vector3(), config);
+  const field = solveRadii(base, params.envelope, preset.radii);
+  const twigged = branchTwigs(base, field, config, resolveTwigs(params.twigs));
   return { twigged, from: base.nodes.length };
 }
 
@@ -104,6 +100,36 @@ describe("shedTwigs", () => {
       skeleton.nodes[3].position,
     ]);
     expect(shed.nodes.map((node) => node.parent)).toEqual([-1, 0, 1, 2]);
+  });
+
+  it("compacts records and remaps a surviving branch and its twig after an earlier subtree is shed", () => {
+    const y = DEFAULT_ENVELOPE.height * 0.7;
+    const edge = envelopeRadiusAt(DEFAULT_ENVELOPE, y);
+    const tree = {
+      nodes: [
+        { position: at(0, 0, 0), parent: -1 },
+        { position: at(0, y, 0), parent: 0 },
+        { position: at(0, y, edge * 0.1), parent: 1 },
+        { position: at(0, y, edge * 0.2), parent: 2 },
+        { position: at(edge * 0.2, y, 0), parent: 1 },
+        { position: at(edge * 0.98, y, 0), parent: 4 },
+        { position: at(edge, y, 0), parent: 5 },
+      ],
+      crossover: 2,
+      branchId: new Int32Array([2, 3, 4, 4, 6]),
+      baseRadius: new Float64Array([0.1, 0.0025, 0.2, 0.2, 0.0025]),
+      twig: new Uint8Array([0, 1, 0, 0, 1]),
+      levelCapped: true, nodeCapped: false,
+    };
+    const shed = shedTwigs(tree, tree.crossover, DEFAULT_ENVELOPE, { shellDepth: 0.2 });
+    expect(shed.nodes.map(n => n.position)).toEqual([0, 1, 4, 5, 6].map(i => tree.nodes[i].position));
+    expect(shed.nodes.map(n => n.parent)).toEqual([-1, 0, 1, 2, 3]);
+    expect(shed.branchId).toEqual(new Int32Array([2, 2, 4]));
+    expect(shed.baseRadius).toEqual(new Float64Array([0.2, 0.2, 0.0025]));
+    expect(shed.twig).toEqual(new Uint8Array([0, 0, 1]));
+    expect(shed.crossover).toBe(2);
+    expect(shed.levelCapped).toBe(true);
+    expect(tree.branchId).toEqual(new Int32Array([2, 3, 4, 4, 6]));
   });
 
   it("sheds nothing under a shell as thick as the crown, and under a shell it cannot read", () => {

@@ -5,13 +5,13 @@ import type { TwiggedSkeleton } from "./skeleton/twigs";
 /* ------------------------------------------------------------------ *
  * THE RADIUS SOLVE
  *
- * The skeleton says where every branch goes and nothing about how
- * thick it is. Drawn as lines that reads as wire, not as a tree - a
+ * Colonization says where every limb goes. The branch pass records
+ * the thickness its law assigned. Drawn as lines that reads as wire, not as a tree - a
  * trunk and a twig are the same one pixel - and the thickness
  * hierarchy is the single largest thing standing between the two.
  *
- * Every node gets a radius here, from one rule: through a fork, the
- * parent's cross-sectional area equals the sum of the children's.
+ * Above the crossover, a fork's parent cross-sectional area equals
+ * the sum of its children's.
  * That is da Vinci's observation, and it generalises to
  *
  *     r_parent^n = sum over children of r_child^n
@@ -49,36 +49,17 @@ import type { TwiggedSkeleton } from "./skeleton/twigs";
  * fixed twig upward instead couples the two, and the tree changes
  * size when you ask it to change taper.
  *
- * Sizes are fractions of envelope height, like every distance in
- * grow.ts, so a 4 m tree and a 60 m tree come out in the same
- * proportion rather than the small one being a twig and the large one
- * a column.
+ * The trunk radius is a fraction of envelope height. The branch pass
+ * receives the solved field in metres; its fixed twig anatomy never
+ * scales with the envelope.
  *
- * BELOW THE CROSSOVER THE FINE ORDERS HAVE THEIR OWN TAPER LAW. The
- * skeleton is built in two passes, and the twig pass marks where it
- * began appending (`TwiggedSkeleton.crossover`). Above that index the
- * solve is exactly the one above: tips at one, the fork rule
- * accumulated to the root, the root pinned to `trunkRadius`, so the
- * trunk-to-limb field of a tree with twigs is byte for byte the field
- * of the same tree without them. Below it the solve runs the other way,
- * from the parent's actual radius at the handoff down to the tips:
- *
- *     start_child = radius_parent * k^(-1/n) * (L_child / L_parent)^q
- *
- * where k is the parent's child count, n is `forkExponent` and q is
- * `twigTaper`. The first factor is the fork rule's own balanced share,
- * so at the handoff - where the first twig internode is the growth
- * step, the ratio of lengths one - a twig leaves its tip exactly as a
- * limb leaves a fork above, and the seam has no ratio of its own. The
- * second is the fine orders' law: a twig's thickness follows its
- * length (Corner's first rule; Weber and Penn's `RatioPower`, the
- * exponent linking a child's radius to its relative length), and the
- * twig pass shortens every order by its `taper`, so every order thins
- * whether or not a lateral survived beside it. It is steeper than area
- * conservation on purpose. Area alone, 0.72 per fork at Telperion's
- * exponent, leaves an eight-order twig at 6.6 cm - eight orders
- * standing in for the fifteen a real tree spends between a 0.8 m limb
- * and a 5 mm twig, and the machine cannot build fifteen.
+ * BELOW THE CROSSOVER THE PASS OWNS THE BRANCH LAW. Its records name
+ * each branch and its assigned base radius. A branch starts at that
+ * radius; continuing internodes start at their parent's solved radius
+ * and carry the same exponential length taper as the limbs above.
+ * Twigs keep their stated diameter at both ends (tip fraction 1):
+ * neither envelope height nor internode length rescales their anatomy.
+ * The fork solve above the crossover never reads appended children.
  * ------------------------------------------------------------------ */
 
 export interface RadiusParams {
@@ -102,34 +83,7 @@ export interface RadiusParams {
    *  than per node, so the answer does not change when the skeleton
    *  is grown at a finer step. */
   lengthTaper: number;
-  /** The fine orders' taper, below the crossover only: the exponent
-   *  linking a twig's thickness to its length, so that a child edge
-   *  `L_child / L_parent` as long as the edge it leaves starts at that
-   *  ratio to the power of this, on top of the fork rule's balanced
-   *  share. 0 is area conservation alone, which is today's 1.8-to-1
-   *  leaf-to-twig at eight orders on Telperion; at the default the same
-   *  eight orders reach the botanical relationship, a leaf many times
-   *  longer than its twig is wide. Held to 0 through
-   *  `MAX_TWIG_TAPER`; a child edge longer than its parent's never
-   *  thickens. Optional, defaulting to `DEFAULT_TWIG_TAPER`, and
-   *  without effect on a skeleton with no twig orders.
-   *  This is the twig's THICKNESS. `TwigParams.taper` is its length per
-   *  order, authored by the twig pass. */
-  twigTaper?: number;
 }
-
-/** The twig taper a `RadiusParams` that leaves `twigTaper` unstated
- *  gets, and the value `DEFAULT_RADII` carries, both presets state and
- *  the panel's `twig thinning` dial reads. Measured on both presets at eight orders
- *  against the leaf each places, as the median terminal diameter from
- *  the solve the tree actually runs: at 0 (area alone) Telperion is
- *  2.1 to 1 and Laurelin 1.2; at 0.5, 12.5 and 7.4; at 0.7, 25.5 and
- *  15.1; at 1.0, 74 and 44. 0.7 is where Telperion - the tree whose
- *  fork exponent is nearest area conservation, so the reference -
- *  meets the 25-to-1 a real broadleaf shows between a leaf and the
- *  twig that bears it; Laurelin sits stouter by its own exponent, as
- *  it is authored to at every scale. */
-export const DEFAULT_TWIG_TAPER = 0.7;
 
 /** The tree the rest are a departure from: an ordinary trunk, forks
  *  that conserve area exactly, and a limb that loses about a fifth of
@@ -139,7 +93,6 @@ export const DEFAULT_RADII: RadiusParams = {
   trunkRadius: 0.02,
   forkExponent: 2,
   lengthTaper: 0.6,
-  twigTaper: DEFAULT_TWIG_TAPER,
 };
 
 /** Floor under the trunk radius, as a fraction of envelope height. A
@@ -173,12 +126,6 @@ const MAX_FORK_EXPONENT = 8;
  *  of distance alone and subdividing an edge cannot change it. */
 const MAX_TAPER_SHED = 12;
 
-/** Ceiling on the twig taper exponent. The twig pass shortens each
- *  order to at least `MIN_TAPER` of the one above, a twentieth, and at
- *  an exponent of 4 that is a radius ratio of 6e-6 per order - below
- *  the trunk floor after one order on any tree. A rail, not a look. */
-const MAX_TWIG_TAPER = 4;
-
 /** Radii for one skeleton, in metres, indexed by node.
  *
  *  Two numbers per node because a branch has two ends and the fork
@@ -204,9 +151,8 @@ export interface RadiusField {
  *
  * Guarantees, all of them structural rather than tuned:
  *   - every radius is finite and strictly positive;
- *   - `radius[parent] >= startRadius[i] >= radius[i]` on every edge,
- *     so thickness never increases from root to tip, and is strictly
- *     decreasing wherever `lengthTaper` is above zero;
+ *   - `startRadius[i] >= radius[i]` on every edge; branch internodes
+ *     taper with distance, while a twig keeps its fixed anatomy;
  *   - at every node above the crossover, `radius^forkExponent` is the
  *     sum of its children's `startRadius^forkExponent`, to
  *     floating-point;
@@ -268,13 +214,6 @@ export function solveRadii(
       MIN_TRUNK_RADIUS,
       held(params.trunkRadius, DEFAULT_RADII.trunkRadius),
     ) * height;
-  // Negative would thicken a twig as its internodes shorten. Clamped
-  // away for the reason the length taper is.
-  const twigTaper = Math.min(
-    MAX_TWIG_TAPER,
-    Math.max(0, held(params.twigTaper ?? Number.NaN, DEFAULT_TWIG_TAPER)),
-  );
-
   /* Forward pass: how much thickness the length taper has shed by the
      time it reaches each node, in e-foldings from the root. Held as
      an accumulated total rather than applied step by step so that it
@@ -331,40 +270,16 @@ export function solveRadii(
   }
   if (crossover === count) return { radius, startRadius };
 
-  /* The fine orders, from the handoff down. Each twig starts at its
-     parent's actual radius, shares it by the fork rule among the
-     parent's children, and thins by the ratio of its own length to
-     the edge it leaves, to the twig taper; the length taper along the
-     edge is the same one the limbs carry. Every parent precedes its
-     children, so one forward pass sees each parent's radius already
-     solved. A child edge longer than its parent's - an internode
-     stated above one - is held to a ratio of one, or a twig would
-     come out thicker than the wood it leaves. */
-  const kids = new Int32Array(count);
+  const branches = skeleton as TwiggedSkeleton;
   for (let i = crossover; i < count; i += 1) {
     const parent = nodes[i].parent;
-    if (parent >= 0) kids[parent] += 1;
-  }
-  for (let i = crossover; i < count; i += 1) {
-    const parent = nodes[i].parent;
-    if (parent < 0) {
-      // Not a twig the pass could have appended; a root among the
-      // twigs is given the trunk's own radius rather than nothing.
-      radius[i] = trunk;
-      startRadius[i] = trunk;
-      continue;
-    }
-    const length = nodes[parent].position.distanceTo(nodes[i].position);
-    const above = nodes[parent].parent;
-    const parentLength =
-      above >= 0
-        ? nodes[above].position.distanceTo(nodes[parent].position)
-        : length;
-    const ratio =
-      parentLength > 0 && length > 0 ? Math.min(1, length / parentLength) : 1;
-    const share = kids[parent] ** (-1 / exponent);
-    startRadius[i] = radius[parent] * share * ratio ** twigTaper;
-    radius[i] = startRadius[i] * Math.exp(shed[parent] - shed[i]);
+    const record = i - crossover;
+    startRadius[i] = branches.branchId[record] === i
+      ? branches.baseRadius[record]
+      : radius[parent];
+    radius[i] = branches.twig[record]
+      ? startRadius[i]
+      : startRadius[i] * Math.exp(shed[parent] - shed[i]);
   }
 
   return { radius, startRadius };

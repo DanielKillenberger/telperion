@@ -4,12 +4,14 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_ENVELOPE, type Envelope } from "./envelope";
 import {
   DEFAULT_RADII,
-  DEFAULT_TWIG_TAPER,
   solveRadii,
   type RadiusParams,
 } from "./radius";
 import { LAURELIN, TELPERION } from "./presets/two-trees";
-import type { Skeleton } from "./skeleton/colonize";
+import { colonize, type Skeleton } from "./skeleton/colonize";
+import { sampleEnvelope } from "./envelope";
+import { createRng } from "./rng";
+import { resolveGrowth } from "./skeleton/grow";
 import { growSkeleton } from "./skeleton/grow";
 import type { TwiggedSkeleton } from "./skeleton/twigs";
 
@@ -23,7 +25,8 @@ import type { TwiggedSkeleton } from "./skeleton/twigs";
 
 /** A real tree, small enough that the whole file runs in a blink. */
 function grownSkeleton(seed = 7, attractors = 400): Skeleton {
-  return growSkeleton({ seed, envelope: DEFAULT_ENVELOPE, attractors });
+  const tree = { seed, envelope: DEFAULT_ENVELOPE, attractors };
+  return colonize(sampleEnvelope(tree.envelope, attractors, createRng(seed)), new THREE.Vector3(), resolveGrowth(tree));
 }
 
 /** A straight unbranched run of `steps` edges over `length` metres.
@@ -274,24 +277,21 @@ describe("solveRadii - no zero or negative radii, whatever it is handed", () => 
 });
 
 describe("solveRadii - the fine orders below the crossover", () => {
-  /** A preset with `levels` twig orders and the ceiling lifted. */
-  const twigged = (preset: typeof TELPERION, levels: number): TwiggedSkeleton =>
-    growSkeleton({
-      ...preset.skeleton,
-      twigs: { ...preset.skeleton.twigs, levels },
+  /** Full generations, or a prefix-only fixture for the colonization solve. */
+  const twigged = (preset: typeof TELPERION, withBranches: boolean, lengthRatio = preset.skeleton.twigs.lengthRatio): TwiggedSkeleton => {
+    const tree = growSkeleton({ ...preset.skeleton,
+      twigs: { ...preset.skeleton.twigs, lengthRatio },
       growth: { ...preset.skeleton.growth, maxNodes: 4_000_000 },
-    }) as TwiggedSkeleton;
+    }, preset.radii);
+    return withBranches ? tree : { ...tree, nodes: tree.nodes.slice(0, tree.crossover),
+      branchId: new Int32Array(), baseRadius: new Float64Array(), twig: new Uint8Array() };
+  };
 
   it.each([
     ["Telperion", TELPERION],
     ["Laurelin", LAURELIN],
-  ] as const)("leaves the trunk-to-limb field of %s byte for byte where it was, at any number of orders", (_name, preset) => {
-    /* Above the crossover a tree with twigs is solved exactly as the
-       same tree without them: the same operations in the same order,
-       so the same bytes, not merely close ones. And at zero orders the
-       whole field is the field of a skeleton that never met the twig
-       pass. */
-    const rested = twigged(preset, 0);
+  ] as const)("leaves the trunk-to-limb field of %s byte for byte where it was, across branch length ratios", (_name, preset) => {
+    const rested = twigged(preset, false);
     const envelope = preset.skeleton.envelope;
     const today = solveRadii({ nodes: rested.nodes }, envelope, preset.radii);
     const atRest = solveRadii(rested, envelope, preset.radii);
@@ -299,8 +299,8 @@ describe("solveRadii - the fine orders below the crossover", () => {
     expect([...atRest.radius]).toEqual([...today.radius]);
     expect([...atRest.startRadius]).toEqual([...today.startRadius]);
 
-    for (const levels of [1, 8]) {
-      const grown = twigged(preset, levels);
+    for (const lengthRatio of [0.25, 0.4]) {
+      const grown = twigged(preset, true, lengthRatio);
       const field = solveRadii(grown, envelope, preset.radii);
       expect(grown.crossover).toBe(rested.nodes.length);
       expect([...field.radius.subarray(0, grown.crossover)]).toEqual([...today.radius]);
@@ -308,67 +308,58 @@ describe("solveRadii - the fine orders below the crossover", () => {
     }
   });
 
-  it("starts every twig from its parent's actual radius, shared by the fork rule and thinned by its length", () => {
-    /* R2's mechanism: the child's start radius is the parent's own
-       radius at the fork, times the balanced share among the parent's
-       children, times the ratio of the two edges' lengths to the twig
-       taper; then the same length taper along the edge the limbs
-       carry. No global curve is consulted. */
-    const preset = TELPERION;
-    const skeleton = twigged(preset, 4);
-    const envelope = preset.skeleton.envelope;
-    const radii = { ...preset.radii, twigTaper: 0.7 };
-    const field = solveRadii(skeleton, envelope, radii);
-    const children = childrenOf(skeleton);
+  it("reads branch bases, tapers internodes, and keeps the twig anatomy at both ends", () => {
+    const skeleton = twigged(TELPERION, true);
+    const envelope = TELPERION.skeleton.envelope;
+    const field = solveRadii(skeleton, envelope, TELPERION.radii);
     let checked = 0;
-    for (let i = skeleton.crossover; i < skeleton.nodes.length; i += 1) {
-      const node = skeleton.nodes[i];
-      const parent = skeleton.nodes[node.parent];
-      const length = parent.position.distanceTo(node.position);
-      const above = skeleton.nodes[parent.parent];
-      const parentLength = above.position.distanceTo(parent.position);
-      const share = children[node.parent].length ** (-1 / radii.forkExponent);
-      const expected =
-        field.radius[node.parent] * share * Math.min(1, length / parentLength) ** radii.twigTaper;
-      expect(field.startRadius[i] / expected).toBeCloseTo(1, 12);
-      const shed = Math.exp((-radii.lengthTaper * length) / envelope.height);
-      expect(field.radius[i] / (field.startRadius[i] * shed)).toBeCloseTo(1, 12);
-      checked += 1;
+    for (let i = skeleton.crossover; i < skeleton.nodes.length; i++) {
+      const record = i - skeleton.crossover;
+      const parent = skeleton.nodes[i].parent;
+      const expected = skeleton.branchId[record] === i
+        ? skeleton.baseRadius[record] : field.radius[parent];
+      expect(field.startRadius[i]).toBe(expected);
+      const length = skeleton.nodes[parent].position.distanceTo(skeleton.nodes[i].position);
+      const taper = skeleton.twig[record] ? 1 : Math.exp(-TELPERION.radii.lengthTaper * length / envelope.height);
+      expect(field.radius[i]).toBeCloseTo(expected * taper, 12);
+      checked++;
     }
     expect(checked).toBeGreaterThan(1000);
   });
 
-  it.each([
-    ["a twig taper left out", {}],
-    ["a twig taper that is not a number", { twigTaper: Number.NaN }],
-  ] as const)("holds %s to the default, and a negative one to zero", (_name, overrides) => {
-    const skeleton = twigged(TELPERION, 3);
-    const envelope = TELPERION.skeleton.envelope;
-    const { twigTaper: _stated, ...unstated } = TELPERION.radii;
-    const stated = solveRadii(skeleton, envelope, { ...unstated, twigTaper: DEFAULT_TWIG_TAPER });
-    const railed = solveRadii(skeleton, envelope, { ...unstated, ...overrides });
-    expect([...railed.radius]).toEqual([...stated.radius]);
-    const zero = solveRadii(skeleton, envelope, { ...unstated, twigTaper: 0 });
-    const negative = solveRadii(skeleton, envelope, { ...unstated, twigTaper: -3 });
-    expect([...negative.radius]).toEqual([...zero.radius]);
+  it.each([TELPERION, LAURELIN])("draws the same twig diameter across heights and handoff radii ($name)", (preset) => {
+    for (const height of [24, preset.skeleton.envelope.height]) {
+      for (const trunkRadius of [0.01, preset.radii.trunkRadius]) {
+        const envelope = { ...preset.skeleton.envelope, height };
+        const radii = { ...preset.radii, trunkRadius };
+        const skeleton = growSkeleton({ ...preset.skeleton, envelope }, radii);
+        const field = solveRadii(skeleton, envelope, radii);
+        let twigs = 0;
+        for (let i = skeleton.crossover; i < skeleton.nodes.length; i++) {
+          if (!skeleton.twig[i - skeleton.crossover]) continue;
+          expect(2 * field.startRadius[i]).toBe(preset.skeleton.twigs.twig.diameter);
+          expect(2 * field.radius[i]).toBe(preset.skeleton.twigs.twig.diameter);
+          twigs++;
+        }
+        expect(twigs).toBeGreaterThan(0);
+      }
+    }
   });
 
-  it("never thickens toward a twig, even when the first internode is longer than the step", () => {
-    /* The monotonicity promise held below the crossover, on the case
-       that would break it: an internode of four growth steps, where the
-       ratio of lengths is above one and is clamped to one. */
+  it("keeps long branch internodes monotone and terminal twig radii constant", () => {
     const preset = LAURELIN;
     const skeleton = growSkeleton({
       ...preset.skeleton,
-      twigs: { ...preset.skeleton.twigs, levels: 3, internode: 4 },
+      twigs: { ...preset.skeleton.twigs, internodes: 1 },
       growth: { ...preset.skeleton.growth, maxNodes: 4_000_000 },
-    }) as TwiggedSkeleton;
+    }, preset.radii) as TwiggedSkeleton;
     const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
     expect(skeleton.crossover).toBeLessThan(skeleton.nodes.length);
     for (let i = skeleton.crossover; i < skeleton.nodes.length; i += 1) {
       const parent = skeleton.nodes[i].parent;
       expect(field.radius[parent]).toBeGreaterThanOrEqual(field.startRadius[i]);
-      expect(field.startRadius[i]).toBeGreaterThan(field.radius[i]);
+      if (skeleton.twig[i - skeleton.crossover]) expect(field.startRadius[i]).toBe(field.radius[i]);
+      else expect(field.startRadius[i]).toBeGreaterThan(field.radius[i]);
       expect(field.radius[i]).toBeGreaterThan(0);
     }
   });

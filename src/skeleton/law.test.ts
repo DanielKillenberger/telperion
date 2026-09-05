@@ -2,16 +2,21 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_ELEMENT } from "../canopy/element";
 import { LAURELIN, TELPERION } from "../presets/two-trees";
 import { solveRadii } from "../radius";
-import { growSkeleton, type SkeletonParams } from "./grow";
+import { resolveGrowth, type SkeletonParams } from "./grow";
+import { colonize } from "./colonize";
+import { sampleEnvelope } from "../envelope";
+import { createRng } from "../rng";
+import { Vector3 } from "three";
 import { MAX_TWIG_LEVELS } from "./twigs";
 import {
   branchLength, childRadius, DEFAULT_BRANCH_LAW, DEFAULT_TWIG_ANATOMY,
   generationsUntilTwig,
 } from "./law";
 
-const bare = (tree: SkeletonParams): SkeletonParams => ({
-  ...tree, twigs: { ...tree.twigs, levels: 0 },
-});
+const bare = (tree: SkeletonParams) => colonize(
+  sampleEnvelope(tree.envelope, tree.attractors, createRng(tree.seed)),
+  new Vector3(), resolveGrowth(tree),
+);
 const median = (values: number[]): number => {
   const sorted = values.slice().sort((a, b) => a - b);
   const middle = Math.floor(sorted.length / 2);
@@ -72,8 +77,8 @@ describe("the branch law", () => {
     expect(generationsUntilTwig(1, { twigDiameter: -1 })).toEqual(generationsUntilTwig(1, { twigDiameter: 1e-6 }));
   });
 
-  it.each([TELPERION, LAURELIN])("measures every zero-order $name handoff before the pass changes", (preset) => {
-    const skeleton = growSkeleton(bare(preset.skeleton));
+  it.each([TELPERION, LAURELIN])("measures every $name colonization handoff before the pass", (preset) => {
+    const skeleton = bare(preset.skeleton);
     const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
     const children = new Uint32Array(skeleton.nodes.length);
     for (let i = 1; i < skeleton.nodes.length; i += 1) children[skeleton.nodes[i].parent] += 1;

@@ -17,7 +17,7 @@ import {
   type SurfaceParams,
 } from "../src/mesh/surface";
 import type { TreePreset } from "../src/presets";
-import { DEFAULT_TWIG_TAPER, solveRadii, type RadiusParams } from "../src/radius";
+import { solveRadii, type RadiusParams } from "../src/radius";
 import { growReport, type SkeletonParams } from "../src/skeleton/grow";
 
 import type { GrowerParams } from "./params";
@@ -83,17 +83,16 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
       ATTRACTORS_MIN + params.density * (ATTRACTORS_MAX - ATTRACTORS_MIN),
     ),
     step: params.step,
-    // The second pass's six rules, every member named for the reason
-    // the envelope's are: a `twigs` assembled by spread would drop
-    // whichever term the panel forgot, and the round trip would not
-    // notice until a preset asked for it.
+    // Preserve every branch-law and anatomy field through preset round trips.
     twigs: {
-      levels: params.twigLevels,
-      children: params.twigChildren,
+      twig: { diameter: params.twigDiameter, internodeLength: params.twigStationLength,
+        stationsPerInternode: params.twigStations },
+      ratioPower: params.twigRatioPower,
+      laterals: params.twigChildren - 1,
       angle: params.twigAngle,
       divergence: params.twigDivergence,
-      internode: params.twigInternode,
-      taper: params.twigLengthTaper,
+      internodes: params.twigInternode,
+      lengthRatio: params.twigLengthTaper,
     },
     bias: {
       gravitropism: params.gravitropism,
@@ -125,7 +124,6 @@ export function toRadiusParams(params: GrowerParams): RadiusParams {
     forkExponent: params.taper,
     trunkRadius: params.trunkRadius,
     lengthTaper: params.lengthTaper,
-    twigTaper: params.twigThinning,
   };
 }
 
@@ -290,16 +288,19 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     density: (preset.skeleton.attractors - ATTRACTORS_MIN) /
       (ATTRACTORS_MAX - ATTRACTORS_MIN),
     step: preset.skeleton.step,
-    twigLevels: preset.skeleton.twigs.levels,
-    twigChildren: preset.skeleton.twigs.children,
+    twigDiameter: preset.skeleton.twigs.twig.diameter,
+    twigStationLength: preset.skeleton.twigs.twig.internodeLength,
+    twigStations: preset.skeleton.twigs.twig.stationsPerInternode,
+    twigRatioPower: preset.skeleton.twigs.ratioPower,
+    twigLevels: 0,
+    twigChildren: preset.skeleton.twigs.laterals + 1,
     twigAngle: preset.skeleton.twigs.angle,
     twigDivergence: preset.skeleton.twigs.divergence,
-    twigInternode: preset.skeleton.twigs.internode,
-    twigLengthTaper: preset.skeleton.twigs.taper,
+    twigInternode: preset.skeleton.twigs.internodes,
+    twigLengthTaper: preset.skeleton.twigs.lengthRatio,
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
     lengthTaper: preset.radii.lengthTaper,
-    twigThinning: preset.radii.twigTaper ?? DEFAULT_TWIG_TAPER,
     lobes: preset.surface.lobes,
     lobeDepth: preset.surface.lobeDepth,
     twistRate: preset.surface.twistRate,
@@ -394,7 +395,7 @@ function build(
   withFoliage = true,
 ): { tree: THREE.Group; stats: TreeStats } {
   const started = performance.now();
-  const grown = growReport(skeletonParams);
+  const grown = growReport(skeletonParams, radii);
   const skeleton = grown.skeleton;
   const field = solveRadii(skeleton, skeletonParams.envelope, radii);
   const surface = buildSurface(

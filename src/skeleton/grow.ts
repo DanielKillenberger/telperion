@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 import { envelopeRadiusAt, sampleEnvelope, type Envelope } from "../envelope";
+import { solveRadii, DEFAULT_RADII, type RadiusParams } from "../radius";
 import { createRng } from "../rng";
 import {
   colonize,
@@ -43,18 +44,11 @@ import { branchTwigs, resolveTwigs, type TwigParams, type TwiggedSkeleton } from
  * overrides any of them individually for a caller with distances of
  * its own.
  *
- * The skeleton is one structure built in two passes. Colonization
- * runs to completion while its attractors mean something; then
- * `branchTwigs` continues from every tip it left, under local rules
- * and the same bias field, `twigs.levels` orders down toward
- * leaf-bearing wood, appending into the same node array. `twigs` is
- * the second pass's dials, and at its default of zero orders the
- * second pass appends nothing, so a tree that states no twigs is the
- * tree it was before the pass existed. The twigs that pass appends
- * deep inside the crown are then shed by the shell rule the leaf
- * culler uses - `shedTwigs` - before any later stage sees them, so
- * the skeleton that leaves here is the crown's shell and not its
- * filling.
+ * Colonization runs first, its radius field is solved under the caller's
+ * thickness parameters, then branchTwigs continues its tips under the
+ * branch law. Fixed terminal twigs end the recursion. The shell rule
+ * sheds interior subtrees before later stages read the geometry and
+ * the pass's records.
  * ------------------------------------------------------------------ */
 
 export interface SkeletonParams {
@@ -85,10 +79,8 @@ export interface SkeletonParams {
    *  come from `DEFAULT_BIAS`. This is the shape of the preset fn-11.7
    *  authors Telperion and Laurelin as. */
   bias?: Partial<BiasParams>;
-  /** The local rules below the crossover - orders, children, angle,
-   *  divergence, internode and taper - each a dial resting on a
-   *  botanical default; the rest come from `DEFAULT_TWIGS`, whose
-   *  `levels` is zero. See twigs.ts for the rules and their sources. */
+  /** Branch anatomy and allometry below the crossover. Unstated terms
+   * use DEFAULT_TWIGS; generation count follows the solved radius. */
   twigs?: Partial<TwigParams>;
   /** Overrides for any growth distance, in metres; the rest come from
    *  `defaultGrowth(envelope, attractors, step)`. A `bias` given here
@@ -119,44 +111,11 @@ const INFLUENCE_STEPS = 9;
  *  5.9 and 2.3 spacings, so nine steps still binds for them. See
  *  `influenceRadiusFor`. */
 const INFLUENCE_SPACINGS = 2.0;
-/** The node ceiling at the default step and no twigs. A stop, not a
- *  target: a tree that wants more nodes than this at today's step has
- *  been asked for something the panel should not be asking for. It is
- *  stated at the default step and scaled by the step's inverse in
- *  `defaultGrowth`, because the nodes a crown takes go roughly as one
- *  over the step - measured, each halving costs 1.7 to 2.2 times the
- *  nodes - so a fixed ceiling would either truncate the fine end of
- *  the rail or be no stop at all at the coarse end. The twig orders
- *  scale it again, by `twigHeadroom`. */
-const NODE_BUDGET = 8000;
-/** The share of colonization's nodes that are tips, which is what the
- *  twig pass multiplies. Measured on both presets at the default step
- *  and at the bottom of the rail: 0.16 to 0.19 of the nodes are tips.
- *  Stated above that so the ceiling is a stop and never the shape of
- *  the tree - see `twigHeadroom`. */
-const TIP_SHARE = 0.25;
-/** The ceiling's own ceiling, in nodes, whatever the step and orders
- *  ask for. Measured: 400,000 nodes sweep to 17 to 30 million
- *  triangles and take five to nine seconds to build on either preset,
- *  which is neither interactive nor a picture the frame can carry;
- *  this stop sits under that at about four seconds. A depth that would
- *  pass it is reported as capped rather than hanging the tab. */
+/** Temporary shared ceiling for colonization and tip branches. The measured
+ * three-internode topology fits both presets; limb lateral budgeting is
+ * derived separately when that pass is introduced. */
 const NODE_CEILING = 250_000;
 
-/** How many times the colonization ceiling a twig pass may add: one
- *  for the crown, plus a tip's whole recursion for every tip the crown
- *  could have. A leader-and-lateral tree adds `c + c^2 + ... + c^L`
- *  nodes per tip at `c` children and `L` orders, so the ceiling grows
- *  with the orders dial the way the tree does and a deep tree is
- *  measured rather than truncated. Exactly 1 at zero orders, so a tree
- *  that states no twigs keeps the ceiling it always had, bit for bit. */
-function twigHeadroom(twigs: TwigParams): number {
-  let perTip = 0;
-  for (let order = 1; order <= twigs.levels; order += 1) {
-    perTip += twigs.children ** order;
-  }
-  return 1 + TIP_SHARE * perTip;
-}
 /** Midpoint-rule samples for the crown volume. The profile is smooth
  *  between its ends and the volume only sets a floor, so this is far
  *  more than the derivation needs; it is fixed so that the same
@@ -246,9 +205,7 @@ const held = (value: number, fallback: number): number =>
  *  step of `step` times it, a kill distance of two steps, a search
  *  radius of nine steps or 2.0 attractor spacings, whichever is wider -
  *  `influenceRadiusFor` carries the derivation and the reason for it -
- *  and a node ceiling of `NODE_BUDGET` at the default step and no
- *  twigs, growing as the step shrinks and as the twig orders deepen so
- *  that the whole rail fits under it, and never past `NODE_CEILING`.
+ *  and the shared `NODE_CEILING` for the two growth passes.
  *
  *  `attractors` is how many the envelope is scattered with, which the
  *  spacing floor is derived from. Left out, the radius is nine steps
@@ -260,7 +217,7 @@ export function defaultGrowth(
   envelope: Envelope,
   attractors = 0,
   step = DEFAULT_STEP,
-  twigs?: Partial<TwigParams>,
+  _twigs?: Partial<TwigParams>,
 ): GrowthConfig {
   const fraction = held(step, DEFAULT_STEP);
   const stepDistance = envelope.height * fraction;
@@ -271,14 +228,7 @@ export function defaultGrowth(
     // The envelope's own bare-trunk height: below it the silhouette
     // has no width, so nothing may branch there.
     trunkHeight: envelope.height * envelope.crownBase,
-    maxNodes: Math.min(
-      NODE_CEILING,
-      Math.round(
-        NODE_BUDGET *
-          (DEFAULT_STEP / fraction) *
-          twigHeadroom(resolveTwigs(twigs)),
-      ),
-    ),
+    maxNodes: NODE_CEILING,
   };
 }
 
@@ -328,23 +278,24 @@ export interface GrowthReport {
 
 /** Grows one skeleton and reports the growth: colonization, then the
  *  twigs from its tips, then the shell rule over the twigs.
- *  Deterministic in `params`. */
-export function growReport(params: SkeletonParams): GrowthReport {
+ *  Deterministic in `params` and `radii`. */
+export function growReport(params: SkeletonParams, radii: RadiusParams = DEFAULT_RADII): GrowthReport {
   const rng = createRng(params.seed);
   const attractors = sampleEnvelope(params.envelope, params.attractors, rng);
   const config = resolveGrowth(params, attractors.length);
   const colonized = colonize(attractors, new THREE.Vector3(0, 0, 0), config);
-  const twigged = branchTwigs(colonized, config, resolveTwigs(params.twigs));
+  const field = solveRadii(colonized, params.envelope, radii);
+  const twigged = branchTwigs(colonized, field, config, resolveTwigs(params.twigs));
   const skeleton = shedTwigs(twigged, colonized.nodes.length, params.envelope);
   return {
     skeleton,
-    capped: twigged.nodes.length >= config.maxNodes,
+    capped: colonized.nodes.length >= config.maxNodes || twigged.nodeCapped || twigged.levelCapped,
     shed: twigged.nodes.length - skeleton.nodes.length,
   };
 }
 
 /** Grows one skeleton: colonization, the twigs from its tips, and the
- *  shell rule over the twigs. Deterministic in `params`. */
-export function growSkeleton(params: SkeletonParams): TwiggedSkeleton {
-  return growReport(params).skeleton;
+ *  shell rule over the twigs. Deterministic in `params` and `radii`. */
+export function growSkeleton(params: SkeletonParams, radii: RadiusParams = DEFAULT_RADII): TwiggedSkeleton {
+  return growReport(params, radii).skeleton;
 }
