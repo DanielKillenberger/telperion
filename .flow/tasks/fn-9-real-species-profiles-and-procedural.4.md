@@ -7,10 +7,11 @@ satisfies: [R4, R6]
 Generate species-specific leaf and needle anatomy. See the parent spec for the botanical target and validation contract.
 
 **Size:** M
-**Files:** `crates/telperion-core/src/foliage/element.rs`, `crates/telperion-core/src/foliage/placement.rs`, `crates/telperion-core/src/foliage.rs`, `crates/telperion-core/tests/foliage.rs`, `crates/telperion-core/tests/field.rs`
-**Touches:** [crates/telperion-core/src/foliage/element.rs, crates/telperion-core/src/foliage/placement.rs, crates/telperion-core/src/foliage.rs, crates/telperion-core/tests/foliage.rs, crates/telperion-core/tests/field.rs]
+**Files:** `crates/telperion-core/examples/species_metrics/mod.rs`, `crates/telperion-core/tests/species_metrics.rs`, `crates/telperion-core/src/foliage/element.rs`, `crates/telperion-core/src/foliage/placement.rs`, `crates/telperion-core/src/foliage.rs`, `crates/telperion-core/tests/foliage.rs`, `crates/telperion-core/tests/field.rs`
+**Touches:** [crates/telperion-core/examples/species_metrics/mod.rs, crates/telperion-core/tests/species_metrics.rs, crates/telperion-core/src/foliage/element.rs, crates/telperion-core/src/foliage/placement.rs, crates/telperion-core/src/foliage.rs, crates/telperion-core/tests/foliage.rs, crates/telperion-core/tests/field.rs]
 
 ### Approach
+- Integrate task 2 metrics with the actual blade/needle geometry subset, excluding petiole/peg connectors. Update analytic tests so new anatomy has exact measurable dimensions; do not promote whole-prototype estimates without evidence. Task 2 is scheduled first because it owns Cargo files.
 - Extend element geometry and placement for the two researched anatomies. Needle count/grouping/orientation must follow the selected species; a narrow broadleaf card alone is insufficient.
 - Prefer one reusable procedural element per selected family where it faithfully expresses the anatomy, including a compound element if appropriate. Add multiple element buckets only when the profile demonstrates the need.
 - Keep biological unit metadata explicit for measurement. Coordinate any output-shape change with task 2 at integration; task 7 owns Wasm and adapter propagation.
