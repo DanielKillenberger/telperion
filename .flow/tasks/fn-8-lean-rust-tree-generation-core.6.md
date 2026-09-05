@@ -9,7 +9,7 @@ Join the completed stages and cut the browser over to Wasm with a thin Three ada
 
 **Size:** M
 **Files:** browser adapter, public entry, harness build bridge and UI integration tests
-**Touches:** [crates/telperion-wasm/**, src/index.ts, src/browser/**, harness/skeleton-view.ts, harness/skeleton-view.test.ts, harness/GrowerDev.tsx, harness/params.ts, harness/params.test.ts, package.json, package-lock.json, vite.config.ts, tests/browser/**]
+**Touches:** [crates/telperion-wasm/**, src/index.ts, src/browser/**, harness/skeleton-view.ts, harness/skeleton-view.test.ts, harness/stage.ts, harness/stage.test.ts, harness/GrowerDev.tsx, harness/params.ts, harness/params.test.ts, package.json, package-lock.json, vite.config.ts, scripts/build-wasm.mjs, scripts/test-wasm.mjs, tests/browser/**]
 
 ## Approach
 - Replace production generator imports with Wasm operations and construct Three objects solely in the adapter. Preserve all currently supported controls, compare mode and diagnostics.
@@ -32,6 +32,8 @@ The rewritten parent capture is authoritative. Baselines diagnose drift; exact o
 
 Integrate the full native API into browser bindings here, including field queries from task 8. Exercise mesh-free field sampling in a browser integration test even though the viewer renders meshes; its public consumer API must expose it. Cover malformed requests, buffer validation and memory reuse in binding tests.
 
+
+Stage integration finding: `stage.setTree()` currently disposes the previous scene before calling the builder. Make replacement transactional so a Rust/binding/build failure preserves the previous subject; test this behavior. The foundation Wasm test must migrate with the replaced ABI.
 
 ## Acceptance
 - [ ] Actual browser builds ordinary trees, both giant presets and comparison through Rust.
