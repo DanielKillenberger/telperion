@@ -72,6 +72,7 @@ Seven tasks, in dependency order, each sized for one work iteration.
 4. **Laterals along the limbs.** Colonization nodes under the stated radius bear laterals under the same law, colliding against their own arrival direction; the node budget is re-derived; the pass is proven a per-node pure function by the R8 prefix test.
 5. **Fill, shed, and the twig's leaves.** The two metrics from task 1 are taken on the new trees against the tuft baseline, and thresholds are chosen by the stated procedure; the shell rule is checked as load-bearing; the canopy keys its shoots on twig nodes so the leaf sits on the twig.
 6. **The harness and the two trees.** After the foliage sits on the twig, the orders dial is retired for a read-out of generations and handoffs, the ceiling notice is reworded, both presets state the twig and the ratios and no depth, the round-trip tests follow, and the owner's R7 verdict is taken; any preset value the verdict moves is re-measured against R4 before it ships.
+8. **The twig has a length, and the branch its own resolution (from the first R7 pass).** The owner's first clay pass on task 6's build returned "not yet": too few leaves on both trees, and Telperion's fine wood too coarse. Both trace to the pass: a twig was one 20 mm internode with one leaf, and a branch was three internodes whatever its length, with laterals counted per internode so finer resolution exploded the node count. The twig gains a length and is grown as a shoot; laterals are counted per branch; internode length follows the wood's diameter through a stated factor; rest values are chosen by measurement against the ceiling and the build. R7 is taken again on this build.
 7. **The cost on the named machine, and the docs.** Both presets measured with the rig at the display's own pixel ratio, the rig's sweep extended to reach it, against the 2 ms hero budget and the build timer; every module header, the README, the barrel and the harness comments that still say orders are rewritten.
 
 ```mermaid
@@ -138,6 +139,7 @@ Active tracks served by this plan:
 - **Rejected: an authored or global generation count.** Apical dominance means the leader keeps most of the cross-section, so a balanced-fork estimate is wrong and a single number misleads the read-out. Recursion until twig radius, per handoff, is what the wood does; the panel shows the range. [paraphrase]
 - **Rejected: sharing the parent's radius among laterals.** It is the current fine-order rule and it gives a lateral off a metre-thick limb the limb's own radius. Weber and Penn's radius-from-length-ratio rule, the one tree-gen and Arbaro ship, is the botanical one and it keeps limbs where they are. [paraphrase]
 - **Re-planned once, on evidence.** Two Codex worker attempts at the pass-only task returned without edits and with the same diagnosis: the pass and the solve below the crossover are one gate boundary, and three fixtures that meant colonization alone had been left outside the write surface. The plan folded task 3 into task 2 and widened the surface rather than admit a hidden compatibility branch or a widened budget. [paraphrase]
+- **The first R7 pass sent the anatomy back, not the presets.** The owner judged task 6's build "not yet": not enough leaves anywhere, and Telperion's growth not fine enough at full size. Measured, both were anatomy: one leaf per 20 mm twig, and three internodes per branch with laterals coupled to internodes (six internodes put both presets at the ceiling). Task 8 gives the twig a length and decouples resolution from laterals; no preset value was moved to flatter the eye. [user]
 - **The seam moved, it did not go away.** fn-5 merged two specs to kill a seam between a skeleton and a twig layer, then reintroduced the defect one level down by giving branches a twig's anatomy. The continuity machinery is the part that was right and it carries over whole. [paraphrase]
 - **Rejected: a finer colonization step.** Measured at half and a quarter of the shipped step the tufts shrink and multiply and the volume stays empty. Attractors decide where the tree is asked to grow; length and laterals decide whether it fills what it reaches. [paraphrase]
 - **Rejected: fewer orders.** Six orders leave 2 cm wood at the tips with leaves stuck on it, which is fn-5's original defect again. The count of eight was right; the anatomy per generation was wrong. [paraphrase]
@@ -336,6 +338,17 @@ positions, recorded radii, twig marks and branch-start structure. Former tips
 have an additional leader only in the prefix. The unsliced mature field is
 refused by name. Colonization production code and its output are unchanged.
 
+### First R7 pass, on task 6's build (2026-09-05)
+
+The owner, in the harness: "for telperion at original size the resolution of the growth doesn't seem fine enough. Laurelin seems okish. In general there's not even close to enough leaves on any of them." Diagnosed on the shipped presets before any change:
+
+| preset | nodes | twigs | leaves placed | mean first-generation internode | mean appended edge |
+|---|---|---|---|---|---|
+| Telperion | 49,713 | 19,744 | 19,744 | 3.92 m | 0.42 m |
+| Laurelin | 104,335 | 40,781 | 40,781 | 5.11 m | 0.55 m |
+
+Leaves equal twigs because a twig is one 20 mm internode and placement puts one leaf per internode. Raising `internodes` per branch from 3 to 6 takes Telperion to 214,658 nodes and Laurelin to 232,127, both at the ceiling, because laterals are counted per internode. Task 8 answers both.
+
 ## Parked unknowns
 
 - Whether the shell rule alone yields a real crown's shell once fine wood is everywhere. Task 5 measures R4 on the shell rule as it stands; if the shell rule cannot meet the threshold a clay render distinguishes, a light term is a new spec and not a change to this one. [paraphrase]
@@ -348,13 +361,13 @@ Task fn-6-branch-generations-below-the-crossover.1 validates the approach: that 
 
 | Req | Description | Task(s) | Gap justification |
 |-----|-------------|---------|-------------------|
-| R1 | Generations are branches: length, internodes, laterals along limbs | fn-6-branch-generations-below-the-crossover.1, fn-6-branch-generations-below-the-crossover.2, fn-6-branch-generations-below-the-crossover.4 | — |
-| R2 | One fixed twig | fn-6-branch-generations-below-the-crossover.1, fn-6-branch-generations-below-the-crossover.2, fn-6-branch-generations-below-the-crossover.5 | — |
+| R1 | Generations are branches: length, internodes, laterals along limbs | fn-6-branch-generations-below-the-crossover.1, fn-6-branch-generations-below-the-crossover.2, fn-6-branch-generations-below-the-crossover.4, fn-6-branch-generations-below-the-crossover.8 | — |
+| R2 | One fixed twig | fn-6-branch-generations-below-the-crossover.1, fn-6-branch-generations-below-the-crossover.2, fn-6-branch-generations-below-the-crossover.5, fn-6-branch-generations-below-the-crossover.8 | — |
 | R3 | Generation count derived; `levels` retired | fn-6-branch-generations-below-the-crossover.2, fn-6-branch-generations-below-the-crossover.6 | — |
 | R4 | Fine wood fills the shell, measured | fn-6-branch-generations-below-the-crossover.1, fn-6-branch-generations-below-the-crossover.5 | — |
 | R5 | Continuity and bias field at every handoff | fn-6-branch-generations-below-the-crossover.2, fn-6-branch-generations-below-the-crossover.3 (receipt) | — |
 | R6 | Cost measured against the 2 ms hero budget | fn-6-branch-generations-below-the-crossover.7 | — |
-| R7 | Owner's eye in clay | fn-6-branch-generations-below-the-crossover.6 | Manual gate; .6 prepares the comparison |
+| R7 | Owner's eye in clay | fn-6-branch-generations-below-the-crossover.6, fn-6-branch-generations-below-the-crossover.8 | Manual gate; first pass on .6 returned not yet, judged again on .8 |
 | R8 | Pass is pure in (skeleton, field, params); radii first; per-node deterministic | fn-6-branch-generations-below-the-crossover.2, fn-6-branch-generations-below-the-crossover.4 | — |
 
 
@@ -414,3 +427,4 @@ rest thresholds or claim approval for the exploratory settings.
 The worker did not run Vite or Chromium because the assigned sandbox blocks
 them. The conductor runs the harness and records the owner's verdict. The
 worker leaves the task's R7 acceptance box unchecked.
+
