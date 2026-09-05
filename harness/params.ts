@@ -109,6 +109,7 @@ export interface GrowerParams {
   twigStationLength: number;
   twigStations: number;
   twigRatioPower: number;
+  limbRadius: number;
   /** Legacy panel state, ignored by toSkeletonParams until the control is retired. */
   twigLevels: number;
   twigChildren: number;
@@ -359,6 +360,7 @@ export const DEFAULT_PARAMS: GrowerParams = {
   twigStationLength: DEFAULT_TWIGS.twig.internodeLength,
   twigStations: DEFAULT_TWIGS.twig.stationsPerInternode,
   twigRatioPower: DEFAULT_TWIGS.ratioPower,
+  limbRadius: DEFAULT_TWIGS.limbRadius,
   twigLevels: 0,
   twigChildren: DEFAULT_TWIGS.laterals + 1,
   twigAngle: DEFAULT_TWIGS.angle,

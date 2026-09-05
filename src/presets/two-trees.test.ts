@@ -131,11 +131,12 @@ describe("the two trees are two of the same generator", () => {
   it("neither preset stalls against the generator's node ceiling", () => {
     /* A preset that reaches the ceiling has been cut off rather than
        finished - the tree on screen would then be the ceiling's shape
-       and not the envelope's. The ceiling scales with the orders asked
-       for, so the library's own report is read rather than a number
-       restated here. */
+       and not the envelope's. Read both cap flags from the library's
+       report: the law must finish before either safety stop. */
     for (const preset of PRESETS) {
-      expect(growReport(preset.skeleton, preset.radii).capped).toBe(false);
+      const report = growReport(preset.skeleton, preset.radii);
+      expect(report.capped).toBe(false);
+      expect(report.levelCapped).toBe(false);
     }
   });
 
@@ -267,6 +268,7 @@ describe("the preset registry", () => {
         "internodes",
         "laterals",
         "lengthRatio",
+        "limbRadius",
         "ratioPower",
         "twig",
       ]);

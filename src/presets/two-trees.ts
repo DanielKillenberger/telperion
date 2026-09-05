@@ -122,6 +122,10 @@ export const TELPERION: TreePreset = {
       ratioPower: 1.3,
       internodes: 3,
       laterals: 1,
+      // Measured at 0.075 / 0.1 / 0.15: 42,006 / 49,713 / 56,378
+      // nodes after shedding, full builds 720 / 798 / 896 ms. The
+      // shared 0.1 rest also gives Laurelin limb laterals; 0.075 does not.
+      limbRadius: 0.1,
       angle: 45,
       divergence: 137.508,
     },
@@ -254,6 +258,12 @@ export const LAURELIN: TreePreset = {
       ratioPower: 1.3,
       internodes: 3,
       laterals: 1,
+      // Measured at 0.075 / 0.1 / 0.15: 43,199 / 104,335 / 149,826
+      // nodes after shedding, full builds 598 / 1,432 / 2,079 ms.
+      // 0.1 admits limb laterals and saves 31% of the 0.15 build time.
+      // These are CPU medians of three full builds, not GPU timings;
+      // the candidate counts and method are in fn-6's Measured section.
+      limbRadius: 0.1,
       angle: 45,
       divergence: 137.508,
     },

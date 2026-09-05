@@ -160,6 +160,7 @@ describe("toSkeletonParams", () => {
       twig: { diameter: DEFAULT_PARAMS.twigDiameter, internodeLength: DEFAULT_PARAMS.twigStationLength,
         stationsPerInternode: DEFAULT_PARAMS.twigStations },
       ratioPower: DEFAULT_PARAMS.twigRatioPower,
+      limbRadius: DEFAULT_PARAMS.limbRadius,
       laterals: 2,
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
@@ -257,7 +258,7 @@ describe("buildTree", () => {
     for (const value of positions(mesh)) {
       expect(Number.isFinite(value)).toBe(true);
     }
-  });
+  }, 60_000);
 
   it("reports what the build cost, for the panel to show", () => {
     // The surface is allowed to cost more than the tube viewer did.

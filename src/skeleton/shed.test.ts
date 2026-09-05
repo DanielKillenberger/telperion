@@ -70,7 +70,7 @@ describe("shedTwigs", () => {
       expect(index).toBeGreaterThan(last);
       last = index;
     }
-  });
+  }, 60_000);
 
   it("keeps an interior twig whose line reaches the shell, and sheds one that never does", () => {
     /* A crown-centre limb node, two twigs off it: one that heads out

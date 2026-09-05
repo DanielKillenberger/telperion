@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 import { envelopeRadiusAt, sampleEnvelope, type Envelope } from "../envelope";
-import { solveRadii, DEFAULT_RADII, type RadiusParams } from "../radius";
+import { solveRadii, DEFAULT_RADII, type RadiusParams, type RadiusField } from "../radius";
 import { createRng } from "../rng";
 import {
   colonize,
@@ -13,6 +13,7 @@ import {
   DEFAULT_BIAS,
   type BiasParams,
 } from "../torsion";
+import { childRadius, generationsUntilTwig } from "./law";
 import { shedTwigs } from "./shed";
 import { branchTwigs, resolveTwigs, type TwigParams, type TwiggedSkeleton } from "./twigs";
 
@@ -111,9 +112,7 @@ const INFLUENCE_STEPS = 9;
  *  5.9 and 2.3 spacings, so nine steps still binds for them. See
  *  `influenceRadiusFor`. */
 const INFLUENCE_SPACINGS = 2.0;
-/** Temporary shared ceiling for colonization and tip branches. The measured
- * three-internode topology fits both presets; limb lateral budgeting is
- * derived separately when that pass is introduced. */
+/** Hard safety ceiling shared by colonization and branch growth. */
 const NODE_CEILING = 250_000;
 
 /** Midpoint-rule samples for the crown volume. The profile is smooth
@@ -232,6 +231,46 @@ export function defaultGrowth(
   };
 }
 
+/** Each branch adds its internodes and terminal twig, then the same
+ * topology at every lateral station. The median handoff sets the base
+ * estimate; thicker handoffs add their own excess so the upper tail
+ * cannot exhaust that estimate. Collision, short runs and shedding can
+ * only reduce it. The hard ceiling still bounds nonconverging laws. */
+function twigHeadroom(skeleton: Skeleton, field: RadiusField, config: GrowthConfig, twigs: TwigParams): number {
+  const children = new Int32Array(skeleton.nodes.length);
+  for (let i = 1; i < children.length; i++) children[skeleton.nodes[i].parent]++;
+  const handoffs: number[] = [];
+  for (let i = 1; i < children.length; i++) {
+    if (skeleton.nodes[i].position.y < config.trunkHeight) continue;
+    const radius = field.radius[i];
+    if (children[i] === 0) handoffs.push(radius);
+    if (radius < twigs.limbRadius * field.radius[0]) {
+      const lateral = childRadius(radius, twigs.lengthRatio, twigs.ratioPower);
+      for (let k = 0; k < twigs.laterals; k++) handoffs.push(lateral);
+    }
+  }
+  if (handoffs.length === 0) return 0;
+  handoffs.sort((a, b) => a - b);
+  const nodesFor = (radius: number): number => {
+    const { generations } = generationsUntilTwig(radius, {
+      lengthRatio: twigs.lengthRatio, ratioPower: twigs.ratioPower,
+      twigDiameter: twigs.twig.diameter,
+    });
+    let nodes = 1;
+    for (let k = 0; k < generations; k++) {
+      nodes = twigs.internodes + 1 + (twigs.internodes - 1) * twigs.laterals * nodes;
+      if (nodes >= NODE_CEILING) return NODE_CEILING;
+    }
+    return nodes;
+  };
+  const median = nodesFor(handoffs[handoffs.length >> 1]);
+  let estimate = handoffs.length * median;
+  for (let i = (handoffs.length >> 1) + 1; i < handoffs.length && estimate < NODE_CEILING; i++) {
+    estimate += nodesFor(handoffs[i]) - median;
+  }
+  return Math.min(NODE_CEILING, estimate);
+}
+
 /** The growth configuration `growSkeleton` runs `params` under: the
  *  derived distances, the bias field built from `params.bias`, and
  *  then `params.growth` over both. Exported so a caller can read the
@@ -272,6 +311,8 @@ export interface GrowthReport {
    *  not the envelope's, and it is reported rather than truncated
    *  silently. */
   capped: boolean;
+  /** Whether branch growth reached its generation safety cap. */
+  levelCapped: boolean;
   /** Twig nodes removed by the shell rule. */
   shed: number;
 }
@@ -285,11 +326,15 @@ export function growReport(params: SkeletonParams, radii: RadiusParams = DEFAULT
   const config = resolveGrowth(params, attractors.length);
   const colonized = colonize(attractors, new THREE.Vector3(0, 0, 0), config);
   const field = solveRadii(colonized, params.envelope, radii);
-  const twigged = branchTwigs(colonized, field, config, resolveTwigs(params.twigs));
+  const twigs = resolveTwigs(params.twigs);
+  const maxNodes = Math.min(config.maxNodes, NODE_CEILING,
+    colonized.nodes.length + twigHeadroom(colonized, field, config, twigs));
+  const twigged = branchTwigs(colonized, field, { ...config, maxNodes }, twigs);
   const skeleton = shedTwigs(twigged, colonized.nodes.length, params.envelope);
   return {
     skeleton,
-    capped: colonized.nodes.length >= config.maxNodes || twigged.nodeCapped || twigged.levelCapped,
+    capped: colonized.nodes.length >= config.maxNodes || twigged.nodeCapped,
+    levelCapped: twigged.levelCapped,
     shed: twigged.nodes.length - skeleton.nodes.length,
   };
 }

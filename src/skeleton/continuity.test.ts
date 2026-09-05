@@ -103,7 +103,6 @@ describe("the crossover: every handoff and the generations either side", () => {
     const children = childrenOf(skeleton);
     const generations = generationsOf(skeleton);
     const law = preset.skeleton.twigs;
-    const share = childRadius(1, law.lengthRatio, law.ratioPower);
     const seen = new Int32Array(GENERATIONS_BELOW + 1);
     // Preserve fn-5's crown range, sampling each handoff's own lineage.
     // A lineage with only forks has no continuation ratio of one; the
@@ -137,9 +136,9 @@ describe("the crossover: every handoff and the generations either side", () => {
         expect(ratio, `handoff ${handoff}, branch edge ${child}`).toBeGreaterThanOrEqual(low - 1e-12);
         expect(ratio, `handoff ${handoff}, branch edge ${child}`).toBeLessThanOrEqual(high + 1e-12);
         if (child === handoff) {
-          expect(ratio).toBeGreaterThanOrEqual(share);
-          const tip = children[parent].every(i => i >= at.crossover);
-          const expected = tip ? field.radius[parent]
+          expect(ratio).toBeGreaterThanOrEqual(childRadius(field.radius[parent], law.lengthRatio, law.ratioPower) / field.radius[parent]);
+          const lateral = skeleton.baseRadius[record] < field.radius[parent];
+          const expected = !lateral ? field.radius[parent]
             : childRadius(field.radius[parent], law.lengthRatio, law.ratioPower);
           expect(field.startRadius[child]).toBe(expected);
         } else if (skeleton.branchId[record] === child) {
@@ -286,7 +285,7 @@ describe("the crossover: the surface as drawn", () => {
     expect([...checkedHandoffs].sort((a, b) => a - b)).toEqual(at.handoffs);
     expect(checkedHandoffs.size).toBeGreaterThan(100);
     expect(checked).toBeGreaterThan(checkedHandoffs.size * segments);
-  });
+  }, 60_000);
 });
 
 describe("the crossover: the error case", () => {

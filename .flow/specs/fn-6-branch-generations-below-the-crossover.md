@@ -196,6 +196,70 @@ The voxel edge is **0.02 times envelope height** (2.96 m on Telperion, 2.64 m on
 
 No baseline run hit the node ceiling. These are reference measurements, not the eventual clay-derived R4 thresholds. Reproduce the tables and per-handoff rows with `npx vitest run src/skeleton/law.test.ts src/skeleton/fill.test.ts --pool=threads --reporter=verbose --silent=false`. The default fork pool passes the tests but suppresses worker stdout on this environment; the thread pool exposes the measurement rows. The canonical gates still use their unchanged commands.
 
+### Task 4 limb threshold and build cost (2026-09-05)
+
+`limbRadius` rests at **0.1 times the solved root radius**, with a 0..1 rail.
+This is a measured modelling choice, not a botanical constant. It admits
+laterals at colonization nodes strictly below that radius, from each node's
+arrival frame and node-index phase, including nodes that are still tips.
+Interior nodes have no leader continuation. Origins and candidates must both
+be at or above the bare-trunk line.
+
+The candidates below use each preset's own radius parameters and all other
+preset values unchanged. Colonization stays at 808 nodes / 133 tips for
+Telperion and 2,442 nodes / 376 tips for Laurelin. Handoffs count accepted
+edges from colonization into the branch pass, including tip leaders and limb
+laterals; the second number is the surviving count after shedding. The level
+cap flag is false for every candidate, so level-capped handoffs are exactly
+zero without adding a count to the pass's boolean record shape.
+
+| preset | limbRadius | handoffs before / after shedding | level-capped handoffs | nodes before / after shedding | full CPU build median (range), ms |
+|---|---|---|---|---|---|
+| Telperion | 0.075 | 513 / 485 | 0 | 45,277 / 42,006 | 720 (686–800) |
+| Telperion | **0.1** | **654 / 604** | **0** | **55,240 / 49,713** | **798 (771–837)** |
+| Telperion | 0.15 | 755 / 691 | 0 | 64,331 / 56,378 | 896 (879–911) |
+| Laurelin | 0.075 | 371 / 362 | 0 | 46,517 / 43,199 | 598 (577–628) |
+| Laurelin | **0.1** | **1,398 / 1,336** | **0** | **111,919 / 104,335** | **1,432 (1,429–1,502)** |
+| Laurelin | 0.15 | 1,975 / 1,890 | 0 | 159,314 / 149,826 | 2,079 (2,070–2,088) |
+
+Every candidate finishes without hitting the node ceiling, both in the direct
+pass and through `growReport`'s law-derived budget. At 0.075 Laurelin's threshold
+is below even its tip radius, so it adds no colonization laterals. The shared
+0.1 rest gives both trees laterals while saving 31% of Laurelin's 0.15 build
+time and 45,491 surviving nodes. Whether that wood fills the shell sufficiently
+is task 5's measurement and the owner's clay judgement, not a claim from these
+counts.
+
+Timing is `buildPreset(...).stats.buildMs`, including colonization, both radius
+solves, branching, shedding, surface, vertex normals, canopy placement and
+culling, and Three.js object construction with foliage enabled. Each preset
+was warmed once at rest, then each candidate built three times in one serial
+Node/Vitest thread on this machine. Geometry and instance resources were
+disposed after each build. These are CPU measurements without a browser or
+GPU; task 7 still owns the native-pixel-ratio GPU measurement and the 2 ms
+rendering budget. The measurement harness and raw rows are preserved in
+`.flow/tmp/task4-measure.test.ts` and `.flow/tmp/task4-measure.log`; reproduce with
+`npx vitest run --config .flow/tmp/task4-measure.config.ts --pool=threads --reporter=verbose --silent=false`.
+
+The budget counts potential tip-leader and eligible lateral handoffs using the
+solved field. For each handoff the law supplies generations to twig radius;
+`N(0) = 1` and `N(g) = internodes + 1 + (internodes - 1) * laterals * N(g - 1)`
+bound its appended nodes. Handoff count times the median-radius estimate sets
+the base, with each thicker handoff's excess added so the upper tail cannot
+truncate a finished branch. Collisions and short-run collapse can only reduce
+that bound. Colonization plus this headroom is limited by the caller's budget
+and the unchanged 250,000-node ceiling. `GrowthReport.capped` reports that node
+stop separately from the boolean `levelCapped` generation stop.
+
+The R8 regression locates a complete colonization round by counting bias
+callbacks in capped runs: all candidates are evaluated before that round's
+nodes are appended, so a new callback batch when the cap advances by one
+proves the previous cap ended a round. Under the mature field sliced to that
+prefix, every shared origin's entire lateral subtree matches, including
+positions, recorded radii, twig marks and branch-start structure. Former tips
+have an additional leader only in the prefix. The unsliced mature field is
+refused by name. Colonization production code and its output are unchanged.
+
 ## Parked unknowns
 
 - Whether the shell rule alone yields a real crown's shell once fine wood is everywhere. Task 5 measures R4 on the shell rule as it stands; if the shell rule cannot meet the threshold a clay render distinguishes, a light term is a new spec and not a change to this one. [paraphrase]

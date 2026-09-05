@@ -191,12 +191,115 @@ describe("branch generations", () => {
     }
   }, 60000);
 
+  it("seeds eligible limbs and tips with the same arrival frame, law and node phase", () => {
+    const wood = { nodes: [...base.nodes,
+      { position: new Vector3(0, 20, 0), parent: 1 },
+      { position: new Vector3(0, 30, 0), parent: 2 },
+    ] };
+    const radii = field(0.05, 4);
+    radii.radius[0] = 1;
+    radii.radius[3] = 0.1;
+    const params = resolveTwigs({ limbRadius: 0.1, laterals: 2 });
+    const tree = branchTwigs(wood, radii, config, params);
+    const lateralRadius = childRadius(0.05, params.lengthRatio, params.ratioPower);
+    for (const origin of [1, 2]) {
+      const children = tree.nodes.map((n, i) => n.parent === origin && i >= tree.crossover ? i : -1).filter(i => i >= 0);
+      expect(children).toHaveLength(2);
+      for (const [station, child] of children.entries()) {
+        expect(tree.baseRadius[child - tree.crossover]).toBe(lateralRadius);
+        const phase = ((origin * params.divergence * Math.PI / 180) % (2 * Math.PI))
+          + params.divergence * Math.PI / 180 + station * Math.PI;
+        const expected = new Vector3(Math.sin(phase) * Math.SQRT1_2, Math.SQRT1_2, Math.cos(phase) * Math.SQRT1_2);
+        expect(arrival(tree, child).distanceTo(expected)).toBeLessThan(1e-12);
+        expect(tree.nodes[child].position.distanceTo(wood.nodes[origin].position))
+          .toBeCloseTo(branchLength(0.05) * params.lengthRatio / params.internodes, 12);
+      }
+    }
+    // Equality is outside the strict radius threshold; the tip still has its leader.
+    expect(tree.nodes.filter((n, i) => i >= tree.crossover && n.parent === 3)).toHaveLength(1);
+    expect(tree.nodes.filter((n, i) => i >= tree.crossover && n.parent === 0)).toHaveLength(0);
+    expect(branchTwigs(wood, radii, config, resolveTwigs({ limbRadius: 0 })).nodes
+      .filter((n, i) => i >= wood.nodes.length && n.parent === 1)).toHaveLength(0);
+  });
+
+  it.each(["origin", "candidate"])("guards the %s of an interior lateral at the bare-trunk line", endpoint => {
+    const wood = { nodes: [
+      { position: new Vector3(0, endpoint === "candidate" ? 20 : 0, 0), parent: -1 },
+      { position: new Vector3(0, endpoint === "candidate" ? 10.001 : 9.999, 0), parent: 0 },
+      { position: new Vector3(0, 11, 0), parent: 1 },
+    ] };
+    const radii = field(0.05, 3); radii.radius[0] = 1;
+    const tree = branchTwigs(wood, radii, { ...config, trunkHeight: 10 }, resolveTwigs({ limbRadius: 0.1 }));
+    expect(tree.nodes.filter((n, i) => i >= tree.crossover && n.parent === 1)).toHaveLength(0);
+    for (const node of tree.nodes.slice(tree.crossover)) {
+      expect(tree.nodes[node.parent].position.y).toBeGreaterThanOrEqual(10);
+      expect(node.position.y).toBeGreaterThanOrEqual(10);
+    }
+  });
+
+  it("R8 preserves whole lateral subtrees on a round-boundary prefix under the mature field", () => {
+    const p = TELPERION.skeleton;
+    const cfg = resolveGrowth(p);
+    const attractors = sampleEnvelope(p.envelope, p.attractors, createRng(p.seed));
+    const mature = colonize(attractors, new Vector3(), cfg);
+    const radii = solveRadii(mature, p.envelope, TELPERION.radii);
+    // The bias is evaluated for every candidate in a round before any node
+    // is appended. An extra callback when the cap advances by one proves
+    // that the previous cap ended a complete round, rather than part of it.
+    const capped = (maxNodes: number) => {
+      let calls = 0;
+      const tree = colonize(attractors, new Vector3(), { ...cfg, maxNodes,
+        bias: (position, wanted, step) => { calls++; return cfg.bias!(position, wanted, step); },
+      });
+      return { tree, calls };
+    };
+    let boundary = Math.floor(mature.nodes.length / 5);
+    let prefix = capped(boundary);
+    for (; boundary < mature.nodes.length - 1; boundary++) {
+      const next = capped(boundary + 1);
+      if (next.calls > prefix.calls) break;
+      prefix = next;
+    }
+    expect(boundary).toBeLessThan(mature.nodes.length - 1);
+    expect(prefix.tree.nodes).toEqual(mature.nodes.slice(0, boundary));
+    const params = resolveTwigs({ ...p.twigs, limbRadius: 0.2 });
+    const young = branchTwigs(prefix.tree, { radius: radii.radius.slice(0, boundary),
+      startRadius: radii.startRadius.slice(0, boundary) }, cfg, params);
+    const full = branchTwigs(mature, radii, cfg, params);
+    expect(young.nodeCapped || full.nodeCapped).toBe(false);
+    const subtrees = (tree: ReturnType<typeof branchTwigs>) => {
+      const children: number[][] = tree.nodes.map(() => []);
+      tree.nodes.forEach((n, i) => { if (n.parent >= 0) children[n.parent].push(i); });
+      const encode = (i: number): unknown => [tree.nodes[i].position.toArray(),
+        tree.baseRadius[i - tree.crossover], tree.twig[i - tree.crossover],
+        tree.branchId[i - tree.crossover] === i, children[i].map(encode)];
+      return Array.from({ length: boundary }, (_, origin) => children[origin]
+        .filter(i => i >= tree.crossover && tree.baseRadius[i - tree.crossover] < radii.radius[origin])
+        .map(encode));
+    };
+    const a = subtrees(young), b = subtrees(full);
+    expect(a.filter(laterals => laterals.length > 0).length).toBeGreaterThan(10);
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+    const youngParents = new Set(prefix.tree.nodes.map(n => n.parent));
+    const matureParents = new Set(mature.nodes.map(n => n.parent));
+    const formerTips = [...matureParents].filter(i => i > 0 && i < boundary && !youngParents.has(i));
+    expect(formerTips.filter(i => a[i].length > 0).length).toBeGreaterThan(0);
+    for (const origin of formerTips) {
+      expect(young.nodes.filter((n, i) => i >= young.crossover && n.parent === origin
+        && young.baseRadius[i - young.crossover] === radii.radius[origin])).toHaveLength(1);
+      expect(full.nodes.filter((n, i) => i >= full.crossover && n.parent === origin
+        && full.baseRadius[i - full.crossover] === radii.radius[origin])).toHaveLength(0);
+    }
+    expect(branchTwigs(prefix.tree, radii, cfg, params).refused).toBe("radius-length-mismatch");
+  });
+
   it("resolves finite rails and non-finite defaults without a levels key", () => {
     expect(resolveTwigs()).toEqual(DEFAULT_TWIGS);
     expect(resolveTwigs({ angle: NaN, divergence: Infinity, internodes: NaN, laterals: Infinity,
-      lengthRatio: NaN, ratioPower: Infinity })).toEqual(DEFAULT_TWIGS);
-    expect(resolveTwigs({ internodes: 0, laterals: -1, lengthRatio: 0, ratioPower: 99, angle: 99 }))
-      .toMatchObject({ internodes: 1, laterals: 0, lengthRatio: 0.05, ratioPower: 8, angle: 90 });
+      lengthRatio: NaN, ratioPower: Infinity, limbRadius: NaN })).toEqual(DEFAULT_TWIGS);
+    expect(resolveTwigs({ internodes: 0, laterals: -1, lengthRatio: 0, ratioPower: 99, angle: 99, limbRadius: -1 }))
+      .toMatchObject({ internodes: 1, laterals: 0, lengthRatio: 0.05, ratioPower: 8, angle: 90, limbRadius: 0 });
+    expect(resolveTwigs({ limbRadius: 2 }).limbRadius).toBe(1);
     expect(DEFAULT_TWIGS).not.toHaveProperty("levels");
   });
 });

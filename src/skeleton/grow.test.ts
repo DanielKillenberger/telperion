@@ -19,6 +19,7 @@ import {
   growReport,
   resolveGrowth,
 } from "./grow";
+import { childRadius } from "./law";
 import { LAURELIN, TELPERION } from "../presets/two-trees";
 import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "../torsion";
 
@@ -618,7 +619,7 @@ describe("defaultGrowth", () => {
 });
 
 describe("the node ceiling under twigs", () => {
-  it("keeps the temporary ceiling across branch anatomy and step changes", () => {
+  it("keeps the safety ceiling across branch anatomy and step changes", () => {
     for (const internodes of [1, 3, 8]) for (const laterals of [0, 1, 7]) {
       expect(resolveGrowth({ ...TELPERION.skeleton, step: 0.003,
         twigs: { ...TELPERION.skeleton.twigs, internodes, laterals } }).maxNodes).toBe(250000);
@@ -641,13 +642,29 @@ describe("the node ceiling under twigs", () => {
       expect(grown.nodes.slice(0, grown.crossover)).toEqual(base.nodes);
       for (let k = 0; k < grown.twig.length; k++) {
         const parent = grown.nodes[k + grown.crossover].parent;
-        if (parent < grown.crossover && !grown.twig[k]) expect(grown.baseRadius[k]).toBe(handoff.radius[parent]);
+        if (parent < grown.crossover && !grown.twig[k]) {
+          const lateral = grown.baseRadius[k] < handoff.radius[parent];
+          expect(grown.baseRadius[k]).toBe(lateral
+            ? childRadius(handoff.radius[parent], tree.twigs.lengthRatio, tree.twigs.ratioPower)
+            : handoff.radius[parent]);
+        }
       }
       counts.push(grown.nodes.length);
     }
     expect(counts[1]).not.toBe(counts[0]);
     expect(counts[2]).not.toBe(counts[0]);
     expect(growWithBranches(params)).toEqual(growWithBranches(params, DEFAULT_RADII));
+  });
+
+  it("reports the generation cap separately from the law-derived node budget", () => {
+    const report = growReport({ ...TELPERION.skeleton, attractors: 1,
+      twigs: { ...TELPERION.skeleton.twigs, internodes: 2, lengthRatio: 1, limbRadius: 0 },
+      bias: NO_BIAS, growth: { maxTurnPerStep: 90 },
+    }, TELPERION.radii);
+    expect(report.levelCapped).toBe(true);
+    expect(report.capped).toBe(false);
+    expect(report.skeleton.levelCapped).toBe(true);
+    expect(report.skeleton.nodes.length + report.shed).toBeLessThan(250000);
   });
 
   it("reports reaching the ceiling, after the shell rule has made the tree smaller than it", () => {
@@ -657,6 +674,7 @@ describe("the node ceiling under twigs", () => {
     };
     const finished = growReport(params);
     expect(finished.capped).toBe(false);
+    expect(finished.levelCapped).toBe(false);
     expect(finished.shed).toBeGreaterThan(0);
 
     const cutOff = growReport({ ...params, growth: { maxNodes: 3000 } });

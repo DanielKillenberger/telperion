@@ -27,6 +27,8 @@ export interface TwigParams {
   internodes: number;
   /** Laterals at each interior station, rounded and held to 0..7. */
   laterals: number;
+  /** Colonization lateral threshold as a fraction of root radius, held to 0..1. */
+  limbRadius: number;
   /** Lateral departure in degrees, held to 0..90. */
   angle: number;
   /** Lineage phyllotaxis in degrees; any finite angle. */
@@ -43,6 +45,7 @@ export const DEFAULT_TWIGS: TwigParams = {
   get ratioPower() { return DEFAULT_BRANCH_LAW.ratioPower; },
   internodes: 3,
   laterals: 1,
+  limbRadius: 0.1,
   angle: 45,
   divergence: 137.508,
 };
@@ -65,6 +68,7 @@ export function resolveTwigs(twigs?: Partial<TwigParams>): TwigParams {
     ratioPower: pinned(held(asked.ratioPower, DEFAULT_TWIGS.ratioPower), 0, 8),
     internodes: pinned(Math.round(held(asked.internodes, DEFAULT_TWIGS.internodes)), 1, 32),
     laterals: pinned(Math.round(held(asked.laterals, DEFAULT_TWIGS.laterals)), 0, 7),
+    limbRadius: pinned(held(asked.limbRadius, DEFAULT_TWIGS.limbRadius), 0, 1),
     angle: pinned(held(asked.angle, DEFAULT_TWIGS.angle), 0, 90),
     divergence: held(asked.divergence, DEFAULT_TWIGS.divergence),
   };
@@ -120,7 +124,8 @@ interface Shoot {
   generation: number;
 }
 
-/** Continues each tip under the supplied radius field. Leaders keep a
+/** Continues tips and seeds laterals along eligible limbs under the
+ * supplied radius field. Leaders keep a
  * branch's radius and length allocation through its internodes; laterals
  * start the next generation. Every completed run bears one fixed twig.
  * The bias receives colonization's step at every internode and limitTurn
@@ -164,12 +169,13 @@ export function branchTwigs(
   for (let i = 1; i < base.length; i++) children[base[i].parent]++;
   let frontier: Shoot[] = [];
   for (let i = 1; i < base.length; i++) {
-    if (children[i] !== 0) continue;
+    if (base[i].position.y < config.trunkHeight) continue;
+    if (children[i] !== 0 && !(field.radius[i] < twigs.limbRadius * field.radius[0])) continue;
     const direction = base[i].position.clone().sub(base[base[i].parent].position);
     if (!(direction.lengthSq() > 0)) continue;
     direction.normalize();
     const radius = Math.max(0, held(field.radius[i], 0));
-    frontier.push({ at: i, direction, normal: perpendicular(direction), phase: 0,
+    frontier.push({ at: i, direction, normal: perpendicular(direction), phase: (i * divergence) % (2 * Math.PI),
       radius, length: branchLength(radius), branch: -1, completed: 0, generation: 0 });
   }
   const binormal = new THREE.Vector3();
@@ -185,10 +191,14 @@ export function branchTwigs(
       const phase = shoot.phase + divergence;
       binormal.crossVectors(from, shoot.normal);
       accepted.length = 0;
-      // Only interior stations bear laterals, as in the measured topology.
-      const laterals = shoot.completed > 0 && shoot.completed < twigs.internodes ? twigs.laterals : 0;
+      const origin = shoot.at < crossover;
+      const bearsLaterals = origin
+        ? shoot.radius < twigs.limbRadius * field.radius[0]
+        : shoot.completed > 0 && shoot.completed < twigs.internodes;
+      const laterals = bearsLaterals ? twigs.laterals : 0;
       for (let c = 0; c <= laterals; c++) {
         const lateral = c > 0;
+        if (!lateral && origin && children[shoot.at] !== 0) continue;
         const radius = lateral ? childRadius(shoot.radius, twigs.lengthRatio, twigs.ratioPower) : shoot.radius;
         const length = lateral ? shoot.length * twigs.lengthRatio : shoot.length;
         const generation = shoot.generation + Number(lateral);
