@@ -23,9 +23,13 @@ Both presets are measured on the RTX 3080 with the rig against the strategy's 2 
 **Optional:**
 - `.flow/specs/fn-5-branch-until-the-tips-bear-leaves-one.md` §Measured — the table format the new numbers extend
 
+### Build-cost handoff from accepted task 8 (2026-09-05)
+Task 8 is visually accepted. Its historical approximately-three-second build criterion remains unmet: diagnostic full CPU pipeline samples were 3.808 s baseline and 5.014 s corrected Telperion on a shared machine, excluding GPU upload/render. These are single samples, not a precise performance regression estimate. This task owns final representative CPU/GPU measurements and explicit reporting of the miss; do not claim the old target passed or lower it. Carry any required performance follow-up into the migration/rendering decision.
+
 ### Key context
 - The strategy's Frame metric is 2 ms of GPU time for a hero tree, not the 16.7 ms fn-5 measured against.
 ## Acceptance
+- [ ] Final CPU measurement explicitly assesses task 8's unresolved ~3 s full-build target; report any miss and follow-up without claiming a pass.
 - [ ] §Measured carries nodes, twigs, leaves, triangles, CPU build and GPU per frame for both presets at rest on the RTX 3080, with the machine and settings named
 - [ ] Hero tree inside 2 ms of GPU time at the display's native pixel ratio (applied 2.00) on both presets, or the miss is reported as the reason for the rendering spec; lower ratios recorded as diagnostics
 - [ ] `grep -rn 'orders\|twig pass\|eight orders' src harness README.md` returns no stale description; module headers, README, barrel comment rewritten
@@ -38,3 +42,4 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+

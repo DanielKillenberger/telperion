@@ -752,3 +752,11 @@ with the before/after pair in
 not a GPU benchmark or the owner's R7 verdict.
 
 - [ ] R7 owner clay verdict on the fifth pass. Task 8 remains in_progress; task 7 waits.
+
+
+
+### Owner acceptance and next structural validation (2026-09-05)
+
+The owner accepted the fifth R7 pass: "i think it's fine for now we'll do another spec where we try and build all kinds of real trees as templates with visual QA which will definitely find structural issues." R7 is satisfied for this FN-6 build, not a claim that all tree architectures are solved. Task 8 is complete; its known historical ~3 s build-cost miss remains explicit and final cost assessment belongs to task 7.
+
+Record for the later spec: build a varied collection of real-species templates/presets and judge them against visual references, including bare branching and foliage, to expose structural issues such as leader/lateral balance, branching hierarchy, and crown organization. This is future work; no new spec or implementation is started here. Parameters define the family/species and seeds select specimens.
