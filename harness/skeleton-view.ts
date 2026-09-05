@@ -1,12 +1,11 @@
 import * as THREE from "three";
 
-import { ORDINARY, treeCore, type Family, type TreePreset, type Timings } from "../src/browser/core";
+import { treeCore, type Family, type TreePreset, type Timings } from "../src/browser/core";
 import { materializeTree, disposeTreeGeometry } from "../src/browser/three";
 type SkeletonParams = Family["skeleton"];
 type RadiusParams = Family["radii"];
 type SurfaceParams = Family["surface"];
 type CanopyParams = Family["canopy"];
-const DEFAULT_SURFACE = ORDINARY.surface;
 
 import type { GrowerParams } from "./params";
 import type { Clay } from "./stage";
@@ -38,6 +37,7 @@ const ATTRACTORS_MAX = 1600;
  *  preserves the appended branches' recorded local taper. */
 export function toSkeletonParams(params: GrowerParams): SkeletonParams {
   return {
+    ...params.family.skeleton,
     seed: params.seed,
     /* Every member of `Envelope`, named. Spreading the default and
        overriding three of them was fine while the other two were
@@ -74,16 +74,19 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
     bias: {
       gravitropism: params.gravitropism,
       lean: params.lean * params.torsion,
-      writheAmplitude: params.writheAmplitude * params.torsion,
-      writheWavelength: params.writheWavelength,
-      spiralRate: params.spiralRate * params.torsion,
+      supernatural: {
+        enabled: params.supernaturalEnabled,
+        writheAmplitude: params.writheAmplitude * params.torsion,
+        writheWavelength: params.writheWavelength,
+        spiralRate: params.spiralRate * params.torsion,
+      },
     },
     // Persistence is a growth distance's kind of parameter rather than
     // a bias term - it is about the step, not about the field - so it
     // travels in `growth`, which is where the library keeps the rest of
     // them. Outside `torsion` on purpose: a stiff tree is stiff whether
     // or not it is writhing.
-    growth: { maxTurnPerStep: params.maxTurnPerStep },
+    growth: { ...params.family.skeleton.growth, maxTurnPerStep: params.maxTurnPerStep },
   };
 }
 
@@ -122,7 +125,7 @@ export function toRadiusParams(params: GrowerParams): RadiusParams {
  *  parameter principle exists to stop. */
 export function toSurfaceParams(params: GrowerParams): SurfaceParams {
   return {
-    ...DEFAULT_SURFACE,
+    ...params.family.surface,
     lobes: params.lobes,
     lobeDepth: params.lobeDepth,
     twistRate: params.twistRate,
@@ -142,7 +145,7 @@ export function toSurfaceParams(params: GrowerParams): SurfaceParams {
  *  nobody authored. */
 export function toCanopyParams(params: GrowerParams): CanopyParams {
   return {
-    maxInstances: ORDINARY.canopy.maxInstances,
+    ...params.family.canopy,
     shootRadius: params.shootRadius,
     spacing: params.spacing,
     divergence: params.divergence,
@@ -283,6 +286,8 @@ export function presetToParams(preset: TreePreset): GrowerParams {
   const { envelope, bias } = preset.skeleton;
   const canopy = preset.canopy;
   return {
+    family: structuredClone((({ id: _id, name: _name, note: _note, ...family }) => family)(preset)),
+    supernaturalEnabled: bias.supernatural.enabled,
     seed: preset.skeleton.seed,
     height: envelope.height,
     spread: envelope.spread,
@@ -292,9 +297,9 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     torsion: 1,
     gravitropism: bias.gravitropism,
     lean: bias.lean,
-    writheAmplitude: bias.writheAmplitude,
-    writheWavelength: bias.writheWavelength,
-    spiralRate: bias.spiralRate,
+    writheAmplitude: bias.supernatural.writheAmplitude,
+    writheWavelength: bias.supernatural.writheWavelength,
+    spiralRate: bias.supernatural.spiralRate,
     maxTurnPerStep: preset.skeleton.growth.maxTurnPerStep,
     density: (preset.skeleton.attractors - ATTRACTORS_MIN) /
       (ATTRACTORS_MAX - ATTRACTORS_MIN),
@@ -371,7 +376,7 @@ export function buildTree(
   withFoliage = true,
 ): { tree: THREE.Group; stats: TreeStats } {
   return build(
-    { ...ORDINARY, skeleton: toSkeletonParams(params), radii: toRadiusParams(params),
+    { ...params.family, skeleton: toSkeletonParams(params), radii: toRadiusParams(params),
       surface: toSurfaceParams(params), canopy: toCanopyParams(params) },
     clay,
     withFoliage,

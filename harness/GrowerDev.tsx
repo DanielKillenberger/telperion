@@ -16,7 +16,7 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { PRESETS, initializeTreeCore, type TreePreset } from "../src/browser/core";
+import { PRESETS, TWO_TREES, initializeTreeCore, type TreePreset } from "../src/browser/core";
 
 import {
   DEFAULT_PARAMS,
@@ -66,7 +66,7 @@ function format(value: number, step: number): string {
  *  figure has to look small beside. */
 function tallestPresetHeight(): number {
   return Math.max(
-    ...PRESETS.map((preset) => preset.skeleton.envelope.height),
+    ...TWO_TREES.map((preset) => preset.skeleton.envelope.height),
   );
 }
 
@@ -146,7 +146,7 @@ export function GrowerDev() {
         const built: { stats: TreeStats | null } = { stats: null };
         stageRef.current?.setTree((clay) => {
           if (compare) {
-            const result = buildComparison(PRESETS, clay, foliage);
+            const result = buildComparison(TWO_TREES, clay, foliage);
             built.stats = result.stats;
             return result.group;
           }

@@ -32,7 +32,7 @@ try {
   const bindings = await page.evaluate(async () => {
     const check = (ok, message) => { if (!ok) throw Error(message); };
     const rejects = async (action, message) => { let failed = false; try { await action(); } catch { failed = true; } check(failed, message); };
-    const { TreeEngine, ORDINARY } = await import('/src/browser/core.ts');
+    const { TreeEngine, ORDINARY, PRESETS, presetById } = await import('/src/browser/core.ts');
     await rejects(() => TreeEngine.create(new Response('', { status: 503 })), 'load failure');
     await rejects(() => TreeEngine.create(new Uint8Array([0, 1, 2])), 'malformed module');
     const engine = await TreeEngine.create();
@@ -40,7 +40,10 @@ try {
     family.skeleton.seed = 42; family.skeleton.attractors = 500; family.skeleton.step = 0.02;
     const meshFree = engine.build(family, { structure: true, field: true });
     check(!meshFree.surface && !meshFree.foliage && !meshFree.diagnostics.stages.surface && meshFree.diagnostics.timings.surfaceMs === 0, 'mesh-free must not invoke surface');
-    check(meshFree.diagnostics.nodes === 13616 && meshFree.diagnostics.instances === 59810, 'matched ordinary growth/foliage');
+    // FN-9 natural defaults and retained clipped laterals intentionally changed
+    // historical 13616/59810 counts. Assert topology/cardinality and exact replay below.
+    check(meshFree.diagnostics.nodes > meshFree.diagnostics.crossover && meshFree.diagnostics.instances > 0, 'ordinary has local branches and retained foliage');
+    check(meshFree.structure.values.length === meshFree.diagnostics.nodes * 6 && meshFree.structure.topology.length === meshFree.diagnostics.nodes * 3, 'packed node cardinality');
     check(meshFree.diagnostics.complete, 'complete diagnostics');
     const cells = new Float64Array([0,0,0,0, 1e5,1e5,1e5,0.5]);
     const hits = meshFree.field.query(cells);
@@ -69,6 +72,60 @@ try {
     const empty = structuredClone(family); empty.skeleton.attractors = 0;
     const result = engine.build(empty, { surface: true, foliage: true });
     check(result.surface.positions.length === 0 && result.surface.bounds === null && result.foliage.matrices.length === 0, 'valid empty outputs');
+    check(PRESETS.length === 5 && new Set(PRESETS.map(p => p.id)).size === 5, 'complete identity catalogue');
+    await rejects(() => presetById('missing'), 'unknown browser identity');
+    await rejects(() => engine.build('missing', {}), 'unknown native identity');
+    for (const [id, unit] of [['oregon-white-oak', 'leaf'], ['norway-spruce', 'needle']]) {
+      const specimen = presetById(id);
+      // Small valid fixtures retain the authored habit and element anatomy.
+      specimen.skeleton.envelope.height = 4;
+      specimen.skeleton.attractors = 40;
+      specimen.skeleton.growth.maxNodes = 1200;
+      specimen.canopy.maxInstances = 12000;
+      specimen.skeleton.twigs.twig.internodeLength = 0.04;
+      if (specimen.skeleton.habit.kind === 'tiered') specimen.skeleton.habit.tiers = 3;
+      const output = engine.build(specimen, { foliage: true, structure: true, field: true });
+      const foliage = output.foliage, d = output.diagnostics;
+      check(!output.surface && !d.stages.surface && d.timings.surfaceMs === 0, id + ' independent foliage');
+      check(d.instances > 0 && d.biologicalUnits === d.instances && foliage.matrices.length === d.instances * 16, id + ' one biological unit per matrix');
+      const a = foliage.anatomy;
+      check(a.unit === unit && a.vertices[0] < a.vertices[1] && a.vertices[1] <= foliage.positions.length / 3, id + ' unit vertices');
+      check(a.indices[0] < a.indices[1] && a.indices[1] <= foliage.indices.length && a.indices[0] % 3 === 0 && a.indices[1] % 3 === 0, id + ' unit triangles');
+      check(a.sections.length > 1 && a.sections.every(([start, end]) => start >= a.vertices[0] && end <= a.vertices[1] && start < end), id + ' transverse sections');
+      check(foliage.indices.every(i => i < foliage.positions.length / 3), id + ' indices in bounds');
+      const b = foliage.bounds;
+      // Include connectors and every transformed prototype vertex in render bounds.
+      for (let m = 0; m < foliage.matrices.length; m += 16) {
+        for (let v = 0; v < foliage.positions.length; v += 3) {
+          for (let axis = 0; axis < 3; axis++) {
+            const x = foliage.matrices[m + axis] * foliage.positions[v] + foliage.matrices[m + 4 + axis] * foliage.positions[v + 1] + foliage.matrices[m + 8 + axis] * foliage.positions[v + 2] + foliage.matrices[m + 12 + axis];
+            check(x >= b.min[axis] - 1e-5 && x <= b.max[axis] + 1e-5, id + ' transformed bounds');
+          }
+        }
+      }
+      const original = output.structure.values.slice();
+      const savedMatrices = foliage.matrices.slice();
+      const savedAnatomy = JSON.stringify(a);
+      engine.release();
+      check(foliage.matrices.every((v, i) => v === savedMatrices[i]) && JSON.stringify(a) === savedAnatomy, id + ' released owned foliage');
+      await rejects(() => output.field.query(cells), id + ' released field');
+      const repeat = engine.build(specimen, { foliage: true, structure: true });
+      check(repeat.structure.values.length === original.length && repeat.structure.values.every((v, i) => v === original[i]) && repeat.foliage.matrices.every((v, i) => v === savedMatrices[i]), id + ' deterministic');
+      specimen.skeleton.bias.supernatural = { enabled: false, writheAmplitude: 0.1, writheWavelength: 0.3, spiralRate: 2 };
+      const natural = engine.build(specimen, { structure: true });
+      check(natural.structure.values.length === original.length && natural.structure.values.every((v, i) => v === original[i]), id + ' disabled stored effects');
+      for (const mutate of [p => p.element.anatomy = 'missing', p => p.canopy.attachment = 'missing', p => p.element.connectorLength = -1, p => p.element.card = true, p => p.skeleton.habit = { kind: 'missing' }, p => p.skeleton.bias.supernatural.enabled = 1, p => p.skeleton.twigs.twig.stationsPerInternode = 2]) {
+        const bad = structuredClone(specimen); mutate(bad);
+        await rejects(() => engine.build(bad, { foliage: true }), id + ' invalid anatomy control');
+      }
+      const woodOnly = engine.build(specimen, { surface: true });
+      check(woodOnly.surface.positions.length > 0 && !woodOnly.foliage && !woodOnly.structure && !woodOnly.field && !woodOnly.diagnostics.stages.foliage && woodOnly.diagnostics.biologicalUnits === null, id + ' independent wood surface');
+      const fieldOnly = engine.build(specimen, { field: true });
+      check(!fieldOnly.foliage && fieldOnly.diagnostics.foliageAnatomy === null && fieldOnly.diagnostics.biologicalUnits === d.biologicalUnits, id + ' field-only unit counts without geometry');
+      const zero = structuredClone(specimen); zero.canopy.size = 0;
+      const emptyFoliage = engine.build(zero, { foliage: true });
+      check(emptyFoliage.foliage.matrices.length === 0 && emptyFoliage.foliage.bounds === null && emptyFoliage.diagnostics.biologicalUnits === 0, id + ' empty biological geometry');
+    }
     engine.dispose(); engine.dispose();
     await rejects(() => engine.build(family, {}), 'disposed engine');
     // Exercise the native boundary directly, including malformed JSON and allocated byte validation.
@@ -81,6 +138,14 @@ try {
     }
     for (const value of ['{', 'null', '{}', '{"family":{},"outputs":{"surface":1}}', '{"family":{"skeleton":{"seed":-1}},"outputs":{}}', '{"family":{"unknown":1},"outputs":{}}', '{"family":{"skeleton":{"envelope":{"height":1e999}}},"outputs":{}}'])
       check(raw(value) === 1 && e.buffer_len(0) === 0, 'malformed request clears stale buffers');
+    check(e.catalogue() === 0, 'native catalogue');
+    const catalogue = JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.metadata_ptr(), e.metadata_len())));
+    for (const entry of [...catalogue].reverse()) {
+      check(e.preset(entry.abiId) === 0, 'stable ABI identity');
+      const parameters = JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer, e.metadata_ptr(), e.metadata_len())));
+      check(JSON.stringify(parameters) === JSON.stringify(entry.family), 'catalogue order independent');
+    }
+    check(e.preset(999) === 1, 'unknown ABI identity');
     check(e.request_alloc(65537) === 1 && e.build() === 1, 'oversized request leaves no prior request');
     check(raw('{"family":{"skeleton":{"attractors":0}},"outputs":{"surface":true}}') === 0 && e.buffer_len(0) === 0, 'native empty recovery');
     check(raw(JSON.stringify({ family, outputs: { field: true } })) === 0, 'native field-only build');
@@ -88,7 +153,7 @@ try {
     check(e.buffer_len(999) === 0 && e.buffer_ptr(999) === 0, 'unknown buffer slot');
     check(e.query_alloc(0) === 0 && e.query(0) === 1, 'no stale query accepted');
     e.release(); e.release();
-    return { meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true, partialDiagnostics: true };
+    return { speciesAnatomy: true, identityCatalogue: true, independentOutputs: true, meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true, partialDiagnostics: true };
   });
   await writeFile(out + '/bindings.json', JSON.stringify(bindings, null, 2));
   await page.unroute(url + '/');

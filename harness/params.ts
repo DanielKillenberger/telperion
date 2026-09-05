@@ -52,13 +52,16 @@
  * be walked to one at a time.
  * ------------------------------------------------------------------ */
 
-import { ORDINARY } from "../src/browser/core";
+import { ORDINARY, type Family } from "../src/browser/core";
 import { presetToParams } from "./skeleton-view";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
 export const SEED_MAX = 0xff_ff_ff_ff;
 
 export interface GrowerParams {
+  /** Preserve native anatomy and non-slider controls until viewer affordances land. */
+  family: Family;
+  supernaturalEnabled: boolean;
   /** uint32. Varies the detail; it does not gamble on the outcome. */
   seed: number;
   /** Envelope height, in metres. The tree is judged at human scale. */
@@ -193,7 +196,7 @@ export interface GrowerParams {
 }
 
 export interface SliderSpec {
-  key: Exclude<keyof GrowerParams, "seed">;
+  key: Exclude<keyof GrowerParams, "seed" | "family" | "supernaturalEnabled">;
   label: string;
   min: number;
   max: number;
