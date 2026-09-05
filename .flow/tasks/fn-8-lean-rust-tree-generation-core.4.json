@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T18:32:41.368337Z",
+  "depends_on": [
+    "fn-8-lean-rust-tree-generation-core.1"
+  ],
+  "id": "fn-8-lean-rust-tree-generation-core.4",
+  "priority": null,
+  "spec": "fn-8-lean-rust-tree-generation-core",
+  "spec_path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.4.md",
+  "status": "todo",
+  "title": "Port the final swept surface to independent Rust output",
+  "updated_at": "2026-09-05T18:32:41.368337Z"
+}

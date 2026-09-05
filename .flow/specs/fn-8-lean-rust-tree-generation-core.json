@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn8-rust-core",
+  "created_at": "2026-09-05T18:32:40.937644Z",
+  "depends_on_epics": [
+    "fn-6-branch-generations-below-the-crossover",
+    "fn-7-rust-surface-benchmark-prototype"
+  ],
+  "id": "fn-8-lean-rust-tree-generation-core",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-8-lean-rust-tree-generation-core.md",
+  "status": "open",
+  "title": "Lean Rust tree generation core",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T18:32:42.274169Z"
+}
