@@ -1,0 +1,16 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn8-finish/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 4.75s
+     Running tests/foliage_reference.rs (target/release/deps/foliage_reference-99a54a2a75a3461e)
+
+running 1 test
+ordinary: placed=61620, retained=59810, max_matrix_error=0, bounds=Some(Bounds { min: Vec3 { x: -5.431909714718422, y: 7.287852916685012, z: -6.984539384984754 }, max: Vec3 { x: 6.878712729634925, y: 22.970711579012598, z: 7.2301120559930885 } })
+telperion: placed=1372250, retained=1349630, max_matrix_error=0.00000005960464477539063, bounds=Some(Bounds { min: Vec3 { x: -32.118368251734424, y: 60.071595891221385, z: -35.35425859680224 }, max: Vec3 { x: 35.52933883494795, y: 147.72801949606068, z: 33.65105456603866 } })
+laurelin: placed=803825, retained=798553, max_matrix_error=0.0000000000004547473508864641, bounds=Some(Bounds { min: Vec3 { x: -72.60337414249926, y: 31.614828662650073, z: -74.02422456100439 }, max: Vec3 { x: 76.23577084673222, y: 131.95186288503464, z: 76.19824808241869 } })
+empty: placed=0, retained=0, max_matrix_error=0, bounds=None
+capped: placed=0, retained=0, max_matrix_error=0, bounds=None
+degenerate: placed=0, retained=0, max_matrix_error=0, bounds=None
+envelope-crossing: placed=25441, retained=25441, max_matrix_error=0, bounds=Some(Bounds { min: Vec3 { x: -6.504495763524231, y: 19.13767806904002, z: -4.279405718390738 }, max: Vec3 { x: 4.407062598196254, y: 24.087939019427864, z: 3.9949275175546712 } })
+test frozen_solved_tree_comparison ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.49s
+

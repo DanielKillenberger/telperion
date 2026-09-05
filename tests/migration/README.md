@@ -35,6 +35,19 @@ Required invariants: finite positions/transforms; parent-before-child tree order
 
 For matched numeric primitives/native-Wasm comparisons, use absolute position tolerance `1e-10 * max(1,height)`, radius tolerance `1e-9 * max(1,radius)`, float32 output tolerance `8 * 2^-23 * max(1,height)`, and unit-frame component tolerance `1e-5`. Field signed-distance comparisons use the position tolerance, except occupancy exactly at a boundary where distance and cell overlap must be reported. Reference-vs-rewrite topology drift invalidates elementwise comparisons; compare bounds, quantiles, count ratios, invariants and images instead. Exact RNG u32 streams remain portable; hash matches diagnose determinism, not old architecture compatibility.
 
+## Full browser comparison
+
+Generate the pinned fixture buffers and Three reference normals, then compare the running Rust harness (all launches default to headless):
+
+```sh
+REFERENCE_OUTPUT=/tmp/telperion-surface-reference node crates/telperion-core/tests/surface_reference.mjs ordinary telperion laurelin
+npm run dev -- --host 127.0.0.1 --port 5185
+# In another terminal, after the server is ready:
+REFERENCE_DIR=/tmp/telperion-surface-reference BROWSER_URL=http://127.0.0.1:5185 node tests/browser/migration.mjs
+```
+
+The exporter runs its native comparison too. `BROWSER_EVIDENCE` selects capture/report output; `CHROMIUM_EXECUTABLE` selects an installed Chromium when Playwright's bundled browser is unavailable. The browser runner streams fixtures and application modules through one origin. Restart the development server after rebuilding Wasm before starting a measurement run, to avoid mixing Vite HMR module instances.
+
 ## Retained test ownership
 
 The deleted TypeScript suites remain in Git at the pre-cleanup revision. This map covers their behavioral responsibilities, not an equivalence claim based on test counts. Native owner paths below are relative to `crates/telperion-core/tests/`, except `foundation`, which is this directory's `foundation.rs`.

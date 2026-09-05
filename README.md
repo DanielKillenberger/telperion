@@ -58,6 +58,8 @@ npm ci
 npm run rust:build
 npm run wasm:build
 npm run rust:test
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
 npm test
 npm run typecheck
 npm run build

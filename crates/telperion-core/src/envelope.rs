@@ -115,7 +115,8 @@ impl Envelope {
     }
 }
 pub fn distance_to_profile(profile: &[[f64; 2]], r: f64, y: f64) -> f64 {
-    profile
+    let mut exceptional = f64::INFINITY;
+    let squared = profile
         .windows(2)
         .map(|pair| {
             let [ar, ay] = pair[0];
@@ -129,7 +130,16 @@ pub fn distance_to_profile(profile: &[[f64; 2]], r: f64, y: f64) -> f64 {
                 0.0
             };
             let t = t.clamp(0.0, 1.0);
-            (r - ar - dr * t).hypot(y - ay - dy * t)
+            let x = r - ar - dr * t;
+            let y = y - ay - dy * t;
+            let squared = x * x + y * y;
+            if squared.is_normal() || (x == 0.0 && y == 0.0) {
+                squared
+            } else {
+                exceptional = exceptional.min(x.hypot(y));
+                f64::INFINITY
+            }
         })
-        .fold(f64::INFINITY, f64::min)
+        .fold(f64::INFINITY, f64::min);
+    squared.sqrt().min(exceptional)
 }

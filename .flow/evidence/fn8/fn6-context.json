@@ -1,0 +1,10 @@
+{
+  "reference_revision": "fdafb099b1495519de75a6b9a66d37f7d07e47bd",
+  "served_head": "54434300a88fad47758d9c29ccb5d4704df6051c",
+  "source_diff": "empty vsreference for src,harness,package-lock.json",
+  "headless": true,
+  "runner": "/tmp/fn8-headless-fn6-baseline.mjs",
+  "runner_change": "only headless:false -> true from frozen .flow/evidence/fn6-task7/measure.mjs",
+  "concurrency": "No agent heavy tests or benchmarks during run; shared interactive workstation",
+  "all_subjects_complete": true
+}

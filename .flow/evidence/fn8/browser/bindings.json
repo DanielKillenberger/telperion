@@ -1,0 +1,9 @@
+{
+  "meshFree": true,
+  "ownership": true,
+  "malformed": true,
+  "empty": true,
+  "staleFields": true,
+  "deterministic": true,
+  "partialDiagnostics": true
+}

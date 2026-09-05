@@ -1,0 +1,56 @@
+{
+  "method": "Raw source lines including comments/blanks; nonblank also reported. Not semantic code LOC or whole-project savings. Generated artifacts separated.",
+  "fn6Core": {
+    "files": 23,
+    "lines": 5837,
+    "nonblank": 5480
+  },
+  "rustCore": {
+    "files": 22,
+    "lines": 3564,
+    "nonblank": 3543
+  },
+  "rustBinding": {
+    "files": 2,
+    "lines": 518,
+    "nonblank": 515
+  },
+  "browserAdapter": {
+    "files": 4,
+    "lines": 164,
+    "nonblank": 162
+  },
+  "generatedMetadata": {
+    "files": 1,
+    "lines": 348,
+    "nonblank": 348
+  },
+  "nativeTests": {
+    "files": 11,
+    "lines": 1996,
+    "nonblank": 1976
+  },
+  "browserTests": {
+    "files": 2,
+    "lines": 237,
+    "nonblank": 237
+  },
+  "harnessTests": {
+    "files": 3,
+    "lines": 1494,
+    "nonblank": 1359
+  },
+  "nativeExamples": {
+    "files": 2,
+    "lines": 106,
+    "nonblank": 106
+  },
+  "rustCoreInlineTests": {
+    "lines": 10,
+    "nonblank": 10
+  },
+  "rustBindingInlineTests": {
+    "lines": 54,
+    "nonblank": 54
+  }
+}

@@ -11,24 +11,8 @@ const DEFAULT_SURFACE = ORDINARY.surface;
 import type { GrowerParams } from "./params";
 import type { Clay } from "./stage";
 
-/* ------------------------------------------------------------------ *
- * THE PANEL'S HALF OF THE CONTRACT
- *
- * Two jobs, both of them translation. Turn the dials the owner is
- * looking at into the arguments the generator takes, and turn the
- * skeleton it returns into something the clay room can draw. The
- * generator itself knows about neither the panel nor the stage, which
- * is what "the generator is a standalone library" has to mean in
- * practice.
- *
- * The surface itself is the library's, and all of it: growing the
- * skeleton, solving the radii and sweeping the skin are three library
- * calls, and what is left here is the translation either side of them
- * plus the cost of the build, which the panel reports. The tapered
- * proxy tubes this file used to draw are gone - they were a viewer for
- * the radius solve while there was no surface to look at, and every
- * gap the owner screenshotted was theirs.
- * ------------------------------------------------------------------ */
+/** Translates viewer controls to native family parameters and materializes
+ * owned Rust outputs for the clay stage. Botanical generation stays in Rust. */
 
 /** What the density dial spans, in attractors. The floor is a tree
  *  with a readable handful of limbs rather than a bare fork; the
@@ -125,7 +109,7 @@ export function toRadiusParams(params: GrowerParams): RadiusParams {
  *  of `SurfaceParams` - how finely the section is sampled, how deep a
  *  child sockets into its parent and how much it swells leaving it,
  *  how far the flare decays and how far it sinks - keep the library's
- *  defaults, on the same footing as the growth distances in grow.ts:
+ *  defaults, on the same footing as native growth distances:
  *  they are structure and cost rather than look, nothing has asked to
  *  turn them live, and each is one line in SLIDERS the day something
  *  does.
