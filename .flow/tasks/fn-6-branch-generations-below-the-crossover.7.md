@@ -36,9 +36,16 @@ Task 8 is visually accepted. Its historical approximately-three-second build cri
 - [ ] fn-5 R8 annotated as superseded
 - [ ] `npx vitest run` and `npx tsc --noEmit` green
 ## Done summary
-TBD
+The default sweep now includes capped native resolution, DPR 2 and the lower diagnostics through one helper shared with the controls and running label. GPU points retain acquisition-order query samples without changing the eight-frame warmup, twenty-sample median or no-fallback rule. README, API and module/harness comments describe radius-derived branch generations, branch-local endRadius taper and fixed terminal twig anatomy; the README canopy example passes anatomy. FN-5 R8 is annotated as superseded, and FN-5 remains open.
 
+The conductor measured actual RTX 3080 GPU queries at native DPR 1 and explicit high-DPI DPR 2, then supplied the checked-in raw results, reproduction runner and final FN-6 Measured section. Native GPU medians of 5.847 ms Telperion and 3.425 ms Laurelin miss the 2 ms hero budget. CPU builder medians are 4.923 s and 2.421 s; Telperion misses the historical approximately-three-second target. Comparison is recorded separately. Submitted scene triangles include foliage and room, and are distinguished from wood triangles. The misses motivate rendering work and CPU migration without reducing geometry or relaxing a target. The unsupported timer path returned no timing number on a separate real WebGL context with the extension hidden. Scope included no generator behavior or preset geometry changes.
+
+Investigation reused the existing sweep, median and panel controls, read the required documentation targets and relevant comparison-state memory, and swept sibling terminology. The new ratio cases failed first because the helper did not exist. Final npx vitest run passed 363 tests in 23 files (84.76 s), and npx tsc --noEmit passed. Existing unsupported/incomplete reporting tests passed unchanged. Baseline was green via predecessor handoff and a honored full-suite receipt. No test suite ran during the conductor's browser measurements. The final report and raw artifact were added after verification without executable source edits.
+
+GATE_SKIPPED:unittest:green-receipt 0e0711e2 - baseline reused from prior post-gate pass
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; user requested no impl-review)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4027b078a5ca840ca62b69e0a2641ce972de1c81
+- Tests: baseline: green via handoff (363-test change begins from 360 tests and typecheck green at 0e0711e2; subsequent predecessor changes docs only), GATE_SKIPPED:unittest:green-receipt 0e0711e2 - baseline reused from prior post-gate pass, npx vitest run harness/stage.test.ts: red before implementation, 4 cases fail because sweepRatios is not a function; /tmp/fn6-task7-red.log, npx vitest run: exit 0, 363 tests in 23 files, 84.76 s; /tmp/fn6-task7-full.log, npx tsc --noEmit: exit 0; /tmp/fn6-task7-types.log, git diff --check: exit 0, Actual RTX 3080 browser CPU/GPU measurements and simulated timer-unavailable WebGL context: .flow/evidence/fn6-task7/results.json; reproduction .flow/evidence/fn6-task7/measure.mjs, Terminology sweep: remaining orders matches are mathematical magnitudes; remaining levels matches assert retired key absence
 - PRs:
