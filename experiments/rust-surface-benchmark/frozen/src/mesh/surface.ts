@@ -1,0 +1,499 @@
+import * as THREE from "three";
+
+import { DEFAULT_ENVELOPE, type Envelope } from "../envelope";
+import { transportFrames } from "./frames";
+import { branchPaths } from "./paths";
+import type { RadiusField } from "../radius";
+import type { Skeleton } from "../skeleton/colonize";
+
+/* ------------------------------------------------------------------ *
+ * THE SURFACE
+ *
+ * One swept skin over the whole tree. Three things are being asked of
+ * it and they are independent of each other:
+ *
+ *   CONTINUITY. The surface has no gaps, anywhere, at any bend. It is
+ *   swept along runs (paths.ts) with one ring per node shared by the
+ *   segment below and the segment above, oriented by a transported
+ *   frame (frames.ts), with the radius interpolated between rings
+ *   rather than stepped per segment. Every run is closed at both ends,
+ *   so the mesh is a union of closed shells with no boundary edge in
+ *   it - a hole is not a thing this can produce, rather than a thing
+ *   it has been tuned not to produce. Forks are the hard half: a child
+ *   run starts sunk back INSIDE its parent's volume and swollen where
+ *   it leaves, so it emerges through the parent's skin instead of
+ *   butting against it. No boolean, no stitching, and nothing that can
+ *   pinch or invert.
+ *
+ *   THE PLAITED SECTION. The cross section is not a circle - it is a
+ *   lobed profile, and the profile rotates about the branch axis as
+ *   the sweep advances. That is the braided, rope-like trunk in the
+ *   Garland reference, and it is the reason to sweep a section at all
+ *   rather than extrude a tube. It is the SURFACE twisting, and it is
+ *   a different mechanism from fn-11.3's growth bias, which bends the
+ *   CENTRELINE. Both are required and neither substitutes for the
+ *   other: a trunk with spiral bias and a circular section is a bent
+ *   pipe, and a straight trunk with a rotating section is a drill bit.
+ *
+ *   THE ROOT FLARE. A trunk that meets the ground at its own trunk
+ *   radius reads as a pole stuck in soil. Real trunks widen into their
+ *   roots, and the widening is what makes a tree look like it is
+ *   holding itself up.
+ *
+ * Every quality above is a named parameter with a documented range,
+ * because fn-11.7 authors Telperion and Laurelin as two of these and
+ * anything constant in here is a difference between the two trees that
+ * cannot be authored.
+ *
+ * Radii are the fn-11.4 field's, unchanged: the lobes modulate around
+ * it and its mean over the section is exactly the field's radius. The
+ * only other thing that touches a radius is the flare, which is a
+ * stated multiplier that decays to nothing above the ground.
+ *
+ * Pure and deterministic in its arguments. No seed reaches here.
+ * ------------------------------------------------------------------ */
+
+export interface SurfaceParams {
+  /** Vertices around one cross section. This is the surface's
+   *  resolution and its cost: triangles scale with it exactly. Below
+   *  about 8 a lobed section reads as a faceted prism; above about 20
+   *  a twig is spending vertices on a shape a millimetre across. 12 is
+   *  a trunk that reads as round-ish and braided beside a 1.8 m
+   *  figure. Rounded to an integer, held to 3 or more.
+   *
+   *  A floor rather than the last word: `lobes` raises it when the
+   *  section needs more samples than this to draw the lobes actually
+   *  asked for - four per lobe. Asking for 12 vertices and 7 lobes
+   *  draws 28 vertices and 7 lobes, never 12 vertices and the 5 lobes
+   *  that coarse a sampling would alias them to. */
+  radialSegments: number;
+  /** How many lobes the cross section has: the number of strands the
+   *  limb reads as. 0 is a circle at the solve's own radius - the thing
+   *  every other procedural tree extrudes. 3 to 7 is where a trunk
+   *  reads as plaited rather than as merely dented. Rounded to an
+   *  integer, and it raises `radialSegments` to four vertices per lobe
+   *  rather than being quietly aliased down to a count nobody asked
+   *  for. */
+  lobes: number;
+  /** How deep the lobes cut, as a fraction of the radius: 0.1 is a
+   *  softly fluted trunk, 0.3 is rope. The section's mean radius is
+   *  the radius solve's whatever this is, so deepening the lobes does
+   *  not fatten the tree. Held below 1, where a lobe would reach the
+   *  centreline and the section would fold through itself. */
+  lobeDepth: number;
+  /** Turns of the cross section about its own axis over the envelope's
+   *  full height - the rate the plait winds at. Signed: negative winds
+   *  the other way. Around 1 to 3 reads as a slow braid. It is sampled
+   *  once per growth step, so past about 6 the winding turns faster
+   *  than the skeleton is subdivided and reads as chatter rather than
+   *  as a twist.
+   *
+   *  This is the SURFACE's rotation. `BiasParams.spiralRate` is the
+   *  centreline's. They are separate mechanisms with separate dials on
+   *  purpose. */
+  twistRate: number;
+  /** How much wider the trunk is where it meets the ground, as a
+   *  multiple of its radius there. 1 is no flare at all; 2 to 3 is a
+   *  trunk that spreads into its roots. Held at 1 or above - a base
+   *  narrower than the trunk is not a flare. */
+  flareRadius: number;
+  /** The height over which the flare decays, as a fraction of the
+   *  envelope's height, in e-foldings: at 0.02 on a 24 m tree the
+   *  flare is gone within about a metre and a half. Small is a sharp
+   *  buttress, large is a trunk that is conical for its whole lower
+   *  half. Stated against the ground plane rather than along the
+   *  trunk, because it is what happens where wood meets earth. */
+  flareFalloff: number;
+  /** How far the flared base sinks below the ground, as a fraction of
+   *  the envelope's height. It exists so the trunk's end cap is buried
+   *  rather than showing as a flat disc at y=0, so anything above zero
+   *  does the job; larger only wastes triangles underground. */
+  flareDepth: number;
+  /** How far back into its parent a child run starts, in parent radii
+   *  at the fork. This is what makes a fork continuous: the child's
+   *  first ring is inside the parent's solid, so the child emerges
+   *  through the parent's skin instead of meeting it. 0 starts the
+   *  child on the parent's centreline, which is already inside it.
+   *  It trades against width, and the trade is settled in favour of
+   *  containment: the deeper the socket, the narrower the widest ring
+   *  that still fits, so a deep socket on a thick child clamps that
+   *  child's first ring rather than letting it protrude. Held below 1,
+   *  where there is no room left for a ring at all. */
+  forkSocket: number;
+  /** How much wider a child is where it leaves the fork, as a multiple
+   *  of its own radius there. This is the fillet: real branches thicken
+   *  into the limb they leave. It decays over a distance of one parent
+   *  radius, so a junction's fillet is scaled by the junction's own
+   *  size rather than by a length in metres. 1 is no fillet. */
+  forkSwell: number;
+}
+
+/** The surface everything else is a departure from: a five-lobed
+ *  section winding one and a half turns over the tree's height, on a
+ *  trunk that doubles its width into the ground. Twelve vertices are
+ *  asked for and twenty are drawn, because five lobes want four
+ *  samples each. Not either of the Two Trees - fn-11.7 authors
+ *  those. */
+export const DEFAULT_SURFACE: SurfaceParams = {
+  radialSegments: 12,
+  lobes: 5,
+  lobeDepth: 0.16,
+  twistRate: 1.5,
+  flareRadius: 2.1,
+  flareFalloff: 0.022,
+  flareDepth: 0.004,
+  forkSocket: 0.5,
+  forkSwell: 1.35,
+};
+
+/* Rails on the parameters, none of them art direction. Each one is a
+   boundary past which the arithmetic stops describing a surface: a
+   section needs three sides to enclose anything, a lobe at or past the
+   full radius folds the section through its own centreline, a flare
+   below 1 is a pinch, and every ceiling is there because these numbers
+   are multiplied into vertices that are stored as float32 - a finite
+   but enormous parameter overflows to Infinity on the way in, and a
+   non-finite vertex takes the whole draw call with it. */
+const MIN_RADIAL_SEGMENTS = 3;
+const MAX_RADIAL_SEGMENTS = 64;
+const MAX_LOBE_DEPTH = 0.9;
+const MIN_FLARE_FALLOFF = 1e-4;
+const MAX_FLARE_FALLOFF = 1;
+const MAX_FLARE_RADIUS = 8;
+const MAX_FLARE_DEPTH = 1;
+const MAX_TWIST_RATE = 64;
+const MAX_FORK_SWELL = 4;
+
+/** The finest the section will be sampled, in vertices per lobe. The
+ *  same argument as `MIN_STEPS_PER_BEND` in torsion.ts, one dimension
+ *  over: a lobe is a wave around the section, and a wave sampled too
+ *  coarsely is not a shallower wave, it is a different and wrong one.
+ *  Twelve vertices asked for seven lobes returns five, which is a dial
+ *  that lies about what it did. Nyquist's floor is 2; 4 is what a lobe
+ *  needs to read as a bump rather than as a facet. The section is
+ *  therefore sampled at whichever is larger, the requested count or
+ *  four per lobe - so `radialSegments` is a floor on cost, and the
+ *  lobe count can raise it. */
+const MIN_SEGMENTS_PER_LOBE = 4;
+
+/** Ceiling on the lobe count: any more could not be sampled four times
+ *  each inside `MAX_RADIAL_SEGMENTS`, and a lobe count that cannot be
+ *  drawn is a lie about what the section is. */
+const MAX_LOBES = Math.floor(MAX_RADIAL_SEGMENTS / MIN_SEGMENTS_PER_LOBE);
+
+/** How far back a child may socket into its parent, as a fraction of
+ *  the distance to the parent's own skin. Under 1 by construction: the
+ *  socket ring has to fit inside the parent alongside the sink, and at
+ *  1 there is no width left for it at all. */
+const MAX_FORK_SOCKET = 0.9;
+
+const TWO_PI = Math.PI * 2;
+
+/** A closed triangle soup, in the form three.js wants it. Positions
+ *  and indices only: normals come from the winding, which is uniform
+ *  and outward everywhere, and materials are the consumer's business. */
+export interface SurfaceMesh {
+  /** xyz per vertex, in metres. */
+  positions: Float32Array;
+  /** Three vertex indices per triangle, wound counter-clockwise seen
+   *  from outside the surface. */
+  indices: Uint32Array;
+  triangles: number;
+  vertices: number;
+}
+
+/** One ring's worth of the sweep: where it sits, how wide it is, and
+ *  how far along the tree it is (which is what the twist is a function
+ *  of, so that the plait carries on through a fork instead of
+ *  restarting on every limb). */
+interface Sample {
+  position: THREE.Vector3;
+  radius: number;
+  distance: number;
+}
+
+const held = (value: number, fallback: number): number =>
+  Number.isFinite(value) ? value : fallback;
+
+/**
+ * Skins `skeleton` with one continuous surface.
+ *
+ * Guarantees, all structural rather than tuned:
+ *   - no boundary edges: every edge is shared by exactly two triangles,
+ *     wound in opposite directions, so there is no gap and no hole
+ *     anywhere in the mesh;
+ *   - one ring per node along a run, shared by the segments either
+ *     side of it, so no joint can open at a bend;
+ *   - every triangle has area, and every vertex is finite;
+ *   - identical arguments give an identical mesh, vertex for vertex.
+ */
+export function buildSurface(
+  skeleton: Skeleton,
+  field: RadiusField,
+  envelope: Envelope,
+  params: SurfaceParams,
+): SurfaceMesh {
+  const nodes = skeleton.nodes;
+  const paths = branchPaths(skeleton, field);
+  if (paths.length === 0) {
+    return {
+      positions: new Float32Array(0),
+      indices: new Uint32Array(0),
+      triangles: 0,
+      vertices: 0,
+    };
+  }
+
+  const height = Math.max(
+    1e-6,
+    held(envelope.height, DEFAULT_ENVELOPE.height),
+  );
+  const lobes = Math.min(
+    MAX_LOBES,
+    Math.max(0, Math.round(held(params.lobes, DEFAULT_SURFACE.lobes))),
+  );
+  // The requested resolution is a floor, and so is four vertices per
+  // lobe: a section sampled below that reports a lobe count it is not
+  // drawing.
+  const segments = Math.min(
+    MAX_RADIAL_SEGMENTS,
+    Math.max(
+      MIN_RADIAL_SEGMENTS,
+      lobes * MIN_SEGMENTS_PER_LOBE,
+      Math.round(held(params.radialSegments, DEFAULT_SURFACE.radialSegments)),
+    ),
+  );
+  const lobeDepth = Math.min(
+    MAX_LOBE_DEPTH,
+    Math.max(0, held(params.lobeDepth, DEFAULT_SURFACE.lobeDepth)),
+  );
+  const twistRate = Math.min(
+    MAX_TWIST_RATE,
+    Math.max(-MAX_TWIST_RATE, held(params.twistRate, DEFAULT_SURFACE.twistRate)),
+  );
+  const flareRadius = Math.min(
+    MAX_FLARE_RADIUS,
+    Math.max(1, held(params.flareRadius, DEFAULT_SURFACE.flareRadius)),
+  );
+  const flareFalloff =
+    Math.min(
+      MAX_FLARE_FALLOFF,
+      Math.max(
+        MIN_FLARE_FALLOFF,
+        held(params.flareFalloff, DEFAULT_SURFACE.flareFalloff),
+      ),
+    ) * height;
+  const flareDepth =
+    Math.min(
+      MAX_FLARE_DEPTH,
+      Math.max(0, held(params.flareDepth, DEFAULT_SURFACE.flareDepth)),
+    ) * height;
+  const forkSocket = Math.min(
+    MAX_FORK_SOCKET,
+    Math.max(0, held(params.forkSocket, DEFAULT_SURFACE.forkSocket)),
+  );
+  const forkSwell = Math.min(
+    MAX_FORK_SWELL,
+    Math.max(1, held(params.forkSwell, DEFAULT_SURFACE.forkSwell)),
+  );
+
+  /* Distance from the root to every node, along the tree. The twist
+     phase is a function of it, so the plait runs continuously out of
+     the trunk and into every limb rather than starting again at each
+     fork. Parent indices are lower than their children's, so one
+     forward pass is enough. */
+  const distance = new Float64Array(nodes.length);
+  for (let i = 1; i < nodes.length; i += 1) {
+    const parent = nodes[i].parent;
+    if (parent < 0) continue;
+    distance[i] =
+      distance[parent] + nodes[parent].position.distanceTo(nodes[i].position);
+  }
+
+  /** The flare, as a multiplier on a radius at height `y`. Above the
+   *  falloff it is 1 to floating point, so this is a ground effect
+   *  applied by a rule rather than a special case for the trunk. */
+  const flare = (y: number): number =>
+    1 + (flareRadius - 1) * Math.exp(-Math.max(0, y) / flareFalloff);
+
+  const positions: number[] = [];
+  const indices: number[] = [];
+  let vertices = 0;
+
+  for (const path of paths) {
+    const samples: Sample[] = [];
+
+    if (path.trunk) {
+      /* The trunk's own end, buried. Without it the sweep starts with
+         a flat disc lying in the ground plane, which is the thing the
+         task calls out by name. At a depth of zero there is nothing to
+         bury it in: the extra ring would land exactly on the root's own
+         and the segment between them would be a band of zero-area
+         triangles, so the caller who asked for no depth gets no ring. */
+      const root = nodes[path.nodes[0]].position;
+      if (flareDepth > 0) {
+        samples.push({
+          position: new THREE.Vector3(root.x, root.y - flareDepth, root.z),
+          radius: field.radius[path.nodes[0]] * flare(root.y),
+          distance: 0,
+        });
+      }
+      for (const node of path.nodes) {
+        samples.push({
+          position: nodes[node].position.clone(),
+          radius: field.radius[node] * flare(nodes[node].position.y),
+          distance: distance[node],
+        });
+      }
+    } else {
+      /* A child run. It starts back inside the parent, along its own
+         axis - the fork node is on the parent's centreline, so a short
+         enough step back from there is still inside the parent's solid
+         - and it leaves the fork swollen,
+         decaying over one parent radius. Together those are what make
+         the junction read as a limb dividing rather than as two tubes
+         crossing. */
+      const attach = path.nodes[0];
+      const first = path.nodes[1];
+      const parentRadius = field.radius[attach];
+      const away = nodes[first].position
+        .clone()
+        .sub(nodes[attach].position)
+        .normalize();
+      const swell = (along: number): number =>
+        1 + (forkSwell - 1) * Math.exp(-along / Math.max(1e-9, parentRadius));
+
+      /* The socket ring has to FIT inside the parent, not merely be
+         centred inside it, and "inside the parent" is inside a LOBED
+         section rather than inside a circle. The parent is solid in
+         every direction only out to its inscribed radius, (1 -
+         lobeDepth) of its mean; the ring is sunk `socketDepth` back
+         along its own axis, and its own widest vertex is (1 +
+         lobeDepth) of the mean set here. A ring point is then at most
+         the hypotenuse of the sink and its own width from the fork
+         node, so the widest ring that still fits is the other leg of
+         that triangle.
+
+         Without the clamp a balanced fork - two children at 1/sqrt(2)
+         of the parent, swollen - starts at 0.95 of the parent's radius,
+         and its back cap protrudes through the parent's skin as a flat
+         crescent: a seam at exactly the junction this socketing exists
+         to hide. The swell is not lost, only postponed - it is at full
+         strength a ring later, outside the parent, which is where a
+         fillet belongs anyway. */
+      /* The parent as DRAWN, not as meant: a lobed section sampled
+         `segments` ways is a polygon, and a polygon's own inscribed
+         radius is cos(pi/segments) of the circle through its vertices.
+         Both factors are the same kind of conservatism - the smallest
+         the parent's skin is anywhere around it. */
+      const inscribed =
+        parentRadius * (1 - lobeDepth) * Math.cos(Math.PI / segments);
+      // Sunk at most `MAX_FORK_SOCKET` of the way to the parent's own
+      // skin, so there is always some width left for the ring: a ring
+      // clamped to nothing is a band of degenerate triangles.
+      const socketDepth = Math.min(
+        forkSocket * parentRadius,
+        MAX_FORK_SOCKET * inscribed,
+      );
+      const contained =
+        Math.sqrt(Math.max(0, inscribed * inscribed - socketDepth * socketDepth)) /
+        (1 + lobeDepth);
+      samples.push({
+        position: nodes[attach].position
+          .clone()
+          .addScaledVector(away, -socketDepth),
+        radius:
+          Math.min(field.startRadius[first] * forkSwell, contained) *
+          flare(nodes[attach].position.y),
+        distance: distance[attach],
+      });
+      for (let i = 1; i < path.nodes.length; i += 1) {
+        const node = path.nodes[i];
+        const position = nodes[node].position;
+        samples.push({
+          position: position.clone(),
+          radius:
+            field.radius[node] *
+            swell(distance[node] - distance[attach]) *
+            flare(position.y),
+          distance: distance[node],
+        });
+      }
+    }
+
+    if (samples.length < 2) continue;
+
+    const frames = transportFrames(samples.map((sample) => sample.position));
+    const base = vertices;
+
+    for (let i = 0; i < samples.length; i += 1) {
+      const { position, radius } = samples[i];
+      const { normal, binormal } = frames[i];
+      // The section's own rotation, in radians at this point of the
+      // sweep. This one term is the whole plait.
+      const phase = TWO_PI * twistRate * (samples[i].distance / height);
+      for (let k = 0; k < segments; k += 1) {
+        const angle = (k / segments) * TWO_PI;
+        // No lobes is a circle at the solve's own radius. Left to the
+        // cosine it would be cos(0) at every vertex, which is not a
+        // circle - it is a tree uniformly fattened by `lobeDepth`.
+        const profile =
+          lobes === 0 ? 1 : 1 + lobeDepth * Math.cos(lobes * (angle + phase));
+        const width = radius * profile;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        positions.push(
+          position.x + (normal.x * cos + binormal.x * sin) * width,
+          position.y + (normal.y * cos + binormal.y * sin) * width,
+          position.z + (normal.z * cos + binormal.z * sin) * width,
+        );
+      }
+    }
+    vertices += samples.length * segments;
+
+    /* The skin between consecutive rings. Both triangles are wound so
+       that their normal points away from the centreline, which is what
+       makes every normal on the surface an outward one - there is no
+       per-face decision to get wrong. */
+    for (let i = 0; i < samples.length - 1; i += 1) {
+      const lower = base + i * segments;
+      const upper = lower + segments;
+      for (let k = 0; k < segments; k += 1) {
+        const next = (k + 1) % segments;
+        indices.push(lower + k, lower + next, upper + k);
+        indices.push(lower + next, upper + next, upper + k);
+      }
+    }
+
+    /* Both ends closed, by a fan to a vertex at the ring's own centre.
+       That is what makes each run a closed shell, and a union of
+       closed shells is a surface with nothing to see through. The
+       trunk's lower cap is underground and every other one is either a
+       twig tip a few millimetres across or a child run's back end,
+       which is inside its parent. */
+    const bottomCentre = vertices;
+    positions.push(
+      samples[0].position.x,
+      samples[0].position.y,
+      samples[0].position.z,
+    );
+    const last = samples[samples.length - 1].position;
+    const topCentre = vertices + 1;
+    positions.push(last.x, last.y, last.z);
+    vertices += 2;
+
+    const topRing = base + (samples.length - 1) * segments;
+    for (let k = 0; k < segments; k += 1) {
+      const next = (k + 1) % segments;
+      indices.push(bottomCentre, base + next, base + k);
+      indices.push(topCentre, topRing + k, topRing + next);
+    }
+  }
+
+  return {
+    positions: Float32Array.from(positions),
+    indices: Uint32Array.from(indices),
+    triangles: indices.length / 3,
+    vertices,
+  };
+}

@@ -1,0 +1,28 @@
+{
+  "revision": "019234b554a1b387e23b05dd3c7e2626f428f907",
+  "sha256": {
+    "src/canopy/cull.ts": "c2f21ae0363d0f3d56a0eda0f0e2c0615ec24775b1817df8c307755585310ac9",
+    "src/canopy/element.ts": "61ffe76aea274cd726972229899f9587307b8e4b30e70c22ed44d0a739410799",
+    "src/canopy/place.ts": "7efb325d85510fb20a28216ecbbe65f9d3ed8d37f0ffd3a81f0757e576e9d940",
+    "src/canopy/shoots.ts": "237b51a770f40a52421e9191101268405c50db5397cbfe0e6d99add85d101354",
+    "src/canopy/silhouette.ts": "9c2fc5b2ce8add5f7abb6c1a9c94f1923c05f784c8c2487a01cf024cfde5b83b",
+    "src/envelope.ts": "fb3e630e3e867c82de8f3ac03ea39e2a940469bf8c7be574deafe04a4b4e0bbf",
+    "src/index.ts": "9e3b19807fe7d1068946bc861d5c61e77d6530c67ea8ecba56d829549f62b23e",
+    "src/mesh/frames.ts": "94fed4f4d1fd5a4ea1ea58d36b863b2f47f4c736184390c4d10fd0106ce1abe9",
+    "src/mesh/paths.ts": "360ad18112730de2d7f8154aadbf0c8880826ed5389bfe5829055f4325ecdc83",
+    "src/mesh/surface.ts": "32daf2b662cb58f204379c184b8605585b96950cc44f7312ff9bfe603086b2fb",
+    "src/noise.ts": "b0352eb6623546fd2946f7eec2c4f31564fd3052651bead458ac04fa135a251b",
+    "src/presets/index.ts": "7f2591dc83fb87a301c2fc2171a2f76380104acbd66725ab33a53b3189d37b1e",
+    "src/presets/preset.ts": "303bb31f77f82de7bf394e0aa27a62036621cfaa7efce412d2d9b430c65ddb64",
+    "src/presets/two-trees.ts": "c5284dc2524b79db222783a3040a6df9fd15391b6aa98f2f25d4a629caa558f2",
+    "src/radius.ts": "3432a52229e9dedcc86b9c06157d490702ff25a06cb4c7aedd6e184b748eed54",
+    "src/rng.ts": "b9535dd13c7368a6a06b0b0adc91ff1fdad5eca940e77ef4262a7f13a50a61ca",
+    "src/skeleton/colonize.ts": "09a30c34b6bbbc79b5cddb28487ad63f6d6257f0bec43eda3ebc1ce62663a1cd",
+    "src/skeleton/fill.ts": "67c94882ac105d8ac55f8ba3d8d765f2f7ab1e5328795c7e795c2bacbed7f231",
+    "src/skeleton/grow.ts": "471290023541745444a2479ad7a4790f1b13a77ed081a390426c5cb76edcdb2b",
+    "src/skeleton/law.ts": "502e0840f3a7c86ae56341c60f518793dc4ad8c7dd595ef67a74f251519a37fe",
+    "src/skeleton/shed.ts": "b9bb60ffe61d322c0826e684d9ce060877aa1c3bd13e739d810b4b8aad55e883",
+    "src/skeleton/twigs.ts": "df853a15384db7d3f7a24b466468e438b99f7af3e7777c2c068d06fb154a5f3f",
+    "src/torsion.ts": "1453e6797fd6ff48be61ae3cdbc32c6847985bd03cafbb7a2c23a56c273aae2a"
+  }
+}

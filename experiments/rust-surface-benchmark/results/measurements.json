@@ -1,0 +1,1360 @@
+{
+  "mode": "bench",
+  "environment": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+    "hardwareConcurrency": 32,
+    "crossOriginIsolated": true,
+    "wasmColdFetchCompileInstantiateMs": 3.525000000372529
+  },
+  "warmups": 3,
+  "repetitions": 10,
+  "results": [
+    {
+      "name": "telperion",
+      "nodes": 15826,
+      "inputBytes": 759736,
+      "inputSha256": "dd1bbe04009f5263c58017763294779cf41e80f166fd21160cb4e8e1bf18cb5d",
+      "provenance": {
+        "seed": 1,
+        "capped": false,
+        "shed": 1431,
+        "preset": {
+          "id": "telperion",
+          "name": "Telperion",
+          "note": "the elder: narrow, upright, finely made, wrung about its own axis",
+          "skeleton": {
+            "seed": 1,
+            "envelope": {
+              "height": 148,
+              "crownBase": 0.38,
+              "spread": 0.24,
+              "fullness": 0.58,
+              "shoulder": 1.5
+            },
+            "attractors": 1600,
+            "step": 0.022,
+            "bias": {
+              "gravitropism": 0.95,
+              "lean": 0.04,
+              "writheAmplitude": 0.11,
+              "writheWavelength": 0.34,
+              "spiralRate": 2.6
+            },
+            "twigs": {
+              "twig": {
+                "diameter": 0.005,
+                "internodeLength": 0.02,
+                "stationsPerInternode": 1
+              },
+              "lengthRatio": 0.4,
+              "ratioPower": 1.3,
+              "internodes": 3,
+              "laterals": 1,
+              "angle": 45,
+              "divergence": 137.508
+            },
+            "growth": {
+              "maxTurnPerStep": 26
+            }
+          },
+          "radii": {
+            "trunkRadius": 0.05,
+            "forkExponent": 2.15,
+            "lengthTaper": 0.75
+          },
+          "surface": {
+            "radialSegments": 12,
+            "lobes": 7,
+            "lobeDepth": 0.11,
+            "twistRate": 2.4,
+            "flareRadius": 2,
+            "flareFalloff": 0.022,
+            "flareDepth": 0.004,
+            "forkSocket": 0.5,
+            "forkSwell": 1.35
+          },
+          "canopy": {
+            "shootRadius": 0.1,
+            "spacing": 0.0045,
+            "divergence": 137.508,
+            "clump": 6,
+            "clumpSpan": 0.28,
+            "outward": 0.42,
+            "upward": 0.55,
+            "scatter": 14,
+            "size": 1,
+            "sizeVariation": 0.28
+          }
+        }
+      },
+      "vertices": 624088,
+      "triangles": 1224048,
+      "outputBytes": 22177632,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.00015405622396866348
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.00015405622396866348
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.00015405622396866348
+        }
+      },
+      "hashes": {
+        "reference": "59aaa4dd22c6deff07cf7b4f7b23baed562a15b72d94bf0f5e863b5c380f9a46",
+        "optimized": "59aaa4dd22c6deff07cf7b4f7b23baed562a15b72d94bf0f5e863b5c380f9a46",
+        "wasm": "59aaa4dd22c6deff07cf7b4f7b23baed562a15b72d94bf0f5e863b5c380f9a46",
+        "native": "59aaa4dd22c6deff07cf7b4f7b23baed562a15b72d94bf0f5e863b5c380f9a46"
+      },
+      "times": {
+        "reference": {
+          "compute": {
+            "samples": [
+              86.64499999955297,
+              100.72499999962747,
+              105.0149999987334,
+              94.00500000081956,
+              95.51999999955297,
+              105.14000000059605,
+              110.55499999970198,
+              88.25,
+              106.19500000029802,
+              101.73499999940395
+            ],
+            "median": 101.22999999951571,
+            "p95": 110.55499999970198
+          },
+          "caller": {
+            "samples": [
+              104.74499999918044,
+              87.78500000014901,
+              90.24000000022352,
+              101.61500000022352,
+              101.77500000037253,
+              114.09999999962747,
+              129.34500000067055,
+              103.67999999970198,
+              103.58999999985099,
+              103.11500000022352
+            ],
+            "median": 103.35250000003725,
+            "p95": 129.34500000067055
+          }
+        },
+        "optimized": {
+          "compute": {
+            "samples": [
+              77.80499999970198,
+              64.7949999999255,
+              64.11500000022352,
+              83.92500000074506,
+              74.36500000022352,
+              69.68999999947846,
+              79.18500000052154,
+              71.5949999988079,
+              67.79999999888241,
+              66.33499999903142
+            ],
+            "median": 70.64249999914318,
+            "p95": 83.92500000074506
+          },
+          "caller": {
+            "samples": [
+              76.39500000141561,
+              66.28500000014901,
+              82.71499999985099,
+              68.375,
+              74.34999999962747,
+              73.84999999962747,
+              75.10999999940395,
+              72.32000000029802,
+              63.42499999888241,
+              78.22499999962747
+            ],
+            "median": 74.09999999962747,
+            "p95": 82.71499999985099
+          }
+        },
+        "wasm": {
+          "compute": {
+            "samples": [
+              21.404999999329448,
+              21.71499999985099,
+              22.5,
+              29.565000001341105,
+              23.484999999403954,
+              21.135000001639128,
+              23.75499999895692,
+              21.83999999985099,
+              25.975000001490116,
+              21.220000000670552
+            ],
+            "median": 22.169999999925494,
+            "p95": 29.565000001341105
+          },
+          "caller": {
+            "samples": [
+              31.880000000819564,
+              27.030000001192093,
+              27.12000000104308,
+              30.015000000596046,
+              27.744999999180436,
+              25.66499999910593,
+              36.56000000052154,
+              26.940000001341105,
+              26.859999999403954,
+              26.75
+            ],
+            "median": 27.075000001117587,
+            "p95": 36.56000000052154
+          }
+        }
+      },
+      "memory": {
+        "jsHeapObservedMax": 440301509,
+        "wasmLinearMemoryObservedMax": 62914560,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "laurelin",
+      "nodes": 43191,
+      "inputBytes": 2073256,
+      "inputSha256": "6e97a09edee1e685b358b07da229b6fcdab108cfeb219c8e72619b115e386997",
+      "provenance": {
+        "seed": 2,
+        "capped": false,
+        "shed": 2906,
+        "preset": {
+          "id": "laurelin",
+          "name": "Laurelin",
+          "note": "the younger: broad, domed, spreading, mass carried sideways",
+          "skeleton": {
+            "seed": 2,
+            "envelope": {
+              "height": 132,
+              "crownBase": 0.24,
+              "spread": 0.58,
+              "fullness": 0.38,
+              "shoulder": 3.2
+            },
+            "attractors": 1060,
+            "step": 0.022,
+            "bias": {
+              "gravitropism": 0.55,
+              "lean": 0.06,
+              "writheAmplitude": 0.05,
+              "writheWavelength": 0.8,
+              "spiralRate": 0.6
+            },
+            "twigs": {
+              "twig": {
+                "diameter": 0.005,
+                "internodeLength": 0.02,
+                "stationsPerInternode": 1
+              },
+              "lengthRatio": 0.4,
+              "ratioPower": 1.3,
+              "internodes": 3,
+              "laterals": 1,
+              "angle": 45,
+              "divergence": 137.508
+            },
+            "growth": {
+              "maxTurnPerStep": 46
+            }
+          },
+          "radii": {
+            "trunkRadius": 0.055,
+            "forkExponent": 2.7,
+            "lengthTaper": 0.35
+          },
+          "surface": {
+            "radialSegments": 12,
+            "lobes": 4,
+            "lobeDepth": 0.24,
+            "twistRate": 0.8,
+            "flareRadius": 3.1,
+            "flareFalloff": 0.022,
+            "flareDepth": 0.004,
+            "forkSocket": 0.5,
+            "forkSwell": 1.35
+          },
+          "canopy": {
+            "shootRadius": 0.14,
+            "spacing": 0.0065,
+            "divergence": 99.502,
+            "clump": 9,
+            "clumpSpan": 0.36,
+            "outward": 0.72,
+            "upward": 0.22,
+            "scatter": 22,
+            "size": 1.5,
+            "sizeVariation": 0.4
+          }
+        }
+      },
+      "vertices": 983340,
+      "triangles": 1901728,
+      "outputBytes": 34620816,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.0001500293986916167
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.0001500293986916167
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.0001500293986916167
+        }
+      },
+      "hashes": {
+        "reference": "1fbd69abc0a920ad88a035e2a33ccd8796cc5b866fabac7b6394a0f733f12c6b",
+        "optimized": "1fbd69abc0a920ad88a035e2a33ccd8796cc5b866fabac7b6394a0f733f12c6b",
+        "wasm": "1fbd69abc0a920ad88a035e2a33ccd8796cc5b866fabac7b6394a0f733f12c6b",
+        "native": "1fbd69abc0a920ad88a035e2a33ccd8796cc5b866fabac7b6394a0f733f12c6b"
+      },
+      "times": {
+        "reference": {
+          "compute": {
+            "samples": [
+              182.88000000081956,
+              173.69999999925494,
+              176.85500000044703,
+              170.75,
+              197.0800000000745,
+              168.18999999947846,
+              166.2199999988079,
+              261.3349999990314,
+              221.285000000149,
+              181.7050000000745
+            ],
+            "median": 179.28000000026077,
+            "p95": 261.3349999990314
+          },
+          "caller": {
+            "samples": [
+              174.02999999932945,
+              162.375,
+              173.81000000052154,
+              180.10999999940395,
+              170.5800000000745,
+              153.91500000096858,
+              161.4550000000745,
+              249.214999999851,
+              170.42500000074506,
+              163.5449999999255
+            ],
+            "median": 170.50250000040978,
+            "p95": 249.214999999851
+          }
+        },
+        "optimized": {
+          "compute": {
+            "samples": [
+              137.07000000029802,
+              125.24000000022352,
+              128.8150000013411,
+              139.81999999843538,
+              122.01500000059605,
+              130.660000000149,
+              127.875,
+              144.99000000022352,
+              147.52499999850988,
+              128.72499999962747
+            ],
+            "median": 129.73750000074506,
+            "p95": 147.52499999850988
+          },
+          "caller": {
+            "samples": [
+              121.82000000029802,
+              123.53500000014901,
+              136.660000000149,
+              116.47499999962747,
+              142.56499999947846,
+              118.56499999947846,
+              126.77000000141561,
+              435.1200000010431,
+              135.66500000096858,
+              125.8099999986589
+            ],
+            "median": 126.29000000003725,
+            "p95": 435.1200000010431
+          }
+        },
+        "wasm": {
+          "compute": {
+            "samples": [
+              36.14000000059605,
+              35.830000000074506,
+              37.5,
+              43.07000000029802,
+              36.709999999031425,
+              36.68500000052154,
+              36.37000000104308,
+              116.84999999962747,
+              66.35999999940395,
+              35.43500000052154
+            ],
+            "median": 36.69749999977648,
+            "p95": 116.84999999962747
+          },
+          "caller": {
+            "samples": [
+              63.15000000037253,
+              45.13499999977648,
+              49.5,
+              44.21000000089407,
+              45.20000000111759,
+              46.26500000059605,
+              44.880000000819564,
+              46.65999999828637,
+              83.30500000156462,
+              44.15000000037253
+            ],
+            "median": 45.73250000085682,
+            "p95": 83.30500000156462
+          }
+        }
+      },
+      "memory": {
+        "jsHeapObservedMax": 494082884,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "empty",
+      "nodes": 0,
+      "inputBytes": 88,
+      "inputSha256": "4d6bbdbb950df6d3cfb92a6349ef86566a32d429904d21a7840995e8fba5df37",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 0,
+      "triangles": 0,
+      "outputBytes": 0,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 9.5367431640625e-7
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 9.5367431640625e-7
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 9.5367431640625e-7
+        }
+      },
+      "hashes": {
+        "reference": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "optimized": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "wasm": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "native": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "root",
+      "nodes": 1,
+      "inputBytes": 136,
+      "inputSha256": "692ecfa3b5d90f7c742ac86629769f63204335142d4d3e2da2d98d5385af77a4",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 0,
+      "triangles": 0,
+      "outputBytes": 0,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 9.5367431640625e-7
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 9.5367431640625e-7
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 9.5367431640625e-7
+        }
+      },
+      "hashes": {
+        "reference": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "optimized": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "wasm": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "native": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "straight",
+      "nodes": 3,
+      "inputBytes": 232,
+      "inputSha256": "e258869c96e70ad7f0aaba61834cdfd37d47ca0d719f56f8c6a8277fd9ea626d",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 82,
+      "triangles": 160,
+      "outputBytes": 2904,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.00000762939453125
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.00000762939453125
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.00000762939453125
+        }
+      },
+      "hashes": {
+        "reference": "00519e021e4c5c0b71dbff16d3c7b4a6f04e3fd7cc158e0be69e8e46744da3ac",
+        "optimized": "00519e021e4c5c0b71dbff16d3c7b4a6f04e3fd7cc158e0be69e8e46744da3ac",
+        "wasm": "00519e021e4c5c0b71dbff16d3c7b4a6f04e3fd7cc158e0be69e8e46744da3ac",
+        "native": "00519e021e4c5c0b71dbff16d3c7b4a6f04e3fd7cc158e0be69e8e46744da3ac"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "fork",
+      "nodes": 4,
+      "inputBytes": 280,
+      "inputSha256": "af9fb7d84d2396f1fdb8e50af20fc59712a4bd0e1e5c8c7649099795a6fcab1a",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 124,
+      "triangles": 240,
+      "outputBytes": 4368,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        }
+      },
+      "hashes": {
+        "reference": "fd6057652556c72d675100313ed23ce498cc37b4415d9f2f3d7e3ac9ae5e50e2",
+        "optimized": "fd6057652556c72d675100313ed23ce498cc37b4415d9f2f3d7e3ac9ae5e50e2",
+        "wasm": "fd6057652556c72d675100313ed23ce498cc37b4415d9f2f3d7e3ac9ae5e50e2",
+        "native": "fd6057652556c72d675100313ed23ce498cc37b4415d9f2f3d7e3ac9ae5e50e2"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "duplicates",
+      "nodes": 5,
+      "inputBytes": 328,
+      "inputSha256": "041a33d201e141953de0f98d7c4974d69de437969cb4108289bc9165310a321d",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 124,
+      "triangles": 240,
+      "outputBytes": 4368,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        }
+      },
+      "hashes": {
+        "reference": "fd6057652556c72d675100313ed23ce498cc37b4415d9f2f3d7e3ac9ae5e50e2",
+        "optimized": "fd6057652556c72d675100313ed23ce498cc37b4415d9f2f3d7e3ac9ae5e50e2",
+        "wasm": "fd6057652556c72d675100313ed23ce498cc37b4415d9f2f3d7e3ac9ae5e50e2",
+        "native": "fd6057652556c72d675100313ed23ce498cc37b4415d9f2f3d7e3ac9ae5e50e2"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "reversal",
+      "nodes": 3,
+      "inputBytes": 232,
+      "inputSha256": "a3bf14224eb738172c2df364f4cc745b29fbf59a9858a5bad05ff22353f6abd9",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 82,
+      "triangles": 160,
+      "outputBytes": 2904,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.000003814697265625
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.000003814697265625
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.000003814697265625
+        }
+      },
+      "hashes": {
+        "reference": "33c444ed6575e8870a91c2524f46f935196ef25d74dce2a3f8709f9075e509c5",
+        "optimized": "33c444ed6575e8870a91c2524f46f935196ef25d74dce2a3f8709f9075e509c5",
+        "wasm": "33c444ed6575e8870a91c2524f46f935196ef25d74dce2a3f8709f9075e509c5",
+        "native": "33c444ed6575e8870a91c2524f46f935196ef25d74dce2a3f8709f9075e509c5"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "all_duplicates",
+      "nodes": 3,
+      "inputBytes": 232,
+      "inputSha256": "bd7df284dffaa5d04535e768d5641d90f7f0bfb5c3a71b0435503314b77ad2af",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 0,
+      "triangles": 0,
+      "outputBytes": 0,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 9.5367431640625e-7
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 9.5367431640625e-7
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 9.5367431640625e-7
+        }
+      },
+      "hashes": {
+        "reference": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "optimized": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "wasm": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "native": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "root_fork",
+      "nodes": 3,
+      "inputBytes": 232,
+      "inputSha256": "d99cf69c30bd82763b49ed4323e80af32984833a208e55984dbba5561c0e7b56",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 104,
+      "triangles": 200,
+      "outputBytes": 3648,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.0000019073486328125
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.0000019073486328125
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.0000019073486328125
+        }
+      },
+      "hashes": {
+        "reference": "bf946beae16a5968f7cec56709e67bca021332847f5a2bbd3ee539e555730e82",
+        "optimized": "bf946beae16a5968f7cec56709e67bca021332847f5a2bbd3ee539e555730e82",
+        "wasm": "bf946beae16a5968f7cec56709e67bca021332847f5a2bbd3ee539e555730e82",
+        "native": "bf946beae16a5968f7cec56709e67bca021332847f5a2bbd3ee539e555730e82"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "no_burial",
+      "nodes": 4,
+      "inputBytes": 280,
+      "inputSha256": "ef220a672bcf0c881fad966c99b5953099d76fc29f9e16342b5634e56e04f7f5",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 64,
+      "triangles": 120,
+      "outputBytes": 2208,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        }
+      },
+      "hashes": {
+        "reference": "be0065f81ebe78e1cab9ceb00c0dd3cc594f4867f8cf942e6f3274537cc95b56",
+        "optimized": "be0065f81ebe78e1cab9ceb00c0dd3cc594f4867f8cf942e6f3274537cc95b56",
+        "wasm": "be0065f81ebe78e1cab9ceb00c0dd3cc594f4867f8cf942e6f3274537cc95b56",
+        "native": "be0065f81ebe78e1cab9ceb00c0dd3cc594f4867f8cf942e6f3274537cc95b56"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "rails",
+      "nodes": 4,
+      "inputBytes": 280,
+      "inputSha256": "77e3019853eb6014c9c8b237760a976b62e528e69775316d6617ccb8730f2fa8",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 22,
+      "triangles": 36,
+      "outputBytes": 696,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        }
+      },
+      "hashes": {
+        "reference": "2d9fbb11060be720db31206b22996586394127ab82611a2282a5b7b8e9ff623a",
+        "optimized": "2d9fbb11060be720db31206b22996586394127ab82611a2282a5b7b8e9ff623a",
+        "wasm": "2d9fbb11060be720db31206b22996586394127ab82611a2282a5b7b8e9ff623a",
+        "native": "2d9fbb11060be720db31206b22996586394127ab82611a2282a5b7b8e9ff623a"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    },
+    {
+      "name": "max_rails",
+      "nodes": 4,
+      "inputBytes": 280,
+      "inputSha256": "669d8e0c3d6ea086bf7cc6cdaf42067d2c2ca03280632f1a2a171cfa16ad6b41",
+      "provenance": "synthetic hand-authored topology",
+      "vertices": 388,
+      "triangles": 768,
+      "outputBytes": 13872,
+      "correctness": {
+        "optimized": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "wasm": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        },
+        "native": {
+          "maxError": 0,
+          "tolerance": 0.0000057220458984375
+        }
+      },
+      "hashes": {
+        "reference": "2fd1425d8e1c25e6b491edbb755f2216dc9d06d7334c1a2bbeb75f96938ec881",
+        "optimized": "2fd1425d8e1c25e6b491edbb755f2216dc9d06d7334c1a2bbeb75f96938ec881",
+        "wasm": "2fd1425d8e1c25e6b491edbb755f2216dc9d06d7334c1a2bbeb75f96938ec881",
+        "native": "2fd1425d8e1c25e6b491edbb755f2216dc9d06d7334c1a2bbeb75f96938ec881"
+      },
+      "times": {},
+      "memory": {
+        "jsHeapObservedMax": null,
+        "wasmLinearMemoryObservedMax": 108658688,
+        "totalBrowserPeak": null
+      }
+    }
+  ],
+  "sink": 758203440,
+  "native": [
+    {
+      "name": "telperion",
+      "peakRss": "VmHWM:\t   50192 kB",
+      "outputBytes": 22177632,
+      "serializedOutputSha256": "15d56d400e03c7d2f33f0db829ee77052b78d9cbb6ca6ab032eb9e02c507f136",
+      "compute": {
+        "samples": [
+          20.206301,
+          17.690618,
+          17.576656,
+          17.833681000000002,
+          20.14104,
+          17.955954,
+          19.744061,
+          18.437203999999998,
+          17.717468,
+          19.945896
+        ],
+        "median": 18.196579,
+        "p95": 20.206301
+      },
+      "caller": {
+        "samples": [
+          18.135207,
+          17.654876,
+          17.523593,
+          20.293713,
+          18.902513,
+          20.734082,
+          20.910576,
+          18.186898,
+          17.994604000000002,
+          24.622805
+        ],
+        "median": 18.5447055,
+        "p95": 24.622805
+      }
+    },
+    {
+      "name": "laurelin",
+      "peakRss": "VmHWM:\t   82652 kB",
+      "outputBytes": 34620816,
+      "serializedOutputSha256": "5da7179ee88973f4217c89863bc2101f3ff2098c584fbae1459d370098a08259",
+      "compute": {
+        "samples": [
+          29.930509,
+          29.942118999999998,
+          32.79213,
+          30.643004,
+          30.400028,
+          30.054301,
+          30.908248999999998,
+          30.627804,
+          30.437448999999997,
+          32.925162
+        ],
+        "median": 30.5326265,
+        "p95": 32.925162
+      },
+      "caller": {
+        "samples": [
+          31.090653,
+          30.028040999999998,
+          31.116594,
+          30.375118,
+          30.91631,
+          32.356001,
+          31.474902,
+          30.532061,
+          33.894543999999996,
+          30.617724
+        ],
+        "median": 31.0034815,
+        "p95": 33.894543999999996
+      }
+    },
+    {
+      "name": "empty",
+      "peakRss": "VmHWM:\t    2628 kB",
+      "outputBytes": 0,
+      "serializedOutputSha256": "af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "compute": {
+        "samples": [
+          0.00008999999999999999,
+          0.000029999999999999997,
+          0.00002,
+          0.000029999999999999997,
+          0.00002,
+          0.000029999999999999997,
+          0.000029999999999999997,
+          0.000029999999999999997,
+          0.000029999999999999997,
+          0.000029999999999999997
+        ],
+        "median": 0.000029999999999999997,
+        "p95": 0.00008999999999999999
+      },
+      "caller": {
+        "samples": [
+          0.000059999999999999995,
+          0.000029999999999999997,
+          0.00002,
+          0.00002,
+          0.00002,
+          0.00002,
+          0.00002,
+          0.00002,
+          0.000029999999999999997,
+          0.00002
+        ],
+        "median": 0.00002,
+        "p95": 0.000059999999999999995
+      }
+    },
+    {
+      "name": "root",
+      "peakRss": "VmHWM:\t    2700 kB",
+      "outputBytes": 0,
+      "serializedOutputSha256": "af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "compute": {
+        "samples": [
+          0.00009999999999999999,
+          0.000029999999999999997,
+          0.000029999999999999997,
+          0.000029999999999999997,
+          0.000029999999999999997,
+          0.000029999999999999997,
+          0.000029999999999999997,
+          0.00002,
+          0.000029999999999999997,
+          0.000029999999999999997
+        ],
+        "median": 0.000029999999999999997,
+        "p95": 0.00009999999999999999
+      },
+      "caller": {
+        "samples": [
+          0.0018909999999999999,
+          0.000049999999999999996,
+          0.000049999999999999996,
+          0.00004,
+          0.00004,
+          0.000049999999999999996,
+          0.00004,
+          0.000049999999999999996,
+          0.000049999999999999996,
+          0.00004
+        ],
+        "median": 0.000049999999999999996,
+        "p95": 0.0018909999999999999
+      }
+    },
+    {
+      "name": "straight",
+      "peakRss": "VmHWM:\t    3068 kB",
+      "outputBytes": 2904,
+      "serializedOutputSha256": "6c3a240caf2e707407c7c5575bbf9b99a6300e70abc7990672f5bd3513977415",
+      "compute": {
+        "samples": [
+          0.0025009999999999998,
+          0.00234,
+          0.00233,
+          0.00233,
+          0.0024,
+          0.00235,
+          0.00232,
+          0.0024,
+          0.00234,
+          0.00233
+        ],
+        "median": 0.00234,
+        "p95": 0.0025009999999999998
+      },
+      "caller": {
+        "samples": [
+          0.0024600000000000004,
+          0.00237,
+          0.00237,
+          0.0023599999999999997,
+          0.00237,
+          0.00239,
+          0.00241,
+          0.00235,
+          0.0023599999999999997,
+          0.0023309999999999997
+        ],
+        "median": 0.00237,
+        "p95": 0.0024600000000000004
+      }
+    },
+    {
+      "name": "fork",
+      "peakRss": "VmHWM:\t    3076 kB",
+      "outputBytes": 4368,
+      "serializedOutputSha256": "094b98f7cd86ad7c1afadebf19a0278cfad6285eb4d010b3e95bb039e9e0aa0b",
+      "compute": {
+        "samples": [
+          0.0038410000000000002,
+          0.00376,
+          0.00365,
+          0.00371,
+          0.00362,
+          0.00382,
+          0.003691,
+          0.00366,
+          0.0036,
+          0.00365
+        ],
+        "median": 0.0036755,
+        "p95": 0.0038410000000000002
+      },
+      "caller": {
+        "samples": [
+          0.00382,
+          0.0037,
+          0.00362,
+          0.0036100000000000004,
+          0.00364,
+          0.00371,
+          0.00367,
+          0.0036,
+          0.0036100000000000004,
+          0.00362
+        ],
+        "median": 0.00363,
+        "p95": 0.00382
+      }
+    },
+    {
+      "name": "duplicates",
+      "peakRss": "VmHWM:\t    3040 kB",
+      "outputBytes": 4368,
+      "serializedOutputSha256": "094b98f7cd86ad7c1afadebf19a0278cfad6285eb4d010b3e95bb039e9e0aa0b",
+      "compute": {
+        "samples": [
+          0.0037500000000000003,
+          0.00365,
+          0.0036,
+          0.00353,
+          0.0035700000000000003,
+          0.0037500000000000003,
+          0.0035499999999999998,
+          0.00359,
+          0.0035499999999999998,
+          0.0035310000000000003
+        ],
+        "median": 0.00358,
+        "p95": 0.0037500000000000003
+      },
+      "caller": {
+        "samples": [
+          0.00373,
+          0.0036100000000000004,
+          0.003581,
+          0.00354,
+          0.00363,
+          0.00366,
+          0.00358,
+          0.0035499999999999998,
+          0.00356,
+          0.00359
+        ],
+        "median": 0.0035855,
+        "p95": 0.00373
+      }
+    },
+    {
+      "name": "reversal",
+      "peakRss": "VmHWM:\t    2956 kB",
+      "outputBytes": 2904,
+      "serializedOutputSha256": "d56e07f4083392220905e6766f192ba97652884a81364710a8d0d5aee7f1648e",
+      "compute": {
+        "samples": [
+          0.00247,
+          0.00234,
+          0.00233,
+          0.00232,
+          0.0023,
+          0.00233,
+          0.00229,
+          0.0023599999999999997,
+          0.00232,
+          0.00232
+        ],
+        "median": 0.002325,
+        "p95": 0.00247
+      },
+      "caller": {
+        "samples": [
+          0.00243,
+          0.00233,
+          0.00234,
+          0.0023309999999999997,
+          0.00233,
+          0.00237,
+          0.00239,
+          0.00234,
+          0.00233,
+          0.00234
+        ],
+        "median": 0.00234,
+        "p95": 0.00243
+      }
+    },
+    {
+      "name": "all_duplicates",
+      "peakRss": "VmHWM:\t    2676 kB",
+      "outputBytes": 0,
+      "serializedOutputSha256": "af5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "compute": {
+        "samples": [
+          0.00014000000000000001,
+          0.000049999999999999996,
+          0.000049999999999999996,
+          0.000049999999999999996,
+          0.000059999999999999995,
+          0.000049999999999999996,
+          0.000059999999999999995,
+          0.000059999999999999995,
+          0.000049999999999999996,
+          0.000059999999999999995
+        ],
+        "median": 0.000054999999999999995,
+        "p95": 0.00014000000000000001
+      },
+      "caller": {
+        "samples": [
+          0.00011,
+          0.000059999999999999995,
+          0.000059999999999999995,
+          0.000059999999999999995,
+          0.000059999999999999995,
+          0.000059999999999999995,
+          0.000059999999999999995,
+          0.000059999999999999995,
+          0.000049999999999999996,
+          0.000059999999999999995
+        ],
+        "median": 0.000059999999999999995,
+        "p95": 0.00011
+      }
+    },
+    {
+      "name": "root_fork",
+      "peakRss": "VmHWM:\t    3076 kB",
+      "outputBytes": 3648,
+      "serializedOutputSha256": "6e7fe01a1bd1dcdf580f3a8c528b445f6cb84aedf8467dbef15e58e68c2ac9cd",
+      "compute": {
+        "samples": [
+          0.00304,
+          0.003021,
+          0.00293,
+          0.0028899999999999998,
+          0.00295,
+          0.0029000000000000002,
+          0.0028899999999999998,
+          0.00286,
+          0.00287,
+          0.002961
+        ],
+        "median": 0.002915,
+        "p95": 0.00304
+      },
+      "caller": {
+        "samples": [
+          0.00317,
+          0.00295,
+          0.00294,
+          0.00292,
+          0.00293,
+          0.0028799999999999997,
+          0.0028899999999999998,
+          0.0028899999999999998,
+          0.00299,
+          0.0029000000000000002
+        ],
+        "median": 0.0029249999999999996,
+        "p95": 0.00317
+      }
+    },
+    {
+      "name": "no_burial",
+      "peakRss": "VmHWM:\t    3084 kB",
+      "outputBytes": 2208,
+      "serializedOutputSha256": "7b437dd58dcaadea8823780ce1f504905a4987d7b038a7924fd37eea0f27e078",
+      "compute": {
+        "samples": [
+          0.00173,
+          0.00153,
+          0.00152,
+          0.00148,
+          0.00148,
+          0.00149,
+          0.00152,
+          0.00153,
+          0.00153,
+          0.00152
+        ],
+        "median": 0.00152,
+        "p95": 0.00173
+      },
+      "caller": {
+        "samples": [
+          0.00164,
+          0.0015400000000000001,
+          0.00149,
+          0.001511,
+          0.0015,
+          0.0015400000000000001,
+          0.0015999999999999999,
+          0.00153,
+          0.00148,
+          0.00147
+        ],
+        "median": 0.0015205,
+        "p95": 0.00164
+      }
+    },
+    {
+      "name": "rails",
+      "peakRss": "VmHWM:\t    2912 kB",
+      "outputBytes": 696,
+      "serializedOutputSha256": "ac92d05fd95daad8495c13f5e841a6333abfedd75c8bb2c4ec111149c19fb116",
+      "compute": {
+        "samples": [
+          0.00098,
+          0.00082,
+          0.00082,
+          0.00087,
+          0.00083,
+          0.00084,
+          0.00087,
+          0.00089,
+          0.0008500000000000001,
+          0.0008500000000000001
+        ],
+        "median": 0.0008500000000000001,
+        "p95": 0.00098
+      },
+      "caller": {
+        "samples": [
+          0.00094,
+          0.00089,
+          0.00084,
+          0.00086,
+          0.00087,
+          0.00086,
+          0.00091,
+          0.00086,
+          0.000851,
+          0.00084
+        ],
+        "median": 0.00086,
+        "p95": 0.00094
+      }
+    },
+    {
+      "name": "max_rails",
+      "peakRss": "VmHWM:\t    2948 kB",
+      "outputBytes": 13872,
+      "serializedOutputSha256": "139ee72c94dac48c953fa06d85ed71be3299ecc9801ce4ed956df1ded8eab44c",
+      "compute": {
+        "samples": [
+          0.01359,
+          0.013221,
+          0.013,
+          0.012880999999999998,
+          0.013091,
+          0.013,
+          0.01282,
+          0.012809999999999998,
+          0.0129,
+          0.012811
+        ],
+        "median": 0.01295,
+        "p95": 0.01359
+      },
+      "caller": {
+        "samples": [
+          0.01339,
+          0.01312,
+          0.0129,
+          0.03703,
+          0.01303,
+          0.012841,
+          0.01289,
+          0.016011,
+          0.0129,
+          0.012809999999999998
+        ],
+        "median": 0.012965,
+        "p95": 0.03703
+      }
+    }
+  ],
+  "host": {
+    "platform": "linux",
+    "release": "7.1.9-arch1-2",
+    "cpu": "AMD Ryzen 9 5950X 16-Core Processor",
+    "logicalCpus": 32,
+    "ramBytes": 33561403392,
+    "node": "v26.8.1",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "chromium": "Chromium 151.0.7922.173 Arch Linux",
+    "three": "0.185.1"
+  },
+  "build": {
+    "profile": "release",
+    "rustflags": "-D warnings",
+    "lto": true,
+    "codegenUnits": 1,
+    "wasmSha256": "d279a41fd43730644e62f75be8829664bca97682d9d67f65f18cfee1657fad0a",
+    "sourceSha256": {
+      "rust/lib.rs": "e6b0e86b87cc0abff85c3aa475d289b6d1b75970e1f1eb5513e0228dbf0801a2",
+      "rust/main.rs": "61d7d14db305035f9ebeb542b8a728ca631c5ea04701fde544eb50773afa36c0",
+      "optimized.ts": "5d0e4ac418e1bcbff3ac4010b5b2a712a98ceeb036bed4f529b5505bbc4a4b7b",
+      "browser.ts": "4bad1de3388e4d24e7afeb2720a65bf293485a7280947648ac9e40784dd3f30b",
+      "shared.ts": "0fdf58e3c35c8336233237744189049292b4ce323ffe33f3d838a6308e083b1b",
+      "fixtures.ts": "06bcecf90c8bb37bceb43e8cc93157b07d7cc27fb51d1c427f84a28400b896de",
+      "build.mjs": "b10f0cfedf833df8174822856a39cb281f8a34fbfea43bde3178b772fbce28ea",
+      "run.mjs": "12673e1cab2f60080cb2c8f2f4b73d14c973f03e8f43bff08007a9a3e122a1c7",
+      "Cargo.toml": "94b019094ce158fb9172489844a11ee425f14bfc5ccc482d336b9708f6df159d",
+      "Cargo.lock": "f15d8d3936e3c087a43cf65da579fd21d6bb87b0c360c5b9e672d8c57420d2b0"
+    }
+  },
+  "timestamp": "2026-09-05T13:00:47.464Z"
+}
