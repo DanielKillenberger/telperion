@@ -158,14 +158,16 @@ describe("toSkeletonParams", () => {
     // the lateral count reaches the tree and adds branches.
     const mapped = toSkeletonParams({ ...DEFAULT_PARAMS, laterals: 2 });
     expect(mapped.twigs).toEqual({
-      twig: { diameter: DEFAULT_PARAMS.twigDiameter, internodeLength: DEFAULT_PARAMS.twigStationLength,
-        stationsPerInternode: DEFAULT_PARAMS.twigStations },
+      twig: { length: DEFAULT_PARAMS.twigLength, diameter: DEFAULT_PARAMS.twigDiameter, internodeLength: DEFAULT_PARAMS.twigStationLength,
+        stationsPerInternode: DEFAULT_PARAMS.twigStations, bearingDiameter: DEFAULT_PARAMS.twigBearing },
       ratioPower: DEFAULT_PARAMS.ratioPower,
       limbRadius: DEFAULT_PARAMS.limbRadius,
       laterals: 2,
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
-      internodes: DEFAULT_PARAMS.internodes,
+      internodeFactor: DEFAULT_PARAMS.internodeFactor,
+      angleVariation: DEFAULT_PARAMS.angleVariation,
+      vigourVariation: DEFAULT_PARAMS.vigourVariation,
       lengthRatio: DEFAULT_PARAMS.lengthRatio,
     });
     expect(mapped.twigs).not.toHaveProperty("levels");
@@ -736,8 +738,11 @@ describe("the forest's own numbers", () => {
     // and its crown, and every leaf on both trees is instanced.
     expect(forest.drawCalls).toBe(PRESETS.length * 2);
     expect(forest.instances).toBeGreaterThan(0);
-    expect(alone.map((one) => one.handoffs)).toEqual([604, 1336]);
-    expect(alone.map((one) => one.twigs)).toEqual([19744, 40781]);
+    // Task 8: tips bear laterals as well as leaders, so handoffs rose from
+    // 604 / 1,336; the fine wood bears a twig at every station a twig's
+    // length apart, so twigs rose from 19,744 / 40,781.
+    expect(alone.map((one) => one.handoffs)).toEqual([1180, 2333]);
+    expect(alone.map((one) => one.twigs)).toEqual([31894, 60604]);
     for (const key of ["handoffs", "levelCappedHandoffs", "twigs"] as const) {
       expect(forest[key]).toBe(alone.reduce((sum, one) => sum + one[key], 0));
     }

@@ -1,11 +1,12 @@
 import * as THREE from "three";
+import { createRng } from "../rng";
 import type { RadiusField } from "../radius";
 import { DEFAULT_MAX_TURN_PER_STEP, limitTurn, type GrowthConfig, type Skeleton, type SkeletonNode } from "./colonize";
-import { branchLength, childRadius, DEFAULT_BRANCH_LAW, DEFAULT_TWIG_ANATOMY, type TwigAnatomy } from "./law";
+import { branchLength, childRadius, internodeLength, DEFAULT_BRANCH_LAW, DEFAULT_TWIG_ANATOMY, type TwigAnatomy } from "./law";
 
 /** Records are parallel to nodes[crossover..], indexed by node - crossover.
  * Branch ids are absolute node indices naming the first internode of a run.
- * A twig is its own one-internode branch with the anatomy's fixed radius.
+ * A twig is its own single-edge branch with the anatomy's fixed radius.
  * Cap flags survive shedding; refusal returns the input nodes unchanged. */
 export interface TwiggedSkeleton extends Skeleton {
   crossover: number;
@@ -23,30 +24,36 @@ export interface TwigParams {
   lengthRatio: number;
   /** Radius-from-length exponent, held to 0..8. */
   ratioPower: number;
-  /** Steps in a branch run, rounded and held to 1..32. */
-  internodes: number;
-  /** Laterals at each interior station, rounded and held to 0..7. */
+  /** Geometric internode length in branch diameters, held to 0.05..32. */
+  internodeFactor: number;
+  /** Side branches per branch, rounded and held to 0..7. */
   laterals: number;
   /** Colonization lateral threshold as a fraction of root radius, held to 0..1. */
   limbRadius: number;
   /** Lateral departure in degrees, held to 0..90. */
   angle: number;
+  /** Symmetric departure spread in degrees, held to 0..90. */
+  angleVariation: number;
+  /** Symmetric lateral length-ratio spread, held to 0..0.95. */
+  vigourVariation: number;
   /** Lineage phyllotaxis in degrees; any finite angle. */
   divergence: number;
 }
 
-/** The measured three-internode topology has two lateral stations and
- * one terminal twig. Anatomy and allometry are sourced in law.ts;
+/** Each branch bears its own lateral count and one terminal twig.
+ * Anatomy and allometry are sourced in law.ts;
  * 45 degrees and golden-angle phyllotaxis follow Weber & Penn's fine
  * branches and Jean's spiral arrangement. */
 export const DEFAULT_TWIGS: TwigParams = {
   get twig() { return DEFAULT_TWIG_ANATOMY; },
   get lengthRatio() { return DEFAULT_BRANCH_LAW.lengthRatio; },
   get ratioPower() { return DEFAULT_BRANCH_LAW.ratioPower; },
-  internodes: 3,
-  laterals: 1,
+  get internodeFactor() { return DEFAULT_BRANCH_LAW.internodeFactor; },
+  laterals: 2,
   limbRadius: 0.1,
   angle: 45,
+  angleVariation: 10,
+  vigourVariation: 0.15,
   divergence: 137.508,
 };
 export const MAX_TWIG_LEVELS = 12;
@@ -60,16 +67,20 @@ export function resolveTwigs(twigs?: Partial<TwigParams>): TwigParams {
   const twig = { ...DEFAULT_TWIG_ANATOMY, ...asked.twig };
   return {
     twig: {
+      length: pinned(held(twig.length, DEFAULT_TWIG_ANATOMY.length), 1e-6, 1e6),
       diameter: pinned(held(twig.diameter, DEFAULT_TWIG_ANATOMY.diameter), 1e-6, 1e6),
       internodeLength: pinned(held(twig.internodeLength, DEFAULT_TWIG_ANATOMY.internodeLength), 1e-6, 1e6),
       stationsPerInternode: pinned(Math.round(held(twig.stationsPerInternode, DEFAULT_TWIG_ANATOMY.stationsPerInternode)), 1, 32),
+      bearingDiameter: pinned(held(twig.bearingDiameter, DEFAULT_TWIG_ANATOMY.bearingDiameter), 1e-6, 1e6),
     },
     lengthRatio: pinned(held(asked.lengthRatio, DEFAULT_TWIGS.lengthRatio), 0.05, 1),
     ratioPower: pinned(held(asked.ratioPower, DEFAULT_TWIGS.ratioPower), 0, 8),
-    internodes: pinned(Math.round(held(asked.internodes, DEFAULT_TWIGS.internodes)), 1, 32),
+    internodeFactor: pinned(held(asked.internodeFactor, DEFAULT_TWIGS.internodeFactor), 0.05, 32),
     laterals: pinned(Math.round(held(asked.laterals, DEFAULT_TWIGS.laterals)), 0, 7),
     limbRadius: pinned(held(asked.limbRadius, DEFAULT_TWIGS.limbRadius), 0, 1),
     angle: pinned(held(asked.angle, DEFAULT_TWIGS.angle), 0, 90),
+    angleVariation: pinned(held(asked.angleVariation, DEFAULT_TWIGS.angleVariation), 0, 90),
+    vigourVariation: pinned(held(asked.vigourVariation, DEFAULT_TWIGS.vigourVariation), 0, 0.95),
     divergence: held(asked.divergence, DEFAULT_TWIGS.divergence),
   };
 }
@@ -122,6 +133,8 @@ interface Shoot {
   branch: number;
   completed: number;
   generation: number;
+  internodes: number;
+  key: number;
 }
 
 /** Continues tips and seeds laterals along eligible limbs under the
@@ -129,13 +142,14 @@ interface Shoot {
  * branch's radius and length allocation through its internodes; laterals
  * start the next generation. Every completed run bears one fixed twig.
  * The bias receives colonization's step at every internode and limitTurn
- * binds each accepted direction to the node's own arrival direction.
+ * binds curvature to arrival; a lateral starts from its anatomical angle.
  * Pure, breadth-first and deterministic, with no shared random stream. */
 export function branchTwigs(
   skeleton: Skeleton,
   field: RadiusField,
   config: GrowthConfig,
   params: TwigParams,
+  seed = 0,
 ): TwiggedSkeleton {
   const base = skeleton.nodes;
   const nodes: SkeletonNode[] = base.slice();
@@ -160,6 +174,13 @@ export function branchTwigs(
   if (base.length < 2 || !(config.stepDistance > 0)) return result();
   const twigs = resolveTwigs(params);
   const twigRadius = twigs.twig.diameter / 2;
+  /* On twig-bearing wood the internode is at least a twig's length:
+     shoots are spaced no closer than their own length, which is what a
+     fine branch looks like and what keeps the twig count bounded. */
+  const branchInternodes = (radius: number, length: number) => Math.max(1, Math.round(
+    length / internodeLength(radius, length, twigs.internodeFactor,
+      radius <= twigs.twig.bearingDiameter / 2 ? twigs.twig.length : twigs.twig.internodeLength)));
+
   const step = config.stepDistance;
   const maxTurn = Math.max(0, held(config.maxTurnPerStep ?? NaN, DEFAULT_MAX_TURN_PER_STEP)) * DEG_TO_RAD;
   const tilt = twigs.angle * DEG_TO_RAD;
@@ -176,7 +197,8 @@ export function branchTwigs(
     direction.normalize();
     const radius = Math.max(0, held(field.radius[i], 0));
     frontier.push({ at: i, direction, normal: perpendicular(direction), phase: (i * divergence) % (2 * Math.PI),
-      radius, length: branchLength(radius), branch: -1, completed: 0, generation: 0 });
+      radius, length: branchLength(radius), branch: -1, completed: 0, generation: 0,
+      internodes: branchInternodes(radius, branchLength(radius)), key: i });
   }
   const binormal = new THREE.Vector3();
   const wanted = new THREE.Vector3();
@@ -192,27 +214,63 @@ export function branchTwigs(
       binormal.crossVectors(from, shoot.normal);
       accepted.length = 0;
       const origin = shoot.at < crossover;
-      const bearsLaterals = origin
-        ? shoot.radius < twigs.limbRadius * field.radius[0]
-        : shoot.completed > 0 && shoot.completed < twigs.internodes;
-      const laterals = bearsLaterals ? twigs.laterals : 0;
+      /* Wood at or under the bearing diameter is the last order: it
+         carries a twig at every internode station and no lateral
+         branch. Thicker wood bears its stated laterals at evenly spaced
+         stations. Real shoots grow from buds on the youngest wood; a
+         limb bears branches, a branch bears branches until it is fine,
+         and the fine branch bears the shoots. */
+      const bearing = !origin && shoot.radius <= twigs.twig.bearingDiameter / 2;
+      let laterals = 0;
+      let firstLateral = 0;
+      if (origin) {
+        if (shoot.radius < twigs.limbRadius * field.radius[0]) laterals = twigs.laterals;
+      } else if (bearing) {
+        if (shoot.completed > 0 && shoot.completed < shoot.internodes) {
+          laterals = 1;
+          firstLateral = shoot.completed;
+        }
+      } else {
+        for (let j = 0; j < twigs.laterals; j++) {
+          const station = Math.max(1, Math.round((j + 1) * shoot.internodes / (twigs.laterals + 1)));
+          if (station === shoot.completed) {
+            if (laterals === 0) firstLateral = j;
+            laterals++;
+          }
+        }
+      }
       for (let c = 0; c <= laterals; c++) {
         const lateral = c > 0;
         if (!lateral && origin && children[shoot.at] !== 0) continue;
-        const radius = lateral ? childRadius(shoot.radius, twigs.lengthRatio, twigs.ratioPower) : shoot.radius;
-        const length = lateral ? shoot.length * twigs.lengthRatio : shoot.length;
+        // Colonization index roots the identity; lateral ordinals extend it.
+        // Appended array indices change on a prefix or a finer resolution.
+        const bud = firstLateral + c;
+        const key = lateral ? (createRng(shoot.key ^ Math.imul(bud, 0x9e3779b9)).next() * 0x100000000) >>> 0 : shoot.key;
+        const draw = (salt: number) => 2 * createRng(key ^ seed ^ salt).next() - 1;
+        const ratio = lateral && twigs.vigourVariation !== 0
+          ? pinned(twigs.lengthRatio * (1 + twigs.vigourVariation * draw(0x68bc21eb)), 0.05, 1)
+          : twigs.lengthRatio;
+        const departure = lateral && twigs.angleVariation !== 0
+          ? pinned(twigs.angle + twigs.angleVariation * draw(0x02e5be93), 0, 90) * DEG_TO_RAD : tilt;
+        const radius = lateral ? childRadius(shoot.radius, ratio, twigs.ratioPower) : shoot.radius;
+        const length = lateral ? shoot.length * ratio : shoot.length;
         const generation = shoot.generation + Number(lateral);
-        const terminal = !lateral && shoot.completed === twigs.internodes;
-        const isTwig = terminal || radius <= twigRadius || length < twigs.twig.internodeLength;
+        const terminal = !lateral && shoot.completed === shoot.internodes;
+        const isTwig = terminal || (lateral && bearing) || radius <= twigRadius || length < twigs.twig.internodeLength;
+        const startsRun = lateral || shoot.branch < 0 || terminal;
+        const completed = startsRun ? 0 : shoot.completed;
+        const internodes = lateral ? branchInternodes(radius, length) : shoot.internodes;
         if (!isTwig && generation >= MAX_TWIG_LEVELS) { levelCapped = true; continue; }
         if (!lateral) wanted.copy(from);
         else {
-          const azimuth = phase + ((c - 1) * Math.PI * 2) / laterals;
+          const azimuth = origin
+            ? phase + ((c - 1) * Math.PI * 2) / laterals
+            : phase + (firstLateral + c - 1) * divergence;
           across.copy(shoot.normal).multiplyScalar(Math.cos(azimuth)).addScaledVector(binormal, Math.sin(azimuth));
-          wanted.copy(from).multiplyScalar(Math.cos(tilt)).addScaledVector(across, Math.sin(tilt));
+          wanted.copy(from).multiplyScalar(Math.cos(departure)).addScaledVector(across, Math.sin(departure));
         }
         const heading = limitTurn(
-          from,
+          lateral ? wanted : from,
           config.bias ? config.bias(position, wanted, step) : wanted.clone().normalize(),
           maxTurn,
         );
@@ -221,20 +279,20 @@ export function branchTwigs(
           for (let a = 0; a < accepted.length && !collides; a++) collides = accepted[a].dot(heading) >= separation;
           if (collides) continue;
         }
-        const distance = isTwig ? twigs.twig.internodeLength : length / twigs.internodes;
+        const distance = isTwig ? twigs.twig.length : length / internodes;
         candidate.copy(position).addScaledVector(heading, distance);
         if (candidate.y < config.trunkHeight) continue;
         if (nodes.length >= config.maxNodes) { nodeCapped = true; return result(); }
         if (lateral) accepted.push(heading);
         const id = nodes.length;
-        const branch = isTwig || lateral || shoot.branch < 0 ? id : shoot.branch;
+        const branch = startsRun ? id : shoot.branch;
         nodes.push({ position: candidate.clone(), parent: shoot.at });
         branchIds.push(branch);
         radii.push(isTwig ? twigRadius : radius);
         marks.push(Number(isTwig));
         if (!isTwig) next.push({ at: id, direction: heading,
           normal: transport(shoot.normal, binormal, heading), phase, radius, length,
-          branch, completed: lateral ? 1 : shoot.completed + 1, generation });
+          branch, completed: completed + 1, generation, internodes, key });
       }
     }
     frontier = next;

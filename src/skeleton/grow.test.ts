@@ -620,14 +620,14 @@ describe("defaultGrowth", () => {
 
 describe("the node ceiling under twigs", () => {
   it("keeps the safety ceiling across branch anatomy and step changes", () => {
-    for (const internodes of [1, 3, 8]) for (const laterals of [0, 1, 7]) {
+    for (const internodeFactor of [1.5, 2.5, 6]) for (const laterals of [0, 1, 7]) {
       expect(resolveGrowth({ ...TELPERION.skeleton, step: 0.003,
-        twigs: { ...TELPERION.skeleton.twigs, internodes, laterals } }).maxNodes).toBe(250000);
+        twigs: { ...TELPERION.skeleton.twigs, internodeFactor, laterals } }).maxNodes).toBe(250000);
     }
   });
 
   it("uses the caller's radii before growth and agrees with the final solve above the crossover", () => {
-    const tree = TELPERION.skeleton;
+    const tree = { ...TELPERION.skeleton, twigs: { ...TELPERION.skeleton.twigs, angleVariation: 0, vigourVariation: 0 } };
     const base = colonized(tree);
     const variants = [TELPERION.radii,
       { ...TELPERION.radii, trunkRadius: TELPERION.radii.trunkRadius / 10 },
@@ -658,7 +658,7 @@ describe("the node ceiling under twigs", () => {
 
   it("reports the generation cap separately from the law-derived node budget", () => {
     const report = growReport({ ...TELPERION.skeleton, attractors: 1,
-      twigs: { ...TELPERION.skeleton.twigs, internodes: 2, lengthRatio: 1, limbRadius: 0 },
+      twigs: { ...TELPERION.skeleton.twigs, internodeFactor: 32, laterals: 1, angleVariation: 0, vigourVariation: 0, lengthRatio: 1, limbRadius: 0 },
       bias: NO_BIAS, growth: { maxTurnPerStep: 90 },
     }, TELPERION.radii);
     expect(report.levelCapped).toBe(true);

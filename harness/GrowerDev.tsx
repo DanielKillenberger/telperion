@@ -466,7 +466,7 @@ export function GrowerDev() {
           <p className="gd-note">
             {stats.generations === null
               ? "no surviving handoffs"
-              : `derived generations min / median / max: ${stats.generations.min} / ${stats.generations.median} / ${stats.generations.max}; ${stats.handoffs.toLocaleString()} surviving handoffs; ${stats.levelCappedHandoffs.toLocaleString()} level-capped by radius law; ${stats.twigs.toLocaleString()} twigs`}
+              : `derived generations min / median / max: ${stats.generations.min} / ${stats.generations.median} / ${stats.generations.max}; ${stats.handoffs.toLocaleString()} surviving handoffs; ${stats.levelCappedHandoffs.toLocaleString()} level-capped by radius law; ${stats.twigs.toLocaleString()} twigs; ${stats.leavesPlaced.toLocaleString()} leaves placed`}
           </p>
         ) : null}
         {stats?.levelCapped ? (

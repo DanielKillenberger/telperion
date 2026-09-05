@@ -104,15 +104,20 @@ export interface GrowerParams {
   step: number;
   /** Fixed twig anatomy and branch-law terms carried through preset
    *  round trips; length ratio and fork exponent have separate owners. */
+  twigLength: number;
   twigDiameter: number;
   twigStationLength: number;
   twigStations: number;
+  /** Metres across the wood that bears twigs: at or under it a branch carries a twig at every station and no lateral branch. */
+  twigBearing: number;
   ratioPower: number;
   limbRadius: number;
   laterals: number;
+  angleVariation: number;
+  vigourVariation: number;
   twigAngle: number;
   twigDivergence: number;
-  internodes: number;
+  internodeFactor: number;
   lengthRatio: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
    *  and so the contrast between trunk and twig. 2 conserves
@@ -261,7 +266,9 @@ export const SLIDERS: readonly SliderSpec[] = [
      and 1 admits wood below the root radius. */
   { group: "branches", key: "lengthRatio", label: "length ratio", min: 0.05, max: 1, step: 0.01, unit: "" },
   { key: "ratioPower", label: "radius power", min: 0, max: 8, step: 0.05, unit: "" },
-  { key: "internodes", label: "internodes", min: 1, max: 32, step: 1, unit: "" },
+  { key: "internodeFactor", label: "internode factor", min: 0.05, max: 32, step: 0.05, unit: "x" },
+  { key: "angleVariation", label: "angle variation", min: 0, max: 90, step: 1, unit: "deg" },
+  { key: "vigourVariation", label: "vigour variation", min: 0, max: 0.95, step: 0.01, unit: "" },
   { key: "laterals", label: "laterals", min: 0, max: 7, step: 1, unit: "" },
   { key: "limbRadius", label: "limbRadius", min: 0, max: 1, step: 0.005, unit: "r" },
   { key: "twigAngle", label: "branch angle", min: 0, max: 90, step: 1, unit: "deg" },
@@ -337,15 +344,19 @@ export const DEFAULT_PARAMS: GrowerParams = {
   maxTurnPerStep: DEFAULT_MAX_TURN_PER_STEP,
   density: 0.5,
   step: DEFAULT_STEP,
+  twigLength: DEFAULT_TWIGS.twig.length,
+  angleVariation: DEFAULT_TWIGS.angleVariation,
+  vigourVariation: DEFAULT_TWIGS.vigourVariation,
   twigDiameter: DEFAULT_TWIGS.twig.diameter,
   twigStationLength: DEFAULT_TWIGS.twig.internodeLength,
   twigStations: DEFAULT_TWIGS.twig.stationsPerInternode,
+  twigBearing: DEFAULT_TWIGS.twig.bearingDiameter,
   ratioPower: DEFAULT_TWIGS.ratioPower,
   limbRadius: DEFAULT_TWIGS.limbRadius,
   laterals: DEFAULT_TWIGS.laterals,
   twigAngle: DEFAULT_TWIGS.angle,
   twigDivergence: DEFAULT_TWIGS.divergence,
-  internodes: DEFAULT_TWIGS.internodes,
+  internodeFactor: DEFAULT_TWIGS.internodeFactor,
   lengthRatio: DEFAULT_TWIGS.lengthRatio,
   taper: DEFAULT_RADII.forkExponent,
   trunkRadius: DEFAULT_RADII.trunkRadius,

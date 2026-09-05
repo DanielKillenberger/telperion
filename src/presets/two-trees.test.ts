@@ -160,16 +160,22 @@ describe("the two trees are two of the same generator", () => {
       expect(leaf / medianTwig).toBeGreaterThan(10);
       const canopy = buildCanopy(skeleton, field, preset.skeleton.envelope,
         preset.skeleton.seed, preset.canopy, preset.skeleton.twigs.twig);
-      expect(canopy.count).toBe(tips.length * preset.skeleton.twigs.twig.stationsPerInternode);
+      const anatomy = preset.skeleton.twigs.twig;
+      const internodes = Math.ceil(anatomy.length / anatomy.internodeLength - 1e-9);
+      expect(canopy.count).toBe(tips.length * internodes * anatomy.stationsPerInternode);
+      expect(canopy.count).toBeGreaterThanOrEqual(100_000);
+      expect(canopy.count).toBeLessThanOrEqual(10_000_000);
       let leafIndex = 0;
       let worstOffsetError = 0;
       for (let i = skeleton.crossover; i < skeleton.nodes.length; i++) {
         if (skeleton.twig[i - skeleton.crossover] !== 1) continue;
         const foot = skeleton.nodes[skeleton.nodes[i].parent].position;
-        for (let station = 0; station < preset.skeleton.twigs.twig.stationsPerInternode; station++) {
+        const axis = skeleton.nodes[i].position.clone().sub(foot).normalize();
+        for (let station = 0; station < internodes * anatomy.stationsPerInternode; station++) {
+          const onWood = foot.clone().addScaledVector(axis, Math.floor(station / anatomy.stationsPerInternode) * anatomy.internodeLength);
           const offset = leafIndex++ * 16 + 12;
-          const distance = Math.hypot(canopy.matrices[offset] - foot.x,
-            canopy.matrices[offset + 1] - foot.y, canopy.matrices[offset + 2] - foot.z);
+          const distance = Math.hypot(canopy.matrices[offset] - onWood.x,
+            canopy.matrices[offset + 1] - onWood.y, canopy.matrices[offset + 2] - onWood.z);
           worstOffsetError = Math.max(worstOffsetError, Math.abs(distance - field.startRadius[i]));
         }
       }
@@ -278,15 +284,17 @@ describe("the preset registry", () => {
       ]);
       expect(Object.keys(skeleton.twigs).sort()).toEqual([
         "angle",
+        "angleVariation",
         "divergence",
-        "internodes",
+        "internodeFactor",
         "laterals",
         "lengthRatio",
         "limbRadius",
         "ratioPower",
         "twig",
+        "vigourVariation",
       ]);
-      expect(Object.keys(skeleton.twigs.twig).sort()).toEqual(["diameter", "internodeLength", "stationsPerInternode"]);
+      expect(Object.keys(skeleton.twigs.twig).sort()).toEqual(["bearingDiameter", "diameter", "internodeLength", "length", "stationsPerInternode"]);
       expect(Object.keys(preset.radii).sort()).toEqual([
         "forkExponent",
         "lengthTaper",

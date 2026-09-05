@@ -62,13 +62,17 @@ describe("shedTwigs", () => {
     }
     // Twigs come out in the order they went in, and no kept twig has
     // lost the node it grew from.
+    // Identity by position object, looked up once: the same assertion as
+    // a find-and-indexOf per node, without the quadratic walk that took
+    // five minutes once the pass appended two hundred thousand nodes.
+    const indexByPosition = new Map<object, number>();
+    twigged.nodes.forEach((node, index) => indexByPosition.set(node.position, index));
     let last = -1;
     for (let i = from; i < shed.nodes.length; i += 1) {
-      const index = twigged.nodes.indexOf(
-        twigged.nodes.find((node) => node.position === shed.nodes[i].position)!,
-      );
-      expect(index).toBeGreaterThan(last);
-      last = index;
+      const index = indexByPosition.get(shed.nodes[i].position);
+      expect(index).toBeDefined();
+      expect(index!).toBeGreaterThan(last);
+      last = index!;
     }
   }, 60_000);
 

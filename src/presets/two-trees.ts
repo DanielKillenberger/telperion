@@ -113,22 +113,31 @@ export const TELPERION: TreePreset = {
       // turns about the axis over the height.
       spiralRate: 2.6,
     },
-    /* A 5 mm twig with 20 mm internodes and one leaf station, shared
-       with Laurelin. Branches carry three internodes and one lateral
-       at each interior station. Length ratio 0.4 and radius power 1.3
-       reduce lateral radius by 0.304; the handoff wood determines the
-       generation read-out. The field and stiffness bend every run. */
+    /* The recursion below the crossover, at rest. One twig, shared with
+       Laurelin: a 25 cm current-year shoot of 5 mm, one leaf every 20 mm,
+       borne at every station of wood 5 cm and under, spaced no closer
+       than a twig's length. Above that, branches: length ratio 0.4 and
+       radius power 1.3 (a lateral starts at 0.304 of its parent), two
+       laterals per branch at even stations, departing at 45 degrees
+       plus a bud-by-bud spread of 10 degrees and 15 percent vigour drawn
+       from the seed. The internode factor is this tree's own: 3.5
+       diameters, the finest that fits the ceiling (3 caps), giving a
+       2.6 m first internode on 79 cm wood against the 3.9 m the owner
+       found too coarse. Measured at rest: 105,974 nodes after shedding,
+       31,894 twigs, 414,622 leaves, 28.5 percent of the shell occupied. */
     twigs: {
-      twig: { diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1 },
+      twig: { length: 0.25, diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1, bearingDiameter: 0.05 },
       lengthRatio: 0.4,
       ratioPower: 1.3,
-      internodes: 3,
-      laterals: 1,
+      internodeFactor: 3.5,
+      laterals: 2,
       // Measured at 0.075 / 0.1 / 0.15: 42,006 / 49,713 / 56,378
       // nodes after shedding, full builds 720 / 798 / 896 ms. The
       // shared 0.1 rest also gives Laurelin limb laterals; 0.075 does not.
       limbRadius: 0.1,
       angle: 45,
+      angleVariation: 10,
+      vigourVariation: 0.15,
       divergence: 137.508,
     },
     // Stiff, at a little over half Laurelin's. A limb that commits to
@@ -251,17 +260,18 @@ export const LAURELIN: TreePreset = {
       // in the skin, not in the centreline.
       spiralRate: 0.6,
     },
-    /* The same 5 mm twig, 20 mm internodes and one leaf station as
-       Telperion. Three branch internodes bear one lateral per interior
-       station, with length ratio 0.4 and radius power 1.3. This tree's
-       field and stiffness bend the runs; its solved handoff wood
-       determines the generation read-out. */
+    /* The same twig and the same branch law as Telperion; what differs
+       is the internode factor, 6 diameters, because this dome hides
+       coarseness the owner saw on Telperion ("seems okish") and its
+       1,336 handoffs would cap the ceiling at anything finer than 5.
+       Measured at rest: 164,511 nodes after shedding, 60,604 twigs,
+       787,852 leaves, 12.3 percent of the shell occupied. */
     twigs: {
-      twig: { diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1 },
+      twig: { length: 0.25, diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1, bearingDiameter: 0.05 },
       lengthRatio: 0.4,
       ratioPower: 1.3,
-      internodes: 3,
-      laterals: 1,
+      internodeFactor: 6,
+      laterals: 2,
       // Measured at 0.075 / 0.1 / 0.15: 43,199 / 104,335 / 149,826
       // nodes after shedding, full builds 598 / 1,432 / 2,079 ms.
       // 0.1 admits limb laterals and saves 31% of the 0.15 build time.
@@ -269,6 +279,8 @@ export const LAURELIN: TreePreset = {
       // the candidate counts and method are in fn-6's Measured section.
       limbRadius: 0.1,
       angle: 45,
+      angleVariation: 10,
+      vigourVariation: 0.15,
       divergence: 137.508,
     },
     // Loose and searching, so the crown reaches out to the far edge of

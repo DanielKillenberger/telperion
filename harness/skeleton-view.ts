@@ -87,14 +87,16 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
     step: params.step,
     // Preserve every branch-law and anatomy field through preset round trips.
     twigs: {
-      twig: { diameter: params.twigDiameter, internodeLength: params.twigStationLength,
-        stationsPerInternode: params.twigStations },
+      twig: { length: params.twigLength, diameter: params.twigDiameter, internodeLength: params.twigStationLength,
+        stationsPerInternode: params.twigStations, bearingDiameter: params.twigBearing },
       ratioPower: params.ratioPower,
       limbRadius: params.limbRadius,
       laterals: params.laterals,
+      angleVariation: params.angleVariation,
+      vigourVariation: params.vigourVariation,
       angle: params.twigAngle,
       divergence: params.twigDivergence,
-      internodes: params.internodes,
+      internodeFactor: params.internodeFactor,
       lengthRatio: params.lengthRatio,
     },
     bias: {
@@ -224,6 +226,8 @@ export interface TreeStats {
    *  figure beside this one in the panel is what reports what was
    *  actually drawn. */
   instances: number;
+  /** Leaf stations placed before canopy culling (zero with foliage off). */
+  leavesPlaced: number;
   /** Wall-clock milliseconds for growth, radii, surface, foliage and meshes. */
   buildMs: number;
 }
@@ -258,7 +262,7 @@ export function branchStats(skeleton: TwiggedSkeleton, params?: Partial<TwigPara
   let twigCount = 0;
   for (let i = skeleton.crossover; i < skeleton.nodes.length; i++) {
     const offset = i - skeleton.crossover;
-    twigCount += Number(skeleton.twig[offset] === 1);
+    twigCount += Number(skeleton.twig[offset] === 1 && skeleton.branchId[offset] === i);
     if (skeleton.nodes[i].parent >= skeleton.crossover) continue;
     const derived = generationsUntilTwig(skeleton.baseRadius[offset], {
       lengthRatio: twigs.lengthRatio, ratioPower: twigs.ratioPower,
@@ -348,15 +352,19 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     density: (preset.skeleton.attractors - ATTRACTORS_MIN) /
       (ATTRACTORS_MAX - ATTRACTORS_MIN),
     step: preset.skeleton.step,
+    twigLength: preset.skeleton.twigs.twig.length,
+    angleVariation: preset.skeleton.twigs.angleVariation,
+    vigourVariation: preset.skeleton.twigs.vigourVariation,
     twigDiameter: preset.skeleton.twigs.twig.diameter,
     twigStationLength: preset.skeleton.twigs.twig.internodeLength,
     twigStations: preset.skeleton.twigs.twig.stationsPerInternode,
+    twigBearing: preset.skeleton.twigs.twig.bearingDiameter,
     ratioPower: preset.skeleton.twigs.ratioPower,
     limbRadius: preset.skeleton.twigs.limbRadius,
     laterals: preset.skeleton.twigs.laterals,
     twigAngle: preset.skeleton.twigs.angle,
     twigDivergence: preset.skeleton.twigs.divergence,
-    internodes: preset.skeleton.twigs.internodes,
+    internodeFactor: preset.skeleton.twigs.internodeFactor,
     lengthRatio: preset.skeleton.twigs.lengthRatio,
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
@@ -488,21 +496,11 @@ function build(
   /* Foliage off is an empty canopy, not a different code path: the
      mesh builder returns null for it and the stats read zero leaves,
      so the branching can be judged bare without a second build. */
-  const canopy = withFoliage
-    ? cullCanopy(
-        buildCanopy(
-          skeleton,
-          field,
-          skeletonParams.envelope,
-          skeletonParams.seed,
-          canopyParams,
-          skeletonParams.twigs?.twig,
-        ),
-        element,
-        skeletonParams.envelope,
-        DEFAULT_CULL,
-      )
+  const placed = withFoliage
+    ? buildCanopy(skeleton, field, skeletonParams.envelope, skeletonParams.seed,
+        canopyParams, skeletonParams.twigs?.twig)
     : { matrices: new Float32Array(0), count: 0 };
+  const canopy = cullCanopy(placed, element, skeletonParams.envelope, DEFAULT_CULL);
   const foliage = buildCanopyMesh(canopy, element, clay.element);
 
   const tree = new THREE.Group();
@@ -526,6 +524,7 @@ function build(
       ...branchStats(skeleton, skeletonParams.twigs),
       drawCalls: draws.drawCalls,
       instances: draws.instances,
+      leavesPlaced: placed.count,
       buildMs: performance.now() - started,
     },
   };
@@ -641,6 +640,7 @@ export function buildComparison(
          the surface each tree built rather than from the graph. */
       drawCalls: built.reduce((total, one) => total + one.stats.drawCalls, 0),
       instances: built.reduce((total, one) => total + one.stats.instances, 0),
+      leavesPlaced: built.reduce((total, one) => total + one.stats.leavesPlaced, 0),
       buildMs: built.reduce((total, one) => total + one.stats.buildMs, 0),
     },
   };

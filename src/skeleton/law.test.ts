@@ -10,7 +10,7 @@ import { Vector3 } from "three";
 import { MAX_TWIG_LEVELS } from "./twigs";
 import {
   branchLength, childRadius, DEFAULT_BRANCH_LAW, DEFAULT_TWIG_ANATOMY,
-  generationsUntilTwig,
+  generationsUntilTwig, internodeLength,
 } from "./law";
 
 const bare = (tree: SkeletonParams) => colonize(
@@ -41,8 +41,17 @@ describe("the branch law", () => {
     expect(branchLength(7.4)).toBeCloseTo(148, 10);
     expect(branchLength(0.395)).toBeCloseTo(20.9816014211964, 10);
     expect(branchLength(8) / branchLength(1)).toBeCloseTo(4, 12);
-    expect(DEFAULT_TWIG_ANATOMY).toEqual({ diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1 });
+    expect(DEFAULT_TWIG_ANATOMY).toEqual({ diameter: 0.005, length: 0.25, internodeLength: 0.02, stationsPerInternode: 1, bearingDiameter: 0.05 });
     expect(DEFAULT_ELEMENT.length / DEFAULT_TWIG_ANATOMY.diameter).toBe(24);
+  });
+
+  it("resolves branch diameters into geometric steps with an anatomy floor and 32-step bound", () => {
+    expect(internodeLength(0.395, 21, 2.5)).toBe(1.975);
+    expect(internodeLength(0.001, 0.1, 1.5)).toBe(0.02);
+    expect(internodeLength(0.01, 100, 1.5)).toBe(100 / 32);
+    expect(internodeLength(NaN, Infinity, NaN, NaN)).toBe(0.02);
+    expect(internodeLength(1, 1, 0)).toBe(0.1);
+    expect(internodeLength(1, 1, 99)).toBe(64);
   });
 
   it("uses the child's length ratio without dividing the parent's area among siblings", () => {

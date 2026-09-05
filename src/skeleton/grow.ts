@@ -13,9 +13,9 @@ import {
   DEFAULT_BIAS,
   type BiasParams,
 } from "../torsion";
-import { childRadius, generationsUntilTwig } from "./law";
+import { branchLength, childRadius, internodeLength } from "./law";
 import { shedTwigs } from "./shed";
-import { branchTwigs, resolveTwigs, type TwigParams, type TwiggedSkeleton } from "./twigs";
+import { branchTwigs, resolveTwigs, MAX_TWIG_LEVELS, type TwigParams, type TwiggedSkeleton } from "./twigs";
 
 /* ------------------------------------------------------------------ *
  * THE GENERATOR'S FRONT DOOR
@@ -231,42 +231,44 @@ export function defaultGrowth(
   };
 }
 
-/** Each branch adds its internodes and terminal twig, then the same
- * topology at every lateral station. The median handoff sets the base
- * estimate; thicker handoffs add their own excess so the upper tail
- * cannot exhaust that estimate. Collision, short runs and shedding can
- * only reduce it. The hard ceiling still bounds nonconverging laws. */
+/** N = branch internodes + laterals * N_child + one twig edge.
+ * The estimate uses the same radius and length at every handoff as the
+ * pass, before collision and trunk rejection. Resolution adds nodes
+ * along existing branches without multiplying their offspring. */
 function twigHeadroom(skeleton: Skeleton, field: RadiusField, config: GrowthConfig, twigs: TwigParams): number {
+  const twigNodes = 1;
+  const lowRatio = Math.max(0.05, twigs.lengthRatio * (1 - twigs.vigourVariation));
+  const highRatio = Math.min(1, twigs.lengthRatio * (1 + twigs.vigourVariation));
+  const nodesFor = (radius: number, length: number, generation = 0, minimumRadius = radius): number => {
+    if (radius <= twigs.twig.diameter / 2 || length < twigs.twig.internodeLength) return twigNodes;
+    if (generation >= MAX_TWIG_LEVELS) return 0;
+    // The last order: a twig at every station, no lateral branches, and
+    // stations no closer than a twig's length.
+    if (radius <= twigs.twig.bearingDiameter / 2) {
+      const stations = Math.max(1, Math.round(length /
+        internodeLength(minimumRadius, length, twigs.internodeFactor, twigs.twig.length)));
+      return Math.min(NODE_CEILING, stations + stations);
+    }
+    const internodes = Math.max(1, Math.round(length /
+      internodeLength(minimumRadius, length, twigs.internodeFactor, twigs.twig.internodeLength)));
+    const offspring = twigs.laterals === 0 ? 0 : twigs.laterals * nodesFor(
+      childRadius(radius, highRatio, twigs.ratioPower), length * highRatio, generation + 1,
+      childRadius(minimumRadius, lowRatio, twigs.ratioPower));
+    return Math.min(NODE_CEILING, internodes + offspring + twigNodes);
+  };
   const children = new Int32Array(skeleton.nodes.length);
   for (let i = 1; i < children.length; i++) children[skeleton.nodes[i].parent]++;
-  const handoffs: number[] = [];
-  for (let i = 1; i < children.length; i++) {
+  let estimate = 0;
+  for (let i = 1; i < children.length && estimate < NODE_CEILING; i++) {
     if (skeleton.nodes[i].position.y < config.trunkHeight) continue;
     const radius = field.radius[i];
-    if (children[i] === 0) handoffs.push(radius);
+    const length = branchLength(radius);
+    if (children[i] === 0) estimate += nodesFor(radius, length);
     if (radius < twigs.limbRadius * field.radius[0]) {
-      const lateral = childRadius(radius, twigs.lengthRatio, twigs.ratioPower);
-      for (let k = 0; k < twigs.laterals; k++) handoffs.push(lateral);
+      estimate += twigs.laterals * nodesFor(
+        childRadius(radius, highRatio, twigs.ratioPower), length * highRatio, 1,
+        childRadius(radius, lowRatio, twigs.ratioPower));
     }
-  }
-  if (handoffs.length === 0) return 0;
-  handoffs.sort((a, b) => a - b);
-  const nodesFor = (radius: number): number => {
-    const { generations } = generationsUntilTwig(radius, {
-      lengthRatio: twigs.lengthRatio, ratioPower: twigs.ratioPower,
-      twigDiameter: twigs.twig.diameter,
-    });
-    let nodes = 1;
-    for (let k = 0; k < generations; k++) {
-      nodes = twigs.internodes + 1 + (twigs.internodes - 1) * twigs.laterals * nodes;
-      if (nodes >= NODE_CEILING) return NODE_CEILING;
-    }
-    return nodes;
-  };
-  const median = nodesFor(handoffs[handoffs.length >> 1]);
-  let estimate = handoffs.length * median;
-  for (let i = (handoffs.length >> 1) + 1; i < handoffs.length && estimate < NODE_CEILING; i++) {
-    estimate += nodesFor(handoffs[i]) - median;
   }
   return Math.min(NODE_CEILING, estimate);
 }
@@ -329,7 +331,7 @@ export function growReport(params: SkeletonParams, radii: RadiusParams = DEFAULT
   const twigs = resolveTwigs(params.twigs);
   const maxNodes = Math.min(config.maxNodes, NODE_CEILING,
     colonized.nodes.length + twigHeadroom(colonized, field, config, twigs));
-  const twigged = branchTwigs(colonized, field, { ...config, maxNodes }, twigs);
+  const twigged = branchTwigs(colonized, field, { ...config, maxNodes }, twigs, params.seed);
   const skeleton = shedTwigs(twigged, colonized.nodes.length, params.envelope);
   return {
     skeleton,

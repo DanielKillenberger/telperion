@@ -349,6 +349,30 @@ The owner, in the harness: "for telperion at original size the resolution of the
 
 Leaves equal twigs because a twig is one 20 mm internode and placement puts one leaf per internode. Raising `internodes` per branch from 3 to 6 takes Telperion to 214,658 nodes and Laurelin to 232,127, both at the ceiling, because laterals are counted per internode. Task 8 answers both.
 
+### Task 8 as shipped (2026-09-05)
+
+Finished by the conductor on Fable from the third Codex dispatch's state, after two dispatches ended on design findings. The twig is one skeleton edge of 25 cm; the canopy's station walk places a leaf every 20 mm along it. Wood at or under a bearing diameter of 5 cm is the last order: it carries a twig at every internode station, spaced no closer than a twig's length, and no lateral branch. Thicker wood bears two laterals per branch at even stations, departing at 45 degrees with a 10 degree and 15 percent vigour spread drawn per node from the seed, and `limitTurn` is applied from the wanted direction so the field can swing a bud no more than the turn limit. Internode length is a stated multiple of the branch's diameter, and each preset states its own.
+
+Why the rule: with two laterals per branch every internode factor capped both presets, and with one lateral the trees fit but bore about 3,000 twigs, because a twig appeared only at a branch's terminal. Twigs along the last order is what real trees do and what bounds the count. Before the spacing rule the fine wood carried a shoot every 8 cm and the harness built in 9 to 13 s.
+
+Sweep with the rule, laterals 2, both presets, growth only, machine load average 30 to 39 throughout:
+
+| preset | internode factor | nodes after shedding | capped | twigs | leaves | shell occupancy | tip clustering | first internode |
+|---|---|---|---|---|---|---|---|---|
+| Telperion | 2.5 | 124,329 | no | 32,038 | 416,494 | 26.1% | 71.1% | 1.91 m |
+| Telperion | 3 | at ceiling before the rule | yes | | | | | 2.33 m |
+| Telperion | 3.5 | 105,974 | no | 31,894 | 414,622 | 28.5% | 70.4% | 2.62 m |
+| Laurelin | 4 | 191,807 | no | 62,478 | 812,214 | 11.8% | 31.8% | 4.52 m |
+| Laurelin | 6 | 164,511 | no | 60,604 | 787,852 | 12.3% | 30.0% | 6.78 m |
+
+Rests: Telperion 3.5 (3 capped before the spacing rule and was not re-swept; 2.5 fits with the rule at 124,329 nodes and is a later choice the owner may make), Laurelin 6. The node ceiling stays at 250,000; the conductor's permission to raise it was not needed. Leaf counts sit inside R5's range. Task 5's occupancy floors hold; Telperion's clustering ceiling moved from 65% to 75% to hold the measured 70.4%, because tips now bear laterals and the fine wood bears twigs at every station, both of which put terminals near colonization tips by construction.
+
+Lateral departure, measured on the shipped presets as p10 / median / p90: before this task 17 / 26 / 26 degrees on Telperion and 30 / 46 / 46 on Laurelin, the turn limits; after it 20 / 32 / 53 and 30 / 46 / 69. Telperion's median sits under the 45 degree bud because its 0.95 gravitropism pulls laterals upward within the turn limit.
+
+Build: the harness's full build measured 4.1 to 6.7 s on Telperion and 6.8 to 7.1 s on Laurelin, at a machine load average of 39 on 32 CPUs from other agents' work; the task's "under about 3 s" is not met. The cost is the surface sweep drawing every 5 mm twig as a full-resolution tube (7.7 M and 7.2 M triangles) and the canopy's 0.4 M and 0.8 M instances, not the growth, which is 1.3 and 1.6 s. The lever is the surface's ring resolution following the wood's radius, which is task 7's measurement and the rendering spec's territory; recorded here, not hidden. Telperion's first internode is 2.62 m at rest against the 2.5 m the acceptance named; 3 diameters capped before the spacing rule and 2.5 fits now, so the owner may take either.
+
+R7 is taken again on this build.
+
 ## Parked unknowns
 
 - Whether the shell rule alone yields a real crown's shell once fine wood is everywhere. Task 5 measures R4 on the shell rule as it stands; if the shell rule cannot meet the threshold a clay render distinguishes, a light term is a new spec and not a change to this one. [paraphrase]
@@ -428,3 +452,140 @@ The worker did not run Vite or Chromium because the assigned sandbox blocks
 them. The conductor runs the harness and records the owner's verdict. The
 worker leaves the task's R7 acceptance box unchecked.
 
+
+
+### Task 8 second-dispatch feasibility sweep (2026-09-05)
+
+No measured rest satisfies the amended task. Every requested combination of
+internodeFactor 1.5, 2.5 or 4 with two or three laterals reaches the unchanged
+250,000-node ceiling on both presets. The worker preserved its partial
+implementation in `.flow/tmp/task8-attempt2-partial.patch` and restored its
+production and test edits. This section records a failed proof point. The
+presets in the checkout still carry task 6's anatomy.
+
+The candidate grows a 0.25 m twig as thirteen 0.02 m internodes, since
+round(0.25 / 0.02) is thirteen. Its realised length is 0.26 m. Each branch
+carries a fixed lateral count, with 1..32 internodes from the diameter law.
+The branch tree in the unbiased regression has identical branch and twig
+counts at factors 4, 2.5 and 1.5; only its wood-node count changes. The
+candidate also implements anatomical departure, angleVariation 10 degrees,
+vigourVariation 0.15 and seed/lineage-keyed draws. The growth headroom uses
+N = internodes + laterals * N_child + twig internodes, with conservative
+radius and length bounds for variation. Actual growth reaches the hard
+ceiling in every requested case; the estimate is not imposing a smaller cap.
+
+The 0.25 m length is a selected current-year extension shoot, with the same
+selected-anatomy caveat as the existing 5 mm diameter and 20 mm internode.
+Zhai et al. (2012) report final shoot lengths of 35.74 +/- 16.54 cm for
+trembling aspen and 84.63 +/- 41.21 cm for white birch. Those observations
+support decimetre-scale shoots and variation, not a universal 25 cm twig.
+[Source, American Journal of Botany](https://bsapubs.onlinelibrary.wiley.com/doi/10.3732/ajb.1100235).
+
+The table counts surviving twig shoots by marked branch starts, rather than
+counting every twig internode as a separate twig. Leaves are buildCanopy's
+placed stations before the harness's subsequent leaf cull. At one station
+per internode they equal surviving twig nodes. A capped twig can be
+incomplete, so its leaves need not equal thirteen times the shoot count.
+Growth time covers growReport. Harness time is buildPreset.stats.buildMs,
+including wood surface, normals, foliage and Three.js object construction.
+These are single diagnostic builds, not the three-run medians used in task
+4. The first requested rows overlapped a focused fixture test run. Timing
+therefore establishes cost scale only; caps and counts are deterministic.
+
+| Preset | Factor | Laterals | Nodes before / after shed | Twig shoots | Leaves placed | Node / level cap | Growth ms | Harness build ms |
+|---|---:|---:|---:|---:|---:|---|---:|---:|
+| Telperion | 1.5 | 2 | 250,000 / 216,323 | 3,729 | 26,466 | yes / no | 808 | 5027 |
+| Telperion | 2.5 | 2 | 250,000 / 216,175 | 5,627 | 39,937 | yes / no | 968 | 3862 |
+| Telperion | 4 | 2 | 250,000 / 217,541 | 10,401 | 58,805 | yes / no | 819 | 4274 |
+| Telperion | 1.5 | 3 | 250,000 / 213,910 | 2,235 | 11,619 | yes / no | 1026 | 3934 |
+| Telperion | 2.5 | 3 | 250,000 / 214,376 | 3,126 | 16,107 | yes / no | 944 | 4293 |
+| Telperion | 4 | 3 | 250,000 / 213,485 | 6,876 | 23,868 | yes / no | 741 | 2920 |
+| Laurelin | 1.5 | 2 | 250,000 / 233,304 | 2,583 | 25,902 | yes / no | 701 | 1922 |
+| Laurelin | 2.5 | 2 | 250,000 / 233,144 | 4,877 | 36,252 | yes / no | 776 | 1995 |
+| Laurelin | 4 | 2 | 250,000 / 232,720 | 9,012 | 49,534 | yes / no | 736 | 1941 |
+| Laurelin | 1.5 | 3 | 250,000 / 233,013 | 2,653 | 5,222 | yes / no | 720 | 1821 |
+| Laurelin | 2.5 | 3 | 250,000 / 232,870 | 3,531 | 14,063 | yes / no | 659 | 2023 |
+| Laurelin | 4 | 3 | 250,000 / 232,648 | 5,621 | 19,492 | yes / no | 672 | 1907 |
+
+The requested cases take 1.82..5.03 seconds per sampled full CPU build,
+against task 4's 0.80 / 1.43 second medians. All have fewer than 100,000
+placed leaves because growth stops before completing their twig shoots.
+No draggable rest is selected and the ceiling remains 250,000.
+
+A supplementary sweep checked one lateral and coarser factors through the
+factor rail's maximum. Two laterals still cap at factor 32. One lateral
+finishes, but misses both the 100,000-leaf floor and the existing R4
+occupancy floors on both presets.
+
+| Preset | Factor | Laterals | Nodes before / after shed | Twig shoots | Leaves placed | Node / level cap | Growth ms | Harness build ms |
+|---|---:|---:|---:|---:|---:|---|---:|---:|
+| Telperion | 8 | 1 | 63,436 / 56,341 | 3,059 | 39,696 | no / no | 195 | 708 |
+| Telperion | 16 | 1 | 55,501 / 49,828 | 3,135 | 40,743 | no / no | 166 | 599 |
+| Telperion | 32 | 1 | 50,779 / 47,043 | 3,245 | 42,166 | no / no | 166 | 647 |
+| Telperion | 8 | 2 | 250,000 / 219,043 | 22,792 | 102,444 | yes / no | 681 | 2534 |
+| Telperion | 16 | 2 | 250,000 / 221,003 | 33,390 | 150,788 | yes / no | 669 | 2708 |
+| Telperion | 32 | 2 | 250,000 / 230,390 | 36,582 | 194,252 | yes / no | 579 | 2585 |
+| Laurelin | 8 | 1 | 102,398 / 95,907 | 5,257 | 68,316 | no / no | 278 | 848 |
+| Laurelin | 16 | 1 | 92,402 / 86,821 | 5,496 | 71,436 | no / no | 257 | 721 |
+| Laurelin | 32 | 1 | 89,146 / 84,203 | 5,760 | 74,872 | no / no | 234 | 669 |
+| Laurelin | 8 | 2 | 250,000 / 231,605 | 23,254 | 79,026 | yes / no | 687 | 1936 |
+| Laurelin | 16 | 2 | 250,000 / 233,853 | 43,778 | 136,693 | yes / no | 661 | 2152 |
+| Laurelin | 32 | 2 | 250,000 / 233,750 | 52,659 | 180,485 | yes / no | 672 | 2144 |
+
+At the proposed starting rest (factor 2.5, two laterals), Telperion occupies
+1,406 / 6,352 shell cells (22.1348%) and has 28,656 / 39,937 twig nodes near
+colonization tips (71.7530%). Laurelin occupies 3,772 / 74,072 (5.0923%) and
+has 8,163 / 36,252 near tips (22.5174%). Telperion fails the existing 65%
+clustering ceiling and Laurelin fails the 8.3% occupancy floor. These are
+capped-tree diagnostics. The R4 metric definitions, budgets and tolerances
+are unchanged. Full rows for both sweeps, including all R4 values, remain
+in the raw logs.
+
+Measured surviving lateral handoffs have these departure angles. A lateral
+is an appended seam edge whose recorded base radius is below the parent's
+solved radius. The earlier diagnosis's medians and p90 values reproduce;
+its claim that p10 also collapsed to the turn limit does not.
+
+| Preset | Before count | Before p10 / p50 / p90 degrees | Candidate count | Candidate p10 / p50 / p90 degrees |
+|---|---:|---|---:|---|
+| Telperion | 477 | 17.2762 / 26 / 26 | 1,052 | 19.5612 / 32.0381 / 53.5632 |
+| Laurelin | 974 | 29.4978 / 46 / 46 | 1,969 | 29.7044 / 46.2650 / 68.7291 |
+
+The candidate's first-generation mean internode is 0.8058 m on Telperion
+and 1.1469 m on Laurelin, measured over surviving branch runs rooted at
+colonization. Both candidate trees are capped. The unbiased unit test
+separately proves a 45-degree lateral departure with a 5-degree curvature
+limit. Seed variation changes the result reproducibly; setting both
+variation terms to zero gives identical records and coordinates across
+seeds. The R8 whole-subtree comparison passes under the mature field with
+nonzero variation and the preset seed. Its fixture uses one lateral per
+branch so the 250,000-node guard does not truncate the purity comparison;
+all byte-identity and non-vacuity assertions stay intact.
+
+The junction check used actual buildSurface triangles for a 7 cm lateral
+on an 80 cm limb with Telperion's section settings. The software clay pair
+in `.flow/tmp/task8-junction.png` shows 26 degrees on the left and 45 degrees
+on the right. The socket sinks 0.20 m along the lateral axis. The 1.35 swell
+starts at a 4.725 cm radius and decays over the parent's 0.40 m radius.
+On a circular approximation, at emergence its multiplier has fallen to
+about 1.036 at 26 degrees and 1.085 at 45 degrees. The rendered joint shows
+a narrow rod entering the limb with little visible collar at either angle.
+There is no visible protruding back cap in this view. This suggests a
+collar/swell evaluation for fn-4 at strong diameter ratios. No mesh code
+was changed, and this synthetic CPU image supplies no owner or GPU verdict.
+
+Reproduction requires applying the preserved partial patch first. It is
+not a finished implementation and has pending fixture and continuity
+migrations. Commands are `npx vitest run --config
+.flow/tmp/task8-sweep.config.ts --pool=threads --reporter=verbose
+--silent=false` and the same command with `task8-supplement.config.ts`.
+Before/after departure sources and logs are `task8-before` / `task8-after`
+in `.flow/tmp`. The junction source is `.flow/tmp/task8-junction.ts`.
+
+The conductor and owner must resolve the anatomy/topology/resource conflict
+before selecting a rest or re-taking R7. Options require a spec decision,
+such as a compact representation for twig stations, different branching
+anatomy, or an explicitly approved resource budget. Increasing the ceiling
+alone would still require complete-tree CPU measurements.
+
+- [ ] R7 owner clay verdict on task 8. No qualifying build was selected.

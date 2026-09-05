@@ -35,8 +35,13 @@ import { MAX_TWIG_LEVELS } from "./twigs";
  *                 botanical law. Ratio is held to 0.05..1 and power
  *                 to 0..8; 1 or 0 can prevent convergence, reported
  *                 by the level cap rather than hidden by the rail.
- *   twig        - 5 mm diameter, 20 mm internode, one leaf station per
- *                 internode (alternate broadleaf). These are SELECTED
+ *   twig        - 5 mm diameter, 25 cm long, 20 mm internode, one leaf
+ *                 station per internode (alternate broadleaf), borne at
+ *                 every station of wood 5 cm and under and never on
+ *                 thicker wood, spaced no closer than a twig's length.
+ *                 The length is a current-year broadleaf shoot; the
+ *                 bearing diameter is the one-to-three-year wood buds
+ *                 break on. These are SELECTED
  *                 anatomy, not universal constants. Corner 1949,
  *                 doi:10.1093/oxfordjournals.aob.a083225, and Pickup
  *                 et al. 2005, doi:10.1111/j.0269-8463.2005.00927.x,
@@ -75,16 +80,26 @@ import { MAX_TWIG_LEVELS } from "./twigs";
 export interface TwigAnatomy {
   /** Metres across the terminal shoot. */
   diameter: number;
+  /** Metres of current-year shoot, represented by one skeleton edge. */
+  length: number;
   /** Metres between leaf stations, independent of envelope height. */
   internodeLength: number;
   /** One for alternate, two for opposite leaves. */
   stationsPerInternode: number;
+  /** Metres across the wood that bears twigs: a branch at or under this
+   *  diameter carries a twig at every internode station and no further
+   *  lateral branches. Shoots grow from buds on one- to three-year wood,
+   *  which on a broadleaf is a few centimetres across; thicker wood bears
+   *  branches, not shoots. Selected anatomy, held to 1e-6..1e6. */
+  bearingDiameter: number;
 }
 
 export const DEFAULT_TWIG_ANATOMY: Readonly<TwigAnatomy> = Object.freeze({
   diameter: 0.005,
+  length: 0.25,
   internodeLength: 0.02,
   stationsPerInternode: 1,
+  bearingDiameter: 0.05,
 });
 
 export interface BranchLawParams {
@@ -94,6 +109,8 @@ export interface BranchLawParams {
   lengthRatio: number;
   /** Radius-from-length exponent. Held to 0..8. */
   ratioPower: number;
+  /** Internode length as a multiple of branch diameter, held to 0.05..32. */
+  internodeFactor: number;
   /** Stopping diameter in metres. Held to 1e-6..1e6. */
   twigDiameter: number;
 }
@@ -103,6 +120,7 @@ export const DEFAULT_BRANCH_LAW: Readonly<BranchLawParams> = Object.freeze({
   lengthRatio: 0.4,
   ratioPower: 1.3,
   twigDiameter: DEFAULT_TWIG_ANATOMY.diameter,
+  internodeFactor: 2.5,
 });
 
 const held = (value: number, fallback: number): number =>
@@ -156,4 +174,18 @@ export function generationsUntilTwig(
     generations += 1;
   }
   return { generations, capped: remaining > twigRadius };
+}
+
+/** Geometric step in metres, floored at the twig internode. This is
+ * sampling resolution, not a count of botanical lateral buds. The
+ * branch-length floor limits the resulting run to 32 internodes. */
+export function internodeLength(
+  radius: number,
+  length: number,
+  internodeFactor = DEFAULT_BRANCH_LAW.internodeFactor,
+  twigInternode = DEFAULT_TWIG_ANATOMY.internodeLength,
+): number {
+  const factor = pinned(held(internodeFactor, DEFAULT_BRANCH_LAW.internodeFactor), 0.05, 32);
+  const floor = pinned(held(twigInternode, DEFAULT_TWIG_ANATOMY.internodeLength), 1e-6, 1e6);
+  return Math.max(floor, factor * 2 * Math.max(0, held(radius, 0)), Math.max(0, held(length, 0)) / 32);
 }

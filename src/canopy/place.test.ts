@@ -536,6 +536,22 @@ describe("twig anatomy placement", () => {
       DEFAULT_ENVELOPE, 7, params, anatomy).count).toBe(0);
   });
 
+  it("walks the full single-edge twig with continuous phyllotaxis and a distal budget", () => {
+    const tree = { ...twigged, nodes: [...twigged.nodes] };
+    tree.nodes[2] = at(0, 1.25, 0, 1);
+    const params = { ...bare, divergence: 90 };
+    const canopy = buildCanopy(tree, field, DEFAULT_ENVELOPE, 7, params, DEFAULT_TWIG_ANATOMY);
+    expect(canopy.count).toBe(13);
+    for (let i = 0; i < canopy.count; i++) {
+      expect(element(canopy.matrices, i).position.y).toBeCloseTo(1 + i * 0.02, 6);
+      if (i > 0) expect(element(canopy.matrices, i).axis.dot(element(canopy.matrices, i - 1).axis)).toBeCloseTo(0, 6);
+    }
+    const crowded = buildCanopy(tree, field, DEFAULT_ENVELOPE, 7, params,
+      { ...DEFAULT_TWIG_ANATOMY, internodeLength: 0.00001 });
+    expect(crowded.count).toBe(512);
+    expect(element(crowded.matrices, 511).position.y).toBeGreaterThan(1.249);
+  });
+
   it("retains the shoot rule without anatomy or without twig records", () => {
     const plain = { nodes: twigged.nodes };
     const expected = buildCanopy(plain, field, DEFAULT_ENVELOPE, 7, bare);
