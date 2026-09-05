@@ -359,3 +359,58 @@ Task fn-6-branch-generations-below-the-crossover.1 validates the approach: that 
 
 
 
+
+
+### Task 6 panel read-out and dial measurements (2026-09-05)
+
+The panel offers length ratio, radius power, integer internodes, integer
+laterals and limbRadius on the library's rails. The orders control and its
+state are removed. The fallback canopy values shootRadius, spacing, clump
+and clumpSpan still round-trip exactly, but have no sliders because the
+harness builds leaves from marked twig anatomy. Both preset twig comments
+state their anatomy and ratios. No preset rest value changed.
+
+The read-out counts surviving handoff edges after shedding, where an appended
+node has a colonization parent. The radius-law helper reads each edge's
+recorded base radius, including the lateral reduction or fixed-twig clamp,
+and derives reductions to twig radius. These are required lateral generations
+excluding the terminal twig. Collisions, short runs and shedding can leave
+less visible depth. The level-capped handoff count is the law prediction over
+these surviving handoffs. The library only reports actual generation stops
+as a boolean, so the panel shows that separately as a warning, including stops
+whose branches were shed. Node capping remains a separate warning.
+
+| Subject | Generations min / median / max | Surviving handoffs | Law-capped handoffs | Surviving twigs |
+|---|---|---|---|---|
+| Telperion | 4 / 4 / 5 | 604 | 0 | 19,744 |
+| Laurelin | 4 / 4 / 5 | 1,336 | 0 | 40,781 |
+| Comparison | 4 / 4 / 5 | 1,940 | 0 | 60,525 |
+
+Comparison pools the per-generation counts before taking the median. It sums
+handoffs, capped handoffs and twig marks and retains either tree's stop flags.
+The build timer and settle-after-last-notch mechanism remain in place.
+
+Each row below changes one term from rest and measures growReport's surviving
+nodes. All twelve builds finished without node or generation capping. These
+measurements explain nearby dial effects; the upper rails remain exploration
+bounds and can reach the unchanged safety ceilings.
+
+| Change from rest | Telperion nodes | Laurelin nodes |
+|---|---|---|
+| None | 49,713 | 104,335 |
+| lengthRatio 0.35 | 26,961 | 67,107 |
+| lengthRatio 0.45 | 59,080 | 205,756 |
+| ratioPower 1.5 | 26,073 | 54,658 |
+| internodes 2 | 8,330 | 18,268 |
+| laterals 0 | 1,301 | 3,856 |
+
+Reproduce with `npx vitest run --config .flow/tmp/task6-measure.config.ts --pool=threads --reporter=verbose --silent=false`.
+The raw rows are in `.flow/tmp/task6-measure.log`. Task 4's limbRadius sweep
+supplies that dial's measured comment. The measurements do not change R4's
+rest thresholds or claim approval for the exploratory settings.
+
+- [ ] R7 owner clay verdict. Pending conductor and owner on this build.
+
+The worker did not run Vite or Chromium because the assigned sandbox blocks
+them. The conductor runs the harness and records the owner's verdict. The
+worker leaves the task's R7 acceptance box unchecked.

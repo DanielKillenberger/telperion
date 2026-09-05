@@ -12,10 +12,10 @@
  * are the growth bias field's own five terms under their own names,
  * `taper` is the radius solve's fork exponent, `density` is how many
  * attractors the envelope gets, `growth step` is how finely the
- * growth answers them, the six twig dials are the local pass's own
- * six rules under their own names, and the four surface dials are the
- * swept section's own terms, and the ten canopy dials are the
- * placement stage's ten under its own names. Nothing is a knob
+ * growth answers them, the branch dials are the local pass's
+ * allometric rules, and the four surface dials are the
+ * swept section's own terms, and the canopy dials control leaf
+ * orientation and size. Nothing is a knob
  * invented for the panel's sake.
  *
  * The two twists are two dials and are never folded together. `spiral`
@@ -58,7 +58,7 @@ import { DEFAULT_SURFACE } from "../src/mesh/surface";
 import { DEFAULT_RADII } from "../src/radius";
 import { DEFAULT_MAX_TURN_PER_STEP } from "../src/skeleton/colonize";
 import { DEFAULT_STEP } from "../src/skeleton/grow";
-import { DEFAULT_TWIGS, MAX_TWIG_LEVELS } from "../src/skeleton/twigs";
+import { DEFAULT_TWIGS } from "../src/skeleton/twigs";
 import { DEFAULT_BIAS } from "../src/torsion";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
@@ -100,23 +100,20 @@ export interface GrowerParams {
   /** The growth step as a fraction of height: the branching depth.
    *  `density` says where the tree is asked to grow and this says how
    *  finely it answers, so a finer step branches further down into
-   *  finer wood and more tips. Finer is to the LEFT, as `leaf spacing`
-   *  is: the library's own term, under its own name and unit. */
+   *  finer wood and more tips. Finer is to the left. */
   step: number;
   /** Fixed twig anatomy and branch-law terms carried through preset
    *  round trips; length ratio and fork exponent have separate owners. */
   twigDiameter: number;
   twigStationLength: number;
   twigStations: number;
-  twigRatioPower: number;
+  ratioPower: number;
   limbRadius: number;
-  /** Legacy panel state, ignored by toSkeletonParams until the control is retired. */
-  twigLevels: number;
-  twigChildren: number;
+  laterals: number;
   twigAngle: number;
   twigDivergence: number;
-  twigInternode: number;
-  twigLengthTaper: number;
+  internodes: number;
+  lengthRatio: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
@@ -157,16 +154,9 @@ export interface GrowerParams {
    *  multiple of its radius there. 1 is no flare. */
   flareRadius: number;
 
-  /* The canopy's ten terms, under the library's own names.
-   *
-   *  All ten and not the two or three the clay judgement needs to
-   *  drag, because a preset states its canopy in full and
-   *  `presetToParams` has to be able to say what it says: a panel
-   *  carrying three of the ten would load Laurelin and then build it
-   *  with the default divergence, which is a tree nobody authored -
-   *  the exact drift the preset round trip is asserted against. Ten
-   *  dials is what a complete answer costs, and the panel renders
-   *  whatever is in SLIDERS for free. */
+  /* All canopy terms survive preset round trips. shootRadius, spacing,
+     clump and clumpSpan apply only without marked twig anatomy and are
+     therefore carried as values rather than offered as live dials. */
   /** The wood at or below this fraction of the trunk's radius bears
    *  foliage; everything thicker is bark. */
   shootRadius: number;
@@ -253,24 +243,29 @@ export const SLIDERS: readonly SliderSpec[] = [
      getting usefully finer, and the notch is fine enough to walk the
      bottom of the rail where each one costs the most. */
   { key: "step", label: "growth step", min: 0.003, max: 0.022, step: 0.0005, unit: "h" },
-  /* The recursion below colonization's tips, its own stage because it
-     is its own pass. `orders` is the level cap and the only one of the
-     six with no botanical resting value: zero is the tree the owner
-     has already seen, and where it ships is the owner's to say in
-     clay. Measured at rest, eight orders is where both presets' finest
-     wood reaches leaf scale, at 41,000 nodes on Telperion and 165,000
-     on Laurelin; the rail runs to the twelve generations the spec
-     counts from today's terminal wood to a 2.5 mm twig. The other
-     five run either side of their resting values so the good range is
-     visibly a choice: a whorl of four is a brush, a branch angle past
-     the turn limit is held to it, and a twig taper of one is orders
-     that never shrink. */
-  { group: "twigs", key: "twigLevels", label: "orders", min: 0, max: MAX_TWIG_LEVELS, step: 1, unit: "" },
-  { key: "twigChildren", label: "children", min: 1, max: 4, step: 1, unit: "" },
+  /* Branch-law rails match resolveTwigs. At the shared rest, 0.4^1.3
+     gives a 0.304 radius multiplier per lateral. Ratio 1 or power 0
+     keeps the radius constant; the generation safety stop is reported.
+     Three internodes give two lateral stations and a terminal twig.
+     The integer rails allow 1..32 internodes and 0..7 laterals; their
+     upper ends can reach the node ceiling and are exploration bounds.
+     At rest Telperion / Laurelin have 49,713 / 104,335 surviving nodes.
+     Task 6 measured ratio 0.35 at 26,961 / 67,107 and 0.45 at
+     59,080 / 205,756, so the 0.01 notch can cross a generation boundary.
+     Power 1.5 gives 26,073 / 54,658; two internodes give 8,330 / 18,268;
+     zero laterals give 1,301 / 3,856. These are independent changes to
+     rest, with raw measurements in .flow/tmp/task6-measure.log.
+     Task 4 measured limbRadius 0.075 / 0.1 / 0.15 at 42,006 / 49,713 /
+     56,378 Telperion nodes and 43,199 / 104,335 / 149,826 Laurelin nodes.
+     The 0.005 notch resolves that transition; 0 disables limb laterals,
+     and 1 admits wood below the root radius. */
+  { group: "branches", key: "lengthRatio", label: "length ratio", min: 0.05, max: 1, step: 0.01, unit: "" },
+  { key: "ratioPower", label: "radius power", min: 0, max: 8, step: 0.05, unit: "" },
+  { key: "internodes", label: "internodes", min: 1, max: 32, step: 1, unit: "" },
+  { key: "laterals", label: "laterals", min: 0, max: 7, step: 1, unit: "" },
+  { key: "limbRadius", label: "limbRadius", min: 0, max: 1, step: 0.005, unit: "r" },
   { key: "twigAngle", label: "branch angle", min: 0, max: 90, step: 1, unit: "deg" },
-  { key: "twigDivergence", label: "twig divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
-  { key: "twigInternode", label: "internode", min: 0.1, max: 4, step: 0.05, unit: "step" },
-  { key: "twigLengthTaper", label: "twig length taper", min: 0.3, max: 1, step: 0.01, unit: "" },
+  { key: "twigDivergence", label: "branch divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
   // The fork exponent, under the name the owner already turns. Below
   // 2 a fork sheds more than area and the tree runs from a heavy
   // trunk to threads; above 3 the limbs stop thinning enough to read
@@ -293,8 +288,6 @@ export const SLIDERS: readonly SliderSpec[] = [
   // up, on exactly the trees the 400 m height ceiling was added for.
   { key: "trunkRadius", label: "trunk", min: 0.004, max: 0.085, step: 0.001, unit: "h" },
   { key: "lengthTaper", label: "length taper", min: 0, max: 2, step: 0.05, unit: "" },
-  // Below the crossover only: 0 is area conservation alone (about 2 to 1
-  // leaf to twig at eight orders), 0.7 the measured botanical 25 to 1.
   { group: "envelope", key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
   /* The last two terms of the authored silhouette. `spread` says how
      far the crown reaches and these two say what shape it is on the
@@ -318,24 +311,12 @@ export const SLIDERS: readonly SliderSpec[] = [
   // height the winding outruns the sampling and reads as chatter.
   { key: "twistRate", label: "surface twist", min: -3, max: 3, step: 0.1, unit: "turns" },
   { key: "flareRadius", label: "root flare", min: 1, max: 4, step: 0.05, unit: "x" },
-  /* The canopy. `leaf spacing` is the density lever and the one the
-     clay judgement actually drags: it runs from a third of the
-     presets' spacing - four times their foliage, where the shell cull
-     starts having real interior to take - out to a shoot with a few
-     leaves on it. The floor is above the library's own MIN_SPACING so
-     the panel cannot ask for the element count a spacing of zero
-     means.
-     `divergence` steps in thousandths on purpose and is the one dial
-     here that is not taste: a spiral is periodic or it is not, and
-     137.5 and 137.508 are different canopies over three thousand
-     leaves. The rest run to the library's own rails - clump to 64,
-     scatter to 90 degrees, size variation stopping short of 1, which
-     is an element scaled to nothing. */
-  { group: "canopy", key: "shootRadius", label: "shoot radius", min: 0.02, max: 1, step: 0.01, unit: "r" },
-  { key: "spacing", label: "leaf spacing", min: 0.0015, max: 0.03, step: 0.0005, unit: "h" },
-  { key: "divergence", label: "divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
-  { key: "clump", label: "clump", min: 0, max: 64, step: 1, unit: "" },
-  { key: "clumpSpan", label: "clump span", min: 0, max: 1, step: 0.01, unit: "" },
+  /* Marked twigs place leaves from their fixed anatomy. shootRadius,
+     spacing, clump and clumpSpan remain in preset round trips for the
+     library's unmarked-skeleton fallback, but have no dials here.
+     Divergence steps in thousandths to retain the authored phyllotaxis;
+     the other leaf controls keep the placement stage's existing rails. */
+  { group: "canopy", key: "divergence", label: "divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
   { key: "outward", label: "leaf outward", min: 0, max: 1, step: 0.01, unit: "" },
   { key: "upward", label: "leaf upward", min: 0, max: 1, step: 0.01, unit: "" },
   { key: "scatter", label: "leaf scatter", min: 0, max: 90, step: 1, unit: "deg" },
@@ -359,14 +340,13 @@ export const DEFAULT_PARAMS: GrowerParams = {
   twigDiameter: DEFAULT_TWIGS.twig.diameter,
   twigStationLength: DEFAULT_TWIGS.twig.internodeLength,
   twigStations: DEFAULT_TWIGS.twig.stationsPerInternode,
-  twigRatioPower: DEFAULT_TWIGS.ratioPower,
+  ratioPower: DEFAULT_TWIGS.ratioPower,
   limbRadius: DEFAULT_TWIGS.limbRadius,
-  twigLevels: 0,
-  twigChildren: DEFAULT_TWIGS.laterals + 1,
+  laterals: DEFAULT_TWIGS.laterals,
   twigAngle: DEFAULT_TWIGS.angle,
   twigDivergence: DEFAULT_TWIGS.divergence,
-  twigInternode: DEFAULT_TWIGS.internodes,
-  twigLengthTaper: DEFAULT_TWIGS.lengthRatio,
+  internodes: DEFAULT_TWIGS.internodes,
+  lengthRatio: DEFAULT_TWIGS.lengthRatio,
   taper: DEFAULT_RADII.forkExponent,
   trunkRadius: DEFAULT_RADII.trunkRadius,
   lengthTaper: DEFAULT_RADII.lengthTaper,

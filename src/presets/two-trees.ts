@@ -113,9 +113,11 @@ export const TELPERION: TreePreset = {
       // turns about the axis over the height.
       spiralRate: 2.6,
     },
-    /* Three internodes per branch, two alternate lateral stations and
-       a fixed terminal twig. The measured 0.4 length ratio reaches
-       twig radius in five lateral reductions on this tree. */
+    /* A 5 mm twig with 20 mm internodes and one leaf station, shared
+       with Laurelin. Branches carry three internodes and one lateral
+       at each interior station. Length ratio 0.4 and radius power 1.3
+       reduce lateral radius by 0.304; the handoff wood determines the
+       generation read-out. The field and stiffness bend every run. */
     twigs: {
       twig: { diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1 },
       lengthRatio: 0.4,
@@ -249,9 +251,11 @@ export const LAURELIN: TreePreset = {
       // in the skin, not in the centreline.
       spiralRate: 0.6,
     },
-    /* The same branch law and fixed twig as Telperion. This tree's
-       field and stiffness bend the internodes; its solved handoff
-       radius determines the number of lateral generations. */
+    /* The same 5 mm twig, 20 mm internodes and one leaf station as
+       Telperion. Three branch internodes bear one lateral per interior
+       station, with length ratio 0.4 and radius power 1.3. This tree's
+       field and stiffness bend the runs; its solved handoff wood
+       determines the generation read-out. */
     twigs: {
       twig: { diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1 },
       lengthRatio: 0.4,

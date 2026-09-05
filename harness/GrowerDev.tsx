@@ -462,6 +462,20 @@ export function GrowerDev() {
             : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.drawCalls.toLocaleString()} draws, ${stats.instances.toLocaleString()} leaves, ${stats.buildMs.toFixed(1)} ms`}
         </p>
 
+        {stats !== null ? (
+          <p className="gd-note">
+            {stats.generations === null
+              ? "no surviving handoffs"
+              : `derived generations min / median / max: ${stats.generations.min} / ${stats.generations.median} / ${stats.generations.max}; ${stats.handoffs.toLocaleString()} surviving handoffs; ${stats.levelCappedHandoffs.toLocaleString()} level-capped by radius law; ${stats.twigs.toLocaleString()} twigs`}
+          </p>
+        ) : null}
+        {stats?.levelCapped ? (
+          <p className="gd-note gd-warn">
+            generation safety cap reached during growth. lower length ratio
+            or raise radius power to reach twig radius sooner.
+          </p>
+        ) : null}
+
         {/* The ceiling, in words. A capped tree is the ceiling's shape
             and not the envelope's, and a node count alone cannot say
             which it was - so the stop is never silent. */}
@@ -469,7 +483,7 @@ export function GrowerDev() {
           <p className="gd-note gd-warn">
             node ceiling reached: growth was stopped, not finished. this
             tree is the ceiling&apos;s shape, not the envelope&apos;s - raise
-            the step or lower the orders.
+            the growth step or lower limbRadius.
           </p>
         ) : null}
 

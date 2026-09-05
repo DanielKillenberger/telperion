@@ -19,6 +19,8 @@ import {
 import type { TreePreset } from "../src/presets";
 import { solveRadii, type RadiusParams } from "../src/radius";
 import { growReport, type SkeletonParams } from "../src/skeleton/grow";
+import { generationsUntilTwig } from "../src/skeleton/law";
+import { MAX_TWIG_LEVELS, resolveTwigs, type TwiggedSkeleton, type TwigParams } from "../src/skeleton/twigs";
 
 import type { GrowerParams } from "./params";
 import type { Clay } from "./stage";
@@ -59,7 +61,7 @@ const ATTRACTORS_MAX = 1600;
  *  move takes the tree from straight to writhing without walking three
  *  sliders. Gravitropism is deliberately outside it - a tree that wants
  *  to grow up still wants to when it is not twisting.
- *  `density` is the attractor count, and `step` and the six twig
+ *  `density` is the attractor count, and `step` and the branch-law
  *  rules go through under the library's own names. `taper` is not a skeleton argument at all -
  *  thickness is solved over the skeleton once it has grown, so it
  *  travels through `toRadiusParams`. */
@@ -87,13 +89,13 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
     twigs: {
       twig: { diameter: params.twigDiameter, internodeLength: params.twigStationLength,
         stationsPerInternode: params.twigStations },
-      ratioPower: params.twigRatioPower,
+      ratioPower: params.ratioPower,
       limbRadius: params.limbRadius,
-      laterals: params.twigChildren - 1,
+      laterals: params.laterals,
       angle: params.twigAngle,
       divergence: params.twigDivergence,
-      internodes: params.twigInternode,
-      lengthRatio: params.twigLengthTaper,
+      internodes: params.internodes,
+      lengthRatio: params.lengthRatio,
     },
     bias: {
       gravitropism: params.gravitropism,
@@ -154,7 +156,7 @@ export function toSurfaceParams(params: GrowerParams): SurfaceParams {
   };
 }
 
-/** The panel's ten canopy dials, as the placement stage's arguments.
+/** The panel's canopy values, as the placement stage's arguments.
  *
  *  A rename and nothing else: every term carries the library's own
  *  name and unit, so there is nothing here to translate and nothing to
@@ -193,6 +195,19 @@ export interface TreeStats {
    *  shape and not the envelope's, and `nodes` alone cannot say which
    *  it was - so the panel says it in words. */
   capped: boolean;
+  /** The pass's actual generation stop, retained even after shedding. */
+  levelCapped: boolean;
+  /** Surviving edges leaving colonization, including tip leaders and laterals. */
+  handoffs: number;
+  /** Radius-law reductions to twig size for surviving handoffs. Empty is null. */
+  generations: { min: number; median: number; max: number } | null;
+  /** Histogram preserves the pooled median when multiple trees are compared. */
+  generationCounts: number[];
+  /** Handoffs whose radius law remains above twig radius at the safety cap.
+   * This prediction can exceed actual stops when collisions or short runs end growth. */
+  levelCappedHandoffs: number;
+  /** Surviving twig marks, independent of the foliage visibility toggle. */
+  twigs: number;
   /** What the subject costs the renderer in draw calls: one per
    *  renderable in it. The canopy's claim is that a whole crown is one
    *  of these, so this is the number that claim is read off. */
@@ -209,8 +224,52 @@ export interface TreeStats {
    *  figure beside this one in the panel is what reports what was
    *  actually drawn. */
   instances: number;
-  /** Wall-clock milliseconds for the whole build: grow, solve, sweep. */
+  /** Wall-clock milliseconds for growth, radii, surface, foliage and meshes. */
   buildMs: number;
+}
+
+function generationRange(counts: readonly number[]): TreeStats["generations"] {
+  const total = counts.reduce((sum, count) => sum + count, 0);
+  if (total === 0) return null;
+  const at = (rank: number): number => {
+    let seen = 0;
+    for (let i = 0; i < counts.length; i++) {
+      seen += counts[i];
+      if (seen > rank) return i;
+    }
+    return counts.length - 1;
+  };
+  return { min: at(0), median: (at(Math.floor((total - 1) / 2)) + at(Math.floor(total / 2))) / 2,
+    max: at(total - 1) };
+}
+
+/** Read the surviving pass records without growing a second tree. A handoff
+ * is an appended edge whose parent belongs to colonization. Its recorded
+ * base radius already includes the lateral reduction and fixed-twig clamp.
+ * The law read-out excludes the terminal twig and describes required depth,
+ * rather than the depth collisions and shedding happened to leave visible. */
+export function branchStats(skeleton: TwiggedSkeleton, params?: Partial<TwigParams>): Pick<
+  TreeStats, "handoffs" | "generations" | "generationCounts" | "levelCappedHandoffs" | "twigs"
+> {
+  const twigs = resolveTwigs(params);
+  const generationCounts = Array<number>(MAX_TWIG_LEVELS + 1).fill(0);
+  let handoffs = 0;
+  let levelCappedHandoffs = 0;
+  let twigCount = 0;
+  for (let i = skeleton.crossover; i < skeleton.nodes.length; i++) {
+    const offset = i - skeleton.crossover;
+    twigCount += Number(skeleton.twig[offset] === 1);
+    if (skeleton.nodes[i].parent >= skeleton.crossover) continue;
+    const derived = generationsUntilTwig(skeleton.baseRadius[offset], {
+      lengthRatio: twigs.lengthRatio, ratioPower: twigs.ratioPower,
+      twigDiameter: twigs.twig.diameter,
+    });
+    handoffs++;
+    generationCounts[derived.generations]++;
+    levelCappedHandoffs += Number(derived.capped);
+  }
+  return { handoffs, generations: generationRange(generationCounts), generationCounts,
+    levelCappedHandoffs, twigs: twigCount };
 }
 
 /** What an object costs to draw, counted off the object graph.
@@ -292,14 +351,13 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     twigDiameter: preset.skeleton.twigs.twig.diameter,
     twigStationLength: preset.skeleton.twigs.twig.internodeLength,
     twigStations: preset.skeleton.twigs.twig.stationsPerInternode,
-    twigRatioPower: preset.skeleton.twigs.ratioPower,
+    ratioPower: preset.skeleton.twigs.ratioPower,
     limbRadius: preset.skeleton.twigs.limbRadius,
-    twigLevels: 0,
-    twigChildren: preset.skeleton.twigs.laterals + 1,
+    laterals: preset.skeleton.twigs.laterals,
     twigAngle: preset.skeleton.twigs.angle,
     twigDivergence: preset.skeleton.twigs.divergence,
-    twigInternode: preset.skeleton.twigs.internodes,
-    twigLengthTaper: preset.skeleton.twigs.lengthRatio,
+    internodes: preset.skeleton.twigs.internodes,
+    lengthRatio: preset.skeleton.twigs.lengthRatio,
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
     lengthTaper: preset.radii.lengthTaper,
@@ -464,6 +522,8 @@ function build(
          rule has shed its interior twigs, so the node count cannot
          say whether growth was stopped. */
       capped: grown.capped,
+      levelCapped: grown.levelCapped,
+      ...branchStats(skeleton, skeletonParams.twigs),
       drawCalls: draws.drawCalls,
       instances: draws.instances,
       buildMs: performance.now() - started,
@@ -552,6 +612,12 @@ export function buildComparison(
     group.add(tree);
   });
 
+  const generationCounts = Array<number>(MAX_TWIG_LEVELS + 1).fill(0);
+  for (const one of built) {
+    one.stats.generationCounts.forEach((count, generation) => {
+      generationCounts[generation] += count;
+    });
+  }
   return {
     group,
     stats: {
@@ -560,6 +626,12 @@ export function buildComparison(
       nodes: built.reduce((total, one) => total + one.stats.nodes, 0),
       // One capped tree is a comparison that cannot be judged.
       capped: built.some((one) => one.stats.capped),
+      levelCapped: built.some((one) => one.stats.levelCapped),
+      handoffs: built.reduce((total, one) => total + one.stats.handoffs, 0),
+      generations: generationRange(generationCounts),
+      generationCounts,
+      levelCappedHandoffs: built.reduce((total, one) => total + one.stats.levelCappedHandoffs, 0),
+      twigs: built.reduce((total, one) => total + one.stats.twigs, 0),
       /* Draws and instances sum the same way the rest do, because two
          trees standing side by side really are two subjects' worth of
          work: each carries its own surface and, when the canopy lands,
