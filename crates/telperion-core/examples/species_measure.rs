@@ -16,10 +16,10 @@ use telperion_core::{
 };
 const HELP:&str="species_measure --case ID:PROFILE:PRESET:SEED [--case ...] --output FILE [--profiles FILE]
 Profiles default to .flow/evidence/fn9/profiles.json relative to the repository.
-Presets: ordinary, telperion, laurelin. Unknown IDs fail; cases continue independently.
+Presets: ordinary, oregon-white-oak, telperion, laurelin. Unknown IDs fail; cases continue independently.
 Example (compile first, then bound the entire run):
   cargo build --release -p telperion-core --example species_measure
-  timeout 120s target/release/examples/species_measure --case oak-1:oregon-white-oak:ordinary:1 --output /tmp/oak-1.jsonl
+  timeout 120s target/release/examples/species_measure --case oak-1:oregon-white-oak:oregon-white-oak:1 --output /tmp/oak-1.jsonl
 Output must be new: existing evidence is never overwritten. JSONL contains run, pending,
 started and completed/failed records. An interrupted run retains its completed cases;
 a pending/started case without a terminal record is unassessed, never passed.
@@ -43,12 +43,7 @@ fn event(file: &mut File, value: &Value) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 fn specimen(preset: &str, seed: u32) -> Result<Value, String> {
-    let preset = match preset {
-        "ordinary" => Preset::Ordinary,
-        "telperion" => Preset::Telperion,
-        "laurelin" => Preset::Laurelin,
-        _ => return Err(format!("unknown preset: {preset}")),
-    };
+    let preset = Preset::from_id(preset).ok_or_else(|| format!("unknown preset: {preset}"))?;
     let mut f = preset.parameters();
     f.skeleton.seed = seed;
     let total = Instant::now();
@@ -172,6 +167,11 @@ fn run() -> Result<bool, String> {
                 .ok_or_else(|| format!("unknown profile: {}", parts[1]))?;
             if profile["readiness"] != "ready" {
                 return Err("profile not ready".into());
+            }
+            if let Some(id) = Preset::from_id(parts[2]).and_then(Preset::profile_id) {
+                if id != parts[1] {
+                    return Err(format!("preset {} requires profile {id}", parts[2]));
+                }
             }
             species_metrics::compare(profile, &json!({}))?;
             let mut data = specimen(parts[2], seed)?;

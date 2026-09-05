@@ -1,15 +1,16 @@
 //! Named families. Change the seed separately to draw another specimen.
 use crate::{
     bias::{BiasParams, SupernaturalParams},
-    branching::SkeletonParams,
+    branching::{BranchHabit, SkeletonParams, SpreadingHabit},
     envelope::Envelope,
-    foliage::{CanopyParams, ElementParams},
+    foliage::{Attachment, CanopyParams, ElementAnatomy, ElementParams},
     radius::RadiusParams,
     surface::SurfaceParams,
 };
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Preset {
     Ordinary,
+    OregonWhiteOak,
     Telperion,
     Laurelin,
 }
@@ -39,8 +40,58 @@ impl Default for Family {
     }
 }
 impl Preset {
+    /// Stable research identity; synthetic families have no botanical profile.
+    pub fn profile_id(self) -> Option<&'static str> {
+        match self {
+            Self::OregonWhiteOak => Some("oregon-white-oak"),
+            _ => None,
+        }
+    }
+
+    /// Native selection is explicit and independent of catalogue order or seed.
+    pub fn from_id(id: &str) -> Option<Self> {
+        match id {
+            "ordinary" => Some(Self::Ordinary),
+            "oregon-white-oak" => Some(Self::OregonWhiteOak),
+            "telperion" => Some(Self::Telperion),
+            "laurelin" => Some(Self::Laurelin),
+            _ => None,
+        }
+    }
+
     pub fn parameters(self) -> Family {
         let mut p = Family::default();
+        if self == Self::OregonWhiteOak {
+            // Mature, open-grown Quercus garryana. Metre dimensions are
+            // calibrated against the frozen profile, not inferred from seed.
+            p.skeleton.habit = BranchHabit::Spreading(SpreadingHabit {
+                subdivisions: 4,
+                ..Default::default()
+            });
+            p.skeleton.envelope = Envelope {
+                height: 24.0,
+                crown_base: 0.16,
+                spread: 0.55,
+                fullness: 0.55,
+                shoulder: 2.2,
+            };
+            p.skeleton.bias = BiasParams::NONE;
+            p.skeleton.twigs.laterals = 3;
+            p.skeleton.twigs.length_ratio = 0.45;
+            p.skeleton.twigs.twig.bearing_diameter = 0.03;
+            p.radii.trunk_radius = 0.018;
+            p.element = ElementParams {
+                anatomy: ElementAnatomy::LobedBlade,
+                length: 0.10,
+                width: 0.075,
+                connector_length: 0.012,
+                ..Default::default()
+            };
+            p.canopy.attachment = Attachment::Alternate;
+            p.canopy.divergence = 180.0;
+            p.canopy.size_variation = 0.2;
+            return p;
+        }
         if self == Self::Ordinary {
             return p;
         }
