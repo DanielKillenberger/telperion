@@ -214,6 +214,36 @@
       "task": null,
       "timestamp": "2026-09-05T11:06:43.389363Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "fb0770fd48f0ede7586e8588cd325578f6a0b003ffb702e860e8a2468ced30fd",
+      "backend": "codex",
+      "base_sha": "d2b0e88a5bf7a85e7a1bcc408d590c0e6374e9c1",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fdafb099b1495519de75a6b9a66d37f7d07e47bd",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "transport_failure",
+      "output_bytes": 969813,
+      "output_sha256": "50af28e9192d3ba744228fdaf8fef86940ecd775207c6cc4e2b183a49737f2a8",
+      "reservation_id": "1cc00ddf0fed466eaf5f2dfa1d5a8dd8",
+      "round_consumed": false,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-05T18:20:00.681280Z",
+      "tool_calls": 42,
+      "verdict": null
     }
   ],
   "review_hash_epoch": {
@@ -223,10 +253,11 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 1,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-6-branch-generations-below-the-crossover.md",
-  "status": "open",
+  "status": "done",
   "title": "Branch generations below the crossover, and one fixed twig",
   "tracker": {
     "baseHashFlow": null,
@@ -239,5 +270,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T12:15:42.106802Z"
+  "updated_at": "2026-09-05T18:24:16.598927Z"
 }

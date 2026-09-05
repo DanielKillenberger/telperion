@@ -79,3 +79,24 @@ describe("readSlider", () => {
     }
   });
 });
+
+
+describe("branch-law controls", () => {
+  it("offers the law rails and retires depth and fallback canopy controls", () => {
+    const branch = SLIDERS.filter((s) =>
+      ["lengthRatio", "ratioPower", "internodeFactor", "angleVariation", "vigourVariation", "laterals", "limbRadius"].includes(s.key));
+    expect(branch.map(({ key, min, max, step }) => ({ key, min, max, step }))).toEqual([
+      { key: "lengthRatio", min: 0.05, max: 1, step: 0.01 },
+      { key: "ratioPower", min: 0, max: 8, step: 0.05 },
+      { key: "internodeFactor", min: 0.05, max: 32, step: 0.05 },
+      { key: "angleVariation", min: 0, max: 90, step: 1 },
+      { key: "vigourVariation", min: 0, max: 0.95, step: 0.01 },
+      { key: "laterals", min: 0, max: 7, step: 1 },
+      { key: "limbRadius", min: 0, max: 1, step: 0.005 },
+    ]);
+    for (const key of ["twigLevels", "twigThinning", "shootRadius", "spacing", "clump", "clumpSpan"]) {
+      expect(SLIDERS.map((s) => s.key)).not.toContain(key);
+    }
+    expect(DEFAULT_PARAMS).not.toHaveProperty("twigLevels");
+  });
+});

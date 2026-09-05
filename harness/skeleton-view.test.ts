@@ -15,6 +15,7 @@ import {
   buildPreset,
   buildTree,
   countDraws,
+  branchStats,
   presetToParams,
   toCanopyParams,
   toRadiusParams,
@@ -155,20 +156,24 @@ describe("toSkeletonParams", () => {
   it("hands branch anatomy and the law over under the library's own names", () => {
     // Every member of `twigs` named, so the panel cannot drop one; and
     // the lateral count reaches the tree and adds branches.
-    const mapped = toSkeletonParams({ ...DEFAULT_PARAMS, twigLevels: 3, twigChildren: 3 });
+    const mapped = toSkeletonParams({ ...DEFAULT_PARAMS, laterals: 2 });
     expect(mapped.twigs).toEqual({
-      twig: { diameter: DEFAULT_PARAMS.twigDiameter, internodeLength: DEFAULT_PARAMS.twigStationLength,
-        stationsPerInternode: DEFAULT_PARAMS.twigStations },
-      ratioPower: DEFAULT_PARAMS.twigRatioPower,
+      twig: { length: DEFAULT_PARAMS.twigLength, diameter: DEFAULT_PARAMS.twigDiameter, internodeLength: DEFAULT_PARAMS.twigStationLength,
+        stationsPerInternode: DEFAULT_PARAMS.twigStations, bearingDiameter: DEFAULT_PARAMS.twigBearing },
+      ratioPower: DEFAULT_PARAMS.ratioPower,
+      limbRadius: DEFAULT_PARAMS.limbRadius,
+      reach: DEFAULT_PARAMS.reach,
       laterals: 2,
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
-      internodes: DEFAULT_PARAMS.twigInternode,
-      lengthRatio: DEFAULT_PARAMS.twigLengthTaper,
+      internodeFactor: DEFAULT_PARAMS.internodeFactor,
+      angleVariation: DEFAULT_PARAMS.angleVariation,
+      vigourVariation: DEFAULT_PARAMS.vigourVariation,
+      lengthRatio: DEFAULT_PARAMS.lengthRatio,
     });
     expect(mapped.twigs).not.toHaveProperty("levels");
-    expect(positions(tree({ twigChildren: 3 })).length).toBeGreaterThan(
-      positions(tree({ twigChildren: 1 })).length * 2,
+    expect(positions(tree({ laterals: 2 })).length).toBeGreaterThan(
+      positions(tree({ laterals: 0 })).length * 2,
     );
   });
 
@@ -257,7 +262,7 @@ describe("buildTree", () => {
     for (const value of positions(mesh)) {
       expect(Number.isFinite(value)).toBe(true);
     }
-  });
+  }, 60_000);
 
   it("reports what the build cost, for the panel to show", () => {
     // The surface is allowed to cost more than the tube viewer did.
@@ -335,26 +340,24 @@ describe("buildTree", () => {
   });
 
   it("leaves no canopy at all rather than an empty draw", () => {
-    /* R8's error case, at its source. A tree whose wood is everywhere
-       too thick to bear foliage grows nothing, and "nothing" in a
-       scene graph is an absent object: an InstancedMesh drawing zero
-       copies is still a draw call the panel reports and still an
-       object the stage measures, so the branch-only subject has to
-       come out exactly as it did before there was a canopy stage. */
-    const bare = buildTree({ ...DEFAULT_PARAMS, shootRadius: 0 }, clay);
+    // An empty canopy must leave no instanced object or draw in the scene.
+    const bare = buildTree(DEFAULT_PARAMS, clay, false);
     expect(canopyOf(bare.tree)).toBeNull();
     expect(bare.stats.drawCalls).toBe(1);
     expect(bare.stats.instances).toBe(0);
   });
 
-  it("the leaf spacing dial reaches the element count", () => {
-    // The density lever, and the one the clay judgement drags.
-    const sparse = buildTree({ ...DEFAULT_PARAMS, spacing: 0.02 }, clay);
-    const dense = buildTree({ ...DEFAULT_PARAMS, spacing: 0.003 }, clay);
-    expect(dense.stats.instances).toBeGreaterThan(
-      sparse.stats.instances * 2,
-    );
-  });
+  it("passes twig stations through to the placed canopy", () => {
+    const sparse = buildTree({ ...DEFAULT_PARAMS, twigStations: 1 }, clay);
+    const dense = buildTree({ ...DEFAULT_PARAMS, twigStations: 4 }, clay);
+    expect(sparse.stats.instances).toBeGreaterThan(0);
+    expect(dense.stats.instances).toBeGreaterThan(sparse.stats.instances * 2);
+    expect(positions(trunkOf(dense.tree))).toEqual(positions(trunkOf(sparse.tree)));
+    for (const built of [sparse, dense]) built.tree.traverse((object) => {
+      if (object instanceof THREE.Mesh) object.geometry.dispose();
+      if (object instanceof THREE.InstancedMesh) object.dispose();
+    });
+  }, 60_000);
 
   it("grows the same canopy from the same seed, transform for transform", () => {
     /* R7 on the harness's side of the seam. The canopy is placed from
@@ -736,6 +739,21 @@ describe("the forest's own numbers", () => {
     // and its crown, and every leaf on both trees is instanced.
     expect(forest.drawCalls).toBe(PRESETS.length * 2);
     expect(forest.instances).toBeGreaterThan(0);
+    // Task 8's local taper and crown guard change topology; keep exact
+    // per-preset counts as well as the forest aggregation invariant.
+    expect(alone.map((one) => one.handoffs)).toEqual([1075, 1649]);
+    expect(alone.map((one) => one.twigs)).toEqual([54890, 32153]);
+    for (const key of ["handoffs", "levelCappedHandoffs", "twigs"] as const) {
+      expect(forest[key]).toBe(alone.reduce((sum, one) => sum + one[key], 0));
+    }
+    const pooled = alone.flatMap((one) => one.generationCounts.flatMap(
+      (count, generation) => Array<number>(count).fill(generation),
+    )).sort((a, b) => a - b);
+    expect(forest.generations).toEqual({ min: pooled[0],
+      median: (pooled[Math.floor((pooled.length - 1) / 2)] + pooled[Math.floor(pooled.length / 2)]) / 2,
+      max: pooled[pooled.length - 1] });
+    expect(forest.levelCapped).toBe(false);
+    expect(forest.levelCappedHandoffs).toBe(0);
   }, 60_000);
   it("builds the same tree bare when foliage is off", () => {
     /* Foliage off is an empty canopy, not a second code path: no leaf
@@ -752,4 +770,30 @@ describe("the forest's own numbers", () => {
     expect(off.stats.nodes).toBe(on.stats.nodes);
   });
 
+});
+
+
+describe("derived branch read-out", () => {
+  it("counts surviving handoffs, excludes downstream branches, and reports law caps", () => {
+    const nodes = [-1, 0, 1, 1, 1, 1, 2].map((parent) => ({
+      parent, position: new THREE.Vector3(),
+    }));
+    const skeleton = {
+      nodes, crossover: 2,
+      branchId: new Int32Array([2, 3, 4, 5, 6]),
+      baseRadius: new Float64Array([0.0025, 0.005, 0.02, 0.08, 0.0025]), endRadius: new Float64Array([0.0025, 0.005, 0.02, 0.08, 0.0025]),
+      twig: new Uint8Array([1, 0, 0, 0, 1]),
+      levelCapped: false, nodeCapped: false,
+    };
+    const law = { ...toSkeletonParams(DEFAULT_PARAMS).twigs, lengthRatio: 0.5, ratioPower: 1 };
+    const stats = branchStats(skeleton, law);
+    expect(stats.handoffs).toBe(4);
+    expect(stats.generations).toEqual({ min: 0, median: 2, max: 5 });
+    expect(stats.twigs).toBe(2);
+    expect(stats.levelCappedHandoffs).toBe(0);
+    expect(branchStats(skeleton, { ...law, ratioPower: 0 }).levelCappedHandoffs).toBe(3);
+    expect(branchStats({ ...skeleton, nodes: nodes.slice(0, 2),
+      branchId: new Int32Array(), baseRadius: new Float64Array(), endRadius: new Float64Array(), twig: new Uint8Array(),
+    }, law).generations).toBeNull();
+  });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildSurface } from "../mesh/surface";
 import { solveRadii } from "../radius";
+import { buildCanopy } from "../canopy/place";
 import { DEFAULT_ELEMENT } from "../canopy/element";
 import {
   growReport,
@@ -131,11 +132,12 @@ describe("the two trees are two of the same generator", () => {
   it("neither preset stalls against the generator's node ceiling", () => {
     /* A preset that reaches the ceiling has been cut off rather than
        finished - the tree on screen would then be the ceiling's shape
-       and not the envelope's. The ceiling scales with the orders asked
-       for, so the library's own report is read rather than a number
-       restated here. */
+       and not the envelope's. Read both cap flags from the library's
+       report: the law must finish before either safety stop. */
     for (const preset of PRESETS) {
-      expect(growReport(preset.skeleton, preset.radii).capped).toBe(false);
+      const report = growReport(preset.skeleton, preset.radii);
+      expect(report.capped).toBe(false);
+      expect(report.levelCapped).toBe(false);
     }
   });
 
@@ -143,25 +145,44 @@ describe("the two trees are two of the same generator", () => {
     /* R3, on both presets at the depth they ship at. Before the second
        pass a 12 cm leaf sat on 79 cm wood, a ratio of 0.15 to 1; the
        botanical relationship is the other way, a leaf several times the
-       diameter of the twig that bears it. Measured at the median tip so
+       diameter of the twig that bears it. Measured at the median marked twig so
        one stray fine twig cannot pass the crown. */
     for (const preset of PRESETS) {
       const skeleton = growSkeleton(preset.skeleton, preset.radii);
       const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
-      const childCount = new Array<number>(skeleton.nodes.length).fill(0);
-      for (const node of skeleton.nodes) {
-        if (node.parent >= 0) childCount[node.parent] += 1;
-      }
-      const tips = skeleton.nodes
-        .map((_, index) => index)
-        .filter((index) => index > 0 && childCount[index] === 0)
-        .map((index) => 2 * field.radius[index])
+      const tips = Array.from(skeleton.twig)
+        .flatMap((mark, index) => mark === 1 ? [2 * field.radius[index + skeleton.crossover]] : [])
         .sort((a, b) => a - b);
+      expect(tips.length).toBeGreaterThan(0);
+      for (const diameter of tips) expect(diameter).toBeCloseTo(preset.skeleton.twigs.twig.diameter, 12);
       const medianTwig = tips[Math.floor(tips.length / 2)];
       const leaf = DEFAULT_ELEMENT.length * preset.canopy.size;
       expect(leaf / medianTwig).toBeGreaterThan(10);
+      const canopy = buildCanopy(skeleton, field, preset.skeleton.envelope,
+        preset.skeleton.seed, preset.canopy, preset.skeleton.twigs.twig);
+      const anatomy = preset.skeleton.twigs.twig;
+      const internodes = Math.ceil(anatomy.length / anatomy.internodeLength - 1e-9);
+      expect(canopy.count).toBe(tips.length * internodes * anatomy.stationsPerInternode);
+      expect(canopy.count).toBeGreaterThanOrEqual(100_000);
+      expect(canopy.count).toBeLessThanOrEqual(10_000_000);
+      let leafIndex = 0;
+      let worstOffsetError = 0;
+      for (let i = skeleton.crossover; i < skeleton.nodes.length; i++) {
+        if (skeleton.twig[i - skeleton.crossover] !== 1) continue;
+        const foot = skeleton.nodes[skeleton.nodes[i].parent].position;
+        const axis = skeleton.nodes[i].position.clone().sub(foot).normalize();
+        for (let station = 0; station < internodes * anatomy.stationsPerInternode; station++) {
+          const onWood = foot.clone().addScaledVector(axis, Math.floor(station / anatomy.stationsPerInternode) * anatomy.internodeLength);
+          const offset = leafIndex++ * 16 + 12;
+          const distance = Math.hypot(canopy.matrices[offset] - onWood.x,
+            canopy.matrices[offset + 1] - onWood.y, canopy.matrices[offset + 2] - onWood.z);
+          worstOffsetError = Math.max(worstOffsetError, Math.abs(distance - field.startRadius[i]));
+        }
+      }
+      // Packed float32 positions at these 150 m coordinates lose micrometres.
+      expect(worstOffsetError).toBeLessThan(2e-5);
     }
-  });
+  }, 60_000);
 });
 
 describe("Laurelin is broad, domed and spreading", () => {
@@ -263,14 +284,18 @@ describe("the preset registry", () => {
       ]);
       expect(Object.keys(skeleton.twigs).sort()).toEqual([
         "angle",
+        "angleVariation",
         "divergence",
-        "internodes",
+        "internodeFactor",
         "laterals",
         "lengthRatio",
+        "limbRadius",
         "ratioPower",
+        "reach",
         "twig",
+        "vigourVariation",
       ]);
-      expect(Object.keys(skeleton.twigs.twig).sort()).toEqual(["diameter", "internodeLength", "stationsPerInternode"]);
+      expect(Object.keys(skeleton.twigs.twig).sort()).toEqual(["bearingDiameter", "diameter", "internodeLength", "length", "stationsPerInternode"]);
       expect(Object.keys(preset.radii).sort()).toEqual([
         "forkExponent",
         "lengthTaper",

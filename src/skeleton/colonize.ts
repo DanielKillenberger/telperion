@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { envelopeRadiusAt, type Envelope } from "../envelope";
 
 /* ------------------------------------------------------------------ *
  * SPACE COLONIZATION
@@ -148,6 +149,10 @@ export interface GrowthConfig {
    *  Absent is the unbiased algorithm: straight up the trunk, and
    *  wherever the attractors say after that. */
   bias?: GrowthBias;
+  /** The authored silhouette. Once crown growth enters it, it cannot
+   *  leave. A leaning trunk's outside-starting approach keeps its existing
+   *  progress rule until entry. The local branch pass clips its runs. */
+  shell?: Envelope;
 }
 
 /** `wanted`, turned back until it is no more than `maxRadians` away
@@ -304,6 +309,9 @@ export function colonize(
   const count = attractors.length;
   const step = config.stepDistance;
   if (count === 0 || step <= 0 || config.maxNodes < 2) return { nodes };
+
+  const outsideCrown = (position: THREE.Vector3) => config.shell && position.y >= config.trunkHeight
+    && (position.y > config.shell.height || Math.hypot(position.x, position.z) > envelopeRadiusAt(config.shell, position.y));
 
   const influenceSq = config.influenceRadius * config.influenceRadius;
   const killSq = config.killDistance * config.killDistance;
@@ -522,7 +530,8 @@ export function colonize(
          silhouette - the pull loop already refuses to grow *from* a
          node below the line, and this is the same rule for a node
          about to put its child under it. */
-      if (candidate.y < config.trunkHeight) continue;
+      if (candidate.y < config.trunkHeight
+        || (outsideCrown(candidate) && !outsideCrown(nodes[parent].position))) continue;
       if (candidate.distanceToSquared(attractors[a]) < nearestSq[a]) {
         closing.add(parent);
       }

@@ -73,8 +73,20 @@ describe("crown fill measurements", () => {
       const occupancy = shellOccupancy(tree, terminal, preset.skeleton.envelope, 0.02);
       const clustering = tipClustering(tree, tree.crossover, terminal, preset.skeleton.envelope.height * 0.05);
       expect(report.capped).toBe(false);
+      expect(report.levelCapped).toBe(false);
+      expect(report.shed).toBeGreaterThan(0);
+      expect(tree.nodes.length - tree.crossover).toBeGreaterThan(0);
       expect(occupancy.tested).toBe(true);
       expect(clustering.tested).toBe(true);
+      // R4 bounds chosen after the tight measurement and clay comparison in §Measured.
+      if (occupancy.tested && clustering.tested) {
+        expect.soft(occupancy.fraction).toBeGreaterThanOrEqual(preset.id === "telperion" ? 0.20 : 0.083);
+        // Re-measured in task 8: with a twig at every station of the fine
+        // wood, and tips bearing laterals, Telperion's terminals near a
+        // colonization tip rose from 64% to about 70%; the ceiling follows
+        // the measurement and the owner's eye judges the fill (R7).
+        expect.soft(clustering.fraction).toBeLessThanOrEqual(preset.id === "telperion" ? 0.75 : 0.35);
+      }
       process.stdout.write(JSON.stringify({ preset: preset.id, pass: "branch-generations", nodes: tree.nodes.length,
         crossover: tree.crossover, terminals: terminal.reduce((sum, mark) => sum + mark, 0),
         cellSizeHeightFraction: 0.02, distanceHeightFraction: 0.05, occupancy, clustering }) + "\n");

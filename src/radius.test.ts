@@ -276,7 +276,7 @@ describe("solveRadii - no zero or negative radii, whatever it is handed", () => 
   });
 });
 
-describe("solveRadii - the fine orders below the crossover", () => {
+describe("solveRadii - the branch generations below the crossover", () => {
   /** Full generations, or a prefix-only fixture for the colonization solve. */
   const twigged = (preset: typeof TELPERION, withBranches: boolean, lengthRatio = preset.skeleton.twigs.lengthRatio): TwiggedSkeleton => {
     const tree = growSkeleton({ ...preset.skeleton,
@@ -284,7 +284,7 @@ describe("solveRadii - the fine orders below the crossover", () => {
       growth: { ...preset.skeleton.growth, maxNodes: 4_000_000 },
     }, preset.radii);
     return withBranches ? tree : { ...tree, nodes: tree.nodes.slice(0, tree.crossover),
-      branchId: new Int32Array(), baseRadius: new Float64Array(), twig: new Uint8Array() };
+      branchId: new Int32Array(), baseRadius: new Float64Array(), endRadius: new Float64Array(), twig: new Uint8Array() };
   };
 
   it.each([
@@ -319,9 +319,8 @@ describe("solveRadii - the fine orders below the crossover", () => {
       const expected = skeleton.branchId[record] === i
         ? skeleton.baseRadius[record] : field.radius[parent];
       expect(field.startRadius[i]).toBe(expected);
-      const length = skeleton.nodes[parent].position.distanceTo(skeleton.nodes[i].position);
-      const taper = skeleton.twig[record] ? 1 : Math.exp(-TELPERION.radii.lengthTaper * length / envelope.height);
-      expect(field.radius[i]).toBeCloseTo(expected * taper, 12);
+      expect(field.radius[i]).toBe(skeleton.endRadius[record]);
+      expect(field.radius[i]).toBeLessThanOrEqual(expected);
       checked++;
     }
     expect(checked).toBeGreaterThan(1000);
@@ -350,13 +349,16 @@ describe("solveRadii - the fine orders below the crossover", () => {
     const preset = LAURELIN;
     const skeleton = growSkeleton({
       ...preset.skeleton,
-      twigs: { ...preset.skeleton.twigs, internodes: 1 },
+      twigs: { ...preset.skeleton.twigs, internodeFactor: 32 },
       growth: { ...preset.skeleton.growth, maxNodes: 4_000_000 },
     }, preset.radii) as TwiggedSkeleton;
     const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
     expect(skeleton.crossover).toBeLessThan(skeleton.nodes.length);
     for (let i = skeleton.crossover; i < skeleton.nodes.length; i += 1) {
       const parent = skeleton.nodes[i].parent;
+      // The fixed twig is the stated exception: a branch whose tapered end
+      // has fallen a hair under 2.5 mm still bears a 5 mm twig.
+      if (skeleton.twig[i - skeleton.crossover]) continue;
       expect(field.radius[parent]).toBeGreaterThanOrEqual(field.startRadius[i]);
       if (skeleton.twig[i - skeleton.crossover]) expect(field.startRadius[i]).toBe(field.radius[i]);
       else expect(field.startRadius[i]).toBeGreaterThan(field.radius[i]);

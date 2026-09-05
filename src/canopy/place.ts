@@ -5,7 +5,9 @@ import { transportFrames } from "../mesh/frames";
 import type { RadiusField } from "../radius";
 import { createRng } from "../rng";
 import type { Skeleton } from "../skeleton/colonize";
-import { shoots } from "./shoots";
+import type { TwigAnatomy } from "../skeleton/law";
+import { resolveTwigs, type TwiggedSkeleton } from "../skeleton/twigs";
+import { shoots, type Shoot } from "./shoots";
 
 /* ------------------------------------------------------------------ *
  * PLACEMENT
@@ -199,13 +201,20 @@ const clamp = (value: number, low: number, high: number): number =>
  * Returns an empty canopy, rather than throwing, for a skeleton with
  * no runs in it and for one whose wood is everywhere too thick to bear
  * foliage.
+ *
+ * With twig anatomy and pass records, foliage belongs to each marked
+ * incoming twig edge. Internode lengths are metres and each internode
+ * bears the anatomy's station count; the canopy spacing and tip clump
+ * apply only to the radius-based shoot fallback. Omitting anatomy or
+ * supplying a plain skeleton retains that fallback.
  */
 export function buildCanopy(
-  skeleton: Skeleton,
+  skeleton: Skeleton | TwiggedSkeleton,
   field: RadiusField,
   envelope: Envelope,
   seed: number,
   params: CanopyParams,
+  twigAnatomy?: TwigAnatomy,
 ): Canopy {
   const nodes = skeleton.nodes;
   if (nodes.length < 2 || field.radius.length < nodes.length) return empty();
@@ -248,7 +257,17 @@ export function buildCanopy(
     MAX_SIZE_VARIATION,
   );
 
-  const found = shoots(skeleton, field, maxRadius);
+  const anatomy = twigAnatomy && "twig" in skeleton
+    ? resolveTwigs({ twig: twigAnatomy }).twig : undefined;
+  const found: Shoot[] = anatomy ? [] : shoots(skeleton, field, maxRadius);
+  if (anatomy && "twig" in skeleton) {
+    for (let i = skeleton.crossover; i < nodes.length; i++) {
+      const parent = nodes[i].parent;
+      if (skeleton.twig[i - skeleton.crossover] === 1 && parent >= 0 && parent < i) {
+        found.push({ nodes: [parent, i] });
+      }
+    }
+  }
   if (found.length === 0) return empty();
 
   const rng = createRng((held(seed, 0) ^ CANOPY_STREAM) >>> 0);
@@ -299,19 +318,25 @@ export function buildCanopy(
        exact inverse of what the shoot means, and it is reachable from
        the panel by widening `shootRadius` and tightening `spacing`.
        Saturation has to thin the whole shoot instead. */
-    const walkBudget = Math.max(1, MAX_PER_SHOOT - clump);
-    const step = Math.max(spacing, length / walkBudget);
-
     const stations: number[] = [];
-    for (
-      let distance = 0;
-      distance < length && stations.length < walkBudget;
-      distance += step
-    ) {
-      stations.push(distance);
-    }
-    for (let c = 0; c < clump && stations.length < MAX_PER_SHOOT; c += 1) {
-      stations.push(length * (1 - clumpSpan * rng.next()));
+    if (anatomy) {
+      const perInternode = anatomy.stationsPerInternode;
+      const budget = Math.floor(MAX_PER_SHOOT / perInternode);
+      const internodes = Math.min(budget,
+        Math.max(1, Math.ceil(length / anatomy.internodeLength - 1e-9)));
+      const step = Math.max(anatomy.internodeLength, length / budget);
+      for (let i = 0; i < internodes; i++) {
+        for (let j = 0; j < perInternode; j++) stations.push(i * step);
+      }
+    } else {
+      const walkBudget = Math.max(1, MAX_PER_SHOOT - clump);
+      const step = Math.max(spacing, length / walkBudget);
+      for (let distance = 0; distance < length && stations.length < walkBudget; distance += step) {
+        stations.push(distance);
+      }
+      for (let c = 0; c < clump && stations.length < MAX_PER_SHOOT; c++) {
+        stations.push(length * (1 - clumpSpan * rng.next()));
+      }
     }
 
     for (let k = 0; k < stations.length; k += 1) {
@@ -324,15 +349,19 @@ export function buildCanopy(
       const t = span > TINY ? (distance - along[segment]) / span : 0;
 
       point.copy(points[segment]).lerp(points[segment + 1], t);
-      const wood =
-        field.radius[shootNodes[segment]] * (1 - t) +
-        field.radius[shootNodes[segment + 1]] * t;
+      const baseRadius = anatomy
+        ? field.startRadius[shootNodes[segment + 1]]
+        : field.radius[shootNodes[segment]];
+      const wood = baseRadius * (1 - t) + field.radius[shootNodes[segment + 1]] * t;
 
       /* The spiral: the frame at the foot of the segment is the one
          "angle zero" is measured from. A leaf does not need a smoother
          basis than the wood it grows out of. */
       const frame = frames[segment];
-      const turn = k * divergence;
+      const turn = anatomy
+        ? Math.floor(k / anatomy.stationsPerInternode) * divergence +
+          (k % anatomy.stationsPerInternode) * TAU / anatomy.stationsPerInternode
+        : k * divergence;
       const cos = Math.cos(turn);
       const sin = Math.sin(turn);
       axis
