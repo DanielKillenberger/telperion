@@ -326,7 +326,7 @@ describe("branch generations", () => {
       for (let k = 0; k < tree.twig.length; k++) if (tree.twig[k]) {
         expect(tree.baseRadius[k]).toBe(DEFAULT_TWIG_ANATOMY.diameter / 2);
         const n = tree.nodes[k + tree.crossover];
-        expect(n.position.distanceTo(tree.nodes[n.parent].position)).toBeCloseTo(DEFAULT_TWIG_ANATOMY.length, 10);
+        expect(n.position.distanceTo(tree.nodes[n.parent].position)).toBeCloseTo(p.twigs.twig.length, 10);
       }
     }
   }, 60000);

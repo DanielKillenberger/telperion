@@ -741,8 +741,8 @@ describe("the forest's own numbers", () => {
     // Task 8: tips bear laterals as well as leaders, so handoffs rose from
     // 604 / 1,336; the fine wood bears a twig at every station a twig's
     // length apart, so twigs rose from 19,744 / 40,781.
-    expect(alone.map((one) => one.handoffs)).toEqual([1180, 2333]);
-    expect(alone.map((one) => one.twigs)).toEqual([31894, 60604]);
+    expect(alone.map((one) => one.handoffs)).toEqual([1710, 2334]);
+    expect(alone.map((one) => one.twigs)).toEqual([65270, 41150]);
     for (const key of ["handoffs", "levelCappedHandoffs", "twigs"] as const) {
       expect(forest[key]).toBe(alone.reduce((sum, one) => sum + one[key], 0));
     }
