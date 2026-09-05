@@ -739,11 +739,10 @@ describe("the forest's own numbers", () => {
     // and its crown, and every leaf on both trees is instanced.
     expect(forest.drawCalls).toBe(PRESETS.length * 2);
     expect(forest.instances).toBeGreaterThan(0);
-    // Task 8: tips bear laterals as well as leaders, so handoffs rose from
-    // 604 / 1,336; the fine wood bears a twig at every station a twig's
-    // length apart, so twigs rose from 19,744 / 40,781.
-    expect(alone.map((one) => one.handoffs)).toEqual([1085, 1642]);
-    expect(alone.map((one) => one.twigs)).toEqual([61420, 31637]);
+    // Task 8's local taper and crown guard change topology; keep exact
+    // per-preset counts as well as the forest aggregation invariant.
+    expect(alone.map((one) => one.handoffs)).toEqual([1075, 1649]);
+    expect(alone.map((one) => one.twigs)).toEqual([54890, 32153]);
     for (const key of ["handoffs", "levelCappedHandoffs", "twigs"] as const) {
       expect(forest[key]).toBe(alone.reduce((sum, one) => sum + one[key], 0));
     }
@@ -782,7 +781,7 @@ describe("derived branch read-out", () => {
     const skeleton = {
       nodes, crossover: 2,
       branchId: new Int32Array([2, 3, 4, 5, 6]),
-      baseRadius: new Float64Array([0.0025, 0.005, 0.02, 0.08, 0.0025]),
+      baseRadius: new Float64Array([0.0025, 0.005, 0.02, 0.08, 0.0025]), endRadius: new Float64Array([0.0025, 0.005, 0.02, 0.08, 0.0025]),
       twig: new Uint8Array([1, 0, 0, 0, 1]),
       levelCapped: false, nodeCapped: false,
     };
@@ -794,7 +793,7 @@ describe("derived branch read-out", () => {
     expect(stats.levelCappedHandoffs).toBe(0);
     expect(branchStats(skeleton, { ...law, ratioPower: 0 }).levelCappedHandoffs).toBe(3);
     expect(branchStats({ ...skeleton, nodes: nodes.slice(0, 2),
-      branchId: new Int32Array(), baseRadius: new Float64Array(), twig: new Uint8Array(),
+      branchId: new Int32Array(), baseRadius: new Float64Array(), endRadius: new Float64Array(), twig: new Uint8Array(),
     }, law).generations).toBeNull();
   });
 });

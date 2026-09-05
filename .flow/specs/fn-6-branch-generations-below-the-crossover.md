@@ -595,3 +595,160 @@ anatomy, or an explicitly approved resource budget. Increasing the ceiling
 alone would still require complete-tree CPU measurements.
 
 - [ ] R7 owner clay verdict on task 8. No qualifying build was selected.
+
+
+### Task 8 fifth R7 pass: local taper, complete retained leaders, and shell entry (2026-09-05)
+
+Implementation ready for the owner's R7 assessment; no owner verdict is claimed.
+Baseline source is `52565dd`, with task amendment `856072f`. All earlier
+measurements above remain the record of their respective builds.
+
+The former local solve used the whole envelope height in its exponential
+taper, leaving branch runs nearly cylindrical, then attached a fixed twig
+to whatever radius remained. A run now plans its forward trajectory before
+emitting nodes. The shell can shorten that trajectory; it no longer turns
+the leader inward at the boundary. The selected profile is
+`r(s) = r_twig + (r_base - r_twig) * sqrt(1 - s/L)` over the actual run.
+This is an explicit modelling choice, not a fitted species taper. Early
+attachments retain substantial wood; the completed run ends at the fixed
+twig radius. Laterals use their attachment's radius and the actual parent
+run length. Exact bud fractions are geometric stations, so changing
+internode resolution preserves the unbounded lateral topology.
+
+The pass records each distal radius as `endRadius`; the radius solve reads
+it, and shedding preserves it through reindexing. A surviving run retains
+its complete leader and fine terminal transition. Its lateral branches
+remain independently shed. This prevents shade pruning from exposing an
+intermediate thick cross-section. Twigs keep their stated length and
+diameter; one is emitted at a fine endpoint only where it fits. Node and
+generation stops retain their separate flags, including interrupted runs.
+
+The headroom estimate now bounds up to 32 geometric internodes and 32
+bearing twig stations per possible branch. The old allocation-only radius
+estimate was not conservative once taper made descendants finer: the
+unchanged generation-cap test falsely exhausted its estimated budget at
+58 nodes. Correcting the estimate made that original test pass without
+changing its fixture or assertions. The hard node ceiling remains 250,000.
+
+Colonization's two Telperion tips outside the envelope were a separate
+defect: IDs 91 and 152 in the baseline sat 6.404 m and 3.445 m outside its
+radial profile. Crown candidates are now rejected when they would leave
+the shell from an inside parent. The existing outside-starting approach
+may still enter under the attractor-progress rule; the trunk-reach climb
+is unchanged. An unconditional shell check stalled the fine-step and
+extreme-bias fixtures at the crown-base cusp, so that attempt was replaced
+by this entry-aware boundary. The original starvation and persistence
+assertions pass without modification. No completed prefix is pruned or
+rescaled to disguise these outside tips.
+
+#### Before/after topology and fill
+
+The ordinary case is Telperion with envelope height 24 m and all other
+preset terms unchanged. All six builds finish without either cap. Shell
+occupancy uses cell size H*0.02; clustering uses distance H*0.05, unchanged
+from R4. Both preset occupancy floors (20% / 8.3%) and clustering ceilings
+(75% / 35%) remain unchanged and pass. No preset rest value changed.
+
+| Subject | Build | Nodes before / after shed | Twigs | Leaves placed / kept | Occupancy | Near-tip clustering | First-generation mean internode m |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Telperion | before | 230,588 / 182,787 | 61,420 | 1,535,500 / 1,531,346 | 62.028% | 65.287% | 1.3187 |
+| Laurelin | before | 109,936 / 95,344 | 31,637 | 790,925 / 790,287 | 13.166% | 31.488% | 3.0642 |
+| Telperion24 | before | 39,900 / 33,492 | 9,090 | 227,250 / 224,441 | 49.669% | 45.600% | 0.2461 |
+| Telperion | after | 218,952 / 175,035 | 54,890 | 1,372,250 / 1,349,630 | 59.021% | 67.686% | 1.3138 |
+| Laurelin | after | 119,242 / 104,207 | 32,153 | 803,825 / 798,553 | 14.196% | 33.891% | 3.0481 |
+| Telperion24 | after | 36,497 / 31,477 | 8,642 | 216,050 / 206,469 | 47.591% | 49.954% | 0.2422 |
+
+#### Terminal and taper measurements
+
+An axial twig transition here has a direction dot product above 0.99
+with its supporting edge. Its ratio is supporting endpoint radius / twig
+base radius. Bare local endpoints have no children and are not twig-marked;
+"thick" means radius above the preset's 25 mm bearing radius. A run's taper
+ratio is its surviving last radius / first base radius. The geometric
+regressions separately check the exact profile and terminal anatomy.
+
+| Subject | Build | Axial transitions | Transition ratio median / p90 / max | Thick bare local endpoints | Bare local max radius m | Run taper ratio median / p90 |
+|---|---|---:|---|---:|---:|---|
+| Telperion | before | 21,857 | 6.6867 / 22.4076 / 190.4659 | 333 | 0.532961 | 0.9910 / 0.9931 |
+| Laurelin | before | 13,189 | 8.9317 / 75.6929 / 247.8192 | 123 | 0.657450 | 0.9942 / 0.9961 |
+| Telperion24 | before | 1,787 | 3.7259 / 10.6836 / 27.6797 | 242 | 0.086446 | 0.9583 / 0.9676 |
+| Telperion | after | 18,735 | 1.0000 / 1.0000 / 1.0000 | 0 | 0.002500 | 0.2558 / 0.4658 |
+| Laurelin | after | 12,037 | 1.0000 / 1.0000 / 1.0000 | 0 | 0.002500 | 0.1741 / 0.3802 |
+| Telperion24 | after | 2,046 | 1.0000 / 1.0000 / 1.0000 | 0 | 0.002500 | 0.3379 / 0.5640 |
+
+Every final local bare endpoint is at the fixed 2.5 mm twig radius.
+Pre-crossover exposed endpoints are reported separately: Telperion 2→0;
+Laurelin 15→14; ordinary 24 m 2→1. Laurelin's remaining 14 each grew two
+or three pass children before their wholly interior subtrees were shed;
+they retain the colonization radius 0.670593 m. The ordinary remaining
+endpoint is inside the shell, at radius 0.088118 m with only 0.061379 m
+radial slack. Its available forward run cannot reserve the fixed 0.5 m
+shoot. Squeezing its radius reduction into less than that distance would
+require an average taper angle above 9.7 degrees, so no sharp-cone fallback
+was added merely to make this count zero. These limits are not mesh-cap
+defects and were not disguised with leaves or prefix radius changes.
+
+The unchanged 8-degree seam p90 limit passes: Telperion 73 leader handoffs,
+median 3.6714 degrees, p90 6.2947, worst 25.4979; Laurelin 267, median
+3.2313, p90 5.2697, worst 37.3248. The bound is the pre-existing p90
+criterion, not a claim that every seam is below eight degrees. Direction,
+branch attachment radii, surface socket containment and fixed twig anatomy
+retain their independent tests.
+
+#### Cost and validation limits
+
+Single CPU samples below include growth, radius solve, surface generation,
+vertex normals, leaf placement and culling. They exclude instanced-mesh
+upload and GPU rendering. This was a shared machine with diagnostic
+browser work, not an isolated paired performance benchmark; the samples
+show actual cost but do not establish a precise regression percentage.
+
+| Subject | Build | Growth ms | Through wood normals ms | Through leaf culling ms | Surface triangles |
+|---|---|---:|---:|---:|---:|
+| Telperion | before | 730 | 2613 | 3808 | 13,714,176 |
+| Laurelin | before | 338 | 923 | 1699 | 4,069,312 |
+| Telperion24 | before | 125 | 473 | 739 | 2,424,520 |
+| Telperion | after | 1139 | 3176 | 5014 | 12,888,512 |
+| Laurelin | after | 504 | 1181 | 2164 | 4,365,056 |
+| Telperion24 | after | 197 | 550 | 1050 | 2,278,752 |
+
+Telperion misses the historical approximately-three-second full-build
+target in both the matched baseline and this diagnostic sample. The
+correction does not claim that performance criterion passed. Geometry
+falls from 13.714 M to 12.889 M triangles on Telperion and grows from
+4.069 M to 4.365 M on Laurelin; the cost remains substantial. The ceiling,
+fill thresholds and tolerances were not raised to mask it.
+
+New regression cases were observed red before their fixes: full and
+shell-shortened terminal transitions; complete retained leaders with an
+independently shed lateral; radial/top crown departures; and outside-start
+entry. R8 now compares distal-radius records as part of each subtree,
+along with the existing identity, geometry and allocation records.
+
+Fixture migrations preserve intent: local radius/rate expectations now
+read the assigned profile instead of envelope-height exponential taper;
+lateral law checks use attachment radii; the variation witness starts
+with 0.4 m rather than 0.04 m wood to retain its existing nonvacuity count;
+the direct level-cap witness uses 1 m wood and branch-only anatomy to
+reach the same cap under taper; coarse runs reserve at least one station
+per lateral plus the terminal station. Exact harness counts are now
+handoffs 1,075 / 1,649 and twigs 54,890 / 32,153. Synthetic radius, canopy,
+shed and harness fixtures explicitly carry distal-radius metadata.
+
+Reproduction sources and logs are in the assigned worktree's `.flow/tmp/`:
+`taper-measure.test.ts`, `taper-measure.config.ts`,
+`taper-baseline-measure.test.ts`, `taper-baseline-measure.config.ts`,
+`taper-measure-baseline-pipeline.log`, and `taper-measure-final-guard.log`.
+The baseline measurement imports source archived from `52565dd` under
+`taper-baseline-source/`; it does not switch or modify another checkout.
+The final boundary refinement preserves the three target outputs in these
+measurements; the full suites separately exercise its outside-start case.
+
+The host inspected diagnostic clay using matched cameras, neutral sky
+and hidden foliage. The record is `/tmp/fn6-taper-visuals/after-capture.json`,
+with the before/after pair in
+`/tmp/fn6-taper-visuals/telperion-comparison.png` and
+`/tmp/fn6-taper-visuals/compare.html`. The renderer was SwiftShader; this is
+not a GPU benchmark or the owner's R7 verdict.
+
+- [ ] R7 owner clay verdict on the fifth pass. Task 8 remains in_progress; task 7 waits.

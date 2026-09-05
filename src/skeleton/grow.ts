@@ -13,7 +13,7 @@ import {
   DEFAULT_BIAS,
   type BiasParams,
 } from "../torsion";
-import { branchLength, childRadius, internodeLength } from "./law";
+import { branchLength, childRadius } from "./law";
 import { shedTwigs } from "./shed";
 import { branchTwigs, resolveTwigs, MAX_TWIG_LEVELS, type TwigParams, type TwiggedSkeleton } from "./twigs";
 
@@ -232,29 +232,23 @@ export function defaultGrowth(
 }
 
 /** N = branch internodes + laterals * N_child + one twig edge.
- * The estimate uses the same radius and length at every handoff as the
- * pass, before collision and trunk rejection. Resolution adds nodes
- * along existing branches without multiplying their offspring. */
+ * Base radii and allocated lengths bound the local tapered attachment
+ * radii and shell-shortened runs from above. Thick runs reserve enough
+ * stations for every lateral even at coarse resolution. Resolution adds
+ * nodes along existing branches without multiplying their offspring. */
 function twigHeadroom(skeleton: Skeleton, field: RadiusField, config: GrowthConfig, twigs: TwigParams): number {
-  const twigNodes = 1;
-  const lowRatio = Math.max(0.05, twigs.lengthRatio * (1 - twigs.vigourVariation));
   const highRatio = Math.min(1, twigs.lengthRatio * (1 + twigs.vigourVariation));
-  const nodesFor = (radius: number, length: number, generation = 0, minimumRadius = radius): number => {
-    if (radius <= twigs.twig.diameter / 2 || length < twigs.twig.internodeLength) return twigNodes;
+  const nodesFor = (radius: number, length: number, generation = 0): number => {
+    if (radius <= twigs.twig.diameter / 2 || length < twigs.twig.internodeLength) return 1;
     if (generation >= MAX_TWIG_LEVELS) return 0;
-    // The last order: a twig at every station, no lateral branches, and
-    // stations no closer than a twig's length.
-    if (radius <= twigs.twig.bearingDiameter / 2) {
-      const stations = Math.max(1, Math.round(length /
-        internodeLength(minimumRadius, length, twigs.internodeFactor, twigs.twig.length)));
-      return Math.min(NODE_CEILING, stations + stations);
-    }
-    const internodes = Math.max(1, Math.round(length /
-      internodeLength(minimumRadius, length, twigs.internodeFactor, twigs.twig.internodeLength)));
+    // Taper can make descendant wood finer than the allocation bound,
+    // increasing its geometric samples or moving it into the bearing order.
+    const internodes = 32;
+    const bearingNodes = internodes * 2;
+    if (radius <= twigs.twig.bearingDiameter / 2) return bearingNodes;
     const offspring = twigs.laterals === 0 ? 0 : twigs.laterals * nodesFor(
-      childRadius(radius, highRatio, twigs.ratioPower), length * highRatio, generation + 1,
-      childRadius(minimumRadius, lowRatio, twigs.ratioPower));
-    return Math.min(NODE_CEILING, internodes + offspring + twigNodes);
+      childRadius(radius, highRatio, twigs.ratioPower), length * highRatio, generation + 1);
+    return Math.min(NODE_CEILING, Math.max(bearingNodes, internodes + offspring + 1));
   };
   const children = new Int32Array(skeleton.nodes.length);
   for (let i = 1; i < children.length; i++) children[skeleton.nodes[i].parent]++;
@@ -266,8 +260,7 @@ function twigHeadroom(skeleton: Skeleton, field: RadiusField, config: GrowthConf
     if (children[i] === 0) estimate += nodesFor(radius, length);
     if (radius < twigs.limbRadius * field.radius[0]) {
       estimate += twigs.laterals * nodesFor(
-        childRadius(radius, highRatio, twigs.ratioPower), length * highRatio, 1,
-        childRadius(radius, lowRatio, twigs.ratioPower));
+        childRadius(radius, highRatio, twigs.ratioPower), length * highRatio, 1);
     }
   }
   return Math.min(NODE_CEILING, estimate);

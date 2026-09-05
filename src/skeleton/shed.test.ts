@@ -51,6 +51,28 @@ describe("shedTwigs", () => {
     expect(kept).toBeGreaterThan(twigs / 2);
   });
 
+  it("keeps a surviving branch through its fine tip while shedding an interior lateral independently", () => {
+    const y = DEFAULT_ENVELOPE.height * 0.7;
+    const edge = envelopeRadiusAt(DEFAULT_ENVELOPE, y);
+    const tree = {
+      nodes: [
+        { position: at(0, 0, 0), parent: -1 },
+        { position: at(0, y, 0), parent: 0 },
+        { position: at(edge * 0.99, y, 0), parent: 1 },
+        { position: at(edge * 0.2, y, 0), parent: 2 },
+        { position: at(edge * 0.1, y, 0), parent: 3 },
+        { position: at(edge * 0.15, y, 0), parent: 2 },
+      ],
+      crossover: 2, branchId: new Int32Array([2, 2, 4, 5]),
+      baseRadius: new Float64Array([0.1, 0.1, 0.0025, 0.0025]),
+      endRadius: new Float64Array([0.05, 0.0025, 0.0025, 0.0025]),
+      twig: new Uint8Array([0, 0, 1, 1]), levelCapped: false, nodeCapped: false,
+    };
+    const shed = shedTwigs(tree, 2, DEFAULT_ENVELOPE, { shellDepth: 0.2 });
+    expect(shed.nodes.map(n => n.position)).toEqual(tree.nodes.slice(0, 5).map(n => n.position));
+    expect([...shed.endRadius]).toEqual([0.05, 0.0025, 0.0025]);
+  });
+
   it("keeps every colonization node as it was and re-indexes every parent below itself", () => {
     const { twigged, from } = grown(TELPERION);
     const shed = shedTwigs(twigged, from, TELPERION.skeleton.envelope);
@@ -121,7 +143,7 @@ describe("shedTwigs", () => {
       ],
       crossover: 2,
       branchId: new Int32Array([2, 3, 4, 4, 6]),
-      baseRadius: new Float64Array([0.1, 0.0025, 0.2, 0.2, 0.0025]),
+      baseRadius: new Float64Array([0.1, 0.0025, 0.2, 0.2, 0.0025]), endRadius: new Float64Array([0.05, 0.0025, 0.08, 0.0025, 0.0025]),
       twig: new Uint8Array([0, 1, 0, 0, 1]),
       levelCapped: true, nodeCapped: false,
     };
@@ -130,6 +152,7 @@ describe("shedTwigs", () => {
     expect(shed.nodes.map(n => n.parent)).toEqual([-1, 0, 1, 2, 3]);
     expect(shed.branchId).toEqual(new Int32Array([2, 2, 4]));
     expect(shed.baseRadius).toEqual(new Float64Array([0.2, 0.2, 0.0025]));
+    expect(shed.endRadius).toEqual(new Float64Array([0.08, 0.0025, 0.0025]));
     expect(shed.twig).toEqual(new Uint8Array([0, 0, 1]));
     expect(shed.crossover).toBe(2);
     expect(shed.levelCapped).toBe(true);

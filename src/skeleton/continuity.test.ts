@@ -161,7 +161,7 @@ describe("the crossover: every handoff and the generations either side", () => {
             expect(field.startRadius[child]).toBeLessThanOrEqual(childRadius(field.radius[parent], highRatio, law.ratioPower) + 1e-12);
           }
         } else if (skeleton.branchId[record] === child) {
-          const parentBase = skeleton.baseRadius[parent - at.crossover];
+          const parentBase = field.radius[parent];
           expect(field.startRadius[child]).toBe(skeleton.baseRadius[record]);
           expect(field.startRadius[child]).toBeGreaterThanOrEqual(childRadius(parentBase, lowRatio, law.ratioPower) - 1e-12);
           expect(field.startRadius[child]).toBeLessThanOrEqual(childRadius(parentBase, highRatio, law.ratioPower) + 1e-12);
@@ -241,15 +241,14 @@ describe("the crossover: every handoff and the generations either side", () => {
       for (const child of edgesBelow(handoff, children, generations)) {
         const record = child - at.crossover;
         const parent = skeleton.nodes[child].parent;
-        const length = skeleton.nodes[parent].position.distanceTo(skeleton.nodes[child].position);
-        const rate = Math.log(field.startRadius[child] / field.radius[child]) / length;
-        expect(rate, `internode ${child}`).toBeCloseTo(skeleton.twig[record] ? 0 : preset.radii.lengthTaper / envelope.height, 10);
+        expect(field.radius[child], `internode ${child}`).toBe(skeleton.endRadius[record]);
+        expect(field.radius[child]).toBeLessThanOrEqual(field.startRadius[child]);
       }
     }
     differences.sort((a, b) => a - b);
     const p90 = differences[Math.floor(differences.length * 0.9)];
     const measurement = `${name}: ${differences.length} handoffs, median ${differences[differences.length >> 1]}, p90 ${p90}, worst ${differences.at(-1)} degrees`;
-    console.log(measurement);
+    process.stdout.write(measurement + "\n");
     expect(p90, measurement).toBeLessThanOrEqual(TAPER_TOLERANCE_DEG);
   }, 60_000);
 });

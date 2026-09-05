@@ -23,7 +23,10 @@ import type { TwiggedSkeleton } from "./twigs";
  *
  * A TWIG SURVIVES ON THE FIRST NODE OF ITS SUBTREE THAT IS NOT
  * DEFINITELY INTERIOR - the culler's every-vertex rule, with a node's
- * descendants standing in for a blade's vertices. A twig that starts
+ * descendants standing in for a blade's vertices. A retained branch
+ * keeps its complete leader run and fine terminal transition: pruning
+ * its distal internodes would expose a thick intermediate cross-section.
+ * Its lateral branches are classified independently. A twig that starts
  * inside the shell and grows out to the light is outline; classifying
  * it by its base would remove exactly the boundary case the
  * conservatism argument is about. And a kept node keeps its parent,
@@ -80,7 +83,7 @@ export function shedTwigs(
      prefix is intact and the crossover the thickness solve keys on is
      exactly `first`. It is carried through rather than dropped: a plain
      `{ nodes }` here made the solve read the whole tree as limb. */
-  if (first >= nodes.length) return { nodes: nodes.slice(), crossover: nodes.length, branchId: new Int32Array(), baseRadius: new Float64Array(), twig: new Uint8Array(), ...status };
+  if (first >= nodes.length) return { nodes: nodes.slice(), crossover: nodes.length, branchId: new Int32Array(), baseRadius: new Float64Array(), endRadius: new Float64Array(), twig: new Uint8Array(), ...status };
 
   const maxRadius = envelopeMaxRadius(envelope);
   const shell =
@@ -111,6 +114,20 @@ export function shedTwigs(
     if (keep[i] === 1) keep[nodes[i].parent] = 1;
   }
 
+  if (records) {
+    const liveRuns = new Uint8Array(nodes.length);
+    for (let i = first; i < nodes.length; i++) {
+      if (keep[i]) liveRuns[records.branchId[i - records.crossover]] = 1;
+    }
+    for (let i = first; i < nodes.length; i++) {
+      const record = i - records.crossover;
+      if (liveRuns[records.branchId[record]]) keep[i] = 1;
+      const parent = nodes[i].parent;
+      if (records.twig[record] && parent >= first && keep[parent]
+        && records.endRadius[parent - records.crossover] === records.baseRadius[record]) keep[i] = 1;
+    }
+  }
+
   const index = new Int32Array(nodes.length).fill(-1);
   const out: SkeletonNode[] = [];
   for (let i = 0; i < nodes.length; i += 1) {
@@ -124,6 +141,7 @@ export function shedTwigs(
   const branchId = new Int32Array(out.length - first);
   const baseRadius = new Float64Array(out.length - first);
   const twig = new Uint8Array(out.length - first);
+  const endRadius = new Float64Array(out.length - first);
   for (let i = first; i < nodes.length; i++) {
     if (index[i] < 0) continue;
     const at = index[i] - first;
@@ -131,6 +149,7 @@ export function shedTwigs(
     branchId[at] = records ? index[records.branchId[source]] : index[i];
     baseRadius[at] = records?.baseRadius[source] ?? 0;
     twig[at] = records?.twig[source] ?? 0;
+    endRadius[at] = records?.endRadius[source] ?? 0;
   }
-  return { nodes: out, crossover: first, branchId, baseRadius, twig, ...status };
+  return { nodes: out, crossover: first, branchId, baseRadius, endRadius, twig, ...status };
 }

@@ -508,7 +508,7 @@ describe("twig anatomy placement", () => {
   const twigged: TwiggedSkeleton = {
     nodes: [at(0, 0, 0, -1), at(0, 1, 0, 0), at(0, 1.04, 0, 1), at(1, 2, 0, 1)],
     crossover: 2, branchId: new Int32Array([2, 3]),
-    baseRadius: new Float64Array([0.0025, 0.1]), twig: new Uint8Array([1, 0]),
+    baseRadius: new Float64Array([0.0025, 0.1]), endRadius: new Float64Array([0.0025, 0.1]), twig: new Uint8Array([1, 0]),
     levelCapped: false, nodeCapped: false,
   };
   const field: RadiusField = {

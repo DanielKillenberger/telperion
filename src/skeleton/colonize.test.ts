@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_ENVELOPE, envelopeRadiusAt } from "../envelope";
 import { colonize, type GrowthConfig, type Skeleton } from "./colonize";
 
 /* Colonization is the deterministic half: no seed reaches it, so the
@@ -54,6 +55,34 @@ function signature(skeleton: Skeleton): string {
 }
 
 describe("colonize", () => {
+  it.each([new THREE.Vector3(3, 8, 0), new THREE.Vector3(0, 20, 0)])("rejects crown candidates outside the shell while allowing the bare trunk to climb", attractor => {
+    const shell = { ...DEFAULT_ENVELOPE, height: 12, crownBase: 0.5, spread: 0.1 };
+    const outside = (p: THREE.Vector3) => p.y > shell.height || Math.hypot(p.x, p.z) > envelopeRadiusAt(shell, p.y);
+    const crownConfig = { ...config, influenceRadius: 20,
+      bias: attractor.x === 0 ? undefined : (position: THREE.Vector3, wanted: THREE.Vector3) =>
+        position.y < config.trunkHeight ? wanted : wanted.clone().add(new THREE.Vector3(0.5, 0, 0)).normalize(),
+    };
+    const grown = colonize([attractor], origin, { ...crownConfig, shell });
+    expect(grown.nodes.length).toBeGreaterThan(1);
+    expect(grown.nodes.some(n => n.position.y >= config.trunkHeight)).toBe(true);
+    for (const node of grown.nodes) if (node.position.y >= config.trunkHeight) expect(outside(node.position)).toBe(false);
+    expect(colonize([attractor], origin, crownConfig).nodes.some(n => n.position.y >= config.trunkHeight && outside(n.position))).toBe(true);
+  });
+
+  it("lets the outside-starting trunk approach enter the shell before constraining crown departures", () => {
+    const shell = { ...DEFAULT_ENVELOPE, height: 12, crownBase: 0.5, spread: 0.1 };
+    const outside = (p: THREE.Vector3) => p.y > shell.height || Math.hypot(p.x, p.z) > envelopeRadiusAt(shell, p.y);
+    const root = new THREE.Vector3(4, 8, 0);
+    const grown = colonize([new THREE.Vector3(0, 8, 0)], root,
+      { ...config, shell, influenceRadius: 20, killDistance: 0.1 });
+    expect(outside(root)).toBe(true);
+    expect(grown.nodes.length).toBeGreaterThan(2);
+    expect(grown.nodes.some(n => !outside(n.position))).toBe(true);
+    for (const node of grown.nodes.slice(1)) {
+      if (!outside(grown.nodes[node.parent].position)) expect(outside(node.position)).toBe(false);
+    }
+  });
+
   it("is deterministic given the same attractors", () => {
     const attractors = cloud(300);
     expect(signature(colonize(attractors, origin, config))).toBe(

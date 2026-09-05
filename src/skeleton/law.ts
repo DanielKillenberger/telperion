@@ -61,6 +61,15 @@ import { MAX_TWIG_LEVELS } from "./twigs";
  *                 run of a branch, not a balanced half-area daughter.
  *                 Its internodes do not increment lateral order.
  *
+ * LOCAL TAPER is a selected profile over the actual branch run:
+ * r(s) = r_twig + (r_base - r_twig) sqrt(1 - s / L).
+ * It retains substantial supporting wood near the base and reaches
+ * the fixed twig radius at L, including a shell-shortened run. This
+ * is a modelling choice, not a measured species taper fit. Laterals
+ * take childRadius at their attachment, not at the run's base. Bud
+ * fractions remain fixed when geometric resolution changes. The
+ * envelope-height exponential rate belongs to colonization wood only.
+ *
  * PIPE AREA IS CONTEXT, NOT A SECOND RADIUS OWNER. Shinozaki et al.
  * 1964, doi:10.18960/seitai.14.3_97, relates foliage to conducting
  * cross-section and retains disused pipes in older wood. A lateral

@@ -284,7 +284,7 @@ describe("solveRadii - the fine orders below the crossover", () => {
       growth: { ...preset.skeleton.growth, maxNodes: 4_000_000 },
     }, preset.radii);
     return withBranches ? tree : { ...tree, nodes: tree.nodes.slice(0, tree.crossover),
-      branchId: new Int32Array(), baseRadius: new Float64Array(), twig: new Uint8Array() };
+      branchId: new Int32Array(), baseRadius: new Float64Array(), endRadius: new Float64Array(), twig: new Uint8Array() };
   };
 
   it.each([
@@ -319,9 +319,8 @@ describe("solveRadii - the fine orders below the crossover", () => {
       const expected = skeleton.branchId[record] === i
         ? skeleton.baseRadius[record] : field.radius[parent];
       expect(field.startRadius[i]).toBe(expected);
-      const length = skeleton.nodes[parent].position.distanceTo(skeleton.nodes[i].position);
-      const taper = skeleton.twig[record] ? 1 : Math.exp(-TELPERION.radii.lengthTaper * length / envelope.height);
-      expect(field.radius[i]).toBeCloseTo(expected * taper, 12);
+      expect(field.radius[i]).toBe(skeleton.endRadius[record]);
+      expect(field.radius[i]).toBeLessThanOrEqual(expected);
       checked++;
     }
     expect(checked).toBeGreaterThan(1000);

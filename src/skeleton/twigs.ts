@@ -7,12 +7,15 @@ import { branchLength, childRadius, internodeLength, DEFAULT_BRANCH_LAW, DEFAULT
 
 /** Records are parallel to nodes[crossover..], indexed by node - crossover.
  * Branch ids are absolute node indices naming the first internode of a run.
+ * baseRadius names the run allocation; endRadius is the local profile at this node.
  * A twig is its own single-edge branch with the anatomy's fixed radius.
  * Cap flags survive shedding; refusal returns the input nodes unchanged. */
 export interface TwiggedSkeleton extends Skeleton {
   crossover: number;
   branchId: Int32Array;
   baseRadius: Float64Array;
+  /** Distal radius assigned by the branch-local profile, in metres. */
+  endRadius: Float64Array;
   twig: Uint8Array;
   levelCapped: boolean;
   nodeCapped: boolean;
@@ -145,12 +148,13 @@ interface Shoot {
   generation: number;
   internodes: number;
   key: number;
+  run?: { positions: THREE.Vector3[]; fractions: number[]; length: number };
 }
 
 /** Continues tips and seeds laterals along eligible limbs under the
- * supplied radius field. Leaders keep a
- * branch's radius and length allocation through its internodes; laterals
- * start the next generation. Every completed run bears one fixed twig.
+ * supplied radius field. A run is planned to its shell-limited length
+ * before assigning its local taper and lateral radii. A completed leader
+ * reaches the fixed twig radius; a terminal shoot is emitted where it fits.
  * The bias receives colonization's step at every internode and limitTurn
  * binds curvature to arrival; a lateral starts from its anatomical angle.
  * Pure, breadth-first and deterministic, with no shared random stream. */
@@ -167,11 +171,12 @@ export function branchTwigs(
   const branchIds: number[] = [];
   const radii: number[] = [];
   const marks: number[] = [];
+  const ends: number[] = [];
   let levelCapped = false;
   let nodeCapped = false;
   const result = (refused?: TwiggedSkeleton["refused"]): TwiggedSkeleton => ({
     nodes, crossover, branchId: Int32Array.from(branchIds),
-    baseRadius: Float64Array.from(radii), twig: Uint8Array.from(marks),
+    baseRadius: Float64Array.from(radii), endRadius: Float64Array.from(ends), twig: Uint8Array.from(marks),
     levelCapped, nodeCapped, ...(refused ? { refused } : {}),
   });
   for (let i = 0; i < base.length; i++) {
@@ -211,9 +216,51 @@ export function branchTwigs(
       internodes: branchInternodes(radius, branchLength(radius)), key: i });
   }
   const binormal = new THREE.Vector3();
-  const inward = new THREE.Vector3();
   const outside = (shell: Envelope, at: THREE.Vector3) =>
     at.y > shell.height || Math.hypot(at.x, at.z) > envelopeRadiusAt(shell, at.y);
+  const planRun = (start: THREE.Vector3, firstHeading: THREE.Vector3, length: number, internodes: number, bearing: boolean) => {
+    const count = Math.max(internodes, bearing ? 1 : twigs.laterals + 1);
+    const stations = Array.from({ length: count }, (_, k) => (k + 1) / count);
+    if (!bearing) for (let j = 0; j < twigs.laterals; j++) {
+      const station = Math.max(1, Math.round((j + 1) * count / (twigs.laterals + 1)));
+      stations[station - 1] = (j + 1) / (twigs.laterals + 1);
+    }
+    const points = [start.clone()];
+    const along = [0];
+    let heading = firstHeading.clone();
+    for (let k = 0; k < count; k++) {
+      const stride = length * (stations[k] - (stations[k - 1] ?? 0));
+      const at = points[points.length - 1];
+      heading = limitTurn(heading,
+        config.bias ? config.bias(at, heading, step) : heading,
+        maxTurn * Math.min(1, stride / step));
+      const end = at.clone().addScaledVector(heading, stride);
+      const rejected = (p: THREE.Vector3) => p.y < config.trunkHeight || !!(config.shell && outside(config.shell, p));
+      if (rejected(end)) {
+        let low = 0, high = stride;
+        for (let j = 0; j < 40; j++) {
+          const mid = (low + high) / 2;
+          if (rejected(at.clone().addScaledVector(heading, mid))) high = mid;
+          else low = mid;
+        }
+        if (low > 1e-9) { points.push(at.clone().addScaledVector(heading, low)); along.push(along[along.length - 1] + low); }
+        break;
+      }
+      points.push(end); along.push(along[along.length - 1] + stride);
+    }
+    let actual = along[along.length - 1];
+    // Reserve the fixed terminal shoot when the shell shortened the run.
+    if (actual < length - 1e-9) actual = Math.max(0, actual - twigs.twig.length);
+    if (!(actual > 1e-9)) return undefined;
+    while (along.length > 2 && along[along.length - 2] >= actual) { along.pop(); points.pop(); }
+    const last = along.length - 1;
+    // Interpolate only the final clipped edge; existing turns and bud stations stay intact.
+    const end = points[last - 1].clone().lerp(points[last], (actual - along[last - 1]) / (along[last] - along[last - 1]));
+    points[last] = end; along[last] = actual;
+    const positions = points.slice(1);
+    const fractions = along.slice(1).map(distance => distance / actual);
+    return { positions, fractions, length: actual };
+  };
   const wanted = new THREE.Vector3();
   const across = new THREE.Vector3();
   const candidate = new THREE.Vector3();
@@ -265,14 +312,15 @@ export function branchTwigs(
           : twigs.lengthRatio;
         const departure = lateral && twigs.angleVariation !== 0
           ? pinned(twigs.angle + twigs.angleVariation * draw(0x02e5be93), 0, 90) * DEG_TO_RAD : tilt;
-        const radius = lateral ? childRadius(shoot.radius, ratio, twigs.ratioPower) : shoot.radius;
+        const supportingRadius = origin ? shoot.radius : ends[shoot.at - crossover];
+        const radius = lateral ? childRadius(supportingRadius, ratio, twigs.ratioPower) : shoot.radius;
         const length = lateral ? shoot.length * ratio : shoot.length;
         const generation = shoot.generation + Number(lateral);
         const terminal = !lateral && shoot.completed === shoot.internodes;
         const isTwig = terminal || (lateral && bearing) || radius <= twigRadius || length < twigs.twig.internodeLength;
         const startsRun = lateral || shoot.branch < 0 || terminal;
         const completed = startsRun ? 0 : shoot.completed;
-        const internodes = lateral ? branchInternodes(radius, length) : shoot.internodes;
+        let internodes = lateral ? branchInternodes(radius, length) : shoot.internodes;
         if (!isTwig && generation >= MAX_TWIG_LEVELS) { levelCapped = true; continue; }
         if (!lateral) wanted.copy(from);
         else {
@@ -291,33 +339,26 @@ export function branchTwigs(
            parallel streams, which is what the owner saw. The field is
            still consulted at every internode, at the step it is tuned to. */
         const turn = maxTurn * Math.min(1, distance / step);
-        const heading = limitTurn(
+        let heading = isTwig ? limitTurn(
           lateral ? wanted : from,
           config.bias ? config.bias(position, wanted, step) : wanted.clone().normalize(),
           turn,
-        );
+        ) : from;
+        let run = shoot.run;
+        if (!isTwig) {
+          if (startsRun) run = planRun(position, lateral ? wanted : from, length, internodes, radius <= twigs.twig.bearingDiameter / 2);
+          if (!run) continue;
+          internodes = run.positions.length;
+          candidate.copy(run.positions[completed]);
+          heading = candidate.clone().sub(position).normalize();
+        } else {
+          candidate.copy(position).addScaledVector(heading, distance);
+          if (candidate.y < config.trunkHeight || (config.shell && outside(config.shell, candidate))) continue;
+        }
         if (lateral) {
           let collides = from.dot(heading) >= separation;
           for (let a = 0; a < accepted.length && !collides; a++) collides = accepted[a].dot(heading) >= separation;
           if (collides) continue;
-        }
-        candidate.copy(position).addScaledVector(heading, distance);
-        if (candidate.y < config.trunkHeight) continue;
-        /* Nothing grows past the authored silhouette. A branch meeting
-           the crown's edge bends along it, as a branch meeting the light's
-           edge does: the heading is turned toward the axis by up to the
-           full turn limit and tried once more, and only a branch that
-           still leaves the crown ends where it is. Colonization's tips
-           already sit inside by `reach`, so the pass builds the shell. */
-        if (config.shell && outside(config.shell, candidate)) {
-          // Turned toward the axis by no more than the turn limit, so the
-          // seam suite's direction criterion holds at the shell as it does
-          // everywhere; a branch that still leaves the crown ends here.
-          inward.set(-candidate.x, candidate.y > config.shell.height ? -1 : 0, -candidate.z);
-          if (inward.lengthSq() === 0) continue;
-          heading.copy(limitTurn(lateral ? wanted : from, inward.normalize(), maxTurn));
-          candidate.copy(position).addScaledVector(heading, distance);
-          if (candidate.y < config.trunkHeight || outside(config.shell, candidate)) continue;
         }
         if (nodes.length >= config.maxNodes) { nodeCapped = true; return result(); }
         if (lateral) accepted.push(heading);
@@ -327,9 +368,10 @@ export function branchTwigs(
         branchIds.push(branch);
         radii.push(isTwig ? twigRadius : radius);
         marks.push(Number(isTwig));
+        ends.push(isTwig ? twigRadius : twigRadius + (radius - twigRadius) * Math.sqrt(Math.max(0, 1 - run!.fractions[completed])));
         if (!isTwig) next.push({ at: id, direction: heading,
-          normal: transport(shoot.normal, binormal, heading), phase, radius, length,
-          branch, completed: completed + 1, generation, internodes, key });
+          normal: transport(shoot.normal, binormal, heading), phase, radius, length: run!.length,
+          branch, completed: completed + 1, generation, internodes, key, run });
       }
     }
     frontier = next;

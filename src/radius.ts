@@ -54,9 +54,11 @@ import type { TwiggedSkeleton } from "./skeleton/twigs";
  * scales with the envelope.
  *
  * BELOW THE CROSSOVER THE PASS OWNS THE BRANCH LAW. Its records name
- * each branch and its assigned base radius. A branch starts at that
- * radius; continuing internodes start at their parent's solved radius
- * and carry the same exponential length taper as the limbs above.
+ * each branch, its assigned base radius and each internode's distal
+ * radius on the local profile. A branch starts at its allocation;
+ * continuing internodes start at their parent's solved radius. The
+ * local pass tapers over the actual branch run, independently of the
+ * envelope-height-normalized taper retained above the crossover.
  * Twigs keep their stated diameter at both ends (tip fraction 1):
  * neither envelope height nor internode length rescales their anatomy.
  * The fork solve above the crossover never reads appended children.
@@ -277,9 +279,7 @@ export function solveRadii(
     startRadius[i] = branches.branchId[record] === i
       ? branches.baseRadius[record]
       : radius[parent];
-    radius[i] = branches.twig[record]
-      ? startRadius[i]
-      : startRadius[i] * Math.exp(shed[parent] - shed[i]);
+    radius[i] = branches.endRadius[record];
   }
 
   return { radius, startRadius };

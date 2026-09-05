@@ -29,6 +29,25 @@ const signature = (tree: Skeleton) => JSON.stringify(tree.nodes.map(n => [n.pare
 const branchesOnly = { ...DEFAULT_TWIG_ANATOMY, bearingDiameter: DEFAULT_TWIG_ANATOMY.diameter };
 
 describe("branch generations", () => {
+  it.each([undefined, { ...DEFAULT_ENVELOPE, height: 12, crownBase: 0 }])("tapers an actual run continuously into its fixed terminal twig, including shell-limited runs", shell => {
+    const params = resolveTwigs({ laterals: 0, limbRadius: 0 });
+    const tree = branchTwigs(base, field(0.4), { ...config, shell }, params);
+    const solved = solveRadii(tree, DEFAULT_ENVELOPE, DEFAULT_RADII);
+    const last = tree.nodes.length - 1;
+    expect(last).toBeGreaterThan(tree.crossover);
+    expect(tree.twig[last - tree.crossover]).toBe(1);
+    expect(solved.radius[tree.nodes[last].parent]).toBeCloseTo(params.twig.diameter / 2, 12);
+    expect(solved.startRadius[last]).toBe(params.twig.diameter / 2);
+    const start = base.nodes[1].position.y;
+    const runLength = tree.nodes[tree.nodes[last].parent].position.y - start;
+    for (let i = tree.crossover; i < last; i++) {
+      const fraction = (tree.nodes[i].position.y - start) / runLength;
+      expect(solved.radius[i]).toBeCloseTo(0.0025 + (0.4 - 0.0025) * Math.sqrt(1 - fraction), 12);
+      expect(solved.radius[i]).toBeLessThan(solved.startRadius[i]);
+      expect(arrival(tree, i).dot(new Vector3(0, 1, 0))).toBeCloseTo(1, 12);
+    }
+    if (shell) expect(tree.nodes[last].position.y).toBeLessThanOrEqual(shell.height);
+  });
   it("grows a fixed-length twig shoot with one branch id and no lateral offspring", () => {
     const params = resolveTwigs({ twig: { ...DEFAULT_TWIG_ANATOMY, length: 0.25 } });
     const tree = branchTwigs(base, field(0.0025), config, params);
@@ -96,18 +115,18 @@ describe("branch generations", () => {
 
   it("keys bud variation by seed and lineage, with an exact zero-variation path", () => {
     const params = resolveTwigs({ angleVariation: 10, vigourVariation: 0.15, twig: branchesOnly });
-    const a = branchTwigs(base, field(0.04), config, params, 17);
-    expect(branchTwigs(base, field(0.04), config, params, 17)).toEqual(a);
-    expect(signature(branchTwigs(base, field(0.04), config, params, 18))).not.toBe(signature(a));
+    const a = branchTwigs(base, field(0.4), config, params, 17);
+    expect(branchTwigs(base, field(0.4), config, params, 17)).toEqual(a);
+    expect(signature(branchTwigs(base, field(0.4), config, params, 18))).not.toBe(signature(a));
     const zero = resolveTwigs({ angleVariation: 0, vigourVariation: 0, twig: branchesOnly });
-    expect(branchTwigs(base, field(0.04), config, zero, 17))
-      .toEqual(branchTwigs(base, field(0.04), config, zero, 18));
+    expect(branchTwigs(base, field(0.4), config, zero, 17))
+      .toEqual(branchTwigs(base, field(0.4), config, zero, 18));
     const ratios = new Set<number>();
     for (let i = a.crossover; i < a.nodes.length; i++) {
       if (a.twig[i - a.crossover] || a.branchId[i - a.crossover] !== i) continue;
       const parent = a.nodes[i].parent;
       if (parent < a.crossover) continue;
-      const ratio = (a.baseRadius[i - a.crossover] / a.baseRadius[parent - a.crossover]) ** (1 / params.ratioPower);
+      const ratio = (a.baseRadius[i - a.crossover] / a.endRadius[parent - a.crossover]) ** (1 / params.ratioPower);
       expect(ratio).toBeGreaterThanOrEqual(params.lengthRatio * (1 - params.vigourVariation) - 1e-12);
       expect(ratio).toBeLessThanOrEqual(params.lengthRatio * (1 + params.vigourVariation) + 1e-12);
       const departure = arrival(a, i).angleTo(arrival(a, parent)) * 180 / Math.PI;
@@ -179,7 +198,7 @@ describe("branch generations", () => {
       } else {
         const origin = tree.nodes[id].parent;
         const expected = origin < tree.crossover ? 0.04 : childRadius(
-          tree.baseRadius[origin - tree.crossover], params.lengthRatio, params.ratioPower);
+          tree.endRadius[origin - tree.crossover], params.lengthRatio, params.ratioPower);
         expect(tree.baseRadius[k]).toBe(expected);
       }
       if (counts[i] === 0) expect(tree.twig[k]).toBe(1);
@@ -190,7 +209,7 @@ describe("branch generations", () => {
       branches++;
       const origin = tree.nodes[id].parent;
       const length = run.reduce((sum, i) => sum + tree.nodes[i].position.distanceTo(tree.nodes[tree.nodes[i].parent].position), 0);
-      expect(run).toHaveLength(Math.max(1, Math.round(length / internodeLength(
+      expect(run).toHaveLength(Math.max(params.laterals + 1, Math.round(length / internodeLength(
         tree.baseRadius[id - tree.crossover], length, params.internodeFactor, params.twig.internodeLength))));
       const extraChildren = run.reduce((sum, i) => sum + counts[i] - 1, 0);
       expect(extraChildren).toBe(params.laterals);
@@ -225,8 +244,8 @@ describe("branch generations", () => {
   });
 
   it("reports a nonconverging level cap and the node ceiling without calling either a twig", () => {
-    const params = resolveTwigs({ internodeFactor: 32, laterals: 1, angleVariation: 0, vigourVariation: 0, lengthRatio: 1 });
-    const tree = branchTwigs(base, field(0.1), config, params);
+    const params = resolveTwigs({ internodeFactor: 32, laterals: 1, angleVariation: 0, vigourVariation: 0, lengthRatio: 1, twig: branchesOnly });
+    const tree = branchTwigs(base, field(1), config, params);
     expect(tree.levelCapped).toBe(true);
     const depth = new Int32Array(tree.nodes.length);
     for (let i = 2; i < tree.nodes.length; i++) {
@@ -416,7 +435,7 @@ describe("branch generations", () => {
       const children: number[][] = tree.nodes.map(() => []);
       tree.nodes.forEach((n, i) => { if (n.parent >= 0) children[n.parent].push(i); });
       const encode = (i: number): unknown => [tree.nodes[i].position.toArray(),
-        tree.baseRadius[i - tree.crossover], tree.twig[i - tree.crossover],
+        tree.baseRadius[i - tree.crossover], tree.endRadius[i - tree.crossover], tree.twig[i - tree.crossover],
         tree.branchId[i - tree.crossover] === i, children[i].map(encode)];
       return Array.from({ length: boundary }, (_, origin) => children[origin]
         .filter(i => i >= tree.crossover && tree.baseRadius[i - tree.crossover] < radii.radius[origin])
