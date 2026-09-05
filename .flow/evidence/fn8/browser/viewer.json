@@ -1,0 +1,5 @@
+{
+  "loadFailureRetry": true,
+  "buildFailureRetry": true,
+  "previousDiagnosticsPreserved": true
+}

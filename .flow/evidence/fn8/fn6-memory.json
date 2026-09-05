@@ -1,0 +1,509 @@
+{
+  "implementation": "fn6",
+  "startedAt": "2026-09-05T20:31:42.049Z",
+  "method": "CDP Runtime.getHeapUsage after explicit HeapProfiler.collectGarbage and rendered frames. Separately labelled V8/backing storage domains; not total browser/process/GPU RAM. Three retained/disposed rebuilds per subject. This is not a latency run.",
+  "subjects": [
+    {
+      "subject": "telperion",
+      "before": {
+        "usedSize": 4306192,
+        "totalSize": 5156864,
+        "embedderHeapUsedSize": 379112,
+        "backingStorageSize": 2499119
+      },
+      "builds": [
+        {
+          "iteration": 0,
+          "stats": {
+            "triangles": 12888512,
+            "vertices": 6554490,
+            "nodes": 175035,
+            "capped": false,
+            "levelCapped": false,
+            "handoffs": 1075,
+            "generations": {
+              "min": 4,
+              "median": 4,
+              "max": 5
+            },
+            "generationCounts": [
+              0,
+              0,
+              0,
+              0,
+              1002,
+              73,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "levelCappedHandoffs": 0,
+            "twigs": 54890,
+            "drawCalls": 2,
+            "instances": 1349630,
+            "leavesPlaced": 1372250,
+            "buildMs": 4644.5
+          },
+          "retained": {
+            "usedSize": 4947896,
+            "totalSize": 6467584,
+            "embedderHeapUsedSize": 382000,
+            "backingStorageSize": 400846004
+          },
+          "disposed": {
+            "usedSize": 5039500,
+            "totalSize": 5943296,
+            "embedderHeapUsedSize": 610176,
+            "backingStorageSize": 2499252
+          },
+          "wasmBytes": null
+        },
+        {
+          "iteration": 1,
+          "stats": {
+            "triangles": 12888512,
+            "vertices": 6554490,
+            "nodes": 175035,
+            "capped": false,
+            "levelCapped": false,
+            "handoffs": 1075,
+            "generations": {
+              "min": 4,
+              "median": 4,
+              "max": 5
+            },
+            "generationCounts": [
+              0,
+              0,
+              0,
+              0,
+              1002,
+              73,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "levelCappedHandoffs": 0,
+            "twigs": 54890,
+            "drawCalls": 2,
+            "instances": 1349630,
+            "leavesPlaced": 1372250,
+            "buildMs": 4929.69999999553
+          },
+          "retained": {
+            "usedSize": 5089856,
+            "totalSize": 6467584,
+            "embedderHeapUsedSize": 382232,
+            "backingStorageSize": 400846004
+          },
+          "disposed": {
+            "usedSize": 5088316,
+            "totalSize": 5681152,
+            "embedderHeapUsedSize": 380752,
+            "backingStorageSize": 2499252
+          },
+          "wasmBytes": null
+        },
+        {
+          "iteration": 2,
+          "stats": {
+            "triangles": 12888512,
+            "vertices": 6554490,
+            "nodes": 175035,
+            "capped": false,
+            "levelCapped": false,
+            "handoffs": 1075,
+            "generations": {
+              "min": 4,
+              "median": 4,
+              "max": 5
+            },
+            "generationCounts": [
+              0,
+              0,
+              0,
+              0,
+              1002,
+              73,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "levelCappedHandoffs": 0,
+            "twigs": 54890,
+            "drawCalls": 2,
+            "instances": 1349630,
+            "leavesPlaced": 1372250,
+            "buildMs": 5268.39999999851
+          },
+          "retained": {
+            "usedSize": 5207092,
+            "totalSize": 6467584,
+            "embedderHeapUsedSize": 602952,
+            "backingStorageSize": 400846004
+          },
+          "disposed": {
+            "usedSize": 5162656,
+            "totalSize": 5681152,
+            "embedderHeapUsedSize": 381464,
+            "backingStorageSize": 2499252
+          },
+          "wasmBytes": null
+        }
+      ],
+      "engineDisposed": {
+        "usedSize": 5094132,
+        "totalSize": 5681152,
+        "embedderHeapUsedSize": 376392,
+        "backingStorageSize": 2499252
+      }
+    },
+    {
+      "subject": "laurelin",
+      "before": {
+        "usedSize": 4306208,
+        "totalSize": 4894720,
+        "embedderHeapUsedSize": 378992,
+        "backingStorageSize": 2499119
+      },
+      "builds": [
+        {
+          "iteration": 0,
+          "stats": {
+            "triangles": 4365056,
+            "vertices": 2246930,
+            "nodes": 104207,
+            "capped": false,
+            "levelCapped": false,
+            "handoffs": 1649,
+            "generations": {
+              "min": 4,
+              "median": 4,
+              "max": 5
+            },
+            "generationCounts": [
+              0,
+              0,
+              0,
+              0,
+              1382,
+              267,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "levelCappedHandoffs": 0,
+            "twigs": 32153,
+            "drawCalls": 2,
+            "instances": 798553,
+            "leavesPlaced": 803825,
+            "buildMs": 2655.60000000149
+          },
+          "retained": {
+            "usedSize": 5123196,
+            "totalSize": 6467584,
+            "embedderHeapUsedSize": 606872,
+            "backingStorageSize": 159914164
+          },
+          "disposed": {
+            "usedSize": 5016000,
+            "totalSize": 5681152,
+            "embedderHeapUsedSize": 380360,
+            "backingStorageSize": 2499252
+          },
+          "wasmBytes": null
+        },
+        {
+          "iteration": 1,
+          "stats": {
+            "triangles": 4365056,
+            "vertices": 2246930,
+            "nodes": 104207,
+            "capped": false,
+            "levelCapped": false,
+            "handoffs": 1649,
+            "generations": {
+              "min": 4,
+              "median": 4,
+              "max": 5
+            },
+            "generationCounts": [
+              0,
+              0,
+              0,
+              0,
+              1382,
+              267,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "levelCappedHandoffs": 0,
+            "twigs": 32153,
+            "drawCalls": 2,
+            "instances": 798553,
+            "leavesPlaced": 803825,
+            "buildMs": 2679.89999999851
+          },
+          "retained": {
+            "usedSize": 5192180,
+            "totalSize": 6467584,
+            "embedderHeapUsedSize": 601672,
+            "backingStorageSize": 159914164
+          },
+          "disposed": {
+            "usedSize": 5097056,
+            "totalSize": 5681152,
+            "embedderHeapUsedSize": 381040,
+            "backingStorageSize": 2499252
+          },
+          "wasmBytes": null
+        },
+        {
+          "iteration": 2,
+          "stats": {
+            "triangles": 4365056,
+            "vertices": 2246930,
+            "nodes": 104207,
+            "capped": false,
+            "levelCapped": false,
+            "handoffs": 1649,
+            "generations": {
+              "min": 4,
+              "median": 4,
+              "max": 5
+            },
+            "generationCounts": [
+              0,
+              0,
+              0,
+              0,
+              1382,
+              267,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "levelCappedHandoffs": 0,
+            "twigs": 32153,
+            "drawCalls": 2,
+            "instances": 798553,
+            "leavesPlaced": 803825,
+            "buildMs": 2899.3000000044703
+          },
+          "retained": {
+            "usedSize": 5199876,
+            "totalSize": 6467584,
+            "embedderHeapUsedSize": 595280,
+            "backingStorageSize": 159914164
+          },
+          "disposed": {
+            "usedSize": 5162908,
+            "totalSize": 5943296,
+            "embedderHeapUsedSize": 380992,
+            "backingStorageSize": 2499252
+          },
+          "wasmBytes": null
+        }
+      ],
+      "engineDisposed": {
+        "usedSize": 5090880,
+        "totalSize": 5943296,
+        "embedderHeapUsedSize": 375920,
+        "backingStorageSize": 2499252
+      }
+    },
+    {
+      "subject": "comparison",
+      "before": {
+        "usedSize": 4197444,
+        "totalSize": 5419008,
+        "embedderHeapUsedSize": 378464,
+        "backingStorageSize": 2499119
+      },
+      "builds": [
+        {
+          "iteration": 0,
+          "stats": {
+            "triangles": 17253568,
+            "vertices": 8801420,
+            "nodes": 279242,
+            "capped": false,
+            "levelCapped": false,
+            "handoffs": 2724,
+            "generations": {
+              "min": 4,
+              "median": 4,
+              "max": 5
+            },
+            "generationCounts": [
+              0,
+              0,
+              0,
+              0,
+              2384,
+              340,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "levelCappedHandoffs": 0,
+            "twigs": 87043,
+            "drawCalls": 4,
+            "instances": 2148183,
+            "leavesPlaced": 2176075,
+            "buildMs": 7820
+          },
+          "retained": {
+            "usedSize": 5210836,
+            "totalSize": 7516160,
+            "embedderHeapUsedSize": 607888,
+            "backingStorageSize": 558260916
+          },
+          "disposed": {
+            "usedSize": 5117704,
+            "totalSize": 5943296,
+            "embedderHeapUsedSize": 601856,
+            "backingStorageSize": 2499252
+          },
+          "wasmBytes": null
+        },
+        {
+          "iteration": 1,
+          "stats": {
+            "triangles": 17253568,
+            "vertices": 8801420,
+            "nodes": 279242,
+            "capped": false,
+            "levelCapped": false,
+            "handoffs": 2724,
+            "generations": {
+              "min": 4,
+              "median": 4,
+              "max": 5
+            },
+            "generationCounts": [
+              0,
+              0,
+              0,
+              0,
+              2384,
+              340,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "levelCappedHandoffs": 0,
+            "twigs": 87043,
+            "drawCalls": 4,
+            "instances": 2148183,
+            "leavesPlaced": 2176075,
+            "buildMs": 8938.79999999702
+          },
+          "retained": {
+            "usedSize": 5374808,
+            "totalSize": 6205440,
+            "embedderHeapUsedSize": 598944,
+            "backingStorageSize": 558260916
+          },
+          "disposed": {
+            "usedSize": 5197468,
+            "totalSize": 5943296,
+            "embedderHeapUsedSize": 592896,
+            "backingStorageSize": 2499252
+          },
+          "wasmBytes": null
+        },
+        {
+          "iteration": 2,
+          "stats": {
+            "triangles": 17253568,
+            "vertices": 8801420,
+            "nodes": 279242,
+            "capped": false,
+            "levelCapped": false,
+            "handoffs": 2724,
+            "generations": {
+              "min": 4,
+              "median": 4,
+              "max": 5
+            },
+            "generationCounts": [
+              0,
+              0,
+              0,
+              0,
+              2384,
+              340,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "levelCappedHandoffs": 0,
+            "twigs": 87043,
+            "drawCalls": 4,
+            "instances": 2148183,
+            "leavesPlaced": 2176075,
+            "buildMs": 7322.10000000149
+          },
+          "retained": {
+            "usedSize": 5285900,
+            "totalSize": 6467584,
+            "embedderHeapUsedSize": 590688,
+            "backingStorageSize": 558260916
+          },
+          "disposed": {
+            "usedSize": 5266948,
+            "totalSize": 6205440,
+            "embedderHeapUsedSize": 585568,
+            "backingStorageSize": 2499252
+          },
+          "wasmBytes": null
+        }
+      ],
+      "engineDisposed": {
+        "usedSize": 5131032,
+        "totalSize": 5943296,
+        "embedderHeapUsedSize": 376232,
+        "backingStorageSize": 2499252
+      }
+    }
+  ],
+  "finishedAt": "2026-09-05T20:32:41.567Z"
+}

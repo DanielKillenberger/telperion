@@ -1,0 +1,141 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn8-finish/crates/telperion-core)
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling serde_core v1.0.229
+   Compiling zmij v1.0.23
+   Compiling serde_json v1.0.151
+   Compiling telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn8-finish/crates/telperion-wasm)
+    Finished `release` profile [optimized] target(s) in 12.21s
+     Running unittests src/lib.rs (target/release/deps/telperion_core-09e63b1046254f6d)
+
+running 1 test
+test surface::tests::allocation_failure_is_explicit ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/colonization.rs (target/release/deps/colonization-1d1afa1448d4e645)
+
+running 5 tests
+test crown_edges_and_outside_approach ... ok
+test oversized_climb_step_cannot_skip_the_entire_crown ... ok
+test empty_caps_and_invalid_inputs ... ok
+test fill_measures_only_classified_shell_wood_and_crown_tips ... ok
+test deterministic_forking_and_termination ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/crown_reference.rs (target/release/deps/crown_reference-e7932cfdf33a55c9)
+
+running 2 tests
+test compare_pinned_fn6_when_requested ... ignored, requires pinned FN6 export; run crown_reference.mjs
+test ordinary_and_giant_crowns ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/field.rs (target/release/deps/field-d93ebd35c2147930)
+
+running 3 tests
+test empty_and_invalid_queries ... ok
+test tapered_wood_and_flat_leaf_cells ... ok
+test generated_block_consumer_and_giant_samples_without_surface ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s
+
+     Running tests/foliage.rs (target/release/deps/foliage-0fd082f80def8cad)
+
+running 6 tests
+test element_anatomy_and_bounds ... ok
+test fallback_folds_zero_edges_and_clumps_at_terminal_tip ... ok
+test malformed_element_is_rejected_even_when_first_vertex_is_outside_shell ... ok
+test twig_stations_and_owned_deterministic_frames ... ok
+test shell_keeps_leaf_extent_and_crown_underside ... ok
+test shell_membership_empty_and_invalid ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/foliage_reference.rs (target/release/deps/foliage_reference-e1abed1e9c196c15)
+
+running 1 test
+test frozen_solved_tree_comparison ... ignored, requires REFERENCE_DIRECTORY exported with REFERENCE_BUFFERS=1
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running ../../tests/migration/foundation.rs (target/release/deps/foundation-9a240c52ea79f9ad)
+
+running 8 tests
+test bias_and_sampling_limits_are_explicit ... ok
+test envelope_boundaries_and_invalid_values ... ok
+test seeded_stream_matches_reference ... ok
+test bias_preserves_scale_sampling_and_upward_progress ... ok
+test envelope_profile_has_authored_maximum_and_continuous_shoulder ... ok
+test tree_validation_rejects_bad_topology_and_nonfinite_storage ... ok
+test vector_and_noise_boundaries ... ok
+test noise_seed_range_flow_and_feature_scale ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/growth.rs (target/release/deps/growth-92604c10ad273381)
+
+running 8 tests
+test generation_limit_is_explicit ... ok
+test fork_conservation_and_appended_radius_independence ... ok
+test local_anatomy_attachment_taper_and_resolution ... ok
+test shedding_keeps_whole_runs_and_terminal_transition ... ok
+test empty_caps_invalid_and_finite_rails ... ok
+test shedding_remaps_runs_preserves_transitions_and_caps ... ok
+test family_and_seed_controls_rederive_growth ... ok
+test complete_presets_are_deterministic_and_solved ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
+
+     Running tests/growth_reference.rs (target/release/deps/growth_reference-8cfddd24de3c69a4)
+
+running 1 test
+test complete_fn6_comparison ... ignored, requires pinned FN6 export: GROWTH_REFERENCE_DIR=<directory> cargo test --test growth_reference -- --ignored --nocapture
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/profile_distance.rs (target/release/deps/profile_distance-b3bb089f38794155)
+
+running 1 test
+test nearest_profile_distance_preserves_scale_and_projection ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/surface.rs (target/release/deps/surface-fa69010f3cbafe4d)
+
+running 5 tests
+test empty_degenerate_and_invalid_are_atomic ... ok
+test fork_socket_is_contained_and_thickest_child_continues ... ok
+test tapered_closed_surface_has_normals_and_bounds ... ok
+test root_only_and_float32_limits ... ok
+test reversed_path_keeps_finite_frames ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/surface_reference.rs (target/release/deps/surface_reference-d95224b6095527c1)
+
+running 1 test
+test final_fn6_geometry_comparison ... ignored, run node crates/telperion-core/tests/surface_reference.mjs to export pinned FN6 inputs
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/release/deps/telperion_wasm-13969e533d277c8d)
+
+running 1 test
+test tests::surviving_diagnostics_match_radius_law_and_empty_state ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests telperion_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests telperion_wasm
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

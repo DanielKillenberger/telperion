@@ -39,7 +39,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "rust:build": "cargo build --release --workspace && cargo build --release --target wasm32-unknown-unknown -p telperion-wasm",
-    "rust:test": "cargo test --workspace",
+    "rust:test": "cargo test --release --workspace",
     "rust:test:wasm": "node scripts/test-wasm.mjs",
     "migration:reference": "node scripts/export-reference.mjs",
     "wasm:build": "node scripts/build-wasm.mjs"

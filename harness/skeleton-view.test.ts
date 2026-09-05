@@ -1,16 +1,7 @@
 import * as THREE from "three";
 import { beforeAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { initializeTreeCore } from "../src/browser/core";
-beforeAll(() => initializeTreeCore(readFileSync("src/browser/telperion.wasm")));
-
-import { DEFAULT_ENVELOPE } from "../src/envelope";
-import { DEFAULT_SURFACE } from "../src/mesh/surface";
-import { DEFAULT_RADII, solveRadii } from "../src/radius";
-import { growSkeleton } from "../src/skeleton/grow";
-import { DEFAULT_BIAS } from "../src/torsion";
-
-import { LAURELIN, PRESETS } from "../src/browser/core";
+import { initializeTreeCore, LAURELIN, PRESETS, ORDINARY, treeCore } from "../src/browser/core";
 
 import { DEFAULT_PARAMS, SLIDERS, type GrowerParams } from "./params";
 import {
@@ -24,6 +15,13 @@ import {
   toSkeletonParams,
   toSurfaceParams,
 } from "./skeleton-view";
+
+beforeAll(() => initializeTreeCore(readFileSync("src/browser/telperion.wasm")));
+
+const DEFAULT_ENVELOPE = ORDINARY.skeleton.envelope;
+const DEFAULT_SURFACE = ORDINARY.surface;
+const DEFAULT_RADII = ORDINARY.radii;
+const DEFAULT_BIAS = ORDINARY.skeleton.bias;
 
 /* The panel's promise is that a seed change and a slider move produce a
    different tree without a reload. The browser is where that is judged;
@@ -67,11 +65,20 @@ function positions(mesh: THREE.Mesh): Float32Array {
  *  vertices, which sit a branch radius off the centre and would report
  *  a straight trunk as a bent one. */
 function centreline(overrides: Partial<GrowerParams> = {}): THREE.Vector3[] {
-  const skeleton = growSkeleton(
-    toSkeletonParams({ ...DEFAULT_PARAMS, ...overrides }),
-    toRadiusParams({ ...DEFAULT_PARAMS, ...overrides }),
-  );
-  return skeleton.nodes.map((node) => node.position);
+  const { values } = structure(overrides);
+  return Array.from({ length: values.length / 6 }, (_, i) =>
+    new THREE.Vector3(values[i * 6], values[i * 6 + 1], values[i * 6 + 2]));
+}
+
+function structure(overrides: Partial<GrowerParams> = {}) {
+  const params = { ...DEFAULT_PARAMS, ...overrides };
+  const output = treeCore().build({
+    ...ORDINARY,
+    skeleton: toSkeletonParams(params),
+    radii: toRadiusParams(params),
+  }, { structure: true });
+  treeCore().release();
+  return output.structure!;
 }
 
 describe("toSkeletonParams", () => {
@@ -274,7 +281,7 @@ describe("buildTree", () => {
     expect(stats.triangles * 3).toBe(mesh.geometry.getIndex()!.count);
     expect(stats.vertices * 3).toBe(positions(mesh).length);
     expect(stats.nodes).toBe(
-      growSkeleton(toSkeletonParams(DEFAULT_PARAMS), toRadiusParams(DEFAULT_PARAMS)).nodes.length,
+      structure().values.length / 6,
     );
     expect(stats.buildMs).toBeGreaterThanOrEqual(0);
   });
@@ -406,14 +413,10 @@ describe("buildTree", () => {
 
     // A ring high in the crown, taken about its own centre: the twigs
     // there are a small fraction of the trunk they hang off.
-    const solved = solveRadii(
-      growSkeleton(toSkeletonParams(DEFAULT_PARAMS), toRadiusParams(DEFAULT_PARAMS)),
-      toSkeletonParams(DEFAULT_PARAMS).envelope,
-      toRadiusParams(DEFAULT_PARAMS),
-    );
-    for (let node = 1; node < solved.radius.length; node += 1) {
-      crownWidest = Math.max(crownWidest, solved.radius[node]);
-      crownNarrowest = Math.min(crownNarrowest, solved.radius[node]);
+    const { values } = structure();
+    for (let node = 1; node < values.length / 6; node += 1) {
+      crownWidest = Math.max(crownWidest, values[node * 6 + 3]);
+      crownNarrowest = Math.min(crownNarrowest, values[node * 6 + 3]);
     }
 
     /* At the foot the drawn surface is deliberately wider than the
@@ -434,12 +437,13 @@ describe("buildTree", () => {
     const sharp = tree({ taper: 1.6 });
     const soft = tree({ taper: 3.4 });
     expect([...positions(sharp)]).not.toEqual([...positions(soft)]);
-    const grown = [1.6, 3.4].map(taper => {
-      const params = { ...DEFAULT_PARAMS, taper };
-      return growSkeleton(toSkeletonParams(params), toRadiusParams(params));
-    });
-    expect(grown[0].nodes.slice(0, grown[0].crossover)).toEqual(grown[1].nodes.slice(0, grown[1].crossover));
-    expect(grown[0].nodes.slice(grown[0].crossover)).not.toEqual(grown[1].nodes.slice(grown[1].crossover));
+    const grown = [1.6, 3.4].map(taper => structure({ taper }));
+    const nodes = (output: ReturnType<typeof structure>, kind: number) =>
+      Array.from({ length: output.values.length / 6 }, (_, i) => i)
+        .filter(i => output.topology[i * 3 + 2] === kind)
+        .map(i => [...output.values.slice(i * 6, i * 6 + 3), output.topology[i * 3]]);
+    expect(nodes(grown[0], 0)).toEqual(nodes(grown[1], 0));
+    expect(nodes(grown[0], 1)).not.toEqual(nodes(grown[1], 1));
   });
 
   it("is deterministic in the seed", () => {
@@ -505,15 +509,12 @@ describe("buildTree", () => {
     // Connectivity: every branch starts where its parent ended, at both
     // ends of the dial, and the tube for it is built over that edge.
     for (const torsion of [0, 2]) {
-      const skeleton = growSkeleton(
-        toSkeletonParams({ ...DEFAULT_PARAMS, torsion }),
-        toRadiusParams(DEFAULT_PARAMS),
-      );
-      skeleton.nodes.forEach((node, index) => {
-        if (index === 0) return expect(node.parent).toBe(-1);
-        expect(node.parent).toBeGreaterThanOrEqual(0);
-        expect(node.parent).toBeLessThan(index);
-      });
+      const { topology } = structure({ torsion });
+      for (let index = 0; index < topology.length / 3; index += 1) {
+        const parent = topology[index * 3];
+        if (index === 0) expect(parent).toBe(0xffffffff);
+        else expect(parent).toBeLessThan(index);
+      }
     }
   });
 

@@ -1,0 +1,16 @@
+
+> telperion@0.1.0 rust:test:wasm
+> node scripts/test-wasm.mjs
+
+{
+  transactionalReplacement: true,
+  meshFree: true,
+  ownership: true,
+  malformed: true,
+  empty: true,
+  staleFields: true,
+  deterministic: true,
+  partialDiagnostics: true,
+  loadFailureRetry: true,
+  buildFailureRetry: true
+}
