@@ -47,8 +47,16 @@ fn oak_identity_resolves_to_frozen_profile_and_native_anatomy() {
 
 #[test]
 fn fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::OregonWhiteOak);
+}
+
+#[test]
+fn fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::NorwaySpruce);
+}
+
+fn fixed_species(preset: Preset) {
     let manifest = profiles();
-    let preset = Preset::OregonWhiteOak;
     let profile = manifest["profiles"]
         .as_array()
         .unwrap()
@@ -66,6 +74,39 @@ fn fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens()
         let b = branching::generate(&family.skeleton, family.radii).unwrap();
         assert_eq!(a, b, "seed {seed}: skeleton repeatability");
         a.tree.validate_solved().unwrap();
+        if preset == Preset::NorwaySpruce {
+            let structural = &a.tree.nodes[..a.tree.crossover];
+            let axial = |p: Vec3| p.x.hypot(p.z) < 1e-10;
+            let mut tiers = std::collections::BTreeMap::<u32, usize>::new();
+            let mut hanging = 0;
+            let mut upturned = 0;
+            assert!(structural.iter().any(|n| axial(n.position)
+                && (n.position.y - family.skeleton.envelope.height).abs() < 1e-9));
+            for n in structural.iter().skip(1) {
+                let parent_id = n.parent.unwrap();
+                let parent = &structural[parent_id as usize];
+                let delta = n.position - parent.position;
+                if axial(n.position) {
+                    assert!(axial(parent.position) && delta.y > 0.0);
+                } else if axial(parent.position) {
+                    *tiers.entry(parent_id).or_default() += 1;
+                }
+                hanging += usize::from(delta.y < -0.05 && -delta.y > delta.x.hypot(delta.z));
+                upturned += usize::from(delta.y > 0.01 && delta.x.hypot(delta.z) > delta.y);
+            }
+            // Structural engineering invariants, independent of foliage AABB gates.
+            assert!(
+                tiers.len() >= 12 && tiers.values().all(|n| *n >= 3),
+                "seed {seed}: tiers {tiers:?}"
+            );
+            assert!(tiers
+                .keys()
+                .any(|i| structural[*i as usize].position.y < 2.0));
+            assert!(
+                hanging > 50 && upturned > 20,
+                "seed {seed}: hanging {hanging}, upturned {upturned}"
+            );
+        }
         assert!(a.tree.diagnostics.complete(), "seed {seed}: truncation");
         assert!(a.tree.nodes.len() > a.tree.crossover);
         for node in a.tree.nodes.iter().skip(a.tree.crossover) {
@@ -137,21 +178,62 @@ fn fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens()
         let (pass, checks) = species_metrics::compare(profile, &metrics).unwrap();
         assert!(pass, "seed {seed}: {checks:#}");
         assert_eq!(metrics["units_per_instance"]["value"], 1);
+        if preset == Preset::NorwaySpruce {
+            assert_eq!(metrics["foliage_unit"], "needle");
+            assert_eq!(metrics["foliage_units"]["value"], kept.matrices.len());
+            assert!(metrics["needle_surface_area_m2"]["value"].as_f64().unwrap() > 0.0);
+            assert!(metrics["crown_base_m"]["value"].as_f64().unwrap() < 3.0);
+        }
         heights.push(metrics["height_m"]["value"].as_f64().unwrap());
         widths.push(metrics["crown_width_m"]["value"].as_f64().unwrap());
         leaf_counts.insert(kept.matrices.len());
     }
     // Engineering regression thresholds for specimen variation, not botanical ranges.
-    for values in [heights, widths] {
+    let dimensions = if preset == Preset::NorwaySpruce {
+        // Tiered leader height is authored; azimuth, curtains and crown width vary.
+        vec![widths]
+    } else {
+        vec![heights, widths]
+    };
+    for values in dimensions {
         let min = values.iter().copied().fold(f64::INFINITY, f64::min);
         let max = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
         assert!(
-            max - min > 1.0,
-            "crown dimensions should vary by over a metre"
+            max - min
+                > if preset == Preset::NorwaySpruce {
+                    0.1
+                } else {
+                    1.0
+                },
+            "crown dimensions should vary across specimens"
         );
     }
     assert!(
         leaf_counts.len() >= 6,
         "seeds must change retained foliage abundance"
     );
+}
+
+#[test]
+fn spruce_identity_resolves_to_frozen_profile_and_native_anatomy() {
+    let preset = Preset::from_id("norway-spruce").unwrap();
+    assert_eq!(preset, Preset::NorwaySpruce);
+    assert_eq!(preset.profile_id(), Some("norway-spruce"));
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    assert_eq!(profile["scientific_name"], "Picea abies");
+    assert_eq!(profile["readiness"], "ready");
+    let family = preset.parameters();
+    assert!(matches!(family.skeleton.habit, BranchHabit::Tiered(_)));
+    assert!(!family.skeleton.bias.supernatural.enabled);
+    assert_eq!(family.element.anatomy, ElementAnatomy::FourSidedNeedle);
+    assert!(family.element.connector_length > 0.0);
+    assert_eq!(family.canopy.attachment, Attachment::RadialNeedles);
+    assert_eq!(family.skeleton.twigs.twig.stations_per_internode, 1);
+    assert!(Preset::from_id("Picea abies").is_none());
 }

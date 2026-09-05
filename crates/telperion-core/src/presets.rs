@@ -1,7 +1,7 @@
 //! Named families. Change the seed separately to draw another specimen.
 use crate::{
     bias::{BiasParams, SupernaturalParams},
-    branching::{BranchHabit, SkeletonParams, SpreadingHabit},
+    branching::{BranchHabit, SkeletonParams, SpreadingHabit, TieredHabit},
     envelope::Envelope,
     foliage::{Attachment, CanopyParams, ElementAnatomy, ElementParams},
     radius::RadiusParams,
@@ -11,6 +11,7 @@ use crate::{
 pub enum Preset {
     Ordinary,
     OregonWhiteOak,
+    NorwaySpruce,
     Telperion,
     Laurelin,
 }
@@ -44,6 +45,7 @@ impl Preset {
     pub fn profile_id(self) -> Option<&'static str> {
         match self {
             Self::OregonWhiteOak => Some("oregon-white-oak"),
+            Self::NorwaySpruce => Some("norway-spruce"),
             _ => None,
         }
     }
@@ -53,6 +55,7 @@ impl Preset {
         match id {
             "ordinary" => Some(Self::Ordinary),
             "oregon-white-oak" => Some(Self::OregonWhiteOak),
+            "norway-spruce" => Some(Self::NorwaySpruce),
             "telperion" => Some(Self::Telperion),
             "laurelin" => Some(Self::Laurelin),
             _ => None,
@@ -89,6 +92,31 @@ impl Preset {
             };
             p.canopy.attachment = Attachment::Alternate;
             p.canopy.divergence = 180.0;
+            p.canopy.size_variation = 0.2;
+            return p;
+        }
+        if self == Self::NorwaySpruce {
+            // Open-grown landscape Picea abies; one needle per local station.
+            p.skeleton.habit = BranchHabit::Tiered(TieredHabit::default());
+            p.skeleton.envelope = Envelope {
+                height: 15.0,
+                crown_base: 0.04,
+                spread: 0.32,
+                fullness: 0.15,
+                shoulder: 1.0,
+            };
+            p.skeleton.bias = BiasParams::NONE;
+            p.skeleton.twigs.twig.internode_length = 0.004;
+            p.skeleton.twigs.twig.bearing_diameter = 0.02;
+            p.radii.trunk_radius = 0.015;
+            p.element = ElementParams {
+                anatomy: ElementAnatomy::FourSidedNeedle,
+                length: 0.018,
+                width: 0.0015,
+                connector_length: 0.001,
+                ..Default::default()
+            };
+            p.canopy.attachment = Attachment::RadialNeedles;
             p.canopy.size_variation = 0.2;
             return p;
         }
