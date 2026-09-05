@@ -1,5 +1,5 @@
 use telperion_core::{
-    bias::{BiasParams, GrowthBias},
+    bias::{BiasParams, GrowthBias, SupernaturalParams},
     colonization::{colonize, GrowthConfig},
     envelope::Envelope,
     math::Vec3,
@@ -76,9 +76,12 @@ fn compare_pinned_fn6_when_requested() {
             BiasParams {
                 gravitropism: b[1],
                 lean: b[2],
-                writhe_amplitude: b[3],
-                writhe_wavelength: b[4],
-                spiral_rate: b[5],
+                supernatural: SupernaturalParams {
+                    enabled: true,
+                    writhe_amplitude: b[3],
+                    writhe_wavelength: b[4],
+                    spiral_rate: b[5],
+                },
             },
         )
         .unwrap();

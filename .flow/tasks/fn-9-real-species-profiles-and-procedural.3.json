@@ -1,7 +1,4 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-09-05T22:22:26.125344Z",
   "depends_on": [
     "fn-9-real-species-profiles-and-procedural.1"
@@ -12,5 +9,5 @@
   "spec_path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.3.md",
   "status": "todo",
   "title": "Add profile-driven branching and natural bias defaults",
-  "updated_at": "2026-09-05T22:52:17.671927Z"
+  "updated_at": "2026-09-05T23:06:06.484844Z"
 }

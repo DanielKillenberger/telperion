@@ -1,7 +1,36 @@
 use super::range;
 use crate::{math::Vec3, Error, Result};
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub enum ElementAnatomy {
+    #[default]
+    GenericBlade,
+    LobedBlade,
+    FourSidedNeedle,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FoliageUnit {
+    Leaf,
+    Needle,
+}
+
+/// Geometry of one biological unit, excluding its petiole or woody peg.
+#[derive(Debug, Clone, PartialEq)]
+pub struct AnatomyGeometry {
+    pub unit: FoliageUnit,
+    pub vertices: std::ops::Range<usize>,
+    /// Offsets into Element::indices, not triangle numbers.
+    pub indices: std::ops::Range<usize>,
+    /// Vertex ranges at successive transverse sections, base to tip.
+    pub sections: Vec<std::ops::Range<usize>>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ElementParams {
+    pub anatomy: ElementAnatomy,
+    /// Metres; used by lobed blades and needles, excluded from unit dimensions.
+    pub connector_length: f64,
+    /// Blade/needle longitudinal extent, excluding connector, in metres.
     pub length: f64,
     pub width: f64,
     pub widest_at: f64,
@@ -16,6 +45,8 @@ pub struct ElementParams {
 impl Default for ElementParams {
     fn default() -> Self {
         Self {
+            anatomy: ElementAnatomy::GenericBlade,
+            connector_length: 0.01,
             length: 0.12,
             width: 0.06,
             widest_at: 0.42,
@@ -31,10 +62,11 @@ impl Default for ElementParams {
 }
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Element {
-    /// Metres, petiole at origin, axis +Y, face +Z. Reused by all instances.
+    /// Metres, attachment at origin, axis +Y, blade face +Z. One unit per instance.
     pub positions: Vec<Vec3>,
-    /// Counterclockwise viewed from +Z.
+    /// Blade triangles face +Z; needle and connector triangles face outward.
     pub indices: Vec<u32>,
+    pub anatomy: Option<AnatomyGeometry>,
 }
 impl Element {
     pub fn validate(&self) -> Result<()> {
@@ -50,11 +82,35 @@ impl Element {
         {
             return Err(Error::InvalidInput("leaf element"));
         }
+        if let Some(a) = &self.anatomy {
+            if a.vertices.is_empty()
+                || a.vertices.end > self.positions.len()
+                || a.indices.is_empty()
+                || a.indices.end > self.indices.len()
+                || !a.indices.start.is_multiple_of(3)
+                || !a.indices.end.is_multiple_of(3)
+                || a.sections.len() < 2
+                || a.sections
+                    .iter()
+                    .any(|r| r.is_empty() || r.start < a.vertices.start || r.end > a.vertices.end)
+                || a.sections.windows(2).any(|w| w[0].end > w[1].start)
+                || self.indices[a.indices.clone()]
+                    .iter()
+                    .any(|i| !a.vertices.contains(&(*i as usize)))
+                || self.indices.chunks_exact(3).any(|t| {
+                    let [p, q, r] = [t[0], t[1], t[2]].map(|i| self.positions[i as usize]);
+                    (q - p).cross(r - p).length_squared() <= 0.
+                })
+            {
+                return Err(Error::InvalidInput("foliage anatomy geometry"));
+            }
+        }
         Ok(())
     }
 }
 pub fn build_element(p: ElementParams) -> Result<Element> {
     for (v, l, h, n) in [
+        (p.connector_length, 0., 1e3, "foliage connector length"),
         (p.length, 1e-4, 1e3, "leaf length"),
         (p.width, 1e-4, 1e3, "leaf width"),
         (p.widest_at, 0.05, 0.95, "leaf widest point"),
@@ -68,6 +124,18 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
     if !(2..=64).contains(&p.axial_segments) || !(2..=64).contains(&p.cross_segments) {
         return Err(Error::InvalidInput("leaf segments"));
     }
+    if p.anatomy != ElementAnatomy::GenericBlade {
+        range(
+            p.connector_length,
+            1e-6,
+            p.length,
+            "foliage connector length",
+        )?;
+        if p.card {
+            return Err(Error::InvalidInput("species anatomy cannot be a card"));
+        }
+        return build_anatomy(p);
+    }
     let half = p.width / 2.;
     if p.card {
         return Ok(Element {
@@ -78,6 +146,7 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
                 Vec3::new(-half as f32 as f64, p.length as f32 as f64, 0.),
             ],
             indices: vec![0, 1, 2, 0, 2, 3],
+            anatomy: None,
         });
     }
     let columns = p.cross_segments + (p.cross_segments % 2);
@@ -85,6 +154,7 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
     let mut e = Element {
         positions: Vec::with_capacity((2 + rows * (columns + 1)) as usize),
         indices: Vec::with_capacity((6 * columns * rows) as usize),
+        anatomy: None,
     };
     e.positions.push(Vec3::ZERO);
     for row in 0..rows {
@@ -132,4 +202,147 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
         *v = Vec3::new(v.x as f32 as f64, v.y as f32 as f64, v.z as f32 as f64);
     }
     Ok(e)
+}
+
+fn build_anatomy(p: ElementParams) -> Result<Element> {
+    let mut e = Element::default();
+    let mut sections = Vec::new();
+    let needle = p.anatomy == ElementAnatomy::FourSidedNeedle;
+    if needle {
+        let rows = p.axial_segments.max(4);
+        for row in 0..rows {
+            let t = row as f64 / rows as f64;
+            let radius = p.width
+                * 0.5
+                * if row == 0 {
+                    0.35
+                } else {
+                    (1. - t) / (1. - 1. / rows as f64)
+                };
+            let start = e.positions.len();
+            for (x, z) in [(1., 0.), (0., 1.), (-1., 0.), (0., -1.)] {
+                e.positions.push(Vec3::new(
+                    x * radius,
+                    p.connector_length + t * p.length,
+                    z * radius + p.curl * p.length * t * t,
+                ));
+            }
+            sections.push(start..e.positions.len());
+        }
+        let tip = e.positions.len() as u32;
+        e.positions.push(Vec3::new(
+            0.,
+            p.connector_length + p.length,
+            p.curl * p.length,
+        ));
+        sections.push(tip as usize..tip as usize + 1);
+        for row in 0..rows - 1 {
+            for side in 0..4 {
+                let a = row * 4 + side;
+                let b = row * 4 + (side + 1) % 4;
+                e.indices.extend([a, a + 4, b + 4, a, b + 4, b]);
+            }
+        }
+        for side in 0..4 {
+            e.indices
+                .extend([(rows - 1) * 4 + side, tip, (rows - 1) * 4 + (side + 1) % 4]);
+        }
+        let base = e.positions.len() as u32;
+        e.positions.push(Vec3::new(0., p.connector_length, 0.));
+        for side in 0..4 {
+            e.indices.extend([base, side, (side + 1) % 4]);
+        }
+    } else {
+        let rows = p.axial_segments.max(48);
+        let columns = p.cross_segments + p.cross_segments % 2;
+        e.positions.push(Vec3::new(0., p.connector_length, 0.));
+        sections.push(0..1);
+        for row in 1..rows {
+            let t = row as f64 / rows as f64;
+            let envelope = (std::f64::consts::PI * t).sin().sqrt();
+            let lobe = 0.68 + 0.32 * (8. * std::f64::consts::PI * t).cos();
+            let half = p.width * 0.5 * envelope * lobe;
+            let start = e.positions.len();
+            for col in 0..=columns {
+                let x = 2. * col as f64 / columns as f64 - 1.;
+                e.positions.push(Vec3::new(
+                    x * half,
+                    p.connector_length + t * p.length,
+                    p.curl * p.length * t * t + p.cup * half * x * x,
+                ));
+            }
+            sections.push(start..e.positions.len());
+        }
+        let tip = e.positions.len() as u32;
+        e.positions.push(Vec3::new(
+            0.,
+            p.connector_length + p.length,
+            p.curl * p.length,
+        ));
+        sections.push(tip as usize..tip as usize + 1);
+        for col in 0..columns {
+            e.indices.extend([0, 2 + col, 1 + col]);
+        }
+        for row in 0..rows - 2 {
+            for col in 0..columns {
+                let a = 1 + row * (columns + 1) + col;
+                let d = a + columns + 1;
+                e.indices.extend([a, a + 1, d + 1, a, d + 1, d]);
+            }
+        }
+        for col in 0..columns {
+            let a = 1 + (rows - 2) * (columns + 1) + col;
+            e.indices.extend([a, a + 1, tip]);
+        }
+    }
+    e.anatomy = Some(AnatomyGeometry {
+        unit: if needle {
+            FoliageUnit::Needle
+        } else {
+            FoliageUnit::Leaf
+        },
+        vertices: 0..e.positions.len(),
+        indices: 0..e.indices.len(),
+        sections,
+    });
+    connector(
+        &mut e,
+        p.connector_length,
+        p.width * if needle { 0.175 } else { 0.018 },
+    );
+    for v in &mut e.positions {
+        *v = Vec3::new(v.x as f32 as f64, v.y as f32 as f64, v.z as f32 as f64);
+    }
+    e.validate()?;
+    Ok(e)
+}
+
+fn connector(e: &mut Element, length: f64, radius: f64) {
+    let start = e.positions.len() as u32;
+    for y in [0., length] {
+        for (x, z) in [(1., 0.), (0., 1.), (-1., 0.), (0., -1.)] {
+            e.positions.push(Vec3::new(x * radius, y, z * radius));
+        }
+    }
+    let base = e.positions.len() as u32;
+    e.positions.push(Vec3::ZERO);
+    e.positions.push(Vec3::new(0., length, 0.));
+    for side in 0..4 {
+        let a = start + side;
+        let b = start + (side + 1) % 4;
+        e.indices.extend([
+            a,
+            a + 4,
+            b + 4,
+            a,
+            b + 4,
+            b,
+            base,
+            a,
+            b,
+            base + 1,
+            b + 4,
+            a + 4,
+        ]);
+    }
 }

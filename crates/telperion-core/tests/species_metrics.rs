@@ -45,6 +45,7 @@ fn fixture() -> (Tree, Element, Instances) {
     let element = Element {
         positions: vec![Vec3::ZERO, Vec3::new(1., 0., 0.), Vec3::new(0., 2., 0.)],
         indices: vec![0, 1, 2],
+        anatomy: None,
     };
     let instances = Instances {
         matrices: vec![[
@@ -131,4 +132,59 @@ fn overflow_and_degenerate_geometry_fail_explicitly() {
     assert!(measure(&t, &[0., 4., 0.], &e, 1, &i)
         .unwrap_err()
         .starts_with("degenerate"));
+}
+
+#[test]
+fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
+    use telperion_core::foliage::{build_element, ElementAnatomy, ElementParams};
+    let (t, _, mut instances) = fixture();
+    // Rotate the nonuniform X/Y/Z scales into world Z/X/Y.
+    instances.matrices[0] = [
+        0., 0., 2., 0., 3., 0., 0., 0., 0., 4., 0., 0., 1., 5., 0., 1.,
+    ];
+    for anatomy in [ElementAnatomy::LobedBlade, ElementAnatomy::FourSidedNeedle] {
+        let p = ElementParams {
+            anatomy,
+            length: 0.02,
+            width: 0.002,
+            connector_length: 0.001,
+            cup: 0.,
+            curl: 0.01,
+            ..ElementParams::default()
+        };
+        let e = build_element(p).unwrap();
+        let m = measure(&t, &[0., 4., 0.], &e, 3, &instances).unwrap();
+        assert_eq!(m["foliage_length_m"]["status"], "measured");
+        assert!((m["foliage_length_m"]["max"].as_f64().unwrap() - 0.06).abs() < 1e-8);
+        let expected_width = if anatomy == ElementAnatomy::FourSidedNeedle {
+            0.008
+        } else {
+            0.004
+        };
+        assert!((m["foliage_width_m"]["max"].as_f64().unwrap() - expected_width).abs() < 1e-8);
+        let longer_connector = build_element(ElementParams {
+            connector_length: 0.009,
+            ..p
+        })
+        .unwrap();
+        let other = measure(&t, &[0., 4., 0.], &longer_connector, 3, &instances).unwrap();
+        assert!(
+            (m["leaf_area_m2"]["value"].as_f64().unwrap()
+                - other["leaf_area_m2"]["value"].as_f64().unwrap())
+            .abs()
+                < 1e-10
+        );
+        assert_eq!(m["units_per_instance"]["value"], 1);
+        assert_eq!(m["discarded_units"]["value"], 2);
+        if anatomy == ElementAnatomy::FourSidedNeedle {
+            let surface = m["needle_surface_area_m2"]["value"].as_f64().unwrap();
+            let projected = m["projected_area_m2"]["value"].as_f64().unwrap();
+            assert!(surface > 2. * projected);
+            assert!(
+                (projected - 0.0001284).abs() < 1e-10,
+                "canonical projected polygon area"
+            );
+            assert_eq!(m["foliage_unit"], "needle");
+        }
+    }
 }

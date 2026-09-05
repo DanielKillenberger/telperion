@@ -38,8 +38,8 @@ cargo test --release -p telperion-core --test foliage --test field
 - [ ] Focused foliage/field regressions pass; any remaining unsupported anatomy is recorded.
 
 ## Done summary
-TBD
-
+Blocked:
+Owner requested implementation stop and clean transfer to Forge. Worker has stopped; existing implementation is preserved in the handoff WIP. Temporarily blocking solely to release the claim, then resetting to todo for the successor to verify and complete. No external dependency or human decision blocks resumption.
 ## Evidence
 - Commits:
 - Tests:

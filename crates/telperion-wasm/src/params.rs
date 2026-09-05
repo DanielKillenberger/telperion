@@ -17,9 +17,10 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "envelope", "shoulder"; skeleton.envelope.shoulder);
         $op!($f, $v, "skeleton", "bias", "gravitropism"; skeleton.bias.gravitropism);
         $op!($f, $v, "skeleton", "bias", "lean"; skeleton.bias.lean);
-        $op!($f, $v, "skeleton", "bias", "writheAmplitude"; skeleton.bias.writhe_amplitude);
-        $op!($f, $v, "skeleton", "bias", "writheWavelength"; skeleton.bias.writhe_wavelength);
-        $op!($f, $v, "skeleton", "bias", "spiralRate"; skeleton.bias.spiral_rate);
+        $op!($f, $v, "skeleton", "bias", "supernaturalEnabled"; skeleton.bias.supernatural.enabled);
+        $op!($f, $v, "skeleton", "bias", "writheAmplitude"; skeleton.bias.supernatural.writhe_amplitude);
+        $op!($f, $v, "skeleton", "bias", "writheWavelength"; skeleton.bias.supernatural.writhe_wavelength);
+        $op!($f, $v, "skeleton", "bias", "spiralRate"; skeleton.bias.supernatural.spiral_rate);
         $op!($f, $v, "skeleton", "twigs", "twig", "diameter"; skeleton.twigs.twig.diameter);
         $op!($f, $v, "skeleton", "twigs", "twig", "length"; skeleton.twigs.twig.length);
         $op!($f, $v, "skeleton", "twigs", "twig", "internodeLength"; skeleton.twigs.twig.internode_length);

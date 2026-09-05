@@ -1,6 +1,6 @@
 //! Named families. Change the seed separately to draw another specimen.
 use crate::{
-    bias::BiasParams,
+    bias::{BiasParams, SupernaturalParams},
     branching::SkeletonParams,
     envelope::Envelope,
     foliage::{CanopyParams, ElementParams},
@@ -27,7 +27,11 @@ impl Default for Family {
         Self {
             skeleton: SkeletonParams::default(),
             radii: RadiusParams::default(),
-            surface: SurfaceParams::default(),
+            surface: SurfaceParams {
+                lobe_depth: 0.0,
+                twist_rate: 0.0,
+                ..Default::default()
+            },
             canopy: CanopyParams::default(),
             element: ElementParams::default(),
             shell_depth: 0.45,
@@ -64,17 +68,23 @@ impl Preset {
             BiasParams {
                 gravitropism: 0.95,
                 lean: 0.04,
-                writhe_amplitude: 0.11,
-                writhe_wavelength: 0.34,
-                spiral_rate: 2.6,
+                supernatural: SupernaturalParams {
+                    enabled: true,
+                    writhe_amplitude: 0.11,
+                    writhe_wavelength: 0.34,
+                    spiral_rate: 2.6,
+                },
             }
         } else {
             BiasParams {
                 gravitropism: 0.55,
                 lean: 0.06,
-                writhe_amplitude: 0.05,
-                writhe_wavelength: 0.8,
-                spiral_rate: 0.6,
+                supernatural: SupernaturalParams {
+                    enabled: true,
+                    writhe_amplitude: 0.05,
+                    writhe_wavelength: 0.8,
+                    spiral_rate: 0.6,
+                },
             }
         };
         p.skeleton.twigs.twig.length = 0.5;

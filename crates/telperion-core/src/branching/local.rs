@@ -30,6 +30,8 @@ struct Planner<'a> {
     config: &'a GrowthConfig,
     bias: Option<&'a GrowthBias>,
     twigs: TwigParams,
+    crookedness: f64,
+    seed: u32,
 }
 impl Planner<'_> {
     fn heading(&self, at: Vec3, from: Vec3, wanted: Vec3, distance: f64) -> Vec3 {
@@ -50,6 +52,7 @@ impl Planner<'_> {
         length: f64,
         internodes: usize,
         bearing: bool,
+        key: u32,
     ) -> Option<Rc<Run>> {
         let count = internodes.max(if bearing {
             1
@@ -68,10 +71,21 @@ impl Planner<'_> {
         let mut points = vec![start];
         let mut along = vec![0.0];
         let mut heading = first;
+        let phase = Rng::new(self.seed ^ key).range(0.0, TAU);
+        let normal = first.perpendicular();
+        let binormal = first.cross(normal);
         for k in 0..count {
             let stride = length * (stations[k] - if k == 0 { 0.0 } else { stations[k - 1] });
             let at = *points.last().unwrap();
-            heading = self.heading(at, heading, heading, stride);
+            let wanted = if self.crookedness == 0.0 {
+                heading
+            } else {
+                let angle = stations[k] * TAU * 2.0 + phase;
+                first
+                    + (normal * angle.sin() + binormal * (angle * 0.7).cos())
+                        * self.crookedness.to_radians()
+            };
+            heading = self.heading(at, heading, wanted, stride);
             let end = at + heading * stride;
             if rejected(self.config, end) {
                 let mut low = 0.0;
@@ -110,6 +124,28 @@ impl Planner<'_> {
             (actual - along[last - 1]) / (along[last] - along[last - 1]),
         );
         along[last] = actual;
+        if actual < length - 1e-9 && !bearing {
+            let count = ((internodes as f64 * actual / length).ceil() as usize)
+                .max(self.twigs.laterals as usize + 1);
+            let mut distances = along.clone();
+            distances.extend((1..=count).map(|k| actual * k as f64 / count as f64));
+            distances.sort_by(f64::total_cmp);
+            distances.dedup_by(|a, b| (*a - *b).abs() < 1e-12);
+            let mut resampled = Vec::with_capacity(distances.len());
+            resampled.push(start);
+            let mut edge = 1;
+            for &d in distances.iter().skip(1) {
+                while edge < along.len() - 1 && along[edge] < d {
+                    edge += 1;
+                }
+                resampled.push(points[edge - 1].lerp(
+                    points[edge],
+                    ((d - along[edge - 1]) / (along[edge] - along[edge - 1])).clamp(0.0, 1.0),
+                ));
+            }
+            points = resampled;
+            along = distances;
+        }
         Some(Rc::new(Run {
             positions: points.into_iter().skip(1).collect(),
             fractions: along.into_iter().skip(1).map(|d| d / actual).collect(),
@@ -124,6 +160,16 @@ pub fn append(
     params: TwigParams,
     seed: u32,
     bias: Option<&GrowthBias>,
+) -> Result<()> {
+    append_with_habit(tree, config, params, seed, bias, BranchHabit::Colonizing)
+}
+pub(super) fn append_with_habit(
+    tree: &mut Tree,
+    config: &GrowthConfig,
+    params: TwigParams,
+    seed: u32,
+    bias: Option<&GrowthBias>,
+    habit: BranchHabit,
 ) -> Result<()> {
     tree.validate_solved()?;
     config.validate()?;
@@ -177,6 +223,11 @@ pub fn append(
         config,
         bias,
         twigs: t,
+        crookedness: match habit {
+            BranchHabit::Spreading(p) => p.crookedness,
+            _ => 0.0,
+        },
+        seed,
     };
     while !frontier.is_empty() {
         let mut next = Vec::new();
@@ -297,6 +348,7 @@ pub fn append(
                             length,
                             internodes,
                             radius <= t.twig.bearing_diameter / 2.0,
+                            key,
                         )
                     }
                     let Some(r) = &run else { continue };

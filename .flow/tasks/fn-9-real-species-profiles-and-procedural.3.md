@@ -38,8 +38,8 @@ cargo test --release -p telperion-core --test growth --test colonization
 - [ ] Required branching regressions pass, and unsupported profile architecture remains explicitly open rather than silently approximated.
 
 ## Done summary
-TBD
-
+Blocked:
+Owner requested implementation stop and clean transfer to Forge. Worker has stopped; existing implementation is preserved in the handoff WIP. Temporarily blocking solely to release the claim, then resetting to todo for the successor to verify and complete. No external dependency or human decision blocks resumption.
 ## Evidence
 - Commits:
 - Tests:

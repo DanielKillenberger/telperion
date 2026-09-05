@@ -159,26 +159,46 @@ fn noise_seed_range_flow_and_feature_scale() {
 
 #[test]
 fn bias_preserves_scale_sampling_and_upward_progress() {
-    use telperion_core::bias::{BiasParams, GrowthBias, MIN_STEPS_PER_BEND};
+    use telperion_core::bias::{BiasParams, GrowthBias, SupernaturalParams, MIN_STEPS_PER_BEND};
     let e = Envelope::default();
     let step = e.height * 0.022;
     let floor = MIN_STEPS_PER_BEND * step / e.height;
     let field = |params| GrowthBias::new(e, 1, params).unwrap();
-    let defaults = BiasParams::default();
+    let defaults = BiasParams {
+        supernatural: SupernaturalParams {
+            enabled: true,
+            writhe_amplitude: 0.07,
+            writhe_wavelength: 0.45,
+            spiral_rate: 1.2,
+        },
+        ..Default::default()
+    };
     let short = field(BiasParams {
-        writhe_wavelength: 0.001,
+        supernatural: SupernaturalParams {
+            writhe_wavelength: 0.001,
+            ..defaults.supernatural
+        },
         ..defaults
     });
     let sampled = field(BiasParams {
-        writhe_wavelength: floor,
+        supernatural: SupernaturalParams {
+            writhe_wavelength: floor,
+            ..defaults.supernatural
+        },
         ..defaults
     });
     let fast = field(BiasParams {
-        spiral_rate: 40.0,
+        supernatural: SupernaturalParams {
+            spiral_rate: 40.0,
+            ..defaults.supernatural
+        },
         ..defaults
     });
     let limited = field(BiasParams {
-        spiral_rate: 1.0 / floor,
+        supernatural: SupernaturalParams {
+            spiral_rate: 1.0 / floor,
+            ..defaults.supernatural
+        },
         ..defaults
     });
     for t in [0.1, 0.35, 0.6, 0.9] {
@@ -197,9 +217,12 @@ fn bias_preserves_scale_sampling_and_upward_progress() {
                 BiasParams {
                     gravitropism: 3.0,
                     lean: 2.0,
-                    writhe_amplitude: 3.0,
-                    writhe_wavelength: 0.02,
-                    spiral_rate: 40.0,
+                    supernatural: SupernaturalParams {
+                        enabled: true,
+                        writhe_amplitude: 3.0,
+                        writhe_wavelength: 0.02,
+                        spiral_rate: 40.0,
+                    },
                 },
             )
             .unwrap();
@@ -210,11 +233,17 @@ fn bias_preserves_scale_sampling_and_upward_progress() {
     }
     let p = Vec3::new(3.0, 12.0, 2.0);
     let longer = field(BiasParams {
-        writhe_wavelength: floor * 2.0,
+        supernatural: SupernaturalParams {
+            writhe_wavelength: floor * 2.0,
+            ..defaults.supernatural
+        },
         ..defaults
     });
     let slower = field(BiasParams {
-        spiral_rate: 0.5 / floor,
+        supernatural: SupernaturalParams {
+            spiral_rate: 0.5 / floor,
+            ..defaults.supernatural
+        },
         ..defaults
     });
     assert!((longer.apply(p, Vec3::Y, step) - sampled.apply(p, Vec3::Y, step)).length() > 1e-6);

@@ -2,7 +2,7 @@
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 use telperion_core::{
-    foliage::{transform_point, Element, Instances},
+    foliage::{transform_point, Element, FoliageUnit, Instances},
     tree::{NodeKind, Tree},
 };
 fn scalar(value: impl Into<Value>, status: &str) -> Value {
@@ -20,7 +20,7 @@ fn distribution(mut values: Vec<f64>, status: &str) -> Value {
     json!({"status":status,"min":values[0],"max":values[n-1],"median":(values[(n-1)/2]+values[n/2])/2.})
 }
 /// The wood positions are the actual surface mesh, not swept-sphere bounds.
-/// Existing prototypes have no connector exclusion metadata: dimensions remain estimates.
+/// Authored biological subsets exclude connectors; generic prototypes remain estimates.
 pub fn measure(
     tree: &Tree,
     wood: &[f32],
@@ -181,6 +181,8 @@ pub fn measure(
         m[key] = scalar(n, "measured");
     }
     let mut area = 0.;
+    let mut projected = 0.;
+    let mut projection_available = true;
     let mut lengths = Vec::new();
     let mut widths = Vec::new();
     let extent = |component: fn(&telperion_core::math::Vec3) -> f64| {
@@ -203,13 +205,61 @@ pub fn measure(
             ((mat[c] as f64).powi(2) + (mat[c + 1] as f64).powi(2) + (mat[c + 2] as f64).powi(2))
                 .sqrt()
         };
-        lengths.push(extent(|p| p.y) * scale(4));
-        widths.push(extent(|p| p.x) * scale(0));
-        for tri in element.indices.chunks_exact(3) {
+        let column = |c| {
+            telperion_core::math::Vec3::new(mat[c] as f64, mat[c + 1] as f64, mat[c + 2] as f64)
+        };
+        let view = column(8).normalized();
+        let triangles = if let Some(anatomy) = &element.anatomy {
+            let axis = column(4).normalized();
+            if axis.length_squared() == 0.
+                || column(0).length_squared() == 0.
+                || column(8).length_squared() == 0.
+            {
+                return Err("degenerate: foliage transform".into());
+            }
+            let transformed: Vec<_> = element.positions[anatomy.vertices.clone()]
+                .iter()
+                .map(|v| transform_point(mat, *v))
+                .collect();
+            let origin = transformed[0];
+            let lo = transformed
+                .iter()
+                .map(|v| (*v - origin).dot(axis))
+                .reduce(f64::min)
+                .unwrap();
+            let hi = transformed
+                .iter()
+                .map(|v| (*v - origin).dot(axis))
+                .reduce(f64::max)
+                .unwrap();
+            lengths.push(hi - lo);
+            let mut width: f64 = 0.;
+            for row in &anatomy.sections {
+                let row = &transformed
+                    [row.start - anatomy.vertices.start..row.end - anatomy.vertices.start];
+                for (i, a) in row.iter().enumerate() {
+                    for b in &row[i + 1..] {
+                        width = width.max(a.distance(*b));
+                    }
+                }
+            }
+            widths.push(width);
+            projection_available &= column(0).normalized().dot(axis).abs() < 1e-6
+                && column(0).normalized().dot(view).abs() < 1e-6
+                && axis.dot(view).abs() < 1e-6;
+            &element.indices[anatomy.indices.clone()]
+        } else {
+            lengths.push(extent(|p| p.y) * scale(4));
+            widths.push(extent(|p| p.x) * scale(0));
+            &element.indices[..]
+        };
+        for tri in triangles.chunks_exact(3) {
             let a = transform_point(mat, element.positions[tri[0] as usize]);
             let b = transform_point(mat, element.positions[tri[1] as usize]);
             let c = transform_point(mat, element.positions[tri[2] as usize]);
-            let triangle = (b - a).cross(c - a).length() / 2.;
+            let normal = (b - a).cross(c - a);
+            projected += normal.dot(view).abs() / 4.;
+            let triangle = normal.length() / 2.;
             if !triangle.is_finite() {
                 return Err("non_finite: triangle area".into());
             }
@@ -222,14 +272,44 @@ pub fn measure(
     if !area.is_finite() {
         return Err("non_finite: total area".into());
     }
+    let status = if element.anatomy.is_some() {
+        "measured"
+    } else {
+        "estimated"
+    };
     m["leaf_area_m2"] = if area > 0. {
-        scalar(area, "estimated")
+        scalar(area, status)
     } else {
         missing("empty foliage geometry")
     };
-    m["foliage_length_m"] = distribution(lengths, "estimated");
-    m["foliage_width_m"] = distribution(widths, "estimated");
-    m["foliage_geometry_note"]=json!("Whole prototype dimensions and triangle surface area; blade/needle subset excluding petiole/peg unavailable. Area is not projected area; sheet triangles counted once. Generic element is not proof of species anatomy.");
+    m["foliage_length_m"] = distribution(lengths, status);
+    m["foliage_width_m"] = distribution(widths, status);
+    m["foliage_unit"] = json!(if element
+        .anatomy
+        .as_ref()
+        .is_some_and(|a| a.unit == FoliageUnit::Needle)
+    {
+        "needle"
+    } else {
+        "leaf"
+    });
+    if element
+        .anatomy
+        .as_ref()
+        .is_some_and(|a| a.unit == FoliageUnit::Needle)
+    {
+        m["needle_surface_area_m2"] = m["leaf_area_m2"].clone();
+        m["projected_area_m2"] = if projection_available && area > 0. {
+            scalar(projected, "measured")
+        } else {
+            missing("canonical projection unavailable for empty or sheared geometry")
+        };
+        m["foliage_geometry_note"] = json!("One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.");
+    } else if element.anatomy.is_some() {
+        m["foliage_geometry_note"] = json!("One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.");
+    } else {
+        m["foliage_geometry_note"] = json!("Whole prototype estimates: connector exclusion unavailable. Generic element is not proof of species anatomy. Sheet triangles counted once; not projected area.");
+    }
     fn has_null(v: &Value) -> bool {
         match v {
             Value::Null => true,

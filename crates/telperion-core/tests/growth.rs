@@ -328,3 +328,244 @@ fn family_and_seed_controls_rederive_growth() {
         .iter()
         .any(|n| n.position.y > fine.envelope.height * 0.6));
 }
+
+#[test]
+fn natural_bias_is_independent_of_disabled_effects() {
+    use telperion_core::bias::{BiasParams, SupernaturalParams};
+    let mut p = SkeletonParams {
+        attractors: 64,
+        ..Default::default()
+    };
+    assert!(!p.bias.supernatural.enabled);
+    let ordinary = Preset::Ordinary.parameters();
+    assert_eq!(
+        (ordinary.surface.lobe_depth, ordinary.surface.twist_rate),
+        (0.0, 0.0)
+    );
+    let natural = generate(&p, RadiusParams::default()).unwrap();
+    p.bias.supernatural = SupernaturalParams {
+        enabled: false,
+        writhe_amplitude: 0.2,
+        writhe_wavelength: 0.1,
+        spiral_rate: 3.0,
+    };
+    assert_eq!(natural, generate(&p, RadiusParams::default()).unwrap());
+    p.bias.supernatural.enabled = true;
+    assert_ne!(
+        natural.tree.nodes,
+        generate(&p, RadiusParams::default()).unwrap().tree.nodes
+    );
+    p.bias = BiasParams::NONE;
+    assert_ne!(
+        natural.tree.nodes,
+        generate(&p, RadiusParams::default()).unwrap().tree.nodes
+    );
+    for preset in [Preset::Telperion, Preset::Laurelin] {
+        assert!(preset.parameters().skeleton.bias.supernatural.enabled);
+    }
+}
+
+fn habit_family(habit: telperion_core::branching::BranchHabit) -> SkeletonParams {
+    SkeletonParams {
+        habit,
+        envelope: Envelope {
+            height: 16.0,
+            crown_base: 0.12,
+            spread: 0.3,
+            fullness: 0.18,
+            shoulder: 1.2,
+        },
+        bias: telperion_core::bias::BiasParams::NONE,
+        ..Default::default()
+    }
+}
+
+#[test]
+fn tiered_habit_has_a_continuous_leader_and_hanging_wood() {
+    use telperion_core::branching::{BranchHabit, TieredHabit};
+    let p = habit_family(BranchHabit::Tiered(TieredHabit::default()));
+    let tree = generate(&p, RadiusParams::default()).unwrap().tree;
+    let structural = &tree.nodes[..tree.crossover];
+    assert!(structural
+        .iter()
+        .any(|n| (n.position.y - p.envelope.height).abs() < 1e-9));
+    let mut leader = 0;
+    let mut hanging = 0;
+    let mut upturned = 0;
+    for n in structural.iter().skip(1) {
+        let parent = &tree.nodes[n.parent.unwrap() as usize];
+        let delta = n.position - parent.position;
+        if n.position.x.hypot(n.position.z) < 1e-10 {
+            leader += 1;
+            assert!(delta.y > 0.0);
+        }
+        if delta.y < -0.05 && delta.y.abs() > delta.x.hypot(delta.z) {
+            hanging += 1;
+        }
+        if delta.y > 0.01 && delta.x.hypot(delta.z) > delta.y {
+            upturned += 1;
+        }
+    }
+    assert!(
+        leader > 10 && hanging > 50 && upturned > 20,
+        "{leader} {hanging} {upturned}"
+    );
+}
+
+#[test]
+fn spreading_habit_subdivides_crooked_substantial_axes_without_effects() {
+    use telperion_core::branching::{BranchHabit, SpreadingHabit};
+    let mut p = habit_family(BranchHabit::Spreading(SpreadingHabit::default()));
+    p.envelope = Envelope {
+        height: 20.0,
+        crown_base: 0.2,
+        spread: 0.55,
+        fullness: 0.55,
+        shoulder: 2.2,
+    };
+    let tree = generate(&p, RadiusParams::default()).unwrap().tree;
+    let mut children = vec![0; tree.crossover];
+    let mut bends = 0;
+    let mut forks = 0;
+    for n in tree.nodes.iter().take(tree.crossover).skip(1) {
+        children[n.parent.unwrap() as usize] += 1;
+    }
+    for (i, n) in tree.nodes.iter().take(tree.crossover).enumerate().skip(1) {
+        let parent = &tree.nodes[n.parent.unwrap() as usize];
+        if children[i] > 1 && n.radius > 0.02 {
+            forks += 1;
+        }
+        if let Some(grand) = parent.parent {
+            let a = (parent.position - tree.nodes[grand as usize].position).normalized();
+            let b = (n.position - parent.position).normalized();
+            if a.dot(b) < 0.995 && n.radius > 0.02 {
+                bends += 1;
+            }
+        }
+    }
+    assert!(forks >= 10 && bends >= 20, "forks {forks}, bends {bends}");
+    let local_bends = tree
+        .nodes
+        .iter()
+        .skip(tree.crossover)
+        .filter(|n| {
+            let parent = &tree.nodes[n.parent.unwrap() as usize];
+            if n.kind != NodeKind::Branch || n.branch != parent.branch {
+                return false;
+            }
+            let Some(grand) = parent.parent else {
+                return false;
+            };
+            let a = (parent.position - tree.nodes[grand as usize].position).normalized();
+            let b = (n.position - parent.position).normalized();
+            a.dot(b) < 0.999
+        })
+        .count();
+    assert!(
+        local_bends > 10,
+        "natural crookedness must reach local axes: {local_bends}"
+    );
+    let mut straight = p.clone();
+    straight.habit = BranchHabit::Spreading(SpreadingHabit {
+        crookedness: 0.0,
+        ..Default::default()
+    });
+    assert_ne!(
+        tree.nodes,
+        generate(&straight, RadiusParams::default())
+            .unwrap()
+            .tree
+            .nodes
+    );
+}
+
+#[test]
+fn habit_topology_bounds_seeds_and_limits_are_explicit() {
+    use telperion_core::branching::{BranchHabit, SpreadingHabit, TieredHabit};
+    for habit in [
+        BranchHabit::Spreading(SpreadingHabit::default()),
+        BranchHabit::Tiered(TieredHabit::default()),
+    ] {
+        let mut p = habit_family(habit);
+        let a = generate(&p, RadiusParams::default()).unwrap();
+        assert_eq!(a, generate(&p, RadiusParams::default()).unwrap());
+        a.tree.validate_solved().unwrap();
+        assert!(a.tree.diagnostics.complete());
+        for n in a.tree.nodes.iter().skip(1) {
+            let parent = &a.tree.nodes[n.parent.unwrap() as usize];
+            assert!(n.position.distance(parent.position) > 1e-9);
+            for t in [0.0, 0.25, 0.5, 0.75, 1.0] {
+                assert!(p
+                    .envelope
+                    .contains(parent.position.lerp(n.position, t), 1e-8));
+            }
+        }
+        p.seed += 1;
+        assert_ne!(
+            a.tree.nodes,
+            generate(&p, RadiusParams::default()).unwrap().tree.nodes
+        );
+        for limit in [0, 1, 20] {
+            p.growth.max_nodes = Some(limit);
+            let tree = generate(&p, RadiusParams::default()).unwrap().tree;
+            assert!(tree.nodes.len() <= limit);
+            assert!(tree.diagnostics.node_capped);
+            tree.validate().unwrap();
+        }
+    }
+    for habit in [
+        BranchHabit::Spreading(SpreadingHabit {
+            crookedness: f64::NAN,
+            ..Default::default()
+        }),
+        BranchHabit::Tiered(TieredHabit {
+            secondary_spacing: 0.0,
+            ..Default::default()
+        }),
+        BranchHabit::Tiered(TieredHabit {
+            tiers: 0,
+            ..Default::default()
+        }),
+    ] {
+        assert!(generate(&habit_family(habit), RadiusParams::default()).is_err());
+    }
+}
+
+#[test]
+fn clipped_local_axis_still_subdivides_before_its_terminal_twig() {
+    let mut tree = crown();
+    let config = GrowthConfig {
+        trunk_height: 0.0,
+        shell: Some(Envelope {
+            height: 2.0,
+            crown_base: 0.0,
+            spread: 1.0,
+            fullness: 0.5,
+            shoulder: 2.0,
+        }),
+        max_nodes: 10000,
+        ..Default::default()
+    };
+    let t = TwigParams {
+        limb_radius: 0.0,
+        internode_factor: 8.0,
+        angle_variation: 0.0,
+        vigour_variation: 0.0,
+        ..Default::default()
+    };
+    append(&mut tree, &config, t, 7, None).unwrap();
+    let origins = tree
+        .nodes
+        .iter()
+        .enumerate()
+        .skip(2)
+        .filter(|(i, n)| n.kind == NodeKind::Branch && n.branch as usize == *i)
+        .count();
+    assert!(
+        origins >= 3,
+        "clipped axis lost its lateral branches: {origins}"
+    );
+    for n in tree.nodes.iter().skip(2) {
+        assert!(config.shell.unwrap().contains(n.position, 1e-9));
+    }
+}

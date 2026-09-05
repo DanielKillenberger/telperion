@@ -1,4 +1,5 @@
 //! Crown, local branches, shell shedding, and final radius solve, in botanical order.
+mod habit;
 mod local;
 use crate::{
     bias::{BiasParams, GrowthBias},
@@ -11,12 +12,14 @@ use crate::{
     twigs::{branch_length, child_radius, TwigParams, MAX_LEVELS},
     Error, Result,
 };
+pub use habit::{BranchHabit, SpreadingHabit, TieredHabit};
 pub use local::append;
 pub const NODE_CEILING: usize = 250_000;
 pub const DEFAULT_STEP: f64 = 0.022;
 #[derive(Debug, Clone)]
 pub struct SkeletonParams {
     pub seed: u32,
+    pub habit: BranchHabit,
     pub envelope: Envelope,
     pub attractors: usize,
     pub step: f64,
@@ -28,6 +31,7 @@ impl Default for SkeletonParams {
     fn default() -> Self {
         Self {
             seed: 42,
+            habit: BranchHabit::default(),
             envelope: Envelope::default(),
             attractors: 500,
             step: DEFAULT_STEP,
@@ -248,22 +252,31 @@ pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usi
 pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthReport> {
     params.envelope.validate()?;
     params.bias.validate()?;
+    params.habit.validate()?;
     radii.resolved()?;
     let twigs = params.twigs.resolved()?;
     if !params.step.is_finite() || params.step <= 0.0 {
         return Err(Error::InvalidInput("growth step"));
     }
     let inner = inner_envelope(params.envelope, twigs.reach);
-    let points = inner.sample(params.attractors, &mut Rng::new(params.seed))?;
+    let points = if params.habit == BranchHabit::Colonizing {
+        inner.sample(params.attractors, &mut Rng::new(params.seed))?
+    } else {
+        Vec::new()
+    };
     let config = params.resolved_growth(points.len())?;
     let bias = GrowthBias::new(params.envelope, params.seed, params.bias)?;
-    let mut tree = colonization::colonize(&points, Vec3::ZERO, &config, Some(&bias))?;
+    let mut tree = if params.habit == BranchHabit::Colonizing {
+        colonization::colonize(&points, Vec3::ZERO, &config, Some(&bias))?
+    } else {
+        habit::generate(params, &config, &bias)?
+    };
     radius::solve(&mut tree, params.envelope, radii)?;
     let max_nodes = config
         .max_nodes
         .min(NODE_CEILING)
         .min(tree.nodes.len() + headroom(&tree, &config, twigs));
-    append(
+    local::append_with_habit(
         &mut tree,
         &GrowthConfig {
             max_nodes,
@@ -272,6 +285,7 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
         twigs,
         params.seed,
         Some(&bias),
+        params.habit,
     )?;
     let removed = shed(&mut tree, params.envelope, 0.45)?;
     radius::solve(&mut tree, params.envelope, radii)?;
