@@ -9,7 +9,7 @@ Establish the numerical and ownership contracts before the botanical port. Imple
 
 **Size:** M
 **Files:** new Cargo workspace, core math/types modules, Wasm binding scaffold, migration fixture runner, package scripts
-**Touches:** [Cargo.toml, Cargo.lock, rust-toolchain.toml, crates/**, tests/migration/**, scripts/**, package.json, package-lock.json]
+**Touches:** [.gitignore, Cargo.toml, Cargo.lock, rust-toolchain.toml, crates/**, tests/migration/**, scripts/**, package.json, package-lock.json]
 
 ## Approach
 - Use one renderer-independent core crate and a thin Wasm binding crate; expose the small native contract in the parent spec. Pin a reproducible toolchain and build commands.
