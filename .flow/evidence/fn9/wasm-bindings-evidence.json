@@ -1,0 +1,18 @@
+{
+  "commits": [
+    "3c1d43b59c44d1443a6e164840aa776b42306433"
+  ],
+  "tests": [
+    "npm run wasm:build: passed; generated TS and Wasm byte-identical on repeat",
+    "npm run rust:test:wasm: passed; headless species anatomy/ownership/independent outputs and viewer retries",
+    "npm run typecheck: passed",
+    "npm test -- --reporter=dot: 104 passed",
+    "npm test -- harness/params.test.ts harness/skeleton-view.test.ts -t \"presetToParams|carried native controls\": 8 passed after final comparison naming change",
+    "cargo test --release -p telperion-wasm: 2 passed",
+    "cargo clippy -p telperion-wasm --all-targets --no-deps -- -D warnings: passed",
+    "cargo fmt --all --check: passed",
+    "git diff --check: passed"
+  ],
+  "prs": [],
+  "notes": ".flow/evidence/fn9/wasm-bindings.md; next fn-9.8; no new whole PNGs; existing oak-1/2/3-whole.png confirmed foliage-on"
+}

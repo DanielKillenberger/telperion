@@ -27,6 +27,8 @@ The two source commits were applied without separate target commits and preserve
 
 ## Key integration caveats
 
+**Task 7 follow-up (2026-09-05):** The native-only/stale-binding caveat below is historical and now resolved by `3c1d43b`. All five identities, tagged habits, nested `bias.supernatural`, foliage anatomy/connector/attachment controls, biological counts and owned subset metadata are exposed through regenerated Wasm/browser bindings. Task 7 is verified green and Flow done; next job is fn-9.8. See `wasm-bindings.md` and `wasm-bindings-evidence.json` for tests, intentional fixture updates and current environment. Task 8 still owns new control groups and framing/detail affordances. No new whole PNGs, PR or merge.
+
 `SkeletonParams.habit` is native-only until task 7. Bias now contains `supernatural: SupernaturalParams { enabled, writhe_amplitude, writhe_wavelength, spiral_rate }`. Wasm temporarily retains flat effect wire keys and adds `bias.supernaturalEnabled`; task 7 must finish nested wire grouping, habit/foliage exposure and regenerate browser metadata. No hidden enable inference from nonzero values. Existing generated browser metadata/Wasm assets are stale relative to this WIP; do not claim the viewer exposes it yet.
 
 New foliage uses `ElementAnatomy::{GenericBlade,LobedBlade,FourSidedNeedle}`, `connector_length`, and `Attachment::{Generic,Alternate,RadialNeedles}`. Individual modes require one station per internode. Full API details are in `handoff/foliage-summary.md`. Ordinary exact-count browser assertions will need explicit updated invariants because intentional default/branch behavior changed; preserve determinism/ownership checks instead of silently weakening gates.

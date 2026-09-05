@@ -34,15 +34,18 @@ npm run typecheck
 ```
 
 ## Acceptance
-- [ ] Both species and Ordinary resolve by identity without relying on array order.
-- [ ] Generated metadata exposes all implemented anatomy controls; roundtrip/invalid parameter and unknown identity checks pass.
-- [ ] Foliage data and optional output requests retain correct ownership, release and bounds semantics.
-- [ ] wasm:build regenerates consistently, Wasm tests and typecheck pass.
+- [x] Both species and Ordinary resolve by identity without relying on array order.
+- [x] Generated metadata exposes all implemented anatomy controls; roundtrip/invalid parameter and unknown identity checks pass.
+- [x] Foliage data and optional output requests retain correct ownership, release and bounds semantics.
+- [x] wasm:build regenerates consistently, Wasm tests and typecheck pass.
 
 ## Done summary
-TBD
+Implemented the identity-based Ordinary/oak/spruce/Two Trees catalogue, generated tagged habit and foliage anatomy controls, and nested explicit supernatural settings. Preserved all native controls through harness roundtrips and the Two Trees comparison. Exposed owned foliage subset metadata and biological counts without coupling optional output stages.
 
+Verified native roundtrip/rejection tests, 104 harness tests, typecheck, strict binding-only Clippy, formatting, byte-identical regeneration, and the headless Wasm/species/ownership/viewer-retry gate. Intentional historical fixture updates and environment fallback are documented in `.flow/evidence/fn9/wasm-bindings.md`.
+
+Implementation: 3c1d43b (pushed). No PR or merge. No new whole PNGs; existing `.flow/tmp/oak-{1,2,3}-whole.png` confirmed foliage-on. Next job: fn-9.8.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3c1d43b59c44d1443a6e164840aa776b42306433
+- Tests: npm run wasm:build: passed; generated TS and Wasm byte-identical on repeat, npm run rust:test:wasm: passed; headless species anatomy/ownership/independent outputs and viewer retries, npm run typecheck: passed, npm test -- --reporter=dot: 104 passed, npm test -- harness/params.test.ts harness/skeleton-view.test.ts -t "presetToParams|carried native controls": 8 passed after final comparison naming change, cargo test --release -p telperion-wasm: 2 passed, cargo clippy -p telperion-wasm --all-targets --no-deps -- -D warnings: passed, cargo fmt --all --check: passed, git diff --check: passed
 - PRs:
