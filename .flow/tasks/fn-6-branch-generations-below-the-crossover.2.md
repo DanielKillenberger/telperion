@@ -81,9 +81,83 @@ Re-planned on 2026-09-05 after two worker attempts: this task now also carries w
 - [ ] Colonization-only fixtures in cull, surface and persistence tests call colonization directly; no budget or timeout widened to admit branch generations
 - [ ] `npx tsc --noEmit` and the full `npx vitest run` green on the conductor's checkout
 ## Done summary
-TBD
+Task fn-6-branch-generations-below-the-crossover.2 is implemented and all canonical gates pass. Tip branches now grow under the radius-driven law and the final solve reads their records, keeping terminal twigs at the fixed 5 mm anatomy across heights, trunk radii and both presets.
 
+Status: in_progress. Workspace: /home/daniel/Projects/telperion. All implementation changes are uncommitted for the conductor. Base commit: 42e993d0c6f046ca9b3480360c120855a09e73ac. Commit range: 42e993d0c6f046ca9b3480360c120855a09e73ac..HEAD, empty. STRATEGY.md was already dirty and was not edited by this worker.
+
+The worker followed the supplied worker.md and re-anchored the amended task, used the conductor's green baseline handoff, preserved the previous summary as handover-2-attempt2-summary.md, and applied .flow/tmp/fn6-task2-attempt2.patch. Its first focused run passed 60 tests. Similar-code investigation reused law.ts, extended the existing Shoot/frontier and shedding compaction, and retained the bias/limitTurn and candidate-position trunk guard. The trunk-region and per-vertex junction-containment memory entries informed those checks.
+
+The pass takes RadiusField and records branchId, baseRadius and twig as arrays parallel to the appended nodes. Internode runs bear lateral generations, terminal anatomy stays fixed, invalid parents and field lengths return named refusals, and node/level caps are reported. Shedding remaps records alongside surviving nodes. DEFAULT_TWIGS now takes the measured 0.4 length ratio from DEFAULT_BRANCH_LAW, correcting the preserved attempt's 0.6 library default. Both presets state the full anatomy and law and finish uncapped.
+
+The radius solver keeps the colonization fork solve unchanged. Appended branch starts read their recorded base; continuing internodes read their parent's radius and apply the existing accumulated length-taper exponential. Twigs retain the same radius at both ends, with tip fraction 1. The task's anatomy has no authored tip-fraction field, so this interpretation preserves the exact stated diameter without adding an unrequested parameter. twigTaper, DEFAULT_TWIG_TAPER and the twigThinning dial/mapping are removed. Growth, harness builds and the affected tests send the same RadiusParams through both solves. Byte-identity assertions above the crossover pass for both presets and for changed branch length ratios.
+
+The continuity suite enumerates every handoff edge, samples ten fork generations up each lineage and four branch generations below, and checks directions, radius law, internode taper and every relevant mesh-ring vertex. It reports empty handoff lists as untested. Tip leaders continue through shared mesh rings; lateral sockets retain the per-vertex containment checks. All 127 Telperion and 362 Laurelin handoffs are accounted for.
+
+The tight 1-degree seam-taper measurement failed before the new tolerance was chosen. Telperion measured median 3.821508, p90 6.285485 and worst 16.161065 degrees; Laurelin measured median 2.875537, p90 5.113075 and worst 33.953883. The shipped p90 tolerance is 7 degrees, tighter than fn-5's 8, with exact radius and internode-rate assertions alongside it. Every handoff contributes a separate seam-edge measurement; below-seam edges never dilute that measurement. This is numerical continuity evidence. No clay render or visual approval is claimed.
+
+An exploratory range check restricted each handoff to only its own lineage. It failed on a lineage composed entirely of forks, whose maximum ratio was 0.807887, while a tip leader correctly starts at ratio 1. The final suite retains fn-5's collective crown range from the union of the ten-generation lineages, checks every handoff and sampled branch against it, and independently binds the handoff to the exact law. Fixed twigs are the explicit radius-law exception. Shedding can leave a handoff with just its first surviving internode; the suite measures that edge and separately requires substantial samples in all four branch generations.
+
+The cull filled-crown fixture, surface growth/budget fixtures and persistence fixtures now call colonize directly. Their assertions, vertex budgets and timeouts are unchanged. The harness density test uses anatomy larger than every handoff so it measures density with twig-only endings and retains its original greater-than-2x assertion. The harness fork-exponent test now asserts unchanged colonization and changed appended generations, which is the behavior this task introduces. The lean-driven bias test consults the actual field per internode; zero terms reproduce the entire unbiased result, including records.
+
+R1 coverage includes branch anatomy, allometric lengths, sub-internode collapse and the candidate trunk guard. R2 covers assigned and solved fixed twig diameter and internode dimensions. R3 covers radius-dependent generation changes, nonconverging level caps, node caps and full preset keys. R5 covers every seam, the empty-seam error and per-internode bias. R8 covers named topology/field refusals, determinism and immutable colonization prefixes. Laterals along colonization limbs and the round-prefix identity proof remain task 4, as scoped. The temporary 250,000-node ceiling and the ignored legacy orders control remain for tasks 4 and 6 respectively.
+
+Validation:
+- npx vitest run src/skeleton/twigs.test.ts src/skeleton/continuity.test.ts src/skeleton/grow.test.ts passed 56 tests. Log .flow/tmp/task2-quick-skeleton-final.log.
+- npx vitest run src/presets src/radius.test.ts harness passed 139 tests. Log .flow/tmp/task2-quick-presets-final.log.
+- npx tsc --noEmit passed with exit 0. Log .flow/tmp/task2-types-final.log.
+- npx vitest run passed with exit 0, all 338 tests in 23 files, in 16.55 seconds. Log .flow/tmp/task2-full-final.log. This was the first full-suite run after applying the patch, completing the solver and migrating the fixtures.
+- git diff --check passed. Gate classification returned FULL. Typecheck and unittest receipt attempts returned NO_RECEIPT due to the dirty worktree, naming the pre-existing STRATEGY.md change. No green receipt was written or reused and no verification gate was skipped.
+
+The new solver tests first failed against the old solver. One fixed-diameter assertion observed 0.0015321542393684148 m instead of 0.005 m. The final tests enforce exact anatomy at both ends. Intermediate harness runs exposed the old density and unchanged-branching expectations; the final fixtures reflect the task's changed output while preserving their original measurement intent. No budget, timeout or runner setting was widened. Measurement-only output used the thread pool; all canonical gates used their unchanged commands.
+
+The user explicitly instructed the worker to leave the tree uncommitted and the task in_progress because .git is read-only. No staging, commit, branch change, flowctl done, review dispatch or subagent was attempted. flowctl show verified in_progress after validation. The conductor must commit the work, add the commit to the evidence, and complete the task with these handovers.
+
+Intended commit subject: feat(skeleton): branches from the tips, and thickness that reads the pass
+Task trailer: Task: fn-6-branch-generations-below-the-crossover.2
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+Exact files edited or created by this worker, including lifecycle artifacts and captured logs:
+- harness/params.ts
+- harness/skeleton-view.test.ts
+- harness/skeleton-view.ts
+- src/canopy/cull.test.ts
+- src/index.ts
+- src/mesh/surface.test.ts
+- src/presets/two-trees.test.ts
+- src/presets/two-trees.ts
+- src/radius.test.ts
+- src/radius.ts
+- src/skeleton/continuity.test.ts
+- src/skeleton/fill.test.ts
+- src/skeleton/grow.test.ts
+- src/skeleton/grow.ts
+- src/skeleton/law.test.ts
+- src/skeleton/persistence.test.ts
+- src/skeleton/shed.test.ts
+- src/skeleton/shed.ts
+- src/skeleton/twigs.test.ts
+- src/skeleton/twigs.ts
+- .flow/tmp/base_commit
+- .flow/tmp/task2-focused-initial.log
+- .flow/tmp/task2-radius-red.log
+- .flow/tmp/task2-types-loop.log
+- .flow/tmp/task2-solve-fixtures.log
+- .flow/tmp/task2-continuity-tight.log
+- .flow/tmp/task2-quick-skeleton.log
+- .flow/tmp/task2-quick-presets.log
+- .flow/tmp/task2-final-edits-focused.log
+- .flow/tmp/task2-quick-presets-final.log
+- .flow/tmp/task2-types-final.log
+- .flow/tmp/task2-quick-skeleton-final.log
+- .flow/tmp/task2-full-final.log
+- /tmp/claude-1000/-home-daniel-Projects-telperion/447cc600-c1ea-45c4-85f4-5f3967b0fd7a/scratchpad/handover-2-attempt2-summary.md
+- /tmp/claude-1000/-home-daniel-Projects-telperion/447cc600-c1ea-45c4-85f4-5f3967b0fd7a/scratchpad/handover-2-summary.md
+- /tmp/claude-1000/-home-daniel-Projects-telperion/447cc600-c1ea-45c4-85f4-5f3967b0fd7a/scratchpad/handover-2-evidence.json
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+conductor: committed as e7c73ad on the worker's behalf (Codex sandbox mounts .git read-only); worker model gpt-6-astra at low; third dispatch after a re-plan folded task 3 into this task
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e7c73ad
+- Tests: baseline: green via handoff (conductor verified 42e993d with npx tsc --noEmit and npx vitest run, 338 tests; only .flow/ and STRATEGY.md changed since 986601b), npx vitest run src/skeleton/twigs.test.ts src/skeleton/grow.test.ts src/skeleton/shed.test.ts src/skeleton/law.test.ts - PASS, 60 tests; .flow/tmp/task2-focused-initial.log, npx vitest run src/radius.test.ts - RED before solver change, 3 failed and 26 passed; .flow/tmp/task2-radius-red.log, npx vitest run src/radius.test.ts src/canopy/cull.test.ts src/mesh/surface.test.ts src/skeleton/persistence.test.ts - PASS, 62 tests; .flow/tmp/task2-solve-fixtures.log, npx vitest run src/skeleton/continuity.test.ts --pool=threads --reporter=verbose --silent=false - tight measurement only, RED at 1 degree, p90 6.285484937304776 and 5.113075197886736; .flow/tmp/task2-continuity-tight.log, npx vitest run src/skeleton/twigs.test.ts src/skeleton/continuity.test.ts src/skeleton/grow.test.ts - PASS, 56 tests; .flow/tmp/task2-quick-skeleton-final.log, npx vitest run src/presets src/radius.test.ts harness - PASS, 139 tests; .flow/tmp/task2-quick-presets-final.log, npx tsc --noEmit - PASS, exit 0; .flow/tmp/task2-types-final.log, npx vitest run - PASS, exit 0, 338 tests in 23 files, 16.55 seconds; .flow/tmp/task2-full-final.log, git diff --check - PASS, gate classify - FULL; typecheck and unittest receipt attempts returned NO_RECEIPT because the worktree is dirty; no gate skipped, conductor verify: npx tsc --noEmit + npx vitest run (338 passed, 23 files) on the handed-over tree before commit
 - PRs:
