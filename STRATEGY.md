@@ -12,7 +12,7 @@ Trees in games are baked assets: modelled offline, branching stops a few orders 
 
 ## Our approach
 
-Build living procedural trees for real-time worlds around one persistent branching structure, continuous from trunk to the twig a leaf hangs on. Parameters define a family of trees, with species presets providing named sets of botanical traits; the seed determines an individual specimen, and its growth, surroundings and damage shape what it becomes over its lifecycle. Botanical rules guide its natural form, with supernatural character authored through the shared parametric bias field. Generate deterministically at runtime, proving the approach in the browser, and use the tree's hierarchy to update and render only the detail needed within measured game budgets, from a tree inspected up close to a whole forest.
+Build living procedural trees for real-time worlds around one persistent branching structure, continuous from trunk to the twig a leaf hangs on, with output representations chosen for the consuming engine. Parameters define a family of trees, with species presets providing named sets of botanical traits; the seed determines an individual specimen, and its growth, surroundings and damage shape what it becomes over its lifecycle. Botanical rules guide its natural form, with supernatural character authored through the shared parametric bias field. Generate deterministically at runtime, proving the approach in the browser, and use the tree's hierarchy to update and render only the detail needed within measured game budgets, from a tree inspected up close to a whole forest.
 
 ## Who it's for
 
@@ -45,6 +45,10 @@ _Why it serves the approach:_ the magic has to be a parameter the whole tree obe
 ### Rendering at scale
 
 Twigs as instanced elements, a LOD ladder from full geometry to impostor, GPU or worker generation, species grown as a few dozen archetypes and instanced into forests, and export to engines. Millions of elements stay inside the frame, the build stays draggable, and a forest is a placement problem rather than a growth problem. The first proof of the forest path is a Valheim mod: biomes configured as species presets, trees spawned from seeds and grown by Telperion, in Valheim's own style, taking that world's procedural generation to the next level.
+
+The generation and lifecycle engine should share an engine-independent core across browser and native-game bindings, with Rust the leading candidate subject to a prototype demonstrating gains in end-to-end latency and peak memory against optimized TypeScript, including binding and transfer costs.
+
+Integration adapters should be able to request branch structure, surface meshes, instances or spatial fields describing wood and foliage at the resolution their engine needs, generating only the requested representation. A Minecraft adapter could turn field samples into blocks while a mesh renderer requests surfaces from the same tree state, with lifecycle changes exposed so either adapter can update affected regions.
 
 _Why it serves the approach:_ runtime generation is a claim about the frame and the build, and this track is where that claim is paid for, at one tree and at a thousand.
 
