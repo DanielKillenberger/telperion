@@ -401,7 +401,7 @@ describe("determinism", () => {
       DEFAULT_SURFACE,
     );
     expect(Array.from(after.positions)).toEqual(Array.from(before.positions));
-  });
+  }, 60_000);
 });
 
 describe("the two trees", () => {

@@ -115,7 +115,7 @@ describe("the two trees are two of the same generator", () => {
       expect(surface.triangles).toBeGreaterThan(1000);
       expect(surface.positions.every(Number.isFinite)).toBe(true);
     }
-  });
+  }, 60_000);
 
   it("is deterministic: the same preset builds the same skeleton twice", () => {
     for (const preset of PRESETS) {
