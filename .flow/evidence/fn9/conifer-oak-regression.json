@@ -1,0 +1,5135 @@
+{
+  "run": {
+    "case_count": 24,
+    "event": "run",
+    "git": {
+      "commit": "5a40d45a7988f4231cff42a33c299d01ffc9b7a8",
+      "status": ""
+    },
+    "machine": {
+      "arch": "x86_64",
+      "cpu": "model name\t: Intel(R) Xeon(R) Processor",
+      "host": "cursor",
+      "os": "linux",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)"
+    },
+    "profile_manifest": {
+      "definitions": {
+        "branch_count": "Biological axes beginning at forks, excluding trunk. Collapse degree-two chains; choose thickest child as axis continuation, tie-break by stable node index. Report this operational estimate separately from stored branch-run count and nodes.",
+        "branch_order": "Trunk order 0; continuing dominant axis retains order, lateral at fork increases it by one. Histogram counts branch origins, not all nodes.",
+        "crown_base_m": "Lowest retained foliage Y above ground; report live primary-branch insertion separately. Hanging foliage and branch insertion are different.",
+        "crown_width_height_ratio": "crown_width_m / height_m.",
+        "crown_width_m": "Maximum of X and Z retained-foliage AABB spans; also report both spans. Approximation to field maximum spread; do not use wood buttress or envelope width.",
+        "dbh_m": "Diameter at 1.3 m above root ground along dominant trunk, interpolating intersecting structural edge radii; report 2*radius as circular-equivalent centreline model proxy. Multi-stem at this plane is ambiguous and must be flagged, not summed. Sources using US breast height (~1.37 m) are approximate comparisons; retain measurement height.",
+        "foliage_length_m": "Base-to-tip longitudinal extent of each transformed blade or needle, excluding separately modeled petiole/peg; use actual geometry, not unscaled parameter. Report min/max and median.",
+        "foliage_units": "Oak: one simple blade per instance. Spruce: one individual needle per instance; no fascicles or leaflets. Always report units_per_instance, pre-cull instances, retained instances, actual individual units and discarded units.",
+        "foliage_width_m": "Maximum blade width transverse to midrib; needle width is maximum cross-section span, not its length or its projected screen width.",
+        "height_m": "Maximum Y of actual wood/retained foliage above root ground Y=0; exclude root flare below ground. Also report wood-only height. Envelope height is a parameter, not a measurement.",
+        "leaf_area_m2": "Sum transformed triangle areas once for a single blade sheet; do not double for double-sided rendering. For a closed needle report total external surface area separately from one-view projected area. Neither is field occupancy.",
+        "twig_count": "Unique retained twig runs (NodeKind::Twig), each a terminal fine woody axis; does not imply one leaf."
+      },
+      "frozen_at": "2026-09-06",
+      "profiles": [
+        {
+          "anatomy": {
+            "attachment": "Alternate individual leaves along local twig; blade bases connect to twig by petiole, not floating clusters.",
+            "branching": "Short substantial bole, multiple heavy ascending/spreading crooked limbs, irregular rounded crown; natural irregularity must remain possible with supernatural effects disabled.",
+            "element": "Single pinnately lobed blade with rounded lobes, rounded terminal lobe, visible narrow petiole connection; no bristle tips. Lobe count is contextual (sources differ), not a hard identity count."
+          },
+          "common_name": "Oregon white oak",
+          "context": "Mature tree-form, healthy leaf-on, open-grown Pacific Northwest savanna/park; adequate site, no clipping, pollarding, shrubby variety or closed forest suppression. Winter image is branch-anatomy reference only.",
+          "id": "oregon-white-oak",
+          "metrics": {
+            "branch_count": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "axes"
+            },
+            "branch_order": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "order"
+            },
+            "crown_base_m": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m"
+            },
+            "crown_width_height_ratio": {
+              "classification": "contextual",
+              "confidence": "low",
+              "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+              "range": [
+                0.8,
+                1.4
+              ],
+              "source": [
+                "OWIC-OAK",
+                "O-WHOLE"
+              ],
+              "unit": "ratio"
+            },
+            "crown_width_m": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m"
+            },
+            "dbh_m": {
+              "classification": "gating",
+              "confidence": "medium",
+              "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+              "range": [
+                0.6,
+                1.0
+              ],
+              "source": [
+                "USFS-OAK",
+                "OWIC-OAK"
+              ],
+              "unit": "m"
+            },
+            "foliage_length_m": {
+              "classification": "gating",
+              "confidence": "high",
+              "note": "",
+              "range": [
+                0.05,
+                0.15
+              ],
+              "source": [
+                "OSU-OAK"
+              ],
+              "unit": "m"
+            },
+            "foliage_units": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "individual leaves"
+            },
+            "foliage_width_m": {
+              "classification": "gating",
+              "confidence": "medium",
+              "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+              "range": [
+                0.0508,
+                0.127
+              ],
+              "source": [
+                "OSU-OAK-ID"
+              ],
+              "unit": "m"
+            },
+            "height_m": {
+              "classification": "gating",
+              "confidence": "high",
+              "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+              "range": [
+                15,
+                27
+              ],
+              "source": [
+                "USFS-OAK",
+                "OWIC-OAK"
+              ],
+              "unit": "m"
+            },
+            "leaf_area_m2": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m2"
+            },
+            "twig_count": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "runs"
+            }
+          },
+          "readiness": "ready",
+          "rubric": {
+            "branching_habit": "Substantial low primary limbs spread and bend irregularly, fine branching subdivides their ends; O-BARE.",
+            "crown_gaps": "Irregular windows between foliage-bearing limbs, no uniform shell or sparse upward whiskers; O-WHOLE.",
+            "crown_silhouette": "Broad rounded outline, not narrow pointed crown; O-WHOLE.",
+            "foliage_shape_attachment": "Rounded lobes and alternate attached individual blades visible at detail scale; O-LEAF.",
+            "terminal_taper": "Thick limbs reduce to fine twigs without abrupt stumps, bead-like joints or needles of wood; O-BARE."
+          },
+          "scientific_name": "Quercus garryana",
+          "sources": [
+            "OSU-OAK",
+            "USFS-OAK",
+            "OWIC-OAK",
+            "OSU-OAK-ID"
+          ]
+        },
+        {
+          "anatomy": {
+            "attachment": "Individual needles sit on short woody pegs around local twig axis; upper needles tend forward, side/lower needles spread. Peg may be a tiny integrated connector; no universal grouping system needed.",
+            "branching": "Persistent dominant vertical leader; lateral primary tiers shorten upward, spread outward with upturned ends; many slender secondary branchlets hang below primaries. Keep low live branches in this open-grown context; no tall bare forest bole.",
+            "element": "A tapered four-sided needle, slightly curved toward its tip; single needle, never a flat broadleaf card or pine fascicle."
+          },
+          "common_name": "Norway spruce",
+          "context": "Mature healthy ordinary species-form landscape tree in a cool temperate climate, open-grown in full sun with retained low branches. Not a dwarf/weeping cultivar, sheared Christmas tree, or maximum-height forest giant. No age in years inferred from photos.",
+          "id": "norway-spruce",
+          "metrics": {
+            "branch_count": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "axes"
+            },
+            "branch_order": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "order"
+            },
+            "crown_base_m": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m"
+            },
+            "crown_width_m": {
+              "classification": "gating",
+              "confidence": "medium",
+              "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+              "range": [
+                7.62,
+                9.144
+              ],
+              "source": [
+                "NCSU-SPRUCE"
+              ],
+              "unit": "m"
+            },
+            "dbh_m": {
+              "classification": "contextual",
+              "confidence": "low",
+              "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+              "range": [
+                0.25,
+                0.65
+              ],
+              "source": [],
+              "unit": "m"
+            },
+            "foliage_length_m": {
+              "classification": "gating",
+              "confidence": "high",
+              "note": "",
+              "range": [
+                0.012,
+                0.025
+              ],
+              "source": [
+                "OSU-SPRUCE"
+              ],
+              "unit": "m"
+            },
+            "foliage_units": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "individual needles"
+            },
+            "foliage_width_m": {
+              "classification": "contextual",
+              "confidence": "low",
+              "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+              "range": [
+                0.0008,
+                0.0025
+              ],
+              "source": [],
+              "unit": "m"
+            },
+            "height_m": {
+              "classification": "gating",
+              "confidence": "medium",
+              "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+              "range": [
+                12,
+                18
+              ],
+              "source": [
+                "OSU-SPRUCE"
+              ],
+              "unit": "m"
+            },
+            "leaf_area_m2": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m2"
+            },
+            "twig_count": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "runs"
+            }
+          },
+          "readiness": "ready",
+          "rubric": {
+            "branching_habit": "Spreading primaries with drooping secondary curtains; never an oak skeleton in a cone; S-BRANCH.",
+            "crown_gaps": "Visible tier gaps and spaces between hanging branchlets; no filled cone or uniform foliage shell; S-WHOLE/S-BRANCH.",
+            "crown_silhouette": "Conical taper with dominant leader and separated irregular branch tiers; S-WHOLE.",
+            "foliage_shape_attachment": "Four-sided individual needles surround twig with peg connection and forward bias; no bundles or floating blades; S-NEEDLE.",
+            "terminal_taper": "Leader and twig ends narrow continuously; no blunt cut cylinder tips or collar beads."
+          },
+          "scientific_name": "Picea abies",
+          "sources": [
+            "OSU-SPRUCE",
+            "NCSU-SPRUCE"
+          ]
+        }
+      ],
+      "protocol": {
+        "fixed_seeds": [
+          1,
+          2,
+          3,
+          5,
+          8,
+          13,
+          21,
+          34,
+          55,
+          89,
+          144,
+          233
+        ],
+        "fresh_seeds": {
+          "count_per_species": 12,
+          "draw": "After initial calibration commits, use OS cryptographic random unsigned 32-bit integers; reject only duplicate/fixed seeds. Write all seeds before generating any. Never replace a failed seed.",
+          "record": "Commit seed list and calibration commit before further tuning; retain failed specimens as regressions."
+        },
+        "numeric": "Every fixed and fresh case must complete and satisfy every gating metric individually; no averaging away failures. Nonfinite, truncated, interrupted, empty-required and unavailable measurements fail or remain explicitly unassessed.",
+        "target_revision": "Require independent evidence and recorded rationale; never adjust a target to fit generation.",
+        "visual": "Inspect at least fixed seeds 1,2,3 and first three drawn fresh seeds per species, plus every numerical failure. Capture whole, bare branches and attached foliage detail. Score each rubric trait pass/fail/unassessed; all must pass for an unqualified fidelity result. Owner feedback is separate and currently absent."
+      },
+      "purpose": "Research targets, not a runtime rules language. Identity must map explicitly to native templates.",
+      "schema_version": 1,
+      "status": "ready"
+    },
+    "profile_revision": "2026-09-06",
+    "schema_version": 1,
+    "unix_time": 1788651346
+  },
+  "cases": [
+    {
+      "case": "oregon-white-oak-1:oregon-white-oak:oregon-white-oak:1",
+      "case_id": "oregon-white-oak-1",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 4382
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 20,
+              "2": 165,
+              "3": 696,
+              "4": 1532,
+              "5": 1581,
+              "6": 381,
+              "7": 7
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 4.9935892361983045
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.3164112870000306
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 25.146857135155564
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642057
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999894559564987,
+            "median": 0.10008032221218688,
+            "min": 0.08000039287155306,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 55980
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.08999920974667056,
+            "median": 0.07506023946010135,
+            "min": 0.0600002947907746,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 19.10258395950306
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 223.11386967792333
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 4352
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 3400,
+        "wood_triangles": 618480,
+        "wood_vertices": 318006
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 4382
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 20,
+            "2": 165,
+            "3": 696,
+            "4": 1532,
+            "5": 1581,
+            "6": 381,
+            "7": 7
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 4.9935892361983045
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 25.146857135155564
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 24.43648421900483
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.3164112870000306
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 25.146857135155564
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642057
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 596
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999894559564987,
+          "median": 0.10008032221218688,
+          "min": 0.08000039287155306,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 55980
+        },
+        "foliage_width_m": {
+          "max": 0.08999920974667056,
+          "median": 0.07506023946010135,
+          "min": 0.0600002947907746,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 19.10258395950306
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 223.11386967792333
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 11079
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 56576
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            7.228092604752263,
+            9.24276743592108,
+            10.71220561639357,
+            11.563391662924417,
+            11.507078353421097,
+            11.507078353421097,
+            11.507078353421097,
+            11.446298018497858,
+            11.446298018497858,
+            11.446298018497858,
+            11.408271944805103,
+            11.408271944805103,
+            11.408271944805103,
+            11.431656006094023,
+            11.535412631216326,
+            11.204774328669721
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 55980
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 704
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 21.56345649983149
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 4352
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 19.03673553466797
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 3582720,
+        "wood_indices": 7421760,
+        "wood_positions": 3816072
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 1,
+      "timing_ms": {
+        "foliage": 82.575275,
+        "growth": 10.808705,
+        "measurement": 405.993742,
+        "surface": 19.669628000000003,
+        "total": 519.0482450000001
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-2:oregon-white-oak:oregon-white-oak:2",
+      "case_id": "oregon-white-oak-2",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 4590
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 10,
+              "2": 86,
+              "3": 531,
+              "4": 1418,
+              "5": 1774,
+              "6": 656,
+              "7": 106,
+              "8": 9
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 4.182948969859014
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.2217981242322828
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 24.04715465524597
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642057
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999975533029054,
+            "median": 0.10003976890124731,
+            "min": 0.08000028674669069,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 58711
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.08999981624441263,
+            "median": 0.07502983114495297,
+            "min": 0.060000216285857035,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 19.68177408224129
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 233.8185507810053
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 4538
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 2923,
+        "wood_triangles": 667800,
+        "wood_vertices": 343082
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 4590
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 10,
+            "2": 86,
+            "3": 531,
+            "4": 1418,
+            "5": 1774,
+            "6": 656,
+            "7": 106,
+            "8": 9
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 4.182948969859014
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 23.469999796300485
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 24.04715465524597
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.2217981242322828
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 24.04715465524597
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642057
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 283
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999975533029054,
+          "median": 0.10003976890124731,
+          "min": 0.08000028674669069,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 58711
+        },
+        "foliage_width_m": {
+          "max": 0.08999981624441263,
+          "median": 0.07502983114495297,
+          "min": 0.060000216285857035,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 19.68177408224129
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 233.8185507810053
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 12104
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 58994
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            8.86086357526405,
+            11.250261918625476,
+            13.197305467303696,
+            14.339387445541641,
+            16.874950682841764,
+            17.824812541537977
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 58711
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 782
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 22.342017542833286
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 4538
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 19.60243797302246
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 3757504,
+        "wood_indices": 8013600,
+        "wood_positions": 4116984
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 2,
+      "timing_ms": {
+        "foliage": 48.532664000000004,
+        "growth": 10.754857,
+        "measurement": 422.681478,
+        "surface": 20.035971999999997,
+        "total": 502.00570300000004
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-3:oregon-white-oak:oregon-white-oak:3",
+      "case_id": "oregon-white-oak-3",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 4684
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 20,
+              "2": 165,
+              "3": 573,
+              "4": 1278,
+              "5": 1523,
+              "6": 930,
+              "7": 195
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 4.380903714521476
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.0966394921078757
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 22.966395999490963
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642057
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999941684375945,
+            "median": 0.09990632458590676,
+            "min": 0.08000013108076187,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 59814
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.08999956117191625,
+            "median": 0.07492974256727446,
+            "min": 0.06000009965096523,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 20.942521370762172
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 237.97051732449998
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 4642
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 3680,
+        "wood_triangles": 673120,
+        "wood_vertices": 345930
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 4684
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 20,
+            "2": 165,
+            "3": 573,
+            "4": 1278,
+            "5": 1523,
+            "6": 930,
+            "7": 195
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 4.380903714521476
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 22.966395999490963
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 20.99255803460062
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.0966394921078757
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 22.966395999490963
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642057
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 532
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999941684375945,
+          "median": 0.09990632458590676,
+          "min": 0.08000013108076187,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 59814
+        },
+        "foliage_width_m": {
+          "max": 0.08999956117191625,
+          "median": 0.07492974256727446,
+          "min": 0.06000009965096523,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 20.942521370762172
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 237.97051732449998
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 12143
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 60346
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            9.924108671591505,
+            13.264999618388924,
+            15.300894618749393,
+            16.668867449754583,
+            16.76706701489764,
+            16.76706701489764,
+            16.76706701489764,
+            16.865828759806227,
+            16.865828759806227,
+            16.865828759806227,
+            16.974228177629794,
+            16.974228177629794,
+            16.974228177629794,
+            17.080378112962432,
+            17.506580408919525,
+            17.626629133723917
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 59814
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 802
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 23.579345907992245
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 4642
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 20.840167999267578
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 3828096,
+        "wood_indices": 8077440,
+        "wood_positions": 4151160
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 3,
+      "timing_ms": {
+        "foliage": 82.373211,
+        "growth": 8.69041,
+        "measurement": 444.811866,
+        "surface": 23.365242000000002,
+        "total": 559.241665
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-5:oregon-white-oak:oregon-white-oak:5",
+      "case_id": "oregon-white-oak-5",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 3598
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 20,
+              "2": 186,
+              "3": 674,
+              "4": 1120,
+              "5": 1093,
+              "6": 498,
+              "7": 7
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 4.656878046757814
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.1824683089070982
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 24.386468824839916
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642057
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999985812206311,
+            "median": 0.09993016994575146,
+            "min": 0.08000018305801894,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 45743
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.08999989213248064,
+            "median": 0.07494762772680388,
+            "min": 0.06000013627011711,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 20.62335932485093
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 181.92393899978242
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 3570
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 3553,
+        "wood_triangles": 531680,
+        "wood_vertices": 273038
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 3598
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 20,
+            "2": 186,
+            "3": 674,
+            "4": 1120,
+            "5": 1093,
+            "6": 498,
+            "7": 7
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 4.656878046757814
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 24.386468824839916
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 24.225789002995967
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.1824683089070982
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 24.386468824839916
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642057
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 667
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999985812206311,
+          "median": 0.09993016994575146,
+          "min": 0.08000018305801894,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 45743
+        },
+        "foliage_width_m": {
+          "max": 0.08999989213248064,
+          "median": 0.07494762772680388,
+          "min": 0.06000013627011711,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 20.62335932485093
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 181.92393899978242
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 9693
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 46410
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            8.758367996484015,
+            10.732615686891918,
+            12.853158724206597,
+            14.240326900699934,
+            14.531722984227141,
+            14.531722984227141,
+            14.531722984227141,
+            14.812670022406508,
+            14.812670022406508,
+            14.812670022406508,
+            15.04779111348102,
+            15.04779111348102,
+            15.04779111348102,
+            15.774188759693441,
+            16.465125329424154,
+            17.033291189476262
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 45743
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 624
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 23.598671364105197
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 3570
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 20.577024459838867
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 2927552,
+        "wood_indices": 6380160,
+        "wood_positions": 3276456
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 5,
+      "timing_ms": {
+        "foliage": 93.243157,
+        "growth": 7.604134999999999,
+        "measurement": 329.239395,
+        "surface": 16.571839,
+        "total": 446.659272
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-8:oregon-white-oak:oregon-white-oak:8",
+      "case_id": "oregon-white-oak-8",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 3329
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 9,
+              "2": 78,
+              "3": 456,
+              "4": 950,
+              "5": 1037,
+              "6": 648,
+              "7": 151
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 7.1033703835995805
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.1982258526973046
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 24.747074305966997
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642056
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999961423872414,
+            "median": 0.10005706520793119,
+            "min": 0.08000003397037346,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 41955
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.08999971578936825,
+            "median": 0.07504280235496583,
+            "min": 0.0600000265595466,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 20.653096618020136
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 166.94091980777387
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 3297
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 6702,
+        "wood_triangles": 500520,
+        "wood_vertices": 256920
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 3329
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 9,
+            "2": 78,
+            "3": 456,
+            "4": 950,
+            "5": 1037,
+            "6": 648,
+            "7": 151
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 7.1033703835995805
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 24.747074305966997
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 21.030148297335444
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.1982258526973046
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 24.747074305966997
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642056
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 906
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999961423872414,
+          "median": 0.10005706520793119,
+          "min": 0.08000003397037346,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 41955
+        },
+        "foliage_width_m": {
+          "max": 0.08999971578936825,
+          "median": 0.07504280235496583,
+          "min": 0.0600000265595466,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 20.653096618020136
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 166.94091980777387
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 9183
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 42861
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            9.753488476034535,
+            13.19406848126234,
+            14.899511687432607,
+            15.009862062066034,
+            14.921054541692682
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 41955
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 599
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 23.638287676840257
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 3297
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 20.623090744018555
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 2685120,
+        "wood_indices": 6006240,
+        "wood_positions": 3083040
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 8,
+      "timing_ms": {
+        "foliage": 111.203847,
+        "growth": 12.25774,
+        "measurement": 292.63011300000005,
+        "surface": 14.856748,
+        "total": 430.949273
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-13:oregon-white-oak:oregon-white-oak:13",
+      "case_id": "oregon-white-oak-13",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 2551
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 20,
+              "2": 164,
+              "3": 484,
+              "4": 787,
+              "5": 709,
+              "6": 333,
+              "7": 54
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 6.83938628369943
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 0.9588331923341467
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 21.352930043211064
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642057
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999999919312068,
+            "median": 0.10015052485970141,
+            "min": 0.08000197455027072,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 32026
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.08999999923482226,
+            "median": 0.07511289360239423,
+            "min": 0.06000148002104791,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 22.269702607218168
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 127.67172663535138
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 2529
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 7878,
+        "wood_triangles": 421200,
+        "wood_vertices": 215704
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 2551
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 20,
+            "2": 164,
+            "3": 484,
+            "4": 787,
+            "5": 709,
+            "6": 333,
+            "7": 54
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 6.83938628369943
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 19.362054506058065
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 21.352930043211064
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.9588331923341467
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 21.352930043211064
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642057
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 851
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999999919312068,
+          "median": 0.10015052485970141,
+          "min": 0.08000197455027072,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 32026
+        },
+        "foliage_width_m": {
+          "max": 0.08999999923482226,
+          "median": 0.07511289360239423,
+          "min": 0.06000148002104791,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 22.269702607218168
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 127.67172663535138
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 7978
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 32877
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            9.823157181446788,
+            13.22667545448915,
+            15.624565227064595,
+            17.01274916835091,
+            17.246797841198326,
+            17.246797841198326,
+            17.246797841198326,
+            17.4712922025336,
+            17.4712922025336,
+            17.4712922025336,
+            17.74915259246906,
+            17.74915259246906,
+            17.74915259246906,
+            18.341686130837385,
+            18.97859077597714,
+            19.57537906989095
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 32026
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 535
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 23.680780902980846
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 2529
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 22.19226837158203
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 2049664,
+        "wood_indices": 5054400,
+        "wood_positions": 2588448
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 13,
+      "timing_ms": {
+        "foliage": 122.639116,
+        "growth": 12.923888,
+        "measurement": 224.035982,
+        "surface": 14.349851000000001,
+        "total": 373.94947299999995
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-21:oregon-white-oak:oregon-white-oak:21",
+      "case_id": "oregon-white-oak-21",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 2737
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 11,
+              "2": 78,
+              "3": 389,
+              "4": 894,
+              "5": 901,
+              "6": 392,
+              "7": 72
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 4.251526117792375
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.124368689682524
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 23.522943697668588
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642056
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.119999881461979,
+            "median": 0.09998093303406287,
+            "min": 0.08000044920269661,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 34413
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.08999991024566481,
+            "median": 0.07498570222620084,
+            "min": 0.06000033679856819,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 20.921023427209192
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 136.98596511852787
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 2703
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 7601,
+        "wood_triangles": 459560,
+        "wood_vertices": 235256
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 2737
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 11,
+            "2": 78,
+            "3": 389,
+            "4": 894,
+            "5": 901,
+            "6": 392,
+            "7": 72
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 4.251526117792375
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 19.126775155920264
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 23.522943697668588
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.124368689682524
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 23.522943697668588
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642056
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 726
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.119999881461979,
+          "median": 0.09998093303406287,
+          "min": 0.08000044920269661,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 34413
+        },
+        "foliage_width_m": {
+          "max": 0.08999991024566481,
+          "median": 0.07498570222620084,
+          "min": 0.06000033679856819,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 20.921023427209192
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 136.98596511852787
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 8751
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 35139
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            8.987482328637965,
+            11.926803519529397,
+            13.951843117635176,
+            15.174644049939875,
+            17.24911883719018,
+            18.21382183667423,
+            19.18176747234756
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 34413
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 580
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 22.32100454893974
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 2703
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 20.843299865722656
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 2202432,
+        "wood_indices": 5514720,
+        "wood_positions": 2823072
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 21,
+      "timing_ms": {
+        "foliage": 100.152271,
+        "growth": 12.052768,
+        "measurement": 245.25996999999998,
+        "surface": 13.761894999999999,
+        "total": 371.227734
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-34:oregon-white-oak:oregon-white-oak:34",
+      "case_id": "oregon-white-oak-34",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 3282
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 10,
+              "2": 88,
+              "3": 563,
+              "4": 1326,
+              "5": 894,
+              "6": 401
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 4.825104477295259
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.1063272495199654
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 22.86223084715661
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642058
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999843121324244,
+            "median": 0.10012929928396454,
+            "min": 0.08000114890896612,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 41665
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.08999882116899648,
+            "median": 0.07509697604967747,
+            "min": 0.060000862847203275,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 20.664980327544598
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 165.92159313898344
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 3249
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 4373,
+        "wood_triangles": 482840,
+        "wood_vertices": 247986
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 3282
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 10,
+            "2": 88,
+            "3": 563,
+            "4": 1326,
+            "5": 894,
+            "6": 401
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 4.825104477295259
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 19.188925346781517
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 22.86223084715661
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.1063272495199654
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 22.86223084715661
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642058
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 572
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999843121324244,
+          "median": 0.10012929928396454,
+          "min": 0.08000114890896612,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 41665
+        },
+        "foliage_width_m": {
+          "max": 0.08999882116899648,
+          "median": 0.07509697604967747,
+          "min": 0.060000862847203275,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 20.664980327544598
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 165.92159313898344
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 8788
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 42237
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            9.522673901713835,
+            10.907670878909364,
+            12.5995455274474,
+            13.441477778897362,
+            12.523333609271386,
+            11.892239379175193
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 41665
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 575
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 22.46680436476845
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 3249
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 20.63656997680664
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 2666560,
+        "wood_indices": 5794080,
+        "wood_positions": 2975832
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 34,
+      "timing_ms": {
+        "foliage": 71.522732,
+        "growth": 8.357936,
+        "measurement": 284.746642,
+        "surface": 15.445824,
+        "total": 380.073956
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-55:oregon-white-oak:oregon-white-oak:55",
+      "case_id": "oregon-white-oak-55",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 2902
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 20,
+              "2": 154,
+              "3": 506,
+              "4": 835,
+              "5": 882,
+              "6": 428,
+              "7": 77
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 5.279158888323431
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.124935730688695
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 22.597295221207492
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642057
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999645227934616,
+            "median": 0.10025509649096927,
+            "min": 0.08000001157459288,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 36585
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.089997332845288,
+            "median": 0.07519132310966255,
+            "min": 0.060000010408956514,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 20.087632212884948
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 145.84668803177897
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 2867
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 6874,
+        "wood_triangles": 453720,
+        "wood_vertices": 232666
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 2902
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 20,
+            "2": 154,
+            "3": 506,
+            "4": 835,
+            "5": 882,
+            "6": 428,
+            "7": 77
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 5.279158888323431
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 19.648355650367094
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 22.597295221207492
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.124935730688695
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 22.597295221207492
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642057
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 686
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999645227934616,
+          "median": 0.10025509649096927,
+          "min": 0.08000001157459288,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 36585
+        },
+        "foliage_width_m": {
+          "max": 0.089997332845288,
+          "median": 0.07519132310966255,
+          "min": 0.060000010408956514,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 20.087632212884948
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 145.84668803177897
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 8440
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 37271
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            7.263187176467134,
+            9.11770928536627,
+            11.182525939585666,
+            12.186422217060061,
+            12.437213497518519,
+            12.437213497518519,
+            12.437213497518519,
+            12.584781943931718,
+            12.584781943931718,
+            12.584781943931718,
+            12.66262480937966,
+            12.66262480937966,
+            12.66262480937966,
+            12.653146550178988,
+            13.033949716706331,
+            13.021413693287087
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 36585
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 555
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 22.690592819939635
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 2867
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 20.016271591186523
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 2341440,
+        "wood_indices": 5444640,
+        "wood_positions": 2791992
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 55,
+      "timing_ms": {
+        "foliage": 86.221294,
+        "growth": 10.023850000000001,
+        "measurement": 259.906654,
+        "surface": 13.835883,
+        "total": 369.98852
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-89:oregon-white-oak:oregon-white-oak:89",
+      "case_id": "oregon-white-oak-89",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 2962
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 10,
+              "2": 98,
+              "3": 616,
+              "4": 1277,
+              "5": 741,
+              "6": 199,
+              "7": 21
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 4.633184277231759
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.217692375137954
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 25.603270705953044
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642057
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999924606206297,
+            "median": 0.10000766180971021,
+            "min": 0.08000054583358102,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 37199
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.0899994379755765,
+            "median": 0.07500574791487903,
+            "min": 0.060000408782620585,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 21.026058164363896
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 148.05663772628384
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 2900
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 5579,
+        "wood_triangles": 456160,
+        "wood_vertices": 234006
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 2962
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 10,
+            "2": 98,
+            "3": 616,
+            "4": 1277,
+            "5": 741,
+            "6": 199,
+            "7": 21
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 4.633184277231759
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 22.25697075902695
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 25.603270705953044
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.217692375137954
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 25.603270705953044
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642057
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 501
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999924606206297,
+          "median": 0.10000766180971021,
+          "min": 0.08000054583358102,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 37199
+        },
+        "foliage_width_m": {
+          "max": 0.0899994379755765,
+          "median": 0.07500574791487903,
+          "min": 0.060000408782620585,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 21.026058164363896
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 148.05663772628384
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 8441
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 37700
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            8.256056269490513,
+            11.32844506756489,
+            13.55327725521264,
+            14.723827677802797,
+            17.228895237411468,
+            17.983010766532672
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 37199
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 555
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 23.24798256566685
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 2900
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 20.980403900146484
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 2380736,
+        "wood_indices": 5473920,
+        "wood_positions": 2808072
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 89,
+      "timing_ms": {
+        "foliage": 83.864975,
+        "growth": 12.656528,
+        "measurement": 255.222094,
+        "surface": 26.004042000000002,
+        "total": 377.748489
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-144:oregon-white-oak:oregon-white-oak:144",
+      "case_id": "oregon-white-oak-144",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 3229
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 11,
+              "2": 74,
+              "3": 399,
+              "4": 835,
+              "5": 1065,
+              "6": 739,
+              "7": 106
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 7.597360736367505
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.215539699540867
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 24.16285236108478
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642056
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999912710965784,
+            "median": 0.10010150094569223,
+            "min": 0.08000070343888342,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 41007
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.0899993441837568,
+            "median": 0.07507612501648334,
+            "min": 0.06000052765060876,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 19.87829140439556
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 163.18520868502057
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 3218
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 7200,
+        "wood_triangles": 489840,
+        "wood_vertices": 251380
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 3229
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 11,
+            "2": 74,
+            "3": 399,
+            "4": 835,
+            "5": 1065,
+            "6": 739,
+            "7": 106
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 7.597360736367505
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 24.16285236108478
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 21.276034895443352
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.215539699540867
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 24.16285236108478
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642056
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 827
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999912710965784,
+          "median": 0.10010150094569223,
+          "min": 0.08000070343888342,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 41007
+        },
+        "foliage_width_m": {
+          "max": 0.0899993441837568,
+          "median": 0.07507612501648334,
+          "min": 0.06000052765060876,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 19.87829140439556
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 163.18520868502057
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 9016
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 41834
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            8.740354463657988,
+            11.880723425069256,
+            13.707609736737858,
+            14.739850796442832,
+            16.07163242544012,
+            16.63545152375159,
+            17.26833155813995
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 41007
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 572
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 22.409681919261793
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 3218
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 19.853744506835938
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 2624448,
+        "wood_indices": 5878080,
+        "wood_positions": 3016560
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 144,
+      "timing_ms": {
+        "foliage": 108.20179300000001,
+        "growth": 10.348664000000001,
+        "measurement": 278.310086,
+        "surface": 14.737993,
+        "total": 411.599335
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "oregon-white-oak-233:oregon-white-oak:oregon-white-oak:233",
+      "case_id": "oregon-white-oak-233",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 3568
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 20,
+              "2": 161,
+              "3": 587,
+              "4": 1101,
+              "5": 1126,
+              "6": 480,
+              "7": 93
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 4.316110101029997
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_height_ratio": {
+          "actual": {
+            "status": "measured",
+            "value": 1.153533651501227
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+            "range": [
+              0.8,
+              1.4
+            ],
+            "source": [
+              "OWIC-OAK",
+              "O-WHOLE"
+            ],
+            "unit": "ratio"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 23.26593366095714
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "status": "measured_proxy",
+            "value": 0.8363885196642057
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+            "range": [
+              0.6,
+              1.0
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.11999985641642015,
+            "median": 0.09999911906688373,
+            "min": 0.08000046691081733,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.05,
+              0.15
+            ],
+            "source": [
+              "OSU-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 45282
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual leaves"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.08999989699270995,
+            "median": 0.0749993401360409,
+            "min": 0.06000035064417087,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+            "range": [
+              0.0508,
+              0.127
+            ],
+            "source": [
+              "OSU-OAK-ID"
+            ],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 20.169271724911084
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+            "range": [
+              15,
+              27
+            ],
+            "source": [
+              "USFS-OAK",
+              "OWIC-OAK"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 180.20023848759928
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 3529
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 204,
+        "prototype_vertices": 153,
+        "shed_nodes": 5402,
+        "wood_triangles": 528200,
+        "wood_vertices": 271238
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 3568
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 20,
+            "2": 161,
+            "3": 587,
+            "4": 1101,
+            "5": 1126,
+            "6": 480,
+            "7": 93
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 4.316110101029997
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 22.898208913642904
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 23.26593366095714
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 1.153533651501227
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 23.26593366095714
+        },
+        "dbh_m": {
+          "status": "measured_proxy",
+          "value": 0.8363885196642057
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 595
+        },
+        "foliage_geometry_note": "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.",
+        "foliage_length_m": {
+          "max": 0.11999985641642015,
+          "median": 0.09999911906688373,
+          "min": 0.08000046691081733,
+          "status": "measured"
+        },
+        "foliage_unit": "leaf",
+        "foliage_units": {
+          "status": "measured",
+          "value": 45282
+        },
+        "foliage_width_m": {
+          "max": 0.08999989699270995,
+          "median": 0.0749993401360409,
+          "min": 0.06000035064417087,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 20.169271724911084
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 180.20023848759928
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 9636
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 45877
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            5.13024,
+            5.13024,
+            5.13024,
+            5.13024,
+            9.454135235375196,
+            11.674915051584106,
+            12.499561611258345,
+            12.02126136524395,
+            11.853274790586175,
+            11.853274790586175,
+            11.853274790586175,
+            11.770535527941922,
+            11.770535527941922,
+            11.770535527941922,
+            11.662349294393188,
+            11.662349294393188,
+            11.662349294393188,
+            11.390575774052987,
+            11.096161810931406,
+            10.942652406615233
+          ]
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 45282
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 633
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 22.632329680025975
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 3529
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 20.1539249420166
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 2898048,
+        "wood_indices": 6338400,
+        "wood_positions": 3254856
+      },
+      "preset": "oregon-white-oak",
+      "profile_id": "oregon-white-oak",
+      "profile_revision": "2026-09-06",
+      "seed": 233,
+      "timing_ms": {
+        "foliage": 77.00733699999999,
+        "growth": 8.563573,
+        "measurement": 320.16929100000004,
+        "surface": 15.435278,
+        "total": 421.176188
+      },
+      "visual_status": "unassessed"
+    }
+  ],
+  "summary": {
+    "event": "run_completed",
+    "numeric_status": "pass"
+  },
+  "omitted": "Per-axis branch_lengths_m arrays only; reproduce with native runner."
+}

@@ -1,0 +1,5894 @@
+{
+  "run": {
+    "case_count": 24,
+    "event": "run",
+    "git": {
+      "commit": "5a40d45a7988f4231cff42a33c299d01ffc9b7a8",
+      "status": ""
+    },
+    "machine": {
+      "arch": "x86_64",
+      "cpu": "model name\t: Intel(R) Xeon(R) Processor",
+      "host": "cursor",
+      "os": "linux",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)"
+    },
+    "profile_manifest": {
+      "definitions": {
+        "branch_count": "Biological axes beginning at forks, excluding trunk. Collapse degree-two chains; choose thickest child as axis continuation, tie-break by stable node index. Report this operational estimate separately from stored branch-run count and nodes.",
+        "branch_order": "Trunk order 0; continuing dominant axis retains order, lateral at fork increases it by one. Histogram counts branch origins, not all nodes.",
+        "crown_base_m": "Lowest retained foliage Y above ground; report live primary-branch insertion separately. Hanging foliage and branch insertion are different.",
+        "crown_width_height_ratio": "crown_width_m / height_m.",
+        "crown_width_m": "Maximum of X and Z retained-foliage AABB spans; also report both spans. Approximation to field maximum spread; do not use wood buttress or envelope width.",
+        "dbh_m": "Diameter at 1.3 m above root ground along dominant trunk, interpolating intersecting structural edge radii; report 2*radius as circular-equivalent centreline model proxy. Multi-stem at this plane is ambiguous and must be flagged, not summed. Sources using US breast height (~1.37 m) are approximate comparisons; retain measurement height.",
+        "foliage_length_m": "Base-to-tip longitudinal extent of each transformed blade or needle, excluding separately modeled petiole/peg; use actual geometry, not unscaled parameter. Report min/max and median.",
+        "foliage_units": "Oak: one simple blade per instance. Spruce: one individual needle per instance; no fascicles or leaflets. Always report units_per_instance, pre-cull instances, retained instances, actual individual units and discarded units.",
+        "foliage_width_m": "Maximum blade width transverse to midrib; needle width is maximum cross-section span, not its length or its projected screen width.",
+        "height_m": "Maximum Y of actual wood/retained foliage above root ground Y=0; exclude root flare below ground. Also report wood-only height. Envelope height is a parameter, not a measurement.",
+        "leaf_area_m2": "Sum transformed triangle areas once for a single blade sheet; do not double for double-sided rendering. For a closed needle report total external surface area separately from one-view projected area. Neither is field occupancy.",
+        "twig_count": "Unique retained twig runs (NodeKind::Twig), each a terminal fine woody axis; does not imply one leaf."
+      },
+      "frozen_at": "2026-09-06",
+      "profiles": [
+        {
+          "anatomy": {
+            "attachment": "Alternate individual leaves along local twig; blade bases connect to twig by petiole, not floating clusters.",
+            "branching": "Short substantial bole, multiple heavy ascending/spreading crooked limbs, irregular rounded crown; natural irregularity must remain possible with supernatural effects disabled.",
+            "element": "Single pinnately lobed blade with rounded lobes, rounded terminal lobe, visible narrow petiole connection; no bristle tips. Lobe count is contextual (sources differ), not a hard identity count."
+          },
+          "common_name": "Oregon white oak",
+          "context": "Mature tree-form, healthy leaf-on, open-grown Pacific Northwest savanna/park; adequate site, no clipping, pollarding, shrubby variety or closed forest suppression. Winter image is branch-anatomy reference only.",
+          "id": "oregon-white-oak",
+          "metrics": {
+            "branch_count": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "axes"
+            },
+            "branch_order": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "order"
+            },
+            "crown_base_m": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m"
+            },
+            "crown_width_height_ratio": {
+              "classification": "contextual",
+              "confidence": "low",
+              "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval.",
+              "range": [
+                0.8,
+                1.4
+              ],
+              "source": [
+                "OWIC-OAK",
+                "O-WHOLE"
+              ],
+              "unit": "ratio"
+            },
+            "crown_width_m": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m"
+            },
+            "dbh_m": {
+              "classification": "gating",
+              "confidence": "medium",
+              "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention.",
+              "range": [
+                0.6,
+                1.0
+              ],
+              "source": [
+                "USFS-OAK",
+                "OWIC-OAK"
+              ],
+              "unit": "m"
+            },
+            "foliage_length_m": {
+              "classification": "gating",
+              "confidence": "high",
+              "note": "",
+              "range": [
+                0.05,
+                0.15
+              ],
+              "source": [
+                "OSU-OAK"
+              ],
+              "unit": "m"
+            },
+            "foliage_units": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "individual leaves"
+            },
+            "foliage_width_m": {
+              "classification": "gating",
+              "confidence": "medium",
+              "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations.",
+              "range": [
+                0.0508,
+                0.127
+              ],
+              "source": [
+                "OSU-OAK-ID"
+              ],
+              "unit": "m"
+            },
+            "height_m": {
+              "classification": "gating",
+              "confidence": "high",
+              "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted.",
+              "range": [
+                15,
+                27
+              ],
+              "source": [
+                "USFS-OAK",
+                "OWIC-OAK"
+              ],
+              "unit": "m"
+            },
+            "leaf_area_m2": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m2"
+            },
+            "twig_count": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "runs"
+            }
+          },
+          "readiness": "ready",
+          "rubric": {
+            "branching_habit": "Substantial low primary limbs spread and bend irregularly, fine branching subdivides their ends; O-BARE.",
+            "crown_gaps": "Irregular windows between foliage-bearing limbs, no uniform shell or sparse upward whiskers; O-WHOLE.",
+            "crown_silhouette": "Broad rounded outline, not narrow pointed crown; O-WHOLE.",
+            "foliage_shape_attachment": "Rounded lobes and alternate attached individual blades visible at detail scale; O-LEAF.",
+            "terminal_taper": "Thick limbs reduce to fine twigs without abrupt stumps, bead-like joints or needles of wood; O-BARE."
+          },
+          "scientific_name": "Quercus garryana",
+          "sources": [
+            "OSU-OAK",
+            "USFS-OAK",
+            "OWIC-OAK",
+            "OSU-OAK-ID"
+          ]
+        },
+        {
+          "anatomy": {
+            "attachment": "Individual needles sit on short woody pegs around local twig axis; upper needles tend forward, side/lower needles spread. Peg may be a tiny integrated connector; no universal grouping system needed.",
+            "branching": "Persistent dominant vertical leader; lateral primary tiers shorten upward, spread outward with upturned ends; many slender secondary branchlets hang below primaries. Keep low live branches in this open-grown context; no tall bare forest bole.",
+            "element": "A tapered four-sided needle, slightly curved toward its tip; single needle, never a flat broadleaf card or pine fascicle."
+          },
+          "common_name": "Norway spruce",
+          "context": "Mature healthy ordinary species-form landscape tree in a cool temperate climate, open-grown in full sun with retained low branches. Not a dwarf/weeping cultivar, sheared Christmas tree, or maximum-height forest giant. No age in years inferred from photos.",
+          "id": "norway-spruce",
+          "metrics": {
+            "branch_count": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "axes"
+            },
+            "branch_order": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "order"
+            },
+            "crown_base_m": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m"
+            },
+            "crown_width_m": {
+              "classification": "gating",
+              "confidence": "medium",
+              "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+              "range": [
+                7.62,
+                9.144
+              ],
+              "source": [
+                "NCSU-SPRUCE"
+              ],
+              "unit": "m"
+            },
+            "dbh_m": {
+              "classification": "contextual",
+              "confidence": "low",
+              "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+              "range": [
+                0.25,
+                0.65
+              ],
+              "source": [],
+              "unit": "m"
+            },
+            "foliage_length_m": {
+              "classification": "gating",
+              "confidence": "high",
+              "note": "",
+              "range": [
+                0.012,
+                0.025
+              ],
+              "source": [
+                "OSU-SPRUCE"
+              ],
+              "unit": "m"
+            },
+            "foliage_units": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "individual needles"
+            },
+            "foliage_width_m": {
+              "classification": "contextual",
+              "confidence": "low",
+              "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+              "range": [
+                0.0008,
+                0.0025
+              ],
+              "source": [],
+              "unit": "m"
+            },
+            "height_m": {
+              "classification": "gating",
+              "confidence": "medium",
+              "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+              "range": [
+                12,
+                18
+              ],
+              "source": [
+                "OSU-SPRUCE"
+              ],
+              "unit": "m"
+            },
+            "leaf_area_m2": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "m2"
+            },
+            "twig_count": {
+              "classification": "contextual",
+              "confidence": "unknown",
+              "note": "No context-matched biological range located; report actual value without a pass claim.",
+              "range": null,
+              "source": [],
+              "unit": "runs"
+            }
+          },
+          "readiness": "ready",
+          "rubric": {
+            "branching_habit": "Spreading primaries with drooping secondary curtains; never an oak skeleton in a cone; S-BRANCH.",
+            "crown_gaps": "Visible tier gaps and spaces between hanging branchlets; no filled cone or uniform foliage shell; S-WHOLE/S-BRANCH.",
+            "crown_silhouette": "Conical taper with dominant leader and separated irregular branch tiers; S-WHOLE.",
+            "foliage_shape_attachment": "Four-sided individual needles surround twig with peg connection and forward bias; no bundles or floating blades; S-NEEDLE.",
+            "terminal_taper": "Leader and twig ends narrow continuously; no blunt cut cylinder tips or collar beads."
+          },
+          "scientific_name": "Picea abies",
+          "sources": [
+            "OSU-SPRUCE",
+            "NCSU-SPRUCE"
+          ]
+        }
+      ],
+      "protocol": {
+        "fixed_seeds": [
+          1,
+          2,
+          3,
+          5,
+          8,
+          13,
+          21,
+          34,
+          55,
+          89,
+          144,
+          233
+        ],
+        "fresh_seeds": {
+          "count_per_species": 12,
+          "draw": "After initial calibration commits, use OS cryptographic random unsigned 32-bit integers; reject only duplicate/fixed seeds. Write all seeds before generating any. Never replace a failed seed.",
+          "record": "Commit seed list and calibration commit before further tuning; retain failed specimens as regressions."
+        },
+        "numeric": "Every fixed and fresh case must complete and satisfy every gating metric individually; no averaging away failures. Nonfinite, truncated, interrupted, empty-required and unavailable measurements fail or remain explicitly unassessed.",
+        "target_revision": "Require independent evidence and recorded rationale; never adjust a target to fit generation.",
+        "visual": "Inspect at least fixed seeds 1,2,3 and first three drawn fresh seeds per species, plus every numerical failure. Capture whole, bare branches and attached foliage detail. Score each rubric trait pass/fail/unassessed; all must pass for an unqualified fidelity result. Owner feedback is separate and currently absent."
+      },
+      "purpose": "Research targets, not a runtime rules language. Identity must map explicitly to native templates.",
+      "schema_version": 1,
+      "status": "ready"
+    },
+    "profile_revision": "2026-09-06",
+    "schema_version": 1,
+    "unix_time": 1788651346
+  },
+  "cases": [
+    {
+      "case": "norway-spruce-1:norway-spruce:norway-spruce:1",
+      "case_id": "norway-spruce-1",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7196
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1572,
+              "3": 5368,
+              "4": 174
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.6797862481091665
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.748370597060081
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.42420177658343555,
+              0.013896524435799498,
+              0.013923134411165447,
+              0.013906632064103152,
+              0.013875150793866555
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.021599997654470154,
+            "median": 0.018010479917633097,
+            "min": 0.014400015575551777,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 435292
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.0017999998375835052,
+            "median": 0.0015008733952325132,
+            "min": 0.0012000013620730617,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.176187014607
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 7020
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1290,
+        "wood_triangles": 857640,
+        "wood_vertices": 443214
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7196
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1572,
+            "3": 5368,
+            "4": 174
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.6797862481091665
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.6232488364687
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.748370597060081
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.583224706470672
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.748370597060081
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.42420177658343555,
+            0.013896524435799498,
+            0.013923134411165447,
+            0.013906632064103152,
+            0.013875150793866555
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 6968
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.021599997654470154,
+          "median": 0.018010479917633097,
+          "min": 0.014400015575551777,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 435292
+        },
+        "foliage_width_m": {
+          "max": 0.0017999998375835052,
+          "median": 0.0015008733952325132,
+          "min": 0.0012000013620730617,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.176187014607
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.176187014607
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14244
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 442260
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.01910263180503,
+            14.01910263180503
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.37616633136565
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 435292
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1323
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.376602638083734
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 7020
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 27858688,
+        "wood_indices": 10291680,
+        "wood_positions": 5318568
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 1,
+      "timing_ms": {
+        "foliage": 314.16911600000003,
+        "growth": 19.840759,
+        "measurement": 676.931415,
+        "surface": 36.682226,
+        "total": 1047.6244880000002
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-2:norway-spruce:norway-spruce:2",
+      "case_id": "norway-spruce-2",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7153
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1589,
+              "3": 5262,
+              "4": 220
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.67204967716766
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.695603128277785
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.42419342213158495,
+              0.013886538863688807,
+              0.0138786105276975,
+              0.013881094842112706,
+              0.01387881517991107,
+              0.013917316394791183,
+              0.01394476838253978,
+              0.013892755966069438
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.021599977314610597,
+            "median": 0.018002273383227272,
+            "min": 0.014400003347091088,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 433517
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.0017999982303981688,
+            "median": 0.0015001895175237778,
+            "min": 0.001200000403098412,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.0951571150833
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 6979
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1298,
+        "wood_triangles": 853200,
+        "wood_vertices": 440908
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7153
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1589,
+            "3": 5262,
+            "4": 220
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.67204967716766
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.314935061508354
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.695603128277785
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.579706875218519
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.695603128277785
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.42419342213158495,
+            0.013886538863688807,
+            0.0138786105276975,
+            0.013881094842112706,
+            0.01387881517991107,
+            0.013917316394791183,
+            0.01394476838253978,
+            0.013892755966069438
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 6160
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.021599977314610597,
+          "median": 0.018002273383227272,
+          "min": 0.014400003347091088,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 433517
+        },
+        "foliage_width_m": {
+          "max": 0.0017999982303981688,
+          "median": 0.0015001895175237778,
+          "min": 0.001200000403098412,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.0951571150833
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.0951571150833
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14176
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 439677
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.01925625223513,
+            14.01925625223513
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.347741221706914
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 433517
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1315
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.355925864708492
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 6979
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 27745088,
+        "wood_indices": 10238400,
+        "wood_positions": 5290896
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 2,
+      "timing_ms": {
+        "foliage": 292.01726,
+        "growth": 9.368751999999999,
+        "measurement": 676.221508,
+        "surface": 31.668061999999995,
+        "total": 1009.2763659999999
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-3:norway-spruce:norway-spruce:3",
+      "case_id": "norway-spruce-3",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7276
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1581,
+              "3": 5461,
+              "4": 152
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.6989902466863065
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.97847839377808
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.42445556788060024,
+              0.013862220334420665,
+              0.013900903435454585,
+              0.013812924112670799,
+              0.013872452724101376
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.021599994247311054,
+            "median": 0.01800008467982413,
+            "min": 0.014400023185438244,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 440304
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.0017999996079339155,
+            "median": 0.0015000071468039078,
+            "min": 0.0012000020224538714,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.377098326696533
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 7092
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1241,
+        "wood_triangles": 864560,
+        "wood_vertices": 446834
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7276
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1581,
+            "3": 5461,
+            "4": 152
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.6989902466863065
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.51830272656235
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.97847839377808
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.5985652262518719
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.97847839377808
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.42445556788060024,
+            0.013862220334420665,
+            0.013900903435454585,
+            0.013812924112670799,
+            0.013872452724101376
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 6492
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.021599994247311054,
+          "median": 0.01800008467982413,
+          "min": 0.014400023185438244,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 440304
+        },
+        "foliage_width_m": {
+          "max": 0.0017999996079339155,
+          "median": 0.0015000071468039078,
+          "min": 0.0012000020224538714,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.377098326696533
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.377098326696533
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14337
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 446796
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.019119623142636,
+            14.019119623142636
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.446645576733467
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 440304
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1312
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.374315663383793
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 7092
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 28179456,
+        "wood_indices": 10374720,
+        "wood_positions": 5362008
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 3,
+      "timing_ms": {
+        "foliage": 310.921039,
+        "growth": 9.206962,
+        "measurement": 719.257536,
+        "surface": 26.572651999999998,
+        "total": 1065.95894
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-5:norway-spruce:norway-spruce:5",
+      "case_id": "norway-spruce-5",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7268
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1587,
+              "3": 5474,
+              "4": 125
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.7381213007367003
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.743291740820847
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.4244543640286588,
+              0.013814363591537945,
+              0.013816996565320374,
+              0.01380747073648809,
+              0.013875410853917164,
+              0.013834974344263668,
+              0.013843146267253434,
+              0.013829569562897229,
+              0.013877293880922854
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.02159999691588818,
+            "median": 0.01798869964423819,
+            "min": 0.014400032148613769,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 440323
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.001799999861271323,
+            "median": 0.0014990583810829882,
+            "min": 0.0012000027094795345,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.365127161874597
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 7092
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1334,
+        "wood_triangles": 864440,
+        "wood_vertices": 446758
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7268
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1587,
+            "3": 5474,
+            "4": 125
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.7381213007367003
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.743291740820847
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.668755657086162
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.5828861160547232
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.743291740820847
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.4244543640286588,
+            0.013814363591537945,
+            0.013816996565320374,
+            0.01380747073648809,
+            0.013875410853917164,
+            0.013834974344263668,
+            0.013843146267253434,
+            0.013829569562897229,
+            0.013877293880922854
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 6473
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.02159999691588818,
+          "median": 0.01798869964423819,
+          "min": 0.014400032148613769,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 440323
+        },
+        "foliage_width_m": {
+          "max": 0.001799999861271323,
+          "median": 0.0014990583810829882,
+          "min": 0.0012000027094795345,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.365127161874597
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.365127161874597
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14342
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 446796
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.019096765191595,
+            14.019096765191595
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.442446118458371
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 440323
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1302
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.377392263762975
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 7092
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 28180672,
+        "wood_indices": 10373280,
+        "wood_positions": 5361096
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 5,
+      "timing_ms": {
+        "foliage": 317.355471,
+        "growth": 8.930522,
+        "measurement": 690.191025,
+        "surface": 26.374585,
+        "total": 1042.852354
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-8:norway-spruce:norway-spruce:8",
+      "case_id": "norway-spruce-8",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7142
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1616,
+              "3": 5278,
+              "4": 166
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.7049254599651902
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.904660341262883
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.4242152524289936,
+              0.013841490488763906,
+              0.01390353531401855,
+              0.013866752552916268,
+              0.013838502358456546,
+              0.013870743746877731,
+              0.013834495783318445
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.021599997516811815,
+            "median": 0.01800199915342502,
+            "min": 0.014400002157761023,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 432936
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.00179999995785937,
+            "median": 0.0015001666315236418,
+            "min": 0.00120000023511961,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.066668943050843
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 6963
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1403,
+        "wood_triangles": 851240,
+        "wood_vertices": 439906
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7142
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1616,
+            "3": 5278,
+            "4": 166
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.7049254599651902
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.904660341262883
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.789639653864
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.5936440227508588
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.904660341262883
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.4242152524289936,
+            0.013841490488763906,
+            0.01390353531401855,
+            0.013866752552916268,
+            0.013838502358456546,
+            0.013870743746877731,
+            0.013834495783318445
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 5733
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.021599997516811815,
+          "median": 0.01800199915342502,
+          "min": 0.014400002157761023,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 432936
+        },
+        "foliage_width_m": {
+          "max": 0.00179999995785937,
+          "median": 0.0015001666315236418,
+          "min": 0.00120000023511961,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.066668943050843
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.066668943050843
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14138
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 438669
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.019175073536998,
+            14.019175073536998
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.337747633416837
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 432936
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1307
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.366852233962083
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 6963
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 27707904,
+        "wood_indices": 10214880,
+        "wood_positions": 5278872
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 8,
+      "timing_ms": {
+        "foliage": 279.032426,
+        "growth": 10.623652000000002,
+        "measurement": 702.688356,
+        "surface": 27.90982,
+        "total": 1020.2549489999999
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-13:norway-spruce:norway-spruce:13",
+      "case_id": "norway-spruce-13",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7221
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1573,
+              "3": 5347,
+              "4": 219
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.6036768193100153
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.750352118558723
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.4239636344817853,
+              0.013936172466933796,
+              0.013980543568254096,
+              0.013892337904004376,
+              0.01389304531825876
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.021599998172404735,
+            "median": 0.018005489955626574,
+            "min": 0.014400024274946768,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 438326
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.0018000000089576735,
+            "median": 0.0015004575753464024,
+            "min": 0.0012000020286026668,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.295160131878056
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 7040
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1302,
+        "wood_triangles": 860800,
+        "wood_vertices": 444844
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7221
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1573,
+            "3": 5347,
+            "4": 219
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.6036768193100153
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.750352118558723
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.67309875854927
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.5833568079039149
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.750352118558723
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.4239636344817853,
+            0.013936172466933796,
+            0.013980543568254096,
+            0.013892337904004376,
+            0.01389304531825876
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 5194
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.021599998172404735,
+          "median": 0.018005489955626574,
+          "min": 0.014400024274946768,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 438326
+        },
+        "foliage_width_m": {
+          "max": 0.0018000000089576735,
+          "median": 0.0015004575753464024,
+          "min": 0.0012000020286026668,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.295160131878056
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.295160131878056
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14298
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 443520
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.019099769099661,
+            14.019099769099661
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.4179018383358155
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 438326
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1337
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.376987948228324
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 7040
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 28052864,
+        "wood_indices": 10329600,
+        "wood_positions": 5338128
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 13,
+      "timing_ms": {
+        "foliage": 282.12937300000004,
+        "growth": 8.462565,
+        "measurement": 713.350465,
+        "surface": 28.254824000000003,
+        "total": 1032.198079
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-21:norway-spruce:norway-spruce:21",
+      "case_id": "norway-spruce-21",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7197
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1596,
+              "3": 5362,
+              "4": 157
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.6756871371653366
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 9.124640075966521
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.4242233496198377,
+              0.013832784932858727,
+              0.013865966012213569,
+              0.013840710311418451,
+              0.013867794829590168,
+              0.013841473008161251
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.021599999108032578,
+            "median": 0.018001605264371206,
+            "min": 0.014400002259111803,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 435153
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.0018000000124491825,
+            "median": 0.0015001338526869324,
+            "min": 0.0012000002397207664,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.157668353296284
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 7011
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1364,
+        "wood_triangles": 857480,
+        "wood_vertices": 443136
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7197
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1596,
+            "3": 5362,
+            "4": 157
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.6756871371653366
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.714922487112691
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 9.124640075966521
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.6083093383977681
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 9.124640075966521
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.4242233496198377,
+            0.013832784932858727,
+            0.013865966012213569,
+            0.013840710311418451,
+            0.013867794829590168,
+            0.013841473008161251
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 6540
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.021599999108032578,
+          "median": 0.018001605264371206,
+          "min": 0.014400002259111803,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 435153
+        },
+        "foliage_width_m": {
+          "max": 0.0018000000124491825,
+          "median": 0.0015001338526869324,
+          "min": 0.0012000002397207664,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.157668353296284
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.157668353296284
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14239
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 441693
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.019143388546382,
+            14.019143388546382
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.369670025875078
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 435153
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1301
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.3711169230397
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 7011
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 27849792,
+        "wood_indices": 10289760,
+        "wood_positions": 5317632
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 21,
+      "timing_ms": {
+        "foliage": 307.217602,
+        "growth": 11.641422,
+        "measurement": 678.159279,
+        "surface": 26.664731,
+        "total": 1023.6838740000001
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-34:norway-spruce:norway-spruce:34",
+      "case_id": "norway-spruce-34",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7155
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1544,
+              "3": 5303,
+              "4": 226
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.6758471050315169
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.789863498894778
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.42372504330411004,
+              0.013983764486156599,
+              0.01388552293045595,
+              0.013930535574449206,
+              0.013931027235736798,
+              0.013934198641807926,
+              0.013921027354680371
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.021599976379364116,
+            "median": 0.018009187451066607,
+            "min": 0.014400013614939372,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 433575
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.001799998127232896,
+            "median": 0.0015007656936838203,
+            "min": 0.0012000012434904847,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.101020939877777
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 6977
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1359,
+        "wood_triangles": 852560,
+        "wood_vertices": 440592
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7155
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1544,
+            "3": 5303,
+            "4": 226
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.6758471050315169
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.545893383210451
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.789863498894778
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.5859908999263186
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.789863498894778
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.42372504330411004,
+            0.013983764486156599,
+            0.01388552293045595,
+            0.013930535574449206,
+            0.013931027235736798,
+            0.013934198641807926,
+            0.013921027354680371
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 5976
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.021599976379364116,
+          "median": 0.018009187451066607,
+          "min": 0.014400013614939372,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 433575
+        },
+        "foliage_width_m": {
+          "max": 0.001799998127232896,
+          "median": 0.0015007656936838203,
+          "min": 0.0012000012434904847,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.101020939877777
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.101020939877777
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14158
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 439551
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.019142481442351,
+            14.019142481442351
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.349798238166103
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 433575
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1328
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.371239016074266
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 6977
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 27748800,
+        "wood_indices": 10230720,
+        "wood_positions": 5287104
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 34,
+      "timing_ms": {
+        "foliage": 273.919289,
+        "growth": 7.82878,
+        "measurement": 675.3227,
+        "surface": 25.643555,
+        "total": 982.715113
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-55:norway-spruce:norway-spruce:55",
+      "case_id": "norway-spruce-55",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7260
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1579,
+              "3": 5441,
+              "4": 158
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.656894049561553
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.807662161851812
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.42399781453448027,
+              0.013842234256471879,
+              0.013812420012645328,
+              0.01380404854592316,
+              0.013866975435056675,
+              0.013895634077865312,
+              0.013805688013848728
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.02159999182885226,
+            "median": 0.018004389023878173,
+            "min": 0.014400000880713871,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 439782
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.001799999435757565,
+            "median": 0.0015003658233887168,
+            "min": 0.0012000001602373435,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.352674855372253
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 7075
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1287,
+        "wood_triangles": 863760,
+        "wood_vertices": 446402
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7260
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1579,
+            "3": 5441,
+            "4": 158
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.656894049561553
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.807662161851812
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.663109020950479
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.5871774774567875
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.807662161851812
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.42399781453448027,
+            0.013842234256471879,
+            0.013812420012645328,
+            0.01380404854592316,
+            0.013866975435056675,
+            0.013895634077865312,
+            0.013805688013848728
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 5943
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.02159999182885226,
+          "median": 0.018004389023878173,
+          "min": 0.014400000880713871,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 439782
+        },
+        "foliage_width_m": {
+          "max": 0.001799999435757565,
+          "median": 0.0015003658233887168,
+          "min": 0.0012000001602373435,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.352674855372253
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.352674855372253
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14333
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 445725
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.019187117221199,
+            14.019187117221199
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.438077876817425
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 439782
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1316
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.365231196130843
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 7075
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 28146048,
+        "wood_indices": 10365120,
+        "wood_positions": 5356824
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 55,
+      "timing_ms": {
+        "foliage": 284.93744599999997,
+        "growth": 7.959821000000001,
+        "measurement": 682.267106,
+        "surface": 27.166401999999998,
+        "total": 1002.331567
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-89:norway-spruce:norway-spruce:89",
+      "case_id": "norway-spruce-89",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7277
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1631,
+              "3": 5478,
+              "4": 86
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.6876782562900461
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.716030186267576
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.42448757015992544,
+              0.013734879416545009,
+              0.013741311482635413,
+              0.013717001959281617,
+              0.013756281377170936,
+              0.013744901391535882,
+              0.01377306546719321,
+              0.013746092646425897,
+              0.013834324577168931,
+              0.013794750813218815
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.021599990628514976,
+            "median": 0.017995793544035653,
+            "min": 0.014400022452454187,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 440549
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.0017999992619105404,
+            "median": 0.001499649520948659,
+            "min": 0.0012000019594999862,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.373688154758508
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 7098
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1257,
+        "wood_triangles": 862520,
+        "wood_vertices": 445816
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7277
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1631,
+            "3": 5478,
+            "4": 86
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.6876782562900461
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.580379999840588
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.716030186267576
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.581068679084505
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.716030186267576
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.42448757015992544,
+            0.013734879416545009,
+            0.013741311482635413,
+            0.013717001959281617,
+            0.013756281377170936,
+            0.013744901391535882,
+            0.01377306546719321,
+            0.013746092646425897,
+            0.013834324577168931,
+            0.013794750813218815
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 6625
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.021599990628514976,
+          "median": 0.017995793544035653,
+          "min": 0.014400022452454187,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 440549
+        },
+        "foliage_width_m": {
+          "max": 0.0017999992619105404,
+          "median": 0.001499649520948659,
+          "min": 0.0012000019594999862,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.373688154758508
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.373688154758508
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14285
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 447174
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.019126383044323,
+            14.019126383044323
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.445449295624014
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 440549
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1281
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.373405804225369
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 7098
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 28195136,
+        "wood_indices": 10350240,
+        "wood_positions": 5349792
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 89,
+      "timing_ms": {
+        "foliage": 321.971762,
+        "growth": 10.009779,
+        "measurement": 713.7170699999999,
+        "surface": 37.430873000000005,
+        "total": 1083.1302819999999
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-144:norway-spruce:norway-spruce:144",
+      "case_id": "norway-spruce-144",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7121
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1566,
+              "3": 5234,
+              "4": 239
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.6886680798790936
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.852320895344398
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.4241766706065409,
+              0.013927131779926251,
+              0.013958465698864034,
+              0.014009262083638637,
+              0.013940540284376902
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.021599992111076247,
+            "median": 0.01800462439018025,
+            "min": 0.014400016879260687,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 431758
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.001799999510192265,
+            "median": 0.0015003854345052453,
+            "min": 0.0012000014962207442,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.013665357306557
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 6946
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1236,
+        "wood_triangles": 848000,
+        "wood_vertices": 438244
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7121
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1566,
+            "3": 5234,
+            "4": 239
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.6886680798790936
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.852320895344398
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.784798028294421
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.5901547263562932
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.852320895344398
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.4241766706065409,
+            0.013927131779926251,
+            0.013958465698864034,
+            0.014009262083638637,
+            0.013940540284376902
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 5840
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.021599992111076247,
+          "median": 0.01800462439018025,
+          "min": 0.014400016879260687,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 431758
+        },
+        "foliage_width_m": {
+          "max": 0.001799999510192265,
+          "median": 0.0015003854345052453,
+          "min": 0.0012000014962207442,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.013665357306557
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.013665357306557
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14078
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 437598
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.01908801899805,
+            14.01908801899805
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.319154092245248
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 431758
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1324
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.378569470868321
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 6946
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 27632512,
+        "wood_indices": 10176000,
+        "wood_positions": 5258928
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 144,
+      "timing_ms": {
+        "foliage": 285.767471,
+        "growth": 8.798034,
+        "measurement": 686.808774,
+        "surface": 28.745022,
+        "total": 1010.1201749999999
+      },
+      "visual_status": "unassessed"
+    },
+    {
+      "case": "norway-spruce-233:norway-spruce:norway-spruce:233",
+      "case_id": "norway-spruce-233",
+      "checks": {
+        "branch_count": {
+          "actual": {
+            "status": "estimated",
+            "value": 7126
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "axes"
+          }
+        },
+        "branch_order": {
+          "actual": {
+            "status": "estimated",
+            "value": {
+              "1": 82,
+              "2": 1589,
+              "3": 5250,
+              "4": 205
+            }
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "order"
+          }
+        },
+        "crown_base_m": {
+          "actual": {
+            "status": "measured",
+            "value": 0.651686661774599
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "crown_width_m": {
+          "actual": {
+            "status": "measured",
+            "value": 8.873327624532116
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "25\u201330 ft horticultural spread, compared to retained foliage AABB maximum horizontal span.",
+            "range": [
+              7.62,
+              9.144
+            ],
+            "source": [
+              "NCSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "dbh_m": {
+          "actual": {
+            "diameters_m": [
+              0.42396218663335616,
+              0.013917352190100863,
+              0.013925069113561062,
+              0.013888836782646068,
+              0.013914889076788393,
+              0.01391865336271892
+            ],
+            "reason": "multiple structural stems cross breast height",
+            "status": "ambiguous"
+          },
+          "reason": "measurement missing, ambiguous or estimated",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Provisional engineering estimate for chosen landscape scale; no context-matched measured DBH located.",
+            "range": [
+              0.25,
+              0.65
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "foliage_length_m": {
+          "actual": {
+            "max": 0.02159997385484689,
+            "median": 0.018002014946763394,
+            "min": 0.01440000566510094,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "high",
+            "note": "",
+            "range": [
+              0.012,
+              0.025
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "foliage_units": {
+          "actual": {
+            "status": "measured",
+            "value": 432882
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "individual needles"
+          }
+        },
+        "foliage_width_m": {
+          "actual": {
+            "max": 0.0017999978333507526,
+            "median": 0.0015001679788759622,
+            "min": 0.0012000005598474222,
+            "status": "measured"
+          },
+          "reason": "within range",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "low",
+            "note": "Unmeasured engineering starting interval for cross-section; no precise source-backed thickness found.",
+            "range": [
+              0.0008,
+              0.0025
+            ],
+            "source": [],
+            "unit": "m"
+          }
+        },
+        "height_m": {
+          "actual": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "reason": "within range",
+          "status": "pass",
+          "target": {
+            "classification": "gating",
+            "confidence": "medium",
+            "note": "Landscape range corroborated by NCSU 40\u201360 ft; not species maximum.",
+            "range": [
+              12,
+              18
+            ],
+            "source": [
+              "OSU-SPRUCE"
+            ],
+            "unit": "m"
+          }
+        },
+        "leaf_area_m2": {
+          "actual": {
+            "status": "measured",
+            "value": 18.070593407598317
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "m2"
+          }
+        },
+        "twig_count": {
+          "actual": {
+            "status": "measured",
+            "value": 6965
+          },
+          "reason": "outside target or target unavailable",
+          "status": "contextual",
+          "target": {
+            "classification": "contextual",
+            "confidence": "unknown",
+            "note": "No context-matched biological range located; report actual value without a pass claim.",
+            "range": null,
+            "source": [],
+            "unit": "runs"
+          }
+        }
+      },
+      "counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 1312,
+        "wood_triangles": 851120,
+        "wood_vertices": 439814
+      },
+      "event": "completed",
+      "metrics": {
+        "branch_count": {
+          "status": "estimated",
+          "value": 7126
+        },
+        "branch_order": {
+          "status": "estimated",
+          "value": {
+            "1": 82,
+            "2": 1589,
+            "3": 5250,
+            "4": 205
+          }
+        },
+        "crown_base_m": {
+          "status": "measured",
+          "value": 0.651686661774599
+        },
+        "crown_span_x_m": {
+          "status": "measured",
+          "value": 8.873327624532116
+        },
+        "crown_span_z_m": {
+          "status": "measured",
+          "value": 8.652099782047458
+        },
+        "crown_width_height_ratio": {
+          "status": "measured",
+          "value": 0.5915551749688077
+        },
+        "crown_width_m": {
+          "status": "measured",
+          "value": 8.873327624532116
+        },
+        "dbh_m": {
+          "diameters_m": [
+            0.42396218663335616,
+            0.013917352190100863,
+            0.013925069113561062,
+            0.013888836782646068,
+            0.013914889076788393,
+            0.01391865336271892
+          ],
+          "reason": "multiple structural stems cross breast height",
+          "status": "ambiguous"
+        },
+        "dbh_measurement_height_m": {
+          "status": "defined",
+          "value": 1.3
+        },
+        "discarded_units": {
+          "status": "measured",
+          "value": 5913
+        },
+        "foliage_geometry_note": "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.",
+        "foliage_length_m": {
+          "max": 0.02159997385484689,
+          "median": 0.018002014946763394,
+          "min": 0.01440000566510094,
+          "status": "measured"
+        },
+        "foliage_unit": "needle",
+        "foliage_units": {
+          "status": "measured",
+          "value": 432882
+        },
+        "foliage_width_m": {
+          "max": 0.0017999978333507526,
+          "median": 0.0015001679788759622,
+          "min": 0.0012000005598474222,
+          "status": "measured"
+        },
+        "growth": {
+          "attraction_capped": false,
+          "level_capped": false,
+          "node_capped": false,
+          "status": "complete"
+        },
+        "height_m": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "leaf_area_m2": {
+          "status": "measured",
+          "value": 18.070593407598317
+        },
+        "needle_surface_area_m2": {
+          "status": "measured",
+          "value": 18.070593407598317
+        },
+        "nodes": {
+          "status": "measured",
+          "value": 14151
+        },
+        "pre_cull_instances": {
+          "status": "measured",
+          "value": 438795
+        },
+        "primary_insertion_m": {
+          "status": "estimated",
+          "value": [
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            0.9782608695652174,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            1.9565217391304348,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            2.9347826086956523,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            3.5869565217391304,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            4.565217391304348,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            5.543478260869565,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            6.195652173913044,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            7.173913043478261,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.152173913043478,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            8.804347826086957,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            9.782608695652174,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            10.76086956521739,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            11.41304347826087,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            12.391304347826088,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            13.369565217391305,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.021739130434783,
+            14.019099872848223,
+            14.019099872848223
+          ]
+        },
+        "projected_area_m2": {
+          "status": "measured",
+          "value": 6.3391243269168545
+        },
+        "retained_instances": {
+          "status": "measured",
+          "value": 432882
+        },
+        "stored_branch_runs": {
+          "status": "measured",
+          "value": 1320
+        },
+        "trunk_axis_length_m": {
+          "status": "estimated",
+          "value": 14.376973984034395
+        },
+        "twig_count": {
+          "status": "measured",
+          "value": 6965
+        },
+        "units_per_instance": {
+          "status": "measured",
+          "value": 1
+        },
+        "wood_height_m": {
+          "status": "measured",
+          "value": 15.0
+        }
+      },
+      "numeric_status": "pass",
+      "output_bytes": {
+        "retained_matrices": 27704448,
+        "wood_indices": 10213440,
+        "wood_positions": 5277768
+      },
+      "preset": "norway-spruce",
+      "profile_id": "norway-spruce",
+      "profile_revision": "2026-09-06",
+      "seed": 233,
+      "timing_ms": {
+        "foliage": 280.745271,
+        "growth": 8.372506999999999,
+        "measurement": 681.397099,
+        "surface": 26.409488,
+        "total": 996.925387
+      },
+      "visual_status": "unassessed"
+    }
+  ],
+  "summary": {
+    "event": "run_completed",
+    "numeric_status": "pass"
+  },
+  "omitted": "Per-axis branch_lengths_m arrays only; reproduce with native runner."
+}
