@@ -6,10 +6,7 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-5-branch-until-the-tips-bear-leaves-one",
-    "fn-1-the-canopy-real-leaf-geometry-culled-to"
-  ],
+  "depends_on_epics": [],
   "id": "fn-6-branch-generations-below-the-crossover",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -242,5 +239,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T11:06:43.409946Z"
+  "updated_at": "2026-09-05T11:15:57.403105Z"
 }

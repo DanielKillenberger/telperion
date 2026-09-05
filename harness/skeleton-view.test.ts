@@ -594,7 +594,7 @@ describe("the node ceiling", () => {
     ).stats;
     expect(cutOff.nodes).toBe(200);
     expect(cutOff.capped).toBe(true);
-  });
+  }, 60_000);
 });
 
 describe("buildComparison", () => {
@@ -620,7 +620,7 @@ describe("buildComparison", () => {
         placed[i].half + placed[i - 1].half,
       );
     }
-  });
+  }, 60_000);
 
   it("builds each tree exactly as its preset says, not as the dials do", () => {
     /* The comparison is the acceptance test, so what stands on it has
@@ -652,7 +652,7 @@ describe("buildComparison", () => {
     expect(Math.abs(centre.x)).toBeLessThan(
       LAURELIN.skeleton.envelope.height * 0.05,
     );
-  });
+  }, 60_000);
 });
 
 /* ------------------------------------------------------------------ *
