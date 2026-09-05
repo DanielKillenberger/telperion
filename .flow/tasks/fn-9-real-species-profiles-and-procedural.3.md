@@ -7,8 +7,8 @@ satisfies: [R3, R6]
 Add profile-driven branching and natural bias defaults. See the parent spec for the botanical target and validation contract.
 
 **Size:** M
-**Files:** `crates/telperion-core/src/branching.rs`, `crates/telperion-core/src/branching/local.rs`, `crates/telperion-core/src/twigs.rs`, `crates/telperion-core/src/bias.rs`, `crates/telperion-core/src/presets.rs`, `crates/telperion-core/tests/growth.rs`
-**Touches:** [crates/telperion-core/src/branching.rs, crates/telperion-core/src/branching/local.rs, crates/telperion-core/src/twigs.rs, crates/telperion-core/src/bias.rs, crates/telperion-core/src/presets.rs, crates/telperion-core/tests/growth.rs]
+**Files:** `crates/telperion-core/src/branching/habit.rs` (if a separate habit module is warranted), `crates/telperion-core/src/branching.rs`, `crates/telperion-core/src/branching/local.rs`, `crates/telperion-core/src/twigs.rs`, `crates/telperion-core/src/bias.rs`, `crates/telperion-core/src/presets.rs`, `crates/telperion-core/tests/growth.rs`
+**Touches:** [crates/telperion-core/src/branching/**, crates/telperion-core/src/branching.rs, crates/telperion-core/src/branching/local.rs, crates/telperion-core/src/twigs.rs, crates/telperion-core/src/bias.rs, crates/telperion-core/src/presets.rs, crates/telperion-core/tests/growth.rs]
 
 ### Approach
 - Implement only task 1's evidenced architectural gaps using existing structural/local branching stages. Address persistent leader versus spreading habit, order/position-dependent laterals and terminal taper only where the chosen profiles require them.

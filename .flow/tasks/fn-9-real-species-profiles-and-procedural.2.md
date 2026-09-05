@@ -39,9 +39,25 @@ cargo run --release -p telperion-core --example species_measure -- --help
 - [ ] Runner works without display/browser/GPU and measures existing families before the new species land.
 
 ## Done summary
-TBD
+Implemented a CPU-only profile comparison runner with actual wood/foliage geometry, DBH interpolation, operational branch axes/order/length, retained foliage accounting and transformed triangle area. Durable JSONL preserves per-case failures and interruption state, records frozen profile data plus machine/git metadata, and returns nonzero for unmet numeric gates.
 
+Baseline: green (14 growth/foliage tests and typecheck). Verification: four analytic metric tests, 14 existing native tests, typecheck, --help, and real runner integration checks passed. Overflow regression was observed red with a null serialized branch length, then green after explicit derived-metric rejection. Initial interrupted-log observer encountered an unterminated final line; writes now serialize each event together, help documents complete-line recovery, and the corrected interruption check passed. Logs and compact generated case output are in the assigned workspace .flow/tmp/ (measure-integration.log points to final case artifacts).
+
+Similar code search: reused measure.rs generation/output stages, Tree/NodeKind/run metadata and actual foliage/surface outputs. New example-private metrics helper because no botanical DBH or operational axis implementation existed. Runtime core remains dependency-free; serde_json is dev-only. Only declared Touches changed.
+
+R2 tests: analytic_units_dbh_axes_and_retained_area independently verifies metres, 0.74 m DBH, 4 m branch run, one axis versus five nodes, transformed triangle area 6 m2 and pre/retained/discarded counts. missing_ambiguous_truncated_and_nonfinite_are_distinct covers absent required geometry, multistem DBH, growth cap and NaN. gates_do_not_pass_estimates_missing_values_or_outliers covers required estimates/unavailable values and out-of-range extrema. overflow_and_degenerate_geometry_fail_explicitly covers arithmetic overflow and zero-area triangles. Integration checks cover unknown identities, continuation, repeatable seed values and durable evidence.
+
+Current generic prototypes have no blade/connector boundary. Whole-prototype length/width and area remain explicitly estimated, so required foliage gates are unassessed, never placeholder passes. Branch axes are operational estimates and DBH is labelled measured_proxy as the frozen definition requires. Crown and height use actual retained vertices and actual wood mesh, never field occupancy. Task4/calibration must wire connector-excluded blade/needle subsets into this helper before botanical dimension gates can pass; closed-needle surface/projected area must be distinguished when that geometry lands. Native preset dispatch currently accepts ordinary, telperion and laurelin; species registration tasks extend its explicit match.
+
+CLI: --case ID:PROFILE:PRESET:SEED (repeat) --output NEW.jsonl [--profiles FILE]. --help documents compile then timeout 120s invocation. Timeout bounds the entire run; errors continue independent cases. Ignore an unterminated final line after interruption. Output files must be new, preventing silent evidence overwrites. Visual status stays unassessed.
+
+stage: impl-review - skipped(policy: owner requested no implementation review)
+
+Conductor integrated and verified this task. No review, tracker mutations, gate receipts, plan-sync or integration were performed. Gate classification was FULL due Cargo.lock; actual parent gates ran successfully. Conductor owns lifecycle completion and any shared receipts.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: wave-join - ran (integrated metric tests and CLI help passed)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: df0119d
+- Tests: baseline: green — cargo test --release -p telperion-core --test growth --test foliage (14 passed); npm run typecheck (exit 0), cargo test --release -p telperion-core --test species_metrics (4 passed; analytic dimensions/DBH/axes/accounting, status/gates, overflow and degeneracy), red-to-green: overflow_and_degenerate_geometry_fail_explicitly rejected previous serialized-null branch length; .flow/tmp/measure-overflow-red.log, cargo run --release -p telperion-core --example species_measure -- --help (exit 0), cargo test --release -p telperion-core --test growth --test foliage (14 passed post-edit), npm run typecheck (exit 0 post-edit), native subprocess integration: fixed-seed metrics equal, unknown profile and preset errors preserve subsequent cases, required dimensions unassessed, output overwrite rejected, interruption preserves newline-terminated completed events (.flow/tmp/measure-integration.log), initial interruption observer: inconclusive due unterminated final JSONL line; event serialization tightened and documented newline recovery verified on rerun, git diff --cached --check (exit 0), Integrated target: species_metrics 4/4 pass; species_measure --help exit 0
 - PRs:
