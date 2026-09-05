@@ -49,8 +49,12 @@ The native stage has no surface-module dependency; its borrowed Tree input remai
 
 stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
 
-Task remains in_progress. No review or flowctl done invoked. No edits outside assigned Touches, except the explicitly assigned shared API note.
+Conductor integrated 8a32e7f and verified six focused foliage tests on the joined tree.
+
+stage: impl-review - skipped(user: none)
+stage: wave-join - ran(merge and focused integrated verification)
+stage: plan-sync - skipped(config: false)
 ## Evidence
 - Commits: 8a32e7fe69f3a2abb9c5f655159af09b9a52fecd
-- Tests: baseline: none (parent/task define no Quick commands), cargo test -p telperion-core --test foliage: 6 passed; /tmp/fn8-foliage-test-final.log, REFERENCE_DIRECTORY=/tmp/fn8-surface-reference REFERENCE_CASES=ordinary,telperion,laurelin,empty,capped cargo test --release -p telperion-core --test foliage_reference -- --ignored --nocapture: 1 test / 5 cases passed; /tmp/fn8-foliage-reference-final.log, cargo clippy -p telperion-core --all-targets -- -D warnings: passed; /tmp/fn8-foliage-clippy.log, cargo fmt --all -- --check: passed; /tmp/fn8-foliage-fmt.log, git diff --cached --check: passed before commit, Initial focused suite red: absent native foliage API; /tmp/fn8-foliage-red.log, Overflow early-cull regression red before fix; /tmp/fn8-foliage-overflow-red.log, flowctl gate classify --base 09484a8bbc30a7397c093ae7f095c5571c87a404: FULL (.rs executable changes); no spec Quick gate commands defined
+- Tests: baseline: none (parent/task define no Quick commands), cargo test -p telperion-core --test foliage: 6 passed; /tmp/fn8-foliage-test-final.log, REFERENCE_DIRECTORY=/tmp/fn8-surface-reference REFERENCE_CASES=ordinary,telperion,laurelin,empty,capped cargo test --release -p telperion-core --test foliage_reference -- --ignored --nocapture: 1 test / 5 cases passed; /tmp/fn8-foliage-reference-final.log, cargo clippy -p telperion-core --all-targets -- -D warnings: passed; /tmp/fn8-foliage-clippy.log, cargo fmt --all -- --check: passed; /tmp/fn8-foliage-fmt.log, git diff --cached --check: passed before commit, Initial focused suite red: absent native foliage API; /tmp/fn8-foliage-red.log, Overflow early-cull regression red before fix; /tmp/fn8-foliage-overflow-red.log, flowctl gate classify --base 09484a8bbc30a7397c093ae7f095c5571c87a404: FULL (.rs executable changes); no spec Quick gate commands defined, Conductor integrated cargo test -p telperion-core --test foliage: six passed
 - PRs:
