@@ -54,7 +54,13 @@ const element = buildElement(DEFAULT_ELEMENT);
  *  filling the envelope rather than clothing it. */
 const filled = (() => {
   const preset = TELPERION;
-  const skeleton = growSkeleton(preset.skeleton);
+  // Colonization alone: the shipped preset's twigs are already shed to
+  // a shell, and a canopy placed on a shell is not the filled crown
+  // this fixture exists to be.
+  const skeleton = growSkeleton({
+    ...preset.skeleton,
+    twigs: { ...preset.skeleton.twigs, levels: 0 },
+  });
   const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
   const envelope = preset.skeleton.envelope;
   return {

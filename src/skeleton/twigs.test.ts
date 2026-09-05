@@ -84,6 +84,15 @@ function grown(tree: SkeletonParams, twigs: Partial<TwigParams>): Skeleton {
 
 const params: SkeletonParams = { seed: 1, envelope: DEFAULT_ENVELOPE, attractors: 900 };
 
+/** A preset's colonization alone, its second pass stated at zero
+ *  orders. Both presets ship with orders now, and the tests below
+ *  reason about the base tree the twigs are appended to, so that base
+ *  has to be asked for rather than assumed. */
+const bare = (tree: SkeletonParams): SkeletonParams => ({
+  ...tree,
+  twigs: { ...tree.twigs, levels: 0 },
+});
+
 describe("branchTwigs", () => {
   it("continues from every tip colonization left, into one skeleton", () => {
     /* R1. The base comes back first and untouched - the same node
@@ -110,8 +119,8 @@ describe("branchTwigs", () => {
   });
 
   it.each([
-    ["Telperion", TELPERION.skeleton],
-    ["Laurelin", LAURELIN.skeleton],
+    ["Telperion", bare(TELPERION.skeleton)],
+    ["Laurelin", bare(LAURELIN.skeleton)],
   ] as const)("keeps parent before child over the whole of %s, six orders down", (_name, tree) => {
     /* The invariant radius.ts, paths.ts and surface.ts all do a single
        forward pass on. Asserted over every node, not only the appended
@@ -133,7 +142,7 @@ describe("branchTwigs", () => {
        the stiffest one. And with no field and no lateral, the leader
        out of a tip is that tip's own tangent to the bit: nothing is
        re-chosen at the seam. */
-    const tree = TELPERION.skeleton;
+    const tree = bare(TELPERION.skeleton);
     const limit = tree.growth.maxTurnPerStep;
     const skeleton = grown(tree, { levels: 4 });
     const baseCount = growSkeleton(tree).nodes.length;
@@ -222,11 +231,12 @@ describe("branchTwigs", () => {
     /* R3, measured rather than rounded: a leaf's length as a multiple
        of the diameter of the wood it attaches to, the median terminal
        diameter from the radius solve the tree actually runs, against
-       the leaf the preset actually places. Today the leaf is 0.15 of
-       the wood on Telperion and 0.16 on Laurelin; at eight orders of
-       the resting twig it is 1.6 and 1.2 - past one on both, which is
-       the botanical relationship rather than a round number. Six
-       orders is 0.86 and 0.70, so eight is where both cross. */
+       the leaf the preset actually places. At zero orders the leaf is
+       0.15 of the wood on Telperion and 0.16 on Laurelin; at eight
+       orders under the fine orders' own taper law it is about 25 and
+       15 - the botanical relationship rather than a round number, and
+       the depth both presets now state. Asserted loosely here, above
+       one; the presets' own test holds the shipped depth to ten. */
     const tree = preset.skeleton;
     const leaf = DEFAULT_ELEMENT.length * preset.canopy.size;
     const ratio = (levels: number): number => {
@@ -251,7 +261,7 @@ describe("branchTwigs", () => {
       signature(grown(params, { levels: 4, children: 1 })),
     );
 
-    const tree = TELPERION.skeleton;
+    const tree = bare(TELPERION.skeleton);
     const separation = Math.min(tree.twigs.angle, tree.growth.maxTurnPerStep) / 2;
     const skeleton = grown(tree, { levels: 4, children: 4 });
     const baseCount = growSkeleton(tree).nodes.length;
@@ -328,7 +338,7 @@ describe("branchTwigs", () => {
        step is not the reference because colonization spends more steps
        fighting the lean to reach the attractors upwind of it, so the
        crown's mean step points against the lean; the trunk does not.) */
-    for (const tree of [TELPERION.skeleton, params]) {
+    for (const tree of [bare(TELPERION.skeleton), params]) {
       const lean = { ...NO_BIAS, lean: 0.5 };
       const base = growSkeleton({ ...tree, bias: lean });
       const crownBase = tree.envelope.height * tree.envelope.crownBase;
@@ -378,7 +388,7 @@ describe("branchTwigs", () => {
     /* Zero width is not no constraint: the envelope has no width below
        the crown base, and a twig from a tip near it, heading down, is
        outside the authored silhouette however plausible on its own. */
-    for (const tree of [TELPERION.skeleton, LAURELIN.skeleton, params]) {
+    for (const tree of [bare(TELPERION.skeleton), bare(LAURELIN.skeleton), params]) {
       const trunkHeight = tree.envelope.height * tree.envelope.crownBase;
       const skeleton = grown({ ...tree, bias: { ...DEFAULT_BIAS, gravitropism: 0 } }, { levels: 6 });
       const baseCount = growSkeleton({ ...tree, bias: { ...DEFAULT_BIAS, gravitropism: 0 } }).nodes.length;

@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { buildSurface } from "../mesh/surface";
 import { solveRadii } from "../radius";
+import { DEFAULT_ELEMENT } from "../canopy/element";
 import {
+  growReport,
   growSkeleton,
   type SkeletonParams,
 } from "../skeleton/grow";
@@ -127,11 +129,37 @@ describe("the two trees are two of the same generator", () => {
   });
 
   it("neither preset stalls against the generator's node ceiling", () => {
-    // 8000 is `defaultGrowth`'s hard stop, and a preset that reaches it
-    // has been cut off rather than finished - the tree on screen would
-    // then be the ceiling's shape and not the envelope's.
+    /* A preset that reaches the ceiling has been cut off rather than
+       finished - the tree on screen would then be the ceiling's shape
+       and not the envelope's. The ceiling scales with the orders asked
+       for, so the library's own report is read rather than a number
+       restated here. */
     for (const preset of PRESETS) {
-      expect(measure(preset).nodes).toBeLessThan(8000);
+      expect(growReport(preset.skeleton).capped).toBe(false);
+    }
+  });
+
+  it("bears its leaves on twigs, not on timber: the leaf is a multiple of the wood", () => {
+    /* R3, on both presets at the depth they ship at. Before the second
+       pass a 12 cm leaf sat on 79 cm wood, a ratio of 0.15 to 1; the
+       botanical relationship is the other way, a leaf several times the
+       diameter of the twig that bears it. Measured at the median tip so
+       one stray fine twig cannot pass the crown. */
+    for (const preset of PRESETS) {
+      const skeleton = growSkeleton(preset.skeleton);
+      const field = solveRadii(skeleton, preset.skeleton.envelope, preset.radii);
+      const childCount = new Array<number>(skeleton.nodes.length).fill(0);
+      for (const node of skeleton.nodes) {
+        if (node.parent >= 0) childCount[node.parent] += 1;
+      }
+      const tips = skeleton.nodes
+        .map((_, index) => index)
+        .filter((index) => index > 0 && childCount[index] === 0)
+        .map((index) => 2 * field.radius[index])
+        .sort((a, b) => a - b);
+      const medianTwig = tips[Math.floor(tips.length / 2)];
+      const leaf = DEFAULT_ELEMENT.length * preset.canopy.size;
+      expect(leaf / medianTwig).toBeGreaterThan(10);
     }
   });
 });

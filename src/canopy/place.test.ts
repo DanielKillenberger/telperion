@@ -438,10 +438,15 @@ describe("the two trees", () => {
     expect(canopy.count).toBeGreaterThan(500);
     const base =
       preset.skeleton.envelope.height * preset.skeleton.envelope.crownBase;
+    // Counted rather than asserted per element: the shipped crowns
+    // carry hundreds of thousands, and one expectation each is what
+    // made this test time out rather than fail.
+    let below = 0;
     for (let i = 0; i < canopy.count; i += 1) {
-      expect(element(canopy.matrices, i).position.y).toBeGreaterThan(base);
+      if (element(canopy.matrices, i).position.y <= base) below += 1;
     }
-  });
+    expect(below).toBe(0);
+  }, 60_000);
 
   it("thins the whole shoot when it saturates, never bares the tip", () => {
     /* The per-shoot cap is a stop, and a stop has to take from

@@ -49,8 +49,9 @@ import {
  * dial that can be driven past its resting value; the resting value is
  * a real tree, so the tree at rest is real and every departure is a
  * departure from one. `levels` alone has no botanical default: it is
- * the owner's decision in clay (R8), and its default of zero orders is
- * what keeps both presets the trees they were (R7).
+ * the owner's decision in clay (R8), each preset states its own, and
+ * the library default of zero orders is a tree with no second pass, so
+ * every order a preset asks for is attributable to it (R7).
  *
  *   children    - 2: a leader and one lateral at every node, which is
  *                 alternate phyllotaxis, one bud per node, the commonest

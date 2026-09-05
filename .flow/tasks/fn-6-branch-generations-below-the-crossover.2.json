@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T10:48:51.311724Z",
+  "depends_on": [
+    "fn-6-branch-generations-below-the-crossover.1"
+  ],
+  "id": "fn-6-branch-generations-below-the-crossover.2",
+  "priority": null,
+  "spec": "fn-6-branch-generations-below-the-crossover",
+  "spec_path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.2.md",
+  "status": "todo",
+  "title": "Branches from the tips: the pass grows under the law, reads the field, ends on radius",
+  "updated_at": "2026-09-05T11:04:44.244556Z"
+}

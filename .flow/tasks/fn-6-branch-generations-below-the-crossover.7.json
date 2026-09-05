@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T10:48:51.311922Z",
+  "depends_on": [
+    "fn-6-branch-generations-below-the-crossover.5",
+    "fn-6-branch-generations-below-the-crossover.6"
+  ],
+  "id": "fn-6-branch-generations-below-the-crossover.7",
+  "priority": null,
+  "spec": "fn-6-branch-generations-below-the-crossover",
+  "spec_path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.7.md",
+  "status": "todo",
+  "title": "The cost on the named machine, and the docs that still say orders",
+  "updated_at": "2026-09-05T11:04:46.168298Z"
+}

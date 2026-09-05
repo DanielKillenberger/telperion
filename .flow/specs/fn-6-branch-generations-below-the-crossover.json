@@ -1,0 +1,246 @@
+{
+  "branch_name": "fn-6-branch-generations-below-the-crossover",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-05T10:27:48.271704Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-5-branch-until-the-tips-bear-leaves-one",
+    "fn-1-the-canopy-real-leaf-geometry-culled-to"
+  ],
+  "id": "fn-6-branch-generations-below-the-crossover",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-05T11:06:43.408080Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "ebece24571350c219436478bb2750b462a63fc3cf86e2a7b06fa01e669b72191",
+      "backend": "codex",
+      "base_sha": "4a524c11503cc25133934aa45dc0c7992e2c8719",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5b51ff12d414c4f5a665e8d71892f11a",
+            "classification": "introduced",
+            "findingId": "finding-5b51ff12d414c4f5a665e8d71892f11a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-de73b3a9e0997f72341313e8603a21de",
+            "classification": "introduced",
+            "findingId": "finding-de73b3a9e0997f72341313e8603a21de",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-91662f0212a9f4df96e31d341b972316",
+            "classification": "introduced",
+            "findingId": "finding-91662f0212a9f4df96e31d341b972316",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9f801438920d2b79243668b97cca111d",
+            "classification": "introduced",
+            "findingId": "finding-9f801438920d2b79243668b97cca111d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5225f4a7f5dc496f8b4d0cf45564a159",
+            "classification": "introduced",
+            "findingId": "finding-5225f4a7f5dc496f8b4d0cf45564a159",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-df695b7936bbfcbc5dd20d17caf48010",
+            "classification": "introduced",
+            "findingId": "finding-df695b7936bbfcbc5dd20d17caf48010",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1e34b51934ebfab6119a56ef9d06e0d2",
+            "classification": "introduced",
+            "findingId": "finding-1e34b51934ebfab6119a56ef9d06e0d2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1d56a8e583951bc8bb0276af13709c46",
+            "classification": "introduced",
+            "findingId": "finding-1d56a8e583951bc8bb0276af13709c46",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d2b0e88a5bf7a85e7a1bcc408d590c0e6374e9c1",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 271965,
+      "output_sha256": "8cbcafcdb555dfa3fd717bea3ae848af822d6eb8ba2b9b2d0c4973bf1569414b",
+      "reservation_id": "dce87a951ec34124a1ec7614d2beb120",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-05T11:02:31.755636Z",
+      "tool_calls": 11,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3994944146fecfe1b0c51ebf1563d31bf87e3a304f6a3448494a8a2a97c53734",
+      "backend": "codex",
+      "base_sha": "4a524c11503cc25133934aa45dc0c7992e2c8719",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5b51ff12d414c4f5a665e8d71892f11a",
+            "classification": "introduced",
+            "findingId": "finding-5b51ff12d414c4f5a665e8d71892f11a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-de73b3a9e0997f72341313e8603a21de",
+            "classification": "introduced",
+            "findingId": "finding-de73b3a9e0997f72341313e8603a21de",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-91662f0212a9f4df96e31d341b972316",
+            "classification": "introduced",
+            "findingId": "finding-91662f0212a9f4df96e31d341b972316",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9f801438920d2b79243668b97cca111d",
+            "classification": "introduced",
+            "findingId": "finding-9f801438920d2b79243668b97cca111d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5225f4a7f5dc496f8b4d0cf45564a159",
+            "classification": "introduced",
+            "findingId": "finding-5225f4a7f5dc496f8b4d0cf45564a159",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-df695b7936bbfcbc5dd20d17caf48010",
+            "classification": "introduced",
+            "findingId": "finding-df695b7936bbfcbc5dd20d17caf48010",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1e34b51934ebfab6119a56ef9d06e0d2",
+            "classification": "introduced",
+            "findingId": "finding-1e34b51934ebfab6119a56ef9d06e0d2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-1d56a8e583951bc8bb0276af13709c46",
+            "classification": "introduced",
+            "findingId": "finding-1d56a8e583951bc8bb0276af13709c46",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d2b0e88a5bf7a85e7a1bcc408d590c0e6374e9c1",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 384,
+      "output_sha256": "401915dfdc3866d1fc3576c8f8f1d7c5be4691cfc897937928688932d93de005",
+      "reservation_id": "c53da35734de47d3acfd02448397a6f9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-05T11:06:43.389363Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-6-branch-generations-below-the-crossover.md",
+  "status": "open",
+  "title": "Branch generations below the crossover, and one fixed twig",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-05T11:06:43.409946Z"
+}

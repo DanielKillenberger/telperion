@@ -113,15 +113,19 @@ export const TELPERION: TreePreset = {
       // turns about the axis over the height.
       spiralRate: 2.6,
     },
-    /* The recursion below colonization's tips, at rest: no orders yet,
-       so this is still the tree the owner has seen, and the shipping
-       depth is the owner's to state in clay. When it has orders they
-       are alternate broadleaf twigs at the botanical defaults twigs.ts
-       cites - a leader and one lateral per node, 45 degrees, the
-       golden angle, and each order six tenths the length of the one
-       above - held to this tree's own 26-degree stiffness. */
+    /* The recursion below colonization's tips: eight orders of alternate
+       broadleaf twigs at the botanical defaults twigs.ts cites - a leader
+       and one lateral per node, 45 degrees, the golden angle, and each
+       order six tenths the length of the one above - held to this tree's
+       own 26-degree stiffness. Eight is where the sweep puts leaf-bearing
+       wood on this tree: the median tip is 4.7 mm through, a 12 cm leaf
+       is 25 times that, the botanical relationship, and the crown carries
+       137,000 leaves after the shell rule sheds the interior, inside
+       R5's 10^5 floor. Seven orders left 9 mm twigs and 73,000 leaves,
+       under that floor. Proposed for the owner's judgement in clay (R8);
+       the orders dial moves it. */
     twigs: {
-      levels: 0,
+      levels: 8,
       children: 2,
       angle: 45,
       divergence: 137.508,
@@ -252,13 +256,20 @@ export const LAURELIN: TreePreset = {
       // in the skin, not in the centreline.
       spiralRate: 0.6,
     },
-    /* Zero orders for the reason Telperion states it. The same
-       resting twig as Telperion's: what differs between the two trees
-       at twig scale is the field that bends them and the 46-degree
-       looseness that lets a lateral leave at its full angle, not the
-       rule that makes them. */
+    /* Eight orders, as Telperion, and the same resting twig: what
+       differs between the two trees at twig scale is the field that
+       bends them and the 46-degree looseness that lets a lateral leave
+       at its full angle, not the rule that makes them. This tree's
+       stouter fork exponent keeps its twigs heavier at the same depth -
+       the median tip is 12 mm through, an 18 cm leaf 15 times that -
+       and its dome carries 770,000 leaves on 152,000 nodes and 7.3 M
+       triangles, the largest build of the two: about 1.6 s of pure
+       compute at eight orders against 0.9 s at seven, which would ship
+       22 mm twigs and 390,000 leaves. Proposed for the owner's judgement
+       in clay (R8), with seven the notch below if the build is the cost
+       that decides it. */
     twigs: {
-      levels: 0,
+      levels: 8,
       children: 2,
       angle: 45,
       divergence: 137.508,

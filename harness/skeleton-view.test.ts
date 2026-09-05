@@ -640,7 +640,7 @@ describe("buildComparison", () => {
        the trunks would match all the same. */
     expect([...(canopyOf(placed)!.instanceMatrix.array as Float32Array)])
       .toEqual([...(canopyOf(alone)!.instanceMatrix.array as Float32Array)]);
-  });
+  }, 60_000);
 
   it("centres the row on the origin", () => {
     const { group } = buildComparison(PRESETS, clay);
@@ -725,7 +725,7 @@ describe("the forest's own numbers", () => {
     // and its crown, and every leaf on both trees is instanced.
     expect(forest.drawCalls).toBe(PRESETS.length * 2);
     expect(forest.instances).toBeGreaterThan(0);
-  });
+  }, 60_000);
   it("builds the same tree bare when foliage is off", () => {
     /* Foliage off is an empty canopy, not a second code path: no leaf
        is placed, the mesh builder returns null, and the trunk is the

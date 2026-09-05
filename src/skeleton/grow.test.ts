@@ -83,6 +83,15 @@ function signature(skeleton: Skeleton): string {
 
 const params = { seed: 1, envelope: DEFAULT_ENVELOPE, attractors: 900 };
 
+/** A preset's colonization alone, its second pass stated at zero
+ *  orders. Both presets ship with orders now, and the tests below
+ *  reason about the base tree the twigs are appended to, so that base
+ *  has to be asked for rather than assumed. */
+const bare = (tree: SkeletonParams): SkeletonParams => ({
+  ...tree,
+  twigs: { ...tree.twigs, levels: 0 },
+});
+
 describe("growSkeleton", () => {
   it("grows the same skeleton, byte for byte, from the same seed", () => {
     expect(signature(growSkeleton(params))).toBe(
@@ -426,7 +435,7 @@ describe("the search radius and the attractor spacing", () => {
        under the old radius, so the case cannot quietly stop being one,
        and the tree under the derived radius, grown rather than
        reported. */
-    const tree = TELPERION.skeleton;
+    const tree = bare(TELPERION.skeleton);
     const step = 0.44;
     const growth = growthAtStep(tree.envelope, step, tree.attractors);
 
@@ -475,8 +484,8 @@ describe("the search radius and the attractor spacing", () => {
        `influenceRadiusFor` - so the seeds here are the presets' own and
        the survey's result is recorded rather than asserted. */
     const trees: SkeletonParams[] = [
-      TELPERION.skeleton,
-      LAURELIN.skeleton,
+      bare(TELPERION.skeleton),
+      bare(LAURELIN.skeleton),
       params,
     ];
     for (const tree of trees) {
@@ -609,7 +618,7 @@ describe("defaultGrowth", () => {
 
 describe("the node ceiling under twigs", () => {
   it("is exactly the step's ceiling at zero orders and grows with the orders and children", () => {
-    const params = { ...TELPERION.skeleton };
+    const params = bare(TELPERION.skeleton);
     const rest = resolveGrowth(params).maxNodes;
     expect(rest).toBe(8000);
 
