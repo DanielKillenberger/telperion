@@ -8,7 +8,7 @@ Both presets are measured on the RTX 3080 with the rig against the strategy's 2 
 
 **Size:** M
 **Files:** `.flow/specs/fn-6-branch-generations-below-the-crossover.md` (§Measured), `harness/stage.ts` (sweep reaches the native ratio), `README.md`, `src/index.ts`, `src/skeleton/twigs.ts` (header), `src/skeleton/grow.ts` (header, field docs), `src/radius.ts` (header), `src/presets/preset.ts`, `harness/GrowerDev.tsx` (perf comments), `harness/skeleton-view.ts` (comments)
-**Touches:** [harness/stage.ts, README.md, src/index.ts, src/skeleton/twigs.ts, src/skeleton/grow.ts, src/radius.ts, src/presets/preset.ts, harness/GrowerDev.tsx, harness/skeleton-view.ts, .flow/specs/fn-6-branch-generations-below-the-crossover.md]
+**Touches:** [harness/stage.ts, harness/stage.test.ts, .flow/specs/fn-5-branch-until-the-tips-bear-leaves-one.md, README.md, src/index.ts, src/skeleton/twigs.ts, src/skeleton/grow.ts, src/radius.ts, src/presets/preset.ts, harness/GrowerDev.tsx, harness/skeleton-view.ts, .flow/specs/fn-6-branch-generations-below-the-crossover.md]
 
 ### Approach
 - Measurement: with the harness at `devicePixelRatio` 2 and vsync off, extend `SWEEP_RATIOS` (`harness/stage.ts:138`) so the sweep reaches the display's own ratio (applied 2.00 on the named machine), then sweep both presets at rest with the GPU timer rig (`describeSweep`, `:198`); R6 is judged on the GPU figure at the native applied ratio, and the lower ratios are kept as diagnostics; record nodes, twigs, leaves, triangles, CPU build, GPU per frame, on both presets and in the comparison view. Hero budget 2 ms; if a preset misses it, report the number as the reason the rendering spec is needed sooner, do not clamp. Record the timer-query-unavailable path prints "no gpu timing available".
