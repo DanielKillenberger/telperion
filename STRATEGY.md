@@ -12,7 +12,7 @@ Trees in games are baked assets: modelled offline, branching stops a few orders 
 
 ## Our approach
 
-Grow the tree rather than model it: one continuous recursion from trunk to twig under botanical rules, with everything supernatural living in a single parametric bias field. Generated deterministically at runtime in the browser and measured on a named machine, so the tree is real by default and magical by dial.
+Build living procedural trees for real-time worlds around one persistent branching structure, continuous from trunk to the twig a leaf hangs on. Parameters define a family of trees, with species presets providing named sets of botanical traits; the seed determines an individual specimen, and its growth, surroundings and damage shape what it becomes over its lifecycle. Botanical rules guide its natural form, with supernatural character authored through the shared parametric bias field. Generate deterministically at runtime, proving the approach in the browser, and use the tree's hierarchy to update and render only the detail needed within measured game budgets, from a tree inspected up close to a whole forest.
 
 ## Who it's for
 
