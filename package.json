@@ -37,7 +37,11 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.build.json && vite build",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "rust:build": "cargo build --release --workspace && cargo build --release --target wasm32-unknown-unknown -p telperion-wasm",
+    "rust:test": "cargo test --workspace",
+    "rust:test:wasm": "node scripts/test-wasm.mjs",
+    "migration:reference": "node scripts/export-reference.mjs"
   },
   "peerDependencies": {
     "three": ">=0.160.0"
