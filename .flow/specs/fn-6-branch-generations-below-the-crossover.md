@@ -760,3 +760,33 @@ not a GPU benchmark or the owner's R7 verdict.
 The owner accepted the fifth R7 pass: "i think it's fine for now we'll do another spec where we try and build all kinds of real trees as templates with visual QA which will definitely find structural issues." R7 is satisfied for this FN-6 build, not a claim that all tree architectures are solved. Task 8 is complete; its known historical ~3 s build-cost miss remains explicit and final cost assessment belongs to task 7.
 
 Record for the later spec: build a varied collection of real-species templates/presets and judge them against visual references, including bare branching and foliage, to expose structural issues such as leader/lateral balance, branching hierarchy, and crown organization. This is future work; no new spec or implementation is started here. Parameters define the family/species and seeds select specimens.
+
+### Task 7 final CPU/GPU costs and documentation (2026-09-05)
+
+Measured through the actual `createStage`, `buildPreset` and `buildComparison` harness paths, with leaves enabled, neutral sky, logarithmic depth enabled, and each subject framed by the stage. The renderer was Chromium 151.0.7922.173, ANGLE on NVIDIA GeForce RTX 3080 (10 GiB), OpenGL 4.5, driver 610.57.04, on the Ryzen 9 5950X host. The canvas was 1600×1000 CSS pixels. Physical monitor: 3440×1440 at 100 Hz, scale 1. Browser raw and applied native DPR were 1.00. The earlier task assumption of native DPR 2 was stale: 2.00 is retained as a separate high-DPI test, never relabeled native.
+
+The run requested `--disable-gpu-vsync --disable-frame-rate-limit` on a headed X11 Chromium window. It used real `EXT_disjoint_timer_query_webgl2` GPU elapsed queries, not CPU frame times; the desktop compositor remained active. No full test suite ran concurrently. One warmup build was excluded, then five CPU builds were recorded per subject. Each GPU ratio had eight warmup frames and twenty valid samples. Every raw sample, environment record and implementation hash is checked in under `.flow/evidence/fn6-task7/results.json`; the adjacent runner and README reproduce the procedure. This is one camera and one machine, with fixed sweep order and no confidence interval claim.
+
+| Subject | Nodes | Twigs | Leaves placed / retained | Wood triangles | Submitted scene triangles | CPU builder median s | Scene replacement median s |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Telperion | 175,035 | 54,890 | 1,372,250 / 1,349,630 | 12,888,512 | 34,483,104 | 4.923 | 5.135 |
+| Laurelin | 104,207 | 32,153 | 803,825 / 798,553 | 4,365,056 | 17,142,416 | 2.421 | 2.539 |
+| Comparison | 279,242 | 87,043 | 2,176,075 / 2,148,183 | 17,253,568 | 51,625,008 | 7.738 | 8.068 |
+
+The CPU builder includes generation, radii, surface construction, vertex normals, leaf placement/culling and instance buffers/bounds. Scene replacement additionally includes disposal of the previous subject and attachment of the new one. Neither CPU value is a GPU upload/render measurement. All subjects remain uncapped. Submitted scene triangles include foliage and the room; wood triangles alone materially understate the rendering workload.
+
+| Subject | GPU median ms, DPR 2 high-DPI | DPR 1 native | DPR 0.7 | DPR 0.5 | DPR 0.25 |
+|---|---:|---:|---:|---:|---:|
+| Telperion | 6.343 | 5.847 | 5.753 | 5.772 | 5.746 |
+| Laurelin | 3.947 | 3.425 | 3.330 | 3.262 | 3.238 |
+| Comparison | 9.714 | 9.098 | 9.002 | 8.955 | 8.884 |
+
+**Budgets are missed and reported, not relaxed.** Telperion's 4.923 s median builder misses the historical approximately-three-second target; Laurelin's 2.421 s is below it in this run. Both hero presets miss the strategy's 2 ms GPU budget at actual native DPR 1 and at the requested DPR 2. The comparison is two hero trees and is reported separately, not judged as a single-tree result.
+
+Reducing DPR from 1 to 0.25 scarcely changes Telperion's GPU cost (5.847→5.746 ms) and only modestly changes Laurelin's (3.425→3.238 ms). This suggests resolution-independent work is a substantial limit here; the sweep alone does not isolate a particular shader or prove a single bottleneck. A rendering-at-scale follow-up addressing geometry, foliage representation and LOD is needed. The Rust migration can address CPU generation cost; no claim is made that it will solve these GPU-budget misses. Neither preset, ceiling nor geometry was reduced to improve this measurement.
+
+A separate real WebGL context deliberately hid the timer extension. The existing sweep returned `supported:false`, `complete:false`, an empty point list and "no gpu timing available ... no frame time reported". No numerical fallback appeared. Normal measurement pages recorded no uncaught browser errors. Diagnostic screenshots are `/tmp/fn6-task7-measurements/{telperion,laurelin,comparison}.png`; the runner recreates them.
+
+The default sweep and UI now use a shared native-aware ratio helper, retain DPR 2 as a high-DPI diagnostic and expose acquisition-order GPU samples. Outdated authored-depth/tuft descriptions in README, public API and module/harness comments are updated to branch generations and fixed terminal anatomy; legitimate "orders of magnitude" language and tests proving the retired key absent remain. FN-5 R8 is annotated as superseded by FN-6 R3/R7 without closing FN-5.
+
+The owner subsequently observed that the tapered branches look "very very pokey" and asked whether to address that before the Rust rewrite. This remaining visual concern is recorded for the later species-template/visual-QA work; task 7 changes no generation geometry and does not claim the branching architecture is botanically complete.

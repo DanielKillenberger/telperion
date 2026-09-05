@@ -124,8 +124,9 @@ export interface Clay {
  * 3. FOUR POINTS, NOT TWO. Fill work scales with the AREA a triangle
  *    covers; the quad-overshading waste at its edges scales with its
  *    PERIMETER. Two resolutions cannot tell those apart - any two
- *    points lie on a line - so the sweep runs 1.0, 0.7, 0.5 and 0.25
- *    and the shape of the curve is the reading.
+ *    points lie on a line - so the sweep includes 1.0, 0.7, 0.5 and 0.25
+ *    alongside the capped native ratio and an explicit 2.0 high-DPI point.
+ *    The shape of the curve is the reading.
  *
  * And the term the harness was hiding: `setPixelRatio(min(dpr, 2))`.
  * On a HiDPI display that is four times the fragments of a ratio of 1,
@@ -134,8 +135,12 @@ export interface Clay {
  * display asks for and what the renderer applied.
  * ------------------------------------------------------------------ */
 
-/** The sweep's four points, as applied pixel ratios. */
-export const SWEEP_RATIOS: readonly number[] = [1, 0.7, 0.5, 0.25];
+/** Applied native resolution (capped as in the renderer), plus the 2.0
+ * high-DPI and lower-resolution diagnostics. Duplicate ratios run once. */
+export function sweepRatios(rawPixelRatio: number): readonly number[] {
+  return [...new Set([Math.min(rawPixelRatio, PIXEL_RATIO_CAP), 2, 1, 0.7, 0.5, 0.25])]
+    .sort((a, b) => b - a);
+}
 
 /** What the renderer is actually doing, which no build can know. */
 export interface FrameStats {
@@ -162,6 +167,8 @@ export interface SweepPoint {
   pixelRatio: number;
   gpuMs: number;
   samples: number;
+  /** Undisjoint GPU query results in acquisition order, in milliseconds. */
+  sampleMs?: readonly number[];
 }
 
 export interface SweepResult {
@@ -837,7 +844,7 @@ export function createStage(
     return null;
   };
 
-  const sweep: Stage["sweep"] = async (ratios = SWEEP_RATIOS) => {
+  const sweep: Stage["sweep"] = async (ratios = sweepRatios(rawPixelRatio())) => {
     if (timer === null) {
       return {
         supported: false,
@@ -887,6 +894,7 @@ export function createStage(
           pixelRatio: ratio,
           gpuMs: medianMs(samples),
           samples: samples.length,
+          sampleMs: samples,
         });
       }
     } finally {

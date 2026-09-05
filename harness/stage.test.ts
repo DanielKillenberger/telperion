@@ -10,7 +10,7 @@ import {
   medianMs,
   pivotOn,
   solveRoom,
-  SWEEP_RATIOS,
+  sweepRatios,
   type SweepResult,
 } from "./stage";
 
@@ -512,12 +512,13 @@ const FOUR_POINTS = [
 ];
 
 describe("the sweep's shape", () => {
-  it("runs four points, and the four the budget is read from", () => {
-    /* Two points cannot separate the two things that scale here:
-       covered-area work goes with a triangle's area and quad-overshading
-       waste goes with its perimeter, and any two points lie on a line.
-       Four is the smallest set with a shape to read. */
-    expect([...SWEEP_RATIOS]).toEqual([1, 0.7, 0.5, 0.25]);
+  it.each([
+    [1, [2, 1, 0.7, 0.5, 0.25]],
+    [2, [2, 1, 0.7, 0.5, 0.25]],
+    [1.5, [2, 1.5, 1, 0.7, 0.5, 0.25]],
+    [3, [2, 1, 0.7, 0.5, 0.25]],
+  ])("includes the capped native ratio and diagnostics for DPR %s", (raw, expected) => {
+    expect(sweepRatios(raw)).toEqual(expected);
   });
 });
 

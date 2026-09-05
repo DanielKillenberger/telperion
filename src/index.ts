@@ -7,9 +7,9 @@
  *
  *   envelope  -> the authored silhouette, as a solid of revolution
  *   skeleton  -> space colonization fills it, then local rules branch
- *                on from every tip to leaf-bearing twigs, one bias
- *                field shaping both passes
- *   radius    -> a thickness per node, conserving area through forks
+ *                from tips and eligible limbs to fixed terminal twigs,
+ *                one bias field shaping both passes
+ *   radius    -> fork thickness above the crossover, local taper below
  *   surface   -> one continuous swept mesh, plaited and root-flared
  *   canopy    -> a leaf on the young wood, culled to a shell, one
  *                transform each for a single instanced draw
@@ -68,8 +68,8 @@ export {
   type GrowthReport,
 } from "./skeleton/grow";
 
-// The second pass: local rules from every tip down to leaf-bearing
-// wood, and the shell rule that sheds the twigs the crown would shade.
+// The second pass: branch generations from tips and eligible limbs
+// down to fixed terminal twigs, and shell shedding of interior wood.
 export {
   branchTwigs,
   resolveTwigs,
@@ -81,7 +81,7 @@ export { branchLength, childRadius, generationsUntilTwig,
   DEFAULT_BRANCH_LAW, DEFAULT_TWIG_ANATOMY, type BranchLawParams, type TwigAnatomy } from "./skeleton/law";
 export { shedTwigs, DEFAULT_SHED } from "./skeleton/shed";
 
-// Thickness, and the fine orders' own taper law below the crossover.
+// Thickness, and the recorded branch-local taper below the crossover.
 export {
   solveRadii,
   DEFAULT_RADII,

@@ -153,7 +153,7 @@ export function sampleEnvelope(
  *  measured against. The profile is smooth and this is a chord
  *  approximation of it: at 128 samples the chord sits under the true
  *  curve by well under a millimetre on either preset, which is three
- *  orders below the shell it is used to measure. */
+ *  orders of magnitude below the shell it is used to measure. */
 const PROFILE_SAMPLES = 128;
 
 /** The envelope's own profile curve: the outline of the solid of

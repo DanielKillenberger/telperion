@@ -34,7 +34,7 @@ function grown(preset: TreePreset): TwiggedSkeleton {
 /** Each edge crossing from colonization into the pass is a separate seam.
  * Empty selections are untested, including a pass stopped at its ceiling. */
 function seam(skeleton: Skeleton): { crossover: number; handoffs: number[] } | { untested: string } {
-  if (!("crossover" in skeleton)) return { untested: "the skeleton carries no crossover: not built by the twig pass" };
+  if (!("crossover" in skeleton)) return { untested: "the skeleton carries no crossover: not built by the branch pass" };
   const { crossover, nodes } = skeleton as TwiggedSkeleton;
   const handoffs: number[] = [];
   for (let i = Math.max(1, crossover); i < nodes.length; i++) {
@@ -330,7 +330,7 @@ describe("the crossover: the error case", () => {
     const full = grown(TELPERION);
     const rested = { ...full, nodes: full.nodes.slice(0, full.crossover) };
     expect(seam(rested)).toEqual({ untested: "no handoff edges in the grown range" });
-    expect(seam({ nodes: rested.nodes })).toEqual({ untested: "the skeleton carries no crossover: not built by the twig pass" });
+    expect(seam({ nodes: rested.nodes })).toEqual({ untested: "the skeleton carries no crossover: not built by the branch pass" });
     const capped = growSkeleton({ ...TELPERION.skeleton,
       growth: { ...TELPERION.skeleton.growth, maxNodes: rested.nodes.length },
     }, TELPERION.radii);

@@ -62,9 +62,10 @@ const ATTRACTORS_MAX = 1600;
  *  sliders. Gravitropism is deliberately outside it - a tree that wants
  *  to grow up still wants to when it is not twisting.
  *  `density` is the attractor count, and `step` and the branch-law
- *  rules go through under the library's own names. `taper` is not a skeleton argument at all -
- *  thickness is solved over the skeleton once it has grown, so it
- *  travels through `toRadiusParams`. */
+ *  rules go through under the library's own names. Twig anatomy stays
+ *  in metres. `taper` travels through `toRadiusParams`: the colonization
+ *  radius solve uses it before branch growth, and the final solve
+ *  preserves the appended branches' recorded local taper. */
 export function toSkeletonParams(params: GrowerParams): SkeletonParams {
   return {
     seed: params.seed,

@@ -40,9 +40,10 @@ import type { BiasParams } from "../torsion";
 /** The skeleton half of a preset: `SkeletonParams` with its four
  *  optional members stated in full, because a preset is a complete
  *  answer and not a set of overrides. `twigs` is the second pass, the
- *  local rules below the crossover, with its orders stated as the
- *  depth the tree ships at. `step` is the branching depth,
- *  a fraction of envelope height like every other authored term, and
+ *  branch law and fixed metre-based twig anatomy below the crossover.
+ *  Generation count follows radius; internodeFactor controls geometric
+ *  resolution independently of lateral count. `step` is colonization
+ *  resolution, a fraction of envelope height, and
  *  it sits beside `attractors` rather than inside `growth` because
  *  `growth` is the escape hatch in metres: the two distances the step
  *  drives are derived from it by `defaultGrowth`, not written out.

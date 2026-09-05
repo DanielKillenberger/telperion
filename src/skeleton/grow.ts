@@ -46,8 +46,9 @@ import { branchTwigs, resolveTwigs, MAX_TWIG_LEVELS, type TwigParams, type Twigg
  * its own.
  *
  * Colonization runs first, its radius field is solved under the caller's
- * thickness parameters, then branchTwigs continues its tips under the
- * branch law. Fixed terminal twigs end the recursion. The shell rule
+ * thickness parameters, then branchTwigs continues its tips and seeds
+ * laterals on eligible limbs under the branch law. Fixed terminal twigs
+ * end the recursion. The shell rule
  * sheds interior subtrees before later stages read the geometry and
  * the pass's records.
  * ------------------------------------------------------------------ */
@@ -298,12 +299,12 @@ export function resolveGrowth(
  *  caller that reports the build reads them here rather than
  *  re-deriving them wrong. */
 export interface GrowthReport {
-  /** Carries `crossover`, the index where the twig pass began, because
-   *  the thickness solve keys on it: a consumer that rebuilt a plain
-   *  `{ nodes }` would have every twig solved as a limb, silently. */
+  /** Carries the crossover and branch records, including local endRadius
+   *  and terminal twig marks. Rebuilding plain `{ nodes }` loses local
+   *  taper and anatomy-aware leaf placement. */
   skeleton: TwiggedSkeleton;
   /** Whether the node ceiling stopped growth before the crown, or the
-   *  twig pass, was finished. A capped tree is the ceiling's shape and
+   *  branch pass, was finished. A capped tree is the ceiling's shape and
    *  not the envelope's, and it is reported rather than truncated
    *  silently. */
   capped: boolean;
@@ -314,7 +315,7 @@ export interface GrowthReport {
 }
 
 /** Grows one skeleton and reports the growth: colonization, then the
- *  twigs from its tips, then the shell rule over the twigs.
+ *  branch generations from tips and eligible limbs, then shell shedding.
  *  Deterministic in `params` and `radii`. */
 /** The envelope colonization fills: the authored one with its crown
  *  depth, from trunk to shell, shrunk by `reach` in every direction, so
@@ -352,8 +353,8 @@ export function growReport(params: SkeletonParams, radii: RadiusParams = DEFAULT
   };
 }
 
-/** Grows one skeleton: colonization, the twigs from its tips, and the
- *  shell rule over the twigs. Deterministic in `params` and `radii`. */
+/** Grows one skeleton: colonization, branch generations and terminal twigs,
+ *  then shell shedding. Deterministic in `params` and `radii`. */
 export function growSkeleton(params: SkeletonParams, radii: RadiusParams = DEFAULT_RADII): TwiggedSkeleton {
   return growReport(params, radii).skeleton;
 }

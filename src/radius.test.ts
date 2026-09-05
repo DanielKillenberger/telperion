@@ -276,7 +276,7 @@ describe("solveRadii - no zero or negative radii, whatever it is handed", () => 
   });
 });
 
-describe("solveRadii - the fine orders below the crossover", () => {
+describe("solveRadii - the branch generations below the crossover", () => {
   /** Full generations, or a prefix-only fixture for the colonization solve. */
   const twigged = (preset: typeof TELPERION, withBranches: boolean, lengthRatio = preset.skeleton.twigs.lengthRatio): TwiggedSkeleton => {
     const tree = growSkeleton({ ...preset.skeleton,

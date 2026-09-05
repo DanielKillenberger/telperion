@@ -159,9 +159,9 @@ export interface RadiusField {
  *     sum of its children's `startRadius^forkExponent`, to
  *     floating-point;
  *   - the field above the crossover is byte for byte the field of the
- *     same skeleton cut off there, so twig orders never move a limb.
+ *     same skeleton cut off there, so appended generations never move a limb.
  *
- * `skeleton.crossover`, when the twig pass set it, is the index of the
+ * `skeleton.crossover`, when the branch pass set it, is the index of the
  * first node that pass appended; a skeleton without one has no twigs
  * and the whole of it is solved by the fork rule.
  *
@@ -181,7 +181,7 @@ export function solveRadii(
   const startRadius = new Float64Array(count);
   if (count === 0) return { radius, startRadius };
 
-  /* Where the fork rule stops and the fine orders' law begins. Not a
+  /* Where the fork rule stops and the branch-local law begins. Not a
      number, or past the end, is a skeleton with no twigs; below one
      would make the root a twig with no parent to take its radius
      from, and a root is never appended. Truncated, because a fraction

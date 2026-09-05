@@ -15,13 +15,13 @@ import type { TwiggedSkeleton } from "./twigs";
  * radius solve and the surface ever see them. Not a light-competition
  * simulation - the shell this library already has, applied to wood.
  *
- * ONLY TWIGS ARE SHED. Colonization's nodes are the structure that
- * fills the envelope and reaches for light; shedding those would move
+ * ONLY APPENDED WOOD IS SHED. Colonization's nodes fill the envelope
+ * and reach for light; shedding those would move
  * the outline, which is the whole of what the eye reads a tree by. The
- * twig pass appends after the nodes it was given, so "a twig" is an
- * index at or past where the first pass ended.
+ * branch pass appends after the nodes it was given, so branches and
+ * terminal twigs at or past the crossover are eligible for shedding.
  *
- * A TWIG SURVIVES ON THE FIRST NODE OF ITS SUBTREE THAT IS NOT
+ * APPENDED WOOD SURVIVES ON THE FIRST NODE OF ITS SUBTREE THAT IS NOT
  * DEFINITELY INTERIOR - the culler's every-vertex rule, with a node's
  * descendants standing in for a blade's vertices. A retained branch
  * keeps its complete leader run and fine terminal transition: pruning
@@ -54,9 +54,9 @@ const held = (value: number, fallback: number): number =>
   Number.isFinite(value) ? value : fallback;
 
 /**
- * Removes the twigs of `skeleton` that sit deep inside `envelope`.
+ * Removes appended branch subtrees deep inside `envelope`.
  *
- * `from` is the index the twig pass started appending at: every node
+ * `from` is the index the branch pass started appending at: every node
  * below it is colonization's and is kept whatever its depth. Pure -
  * neither argument is touched - and the result carries the kept nodes
  * in their original order with parents re-indexed, so the skeleton

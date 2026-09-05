@@ -35,7 +35,7 @@ import {
 import {
   createStage,
   describeSweep,
-  SWEEP_RATIOS,
+  sweepRatios,
   type FrameStats,
   type Stage,
   type SweepResult,
@@ -49,8 +49,8 @@ import "./grower-dev.css";
  *  on two adjacent notches, as if it had skipped a hundred of them. */
 /** A build this cheap, in milliseconds, runs on every notch of a dial;
  *  a dearer one waits `BUILD_SETTLE_MS` after the last notch. About
- *  five frames: the default tree builds inside it and the deep ones -
- *  a second or two at eight twig orders - do not. */
+ *  five frames. Branch generations down to fixed twig anatomy can
+ *  take seconds, so the measured last build decides the schedule. */
 const BUILD_LIVE_MS = 80;
 const BUILD_SETTLE_MS = 250;
 
@@ -92,13 +92,10 @@ export function GrowerDev() {
   // the tube viewer did; it is not allowed to cost it silently, so the
   // panel says the number every time a dial moves.
   const [stats, setStats] = useState<TreeStats | null>(null);
-  /* What the last build cost, for deciding whether the next one may
-     run on the dial's every notch. Measured at eight twig orders a
-     build is one second on Telperion and two on Laurelin, and a build
-     that runs on every input event holds the slider still for that
-     long per notch; the default tree builds in a tenth of that and
-     wants no delay at all. A ref, not state: the number steers the
-     effect and must not re-run it. */
+  /* The last full build selects immediate or settle-after-drag updates.
+     More branch generations and finer geometric internodes can cost
+     seconds. A ref lets the measured cost steer the next effect
+     without triggering another build itself. */
   const lastBuildMs = useRef(0);
   /* The flag under suspicion. It is a renderer CONSTRUCTION flag, so
      turning it over is not a setter: it builds a new renderer, and a
@@ -441,7 +438,7 @@ export function GrowerDev() {
           >
             dpr auto
           </button>
-          {SWEEP_RATIOS.map((ratio) => (
+          {sweepRatios(frameStats?.pixelRatioRaw ?? window.devicePixelRatio).map((ratio) => (
             <button
               className={
                 pixelRatio === ratio ? "gd-button gd-button-on" : "gd-button"
@@ -500,7 +497,7 @@ export function GrowerDev() {
 
         <p className="gd-note gd-warn">
           {sweeping
-            ? "sweeping 1.00 / 0.70 / 0.50 / 0.25 - do not resize the window"
+            ? `sweeping ${sweepRatios(frameStats?.pixelRatioRaw ?? window.devicePixelRatio).map((ratio) => ratio.toFixed(2)).join(" / ")} - do not resize the window`
             : sweep === null
               ? "no sweep yet. run it with vsync off: google-chrome --disable-gpu-vsync --disable-frame-rate-limit"
               : describeSweep(sweep)}
