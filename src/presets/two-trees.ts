@@ -116,9 +116,9 @@ export const TELPERION: TreePreset = {
     /* The recursion below the crossover, at rest. One twig, shared with
        Laurelin: a 25 cm current-year shoot of 5 mm, one leaf every 20 mm,
        borne at every station of wood 5 cm and under, spaced no closer
-       than a twig's length; 40 cm here, a vigorous shoot, which is also
+       than a twig's length; 50 cm here, a vigorous shoot, which is also
        what spaces the twigs so three laterals per branch fit under the
-       node ceiling. Above that, branches: length ratio 0.4 and radius
+       node ceiling once fine wood stopped combing into the field. Above that, branches: length ratio 0.4 and radius
        power 1.3 (a lateral starts at 0.304 of its parent), three
        laterals per branch at even stations (two capped nothing but read
        as rods; four caps the ceiling), departing at 45 degrees
@@ -126,11 +126,12 @@ export const TELPERION: TreePreset = {
        from the seed. The internode factor is this tree's own: 3.5
        diameters, the finest that fits the ceiling (3 caps), giving a
        2.6 m first internode on 79 cm wood against the 3.9 m the owner
-       found too coarse. Measured at rest: 216,211 nodes after shedding,
-       65,270 twigs, 1,305,400 leaves, 37.8 percent of the shell occupied,
-       the second setting after the owner found two laterals coarse. */
+       found too coarse. Measured at rest: 204,616 nodes after shedding,
+       57,898 twigs, 1,447,450 leaves, 68.4 percent of the shell occupied.
+       Third setting: two laterals read as rods, and before the field's
+       turn was scaled per metre the fine wood combed into streams. */
     twigs: {
-      twig: { length: 0.4, diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1, bearingDiameter: 0.05 },
+      twig: { length: 0.5, diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1, bearingDiameter: 0.05 },
       lengthRatio: 0.4,
       ratioPower: 1.3,
       internodeFactor: 3.5,
@@ -270,10 +271,10 @@ export const LAURELIN: TreePreset = {
        internode factor, 6 diameters, because this dome hides
        coarseness the owner saw on Telperion ("seems okish") and its
        1,336 handoffs would cap the ceiling at anything finer than 5.
-       Measured at rest: 164,511 nodes after shedding, 60,604 twigs,
-       787,852 leaves, 12.3 percent of the shell occupied. */
+       Measured at rest: 130,483 nodes after shedding, 43,248 twigs,
+       1,081,200 leaves, 15.1 percent of the shell occupied. */
     twigs: {
-      twig: { length: 0.4, diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1, bearingDiameter: 0.05 },
+      twig: { length: 0.5, diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1, bearingDiameter: 0.05 },
       lengthRatio: 0.4,
       ratioPower: 1.3,
       internodeFactor: 6,

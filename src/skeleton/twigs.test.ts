@@ -268,12 +268,14 @@ describe("branch generations", () => {
     const params = resolveTwigs({ internodeFactor: 32, laterals: 1, angleVariation: 0, vigourVariation: 0, divergence: 0, angle: 45, limbRadius: 1 });
     const bent = new Vector3(0, 1, -1).normalize();
     const bias = (p: Vector3, wanted: Vector3) => p.y === 10 ? wanted.clone().normalize() : bent.clone();
-    const tree = branchTwigs(base, field(0.01), { ...config, bias }, params);
+    // The field turns wood per metre of internode against the growth step;
+    // a step far shorter than any internode gives the fixture the full turn.
+    const tree = branchTwigs(base, field(0.01), { ...config, bias, stepDistance: 1e-9 }, params);
     const children = tree.nodes.map((node, i) => node.parent === 2 ? i : -1).filter(i => i >= 0);
     // Both depart along bent, away from their parent's vertical arrival.
     expect(children).toHaveLength(2);
     expect(arrival(tree, children[0]).distanceTo(arrival(tree, children[1]))).toBeLessThan(1e-10);
-    const folded = branchTwigs(base, field(0.01), { ...config, bias: () => new Vector3(0, 1, 0) }, params);
+    const folded = branchTwigs(base, field(0.01), { ...config, bias: () => new Vector3(0, 1, 0), stepDistance: 1e-9 }, params);
     expect(folded.nodes.filter(node => node.parent === 2)).toHaveLength(1);
     const source = readFileSync(new URL("twigs.ts", import.meta.url), "utf8");
     expect(source).not.toMatch(/new (Map|Set|WeakMap|WeakSet)\b/);

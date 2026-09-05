@@ -269,17 +269,25 @@ export function branchTwigs(
           across.copy(shoot.normal).multiplyScalar(Math.cos(azimuth)).addScaledVector(binormal, Math.sin(azimuth));
           wanted.copy(from).multiplyScalar(Math.cos(departure)).addScaledVector(across, Math.sin(departure));
         }
+        const distance = isTwig ? twigs.twig.length : length / internodes;
+        /* The field bends wood per metre, not per node: a limb takes one
+           growth step between the field's opinions, and a branch internode
+           a fraction of that step gets the same fraction of the turn.
+           Without this every fine branch converged onto the field's flow
+           within a few internodes and the crown combed itself into
+           parallel streams, which is what the owner saw. The field is
+           still consulted at every internode, at the step it is tuned to. */
+        const turn = maxTurn * Math.min(1, distance / step);
         const heading = limitTurn(
           lateral ? wanted : from,
           config.bias ? config.bias(position, wanted, step) : wanted.clone().normalize(),
-          maxTurn,
+          turn,
         );
         if (lateral) {
           let collides = from.dot(heading) >= separation;
           for (let a = 0; a < accepted.length && !collides; a++) collides = accepted[a].dot(heading) >= separation;
           if (collides) continue;
         }
-        const distance = isTwig ? twigs.twig.length : length / internodes;
         candidate.copy(position).addScaledVector(heading, distance);
         if (candidate.y < config.trunkHeight) continue;
         if (nodes.length >= config.maxNodes) { nodeCapped = true; return result(); }
