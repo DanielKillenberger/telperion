@@ -45,9 +45,8 @@ R3 approximation: wood uses linearly tapered sphere sweeps with rounded ends, an
 
 Release single-run field-only evidence (not whole-process RAM or full-generation timing): ordinary 13,264 nodes and 63,029 leaves builds in 15.19 ms; 32,768 cubic queries in 3.10 ms; owned capacity 8,478,152 bytes. Telperion 175,035 nodes and 1,349,630 retained leaves builds in 390.90 ms; same query count in 5.95 ms; owned capacity 163,668,696 bytes. Raw observations: /tmp/fn8-field-test.log. No giant wood mesh is allocated. Storage is O(n); median build O(n log n); worst-case heavily overlapping primitives can still require a scan.
 
-stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
 
-Task remains in_progress. No tracker mutation, review, integration or flowctl done invoked. Commit and handover paths are in /tmp/fn8-field-evidence.json. Shared note creation used the hook-recommended exclusive create after direct redirection into .git notes was rejected; no existing file was overwritten.
+Worker handover was followed by conductor integration and verified completion; the integration checks are recorded below.
 
 Conductor merged the field and verified three release tests on the joined tree.
 stage: impl-review - skipped(user: none)

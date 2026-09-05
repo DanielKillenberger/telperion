@@ -47,12 +47,12 @@ baseline: none (the approved parent and task contain no Quick commands). The fir
 
 Contracts for downstream workers: /home/daniel/Projects/telperion/.git/flow-notes/fn8-rust-20260905/foundation.md. Node.base_radius holds branch allocation independently of solved edge radii. Raw skeleton radii may be zero; validate_solved enforces positive output radii. Stage modules remain empty until their assigned ports; the foundation does not claim a botanical or visual migration comparison is complete. The pinned compiler is installed by rustup and no committed build command depends on /tmp; this execution reused the provided temporary toolchain and Playwright installation via environment variables.
 
-stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
 
-Task remains in_progress. No review or flowctl done was invoked. The conductor authorized .gitignore in addition to the original Touches; no other implementation edits exceeded them.
+Worker handover was followed by conductor integration and verified completion; the integration checks are recorded below.
 
 Integrated and verified on the conductor branch.
-stage: wave-join - ran (model: gpt-6-astra)
+stage: impl-review - skipped(user: none)
+stage: wave-join - ran
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: b410f3ba1fb304ed0810712262cc1534ea122442

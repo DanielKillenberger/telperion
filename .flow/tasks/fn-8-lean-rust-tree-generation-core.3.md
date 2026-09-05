@@ -47,9 +47,8 @@ R1: All seven final FN6 fixture classes pass complete solved-tree comparison aga
 
 R2: Eight focused tests cover deterministic complete presets and shell clipping, fixed twig anatomy, branch attachment radii, leader taper, geometric refinement preserving lateral attachments, structural fork conservation and independence from appended children, whole-run/terminal-transition shedding with remapped IDs, caps surviving removal, generation-limit diagnostics, malformed parent errors, invalid parameter errors, finite rails, usable empty/zero-budget/zero-height outputs, independent seed/family controls, and fine-step influence headroom. Full workspace verification passes 31 tests; the separate seven-case reference comparison passes. Formatting, strict workspace clippy and diff checks pass. Classifier reports FULL; no spec-defined gate receipt or skip was fabricated.
 
-stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
 
-Task remains in_progress. No review, tracker mutation, integration or flowctl done invoked. Work is committed in the assigned isolated workspace; task-unique evidence is /tmp/fn8-growth-evidence.json. Scope includes the declared branching, twig, radius, preset, root library and growth-test paths, plus the assigned shared API note.
+Worker handover was followed by conductor integration and verified completion; the integration checks are recorded below.
 
 Conductor integrated the worker commit and verified eight growth tests in release mode.
 stage: impl-review - skipped(user: none)

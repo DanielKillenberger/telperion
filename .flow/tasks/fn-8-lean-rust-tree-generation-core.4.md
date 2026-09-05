@@ -46,11 +46,11 @@ R3/boundaries: five focused integration tests cover closed outward winding and n
 
 API and notes: /home/daniel/Projects/telperion/.git/flow-notes/fn8-rust-20260905/surface.md. All implementation changes stay within declared Touches. Tooling rejected truncating writes into the notes directory; an append-only note publication succeeded without changing unrelated files.
 
-stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
 
-Task remains in_progress. No review, shared tracker mutation, integration, or flowctl done was invoked.
+Worker handover was followed by conductor integration and verified completion; the integration checks are recorded below.
 
 Integrated and focused checks passed on conductor branch.
+stage: impl-review - skipped(user: none)
 stage: wave-join - ran
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence

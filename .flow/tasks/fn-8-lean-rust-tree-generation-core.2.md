@@ -41,11 +41,11 @@ Ported deterministic crown colonization with bounded attractor bins, growth bias
 
 baseline: none (the parent and task define no Quick commands). Focused Rust verification passes 6 tests; the separate pinned-FN6 comparison passes all 6 ordinary/giant/boundary cases. Ordinary/Telperion/Laurelin emit 736/522/1733 nodes with the same reference topology; maximum position drift is 7.04e-11 metres. Empty, 20-node capped and high-crown cases also match. An oversized climb step escaping above the crown was reproduced red and fixed, without changing the representative preset crowns. Formatting, clippy and diff checks pass. Logs and exact commands are recorded in the evidence JSON. Integrated visual QA remains a later pipeline responsibility.
 
-stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
 
-Task remains in_progress; no review, tracker mutation or flowctl done was invoked. All code and tests stay within the assigned colonization/crown_reference paths.
+Worker handover was followed by conductor integration and verified completion; the integration checks are recorded below.
 
 Integrated and focused checks passed on conductor branch.
+stage: impl-review - skipped(user: none)
 stage: wave-join - ran
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence

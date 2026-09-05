@@ -52,9 +52,8 @@ Ordinary/giant matched clay checks ran headed before the user's permission conce
 
 API, ownership, build, normal-drift diagnosis and timing details for task7: /home/daniel/Projects/telperion/.git/flow-notes/fn8-rust-20260905/browser.md. No performance conclusion is drawn from single runs. Task7 owns paired warm measurements/memory/rendering analysis, old TypeScript deletion/test-owner migration and published docs; old production files remain present but are absent from the live browser generator path.
 
-stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
 
-Task remains in_progress. No review verdict, tracker mutation, integration or flowctl done was performed. Workspace: /home/daniel/Projects/telperion/.worktrees/fn8-browser.
+Worker handover was followed by conductor integration and verified completion; the integration checks are recorded below.
 
 Conductor merged the browser cutover, reran the complete headless binding/UI proof and typecheck on the integrated tree, and inspected both matched giant clay captures.
 stage: impl-review - skipped(user: none)

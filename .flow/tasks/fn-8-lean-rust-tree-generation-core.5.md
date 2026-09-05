@@ -47,7 +47,6 @@ Frozen solved-tree comparison used final FN6 fdafb099b1495519de75a6b9a66d37f7d07
 
 The native stage has no surface-module dependency; its borrowed Tree input remains unchanged, and placement produces transforms independently of reusable element construction. Cross-representation selection and Wasm assembly tests remain with task 6 as dispatched. The field/browser API contract is /home/daniel/Projects/telperion/.git/flow-notes/fn8-rust-20260905/foliage.md. Default total instance budget is usize::MAX, constrained by checked byte arithmetic and fallible allocation; callers may provide a tighter budget. A request exceeding the inherited 512 stations-per-shoot safeguard returns ResourceLimit instead of silently thinning/truncating foliage.
 
-stage: impl-review - skipped(policy: parallel-wave; conductor owns lifecycle, REVIEW_MODE=none)
 
 Conductor integrated 8a32e7f and verified six focused foliage tests on the joined tree.
 
