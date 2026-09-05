@@ -162,6 +162,7 @@ describe("toSkeletonParams", () => {
         stationsPerInternode: DEFAULT_PARAMS.twigStations, bearingDiameter: DEFAULT_PARAMS.twigBearing },
       ratioPower: DEFAULT_PARAMS.ratioPower,
       limbRadius: DEFAULT_PARAMS.limbRadius,
+      reach: DEFAULT_PARAMS.reach,
       laterals: 2,
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
@@ -741,8 +742,8 @@ describe("the forest's own numbers", () => {
     // Task 8: tips bear laterals as well as leaders, so handoffs rose from
     // 604 / 1,336; the fine wood bears a twig at every station a twig's
     // length apart, so twigs rose from 19,744 / 40,781.
-    expect(alone.map((one) => one.handoffs)).toEqual([1778, 2344]);
-    expect(alone.map((one) => one.twigs)).toEqual([57898, 43248]);
+    expect(alone.map((one) => one.handoffs)).toEqual([1085, 1642]);
+    expect(alone.map((one) => one.twigs)).toEqual([61420, 31637]);
     for (const key of ["handoffs", "levelCappedHandoffs", "twigs"] as const) {
       expect(forest[key]).toBe(alone.reduce((sum, one) => sum + one[key], 0));
     }

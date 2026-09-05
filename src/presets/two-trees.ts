@@ -119,27 +119,35 @@ export const TELPERION: TreePreset = {
        than a twig's length; 50 cm here, a vigorous shoot, which is also
        what spaces the twigs so three laterals per branch fit under the
        node ceiling once fine wood stopped combing into the field. Above that, branches: length ratio 0.4 and radius
-       power 1.3 (a lateral starts at 0.304 of its parent), three
-       laterals per branch at even stations (two capped nothing but read
-       as rods; four caps the ceiling), departing at 45 degrees
+       power 1.3 (a lateral starts at 0.304 of its parent), four
+       laterals per branch at even stations (two read as rods; four fit
+       once colonization stopped a fifth of the crown's depth inside the
+       shell and the pass clipped to it), departing at 45 degrees
        plus a bud-by-bud spread of 10 degrees and 15 percent vigour drawn
        from the seed. The internode factor is this tree's own: 3.5
        diameters, the finest that fits the ceiling (3 caps), giving a
        2.6 m first internode on 79 cm wood against the 3.9 m the owner
-       found too coarse. Measured at rest: 204,616 nodes after shedding,
-       57,898 twigs, 1,447,450 leaves, 68.4 percent of the shell occupied.
-       Third setting: two laterals read as rods, and before the field's
-       turn was scaled per metre the fine wood combed into streams. */
+       found too coarse. Measured at rest: 182,787 nodes after shedding,
+       61,420 twigs, 1.54 M leaves, 62 percent of the shell occupied, two
+       of 75 thick tips near the shell where 37 of 133 ended on it. Fourth
+       setting: two laterals read as rods, the fine wood combed into
+       streams until the field's turn was scaled per metre, and the thick
+       limbs ended on the shell until reach kept them inside. */
     twigs: {
       twig: { length: 0.5, diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1, bearingDiameter: 0.05 },
       lengthRatio: 0.4,
       ratioPower: 1.3,
       internodeFactor: 3.5,
-      laterals: 3,
+      laterals: 4,
       // Measured at 0.075 / 0.1 / 0.15: 42,006 / 49,713 / 56,378
       // nodes after shedding, full builds 720 / 798 / 896 ms. The
       // shared 0.1 rest also gives Laurelin limb laterals; 0.075 does not.
       limbRadius: 0.1,
+      // A fifth of the crown's depth left to the branches: thick wood ends
+      // inside, the pass builds the shell. Measured 0 / 0.2 / 0.3 on
+      // Telperion: 37 / 2 / 4 thick tips near the shell, 68 / 62 / 36
+      // percent of it occupied.
+      reach: 0.2,
       angle: 45,
       angleVariation: 10,
       vigourVariation: 0.15,
@@ -271,8 +279,9 @@ export const LAURELIN: TreePreset = {
        internode factor, 6 diameters, because this dome hides
        coarseness the owner saw on Telperion ("seems okish") and its
        1,336 handoffs would cap the ceiling at anything finer than 5.
-       Measured at rest: 130,483 nodes after shedding, 43,248 twigs,
-       1,081,200 leaves, 15.1 percent of the shell occupied. */
+       Measured at rest: 95,344 nodes after shedding, 31,637 twigs,
+       0.79 M leaves, 13.1 percent of the shell occupied, no thick tip near
+       the shell. */
     twigs: {
       twig: { length: 0.5, diameter: 0.005, internodeLength: 0.02, stationsPerInternode: 1, bearingDiameter: 0.05 },
       lengthRatio: 0.4,
@@ -285,6 +294,11 @@ export const LAURELIN: TreePreset = {
       // These are CPU medians of three full builds, not GPU timings;
       // the candidate counts and method are in fn-6's Measured section.
       limbRadius: 0.1,
+      // A fifth of the crown's depth left to the branches: thick wood ends
+      // inside, the pass builds the shell. Measured 0 / 0.2 / 0.3 on
+      // Telperion: 37 / 2 / 4 thick tips near the shell, 68 / 62 / 36
+      // percent of it occupied.
+      reach: 0.2,
       angle: 45,
       angleVariation: 10,
       vigourVariation: 0.15,

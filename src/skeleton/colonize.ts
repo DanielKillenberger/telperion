@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { Envelope } from "../envelope";
 
 /* ------------------------------------------------------------------ *
  * SPACE COLONIZATION
@@ -148,6 +149,10 @@ export interface GrowthConfig {
    *  Absent is the unbiased algorithm: straight up the trunk, and
    *  wherever the attractors say after that. */
   bias?: GrowthBias;
+  /** The authored silhouette, when the pass below the crossover is to
+   *  clip to it: a candidate outside it is not placed. Colonization
+   *  ignores it, since its attractors already lie inside. */
+  shell?: Envelope;
 }
 
 /** `wanted`, turned back until it is no more than `maxRadians` away

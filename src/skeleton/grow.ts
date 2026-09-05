@@ -293,6 +293,7 @@ export function resolveGrowth(
   return {
     ...defaultGrowth(params.envelope, scattered, params.step, params.twigs),
     bias,
+    shell: params.envelope,
     ...params.growth,
   };
 }
@@ -322,13 +323,30 @@ export interface GrowthReport {
 /** Grows one skeleton and reports the growth: colonization, then the
  *  twigs from its tips, then the shell rule over the twigs.
  *  Deterministic in `params` and `radii`. */
+/** The envelope colonization fills: the authored one with its crown
+ *  depth, from trunk to shell, shrunk by `reach` in every direction, so
+ *  the thick wood ends inside and the pass builds the shell out to the
+ *  authored silhouette. The bare trunk keeps its height. */
+export function innerEnvelope(envelope: Envelope, reach: number): Envelope {
+  const share = 1 - Math.min(0.9, Math.max(0, held(reach, 0)));
+  const base = envelope.height * envelope.crownBase;
+  const height = base + (envelope.height - base) * share;
+  if (!(height > 0)) return envelope;
+  return {
+    ...envelope,
+    height,
+    crownBase: base / height,
+    spread: envelope.spread * share * (envelope.height / height),
+  };
+}
+
 export function growReport(params: SkeletonParams, radii: RadiusParams = DEFAULT_RADII): GrowthReport {
   const rng = createRng(params.seed);
-  const attractors = sampleEnvelope(params.envelope, params.attractors, rng);
+  const twigs = resolveTwigs(params.twigs);
+  const attractors = sampleEnvelope(innerEnvelope(params.envelope, twigs.reach), params.attractors, rng);
   const config = resolveGrowth(params, attractors.length);
   const colonized = colonize(attractors, new THREE.Vector3(0, 0, 0), config);
   const field = solveRadii(colonized, params.envelope, radii);
-  const twigs = resolveTwigs(params.twigs);
   const maxNodes = Math.min(config.maxNodes, NODE_CEILING,
     colonized.nodes.length + twigHeadroom(colonized, field, config, twigs));
   const twigged = branchTwigs(colonized, field, { ...config, maxNodes }, twigs, params.seed);

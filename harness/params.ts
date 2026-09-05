@@ -112,6 +112,8 @@ export interface GrowerParams {
   twigBearing: number;
   ratioPower: number;
   limbRadius: number;
+  /** Share of the crown's depth colonization leaves for the branches. */
+  reach: number;
   laterals: number;
   angleVariation: number;
   vigourVariation: number;
@@ -271,6 +273,10 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "vigourVariation", label: "vigour variation", min: 0, max: 0.95, step: 0.01, unit: "" },
   { key: "laterals", label: "laterals", min: 0, max: 7, step: 1, unit: "" },
   { key: "limbRadius", label: "limbRadius", min: 0, max: 1, step: 0.005, unit: "r" },
+  // Measured on Telperion: at 0 the 79 cm colonization tips end at the
+  // shell and 21 m branches reach out past it, the cactus the owner saw;
+  // the rest leaves the outer share of the crown to the pass.
+  { key: "reach", label: "reach", min: 0, max: 0.9, step: 0.01, unit: "" },
   { key: "twigAngle", label: "branch angle", min: 0, max: 90, step: 1, unit: "deg" },
   { key: "twigDivergence", label: "branch divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
   // The fork exponent, under the name the owner already turns. Below
@@ -353,6 +359,7 @@ export const DEFAULT_PARAMS: GrowerParams = {
   twigBearing: DEFAULT_TWIGS.twig.bearingDiameter,
   ratioPower: DEFAULT_TWIGS.ratioPower,
   limbRadius: DEFAULT_TWIGS.limbRadius,
+  reach: DEFAULT_TWIGS.reach,
   laterals: DEFAULT_TWIGS.laterals,
   twigAngle: DEFAULT_TWIGS.angle,
   twigDivergence: DEFAULT_TWIGS.divergence,

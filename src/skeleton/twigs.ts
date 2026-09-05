@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { createRng } from "../rng";
 import type { RadiusField } from "../radius";
+import { envelopeRadiusAt, type Envelope } from "../envelope";
 import { DEFAULT_MAX_TURN_PER_STEP, limitTurn, type GrowthConfig, type Skeleton, type SkeletonNode } from "./colonize";
 import { branchLength, childRadius, internodeLength, DEFAULT_BRANCH_LAW, DEFAULT_TWIG_ANATOMY, type TwigAnatomy } from "./law";
 
@@ -30,6 +31,13 @@ export interface TwigParams {
   laterals: number;
   /** Colonization lateral threshold as a fraction of root radius, held to 0..1. */
   limbRadius: number;
+  /** The share of the crown's depth, from trunk to shell, that
+   *  colonization leaves for the branches: its attractors fill an inner
+   *  envelope shrunk by this fraction, so thick wood ends inside the
+   *  crown and the outer shell is built by the pass, which clips to the
+   *  authored silhouette. Held to 0..0.9. Zero is the old behaviour,
+   *  limbs ending blunt at the shell with branches reaching out past it. */
+  reach: number;
   /** Lateral departure in degrees, held to 0..90. */
   angle: number;
   /** Symmetric departure spread in degrees, held to 0..90. */
@@ -51,6 +59,7 @@ export const DEFAULT_TWIGS: TwigParams = {
   get internodeFactor() { return DEFAULT_BRANCH_LAW.internodeFactor; },
   laterals: 2,
   limbRadius: 0.1,
+  reach: 0.2,
   angle: 45,
   angleVariation: 10,
   vigourVariation: 0.15,
@@ -78,6 +87,7 @@ export function resolveTwigs(twigs?: Partial<TwigParams>): TwigParams {
     internodeFactor: pinned(held(asked.internodeFactor, DEFAULT_TWIGS.internodeFactor), 0.05, 32),
     laterals: pinned(Math.round(held(asked.laterals, DEFAULT_TWIGS.laterals)), 0, 7),
     limbRadius: pinned(held(asked.limbRadius, DEFAULT_TWIGS.limbRadius), 0, 1),
+    reach: pinned(held(asked.reach, DEFAULT_TWIGS.reach), 0, 0.9),
     angle: pinned(held(asked.angle, DEFAULT_TWIGS.angle), 0, 90),
     angleVariation: pinned(held(asked.angleVariation, DEFAULT_TWIGS.angleVariation), 0, 90),
     vigourVariation: pinned(held(asked.vigourVariation, DEFAULT_TWIGS.vigourVariation), 0, 0.95),
@@ -201,6 +211,9 @@ export function branchTwigs(
       internodes: branchInternodes(radius, branchLength(radius)), key: i });
   }
   const binormal = new THREE.Vector3();
+  const inward = new THREE.Vector3();
+  const outside = (shell: Envelope, at: THREE.Vector3) =>
+    at.y > shell.height || Math.hypot(at.x, at.z) > envelopeRadiusAt(shell, at.y);
   const wanted = new THREE.Vector3();
   const across = new THREE.Vector3();
   const candidate = new THREE.Vector3();
@@ -290,6 +303,22 @@ export function branchTwigs(
         }
         candidate.copy(position).addScaledVector(heading, distance);
         if (candidate.y < config.trunkHeight) continue;
+        /* Nothing grows past the authored silhouette. A branch meeting
+           the crown's edge bends along it, as a branch meeting the light's
+           edge does: the heading is turned toward the axis by up to the
+           full turn limit and tried once more, and only a branch that
+           still leaves the crown ends where it is. Colonization's tips
+           already sit inside by `reach`, so the pass builds the shell. */
+        if (config.shell && outside(config.shell, candidate)) {
+          // Turned toward the axis by no more than the turn limit, so the
+          // seam suite's direction criterion holds at the shell as it does
+          // everywhere; a branch that still leaves the crown ends here.
+          inward.set(-candidate.x, candidate.y > config.shell.height ? -1 : 0, -candidate.z);
+          if (inward.lengthSq() === 0) continue;
+          heading.copy(limitTurn(lateral ? wanted : from, inward.normalize(), maxTurn));
+          candidate.copy(position).addScaledVector(heading, distance);
+          if (candidate.y < config.trunkHeight || outside(config.shell, candidate)) continue;
+        }
         if (nodes.length >= config.maxNodes) { nodeCapped = true; return result(); }
         if (lateral) accepted.push(heading);
         const id = nodes.length;

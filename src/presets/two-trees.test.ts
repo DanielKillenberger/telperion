@@ -291,6 +291,7 @@ describe("the preset registry", () => {
         "lengthRatio",
         "limbRadius",
         "ratioPower",
+        "reach",
         "twig",
         "vigourVariation",
       ]);

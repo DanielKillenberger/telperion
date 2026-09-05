@@ -10,6 +10,7 @@ import { colonize, type GrowthConfig, type Skeleton } from "./colonize";
 import { sampleEnvelope } from "../envelope";
 import { createRng } from "../rng";
 import { DEFAULT_RADII, solveRadii } from "../radius";
+import { resolveTwigs } from "./twigs";
 import {
   DEFAULT_STEP,
   defaultGrowth,
@@ -17,8 +18,7 @@ import {
   influenceRadiusFor,
   type SkeletonParams,
   growReport,
-  resolveGrowth,
-} from "./grow";
+  resolveGrowth, innerEnvelope } from "./grow";
 import { childRadius } from "./law";
 import { LAURELIN, TELPERION } from "../presets/two-trees";
 import { DEFAULT_BIAS, NO_BIAS, type BiasParams } from "../torsion";
@@ -90,7 +90,8 @@ const params = { seed: 1, envelope: DEFAULT_ENVELOPE, attractors: 900 };
 /** These envelope/search fixtures measure the colonization stage directly.
  * Branch generations have their separate radius and seam contracts. */
 function colonized(tree: SkeletonParams): Skeleton {
-  const points = sampleEnvelope(tree.envelope, tree.attractors, createRng(tree.seed));
+  // Colonization fills the inner envelope, `reach` inside the shell, as growReport does.
+  const points = sampleEnvelope(innerEnvelope(tree.envelope, resolveTwigs(tree.twigs).reach), tree.attractors, createRng(tree.seed));
   return colonize(points, new THREE.Vector3(), resolveGrowth(tree, points.length));
 }
 
@@ -373,6 +374,11 @@ describe("colonization growth", () => {
   });
 });
 
+/** The search-radius regression cases measure colonization over the whole
+ *  authored envelope, as they did before `reach` kept it inside the shell. */
+const colonizedFull = (tree: SkeletonParams): Skeleton =>
+  colonized({ ...tree, twigs: { ...resolveTwigs(tree.twigs), reach: 0 } });
+
 describe("the search radius and the attractor spacing", () => {
   it("resolves to nine steps at today's step, on both presets and every fixture above the floor", () => {
     /* R7, as narrowed when the floor was raised to 2.0 spacings: both
@@ -395,11 +401,11 @@ describe("the search radius and the attractor spacing", () => {
     for (const tree of trees) {
       const nineSteps = defaultGrowth(tree.envelope).stepDistance * 9;
       expect(
-        signature(colonized(tree)),
+        signature(colonizedFull(tree)),
         `${tree.envelope.height} m, ${tree.attractors} attractors`,
       ).toBe(
         signature(
-          colonized({
+          colonizedFull({
             ...tree,
             growth: { ...tree.growth, influenceRadius: nineSteps },
           }),
@@ -442,7 +448,7 @@ describe("the search radius and the attractor spacing", () => {
     const growth = growthAtStep(tree.envelope, step, tree.attractors);
 
     const stump = census(
-      colonized({
+      colonizedFull({
         ...tree,
         growth: { ...growth, influenceRadius: step * 9 },
       }),
@@ -450,7 +456,7 @@ describe("the search radius and the attractor spacing", () => {
     expect(stump.nodes).toBeLessThan(250);
     expect(stump.tips).toBeLessThanOrEqual(4);
 
-    const whole = colonized({ ...tree, growth });
+    const whole = colonizedFull({ ...tree, growth });
     const grown = census(whole);
     expect(grown.nodes).toBeGreaterThan(5000);
     expect(grown.tips).toBeGreaterThan(500);
@@ -492,12 +498,12 @@ describe("the search radius and the attractor spacing", () => {
     ];
     for (const tree of trees) {
       for (const attractors of [250, 1600]) {
-        const today = census(colonized({ ...tree, attractors }));
+        const today = census(colonizedFull({ ...tree, attractors }));
         expect(today.tips).toBeGreaterThan(50);
         for (const fraction of [0.011, 0.0055, 0.003]) {
           const step = tree.envelope.height * fraction;
           const finer = census(
-            colonized({
+            colonizedFull({
               ...tree,
               attractors,
               growth: growthAtStep(tree.envelope, step, attractors),
@@ -659,7 +665,8 @@ describe("the node ceiling under twigs", () => {
   it("reports the generation cap separately from the law-derived node budget", () => {
     const report = growReport({ ...TELPERION.skeleton, attractors: 1,
       twigs: { ...TELPERION.skeleton.twigs, internodeFactor: 32, laterals: 1, angleVariation: 0, vigourVariation: 0, lengthRatio: 1, limbRadius: 0 },
-      bias: NO_BIAS, growth: { maxTurnPerStep: 90 },
+      // No shell to clip to: a non-converging law must reach the level cap, not the crown's edge.
+      bias: NO_BIAS, growth: { maxTurnPerStep: 90, shell: undefined },
     }, TELPERION.radii);
     expect(report.levelCapped).toBe(true);
     expect(report.capped).toBe(false);
