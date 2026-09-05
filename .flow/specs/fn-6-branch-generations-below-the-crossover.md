@@ -147,7 +147,7 @@ Active tracks served by this plan:
 
 ## Measured
 
-Telperion as shipped after fn-5, and the two finer steps, in the unit-test sweep on this machine. Handoff wood is the median radius of colonization tips; reach is the summed internode length of one cluster.
+Telperion as shipped after fn-5, and the two finer steps, in the unit-test sweep on this machine. Handoff wood is the median diameter of colonization tips; reach is the summed internode length of one cluster.
 
 | step | orders | colonization nodes | tips handed off | handoff wood | cluster reach | median tip | leaves |
 |---|---|---|---|---|---|---|---|
@@ -158,6 +158,42 @@ Telperion as shipped after fn-5, and the two finer steps, in the unit-test sweep
 Elastic similarity puts about 21 m of branching on 79 cm wood in a tree whose 14.8 m trunk carries 148 m. Eight orders in 8 m is the tuft.
 
 Colonization's own clock, measured for the amendment on both presets as shipped: Telperion is 51 rounds (19 of them the bare-trunk climb, 32 of crown growth) to 808 nodes, Laurelin 57 rounds (11 climb, 46 crown) to 2,442, and colonization alone is under 20 ms on either. Every round boundary is a valid prefix of the mature node array, which is the property R8 is written against; at Telperion's 60th percentile round the prefix is 136 nodes on 27 tips at 90 m, and its tips solve thinner than the mature handoff wood, which is why a young tree hands off at twig scale under this spec's derived count.
+
+### Task 1 biological review and law proof (2026-09-05)
+
+The law module states a selected broadleaf anatomy and separates the literature's findings from its modelling choices. No growth entry point, preset, shedding rule or existing radius solve changed in this task.
+
+- **First branch length.** `L = C r^(2/3)`, with radius in metres and `C = 148 / 7.4^(2/3) = 38.9739032075 m^(1/3)`. [McMahon 1975](https://doi.org/10.1038/scientificamerican0775-92) supplies elastic similarity. The calibration is ours, using Telperion's height and trunk radius, and gives the large handoff wood a branch of the intended scale. [Niklas & Spatz 2004](https://pubmed.ncbi.nlm.nih.gov/15505224/) finds 2/3 asymptotically at large diameters and rejects a single exponent across sizes. We use it for the first branch; descendant lengths follow their parent ratio and the fixed twig stops the extrapolation. This does not claim that elastic similarity describes twig hydraulics. The coefficient's numerical rail is 1e-6..1e6.
+- **Lateral radius and length.** `r_child = r_parent * lengthRatio^ratioPower`, resting at `lengthRatio = 0.4`, `ratioPower = 1.3`. [Weber & Penn 1995](https://doi.org/10.1145/218380.218427), section 4.3 and p.126, gives Aspen's Ratio/RatioPower as 0.015/1.2 and Tupelo's as 0.015/1.3, with fine-level nLength values 0.6 and 0.4. We repeat Tupelo's fine-level pair. Ratio is their trunk radius/length ratio and is not multiplied in at every fork. This graphics model supplies a structural precedent; its parameters are not universal botanical constants. Rails are 0.05..1 for length ratio and 0..8 for power. A non-shrinking combination is legal and reports the level cap.
+- **One fixed twig.** Diameter 5 mm, internode 20 mm, one leaf station per internode. The 120 mm library leaf is 24 times that diameter. [Corner 1949](https://doi.org/10.1093/oxfordjournals.aob.a083225) and [Pickup et al. 2005](https://doi.org/10.1111/j.0269-8463.2005.00927.x) support the relation between twig and leaf size, rather than a universal 24:1 ratio. [Bian et al. 2019](https://pmc.ncbi.nlm.nih.gov/articles/PMC6801603/), section 2.3 and fig.4, reports 90% of wild-type birch internodes at 15..25 mm; 20 mm selects a value within that observed range. One station selects alternate phyllotaxis, with the canopy's existing spiral arrangement ([Jean 1994](https://doi.org/10.1017/CBO9780511666933)). These dimensions are selected anatomy with sources, not species-independent constants. They do not scale with a 132 m or 148 m tree. The radius stop holds an authored twig diameter to 1e-6..1e6 m.
+- **Pipe area and apical dominance.** [Shinozaki et al. 1964](https://doi.org/10.18960/seitai.14.3_97) relates supported foliage to conducting cross-section and retains disused pipes in older wood. [Minamino & Tateno 2014](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0093535), PMC3979699, discusses departures from Leonardo's rule around 1.04..1.3. Its 1.04 is a model example at a 10:1 main/lateral weight ratio, not a universal measured lower bound. Neither that interval nor a balanced-area logarithm sets the generation count here. Repeated lateral radii do; the leader remains the internode run of its branch.
+- **Stopping.** `generationsUntilTwig` counts lateral reductions to 2.5 mm radius, excluding the terminal twig. It returns zero for wood already at twig scale. The existing 12-level safety cap reports `capped: true` only if the remaining radius is still above the twig threshold. Non-finite parameters use resting values, and non-finite or negative input radius means zero wood.
+
+The tip-only node estimate uses an explicit sampled topology. Each branch has three internodes along its leader, two laterals at one and two thirds of its length, and one fixed terminal twig continuing the leader. The leader runs to its terminal twig within that branch length; it is not another recursive branch at unchanged radius. Each lateral takes the full 0.4 parent-length ratio and radius factor `0.4^1.3`, without positional thinning. A terminal twig adds one node. Thus `N(r) = 1` at twig radius, otherwise `N(r) = 4 + 2 N(childRadius(r, 0.4, 1.3))`. The three internodes are a coarse axis sampling choice, not a claim that living broadleaf internodes are metres long. This estimate includes all those laterals and leaders before collision rejection or shedding, plus the unchanged colonization nodes. It excludes the additional colonization-limb laterals whose budget task 4 must measure. A different topology in task 2 must re-run this proof; the law alone cannot guarantee a node budget for arbitrary branching counts.
+
+Measured with both presets at zero orders through `bare()`, then `solveRadii` with each preset's own thickness parameters. The solver gives all colonization tips the same radius within a preset, so each range currently collapses to one value. The test reports every handoff's radius, diameter, first branch length, generation count and node estimate.
+
+| preset | colonization nodes | handoffs | median handoff diameter | first branch length, min / median / max | lateral generations, min..max | cap-bound handoffs | appended node estimate | total node estimate / 250,000 |
+|---|---|---|---|---|---|---|---|---|
+| Telperion | 808 | 133 | 0.790864 m | 20.996890 / 20.996890 / 20.996890 m | 5..5 | 0 | 20,748 | 21,556 |
+| Laurelin | 2,442 | 376 | 1.161219 m | 27.124593 / 27.124593 / 27.124593 m | 5..5 | 0 | 58,656 | 61,098 |
+
+Each handoff's estimate is 156 appended nodes under this topology. The length column is the first leader's branch length, rather than the sum of all edges in its branching subtree. It gives Telperion's 79 cm wood about 21 m of axial reach before any lateral extends it. All handoffs reach twig radius within the cap, and both total estimates fit the ceiling for the stated tip-only topology.
+
+### Task 1 tuft baseline for R4
+
+The baseline runs the unchanged shipped growth pipeline, including shedding, at eight orders and at zero orders. The caller marks appended nodes with no children as terminals. Zero orders therefore reports **untested (no-terminals)** for both metrics, rather than a false zero.
+
+The voxel edge is **0.02 times envelope height** (2.96 m on Telperion, 2.64 m on Laurelin), on a world-origin grid. Shell membership uses the centre of each voxel within the finite crown and shedding's radial-slack/profile-depth predicate. A voxel counts as occupied once if it contains a terminal that itself lies within the crown shell. This is a voxel approximation of occupied shell volume, not solid wood volume. The shell thickness is **0.45 times maximum envelope radius**, exactly shedding's conversion (15.984 m and 34.452 m respectively). Clustering is the fraction of terminals within **0.05 times height** (7.4 m and 6.6 m) of any colonization tip, including equality. Reference tips are classified within the colonization prefix, ignoring appended children. Keep these resolutions, distances and predicates fixed for task 5's comparison.
+
+| preset | orders | nodes after shedding | terminal nodes | occupied / shell voxels | shell occupancy | terminals near a colonization tip | tip clustering |
+|---|---|---|---|---|---|---|---|
+| Telperion | 0 | 808 | 0 | untested | untested | untested | untested |
+| Telperion | 8 | 37,562 | 18,280 | 193 / 6,352 | 0.030384131 (3.0384%) | 9,860 / 18,280 | 0.539387309 (53.9387%) |
+| Laurelin | 0 | 2,442 | 0 | untested | untested | untested | untested |
+| Laurelin | 8 | 152,046 | 74,982 | 1,747 / 74,072 | 0.023585160 (2.3585%) | 38,180 / 74,982 | 0.509188872 (50.9189%) |
+
+No baseline run hit the node ceiling. These are reference measurements, not the eventual clay-derived R4 thresholds. Reproduce the tables and per-handoff rows with `npx vitest run src/skeleton/law.test.ts src/skeleton/fill.test.ts --pool=threads --reporter=verbose --silent=false`. The default fork pool passes the tests but suppresses worker stdout on this environment; the thread pool exposes the measurement rows. The canonical gates still use their unchanged commands.
 
 ## Parked unknowns
 
