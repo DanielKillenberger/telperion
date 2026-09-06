@@ -1,6 +1,7 @@
 //! Crown, local branches, shell shedding, and final radius solve, in botanical order.
 mod habit;
 mod local;
+mod occupancy;
 use crate::{
     bias::{BiasParams, GrowthBias},
     colonization::{self, GrowthConfig},
@@ -288,10 +289,13 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
     };
     let config = params.resolved_growth(points.len())?;
     let bias = GrowthBias::new(params.envelope, params.seed, params.bias)?;
-    let mut tree = if params.habit == BranchHabit::Colonizing {
-        colonization::colonize(&points, Vec3::ZERO, &config, Some(&bias))?
+    let (mut tree, repaired) = if params.habit == BranchHabit::Colonizing {
+        (
+            colonization::colonize(&points, Vec3::ZERO, &config, Some(&bias))?,
+            false,
+        )
     } else {
-        habit::generate(params, &config, &bias)?
+        habit::generate_with_repairs(params, &config, &bias)?
     };
     radius::solve(&mut tree, params.envelope, radii)?;
     let max_nodes = config
@@ -315,6 +319,12 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
         0.45,
         matches!(params.habit, BranchHabit::Spreading(_)),
     )?;
+    if repaired {
+        occupancy::upper_descendants(&mut tree);
+    }
+    if matches!(params.habit, BranchHabit::Tiered(_)) {
+        occupancy::transverse_curtains(&mut tree);
+    }
     radius::solve(&mut tree, params.envelope, radii)?;
     Ok(GrowthReport {
         tree,

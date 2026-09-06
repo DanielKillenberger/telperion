@@ -82,6 +82,7 @@ struct Builder<'a> {
     config: &'a GrowthConfig,
     bias: &'a GrowthBias,
     rng: Rng,
+    repaired: bool,
 }
 impl Builder<'_> {
     fn capped(&mut self) -> bool {
@@ -335,6 +336,7 @@ impl Builder<'_> {
             if yaw == 0.0 && tilt == 0.0 {
                 continue;
             }
+            self.repaired = true;
             let radial = Vec3::new(centres[o].x, 0.0, centres[o].z).normalized();
             let hinge = Vec3::new(-radial.z, 0.0, radial.x);
             for i in 1..nodes.len() {
@@ -446,11 +448,19 @@ impl Builder<'_> {
     }
 }
 
+#[cfg(test)]
 pub(super) fn generate(
     params: &SkeletonParams,
     config: &GrowthConfig,
     bias: &GrowthBias,
 ) -> Result<Tree> {
+    generate_with_repairs(params, config, bias).map(|(tree, _)| tree)
+}
+pub(super) fn generate_with_repairs(
+    params: &SkeletonParams,
+    config: &GrowthConfig,
+    bias: &GrowthBias,
+) -> Result<(Tree, bool)> {
     let mut b = Builder {
         tree: Tree::default(),
         envelope: if matches!(params.habit, BranchHabit::Spreading(_)) {
@@ -461,6 +471,7 @@ pub(super) fn generate(
         config,
         bias,
         rng: Rng::new(params.seed ^ 0x742be831),
+        repaired: false,
     };
     if !b.capped() {
         b.tree.nodes.push(Node::root());
@@ -474,5 +485,5 @@ pub(super) fn generate(
     }
     b.tree.crossover = b.tree.nodes.len();
     b.tree.validate()?;
-    Ok(b.tree)
+    Ok((b.tree, b.repaired))
 }
