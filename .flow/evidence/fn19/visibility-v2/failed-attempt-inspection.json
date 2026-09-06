@@ -1,0 +1,17 @@
+{
+  "version": "fn19-visibility-v2",
+  "status": "interrupted after direct inspection failure",
+  "raw_root": "/tmp/fn19-visibility-v2-mature-20260906",
+  "run_sha256": "91d5455e437603b6ef90eb1d5f10c2773f3026172a4cb0988d7cd1b395037b62",
+  "source_freeze": "b8788948ac7bc3ee48d1b9f0a9972ffba0b12336",
+  "case_index": 1,
+  "view": "fork",
+  "image": {
+    "path": "failed-v2-oak2-fork-128.png",
+    "sha256": "6a539baac7ee7fc12d88f112491d8a1566d09c9e2beb66156bea9b5d52f55ad0"
+  },
+  "automatic_result": "four of four woody probes marked visible; false anatomical visibility inference",
+  "implementation_worker": "Main stem dominates the diagonal frame and hides the selected lateral-to-parent transition. Lateral collar unassessed.",
+  "conductor": "Confirmed main stem dominates diagonal frame; intended lateral attachment hidden behind it. Automatic four-of-four probe classification is a false positive.",
+  "correction": "Separate v2.1 protocol requires front-facing lateral and local branch-radius probes. All v1 and failed v2 artifacts retained unchanged, apart from terminal interruption bookkeeping."
+}

@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "purpose": "Actual unchanged independent 2m native replay; changed/failed controls are synthetic receipt mutations, never candidate production geometry. Pine is not generated.",
+  "results": [
+    {
+      "control": "unchanged-independent-native-replay",
+      "exit_code": 0,
+      "status": "comparable",
+      "reasons": [],
+      "changed_cases": [],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/unchanged-independent-native-replay-comparison/comparison.json",
+      "sha256": "7c6bbd04e9f88ea8aaa9d8150c73548c4bf31d5b68e6db5143bdffe1b951c1cc"
+    },
+    {
+      "control": "metric-drift",
+      "exit_code": 1,
+      "status": "inconclusive",
+      "reasons": [
+        "unchanged-source measurement drift: control-1"
+      ],
+      "changed_cases": [
+        "control-1"
+      ],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/metric-drift-comparison/comparison.json",
+      "sha256": "2ffa7c8d3f239ea4b38080eb48e4ecc50880f42d79dd148e96873a39f5078ad1"
+    },
+    {
+      "control": "changed-source-metric",
+      "exit_code": 0,
+      "status": "comparable",
+      "reasons": [],
+      "changed_cases": [
+        "control-1"
+      ],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/changed-source-metric-comparison/comparison.json",
+      "sha256": "43536331b3eeaac3c1c41f5ded1206cc4df3d47df5e56196d840aca090687812"
+    },
+    {
+      "control": "failed",
+      "exit_code": 1,
+      "status": "inconclusive",
+      "reasons": [
+        "incomplete run",
+        "failed/unavailable/interrupted case: control-1",
+        "unchanged-source measurement drift: control-1"
+      ],
+      "changed_cases": [
+        "control-1"
+      ],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/failed-comparison/comparison.json",
+      "sha256": "166a78abcbebcbcc474fdda970e0c24c8cb9408242cdb07e58030201c3f971ad"
+    },
+    {
+      "control": "missing",
+      "exit_code": 1,
+      "status": "inconclusive",
+      "reasons": [
+        "missing case: control-1"
+      ],
+      "changed_cases": [],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/missing-comparison/comparison.json",
+      "sha256": "398741c72dae85cb484534039ec044cbdc331ba96fcf4bfbe4aa954c349b3c21"
+    },
+    {
+      "control": "duplicate",
+      "exit_code": 1,
+      "status": "inconclusive",
+      "reasons": [
+        "Error: Command failed: python3 -B -c import importlib.util,json,sys\ns=importlib.util.spec_from_file_location('r','crates/telperion-core/examples/geometry_benchmark/runner.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\np=m.read(sys.argv[2]);r=m.read(sys.argv[3]);m.manifest(p,r)\na,rows=m.load_run(sys.argv[1],p,m.sha(open(sys.argv[2],'rb').read()))\nfor row in rows.values():\n h=m.hashlib.sha256()\n for chunk in json.JSONEncoder(sort_keys=True,separators=(',',':'),allow_nan=False).iterencode(row['metrics']): h.update(chunk.encode())\n row['metric_content_sha256']=h.hexdigest()\n axes=row['metrics'].get('axes',{}).get('value')\n if isinstance(axes,dict): axes.pop('samples',None)\nprint(json.dumps({'run':a,'rows':rows})) /tmp/fn19-task4-comparison-controls-post-capture-fix/duplicate /tmp/fn19-task4-native-controls/protocol.json /home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/.flow/evidence/fn19/references.json\nTraceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n    a,rows=m.load_run(sys.argv[1],p,m.sha(open(sys.argv[2],'rb').read()))\n           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/crates/telperion-core/examples/geometry_benchmark/runner.py\", line 293, in load_run\n    raise ValueError('duplicated terminal case: ' + cid)\nValueError: duplicated terminal case: control-1\n"
+      ],
+      "changed_cases": [],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/duplicate-comparison/comparison.json",
+      "sha256": "136a54b8390e3f2682647eba9f23c3452fb701b8987a705cec81be470d4e8896"
+    },
+    {
+      "control": "binary",
+      "exit_code": 1,
+      "status": "inconclusive",
+      "reasons": [
+        "Error: Command failed: python3 -B -c import importlib.util,json,sys\ns=importlib.util.spec_from_file_location('r','crates/telperion-core/examples/geometry_benchmark/runner.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\np=m.read(sys.argv[2]);r=m.read(sys.argv[3]);m.manifest(p,r)\na,rows=m.load_run(sys.argv[1],p,m.sha(open(sys.argv[2],'rb').read()))\nfor row in rows.values():\n h=m.hashlib.sha256()\n for chunk in json.JSONEncoder(sort_keys=True,separators=(',',':'),allow_nan=False).iterencode(row['metrics']): h.update(chunk.encode())\n row['metric_content_sha256']=h.hexdigest()\n axes=row['metrics'].get('axes',{}).get('value')\n if isinstance(axes,dict): axes.pop('samples',None)\nprint(json.dumps({'run':a,'rows':rows})) /tmp/fn19-task4-comparison-controls-post-capture-fix/binary /tmp/fn19-task4-native-controls/protocol.json /home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/.flow/evidence/fn19/references.json\nTraceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n    a,rows=m.load_run(sys.argv[1],p,m.sha(open(sys.argv[2],'rb').read()))\n           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/crates/telperion-core/examples/geometry_benchmark/runner.py\", line 275, in load_run\n    raise ValueError('binary identity mismatch')\nValueError: binary identity mismatch\n"
+      ],
+      "changed_cases": [],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/binary-comparison/comparison.json",
+      "sha256": "a57c6f3a8042031b9d2751c381e74d753528e5a5a9f2fd67795ed5ce42cafe4a"
+    },
+    {
+      "control": "source-digest",
+      "exit_code": 1,
+      "status": "inconclusive",
+      "reasons": [
+        "Error: Command failed: python3 -B -c import importlib.util,json,sys\ns=importlib.util.spec_from_file_location('r','crates/telperion-core/examples/geometry_benchmark/runner.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\np=m.read(sys.argv[2]);r=m.read(sys.argv[3]);m.manifest(p,r)\na,rows=m.load_run(sys.argv[1],p,m.sha(open(sys.argv[2],'rb').read()))\nfor row in rows.values():\n h=m.hashlib.sha256()\n for chunk in json.JSONEncoder(sort_keys=True,separators=(',',':'),allow_nan=False).iterencode(row['metrics']): h.update(chunk.encode())\n row['metric_content_sha256']=h.hexdigest()\n axes=row['metrics'].get('axes',{}).get('value')\n if isinstance(axes,dict): axes.pop('samples',None)\nprint(json.dumps({'run':a,'rows':rows})) /tmp/fn19-task4-comparison-controls-post-capture-fix/source-digest /tmp/fn19-task4-native-controls/protocol.json /home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/.flow/evidence/fn19/references.json\nTraceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n    a,rows=m.load_run(sys.argv[1],p,m.sha(open(sys.argv[2],'rb').read()))\n           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/crates/telperion-core/examples/geometry_benchmark/runner.py\", line 281, in load_run\n    raise ValueError('source/tool identity digest mismatch')\nValueError: source/tool identity digest mismatch\n"
+      ],
+      "changed_cases": [],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/source-digest-comparison/comparison.json",
+      "sha256": "c581f3efb561ae7a0abab4194620e8b9f8c33688a315793a2e075fc6b5c08414"
+    },
+    {
+      "control": "interrupted",
+      "exit_code": 1,
+      "status": "inconclusive",
+      "reasons": [
+        "missing case: control-1",
+        "missing case: control-2",
+        "missing case: control-3",
+        "missing case: control-4",
+        "missing case: control-5",
+        "missing case: control-6"
+      ],
+      "changed_cases": [],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/interrupted-comparison/comparison.json",
+      "sha256": "7d891a77eba1a9853e80e97a25a22f5a812b76fa3c35993422bce16511461827"
+    },
+    {
+      "control": "later-cohort-cannot-relabel-old-runs",
+      "exit_code": 1,
+      "status": "inconclusive",
+      "reasons": [
+        "Error: Command failed: python3 -B -c import importlib.util,json,sys\ns=importlib.util.spec_from_file_location('r','crates/telperion-core/examples/geometry_benchmark/runner.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\np=m.read(sys.argv[2]);r=m.read(sys.argv[3]);m.manifest(p,r)\na,rows=m.load_run(sys.argv[1],p,m.sha(open(sys.argv[2],'rb').read()))\nfor row in rows.values():\n h=m.hashlib.sha256()\n for chunk in json.JSONEncoder(sort_keys=True,separators=(',',':'),allow_nan=False).iterencode(row['metrics']): h.update(chunk.encode())\n row['metric_content_sha256']=h.hexdigest()\n axes=row['metrics'].get('axes',{}).get('value')\n if isinstance(axes,dict): axes.pop('samples',None)\nprint(json.dumps({'run':a,'rows':rows})) /tmp/fn19-task4-native-controls/baseline /home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/.flow/evidence/fn19/onboarding-examples/later-protocol.json /home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/.flow/evidence/fn19/onboarding-examples/later-references.json\nTraceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n    a,rows=m.load_run(sys.argv[1],p,m.sha(open(sys.argv[2],'rb').read()))\n           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/crates/telperion-core/examples/geometry_benchmark/runner.py\", line 272, in load_run\n    raise ValueError('run does not match supplied protocol/cohort')\nValueError: run does not match supplied protocol/cohort\n"
+      ],
+      "changed_cases": [],
+      "comparison_path": "/tmp/fn19-task4-comparison-controls-post-capture-fix/later-cohort-cannot-relabel-old-runs-comparison/comparison.json",
+      "sha256": "d7d6313d3744c949fcf563a42fdc105043f769b9db283e153b73b7f6756a4011"
+    }
+  ],
+  "third_species": "Existing onboarding verify.py independently checks actual unsupported-anatomy admission; comparison rejects mixing its later cohort with these runs."
+}

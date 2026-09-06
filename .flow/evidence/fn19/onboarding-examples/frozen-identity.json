@@ -1,0 +1,97 @@
+{
+  "protocol_path": ".flow/evidence/fn19/protocol.json",
+  "protocol_sha256": "04bee659801454dc7aff2818d84f9dd72591e574802bebfbaed64599656d4fb9",
+  "references_path": ".flow/evidence/fn19/references.json",
+  "references_sha256": "db491b8d6bf19dfde6b476d8f7099ef8d41abb079fb689c71aa855bffcc41533",
+  "benchmark_id": "fn19-v1",
+  "cases": [
+    {
+      "id": "oregon-white-oak-1",
+      "species_id": "oregon-white-oak",
+      "seed": 1,
+      "seed_role": "regression",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "species_id": "oregon-white-oak",
+      "seed": 2,
+      "seed_role": "regression",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "species_id": "oregon-white-oak",
+      "seed": 3,
+      "seed_role": "regression",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-3407793930",
+      "species_id": "oregon-white-oak",
+      "seed": 3407793930,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-1701335265",
+      "species_id": "oregon-white-oak",
+      "seed": 1701335265,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-1462003817",
+      "species_id": "oregon-white-oak",
+      "seed": 1462003817,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "norway-spruce-1",
+      "species_id": "norway-spruce",
+      "seed": 1,
+      "seed_role": "regression",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-2",
+      "species_id": "norway-spruce",
+      "seed": 2,
+      "seed_role": "regression",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3",
+      "species_id": "norway-spruce",
+      "seed": 3,
+      "seed_role": "regression",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3501386541",
+      "species_id": "norway-spruce",
+      "seed": 3501386541,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3258201723",
+      "species_id": "norway-spruce",
+      "seed": 3258201723,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-2774604799",
+      "species_id": "norway-spruce",
+      "seed": 2774604799,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "norway-spruce"
+    }
+  ],
+  "species_ids": [
+    "oregon-white-oak",
+    "norway-spruce"
+  ]
+}

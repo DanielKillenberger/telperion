@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "purpose": "Full mature numeric+visual self-integrity only; not independent replay",
+  "status": "comparable",
+  "cases": 12,
+  "views": 84,
+  "metrics_changed": 0,
+  "images_changed": 0,
+  "gaps_changed": 0,
+  "report": {
+    "path": "/tmp/fn19-mature-combined-self-check/comparison.json",
+    "bytes": 944495,
+    "sha256": "f0c933bbc29361b80106a595f440d354ab85a20e4f8a5c51592d1c20c3173c53"
+  }
+}

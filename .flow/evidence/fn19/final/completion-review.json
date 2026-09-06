@@ -1,0 +1,62 @@
+{
+  "attempt_timestamp": "2026-09-06T20:40:49.138160Z",
+  "base": "38d8401078e584d4b6f19480e8e782b0282b9099",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "38d8401078e584d4b6f19480e8e782b0282b9099",
+    "headSha": "c934c743e595c824a890181505ae962e206834bb",
+    "items": [
+      {
+        "body": "The spec requires each local fixture to expose its named anatomy. The baseline instead records nine occluded fork targets and five occluded attached-shoot targets. Inspection also finds obscured anatomy where the selector reports resolution. The committed oak attached-shoot preview confirms that overlapping foliage prevents isolation of the selected attachment. Deferring a usable visibility fixture to fn20/fn21 leaves this benchmark requirement incomplete.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-167daa11613d268accb69b8ea361165ea1f3245266df7b1b7f3f8067bd7c5b6f",
+        "id": "finding-7bc593acf683e49676ae9afd649f7e76",
+        "lastSeenReceiptId": "review-cd9b18e3124535b9e85dcda70237d95312828c7e168da391911207fbf5d7da16",
+        "ordinal": 1,
+        "rIds": [
+          "R2"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Preserve the frozen evidence and add a new version with reproducible, visibly usable local fixtures that retain surrounding connectivity. Validate their actual images before treating anatomical-view coverage as complete.",
+        "title": "The spec requires each local fixture to expose its named anatomy"
+      },
+      {
+        "body": "`addVisual` treats a missing `gaps.json` artifact as null, and required-artifact validation checks only beauty/coverage images and arrays. Using the actual saved replay pair, I omitted all 24 whole-view gap references in memory and ran `comparePaths`. It returned `comparable`, no reasons, and null gap results reported as unchanged. This violates the requirement to reject incomplete comparison evidence.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-167daa11613d268accb69b8ea361165ea1f3245266df7b1b7f3f8067bd7c5b6f",
+        "id": "finding-6947ff27582a25c968c5f07b21cf5f20",
+        "lastSeenReceiptId": "review-cd9b18e3124535b9e85dcda70237d95312828c7e168da391911207fbf5d7da16",
+        "ordinal": 2,
+        "rIds": [
+          "R4"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Require a valid, hashed, successful projected-gap result for every passing whole view. Missing required results must make comparison inconclusive. Add a control exercising omission from the artifact manifest.",
+        "title": "`addVisual` treats a missing `gaps"
+      }
+    ],
+    "reviewKind": "completion",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-cd9b18e3124535b9e85dcda70237d95312828c7e168da391911207fbf5d7da16",
+    "supersedesReceiptId": "review-167daa11613d268accb69b8ea361165ea1f3245266df7b1b7f3f8067bd7c5b6f"
+  },
+  "id": "fn-19-comparative-botanical-geometry-benchmark",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6-astra",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\nPrior finding #2: fixed\n\nThe versioned visibility supplement provides 24 inspected fork/shoot diagnostics while preserving the original evidence. I verified camera/admission equality, original parameters and geometry hashes, convergence, and image hashes, and directly inspected representative images.\n\nThe original 42-view replay still returns `comparable`. Repeating the prior gap-omission reproduction now rejects the missing required artifact.\n\n## Requirements Extracted\n\n1. **R1:** Inventory real and available competitor references across all five anatomical scales, with explicit limitations.\n2. **R2:** Freeze reproducible views, holdout seeds and structural/crown measurements before tuning.\n3. **R3:** Produce ranked findings separating biological plausibility, surface detail and rendering artifacts.\n4. **R4:** Compare revisions without hiding failures or anatomical changes; qualify costs separately.\n5. **R5:** Deliver onboarding documentation, two independent packets and a later additional-species manifest.\n6. Consume explicit manifests/output directories and emit versioned receipts and a human report.\n7. Identify source, dirty content, tools, binaries, parameters, cases and rendering conditions.\n8. Separate attributed observations, measurements and judgments; record reference context and availability.\n9. Preserve result statuses, units, definitions, support and failure reasons without converting absence to zero.\n10. Retain the twelve mature specimens, six audited holdouts and age/context limitations.\n11. Measure operational axis/order distributions, diameters, taper and angles; flag ambiguity and degeneracy.\n12. Measure foliage-centroid distributions with support counts and individual needle units.\n13. Provide framed, connected anatomical views using semantic targets and visibly usable local fixtures.\n14. Match neutral rendering conditions and retain native/converged evidence using pinned methodology.\n15. Compute projected gaps with fixed foliage-only masks, declared semantics and synthetic controls.\n16. Enforce comparison identities and immutable runs; permit geometry changes while rejecting incomplete evidence.\n17. Separate generation, preparation, CPU memory, Wasm capacity, GPU allocation and GPU timing.\n18. Preserve independent-review rubric, reviewer qualifications and actual feedback; disclose unavailable expertise.\n19. Validate extensible species identities, profiles, capabilities and specimen sets; reject unmet prerequisites.\n20. Document parallel ownership, ordered integration, resource coordination, regression checks and recovery.\n21. Provide focused analytic, admission, capture and comparison tests.\n22. Update README/replay documentation while preserving historical evidence and production behavior.\n\n## Coverage Verification\n\n1. **COVERED** \u2014 `.flow/evidence/fn19/references.json:323`: scale coverage, matching limitations and manual admissions.\n2. **COVERED** \u2014 `.flow/evidence/fn19/protocol.json:278`; `.flow/evidence/fn19/visibility-v2/protocol.json:1`: frozen cohort plus separately versioned visibility conditions.\n3. **COVERED** \u2014 `.flow/evidence/fn19/REPORT.md:92`: ranked findings and bounded interpretations.\n4. **COVERED** \u2014 `scripts/benchmarks/geometry-compare.mjs:65`: passing whole views now require validated gap evidence; unchanged replay succeeds.\n5. **COVERED** \u2014 `.flow/evidence/fn19/onboarding-examples/README.md:3`: independent packets and preserved later-cohort expansion.\n6. **COVERED** \u2014 `crates/telperion-core/examples/geometry_benchmark/runner.py:209`: explicit run inputs and receipt/report outputs.\n7. **COVERED** \u2014 `tests/browser/geometry-visibility.mjs:39`: content identities, original-source checks and frozen admissions.\n8. **COVERED** \u2014 `.flow/evidence/fn19/REFERENCES.md:3`; `.flow/evidence/fn19/REPORT.md:71`: attribution and comparison limits remain explicit.\n9. **COVERED** \u2014 `crates/telperion-core/examples/geometry_benchmark/runner.py:98`: status/value invariants and failure reasons.\n10. **COVERED** \u2014 `.flow/evidence/fn19/protocol.json:364`; `.flow/evidence/fn19/final/numeric.json:1464`: audited seeds and twelve terminal numerical cases.\n11. **COVERED** \u2014 `crates/telperion-core/examples/geometry_benchmark/metrics.rs:34`: axis distributions, taper, angles and exclusions.\n12. **COVERED** \u2014 `crates/telperion-core/examples/geometry_benchmark/metrics.rs:197`: biological-centroid bins and needle units.\n13. **COVERED** \u2014 `tests/browser/geometry-visibility.mjs:65`; `.flow/evidence/fn19/visibility-v2/inspection.json:5`: exact admitted conditions and 24 inspected local diagnostics. Filtering and depth-crop limitations are disclosed.\n14. **COVERED** \u2014 `.flow/evidence/fn19/PROTOCOL.md:55`; `.flow/evidence/fn19/visibility-v2/verification.json:1`: pinned sampling methodology and successful convergence.\n15. **COVERED** \u2014 `tests/browser/geometry-benchmark-diagnostics.mjs:34`; `tests/browser/geometry-benchmark.test.mjs:10`: ROI, gap statistics and analytic controls.\n16. **COVERED** \u2014 `scripts/benchmarks/geometry-compare.mjs:96`; `crates/telperion-core/examples/geometry_benchmark/runner.py:267`: identity validation, artifact checks and incomplete-evidence rejection.\n17. **COVERED** \u2014 `crates/telperion-core/examples/geometry_benchmark.rs:84`; `.flow/evidence/fn19/final/costs.json:1`: separate cost domains and inconclusive timing comparisons.\n18. **COVERED under the explicit deferral** \u2014 `.flow/evidence/fn19/final/independent-review.json:5`: actual independent assessment remains unassessed and unresolved.\n19. **COVERED** \u2014 `crates/telperion-core/examples/geometry_benchmark/runner.py:109`; `.flow/evidence/fn19/onboarding-examples/verify.py:44`: valid expansion and explicit unsupported pine admission.\n20. **COVERED** \u2014 `docs/species-onboarding.md:7`, `:22`, `:39`: stage handoffs, shared ownership and recovery.\n21. **COVERED** \u2014 `tests/browser/geometry-compare.test.mjs:18`; `tests/browser/geometry-benchmark.test.mjs:88`: gap-evidence and visibility regressions; integrated results retained in `.flow/evidence/fn19/final/reviewfix-integrated-gates.json:1`.\n22. **COVERED** \u2014 `README.md:128`; `tests/migration/README.md:182`, `:341`: baseline and supplement replay instructions. Original frozen receipts and production paths remain unchanged.\n\nCurrent verification: typechecking passed; 18 focused Node tests passed. Three filesystem-writing tests were blocked by the read-only sandbox. The actual replay and omission reproduction, manifest/admission checks, and all supplement identity/image checks passed. No full suite was rerun.\n\n## Reverse Coverage (untraced changes)\n\n`.worktrees/.gitignore` \u2014 **LEGITIMATE_SUPPORT** \u2014 Supports the documented isolated-worktree workflow.\n\nAll remaining changed files trace to R1\u2013R5, including the visibility supplement, proposal history, inspections, comparison controls and verification receipts.\n\n## Gaps Found\n\nNone remaining from the prior finding set. No new blocking finding.\n\nThe visibility supplement remains explicitly limited to reproducing the original geometry; its images are not presented as changed-revision comparisons or natural foliage-density evidence.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Attributed references and explicit matching limitations retained. |\n| R2 | met | Frozen measurements and cohort, with 24 verified local-anatomy diagnostics. |\n| R3 | deferred | Engineering assessment delivered; independent botanical portion remains explicitly unresolved under the permitted exception. |\n| R4 | met | Valid replay succeeds; missing required gap evidence is rejected. |\n| R5 | met | Template, parallel workflow, independent packets and later-species admission fixture verified. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "12c36b58768c4ecfa52b12c241267b0d",
+  "session_id": "01a07827-771a-7890-8f34-fc1abe7a509e",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-09-06T20:40:49.137443Z",
+  "type": "completion_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

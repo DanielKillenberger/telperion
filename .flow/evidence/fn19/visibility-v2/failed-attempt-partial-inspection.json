@@ -1,0 +1,16 @@
+{
+  "version": "fn19-visibility-v2",
+  "observer": "implementation worker, direct image inspection",
+  "independent_botanical_assessment": "unassessed",
+  "density_inference": "prohibited; explicitly filtered diagnostic",
+  "views": [
+    {
+      "case_index": 0,
+      "view": "fork",
+      "image_sha256": "4e929d8ae69eda6b3307909ffc633bcfb91098d16e1c6a4bce8cceb51a9d1421",
+      "visibility": "named anatomy visible",
+      "observation": "Incoming trunk and multiple outgoing axes meet at an exposed broad faceted cap-like shoulder. Abrupt angular boundaries are visible around the axis bases; no foliage blocks the junction. Fine surrounding twigs remain drawn.",
+      "limits": "Visible front-facing surface only; hidden rear continuity and watertightness unassessed."
+    }
+  ]
+}

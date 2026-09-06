@@ -1,0 +1,198 @@
+{
+  "checked_at": "2026-09-06T20:34:51.235978+00:00",
+  "source_commit": "dd86aa3b6aaa216000f25b2eea67eafe4e345fc6",
+  "run": "/tmp/fn19-reviewfix-legacy-whole",
+  "durable_run": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-review-controls/fn19-reviewfix-legacy-whole",
+  "exit_code": 1,
+  "interpretation": "Intentionally selected one case/two whole views; both pass and other40 remain pending. Hash equivalence is a targeted legacy rendering smoke, not formal cross-tool comparison.",
+  "views": [
+    {
+      "case_id": "control-1",
+      "view": "whole",
+      "azimuth_deg": 0,
+      "geometry_same": true,
+      "artifacts": [
+        {
+          "path": "cases/0/geometry.json",
+          "sha256": "7cde4cba73162098cf480d829b1e86728e7d0090d264c5270770bae8c6300b31",
+          "same_as_baseline": false
+        },
+        {
+          "path": "cases/0/whole-0/anatomy.json",
+          "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/beauty-native.f32",
+          "sha256": "c96f2bced51dc60e583c9d3c40c5120cd46687c77073bb734aba5113e3ec68cc",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/beauty-native.png",
+          "sha256": "c5a6599c3615892944a1998d22f60eeb8b5144db94c5fc402fe58921fa40448a",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/beauty-64.f32",
+          "sha256": "ee3c1ea891df6aff6ca11d89abbde3653529b8aab0d40fbb469af2c9b881a50d",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/beauty-64.png",
+          "sha256": "6078f0015e8da66feff431b53cec331aa0c58258c03021ca798b850fdb846c96",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/beauty-128.f32",
+          "sha256": "04c0cb8b6055162d2c3adcc8a29c2197e598f29b3d1614854f2cc327f4ad9745",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/beauty-128.png",
+          "sha256": "ecdb8151eb23113975b3fedc656259df9cebe114d5e988d1e184bda33fa84419",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/coverage-native.f32",
+          "sha256": "9354d2bdbab2adc25e194e1bf81f684661e94758bb1621bdfe154adf4cef1661",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/coverage-native.png",
+          "sha256": "3e2681035c8dec57187240da0a5c76de599a67660de1f4f6005cf9b1d400c84d",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/coverage-64.f32",
+          "sha256": "2e4b60f30ed5d4a83a3b432745ceb40483d3661f2e0469cda3e15cb9234c8250",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/coverage-64.png",
+          "sha256": "c8b1f7b9904b3292e344343f308ae31602baed8ae81e4af9e0db2dc1aa8cfb1b",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/coverage-128.f32",
+          "sha256": "56e45ad9627cd8d48d910e8ed8111c8a9d0d3cf436bedef6dcf9a97f7292c460",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/coverage-128.png",
+          "sha256": "c251667155fa7f13ac9d8d39887123457331a548e575727fd5fc42c682bd451e",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/sampling.json",
+          "sha256": "eb24483923cf96d6aa015390cb977a73e97e6e24464f9fbe0295588455ad5e37",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/gaps.json",
+          "sha256": "fcddc6c6e9cd6d88dee012b44778904c5ec8529713b88b724c68c6c1e9aee91f",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-0/roi.u8",
+          "sha256": "d7b2945dc036448720fbc3e16b8f4b2ed7a26b06e83074d230b88cf8f4c14429",
+          "same_as_baseline": true
+        }
+      ]
+    },
+    {
+      "case_id": "control-1",
+      "view": "whole",
+      "azimuth_deg": 90,
+      "geometry_same": true,
+      "artifacts": [
+        {
+          "path": "cases/0/geometry.json",
+          "sha256": "7cde4cba73162098cf480d829b1e86728e7d0090d264c5270770bae8c6300b31",
+          "same_as_baseline": false
+        },
+        {
+          "path": "cases/0/whole-90/anatomy.json",
+          "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/beauty-native.f32",
+          "sha256": "4c01d72805ac7bde5e8408a934244a3eb9eb6511909ced1059e017554d73bbf9",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/beauty-native.png",
+          "sha256": "5848032aa0e4b7e472637a7e22f04d0103786311b6909d4fc635947363df8d9e",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/beauty-64.f32",
+          "sha256": "8876875bd29d41773220a9ae0bd20f2e781adf59d2e3f86b8c9aa61d3b7cc5ce",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/beauty-64.png",
+          "sha256": "c929db04e0e5373c133edb4bda49edf54b922100b545447aba135b98394af926",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/beauty-128.f32",
+          "sha256": "1e447f8ddec798701f77e3313244af915fe0c5f02d77e652c3fa1c05569cca1d",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/beauty-128.png",
+          "sha256": "e7004c2cf1c57e2f91ac9d98fc8c816bff63be51540b39778aa947f7ce499db1",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/coverage-native.f32",
+          "sha256": "f720ad5218776a3792c1bf3f6f96f4df404ab2cfe34168001220cd14bd53e5eb",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/coverage-native.png",
+          "sha256": "4737c6d363a91897a259770f005fd72b7e4da8c4b5a5818d286c2a9f98beb9c9",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/coverage-64.f32",
+          "sha256": "400674cc7c7a5b68407a231ae78fe49ba25639582a2ba1a03250751c2ab8dabf",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/coverage-64.png",
+          "sha256": "2c5778c50513e32b6b3643ab16def348ab84050040b510441332516466f06d9d",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/coverage-128.f32",
+          "sha256": "c916dbf47e5659107c60ef1c1e5418c0e9b203cb43d94b69289ee7167b010e66",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/coverage-128.png",
+          "sha256": "c8987d634c67f8d8ab5df4b4b6db9e1ac312acbc554351916b222c98710e81a3",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/sampling.json",
+          "sha256": "b765cb06c58f5296fdf235ca6614f8ab84b238978d01af3076ee71cec5e0d247",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/gaps.json",
+          "sha256": "fe7391874e4ea6a3ab2b6d3e23edc1330516134806de2bb97b20a06601188260",
+          "same_as_baseline": true
+        },
+        {
+          "path": "cases/0/whole-90/roi.u8",
+          "sha256": "003d2c90e0b73a654de105c7eaba7aba0e6125e199a73d6859edfbd09b75d406",
+          "same_as_baseline": true
+        }
+      ]
+    }
+  ],
+  "geometry_receipt_difference": "Only generation_ms, preparation_ms and diagnostics.timings differ; all remaining geometry receipt fields compare equal.",
+  "all_image_and_gap_artifacts_identical": true
+}

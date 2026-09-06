@@ -1,0 +1,19 @@
+{
+  "head": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+  "rust": {
+    "command": "cargo test --release --workspace",
+    "status": "pass",
+    "passed": 72,
+    "ignored": 6,
+    "test_groups": 21,
+    "log": "/tmp/fn19-full-rust.log"
+  },
+  "typescript": {
+    "command": "npm test",
+    "status": "pass",
+    "passed": 106,
+    "log": "/tmp/fn19-full-vitest.log"
+  },
+  "format": "cargo fmt --all -- --check: pass",
+  "typecheck": "npm run typecheck: pass"
+}

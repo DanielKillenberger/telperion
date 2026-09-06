@@ -1,0 +1,820 @@
+{
+  "schema_version": 1,
+  "assessor_role": "implementation worker; not qualified independent botanical assessment",
+  "independent_assessment": "unassessed",
+  "views": [
+    {
+      "id": "oregon-white-oak-1/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/0/whole-0/beauty-128.png",
+        "sha256": "834e85ac5c5a1c5bb4a5b64f3ebbfdccb8cd3642d6be5644e264edffd480e8d0"
+      },
+      "note": "Complete broad asymmetric crown; fine exposed tips and small windows remain. Smooth long trunk ends in bell-like flare. Whole scale cannot resolve collars or shoot attachments. O-WHOLE supports qualitative spreading habit only."
+    },
+    {
+      "id": "oregon-white-oak-1/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/0/whole-90/beauty-128.png",
+        "sha256": "77400e3319f70a46ed2f3e35bd65699e9422d96c43c74853ae9c69d5031ea643"
+      },
+      "note": "Complete silhouette; two large unequal crown masses leave a deep central V-shaped opening. Primary limbs radiate near the upper trunk. A different real specimen/camera cannot define a gap acceptance threshold."
+    },
+    {
+      "id": "oregon-white-oak-1/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/0/bare-0/beauty-128.png",
+        "sha256": "a9a76847d9f3b8ca2f160d3ef709ba9502034fd569909210b2664c4e4e8a24b3"
+      },
+      "note": "Intact bare structure exposes several thick smooth limbs radiating near the trunk apex, with finer curved subdivisions and dense terminal twigs. Lower trunk is comparatively straight and uniform, root flare smooth. O-BARE permits qualitative hierarchy comparison, not calibrated branch-order or collar scoring."
+    },
+    {
+      "id": "oregon-white-oak-1/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/0/bare-90/beauty-128.png",
+        "sha256": "3e37ef25c74887ca44ef17384e7da1245a84c982271ddb72760edc687988c456"
+      },
+      "note": "Complete bare silhouette. Thick scaffolds radiate from a narrow upper-trunk region; a central upright and lateral crown masses frame a wide central opening. Fine twigs retained. Compare qualitative hierarchy with O-BARE, not branch-order thresholds."
+    },
+    {
+      "id": "oregon-white-oak-1/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/0/base-0/beauty-128.png",
+        "sha256": "3ac089404b44f0a89a3d874da8476ccace1187e918c26dbe26ff54228415a96a"
+      },
+      "note": "Close-up exposes a smooth near-rotational trumpet flare, angular silhouette transitions and a rounded lower rim. No distinct buttress/root axes or asymmetric root ridges are visible. Geometry/silhouette finding for fn20; dedicated calibrated botanical base reference is unavailable."
+    },
+    {
+      "id": "oregon-white-oak-1/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/0/fork-0/beauty-128.png",
+        "sha256": "78b3f728875eb8afb6e810c4b8dd8103d5ebcefa105888228a5623b7ceab92d5"
+      },
+      "note": "Trunk and adjacent thick limbs are visible, but overlapping leaf masses hide much of the selected crotch. The numerical selector says resolved; visual inspection cannot establish collar continuity. Keep selected fork anatomy unassessed rather than treating collection as anatomical approval."
+    },
+    {
+      "id": "oregon-white-oak-1/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/0/attached-shoot-0/beauty-128.png",
+        "sha256": "749d56b8a22fa79dfbd0affd495ee2ad9d0d85d436bc34bc060c93fb19c66f86"
+      },
+      "note": "Rounded lobed blades, petioles and crossing fine twigs are visible. Dense overlapping organs prevent confident isolation of the selected attachment and shoot hierarchy. O-LEAF supports qualitative organ identity only; selected attachment continuity and developmental organization remain unassessed."
+    },
+    {
+      "id": "oregon-white-oak-2/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/1/whole-0/beauty-128.png",
+        "sha256": "c1427150f00fe224850cbb63c921eec89c4895f8f38d7b5a9a36b8648c2c239a"
+      },
+      "note": "Complete irregular broad crown with a deep upper notch and unequal lobes; fine tips retained. Qualitative O-WHOLE comparison supports broad spreading form only, not a target gap size."
+    },
+    {
+      "id": "oregon-white-oak-2/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/1/whole-90/beauty-128.png",
+        "sha256": "0e6226a3cdf9fbe5ece42c3df4eff2677f05cc3a91dcfe9228e036ce3f387184"
+      },
+      "note": "Complete crown rotates into distinct separated upper masses and lower windows. No clipping. Unknown reference camera/context prevents calibrated gap judgment."
+    },
+    {
+      "id": "oregon-white-oak-2/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/1/bare-0/beauty-128.png",
+        "sha256": "854dcbc80c3d719d7d072b5aa3292c3d3a7fcf6423ccb38a8b2af9a0113f9c66"
+      },
+      "note": "Smooth primary limbs form a spreading scaffold, with curved fine subdivisions. Several major origins cluster around the upper trunk; branch hierarchy is visible but not botanically calibrated."
+    },
+    {
+      "id": "oregon-white-oak-2/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/1/bare-90/beauty-128.png",
+        "sha256": "148318ac0ca0b75198f9119ecdc3b58cc1858cd060ec4edc4d581e6a6e2312e6"
+      },
+      "note": "Intact multiple scaffold tiers and thin subdividing tips visible; central upright and low spreading limbs retain connectivity. Coarse O-BARE comparison only."
+    },
+    {
+      "id": "oregon-white-oak-2/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/1/base-0/beauty-128.png",
+        "sha256": "3ac089404b44f0a89a3d874da8476ccace1187e918c26dbe26ff54228415a96a"
+      },
+      "note": "Same smooth trumpet-shaped base silhouette as oak1, with angular flare transition and rounded lower rim. No distinct buttress ridges visible; dedicated botanical base reference absent."
+    },
+    {
+      "id": "oregon-white-oak-2/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/1/fork-0/beauty-128.png",
+        "sha256": "c3d1d89715343b1afc4942a58b8f9ccbd5e37441935ba5ec7b8b2761a3291e2c"
+      },
+      "note": "Dense foliage largely obscures the selected fork; some thick wood visible behind blades. Selected collar continuity remains unassessed despite capture completion."
+    },
+    {
+      "id": "oregon-white-oak-2/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/1/attached-shoot-0/beauty-128.png",
+        "sha256": "b03759941d1a1bc9e3b9019524e2318568b797378183b1faab3ebc1a9a531976"
+      },
+      "note": "Lobed blades and petioles surround crossing woody twigs. Selected attachment cannot be isolated confidently through overlap; organ identity visible but developmental shoot organization unassessed."
+    },
+    {
+      "id": "oregon-white-oak-3/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/2/whole-0/beauty-128.png",
+        "sha256": "88239c5ad441da7aea5fab5dd62770bbcfdf4cd5cef5812c80c7490b10fda0ee"
+      },
+      "note": "Complete broad layered crown with visible central lower openings and three unequal foliage masses; fine terminal tips retained. Qualitative habit comparison only."
+    },
+    {
+      "id": "oregon-white-oak-3/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/2/whole-90/beauty-128.png",
+        "sha256": "4757a353be40254f22e7ec6016c957dfb417c68a564ba9675e0caa134d4b7243"
+      },
+      "note": "Rotated crown appears narrower and more upright, with exposed central stems and view-dependent windows. No clipping; no calibrated reference gap threshold."
+    },
+    {
+      "id": "oregon-white-oak-3/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/2/bare-0/beauty-128.png",
+        "sha256": "b05f7b0a3ebf8165adc339038def58828da0c80fd190ad4185c663b507fdfa74"
+      },
+      "note": "Complete scaffold hierarchy with central uprights and widely spreading limbs; fine branching fills the crown. Smooth lower trunk and concentrated scaffold origins visible."
+    },
+    {
+      "id": "oregon-white-oak-3/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/2/bare-90/beauty-128.png",
+        "sha256": "b57d1e8cd80e562eb76bf100b23211e17931298825837a1995471a804264313b"
+      },
+      "note": "Multiple thick uprights and arched laterals remain connected, with sparse central window and fine terminal twigs. Qualitative O-BARE comparison only."
+    },
+    {
+      "id": "oregon-white-oak-3/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/2/base-0/beauty-128.png",
+        "sha256": "3ac089404b44f0a89a3d874da8476ccace1187e918c26dbe26ff54228415a96a"
+      },
+      "note": "Pixel-identical SHA256 to directly inspected oak1/oak2 base128 image; same smooth trumpet flare with rounded rim and no distinct buttress ridges. Inspection reused only after exact image identity verification."
+    },
+    {
+      "id": "oregon-white-oak-3/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/2/fork-0/beauty-128.png",
+        "sha256": "c37e64f55ce2e22c63a32b1d140ea618d0f8d4772d0066a5be95add46846c3f0"
+      },
+      "note": "Several thick limbs visible among foliage, but the selected crotch/collar remains substantially obscured. Capture does not establish hidden surface continuity."
+    },
+    {
+      "id": "oregon-white-oak-3/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/2/attached-shoot-0/beauty-128.png",
+        "sha256": "f0a21fca6e81a7fc0a20a067e7b34323a16fc157d7f5a293b8cfb0f83ce00b1e"
+      },
+      "note": "Lobed leaves, thin petioles and connected crossing twigs visible. Selected attachment and shoot developmental traits remain unassessed because of dense overlap."
+    },
+    {
+      "id": "oregon-white-oak-3407793930/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/3/whole-0/beauty-128.png",
+        "sha256": "baeff35c6371a33a268847fb16390f7febf1f83723ad539a3615e6e109a9638d"
+      },
+      "note": "Complete spreading crown with broad upper mass and open lower centre; lateral limbs visible below foliage. Qualitative reference comparison only."
+    },
+    {
+      "id": "oregon-white-oak-3407793930/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/3/whole-90/beauty-128.png",
+        "sha256": "27312842df4847548e419954f08647e69b348e6afb0e2e0c368c7f410f87dd84"
+      },
+      "note": "View-dependent compact crown with separated side masses and interior windows. Fine protruding tips retained; no clipped silhouette."
+    },
+    {
+      "id": "oregon-white-oak-3407793930/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/3/bare-0/beauty-128.png",
+        "sha256": "bbdbdf8f1ccfd89845e84c1c44ece91f635cdfb65eb81cd0777e06139aec8728"
+      },
+      "note": "Wide low spreading scaffold and several upright subdivisions; thin curved terminal structure retained. Smooth long lower trunk remains."
+    },
+    {
+      "id": "oregon-white-oak-3407793930/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/3/bare-90/beauty-128.png",
+        "sha256": "6adfd1b674e90774233e6dffc0938f2a40779830e16da4a760d58a7386162c31"
+      },
+      "note": "Same intact scaffold rotates into a narrower apparent crown with multiple upright axes and layered side branches. No quantitative reference order threshold."
+    },
+    {
+      "id": "oregon-white-oak-3407793930/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/3/base-0/beauty-128.png",
+        "sha256": "3ac089404b44f0a89a3d874da8476ccace1187e918c26dbe26ff54228415a96a"
+      },
+      "note": "Exact PNG SHA256 equals inspected oak1 base128; same smooth trumpet flare and absent distinct buttress ridges. Pixel-identical inspection reuse, not a new botanical judgment."
+    },
+    {
+      "id": "oregon-white-oak-3407793930/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/3/fork-0/beauty-128.png",
+        "sha256": "a6483c004ec59966c2523a4f524ff53d2c92ab67ce4845f81ff14edc2a528e78"
+      },
+      "note": "Some broad smooth branch merging visible on the right, but leaves obscure other sides of the selected crotch. Full collar continuity remains unassessed."
+    },
+    {
+      "id": "oregon-white-oak-3407793930/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/3/attached-shoot-0/beauty-128.png",
+        "sha256": "688eac087bcfcb8a1c91e2a9e5c83620ad2efd04e02cc3653ac11646717e8a5e"
+      },
+      "note": "Many rounded lobed blades and short petioles visible along fine crossing shoots; overlap hides the selected attachment. Organ form recognizable, developmental architecture unassessed."
+    },
+    {
+      "id": "oregon-white-oak-1701335265/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/4/whole-0/beauty-128.png",
+        "sha256": "24591b909e04f9e8b254fab2a8ec892ccc276e3e7803458d93ca5c98d25fea3e"
+      },
+      "note": "Complete relatively compact upright oak crown with unequal upper lobes, exposed lower scaffolds and fine terminal tips. Mature parameter set preserved; shape descriptive only."
+    },
+    {
+      "id": "oregon-white-oak-1701335265/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/4/whole-90/beauty-128.png",
+        "sha256": "204a06fdb30945ec0b5dc2618dfcb0a2233c91d60ac608cb1b748db15c37b69f"
+      },
+      "note": "Rounded upper crown and central lower opening visible from second azimuth. No clipping or calibrated photographic match."
+    },
+    {
+      "id": "oregon-white-oak-1701335265/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/4/bare-0/beauty-128.png",
+        "sha256": "6dbd0ed025a920f6b11006ff172ffdd821098b6f6ea2666f462534994e28cc32"
+      },
+      "note": "Several upright scaffolds and fine subdividing twigs form a relatively narrow crown. Thick limbs branch above a long smooth lower trunk; qualitative O-BARE comparison only."
+    },
+    {
+      "id": "oregon-white-oak-1701335265/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/4/bare-90/beauty-128.png",
+        "sha256": "dc9998392e1c323bfefa7d0d4e147a4fde0d5b9c82ae7628f58972c97d8ef9d2"
+      },
+      "note": "Rotated bare view retains upright scaffolds and sweeping lateral subdivisions. Apparent density varies with viewing direction; no botanical order threshold."
+    },
+    {
+      "id": "oregon-white-oak-1701335265/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/4/base-0/beauty-128.png",
+        "sha256": "3ac089404b44f0a89a3d874da8476ccace1187e918c26dbe26ff54228415a96a"
+      },
+      "note": "SHA256-identical to directly inspected oak1 base128; smooth trumpet flare, angular transition, no distinct buttress ridges. Inspection inherited by exact image identity."
+    },
+    {
+      "id": "oregon-white-oak-1701335265/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/4/fork-0/beauty-128.png",
+        "sha256": "8fc5854eb95ebaa3049412f29465c9c86e7e27906ab99b27596cba76b8e8b263"
+      },
+      "note": "View is dominated by overlapping leaves and thin branches; named selected fork is not sufficiently exposed for collar assessment. Visual limitation preserved despite collection success."
+    },
+    {
+      "id": "oregon-white-oak-1701335265/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/4/attached-shoot-0/beauty-128.png",
+        "sha256": "e5ac13f8800723b42a5cd4db3684b7c401b6a298d2ea1a3b0b8a4c7b6082ffb8"
+      },
+      "note": "Many lobed blades and petioles visible amid crossing shoots. Selected attachment and developmental organization remain unassessed under overlap."
+    },
+    {
+      "id": "oregon-white-oak-1462003817/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/5/whole-0/beauty-128.png",
+        "sha256": "b96f91f5da0649e6611aa7338c941d36a171e5b60d07786ef7afb240a9c27ac0"
+      },
+      "note": "Complete broad asymmetric crown; a large right-central opening exposes upright wood beneath two unequal foliage masses. Fine tips retained. Gap size remains descriptive."
+    },
+    {
+      "id": "oregon-white-oak-1462003817/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/5/whole-90/beauty-128.png",
+        "sha256": "7863201100a2f2621722e4ec76cebd4965e6d7d729274c9543ac14ed7b84c11d"
+      },
+      "note": "Second azimuth appears fuller, with layered crown masses and small windows. No clipping. Qualitative O-WHOLE habit comparison only."
+    },
+    {
+      "id": "oregon-white-oak-1462003817/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/5/bare-0/beauty-128.png",
+        "sha256": "cf8ccb8a16b09e4a27c34bfe020d395aac3bd0472367a8bb0616dc2c666d3def"
+      },
+      "note": "Wide scaffold with upright forked axes and one long right lateral; fine curved subdivisions retained around an open central zone. Smooth trunk and branch surfaces visible."
+    },
+    {
+      "id": "oregon-white-oak-1462003817/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/5/bare-90/beauty-128.png",
+        "sha256": "9b8d1ff6d917b5e8236a345bdefc64215e5519e713aaa639cf33b05d084832b8"
+      },
+      "note": "Intact bare hierarchy with central uprights and laterals; density and apparent crown width vary by view. No source-backed order or taper threshold."
+    },
+    {
+      "id": "oregon-white-oak-1462003817/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/5/base-0/beauty-128.png",
+        "sha256": "3ac089404b44f0a89a3d874da8476ccace1187e918c26dbe26ff54228415a96a"
+      },
+      "note": "Exact PNG hash equals inspected oak1 base128; same rotational trumpet flare, angular outline transition and rounded lower rim. Identity-verified inspection reuse."
+    },
+    {
+      "id": "oregon-white-oak-1462003817/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/5/fork-0/beauty-128.png",
+        "sha256": "a2cc2125bec62b39f4f91c4958a1e90c2c65ebede742de6e38748fe84f0c8f8b"
+      },
+      "note": "Front-facing primary merge is comparatively exposed: smooth rounded tube-like junction shoulder between trunk and limbs, without resolved directional surface ridges. Side/rear collar regions remain hidden. Qualitative coarse O-BARE cannot calibrate this local shape."
+    },
+    {
+      "id": "oregon-white-oak-1462003817/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/5/attached-shoot-0/beauty-128.png",
+        "sha256": "00764deeb1a08a9dfb0b91a460d7b73d76219b77e2f220378f28319fba2e6cc6"
+      },
+      "note": "Lobed blades and petioles visible among connected crossing twigs; selected attachment remains obscured enough that developmental shoot traits are unassessed."
+    },
+    {
+      "id": "norway-spruce-1/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/whole-0/beauty-128.png",
+        "sha256": "2307e336454844bedb4a85df1ffd1880eac63451d639c1d8f853db4643b83084"
+      },
+      "note": "Complete conical silhouette with visible leader and repeated horizontal tiers. Fine needles have low whole-scale coverage; sparse appearance alone does not establish biological foliage deficiency."
+    },
+    {
+      "id": "norway-spruce-1/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/whole-90/beauty-128.png",
+        "sha256": "7adb24e145dbcf03ff5f566d17c72ffc05dee068b6be80e89101ef41905bda4f"
+      },
+      "note": "Complete narrow conical envelope; horizontal tiers remain visible from the second azimuth. No calibrated reference camera or density threshold."
+    },
+    {
+      "id": "norway-spruce-1/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/bare-0/beauty-128.png",
+        "sha256": "50894347d2d40177a502d64ac67d4ad5697428e5ade1a74c3eb0c37c72e64cf5"
+      },
+      "note": "Bare view confirms repeated branch tiers are structural, with hanging fine lateral subdivisions and continuous central leader. Bare spruce photographic reference unavailable."
+    },
+    {
+      "id": "norway-spruce-1/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/bare-90/beauty-128.png",
+        "sha256": "f5b68843c6f2f3010184390c62846756d199b85b587d256ed4f4974730fceb8d"
+      },
+      "note": "Second bare azimuth retains repeated tiers and straight dominant central axis; no clipping. Regularity is an fn21 assessment question, not a calibrated botanical failure."
+    },
+    {
+      "id": "norway-spruce-1/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/base-0/beauty-128.png",
+        "sha256": "bed43c40af9986948cd7ff2ebebc5ff923b616de825f880178c9187c9553c1ca"
+      },
+      "note": "Smooth bell-like flare with angular silhouette transitions and rounded lower rim, no distinct visible root ridges. Upper base partly obscured by low branches. Dedicated botanical base reference unavailable."
+    },
+    {
+      "id": "norway-spruce-1/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/fork-0/beauty-128.png",
+        "sha256": "f2999c63976009542f65b5796cadba9ead8cb03799db02930e5edf628e282cfc"
+      },
+      "note": "Front-facing lateral branches meet the trunk as rounded tube shoulders without a clearly resolved collar/ridge. Much rear junction geometry is obscured. Watertightness and intersections cannot be inferred."
+    },
+    {
+      "id": "norway-spruce-1/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/attached-shoot-0/beauty-128.png",
+        "sha256": "0219f19d095bf89de1625d88b443d79d9737cdc5be7ac18b83414c039dd037ba"
+      },
+      "note": "Many individual pointed needles visibly distributed along fine hanging axes; overlapping shoots prevent isolation of every attachment. Needle density at whole scale must be separated from subpixel visibility."
+    },
+    {
+      "id": "norway-spruce-2/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/7/whole-0/beauty-128.png",
+        "sha256": "c4d31dc71c1563e6796e8b877e46ebb93d7e047bde4b1fe061bcff8e749803f2"
+      },
+      "note": "Complete conical crown; conspicuous projecting tier on lower left and exposed leader; fine low-coverage detail."
+    },
+    {
+      "id": "norway-spruce-2/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/7/whole-90/beauty-128.png",
+        "sha256": "cb25690bcd7df740f73c38685fd279bb208819c6184c734fc35ce68a3884601d"
+      },
+      "note": "Complete conical silhouette; branch tiers show irregular lateral reach but repeated vertical rhythm."
+    },
+    {
+      "id": "norway-spruce-2/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/7/bare-0/beauty-128.png",
+        "sha256": "f4ce385f53c44d4a9f077e830a3250afc223f702b5179476037e3027ab233236"
+      },
+      "note": "Bare view retains horizontal scaffold tiers and hanging fine branches; long dominant central leader."
+    },
+    {
+      "id": "norway-spruce-2/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/7/bare-90/beauty-128.png",
+        "sha256": "e18ae8b2e8b121cf91f38cde6f39c8429d0ca7b8a616b367d957bffc22957627"
+      },
+      "note": "Second bare azimuth confirms tiering is geometry; no calibrated age or structural target available."
+    },
+    {
+      "id": "norway-spruce-2/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/7/base-0/beauty-128.png",
+        "sha256": "a9dc72728cf8d8c3c87665b9513f52566b2de8234f6a1e62e31af1ac2fef720b"
+      },
+      "note": "Generic smooth trumpet flare, angular lower silhouette transition and rounded rim; no distinct visible buttress ridges."
+    },
+    {
+      "id": "norway-spruce-2/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/7/fork-0/beauty-128.png",
+        "sha256": "3e162ff7b015aeae0ea014c20574705aa802cbe7d0376c6073e596b4cc58c738"
+      },
+      "note": "Several exposed lateral origins have rounded cylindrical shoulders at trunk; selected region partly crossed by fine branches. Collar/ridge not clearly resolved; rear continuity unassessed."
+    },
+    {
+      "id": "norway-spruce-2/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/7/attached-shoot-0/beauty-128.png",
+        "sha256": "17a37f7fc0c151266c686034df3069daf928a33ed9ba5856122b02ca785586d1"
+      },
+      "note": "Pointed needles around hanging and lateral axes are visible, with variable orientation; multiple overlapping axes obstruct isolated whole-shoot assessment."
+    },
+    {
+      "id": "norway-spruce-3/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/8/whole-0/beauty-128.png",
+        "sha256": "5571f95ea529cb39f292a525845c243db878b4a3ce5ec66fd0724e8d7f714bbd"
+      },
+      "note": "Complete leader and conical crown, repeated horizontal tiers with uneven lateral reach; finely resolved faint foliage at whole scale."
+    },
+    {
+      "id": "norway-spruce-3/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/8/whole-90/beauty-128.png",
+        "sha256": "d1e526516caf7bfbae137779bfd858cc9c2c71995374d53d86f26999caf77b9e"
+      },
+      "note": "Complete conical envelope with repeated tiers; altered projection changes local gaps but not general organization."
+    },
+    {
+      "id": "norway-spruce-3/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/8/bare-0/beauty-128.png",
+        "sha256": "dc7c0a0473bbba808d8a360f0e1a1ac664ed9cbe1bfddcbca91a4b61d4f6b46b"
+      },
+      "note": "Bare crown exposes central axis and repeated scaffold tiers with downward secondary subdivisions."
+    },
+    {
+      "id": "norway-spruce-3/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/8/bare-90/beauty-128.png",
+        "sha256": "bd924c87b5dd9dc06022d5e0dbd037906f762458c0bf62a82efb9efe91a3927a"
+      },
+      "note": "Bare second azimuth retains tier rhythm and fine terminal geometry; qualitative structural observation, not ground-truth branch order."
+    },
+    {
+      "id": "norway-spruce-3/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/8/base-0/beauty-128.png",
+        "sha256": "e36ad3bbda9c7ee648684bd2b854e060fef6cc85a8eacea9e33a9116fb8a2e36"
+      },
+      "note": "Smooth near-rotational trumpet flare and rounded base rim, angular outline transition; low crown obscures upper base but not flare silhouette."
+    },
+    {
+      "id": "norway-spruce-3/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/8/fork-0/beauty-128.png",
+        "sha256": "4947289616c9a912a72dcda61bc55438c66803ae006008fb3161d8c2bd8dd1e3"
+      },
+      "note": "Trunk and lateral origins are heavily crossed by hanging subdivisions; some rounded tube origins visible but selected collar anatomy not isolated."
+    },
+    {
+      "id": "norway-spruce-3/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/8/attached-shoot-0/beauty-128.png",
+        "sha256": "ec45f924e04515089389d9cd8529c738a33a6a4e1ec6c314ca0e8afd1ff94790"
+      },
+      "note": "Dense overlapping hanging needle-bearing axes fill local view; individual needles visible, selected attachment and complete shoot organization cannot be isolated confidently."
+    },
+    {
+      "id": "norway-spruce-3501386541/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/9/whole-0/beauty-128.png",
+        "sha256": "9f144022ce00003bec484001aa97330f7be7dbc7df821374fce151b392925fce"
+      },
+      "note": "Complete conical silhouette with dominant leader and repeated tiers; lower right lateral projection larger than adjacent tier. Fine whole-scale foliage coverage."
+    },
+    {
+      "id": "norway-spruce-3501386541/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/9/whole-90/beauty-128.png",
+        "sha256": "0b28797a89ea0843536a4af2b9a3c7ca2bd62d548a4a5973065402f13d1ba7cf"
+      },
+      "note": "Complete narrow conical crown, repeated horizontal layers and uneven local lateral reach."
+    },
+    {
+      "id": "norway-spruce-3501386541/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/9/bare-0/beauty-128.png",
+        "sha256": "2b43bea11920f9447402da13f908aa8fcc79115cd6d78642ad8343c42b34e71f"
+      },
+      "note": "Bare structure retains tiered horizontal scaffolds and downward fine branchlets beneath; leader continuous."
+    },
+    {
+      "id": "norway-spruce-3501386541/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/9/bare-90/beauty-128.png",
+        "sha256": "8eb2bd3e4fea7566ee9aead55fe5b3016c2ea327daeff03f9a61518f8265c93e"
+      },
+      "note": "Second bare view confirms scaffold tiering and densely subdivided lower crown; no calibrated bare-spruce comparison."
+    },
+    {
+      "id": "norway-spruce-3501386541/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/9/base-0/beauty-128.png",
+        "sha256": "06512ecca57eefa7a08af09ca445973c8dc93f342be7ad38a78a89dcd88e77e0"
+      },
+      "note": "Smooth trumpet flare with angular outline transitions and rounded lower rim; distinct root axes or buttress ridges not visible."
+    },
+    {
+      "id": "norway-spruce-3501386541/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/9/fork-0/beauty-128.png",
+        "sha256": "b95a3c34b727041e7021d132bd3901a90c29ede44a895d3b45ef43c4e2d308af"
+      },
+      "note": "Several exposed front-facing lateral origins have smooth rounded tube shoulders; overlapping needles and branches obscure much of selected fork. No clear directional collar/ridge resolved; rear continuity unassessed."
+    },
+    {
+      "id": "norway-spruce-3501386541/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/9/attached-shoot-0/beauty-128.png",
+        "sha256": "79dae00b0901ea59d74e90cc8873372621146027d0c58f3057288879012b63aa"
+      },
+      "note": "Hanging needle-bearing axes and many individual needles visible. Dense overlap prevents isolating the complete selected shoot and all its attachment geometry."
+    },
+    {
+      "id": "norway-spruce-3258201723/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/10/whole-0/beauty-128.png",
+        "sha256": "1a27c1676fc97085dea6e95d59895cadc85a5ab5ed154663f881653c4e2fe0b9"
+      },
+      "note": "Complete leader and conical crown with repeated tier rhythm; fine exposed tips and uneven lateral extensions."
+    },
+    {
+      "id": "norway-spruce-3258201723/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/10/whole-90/beauty-128.png",
+        "sha256": "ba73492ba2781894bf4d0af5cf5de120e2d64fc79a74bb0b544eeb614b92f294"
+      },
+      "note": "Complete conical envelope, long lower-right branches visible; fine low-coverage foliage at whole scale."
+    },
+    {
+      "id": "norway-spruce-3258201723/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/10/bare-0/beauty-128.png",
+        "sha256": "2f15c2003b4e9cf814a503931c111bb19028b2fb8ecf8d53e98ec7ac9cb83314"
+      },
+      "note": "Dominant central axis and repeated scaffold tiers with hanging fine subdivisions remain visible without foliage."
+    },
+    {
+      "id": "norway-spruce-3258201723/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/10/bare-90/beauty-128.png",
+        "sha256": "39bf837cca4e2f137e45171e66c9ba9470c62e14ebd5cab65c3d7d9e6bf40d8d"
+      },
+      "note": "Second bare azimuth retains tiered scaffold and complete silhouette; no calibrated botanical bare-spruce target."
+    },
+    {
+      "id": "norway-spruce-3258201723/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/10/base-0/beauty-128.png",
+        "sha256": "8c0eecad2bfe72e44393adf4c819620d9608a02893bc420766d8446332da0502"
+      },
+      "note": "Smooth bell/trumpet flare, angular transitions in outline and rounded cap rim; no distinct visible root ridges."
+    },
+    {
+      "id": "norway-spruce-3258201723/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/10/fork-0/beauty-128.png",
+        "sha256": "ed914450e4228d421bef323289f1aae2ad03cd5b3bbd3ff8a848916c73cdb376"
+      },
+      "note": "Several front origins have smooth round tube shoulders; selected junction partly hidden behind fine subdivisions. Collar/ridge not clearly resolved; side/rear continuity unassessed."
+    },
+    {
+      "id": "norway-spruce-3258201723/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/10/attached-shoot-0/beauty-128.png",
+        "sha256": "2e326c186b81ebee1637a7804113a85431e170fb6e85613bdd6e9dc906f709e2"
+      },
+      "note": "Very dense overlap of hanging needle-bearing axes; individual pointed needles visible but selected connection and complete shoot cannot be isolated."
+    },
+    {
+      "id": "norway-spruce-2774604799/whole/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/11/whole-0/beauty-128.png",
+        "sha256": "a838b45fe257f5dece5ab74c414e6d8691bcdf5c3e8a11b59b251ee2a20f465c"
+      },
+      "note": "Complete conical silhouette, exposed central leader and horizontal tier rhythm; lower-right laterals project unevenly."
+    },
+    {
+      "id": "norway-spruce-2774604799/whole/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/11/whole-90/beauty-128.png",
+        "sha256": "ee215f1c40c11317ae10dd846e1517f87418180fc5fb1351a93547d9a1b63e16"
+      },
+      "note": "Complete crown envelope; local gaps and reach change with azimuth while tiers persist."
+    },
+    {
+      "id": "norway-spruce-2774604799/bare/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/11/bare-0/beauty-128.png",
+        "sha256": "12b70027058ec18a27ddbe694d489e51630e8fee9c9a95721560603489cd65c1"
+      },
+      "note": "Bare view confirms repeated scaffold tiers and hanging finer branches; dominant straight central axis."
+    },
+    {
+      "id": "norway-spruce-2774604799/bare/90",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/11/bare-90/beauty-128.png",
+        "sha256": "d94db29cb43dbc112247c003245176c75bfb108cde34f1a5f661287396e53a0a"
+      },
+      "note": "Second bare view retains tier organization and complete silhouette; no calibrated branch-order or age comparison available."
+    },
+    {
+      "id": "norway-spruce-2774604799/base/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/11/base-0/beauty-128.png",
+        "sha256": "81547174bd8e5a98f6e17a001b4e879c65e95884b05e2d4bd7578294072a7526"
+      },
+      "note": "Smooth rotational trumpet flare, angular side transitions and rounded base rim. No distinct visible root buttress ridges; upper base overlapped by low branches."
+    },
+    {
+      "id": "norway-spruce-2774604799/fork/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/11/fork-0/beauty-128.png",
+        "sha256": "7268e7e585c1e3ad35c6c84c13457574b03df671dfd5690b0a227d4d6f879dd6"
+      },
+      "note": "Partly exposed front tube origins have rounded shoulders; fine branches and needles obscure most selected local anatomy. No resolved collar/ridge, no assessment of hidden continuity."
+    },
+    {
+      "id": "norway-spruce-2774604799/attached-shoot/0",
+      "inspection": "inspected",
+      "image": {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/11/attached-shoot-0/beauty-128.png",
+        "sha256": "f56a3fca44657cbd38822e08788daf2b3f6cc20e5788a800b440044e5a2da515"
+      },
+      "note": "Many individual needles on hanging axes; dense overlap obscures isolation of selected attachment and entire shoot."
+    }
+  ],
+  "other_implementation_observations": [
+    {
+      "assessor_role": "conductor; implementation-side, not independent botany",
+      "id": "oregon-white-oak-1/whole/0",
+      "image": "beauty-128.png",
+      "note": "Broad asymmetric crown with exposed fine tips; trunk long near-uniform straight segment ending in smooth bell-like flare, no visible distinct root buttresses in whole view. Whole-scale fine detail visually dense; do not infer shoot/collar quality from this scale. Frame retains complete silhouette. Root/base issue requires base close-up for strong finding."
+    },
+    {
+      "assessor_role": "conductor; implementation-side, not independent botany",
+      "id": "oregon-white-oak-1/base/0",
+      "image": "beauty-128.png",
+      "note": "Rotational bell/trumpet flare with angular outline transitions and rounded cap rim; no distinct buttress/root axes or asymmetric root ridges visible. Strong fn20 geometry discrepancy independent of texture; confidence high for visible surface geometry. Direct botanical base reference unavailable; no calibrated species-specific threshold."
+    },
+    {
+      "id": "oregon-white-oak-1462003817/fork/0",
+      "assessor_role": "conductor; implementation-side, not independent botanical reviewer",
+      "note": "Front-facing lateral has rounded plug-like contour, no clearly resolved collar/ridge; angular upper trunk bends. Side/rear continuity unassessed; image does not establish watertightness or intersections."
+    }
+  ],
+  "sampling_inspection": {
+    "case_view": "norway-spruce-1/whole/0",
+    "role": "implementation worker",
+    "note": "Directly viewed native beauty and native/128 coverage alongside128 beauty. Native image is visibly speckled;128 averages fine coverage. Crown tiers persist in coverage and bare views. No inference of absent biological needles from faint beauty alone.",
+    "images": [
+      {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/whole-0/beauty-native.png",
+        "sha256": "aa9e3a5c352f3dbfbd1ff7cbc57136e631929ed9ad29317d0566c56aecb09fe5"
+      },
+      {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/whole-0/coverage-native.png",
+        "sha256": "bbf2ed798df81c4a729ed71ce0afce571e256e733eeb7a772f28c5d18466afd3"
+      },
+      {
+        "path": "/tmp/fn19-mature-visual-20260906/cases/6/whole-0/coverage-128.png",
+        "sha256": "6e4e5954f8a2f501073054fae3986fb144383d2127882268baad5b8ba3431660"
+      }
+    ]
+  },
+  "small_replay_inspection": {
+    "status": "inspected representative pair",
+    "role": "implementation worker; no botanical assessment",
+    "note": "Directly viewed independent baseline and candidate control1 whole0. Both retain the same small artificial sparse-branched fixture and visible lobed foliage. This is workflow evidence, not a mature biological specimen.",
+    "images": [
+      {
+        "run": "baseline",
+        "raw_path": "/tmp/fn19-task4-visual-replay-v3/baseline/cases/0/whole-0/beauty-128.png",
+        "preview_path": ".flow/evidence/fn19/final/replay-previews/baseline-control-1-whole-0.png",
+        "sha256": "ecdb8151eb23113975b3fedc656259df9cebe114d5e988d1e184bda33fa84419"
+      },
+      {
+        "run": "candidate",
+        "raw_path": "/tmp/fn19-task4-visual-replay-v3/candidate/cases/0/whole-0/beauty-128.png",
+        "preview_path": ".flow/evidence/fn19/final/replay-previews/candidate-control-1-whole-0.png",
+        "sha256": "ecdb8151eb23113975b3fedc656259df9cebe114d5e988d1e184bda33fa84419"
+      }
+    ]
+  }
+}

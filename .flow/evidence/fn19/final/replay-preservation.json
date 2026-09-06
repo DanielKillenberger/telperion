@@ -1,0 +1,26 @@
+[
+  {
+    "original_root": "/tmp/fn19-task4-visual-replay-v3",
+    "preserved_root": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-replay/fn19-task4-visual-replay-v3",
+    "files_verified": 2073,
+    "status": "pass"
+  },
+  {
+    "original_root": "/tmp/fn19-task4-visual-replay-v2",
+    "preserved_root": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-replay/fn19-task4-visual-replay-v2",
+    "files_verified": 178,
+    "status": "pass"
+  },
+  {
+    "original_root": "/tmp/fn19-task4-native-controls",
+    "preserved_root": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-replay/fn19-task4-native-controls",
+    "files_verified": 55,
+    "status": "pass"
+  },
+  {
+    "original_root": "/tmp/fn19-task4-comparison-controls-post-capture-fix",
+    "preserved_root": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-replay/fn19-task4-comparison-controls-post-capture-fix",
+    "files_verified": 163,
+    "status": "pass"
+  }
+]

@@ -1,0 +1,7 @@
+[
+  {"name":"competing core changes rejected","kind":"shared-write","claims":[{"path":"crates/telperion-core/src/foliage.rs","owner":"oak-template"},{"path":"crates/telperion-core/src/foliage.rs","owner":"pine-template"}],"expected":"ownership-conflict"},
+  {"name":"one shared capability owner accepted","kind":"shared-write","claims":[{"path":"crates/telperion-core/src/foliage.rs","owner":"core-capability-task"}],"dependent_species":["oregon-white-oak","scots-pine"],"expected":"ready-for-handoff"},
+  {"name":"overlapping exclusive measurement window rejected","kind":"resource-window","owners":["fn13","pine-measurement"],"expected":"resource-conflict"},
+  {"name":"one coordinated window accepted","kind":"resource-window","owners":["pine-measurement"],"expected":"ready-for-handoff"},
+  {"name":"unavailable expert never passes","kind":"expert-feedback","feedback":null,"expected":"unassessed"}
+]

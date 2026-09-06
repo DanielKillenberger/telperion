@@ -1,0 +1,31 @@
+{
+  "tested_commit": "dd86aa3b6aaa216000f25b2eea67eafe4e345fc6",
+  "completed_at": "2026-09-06T20:37:10.486730+00:00",
+  "rust": {
+    "passed": 72,
+    "failed": 0,
+    "ignored": 6
+  },
+  "vitest": {
+    "passed": 106
+  },
+  "benchmark_node": {
+    "passed": 21
+  },
+  "onboarding": {
+    "checks": 22
+  },
+  "typecheck": "pass",
+  "rustfmt": "pass",
+  "diff_check": "pass",
+  "legacy_whole": "2 passing whole views; identical image/gap artifacts; other40 intentionally pending",
+  "logs": {
+    "rust-workspace": ".flow/evidence/fn19/final/logs/fn19-reviewfix-rust-workspace.log",
+    "vitest": ".flow/evidence/fn19/final/logs/fn19-reviewfix-vitest.log",
+    "benchmark-node": ".flow/evidence/fn19/final/logs/fn19-reviewfix-benchmark-node.log",
+    "onboarding": ".flow/evidence/fn19/final/logs/fn19-reviewfix-onboarding.log",
+    "legacy-whole": ".flow/evidence/fn19/final/logs/fn19-reviewfix-legacy-whole.log"
+  },
+  "impl_review": "disabled by user",
+  "completion_review": "pending subsequent independent wrapper verdict"
+}

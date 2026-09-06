@@ -1,0 +1,23 @@
+
+> telperion@0.1.0 pretest
+> npm run wasm:build
+
+
+> telperion@0.1.0 wasm:build
+> node scripts/build-wasm.mjs
+
+    Finished `release` profile [optimized] target(s) in 0.01s
+Built Wasm and regenerated Rust family metadata.
+
+> telperion@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark
+
+
+ Test Files  3 passed (3)
+      Tests  106 passed (106)
+   Start at  22:33:36
+   Duration  39.72s (transform 198ms, setup 0ms, import 338ms, tests 39.54s, environment 0ms)
+

@@ -1,0 +1,2 @@
+Error: invalid-manifest: unsupported capture rules
+    at main (file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/tests/browser/geometry-benchmark.mjs:181:103)

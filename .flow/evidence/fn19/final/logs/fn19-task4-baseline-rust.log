@@ -1,0 +1,18 @@
+   Compiling zmij v1.0.23
+   Compiling serde_core v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 7.30s
+     Running tests/species_metrics.rs (target/release/deps/species_metrics-91894ddc50ebd907)
+
+running 5 tests
+test analytic_units_dbh_axes_and_retained_area ... ok
+test gates_do_not_pass_estimates_missing_values_or_outliers ... ok
+test overflow_and_degenerate_geometry_fail_explicitly ... ok
+test measured_species_subsets_exclude_connectors_and_use_transformed_geometry ... ok
+test missing_ambiguous_truncated_and_nonfinite_are_distinct ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

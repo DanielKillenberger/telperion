@@ -1,0 +1,4348 @@
+{
+  "schema_version": 1,
+  "scope": "Independent small artificial six-oak native and42-view visual pair; not mature cohort evidence",
+  "status": "passed",
+  "protocol": {
+    "path": "/tmp/fn19-task4-visual-replay-v3/native/protocol.json",
+    "bytes": 54001,
+    "sha256": "22030063113bb7fd81c5afbcd5371a574702e0bba78ae735062f78661c1bb5a5"
+  },
+  "controls": [
+    {
+      "control": "unchanged",
+      "status": "comparable",
+      "scope": "numeric-and-visual",
+      "cases": 6,
+      "views": 42,
+      "metrics_changed": 0,
+      "images_changed": 0,
+      "geometry_changed": 0,
+      "gaps_changed": 0,
+      "reasons": [],
+      "report": {
+        "path": "/tmp/fn19-task4-visual-replay-v3/comparison-controls/unchanged/comparison.json",
+        "bytes": 428120,
+        "sha256": "a8920dae328e31760fcaa2147562e7e01ad3594ec21fb91413b22f0e44133c33"
+      }
+    },
+    {
+      "control": "changed-image",
+      "status": "comparable",
+      "scope": "numeric-and-visual",
+      "cases": 6,
+      "views": 42,
+      "metrics_changed": 0,
+      "images_changed": 1,
+      "geometry_changed": 0,
+      "gaps_changed": 0,
+      "reasons": [],
+      "report": {
+        "path": "/tmp/fn19-task4-visual-replay-v3/comparison-controls/changed-image/comparison.json",
+        "bytes": 428155,
+        "sha256": "e71d8afc07e4259d664e4901106eb316e9ca2ba45f1028fb2e0156cfc492d63d"
+      }
+    }
+  ],
+  "runs": {
+    "native_baseline": {
+      "run": {
+        "benchmark_id": "fn19-tiny-controls-v1",
+        "binaries": [
+          {
+            "bytes": 955432,
+            "media_type": "application/octet-stream",
+            "path": "native-binary",
+            "sha256": "ebbb059352cfec4db5948f7665e1778635cde155f08113fab14cde2055b99242"
+          }
+        ],
+        "cases": [
+          {
+            "id": "control-1",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 1,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-2",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 2,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-3",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 3,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-4",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 4,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-5",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 5,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-6",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 6,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          }
+        ],
+        "conditions_sha256": null,
+        "created_at": "2026-09-06T18:47:07.345532+00:00",
+        "machine": {
+          "exclusive_window": false,
+          "lifecycle": "cold subprocess per case",
+          "os": "Linux-7.1.9-arch1-2-x86_64-with-glibc2.44",
+          "python": "3.14.7 (main, Aug 10 2026, 07:46:56) [GCC 16.1.1 20260728]",
+          "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+          "samples": 1
+        },
+        "manifest_sha256": "b5d31426c893bcb5f8a3ecb72f68c617822a14ea72bbfc96cad0df2d6d81caaf",
+        "parameters": {
+          "control-1": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 1,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-2": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 2,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-3": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 3,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-4": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 4,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-5": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 5,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-6": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 6,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          }
+        },
+        "partial": false,
+        "protocol_sha256": "22030063113bb7fd81c5afbcd5371a574702e0bba78ae735062f78661c1bb5a5",
+        "reason": null,
+        "references_sha256": "db491b8d6bf19dfde6b476d8f7099ef8d41abb079fb689c71aa855bffcc41533",
+        "run_id": "baseline",
+        "schema_version": 1,
+        "source": {
+          "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+          "dirty": false,
+          "files": [
+            {
+              "path": "Cargo.lock",
+              "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+            },
+            {
+              "path": "Cargo.toml",
+              "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+            },
+            {
+              "path": "crates/telperion-core/Cargo.toml",
+              "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+            },
+            {
+              "path": "crates/telperion-core/src/bias.rs",
+              "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+            },
+            {
+              "path": "crates/telperion-core/src/branching.rs",
+              "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/audit.rs",
+              "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/habit.rs",
+              "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/local.rs",
+              "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization.rs",
+              "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization/fill.rs",
+              "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization/grid.rs",
+              "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+            },
+            {
+              "path": "crates/telperion-core/src/envelope.rs",
+              "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+            },
+            {
+              "path": "crates/telperion-core/src/field.rs",
+              "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage.rs",
+              "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage/element.rs",
+              "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage/placement.rs",
+              "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+            },
+            {
+              "path": "crates/telperion-core/src/lib.rs",
+              "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+            },
+            {
+              "path": "crates/telperion-core/src/math.rs",
+              "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+            },
+            {
+              "path": "crates/telperion-core/src/noise.rs",
+              "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+            },
+            {
+              "path": "crates/telperion-core/src/presets.rs",
+              "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+            },
+            {
+              "path": "crates/telperion-core/src/radius.rs",
+              "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+            },
+            {
+              "path": "crates/telperion-core/src/rng.rs",
+              "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+            },
+            {
+              "path": "crates/telperion-core/src/surface.rs",
+              "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/attachment.rs",
+              "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/frames.rs",
+              "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/paths.rs",
+              "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+            },
+            {
+              "path": "crates/telperion-core/src/tree.rs",
+              "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+            },
+            {
+              "path": "crates/telperion-core/src/twigs.rs",
+              "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+            }
+          ],
+          "sha256": "16a1b1e9e70e795de100007439692d8add4cd6942869642ac720c5c66b7de258"
+        },
+        "status": "complete",
+        "tool": {
+          "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+          "dirty": false,
+          "files": [
+            {
+              "path": "Cargo.lock",
+              "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark.rs",
+              "sha256": "d966128e067d36d58d256db1803f057cbb278e4a53820542bbeb44345fb3b569"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/metrics.rs",
+              "sha256": "3a9501e9d82d6359c611e8bda0ea2d95f84ab960ed3cfd5407c19952921d11c4"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/native_controls.py",
+              "sha256": "bc9cd48886aee1e33eb95aaa11def2686a8f7d4fe20e55681af2a6798f89c5a9"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/params.rs",
+              "sha256": "0704618d4d04d21928174caa7b4eea1f759bc289c437b0c1db38871b0177a547"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/runner.py",
+              "sha256": "bfcd9a6c1184a5fae6d424e0ce7291efe3b487e0bb13394c55f09b09fd9cf199"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/test_controls.py",
+              "sha256": "68fc1d87b5e4c73cbb3aebcd906c6d99e49a0281c5f718078ee48cc336841339"
+            },
+            {
+              "path": "crates/telperion-core/examples/species_metrics/mod.rs",
+              "sha256": "6a25f14b6cf86b27a631692f4bbe448dba8e4cd3d15e3d75b87f406cd713b956"
+            },
+            {
+              "path": "crates/telperion-core/tests/geometry_benchmark.rs",
+              "sha256": "6475d6bfd21aa517c8bcc3967a9d07cf697cc2b82dbd6f87224e16c05aadc1c5"
+            }
+          ],
+          "sha256": "c5f5398301028a3983a38807a1a2fadedeb8519b100e35752f697e3988061de6"
+        }
+      },
+      "receipt": {
+        "path": "/tmp/fn19-task4-visual-replay-v3/native/baseline/run.json",
+        "bytes": 22727,
+        "sha256": "afdd46b6d5eb71e45987577934aaa96d0b1c1e80b665326a7c235da867aa5c83"
+      }
+    },
+    "native_candidate": {
+      "run": {
+        "benchmark_id": "fn19-tiny-controls-v1",
+        "binaries": [
+          {
+            "bytes": 955432,
+            "media_type": "application/octet-stream",
+            "path": "native-binary",
+            "sha256": "ebbb059352cfec4db5948f7665e1778635cde155f08113fab14cde2055b99242"
+          }
+        ],
+        "cases": [
+          {
+            "id": "control-1",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 1,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-2",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 2,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-3",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 3,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-4",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 4,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-5",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 5,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-6",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 6,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          }
+        ],
+        "conditions_sha256": null,
+        "created_at": "2026-09-06T18:47:07.646327+00:00",
+        "machine": {
+          "exclusive_window": false,
+          "lifecycle": "cold subprocess per case",
+          "os": "Linux-7.1.9-arch1-2-x86_64-with-glibc2.44",
+          "python": "3.14.7 (main, Aug 10 2026, 07:46:56) [GCC 16.1.1 20260728]",
+          "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+          "samples": 1
+        },
+        "manifest_sha256": "b5d31426c893bcb5f8a3ecb72f68c617822a14ea72bbfc96cad0df2d6d81caaf",
+        "parameters": {
+          "control-1": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 1,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-2": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 2,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-3": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 3,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-4": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 4,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-5": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 5,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-6": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2.0,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 6,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          }
+        },
+        "partial": false,
+        "protocol_sha256": "22030063113bb7fd81c5afbcd5371a574702e0bba78ae735062f78661c1bb5a5",
+        "reason": null,
+        "references_sha256": "db491b8d6bf19dfde6b476d8f7099ef8d41abb079fb689c71aa855bffcc41533",
+        "run_id": "candidate",
+        "schema_version": 1,
+        "source": {
+          "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+          "dirty": false,
+          "files": [
+            {
+              "path": "Cargo.lock",
+              "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+            },
+            {
+              "path": "Cargo.toml",
+              "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+            },
+            {
+              "path": "crates/telperion-core/Cargo.toml",
+              "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+            },
+            {
+              "path": "crates/telperion-core/src/bias.rs",
+              "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+            },
+            {
+              "path": "crates/telperion-core/src/branching.rs",
+              "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/audit.rs",
+              "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/habit.rs",
+              "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/local.rs",
+              "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization.rs",
+              "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization/fill.rs",
+              "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization/grid.rs",
+              "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+            },
+            {
+              "path": "crates/telperion-core/src/envelope.rs",
+              "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+            },
+            {
+              "path": "crates/telperion-core/src/field.rs",
+              "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage.rs",
+              "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage/element.rs",
+              "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage/placement.rs",
+              "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+            },
+            {
+              "path": "crates/telperion-core/src/lib.rs",
+              "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+            },
+            {
+              "path": "crates/telperion-core/src/math.rs",
+              "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+            },
+            {
+              "path": "crates/telperion-core/src/noise.rs",
+              "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+            },
+            {
+              "path": "crates/telperion-core/src/presets.rs",
+              "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+            },
+            {
+              "path": "crates/telperion-core/src/radius.rs",
+              "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+            },
+            {
+              "path": "crates/telperion-core/src/rng.rs",
+              "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+            },
+            {
+              "path": "crates/telperion-core/src/surface.rs",
+              "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/attachment.rs",
+              "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/frames.rs",
+              "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/paths.rs",
+              "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+            },
+            {
+              "path": "crates/telperion-core/src/tree.rs",
+              "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+            },
+            {
+              "path": "crates/telperion-core/src/twigs.rs",
+              "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+            }
+          ],
+          "sha256": "16a1b1e9e70e795de100007439692d8add4cd6942869642ac720c5c66b7de258"
+        },
+        "status": "complete",
+        "tool": {
+          "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+          "dirty": false,
+          "files": [
+            {
+              "path": "Cargo.lock",
+              "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark.rs",
+              "sha256": "d966128e067d36d58d256db1803f057cbb278e4a53820542bbeb44345fb3b569"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/metrics.rs",
+              "sha256": "3a9501e9d82d6359c611e8bda0ea2d95f84ab960ed3cfd5407c19952921d11c4"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/native_controls.py",
+              "sha256": "bc9cd48886aee1e33eb95aaa11def2686a8f7d4fe20e55681af2a6798f89c5a9"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/params.rs",
+              "sha256": "0704618d4d04d21928174caa7b4eea1f759bc289c437b0c1db38871b0177a547"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/runner.py",
+              "sha256": "bfcd9a6c1184a5fae6d424e0ce7291efe3b487e0bb13394c55f09b09fd9cf199"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/test_controls.py",
+              "sha256": "68fc1d87b5e4c73cbb3aebcd906c6d99e49a0281c5f718078ee48cc336841339"
+            },
+            {
+              "path": "crates/telperion-core/examples/species_metrics/mod.rs",
+              "sha256": "6a25f14b6cf86b27a631692f4bbe448dba8e4cd3d15e3d75b87f406cd713b956"
+            },
+            {
+              "path": "crates/telperion-core/tests/geometry_benchmark.rs",
+              "sha256": "6475d6bfd21aa517c8bcc3967a9d07cf697cc2b82dbd6f87224e16c05aadc1c5"
+            }
+          ],
+          "sha256": "c5f5398301028a3983a38807a1a2fadedeb8519b100e35752f697e3988061de6"
+        }
+      },
+      "receipt": {
+        "path": "/tmp/fn19-task4-visual-replay-v3/native/candidate/run.json",
+        "bytes": 22728,
+        "sha256": "976098c867080dd2999fef7393783f96a9cff469c42177a49fa4a896fc64ef10"
+      }
+    },
+    "visual_baseline": {
+      "run": {
+        "schema_version": 1,
+        "benchmark_id": "fn19-tiny-controls-v1",
+        "run_id": "baseline",
+        "created_at": "2026-09-06T18:47:15.279Z",
+        "protocol_sha256": "22030063113bb7fd81c5afbcd5371a574702e0bba78ae735062f78661c1bb5a5",
+        "references_sha256": "db491b8d6bf19dfde6b476d8f7099ef8d41abb079fb689c71aa855bffcc41533",
+        "source": {
+          "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+          "dirty": false,
+          "files": [
+            {
+              "path": "Cargo.lock",
+              "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+            },
+            {
+              "path": "Cargo.toml",
+              "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+            },
+            {
+              "path": "crates/telperion-core/Cargo.toml",
+              "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+            },
+            {
+              "path": "crates/telperion-core/src/bias.rs",
+              "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+            },
+            {
+              "path": "crates/telperion-core/src/branching.rs",
+              "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/audit.rs",
+              "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/habit.rs",
+              "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/local.rs",
+              "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization.rs",
+              "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization/fill.rs",
+              "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization/grid.rs",
+              "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+            },
+            {
+              "path": "crates/telperion-core/src/envelope.rs",
+              "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+            },
+            {
+              "path": "crates/telperion-core/src/field.rs",
+              "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage.rs",
+              "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage/element.rs",
+              "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage/placement.rs",
+              "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+            },
+            {
+              "path": "crates/telperion-core/src/lib.rs",
+              "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+            },
+            {
+              "path": "crates/telperion-core/src/math.rs",
+              "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+            },
+            {
+              "path": "crates/telperion-core/src/noise.rs",
+              "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+            },
+            {
+              "path": "crates/telperion-core/src/presets.rs",
+              "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+            },
+            {
+              "path": "crates/telperion-core/src/radius.rs",
+              "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+            },
+            {
+              "path": "crates/telperion-core/src/rng.rs",
+              "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+            },
+            {
+              "path": "crates/telperion-core/src/surface.rs",
+              "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/attachment.rs",
+              "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/frames.rs",
+              "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/paths.rs",
+              "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+            },
+            {
+              "path": "crates/telperion-core/src/tree.rs",
+              "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+            },
+            {
+              "path": "crates/telperion-core/src/twigs.rs",
+              "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+            },
+            {
+              "path": "crates/telperion-wasm/Cargo.toml",
+              "sha256": "315de268378b8f47c50aba3c78933b3fc5011afe6862fd8dd0766b7724670998"
+            },
+            {
+              "path": "crates/telperion-wasm/src/lib.rs",
+              "sha256": "da1b8014bf62fc075eccc9b7e9da9ad70c47e9152bb415a31e3c7bac9196a880"
+            },
+            {
+              "path": "crates/telperion-wasm/src/params.rs",
+              "sha256": "6e36f78790af84b412e3dc96c4936db23d458eb2393bd7e7200e863f5556195e"
+            },
+            {
+              "path": "src/browser/core.ts",
+              "sha256": "24e880fae471dc895d25981f91fef70c3fa097542932db8b018986a4ee30598f"
+            },
+            {
+              "path": "src/browser/presets.generated.ts",
+              "sha256": "260adecf466b4968bde89991ea795d87af48d14c9403e9f8d01802ba4aacb7e7"
+            },
+            {
+              "path": "src/browser/three.ts",
+              "sha256": "869dd9d442d3c60c989851521dea72f47a61b0fb25465dbcf5385690e41903eb"
+            }
+          ],
+          "sha256": "9e9abb74b25d6276fb90648c69072fac075af7c381dbec33d920ac295691c7db"
+        },
+        "tool": {
+          "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+          "dirty": true,
+          "files": [
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark.rs",
+              "sha256": "d966128e067d36d58d256db1803f057cbb278e4a53820542bbeb44345fb3b569"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/params.rs",
+              "sha256": "0704618d4d04d21928174caa7b4eea1f759bc289c437b0c1db38871b0177a547"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/runner.py",
+              "sha256": "bfcd9a6c1184a5fae6d424e0ce7291efe3b487e0bb13394c55f09b09fd9cf199"
+            },
+            {
+              "path": "harness/stage.ts",
+              "sha256": "9cdc407bd209c50821bbd573af4128fb67b914e7c3efa35a14c09f3e00bbbc83"
+            },
+            {
+              "path": "package-lock.json",
+              "sha256": "09151e36dd4759b4e0dbc87afd9e8d60c5edd3e9a8fc4a127aeb72e711c18afa"
+            },
+            {
+              "path": "tests/browser/geometry-benchmark-diagnostics.mjs",
+              "sha256": "6c4e1358c04347e65bf18378038b51af3eb0b845eed1cbaad8f4fc9b5772e300"
+            },
+            {
+              "path": "tests/browser/geometry-benchmark-rig.mjs",
+              "sha256": "7d9a33b9a7556a6f9dffc98ddeed0c99fd5d365903d76ba29f74b4922db44101"
+            },
+            {
+              "path": "tests/browser/geometry-benchmark.mjs",
+              "sha256": "3b7f585cf741a491ef150c5ef91007d4fc59661deea8ee5cad3eca05e7291326"
+            },
+            {
+              "path": "tests/browser/geometry-benchmark.test.mjs",
+              "sha256": "72cc0b3adda2b57c4dea5c4c147ee1ef6fc2671b693ed06ce945d24869239055"
+            },
+            {
+              "path": "vite.config.ts",
+              "sha256": "30796fa8b04d3e68f0daab6e8e733cb25d9675c47a7352bd406eba0adc522c9a"
+            }
+          ],
+          "sha256": "ee62dad3861837b668b6ceee1dade9f92a788d85e783d53512bf35454be78662"
+        },
+        "binaries": [
+          {
+            "path": "generator.wasm",
+            "bytes": 475618,
+            "sha256": "3c50f635bbd9cbe98141450e5660345652fa8e757edf752db4722e7797b5574a",
+            "media_type": "application/wasm"
+          },
+          {
+            "path": "generator-support",
+            "bytes": 955432,
+            "sha256": "ebbb059352cfec4db5948f7665e1778635cde155f08113fab14cde2055b99242",
+            "media_type": "application/octet-stream"
+          }
+        ],
+        "manifest_sha256": "b5d31426c893bcb5f8a3ecb72f68c617822a14ea72bbfc96cad0df2d6d81caaf",
+        "conditions_sha256": "3001e797d60e72b65f58052eed9b69c20506ea14f73388a5f944f89c24459689",
+        "parameters": {
+          "control-1": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 1,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-2": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 2,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-3": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 3,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-4": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 4,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-5": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 5,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-6": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 6,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          }
+        },
+        "cases": [
+          {
+            "id": "control-1",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 1,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-2",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 2,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-3",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 3,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-4",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 4,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-5",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 5,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-6",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 6,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          }
+        ],
+        "machine": {
+          "node": "v26.8.1",
+          "os": "linux 7.1.9-arch1-2",
+          "lifecycle": "cold browser per case; readback included",
+          "exclusive_window": false
+        },
+        "status": "complete",
+        "partial": false,
+        "reason": null
+      },
+      "receipt": {
+        "path": "/tmp/fn19-task4-visual-replay-v3/baseline/run.json",
+        "bytes": 23764,
+        "sha256": "fbc639db8506da7c777422e36dc07cb95e5a3703df888dc2dd556892042b542a"
+      },
+      "capture_status_counts": {
+        "pass": 42
+      }
+    },
+    "visual_candidate": {
+      "run": {
+        "schema_version": 1,
+        "benchmark_id": "fn19-tiny-controls-v1",
+        "run_id": "candidate",
+        "created_at": "2026-09-06T18:56:55.621Z",
+        "protocol_sha256": "22030063113bb7fd81c5afbcd5371a574702e0bba78ae735062f78661c1bb5a5",
+        "references_sha256": "db491b8d6bf19dfde6b476d8f7099ef8d41abb079fb689c71aa855bffcc41533",
+        "source": {
+          "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+          "dirty": false,
+          "files": [
+            {
+              "path": "Cargo.lock",
+              "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+            },
+            {
+              "path": "Cargo.toml",
+              "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+            },
+            {
+              "path": "crates/telperion-core/Cargo.toml",
+              "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+            },
+            {
+              "path": "crates/telperion-core/src/bias.rs",
+              "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+            },
+            {
+              "path": "crates/telperion-core/src/branching.rs",
+              "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/audit.rs",
+              "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/habit.rs",
+              "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+            },
+            {
+              "path": "crates/telperion-core/src/branching/local.rs",
+              "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization.rs",
+              "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization/fill.rs",
+              "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+            },
+            {
+              "path": "crates/telperion-core/src/colonization/grid.rs",
+              "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+            },
+            {
+              "path": "crates/telperion-core/src/envelope.rs",
+              "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+            },
+            {
+              "path": "crates/telperion-core/src/field.rs",
+              "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage.rs",
+              "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage/element.rs",
+              "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+            },
+            {
+              "path": "crates/telperion-core/src/foliage/placement.rs",
+              "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+            },
+            {
+              "path": "crates/telperion-core/src/lib.rs",
+              "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+            },
+            {
+              "path": "crates/telperion-core/src/math.rs",
+              "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+            },
+            {
+              "path": "crates/telperion-core/src/noise.rs",
+              "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+            },
+            {
+              "path": "crates/telperion-core/src/presets.rs",
+              "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+            },
+            {
+              "path": "crates/telperion-core/src/radius.rs",
+              "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+            },
+            {
+              "path": "crates/telperion-core/src/rng.rs",
+              "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+            },
+            {
+              "path": "crates/telperion-core/src/surface.rs",
+              "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/attachment.rs",
+              "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/frames.rs",
+              "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+            },
+            {
+              "path": "crates/telperion-core/src/surface/paths.rs",
+              "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+            },
+            {
+              "path": "crates/telperion-core/src/tree.rs",
+              "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+            },
+            {
+              "path": "crates/telperion-core/src/twigs.rs",
+              "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+            },
+            {
+              "path": "crates/telperion-wasm/Cargo.toml",
+              "sha256": "315de268378b8f47c50aba3c78933b3fc5011afe6862fd8dd0766b7724670998"
+            },
+            {
+              "path": "crates/telperion-wasm/src/lib.rs",
+              "sha256": "da1b8014bf62fc075eccc9b7e9da9ad70c47e9152bb415a31e3c7bac9196a880"
+            },
+            {
+              "path": "crates/telperion-wasm/src/params.rs",
+              "sha256": "6e36f78790af84b412e3dc96c4936db23d458eb2393bd7e7200e863f5556195e"
+            },
+            {
+              "path": "src/browser/core.ts",
+              "sha256": "24e880fae471dc895d25981f91fef70c3fa097542932db8b018986a4ee30598f"
+            },
+            {
+              "path": "src/browser/presets.generated.ts",
+              "sha256": "260adecf466b4968bde89991ea795d87af48d14c9403e9f8d01802ba4aacb7e7"
+            },
+            {
+              "path": "src/browser/three.ts",
+              "sha256": "869dd9d442d3c60c989851521dea72f47a61b0fb25465dbcf5385690e41903eb"
+            }
+          ],
+          "sha256": "9e9abb74b25d6276fb90648c69072fac075af7c381dbec33d920ac295691c7db"
+        },
+        "tool": {
+          "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+          "dirty": true,
+          "files": [
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark.rs",
+              "sha256": "d966128e067d36d58d256db1803f057cbb278e4a53820542bbeb44345fb3b569"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/params.rs",
+              "sha256": "0704618d4d04d21928174caa7b4eea1f759bc289c437b0c1db38871b0177a547"
+            },
+            {
+              "path": "crates/telperion-core/examples/geometry_benchmark/runner.py",
+              "sha256": "bfcd9a6c1184a5fae6d424e0ce7291efe3b487e0bb13394c55f09b09fd9cf199"
+            },
+            {
+              "path": "harness/stage.ts",
+              "sha256": "9cdc407bd209c50821bbd573af4128fb67b914e7c3efa35a14c09f3e00bbbc83"
+            },
+            {
+              "path": "package-lock.json",
+              "sha256": "09151e36dd4759b4e0dbc87afd9e8d60c5edd3e9a8fc4a127aeb72e711c18afa"
+            },
+            {
+              "path": "tests/browser/geometry-benchmark-diagnostics.mjs",
+              "sha256": "6c4e1358c04347e65bf18378038b51af3eb0b845eed1cbaad8f4fc9b5772e300"
+            },
+            {
+              "path": "tests/browser/geometry-benchmark-rig.mjs",
+              "sha256": "7d9a33b9a7556a6f9dffc98ddeed0c99fd5d365903d76ba29f74b4922db44101"
+            },
+            {
+              "path": "tests/browser/geometry-benchmark.mjs",
+              "sha256": "3b7f585cf741a491ef150c5ef91007d4fc59661deea8ee5cad3eca05e7291326"
+            },
+            {
+              "path": "tests/browser/geometry-benchmark.test.mjs",
+              "sha256": "72cc0b3adda2b57c4dea5c4c147ee1ef6fc2671b693ed06ce945d24869239055"
+            },
+            {
+              "path": "vite.config.ts",
+              "sha256": "30796fa8b04d3e68f0daab6e8e733cb25d9675c47a7352bd406eba0adc522c9a"
+            }
+          ],
+          "sha256": "ee62dad3861837b668b6ceee1dade9f92a788d85e783d53512bf35454be78662"
+        },
+        "binaries": [
+          {
+            "path": "generator.wasm",
+            "bytes": 475618,
+            "sha256": "3c50f635bbd9cbe98141450e5660345652fa8e757edf752db4722e7797b5574a",
+            "media_type": "application/wasm"
+          },
+          {
+            "path": "generator-support",
+            "bytes": 955432,
+            "sha256": "ebbb059352cfec4db5948f7665e1778635cde155f08113fab14cde2055b99242",
+            "media_type": "application/octet-stream"
+          }
+        ],
+        "manifest_sha256": "b5d31426c893bcb5f8a3ecb72f68c617822a14ea72bbfc96cad0df2d6d81caaf",
+        "conditions_sha256": "3001e797d60e72b65f58052eed9b69c20506ea14f73388a5f944f89c24459689",
+        "parameters": {
+          "control-1": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 1,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-2": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 2,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-3": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 3,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-4": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 4,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-5": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 5,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          },
+          "control-6": {
+            "canopy": {
+              "attachment": "alternate",
+              "clump": 5,
+              "clumpSpan": 0.3,
+              "divergence": 180,
+              "maxInstances": 10000,
+              "outward": 0.6,
+              "scatter": 18,
+              "shootRadius": 0.12,
+              "size": 1,
+              "sizeVariation": 0.2,
+              "spacing": 0.006,
+              "upward": 0.35
+            },
+            "element": {
+              "anatomy": "lobedBlade",
+              "axialSegments": 5,
+              "baseFullness": 0.85,
+              "card": false,
+              "connectorLength": 0.012,
+              "crossSegments": 2,
+              "cup": 0.18,
+              "curl": 0.12,
+              "length": 0.1,
+              "tipSharpness": 1.6,
+              "widestAt": 0.42,
+              "width": 0.075
+            },
+            "radii": {
+              "forkExponent": 2,
+              "lengthTaper": 0.6,
+              "trunkRadius": 0.018
+            },
+            "shellDepth": 1,
+            "skeleton": {
+              "attractors": 500,
+              "bias": {
+                "gravitropism": 0,
+                "lean": 0,
+                "supernatural": {
+                  "enabled": false,
+                  "spiralRate": 0,
+                  "writheAmplitude": 0,
+                  "writheWavelength": 0.45
+                }
+              },
+              "envelope": {
+                "crownBase": 0.16,
+                "fullness": 0.55,
+                "height": 2,
+                "shoulder": 2.2,
+                "spread": 0.55
+              },
+              "growth": {
+                "maxTurnPerStep": 35
+              },
+              "habit": {
+                "crookedness": 24,
+                "kind": "spreading",
+                "scaffoldLimbs": 2,
+                "subdivisions": 1
+              },
+              "seed": 6,
+              "step": 0.15,
+              "twigs": {
+                "angle": 45,
+                "angleVariation": 10,
+                "divergence": 137.508,
+                "internodeFactor": 2.5,
+                "laterals": 2,
+                "lengthRatio": 0.45,
+                "limbRadius": 0.1,
+                "ratioPower": 1.3,
+                "reach": 0.2,
+                "twig": {
+                  "bearingDiameter": 0.03,
+                  "diameter": 0.005,
+                  "internodeLength": 0.08,
+                  "length": 0.16,
+                  "stationsPerInternode": 1
+                },
+                "vigourVariation": 0.15
+              }
+            },
+            "surface": {
+              "flareDepth": 0.004,
+              "flareFalloff": 0.022,
+              "flareRadius": 2.1,
+              "forkSocket": 0.5,
+              "forkSwell": 1.35,
+              "lobeDepth": 0,
+              "lobes": 5,
+              "radialSegments": 12,
+              "twistRate": 0
+            }
+          }
+        },
+        "cases": [
+          {
+            "id": "control-1",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 1,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-2",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 2,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-3",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 3,
+            "seed_role": "regression",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-4",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 4,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-5",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 5,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          },
+          {
+            "id": "control-6",
+            "parameter_species_id": "oregon-white-oak",
+            "seed": 6,
+            "seed_role": "holdout-at-freeze",
+            "species_id": "oregon-white-oak"
+          }
+        ],
+        "machine": {
+          "node": "v26.8.1",
+          "os": "linux 7.1.9-arch1-2",
+          "lifecycle": "cold browser per case; readback included",
+          "exclusive_window": false
+        },
+        "status": "complete",
+        "partial": false,
+        "reason": null
+      },
+      "receipt": {
+        "path": "/tmp/fn19-task4-visual-replay-v3/candidate/run.json",
+        "bytes": 23765,
+        "sha256": "1aa7ccdad6b9374e6c5a6bd2ec41c13f5fa54bc592813ae57013f98f30d16457"
+      },
+      "capture_status_counts": {
+        "pass": 42
+      }
+    }
+  },
+  "changed_fixture": "Existing second-azimuth PNG substituted into first-azimuth artifact with corrected byte/hash receipt; synthetic control, not a generated revision.",
+  "interrupted_visual": {
+    "disposition": "inconclusive",
+    "reason": "Old-tool replay stopped before validator edits; comparing its incomplete visual output against itself rejects missing/failed views.",
+    "run": {
+      "schema_version": 1,
+      "benchmark_id": "fn19-tiny-visual-controls-v1",
+      "run_id": "baseline",
+      "created_at": "2026-09-06T18:43:56.236Z",
+      "protocol_sha256": "0051f4785c988bd6f47bf8de4bd681f0f39a052b88e04e5e1cbf0067385ed0a2",
+      "references_sha256": "db491b8d6bf19dfde6b476d8f7099ef8d41abb079fb689c71aa855bffcc41533",
+      "source": {
+        "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+        "dirty": false,
+        "files": [
+          {
+            "path": "Cargo.lock",
+            "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+          },
+          {
+            "path": "Cargo.toml",
+            "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+          },
+          {
+            "path": "crates/telperion-core/Cargo.toml",
+            "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+          },
+          {
+            "path": "crates/telperion-core/src/bias.rs",
+            "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+          },
+          {
+            "path": "crates/telperion-core/src/branching.rs",
+            "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+          },
+          {
+            "path": "crates/telperion-core/src/branching/audit.rs",
+            "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+          },
+          {
+            "path": "crates/telperion-core/src/branching/habit.rs",
+            "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+          },
+          {
+            "path": "crates/telperion-core/src/branching/local.rs",
+            "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+          },
+          {
+            "path": "crates/telperion-core/src/colonization.rs",
+            "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+          },
+          {
+            "path": "crates/telperion-core/src/colonization/fill.rs",
+            "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+          },
+          {
+            "path": "crates/telperion-core/src/colonization/grid.rs",
+            "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+          },
+          {
+            "path": "crates/telperion-core/src/envelope.rs",
+            "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+          },
+          {
+            "path": "crates/telperion-core/src/field.rs",
+            "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+          },
+          {
+            "path": "crates/telperion-core/src/foliage.rs",
+            "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+          },
+          {
+            "path": "crates/telperion-core/src/foliage/element.rs",
+            "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+          },
+          {
+            "path": "crates/telperion-core/src/foliage/placement.rs",
+            "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+          },
+          {
+            "path": "crates/telperion-core/src/lib.rs",
+            "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+          },
+          {
+            "path": "crates/telperion-core/src/math.rs",
+            "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+          },
+          {
+            "path": "crates/telperion-core/src/noise.rs",
+            "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+          },
+          {
+            "path": "crates/telperion-core/src/presets.rs",
+            "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+          },
+          {
+            "path": "crates/telperion-core/src/radius.rs",
+            "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+          },
+          {
+            "path": "crates/telperion-core/src/rng.rs",
+            "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+          },
+          {
+            "path": "crates/telperion-core/src/surface.rs",
+            "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+          },
+          {
+            "path": "crates/telperion-core/src/surface/attachment.rs",
+            "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+          },
+          {
+            "path": "crates/telperion-core/src/surface/frames.rs",
+            "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+          },
+          {
+            "path": "crates/telperion-core/src/surface/paths.rs",
+            "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+          },
+          {
+            "path": "crates/telperion-core/src/tree.rs",
+            "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+          },
+          {
+            "path": "crates/telperion-core/src/twigs.rs",
+            "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+          },
+          {
+            "path": "crates/telperion-wasm/Cargo.toml",
+            "sha256": "315de268378b8f47c50aba3c78933b3fc5011afe6862fd8dd0766b7724670998"
+          },
+          {
+            "path": "crates/telperion-wasm/src/lib.rs",
+            "sha256": "da1b8014bf62fc075eccc9b7e9da9ad70c47e9152bb415a31e3c7bac9196a880"
+          },
+          {
+            "path": "crates/telperion-wasm/src/params.rs",
+            "sha256": "6e36f78790af84b412e3dc96c4936db23d458eb2393bd7e7200e863f5556195e"
+          },
+          {
+            "path": "src/browser/core.ts",
+            "sha256": "24e880fae471dc895d25981f91fef70c3fa097542932db8b018986a4ee30598f"
+          },
+          {
+            "path": "src/browser/presets.generated.ts",
+            "sha256": "260adecf466b4968bde89991ea795d87af48d14c9403e9f8d01802ba4aacb7e7"
+          },
+          {
+            "path": "src/browser/three.ts",
+            "sha256": "869dd9d442d3c60c989851521dea72f47a61b0fb25465dbcf5385690e41903eb"
+          }
+        ],
+        "sha256": "9e9abb74b25d6276fb90648c69072fac075af7c381dbec33d920ac295691c7db"
+      },
+      "tool": {
+        "commit": "b5249e16c7e2c10f88f8409294fce38c0ddfb435",
+        "dirty": false,
+        "files": [
+          {
+            "path": "crates/telperion-core/examples/geometry_benchmark.rs",
+            "sha256": "d966128e067d36d58d256db1803f057cbb278e4a53820542bbeb44345fb3b569"
+          },
+          {
+            "path": "crates/telperion-core/examples/geometry_benchmark/params.rs",
+            "sha256": "0704618d4d04d21928174caa7b4eea1f759bc289c437b0c1db38871b0177a547"
+          },
+          {
+            "path": "crates/telperion-core/examples/geometry_benchmark/runner.py",
+            "sha256": "bfcd9a6c1184a5fae6d424e0ce7291efe3b487e0bb13394c55f09b09fd9cf199"
+          },
+          {
+            "path": "harness/stage.ts",
+            "sha256": "9cdc407bd209c50821bbd573af4128fb67b914e7c3efa35a14c09f3e00bbbc83"
+          },
+          {
+            "path": "package-lock.json",
+            "sha256": "09151e36dd4759b4e0dbc87afd9e8d60c5edd3e9a8fc4a127aeb72e711c18afa"
+          },
+          {
+            "path": "tests/browser/geometry-benchmark-diagnostics.mjs",
+            "sha256": "6c4e1358c04347e65bf18378038b51af3eb0b845eed1cbaad8f4fc9b5772e300"
+          },
+          {
+            "path": "tests/browser/geometry-benchmark-rig.mjs",
+            "sha256": "7d9a33b9a7556a6f9dffc98ddeed0c99fd5d365903d76ba29f74b4922db44101"
+          },
+          {
+            "path": "tests/browser/geometry-benchmark.mjs",
+            "sha256": "5186da9117d2a087c80eb77afe3b4bf9cc3140b2861b8fbf8d7d5cc691b79b11"
+          },
+          {
+            "path": "tests/browser/geometry-benchmark.test.mjs",
+            "sha256": "f6e67e54b07a46795b3065f8ce2fc4825e30bb751269a0051bcee6041d8aa6b5"
+          },
+          {
+            "path": "vite.config.ts",
+            "sha256": "30796fa8b04d3e68f0daab6e8e733cb25d9675c47a7352bd406eba0adc522c9a"
+          }
+        ],
+        "sha256": "bda8f89c510bb83e95720feaa6d5dc30207e0d3d39c5b1caa24fa8cfac1e140b"
+      },
+      "binaries": [
+        {
+          "path": "generator.wasm",
+          "bytes": 475618,
+          "sha256": "3c50f635bbd9cbe98141450e5660345652fa8e757edf752db4722e7797b5574a",
+          "media_type": "application/wasm"
+        },
+        {
+          "path": "generator-support",
+          "bytes": 955432,
+          "sha256": "ebbb059352cfec4db5948f7665e1778635cde155f08113fab14cde2055b99242",
+          "media_type": "application/octet-stream"
+        }
+      ],
+      "manifest_sha256": "b5d31426c893bcb5f8a3ecb72f68c617822a14ea72bbfc96cad0df2d6d81caaf",
+      "conditions_sha256": "6e81519ca20a16907728abcee0b65148b5c7ebd3bd0c8b4a6ae9f108d7ecd29a",
+      "parameters": {
+        "control-1": {
+          "canopy": {
+            "attachment": "alternate",
+            "clump": 5,
+            "clumpSpan": 0.3,
+            "divergence": 180,
+            "maxInstances": 10000,
+            "outward": 0.6,
+            "scatter": 18,
+            "shootRadius": 0.12,
+            "size": 1,
+            "sizeVariation": 0.2,
+            "spacing": 0.006,
+            "upward": 0.35
+          },
+          "element": {
+            "anatomy": "lobedBlade",
+            "axialSegments": 5,
+            "baseFullness": 0.85,
+            "card": false,
+            "connectorLength": 0.012,
+            "crossSegments": 2,
+            "cup": 0.18,
+            "curl": 0.12,
+            "length": 0.1,
+            "tipSharpness": 1.6,
+            "widestAt": 0.42,
+            "width": 0.075
+          },
+          "radii": {
+            "forkExponent": 2,
+            "lengthTaper": 0.6,
+            "trunkRadius": 0.018
+          },
+          "shellDepth": 1,
+          "skeleton": {
+            "attractors": 500,
+            "bias": {
+              "gravitropism": 0,
+              "lean": 0,
+              "supernatural": {
+                "enabled": false,
+                "spiralRate": 0,
+                "writheAmplitude": 0,
+                "writheWavelength": 0.45
+              }
+            },
+            "envelope": {
+              "crownBase": 0.16,
+              "fullness": 0.55,
+              "height": 2,
+              "shoulder": 2.2,
+              "spread": 0.55
+            },
+            "growth": {
+              "maxTurnPerStep": 35
+            },
+            "habit": {
+              "crookedness": 24,
+              "kind": "spreading",
+              "scaffoldLimbs": 2,
+              "subdivisions": 1
+            },
+            "seed": 1,
+            "step": 0.15,
+            "twigs": {
+              "angle": 45,
+              "angleVariation": 10,
+              "divergence": 137.508,
+              "internodeFactor": 2.5,
+              "laterals": 2,
+              "lengthRatio": 0.45,
+              "limbRadius": 0.1,
+              "ratioPower": 1.3,
+              "reach": 0.2,
+              "twig": {
+                "bearingDiameter": 0.03,
+                "diameter": 0.005,
+                "internodeLength": 0.08,
+                "length": 0.16,
+                "stationsPerInternode": 1
+              },
+              "vigourVariation": 0.15
+            }
+          },
+          "surface": {
+            "flareDepth": 0.004,
+            "flareFalloff": 0.022,
+            "flareRadius": 2.1,
+            "forkSocket": 0.5,
+            "forkSwell": 1.35,
+            "lobeDepth": 0,
+            "lobes": 5,
+            "radialSegments": 12,
+            "twistRate": 0
+          }
+        },
+        "control-2": {
+          "canopy": {
+            "attachment": "alternate",
+            "clump": 5,
+            "clumpSpan": 0.3,
+            "divergence": 180,
+            "maxInstances": 10000,
+            "outward": 0.6,
+            "scatter": 18,
+            "shootRadius": 0.12,
+            "size": 1,
+            "sizeVariation": 0.2,
+            "spacing": 0.006,
+            "upward": 0.35
+          },
+          "element": {
+            "anatomy": "lobedBlade",
+            "axialSegments": 5,
+            "baseFullness": 0.85,
+            "card": false,
+            "connectorLength": 0.012,
+            "crossSegments": 2,
+            "cup": 0.18,
+            "curl": 0.12,
+            "length": 0.1,
+            "tipSharpness": 1.6,
+            "widestAt": 0.42,
+            "width": 0.075
+          },
+          "radii": {
+            "forkExponent": 2,
+            "lengthTaper": 0.6,
+            "trunkRadius": 0.018
+          },
+          "shellDepth": 1,
+          "skeleton": {
+            "attractors": 500,
+            "bias": {
+              "gravitropism": 0,
+              "lean": 0,
+              "supernatural": {
+                "enabled": false,
+                "spiralRate": 0,
+                "writheAmplitude": 0,
+                "writheWavelength": 0.45
+              }
+            },
+            "envelope": {
+              "crownBase": 0.16,
+              "fullness": 0.55,
+              "height": 2,
+              "shoulder": 2.2,
+              "spread": 0.55
+            },
+            "growth": {
+              "maxTurnPerStep": 35
+            },
+            "habit": {
+              "crookedness": 24,
+              "kind": "spreading",
+              "scaffoldLimbs": 2,
+              "subdivisions": 1
+            },
+            "seed": 2,
+            "step": 0.15,
+            "twigs": {
+              "angle": 45,
+              "angleVariation": 10,
+              "divergence": 137.508,
+              "internodeFactor": 2.5,
+              "laterals": 2,
+              "lengthRatio": 0.45,
+              "limbRadius": 0.1,
+              "ratioPower": 1.3,
+              "reach": 0.2,
+              "twig": {
+                "bearingDiameter": 0.03,
+                "diameter": 0.005,
+                "internodeLength": 0.08,
+                "length": 0.16,
+                "stationsPerInternode": 1
+              },
+              "vigourVariation": 0.15
+            }
+          },
+          "surface": {
+            "flareDepth": 0.004,
+            "flareFalloff": 0.022,
+            "flareRadius": 2.1,
+            "forkSocket": 0.5,
+            "forkSwell": 1.35,
+            "lobeDepth": 0,
+            "lobes": 5,
+            "radialSegments": 12,
+            "twistRate": 0
+          }
+        },
+        "control-3": {
+          "canopy": {
+            "attachment": "alternate",
+            "clump": 5,
+            "clumpSpan": 0.3,
+            "divergence": 180,
+            "maxInstances": 10000,
+            "outward": 0.6,
+            "scatter": 18,
+            "shootRadius": 0.12,
+            "size": 1,
+            "sizeVariation": 0.2,
+            "spacing": 0.006,
+            "upward": 0.35
+          },
+          "element": {
+            "anatomy": "lobedBlade",
+            "axialSegments": 5,
+            "baseFullness": 0.85,
+            "card": false,
+            "connectorLength": 0.012,
+            "crossSegments": 2,
+            "cup": 0.18,
+            "curl": 0.12,
+            "length": 0.1,
+            "tipSharpness": 1.6,
+            "widestAt": 0.42,
+            "width": 0.075
+          },
+          "radii": {
+            "forkExponent": 2,
+            "lengthTaper": 0.6,
+            "trunkRadius": 0.018
+          },
+          "shellDepth": 1,
+          "skeleton": {
+            "attractors": 500,
+            "bias": {
+              "gravitropism": 0,
+              "lean": 0,
+              "supernatural": {
+                "enabled": false,
+                "spiralRate": 0,
+                "writheAmplitude": 0,
+                "writheWavelength": 0.45
+              }
+            },
+            "envelope": {
+              "crownBase": 0.16,
+              "fullness": 0.55,
+              "height": 2,
+              "shoulder": 2.2,
+              "spread": 0.55
+            },
+            "growth": {
+              "maxTurnPerStep": 35
+            },
+            "habit": {
+              "crookedness": 24,
+              "kind": "spreading",
+              "scaffoldLimbs": 2,
+              "subdivisions": 1
+            },
+            "seed": 3,
+            "step": 0.15,
+            "twigs": {
+              "angle": 45,
+              "angleVariation": 10,
+              "divergence": 137.508,
+              "internodeFactor": 2.5,
+              "laterals": 2,
+              "lengthRatio": 0.45,
+              "limbRadius": 0.1,
+              "ratioPower": 1.3,
+              "reach": 0.2,
+              "twig": {
+                "bearingDiameter": 0.03,
+                "diameter": 0.005,
+                "internodeLength": 0.08,
+                "length": 0.16,
+                "stationsPerInternode": 1
+              },
+              "vigourVariation": 0.15
+            }
+          },
+          "surface": {
+            "flareDepth": 0.004,
+            "flareFalloff": 0.022,
+            "flareRadius": 2.1,
+            "forkSocket": 0.5,
+            "forkSwell": 1.35,
+            "lobeDepth": 0,
+            "lobes": 5,
+            "radialSegments": 12,
+            "twistRate": 0
+          }
+        },
+        "control-4": {
+          "canopy": {
+            "attachment": "alternate",
+            "clump": 5,
+            "clumpSpan": 0.3,
+            "divergence": 180,
+            "maxInstances": 10000,
+            "outward": 0.6,
+            "scatter": 18,
+            "shootRadius": 0.12,
+            "size": 1,
+            "sizeVariation": 0.2,
+            "spacing": 0.006,
+            "upward": 0.35
+          },
+          "element": {
+            "anatomy": "lobedBlade",
+            "axialSegments": 5,
+            "baseFullness": 0.85,
+            "card": false,
+            "connectorLength": 0.012,
+            "crossSegments": 2,
+            "cup": 0.18,
+            "curl": 0.12,
+            "length": 0.1,
+            "tipSharpness": 1.6,
+            "widestAt": 0.42,
+            "width": 0.075
+          },
+          "radii": {
+            "forkExponent": 2,
+            "lengthTaper": 0.6,
+            "trunkRadius": 0.018
+          },
+          "shellDepth": 1,
+          "skeleton": {
+            "attractors": 500,
+            "bias": {
+              "gravitropism": 0,
+              "lean": 0,
+              "supernatural": {
+                "enabled": false,
+                "spiralRate": 0,
+                "writheAmplitude": 0,
+                "writheWavelength": 0.45
+              }
+            },
+            "envelope": {
+              "crownBase": 0.16,
+              "fullness": 0.55,
+              "height": 2,
+              "shoulder": 2.2,
+              "spread": 0.55
+            },
+            "growth": {
+              "maxTurnPerStep": 35
+            },
+            "habit": {
+              "crookedness": 24,
+              "kind": "spreading",
+              "scaffoldLimbs": 2,
+              "subdivisions": 1
+            },
+            "seed": 4,
+            "step": 0.15,
+            "twigs": {
+              "angle": 45,
+              "angleVariation": 10,
+              "divergence": 137.508,
+              "internodeFactor": 2.5,
+              "laterals": 2,
+              "lengthRatio": 0.45,
+              "limbRadius": 0.1,
+              "ratioPower": 1.3,
+              "reach": 0.2,
+              "twig": {
+                "bearingDiameter": 0.03,
+                "diameter": 0.005,
+                "internodeLength": 0.08,
+                "length": 0.16,
+                "stationsPerInternode": 1
+              },
+              "vigourVariation": 0.15
+            }
+          },
+          "surface": {
+            "flareDepth": 0.004,
+            "flareFalloff": 0.022,
+            "flareRadius": 2.1,
+            "forkSocket": 0.5,
+            "forkSwell": 1.35,
+            "lobeDepth": 0,
+            "lobes": 5,
+            "radialSegments": 12,
+            "twistRate": 0
+          }
+        },
+        "control-5": {
+          "canopy": {
+            "attachment": "alternate",
+            "clump": 5,
+            "clumpSpan": 0.3,
+            "divergence": 180,
+            "maxInstances": 10000,
+            "outward": 0.6,
+            "scatter": 18,
+            "shootRadius": 0.12,
+            "size": 1,
+            "sizeVariation": 0.2,
+            "spacing": 0.006,
+            "upward": 0.35
+          },
+          "element": {
+            "anatomy": "lobedBlade",
+            "axialSegments": 5,
+            "baseFullness": 0.85,
+            "card": false,
+            "connectorLength": 0.012,
+            "crossSegments": 2,
+            "cup": 0.18,
+            "curl": 0.12,
+            "length": 0.1,
+            "tipSharpness": 1.6,
+            "widestAt": 0.42,
+            "width": 0.075
+          },
+          "radii": {
+            "forkExponent": 2,
+            "lengthTaper": 0.6,
+            "trunkRadius": 0.018
+          },
+          "shellDepth": 1,
+          "skeleton": {
+            "attractors": 500,
+            "bias": {
+              "gravitropism": 0,
+              "lean": 0,
+              "supernatural": {
+                "enabled": false,
+                "spiralRate": 0,
+                "writheAmplitude": 0,
+                "writheWavelength": 0.45
+              }
+            },
+            "envelope": {
+              "crownBase": 0.16,
+              "fullness": 0.55,
+              "height": 2,
+              "shoulder": 2.2,
+              "spread": 0.55
+            },
+            "growth": {
+              "maxTurnPerStep": 35
+            },
+            "habit": {
+              "crookedness": 24,
+              "kind": "spreading",
+              "scaffoldLimbs": 2,
+              "subdivisions": 1
+            },
+            "seed": 5,
+            "step": 0.15,
+            "twigs": {
+              "angle": 45,
+              "angleVariation": 10,
+              "divergence": 137.508,
+              "internodeFactor": 2.5,
+              "laterals": 2,
+              "lengthRatio": 0.45,
+              "limbRadius": 0.1,
+              "ratioPower": 1.3,
+              "reach": 0.2,
+              "twig": {
+                "bearingDiameter": 0.03,
+                "diameter": 0.005,
+                "internodeLength": 0.08,
+                "length": 0.16,
+                "stationsPerInternode": 1
+              },
+              "vigourVariation": 0.15
+            }
+          },
+          "surface": {
+            "flareDepth": 0.004,
+            "flareFalloff": 0.022,
+            "flareRadius": 2.1,
+            "forkSocket": 0.5,
+            "forkSwell": 1.35,
+            "lobeDepth": 0,
+            "lobes": 5,
+            "radialSegments": 12,
+            "twistRate": 0
+          }
+        },
+        "control-6": {
+          "canopy": {
+            "attachment": "alternate",
+            "clump": 5,
+            "clumpSpan": 0.3,
+            "divergence": 180,
+            "maxInstances": 10000,
+            "outward": 0.6,
+            "scatter": 18,
+            "shootRadius": 0.12,
+            "size": 1,
+            "sizeVariation": 0.2,
+            "spacing": 0.006,
+            "upward": 0.35
+          },
+          "element": {
+            "anatomy": "lobedBlade",
+            "axialSegments": 5,
+            "baseFullness": 0.85,
+            "card": false,
+            "connectorLength": 0.012,
+            "crossSegments": 2,
+            "cup": 0.18,
+            "curl": 0.12,
+            "length": 0.1,
+            "tipSharpness": 1.6,
+            "widestAt": 0.42,
+            "width": 0.075
+          },
+          "radii": {
+            "forkExponent": 2,
+            "lengthTaper": 0.6,
+            "trunkRadius": 0.018
+          },
+          "shellDepth": 1,
+          "skeleton": {
+            "attractors": 500,
+            "bias": {
+              "gravitropism": 0,
+              "lean": 0,
+              "supernatural": {
+                "enabled": false,
+                "spiralRate": 0,
+                "writheAmplitude": 0,
+                "writheWavelength": 0.45
+              }
+            },
+            "envelope": {
+              "crownBase": 0.16,
+              "fullness": 0.55,
+              "height": 2,
+              "shoulder": 2.2,
+              "spread": 0.55
+            },
+            "growth": {
+              "maxTurnPerStep": 35
+            },
+            "habit": {
+              "crookedness": 24,
+              "kind": "spreading",
+              "scaffoldLimbs": 2,
+              "subdivisions": 1
+            },
+            "seed": 6,
+            "step": 0.15,
+            "twigs": {
+              "angle": 45,
+              "angleVariation": 10,
+              "divergence": 137.508,
+              "internodeFactor": 2.5,
+              "laterals": 2,
+              "lengthRatio": 0.45,
+              "limbRadius": 0.1,
+              "ratioPower": 1.3,
+              "reach": 0.2,
+              "twig": {
+                "bearingDiameter": 0.03,
+                "diameter": 0.005,
+                "internodeLength": 0.08,
+                "length": 0.16,
+                "stationsPerInternode": 1
+              },
+              "vigourVariation": 0.15
+            }
+          },
+          "surface": {
+            "flareDepth": 0.004,
+            "flareFalloff": 0.022,
+            "flareRadius": 2.1,
+            "forkSocket": 0.5,
+            "forkSwell": 1.35,
+            "lobeDepth": 0,
+            "lobes": 5,
+            "radialSegments": 12,
+            "twistRate": 0
+          }
+        }
+      },
+      "cases": [
+        {
+          "id": "control-1",
+          "parameter_species_id": "oregon-white-oak",
+          "seed": 1,
+          "seed_role": "regression",
+          "species_id": "oregon-white-oak"
+        },
+        {
+          "id": "control-2",
+          "parameter_species_id": "oregon-white-oak",
+          "seed": 2,
+          "seed_role": "regression",
+          "species_id": "oregon-white-oak"
+        },
+        {
+          "id": "control-3",
+          "parameter_species_id": "oregon-white-oak",
+          "seed": 3,
+          "seed_role": "regression",
+          "species_id": "oregon-white-oak"
+        },
+        {
+          "id": "control-4",
+          "parameter_species_id": "oregon-white-oak",
+          "seed": 4,
+          "seed_role": "holdout-at-freeze",
+          "species_id": "oregon-white-oak"
+        },
+        {
+          "id": "control-5",
+          "parameter_species_id": "oregon-white-oak",
+          "seed": 5,
+          "seed_role": "holdout-at-freeze",
+          "species_id": "oregon-white-oak"
+        },
+        {
+          "id": "control-6",
+          "parameter_species_id": "oregon-white-oak",
+          "seed": 6,
+          "seed_role": "holdout-at-freeze",
+          "species_id": "oregon-white-oak"
+        }
+      ],
+      "machine": {
+        "node": "v26.8.1",
+        "os": "linux 7.1.9-arch1-2",
+        "lifecycle": "cold browser per case; readback included",
+        "exclusive_window": false
+      },
+      "status": "started",
+      "partial": true,
+      "reason": "pending capture; incomplete cases remain interrupted"
+    },
+    "run_receipt": {
+      "path": "/tmp/fn19-task4-visual-replay-v2/baseline/run.json",
+      "bytes": 23820,
+      "sha256": "851e11c1955a1db7351db77888f477fb0ca5e6c7abbd8bd3aaab39cc5e2c3883"
+    },
+    "capture_status_counts": {
+      "started": 7,
+      "pending": 35
+    },
+    "comparison": {
+      "path": "/tmp/fn19-task4-visual-replay-v3/interrupted-control/comparison.json",
+      "bytes": 243493,
+      "sha256": "14e6e89e17bd641a25472b97b093dd795bebd9e5d5dfe22070e78b8b03fdaca4"
+    },
+    "reasons": [
+      "failed/missing view: control-1/whole/0",
+      "failed/missing view: control-1/whole/90",
+      "failed/missing view: control-1/bare/0",
+      "failed/missing view: control-1/bare/90",
+      "failed/missing view: control-1/base/0",
+      "failed/missing view: control-1/fork/0",
+      "failed/missing view: control-1/attached-shoot/0",
+      "failed/missing view: control-2/whole/0",
+      "failed/missing view: control-2/whole/90",
+      "failed/missing view: control-2/bare/0",
+      "failed/missing view: control-2/bare/90",
+      "failed/missing view: control-2/base/0",
+      "failed/missing view: control-2/fork/0",
+      "failed/missing view: control-2/attached-shoot/0",
+      "failed/missing view: control-3/whole/0",
+      "failed/missing view: control-3/whole/90",
+      "failed/missing view: control-3/bare/0",
+      "failed/missing view: control-3/bare/90",
+      "failed/missing view: control-3/base/0",
+      "failed/missing view: control-3/fork/0",
+      "failed/missing view: control-3/attached-shoot/0",
+      "failed/missing view: control-4/whole/0",
+      "failed/missing view: control-4/whole/90",
+      "failed/missing view: control-4/bare/0",
+      "failed/missing view: control-4/bare/90",
+      "failed/missing view: control-4/base/0",
+      "failed/missing view: control-4/fork/0",
+      "failed/missing view: control-4/attached-shoot/0",
+      "failed/missing view: control-5/whole/0",
+      "failed/missing view: control-5/whole/90",
+      "failed/missing view: control-5/bare/0",
+      "failed/missing view: control-5/bare/90",
+      "failed/missing view: control-5/base/0",
+      "failed/missing view: control-5/fork/0",
+      "failed/missing view: control-5/attached-shoot/0",
+      "failed/missing view: control-6/whole/0",
+      "failed/missing view: control-6/whole/90",
+      "failed/missing view: control-6/bare/0",
+      "failed/missing view: control-6/bare/90",
+      "failed/missing view: control-6/base/0",
+      "failed/missing view: control-6/fork/0",
+      "failed/missing view: control-6/attached-shoot/0",
+      "incomplete visual run",
+      "incomplete visual run"
+    ]
+  },
+  "first_prepare_rejection": {
+    "reason": "Semantically identical capture rules rejected because JSON object key order differed; fixed after mature capture without changing render values.",
+    "log": {
+      "path": "/tmp/fn19-task4-small-prepare.log",
+      "bytes": 230,
+      "sha256": "e86a3a0ab0512b37ce988232829eaf9521b4685206c4ac743a844c7bc3bf6c98"
+    }
+  },
+  "independent_assessment": "unassessed",
+  "performance_comparison": "inconclusive; no exclusive resource receipt"
+}

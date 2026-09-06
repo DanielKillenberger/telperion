@@ -1,0 +1,319 @@
+{
+  "version": "fn19-visibility-v2.2",
+  "method": "Direct actual final128 PNG inspection by worker and conductor, recorded separately from capture status and preview admissions.",
+  "independent_botanical_assessment": "unassessed",
+  "views": [
+    {
+      "case_id": "oregon-white-oak-1",
+      "case_index": 0,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Shared multi-axis scaffold junction and broad faceted shoulder are visible; uncropped wood context retained.",
+      "original_png": {
+        "path": "images/oregon-white-oak-1-fork.png",
+        "sha256": "4e929d8ae69eda6b3307909ffc633bcfb91098d16e1c6a4bce8cceb51a9d1421"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-1",
+      "case_index": 0,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Twig, multiple petioles and blade faces are visible; overlapping blade silhouettes limit hidden-side assessment.",
+      "original_png": {
+        "path": "images/oregon-white-oak-1-attached-shoot.png",
+        "sha256": "3a964896925c7a7edcd9dcdc40b0d328256d07018cdc6ebd27d27c84877049f4"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-2",
+      "case_index": 1,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Selected lateral root is exposed on the front of the parent; plug-like transition is assessable. Remote crop ends are excluded.",
+      "original_png": {
+        "path": "images/oregon-white-oak-2-fork.png",
+        "sha256": "034553a66648472b7f656904b8574175a5065610f149ca32942f6794449971e3"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-2",
+      "case_index": 1,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Incoming parent junction, terminal axis, petioles and blades are visible after depth widening.",
+      "original_png": {
+        "path": "images/oregon-white-oak-2-attached-shoot.png",
+        "sha256": "584ae3093efb74357172af1b40cba1163d969381281fba85dd11b26be5ae2fd9"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-3",
+      "case_index": 2,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Selected rightward lateral root is visible against the front parent surface; surrounding branches remain in context.",
+      "original_png": {
+        "path": "images/oregon-white-oak-3-fork.png",
+        "sha256": "571e90a2a4b55ec429ee7b7ea44d17eb18820e947a0a6a8f866137cacd00506f"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-3",
+      "case_index": 2,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Parent continuation and terminal twig remain visible; separated petioles and blade faces can be inspected.",
+      "original_png": {
+        "path": "images/oregon-white-oak-3-attached-shoot.png",
+        "sha256": "4b5afe728bfb5a2f09728542df1612ca45e8f177cd08d30779c4941ccaa8bfbf"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-3407793930",
+      "case_index": 3,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Broad branch shoulder is exposed; distal depth-cut opening is separate from the joint and is excluded from defects.",
+      "original_png": {
+        "path": "images/oregon-white-oak-3407793930-fork.png",
+        "sha256": "1d8c37dc27ac5ba7a627b842f2970c0366223bfbf3058a4f868670cfe5128055"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-3407793930",
+      "case_index": 3,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Twig, connectors and blade faces are visible; upper and lower foliage overlap remains explicit.",
+      "original_png": {
+        "path": "images/oregon-white-oak-3407793930-attached-shoot.png",
+        "sha256": "0c67c1e6548376a5f08a82e3cd0c4bc8be174b3622a6b918ce63c691fe330be0"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-1701335265",
+      "case_index": 4,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Upper/root region of selected rightward lateral is visible after camera change; lower and rear surfaces remain unassessed amid surrounding wood.",
+      "original_png": {
+        "path": "images/oregon-white-oak-1701335265-fork.png",
+        "sha256": "43973cfc1c3efa8c8a482f0370063b9599fd630108080cdfdd6ed6ef3ebcc60e"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-1701335265",
+      "case_index": 4,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Terminal axis and multiple petioles are exposed, with incoming wood context extending out of frame.",
+      "original_png": {
+        "path": "images/oregon-white-oak-1701335265-attached-shoot.png",
+        "sha256": "f56bad10db42079cb6951c90233931ad68c93f5cd5f1cef6d8ca2c2ca30ee67d"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-1462003817",
+      "case_index": 5,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Shared scaffold attachment and faceted collar-like shoulder are visible; distal cropped branch ends are excluded from defects.",
+      "original_png": {
+        "path": "images/oregon-white-oak-1462003817-fork.png",
+        "sha256": "178dc2ae738dd33d5136ac37365b77f538ae9c142c81df75753a14559f18297e"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "oregon-white-oak-1462003817",
+      "case_index": 5,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "root implementation agent; not independent botanical expert",
+      "observation": "Terminal twig and petiole sequence are visible despite one crossing bare twig; blade overlap limits hidden-side assessment.",
+      "original_png": {
+        "path": "images/oregon-white-oak-1462003817-attached-shoot.png",
+        "sha256": "d0bdc67342cf37f05b432e4b291cfd54183d800e6d352e18fabde334d0b9ec60"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-1",
+      "case_index": 6,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Selected rightward lateral node463 exposes its rounded lateral-to-parent root and outgoing axis. Remote fine axes cross the parent, but the named root is assessable. Central and right distal cut ends are crop boundaries, not anatomical caps; hidden rear continuity remains unassessed.",
+      "original_png": {
+        "path": "images/norway-spruce-1-fork.png",
+        "sha256": "54c067d9f51ca8b306ea368b6432ae23384b04674bd744d657a78545d66f4067"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-1",
+      "case_index": 6,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Continuous needle-bearing terminal joins the intact parent V at the bottom. The axis and multiple individual needle bases are exposed; overlapping rear needles remain partly hidden. Parent context continues out of frame.",
+      "original_png": {
+        "path": "images/norway-spruce-1-attached-shoot.png",
+        "sha256": "ed784e59e85fdf6aa2fbbe63f8a68caca3eeefa14d8579d210f86c641c59192d"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-2",
+      "case_index": 7,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Selected leftward lateral node473 has an exposed rounded shoulder against the parent and a traceable outgoing axis. Fine remote axes do not hide this transition. Opposite-side context and rear continuity remain unassessed.",
+      "original_png": {
+        "path": "images/norway-spruce-2-fork.png",
+        "sha256": "2d4eca697614056f6b9727f227bb2938e5fdd41997fe679b1926c55f56f72249"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-2",
+      "case_index": 7,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Needle-bearing terminal and multiple bases are visible along the continuous slender axis. Incoming wood extends beyond the lower frame; the upper-right cut belongs to remote context, not the selected attachment.",
+      "original_png": {
+        "path": "images/norway-spruce-2-attached-shoot.png",
+        "sha256": "4283a3f3a68cf7574483a1d43d90c9531347eae61c96d868c4e472abfd96204a"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-3",
+      "case_index": 8,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Selected rightward lateral node480 exposes its rounded root against the parent and outgoing axis. A fine context twig crosses farther along the axis. Central cropped stub and far-right depth cut are not collar findings; hidden rear continuity is unassessed.",
+      "original_png": {
+        "path": "images/norway-spruce-3-fork.png",
+        "sha256": "b5abc6e05b743ee63c1853b65d11e694c3ad2b8a0754a6abee22429371c9ae2c"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-3",
+      "case_index": 8,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Horizontal needle-bearing terminal joins the intact diagonal parent at right, which continues beyond the frame. Multiple needle bases and the central axis are assessable despite retained organ overlap; the separate lower fine axis does not obscure the named connection.",
+      "original_png": {
+        "path": "images/norway-spruce-3-attached-shoot.png",
+        "sha256": "27c432b9e45302cf3505254d5dff7a5ada391cace9220e662cebdfc0104030f4"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-3501386541",
+      "case_index": 9,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Selected upper-left lateral node451 exposes its rounded parent transition and outgoing axis. Both upper distal depth-cut ends are well separated from the named roots and excluded from anatomy findings. Rear continuity is unassessed.",
+      "original_png": {
+        "path": "images/norway-spruce-3501386541-fork.png",
+        "sha256": "25618b0496de541e4661ed474fc93e294bc13b0b0a9dc78ea74f15e48330b79b"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-3501386541",
+      "case_index": 9,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Slender needle-bearing terminal has an exposed continuous axis and multiple needle bases. Incoming wood and the left lateral connection remain intact below the retained foliage and extend out of frame; remote axes do not hide the selected attachment.",
+      "original_png": {
+        "path": "images/norway-spruce-3501386541-attached-shoot.png",
+        "sha256": "0ce3399e1416be20d58379c7d356e8a60bcdb6ace2a6b3bdafd6d3f07864cdfe"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-3258201723",
+      "case_index": 10,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Selected front-right lateral node414 has an exposed rounded parent transition and outgoing axis. Fine crossing context leaves the named root assessable. Both foreground distal cuts are declared depth boundaries, not anatomical caps; hidden rear continuity remains unassessed.",
+      "original_png": {
+        "path": "images/norway-spruce-3258201723-fork.png",
+        "sha256": "2f33d06ed6cd4515cd388ca6bfd49634774da516b74cd0ff81b784503591f5e1"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-3258201723",
+      "case_index": 10,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Diagonal terminal has a traceable axis, many individually visible needle bases and intact incoming wood extending out of frame at lower right. A thin background axis crosses centrally without hiding all attachments; rear overlapping organs remain partly unassessed.",
+      "original_png": {
+        "path": "images/norway-spruce-3258201723-attached-shoot.png",
+        "sha256": "d1580b5f34860f1fa2464e8d31a62953605b757f617413af3a1de6af13b887f3"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-2774604799",
+      "case_index": 11,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Selected rightward lateral node481 exposes its parent transition and outgoing axis. A thin context axis crosses part of the root, but the upper/lower transition remains assessable. Central stub and distal right cut are depth boundaries, not collar findings; rear continuity is unassessed.",
+      "original_png": {
+        "path": "images/norway-spruce-2774604799-fork.png",
+        "sha256": "3a59657e5d94f264ca6e2ab4959667397216166641666b3535b916f187d1fcf5"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    },
+    {
+      "case_id": "norway-spruce-2774604799",
+      "case_index": 11,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "assessor": "implementation worker; direct final128 PNG inspection, not independent botanical assessment",
+      "observation": "Vertical needle-bearing terminal joins the intact horizontal parent at the bottom; the left incoming connection is restored and visible. Two remote axes cross the upper region, leaving many individual needle bases and the selected axis assessable. Overlapped portions remain unassessed.",
+      "original_png": {
+        "path": "images/norway-spruce-2774604799-attached-shoot.png",
+        "sha256": "8c5aed233034b51e44ccbc7854db175bf8f667fb3b9b617c32bb33e425162d14"
+      },
+      "limits": "Scoped visible transition/attachments only; hidden rear surfaces, natural foliage density and independent botanical assessment remain unassessed."
+    }
+  ]
+}

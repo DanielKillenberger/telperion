@@ -1,0 +1,2131 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "fn19-v1",
+  "reference_version": "fn19-references-v1",
+  "frozen_at": "2026-09-06T16:20:28.477386+00:00",
+  "population": "mature-open-grown",
+  "units": {
+    "length": "m",
+    "diameter": "m",
+    "angle": "deg",
+    "area": "m2",
+    "fraction": "ratio",
+    "count": "individual biological units",
+    "time": "ms",
+    "memory": "bytes"
+  },
+  "species": [
+    {
+      "id": "oregon-white-oak",
+      "scientific_name": "Quercus garryana",
+      "taxon_rank": "species",
+      "cultivar": null,
+      "context": "mature-open-grown",
+      "profile_id": "oregon-white-oak",
+      "profile_path": ".flow/evidence/fn9/profiles.json",
+      "profile_sha256": "9b3578ffbe959c45e8d0159ebad2daeb3b1058c934a0d2c2da20a1f26acfd671",
+      "preset": "oregon-white-oak",
+      "required_capabilities": [
+        "woody-axes",
+        "lobed-blade",
+        "alternate-petiole"
+      ],
+      "parameters": {
+        "canopy": {
+          "attachment": "alternate",
+          "clump": 5,
+          "clumpSpan": 0.3,
+          "divergence": 180,
+          "maxInstances": 4294967295,
+          "outward": 0.6,
+          "scatter": 18,
+          "shootRadius": 0.12,
+          "size": 1,
+          "sizeVariation": 0.2,
+          "spacing": 0.006,
+          "upward": 0.35
+        },
+        "element": {
+          "anatomy": "lobedBlade",
+          "axialSegments": 5,
+          "baseFullness": 0.85,
+          "card": false,
+          "connectorLength": 0.012,
+          "crossSegments": 2,
+          "cup": 0.18,
+          "curl": 0.12,
+          "length": 0.1,
+          "tipSharpness": 1.6,
+          "widestAt": 0.42,
+          "width": 0.075
+        },
+        "radii": {
+          "forkExponent": 2,
+          "lengthTaper": 0.6,
+          "trunkRadius": 0.018
+        },
+        "shellDepth": 1,
+        "skeleton": {
+          "attractors": 500,
+          "bias": {
+            "gravitropism": 0,
+            "lean": 0,
+            "supernatural": {
+              "enabled": false,
+              "spiralRate": 0,
+              "writheAmplitude": 0,
+              "writheWavelength": 0.45
+            }
+          },
+          "envelope": {
+            "crownBase": 0.16,
+            "fullness": 0.55,
+            "height": 24,
+            "shoulder": 2.2,
+            "spread": 0.55
+          },
+          "growth": {
+            "maxTurnPerStep": 35
+          },
+          "habit": {
+            "crookedness": 24,
+            "kind": "spreading",
+            "scaffoldLimbs": 5,
+            "subdivisions": 5
+          },
+          "seed": 42,
+          "step": 0.022,
+          "twigs": {
+            "angle": 45,
+            "angleVariation": 10,
+            "divergence": 137.508,
+            "internodeFactor": 2.5,
+            "laterals": 4,
+            "lengthRatio": 0.45,
+            "limbRadius": 0.1,
+            "ratioPower": 1.3,
+            "reach": 0.2,
+            "twig": {
+              "bearingDiameter": 0.03,
+              "diameter": 0.005,
+              "internodeLength": 0.02,
+              "length": 0.25,
+              "stationsPerInternode": 1
+            },
+            "vigourVariation": 0.15
+          }
+        },
+        "surface": {
+          "flareDepth": 0.004,
+          "flareFalloff": 0.022,
+          "flareRadius": 2.1,
+          "forkSocket": 0.5,
+          "forkSwell": 1.35,
+          "lobeDepth": 0,
+          "lobes": 5,
+          "radialSegments": 12,
+          "twistRate": 0
+        }
+      },
+      "fixed_seeds": [
+        1,
+        2,
+        3
+      ],
+      "holdout_seeds": [
+        3407793930,
+        1701335265,
+        1462003817
+      ],
+      "reference_ids": [
+        "O-WHOLE",
+        "O-BARE",
+        "O-LEAF"
+      ]
+    },
+    {
+      "id": "norway-spruce",
+      "scientific_name": "Picea abies",
+      "taxon_rank": "species",
+      "cultivar": null,
+      "context": "mature-open-grown",
+      "profile_id": "norway-spruce",
+      "profile_path": ".flow/evidence/fn9/profiles.json",
+      "profile_sha256": "9b3578ffbe959c45e8d0159ebad2daeb3b1058c934a0d2c2da20a1f26acfd671",
+      "preset": "norway-spruce",
+      "required_capabilities": [
+        "woody-axes",
+        "four-sided-needle",
+        "radial-peg",
+        "tiered-secondary"
+      ],
+      "parameters": {
+        "canopy": {
+          "attachment": "radialNeedles",
+          "clump": 5,
+          "clumpSpan": 0.3,
+          "divergence": 137.508,
+          "maxInstances": 4294967295,
+          "outward": 0.6,
+          "scatter": 18,
+          "shootRadius": 0.025,
+          "size": 1,
+          "sizeVariation": 0.2,
+          "spacing": 0.006,
+          "upward": 0.35
+        },
+        "element": {
+          "anatomy": "fourSidedNeedle",
+          "axialSegments": 5,
+          "baseFullness": 0.85,
+          "card": false,
+          "connectorLength": 0.001,
+          "crossSegments": 2,
+          "cup": 0.18,
+          "curl": 0.12,
+          "length": 0.018,
+          "tipSharpness": 1.6,
+          "widestAt": 0.42,
+          "width": 0.0015
+        },
+        "radii": {
+          "forkExponent": 2,
+          "lengthTaper": 0.6,
+          "trunkRadius": 0.015
+        },
+        "shellDepth": 1,
+        "skeleton": {
+          "attractors": 500,
+          "bias": {
+            "gravitropism": 0,
+            "lean": 0,
+            "supernatural": {
+              "enabled": false,
+              "spiralRate": 0,
+              "writheAmplitude": 0,
+              "writheWavelength": 0.45
+            }
+          },
+          "envelope": {
+            "crownBase": 0.04,
+            "fullness": 0.15,
+            "height": 15,
+            "shoulder": 1,
+            "spread": 0.31
+          },
+          "growth": {
+            "maxTurnPerStep": 35
+          },
+          "habit": {
+            "branchesPerTier": 5,
+            "kind": "tiered",
+            "secondaryLength": 0.3,
+            "secondarySpacing": 0.2,
+            "tiers": 16,
+            "upturn": 0.12
+          },
+          "seed": 42,
+          "step": 0.022,
+          "twigs": {
+            "angle": 45,
+            "angleVariation": 10,
+            "divergence": 137.508,
+            "internodeFactor": 2.5,
+            "laterals": 2,
+            "lengthRatio": 0.4,
+            "limbRadius": 0.1,
+            "ratioPower": 1.3,
+            "reach": 0.2,
+            "twig": {
+              "bearingDiameter": 0.02,
+              "diameter": 0.002,
+              "internodeLength": 0.0025,
+              "length": 0.25,
+              "stationsPerInternode": 1
+            },
+            "vigourVariation": 0.15
+          }
+        },
+        "surface": {
+          "flareDepth": 0.004,
+          "flareFalloff": 0.022,
+          "flareRadius": 2.1,
+          "forkSocket": 0.5,
+          "forkSwell": 1.35,
+          "lobeDepth": 0,
+          "lobes": 5,
+          "radialSegments": 12,
+          "twistRate": 0
+        }
+      },
+      "fixed_seeds": [
+        1,
+        2,
+        3
+      ],
+      "holdout_seeds": [
+        3501386541,
+        3258201723,
+        2774604799
+      ],
+      "reference_ids": [
+        "S-WHOLE",
+        "S-BRANCH",
+        "S-NEEDLE"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "oregon-white-oak-1",
+      "species_id": "oregon-white-oak",
+      "seed": 1,
+      "seed_role": "regression",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "species_id": "oregon-white-oak",
+      "seed": 2,
+      "seed_role": "regression",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "species_id": "oregon-white-oak",
+      "seed": 3,
+      "seed_role": "regression",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-3407793930",
+      "species_id": "oregon-white-oak",
+      "seed": 3407793930,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-1701335265",
+      "species_id": "oregon-white-oak",
+      "seed": 1701335265,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-1462003817",
+      "species_id": "oregon-white-oak",
+      "seed": 1462003817,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "norway-spruce-1",
+      "species_id": "norway-spruce",
+      "seed": 1,
+      "seed_role": "regression",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-2",
+      "species_id": "norway-spruce",
+      "seed": 2,
+      "seed_role": "regression",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3",
+      "species_id": "norway-spruce",
+      "seed": 3,
+      "seed_role": "regression",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3501386541",
+      "species_id": "norway-spruce",
+      "seed": 3501386541,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3258201723",
+      "species_id": "norway-spruce",
+      "seed": 3258201723,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-2774604799",
+      "species_id": "norway-spruce",
+      "seed": 2774604799,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "norway-spruce"
+    }
+  ],
+  "seed_freeze": {
+    "drawn_at": "2026-09-06T16:17:23.996276+00:00",
+    "method": "OS cryptographic random u32; reject zero, every unsigned integer token from seed-bearing audited text, and duplicates across species; no output inspected",
+    "holdouts": {
+      "oregon-white-oak": [
+        3407793930,
+        1701335265,
+        1462003817
+      ],
+      "norway-spruce": [
+        3501386541,
+        3258201723,
+        2774604799
+      ]
+    }
+  },
+  "seed_audit": {
+    "root": "/home/daniel/Projects/telperion",
+    "scope": "All worktrees and main checkout, including ignored .flow evidence and experiments; exclude node_modules,target,.git,.refs,dist,.cache,tmp; text extensions json,jsonl,md,mjs,ts,rs,py,txt,log <=100MB. Active worktrees are a snapshot; files are read only.",
+    "file_count": 2637,
+    "excluded_integer_count": 87588,
+    "audit_manifest_sha256": "3210cb0b041ae8b626cf945c03ed55a701f8dac890767c101402f4f7bd101f91",
+    "key_manifests": [
+      {
+        "path": ".worktrees/fn-9-real-species-profiles-and-procedural/.flow/evidence/fn9/seeds.json",
+        "sha256": "1ad38fedabaf3cf806c3927108ea3e0961a609f6d14238101a9494dc1206e508"
+      },
+      {
+        "path": ".worktrees/fn-12-gpu-accelerated-skeleton-and-field/.flow/evidence/fn9/seeds.json",
+        "sha256": "1ad38fedabaf3cf806c3927108ea3e0961a609f6d14238101a9494dc1206e508"
+      },
+      {
+        "path": ".worktrees/fn-13-tree-detail-by-viewing-distance/.flow/evidence/fn9/seeds.json",
+        "sha256": "1ad38fedabaf3cf806c3927108ea3e0961a609f6d14238101a9494dc1206e508"
+      },
+      {
+        "path": ".worktrees/fn-13-tree-detail-by-viewing-distance/tests/browser/fixtures/rendering.json",
+        "sha256": "c0478b536d9a212308d1cef053525aa7d4a78b191ec6efdcaa3a5ea3032c2020"
+      },
+      {
+        "path": ".worktrees/fn-18-faster-field-generation/.flow/evidence/fn9/seeds.json",
+        "sha256": "1ad38fedabaf3cf806c3927108ea3e0961a609f6d14238101a9494dc1206e508"
+      },
+      {
+        "path": ".worktrees/fn-18-faster-field-generation/.flow/evidence/fn18/freeze.json",
+        "sha256": "88e81a14044dbdc3a291d08cd323aeca6a296570dc2bec12b596c8fc29383e41"
+      },
+      {
+        "path": ".worktrees/fn-19-comparative-botanical-geometry-benchmark/.flow/evidence/fn9/seeds.json",
+        "sha256": "1ad38fedabaf3cf806c3927108ea3e0961a609f6d14238101a9494dc1206e508"
+      },
+      {
+        "path": ".worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-protocol/.flow/evidence/fn9/seeds.json",
+        "sha256": "1ad38fedabaf3cf806c3927108ea3e0961a609f6d14238101a9494dc1206e508"
+      }
+    ],
+    "limitation": "Snapshot of available worktree evidence, not private/unrecorded runs; recheck any new concurrent seed declarations before holdout generation. Once inspected, label regression in later generations."
+  },
+  "baseline_source": {
+    "commit": "38d8401078e584d4b6f19480e8e782b0282b9099",
+    "dirty": false,
+    "files": [
+      {
+        "path": "Cargo.lock",
+        "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+      },
+      {
+        "path": "Cargo.toml",
+        "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+      },
+      {
+        "path": "crates/telperion-core/Cargo.toml",
+        "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+      },
+      {
+        "path": "crates/telperion-core/examples/curtain_audit.rs",
+        "sha256": "1db1b243345e1ce75ac43b098ea7971cc57d5f4b3654eea71df41bc165852047"
+      },
+      {
+        "path": "crates/telperion-core/examples/foundation.rs",
+        "sha256": "63623823055e90895f5d7702900a925411096932a883cbf6f9532175c05e21fe"
+      },
+      {
+        "path": "crates/telperion-core/examples/measure.rs",
+        "sha256": "406b23d2f7c407f1473eaf46250fe085383c141260744055d271fb3a43628bcf"
+      },
+      {
+        "path": "crates/telperion-core/examples/occupancy_audit.rs",
+        "sha256": "31f8603cd0fd44a283d610307670ef2389e2179fe5b3330ac4c2b1211cfc19f9"
+      },
+      {
+        "path": "crates/telperion-core/examples/species_measure.rs",
+        "sha256": "2bb82e5ea6be19666254936fc7cf92db039933444be0e80be7cadc0686854241"
+      },
+      {
+        "path": "crates/telperion-core/examples/species_metrics/mod.rs",
+        "sha256": "6a25f14b6cf86b27a631692f4bbe448dba8e4cd3d15e3d75b87f406cd713b956"
+      },
+      {
+        "path": "crates/telperion-core/src/bias.rs",
+        "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+      },
+      {
+        "path": "crates/telperion-core/src/branching.rs",
+        "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+      },
+      {
+        "path": "crates/telperion-core/src/branching/audit.rs",
+        "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+      },
+      {
+        "path": "crates/telperion-core/src/branching/habit.rs",
+        "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+      },
+      {
+        "path": "crates/telperion-core/src/branching/local.rs",
+        "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+      },
+      {
+        "path": "crates/telperion-core/src/colonization.rs",
+        "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+      },
+      {
+        "path": "crates/telperion-core/src/colonization/fill.rs",
+        "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+      },
+      {
+        "path": "crates/telperion-core/src/colonization/grid.rs",
+        "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+      },
+      {
+        "path": "crates/telperion-core/src/envelope.rs",
+        "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+      },
+      {
+        "path": "crates/telperion-core/src/field.rs",
+        "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+      },
+      {
+        "path": "crates/telperion-core/src/foliage.rs",
+        "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+      },
+      {
+        "path": "crates/telperion-core/src/foliage/element.rs",
+        "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+      },
+      {
+        "path": "crates/telperion-core/src/foliage/placement.rs",
+        "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+      },
+      {
+        "path": "crates/telperion-core/src/lib.rs",
+        "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+      },
+      {
+        "path": "crates/telperion-core/src/math.rs",
+        "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+      },
+      {
+        "path": "crates/telperion-core/src/noise.rs",
+        "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+      },
+      {
+        "path": "crates/telperion-core/src/presets.rs",
+        "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+      },
+      {
+        "path": "crates/telperion-core/src/radius.rs",
+        "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+      },
+      {
+        "path": "crates/telperion-core/src/rng.rs",
+        "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+      },
+      {
+        "path": "crates/telperion-core/src/surface.rs",
+        "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+      },
+      {
+        "path": "crates/telperion-core/src/surface/attachment.rs",
+        "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+      },
+      {
+        "path": "crates/telperion-core/src/surface/frames.rs",
+        "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+      },
+      {
+        "path": "crates/telperion-core/src/surface/paths.rs",
+        "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+      },
+      {
+        "path": "crates/telperion-core/src/tree.rs",
+        "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+      },
+      {
+        "path": "crates/telperion-core/src/twigs.rs",
+        "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+      },
+      {
+        "path": "crates/telperion-core/tests/colonization.rs",
+        "sha256": "2e5a266c46db10414bf211159b08f3a4f422e1fe487ca924eff31d046e64bcfd"
+      },
+      {
+        "path": "crates/telperion-core/tests/crown_reference.mjs",
+        "sha256": "805658a0d20ca39a058945855362e92712f433ed16eaecd9ce24dcd6e0b71a6c"
+      },
+      {
+        "path": "crates/telperion-core/tests/crown_reference.rs",
+        "sha256": "0048094adcd0330cdbb04d23f51bf8b1729f8de31060e74834c2240cab88df87"
+      },
+      {
+        "path": "crates/telperion-core/tests/crown_retention.rs",
+        "sha256": "6160921b4a2d2c408659a2bd32e63c8a1fdc2f8644490122429b15c6313cb72a"
+      },
+      {
+        "path": "crates/telperion-core/tests/field.rs",
+        "sha256": "58219e5ae7babe1bf15709065167f37fc5390c05d989a5e2b3523dec4590e67e"
+      },
+      {
+        "path": "crates/telperion-core/tests/foliage.rs",
+        "sha256": "132b04b4da61ab67a2fe6edb2f20ba77e30cd513f32542a77539c6575081f28c"
+      },
+      {
+        "path": "crates/telperion-core/tests/foliage_reference.rs",
+        "sha256": "50dbed1aeaa9fa769d42f19c7d0e7e406341a2174c0a241cbd5ce754b4fc822b"
+      },
+      {
+        "path": "crates/telperion-core/tests/growth.rs",
+        "sha256": "86c97db097fb8e5878b92fbba745c8a3acd3ab3d4c35af047fcf5af414b18658"
+      },
+      {
+        "path": "crates/telperion-core/tests/growth_reference.rs",
+        "sha256": "6d651012bea7203a69651845c927a3ac565e4524e91d8309239ba25a63fb8335"
+      },
+      {
+        "path": "crates/telperion-core/tests/profile_distance.rs",
+        "sha256": "25b9dea3b539ae80b640c72f77d6ec4449f6339ee7cc1092814c922cd404b166"
+      },
+      {
+        "path": "crates/telperion-core/tests/species.rs",
+        "sha256": "b9fb736f1131d5ccb378c55223b938857a2cd7f7386e8123560988eec83682dc"
+      },
+      {
+        "path": "crates/telperion-core/tests/species_metrics.rs",
+        "sha256": "e0723daad02cb1d353f843f10f9f2c5a7e2be5d99336fbd6d836183ce3e11f8a"
+      },
+      {
+        "path": "crates/telperion-core/tests/surface.rs",
+        "sha256": "967085fb2fc47c397e7ffd43360da1b5132998f8eca8e2623b944c2120b09d63"
+      },
+      {
+        "path": "crates/telperion-core/tests/surface_attachments.rs",
+        "sha256": "e32f532e60dcaa617a410bafa02b8a80916d3f45c696f25a4ea9bead085a9b8f"
+      },
+      {
+        "path": "crates/telperion-core/tests/surface_reference.md",
+        "sha256": "eed83b76a77063708147906bbacc08722c3c332879f9c6a0a02cb99d3bdd520d"
+      },
+      {
+        "path": "crates/telperion-core/tests/surface_reference.mjs",
+        "sha256": "8570763bce2704dd584d143ee514c19b82b7f52e60c2b7bb2e74302325e21bc3"
+      },
+      {
+        "path": "crates/telperion-core/tests/surface_reference.rs",
+        "sha256": "8c07cc5951d394706d1990de182c3233ad38d4e435f77cf08c67b48be824cf3b"
+      },
+      {
+        "path": "crates/telperion-core/tests/terminal_taper.rs",
+        "sha256": "f89adbb616ed2800ef3a5d13c253c812f4a3558e1bd2231e80cab4336f248e9a"
+      },
+      {
+        "path": "crates/telperion-wasm/Cargo.toml",
+        "sha256": "315de268378b8f47c50aba3c78933b3fc5011afe6862fd8dd0766b7724670998"
+      },
+      {
+        "path": "crates/telperion-wasm/src/lib.rs",
+        "sha256": "da1b8014bf62fc075eccc9b7e9da9ad70c47e9152bb415a31e3c7bac9196a880"
+      },
+      {
+        "path": "crates/telperion-wasm/src/params.rs",
+        "sha256": "6e36f78790af84b412e3dc96c4936db23d458eb2393bd7e7200e863f5556195e"
+      },
+      {
+        "path": "package-lock.json",
+        "sha256": "09151e36dd4759b4e0dbc87afd9e8d60c5edd3e9a8fc4a127aeb72e711c18afa"
+      },
+      {
+        "path": "rust-toolchain.toml",
+        "sha256": "9500030ccefd0bab631fb7f1763f79f4103eca3a344c36cf15be869e330683bb"
+      },
+      {
+        "path": "src/browser/assets.d.ts",
+        "sha256": "f9d18661a8b8d42d6d7de1015b1fde9d88916a54c0b67a3b8d56908945bd3f65"
+      },
+      {
+        "path": "src/browser/core.ts",
+        "sha256": "24e880fae471dc895d25981f91fef70c3fa097542932db8b018986a4ee30598f"
+      },
+      {
+        "path": "src/browser/presets.generated.ts",
+        "sha256": "260adecf466b4968bde89991ea795d87af48d14c9403e9f8d01802ba4aacb7e7"
+      },
+      {
+        "path": "src/browser/three.ts",
+        "sha256": "869dd9d442d3c60c989851521dea72f47a61b0fb25465dbcf5385690e41903eb"
+      }
+    ],
+    "sha256": "2a0d728e266d472a25d08ebc056df0ad438875e463acd2625204e2cb4934dd92"
+  },
+  "capture_method": {
+    "upstream_commit": "367c192fbfea459b676c6979b0323df839f448a3",
+    "files": [
+      {
+        "path": "tests/browser/rendering.mjs",
+        "sha256": "5a4c1f19e9894ac3a77991cfc828bbb1b3d0dfe82b4d69bd6e1b776fc3fd4cd6"
+      },
+      {
+        "path": "tests/browser/fixtures/rendering.json",
+        "sha256": "c0478b536d9a212308d1cef053525aa7d4a78b191ec6efdcaa3a5ea3032c2020"
+      }
+    ],
+    "adaptation": "Benchmark-only neutral rig; reuse offline Halton integration, no dependency on unfinished optimized renderer. Actual capture tool identity and binary hashes belong to each run."
+  },
+  "required_views": [
+    {
+      "id": "whole",
+      "azimuth_deg": [
+        0,
+        90
+      ],
+      "leaf_state": "leaf-on"
+    },
+    {
+      "id": "bare",
+      "azimuth_deg": [
+        0,
+        90
+      ],
+      "leaf_state": "hidden"
+    },
+    {
+      "id": "base",
+      "azimuth_deg": [
+        0
+      ],
+      "leaf_state": "leaf-on"
+    },
+    {
+      "id": "fork",
+      "azimuth_deg": [
+        0
+      ],
+      "leaf_state": "leaf-on"
+    },
+    {
+      "id": "attached-shoot",
+      "azimuth_deg": [
+        0
+      ],
+      "leaf_state": "leaf-on"
+    }
+  ],
+  "render": {
+    "width_px": 1600,
+    "height_px": 1000,
+    "dpr": 1,
+    "projection": "orthographic",
+    "material": "neutral clay; hemisphere illumination; no textures, ground, shadows, wind, extra subjects or LOD",
+    "coverage": "foliage-only white on black, linear MSAA fraction; wood hidden only for coverage; beauty retains connected original wood/foliage",
+    "samples": [
+      64,
+      128
+    ],
+    "jitter": "Halton bases 2,3; indices 1..128; (h2-.5,h3-.5) physical pixels",
+    "integration": "float64 arithmetic sum of linear samples; divide at 64/128; persist float32 little-endian arrays and PNG previews",
+    "beauty_convergence_rmse_max": 0.005,
+    "coverage_convergence_tile_mean_max": 0.015,
+    "tile_size_px": 16,
+    "unconverged": "failed; no gap comparison",
+    "timeout_ms_per_case": 300000,
+    "resource_policy": "No geometry truncation, prototype replacement or fidelity reduction. Timeouts/caps retain failed case; unavailable GPU remains unavailable. Resource windows coordinated with fn13/fn18."
+  },
+  "metrics": {
+    "axis-order-v1": {
+      "status": "estimated",
+      "definition": "All tree nodes as fn9: parent-before-child; root axis order 0; at each parent greatest child start_radius continues axis, exact tie lowest node index; other child starts axis of parent order+1. Degree-two chains are runs. Include root separately, lateral origins once. Ties flag ambiguous-dominant on affected descendant axes; retain raw counts but exclude flagged axes from qualified distributions."
+    },
+    "axis-length-v1": {
+      "unit": "m",
+      "definition": "Sum parent-child Euclidean edge lengths on operational axis; exclude length <=1e-9. Publish per-axis and by-order count,min,max,median,p10,p90; quantiles nearest-rank ceil(p*n)-1, median average middle pair."
+    },
+    "axis-diameter-v1": {
+      "unit": "m",
+      "definition": "Circular centreline proxy: diameter 2*start_radius at axis origin plus arc-length-weighted mean of linear edge diameter from child.start_radius to child.radius; publish by order. Not actual mesh collar diameter."
+    },
+    "axis-taper-v1": {
+      "unit": "ratio",
+      "definition": "Interpolate linear edge diameters at axis arc fractions .1 and .9; publish proximal_m,distal_m,ratio=distal/proximal and slope_m_per_m=(proximal-distal)/(.8*length). Exact node fraction uses outgoing edge except final endpoint. Nonpositive proximal or zero length unavailable; ambiguity excluded."
+    },
+    "axis-angle-v1": {
+      "unit": "deg",
+      "definition": "At each lateral origin use incoming parent edge oriented away from root and first child edge oriented away from origin; acos(clamp(dot(unit vectors),-1,1))*180/pi. Root origins or either edge length <=1e-9 unavailable. Curved axes use these local tangents, not endpoint chord."
+    },
+    "foliage-bins-v1": {
+      "unit": "individual biological units",
+      "definition": "One centroid per retained biological unit: arithmetic mean of unique prototype vertices in its biological subset, excluding petiole/peg; transform with original instance matrix. Needles count singly. Generic/unknown biological subset unavailable. Crown ymin/ymax from retained biological vertices; normalize centroid height (y-ymin)/(ymax-ymin), radial distance hypot(x-root.x,z-root.z)/max retained centroid radial distance. Zero spans unavailable. Report 4x4 counts, marginals, total, under/overflow, and occupied-bin support. No leaf-area inference. Each run reports its bounds; normalization is descriptive, never a shape-preservation score.",
+      "height_edges": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ],
+      "radial_edges": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ],
+      "bin_rule": "left-inclusive right-exclusive; last includes 1; out-of-range not clamped"
+    },
+    "projected-gaps-v1": {
+      "unit": "ratio",
+      "definition": "See PROTOCOL.md Crown masks; baseline-frozen convex crown ROI, linear coverage threshold, exterior openings separated from enclosed holes; no three-dimensional void/leaf-area meaning.",
+      "threshold": 0.5,
+      "sensitivity_thresholds": [
+        0.25,
+        0.75
+      ],
+      "background_connectivity": 4,
+      "foreground_connectivity": 8,
+      "height_edges": [
+        0,
+        0.25,
+        0.5,
+        0.75,
+        1
+      ],
+      "component_area_edges_px": [
+        1,
+        4,
+        16,
+        64,
+        256,
+        1024
+      ],
+      "favorable_direction": null
+    }
+  },
+  "failure_codes": [
+    "invalid-manifest",
+    "duplicate-identity",
+    "missing-evidence",
+    "unsupported-anatomy",
+    "manifest-mismatch",
+    "source-mismatch",
+    "missing-asset",
+    "nonfinite",
+    "invalid-topology",
+    "degenerate-axis",
+    "ambiguous-dominant",
+    "empty-crown",
+    "unresolvable-target",
+    "occluded-target",
+    "clipped-subject",
+    "roi-mismatch",
+    "unconverged",
+    "resource-cap",
+    "timeout",
+    "interrupted",
+    "hardware-unavailable",
+    "ownership-conflict",
+    "resource-conflict"
+  ],
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+      "artifact": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path",
+          "sha256",
+          "bytes",
+          "media_type"
+        ],
+        "additionalProperties": false
+      },
+      "identity": {
+        "type": "object",
+        "properties": {
+          "commit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dirty": {
+            "type": "boolean"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "required": [
+                "path",
+                "sha256"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "commit",
+          "dirty",
+          "files",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "metric": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "measured",
+              "estimated",
+              "unavailable",
+              "failed"
+            ]
+          },
+          "value": {},
+          "unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "definition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "support": {
+            "type": "object",
+            "properties": {
+              "included": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "excluded": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "flags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 0
+              }
+            },
+            "required": [
+              "included",
+              "excluded",
+              "flags"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "status",
+          "value",
+          "unit",
+          "definition",
+          "evidence_ids",
+          "reason",
+          "support"
+        ],
+        "additionalProperties": false
+      },
+      "cost": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "measured",
+              "estimated",
+              "unavailable",
+              "failed"
+            ]
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "unit": {
+            "enum": [
+              "ms",
+              "bytes"
+            ]
+          },
+          "domain": {
+            "enum": [
+              "generation",
+              "capture-preparation",
+              "cpu-rss",
+              "wasm-capacity",
+              "gpu-allocation",
+              "gpu-time"
+            ]
+          },
+          "conditions": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "value",
+          "unit",
+          "domain",
+          "conditions",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "species": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "scientific_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "taxon_rank": {
+            "enum": [
+              "species",
+              "subspecies",
+              "variety"
+            ]
+          },
+          "cultivar": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "context": {
+            "type": "string",
+            "minLength": 1
+          },
+          "profile_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "profile_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "profile_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "preset": {
+            "type": "string",
+            "minLength": 1
+          },
+          "required_capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "parameters": {
+            "type": "object"
+          },
+          "fixed_seeds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "minItems": 1
+          },
+          "holdout_seeds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "minItems": 1
+          },
+          "reference_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "id",
+          "scientific_name",
+          "taxon_rank",
+          "cultivar",
+          "context",
+          "profile_id",
+          "profile_path",
+          "profile_sha256",
+          "preset",
+          "required_capabilities",
+          "parameters",
+          "fixed_seeds",
+          "holdout_seeds",
+          "reference_ids"
+        ],
+        "additionalProperties": false
+      },
+      "case": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "species_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "seed_role": {
+            "enum": [
+              "regression",
+              "holdout-at-freeze"
+            ]
+          },
+          "parameter_species_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "species_id",
+          "seed",
+          "seed_role",
+          "parameter_species_id"
+        ],
+        "additionalProperties": false
+      },
+      "admission": {
+        "type": "object",
+        "properties": {
+          "species_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "admitted",
+              "duplicate-identity",
+              "missing-evidence",
+              "unsupported-anatomy",
+              "invalid-manifest",
+              "ownership-conflict",
+              "resource-conflict"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "missing_capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "implemented": {
+            "type": "boolean"
+          },
+          "botanical_validation": {
+            "enum": [
+              "supported",
+              "contradicted",
+              "unassessed"
+            ]
+          }
+        },
+        "required": [
+          "species_id",
+          "status",
+          "reasons",
+          "missing_capabilities",
+          "evidence_ids",
+          "implemented",
+          "botanical_validation"
+        ],
+        "additionalProperties": false
+      },
+      "camera": {
+        "type": "object",
+        "properties": {
+          "projection": {
+            "enum": [
+              "orthographic"
+            ]
+          },
+          "position_m": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "target_m": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "up": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "left_m": {
+            "type": "number"
+          },
+          "right_m": {
+            "type": "number"
+          },
+          "top_m": {
+            "type": "number"
+          },
+          "bottom_m": {
+            "type": "number"
+          },
+          "near_m": {
+            "type": "number"
+          },
+          "far_m": {
+            "type": "number"
+          },
+          "width_px": {
+            "const": 1600
+          },
+          "height_px": {
+            "const": 1000
+          },
+          "dpr": {
+            "const": 1
+          }
+        },
+        "required": [
+          "projection",
+          "position_m",
+          "target_m",
+          "up",
+          "left_m",
+          "right_m",
+          "top_m",
+          "bottom_m",
+          "near_m",
+          "far_m",
+          "width_px",
+          "height_px",
+          "dpr"
+        ],
+        "additionalProperties": false
+      },
+      "target": {
+        "type": "object",
+        "properties": {
+          "rule": {
+            "enum": [
+              "whole",
+              "bare",
+              "base",
+              "fork",
+              "attached-shoot"
+            ]
+          },
+          "query_normalized": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "selected_position_m": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "node_indices": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "minItems": 0
+          },
+          "axis_order": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "resolution": {
+            "enum": [
+              "resolved",
+              "unresolvable",
+              "occluded"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "rule",
+          "query_normalized",
+          "selected_position_m",
+          "node_indices",
+          "axis_order",
+          "resolution",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "conditions": {
+        "type": "object",
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "view": {
+            "enum": [
+              "whole",
+              "bare",
+              "base",
+              "fork",
+              "attached-shoot"
+            ]
+          },
+          "azimuth_deg": {
+            "enum": [
+              0,
+              90
+            ]
+          },
+          "camera": {
+            "$ref": "#/$defs/camera"
+          },
+          "target": {
+            "$ref": "#/$defs/target"
+          },
+          "roi": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "polygon_px": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    },
+                    "minItems": 3
+                  },
+                  "raster": {
+                    "$ref": "#/$defs/artifact"
+                  },
+                  "origin": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "polygon_px",
+                  "raster",
+                  "origin"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "metres_per_pixel": {
+            "type": "number"
+          },
+          "leaf_state": {
+            "enum": [
+              "leaf-on",
+              "hidden"
+            ]
+          },
+          "environment": {
+            "type": "object"
+          },
+          "baseline_geometry_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "case_id",
+          "view",
+          "azimuth_deg",
+          "camera",
+          "target",
+          "roi",
+          "metres_per_pixel",
+          "leaf_state",
+          "environment",
+          "baseline_geometry_sha256"
+        ],
+        "additionalProperties": false
+      },
+      "run": {
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "const": 1
+          },
+          "benchmark_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "run_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "created_at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protocol_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "references_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "source": {
+            "$ref": "#/$defs/identity"
+          },
+          "tool": {
+            "$ref": "#/$defs/identity"
+          },
+          "binaries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/artifact"
+            },
+            "minItems": 0
+          },
+          "manifest_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "conditions_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "parameters": {
+            "type": "object"
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/case"
+            },
+            "minItems": 1
+          },
+          "machine": {
+            "type": "object"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "started",
+              "complete",
+              "failed",
+              "interrupted"
+            ]
+          },
+          "partial": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "schema_version",
+          "benchmark_id",
+          "run_id",
+          "created_at",
+          "protocol_sha256",
+          "references_sha256",
+          "source",
+          "tool",
+          "binaries",
+          "manifest_sha256",
+          "conditions_sha256",
+          "parameters",
+          "cases",
+          "machine",
+          "status",
+          "partial",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "case_result": {
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "const": 1
+          },
+          "run_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "case_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "event": {
+            "enum": [
+              "pending",
+              "started",
+              "completed",
+              "failed",
+              "unavailable"
+            ]
+          },
+          "numeric_status": {
+            "enum": [
+              "pass",
+              "fail",
+              "unassessed"
+            ]
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/metric"
+            }
+          },
+          "costs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/cost"
+            },
+            "minItems": 0
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/artifact"
+            },
+            "minItems": 0
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "schema_version",
+          "run_id",
+          "case_id",
+          "event",
+          "numeric_status",
+          "metrics",
+          "costs",
+          "artifacts",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "capture": {
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "const": 1
+          },
+          "run_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "case_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "view": {
+            "enum": [
+              "whole",
+              "bare",
+              "base",
+              "fork",
+              "attached-shoot"
+            ]
+          },
+          "azimuth_deg": {
+            "enum": [
+              0,
+              90
+            ]
+          },
+          "conditions_sha256": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "capture_status": {
+            "enum": [
+              "pending",
+              "started",
+              "pass",
+              "fail",
+              "unavailable"
+            ]
+          },
+          "visual_status": {
+            "enum": [
+              "unassessed",
+              "inspected"
+            ]
+          },
+          "assessment": {
+            "enum": [
+              "supported",
+              "contradicted",
+              "unassessed"
+            ]
+          },
+          "expert_status": {
+            "enum": [
+              "supported",
+              "contradicted",
+              "unassessed"
+            ]
+          },
+          "owner_feedback": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "camera": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/camera"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "selected_target": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/target"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "geometry_sha256": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/artifact"
+            },
+            "minItems": 0
+          },
+          "convergence": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "enum": [
+                  "measured",
+                  "unavailable",
+                  "failed"
+                ]
+              },
+              "samples": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "minItems": 0
+              },
+              "beauty_rmse": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "coverage_tile_max": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "samples",
+              "beauty_rmse",
+              "coverage_tile_max",
+              "reason"
+            ],
+            "additionalProperties": false
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "schema_version",
+          "run_id",
+          "case_id",
+          "view",
+          "azimuth_deg",
+          "conditions_sha256",
+          "capture_status",
+          "visual_status",
+          "assessment",
+          "expert_status",
+          "owner_feedback",
+          "camera",
+          "selected_target",
+          "geometry_sha256",
+          "artifacts",
+          "convergence",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "comparison": {
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "const": 1
+          },
+          "baseline_run_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "candidate_run_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "comparable",
+              "inconclusive"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "case_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "failed_case_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "missing_case_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "metrics": {
+            "type": "object"
+          },
+          "biological_superiority": {
+            "const": "unestablished"
+          },
+          "independent_assessment": {
+            "enum": [
+              "supported",
+              "contradicted",
+              "unassessed"
+            ]
+          }
+        },
+        "required": [
+          "schema_version",
+          "baseline_run_id",
+          "candidate_run_id",
+          "status",
+          "reasons",
+          "case_ids",
+          "failed_case_ids",
+          "missing_case_ids",
+          "metrics",
+          "biological_superiority",
+          "independent_assessment"
+        ],
+        "additionalProperties": false
+      },
+      "reference": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "species_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "real",
+              "competitor",
+              "method"
+            ]
+          },
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scale": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "whole",
+                "bare",
+                "base",
+                "fork",
+                "attached-shoot",
+                "context"
+              ]
+            },
+            "minItems": 1
+          },
+          "matching": {
+            "enum": [
+              "quantitative",
+              "qualitative",
+              "unavailable"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1
+          },
+          "attribution": {
+            "type": "string",
+            "minLength": 1
+          },
+          "context": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dimensions_m": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "age_years": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "usage": {
+            "type": "string",
+            "minLength": 1
+          },
+          "accessed_at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "asset_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "observation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "id",
+          "species_id",
+          "kind",
+          "source_id",
+          "scale",
+          "matching",
+          "url",
+          "attribution",
+          "context",
+          "dimensions_m",
+          "age_years",
+          "usage",
+          "accessed_at",
+          "asset_sha256",
+          "observation",
+          "limitations"
+        ],
+        "additionalProperties": false
+      },
+      "assessment": {
+        "type": "object",
+        "properties": {
+          "reviewer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expertise": {
+            "type": "string",
+            "minLength": 1
+          },
+          "relation_to_implementation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "independent": {
+            "type": "boolean"
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "trait": {
+            "type": "string",
+            "minLength": 1
+          },
+          "finding": {
+            "enum": [
+              "supported",
+              "contradicted",
+              "unassessed"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "received_at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "original_feedback": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "reviewer_id",
+          "role",
+          "expertise",
+          "relation_to_implementation",
+          "independent",
+          "evidence_ids",
+          "trait",
+          "finding",
+          "rationale",
+          "received_at",
+          "original_feedback"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "paths": {
+    "run": "run.json",
+    "events": "measurements.jsonl",
+    "conditions": "conditions.json",
+    "captures": "captures.json",
+    "comparison": "comparison.json",
+    "assessment": "assessment.json",
+    "case_artifacts": "cases/{case_id}/{view}-{azimuth_deg}/"
+  },
+  "comparison_equal_fields": [
+    "protocol_sha256",
+    "references_sha256",
+    "manifest_sha256",
+    "conditions_sha256",
+    "parameters",
+    "cases"
+  ],
+  "claim_policy": "Collection completion, rendering convergence, visual inspection and independent botanical judgment are separate. No source-backed distribution gates or superiority claim. All missing/failing cases survive comparisons."
+}

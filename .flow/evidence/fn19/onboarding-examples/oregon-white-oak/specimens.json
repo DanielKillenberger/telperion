@@ -1,0 +1,52 @@
+{
+  "benchmark_id": "fn19-v1",
+  "cases": [
+    {
+      "id": "oregon-white-oak-1",
+      "species_id": "oregon-white-oak",
+      "seed": 1,
+      "seed_role": "regression",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "species_id": "oregon-white-oak",
+      "seed": 2,
+      "seed_role": "regression",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "species_id": "oregon-white-oak",
+      "seed": 3,
+      "seed_role": "regression",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-3407793930",
+      "species_id": "oregon-white-oak",
+      "seed": 3407793930,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-1701335265",
+      "species_id": "oregon-white-oak",
+      "seed": 1701335265,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "oregon-white-oak"
+    },
+    {
+      "id": "oregon-white-oak-1462003817",
+      "species_id": "oregon-white-oak",
+      "seed": 1462003817,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "oregon-white-oak"
+    }
+  ],
+  "seed_evidence": ".flow/evidence/fn19/protocol.json#/seed_audit",
+  "fresh_for_future_tuning": false,
+  "receipts": [],
+  "generation_status": "not-run-by-this-packet",
+  "expert_status": "unassessed"
+}

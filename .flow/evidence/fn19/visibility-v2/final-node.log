@@ -1,0 +1,22 @@
+✔ R2/R3: projected holes, openings and excluded background retain pixel and square-metre units (1.360968ms)
+✔ R2: diagonal gap connectivity and threshold closure are diagnostic, never biological approval (0.210944ms)
+✔ R2/R4: empty, clipped, nonfinite and malformed masks fail without a favorable zero (0.780256ms)
+✔ R4: convergence uses complete arrays and partial tiles, rejecting missing/nonfinite samples (0.794767ms)
+✔ R4: protocol/source/camera/ROI/crop identities and required artifacts fail closed (0.282086ms)
+✔ R5: inventory is extensible but a third taxon cannot inherit another generator (0.166463ms)
+✔ R4: missing masks, incomplete artifacts, changed bytes and path escapes cannot pass (6.741042ms)
+✔ R4: the actual replay preflight rejects a changed camera, source, protocol or reference receipt (0.271876ms)
+✔ R4: timeout, missing hardware and interrupted subprocesses retain distinct nonpassing dispositions (0.674694ms)
+✔ R4 capture rules compare object values independent of key order but preserve arrays and changed values (0.442669ms)
+✔ visibility supplement rejects missing anatomy, altered geometry and undeclared instance filtering (0.91808ms)
+✔ local visibility rejects a parent-surface hit far outside the selected lateral radius (0.811947ms)
+✔ collar-facing direction excludes the child axial component (0.168823ms)
+✔ visibility admissions require the exact mature cohort, not arbitrary unique views (0.46428ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.451802

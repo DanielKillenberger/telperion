@@ -114,7 +114,7 @@
     "impl:fn-9-real-species-profiles-and-procedural.9": 0
   },
   "spec_path": ".flow/specs/fn-9-real-species-profiles-and-procedural.md",
-  "status": "open",
+  "status": "done",
   "title": "Real-species profiles and procedural templates",
   "tracker": {
     "baseHashFlow": null,
@@ -127,5 +127,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-06T11:14:50.855295Z"
+  "updated_at": "2026-09-06T21:35:28.218512Z"
 }

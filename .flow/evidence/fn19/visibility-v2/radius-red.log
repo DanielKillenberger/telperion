@@ -1,0 +1,29 @@
+✔ R2/R3: projected holes, openings and excluded background retain pixel and square-metre units (1.319157ms)
+✔ R2: diagonal gap connectivity and threshold closure are diagnostic, never biological approval (0.222584ms)
+✔ R2/R4: empty, clipped, nonfinite and malformed masks fail without a favorable zero (0.750035ms)
+✔ R4: convergence uses complete arrays and partial tiles, rejecting missing/nonfinite samples (0.717514ms)
+✔ R4: protocol/source/camera/ROI/crop identities and required artifacts fail closed (0.258295ms)
+✔ R5: inventory is extensible but a third taxon cannot inherit another generator (0.155213ms)
+✔ R4: missing masks, incomplete artifacts, changed bytes and path escapes cannot pass (6.275888ms)
+✔ R4: the actual replay preflight rejects a changed camera, source, protocol or reference receipt (0.247025ms)
+✔ R4: timeout, missing hardware and interrupted subprocesses retain distinct nonpassing dispositions (0.660903ms)
+✔ R4 capture rules compare object values independent of key order but preserve arrays and changed values (0.426529ms)
+✔ visibility supplement rejects missing anatomy, altered geometry and undeclared instance filtering (0.900868ms)
+✖ local visibility rejects a parent-surface hit far outside the selected lateral radius (0.820907ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 11
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.941322
+
+✖ failing tests:
+
+test at tests/browser/geometry-benchmark.test.mjs:97:1
+✖ local visibility rejects a parent-surface hit far outside the selected lateral radius (0.820907ms)
+  TypeError: woodyProbeVisible is not a function
+      at TestContext.<anonymous> (file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/tests/browser/geometry-benchmark.test.mjs:99:16)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

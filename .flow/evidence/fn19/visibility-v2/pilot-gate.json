@@ -1,0 +1,25 @@
+{
+  "version": "fn19-visibility-v2.1",
+  "status": "pending remaining oak1 and spruce1 views",
+  "independent_botanical_assessment": "unassessed",
+  "views": [
+    {
+      "case_index": 1,
+      "view": "fork",
+      "path": "/tmp/fn19-visibility-pilot-5-oak2/1-fork-128.png",
+      "sha256": "9bdeaa63c7c6f5b4c2d96b7f56654e25109899d2b9068dc1f0ca332d5e7765b8",
+      "worker_observation": "Lateral-to-parent transition visibly on the front of the main stem. Rounded plug-like base and outgoing lateral axis traceable; angular parent bend behind it. Surrounding fine wood remains.",
+      "visibility": "named anatomy visible",
+      "conductor_observation": "Attachment visibly on front stem, rounded plug/tube-base outline against parent, outgoing lateral traceable and angular parent bend visible."
+    },
+    {
+      "case_index": 1,
+      "view": "attached-shoot",
+      "path": "/tmp/fn19-visibility-pilot-5-oak2/1-attached-shoot-128.png",
+      "sha256": "1a59a716e6057950a39d858e4311bb8237aa71714dbdb2503c80e6cef89b44bf",
+      "worker_observation": "Connected terminal axis and incoming parent connection traceable. Multiple short petiole bridges and lobed blade faces visible, with overlapping retained blades hiding some far-side attachments.",
+      "visibility": "named anatomy visible",
+      "conductor_observation": null
+    }
+  ]
+}

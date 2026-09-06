@@ -1,0 +1,1015 @@
+{
+  "schema_version": 1,
+  "comparison_status": "inconclusive",
+  "reason": "No coordinated exclusive window; distinct measurement domains; observations only",
+  "cases": [
+    {
+      "case_id": "oregon-white-oak-1",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 27.951814
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 2199.800000000745,
+        "preparation_ms": 6143.199999999255,
+        "wasm_capacity_bytes": 250216448,
+        "source_array_bytes": 166603100,
+        "stages_ms": {
+          "coreMs": 2144.599999997765,
+          "fieldMs": 0,
+          "foliageMs": 1761.1000000014901,
+          "growthMs": 62,
+          "surfaceMs": 319.1000000014901,
+          "transferMs": 49.899999998509884,
+          "buildMs": 2198
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-2",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 25.354598
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 2032.5,
+        "preparation_ms": 4845.699999999255,
+        "wasm_capacity_bytes": 241106944,
+        "source_array_bytes": 151703500,
+        "stages_ms": {
+          "coreMs": 1982,
+          "fieldMs": 0,
+          "foliageMs": 1635.3999999985099,
+          "growthMs": 60.30000000074506,
+          "surfaceMs": 284,
+          "transferMs": 43.69999999925494,
+          "buildMs": 2030.300000000745
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-3",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 28.610539
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 2214.300000000745,
+        "preparation_ms": 5277.900000002235,
+        "wasm_capacity_bytes": 255787008,
+        "source_array_bytes": 173692940,
+        "stages_ms": {
+          "coreMs": 2175.900000002235,
+          "fieldMs": 0,
+          "foliageMs": 1798.0999999977648,
+          "growthMs": 67.5,
+          "surfaceMs": 308.20000000298023,
+          "transferMs": 32.80000000074506,
+          "buildMs": 2212.7000000029802
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-3407793930",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 28.250831
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 2017.8999999985099,
+        "preparation_ms": 4823.900000002235,
+        "wasm_capacity_bytes": 248512512,
+        "source_array_bytes": 161306596,
+        "stages_ms": {
+          "coreMs": 1980.5999999977648,
+          "fieldMs": 0,
+          "foliageMs": 1642.5,
+          "growthMs": 57,
+          "surfaceMs": 278.9000000022352,
+          "transferMs": 33,
+          "buildMs": 2016.6000000014901
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-1701335265",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 28.583676999999998
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 2387.5,
+        "preparation_ms": 5727.20000000298,
+        "wasm_capacity_bytes": 260177920,
+        "source_array_bytes": 179195576,
+        "stages_ms": {
+          "coreMs": 2341.10000000149,
+          "fieldMs": 0,
+          "foliageMs": 1943.4000000022352,
+          "growthMs": 67.80000000074506,
+          "surfaceMs": 327.3999999985099,
+          "transferMs": 41.900000002235174,
+          "buildMs": 2385.900000002235
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-1462003817",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 28.466864
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 2365.800000000745,
+        "preparation_ms": 5658.60000000149,
+        "wasm_capacity_bytes": 258080768,
+        "source_array_bytes": 176438924,
+        "stages_ms": {
+          "coreMs": 2322,
+          "fieldMs": 0,
+          "foliageMs": 1930.0999999977648,
+          "growthMs": 67.5,
+          "surfaceMs": 322,
+          "transferMs": 38.900000002235174,
+          "buildMs": 2363.900000002235
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "norway-spruce-1",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 37.927818
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 9045.300000000745,
+        "preparation_ms": 13002,
+        "wasm_capacity_bytes": 1380646912,
+        "source_array_bytes": 682335372,
+        "stages_ms": {
+          "coreMs": 8659.199999999255,
+          "fieldMs": 0,
+          "foliageMs": 8193.199999999255,
+          "growthMs": 65.5,
+          "surfaceMs": 397.80000000074506,
+          "transferMs": 381.69999999925494,
+          "buildMs": 9044
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "norway-spruce-2",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 36.268812
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 8303.89999999851,
+        "preparation_ms": 12032.300000000745,
+        "wasm_capacity_bytes": 1361051648,
+        "source_array_bytes": 645488916,
+        "stages_ms": {
+          "coreMs": 8140,
+          "fieldMs": 0,
+          "foliageMs": 7714.900000002235,
+          "growthMs": 60.30000000074506,
+          "surfaceMs": 362.0999999977648,
+          "transferMs": 159.40000000223517,
+          "buildMs": 8302.400000002235
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "norway-spruce-3",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 39.036291
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 8677.199999999255,
+        "preparation_ms": 13295.400000002235,
+        "wasm_capacity_bytes": 1380122624,
+        "source_array_bytes": 682888832,
+        "stages_ms": {
+          "coreMs": 8512.60000000149,
+          "fieldMs": 0,
+          "foliageMs": 8041.79999999702,
+          "growthMs": 65.10000000149012,
+          "surfaceMs": 403.1000000014901,
+          "transferMs": 160,
+          "buildMs": 8675.60000000149
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "norway-spruce-3501386541",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 38.333666
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 10090.5,
+        "preparation_ms": 15390.60000000149,
+        "wasm_capacity_bytes": 1380319232,
+        "source_array_bytes": 687184252,
+        "stages_ms": {
+          "coreMs": 9971.699999999255,
+          "fieldMs": 0,
+          "foliageMs": 9439.60000000149,
+          "growthMs": 75.60000000149012,
+          "surfaceMs": 453.5999999977648,
+          "transferMs": 112.5,
+          "buildMs": 10088.800000000745
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "norway-spruce-3258201723",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 39.320916
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 8566.800000000745,
+        "preparation_ms": 12342.199999999255,
+        "wasm_capacity_bytes": 1380319232,
+        "source_array_bytes": 687305924,
+        "stages_ms": {
+          "coreMs": 8457.800000000745,
+          "fieldMs": 0,
+          "foliageMs": 8003.89999999851,
+          "growthMs": 62.30000000074506,
+          "surfaceMs": 388.9000000022352,
+          "transferMs": 104.60000000149012,
+          "buildMs": 8565.5
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    },
+    {
+      "case_id": "norway-spruce-2774604799",
+      "native": [
+        {
+          "conditions": "native cold process; one sample; resource window not exclusive; observation only",
+          "domain": "generation",
+          "reason": null,
+          "status": "measured",
+          "unit": "ms",
+          "value": 39.766273999999996
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "capture-preparation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "cpu-rss",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "wasm-capacity",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-allocation",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "bytes",
+          "value": null
+        },
+        {
+          "conditions": "native numeric runner",
+          "domain": "gpu-time",
+          "reason": "domain not measured by this run",
+          "status": "unavailable",
+          "unit": "ms",
+          "value": null
+        }
+      ],
+      "native_generation_semantics": "skeleton branching only; excludes surface, foliage, measurement",
+      "browser": {
+        "generation_ms": 8536,
+        "preparation_ms": 12343.800000000745,
+        "wasm_capacity_bytes": 1381040128,
+        "source_array_bytes": 685572000,
+        "stages_ms": {
+          "coreMs": 8371.10000000149,
+          "fieldMs": 0,
+          "foliageMs": 7917.10000000149,
+          "growthMs": 61.100000001490116,
+          "surfaceMs": 390.30000000074506,
+          "transferMs": 160.5,
+          "buildMs": 8534.5
+        },
+        "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+        "browser": "151.0.7922.173",
+        "exclusive_window": false
+      },
+      "cpu_rss": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_allocation": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      },
+      "gpu_time": {
+        "status": "unavailable",
+        "reason": "Not measured by this capture; no inferred value."
+      }
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "reference_version": "fn19-references-v1",
+  "sources": [
+    {
+      "id": "OSU-OAK",
+      "url": "https://landscapeplants.oregonstate.edu/plants/quercus-garryana",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "verified": "2026-09-06",
+      "use": "Species identity, rounded spreading crown, crooked branches, simple lobed leaves; uncalibrated imagery."
+    },
+    {
+      "id": "USFS-OAK",
+      "url": "https://research.fs.usda.gov/silvics/oregon-white-oak",
+      "attribution": "William I. Stein, Silvics of North America, 1990, US Forest Service",
+      "verified": "2026-09-06",
+      "use": "Species and habitat context; do not reinterpret known OCR unit errors as fresh measurements."
+    }
+  ],
+  "references": [
+    {
+      "id": "O-WHOLE",
+      "species_id": "oregon-white-oak",
+      "kind": "real",
+      "source_id": "OSU-OAK",
+      "scale": [
+        "whole"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga788B.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Open field; tree-form leaf-on; exact age and dimensions unknown",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed.",
+      "accessed_at": "2026-09-06",
+      "asset_sha256": "01bed8875ac98d92926404ad1dfd967a319509ad4f735731064ba2b1452407a4",
+      "observation": "Broad uneven crown, internal windows and substantial low limbs.",
+      "limitations": [
+        "Crown habit only; no calibrated gap fraction, branch dimensions or root geometry.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ]
+    },
+    {
+      "id": "O-BARE",
+      "species_id": "oregon-white-oak",
+      "kind": "real",
+      "source_id": "OSU-OAK",
+      "scale": [
+        "bare",
+        "fork"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga999A.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Winter tree-form landscape; exact age/context history unknown",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed.",
+      "accessed_at": "2026-09-06",
+      "asset_sha256": "18c79a6dac6d848ec707397d2a87109d60a3200f11424fbd663fd9f81665805c",
+      "observation": "Crooked ascending scaffolds subdivide into fine axes; large fork continuity is visible.",
+      "limitations": [
+        "Top/side crown cropped; coarse forks only, no fine collar surface dimensions; winter is anatomy-only.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ]
+    },
+    {
+      "id": "O-LEAF",
+      "species_id": "oregon-white-oak",
+      "kind": "real",
+      "source_id": "OSU-OAK",
+      "scale": [
+        "attached-shoot"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga28.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Leaf-on attached leaf close-up; whole-tree age/context unknown",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed.",
+      "accessed_at": "2026-09-06",
+      "asset_sha256": "9354b9a366ca129d069331f887ba844460fdebe9e5931c3f576862fc11be83fe",
+      "observation": "Rounded lobes, narrowing petiole and visible twig attachment.",
+      "limitations": [
+        "Single attachment only; not a complete multi-internode developmental shoot distribution.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ]
+    }
+  ]
+}

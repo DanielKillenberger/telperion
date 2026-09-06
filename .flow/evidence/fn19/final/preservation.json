@@ -1,0 +1,23 @@
+[
+  {
+    "domain": "visual",
+    "original_root": "/tmp/fn19-mature-visual-20260906",
+    "preserved_root": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-baseline/fn19-mature-visual-20260906",
+    "verified_artifacts": 1238,
+    "result": "pass"
+  },
+  {
+    "domain": "conditions",
+    "original_root": "/tmp/fn19-mature-conditions-20260906",
+    "preserved_root": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-baseline/fn19-mature-conditions-20260906",
+    "verified_artifacts": 122,
+    "result": "pass"
+  },
+  {
+    "domain": "numeric",
+    "original_root": "/tmp/fn19-mature-numeric-20260906",
+    "preserved_root": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-baseline/fn19-mature-numeric-20260906",
+    "verified_artifacts": 13,
+    "result": "pass"
+  }
+]

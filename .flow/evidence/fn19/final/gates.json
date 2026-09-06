@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "baseline": "green: species_metrics5 tests and npm typecheck before implementation",
+  "verification": {
+    "rust": "cargo test --release -p telperion-core --test geometry_benchmark --test species_metrics:9 passed",
+    "typescript": "npm run typecheck:passed",
+    "node": "node --test tests/browser/geometry-benchmark.test.mjs tests/browser/geometry-compare.test.mjs:16 passed",
+    "onboarding": "22 checks passed",
+    "controls": "independent small native pair plus10 comparison controls passed",
+    "mature_numeric_self_check": "12 cases passed artifact/measurement self-integrity; not independent replay",
+    "diff": "git diff --check:passed",
+    "full_suite": "Conductor ran Rustworkspace72 passed6 ignored and npm test106 passed at b5249e16 before task4 integration; see conductor-preintegration-gates.json. Final integrated Node checks remain conductor-owned. Worker claims only its focused gates.",
+    "mature_visual": "84/84 captures passed;1236 unique capture artifacts verified;84/84 implementation inspections; full combined self-integrity passed.",
+    "interrupted_visual": "Actual stopped old-tool replay compared against itself:inconclusive exit1; all missing/failed views retained.",
+    "real_replay": "Independent native6/6 each and visual42/42 each passed; combined comparison shows zero metrics/geometry/gap/image changes. Deliberate existing-image substitution surfaces exactly1 image change."
+  },
+  "red_to_green": [
+    "Initial comparator tests failed because module did not exist; then passed.",
+    "Compact full-metric digest regression failed false!==true before change;15 Node tests pass after change.",
+    "First full mature self-comparison exceeded JS string limit; preserved log. Full-metric streaming digest with compact axis distributions corrected it; all12 self-integrity passes.",
+    "Semantic capture-rule key-order regression failed unsupported capture rules before fix; nested-key permutation passes afterward, while value and array-order mutations reject."
+  ],
+  "logs": [
+    {
+      "path": "/tmp/fn19-task4-baseline-rust.log",
+      "sha256": "a091ffc6c75d5bd75838d342f22f742f941b8a98c4173eba8533565564015b56",
+      "bytes": 919,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-baseline-rust.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-baseline-ts.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58",
+      "bytes": 45,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-baseline-ts.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-red.log",
+      "sha256": "e77dc39866368060839c27e560ef0e6da41898ee94ca1f712874df9c7e87b33f",
+      "bytes": 1709,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-red.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-compact-red.log",
+      "sha256": "92cfcc5bc4c44b7a3fc5f61b9be9f81a1c3e0b8f5703d841e6dc188797cb46cc",
+      "bytes": 1778,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-compact-red.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-verify-rust.log",
+      "sha256": "e6400aded3636dedacae4f4e6777214ce83b0fc96f8d0b0dc2778dffd56f7851",
+      "bytes": 1334,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-verify-rust.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-verify-typecheck.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58",
+      "bytes": 45,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-verify-typecheck.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-onboarding.log",
+      "sha256": "16efe869b21feeca07d2adc077b7dbaef92a4abc5afdd3833c470c64390a324f",
+      "bytes": 2113,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-onboarding.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-comparison-controls-compact.log",
+      "sha256": "f07222aea1971959b17a6b5911fa9ab8d49eb1562328517c5e5f9b53f0d3fd7c",
+      "bytes": 58,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-comparison-controls-compact.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-mature-self-compact.log",
+      "sha256": "231db3c2c53d2165c1111c4bc3116f3303a2e949bb0dcd414e3dce22b986cb50",
+      "bytes": 56,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-mature-self-compact.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-final-rust.log",
+      "sha256": "c7829591ee13294ab840b731d53b168831b506b544b4b111ff16e67aff1df529",
+      "bytes": 1162,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-final-rust.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-final-typecheck.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58",
+      "bytes": 45,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-final-typecheck.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-final-node.log",
+      "sha256": "2e330aa493c4e1e294a0f61689b9345631087e5c63447c98364936f82d82d6f8",
+      "bytes": 1838,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-final-node.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-key-order-red.log",
+      "sha256": "bb5556d52e8caa83663fd0711938f556bd782bc6938f596ea75ab63339377a85",
+      "bytes": 3304,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-key-order-red.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-gap-red.log",
+      "sha256": "e6323b8e28a5f7f669f082a6f7d6b828ac32be288cfa8497a470c905baec2b7e",
+      "bytes": 1826,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-gap-red.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-post-capture-controls.log",
+      "sha256": "3df3d7a0d1a14aaf92a9799d25c67cabe111934ace03f9e5e09cf8fa85f93800",
+      "bytes": 67,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-post-capture-controls.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-interrupted-visual.log",
+      "sha256": "47b51caeb14f5a80f0a20aec6d31b8868d01165ebe58a8e9fcbffeec6b169bbc",
+      "bytes": 67,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-interrupted-visual.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-visual-receipt.log",
+      "sha256": "75ff679d0e868cd600dc4d917e5e72cba86bf0a167b07f0c1e2361641e6c3c24",
+      "bytes": 81,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-visual-receipt.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-mature-combined-self.log",
+      "sha256": "ff781b605e41d1ac2c5b8b3e540f0debcb05466fb447a3936286634a893e4694",
+      "bytes": 49,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-mature-combined-self.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-small-prepare.log",
+      "sha256": "e86a3a0ab0512b37ce988232829eaf9521b4685206c4ac743a844c7bc3bf6c98",
+      "bytes": 230,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-small-prepare.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-numeric.log",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "bytes": 62,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-numeric.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-prepare.log",
+      "sha256": "ad3c36d163c87166acba38a83026934b17db7532bbb7e77c1bbd5bf9b8d6802c",
+      "bytes": 37,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-prepare.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-visual.log",
+      "sha256": "116207de77f09d035361311a07ce9c348587b4d282f91b04ca5ad32c24c229be",
+      "bytes": 62193,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-visual.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-mature-self.log",
+      "sha256": "8e2679fd27fba88cf2ae81c08b891fd0db5aed00e6cdfd75a70439bb23065874",
+      "bytes": 251,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-mature-self.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-final-controls.log",
+      "sha256": "3e49307c1fd8eacef750ed4e14baacbd5752f6645b182d150e282060256ab2fe",
+      "bytes": 814,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-final-controls.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-v3-native-baseline.log",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "bytes": 62,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-v3-native-baseline.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-v3-native-candidate.log",
+      "sha256": "6bfa9e18ffdef821c711a542cfebd7db0982665615563e5a191285e489609c6f",
+      "bytes": 62,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-v3-native-candidate.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-v3-prepare.log",
+      "sha256": "4e2803dc741ea8b0fe953f929d6608de035fead69ec936dd77348bcaa0938d36",
+      "bytes": 156,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-v3-prepare.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-v3-baseline.log",
+      "sha256": "bfda12395bc56e311ba4e8e26b11baa080080e881dc4c94e1470e1b29048c325",
+      "bytes": 23170,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-v3-baseline.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-v3-candidate.log",
+      "sha256": "45d39c1f7050dd5d154c1e96c8c34c21b54741f8b6ae2a6c74bf6db097b06b5d",
+      "bytes": 23171,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-v3-candidate.log"
+    },
+    {
+      "path": "/tmp/fn19-task4-v3-comparison-controls.log",
+      "sha256": "6380859bb03441747209003a6528e4e6add4d43c1c2e921a1b26ad5af7dab46a",
+      "bytes": 56,
+      "retained_path": ".flow/evidence/fn19/final/logs/fn19-task4-v3-comparison-controls.log"
+    }
+  ],
+  "impl_review": "skipped(config:REVIEW_MODE=none)",
+  "plan_sync": "skipped(config:planSync.enabled=false;conductor owns lifecycle)",
+  "inconclusive_invocations": [
+    "Attempt to reuse existing /tmp/fn19-task4-comparison-controls-final output correctly rejected; rerun in fresh post-capture-fix directory passed.",
+    "First small visual prepare rejected semantic key order; preserved original log, corrected validator, fresh cohort rerun.",
+    "Old-tool v2 visual replay intentionally interrupted before validator edits; not a collection pass."
+  ]
+}

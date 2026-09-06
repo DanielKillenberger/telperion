@@ -1,0 +1,30 @@
+✔ R2/R3: projected holes, openings and excluded background retain pixel and square-metre units (1.269836ms)
+✔ R2: diagonal gap connectivity and threshold closure are diagnostic, never biological approval (0.185223ms)
+✔ R2/R4: empty, clipped, nonfinite and malformed masks fail without a favorable zero (0.730315ms)
+✔ R4: convergence uses complete arrays and partial tiles, rejecting missing/nonfinite samples (3.876409ms)
+✔ R4: protocol/source/camera/ROI/crop identities and required artifacts fail closed (0.4682ms)
+✔ R5: inventory is extensible but a third taxon cannot inherit another generator (0.206355ms)
+✔ R4: missing masks, incomplete artifacts, changed bytes and path escapes cannot pass (6.813739ms)
+✔ R4: the actual replay preflight rejects a changed camera, source, protocol or reference receipt (0.272106ms)
+✔ R4: timeout, missing hardware and interrupted subprocesses retain distinct nonpassing dispositions (0.682084ms)
+✔ R4 capture rules compare object values independent of key order but preserve arrays and changed values (0.403048ms)
+✔ visibility supplement rejects missing anatomy, altered geometry and undeclared instance filtering (0.875158ms)
+✔ local visibility rejects a parent-surface hit far outside the selected lateral radius (0.745676ms)
+✖ collar-facing direction excludes the child axial component (0.199604ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66.201035
+
+✖ failing tests:
+
+test at tests/browser/geometry-benchmark.test.mjs:104:1
+✖ collar-facing direction excludes the child axial component (0.199604ms)
+  TypeError: collarFacing is not a function
+      at TestContext.<anonymous> (file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/tests/browser/geometry-benchmark.test.mjs:106:16)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

@@ -1,0 +1,127 @@
+{
+  "id": "scots-pine",
+  "scientific_name": "Pinus sylvestris",
+  "taxon_rank": "species",
+  "cultivar": null,
+  "context": "mature-open-grown",
+  "profile_id": "scots-pine",
+  "profile_path": ".flow/evidence/fn19/onboarding-examples/scots-pine/profile.json",
+  "profile_sha256": "2b2e92b8ffda3d9eca348a45e2e66ccd5bd40c4c4ef1b9f89b92a0c351e18344",
+  "preset": "scots-pine",
+  "required_capabilities": [
+    "woody-axes",
+    "paired-needle-fascicle"
+  ],
+  "parameters": {
+    "canopy": {
+      "attachment": "radialNeedles",
+      "clump": 5,
+      "clumpSpan": 0.3,
+      "divergence": 137.508,
+      "maxInstances": 4294967295,
+      "outward": 0.6,
+      "scatter": 18,
+      "shootRadius": 0.025,
+      "size": 1,
+      "sizeVariation": 0.2,
+      "spacing": 0.006,
+      "upward": 0.35
+    },
+    "element": {
+      "anatomy": "fourSidedNeedle",
+      "axialSegments": 5,
+      "baseFullness": 0.85,
+      "card": false,
+      "connectorLength": 0.001,
+      "crossSegments": 2,
+      "cup": 0.18,
+      "curl": 0.12,
+      "length": 0.018,
+      "tipSharpness": 1.6,
+      "widestAt": 0.42,
+      "width": 0.0015
+    },
+    "radii": {
+      "forkExponent": 2,
+      "lengthTaper": 0.6,
+      "trunkRadius": 0.015
+    },
+    "shellDepth": 1,
+    "skeleton": {
+      "attractors": 500,
+      "bias": {
+        "gravitropism": 0,
+        "lean": 0,
+        "supernatural": {
+          "enabled": false,
+          "spiralRate": 0,
+          "writheAmplitude": 0,
+          "writheWavelength": 0.45
+        }
+      },
+      "envelope": {
+        "crownBase": 0.04,
+        "fullness": 0.15,
+        "height": 15,
+        "shoulder": 1,
+        "spread": 0.31
+      },
+      "growth": {
+        "maxTurnPerStep": 35
+      },
+      "habit": {
+        "branchesPerTier": 5,
+        "kind": "tiered",
+        "secondaryLength": 0.3,
+        "secondarySpacing": 0.2,
+        "tiers": 16,
+        "upturn": 0.12
+      },
+      "seed": 42,
+      "step": 0.022,
+      "twigs": {
+        "angle": 45,
+        "angleVariation": 10,
+        "divergence": 137.508,
+        "internodeFactor": 2.5,
+        "laterals": 2,
+        "lengthRatio": 0.4,
+        "limbRadius": 0.1,
+        "ratioPower": 1.3,
+        "reach": 0.2,
+        "twig": {
+          "bearingDiameter": 0.02,
+          "diameter": 0.002,
+          "internodeLength": 0.0025,
+          "length": 0.25,
+          "stationsPerInternode": 1
+        },
+        "vigourVariation": 0.15
+      }
+    },
+    "surface": {
+      "flareDepth": 0.004,
+      "flareFalloff": 0.022,
+      "flareRadius": 2.1,
+      "forkSocket": 0.5,
+      "forkSwell": 1.35,
+      "lobeDepth": 0,
+      "lobes": 5,
+      "radialSegments": 12,
+      "twistRate": 0
+    }
+  },
+  "fixed_seeds": [
+    1,
+    2,
+    3
+  ],
+  "holdout_seeds": [
+    874705908,
+    583724120,
+    3413577754
+  ],
+  "reference_ids": [
+    "P-DESCRIPTION"
+  ]
+}

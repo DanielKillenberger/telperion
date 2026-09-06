@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/.flow/evidence/fn19/final/replay-controls.py", line 4, in <module>
+    p=argparse.ArgumentParser();p.add_argument('--native-controls',required=True,type=pathlib.Path);p.add_argument('--output',required=True,type=pathlib.Path);a=p.parse_args();a.output.mkdir()
+                                                                                                                                                                                ~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '/tmp/fn19-task4-comparison-controls-final'

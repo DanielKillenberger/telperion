@@ -1,0 +1,385 @@
+{
+  "artifacts_note": "Raw tiny run directories are local verification artifacts. Reproduce creates new directories; never overwrites a prior run.",
+  "baseline": {
+    "binary": [
+      {
+        "bytes": 955432,
+        "media_type": "application/octet-stream",
+        "path": "native-binary",
+        "sha256": "60aad6894ac7d67db5f67804c13d547be76289660916f0179387285f10d09a7d"
+      }
+    ],
+    "protocol_sha256": "22030063113bb7fd81c5afbcd5371a574702e0bba78ae735062f78661c1bb5a5",
+    "run_id": "baseline",
+    "source": {
+      "commit": "18cf081ae6ebc608c9952aa3d874d3db9448b5ab",
+      "dirty": false,
+      "files": [
+        {
+          "path": "Cargo.lock",
+          "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+        },
+        {
+          "path": "Cargo.toml",
+          "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+        },
+        {
+          "path": "crates/telperion-core/Cargo.toml",
+          "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+        },
+        {
+          "path": "crates/telperion-core/src/bias.rs",
+          "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+        },
+        {
+          "path": "crates/telperion-core/src/branching.rs",
+          "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+        },
+        {
+          "path": "crates/telperion-core/src/branching/audit.rs",
+          "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+        },
+        {
+          "path": "crates/telperion-core/src/branching/habit.rs",
+          "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+        },
+        {
+          "path": "crates/telperion-core/src/branching/local.rs",
+          "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+        },
+        {
+          "path": "crates/telperion-core/src/colonization.rs",
+          "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+        },
+        {
+          "path": "crates/telperion-core/src/colonization/fill.rs",
+          "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+        },
+        {
+          "path": "crates/telperion-core/src/colonization/grid.rs",
+          "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+        },
+        {
+          "path": "crates/telperion-core/src/envelope.rs",
+          "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+        },
+        {
+          "path": "crates/telperion-core/src/field.rs",
+          "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+        },
+        {
+          "path": "crates/telperion-core/src/foliage.rs",
+          "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+        },
+        {
+          "path": "crates/telperion-core/src/foliage/element.rs",
+          "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+        },
+        {
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+        },
+        {
+          "path": "crates/telperion-core/src/lib.rs",
+          "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+        },
+        {
+          "path": "crates/telperion-core/src/math.rs",
+          "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+        },
+        {
+          "path": "crates/telperion-core/src/noise.rs",
+          "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+        },
+        {
+          "path": "crates/telperion-core/src/presets.rs",
+          "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+        },
+        {
+          "path": "crates/telperion-core/src/radius.rs",
+          "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+        },
+        {
+          "path": "crates/telperion-core/src/rng.rs",
+          "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+        },
+        {
+          "path": "crates/telperion-core/src/surface.rs",
+          "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+        },
+        {
+          "path": "crates/telperion-core/src/surface/attachment.rs",
+          "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+        },
+        {
+          "path": "crates/telperion-core/src/surface/frames.rs",
+          "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+        },
+        {
+          "path": "crates/telperion-core/src/surface/paths.rs",
+          "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+        },
+        {
+          "path": "crates/telperion-core/src/tree.rs",
+          "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+        },
+        {
+          "path": "crates/telperion-core/src/twigs.rs",
+          "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+        }
+      ],
+      "sha256": "16a1b1e9e70e795de100007439692d8add4cd6942869642ac720c5c66b7de258"
+    },
+    "tool": {
+      "commit": "18cf081ae6ebc608c9952aa3d874d3db9448b5ab",
+      "dirty": false,
+      "files": [
+        {
+          "path": "Cargo.lock",
+          "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark.rs",
+          "sha256": "d966128e067d36d58d256db1803f057cbb278e4a53820542bbeb44345fb3b569"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/metrics.rs",
+          "sha256": "3a9501e9d82d6359c611e8bda0ea2d95f84ab960ed3cfd5407c19952921d11c4"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/native_controls.py",
+          "sha256": "bc9cd48886aee1e33eb95aaa11def2686a8f7d4fe20e55681af2a6798f89c5a9"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/params.rs",
+          "sha256": "0704618d4d04d21928174caa7b4eea1f759bc289c437b0c1db38871b0177a547"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/runner.py",
+          "sha256": "bfcd9a6c1184a5fae6d424e0ce7291efe3b487e0bb13394c55f09b09fd9cf199"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/test_controls.py",
+          "sha256": "68fc1d87b5e4c73cbb3aebcd906c6d99e49a0281c5f718078ee48cc336841339"
+        },
+        {
+          "path": "crates/telperion-core/examples/species_metrics/mod.rs",
+          "sha256": "6a25f14b6cf86b27a631692f4bbe448dba8e4cd3d15e3d75b87f406cd713b956"
+        },
+        {
+          "path": "crates/telperion-core/tests/geometry_benchmark.rs",
+          "sha256": "6475d6bfd21aa517c8bcc3967a9d07cf697cc2b82dbd6f87224e16c05aadc1c5"
+        }
+      ],
+      "sha256": "c5f5398301028a3983a38807a1a2fadedeb8519b100e35752f697e3988061de6"
+    }
+  },
+  "candidate": {
+    "binary": [
+      {
+        "bytes": 955432,
+        "media_type": "application/octet-stream",
+        "path": "native-binary",
+        "sha256": "60aad6894ac7d67db5f67804c13d547be76289660916f0179387285f10d09a7d"
+      }
+    ],
+    "protocol_sha256": "22030063113bb7fd81c5afbcd5371a574702e0bba78ae735062f78661c1bb5a5",
+    "run_id": "candidate",
+    "source": {
+      "commit": "18cf081ae6ebc608c9952aa3d874d3db9448b5ab",
+      "dirty": false,
+      "files": [
+        {
+          "path": "Cargo.lock",
+          "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+        },
+        {
+          "path": "Cargo.toml",
+          "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+        },
+        {
+          "path": "crates/telperion-core/Cargo.toml",
+          "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+        },
+        {
+          "path": "crates/telperion-core/src/bias.rs",
+          "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+        },
+        {
+          "path": "crates/telperion-core/src/branching.rs",
+          "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+        },
+        {
+          "path": "crates/telperion-core/src/branching/audit.rs",
+          "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+        },
+        {
+          "path": "crates/telperion-core/src/branching/habit.rs",
+          "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+        },
+        {
+          "path": "crates/telperion-core/src/branching/local.rs",
+          "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+        },
+        {
+          "path": "crates/telperion-core/src/colonization.rs",
+          "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+        },
+        {
+          "path": "crates/telperion-core/src/colonization/fill.rs",
+          "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+        },
+        {
+          "path": "crates/telperion-core/src/colonization/grid.rs",
+          "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+        },
+        {
+          "path": "crates/telperion-core/src/envelope.rs",
+          "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+        },
+        {
+          "path": "crates/telperion-core/src/field.rs",
+          "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+        },
+        {
+          "path": "crates/telperion-core/src/foliage.rs",
+          "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+        },
+        {
+          "path": "crates/telperion-core/src/foliage/element.rs",
+          "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+        },
+        {
+          "path": "crates/telperion-core/src/foliage/placement.rs",
+          "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+        },
+        {
+          "path": "crates/telperion-core/src/lib.rs",
+          "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+        },
+        {
+          "path": "crates/telperion-core/src/math.rs",
+          "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+        },
+        {
+          "path": "crates/telperion-core/src/noise.rs",
+          "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+        },
+        {
+          "path": "crates/telperion-core/src/presets.rs",
+          "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+        },
+        {
+          "path": "crates/telperion-core/src/radius.rs",
+          "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+        },
+        {
+          "path": "crates/telperion-core/src/rng.rs",
+          "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+        },
+        {
+          "path": "crates/telperion-core/src/surface.rs",
+          "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+        },
+        {
+          "path": "crates/telperion-core/src/surface/attachment.rs",
+          "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+        },
+        {
+          "path": "crates/telperion-core/src/surface/frames.rs",
+          "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+        },
+        {
+          "path": "crates/telperion-core/src/surface/paths.rs",
+          "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+        },
+        {
+          "path": "crates/telperion-core/src/tree.rs",
+          "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+        },
+        {
+          "path": "crates/telperion-core/src/twigs.rs",
+          "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+        }
+      ],
+      "sha256": "16a1b1e9e70e795de100007439692d8add4cd6942869642ac720c5c66b7de258"
+    },
+    "tool": {
+      "commit": "18cf081ae6ebc608c9952aa3d874d3db9448b5ab",
+      "dirty": false,
+      "files": [
+        {
+          "path": "Cargo.lock",
+          "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark.rs",
+          "sha256": "d966128e067d36d58d256db1803f057cbb278e4a53820542bbeb44345fb3b569"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/metrics.rs",
+          "sha256": "3a9501e9d82d6359c611e8bda0ea2d95f84ab960ed3cfd5407c19952921d11c4"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/native_controls.py",
+          "sha256": "bc9cd48886aee1e33eb95aaa11def2686a8f7d4fe20e55681af2a6798f89c5a9"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/params.rs",
+          "sha256": "0704618d4d04d21928174caa7b4eea1f759bc289c437b0c1db38871b0177a547"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/runner.py",
+          "sha256": "bfcd9a6c1184a5fae6d424e0ce7291efe3b487e0bb13394c55f09b09fd9cf199"
+        },
+        {
+          "path": "crates/telperion-core/examples/geometry_benchmark/test_controls.py",
+          "sha256": "68fc1d87b5e4c73cbb3aebcd906c6d99e49a0281c5f718078ee48cc336841339"
+        },
+        {
+          "path": "crates/telperion-core/examples/species_metrics/mod.rs",
+          "sha256": "6a25f14b6cf86b27a631692f4bbe448dba8e4cd3d15e3d75b87f406cd713b956"
+        },
+        {
+          "path": "crates/telperion-core/tests/geometry_benchmark.rs",
+          "sha256": "6475d6bfd21aa517c8bcc3967a9d07cf697cc2b82dbd6f87224e16c05aadc1c5"
+        }
+      ],
+      "sha256": "c5f5398301028a3983a38807a1a2fadedeb8519b100e35752f697e3988061de6"
+    }
+  },
+  "controls": {
+    "capped_cases_retained": 6,
+    "capped_generation": "geometry_benchmark: resource-cap: generation truncated",
+    "cases": 6,
+    "changed_measurement": [
+      "unchanged-source measurement drift: control-1"
+    ],
+    "dropped_case": [
+      "control-1"
+    ],
+    "duplicate_case": [
+      "condition mismatch: cases",
+      "duplicate case manifest",
+      "ordered case manifest mismatch"
+    ],
+    "no_overwrite": 2,
+    "unchanged_source_replay": "comparable",
+    "unknown_generator": {
+      "capabilities": [],
+      "implemented": false,
+      "profile_id": null
+    }
+  },
+  "costs": {
+    "capture-preparation": "unavailable",
+    "cpu-rss": "unavailable",
+    "generation": "nonexclusive single-sample observation, excluded from equality",
+    "gpu-allocation": "unavailable",
+    "gpu-time": "unavailable",
+    "wasm-capacity": "unavailable"
+  },
+  "purpose": "Mechanical controls only; 2m artificial fixtures, six previously used historical seeds. No mature generation, fresh holdouts, optimization or botanical claims.",
+  "reproduce": "python3 -B crates/telperion-core/examples/geometry_benchmark/native_controls.py --binary target/release/examples/geometry_benchmark --output NEW_DIR --receipt NEW_FILE",
+  "schema_version": 1
+}

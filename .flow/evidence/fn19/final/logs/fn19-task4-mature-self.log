@@ -1,0 +1,3 @@
+RangeError: Invalid string length
+    at JSON.stringify (<anonymous>)
+    at main (file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/scripts/benchmarks/geometry-compare.mjs:119:60)
