@@ -47,11 +47,16 @@ node tests/browser/species.mjs --help
 - [x] Native workspace tests, Wasm checks, harness tests, formatting/clippy, typecheck, build and relevant headless integration all pass; evidence remains compact.
 
 ## Done summary
-Blocked after corrective QA:
-All 48 retained numeric cases pass at generation `1f2ebf4`; spruce `4250668600` now measures 8.813982965 m against the unchanged 9.144 m maximum. All 52 final required/supplemental/shared-template PNGs were captured and personally inspected. Oak lobes, spruce needle shaft and foliage-bearing distribution improved, but every inspected species crown still fails healthy mass/gaps; spruce curtains, peg/orientation and complete terminal/socket fidelity remain unmet or unassessed. Ordinary, Telperion and Laurelin geometry and PNG hashes exactly match previous QA. No owner approval, PR, merge or completion. See the corrective REPORT and retained before-fix evidence.
+
+Blocked:
+FN-9.9 remains blocked after pass-2 architecture and inspected QA at production 3f3533c. All 48 retained numeric cases pass; spruce 4250668600 is 8.621604388 m <= unchanged 9.144 m. All 60 final image hashes are personally inspected. Oak upper bare sprays and every spruce crown/curtain mass still fail. Uncropped spruce seed-1 exterior detail now proves blunt terminal-cap taper failure; peg contact and complete socket fidelity remain unresolved. Upper-side forward bias passes only the seed-1 supplemental view. All nine shared-template geometry/PNG hashes match pass 1; software gates pass with isolated browser exit 0. No PR, merge, completion or owner approval.
+
+See .flow/evidence/fn9/REPORT.md and pass2-* evidence. Next work: trace upper oak local handoffs/radius/shedding; reshape spruce pendant local systems; correct actual terminal caps and resolve peg/socket contact. Keep every seed and frozen range; do not substitute a global foliage count/shell increase.
 
 ## Evidence
-- Commits: `fe1eefa` freezes seeds; `3a50326` and `1f2ebf4` implement corrective generation and regressions; final browser/evidence receipt in branch history.
-- Tests: 48/48 numeric replay; full native workspace, isolated Wasm/browser integration (exit 0), 106 harness tests, fmt, Clippy with `-D warnings`, typecheck and build. Browser process result is recorded separately in `corrective-gates.json`; no image-existence fidelity pass.
-- Visuals: 52 inspected PNGs; unchanged nine shared-template geometry/PNG hashes; same-host native counts/costs. `.flow/evidence/fn9/REPORT.md`, `corrective-*.json` and `qa-preview/fix-*.png`.
-- PRs: none; Flow remains blocked and not eligible for make-pr.
+
+- Commits: `3f3533c` architectural placement and regression; `54702f2` / `0d608f6` actual exterior twig/socket cameras and surface-radius needle selection; `972b3bd` consistent complete small browser fixtures. Numeric, cost, gate and final visual evidence commits remain in branch history.
+- Tests: all 48 retained numeric cases, native workspace, 106 harness tests, fmt, Clippy `-D warnings`, typecheck, build, isolated Wasm/browser integration exit 0, final diff and Flow validation. Receipt replay exits expected 1 because automated visual approval is never granted.
+- Visuals: `.flow/evidence/fn9/REPORT.md`, `pass2-visual.json`, `pass2-captures.json`, `pass2-shared.json`, and `qa-preview/pass2-*.png`. Bulk captures `/tmp/fn99-fix2-qa`; raw measurements `/tmp/fn99-fix2-replay`. Prior report preserved as `REPORT-pass1.md`.
+- Next: trace upper oak handoffs/radius/shedding, reshape spruce local pendant systems into substantial curtains, correct actual terminal caps and resolve peg/socket contact. Preserve every seed and frozen target; no global foliage-count substitute.
+- PRs: none; Flow remains blocked and ineligible for make-pr.

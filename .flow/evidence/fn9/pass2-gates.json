@@ -114,6 +114,55 @@
       "seconds": 203.89853477478027,
       "log": "/tmp/fn99-fix2-gates/wasm-browser-isolated.log",
       "sha256": "330c7a55899d08d42ac84484d44b3f8ee293e2253425fd76a96e0f57f9044575"
+    },
+    {
+      "name": "final-diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.0036611557006835938,
+      "log": "/tmp/fn99-fix2-gates/final-diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "final-flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.37998437881469727,
+      "log": "/tmp/fn99-fix2-gates/final-flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    },
+    {
+      "name": "runner-syntax",
+      "command": [
+        "node",
+        "--check",
+        "tests/browser/species.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.08068704605102539,
+      "log": "/tmp/fn99-fix2-gates/runner-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "integration-syntax",
+      "command": [
+        "node",
+        "--check",
+        "tests/browser/integration.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07331562042236328,
+      "log": "/tmp/fn99-fix2-gates/integration-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
   "prior_attempts": [
@@ -167,5 +216,23 @@
     "One slow orbit attempt was stopped after the binding fixture fix; consistent small oak rendering/UI fixtures were added.",
     "All mature fidelity captures are separate and use unchanged full preset parameters without generation caps.",
     "The isolated recorder runs in its own process group and records explicit subprocess exit 0."
-  ]
+  ],
+  "capture_replay": {
+    "name": "capture-receipt-replay",
+    "command": [
+      "node",
+      "tests/browser/species.mjs",
+      "--capture-only",
+      "--output",
+      "/tmp/fn99-fix2-qa",
+      "--timeout-ms",
+      "600000"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "reason": "Automated runner never grants visual approval; successful matching receipts reused.",
+    "seconds": 0.8473749160766602,
+    "log": "/tmp/fn99-fix2-gates/capture-receipt-replay.log",
+    "sha256": "c816bb852b99ae8cf95674116bbf6c9fcc598e04c106064b69a37f3b95591285"
+  }
 }
