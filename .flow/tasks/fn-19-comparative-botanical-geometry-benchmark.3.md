@@ -45,9 +45,15 @@ Read tests/browser/rendering.mjs:65-189,234-269 from the fn13 worktree at an exp
 - [ ] Native/converged images and diagnostics retain separate dispositions; no production generator, viewer or fn13 artifact is modified.
 
 ## Done summary
-TBD
+The isolated adapter prepares fixed anatomical cameras and biological crown ROIs, captures original geometry at native/64/128 sampling, and reports projected holes/openings with explicit identity, clipping, missing-artifact and convergence failures. Nine analytic controls and fourteen selected small oak/spruce views passed collection checks; occluded attachment traits and independent botanical assessment remain unassessed.
 
+baseline: green — Rust species_metrics5/5 and TypeScript passed before implementation. New node test/runner paths did not exist initially. Verify: Node9/9, help, typecheck and Rust5/5 passed; schema, artifact-hash, PNG and raw-array verification passed. Small runs deliberately remain partial (CLI1;77 pending views each), never mature baseline or biological pass. Source-attestation failures and source/tool evolution are preserved in .flow/evidence/fn19/visual-controls.json. Orthographic candidate-ray and terminal hardware changes after smoke are disclosed; no later mature/candidate capture is claimed.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; parallel-wave conductor owns review)
+stage: plan-sync - skipped(config: planSync.enabled != true; conductor-owned)
+
+Commit: cc20df5d1accf73d7db994a094f869949cc901fc. Interface: /home/daniel/Projects/telperion/.git/flow-notes/fn19-20260906T161410Z-686968/task3-capture-interface.md. Gate receipts/lifecycle mutations deferred to conductor. Production, frozen protocol, fn13/fn18 and historical evidence unchanged.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cc20df5d1accf73d7db994a094f869949cc901fc
+- Tests: baseline: green — cargo test --release -p telperion-core --test species_metrics (5 passed); npm run typecheck (exit0), node --test tests/browser/geometry-benchmark.test.mjs — 9 passed; /tmp/fn19-task3-verify-node.log, node tests/browser/geometry-benchmark.mjs --help — exit0; /tmp/fn19-task3-verify-help.log, npm run typecheck — exit0; /tmp/fn19-task3-verify-typecheck.log, cargo test --release -p telperion-core --test species_metrics — 5 passed; /tmp/fn19-task3-verify-rust.log, PYTHONDONTWRITEBYTECODE=1 python3 .flow/tmp/verify-capture-receipts.py — exit0; /tmp/fn19-task3-artifact-verification.log, Small oak/spruce captures — 7 complete converged views each; expected CLI exit1 because --case preserves 77 unselected views pending; see committed visual-controls.json, Changed-camera and missing-mask integration controls — expected exit1 with roi-mismatch/missing ROI; no capture pass, Red before implementation — missing diagnostics module, replay identity seam and terminal classifier; logs /tmp/fn19-task3-red.log, /tmp/fn19-task3-replay-red.log, /tmp/fn19-task3-terminal-red.log, Gate classify: FULL .mjs code; gate receipts deferred to conductor for integrated commit, Integrated node --test tests/browser/geometry-benchmark.test.mjs: PASS 9/9, Integrated npm run typecheck: PASS, Integrated node tests/browser/geometry-benchmark.mjs --help: PASS
 - PRs:
