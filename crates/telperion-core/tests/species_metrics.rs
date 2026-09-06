@@ -181,7 +181,9 @@ fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
             let projected = m["projected_area_m2"]["value"].as_f64().unwrap();
             assert!(surface > 2. * projected);
             assert!(
-                (projected - 0.0001284).abs() < 1e-10,
+                // Five equal intervals; shaft widths .35, 1, .97, .94, .91, 0.
+                // Trapezoidal polygon area = .799 * (.002 * 2) * (.02 * 3).
+                (projected - 0.00019176).abs() < 1e-10,
                 "canonical projected polygon area"
             );
             assert_eq!(m["foliage_unit"], "needle");

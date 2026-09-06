@@ -218,7 +218,7 @@ fn build_anatomy(p: ElementParams) -> Result<Element> {
                     0.35
                 } else {
                     // Retain the four-sided shaft until the short distal point.
-                    1.0 - 0.12 * t
+                    1.0 - 0.12 * (t - 1.0 / rows as f64) / (1.0 - 1.0 / rows as f64)
                 };
             let start = e.positions.len();
             for (x, z) in [(1., 0.), (0., 1.), (-1., 0.), (0., -1.)] {
@@ -293,6 +293,21 @@ fn build_anatomy(p: ElementParams) -> Result<Element> {
         for col in 0..columns {
             let a = 1 + (rows - 2) * (columns + 1) + col;
             e.indices.extend([a, a + 1, tip]);
+        }
+    }
+    if !needle {
+        // Preserve the authored maximum transverse width despite staggered,
+        // nonuniformly sampled lobes. Connectors are added after this scaling.
+        let measured = sections
+            .iter()
+            .map(|section| {
+                let row = &e.positions[section.clone()];
+                row.iter().map(|v| v.x).fold(f64::NEG_INFINITY, f64::max)
+                    - row.iter().map(|v| v.x).fold(f64::INFINITY, f64::min)
+            })
+            .fold(0.0_f64, f64::max);
+        for v in &mut e.positions {
+            v.x *= p.width / measured;
         }
     }
     e.anatomy = Some(AnatomyGeometry {
