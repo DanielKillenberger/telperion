@@ -127,3 +127,50 @@ fn upper_retention_does_not_disable_lower_shedding() {
     assert_eq!(tree.nodes[3].parent, Some(2));
     tree.validate().unwrap();
 }
+
+#[test]
+#[ignore = "mature scaffold direction audit"]
+fn scaffold_directions() {
+    for seed in [1, 2, 3, 2666899686, 762807349, 1444323199] {
+        let mut f = Preset::OregonWhiteOak.parameters();
+        f.skeleton.seed = seed;
+        let p = &f.skeleton;
+        let config = p.resolved_growth(0).unwrap();
+        let bias = GrowthBias::new(p.envelope, seed, p.bias).unwrap();
+        let tree = habit::generate(p, &config, &bias).unwrap();
+        let mut children = vec![0; tree.nodes.len()];
+        for n in tree.nodes.iter().skip(1) {
+            children[n.parent.unwrap() as usize] += 1;
+        }
+        let points:Vec<_> = tree.nodes.iter().enumerate().skip(1).map(|(i,n)|serde_json::json!({"id":i,"parent":n.parent,"tip":children[i]==0,"p":[n.position.x,n.position.y,n.position.z]})).collect();
+        println!("OAK {}", serde_json::json!({"seed":seed,"nodes":points}));
+    }
+}
+
+#[test]
+fn accepted_oak_scaffolds_are_unchanged() {
+    // Pass-3 structural positions and parent links, before pass-4 spacing repair.
+    for (seed, expected) in [
+        (1, 8709238459600713761),
+        (762807349, 3941552297145586417),
+        (1444323199, 4459427015154599464),
+    ] {
+        let mut f = Preset::OregonWhiteOak.parameters();
+        f.skeleton.seed = seed;
+        let p = &f.skeleton;
+        let config = p.resolved_growth(0).unwrap();
+        let bias = GrowthBias::new(p.envelope, seed, p.bias).unwrap();
+        let tree = habit::generate(p, &config, &bias).unwrap();
+        let mut hash = 14695981039346656037_u64;
+        for n in tree.nodes.iter().skip(1) {
+            for byte in [n.position.x, n.position.y, n.position.z]
+                .into_iter()
+                .flat_map(f64::to_le_bytes)
+                .chain(n.parent.unwrap().to_le_bytes())
+            {
+                hash = (hash ^ byte as u64).wrapping_mul(1099511628211);
+            }
+        }
+        assert_eq!(hash, expected, "accepted oak {seed} scaffold changed");
+    }
+}

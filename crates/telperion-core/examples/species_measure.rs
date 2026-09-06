@@ -62,7 +62,7 @@ fn specimen(preset: &str, seed: u32) -> Result<Value, String> {
         .twigs
         .resolved()
         .map_err(|e| format!("twigs: {e:?}"))?;
-    let placed = foliage::place(
+    let placed = foliage::place_on_surface(
         &report.tree,
         f.skeleton.envelope,
         seed,
@@ -71,6 +71,7 @@ fn specimen(preset: &str, seed: u32) -> Result<Value, String> {
             internode_length: twigs.twig.internode_length,
             stations_per_internode: twigs.twig.stations_per_internode,
         }),
+        &f.surface,
     )
     .map_err(|e| format!("placement: {e:?}"))?;
     let kept = foliage::cull(&placed, &element, f.skeleton.envelope, f.shell_depth)

@@ -9,7 +9,7 @@ use crate::{
 pub use element::{
     build_element, AnatomyGeometry, Element, ElementAnatomy, ElementParams, FoliageUnit,
 };
-pub use placement::{place, Attachment, CanopyParams, TwigPlacement};
+pub use placement::{place, place_on_surface, Attachment, CanopyParams, TwigPlacement};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {

@@ -20,6 +20,7 @@ struct Shoot {
     key: u32,
     run: Option<Rc<Run>>,
     pendant: bool,
+    curtain_across: Vec3,
 }
 fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
     p.y < config.trunk_height
@@ -220,6 +221,7 @@ pub(super) fn append_with_habit(
             key: i as u32,
             run: None,
             pendant,
+            curtain_across: Vec3::new(-n.position.z, 0.0, n.position.x).normalized(),
         });
     }
     let planner = Planner {
@@ -323,18 +325,15 @@ pub(super) fn append_with_habit(
                     // Secondary descendants stay in a hanging plane. Alternating
                     // narrow departures build overlapping branchlet curtains,
                     // rather than a radial spray that forgets its supporting axis.
-                    let horizontal = Vec3::new(from.x, 0.0, from.z);
-                    let across = if horizontal.length_squared() > 1e-9 {
-                        Vec3::new(-horizontal.z, 0.0, horizontal.x).normalized()
-                    } else {
-                        Vec3::X
-                    };
+                    // Inherit the primary's vertical plane through every order;
+                    // rotating from each child's heading produces crossing sprays.
+                    let across = s.curtain_across;
                     let side = if (first_lateral + c) % 2 == 0 {
                         -1.0
                     } else {
                         1.0
                     };
-                    (from * 0.35 - Vec3::Y + across * side * 0.48).normalized()
+                    (from * 0.35 - Vec3::Y + across * side * 0.28).normalized()
                 } else if !lateral {
                     from
                 } else {
@@ -379,7 +378,7 @@ pub(super) fn append_with_habit(
                     return Err(Error::ResourceLimit("branch position overflow"));
                 }
                 let separation = if s.pendant {
-                    8.0_f64.to_radians().cos()
+                    4.0_f64.to_radians().cos()
                 } else {
                     separation
                 };
@@ -453,6 +452,7 @@ pub(super) fn append_with_habit(
                         key,
                         run,
                         pendant: s.pendant,
+                        curtain_across: s.curtain_across,
                     });
                 }
             }

@@ -75,6 +75,33 @@ pub fn place(
     p: CanopyParams,
     twig: Option<TwigPlacement>,
 ) -> Result<Instances> {
+    place_impl(tree, envelope, seed, p, twig, None)
+}
+
+/// Place anatomical foliage on the actual swept polygon, including fork sockets.
+/// Generic/alternate placement retains its established contract.
+pub fn place_on_surface(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+    surface: &crate::surface::SurfaceParams,
+) -> Result<Instances> {
+    if p.attachment != Attachment::RadialNeedles {
+        return place(tree, envelope, seed, p, twig);
+    }
+    let contacts = crate::surface::AttachmentSurface::new(tree, envelope.height, surface)?;
+    place_impl(tree, envelope, seed, p, twig, Some(&contacts))
+}
+fn place_impl(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+    contacts: Option<&crate::surface::AttachmentSurface>,
+) -> Result<Instances> {
     tree.validate_solved()?;
     envelope.validate()?;
     for (v, l, h, n) in [
@@ -126,7 +153,16 @@ pub fn place(
     if let Some(t) = twig {
         if p.attachment != Attachment::Generic {
             for run in twig_runs(tree, p) {
-                place_run(tree, &run, envelope, p, Some(t), &mut rng, &mut out)?;
+                place_run(
+                    tree,
+                    &run,
+                    envelope,
+                    p,
+                    Some(t),
+                    &mut rng,
+                    &mut out,
+                    contacts,
+                )?;
             }
             return Ok(out);
         }
@@ -141,17 +177,19 @@ pub fn place(
                         Some(t),
                         &mut rng,
                         &mut out,
+                        contacts,
                     )?;
                 }
             }
         }
     } else {
         for run in shoots(tree, tree.nodes[0].radius * p.shoot_radius) {
-            place_run(tree, &run, envelope, p, None, &mut rng, &mut out)?;
+            place_run(tree, &run, envelope, p, None, &mut rng, &mut out, contacts)?;
         }
     }
     Ok(out)
 }
+#[allow(clippy::too_many_arguments)]
 fn place_run(
     tree: &Tree,
     run: &[usize],
@@ -160,6 +198,7 @@ fn place_run(
     twig: Option<TwigPlacement>,
     rng: &mut Rng,
     out: &mut Instances,
+    contacts: Option<&crate::surface::AttachmentSurface>,
 ) -> Result<()> {
     let points: Vec<_> = run.iter().map(|i| tree.nodes[*i].position).collect();
     let mut along = vec![0.];
@@ -251,7 +290,15 @@ fn place_run(
         };
         let (sin, cos) = turn.sin_cos();
         let radial = normal * cos + binormal * sin;
-        point += radial * wood;
+        point = if let Some(contacts) = contacts {
+            contacts
+                .point(run[segment + 1], point, radial, wood)
+                .ok_or(Error::InvalidInput(
+                    "foliage surface contact projection missed",
+                ))?
+        } else {
+            point + radial * wood
+        };
         let mut axis = match p.attachment {
             Attachment::Generic => {
                 let outward = Vec3::new(point.x, 0., point.z);

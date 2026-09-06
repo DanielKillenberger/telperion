@@ -255,7 +255,95 @@ impl Builder<'_> {
                 break;
             }
         }
+        self.space_crowded_scaffolds();
         Ok(())
+    }
+    /// Repair a displaced scaffold only when it duplicates a neighbour's sector.
+    /// Central ascending systems are excluded: their azimuth is ill-conditioned.
+    fn space_crowded_scaffolds(&mut self) {
+        let nodes = &mut self.tree.nodes;
+        let mut roots = Vec::new();
+        let mut owner = vec![usize::MAX; nodes.len()];
+        let mut children = vec![0; nodes.len()];
+        for i in 1..nodes.len() {
+            children[nodes[i].parent.unwrap() as usize] += 1;
+        }
+        for i in 1..nodes.len() {
+            let parent = nodes[i].parent.unwrap() as usize;
+            let p = nodes[parent].position;
+            let q = nodes[i].position;
+            if p.x.hypot(p.z) < 1e-9 && q.x.hypot(q.z) > 1e-9 {
+                owner[i] = roots.len();
+                roots.push(i);
+            } else {
+                owner[i] = owner[parent];
+            }
+        }
+        let mut centres = vec![Vec3::ZERO; roots.len()];
+        let mut counts = vec![0; roots.len()];
+        let mut highest = vec![0.0_f64; roots.len()];
+        for i in 1..nodes.len() {
+            let o = owner[i];
+            if o == usize::MAX {
+                continue;
+            }
+            highest[o] = highest[o].max(nodes[i].position.y);
+            if children[i] == 0 {
+                centres[o] += nodes[i].position;
+                counts[o] += 1;
+            }
+        }
+        for (c, n) in centres.iter_mut().zip(counts) {
+            if n > 0 {
+                *c = *c / n as f64;
+            }
+        }
+        let angles: Vec<_> = centres.iter().map(|c| c.z.atan2(c.x)).collect();
+        let wrap = |a: f64| (a + std::f64::consts::PI).rem_euclid(TAU) - std::f64::consts::PI;
+        let mut sorted = angles.clone();
+        sorted.sort_by(f64::total_cmp);
+        let gap = (0..sorted.len())
+            .map(|i| {
+                let width = (sorted[(i + 1) % sorted.len()] - sorted[i]).rem_euclid(TAU);
+                (width, sorted[i] + width * 0.5)
+            })
+            .max_by(|a, b| a.0.total_cmp(&b.0));
+        for (o, &root) in roots.iter().enumerate() {
+            let base = nodes[nodes[root].parent.unwrap() as usize].position;
+            let first = nodes[root].position - base;
+            let displacement = wrap(angles[o] - first.z.atan2(first.x));
+            let crowded = angles
+                .iter()
+                .enumerate()
+                .any(|(j, a)| j != o && wrap(angles[o] - a).abs() < 10.0_f64.to_radians());
+            let yaw = if centres[o].x.hypot(centres[o].z) > self.envelope.height * 0.175
+                && displacement.abs() > 70.0_f64.to_radians()
+                && crowded
+            {
+                gap.filter(|g| g.0 > std::f64::consts::FRAC_PI_2)
+                    .map_or(0.0, |g| wrap(g.1 - angles[o]))
+            } else {
+                0.0
+            };
+            // Only a scaffold extending into the reserved upper growth margin
+            // is lowered; rotate its connected system, never clip its endpoints.
+            let tilt = if highest[o] > self.envelope.height * 0.9 {
+                12.0_f64.to_radians()
+            } else {
+                0.0
+            };
+            if yaw == 0.0 && tilt == 0.0 {
+                continue;
+            }
+            let radial = Vec3::new(centres[o].x, 0.0, centres[o].z).normalized();
+            let hinge = Vec3::new(-radial.z, 0.0, radial.x);
+            for i in 1..nodes.len() {
+                if owner[i] == o {
+                    let delta = (nodes[i].position - base).rotate(hinge, -tilt);
+                    nodes[i].position = base + delta.rotate(Vec3::Y, -yaw);
+                }
+            }
+        }
     }
     fn tiered(&mut self, p: TieredHabit) -> Result<()> {
         let height = self.envelope.height;

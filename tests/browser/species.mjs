@@ -131,7 +131,8 @@ async function capture(job) {
             const fraction = location.clone().sub(base).dot(axis) / length2;
             const distance = location.distanceTo(base.clone().addScaledVector(axis, Math.max(0, Math.min(1, fraction))));
             const surfaceRadius = values[node * 6 + 4] * (1 - fraction) + values[node * 6 + 3] * fraction;
-            if (fraction > .1 && fraction < .5 && Math.abs(distance - surfaceRadius) < 1e-5 && fraction < nearest) {
+            const contactRadial = location.clone().sub(base.clone().addScaledVector(axis, fraction)).normalize();
+            if (fraction > .1 && fraction < .5 && Math.abs(distance - surfaceRadius) < Math.max(.0002, surfaceRadius * .5) && contactRadial.dot(outward) < -.5 && fraction < nearest) {
               nearest = fraction; selectedInstance = i;
               selectedTwig.attachment = { fraction, distance, surfaceRadius, origin: location.toArray() };
             }
@@ -153,8 +154,34 @@ async function capture(job) {
             distance: hit.distance, point: hit.point.toArray(), faceIndex: hit.faceIndex,
             originGap: location.distanceTo(centreline) - hit.distance,
           } : null;
-          bounds = new THREE.Box3(location.clone().addScalar(-.045), location.clone().addScalar(.045));
+          bounds = new THREE.Box3(location.clone().addScalar(-.015), location.clone().addScalar(.015));
+          if (view.includes('-contact-')) {
+            const tangent = axis.clone().normalize();
+            const around = tangent.clone().cross(radial).normalize();
+            const angle = view.endsWith('left') ? -.85 : view.endsWith('right') ? .85 : 0;
+            direction = radial.clone().multiplyScalar(.45).addScaledVector(around, .8).addScaledVector(tangent, .25).normalize().applyAxisAngle(tangent, angle);
+            bounds = new THREE.Box3(location.clone().addScalar(-.006), location.clone().addScalar(.006));
+            selectedTwig.attachment.contactCamera = { radial: radial.toArray(), tangent: tangent.toArray(), angle, halfWidth: .006 };
+          }
         }
+      }
+      if (view === 'branch-curtain') {
+        const { values, topology } = output.structure;
+        const point = i => new THREE.Vector3(...values.subarray(i * 6, i * 6 + 3));
+        const outward = new THREE.Vector3(.62, 0, 1).normalize();
+        let best = -Infinity;
+        for (let i = 1; i < topology.length / 3; i++) {
+          if (topology[i * 3 + 2] !== 0) continue;
+          const parent = topology[i * 3], base = point(parent), tip = point(i);
+          const delta = tip.clone().sub(base).normalize();
+          if (delta.y > -.7 || base.y < fullBounds.max[1] * .35 || base.y > fullBounds.max[1] * .65) continue;
+          const score = base.dot(outward);
+          if (score > best) { best = score; selectedTwig = { node: i, parent, tip: tip.toArray(), base: base.toArray(), protocol: 'actual descending structural secondary, all connected geometry retained' }; }
+        }
+        if (!selectedTwig) throw Error('No descending structural branch');
+        const centre = new THREE.Vector3(...selectedTwig.base).add(new THREE.Vector3(0, -.55, 0));
+        bounds = new THREE.Box3(centre.clone().add(new THREE.Vector3(-.8,-.95,-.8)), centre.clone().add(new THREE.Vector3(.8,.65,.8)));
+        direction = outward.clone().negate(); direction.y = .12; direction.normalize();
       }
       if (view === 'foliage-detail' || view === 'junction-detail') {
         if (!canopy?.count) throw Error('No attached foliage to inspect');
@@ -178,7 +205,7 @@ async function capture(job) {
       scene.add(new THREE.HemisphereLight(0xffffff, 0x6a6966, 3.1), tree);
       const centre = bounds.getCenter(new THREE.Vector3()), size = bounds.getSize(new THREE.Vector3());
       const distance = Math.max(size.y / 2 / Math.tan(38 * Math.PI / 360), Math.max(size.x, size.z) / 2 / (Math.tan(38 * Math.PI / 360) * 960 / 720)) * 1.3 + size.length() / 2;
-      const detail = view === 'foliage-detail' || view === 'junction-detail' || view === 'element' || exterior;
+      const detail = view === 'foliage-detail' || view === 'junction-detail' || view === 'element' || view === 'branch-curtain' || exterior;
       const camera = new THREE.PerspectiveCamera(38, 960 / 720, detail ? .0001 : .1, Math.max(4000, distance * 4));
       camera.position.copy(centre).addScaledVector(direction, distance); camera.lookAt(centre);
       if (view === 'foliage-detail') { camera.near = Math.max(.0001, distance - size.length() / 2); camera.far = distance + size.length() / 2; camera.updateProjectionMatrix(); }
@@ -253,7 +280,7 @@ const sourceFiles = (await command('git', ['ls-files', 'src/browser', 'harness/s
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async path => [path, sha(await readFile(path))])));
 const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), wasmSha256: sha(await readFile('src/browser/telperion.wasm')), profilesSha256: sha(await readFile('.flow/evidence/fn9/profiles.json')), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))) };
 await save(join(out, 'provenance.json'), provenance);
-const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', 'exterior-alt-front', 'exterior-alt-left', 'exterior-alt-right', ...(c.id === 'norway-spruce-1' ? ['peg-upper', 'peg-lower', 'peg-alt-upper', 'peg-alt-lower'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
+const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', 'exterior-alt-front', 'exterior-alt-left', 'exterior-alt-right', ...(c.id === 'norway-spruce-1' ? ['branch-curtain', 'peg-upper', 'peg-lower', 'peg-alt-upper', 'peg-alt-lower', 'peg-contact-front', 'peg-contact-left', 'peg-contact-right', 'peg-alt-contact-front', 'peg-alt-contact-left', 'peg-alt-contact-right'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
 const suffix = option('--case') ? `-${option('--case')}` : '';
 const capturesPath = join(out, `captures${suffix}.json`);
 await save(join(out, `capture-plan${suffix}.json`), jobs);

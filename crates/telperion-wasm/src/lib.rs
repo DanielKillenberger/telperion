@@ -205,7 +205,7 @@ fn generate(v: Value) -> Result<(Output, Value)> {
     let mut anatomy = Value::Null;
     if needs_foliage {
         let blade = foliage::build_element(f.element)?;
-        let placed = foliage::place(
+        let placed = foliage::place_on_surface(
             &tree,
             f.skeleton.envelope,
             f.skeleton.seed,
@@ -214,6 +214,7 @@ fn generate(v: Value) -> Result<(Output, Value)> {
                 internode_length: t.twig.internode_length,
                 stations_per_internode: t.twig.stations_per_internode,
             }),
+            &f.surface,
         )?;
         placed_count = placed.matrices.len();
         out.instances = foliage::cull(&placed, &blade, f.skeleton.envelope, f.shell_depth)?;
