@@ -186,3 +186,14 @@ fidelity metric. The ignored `scaffold_directions` and `retained_supports` tests
 provide structural and shedding traces (`cargo test --release -p telperion-core
 scaffold_directions -- --ignored --nocapture`). Frozen seeds and profiles remain
 unchanged throughout these diagnostics.
+
+
+`--frustum-cull` optionally reduces detail-frame GPU submission by rejecting only
+foliage whose transformed prototype bounding sphere lies wholly outside a camera
+frustum plane. A Frobenius-norm radius bound also covers sheared transforms;
+original instance order, generated output hashes, wood, cameras and clipping
+planes remain unchanged. Receipts retain original/submitted counts. Pass-4 paired
+spruce peg, oak exterior and shared foliage captures have byte-identical PNGs
+with and without this optimization. Whole/bare views are unaffected. This is
+visibility culling, not a generation cap, foliage-density change or removal of
+visible occluders.

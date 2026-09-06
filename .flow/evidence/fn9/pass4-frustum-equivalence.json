@@ -1,0 +1,108 @@
+{
+  "cases": [
+    {
+      "name": "spruce-peg",
+      "before": "/tmp/fn99-fix4-pilot2/norway-spruce-1-peg-upper.json",
+      "after": "/tmp/fn99-fix4-cull-check/peg.json",
+      "geometry_hashes": {
+        "wood": "ce094ece96d88fa297f472e580fcb4d86fd81985cfed20db0de9e57596e447bb",
+        "indices": "f7fbf4ce62bd376d00243ff95d707a9c050beb55fb06ccd76e772a079e614df4",
+        "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+        "matrices": "121bf4867c988909f6e8d98f93b12672525f05ad459d4a28889c6b8a126a80a3"
+      },
+      "png_sha256": "3908200da93bd8407070f058f24b01b4ae44b23c224014cc42bc2910c4b9c1c2",
+      "camera": {
+        "position": [
+          1.7424472716896375,
+          4.028694480836651,
+          3.5679889115352528
+        ],
+        "target": [
+          1.7789463996887207,
+          3.9836714267730713,
+          3.6268584728240967
+        ],
+        "near": 0.0001,
+        "far": 4000,
+        "fov": 38,
+        "aspect": 1.3333333333333333
+      },
+      "culling": {
+        "originalInstances": 5313055,
+        "submittedInstances": 147,
+        "method": "conservative transformed prototype sphere; original order; no wood culling; unchanged camera/depth"
+      },
+      "exact_geometry_png_camera_match": true
+    },
+    {
+      "name": "oak-exterior",
+      "before": "/tmp/fn99-fix3-qa/oregon-white-oak-1-exterior-front.json",
+      "after": "/tmp/fn99-fix4-cull-check/oregon-white-oak-1-exterior-front.json",
+      "geometry_hashes": {
+        "wood": "6e77ae599e6f88cf605ccd3f7c016c87c3ef95edd6de7f448ce372b35046b2e8",
+        "indices": "15c41fd1d1585c3126a94cf94c01f0ed16cf45f921cf7ff96b762b7238861e7b",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "6bf0e48a2f21f11a7f69710ae6be1a8191c97f279d09da8b33fc767825628f07"
+      },
+      "png_sha256": "0201fe3540e710613338881f325ad4d572e3ed0c791369dc851d6fea4eaf986e",
+      "camera": {
+        "position": [
+          5.6059751865146366,
+          10.385434148496358,
+          8.93494033179029
+        ],
+        "target": [
+          6.26268496443859,
+          10.161105317300805,
+          9.994149651022472
+        ],
+        "near": 0.0001,
+        "far": 4000,
+        "fov": 38,
+        "aspect": 1.3333333333333333
+      },
+      "culling": {
+        "originalInstances": 517361,
+        "submittedInstances": 73,
+        "method": "conservative transformed prototype sphere; original order; no wood culling; unchanged camera/depth"
+      },
+      "exact_geometry_png_camera_match": true
+    },
+    {
+      "name": "ordinary-detail",
+      "before": "/tmp/fn99-fix3-qa/ordinary-foliage-detail.json",
+      "after": "/tmp/fn99-fix4-cull-check/ordinary-foliage-detail.json",
+      "geometry_hashes": {
+        "wood": "1bc039d606768e75406b069716dca74d4e94a605d4f452100e9925d34be4ad46",
+        "indices": "2d3ee9bd1db676fb968250990c2d466048c081900df6f5f942db4999f59f906f",
+        "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+        "matrices": "5ab79c3f924214a7b165d1b5331c24c610935d2be3b7bc8fd10ea42cf9ded382"
+      },
+      "png_sha256": "d46b1b46e83334cd4c477433471842848359c1615353e635e01e38e6fb3ead11",
+      "camera": {
+        "position": [
+          -2.967040125211101,
+          15.025380936632864,
+          5.008810625794079
+        ],
+        "target": [
+          -3.757561683654785,
+          14.668371200561523,
+          3.7337758541107178
+        ],
+        "near": 1.0571327594739972,
+        "far": 2.0270812117125683,
+        "fov": 38,
+        "aspect": 1.3333333333333333
+      },
+      "culling": {
+        "originalInstances": 31,
+        "submittedInstances": 31,
+        "method": "conservative transformed prototype sphere; original order; no wood culling; unchanged camera/depth"
+      },
+      "exact_geometry_png_camera_match": true
+    }
+  ],
+  "note": "Original connected wood remains submitted in full. Only conservative offscreen foliage rejection; no visible occluders removed. Spruce paired worker restored the prior camera explicitly and its source is hashed below.",
+  "paired_worker_sha256": "ba4fa9338684a97433019b5c58abef483a642d5f90ac77d96c1bd59898250b4a"
+}

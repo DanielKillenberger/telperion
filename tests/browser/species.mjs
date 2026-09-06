@@ -15,6 +15,7 @@ if (args.includes('--help')) {
   --measure-only              Native 24-seed measurements per species
   --capture-only              Reuse measurements in --output; do not regenerate
   --case ID                    Capture only this case (partial, never protocol pass)
+  --frustum-cull               Conservatively skip offscreen foliage in detail frames
   --timeout-ms N               Per native/capture process limit (default 300000)
 BROWSER_URL defaults to http://127.0.0.1:5184 (start Vite separately).
 Build species_measure and Wasm first; install Playwright Chromium. Optional
@@ -28,7 +29,7 @@ Exit 1 for failed/missing required evidence or unassessed visual results.
 Human inspection goes in REPORT.md; this runner never awards visual approval.`);
   process.exit(0);
 }
-const known = new Set(['--draw-seeds', '--seeds', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms', '--worker']);
+const known = new Set(['--draw-seeds', '--seeds', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms', '--worker', '--frustum-cull']);
 for (let i = 0; i < args.length; i++) {
   if (!known.has(args[i])) throw Error(`Unknown option ${args[i]}`);
   if (['--seeds', '--output', '--case', '--timeout-ms', '--worker'].includes(args[i])) {
@@ -62,7 +63,7 @@ async function capture(job) {
     await page.route(url + '/', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><canvas></canvas>' }));
     await page.goto(url + '/');
     await save(job.result, { ...job, browser: browser.version(), capture_status: 'started' });
-    const result = await page.evaluate(async ({ preset: id, seed, view }) => {
+    const result = await page.evaluate(async ({ preset: id, seed, view, frustumCull = false }) => {
       const THREE = await import('/node_modules/.vite/deps/three.js');
       const { TreeEngine, presetById } = await import('/src/browser/core.ts');
       const { materializeTree, recomputeInstanceBounds } = await import('/src/browser/three.ts');
@@ -210,6 +211,29 @@ async function capture(job) {
       const camera = new THREE.PerspectiveCamera(38, 960 / 720, detail ? .0001 : .1, Math.max(4000, distance * 4));
       camera.position.copy(centre).addScaledVector(direction, distance); camera.lookAt(centre);
       if (view === 'foliage-detail') { camera.near = Math.max(.0001, distance - size.length() / 2); camera.far = distance + size.length() / 2; camera.updateProjectionMatrix(); }
+      let frustumCulling = null;
+      if (frustumCull && detail && canopy?.visible && view !== 'element') {
+        camera.updateMatrixWorld(true);
+        const frustum = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+        canopy.geometry.computeBoundingSphere();
+        const sphere = canopy.geometry.boundingSphere;
+        const centre = sphere.center, source = canopy.instanceMatrix.array;
+        const retained = [];
+        for (let i = 0; i < canopy.count; i++) {
+          const k = i * 16;
+          const x = source[k]*centre.x + source[k+4]*centre.y + source[k+8]*centre.z + source[k+12];
+          const y = source[k+1]*centre.x + source[k+5]*centre.y + source[k+9]*centre.z + source[k+13];
+          const z = source[k+2]*centre.x + source[k+6]*centre.y + source[k+10]*centre.z + source[k+14];
+          // Frobenius norm bounds even a sheared transform's maximum stretch.
+          const radius = sphere.radius * Math.hypot(source[k],source[k+1],source[k+2],source[k+4],source[k+5],source[k+6],source[k+8],source[k+9],source[k+10]) + 1e-5;
+          if (frustum.planes.every(p => p.normal.x*x + p.normal.y*y + p.normal.z*z + p.constant >= -radius)) retained.push(i);
+        }
+        const matrices = new Float32Array(retained.length * 16);
+        retained.forEach((i,j) => matrices.set(source.subarray(i*16,i*16+16),j*16));
+        frustumCulling = { originalInstances: canopy.count, submittedInstances: retained.length, method: 'conservative transformed prototype sphere; original order; no wood culling; unchanged camera/depth' };
+        canopy.instanceMatrix = new THREE.InstancedBufferAttribute(matrices,16);
+        canopy.count = retained.length; recomputeInstanceBounds(canopy);
+      }
       // Exactly one frame avoids a software GPU animation queue starving capture.
       renderer.render(scene, camera); gl.finish();
       if (gl.isContextLost() || gl.getError() !== gl.NO_ERROR || !renderer.info.render.triangles) throw Error('Missing rendered geometry/context lost');
@@ -217,7 +241,7 @@ async function capture(job) {
       return { png, preset, diagnostics: output.diagnostics, hashes, backend, userAgent: navigator.userAgent,
         camera: { position: camera.position.toArray(), target: centre.toArray(), near: camera.near, far: camera.far, fov: camera.fov, aspect: camera.aspect },
         fullBounds, displayedBounds: { min: bounds.min.toArray(), max: bounds.max.toArray() }, selectedInstance, selectedTwig,
-        displayedInstances: canopy?.visible ? canopy.count : 0, rendered: { ...renderer.info.render },
+        frustumCulling, displayedInstances: canopy?.visible ? canopy.count : 0, rendered: { ...renderer.info.render },
         environment: { width: 960, height: 720, dpr: 1, antialias: true, neutral: true, frames: 1, ground: false, shadows: false } };
     }, job);
     const png = Buffer.from(result.png, 'base64'); delete result.png;
@@ -281,7 +305,7 @@ const sourceFiles = (await command('git', ['ls-files', 'src/browser', 'harness/s
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async path => [path, sha(await readFile(path))])));
 const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), wasmSha256: sha(await readFile('src/browser/telperion.wasm')), profilesSha256: sha(await readFile('.flow/evidence/fn9/profiles.json')), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))) };
 await save(join(out, 'provenance.json'), provenance);
-const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', 'exterior-alt-front', 'exterior-alt-left', 'exterior-alt-right', ...(c.id === 'norway-spruce-1' ? ['branch-curtain', 'peg-upper', 'peg-lower', 'peg-alt-upper', 'peg-alt-lower', 'peg-contact-front', 'peg-contact-left', 'peg-contact-right', 'peg-alt-contact-front', 'peg-alt-contact-left', 'peg-alt-contact-right'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
+const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', 'exterior-alt-front', 'exterior-alt-left', 'exterior-alt-right', ...(c.id === 'norway-spruce-1' ? ['branch-curtain', 'peg-upper', 'peg-lower', 'peg-alt-upper', 'peg-alt-lower', 'peg-contact-front', 'peg-contact-left', 'peg-contact-right', 'peg-alt-contact-front', 'peg-alt-contact-left', 'peg-alt-contact-right'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, frustumCull: args.includes('--frustum-cull'), provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
 const suffix = option('--case') ? `-${option('--case')}` : '';
 const capturesPath = join(out, `captures${suffix}.json`);
 await save(join(out, `capture-plan${suffix}.json`), jobs);
@@ -289,7 +313,7 @@ for (const job of jobs.filter(j => !option('--case') || j.id === option('--case'
   try {
     // Reuse only matching successful receipt + PNG hash; preserve failures.
     const old = await json(job.result);
-    if (old.id === job.id && old.view === job.view && old.capture_status === 'pass' && old.provenance?.sourceSha256 === provenance.sourceSha256 && old.provenance?.wasmSha256 === provenance.wasmSha256 && old.provenance?.runnerSha256 === provenance.runnerSha256 && old.preset.skeleton.seed === (job.seed ?? old.preset.skeleton.seed) && old.pngSha256 === sha(await readFile(job.png))) { Object.assign(job, old); await save(capturesPath, jobs); continue; }
+    if (old.id === job.id && old.view === job.view && !!old.frustumCull === job.frustumCull && old.capture_status === 'pass' && old.provenance?.sourceSha256 === provenance.sourceSha256 && old.provenance?.wasmSha256 === provenance.wasmSha256 && old.provenance?.runnerSha256 === provenance.runnerSha256 && old.preset.skeleton.seed === (job.seed ?? old.preset.skeleton.seed) && old.pngSha256 === sha(await readFile(job.png))) { Object.assign(job, old); await save(capturesPath, jobs); continue; }
       await save(job.result + `.previous-${Date.now()}`, old);
   } catch { /* capture not available */ }
   const path = join(out, `${job.id}-${job.view}-job.json`); await save(path, job);
