@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-9-real-species-profiles-and-procedural",
   "impl_review_rounds": {
-    "fn-9-real-species-profiles-and-procedural.9": 1
+    "fn-9-real-species-profiles-and-procedural.9": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -59,9 +59,55 @@
       "task": "fn-9-real-species-profiles-and-procedural.9",
       "timestamp": "2026-09-06T10:53:00.462093Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ebc4535017014cf5345d26dee1e92d9f2b9b8fd7d23aed0f6c6e6e9244780ce3",
+      "backend": "codex",
+      "base_sha": "12975169e3ba35db087aeb5e13c2927a173a0f3a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-887673dd20f8903d752187c2744b09c2",
+            "classification": "introduced",
+            "findingId": "finding-887673dd20f8903d752187c2744b09c2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d388ca0621a5874d1d35b242516df65e0180e080",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 963,
+      "output_sha256": "0b81ab0ecedba2cd86e666e7b25c989d0fc67dd01c5927d6e4cc685b9f5c9226",
+      "reservation_id": "fbe61cf6f0f94558b59242fb1d176cd3",
+      "round_consumed": true,
+      "scope": "impl:fn-9-real-species-profiles-and-procedural.9",
+      "superseded_by": null,
+      "task": "fn-9-real-species-profiles-and-procedural.9",
+      "timestamp": "2026-09-06T11:14:50.852376Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-9-real-species-profiles-and-procedural.9": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -81,5 +127,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-06T10:53:00.464601Z"
+  "updated_at": "2026-09-06T11:14:50.855295Z"
 }

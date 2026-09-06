@@ -1,6 +1,6 @@
 # FN9 species completion evidence
 
-2026-09-06. The required numeric and visual checks pass at production `0a8f343`; independent review still gates task completion. No owner approval or merge is claimed. Earlier reports and captures are preserved intact in [the iteration archive](../../../experiments/fn9-iterations/README.md). The frozen [profiles](profiles.json), [seeds](seeds.json) and [references](REFERENCES.md) remain unchanged.
+2026-09-06. The required numeric and visual checks pass at production `0a8f343`; independent implementation review is SHIP; spec-completion review follows. No owner approval or merge is claimed. Earlier reports and captures are preserved intact in [the iteration archive](../../../experiments/fn9-iterations/README.md). The frozen [profiles](profiles.json), [seeds](seeds.json) and [references](REFERENCES.md) remain unchanged.
 
 ## Current implementation
 

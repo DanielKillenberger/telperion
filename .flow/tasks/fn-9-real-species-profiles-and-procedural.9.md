@@ -59,9 +59,16 @@ The requested full-foliage spruce is served at `http://127.0.0.1:5184/?species=n
 Final native suite (68 passed, 6 historical/diagnostic ignored), 106 harness tests, Wasm/browser integration, build, typecheck, fmt, strict Clippy and numeric/capture execution pass. Independent implementation review remains required before flowctl done. Historical reports and images are preserved intact under `experiments/fn9-iterations/`.
 
 ## Done summary
-TBD
+Replaced the post-growth occupancy transforms with retained species crowns, reachable oak infill and spruce shoots distributed along descending secondaries. Corrected genuine childless structural tips while preserving positions, handoffs and shared templates. Added recoverable species/seed viewer links, fresh Wasm before harness tests, one compact browser fixture and robust peg-view selection. Preserved historical iterations intact in experiments/fn9-iterations.
 
+Final production 0a8f343 passes 48 fixed/fresh numeric cases, 68 native tests (6 historical/diagnostic ignored), 106 harness tests, Wasm/browser integration, build, typecheck, rustfmt and strict Clippy. All84 captures succeeded; 39 required mature and9 shared views plus11 representative anatomy views were inspected. Frozen targets/seeds remain unchanged; hidden optional seams and numeric-only cases remain unassessed. The retained blunt-tip counterexample now tapers. Owner feedback remains null.
+
+Independent implementation review reached SHIP on d388ca0 with R1–R6 met. The quality correctness audit found no defects; both standards Should Fix findings were addressed. Report and durable evidence: .flow/evidence/fn9/REPORT.md and final/. Full-foliage spruce remains served at http://127.0.0.1:5184/?species=norway-spruce&seed=1.
+
+stage: wave-dispatch - ran
+stage: impl-review - ran (model: gpt-6-astra)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fd4a87b, d8812e6, 17fd6e5, a2eddc5, ec75925, 9da2c5b, 9cd68be, 0a8f343, d388ca0
+- Tests: npm run rust:test — PASS, npm test — PASS, npm run build — PASS, npm run typecheck — PASS, cargo fmt --all -- --check — PASS, cargo clippy --workspace --all-targets -- -D warnings — PASS, BROWSER_URL=http://127.0.0.1:5187 PLAYWRIGHT_MODULE=/tmp/fn9-browser/node_modules/playwright/index.mjs CHROMIUM_EXECUTABLE=/tmp/fn9-chromium-gpu node tests/browser/integration.mjs — PASS, 48 numeric passes;84 capture successes;59 scoped view inspections — .flow/evidence/fn9/final/, Wasm entrypoint scripts/test-wasm.mjs imports the same fully executed tests/browser/integration.mjs suite., Independent implementation review SHIP — .flow/evidence/fn9/final/implementation-review.json, stage: plan-sync - skipped(config: planSync.enabled != true)
 - PRs:

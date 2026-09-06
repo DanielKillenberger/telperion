@@ -1,0 +1,45 @@
+{
+  "base": "12975169e3ba35db087aeb5e13c2927a173a0f3a",
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "12975169e3ba35db087aeb5e13c2927a173a0f3a",
+    "headSha": "d388ca0621a5874d1d35b242516df65e0180e080",
+    "items": [
+      {
+        "body": "Opening `/?species=unknown` throws from `presetById` inside the state initializer. There is no error boundary, so React leaves the viewer blank rather than displaying the required clear invalid-identity error.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-23236482044be131ec53cc9d6d8fc3e3f69273e1652519a4c7814596fe7aec71",
+        "id": "finding-887673dd20f8903d752187c2744b09c2",
+        "lastSeenReceiptId": "review-7547ae792ba4ff92fdb3dbaaf3d49c4307061403855c54ba14f5f4e105ee976f",
+        "ordinal": 1,
+        "rIds": [
+          "R3"
+        ],
+        "severity": "P2",
+        "status": "fixed",
+        "suggestion": "Validate query parameters before initializing the viewer and render an actionable error for unknown species. Add a browser regression for this URL.",
+        "title": "Opening `/?species=unknown` throws from `presetById` inside the state initializer"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-7547ae792ba4ff92fdb3dbaaf3d49c4307061403855c54ba14f5f4e105ee976f",
+    "supersedesReceiptId": "review-23236482044be131ec53cc9d6d8fc3e3f69273e1652519a4c7814596fe7aec71"
+  },
+  "id": "fn-9-real-species-profiles-and-procedural.9",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6-astra",
+  "pre_existing_count": 0,
+  "review": "Prior finding #1: fixed\n\nThe initializer now catches unknown species errors and displays a dismissible alert while preserving viewer controls. The browser regression verifies the error message and recovery; its committed log records a pass. No new qualifying blocker found.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Frozen profiles and attributed references preserved. |\n| R2 | met | Final numeric receipt: 48/48 pass. |\n| R3 | met | Recoverable identity errors and browser regression coverage. |\n| R4 | met | Recorded foliage geometry and attachment assessments. |\n| R5 | met | 84 successful captures; required views have recorded inspections. |\n| R6 | met | Growth and taper regressions; shared-template comparisons recorded. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "fbe61cf6f0f94558b59242fb1d176cd3",
+  "session_id": "01a07656-6c58-7652-9dea-fab3851bfdb6",
+  "spec": "codex:gpt-6-astra:high",
+  "timestamp": "2026-09-06T11:14:50.851767Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
