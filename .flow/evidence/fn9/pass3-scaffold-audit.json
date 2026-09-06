@@ -1,0 +1,4412 @@
+{
+  "pass2": {
+    "full_trace": "/tmp/fn99-pass3-audit-before.json",
+    "sha256": "808b44e4b4c9d0e0ed968219a4c03f1086a5a83eced17b941ca954a1523dbc18",
+    "cases": [
+      {
+        "local_before": 84269,
+        "preset": "oregon-white-oak",
+        "seed": 1,
+        "shed": 22476,
+        "structural": 2132,
+        "upper_supports": 747,
+        "eligible_upper_supports": 735,
+        "upper_lost_twigs": 10390,
+        "upper_retained_twigs": 5093,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 24,
+            "node": 702,
+            "parent": 701,
+            "position": [
+              -0.9288558020378268,
+              15.243377750688635,
+              3.9057872978806403
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 26,
+            "node": 708,
+            "parent": 707,
+            "position": [
+              -1.8301192842251401,
+              15.225861395872112,
+              3.7158948725868326
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 26,
+            "node": 714,
+            "parent": 713,
+            "position": [
+              -2.361423176433968,
+              15.145981932753195,
+              3.2600284701420645
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 25,
+            "node": 711,
+            "parent": 710,
+            "position": [
+              -1.5617467204519317,
+              15.131306964438277,
+              4.002670770402626
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 24,
+            "node": 717,
+            "parent": 716,
+            "position": [
+              -2.164163874335412,
+              15.082685636172515,
+              3.831303362152975
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 26,
+            "node": 705,
+            "parent": 704,
+            "position": [
+              -1.3900941280603063,
+              15.078014665641287,
+              4.027315347711782
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 25,
+            "node": 696,
+            "parent": 695,
+            "position": [
+              -0.11195813312384656,
+              15.075847590606235,
+              4.221648760885107
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 16,
+            "node": 701,
+            "parent": 700,
+            "position": [
+              -0.9390918481580591,
+              15.074890365772251,
+              3.8997129928089747
+            ],
+            "radius": 0.014351466566817505,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 16,
+            "node": 707,
+            "parent": 706,
+            "position": [
+              -1.772313667990414,
+              15.044530649938846,
+              3.7156245831056816
+            ],
+            "radius": 0.01435915187774693,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 18,
+            "node": 713,
+            "parent": 712,
+            "position": [
+              -2.2900908923083,
+              14.985770481057719,
+              3.345941744168753
+            ],
+            "radius": 0.014360934452164536,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 710,
+            "parent": 709,
+            "position": [
+              -1.61722160734276,
+              14.983855668973696,
+              3.9178646323014643
+            ],
+            "radius": 0.014355058502757421,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 704,
+            "parent": 703,
+            "position": [
+              -1.2488156015227183,
+              14.969332456000231,
+              4.02372900644826
+            ],
+            "radius": 0.014354830315844459,
+            "retained_twigs": 0
+          }
+        ]
+      },
+      {
+        "local_before": 75648,
+        "preset": "oregon-white-oak",
+        "seed": 2,
+        "shed": 17922,
+        "structural": 1992,
+        "upper_supports": 503,
+        "eligible_upper_supports": 486,
+        "upper_lost_twigs": 7994,
+        "upper_retained_twigs": 2277,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 26,
+            "node": 763,
+            "parent": 762,
+            "position": [
+              -3.4429171612634195,
+              15.55492481207681,
+              -0.6734428670310731
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 25,
+            "node": 760,
+            "parent": 759,
+            "position": [
+              -3.8062379095550414,
+              15.507534785222308,
+              0.10843891205690516
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 762,
+            "parent": 761,
+            "position": [
+              -3.4450450582007046,
+              15.426808427666831,
+              -0.5102170731937953
+            ],
+            "radius": 0.014813152952389452,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 759,
+            "parent": 758,
+            "position": [
+              -3.6808395040555455,
+              15.410185350448272,
+              -0.021337726554651923
+            ],
+            "radius": 0.014812239765958683,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 25,
+            "node": 718,
+            "parent": 717,
+            "position": [
+              -2.4404310426889424,
+              15.402322814668073,
+              2.5519906727786896
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 26,
+            "node": 724,
+            "parent": 723,
+            "position": [
+              -1.896092813288648,
+              15.29352981078306,
+              2.0786483895904495
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 16,
+            "node": 758,
+            "parent": 446,
+            "position": [
+              -3.5611697977021235,
+              15.293016353688897,
+              -0.13963496262398162
+            ],
+            "radius": 0.014888364281578657,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 761,
+            "parent": 446,
+            "position": [
+              -3.4632919475811694,
+              15.28110969534063,
+              -0.3635885422049514
+            ],
+            "radius": 0.014890200097302771,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 18,
+            "node": 717,
+            "parent": 716,
+            "position": [
+              -2.4088017321449384,
+              15.227731556101867,
+              2.483526592053643
+            ],
+            "radius": 0.014806737393493214,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 25,
+            "node": 727,
+            "parent": 726,
+            "position": [
+              -2.13558764975447,
+              15.223566938303865,
+              2.4157411578494665
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 26,
+            "node": 730,
+            "parent": 729,
+            "position": [
+              -3.3902962809920707,
+              15.206519842970733,
+              1.9198573796062304
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 16,
+            "node": 723,
+            "parent": 722,
+            "position": [
+              -1.9559600471777314,
+              15.13110426528156,
+              2.1035611087796853
+            ],
+            "radius": 0.0148010775104053,
+            "retained_twigs": 0
+          }
+        ]
+      },
+      {
+        "local_before": 88642,
+        "preset": "oregon-white-oak",
+        "seed": 3,
+        "shed": 32140,
+        "structural": 2397,
+        "upper_supports": 396,
+        "eligible_upper_supports": 387,
+        "upper_lost_twigs": 6596,
+        "upper_retained_twigs": 1158,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 619,
+            "parent": 618,
+            "position": [
+              -1.7467508721543497,
+              18.36213124062246,
+              5.625517812070865
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 24
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 618,
+            "parent": 617,
+            "position": [
+              -1.72860091044085,
+              18.11194210989982,
+              5.560881221129768
+            ],
+            "radius": 0.013534205646382521,
+            "retained_twigs": 15
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 616,
+            "parent": 615,
+            "position": [
+              -2.145557417907633,
+              17.987769929956617,
+              5.9160265173845
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 24
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 643,
+            "parent": 642,
+            "position": [
+              -0.929948462825445,
+              17.911718845438518,
+              1.694531971321943
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 22
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 5,
+            "node": 646,
+            "parent": 645,
+            "position": [
+              0.14068029895290712,
+              17.85531247350586,
+              1.6950888969241
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 20
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 617,
+            "parent": 352,
+            "position": [
+              -1.7383994420060964,
+              17.853275809153814,
+              5.570762757851345
+            ],
+            "radius": 0.01362213770301841,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 615,
+            "parent": 614,
+            "position": [
+              -2.0243004304302485,
+              17.848775337407165,
+              5.7951230565453935
+            ],
+            "radius": 0.013521187039664038,
+            "retained_twigs": 15
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 4,
+            "node": 649,
+            "parent": 648,
+            "position": [
+              0.34683993555551074,
+              17.818045206272444,
+              1.9723288418100366
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 20
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 4,
+            "node": 642,
+            "parent": 641,
+            "position": [
+              -0.9972418807999653,
+              17.71883091012285,
+              1.7627694755433954
+            ],
+            "radius": 0.013519442543964021,
+            "retained_twigs": 12
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 614,
+            "parent": 352,
+            "position": [
+              -1.8855784630980956,
+              17.701320466137034,
+              5.707637758745372
+            ],
+            "radius": 0.01359594392919521,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 8,
+            "node": 645,
+            "parent": 644,
+            "position": [
+              0.020421159892943935,
+              17.700107039258324,
+              1.7958602247084912
+            ],
+            "radius": 0.013521237178283744,
+            "retained_twigs": 8
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 5,
+            "node": 648,
+            "parent": 647,
+            "position": [
+              0.18453329144822514,
+              17.694347196798443,
+              2.055540177883206
+            ],
+            "radius": 0.013521132126096546,
+            "retained_twigs": 11
+          }
+        ]
+      },
+      {
+        "local_before": 89308,
+        "preset": "oregon-white-oak",
+        "seed": 2666899686,
+        "shed": 28621,
+        "structural": 2358,
+        "upper_supports": 502,
+        "eligible_upper_supports": 492,
+        "upper_lost_twigs": 9184,
+        "upper_retained_twigs": 722,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 21,
+            "node": 1002,
+            "parent": 1001,
+            "position": [
+              2.649581587579966,
+              16.268292137420847,
+              2.8948635476979554
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 4
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 21,
+            "node": 984,
+            "parent": 983,
+            "position": [
+              1.782507146516676,
+              16.246696932101848,
+              3.6168990779224437
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 4
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 19,
+            "node": 999,
+            "parent": 998,
+            "position": [
+              2.983860941271398,
+              16.13001526017627,
+              3.2018719501883117
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 5
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 23,
+            "node": 990,
+            "parent": 989,
+            "position": [
+              1.1411349306680676,
+              16.127868219403716,
+              3.654257550715531
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 3
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 13,
+            "node": 1001,
+            "parent": 1000,
+            "position": [
+              2.692777922987779,
+              16.079538033251392,
+              2.8514213371963852
+            ],
+            "radius": 0.013734314512173407,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 22,
+            "node": 981,
+            "parent": 980,
+            "position": [
+              1.855985847840313,
+              16.077730585013317,
+              4.119977533038
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 4
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 15,
+            "node": 983,
+            "parent": 982,
+            "position": [
+              1.7408326851041735,
+              16.066288772956476,
+              3.678152025340972
+            ],
+            "radius": 0.013733140462644443,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 21,
+            "node": 993,
+            "parent": 992,
+            "position": [
+              3.8356025525047466,
+              15.96455904890618,
+              2.030881156995111
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 4
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 15,
+            "node": 998,
+            "parent": 997,
+            "position": [
+              2.9211935158422575,
+              15.957789925990907,
+              3.112543065966361
+            ],
+            "radius": 0.013736181210999223,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 16,
+            "node": 989,
+            "parent": 988,
+            "position": [
+              1.09827113535677,
+              15.933252725854308,
+              3.690772646535054
+            ],
+            "radius": 0.013735739735626388,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 980,
+            "parent": 979,
+            "position": [
+              1.873525758105027,
+              15.925627288675239,
+              3.9779094143997904
+            ],
+            "radius": 0.013737893536858892,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 18,
+            "node": 1000,
+            "parent": 546,
+            "position": [
+              2.7467375707589317,
+              15.88972999885039,
+              2.8303850025351034
+            ],
+            "radius": 0.01380262219561603,
+            "retained_twigs": 0
+          }
+        ]
+      },
+      {
+        "local_before": 83887,
+        "preset": "oregon-white-oak",
+        "seed": 762807349,
+        "shed": 31259,
+        "structural": 2126,
+        "upper_supports": 522,
+        "eligible_upper_supports": 508,
+        "upper_lost_twigs": 10157,
+        "upper_retained_twigs": 633,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 21,
+            "node": 520,
+            "parent": 519,
+            "position": [
+              -1.8895005862918688,
+              16.883636052861284,
+              -0.6855241060541059
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 6
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 20,
+            "node": 514,
+            "parent": 513,
+            "position": [
+              -1.5896256549575623,
+              16.801969715769907,
+              -2.0218408193768513
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 5
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 21,
+            "node": 517,
+            "parent": 516,
+            "position": [
+              -1.8744637727364921,
+              16.77495693109343,
+              -2.1208042900699593
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 5
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 20,
+            "node": 523,
+            "parent": 522,
+            "position": [
+              -2.2662599317198446,
+              16.738361801979917,
+              -0.5172753326578038
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 5
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 519,
+            "parent": 518,
+            "position": [
+              -1.8934742334444075,
+              16.719714607255284,
+              -0.7344300739511526
+            ],
+            "radius": 0.01434138665959158,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 16,
+            "node": 513,
+            "parent": 512,
+            "position": [
+              -1.6895596620157571,
+              16.657317010460137,
+              -1.9286844933344525
+            ],
+            "radius": 0.014351379988521233,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 15,
+            "node": 516,
+            "parent": 515,
+            "position": [
+              -1.892601840870564,
+              16.638299418051275,
+              -1.972558199899503
+            ],
+            "radius": 0.014352624102665565,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 24,
+            "node": 505,
+            "parent": 504,
+            "position": [
+              0.8242399410158484,
+              16.59594525409923,
+              -1.2777853440941473
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 3
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 18,
+            "node": 522,
+            "parent": 521,
+            "position": [
+              -2.1622109982619167,
+              16.595869274721636,
+              -0.5839521052835138
+            ],
+            "radius": 0.014347665480870547,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 16,
+            "node": 518,
+            "parent": 315,
+            "position": [
+              -1.9094504540441708,
+              16.55016869926316,
+              -0.7510664604480612
+            ],
+            "radius": 0.01440286608086967,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 21,
+            "node": 568,
+            "parent": 567,
+            "position": [
+              0.6989121381073893,
+              16.531756476356865,
+              -2.2446660593773644
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 4
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 521,
+            "parent": 315,
+            "position": [
+              -2.038438919131147,
+              16.505989668192473,
+              -0.6943070854329112
+            ],
+            "radius": 0.01441548031692279,
+            "retained_twigs": 0
+          }
+        ]
+      },
+      {
+        "local_before": 75232,
+        "preset": "oregon-white-oak",
+        "seed": 1444323199,
+        "shed": 21411,
+        "structural": 1971,
+        "upper_supports": 436,
+        "eligible_upper_supports": 420,
+        "upper_lost_twigs": 7232,
+        "upper_retained_twigs": 1753,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 21,
+            "node": 642,
+            "parent": 641,
+            "position": [
+              -0.8716023941551684,
+              16.638474775569893,
+              -2.153258503691249
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 5
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 18,
+            "node": 641,
+            "parent": 640,
+            "position": [
+              -0.8133697260384501,
+              16.44991713721902,
+              -2.1470628985504843
+            ],
+            "radius": 0.014981308436091634,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 25,
+            "node": 639,
+            "parent": 638,
+            "position": [
+              -0.7665243315338306,
+              16.42010431134964,
+              -2.5305545186840206
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 24,
+            "node": 645,
+            "parent": 644,
+            "position": [
+              -0.2636254568104759,
+              16.366979583129492,
+              -1.7982121330369099
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 16,
+            "node": 638,
+            "parent": 637,
+            "position": [
+              -0.7805402489619555,
+              16.318389916121824,
+              -2.365387953301714
+            ],
+            "radius": 0.014980198841983325,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 16,
+            "node": 640,
+            "parent": 380,
+            "position": [
+              -0.8035323983295944,
+              16.258141535516557,
+              -2.1011416865159895
+            ],
+            "radius": 0.015055439796525582,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 18,
+            "node": 644,
+            "parent": 643,
+            "position": [
+              -0.3648581039794902,
+              16.240149034412585,
+              -1.8024748382824851
+            ],
+            "radius": 0.014968164907033508,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 26,
+            "node": 648,
+            "parent": 647,
+            "position": [
+              -0.24262106064033206,
+              16.21944619779587,
+              -1.495801051839889
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 637,
+            "parent": 380,
+            "position": [
+              -0.7838400458002859,
+              16.207793970778212,
+              -2.205450757276278
+            ],
+            "radius": 0.015053209709784925,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 17,
+            "node": 647,
+            "parent": 646,
+            "position": [
+              -0.347906370604515,
+              16.131897106593353,
+              -1.589698042819855
+            ],
+            "radius": 0.014969548758066031,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 18,
+            "node": 669,
+            "parent": 668,
+            "position": [
+              -3.3714377061755796,
+              16.123240747233005,
+              -3.9150607367525763
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 7
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 18,
+            "node": 643,
+            "parent": 383,
+            "position": [
+              -0.4549995287405475,
+              16.107408884331615,
+              -1.8271078181106994
+            ],
+            "radius": 0.015029034251548964,
+            "retained_twigs": 0
+          }
+        ]
+      },
+      {
+        "local_before": 35664,
+        "preset": "norway-spruce",
+        "seed": 1,
+        "shed": 4863,
+        "structural": 8096,
+        "upper_supports": 493,
+        "eligible_upper_supports": 486,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 1364,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.003259468447699887,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.003302261733477445,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.003345616848687325,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 905,
+            "parent": 904,
+            "position": [
+              0.09212468160408127,
+              14.052373586052491,
+              0.32767899069022377
+            ],
+            "radius": 0.003259468447699887,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 907,
+            "parent": 906,
+            "position": [
+              -0.2594773049850342,
+              14.052282062007654,
+              0.21872527654755738
+            ],
+            "radius": 0.003259468447699887,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 899,
+            "parent": 898,
+            "position": [
+              -0.26196694433432405,
+              14.052063775241669,
+              -0.2119014373958515
+            ],
+            "radius": 0.003259468447699887,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 903,
+            "parent": 902,
+            "position": [
+              0.3218391892398847,
+              14.050735462846436,
+              0.014847110162068215
+            ],
+            "radius": 0.003259468447699887,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 901,
+            "parent": 900,
+            "position": [
+              0.01631525704361906,
+              14.049082268648695,
+              -0.3033742519663298
+            ],
+            "radius": 0.003259468447699887,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.015111698733184903,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 900,
+            "parent": 43,
+            "position": [
+              0.00815762852180953,
+              14.019460535583624,
+              -0.1516871259831649
+            ],
+            "radius": 0.006541483519987972,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 902,
+            "parent": 43,
+            "position": [
+              0.16091959461994235,
+              14.019322769400478,
+              0.007423555081034108
+            ],
+            "radius": 0.0065420632279835885,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 898,
+            "parent": 43,
+            "position": [
+              -0.13098347216716202,
+              14.019212076700876,
+              -0.10595071869792574
+            ],
+            "radius": 0.006545163549073729,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 35941,
+        "preset": "norway-spruce",
+        "seed": 2,
+        "shed": 4786,
+        "structural": 8254,
+        "upper_supports": 520,
+        "eligible_upper_supports": 513,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 1451,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.0032216773851994336,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.0032639745153113155,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.0033068269608697164,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 923,
+            "parent": 922,
+            "position": [
+              -0.03532421261191791,
+              14.051313570998946,
+              0.32670074552215356
+            ],
+            "radius": 0.0032216773851994336,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 921,
+            "parent": 920,
+            "position": [
+              0.28445483205853556,
+              14.050112610785995,
+              0.13592232723906547
+            ],
+            "radius": 0.0032216773851994336,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 919,
+            "parent": 918,
+            "position": [
+              0.21526683483692607,
+              14.049923834243232,
+              -0.22744557517666486
+            ],
+            "radius": 0.0032216773851994336,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 917,
+            "parent": 916,
+            "position": [
+              -0.15503658544908602,
+              14.049563841949851,
+              -0.2674802851838079
+            ],
+            "radius": 0.0032216773851994336,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 925,
+            "parent": 924,
+            "position": [
+              -0.2926085696593062,
+              14.048792665307023,
+              0.0688293392035673
+            ],
+            "radius": 0.0032216773851994336,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.014929030911748796,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 924,
+            "parent": 43,
+            "position": [
+              -0.1463042848296531,
+              14.01948466919543,
+              0.03441466960178365
+            ],
+            "radius": 0.006464467007050006,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 916,
+            "parent": 43,
+            "position": [
+              -0.07751829272454301,
+              14.019420404475195,
+              -0.13374014259190395
+            ],
+            "radius": 0.006464404746712815,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 918,
+            "parent": 43,
+            "position": [
+              0.10763341741846304,
+              14.019390405117413,
+              -0.11372278758833244
+            ],
+            "radius": 0.006465131732249203,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 35364,
+        "preset": "norway-spruce",
+        "seed": 3,
+        "shed": 4957,
+        "structural": 8061,
+        "upper_supports": 525,
+        "eligible_upper_supports": 518,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 1475,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.003264003593108371,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.0033068564204267116,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.003350271858893231,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 906,
+            "parent": 905,
+            "position": [
+              -0.21966631344715204,
+              14.052937080930345,
+              -0.26815797630866794
+            ],
+            "radius": 0.003264003593108371,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 900,
+            "parent": 899,
+            "position": [
+              0.33489956918132124,
+              14.052049646107374,
+              0.03557259434075752
+            ],
+            "radius": 0.003264003593108371,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 904,
+            "parent": 903,
+            "position": [
+              -0.26112207893045447,
+              14.050327548792577,
+              0.1808762175980919
+            ],
+            "radius": 0.003264003593108371,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 902,
+            "parent": 901,
+            "position": [
+              0.08142021352093942,
+              14.048105962954699,
+              0.28142339322463655
+            ],
+            "radius": 0.003264003593108371,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 908,
+            "parent": 907,
+            "position": [
+              0.13491458084911373,
+              14.047893057396635,
+              -0.25738287474273946
+            ],
+            "radius": 0.003264003593108371,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.015131162829646319,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 907,
+            "parent": 43,
+            "position": [
+              0.06745729042455686,
+              14.019559636521295,
+              -0.12869143737136973
+            ],
+            "radius": 0.006549191777707103,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 901,
+            "parent": 43,
+            "position": [
+              0.040710106760469704,
+              14.019541894391457,
+              0.14071169661231828
+            ],
+            "radius": 0.006550331172233892,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 903,
+            "parent": 43,
+            "position": [
+              -0.13056103946522724,
+              14.019356762238301,
+              0.09043810879904594
+            ],
+            "radius": 0.006553826006494428,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 35693,
+        "preset": "norway-spruce",
+        "seed": 1982700925,
+        "shed": 4855,
+        "structural": 8165,
+        "upper_supports": 507,
+        "eligible_upper_supports": 500,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 1410,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.0032462135129289987,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.003288832775788184,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.003332011583347503,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 909,
+            "parent": 908,
+            "position": [
+              0.06833057250722167,
+              14.052254032302269,
+              0.3320976712189079
+            ],
+            "radius": 0.0032462135129289987,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 905,
+            "parent": 904,
+            "position": [
+              0.13817985608120478,
+              14.051359064347176,
+              -0.2986971166477627
+            ],
+            "radius": 0.0032462135129289987,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 911,
+            "parent": 910,
+            "position": [
+              -0.3029957613699969,
+              14.051243564791827,
+              0.12515647111544678
+            ],
+            "radius": 0.0032462135129289987,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 913,
+            "parent": 912,
+            "position": [
+              -0.2010624560406885,
+              14.049927152215705,
+              -0.24014220863096153
+            ],
+            "radius": 0.0032462135129289987,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 907,
+            "parent": 906,
+            "position": [
+              0.29483488573424255,
+              14.048431701272689,
+              0.03216412038401184
+            ],
+            "radius": 0.0032462135129289987,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.015046178971369952,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 906,
+            "parent": 43,
+            "position": [
+              0.1474174428671213,
+              14.019514749531623,
+              0.01608206019200592
+            ],
+            "radius": 0.006510897161628103,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 912,
+            "parent": 43,
+            "position": [
+              -0.10053122802034427,
+              14.019390128619706,
+              -0.12007110431548078
+            ],
+            "radius": 0.006512575997800511,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 910,
+            "parent": 43,
+            "position": [
+              -0.15149788068499848,
+              14.019280427571696,
+              0.06257823555772339
+            ],
+            "radius": 0.006518127880941308,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 36108,
+        "preset": "norway-spruce",
+        "seed": 281313742,
+        "shed": 4848,
+        "structural": 8252,
+        "upper_supports": 533,
+        "eligible_upper_supports": 526,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 1497,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.0032282930567665976,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.0032706770434713646,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.0033136174859555185,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 908,
+            "parent": 907,
+            "position": [
+              -0.24040576506471042,
+              14.050336575189434,
+              0.20777329118651322
+            ],
+            "radius": 0.0032282930567665976,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 912,
+            "parent": 911,
+            "position": [
+              0.06377072782587576,
+              14.049914400931277,
+              -0.30649462790255544
+            ],
+            "radius": 0.0032282930567665976,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 916,
+            "parent": 915,
+            "position": [
+              0.10959663695619837,
+              14.04926827300424,
+              0.2855709389867073
+            ],
+            "radius": 0.0032282930567665976,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 914,
+            "parent": 913,
+            "position": [
+              0.2992687851418835,
+              14.048688397730562,
+              0.01001468749127827
+            ],
+            "radius": 0.0032282930567665976,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 910,
+            "parent": 909,
+            "position": [
+              -0.2524385727782491,
+              14.048256763193848,
+              -0.15194640853144903
+            ],
+            "radius": 0.0032282930567665976,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.0149566129976381,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 909,
+            "parent": 43,
+            "position": [
+              -0.12621928638912455,
+              14.019529327704861,
+              -0.07597320426572451
+            ],
+            "radius": 0.006477873811649637,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 913,
+            "parent": 43,
+            "position": [
+              0.14963439257094174,
+              14.019493358160135,
+              0.0050073437456391355
+            ],
+            "radius": 0.006481007298902906,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 915,
+            "parent": 43,
+            "position": [
+              0.05479831847809917,
+              14.019445035220661,
+              0.14278546949335363
+            ],
+            "radius": 0.006476897697892306,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 35331,
+        "preset": "norway-spruce",
+        "seed": 2271779095,
+        "shed": 4937,
+        "structural": 8095,
+        "upper_supports": 509,
+        "eligible_upper_supports": 502,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 1417,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.0032610695872662843,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.0033038838942698904,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.003347260306691718,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 900,
+            "parent": 899,
+            "position": [
+              -0.303133102576939,
+              14.052598848458885,
+              -0.16025281173394731
+            ],
+            "radius": 0.0032610695872662843,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 902,
+            "parent": 901,
+            "position": [
+              0.10824070293696902,
+              14.05219811685169,
+              -0.3206570897141098
+            ],
+            "radius": 0.0032610695872662843,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 898,
+            "parent": 897,
+            "position": [
+              -0.22692251107531175,
+              14.051643366621903,
+              0.2427118779286398
+            ],
+            "radius": 0.0032610695872662843,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 906,
+            "parent": 905,
+            "position": [
+              0.11219198712985587,
+              14.050698024566548,
+              0.3015725266099798
+            ],
+            "radius": 0.0032610695872662843,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 904,
+            "parent": 903,
+            "position": [
+              0.30881039804060495,
+              14.049621623133737,
+              0.024810684201566097
+            ],
+            "radius": 0.0032610695872662843,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.015120608769615603,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 903,
+            "parent": 43,
+            "position": [
+              0.15440519902030247,
+              14.019415589376537,
+              0.012405342100783048
+            ],
+            "radius": 0.006545124993939983,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 905,
+            "parent": 43,
+            "position": [
+              0.05609599356492793,
+              14.019325889257136,
+              0.1507862633049899
+            ],
+            "radius": 0.006544921126928754,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 897,
+            "parent": 43,
+            "position": [
+              -0.11346125553765588,
+              14.019247110752524,
+              0.1213559389643199
+            ],
+            "radius": 0.006547701639853021,
+            "retained_twigs": 0
+          }
+        ]
+      },
+      {
+        "local_before": 35831,
+        "preset": "norway-spruce",
+        "seed": 4250668600,
+        "shed": 4868,
+        "structural": 8178,
+        "upper_supports": 516,
+        "eligible_upper_supports": 509,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 1451,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.00323942691655929,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.003281957078768303,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.0033250456158825437,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 907,
+            "parent": 906,
+            "position": [
+              0.2116569400850351,
+              14.051934110452013,
+              -0.2603102778056232
+            ],
+            "radius": 0.00323942691655929,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 915,
+            "parent": 914,
+            "position": [
+              -0.10358303694427462,
+              14.050859059741729,
+              -0.3065260897494669
+            ],
+            "radius": 0.00323942691655929,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 911,
+            "parent": 910,
+            "position": [
+              -0.04890481205846155,
+              14.050490421895882,
+              0.3156932695343099
+            ],
+            "radius": 0.00323942691655929,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 913,
+            "parent": 912,
+            "position": [
+              -0.2980281647293228,
+              14.04877016676939,
+              0.03723225544746501
+            ],
+            "radius": 0.00323942691655929,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 909,
+            "parent": 908,
+            "position": [
+              0.23631752249774587,
+              14.04867859793846,
+              0.18371426442529698
+            ],
+            "radius": 0.00323942691655929,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.015012779396250859,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 908,
+            "parent": 43,
+            "position": [
+              0.11815876124887295,
+              14.019494174809477,
+              0.09185713221264852
+            ],
+            "radius": 0.006502258990825972,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 912,
+            "parent": 43,
+            "position": [
+              -0.14901408236466143,
+              14.019486544073565,
+              0.018616127723732504
+            ],
+            "radius": 0.006499305576225379,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 910,
+            "parent": 43,
+            "position": [
+              -0.02445240602923078,
+              14.019343189479692,
+              0.15784663476715494
+            ],
+            "radius": 0.006499234973264593,
+            "retained_twigs": 0
+          }
+        ]
+      }
+    ]
+  },
+  "pass3": {
+    "full_trace": "/tmp/fn99-pass3-audit-final.json",
+    "sha256": "b6bea3dbc88b8bec6ce9bcd1a4f7b5ef9e3eec7c398f049de5cb024ff6d9a1a7",
+    "cases": [
+      {
+        "local_before": 84269,
+        "preset": "oregon-white-oak",
+        "seed": 1,
+        "shed": 2110,
+        "structural": 2132,
+        "upper_supports": 747,
+        "eligible_upper_supports": 735,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 15483,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 702,
+            "parent": 701,
+            "position": [
+              -0.9288558020378268,
+              15.243377750688635,
+              3.9057872978806403
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 708,
+            "parent": 707,
+            "position": [
+              -1.8301192842251401,
+              15.225861395872112,
+              3.7158948725868326
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 27
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 714,
+            "parent": 713,
+            "position": [
+              -2.361423176433968,
+              15.145981932753195,
+              3.2600284701420645
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 711,
+            "parent": 710,
+            "position": [
+              -1.5617467204519317,
+              15.131306964438277,
+              4.002670770402626
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 717,
+            "parent": 716,
+            "position": [
+              -2.164163874335412,
+              15.082685636172515,
+              3.831303362152975
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 705,
+            "parent": 704,
+            "position": [
+              -1.3900941280603063,
+              15.078014665641287,
+              4.027315347711782
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 696,
+            "parent": 695,
+            "position": [
+              -0.11195813312384656,
+              15.075847590606235,
+              4.221648760885107
+            ],
+            "radius": 0.0142909926545137,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 701,
+            "parent": 700,
+            "position": [
+              -0.9390918481580591,
+              15.074890365772251,
+              3.8997129928089747
+            ],
+            "radius": 0.014351466566817505,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 707,
+            "parent": 706,
+            "position": [
+              -1.772313667990414,
+              15.044530649938846,
+              3.7156245831056816
+            ],
+            "radius": 0.01435915187774693,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 713,
+            "parent": 712,
+            "position": [
+              -2.2900908923083,
+              14.985770481057719,
+              3.345941744168753
+            ],
+            "radius": 0.014360934452164536,
+            "retained_twigs": 18
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 710,
+            "parent": 709,
+            "position": [
+              -1.61722160734276,
+              14.983855668973696,
+              3.9178646323014643
+            ],
+            "radius": 0.014355058502757421,
+            "retained_twigs": 17
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 704,
+            "parent": 703,
+            "position": [
+              -1.2488156015227183,
+              14.969332456000231,
+              4.02372900644826
+            ],
+            "radius": 0.014354830315844459,
+            "retained_twigs": 17
+          }
+        ]
+      },
+      {
+        "local_before": 75648,
+        "preset": "oregon-white-oak",
+        "seed": 2,
+        "shed": 1948,
+        "structural": 1992,
+        "upper_supports": 503,
+        "eligible_upper_supports": 486,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 10271,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 763,
+            "parent": 762,
+            "position": [
+              -3.4429171612634195,
+              15.55492481207681,
+              -0.6734428670310731
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 760,
+            "parent": 759,
+            "position": [
+              -3.8062379095550414,
+              15.507534785222308,
+              0.10843891205690516
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 762,
+            "parent": 761,
+            "position": [
+              -3.4450450582007046,
+              15.426808427666831,
+              -0.5102170731937953
+            ],
+            "radius": 0.014813152952389452,
+            "retained_twigs": 17
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 759,
+            "parent": 758,
+            "position": [
+              -3.6808395040555455,
+              15.410185350448272,
+              -0.021337726554651923
+            ],
+            "radius": 0.014812239765958683,
+            "retained_twigs": 17
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 718,
+            "parent": 717,
+            "position": [
+              -2.4404310426889424,
+              15.402322814668073,
+              2.5519906727786896
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 724,
+            "parent": 723,
+            "position": [
+              -1.896092813288648,
+              15.29352981078306,
+              2.0786483895904495
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 758,
+            "parent": 446,
+            "position": [
+              -3.5611697977021235,
+              15.293016353688897,
+              -0.13963496262398162
+            ],
+            "radius": 0.014888364281578657,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 761,
+            "parent": 446,
+            "position": [
+              -3.4632919475811694,
+              15.28110969534063,
+              -0.3635885422049514
+            ],
+            "radius": 0.014890200097302771,
+            "retained_twigs": 17
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 717,
+            "parent": 716,
+            "position": [
+              -2.4088017321449384,
+              15.227731556101867,
+              2.483526592053643
+            ],
+            "radius": 0.014806737393493214,
+            "retained_twigs": 18
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 727,
+            "parent": 726,
+            "position": [
+              -2.13558764975447,
+              15.223566938303865,
+              2.4157411578494665
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 730,
+            "parent": 729,
+            "position": [
+              -3.3902962809920707,
+              15.206519842970733,
+              1.9198573796062304
+            ],
+            "radius": 0.014736504476567247,
+            "retained_twigs": 27
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 723,
+            "parent": 722,
+            "position": [
+              -1.9559600471777314,
+              15.13110426528156,
+              2.1035611087796853
+            ],
+            "radius": 0.0148010775104053,
+            "retained_twigs": 16
+          }
+        ]
+      },
+      {
+        "local_before": 88642,
+        "preset": "oregon-white-oak",
+        "seed": 3,
+        "shed": 19452,
+        "structural": 2397,
+        "upper_supports": 396,
+        "eligible_upper_supports": 387,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 7754,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 619,
+            "parent": 618,
+            "position": [
+              -1.7467508721543497,
+              18.36213124062246,
+              5.625517812070865
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 24
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 618,
+            "parent": 617,
+            "position": [
+              -1.72860091044085,
+              18.11194210989982,
+              5.560881221129768
+            ],
+            "radius": 0.013534205646382521,
+            "retained_twigs": 15
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 616,
+            "parent": 615,
+            "position": [
+              -2.145557417907633,
+              17.987769929956617,
+              5.9160265173845
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 24
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 643,
+            "parent": 642,
+            "position": [
+              -0.929948462825445,
+              17.911718845438518,
+              1.694531971321943
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 22
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 646,
+            "parent": 645,
+            "position": [
+              0.14068029895290712,
+              17.85531247350586,
+              1.6950888969241
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 617,
+            "parent": 352,
+            "position": [
+              -1.7383994420060964,
+              17.853275809153814,
+              5.570762757851345
+            ],
+            "radius": 0.01362213770301841,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 615,
+            "parent": 614,
+            "position": [
+              -2.0243004304302485,
+              17.848775337407165,
+              5.7951230565453935
+            ],
+            "radius": 0.013521187039664038,
+            "retained_twigs": 15
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 649,
+            "parent": 648,
+            "position": [
+              0.34683993555551074,
+              17.818045206272444,
+              1.9723288418100366
+            ],
+            "radius": 0.013446841198645679,
+            "retained_twigs": 24
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 642,
+            "parent": 641,
+            "position": [
+              -0.9972418807999653,
+              17.71883091012285,
+              1.7627694755433954
+            ],
+            "radius": 0.013519442543964021,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 614,
+            "parent": 352,
+            "position": [
+              -1.8855784630980956,
+              17.701320466137034,
+              5.707637758745372
+            ],
+            "radius": 0.01359594392919521,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 645,
+            "parent": 644,
+            "position": [
+              0.020421159892943935,
+              17.700107039258324,
+              1.7958602247084912
+            ],
+            "radius": 0.013521237178283744,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 648,
+            "parent": 647,
+            "position": [
+              0.18453329144822514,
+              17.694347196798443,
+              2.055540177883206
+            ],
+            "radius": 0.013521132126096546,
+            "retained_twigs": 16
+          }
+        ]
+      },
+      {
+        "local_before": 89308,
+        "preset": "oregon-white-oak",
+        "seed": 2666899686,
+        "shed": 10514,
+        "structural": 2358,
+        "upper_supports": 502,
+        "eligible_upper_supports": 492,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 9906,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 1002,
+            "parent": 1001,
+            "position": [
+              2.649581587579966,
+              16.268292137420847,
+              2.8948635476979554
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 984,
+            "parent": 983,
+            "position": [
+              1.782507146516676,
+              16.246696932101848,
+              3.6168990779224437
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 999,
+            "parent": 998,
+            "position": [
+              2.983860941271398,
+              16.13001526017627,
+              3.2018719501883117
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 24
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 990,
+            "parent": 989,
+            "position": [
+              1.1411349306680676,
+              16.127868219403716,
+              3.654257550715531
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 1001,
+            "parent": 1000,
+            "position": [
+              2.692777922987779,
+              16.079538033251392,
+              2.8514213371963852
+            ],
+            "radius": 0.013734314512173407,
+            "retained_twigs": 13
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 981,
+            "parent": 980,
+            "position": [
+              1.855985847840313,
+              16.077730585013317,
+              4.119977533038
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 983,
+            "parent": 982,
+            "position": [
+              1.7408326851041735,
+              16.066288772956476,
+              3.678152025340972
+            ],
+            "radius": 0.013733140462644443,
+            "retained_twigs": 15
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 993,
+            "parent": 992,
+            "position": [
+              3.8356025525047466,
+              15.96455904890618,
+              2.030881156995111
+            ],
+            "radius": 0.01366634487606347,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 998,
+            "parent": 997,
+            "position": [
+              2.9211935158422575,
+              15.957789925990907,
+              3.112543065966361
+            ],
+            "radius": 0.013736181210999223,
+            "retained_twigs": 15
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 989,
+            "parent": 988,
+            "position": [
+              1.09827113535677,
+              15.933252725854308,
+              3.690772646535054
+            ],
+            "radius": 0.013735739735626388,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 980,
+            "parent": 979,
+            "position": [
+              1.873525758105027,
+              15.925627288675239,
+              3.9779094143997904
+            ],
+            "radius": 0.013737893536858892,
+            "retained_twigs": 17
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 1000,
+            "parent": 546,
+            "position": [
+              2.7467375707589317,
+              15.88972999885039,
+              2.8303850025351034
+            ],
+            "radius": 0.01380262219561603,
+            "retained_twigs": 18
+          }
+        ]
+      },
+      {
+        "local_before": 83887,
+        "preset": "oregon-white-oak",
+        "seed": 762807349,
+        "shed": 10706,
+        "structural": 2126,
+        "upper_supports": 522,
+        "eligible_upper_supports": 508,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 10790,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 520,
+            "parent": 519,
+            "position": [
+              -1.8895005862918688,
+              16.883636052861284,
+              -0.6855241060541059
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 27
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 514,
+            "parent": 513,
+            "position": [
+              -1.5896256549575623,
+              16.801969715769907,
+              -2.0218408193768513
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 517,
+            "parent": 516,
+            "position": [
+              -1.8744637727364921,
+              16.77495693109343,
+              -2.1208042900699593
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 523,
+            "parent": 522,
+            "position": [
+              -2.2662599317198446,
+              16.738361801979917,
+              -0.5172753326578038
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 519,
+            "parent": 518,
+            "position": [
+              -1.8934742334444075,
+              16.719714607255284,
+              -0.7344300739511526
+            ],
+            "radius": 0.01434138665959158,
+            "retained_twigs": 17
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 513,
+            "parent": 512,
+            "position": [
+              -1.6895596620157571,
+              16.657317010460137,
+              -1.9286844933344525
+            ],
+            "radius": 0.014351379988521233,
+            "retained_twigs": 17
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 516,
+            "parent": 515,
+            "position": [
+              -1.892601840870564,
+              16.638299418051275,
+              -1.972558199899503
+            ],
+            "radius": 0.014352624102665565,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 505,
+            "parent": 504,
+            "position": [
+              0.8242399410158484,
+              16.59594525409923,
+              -1.2777853440941473
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 27
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 522,
+            "parent": 521,
+            "position": [
+              -2.1622109982619167,
+              16.595869274721636,
+              -0.5839521052835138
+            ],
+            "radius": 0.014347665480870547,
+            "retained_twigs": 18
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 518,
+            "parent": 315,
+            "position": [
+              -1.9094504540441708,
+              16.55016869926316,
+              -0.7510664604480612
+            ],
+            "radius": 0.01440286608086967,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 568,
+            "parent": 567,
+            "position": [
+              0.6989121381073893,
+              16.531756476356865,
+              -2.2446660593773644
+            ],
+            "radius": 0.014280169666584328,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 521,
+            "parent": 315,
+            "position": [
+              -2.038438919131147,
+              16.505989668192473,
+              -0.6943070854329112
+            ],
+            "radius": 0.01441548031692279,
+            "retained_twigs": 17
+          }
+        ]
+      },
+      {
+        "local_before": 75232,
+        "preset": "oregon-white-oak",
+        "seed": 1444323199,
+        "shed": 6919,
+        "structural": 1971,
+        "upper_supports": 436,
+        "eligible_upper_supports": 420,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 8985,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 642,
+            "parent": 641,
+            "position": [
+              -0.8716023941551684,
+              16.638474775569893,
+              -2.153258503691249
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 641,
+            "parent": 640,
+            "position": [
+              -0.8133697260384501,
+              16.44991713721902,
+              -2.1470628985504843
+            ],
+            "radius": 0.014981308436091634,
+            "retained_twigs": 18
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 639,
+            "parent": 638,
+            "position": [
+              -0.7665243315338306,
+              16.42010431134964,
+              -2.5305545186840206
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 645,
+            "parent": 644,
+            "position": [
+              -0.2636254568104759,
+              16.366979583129492,
+              -1.7982121330369099
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 638,
+            "parent": 637,
+            "position": [
+              -0.7805402489619555,
+              16.318389916121824,
+              -2.365387953301714
+            ],
+            "radius": 0.014980198841983325,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 640,
+            "parent": 380,
+            "position": [
+              -0.8035323983295944,
+              16.258141535516557,
+              -2.1011416865159895
+            ],
+            "radius": 0.015055439796525582,
+            "retained_twigs": 16
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 644,
+            "parent": 643,
+            "position": [
+              -0.3648581039794902,
+              16.240149034412585,
+              -1.8024748382824851
+            ],
+            "radius": 0.014968164907033508,
+            "retained_twigs": 18
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 648,
+            "parent": 647,
+            "position": [
+              -0.24262106064033206,
+              16.21944619779587,
+              -1.495801051839889
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 26
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 637,
+            "parent": 380,
+            "position": [
+              -0.7838400458002859,
+              16.207793970778212,
+              -2.205450757276278
+            ],
+            "radius": 0.015053209709784925,
+            "retained_twigs": 17
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 647,
+            "parent": 646,
+            "position": [
+              -0.347906370604515,
+              16.131897106593353,
+              -1.589698042819855
+            ],
+            "radius": 0.014969548758066031,
+            "retained_twigs": 17
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 669,
+            "parent": 668,
+            "position": [
+              -3.3714377061755796,
+              16.123240747233005,
+              -3.9150607367525763
+            ],
+            "radius": 0.014907542090474525,
+            "retained_twigs": 25
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 643,
+            "parent": 383,
+            "position": [
+              -0.4549995287405475,
+              16.107408884331615,
+              -1.8271078181106994
+            ],
+            "radius": 0.015029034251548964,
+            "retained_twigs": 18
+          }
+        ]
+      },
+      {
+        "local_before": 69431,
+        "preset": "norway-spruce",
+        "seed": 1,
+        "shed": 10589,
+        "structural": 8084,
+        "upper_supports": 473,
+        "eligible_upper_supports": 466,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 2097,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.0032497322100310294,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.003292397669567086,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.003335623280315543,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 905,
+            "parent": 904,
+            "position": [
+              0.09212468160408127,
+              14.052373586052491,
+              0.32767899069022377
+            ],
+            "radius": 0.0032497322100310294,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 907,
+            "parent": 906,
+            "position": [
+              -0.2594773049850342,
+              14.052282062007654,
+              0.21872527654755738
+            ],
+            "radius": 0.0032497322100310294,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 899,
+            "parent": 898,
+            "position": [
+              -0.26196694433432405,
+              14.052063775241669,
+              -0.2119014373958515
+            ],
+            "radius": 0.0032497322100310294,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 903,
+            "parent": 902,
+            "position": [
+              0.3218391892398847,
+              14.050735462846436,
+              0.014847110162068215
+            ],
+            "radius": 0.0032497322100310294,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 901,
+            "parent": 900,
+            "position": [
+              0.01631525704361906,
+              14.049082268648695,
+              -0.3033742519663298
+            ],
+            "radius": 0.0032497322100310294,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.015070803436770277,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 900,
+            "parent": 43,
+            "position": [
+              0.00815762852180953,
+              14.019460535583624,
+              -0.1516871259831649
+            ],
+            "radius": 0.0065238021201721764,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 902,
+            "parent": 43,
+            "position": [
+              0.16091959461994235,
+              14.019322769400478,
+              0.007423555081034108
+            ],
+            "radius": 0.006524374521904566,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 898,
+            "parent": 43,
+            "position": [
+              -0.13098347216716202,
+              14.019212076700876,
+              -0.10595071869792574
+            ],
+            "radius": 0.006527856737241475,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 68694,
+        "preset": "norway-spruce",
+        "seed": 2,
+        "shed": 10541,
+        "structural": 8228,
+        "upper_supports": 501,
+        "eligible_upper_supports": 494,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 2234,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.0032118478461335143,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.003254015925057738,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.0032967376251263453,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 923,
+            "parent": 922,
+            "position": [
+              -0.03532421261191791,
+              14.051313570998946,
+              0.32670074552215356
+            ],
+            "radius": 0.0032118478461335143,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 921,
+            "parent": 920,
+            "position": [
+              0.28445483205853556,
+              14.050112610785995,
+              0.13592232723906547
+            ],
+            "radius": 0.0032118478461335143,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 919,
+            "parent": 918,
+            "position": [
+              0.21526683483692607,
+              14.049923834243232,
+              -0.22744557517666486
+            ],
+            "radius": 0.0032118478461335143,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 917,
+            "parent": 916,
+            "position": [
+              -0.15503658544908602,
+              14.049563841949851,
+              -0.2674802851838079
+            ],
+            "radius": 0.0032118478461335143,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 925,
+            "parent": 924,
+            "position": [
+              -0.2926085696593062,
+              14.048792665307023,
+              0.0688293392035673
+            ],
+            "radius": 0.0032118478461335143,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.014887367568792864,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 924,
+            "parent": 43,
+            "position": [
+              -0.1463042848296531,
+              14.01948466919543,
+              0.03441466960178365
+            ],
+            "radius": 0.006446420238781599,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 916,
+            "parent": 43,
+            "position": [
+              -0.07751829272454301,
+              14.019420404475195,
+              -0.13374014259190395
+            ],
+            "radius": 0.0064463061591521174,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 918,
+            "parent": 43,
+            "position": [
+              0.10763341741846304,
+              14.019390405117413,
+              -0.11372278758833244
+            ],
+            "radius": 0.006447120101873857,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 68467,
+        "preset": "norway-spruce",
+        "seed": 3,
+        "shed": 10640,
+        "structural": 8033,
+        "upper_supports": 503,
+        "eligible_upper_supports": 496,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 2267,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.0032544968091362033,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.0032972248226912342,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.0033405138087250937,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 906,
+            "parent": 905,
+            "position": [
+              -0.21966631344715204,
+              14.052937080930345,
+              -0.26815797630866794
+            ],
+            "radius": 0.0032544968091362033,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 900,
+            "parent": 899,
+            "position": [
+              0.33489956918132124,
+              14.052049646107374,
+              0.03557259434075752
+            ],
+            "radius": 0.0032544968091362033,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 904,
+            "parent": 903,
+            "position": [
+              -0.26112207893045447,
+              14.050327548792577,
+              0.1808762175980919
+            ],
+            "radius": 0.0032544968091362033,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 902,
+            "parent": 901,
+            "position": [
+              0.08142021352093942,
+              14.048105962954699,
+              0.28142339322463655
+            ],
+            "radius": 0.0032544968091362033,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 908,
+            "parent": 907,
+            "position": [
+              0.13491458084911373,
+              14.047893057396635,
+              -0.25738287474273946
+            ],
+            "radius": 0.0032544968091362033,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.015091735876005425,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 907,
+            "parent": 43,
+            "position": [
+              0.06745729042455686,
+              14.019559636521295,
+              -0.12869143737136973
+            ],
+            "radius": 0.006531835144510462,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 901,
+            "parent": 43,
+            "position": [
+              0.040710106760469704,
+              14.019541894391457,
+              0.14071169661231828
+            ],
+            "radius": 0.006533130335578917,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 903,
+            "parent": 43,
+            "position": [
+              -0.13056103946522724,
+              14.019356762238301,
+              0.09043810879904594
+            ],
+            "radius": 0.006537015295880581,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 68849,
+        "preset": "norway-spruce",
+        "seed": 1982700925,
+        "shed": 10558,
+        "structural": 8154,
+        "upper_supports": 487,
+        "eligible_upper_supports": 480,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 2168,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.003236352349687482,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.0032788421461678804,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.0033218897875952674,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 909,
+            "parent": 908,
+            "position": [
+              0.06833057250722167,
+              14.052254032302269,
+              0.3320976712189079
+            ],
+            "radius": 0.003236352349687482,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 905,
+            "parent": 904,
+            "position": [
+              0.13817985608120478,
+              14.051359064347176,
+              -0.2986971166477627
+            ],
+            "radius": 0.003236352349687482,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 911,
+            "parent": 910,
+            "position": [
+              -0.3029957613699969,
+              14.051243564791827,
+              0.12515647111544678
+            ],
+            "radius": 0.003236352349687482,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 913,
+            "parent": 912,
+            "position": [
+              -0.2010624560406885,
+              14.049927152215705,
+              -0.24014220863096153
+            ],
+            "radius": 0.003236352349687482,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 907,
+            "parent": 906,
+            "position": [
+              0.29483488573424255,
+              14.048431701272689,
+              0.03216412038401184
+            ],
+            "radius": 0.003236352349687482,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.01500448659096915,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 906,
+            "parent": 43,
+            "position": [
+              0.1474174428671213,
+              14.019514749531623,
+              0.01608206019200592
+            ],
+            "radius": 0.006492407893850303,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 912,
+            "parent": 43,
+            "position": [
+              -0.10053122802034427,
+              14.019390128619706,
+              -0.12007110431548078
+            ],
+            "radius": 0.006494250093155855,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 910,
+            "parent": 43,
+            "position": [
+              -0.15149788068499848,
+              14.019280427571696,
+              0.06257823555772339
+            ],
+            "radius": 0.006500545098073503,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 69243,
+        "preset": "norway-spruce",
+        "seed": 281313742,
+        "shed": 10351,
+        "structural": 8242,
+        "upper_supports": 506,
+        "eligible_upper_supports": 499,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 2262,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.003218244362726193,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.003260496420976164,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.0033033032029279883,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 908,
+            "parent": 907,
+            "position": [
+              -0.24040576506471042,
+              14.050336575189434,
+              0.20777329118651322
+            ],
+            "radius": 0.003218244362726193,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 912,
+            "parent": 911,
+            "position": [
+              0.06377072782587576,
+              14.049914400931277,
+              -0.30649462790255544
+            ],
+            "radius": 0.003218244362726193,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 916,
+            "parent": 915,
+            "position": [
+              0.10959663695619837,
+              14.04926827300424,
+              0.2855709389867073
+            ],
+            "radius": 0.003218244362726193,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 914,
+            "parent": 913,
+            "position": [
+              0.2992687851418835,
+              14.048688397730562,
+              0.01001468749127827
+            ],
+            "radius": 0.003218244362726193,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 910,
+            "parent": 909,
+            "position": [
+              -0.2524385727782491,
+              14.048256763193848,
+              -0.15194640853144903
+            ],
+            "radius": 0.003218244362726193,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.0149138755760986,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 909,
+            "parent": 43,
+            "position": [
+              -0.12621928638912455,
+              14.019529327704861,
+              -0.07597320426572451
+            ],
+            "radius": 0.006459439754563556,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 913,
+            "parent": 43,
+            "position": [
+              0.14963439257094174,
+              14.019493358160135,
+              0.0050073437456391355
+            ],
+            "radius": 0.006463010034603602,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 915,
+            "parent": 43,
+            "position": [
+              0.05479831847809917,
+              14.019445035220661,
+              0.14278546949335363
+            ],
+            "radius": 0.006458264155770911,
+            "retained_twigs": 1
+          }
+        ]
+      },
+      {
+        "local_before": 68572,
+        "preset": "norway-spruce",
+        "seed": 2271779095,
+        "shed": 10780,
+        "structural": 8083,
+        "upper_supports": 482,
+        "eligible_upper_supports": 475,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 2173,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.0032512256467432566,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.003293910713483691,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.003337156188857855,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 900,
+            "parent": 899,
+            "position": [
+              -0.303133102576939,
+              14.052598848458885,
+              -0.16025281173394731
+            ],
+            "radius": 0.0032512256467432566,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 902,
+            "parent": 901,
+            "position": [
+              0.10824070293696902,
+              14.05219811685169,
+              -0.3206570897141098
+            ],
+            "radius": 0.0032512256467432566,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 898,
+            "parent": 897,
+            "position": [
+              -0.22692251107531175,
+              14.051643366621903,
+              0.2427118779286398
+            ],
+            "radius": 0.0032512256467432566,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 906,
+            "parent": 905,
+            "position": [
+              0.11219198712985587,
+              14.050698024566548,
+              0.3015725266099798
+            ],
+            "radius": 0.0032512256467432566,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 904,
+            "parent": 903,
+            "position": [
+              0.30881039804060495,
+              14.049621623133737,
+              0.024810684201566097
+            ],
+            "radius": 0.0032512256467432566,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.015079408198116798,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 903,
+            "parent": 43,
+            "position": [
+              0.15440519902030247,
+              14.019415589376537,
+              0.012405342100783048
+            ],
+            "radius": 0.0065272610579697795,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 905,
+            "parent": 43,
+            "position": [
+              0.05609599356492793,
+              14.019325889257136,
+              0.1507862633049899
+            ],
+            "radius": 0.006526966872581444,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 897,
+            "parent": 43,
+            "position": [
+              -0.11346125553765588,
+              14.019247110752524,
+              0.1213559389643199
+            ],
+            "radius": 0.006530103507730993,
+            "retained_twigs": 0
+          }
+        ]
+      },
+      {
+        "local_before": 68830,
+        "preset": "norway-spruce",
+        "seed": 4250668600,
+        "shed": 10547,
+        "structural": 8162,
+        "upper_supports": 489,
+        "eligible_upper_supports": 482,
+        "upper_lost_twigs": 0,
+        "upper_retained_twigs": 2185,
+        "highest_supports": [
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 46,
+            "parent": 45,
+            "position": [
+              0.0,
+              15.0,
+              0.0
+            ],
+            "radius": 0.0032296024913955495,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 45,
+            "parent": 44,
+            "position": [
+              0.0,
+              14.673913043478262,
+              0.0
+            ],
+            "radius": 0.0032720036695568938,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 44,
+            "parent": 43,
+            "position": [
+              0.0,
+              14.347826086956522,
+              0.0
+            ],
+            "radius": 0.0033149615292028052,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 907,
+            "parent": 906,
+            "position": [
+              0.2116569400850351,
+              14.051934110452013,
+              -0.2603102778056232
+            ],
+            "radius": 0.0032296024913955495,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 915,
+            "parent": 914,
+            "position": [
+              -0.10358303694427462,
+              14.050859059741729,
+              -0.3065260897494669
+            ],
+            "radius": 0.0032296024913955495,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 911,
+            "parent": 910,
+            "position": [
+              -0.04890481205846155,
+              14.050490421895882,
+              0.3156932695343099
+            ],
+            "radius": 0.0032296024913955495,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 913,
+            "parent": 912,
+            "position": [
+              -0.2980281647293228,
+              14.04877016676939,
+              0.03723225544746501
+            ],
+            "radius": 0.0032296024913955495,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 909,
+            "parent": 908,
+            "position": [
+              0.23631752249774587,
+              14.04867859793846,
+              0.18371426442529698
+            ],
+            "radius": 0.0032296024913955495,
+            "retained_twigs": 0
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 43,
+            "parent": 42,
+            "position": [
+              0.0,
+              14.021739130434783,
+              0.0
+            ],
+            "radius": 0.01497125942434241,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 908,
+            "parent": 43,
+            "position": [
+              0.11815876124887295,
+              14.019494174809477,
+              0.09185713221264852
+            ],
+            "radius": 0.006484558262260656,
+            "retained_twigs": 1
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 912,
+            "parent": 43,
+            "position": [
+              -0.14901408236466143,
+              14.019486544073565,
+              0.018616127723732504
+            ],
+            "radius": 0.006481165380787136,
+            "retained_twigs": 2
+          },
+          {
+            "handoff_eligible": true,
+            "lost_twigs": 0,
+            "node": 910,
+            "parent": 43,
+            "position": [
+              -0.02445240602923078,
+              14.019343189479692,
+              0.15784663476715494
+            ],
+            "radius": 0.0064809887097731665,
+            "retained_twigs": 0
+          }
+        ]
+      }
+    ]
+  },
+  "production_commit": "d797508",
+  "method": "Rebuild the scaffold, solve radii, append local descendants, compare node-position identities before and after structural shedding. Upper means >=75% of maximum structural height. Full unsimplified per-support traces retained outside checkout; highest twelve supports per counterexample below.",
+  "finding": "All six oak counterexamples lose many upper twig descendants under the old shell test despite handoff eligibility. Targeted ancestry retention repairs this removal without disabling the lower shed. Spruce upper descendants were not shed; its curtain failure needs local architecture. Rendering remains a separate gate.",
+  "command": "cargo test --release -p telperion-core --lib retained_supports -- --ignored --nocapture"
+}
