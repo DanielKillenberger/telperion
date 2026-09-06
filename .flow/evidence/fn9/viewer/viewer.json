@@ -1,0 +1,10 @@
+{
+  "loadFailureRetry": true,
+  "buildFailureRetry": true,
+  "previousDiagnosticsPreserved": true,
+  "speciesSelection": true,
+  "independentSeeds": true,
+  "seedGeometryChanges": true,
+  "allViews": true,
+  "emptyRendering": true
+}

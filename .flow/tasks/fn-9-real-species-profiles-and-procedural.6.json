@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T22:22:26.125478Z",
+  "depends_on": [
+    "fn-9-real-species-profiles-and-procedural.5"
+  ],
+  "id": "fn-9-real-species-profiles-and-procedural.6",
+  "priority": null,
+  "spec": "fn-9-real-species-profiles-and-procedural",
+  "spec_path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.6.md",
+  "status": "todo",
+  "title": "Calibrate and register the conifer template",
+  "updated_at": "2026-09-05T23:12:14.427317Z"
+}

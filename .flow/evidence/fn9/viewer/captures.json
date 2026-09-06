@@ -1,0 +1,1106 @@
+[
+  {
+    "id": "oregon-white-oak",
+    "view": "whole",
+    "preset": {
+      "canopy": {
+        "attachment": "alternate",
+        "clump": 5,
+        "clumpSpan": 0.3,
+        "divergence": 180,
+        "maxInstances": 4294967295,
+        "outward": 0.6,
+        "scatter": 18,
+        "shootRadius": 0.12,
+        "size": 1,
+        "sizeVariation": 0.2,
+        "spacing": 0.006,
+        "upward": 0.35
+      },
+      "element": {
+        "anatomy": "lobedBlade",
+        "axialSegments": 5,
+        "baseFullness": 0.85,
+        "card": false,
+        "connectorLength": 0.012,
+        "crossSegments": 2,
+        "cup": 0.18,
+        "curl": 0.12,
+        "length": 0.1,
+        "tipSharpness": 1.6,
+        "widestAt": 0.42,
+        "width": 0.075
+      },
+      "radii": {
+        "forkExponent": 2,
+        "lengthTaper": 0.6,
+        "trunkRadius": 0.018
+      },
+      "shellDepth": 0.45,
+      "skeleton": {
+        "attractors": 40,
+        "bias": {
+          "gravitropism": 0,
+          "lean": 0,
+          "supernatural": {
+            "enabled": false,
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
+          }
+        },
+        "envelope": {
+          "crownBase": 0.16,
+          "fullness": 0.55,
+          "height": 4,
+          "shoulder": 2.2,
+          "spread": 0.55
+        },
+        "growth": {
+          "maxTurnPerStep": 35
+        },
+        "habit": {
+          "crookedness": 24,
+          "kind": "spreading",
+          "scaffoldLimbs": 5,
+          "subdivisions": 4
+        },
+        "seed": 42,
+        "step": 0.022,
+        "twigs": {
+          "angle": 45,
+          "angleVariation": 10,
+          "divergence": 137.508,
+          "internodeFactor": 2.5,
+          "laterals": 3,
+          "lengthRatio": 0.45,
+          "limbRadius": 0.1,
+          "ratioPower": 1.3,
+          "reach": 0.2,
+          "twig": {
+            "bearingDiameter": 0.03,
+            "diameter": 0.005,
+            "internodeLength": 0.02,
+            "length": 0.25,
+            "stationsPerInternode": 1
+          },
+          "vigourVariation": 0.15
+        }
+      },
+      "surface": {
+        "flareDepth": 0.004,
+        "flareFalloff": 0.022,
+        "flareRadius": 2.1,
+        "forkSocket": 0.5,
+        "forkSwell": 1.35,
+        "lobeDepth": 0,
+        "lobes": 5,
+        "radialSegments": 12,
+        "twistRate": 0
+      },
+      "id": "oregon-white-oak",
+      "name": "Oregon white oak",
+      "note": "Quercus garryana"
+    },
+    "stats": {
+      "triangles": 92680,
+      "vertices": 47832,
+      "nodes": 1571,
+      "capped": false,
+      "levelCapped": false,
+      "attractionCapped": false,
+      "complete": true,
+      "handoffs": 567,
+      "generationCounts": [
+        492,
+        75,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "generations": {
+        "min": 0,
+        "median": 0,
+        "max": 1
+      },
+      "levelCappedHandoffs": 0,
+      "twigs": 727,
+      "drawCalls": 2,
+      "instances": 9306,
+      "leavesPlaced": 9451,
+      "timings": {
+        "coreMs": 39.40000009536743,
+        "fieldMs": 0,
+        "foliageMs": 31.700000047683716,
+        "growthMs": 2.5,
+        "surfaceMs": 5.100000023841858,
+        "transferMs": 1.5999999046325684,
+        "buildMs": 41.39999997615814,
+        "materializationMs": 19.800000071525574
+      },
+      "buildMs": 61.300000071525574
+    },
+    "draws": {
+      "drawCalls": 2,
+      "instances": 9306
+    },
+    "bounds": {
+      "min": [
+        -1.972742323308292,
+        -0.01600000075995922,
+        -2.180490384815419
+      ],
+      "max": [
+        2.1056638822938933,
+        3.6704477690105786,
+        2.243058838108558
+      ]
+    },
+    "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "rendered": {
+      "drawCalls": 4,
+      "triangles": 1991616,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    },
+    "rotated": {
+      "drawCalls": 4,
+      "triangles": 1991616,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    }
+  },
+  {
+    "id": "oregon-white-oak",
+    "view": "bare",
+    "preset": {
+      "canopy": {
+        "attachment": "alternate",
+        "clump": 5,
+        "clumpSpan": 0.3,
+        "divergence": 180,
+        "maxInstances": 4294967295,
+        "outward": 0.6,
+        "scatter": 18,
+        "shootRadius": 0.12,
+        "size": 1,
+        "sizeVariation": 0.2,
+        "spacing": 0.006,
+        "upward": 0.35
+      },
+      "element": {
+        "anatomy": "lobedBlade",
+        "axialSegments": 5,
+        "baseFullness": 0.85,
+        "card": false,
+        "connectorLength": 0.012,
+        "crossSegments": 2,
+        "cup": 0.18,
+        "curl": 0.12,
+        "length": 0.1,
+        "tipSharpness": 1.6,
+        "widestAt": 0.42,
+        "width": 0.075
+      },
+      "radii": {
+        "forkExponent": 2,
+        "lengthTaper": 0.6,
+        "trunkRadius": 0.018
+      },
+      "shellDepth": 0.45,
+      "skeleton": {
+        "attractors": 40,
+        "bias": {
+          "gravitropism": 0,
+          "lean": 0,
+          "supernatural": {
+            "enabled": false,
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
+          }
+        },
+        "envelope": {
+          "crownBase": 0.16,
+          "fullness": 0.55,
+          "height": 4,
+          "shoulder": 2.2,
+          "spread": 0.55
+        },
+        "growth": {
+          "maxTurnPerStep": 35
+        },
+        "habit": {
+          "crookedness": 24,
+          "kind": "spreading",
+          "scaffoldLimbs": 5,
+          "subdivisions": 4
+        },
+        "seed": 42,
+        "step": 0.022,
+        "twigs": {
+          "angle": 45,
+          "angleVariation": 10,
+          "divergence": 137.508,
+          "internodeFactor": 2.5,
+          "laterals": 3,
+          "lengthRatio": 0.45,
+          "limbRadius": 0.1,
+          "ratioPower": 1.3,
+          "reach": 0.2,
+          "twig": {
+            "bearingDiameter": 0.03,
+            "diameter": 0.005,
+            "internodeLength": 0.02,
+            "length": 0.25,
+            "stationsPerInternode": 1
+          },
+          "vigourVariation": 0.15
+        }
+      },
+      "surface": {
+        "flareDepth": 0.004,
+        "flareFalloff": 0.022,
+        "flareRadius": 2.1,
+        "forkSocket": 0.5,
+        "forkSwell": 1.35,
+        "lobeDepth": 0,
+        "lobes": 5,
+        "radialSegments": 12,
+        "twistRate": 0
+      },
+      "id": "oregon-white-oak",
+      "name": "Oregon white oak",
+      "note": "Quercus garryana"
+    },
+    "stats": {
+      "triangles": 92680,
+      "vertices": 47832,
+      "nodes": 1571,
+      "capped": false,
+      "levelCapped": false,
+      "attractionCapped": false,
+      "complete": true,
+      "handoffs": 567,
+      "generationCounts": [
+        492,
+        75,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "generations": {
+        "min": 0,
+        "median": 0,
+        "max": 1
+      },
+      "levelCappedHandoffs": 0,
+      "twigs": 727,
+      "drawCalls": 1,
+      "instances": 0,
+      "leavesPlaced": 0,
+      "timings": {
+        "coreMs": 7.5,
+        "fieldMs": 0,
+        "foliageMs": 0,
+        "growthMs": 2.8000000715255737,
+        "surfaceMs": 4.699999928474426,
+        "transferMs": 1,
+        "buildMs": 9,
+        "materializationMs": 0.20000004768371582
+      },
+      "buildMs": 9.299999952316284
+    },
+    "draws": {
+      "drawCalls": 1,
+      "instances": 0
+    },
+    "bounds": {
+      "min": [
+        -1.9398747682571411,
+        -0.01600000075995922,
+        -2.113132953643799
+      ],
+      "max": [
+        2.0805916786193848,
+        3.613939046859741,
+        2.132037401199341
+      ]
+    },
+    "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "rendered": {
+      "drawCalls": 3,
+      "triangles": 93192,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    },
+    "rotated": {
+      "drawCalls": 3,
+      "triangles": 93192,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    }
+  },
+  {
+    "id": "oregon-white-oak",
+    "view": "foliage-detail",
+    "preset": {
+      "canopy": {
+        "attachment": "alternate",
+        "clump": 5,
+        "clumpSpan": 0.3,
+        "divergence": 180,
+        "maxInstances": 4294967295,
+        "outward": 0.6,
+        "scatter": 18,
+        "shootRadius": 0.12,
+        "size": 1,
+        "sizeVariation": 0.2,
+        "spacing": 0.006,
+        "upward": 0.35
+      },
+      "element": {
+        "anatomy": "lobedBlade",
+        "axialSegments": 5,
+        "baseFullness": 0.85,
+        "card": false,
+        "connectorLength": 0.012,
+        "crossSegments": 2,
+        "cup": 0.18,
+        "curl": 0.12,
+        "length": 0.1,
+        "tipSharpness": 1.6,
+        "widestAt": 0.42,
+        "width": 0.075
+      },
+      "radii": {
+        "forkExponent": 2,
+        "lengthTaper": 0.6,
+        "trunkRadius": 0.018
+      },
+      "shellDepth": 0.45,
+      "skeleton": {
+        "attractors": 40,
+        "bias": {
+          "gravitropism": 0,
+          "lean": 0,
+          "supernatural": {
+            "enabled": false,
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
+          }
+        },
+        "envelope": {
+          "crownBase": 0.16,
+          "fullness": 0.55,
+          "height": 4,
+          "shoulder": 2.2,
+          "spread": 0.55
+        },
+        "growth": {
+          "maxTurnPerStep": 35
+        },
+        "habit": {
+          "crookedness": 24,
+          "kind": "spreading",
+          "scaffoldLimbs": 5,
+          "subdivisions": 4
+        },
+        "seed": 42,
+        "step": 0.022,
+        "twigs": {
+          "angle": 45,
+          "angleVariation": 10,
+          "divergence": 137.508,
+          "internodeFactor": 2.5,
+          "laterals": 3,
+          "lengthRatio": 0.45,
+          "limbRadius": 0.1,
+          "ratioPower": 1.3,
+          "reach": 0.2,
+          "twig": {
+            "bearingDiameter": 0.03,
+            "diameter": 0.005,
+            "internodeLength": 0.02,
+            "length": 0.25,
+            "stationsPerInternode": 1
+          },
+          "vigourVariation": 0.15
+        }
+      },
+      "surface": {
+        "flareDepth": 0.004,
+        "flareFalloff": 0.022,
+        "flareRadius": 2.1,
+        "forkSocket": 0.5,
+        "forkSwell": 1.35,
+        "lobeDepth": 0,
+        "lobes": 5,
+        "radialSegments": 12,
+        "twistRate": 0
+      },
+      "id": "oregon-white-oak",
+      "name": "Oregon white oak",
+      "note": "Quercus garryana"
+    },
+    "stats": {
+      "triangles": 92680,
+      "vertices": 47832,
+      "nodes": 1571,
+      "capped": false,
+      "levelCapped": false,
+      "attractionCapped": false,
+      "complete": true,
+      "handoffs": 567,
+      "generationCounts": [
+        492,
+        75,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "generations": {
+        "min": 0,
+        "median": 0,
+        "max": 1
+      },
+      "levelCappedHandoffs": 0,
+      "twigs": 727,
+      "drawCalls": 2,
+      "instances": 9306,
+      "leavesPlaced": 9451,
+      "timings": {
+        "coreMs": 43.5,
+        "fieldMs": 0,
+        "foliageMs": 35.39999997615814,
+        "growthMs": 2.8000000715255737,
+        "surfaceMs": 5.299999952316284,
+        "transferMs": 1.600000023841858,
+        "buildMs": 45.39999997615814,
+        "materializationMs": 21.600000023841858
+      },
+      "buildMs": 67.10000002384186
+    },
+    "draws": {
+      "drawCalls": 1,
+      "instances": 1
+    },
+    "bounds": {
+      "min": [
+        -0.996604152876567,
+        1.4469550680358212,
+        -0.9826623153659825
+      ],
+      "max": [
+        -0.9518832573247109,
+        1.5656131040507861,
+        -0.9034702609277073
+      ]
+    },
+    "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "rendered": {
+      "drawCalls": 2,
+      "triangles": 300,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    },
+    "rotated": {
+      "drawCalls": 2,
+      "triangles": 300,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    }
+  },
+  {
+    "id": "norway-spruce",
+    "view": "whole",
+    "preset": {
+      "canopy": {
+        "attachment": "radialNeedles",
+        "clump": 5,
+        "clumpSpan": 0.3,
+        "divergence": 137.508,
+        "maxInstances": 4294967295,
+        "outward": 0.6,
+        "scatter": 18,
+        "shootRadius": 0.12,
+        "size": 1,
+        "sizeVariation": 0.2,
+        "spacing": 0.006,
+        "upward": 0.35
+      },
+      "element": {
+        "anatomy": "fourSidedNeedle",
+        "axialSegments": 5,
+        "baseFullness": 0.85,
+        "card": false,
+        "connectorLength": 0.001,
+        "crossSegments": 2,
+        "cup": 0.18,
+        "curl": 0.12,
+        "length": 0.018,
+        "tipSharpness": 1.6,
+        "widestAt": 0.42,
+        "width": 0.0015
+      },
+      "radii": {
+        "forkExponent": 2,
+        "lengthTaper": 0.6,
+        "trunkRadius": 0.015
+      },
+      "shellDepth": 0.45,
+      "skeleton": {
+        "attractors": 40,
+        "bias": {
+          "gravitropism": 0,
+          "lean": 0,
+          "supernatural": {
+            "enabled": false,
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
+          }
+        },
+        "envelope": {
+          "crownBase": 0.04,
+          "fullness": 0.15,
+          "height": 4,
+          "shoulder": 1,
+          "spread": 0.32
+        },
+        "growth": {
+          "maxTurnPerStep": 35
+        },
+        "habit": {
+          "branchesPerTier": 5,
+          "kind": "tiered",
+          "secondaryLength": 0.3,
+          "secondarySpacing": 0.35,
+          "tiers": 3,
+          "upturn": 0.12
+        },
+        "seed": 42,
+        "step": 0.022,
+        "twigs": {
+          "angle": 45,
+          "angleVariation": 10,
+          "divergence": 137.508,
+          "internodeFactor": 2.5,
+          "laterals": 2,
+          "lengthRatio": 0.4,
+          "limbRadius": 0.1,
+          "ratioPower": 1.3,
+          "reach": 0.2,
+          "twig": {
+            "bearingDiameter": 0.02,
+            "diameter": 0.005,
+            "internodeLength": 0.004,
+            "length": 0.25,
+            "stationsPerInternode": 1
+          },
+          "vigourVariation": 0.15
+        }
+      },
+      "surface": {
+        "flareDepth": 0.004,
+        "flareFalloff": 0.022,
+        "flareRadius": 2.1,
+        "forkSocket": 0.5,
+        "forkSwell": 1.35,
+        "lobeDepth": 0,
+        "lobes": 5,
+        "radialSegments": 12,
+        "twistRate": 0
+      },
+      "id": "norway-spruce",
+      "name": "Norway spruce",
+      "note": "Picea abies"
+    },
+    "stats": {
+      "triangles": 15400,
+      "vertices": 7874,
+      "nodes": 298,
+      "capped": false,
+      "levelCapped": false,
+      "attractionCapped": false,
+      "complete": true,
+      "handoffs": 16,
+      "generationCounts": [
+        0,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "generations": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "levelCappedHandoffs": 0,
+      "twigs": 58,
+      "drawCalls": 2,
+      "instances": 3420,
+      "leavesPlaced": 3654,
+      "timings": {
+        "coreMs": 7.199999928474426,
+        "fieldMs": 0,
+        "foliageMs": 5.899999976158142,
+        "growthMs": 0.2999999523162842,
+        "surfaceMs": 1,
+        "transferMs": 0.2999999523162842,
+        "buildMs": 8,
+        "materializationMs": 4.300000071525574
+      },
+      "buildMs": 12.400000095367432
+    },
+    "draws": {
+      "drawCalls": 2,
+      "instances": 3420
+    },
+    "bounds": {
+      "min": [
+        -0.9709303975105286,
+        -0.01600000075995922,
+        -1.000147819519043
+      ],
+      "max": [
+        0.9784313440322876,
+        4,
+        1.1024223566055298
+      ]
+    },
+    "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "rendered": {
+      "drawCalls": 4,
+      "triangles": 207432,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    },
+    "rotated": {
+      "drawCalls": 4,
+      "triangles": 207432,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    }
+  },
+  {
+    "id": "norway-spruce",
+    "view": "bare",
+    "preset": {
+      "canopy": {
+        "attachment": "radialNeedles",
+        "clump": 5,
+        "clumpSpan": 0.3,
+        "divergence": 137.508,
+        "maxInstances": 4294967295,
+        "outward": 0.6,
+        "scatter": 18,
+        "shootRadius": 0.12,
+        "size": 1,
+        "sizeVariation": 0.2,
+        "spacing": 0.006,
+        "upward": 0.35
+      },
+      "element": {
+        "anatomy": "fourSidedNeedle",
+        "axialSegments": 5,
+        "baseFullness": 0.85,
+        "card": false,
+        "connectorLength": 0.001,
+        "crossSegments": 2,
+        "cup": 0.18,
+        "curl": 0.12,
+        "length": 0.018,
+        "tipSharpness": 1.6,
+        "widestAt": 0.42,
+        "width": 0.0015
+      },
+      "radii": {
+        "forkExponent": 2,
+        "lengthTaper": 0.6,
+        "trunkRadius": 0.015
+      },
+      "shellDepth": 0.45,
+      "skeleton": {
+        "attractors": 40,
+        "bias": {
+          "gravitropism": 0,
+          "lean": 0,
+          "supernatural": {
+            "enabled": false,
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
+          }
+        },
+        "envelope": {
+          "crownBase": 0.04,
+          "fullness": 0.15,
+          "height": 4,
+          "shoulder": 1,
+          "spread": 0.32
+        },
+        "growth": {
+          "maxTurnPerStep": 35
+        },
+        "habit": {
+          "branchesPerTier": 5,
+          "kind": "tiered",
+          "secondaryLength": 0.3,
+          "secondarySpacing": 0.35,
+          "tiers": 3,
+          "upturn": 0.12
+        },
+        "seed": 42,
+        "step": 0.022,
+        "twigs": {
+          "angle": 45,
+          "angleVariation": 10,
+          "divergence": 137.508,
+          "internodeFactor": 2.5,
+          "laterals": 2,
+          "lengthRatio": 0.4,
+          "limbRadius": 0.1,
+          "ratioPower": 1.3,
+          "reach": 0.2,
+          "twig": {
+            "bearingDiameter": 0.02,
+            "diameter": 0.005,
+            "internodeLength": 0.004,
+            "length": 0.25,
+            "stationsPerInternode": 1
+          },
+          "vigourVariation": 0.15
+        }
+      },
+      "surface": {
+        "flareDepth": 0.004,
+        "flareFalloff": 0.022,
+        "flareRadius": 2.1,
+        "forkSocket": 0.5,
+        "forkSwell": 1.35,
+        "lobeDepth": 0,
+        "lobes": 5,
+        "radialSegments": 12,
+        "twistRate": 0
+      },
+      "id": "norway-spruce",
+      "name": "Norway spruce",
+      "note": "Picea abies"
+    },
+    "stats": {
+      "triangles": 15400,
+      "vertices": 7874,
+      "nodes": 298,
+      "capped": false,
+      "levelCapped": false,
+      "attractionCapped": false,
+      "complete": true,
+      "handoffs": 16,
+      "generationCounts": [
+        0,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "generations": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "levelCappedHandoffs": 0,
+      "twigs": 58,
+      "drawCalls": 1,
+      "instances": 0,
+      "leavesPlaced": 0,
+      "timings": {
+        "coreMs": 1.2999999523162842,
+        "fieldMs": 0,
+        "foliageMs": 0,
+        "growthMs": 0.3999999761581421,
+        "surfaceMs": 0.8999999761581421,
+        "transferMs": 0.20000004768371582,
+        "buildMs": 1.9000000953674316,
+        "materializationMs": 0
+      },
+      "buildMs": 2
+    },
+    "draws": {
+      "drawCalls": 1,
+      "instances": 0
+    },
+    "bounds": {
+      "min": [
+        -0.9709303975105286,
+        -0.01600000075995922,
+        -1.000147819519043
+      ],
+      "max": [
+        0.9784313440322876,
+        4,
+        1.1024223566055298
+      ]
+    },
+    "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "rendered": {
+      "drawCalls": 3,
+      "triangles": 15912,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    },
+    "rotated": {
+      "drawCalls": 3,
+      "triangles": 15912,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    }
+  },
+  {
+    "id": "norway-spruce",
+    "view": "foliage-detail",
+    "preset": {
+      "canopy": {
+        "attachment": "radialNeedles",
+        "clump": 5,
+        "clumpSpan": 0.3,
+        "divergence": 137.508,
+        "maxInstances": 4294967295,
+        "outward": 0.6,
+        "scatter": 18,
+        "shootRadius": 0.12,
+        "size": 1,
+        "sizeVariation": 0.2,
+        "spacing": 0.006,
+        "upward": 0.35
+      },
+      "element": {
+        "anatomy": "fourSidedNeedle",
+        "axialSegments": 5,
+        "baseFullness": 0.85,
+        "card": false,
+        "connectorLength": 0.001,
+        "crossSegments": 2,
+        "cup": 0.18,
+        "curl": 0.12,
+        "length": 0.018,
+        "tipSharpness": 1.6,
+        "widestAt": 0.42,
+        "width": 0.0015
+      },
+      "radii": {
+        "forkExponent": 2,
+        "lengthTaper": 0.6,
+        "trunkRadius": 0.015
+      },
+      "shellDepth": 0.45,
+      "skeleton": {
+        "attractors": 40,
+        "bias": {
+          "gravitropism": 0,
+          "lean": 0,
+          "supernatural": {
+            "enabled": false,
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
+          }
+        },
+        "envelope": {
+          "crownBase": 0.04,
+          "fullness": 0.15,
+          "height": 4,
+          "shoulder": 1,
+          "spread": 0.32
+        },
+        "growth": {
+          "maxTurnPerStep": 35
+        },
+        "habit": {
+          "branchesPerTier": 5,
+          "kind": "tiered",
+          "secondaryLength": 0.3,
+          "secondarySpacing": 0.35,
+          "tiers": 3,
+          "upturn": 0.12
+        },
+        "seed": 42,
+        "step": 0.022,
+        "twigs": {
+          "angle": 45,
+          "angleVariation": 10,
+          "divergence": 137.508,
+          "internodeFactor": 2.5,
+          "laterals": 2,
+          "lengthRatio": 0.4,
+          "limbRadius": 0.1,
+          "ratioPower": 1.3,
+          "reach": 0.2,
+          "twig": {
+            "bearingDiameter": 0.02,
+            "diameter": 0.005,
+            "internodeLength": 0.004,
+            "length": 0.25,
+            "stationsPerInternode": 1
+          },
+          "vigourVariation": 0.15
+        }
+      },
+      "surface": {
+        "flareDepth": 0.004,
+        "flareFalloff": 0.022,
+        "flareRadius": 2.1,
+        "forkSocket": 0.5,
+        "forkSwell": 1.35,
+        "lobeDepth": 0,
+        "lobes": 5,
+        "radialSegments": 12,
+        "twistRate": 0
+      },
+      "id": "norway-spruce",
+      "name": "Norway spruce",
+      "note": "Picea abies"
+    },
+    "stats": {
+      "triangles": 15400,
+      "vertices": 7874,
+      "nodes": 298,
+      "capped": false,
+      "levelCapped": false,
+      "attractionCapped": false,
+      "complete": true,
+      "handoffs": 16,
+      "generationCounts": [
+        0,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "generations": {
+        "min": 1,
+        "median": 1,
+        "max": 1
+      },
+      "levelCappedHandoffs": 0,
+      "twigs": 58,
+      "drawCalls": 2,
+      "instances": 3420,
+      "leavesPlaced": 3654,
+      "timings": {
+        "coreMs": 7.700000047683716,
+        "fieldMs": 0,
+        "foliageMs": 6.400000095367432,
+        "growthMs": 0.3999999761581421,
+        "surfaceMs": 0.8999999761581421,
+        "transferMs": 0.3999999761581421,
+        "buildMs": 8.300000071525574,
+        "materializationMs": 4.399999976158142
+      },
+      "buildMs": 12.800000071525574
+    },
+    "draws": {
+      "drawCalls": 1,
+      "instances": 1
+    },
+    "bounds": {
+      "min": [
+        -0.34004137503330023,
+        0.7549621440038852,
+        0.09170252909222784
+      ],
+      "max": [
+        -0.32880528580150337,
+        0.7604310153566131,
+        0.10923643732699326
+      ]
+    },
+    "backend": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "rendered": {
+      "drawCalls": 2,
+      "triangles": 152,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    },
+    "rotated": {
+      "drawCalls": 2,
+      "triangles": 152,
+      "pixelRatioRaw": 1,
+      "pixelRatioApplied": 1,
+      "logarithmicDepthBuffer": true,
+      "gpuTimer": false
+    }
+  }
+]

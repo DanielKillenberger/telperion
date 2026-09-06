@@ -1,0 +1,97 @@
+[
+  {
+    "command": "npm run rust:test",
+    "exit": 0,
+    "seconds": 35.486942529678345,
+    "log": "/tmp/fn99-qa/gate-0.log",
+    "log_sha256": "fc2c8dee22b32d107e21e5ff690b6933d6be1f3c5efee547f4e73a7ffb01dbd7"
+  },
+  {
+    "command": "npm run rust:test:wasm",
+    "exit": 0,
+    "seconds": 111.26141285896301,
+    "log": "/tmp/fn99-qa/gate-1.log",
+    "log_sha256": "162684d0018ebec102d4d0ba8b29890efdf2f20700396cb7c8dce344309f8bb5"
+  },
+  {
+    "command": "npm test",
+    "exit": 0,
+    "seconds": 65.36305713653564,
+    "log": "/tmp/fn99-qa/gate-2.log",
+    "log_sha256": "4c0a563c4d55fbdad3b7148ee75da4d8b57c8f57eb18b3173af75a1fae7c33b1"
+  },
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit": 0,
+    "seconds": 0.3102569580078125,
+    "log": "/tmp/fn99-qa/gate-3.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit": 101,
+    "seconds": 0.7672245502471924,
+    "log": "/tmp/fn99-qa/gate-4.log",
+    "log_sha256": "b09716328064e43b361648426bc68b0b1feb9640f1205065cce6904ca1621ea6"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit": 0,
+    "seconds": 2.6529788970947266,
+    "log": "/tmp/fn99-qa/gate-5.log",
+    "log_sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+  },
+  {
+    "command": "npm run build",
+    "exit": 0,
+    "seconds": 3.0370070934295654,
+    "log": "/tmp/fn99-qa/gate-6.log",
+    "log_sha256": "22be8294e9ae85bec76cdbfa2339531e1d87c969f928355d9ea48abaeb79db19"
+  },
+  {
+    "command": "node tests/browser/species.mjs --help",
+    "exit": 0,
+    "seconds": 0.1101536750793457,
+    "log": "/tmp/fn99-qa/gate-7.log",
+    "log_sha256": "d94bb310fde4a02404d67a37d7bc58b1776a8c209432e3f767ba38decda4116c"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit": 0,
+    "log": "/tmp/fn99-qa/clippy-final.log",
+    "log_sha256": "caf2e5b411f64b718600cfe200bca2a4a0dc632e270302e81493654660fb5c83"
+  },
+  {
+    "command": "cargo test --release -p telperion-core --test foliage --test species --test species_metrics",
+    "exit": 0,
+    "log": "/tmp/fn99-qa/focused-final.log",
+    "log_sha256": "c8e03a439d77421622bb1e9316da631e894d687e1299ff11bb79d202e95869db"
+  },
+  {
+    "command": "npm run build",
+    "exit": 0,
+    "log": "/tmp/fn99-qa/build-final.log",
+    "log_sha256": "c37a4f7b6493ce4d62ac7c87ff37abf1dd14f743a24b0a785ab3cf21b9c315d8"
+  },
+  {
+    "command": "BROWSER_EVIDENCE=/tmp/fn99-integration-final npm run rust:test:wasm",
+    "exit": 0,
+    "log": "/tmp/fn99-qa/wasm-final.log",
+    "log_sha256": "a002153cf5e1a4cc18cb832b94b93143f82db65aaa227a0bbe9805a4b2dafd7e"
+  },
+  {
+    "command": "npm run species:measure -- --output /tmp/fn99-replay",
+    "exit": 1,
+    "expected": "All 48 metric/count results equal initial run; spruce 4250668600 fails width."
+  },
+  {
+    "command": "node tests/browser/species.mjs --capture-only --case norway-spruce-4250668600 --output /tmp/fn99-replay",
+    "exit": 1,
+    "expected": "All three PNG/geometry hashes identical; human assessment stays separate."
+  },
+  {
+    "command": "BROWSER_URL=http://127.0.0.1:1 node tests/browser/species.mjs --capture-only --case ordinary --output /tmp/fn99-negative",
+    "exit": 1,
+    "expected": "48 missing numeric cases unassessed; all three attempted captures fail and preserve receipts."
+  }
+]

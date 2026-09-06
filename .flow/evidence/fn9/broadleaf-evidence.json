@@ -1,0 +1,17 @@
+{
+  "base_commit": "900dcc303be281656d57ee6cbdf83067264ca83c",
+  "commits": [
+    "d068391a9d043decc81ff1b556b8622f420618aa"
+  ],
+  "tests": [
+    "cargo test --release -p telperion-core --test species --test species_metrics: 7 passed; all 12 fixed seeds checked",
+    "cargo test --release -p telperion-core --test growth --test foliage --test surface: 28 passed",
+    "cargo check --workspace: passed",
+    "cargo fmt --all --check: passed",
+    "git diff --check: passed",
+    "species_measure: all 12 frozen oak cases pass on committed calibration",
+    "CLI unknown preset and mismatched species/profile: explicit failures, independent continuation verified"
+  ],
+  "prs": [],
+  "visual_status": "unassessed final candidate; initial sparse crown failed; final software captures failed, see broadleaf.md"
+}

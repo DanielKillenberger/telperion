@@ -15,7 +15,7 @@ engine.release(); // returned arrays are owned copies and remain usable
 engine.dispose();
 ```
 
-`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains the Two Trees. The optional `materializeTree` / `disposeTreeGeometry` adapter supplies Three.js objects; the consumer owns materials, lights and rendering. Three.js is a peer dependency. The native core has no external Rust dependencies; `serde_json` belongs to the Wasm binding only.
+`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all five named templates; `TWO_TREES` contains Telperion and Laurelin. The optional `materializeTree` / `disposeTreeGeometry` adapter supplies Three.js objects; the consumer owns materials, lights and rendering. Three.js is a peer dependency. The native core has no external Rust dependencies; `serde_json` belongs to the Wasm binding only.
 
 For a block-based consumer, request occupancy without constructing a wood surface or transferring render buffers:
 
@@ -86,3 +86,41 @@ Historical measurement payloads and the frozen FN7 implementation live in Git hi
 mkdir -p /tmp/telperion-history
 git archive 1922505a8a396d73b335974eabf6a9faf33ccd62 .flow/evidence experiments/rust-surface-benchmark | tar -x -C /tmp/telperion-history
 ```
+
+## Species and reproducible specimens
+
+The viewer's species selector exposes Oregon white oak (`oregon-white-oak`,
+*Quercus garryana*) and Norway spruce (`norway-spruce`, *Picea abies*), alongside
+Ordinary, Telperion and Laurelin. Choose species independently of the unsigned
+32-bit specimen seed; changing species preserves the seed. Identical family
+parameters and seed reproduce the specimen. Different seeds vary structure and
+placement, not species identity. Whole, bare-branch and foliage-detail views
+support inspection; the viewer's detail view isolates one placed unit.
+Open `/?species=norway-spruce&seed=1` to load a full-foliage specimen directly.
+
+Browser consumers can use `presetById('oregon-white-oak')`, set
+`family.skeleton.seed`, then pass the family to `TreeEngine.build`. Native
+consumers use `Preset::OregonWhiteOak.parameters()` or
+`Preset::NorwaySpruce.parameters()`. Unknown identities are rejected. Natural
+presets disable the separate supernatural group; Telperion and Laurelin enable
+it explicitly. Botanical lean and gravitropism remain independent.
+
+Native needle placement can use `foliage::place_on_surface` with the family’s
+`SurfaceParams` to attach to the rendered polygonal sweep and fork sockets without
+building mesh indices or normals. The browser engine and species measurement
+runner use this path. `foliage::place` retains the circular-radius placement API.
+
+The [frozen botanical profiles](.flow/evidence/fn9/profiles.json) define mature
+open-grown contexts, source-backed dimensional gates, contextual estimates and
+unknown quantities. [References](.flow/evidence/fn9/REFERENCES.md) attribute the
+photographs and research; [cross-seed QA](.flow/evidence/fn9/REPORT.md) records
+remaining fidelity failures. A numeric pass alone is not botanical approval.
+
+CPU-only measurement needs Rust, not a GPU. Headless visual capture additionally
+needs the built Wasm module, Vite, Playwright Chromium and working WebGL (software
+rendering is acceptable). Run `npm run species:measure -- --output /tmp/species-run`
+for all recorded seeds. Then start `npx vite --host 127.0.0.1 --port 5184` and run
+`npm run species:qa -- --capture-only --output /tmp/species-run`. See the
+[migration guide](tests/migration/README.md#species-evidence-and-replay) for the
+full replay protocol and failure semantics. Software capture timings do not
+predict hardware GPU frame times.

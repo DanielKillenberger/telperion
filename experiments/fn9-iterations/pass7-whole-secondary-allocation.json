@@ -1,0 +1,727 @@
+{
+  "method": "Original whole secondary IDs and structural forks pinned. Measures all NodeKind::Twig edges and their centreline lengths, a guaranteed needle-bearing subset; excludes slender non-Twig bearing wood. Terminal edge counts are not needles or biological axes. Four equal-height structural-span bands; below-span endpoints reported separately. Single-group classification is before pass7.",
+  "cases": [
+    {
+      "seed": 1,
+      "systems": 695,
+      "totals": {
+        "terminal_edges": 20311,
+        "terminal_length_m": 4969.633961552354,
+        "moved_terminal_edges": 7393,
+        "moved_terminal_length_m": 1807.3119194144926,
+        "single_group_terminal_edges": 3749,
+        "single_group_terminal_length_m": 919.5149222366774,
+        "below_structural_span_before": 18506,
+        "below_structural_span_after": 15658
+      },
+      "bands_before": [
+        1487,
+        304,
+        14,
+        0
+      ],
+      "bands_after": [
+        3225,
+        1358,
+        70,
+        0
+      ],
+      "largest_remaining_below_span": [
+        {
+          "root": 2475,
+          "socket": 592,
+          "structural_nodes": 9,
+          "terminal_edges": 47,
+          "terminal_length_m": 11.474024906177583,
+          "moved_terminal_edges": 12,
+          "moved_terminal_length_m": 2.9230997264530134,
+          "single_group_terminal_edges": 2,
+          "single_group_terminal_length_m": 0.4787237086026953,
+          "below_structural_span_before": 47,
+          "below_structural_span_after": 47,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 2676,
+          "socket": 665,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.979089408961807,
+          "moved_terminal_edges": 9,
+          "moved_terminal_length_m": 2.2104578683061455,
+          "single_group_terminal_edges": 5,
+          "single_group_terminal_length_m": 1.2220333845414744,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 2967,
+          "socket": 773,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.980795473275228,
+          "moved_terminal_edges": 15,
+          "moved_terminal_length_m": 3.6759615605903555,
+          "single_group_terminal_edges": 2,
+          "single_group_terminal_length_m": 0.4861619961910317,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "systems": 704,
+      "totals": {
+        "terminal_edges": 20154,
+        "terminal_length_m": 4932.322225253598,
+        "moved_terminal_edges": 7256,
+        "moved_terminal_length_m": 1774.413411769076,
+        "single_group_terminal_edges": 3960,
+        "single_group_terminal_length_m": 971.5274056811062,
+        "below_structural_span_before": 18096,
+        "below_structural_span_after": 15401
+      },
+      "bands_before": [
+        1616,
+        414,
+        28,
+        0
+      ],
+      "bands_after": [
+        3314,
+        1329,
+        110,
+        0
+      ],
+      "largest_remaining_below_span": [
+        {
+          "root": 3196,
+          "socket": 853,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.967324627783269,
+          "moved_terminal_edges": 14,
+          "moved_terminal_length_m": 3.3808648525908365,
+          "single_group_terminal_edges": 4,
+          "single_group_terminal_length_m": 0.9770157890282952,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3319,
+          "socket": 904,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.978444344210397,
+          "moved_terminal_edges": 12,
+          "moved_terminal_length_m": 2.9173566414262706,
+          "single_group_terminal_edges": 7,
+          "single_group_terminal_length_m": 1.7018269623423237,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3004,
+          "socket": 780,
+          "structural_nodes": 9,
+          "terminal_edges": 43,
+          "terminal_length_m": 10.506264097608991,
+          "moved_terminal_edges": 7,
+          "moved_terminal_length_m": 1.7185050523000667,
+          "single_group_terminal_edges": 6,
+          "single_group_terminal_length_m": 1.4781312080893774,
+          "below_structural_span_before": 43,
+          "below_structural_span_after": 43,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "systems": 694,
+      "totals": {
+        "terminal_edges": 19808,
+        "terminal_length_m": 4846.5288234049285,
+        "moved_terminal_edges": 7085,
+        "moved_terminal_length_m": 1732.6024068324916,
+        "single_group_terminal_edges": 3557,
+        "single_group_terminal_length_m": 872.3590360338887,
+        "below_structural_span_before": 18066,
+        "below_structural_span_after": 15663
+      },
+      "bands_before": [
+        1435,
+        289,
+        18,
+        0
+      ],
+      "bands_after": [
+        2988,
+        1073,
+        84,
+        0
+      ],
+      "largest_remaining_below_span": [
+        {
+          "root": 2178,
+          "socket": 489,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.983672502775626,
+          "moved_terminal_edges": 13,
+          "moved_terminal_length_m": 3.1861143196768196,
+          "single_group_terminal_edges": 5,
+          "single_group_terminal_length_m": 1.2033322759885867,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3042,
+          "socket": 804,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.971644079420324,
+          "moved_terminal_edges": 20,
+          "moved_terminal_length_m": 4.886976991696867,
+          "single_group_terminal_edges": 4,
+          "single_group_terminal_length_m": 0.9678192368887725,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3162,
+          "socket": 852,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.985385596130136,
+          "moved_terminal_edges": 16,
+          "moved_terminal_length_m": 3.9265803711668252,
+          "single_group_terminal_edges": 2,
+          "single_group_terminal_length_m": 0.4791852870454536,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 1982700925,
+      "systems": 703,
+      "totals": {
+        "terminal_edges": 20119,
+        "terminal_length_m": 4922.962324523289,
+        "moved_terminal_edges": 7458,
+        "moved_terminal_length_m": 1823.4415720379595,
+        "single_group_terminal_edges": 3857,
+        "single_group_terminal_length_m": 946.1439673583462,
+        "below_structural_span_before": 18082,
+        "below_structural_span_after": 15245
+      },
+      "bands_before": [
+        1623,
+        390,
+        24,
+        0
+      ],
+      "bands_after": [
+        3388,
+        1398,
+        88,
+        0
+      ],
+      "largest_remaining_below_span": [
+        {
+          "root": 2726,
+          "socket": 680,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.970617212723184,
+          "moved_terminal_edges": 8,
+          "moved_terminal_length_m": 1.955886563138708,
+          "single_group_terminal_edges": 5,
+          "single_group_terminal_length_m": 1.2311177975016747,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3065,
+          "socket": 806,
+          "structural_nodes": 9,
+          "terminal_edges": 43,
+          "terminal_length_m": 10.47359336072478,
+          "moved_terminal_edges": 2,
+          "moved_terminal_length_m": 0.4870326527240289,
+          "single_group_terminal_edges": 7,
+          "single_group_terminal_length_m": 1.7033703258518282,
+          "below_structural_span_before": 43,
+          "below_structural_span_after": 43,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3212,
+          "socket": 863,
+          "structural_nodes": 9,
+          "terminal_edges": 43,
+          "terminal_length_m": 10.499846332704635,
+          "moved_terminal_edges": 17,
+          "moved_terminal_length_m": 4.120284412093823,
+          "single_group_terminal_edges": 4,
+          "single_group_terminal_length_m": 0.9801668708673035,
+          "below_structural_span_before": 43,
+          "below_structural_span_after": 43,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 281313742,
+      "systems": 704,
+      "totals": {
+        "terminal_edges": 20562,
+        "terminal_length_m": 5030.889050064836,
+        "moved_terminal_edges": 7713,
+        "moved_terminal_length_m": 1885.509365754227,
+        "single_group_terminal_edges": 4039,
+        "single_group_terminal_length_m": 990.4753420921652,
+        "below_structural_span_before": 18420,
+        "below_structural_span_after": 15415
+      },
+      "bands_before": [
+        1713,
+        406,
+        23,
+        0
+      ],
+      "bands_after": [
+        3490,
+        1547,
+        110,
+        0
+      ],
+      "largest_remaining_below_span": [
+        {
+          "root": 3164,
+          "socket": 837,
+          "structural_nodes": 9,
+          "terminal_edges": 44,
+          "terminal_length_m": 10.739122505996239,
+          "moved_terminal_edges": 11,
+          "moved_terminal_length_m": 2.682127911982949,
+          "single_group_terminal_edges": 5,
+          "single_group_terminal_length_m": 1.2154668076977275,
+          "below_structural_span_before": 44,
+          "below_structural_span_after": 44,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3002,
+          "socket": 775,
+          "structural_nodes": 9,
+          "terminal_edges": 44,
+          "terminal_length_m": 10.749204246264183,
+          "moved_terminal_edges": 8,
+          "moved_terminal_length_m": 1.9531255014826587,
+          "single_group_terminal_edges": 7,
+          "single_group_terminal_length_m": 1.7132283160774187,
+          "below_structural_span_before": 43,
+          "below_structural_span_after": 43,
+          "bands_before": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            1,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3029,
+          "socket": 785,
+          "structural_nodes": 9,
+          "terminal_edges": 43,
+          "terminal_length_m": 10.49230422246948,
+          "moved_terminal_edges": 16,
+          "moved_terminal_length_m": 3.9204461242433126,
+          "single_group_terminal_edges": 3,
+          "single_group_terminal_length_m": 0.7266218668278959,
+          "below_structural_span_before": 43,
+          "below_structural_span_after": 43,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 2271779095,
+      "systems": 691,
+      "totals": {
+        "terminal_edges": 19855,
+        "terminal_length_m": 4858.916019020883,
+        "moved_terminal_edges": 7256,
+        "moved_terminal_length_m": 1774.094344713156,
+        "single_group_terminal_edges": 3692,
+        "single_group_terminal_length_m": 905.879951384622,
+        "below_structural_span_before": 17921,
+        "below_structural_span_after": 15178
+      },
+      "bands_before": [
+        1538,
+        373,
+        23,
+        0
+      ],
+      "bands_after": [
+        3236,
+        1350,
+        91,
+        0
+      ],
+      "largest_remaining_below_span": [
+        {
+          "root": 2803,
+          "socket": 711,
+          "structural_nodes": 9,
+          "terminal_edges": 44,
+          "terminal_length_m": 10.72392433085877,
+          "moved_terminal_edges": 21,
+          "moved_terminal_length_m": 5.097269183329125,
+          "single_group_terminal_edges": 4,
+          "single_group_terminal_length_m": 0.9767667708692175,
+          "below_structural_span_before": 44,
+          "below_structural_span_after": 44,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3034,
+          "socket": 797,
+          "structural_nodes": 9,
+          "terminal_edges": 44,
+          "terminal_length_m": 10.742020565954592,
+          "moved_terminal_edges": 0,
+          "moved_terminal_length_m": 0.0,
+          "single_group_terminal_edges": 7,
+          "single_group_terminal_length_m": 1.6980851148148248,
+          "below_structural_span_before": 44,
+          "below_structural_span_after": 44,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3097,
+          "socket": 822,
+          "structural_nodes": 9,
+          "terminal_edges": 44,
+          "terminal_length_m": 10.736501822234175,
+          "moved_terminal_edges": 8,
+          "moved_terminal_length_m": 1.955849316915493,
+          "single_group_terminal_edges": 6,
+          "single_group_terminal_length_m": 1.47103490813065,
+          "below_structural_span_before": 44,
+          "below_structural_span_after": 44,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 4250668600,
+      "systems": 704,
+      "totals": {
+        "terminal_edges": 20093,
+        "terminal_length_m": 4917.082050118561,
+        "moved_terminal_edges": 7290,
+        "moved_terminal_length_m": 1782.7958386753978,
+        "single_group_terminal_edges": 3847,
+        "single_group_terminal_length_m": 943.5983226360586,
+        "below_structural_span_before": 18202,
+        "below_structural_span_after": 15459
+      },
+      "bands_before": [
+        1500,
+        375,
+        16,
+        0
+      ],
+      "bands_after": [
+        3204,
+        1337,
+        93,
+        0
+      ],
+      "largest_remaining_below_span": [
+        {
+          "root": 2826,
+          "socket": 716,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.979679199231315,
+          "moved_terminal_edges": 14,
+          "moved_terminal_length_m": 3.435281668425709,
+          "single_group_terminal_edges": 6,
+          "single_group_terminal_length_m": 1.4593887432903554,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3183,
+          "socket": 851,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.99696585406384,
+          "moved_terminal_edges": 9,
+          "moved_terminal_length_m": 2.200771015316053,
+          "single_group_terminal_edges": 7,
+          "single_group_terminal_length_m": 1.709943635907096,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "root": 3225,
+          "socket": 868,
+          "structural_nodes": 9,
+          "terminal_edges": 45,
+          "terminal_length_m": 10.963066952115224,
+          "moved_terminal_edges": 3,
+          "moved_terminal_length_m": 0.7331448664492647,
+          "single_group_terminal_edges": 4,
+          "single_group_terminal_length_m": 0.977089030853261,
+          "below_structural_span_before": 45,
+          "below_structural_span_after": 45,
+          "bands_before": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "bands_after": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "bulk": "/tmp/fn99-pass7-whole-secondary-allocation-full.json"
+}

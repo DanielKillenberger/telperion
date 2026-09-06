@@ -1,0 +1,238 @@
+{
+  "production_commit": "3f3533c",
+  "browser_fixture_commit": "972b3bd",
+  "final": [
+    {
+      "name": "native",
+      "command": [
+        "npm",
+        "run",
+        "rust:test"
+      ],
+      "exit_code": 0,
+      "seconds": 125.7732663154602,
+      "log": "/tmp/fn99-fix2-gates/native.log",
+      "sha256": "96813fe97c30ae21389ca63ae904d4a402479b2f2b04a84d534037a564c596e4"
+    },
+    {
+      "name": "harness",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit_code": 0,
+      "seconds": 63.0530788898468,
+      "log": "/tmp/fn99-fix2-gates/harness.log",
+      "sha256": "99a3290bf424630e306eb69fcfdff5c307979c558d2470a1cd5d8defee43fef7"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.26048946380615234,
+      "log": "/tmp/fn99-fix2-gates/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.6684691905975342,
+      "log": "/tmp/fn99-fix2-gates/clippy.log",
+      "sha256": "005601128fd432e70d83cafe0cc34f29043eed9e3f87194c383b7dfe6ead90c8"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "seconds": 2.1082069873809814,
+      "log": "/tmp/fn99-fix2-gates/typecheck.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "seconds": 2.449221134185791,
+      "log": "/tmp/fn99-fix2-gates/build.log",
+      "sha256": "5d059d5e73700d1ff8b36092c15d8807bdc286f7d54056a02c36575c5c01bd4f"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.004839658737182617,
+      "log": "/tmp/fn99-fix2-gates/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.39469051361083984,
+      "log": "/tmp/fn99-fix2-gates/flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    },
+    {
+      "name": "wasm-browser-isolated",
+      "command": [
+        "npm",
+        "run",
+        "rust:test:wasm"
+      ],
+      "exit_code": 0,
+      "seconds": 203.89853477478027,
+      "log": "/tmp/fn99-fix2-gates/wasm-browser-isolated.log",
+      "sha256": "330c7a55899d08d42ac84484d44b3f8ee293e2253425fd76a96e0f57f9044575"
+    },
+    {
+      "name": "final-diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.0036611557006835938,
+      "log": "/tmp/fn99-fix2-gates/final-diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "final-flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.37998437881469727,
+      "log": "/tmp/fn99-fix2-gates/final-flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    },
+    {
+      "name": "runner-syntax",
+      "command": [
+        "node",
+        "--check",
+        "tests/browser/species.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.08068704605102539,
+      "log": "/tmp/fn99-fix2-gates/runner-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "integration-syntax",
+      "command": [
+        "node",
+        "--check",
+        "tests/browser/integration.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07331562042236328,
+      "log": "/tmp/fn99-fix2-gates/integration-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "prior_attempts": [
+    {
+      "name": "wasm-browser",
+      "command": [
+        "npm",
+        "run",
+        "rust:test:wasm"
+      ],
+      "exit_code": 1,
+      "seconds": 1.6027882099151611,
+      "log": "/tmp/fn99-fix2-gates/wasm-browser.log",
+      "sha256": "5db6da816415787a957d7403f0a3c2f7d7689c028943ce4a5126f6ba80351c17"
+    },
+    {
+      "name": "wasm-browser-retry",
+      "command": [
+        "npm",
+        "run",
+        "rust:test:wasm"
+      ],
+      "exit_code": 1,
+      "seconds": 1.7256531715393066,
+      "log": "/tmp/fn99-fix2-gates/wasm-browser-retry.log",
+      "sha256": "9c7a3b173fd07ead795cba26e82afad213f07cc471fc0e454631bcb514e915c1"
+    },
+    {
+      "name": "wasm-browser-final",
+      "command": [
+        "npm",
+        "run",
+        "rust:test:wasm"
+      ],
+      "exit_code": -15,
+      "seconds": 331.371399641037,
+      "log": "/tmp/fn99-fix2-gates/wasm-browser-final.log",
+      "sha256": "c99b974d60b4c0ede75e9c697a7b2db4c524212113445befefb39ba005bcf08d"
+    },
+    {
+      "name": "wasm-browser-complete",
+      "outer_exec_exit_code": 143,
+      "subprocess_exit_code": null,
+      "log": "/tmp/fn99-fix2-gates/wasm-browser-complete.log",
+      "assertions": "All assertions reported success and viewer.json saved, but executor shell ended before collecting subprocess status. Replayed with isolated recorder."
+    }
+  ],
+  "notes": [
+    "Initial capped binding fixture had no oak foliage after expanded scaffolds. Now explicitly small (3 limbs, 2 subdivisions), with complete-without-truncation assertion; all identity, anatomy, ownership, malformed/empty, bounds, orbit, UI, seed and recovery assertions retained.",
+    "A fresh Vite server avoids mixed live-module initialization after build.",
+    "One slow orbit attempt was stopped after the binding fixture fix; consistent small oak rendering/UI fixtures were added.",
+    "All mature fidelity captures are separate and use unchanged full preset parameters without generation caps.",
+    "The isolated recorder runs in its own process group and records explicit subprocess exit 0."
+  ],
+  "capture_replay": {
+    "name": "capture-receipt-replay",
+    "command": [
+      "node",
+      "tests/browser/species.mjs",
+      "--capture-only",
+      "--output",
+      "/tmp/fn99-fix2-qa",
+      "--timeout-ms",
+      "600000"
+    ],
+    "exit_code": 1,
+    "expected_exit_code": 1,
+    "reason": "Automated runner never grants visual approval; successful matching receipts reused.",
+    "seconds": 0.8473749160766602,
+    "log": "/tmp/fn99-fix2-gates/capture-receipt-replay.log",
+    "sha256": "c816bb852b99ae8cf95674116bbf6c9fcc598e04c106064b69a37f3b95591285"
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "generation_commit": "d8a3bff",
+  "final": [
+    {
+      "name": "native",
+      "command": [
+        "npm",
+        "run",
+        "rust:test"
+      ],
+      "exit_code": 0,
+      "seconds": 189.1501259803772,
+      "log": "/tmp/fn99-pass7-gates/native.log",
+      "sha256": "79cef031d40ad1f030db9829299d70be53cbf12f3429c4bbcb8cdcb77e023d2a"
+    },
+    {
+      "name": "harness",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit_code": 0,
+      "seconds": 66.23325204849243,
+      "log": "/tmp/fn99-pass7-gates/harness.log",
+      "sha256": "16abb9c2a6093e4b2f0ad815fea3832c0d7c753f7172b7613b4aba927db6c336"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.26436376571655273,
+      "log": "/tmp/fn99-pass7-gates/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.11764216423034668,
+      "log": "/tmp/fn99-pass7-gates/clippy.log",
+      "sha256": "99f71393b9903dca098310bb446022a4bdee195ea9996f351a787195555210a6"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "seconds": 2.5780112743377686,
+      "log": "/tmp/fn99-pass7-gates/typecheck.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "seconds": 9.32113766670227,
+      "log": "/tmp/fn99-pass7-gates/build.log",
+      "sha256": "f3f54d55d9d2d7f697a0e6091132835d126ac83951b88a69c9ad4e62a9fce722"
+    },
+    {
+      "name": "wasm-browser",
+      "command": [
+        "npm",
+        "run",
+        "rust:test:wasm"
+      ],
+      "exit_code": 0,
+      "seconds": 229.81995558738708,
+      "log": "/tmp/fn99-pass7-gates/wasm-browser.log",
+      "sha256": "9fb954eaa407dbe016acabb7eec9db24ebb0306c7d7d03f4ed96373c04b4dbe5"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.002991914749145508,
+      "log": "/tmp/fn99-pass7-gates/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.39817023277282715,
+      "log": "/tmp/fn99-pass7-gates/flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    }
+  ],
+  "status": "All integrated software gates pass. Capture and botanical assessment remain separate.",
+  "initial_attempts": [
+    {
+      "name": "allocation-analysis",
+      "status": "failed: system Python lacks Pillow",
+      "replacement": "Re-ran successfully under existing /tmp/fn99-pass5-venv"
+    },
+    {
+      "name": "numeric-metadata",
+      "status": "superseded: runtime rustc resolved system version",
+      "replacement": "Verified replay uses required toolchain homes and rustc 1.98.1, exit 0"
+    }
+  ],
+  "initial_capture": {
+    "command": [
+      "python3",
+      "/tmp/fn99-pass5-capture.py",
+      "/tmp/fn99-pass7-qa"
+    ],
+    "exit_code": 1,
+    "seconds": 59.64919471740723,
+    "log": "/tmp/fn99-pass7-capture-process/run.log",
+    "sha256": "adf412235f97b3dd01af9956f40c3ca252e45f3713a2db8cc85de6e77e2adde8"
+  },
+  "capture_fix": "6046e59 uses stable preset IDs; all initial 156 failures require replacement. Verified recorder is /tmp/fn99-pass7-capture-verified.",
+  "concurrent_capture_attempt": {
+    "command": [
+      "python3",
+      "/tmp/fn99-pass7-capture.py",
+      "/tmp/fn99-pass7-qa"
+    ],
+    "exit_code": -15,
+    "seconds": 1249.8595027923584,
+    "log": "/tmp/fn99-pass7-capture-verified/run.log",
+    "sha256": "fb245df7ae8a61a5db5cb0935f54354639b1e95dab5dfcac587b747b78f603ca"
+  },
+  "concurrent_capture_note": "Two browsers succeeded for detail views and protected oaks, then mature spruce workers crashed. Runner stopped and outstanding worker process groups terminated; final serial recorder replaces all failed/interrupted work while retaining verified successes."
+}

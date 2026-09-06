@@ -6,8 +6,10 @@ use crate::{
     math::Vec3,
     Error, Result,
 };
-pub use element::{build_element, Element, ElementParams};
-pub use placement::{place, CanopyParams, TwigPlacement};
+pub use element::{
+    build_element, AnatomyGeometry, Element, ElementAnatomy, ElementParams, FoliageUnit,
+};
+pub use placement::{place, place_on_surface, Attachment, CanopyParams, TwigPlacement};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {
@@ -113,7 +115,7 @@ pub fn cull(
                 return Err(Error::ResourceLimit("foliage transform overflow"));
             }
         }
-        let mut keep = element.positions.is_empty();
+        let mut keep = false;
         for v in &element.positions {
             let p = transform_point(m, *v);
             if !p.is_finite() || [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {

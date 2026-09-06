@@ -98,6 +98,21 @@ pub extern "C" fn preset(id: u32) -> u32 {
         status(&mut e, params::preset(id).map(|f| params::metadata(&f)))
     })
 }
+/// Generated catalogue carries explicit identities and stable numeric ABI IDs.
+#[no_mangle]
+pub extern "C" fn catalogue() -> u32 {
+    ENGINE.with(|e| {
+        let mut e = e.borrow_mut();
+        let entries: Vec<_> = params::CATALOGUE
+            .iter()
+            .map(|&(abi_id, id, name, note)| {
+                json!({"abiId": abi_id, "id": id, "name": name, "note": note,
+                "family": params::metadata(&params::preset(abi_id).expect("catalogue identity"))})
+            })
+            .collect();
+        status(&mut e, Ok(json!(entries)))
+    })
+}
 #[no_mangle]
 pub extern "C" fn release() {
     ENGINE.with(|e| {
@@ -187,9 +202,10 @@ fn generate(v: Value) -> Result<(Output, Value)> {
     let mut leaf_bounds = Value::Null;
     let needs_foliage = wants("foliage") || wants("field");
     let mut element = None;
+    let mut anatomy = Value::Null;
     if needs_foliage {
         let blade = foliage::build_element(f.element)?;
-        let placed = foliage::place(
+        let placed = foliage::place_on_surface(
             &tree,
             f.skeleton.envelope,
             f.skeleton.seed,
@@ -198,10 +214,17 @@ fn generate(v: Value) -> Result<(Output, Value)> {
                 internode_length: t.twig.internode_length,
                 stations_per_internode: t.twig.stations_per_internode,
             }),
+            &f.surface,
         )?;
         placed_count = placed.matrices.len();
         out.instances = foliage::cull(&placed, &blade, f.skeleton.envelope, f.shell_depth)?;
         if wants("foliage") {
+            anatomy = blade.anatomy.as_ref().map_or(Value::Null, |a| json!({
+                "unit": match a.unit { foliage::FoliageUnit::Leaf => "leaf", foliage::FoliageUnit::Needle => "needle" },
+                "vertices": [a.vertices.start, a.vertices.end],
+                "indices": [a.indices.start, a.indices.end],
+                "sections": a.sections.iter().map(|r| [r.start, r.end]).collect::<Vec<_>>()
+            }));
             leaf_bounds = out
                 .instances
                 .bounds(&blade)?
@@ -263,6 +286,8 @@ fn generate(v: Value) -> Result<(Output, Value)> {
         "leavesPlaced":placed_count,"instances":retained_count,
         "surfaceBounds":out.surface.as_ref().and_then(|s|s.bounds).map(|b|bounds(b.min,b.max)),
         "foliageBounds":leaf_bounds,
+        "foliageAnatomy":anatomy,
+        "biologicalUnits": if element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
         "fieldBounds":out.field.as_ref().and_then(Field::bounds).map(|b|bounds(b.min,b.max)),
         "fieldBytes":out.field.as_ref().map_or(0,Field::storage_bytes),
         "timings":{"growthMs":growth_ms,"surfaceMs":surface_ms,"foliageMs":foliage_ms,"fieldMs":field_ms,"coreMs":clock()-started},

@@ -1,0 +1,15 @@
+{
+  "base_commit": "87bbd63",
+  "commits": [
+    "5a40d45a7988f4231cff42a33c299d01ffc9b7a8"
+  ],
+  "tests": [
+    "cargo test --release -p telperion-core --test species --test species_metrics --test foliage --test growth --test surface: 37 passed; all 12 fixed seeds per species",
+    "cargo check --workspace: passed",
+    "cargo fmt --all --check: passed",
+    "git diff --check: passed",
+    "species_measure on committed calibration: all 24 spruce/oak fixed cases pass"
+  ],
+  "prs": [],
+  "visual_status": "Diagnostic captures only; final visual acceptance belongs to task 9. See conifer.md."
+}

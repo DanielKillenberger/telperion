@@ -1,0 +1,233 @@
+{
+  "status": "native, harness, fmt, clippy, typecheck, flow and isolated Wasm/browser pass; capture-only frustum change verified separately",
+  "generation_commit": "99112c4",
+  "final": [
+    {
+      "name": "native",
+      "command": [
+        "npm",
+        "run",
+        "rust:test"
+      ],
+      "exit_code": 0,
+      "seconds": 185.54572463035583,
+      "log": "/tmp/fn99-fix4-gates/native.log",
+      "sha256": "3ccb90cb9b99a007124c8ca296db0ff43caf39ade5683aeac14050550e05c5e2"
+    },
+    {
+      "name": "harness",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit_code": 0,
+      "seconds": 71.57961249351501,
+      "log": "/tmp/fn99-fix4-gates/harness.log",
+      "sha256": "19241c8346aeb5698b2c4fa9a0a3948c47f243abf18d33a5cd129352e23ce29a"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.2705259323120117,
+      "log": "/tmp/fn99-fix4-gates/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.14114785194396973,
+      "log": "/tmp/fn99-fix4-gates/clippy.log",
+      "sha256": "8c233a54790c4800d3dd585436af679aa838da259bfdb129412e2d51cdb75cdc"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "seconds": 3.0167200565338135,
+      "log": "/tmp/fn99-fix4-gates/typecheck.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.009640693664550781,
+      "log": "/tmp/fn99-fix4-gates/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.43763017654418945,
+      "log": "/tmp/fn99-fix4-gates/flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "seconds": 3.194701910018921,
+      "log": "/tmp/fn99-fix4-build/run.log",
+      "sha256": "17a749bc2f28c61379095b32b2b371cb660c3124cfed040049c9d255b5681af7"
+    }
+  ],
+  "numeric_exit": {
+    "command": [
+      "node",
+      "tests/browser/species.mjs",
+      "--measure-only",
+      "--output",
+      "/tmp/fn99-fix4-final-replay"
+    ],
+    "exit_code": 0,
+    "seconds": 407.06965136528015,
+    "log": "/tmp/fn99-fix4-final-replay/run.log",
+    "sha256": "b756a46105764596cd340a87fa06163ed5be080b30da386a8789a8d126065672"
+  },
+  "attempts": [
+    {
+      "name": "initial numeric contact projection",
+      "receipt": {
+        "command": [
+          "node",
+          "tests/browser/species.mjs",
+          "--measure-only",
+          "--output",
+          "/tmp/fn99-fix4-replay"
+        ],
+        "exit_code": 1,
+        "seconds": 353.42689299583435,
+        "log": "/tmp/fn99-fix4-replay/run.log",
+        "sha256": "2d56d891e8ff26ccdf955639a3c4f19bcf802a1d36f3b27f27c2813db275502d"
+      },
+      "note": "Pre-fix ray misses at bent finite sweeps; every original seed retained and final replay passes 48/48."
+    },
+    {
+      "name": "concurrent mature capture",
+      "receipt": {
+        "command": [
+          "python3",
+          "/tmp/fn99-pass4-capture.py"
+        ],
+        "exit_code": -15,
+        "seconds": 402.16537380218506,
+        "log": "/tmp/fn99-fix4-qa/run.log",
+        "sha256": "2e683367474348299339983571f39facdcdac5a6c6199a232b0de9f06accdad1"
+      },
+      "note": "Several page targets crashed during concurrent native/capture work. Scheduler deliberately stopped with SIGTERM; active workers allowed to finish. Missing captures retried serially and failed receipts/logs preserved."
+    },
+    {
+      "name": "serial capture before offscreen optimization",
+      "receipt": {
+        "command": [
+          "python3",
+          "/tmp/fn99-pass4-capture.py"
+        ],
+        "exit_code": -15,
+        "seconds": 516.8125460147858,
+        "log": "/tmp/fn99-fix4-qa/serial-retry/run.log",
+        "sha256": "9f3884ba61311c6d699b195df3736e9d111a74da6b7775b807ed4be152251b89"
+      },
+      "note": "Deliberately stopped scheduler between workers for verified capture-only optimization. Final scheduler exits 0 and all 75 final receipts/PNGs inspected."
+    }
+  ],
+  "notes": [
+    "REVIEW_MODE=none; no reviewer/agent matrix, Claude, Cloud Agents, PR, merge or owner approval.",
+    "Recorder and command each use a new session, with log files instead of inherited tool pipes. Explicit child exit is saved after wait."
+  ],
+  "wasm_browser": {
+    "command": [
+      "npm",
+      "run",
+      "rust:test:wasm"
+    ],
+    "exit_code": 0,
+    "seconds": 285.01866364479065,
+    "log": "/tmp/fn99-fix4-browser/run.log",
+    "sha256": "8fb67e9e877549c8e5115de3094130b83cedb38a2e2ff2571d4568c6059096ff"
+  },
+  "frustum_equivalence": "pass4-frustum-equivalence.json",
+  "wasm_after_build_sha256": "d36a2433cbfbfc63113d4b182d57a6ec85d77d20dec147b5fc515c05fd85567d",
+  "mature_capture_final": {
+    "command": [
+      "python3",
+      "/tmp/fn99-pass4-capture.py"
+    ],
+    "exit_code": 0,
+    "seconds": 1065.1376814842224,
+    "log": "/tmp/fn99-fix4-qa/frustum-final/run.log",
+    "sha256": "bc2de5dd4cc457ca8694dba0953ef35c3865dc5b5ad4102f35d7a2d6a6ec5bdb"
+  },
+  "final_evidence_checks": [
+    {
+      "name": "capture-syntax",
+      "command": [
+        "node",
+        "--check",
+        "tests/browser/species.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.08622417703736573,
+      "log": "/tmp/fn99-fix4-gates/capture-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "final-diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.003640976035967469,
+      "log": "/tmp/fn99-fix4-gates/final-diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "final-flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.39816694194450974,
+      "log": "/tmp/fn99-fix4-gates/final-flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    }
+  ]
+}

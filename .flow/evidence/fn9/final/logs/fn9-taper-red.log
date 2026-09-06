@@ -1,0 +1,21 @@
+   Compiling telperion-core v0.1.0 (/tmp/telperion-fn9-fidelity/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 5.00s
+     Running tests/terminal_taper.rs (target/release/deps/terminal_taper-2df4b94ad105715c)
+
+running 1 test
+
+thread 'only_childless_species_structure_gets_terminal_taper' (112172) panicked at crates/telperion-core/tests/terminal_taper.rs:40:13:
+assertion `left == right` failed: NorwaySpruce node 46: only a true terminal may change
+  left: Node { position: Vec3 { x: 0.0, y: 15.0, z: 0.0 }, parent: Some(45), radius: 0.0020453934478184563, start_radius: 0.002072247245529493, base_radius: 0.0, branch: 46, kind: Structural }
+ right: Node { position: Vec3 { x: 0.0, y: 15.0, z: 0.0 }, parent: Some(45), radius: 0.00025, start_radius: 0.002072247245529493, base_radius: 0.0, branch: 46, kind: Structural }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test only_childless_species_structure_gets_terminal_taper ... FAILED
+
+failures:
+
+failures:
+    only_childless_species_structure_gets_terminal_taper
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+error: test failed, to rerun pass `-p telperion-core --test terminal_taper`

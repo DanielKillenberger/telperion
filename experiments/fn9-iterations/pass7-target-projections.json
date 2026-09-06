@@ -1,0 +1,705 @@
+{
+  "method": "Exact retained centreline probes projected through each recorded perspective camera solely to identify which visible branch belongs to the target. Not surface-contact, taper or visibility evidence; no seam acceptance follows.",
+  "views": [
+    {
+      "view": "socket-root-elev+30az000-front",
+      "pngSha256": "568454272f5c8f33b948f3c523bcc3c0f4f1fe505286e9b5e65b6a02fa3d8006",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        411.22827119702293,
+        494.8176606748553
+      ]
+    },
+    {
+      "view": "socket-root-elev+30az060-front",
+      "pngSha256": "bae5ba3e5450bc47e5767594633104e80e8fdb790a12bf5ce5589ac3e71aadb3",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        645.0956256498848,
+        261.42456833102875
+      ]
+    },
+    {
+      "view": "socket-root-elev+30az120-front",
+      "pngSha256": "9e6d6e3c8eb735645e9fd5c95649dda62b09216eb23da16ee6d37382f4ae3209",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        638.9729202763829,
+        291.5292146839792
+      ]
+    },
+    {
+      "view": "socket-root-elev+30az180-front",
+      "pngSha256": "8c2438613b4b94ec978417e20b148276e7e391eca3f0144233f2e7d874b8a4b3",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        658.6372672613963,
+        299.9086798002139
+      ]
+    },
+    {
+      "view": "socket-root-elev+30az240-front",
+      "pngSha256": "b7d701d25c7ff47b8472565aa34316f381d2d5985aba5f8c1113455c6909afe6",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        360.00000000000006
+      ],
+      "departing_10mm_probe_pixel": [
+        559.3210093680535,
+        207.80811070489125
+      ]
+    },
+    {
+      "view": "socket-root-elev+30az300-front",
+      "pngSha256": "f72183d82e9ed7257045d9761ae08e9738eeba287dacb1e41f33589d221bf82b",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        437.75511656352467,
+        321.7683355190724
+      ]
+    },
+    {
+      "view": "socket-root-elev+60az000-front",
+      "pngSha256": "4f9cba7865bae4501260b08b707ebcffdf23572a162b20e992778b4898be45e9",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        359.99999999999994
+      ],
+      "departing_10mm_probe_pixel": [
+        573.6882752753381,
+        450.16823946306505
+      ]
+    },
+    {
+      "view": "socket-root-elev+60az060-front",
+      "pngSha256": "613537b12f4cee1a1d7fda15cd4372673d27b1608882e4b1fd6f64e6fa5d2aac",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.00000000000006
+      ],
+      "departing_10mm_probe_pixel": [
+        664.2267248790413,
+        371.85026685023774
+      ]
+    },
+    {
+      "view": "socket-root-elev+60az120-front",
+      "pngSha256": "3af20cd76bd081f3ed7dd9cd3e72926e9002804528df753286f9c93fdd425747",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        667.3396221792469,
+        314.5216282535335
+      ]
+    },
+    {
+      "view": "socket-root-elev+60az180-front",
+      "pngSha256": "b0088e25da2079d8845f4d4137b7e19f156c584d55f492ec58bde4866b12e6a2",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        657.4358994061823,
+        295.31761064912337
+      ]
+    },
+    {
+      "view": "socket-root-elev+60az240-front",
+      "pngSha256": "98a0d83ef51eeacd07d26706b528d586626bb63c0ca93cafae0050ed67fceecb",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        605.5750146454565,
+        281.14370083156246
+      ]
+    },
+    {
+      "view": "socket-root-elev+60az300-front",
+      "pngSha256": "2c2687bc6ae2843f9d36c7af3652e38cfc5016860ab57aa0b2388cb76a127f30",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        548.176244091298,
+        357.4611853179184
+      ]
+    },
+    {
+      "view": "socket-root-elev-30az000-front",
+      "pngSha256": "af363befe98591ebe84aeeed3bb657da3c21366a529122dfa83f0151588e0b4a",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        299.0030454539252,
+        299.1149108047026
+      ]
+    },
+    {
+      "view": "socket-root-elev-30az060-front",
+      "pngSha256": "be2fc656a55409050c13b07d27d2f525f87beabc68369d20e8b56f469873ab98",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        359.99999999999994
+      ],
+      "departing_10mm_probe_pixel": [
+        416.0370652901105,
+        237.27539077082918
+      ]
+    },
+    {
+      "view": "socket-root-elev-30az120-front",
+      "pngSha256": "020098ac174134971ddd26d098e7fa744c3c3e7166469cff4290870542d28f48",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        509.6045293664067,
+        333.2078694085121
+      ]
+    },
+    {
+      "view": "socket-root-elev-30az180-front",
+      "pngSha256": "5524071cc3a84a783087936ed1019239b9a70b186c662741f21d633bd4ff4115",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        532.8488130974744,
+        463.6029408487942
+      ]
+    },
+    {
+      "view": "socket-root-elev-30az240-front",
+      "pngSha256": "5b0d20f8f153e4a67f48f220b5ce80031be75a900642a5eb1a9cdc7a1f826aa5",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        320.47973924728603,
+        264.7535117799373
+      ]
+    },
+    {
+      "view": "socket-root-elev-30az300-front",
+      "pngSha256": "799c0468c858e4e407e01bd81262cdc08ea79e0eb9185b9b03d860b5989a971e",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        303.74017800773936,
+        284.0836212199529
+      ]
+    },
+    {
+      "view": "socket-root-elev-60az000-front",
+      "pngSha256": "622304bcc21887415749997c491ccf858f7f79d2e47f19c844b013048bf88dc3",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        325.1626617038412,
+        303.55567821820057
+      ]
+    },
+    {
+      "view": "socket-root-elev-60az060-front",
+      "pngSha256": "35583b3579710c8499b9e2b33e572c72ebbeec0724bb5fcf7acaf5b10130de82",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        384.0406349326905,
+        299.7411943679605
+      ]
+    },
+    {
+      "view": "socket-root-elev-60az120-front",
+      "pngSha256": "ec4be2b981f182ffb96ba3adf1c9161f02184e49b64a6df0882d1e7c6f044c2f",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        431.9706165398823,
+        358.21143412158955
+      ]
+    },
+    {
+      "view": "socket-root-elev-60az180-front",
+      "pngSha256": "58de48754660ad72dec0af7956b796c39927fc808926a0876ac770709248ba44",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        360.00000000000006
+      ],
+      "departing_10mm_probe_pixel": [
+        410.3813039987589,
+        427.0029972661761
+      ]
+    },
+    {
+      "view": "socket-root-elev-60az240-front",
+      "pngSha256": "bfa8fdd807b5e6d51e83c8e34091fb8a72ade2b5e2e35afed17e367014f44bd6",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        359.99999999999994
+      ],
+      "departing_10mm_probe_pixel": [
+        323.60743224087355,
+        370.05985240499905
+      ]
+    },
+    {
+      "view": "socket-root-elev-60az300-front",
+      "pngSha256": "cd5586aa546d78d057ef1a94530553cffd0208af66b492953b03bcd2632bb35d",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        307.77228692553825,
+        318.19017958331386
+      ]
+    },
+    {
+      "view": "socket-root-front",
+      "pngSha256": "251dc5aeff70c2aa8137e1099ea48680926fbfe0297de984fc1247e4929f4f6f",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        359.99999999999994
+      ],
+      "departing_10mm_probe_pixel": [
+        309.40107508573305,
+        409.8786381480485
+      ]
+    },
+    {
+      "view": "socket-tip-elev+30az000-front",
+      "pngSha256": "3485292748a855a9a96b494df70f2053f6d25b77554f4d3e99712a8815c10ec3",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.00000000000773
+      ],
+      "departing_10mm_probe_pixel": [
+        326.86971343685923,
+        367.19968525617355
+      ]
+    },
+    {
+      "view": "socket-tip-elev+30az060-front",
+      "pngSha256": "8e6ed07af119dd038b9c602b4ccb9d7eb2bb2b6ac430d398e98a3884faedf992",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0000000000078
+      ],
+      "departing_10mm_probe_pixel": [
+        307.3286970100082,
+        446.2338444156904
+      ]
+    },
+    {
+      "view": "socket-tip-elev+30az120-front",
+      "pngSha256": "36ccdbdb954a4b9d45d4913b4fb5420e6eb0a30dc60d0326a13682da4abc0f95",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000025
+      ],
+      "departing_10mm_probe_pixel": [
+        356.8935937016163,
+        498.18524349286554
+      ]
+    },
+    {
+      "view": "socket-tip-elev+30az180-front",
+      "pngSha256": "18927811c9c3b6ab89775c62ac91c90dffbd2f1aed53e1098bdfce9bb09b58cd",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000059
+      ],
+      "departing_10mm_probe_pixel": [
+        639.4456802997158,
+        467.44344645757616
+      ]
+    },
+    {
+      "view": "socket-tip-elev+30az240-front",
+      "pngSha256": "62c5e828b717ae6e2844bdfd84f06b1c038ba5ebbbad9e10ad8778a33184184b",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0000000000084
+      ],
+      "departing_10mm_probe_pixel": [
+        639.9517416598061,
+        417.25953902440847
+      ]
+    },
+    {
+      "view": "socket-tip-elev+30az300-front",
+      "pngSha256": "b2e4152531495ecc0a0a5ce2bb3d416afa5b162eea59e6b07820a70af119d048",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000064
+      ],
+      "departing_10mm_probe_pixel": [
+        521.3524269946045,
+        276.8593971272191
+      ]
+    },
+    {
+      "view": "socket-tip-elev+60az000-front",
+      "pngSha256": "3982b77f24bd50d029b378e1d896d66a3e52fa42b11498485a7e5819cc50fb61",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000084
+      ],
+      "departing_10mm_probe_pixel": [
+        388.6998887707824,
+        420.0968890328104
+      ]
+    },
+    {
+      "view": "socket-tip-elev+60az060-front",
+      "pngSha256": "a1f3906ede451129426c3ed86f3e1a281046514e00bc84ae5d04b05ce3d70700",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000077
+      ],
+      "departing_10mm_probe_pixel": [
+        364.35133111968145,
+        488.45005960910976
+      ]
+    },
+    {
+      "view": "socket-tip-elev+60az120-front",
+      "pngSha256": "0449e838cd1ae1686542a8b770e5e312ca212d475bc790fdf8e670129731b3fe",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000058
+      ],
+      "departing_10mm_probe_pixel": [
+        436.1504792979295,
+        542.31577696418
+      ]
+    },
+    {
+      "view": "socket-tip-elev+60az180-front",
+      "pngSha256": "1988801d192df8f99d724df973944fa059d648c75d2eb67c137d30f013ddcc25",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0000000000069
+      ],
+      "departing_10mm_probe_pixel": [
+        557.4960753361719,
+        521.5689648616541
+      ]
+    },
+    {
+      "view": "socket-tip-elev+60az240-front",
+      "pngSha256": "89f8d7367fd899b624a8e2722b5fe711f717d6447f7f2fded58ea87821c81f32",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.00000000000836
+      ],
+      "departing_10mm_probe_pixel": [
+        568.9914903365874,
+        454.1801861796182
+      ]
+    },
+    {
+      "view": "socket-tip-elev+60az300-front",
+      "pngSha256": "c1b45f639b7f84d6ff5ffa592abce7f211b74f9917c56f0c9d6d43e9721cd7fd",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.00000000000824
+      ],
+      "departing_10mm_probe_pixel": [
+        490.58331522537793,
+        388.09512611960315
+      ]
+    },
+    {
+      "view": "socket-tip-elev-30az000-front",
+      "pngSha256": "7e3e0bc08d74ea61f34889d3db060a676504749bb098c96c96b8b806e6028360",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000059
+      ],
+      "departing_10mm_probe_pixel": [
+        325.88271877447187,
+        463.85287216571743
+      ]
+    },
+    {
+      "view": "socket-tip-elev-30az060-front",
+      "pngSha256": "e9a8966c110c8a6416eb9eaee5201c2f88cae20c5088ff53212fbddf7ddaa5d1",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.00000000000836
+      ],
+      "departing_10mm_probe_pixel": [
+        351.6786988070919,
+        405.93647106978995
+      ]
+    },
+    {
+      "view": "socket-tip-elev-30az120-front",
+      "pngSha256": "1e80e1cbfce1d066dfe1eac0237374db3f0d440a271b1880da51e41b641a440f",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.00000000000625
+      ],
+      "departing_10mm_probe_pixel": [
+        450.40770610738196,
+        300.50358507514466
+      ]
+    },
+    {
+      "view": "socket-tip-elev-30az180-front",
+      "pngSha256": "ab263dc99f94378a9e06656138bc8d1625788cf39a217982bb6ce2b03bd17f35",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0000000000076
+      ],
+      "departing_10mm_probe_pixel": [
+        598.1188655462261,
+        365.55356274605055
+      ]
+    },
+    {
+      "view": "socket-tip-elev-30az240-front",
+      "pngSha256": "d5a48581d6b142eeee008fc4cfe20a749231d8702cc37b91bbeb8d5f8491d3ef",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.00000000000773
+      ],
+      "departing_10mm_probe_pixel": [
+        640.5603487360428,
+        440.18550791288925
+      ]
+    },
+    {
+      "view": "socket-tip-elev-30az300-front",
+      "pngSha256": "e496704cb4de47647d1a27bd3844592df2611d20b6b465cd95764ae7395e8f1c",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000025
+      ],
+      "departing_10mm_probe_pixel": [
+        608.0534764627694,
+        503.73826153471293
+      ]
+    },
+    {
+      "view": "socket-tip-elev-60az000-front",
+      "pngSha256": "aecccd685f540f304cb9702e9e40618d812c2311d5f17a65317facd8966718d8",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.00000000000693
+      ],
+      "departing_10mm_probe_pixel": [
+        415.8398995188309,
+        493.7652387581443
+      ]
+    },
+    {
+      "view": "socket-tip-elev-60az060-front",
+      "pngSha256": "3802e9d424672b68217003a54f19dd730491c6eddf8a0b013f4b23f3d740ae4f",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.00000000000836
+      ],
+      "departing_10mm_probe_pixel": [
+        413.91101549710015,
+        429.942337647828
+      ]
+    },
+    {
+      "view": "socket-tip-elev-60az120-front",
+      "pngSha256": "d2c73535e80535b53926054d009514a955a366b620a51fa32f54aa1eb8c8b814",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0000000000083
+      ],
+      "departing_10mm_probe_pixel": [
+        472.6460495388755,
+        379.5222537817996
+      ]
+    },
+    {
+      "view": "socket-tip-elev-60az180-front",
+      "pngSha256": "4d95062f7627d548eb0e96e655c6178623ef8e61ec7a9184f3a25626578f0e56",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000084
+      ],
+      "departing_10mm_probe_pixel": [
+        546.2695879286076,
+        403.6209334071556
+      ]
+    },
+    {
+      "view": "socket-tip-elev-60az240-front",
+      "pngSha256": "dea7f18e5039c76930f3803587d4469d224225c98a6168924ead4a5c4b557342",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0000000000078
+      ],
+      "departing_10mm_probe_pixel": [
+        573.6104416727312,
+        463.9723753789237
+      ]
+    },
+    {
+      "view": "socket-tip-elev-60az300-front",
+      "pngSha256": "9e66ad61acae77c0bfe29638fab85f82f8ae3e54a7d4fd67ed1bc5836206066d",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.00000000000585
+      ],
+      "departing_10mm_probe_pixel": [
+        517.8860676848218,
+        517.5211713944607
+      ]
+    },
+    {
+      "view": "socket-tip-front",
+      "pngSha256": "e134f085c8574ebd63f3e6f39e373b650cc40e8efdbbcda78033b4712a982e53",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0000000000067
+      ],
+      "departing_10mm_probe_pixel": [
+        297.26187751668283,
+        370.8588283590898
+      ]
+    }
+  ]
+}

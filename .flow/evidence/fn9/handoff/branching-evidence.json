@@ -1,0 +1,23 @@
+{
+  "commits": [
+    "fc2add4a01efdbbe45c63e6084e2606e99f7a747"
+  ],
+  "base_commit": "de230d59391ead7f1382aae5f695a5c2f5f96754",
+  "tests": [
+    "baseline: green \u2014 cargo test --release -p telperion-core --test growth --test foliage --test colonization (19 tests), npm run typecheck",
+    "red: natural_bias_is_independent_of_disabled_effects \u2014 expected missing SupernaturalParams API",
+    "red: three habit tests \u2014 expected missing BranchHabit API",
+    "red: clipped_local_axis_still_subdivides_before_its_terminal_twig \u2014 1 branch origin, required >=3",
+    "red: spreading_habit_subdivides_crooked_substantial_axes_without_effects with local bend disabled \u2014 0 local bends, required >10",
+    "cargo test --release -p telperion-core --test growth --test foliage --test colonization \u2014 passed 23 tests before final local bend changes",
+    "cargo test --release --workspace \u2014 passed before final local bend and minimum leader segment changes; pinned external reference tests ignored by existing annotations",
+    "cargo test --release -p telperion-core --test growth \u2014 final code passed 13 tests, /tmp/fn9-branching-green-local-bends.log",
+    "cargo fmt --all \u2014 ran before final minimum leader segment signature edit",
+    "Final gate classify/full verification not run: user explicitly stopped implementation; task remains in_progress",
+    "Integrated HEAD fc2add4a01efdbbe45c63e6084e2606e99f7a747: cargo test --release -p telperion-core --test growth --test colonization \u2014 18 passed; .flow/tmp/fn9-integrated-branching.log",
+    "Integrated: cargo test --release --workspace \u2014 54 passed, 4 existing external-reference tests ignored; .flow/tmp/fn9-integrated-workspace-tests.log",
+    "Integrated: cargo check --workspace; cargo fmt --all --check; git diff --check \u2014 passed",
+    "Integrated: npm run typecheck \u2014 passed after npm ci --ignore-scripts restored missing local dependencies; .flow/tmp/fn9-integrated-typecheck.log"
+  ],
+  "prs": []
+}

@@ -1,7 +1,9 @@
 //! Independent, closed swept shells over solved tree paths. Buffers are caller-owned.
 use crate::{math::Vec3, tree::Tree, Error, Result};
+mod attachment;
 mod frames;
 mod paths;
+pub(crate) use attachment::AttachmentSurface;
 use frames::frames;
 use paths::paths;
 
@@ -91,6 +93,66 @@ fn vertex(out: &mut Vec<f32>, p: Vec3) -> Result<()> {
     out.extend(xyz);
     Ok(())
 }
+
+fn sample_path(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
+    path_nodes: &[usize],
+    trunk: bool,
+    distance: &[f64],
+    samples: &mut Vec<Sample>,
+) {
+    let nodes = &tree.nodes;
+    let depth = params.lobe_depth;
+    let segments = params.radial_segments.max(params.lobes * 4) as usize;
+    let burial = params.flare_depth * height;
+    let socket = params.fork_socket;
+    let swell = params.fork_swell;
+    let flare = |y: f64| {
+        1.0 + (params.flare_radius - 1.0) * (-y.max(0.0) / (params.flare_falloff * height)).exp()
+    };
+    samples.clear();
+    if trunk {
+        let root = &nodes[path_nodes[0]];
+        if burial > 0.0 {
+            samples.push(Sample {
+                p: Vec3::new(root.position.x, root.position.y - burial, root.position.z),
+                r: root.radius * flare(root.position.y),
+                d: 0.0,
+            });
+        }
+        for &i in path_nodes {
+            samples.push(Sample {
+                p: nodes[i].position,
+                r: nodes[i].radius * flare(nodes[i].position.y),
+                d: distance[i],
+            });
+        }
+    } else {
+        let attach = path_nodes[0];
+        let first = path_nodes[1];
+        let pr = nodes[attach].radius;
+        let away = (nodes[first].position - nodes[attach].position).normalized();
+        let inscribed = pr * (1.0 - depth) * (std::f64::consts::PI / segments as f64).cos();
+        let sink = (socket * pr).min(0.9 * inscribed);
+        let contained = (inscribed * inscribed - sink * sink).max(0.0).sqrt() / (1.0 + depth);
+        samples.push(Sample {
+            p: nodes[attach].position + away * (-sink),
+            r: (nodes[first].start_radius * swell).min(contained) * flare(nodes[attach].position.y),
+            d: distance[attach],
+        });
+        for &i in &path_nodes[1..] {
+            let swelling =
+                1.0 + (swell - 1.0) * (-(distance[i] - distance[attach]) / pr.max(1e-9)).exp();
+            samples.push(Sample {
+                p: nodes[i].position,
+                r: nodes[i].radius * swelling * flare(nodes[i].position.y),
+                d: distance[i],
+            });
+        }
+    }
+}
 /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
 pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<SurfaceMesh> {
     tree.validate()?;
@@ -109,11 +171,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     let segments = params.radial_segments.max(params.lobes * 4) as usize;
     let depth = params.lobe_depth;
     let twist = params.twist_rate;
-    let flare_radius = params.flare_radius;
-    let falloff = params.flare_falloff * height;
     let burial = params.flare_depth * height;
-    let socket = params.fork_socket;
-    let swell = params.fork_swell;
     let mut distance = filled(nodes.len(), 0.0)?;
     for i in 1..nodes.len() {
         let p = nodes[i].parent.unwrap() as usize;
@@ -122,7 +180,6 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
             return Err(Error::InvalidInput("surface path length overflow"));
         }
     }
-    let flare = |y: f64| 1.0 + (flare_radius - 1.0) * (-y.max(0.0) / falloff).exp();
     let rings = paths
         .nodes
         .len()
@@ -160,47 +217,15 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     let mut segments_scratch = reserved(longest)?;
     for path in &paths.runs {
         let path_nodes = &paths.nodes[path.start..path.end];
-        samples.clear();
-        if path.trunk {
-            let root = &nodes[path_nodes[0]];
-            if burial > 0.0 {
-                samples.push(Sample {
-                    p: Vec3::new(root.position.x, root.position.y - burial, root.position.z),
-                    r: root.radius * flare(root.position.y),
-                    d: 0.0,
-                });
-            }
-            for &i in path_nodes {
-                samples.push(Sample {
-                    p: nodes[i].position,
-                    r: nodes[i].radius * flare(nodes[i].position.y),
-                    d: distance[i],
-                });
-            }
-        } else {
-            let attach = path_nodes[0];
-            let first = path_nodes[1];
-            let pr = nodes[attach].radius;
-            let away = (nodes[first].position - nodes[attach].position).normalized();
-            let inscribed = pr * (1.0 - depth) * (std::f64::consts::PI / segments as f64).cos();
-            let sink = (socket * pr).min(0.9 * inscribed);
-            let contained = (inscribed * inscribed - sink * sink).max(0.0).sqrt() / (1.0 + depth);
-            samples.push(Sample {
-                p: nodes[attach].position + away * (-sink),
-                r: (nodes[first].start_radius * swell).min(contained)
-                    * flare(nodes[attach].position.y),
-                d: distance[attach],
-            });
-            for &i in &path_nodes[1..] {
-                let swelling =
-                    1.0 + (swell - 1.0) * (-(distance[i] - distance[attach]) / pr.max(1e-9)).exp();
-                samples.push(Sample {
-                    p: nodes[i].position,
-                    r: nodes[i].radius * swelling * flare(nodes[i].position.y),
-                    d: distance[i],
-                });
-            }
-        }
+        sample_path(
+            tree,
+            height,
+            params,
+            path_nodes,
+            path.trunk,
+            &distance,
+            &mut samples,
+        );
         frames(&samples, &mut segments_scratch, &mut frame);
         let base = (mesh.positions.len() / 3) as u32;
         let seg = segments as u32;

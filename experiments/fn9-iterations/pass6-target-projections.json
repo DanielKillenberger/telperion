@@ -1,0 +1,341 @@
+{
+  "method": "Exact retained centreline probes projected through each recorded perspective camera solely to identify which visible branch belongs to the target. Not surface-contact, taper or visibility evidence; no seam acceptance follows.",
+  "views": [
+    {
+      "view": "socket-root-scan00-front",
+      "pngSha256": "f54f3554bb8c14651b53f3686c1e6367e3ccadca1fd9a3488627b82ad647001b",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        359.99999999999994
+      ],
+      "departing_10mm_probe_pixel": [
+        309.40107508573305,
+        409.8786381480485
+      ]
+    },
+    {
+      "view": "socket-root-scan01-front",
+      "pngSha256": "43eb269075727f2f30a7a1cd273bb691fa7ae4137e1a48dcaae73d2751c3a187",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        309.82234285508184,
+        268.8761820988291
+      ]
+    },
+    {
+      "view": "socket-root-scan02-front",
+      "pngSha256": "e9694a2ee198eec79687c61b610071cc05a1d21cabd5fbd34cf5b62e0118e071",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        526.3103063754488,
+        185.30516971796317
+      ]
+    },
+    {
+      "view": "socket-root-scan03-front",
+      "pngSha256": "ce758025acf41426664938d9f1c2792bd982b7da072b4608d9a91822d115dc47",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        360.00000000000006
+      ],
+      "departing_10mm_probe_pixel": [
+        576.0927508218681,
+        239.90523701644526
+      ]
+    },
+    {
+      "view": "socket-root-scan04-front",
+      "pngSha256": "60658e8eb0c6272d06065bc45f64134b237bb4b87303e628c8333ef92874f8e8",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        598.8221139926434,
+        296.25166697850227
+      ]
+    },
+    {
+      "view": "socket-root-scan05-front",
+      "pngSha256": "4d2a7dbd718c820c2e79f6204235c36542f12bd460d143427c33bf8ee9b18f43",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        359.99999999999994
+      ],
+      "departing_10mm_probe_pixel": [
+        621.3296709143874,
+        340.8876924980925
+      ]
+    },
+    {
+      "view": "socket-root-scan06-front",
+      "pngSha256": "e280022e8ed630e90308e46a17401522aa65529e5c4c515ef73177bef2d74ccc",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        648.1895732678473,
+        343.44302273379407
+      ]
+    },
+    {
+      "view": "socket-root-scan07-front",
+      "pngSha256": "6fb8b81158c0eee507a86c2d9c17ed16a8093f67300a631578e158142e862655",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        632.4616773027991,
+        246.04231267154464
+      ]
+    },
+    {
+      "view": "socket-root-scan08-front",
+      "pngSha256": "2ee4387894d93319a3dadb47b10be5f8b06e4c5716513f029c47e81d0eeb4468",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.00000000000006,
+        359.99999999999994
+      ],
+      "departing_10mm_probe_pixel": [
+        504.7006499466262,
+        173.24062684871546
+      ]
+    },
+    {
+      "view": "socket-root-scan09-front",
+      "pngSha256": "b678990f82422edb7619cee9267857e2545e5d6121c87be76335bda66553d169",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        418.35839437992706,
+        213.30272804610942
+      ]
+    },
+    {
+      "view": "socket-root-scan10-front",
+      "pngSha256": "505dd8a45af2e12c2675dd85b517879ba6adfe774646f82b02e0a22b69fc0451",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        480.0,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        370.4630404646169,
+        292.74258501398197
+      ]
+    },
+    {
+      "view": "socket-root-scan11-front",
+      "pngSha256": "b8f7f708cc369dd13775dc32cba11a2873684f9cbfcfd014b5cd14474483cb49",
+      "joint_node": 327,
+      "departing_node": 8543,
+      "joint_pixel": [
+        479.99999999999994,
+        360.0
+      ],
+      "departing_10mm_probe_pixel": [
+        338.45263515988063,
+        373.1571042142249
+      ]
+    },
+    {
+      "view": "socket-tip-scan00-front",
+      "pngSha256": "e134f085c8574ebd63f3e6f39e373b650cc40e8efdbbcda78033b4712a982e53",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0000000000067
+      ],
+      "departing_10mm_probe_pixel": [
+        297.26187751668283,
+        370.8588283590898
+      ]
+    },
+    {
+      "view": "socket-tip-scan01-front",
+      "pngSha256": "1c9b3659d35093371475547ae8b93c80d861831e50b2083b449f2d4f0e18f0de",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000083
+      ],
+      "departing_10mm_probe_pixel": [
+        295.99439380492583,
+        418.35144056859707
+      ]
+    },
+    {
+      "view": "socket-tip-scan02-front",
+      "pngSha256": "8a73ec66165c9eb196704576fc3832486630d1f63e9206474f8b787e46a5bc72",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.00000000000796
+      ],
+      "departing_10mm_probe_pixel": [
+        303.9875051559376,
+        416.67339836148017
+      ]
+    },
+    {
+      "view": "socket-tip-scan03-front",
+      "pngSha256": "9030c40a366fa65b272e7e1db4d9ae10872fa6fae8a4767d2c7e696287a56891",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.00000000000574
+      ],
+      "departing_10mm_probe_pixel": [
+        313.7707555997699,
+        377.4665978019082
+      ]
+    },
+    {
+      "view": "socket-tip-scan04-front",
+      "pngSha256": "a623c3b01e7224bb0c86061924b25c85bf5f252b93a4114f979cf09ce6516dda",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000022
+      ],
+      "departing_10mm_probe_pixel": [
+        348.0376096261067,
+        278.48089287121854
+      ]
+    },
+    {
+      "view": "socket-tip-scan05-front",
+      "pngSha256": "cb300d9683a1518bc9acb2ee5081d8f01a3f87c97a54a3d8d24256f78219c668",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.00000000000273
+      ],
+      "departing_10mm_probe_pixel": [
+        634.7674202282758,
+        319.50233403963483
+      ]
+    },
+    {
+      "view": "socket-tip-scan06-front",
+      "pngSha256": "bb21e46fd176f41634eb4b8e47908cc3c458113ffb72e9a6cf3385edb54d578f",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.00000000000006,
+        360.0000000000061
+      ],
+      "departing_10mm_probe_pixel": [
+        652.2666033335704,
+        401.1256476946208
+      ]
+    },
+    {
+      "view": "socket-tip-scan07-front",
+      "pngSha256": "1d757a26824001aeb54262806d1c7666f9ef5fcf41b40c433fe68bd1d341df7d",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.00000000000813
+      ],
+      "departing_10mm_probe_pixel": [
+        659.3044024867688,
+        426.70398424472614
+      ]
+    },
+    {
+      "view": "socket-tip-scan08-front",
+      "pngSha256": "18b40d1ace1c3f415b94fb561a4bef1bc08f0e85034967a6c7d7a0ab461841ad",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000082
+      ],
+      "departing_10mm_probe_pixel": [
+        663.0365659791324,
+        410.5603630696375
+      ]
+    },
+    {
+      "view": "socket-tip-scan09-front",
+      "pngSha256": "236632ccb3f0d49332c4338810510bb83b25bf566c2415f6cfae2a68dcc7ff1e",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.0000000000065
+      ],
+      "departing_10mm_probe_pixel": [
+        651.0063133364238,
+        344.03538985078643
+      ]
+    },
+    {
+      "view": "socket-tip-scan10-front",
+      "pngSha256": "675b4cc8209cfee49f92a093afec43deadef45c1528d708020037f5a06ee1e94",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.000000000004
+      ],
+      "departing_10mm_probe_pixel": [
+        561.9496100263289,
+        228.6154496500269
+      ]
+    },
+    {
+      "view": "socket-tip-scan11-front",
+      "pngSha256": "64de6230efc5594f51c39191bd82a89f3bd3a745924c71809c8302f29c2c952d",
+      "joint_node": 8543,
+      "departing_node": 21454,
+      "joint_pixel": [
+        480.0,
+        360.00000000000426
+      ],
+      "departing_10mm_probe_pixel": [
+        353.62300660530445,
+        258.47593241958117
+      ]
+    }
+  ]
+}

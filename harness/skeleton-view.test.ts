@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import { beforeAll, describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { initializeTreeCore, LAURELIN, PRESETS, ORDINARY, treeCore } from "../src/browser/core";
+import { initializeTreeCore, LAURELIN, TWO_TREES, PRESETS as CATALOGUE, ORDINARY, treeCore } from "../src/browser/core";
 
 import { DEFAULT_PARAMS, SLIDERS, type GrowerParams } from "./params";
 import {
   buildComparison,
+  selectSpecimenView,
   buildPreset,
   buildTree,
   countDraws,
@@ -15,6 +16,10 @@ import {
   toSkeletonParams,
   toSurfaceParams,
 } from "./skeleton-view";
+
+// Keep the existing full-size geometry suite bounded to the Two Trees.
+// All five identities have parameter roundtrips here and small Wasm binding fixtures.
+const PRESETS = TWO_TREES;
 
 beforeAll(() => initializeTreeCore(readFileSync("src/browser/telperion.wasm")));
 
@@ -94,9 +99,12 @@ describe("toSkeletonParams", () => {
     expect(mapped.bias).toEqual({
       gravitropism: 0.9,
       lean: 0.21,
-      writheAmplitude: 0.13,
-      writheWavelength: 0.31,
-      spiralRate: 2.5,
+      supernatural: {
+        enabled: DEFAULT_PARAMS.supernaturalEnabled,
+        writheAmplitude: 0.13,
+        writheWavelength: 0.31,
+        spiralRate: 2.5,
+      },
     });
   });
 
@@ -106,27 +114,34 @@ describe("toSkeletonParams", () => {
     expect(toSkeletonParams(DEFAULT_PARAMS).bias).toEqual(DEFAULT_BIAS);
   });
 
-  it("scales the three departure-from-vertical terms by torsion", () => {
+  it("scales supernatural bending without changing botanical lean", () => {
     /* One move from straight to writhing. Gravitropism is outside it:
        a tree that wants to grow up still wants to when it is not
        twisting, and folding it in would make torsion 0 a tree with no
        opinion about direction at all. */
+    expect(toSkeletonParams({ ...DEFAULT_PARAMS, lean: 0.2, torsion: 0 }).bias.lean).toBe(0.2);
     const straight = toSkeletonParams({ ...DEFAULT_PARAMS, torsion: 0 });
     expect(straight.bias).toEqual({
       gravitropism: DEFAULT_BIAS.gravitropism,
-      lean: 0,
-      writheAmplitude: 0,
-      writheWavelength: DEFAULT_BIAS.writheWavelength,
-      spiralRate: 0,
+      lean: DEFAULT_BIAS.lean,
+      supernatural: {
+        enabled: DEFAULT_PARAMS.supernaturalEnabled,
+        writheAmplitude: 0,
+        writheWavelength: DEFAULT_BIAS.supernatural.writheWavelength,
+        spiralRate: 0,
+      },
     });
 
     const doubled = toSkeletonParams({ ...DEFAULT_PARAMS, torsion: 2 });
     expect(doubled.bias).toEqual({
       gravitropism: DEFAULT_BIAS.gravitropism,
-      lean: DEFAULT_BIAS.lean * 2,
-      writheAmplitude: DEFAULT_BIAS.writheAmplitude * 2,
-      writheWavelength: DEFAULT_BIAS.writheWavelength,
-      spiralRate: DEFAULT_BIAS.spiralRate * 2,
+      lean: DEFAULT_BIAS.lean,
+      supernatural: {
+        enabled: DEFAULT_PARAMS.supernaturalEnabled,
+        writheAmplitude: DEFAULT_BIAS.supernatural.writheAmplitude * 2,
+        writheWavelength: DEFAULT_BIAS.supernatural.writheWavelength,
+        spiralRate: DEFAULT_BIAS.supernatural.spiralRate * 2,
+      },
     });
   });
 
@@ -224,7 +239,7 @@ describe("toSurfaceParams", () => {
        parameter principle rules out. */
     const straight = { ...DEFAULT_PARAMS, torsion: 0, twistRate: 2 };
     expect(toSurfaceParams(straight).twistRate).toBe(2);
-    expect(toSkeletonParams(straight).bias?.spiralRate).toBe(0);
+    expect(toSkeletonParams(straight).bias?.supernatural.spiralRate).toBe(0);
   });
 });
 
@@ -380,15 +395,16 @@ describe("buildTree", () => {
   });
 
   it("every surface dial reaches the geometry", () => {
-    // A dial that renders and does nothing is worse than no dial.
-    const plain = [...positions(tree())];
+    // Ordinary is circular now: exercise lobe count/twist with explicit lobing.
+    const surface = { lobeDepth: 0.2 };
+    const plain = [...positions(tree(surface))];
     for (const dial of [
       { lobes: 0 },
       { lobeDepth: 0.4 },
       { twistRate: -3 },
       { flareRadius: 4 },
     ]) {
-      expect([...positions(tree(dial))]).not.toEqual(plain);
+      expect([...positions(tree({ ...surface, ...dial }))]).not.toEqual(plain);
     }
   });
 
@@ -487,7 +503,7 @@ describe("buildTree", () => {
        the trunk's own girth as a bow. */
     const trunkBow = (torsion: number): number => {
       const crownBase = DEFAULT_PARAMS.height * 0.3;
-      const trunk = centreline({ torsion }).filter(
+      const trunk = centreline({ torsion, lean: 0, supernaturalEnabled: true, writheAmplitude: 0.1, spiralRate: 0 }).filter(
         (point) => point.y <= crownBase,
       );
       expect(trunk.length).toBeGreaterThan(8);
@@ -504,7 +520,11 @@ describe("buildTree", () => {
 
     expect(trunkBow(0)).toBeLessThan(1e-6);
     expect(trunkBow(1)).toBeGreaterThan(0.2);
-    expect(trunkBow(2)).toBeGreaterThan(trunkBow(1));
+    // Natural growth and clipping change which nodes lie below this height;
+    // that subset's bow is not monotonic in amplitude. Both enabled settings
+    // must bend and differ; exact torsion scaling is covered above.
+    expect(trunkBow(2)).toBeGreaterThan(0.2);
+    expect(trunkBow(2)).not.toBeCloseTo(trunkBow(1), 6);
 
     // Connectivity: every branch starts where its parent ended, at both
     // ends of the dial, and the tube for it is built over that edge.
@@ -525,6 +545,7 @@ describe("buildTree", () => {
        tree on its own - a dial that renders and does nothing is worse
        than no dial. */
     const straight = {
+      supernaturalEnabled: true,
       gravitropism: 0,
       lean: 0,
       writheAmplitude: 0,
@@ -564,7 +585,7 @@ describe("buildTree", () => {
  * ------------------------------------------------------------------ */
 
 describe("presetToParams", () => {
-  it.each(PRESETS.map((preset) => [preset.id, preset] as const))(
+  it.each(CATALOGUE.map((preset) => [preset.id, preset] as const))(
     "%s round-trips through the dials, term for term",
     (_id, preset) => {
       const dialled = presetToParams(preset);
@@ -742,10 +763,10 @@ describe("the forest's own numbers", () => {
     // and its crown, and every leaf on both trees is instanced.
     expect(forest.drawCalls).toBe(PRESETS.length * 2);
     expect(forest.instances).toBeGreaterThan(0);
-    // Task 8's local taper and crown guard change topology; keep exact
-    // per-preset counts as well as the forest aggregation invariant.
+    // FN-9 retains clipped lateral stations: twig counts intentionally rise
+    // from 54890/32153 to 55315/32313. Keep exact counts and aggregation.
     expect(alone.map((one) => one.handoffs)).toEqual([1075, 1649]);
-    expect(alone.map((one) => one.twigs)).toEqual([54890, 32153]);
+    expect(alone.map((one) => one.twigs)).toEqual([55315, 32313]);
     for (const key of ["handoffs", "levelCappedHandoffs", "twigs"] as const) {
       expect(forest[key]).toBe(alone.reduce((sum, one) => sum + one[key], 0));
     }
@@ -773,4 +794,29 @@ describe("the forest's own numbers", () => {
     expect(off.stats.nodes).toBe(on.stats.nodes);
   });
 
+});
+
+
+describe("specimen views", () => {
+  it("isolates an actual placed unit and recalculates its bounds", () => {
+    const subject = new THREE.Group();
+    subject.add(new THREE.Mesh(new THREE.BoxGeometry(), clay.surface));
+    const foliage = new THREE.InstancedMesh(new THREE.BoxGeometry(0.02, 0.1, 0.01), clay.element, 3);
+    for (let i = 0; i < 3; i++) foliage.setMatrixAt(i, new THREE.Matrix4().makeTranslation(i * 10, 4, 0));
+    subject.add(foliage);
+    selectSpecimenView(subject, "foliage-detail");
+    expect(subject.children).toEqual([foliage]);
+    expect(foliage.count).toBe(1);
+    expect(foliage.boundingBox!.getCenter(new THREE.Vector3()).toArray()).toEqual([10, 4, 0]);
+    expect(foliage.boundingSphere!.radius).toBeLessThan(0.06);
+  });
+  it("handles an empty detail and removes foliage for a bare view", () => {
+    const empty = new THREE.Group();
+    empty.add(new THREE.Mesh(new THREE.BoxGeometry(), clay.surface));
+    expect(selectSpecimenView(empty, "foliage-detail").children).toHaveLength(0);
+    const bare = new THREE.Group();
+    bare.add(new THREE.Mesh(new THREE.BoxGeometry(), clay.surface));
+    bare.add(new THREE.InstancedMesh(new THREE.BoxGeometry(), clay.element, 0));
+    expect(selectSpecimenView(bare, "bare").children).toHaveLength(1);
+  });
 });

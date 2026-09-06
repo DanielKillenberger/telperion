@@ -39,6 +39,7 @@ fn tapered_wood_and_flat_leaf_cells() {
     let element = Element {
         positions: vec![Vec3::new(-0.5, 0., 0.), Vec3::new(0.5, 1., 0.)],
         indices: vec![],
+        anatomy: None,
     };
     let instances = Instances {
         matrices: vec![[
@@ -74,6 +75,7 @@ fn tapered_wood_and_flat_leaf_cells() {
     let empty = Element {
         positions: vec![],
         indices: vec![],
+        anatomy: None,
     };
     assert!(
         !Field::new(&tree, Some((&instances, &empty)))
@@ -162,5 +164,44 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
         if matches!(preset, Preset::Telperion) {
             assert!(retained.matrices.len() > 1_000_000);
         }
+    }
+}
+
+#[test]
+fn species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_units() {
+    use telperion_core::{
+        envelope::Envelope,
+        foliage::{build_element, cull, transform_point, ElementAnatomy, ElementParams},
+    };
+    let matrix = [
+        0., 0., 2., 0., 3., 0., 0., 0., 0., 4., 0., 0., 0., 15., 0., 1.,
+    ];
+    let instances = Instances {
+        matrices: vec![matrix],
+    };
+    for anatomy in [ElementAnatomy::LobedBlade, ElementAnatomy::FourSidedNeedle] {
+        let element = build_element(ElementParams {
+            anatomy,
+            length: 0.02,
+            width: 0.002,
+            connector_length: 0.001,
+            ..ElementParams::default()
+        })
+        .unwrap();
+        let kept = cull(&instances, &element, Envelope::default(), 1.).unwrap();
+        assert_eq!(kept, instances);
+        let bounds = kept.bounds(&element).unwrap().unwrap();
+        let field = Field::new(&Tree::default(), Some((&kept, &element))).unwrap();
+        for v in &element.positions {
+            let world = transform_point(&matrix, *v);
+            assert!(bounds.contains(world));
+            assert!(field.query(world, 0.).unwrap().foliage);
+        }
+        let mut malformed = element.clone();
+        malformed.anatomy.as_mut().unwrap().vertices.end += element.positions.len();
+        assert!(Field::new(&Tree::default(), Some((&kept, &malformed))).is_err());
+        let mut degenerate = element.clone();
+        degenerate.positions[1] = degenerate.positions[0];
+        assert!(kept.bounds(&degenerate).is_err());
     }
 }

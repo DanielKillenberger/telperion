@@ -1,0 +1,31 @@
+{
+  "status": "partial improvement; not acceptance",
+  "numeric": {
+    "command": [
+      "target/release/examples/species_measure",
+      "--case",
+      "oregon-white-oak-2:oregon-white-oak:oregon-white-oak:2",
+      "--case",
+      "oregon-white-oak-3:oregon-white-oak:oregon-white-oak:3",
+      "--case",
+      "oregon-white-oak-2666899686:oregon-white-oak:oregon-white-oak:2666899686",
+      "--case",
+      "norway-spruce-1:norway-spruce:norway-spruce:1",
+      "--case",
+      "norway-spruce-4250668600:norway-spruce:norway-spruce:4250668600",
+      "--output",
+      "/tmp/fn99-pass5-pilot-numeric/results.jsonl"
+    ],
+    "exit_code": 0,
+    "seconds": 42.96297097206116,
+    "log": "/tmp/fn99-pass5-pilot-numeric/run.log",
+    "sha256": "c01093d3b2b25e7c631df293997eb2a8b5d6024c9c11ac20af92c22a2d951800"
+  },
+  "raw": "/tmp/fn99-pass5-pilot",
+  "observations": {
+    "oregon-white-oak-2-whole": "F: large right window and distinct elevated left mass remain; upper redistribution does not bridge them.",
+    "oregon-white-oak-3-whole": "F: upper cap slightly flattened, but stacked left and separate lower right masses remain.",
+    "oregon-white-oak-2666899686-whole": "F: upper arch still encloses a large window.",
+    "norway-spruce-1-branch-curtain": "F: narrower more coherent pendant strands, still transparent and fine-wood dominated beside S-BRANCH."
+  }
+}

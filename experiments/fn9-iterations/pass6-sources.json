@@ -1,0 +1,37 @@
+{
+  "reference_manifest": "REFERENCES.md",
+  "source_directory": "/tmp/fn99-refs",
+  "files": [
+    {
+      "file": "piab347A_0.jpg",
+      "sha256": "47e6c9dd3175e6a5deb0fad36da9b034a627f1ab1cb50f411fa1feee7ebd37e6",
+      "inspected": true
+    },
+    {
+      "file": "piab428B.jpg",
+      "sha256": "d3792f4dade2389e47a6f6be326bfbedd3e33a518493e4c719893cc3d1cdf800",
+      "inspected": true
+    },
+    {
+      "file": "piab977.jpg",
+      "sha256": "49df5c91efafdf76d356a21a0adcac6c1d1d93cb6d86ca5cc889317cb5b8ec90",
+      "inspected": true
+    },
+    {
+      "file": "quga28.jpg",
+      "sha256": "9354b9a366ca129d069331f887ba844460fdebe9e5931c3f576862fc11be83fe",
+      "inspected": true
+    },
+    {
+      "file": "quga788B.jpg",
+      "sha256": "01bed8875ac98d92926404ad1dfd967a319509ad4f735731064ba2b1452407a4",
+      "inspected": true
+    },
+    {
+      "file": "quga999A.jpg",
+      "sha256": "18c79a6dac6d848ec707397d2a87109d60a3200f11424fbd663fd9f81665805c",
+      "inspected": true
+    }
+  ],
+  "note": "All six retained OSU originals personally reopened. No new research or changed target ranges."
+}

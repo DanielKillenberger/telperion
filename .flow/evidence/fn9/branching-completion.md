@@ -1,0 +1,5 @@
+Verified integrated branching implementation at `fc2add4a01efdbbe45c63e6084e2606e99f7a747`. Spreading/tiered controls, crooked local scaffolds, clipped lateral stations, persistent leader and hanging secondaries pass focused geometric regressions. Natural bias is independent of disabled supernatural effects; Ordinary surface effects are neutral and Two Trees effects explicitly enabled. Full release workspace suite passed (54 tests, four pre-existing external-reference ignores), workspace check, format/whitespace and TypeScript check passed. No Rust edits were needed.
+
+Wasm habit/foliage exposure and final schema grouping remain task 7; browser assets are transitional. Ordinary exact-count browser fixtures remain downstream work due to intentional default/branch changes. No browser fixture or ownership/determinism assertion was changed. Species calibration and final visual QA remain downstream; no fidelity or performance verdict is claimed.
+
+REVIEW_MODE=none: no reviews invoked. Source-worker provenance remains in HANDOFF.md and the worker summary; completion evidence commits now reference the integrated handoff SHA.

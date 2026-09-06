@@ -7,8 +7,19 @@ use crate::{
     Error, Result,
 };
 use std::f64::consts::{PI, TAU};
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub enum Attachment {
+    #[default]
+    Generic,
+    /// One leaf at each station; azimuth advances by canopy divergence.
+    Alternate,
+    /// Individual needles around the twig, upper needles leaning toward its tip.
+    RadialNeedles,
+}
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CanopyParams {
+    /// Local modes require marked twig runs and one station per internode.
+    pub attachment: Attachment,
     pub shoot_radius: f64,
     pub spacing: f64,
     pub divergence: f64,
@@ -25,6 +36,7 @@ pub struct CanopyParams {
 impl Default for CanopyParams {
     fn default() -> Self {
         Self {
+            attachment: Attachment::Generic,
             shoot_radius: 0.12,
             spacing: 0.006,
             divergence: 137.508,
@@ -53,7 +65,8 @@ impl Default for TwigPlacement {
     }
 }
 
-/// With anatomy, only marked incoming twig edges bear leaves. Without it,
+/// Blades use marked twig edges; needles also persist on slender branchlets
+/// within shoot_radius (a fraction of root radius). Without anatomy,
 /// terminal runs use the radius threshold and height-relative spacing/clump.
 pub fn place(
     tree: &Tree,
@@ -61,6 +74,33 @@ pub fn place(
     seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
+) -> Result<Instances> {
+    place_impl(tree, envelope, seed, p, twig, None)
+}
+
+/// Place anatomical foliage on the actual swept polygon, including fork sockets.
+/// Generic/alternate placement retains its established contract.
+pub fn place_on_surface(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+    surface: &crate::surface::SurfaceParams,
+) -> Result<Instances> {
+    if p.attachment != Attachment::RadialNeedles {
+        return place(tree, envelope, seed, p, twig);
+    }
+    let contacts = crate::surface::AttachmentSurface::new(tree, envelope.height, surface)?;
+    place_impl(tree, envelope, seed, p, twig, Some(&contacts))
+}
+fn place_impl(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+    contacts: Option<&crate::surface::AttachmentSurface>,
 ) -> Result<Instances> {
     tree.validate_solved()?;
     envelope.validate()?;
@@ -86,7 +126,12 @@ pub fn place(
             return Err(Error::InvalidInput("twig stations"));
         }
     }
-    if tree.nodes.len() < 2 {
+    if p.attachment != Attachment::Generic && twig.is_none_or(|t| t.stations_per_internode != 1) {
+        return Err(Error::InvalidInput(
+            "individual foliage requires one station per internode",
+        ));
+    }
+    if tree.nodes.len() < 2 || p.size == 0. {
         return Ok(Instances::default());
     }
     // Bound geometry before length arithmetic and float32 conversion.
@@ -106,6 +151,21 @@ pub fn place(
     let mut out = Instances::default();
     let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
     if let Some(t) = twig {
+        if p.attachment != Attachment::Generic {
+            for run in twig_runs(tree, p) {
+                place_run(
+                    tree,
+                    &run,
+                    envelope,
+                    p,
+                    Some(t),
+                    &mut rng,
+                    &mut out,
+                    contacts,
+                )?;
+            }
+            return Ok(out);
+        }
         for (i, n) in tree.nodes.iter().enumerate().skip(tree.crossover) {
             if n.kind == NodeKind::Twig {
                 if let Some(parent) = n.parent {
@@ -117,17 +177,19 @@ pub fn place(
                         Some(t),
                         &mut rng,
                         &mut out,
+                        contacts,
                     )?;
                 }
             }
         }
     } else {
         for run in shoots(tree, tree.nodes[0].radius * p.shoot_radius) {
-            place_run(tree, &run, envelope, p, None, &mut rng, &mut out)?;
+            place_run(tree, &run, envelope, p, None, &mut rng, &mut out, contacts)?;
         }
     }
     Ok(out)
 }
+#[allow(clippy::too_many_arguments)]
 fn place_run(
     tree: &Tree,
     run: &[usize],
@@ -136,6 +198,7 @@ fn place_run(
     twig: Option<TwigPlacement>,
     rng: &mut Rng,
     out: &mut Instances,
+    contacts: Option<&crate::surface::AttachmentSurface>,
 ) -> Result<()> {
     let points: Vec<_> = run.iter().map(|i| tree.nodes[*i].position).collect();
     let mut along = vec![0.];
@@ -208,7 +271,16 @@ fn place_run(
             tree.nodes[run[segment]].radius
         };
         let wood = base * (1. - t) + distal.radius * t;
-        let (tangent, normal, binormal) = frames[segment];
+        let (mut tangent, mut normal, mut binormal) = frames[segment];
+        if p.attachment != Attachment::Generic && span > 1e-12 {
+            tangent = (points[segment + 1] - points[segment]) / span;
+            normal -= tangent * normal.dot(tangent);
+            if normal.length_squared() <= 1e-12 {
+                normal = tangent.perpendicular();
+            }
+            normal = normal.normalized();
+            binormal = tangent.cross(normal).normalized();
+        }
         let turn = if let Some(a) = twig {
             (k / a.stations_per_internode as usize) as f64 * p.divergence * PI / 180.
                 + (k % a.stations_per_internode as usize) as f64 * TAU
@@ -218,13 +290,28 @@ fn place_run(
         };
         let (sin, cos) = turn.sin_cos();
         let radial = normal * cos + binormal * sin;
-        point += radial * wood;
-        let outward = Vec3::new(point.x, 0., point.z);
-        let mut axis = radial;
-        if outward.length_squared() > 1e-12 {
-            axis += outward.normalized() * p.outward;
-        }
-        axis.y += p.upward;
+        point = if let Some(contacts) = contacts {
+            contacts
+                .point(run[segment + 1], point, radial, wood)
+                .ok_or(Error::InvalidInput(
+                    "foliage surface contact projection missed",
+                ))?
+        } else {
+            point + radial * wood
+        };
+        let mut axis = match p.attachment {
+            Attachment::Generic => {
+                let outward = Vec3::new(point.x, 0., point.z);
+                let mut axis = radial;
+                if outward.length_squared() > 1e-12 {
+                    axis += outward.normalized() * p.outward;
+                }
+                axis.y += p.upward;
+                axis
+            }
+            Attachment::Alternate => radial + tangent * 0.25,
+            Attachment::RadialNeedles => radial + tangent * (0.05 + 1.2 * radial.y.max(0.)),
+        };
         if axis.length_squared() <= 1e-12 {
             axis = radial;
         }
@@ -385,4 +472,47 @@ fn frames(points: &[Vec3]) -> Vec<(Vec3, Vec3, Vec3)> {
         result.push((t, normal, t.cross(normal).normalized()));
     }
     result
+}
+
+fn twig_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
+    let bearing = |i: usize| {
+        let n = &tree.nodes[i];
+        n.parent.is_some()
+            && (n.kind == NodeKind::Twig
+                || (p.attachment == Attachment::RadialNeedles
+                    && n.radius.max(n.start_radius) <= tree.nodes[0].radius * p.shoot_radius))
+    };
+    let mut children = vec![Vec::new(); tree.nodes.len()];
+    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+        if bearing(i) {
+            if let Some(parent) = n.parent {
+                children[parent as usize].push(i);
+            }
+        }
+    }
+    let continues = |parent: usize, child: usize| {
+        bearing(parent)
+            && tree.nodes[parent].branch == tree.nodes[child].branch
+            && children[parent].len() == 1
+    };
+    let mut runs = Vec::new();
+    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+        if !bearing(i) {
+            continue;
+        }
+        let Some(parent) = n.parent.map(|p| p as usize) else {
+            continue;
+        };
+        if continues(parent, i) {
+            continue;
+        }
+        let mut run = vec![parent, i];
+        let mut at = i;
+        while children[at].len() == 1 && continues(at, children[at][0]) {
+            at = children[at][0];
+            run.push(at);
+        }
+        runs.push(run);
+    }
+    runs
 }

@@ -1,0 +1,176 @@
+{
+  "method": "Centres of the largest all-background pixel squares inside executor-picked pilot window regions (14px / 6px / 7px squares)., perspective rays through unchanged neutral whole cameras. Upper structural supports only. Maximum endpoint radius is an optimistic rigid reach bound; negative shortfall is necessary, not sufficient. Leaf blade extension excluded. Not a volumetric empty-space proof.",
+  "cases": [
+    {
+      "seed": 2,
+      "pixel": [
+        553,
+        372
+      ],
+      "png": "c70b1b6d655d51c3c0be8d8fb0bd995b843780a1bce111b3e6d146f560ec1f5c",
+      "camera": {
+        "position": [
+          25.454365371536586,
+          20.23331671361438,
+          42.31588348801908
+        ],
+        "target": [
+          -0.4632261710395369,
+          8.528597952450966,
+          0.5133164838640489
+        ],
+        "near": 0.1,
+        "far": 4000,
+        "fov": 38,
+        "aspect": 1.3333333333333333
+      },
+      "reachable_upper_supports": 0,
+      "closest_supports": [
+        {
+          "node": 745,
+          "maximum_endpoint_reach_m": 2.514934378825911,
+          "distance_to_window_ray_m": 5.47472415888739,
+          "reach_shortfall_m": 2.9597897800614787
+        },
+        {
+          "node": 742,
+          "maximum_endpoint_reach_m": 2.519689529184403,
+          "distance_to_window_ray_m": 5.874316532351832,
+          "reach_shortfall_m": 3.3546270031674292
+        },
+        {
+          "node": 1222,
+          "maximum_endpoint_reach_m": 2.4986138519048335,
+          "distance_to_window_ray_m": 6.130125292745957,
+          "reach_shortfall_m": 3.6315114408411233
+        },
+        {
+          "node": 1901,
+          "maximum_endpoint_reach_m": 2.4905132998210084,
+          "distance_to_window_ray_m": 6.173560580296368,
+          "reach_shortfall_m": 3.683047280475359
+        },
+        {
+          "node": 1898,
+          "maximum_endpoint_reach_m": 2.5094277570782344,
+          "distance_to_window_ray_m": 6.220115382501768,
+          "reach_shortfall_m": 3.7106876254235335
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "pixel": [
+        343,
+        292
+      ],
+      "png": "e0453b6fa0c88c0d30a4256d3740df6b958ada78b6c6d6aa63f9d38af0502cc4",
+      "camera": {
+        "position": [
+          26.70956056274681,
+          21.546905556958773,
+          44.83239508374864
+        ],
+        "target": [
+          -0.30742040277283067,
+          9.345688346724097,
+          1.2566193329105086
+        ],
+        "near": 0.1,
+        "far": 4000,
+        "fov": 38,
+        "aspect": 1.3333333333333333
+      },
+      "reachable_upper_supports": 22,
+      "closest_supports": [
+        {
+          "node": 634,
+          "maximum_endpoint_reach_m": 2.381620119114285,
+          "distance_to_window_ray_m": 1.522364374842651,
+          "reach_shortfall_m": -0.859255744271634
+        },
+        {
+          "node": 1760,
+          "maximum_endpoint_reach_m": 2.387434071498957,
+          "distance_to_window_ray_m": 1.6414122690189585,
+          "reach_shortfall_m": -0.7460218024799983
+        },
+        {
+          "node": 637,
+          "maximum_endpoint_reach_m": 2.381248831615804,
+          "distance_to_window_ray_m": 1.6765123023617137,
+          "reach_shortfall_m": -0.7047365292540904
+        },
+        {
+          "node": 655,
+          "maximum_endpoint_reach_m": 2.3917582065111973,
+          "distance_to_window_ray_m": 1.777784266508106,
+          "reach_shortfall_m": -0.6139739400030912
+        },
+        {
+          "node": 218,
+          "maximum_endpoint_reach_m": 2.980755689244116,
+          "distance_to_window_ray_m": 2.3716617507965605,
+          "reach_shortfall_m": -0.6090939384475553
+        }
+      ]
+    },
+    {
+      "seed": 2666899686,
+      "pixel": [
+        464,
+        312
+      ],
+      "png": "2e9cd7bf57027ffe464305d334bc1a5ac25b78b3dc0b05853d8a754d3bd1f3fb",
+      "camera": {
+        "position": [
+          27.761750843115813,
+          20.99674740167088,
+          43.18038760384601
+        ],
+        "target": [
+          1.1150212314931256,
+          8.96274048029289,
+          0.20179145606747628
+        ],
+        "near": 0.1,
+        "far": 4000,
+        "fov": 38,
+        "aspect": 1.3333333333333333
+      },
+      "reachable_upper_supports": 11,
+      "closest_supports": [
+        {
+          "node": 1279,
+          "maximum_endpoint_reach_m": 2.412684397574935,
+          "distance_to_window_ray_m": 0.6373936233975063,
+          "reach_shortfall_m": -1.7752907741774284
+        },
+        {
+          "node": 584,
+          "maximum_endpoint_reach_m": 2.4038425786578888,
+          "distance_to_window_ray_m": 1.3625617354408026,
+          "reach_shortfall_m": -1.0412808432170861
+        },
+        {
+          "node": 587,
+          "maximum_endpoint_reach_m": 2.390560600488006,
+          "distance_to_window_ray_m": 1.823830173180529,
+          "reach_shortfall_m": -0.5667304273074767
+        },
+        {
+          "node": 1615,
+          "maximum_endpoint_reach_m": 2.401554140648564,
+          "distance_to_window_ray_m": 1.8985833271395416,
+          "reach_shortfall_m": -0.5029708135090223
+        },
+        {
+          "node": 310,
+          "maximum_endpoint_reach_m": 2.7513125964738663,
+          "distance_to_window_ray_m": 2.3126077649544032,
+          "reach_shortfall_m": -0.43870483151946305
+        }
+      ]
+    }
+  ]
+}

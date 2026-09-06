@@ -19,6 +19,9 @@ struct Shoot {
     internodes: usize,
     key: u32,
     run: Option<Rc<Run>>,
+    pendant: bool,
+    curtain_across: Vec3,
+    pendant_floor: Option<f64>,
 }
 fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
     p.y < config.trunk_height
@@ -30,6 +33,8 @@ struct Planner<'a> {
     config: &'a GrowthConfig,
     bias: Option<&'a GrowthBias>,
     twigs: TwigParams,
+    crookedness: f64,
+    seed: u32,
 }
 impl Planner<'_> {
     fn heading(&self, at: Vec3, from: Vec3, wanted: Vec3, distance: f64) -> Vec3 {
@@ -50,6 +55,7 @@ impl Planner<'_> {
         length: f64,
         internodes: usize,
         bearing: bool,
+        key: u32,
     ) -> Option<Rc<Run>> {
         let count = internodes.max(if bearing {
             1
@@ -68,10 +74,21 @@ impl Planner<'_> {
         let mut points = vec![start];
         let mut along = vec![0.0];
         let mut heading = first;
+        let phase = Rng::new(self.seed ^ key).range(0.0, TAU);
+        let normal = first.perpendicular();
+        let binormal = first.cross(normal);
         for k in 0..count {
             let stride = length * (stations[k] - if k == 0 { 0.0 } else { stations[k - 1] });
             let at = *points.last().unwrap();
-            heading = self.heading(at, heading, heading, stride);
+            let wanted = if self.crookedness == 0.0 {
+                heading
+            } else {
+                let angle = stations[k] * TAU * 2.0 + phase;
+                first
+                    + (normal * angle.sin() + binormal * (angle * 0.7).cos())
+                        * self.crookedness.to_radians()
+            };
+            heading = self.heading(at, heading, wanted, stride);
             let end = at + heading * stride;
             if rejected(self.config, end) {
                 let mut low = 0.0;
@@ -110,6 +127,28 @@ impl Planner<'_> {
             (actual - along[last - 1]) / (along[last] - along[last - 1]),
         );
         along[last] = actual;
+        if actual < length - 1e-9 && !bearing {
+            let count = ((internodes as f64 * actual / length).ceil() as usize)
+                .max(self.twigs.laterals as usize + 1);
+            let mut distances = along.clone();
+            distances.extend((1..=count).map(|k| actual * k as f64 / count as f64));
+            distances.sort_by(f64::total_cmp);
+            distances.dedup_by(|a, b| (*a - *b).abs() < 1e-12);
+            let mut resampled = Vec::with_capacity(distances.len());
+            resampled.push(start);
+            let mut edge = 1;
+            for &d in distances.iter().skip(1) {
+                while edge < along.len() - 1 && along[edge] < d {
+                    edge += 1;
+                }
+                resampled.push(points[edge - 1].lerp(
+                    points[edge],
+                    ((d - along[edge - 1]) / (along[edge] - along[edge - 1])).clamp(0.0, 1.0),
+                ));
+            }
+            points = resampled;
+            along = distances;
+        }
         Some(Rc::new(Run {
             positions: points.into_iter().skip(1).collect(),
             fractions: along.into_iter().skip(1).map(|d| d / actual).collect(),
@@ -125,6 +164,16 @@ pub fn append(
     seed: u32,
     bias: Option<&GrowthBias>,
 ) -> Result<()> {
+    append_with_habit(tree, config, params, seed, bias, BranchHabit::Colonizing)
+}
+pub(super) fn append_with_habit(
+    tree: &mut Tree,
+    config: &GrowthConfig,
+    params: TwigParams,
+    seed: u32,
+    bias: Option<&GrowthBias>,
+    habit: BranchHabit,
+) -> Result<()> {
     tree.validate_solved()?;
     config.validate()?;
     let t = params.resolved()?;
@@ -139,6 +188,26 @@ pub fn append(
     let mut children = vec![0; crossover];
     for n in tree.nodes.iter().skip(1) {
         children[n.parent.unwrap() as usize] += 1;
+    }
+    let mut pendant_floor = vec![None; crossover];
+    if matches!(habit, BranchHabit::Tiered(_)) {
+        let mut continuation = vec![None; crossover];
+        for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+            continuation[n.parent.unwrap() as usize].get_or_insert(i);
+        }
+        for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+            let parent = n.parent.unwrap() as usize;
+            pendant_floor[i] = pendant_floor[parent];
+            if pendant_floor[i].is_none()
+                && (n.position - tree.nodes[parent].position).normalized().y < -0.5
+            {
+                let mut end = i;
+                while let Some(next) = continuation[end] {
+                    end = next;
+                }
+                pendant_floor[i] = Some(tree.nodes[end].position.y);
+            }
+        }
     }
     let divergence = t.divergence.to_radians();
     let tilt = t.angle.to_radians();
@@ -157,6 +226,7 @@ pub fn append(
         if direction.length_squared() == 0.0 {
             continue;
         }
+        let pendant = pendant_floor[i].is_some();
         let length = branch_length(n.radius);
         frontier.push(Shoot {
             at: i,
@@ -171,12 +241,20 @@ pub fn append(
             internodes: t.internodes(n.radius, length),
             key: i as u32,
             run: None,
+            pendant,
+            curtain_across: Vec3::new(-n.position.z, 0.0, n.position.x).normalized(),
+            pendant_floor: pendant_floor[i],
         });
     }
     let planner = Planner {
         config,
         bias,
         twigs: t,
+        crookedness: match habit {
+            BranchHabit::Spreading(p) => p.crookedness,
+            _ => 0.0,
+        },
+        seed,
     };
     while !frontier.is_empty() {
         let mut next = Vec::new();
@@ -248,6 +326,11 @@ pub fn append(
                     s.radius
                 };
                 let length = if lateral { s.length * ratio } else { s.length };
+                let length = if s.pendant {
+                    length.min(t.twig.length)
+                } else {
+                    length
+                };
                 let generation = s.generation + usize::from(lateral);
                 let terminal = !lateral && s.completed == s.internodes;
                 let is_twig = terminal
@@ -265,7 +348,18 @@ pub fn append(
                     tree.diagnostics.level_capped = true;
                     continue;
                 }
-                let wanted = if !lateral {
+                let wanted = if lateral && s.pendant {
+                    let across = s.curtain_across;
+                    let side = if (first_lateral + c) % 2 == 0 {
+                        -1.0
+                    } else {
+                        1.0
+                    };
+                    let downward = s.pendant_floor.map_or(0.35, |floor| {
+                        ((position.y - floor) / t.twig.length * 0.5).clamp(0.0, 0.35)
+                    });
+                    (across * side - Vec3::Y * downward).normalized()
+                } else if !lateral {
                     from
                 } else {
                     let azimuth = if origin {
@@ -284,19 +378,34 @@ pub fn append(
                         wanted,
                         t.twig.length,
                     );
-                    let p = position + heading * t.twig.length;
-                    if rejected(config, p) {
+                    let twig_length = s.pendant_floor.map_or(t.twig.length, |floor| {
+                        t.twig
+                            .length
+                            .min((position.y - floor).max(0.0) / (-heading.y).max(1e-9) * 0.8)
+                    });
+                    if twig_length <= 1e-9 {
+                        continue;
+                    }
+                    let p = position + heading * twig_length;
+                    if rejected(config, p) || s.pendant_floor.is_some_and(|floor| p.y < floor) {
                         continue;
                     }
                     (p, heading)
                 } else {
                     if starts {
+                        let length = s.pendant_floor.map_or(length, |floor| {
+                            length.min(
+                                (position.y - floor).max(0.0) / (-wanted.normalized().y).max(1e-9)
+                                    * 0.8,
+                            )
+                        });
                         run = planner.run(
                             position,
                             if lateral { wanted } else { from },
                             length,
                             internodes,
                             radius <= t.twig.bearing_diameter / 2.0,
+                            key,
                         )
                     }
                     let Some(r) = &run else { continue };
@@ -307,6 +416,11 @@ pub fn append(
                 if !candidate.is_finite() {
                     return Err(Error::ResourceLimit("branch position overflow"));
                 }
+                let separation = if s.pendant {
+                    4.0_f64.to_radians().cos()
+                } else {
+                    separation
+                };
                 if lateral
                     && (from.dot(heading) >= separation
                         || accepted.iter().any(|a| a.dot(heading) >= separation))
@@ -323,7 +437,11 @@ pub fn append(
                 let id = tree.nodes.len() as u32;
                 let branch = if starts { id } else { s.branch.unwrap() };
                 let distal = if is_twig {
-                    twig_radius
+                    if matches!(habit, BranchHabit::Colonizing) {
+                        twig_radius
+                    } else {
+                        twig_radius * 0.25
+                    }
                 } else {
                     twig_radius
                         + (radius - twig_radius)
@@ -372,6 +490,9 @@ pub fn append(
                         internodes,
                         key,
                         run,
+                        pendant: s.pendant,
+                        curtain_across: s.curtain_across,
+                        pendant_floor: s.pendant_floor,
                     });
                 }
             }

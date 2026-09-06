@@ -1,0 +1,5 @@
+Verified integrated foliage implementation at `fc2add4a01efdbbe45c63e6084e2606e99f7a747` after task 3 was marked done. Growth/foliage/field/species_metrics suites passed all 32 tests, including lobed blades and petioles, four-sided needles and pegs, local attachment, continuous station phase across subdivided twigs, connector-excluded transformed measurements, conservative bounds/field coverage, and explicit empty/invalid handling. Workspace compilation, formatting and whitespace checks passed again. Combined release workspace suite and typecheck were already green on this same Rust tree. No Rust edits were needed.
+
+Each instance represents one biological leaf or needle; geometry metadata excludes connectors from unit metrics. Core runtime remains dependency-free, with serde_json dev-only. Named templates/calibration, Wasm/browser exposure and inspected cross-seed visual fidelity remain downstream. No anatomy substitution, gate weakening or browser fixture changes were made.
+
+REVIEW_MODE=none: no reviews invoked. Original source-worker provenance remains in HANDOFF.md; completion evidence commits now reference the integrated handoff SHA.

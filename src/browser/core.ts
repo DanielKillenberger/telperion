@@ -1,12 +1,22 @@
 import wasmUrl from "./telperion.wasm?url";
-import { FAMILIES, type Family } from "./presets.generated";
+import { CATALOGUE, type Family } from "./presets.generated";
 export type { Family } from "./presets.generated";
 
 export interface TreePreset extends Family { id: string; name: string; note: string }
-export const ORDINARY = FAMILIES[0];
-export const TELPERION: TreePreset = { ...FAMILIES[1], id: "telperion", name: "Telperion", note: "The silver tree" };
-export const LAURELIN: TreePreset = { ...FAMILIES[2], id: "laurelin", name: "Laurelin", note: "The golden tree" };
-export const PRESETS = [TELPERION, LAURELIN];
+/** Explicit identity lookup; unknown identities never fall back to Ordinary. */
+export function presetById(id: string): TreePreset {
+  const entry = CATALOGUE.find(preset => preset.id === id);
+  if (!entry) throw Error(`Unknown tree preset: ${id}`);
+  return { ...structuredClone(entry.family), id: entry.id, name: entry.name, note: entry.note };
+}
+/** Plain parameter baseline, usable directly at the native request boundary. */
+export const ORDINARY: Family = (({ id: _id, name: _name, note: _note, ...family }) => family)(presetById("ordinary"));
+export const OREGON_WHITE_OAK = presetById("oregon-white-oak");
+export const NORWAY_SPRUCE = presetById("norway-spruce");
+export const TELPERION = presetById("telperion");
+export const LAURELIN = presetById("laurelin");
+export const TWO_TREES = [TELPERION, LAURELIN];
+export const PRESETS = CATALOGUE.map(entry => presetById(entry.id));
 export interface Outputs {
   surface?: boolean; foliage?: boolean; structure?: boolean;
   /** Wood and foliage occupancy. Places retained leaves internally, but transfers
@@ -15,7 +25,12 @@ export interface Outputs {
 }
 export interface Bounds { min: [number, number, number]; max: [number, number, number] }
 export interface Timings { growthMs: number; surfaceMs: number; foliageMs: number; fieldMs: number; coreMs: number; transferMs: number; buildMs: number }
+/** Half-open prototype ranges exclude connectors; indices are scalar offsets. */
+export interface FoliageAnatomy {
+  unit: "leaf" | "needle"; vertices: [number, number]; indices: [number, number]; sections: [number, number][];
+}
 export interface Diagnostics {
+  biologicalUnits: number | null; foliageAnatomy: FoliageAnatomy | null;
   nodes: number; crossover: number; shed: number; capped: boolean; levelCapped: boolean;
   attractionCapped: boolean; complete: boolean; handoffs: number; generationCounts: number[];
   levelCappedHandoffs: number; twigs: number; leavesPlaced: number; instances: number;
@@ -25,7 +40,7 @@ export interface Diagnostics {
 }
 export interface TreeOutput {
   surface?: { positions: Float32Array; normals: Float32Array; indices: Uint32Array; bounds: Bounds | null };
-  foliage?: { positions: Float32Array; indices: Uint32Array; matrices: Float32Array; bounds: Bounds | null };
+  foliage?: { positions: Float32Array; indices: Uint32Array; matrices: Float32Array; anatomy: FoliageAnatomy | null; bounds: Bounds | null };
   /** Six f64 values per node: xyz, distal radius, proximal radius, base radius.
    * Three u32 values per node: parent (UINT32_MAX for root), branch, kind (0/1/2). */
   structure?: { values: Float64Array; topology: Uint32Array };
@@ -69,10 +84,10 @@ export class TreeEngine {
    * Wasm linear memory retains its high-water capacity for allocator reuse. */
   release(): void { this.e.release(); }
   get memoryBytes(): number { return this.e.memory.buffer.byteLength; }
-  build(family: Family, outputs: Outputs): TreeOutput {
+  build(family: Family | string, outputs: Outputs): TreeOutput {
     const started = performance.now();
     // JSON would otherwise silently replace nonfinite values with null.
-    const request = new TextEncoder().encode(JSON.stringify({ family: "id" in family ? (({ id: _id, name: _name, note: _note, ...parameters }) => parameters)(family as TreePreset) : family, outputs }, (_key, value) => {
+    const request = new TextEncoder().encode(JSON.stringify({ family: typeof family !== "string" && "id" in family ? (({ id: _id, name: _name, note: _note, ...parameters }) => parameters)(family as TreePreset) : family, outputs }, (_key, value) => {
       if (typeof value === "number" && !Number.isFinite(value)) throw Error("Tree parameters must be finite");
       return value;
     }));
@@ -86,7 +101,7 @@ export class TreeEngine {
     const u32 = (slot: number) => new Uint32Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
     const result: TreeOutput = { diagnostics };
     if (outputs.surface) result.surface = { positions: f32(0), normals: f32(1), indices: u32(2), bounds: diagnostics.surfaceBounds };
-    if (outputs.foliage) result.foliage = { positions: f32(3), indices: u32(4), matrices: f32(5), bounds: diagnostics.foliageBounds };
+    if (outputs.foliage) result.foliage = { positions: f32(3), indices: u32(4), matrices: f32(5), anatomy: diagnostics.foliageAnatomy, bounds: diagnostics.foliageBounds };
     if (outputs.structure) result.structure = { values: new Float64Array(e.memory.buffer, e.buffer_ptr(6), e.buffer_len(6)).slice(), topology: u32(7) };
     if (outputs.field) result.field = { query: cells => this.query(diagnostics.revision, cells) };
     diagnostics.timings.transferMs = performance.now() - transfer;

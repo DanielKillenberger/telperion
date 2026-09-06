@@ -85,3 +85,96 @@ These bounded development exercises identify the owner and the observable assert
 2. **Output change:** change a family's surface radial resolution in `presets.rs`, or its ring construction in `surface.rs`. Run `cargo test -p telperion-core --test surface tapered_closed_surface_has_normals_and_bounds`. Check winding, normals and nonzero triangles, then compare `{ structure: true }` and `{ field: true }` before and after: they retain identical structure and occupancy because neither calls the surface builder. The independent request assertions in `tests/browser/integration.mjs` and mesh-free block consumer in `field.rs` enforce that separation. A representation-only change requires no new botanical generator or compatibility layer.
 
 The existing tests exercise those boundaries with small fixtures. Full-size preset captures and timing evidence supplement them; they do not replace the focused checks.
+
+## Species evidence and replay
+
+From the repository root, after installing the pinned Rust toolchain and Node
+dependencies:
+
+```sh
+npm run wasm:build
+npx playwright install chromium
+npm run species:measure -- --output /tmp/species-replay
+# Separate terminal, leave running:
+npx vite --host 127.0.0.1 --port 5184
+# Back in the first terminal:
+npm run species:qa -- --capture-only --output /tmp/species-replay
+```
+
+Use a new output directory for a new measurement run. Without `--output`, bulk
+artifacts go to a uniquely named OS temporary directory printed at startup.
+The runner uses the durable [seed manifest](../../.flow/evidence/fn9/seeds.json):
+12 fixed and 12 fresh per species. Fresh seeds were drawn with OS cryptographic
+randomness after calibration and committed before generation. Replay never
+draws replacements. `--draw-seeds --seeds NEW_FILE` is for a separately recorded
+future protocol, not retrying a failing specimen.
+
+The native `species_measure` example measures actual structure, wood and retained
+foliage. It reports DBH as a centreline diameter proxy at 1.3 m, axes as operational
+estimates, individual units separately from placement counts, and blade sheet
+area separately from needle surface area. Profile contextual/unknown fields do
+not become gates. Every per-case JSONL includes machine, source, target and
+numeric checks. Pending or interrupted cases remain unassessed.
+
+Capture covers fixed 1/2/3, the first three fresh seeds of each species and every
+numeric failure, plus Ordinary/Telperion/Laurelin. No height, node or instance
+limits replace mature presets. Whole and bare use the same full-specimen bounds;
+bare only hides foliage. The capture runner's foliage-detail camera clips a local
+shoot around the middle retained instance and retains original neighbouring
+matrices and wood. Supplemental `element` images isolate a single placed unit;
+those alone cannot establish attachment. This differs deliberately from the
+viewer's isolated-unit detail mode.
+
+Captures use one neutral hemisphere-lit frame, 960×720, DPR 1, 38° perspective,
+full-tree direction normalized `(0.62,0.28,1)` and framing margin 1.3. JSON records
+exact camera position/target/clipping, material environment, preset, renderer,
+browser and SHA-256 hashes of geometry and PNG bytes. One frame followed by GPU
+completion avoids continuously queueing work on software WebGL. There is no
+hardware performance claim. Ground, scale figure, shadows and extra lights are
+absent from this diagnostic rig.
+
+`--timeout-ms` bounds each process (default five minutes). Each receipt is saved
+before the next capture; failures persist, and missing PNGs never count as
+passes. `--case ID` is a partial diagnostic run, never protocol completion.
+`--help` lists environment overrides. Capture success remains distinct from
+human inspection: the full runner exits 1 while visual assessment is unassessed,
+even when every PNG exists. Record trait/case conclusions and actual owner
+feedback separately in [REPORT.md](../../.flow/evidence/fn9/REPORT.md). No automated
+capture can award owner approval.
+
+For same-host native costs, build `cargo build --release -p telperion-core
+--example measure`, then run `target/release/examples/measure ordinary` (and
+`telperion`, `laurelin`). It reports one warmup (`sample=-1`) and five measured
+samples, stage times, nodes, retained instances, wood counts and buffer bytes;
+RSS is on stderr. Species measurements include separate measurement overhead.
+Do not compare these directly with historical measurements on another host or
+interpret native time as software/hardware GPU time.
+
+Spruce `4250668600` remains a required mature capture even after its numeric width repair. All full-size captures use the authored presets and recorded seeds, without the smaller fixtures used by the binding/UI integration tests. Those 4 m fixtures use three spruce tiers, three primaries per tier and 0.4 m secondary spacing to exercise ownership, anatomy, orbit and retry behavior within bounded software-rendering cost. The 12,000-instance binding budget still rejects overflow; it is never a truncation policy.
+
+The runner captures whole, bare and attached-foliage views for every required specimen, plus selected element, exterior, branch-curtain, peg and socket views. Exterior views follow an actual terminal twig and its connected parent/socket at multiple angles. Peg/socket cameras retain complete wood and foliage at unrestricted depth. Occluded anatomy remains unassessed in that view; a neighbouring branch or a small numerical origin gap is not visual proof of the selected connection.
+
+`--targets FILE` can retain endpoint/parent/socket identities from a previous capture manifest when topology is unchanged. A topology mismatch fails explicitly. After an architectural correction, select new targets and record their identities; do not reuse stale node IDs.
+
+`--frustum-cull` conservatively rejects only foliage whose transformed prototype bounding sphere lies wholly outside the camera frustum. `--batch-instances` submits every original matrix, in order, in batches of at most 100,000. Neither changes maturity, geometry, foliage density or visible depth. Use both for large captures.
+
+On a Linux host with working Vulkan graphics, the optional wrapper enables GPU-backed headless capture:
+
+```bash
+CHROMIUM_EXECUTABLE="$PWD/scripts/species-chromium-gpu.sh" \
+  node tests/browser/species.mjs --capture-only --output /tmp/species-run \
+  --frustum-cull --batch-instances
+```
+
+The wrapper follows [Chromium's documented headless GPU route](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/gpu/using-gpu-hardware-in-headless-chrome.md). The renderer string in each capture is authoritative; this is not a hardware frame-rate benchmark. Omit the override to use Playwright's software backend. The CPU-only native measurements require no browser or GPU.
+
+For branch-level diagnosis, `cargo run --release -p telperion-core --example curtain_audit` reports actual support and needle-bearing lengths. The optional occupancy exporter remains available:
+
+```bash
+cargo run --release -p telperion-core --example occupancy_audit -- /tmp/species-occupancy
+python3 -m venv --system-site-packages /tmp/species-audit-venv
+/tmp/species-audit-venv/bin/pip install numpy pillow
+/tmp/species-audit-venv/bin/python scripts/analyze-species-occupancy.py /tmp/species-occupancy
+```
+
+These geometric diagnostics do not replace intact rendered views or establish a botanical acceptance threshold. Earlier iterative reports and captures are archived intact in [experiments/fn9-iterations](../../experiments/fn9-iterations/README.md); [the current report](../../.flow/evidence/fn9/REPORT.md) records the latest implementation and verdict.

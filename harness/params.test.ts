@@ -100,3 +100,13 @@ describe("branch-law controls", () => {
     expect(DEFAULT_PARAMS).not.toHaveProperty("twigLevels");
   });
 });
+
+describe("carried native controls", () => {
+  it("keeps the Ordinary baseline natural and anatomy outside numeric sliders", () => {
+    expect(DEFAULT_PARAMS.supernaturalEnabled).toBe(false);
+    expect(DEFAULT_PARAMS.family.skeleton.habit).toEqual({ kind: "colonizing" });
+    expect(DEFAULT_PARAMS.family.element.anatomy).toBe("genericBlade");
+    expect(SLIDERS.map(s => s.key)).not.toContain("family");
+    expect(SLIDERS.map(s => s.key)).not.toContain("supernaturalEnabled");
+  });
+});

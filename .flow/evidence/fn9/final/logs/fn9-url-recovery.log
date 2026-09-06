@@ -1,0 +1,18 @@
+Browser disconnected
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Error: Tree core is not initialized
+    at treeCore (http://127.0.0.1:5184/src/browser/core.ts?t=1788691014929:100:22)
+    at build (http://127.0.0.1:5184/harness/skeleton-view.ts:183:18)
+    at buildPreset (http://127.0.0.1:5184/harness/skeleton-view.ts:230:10)
+    at eval (eval at evaluate (:311:30), <anonymous>:20:25)
+    at Object.setTree (http://127.0.0.1:5184/harness/stage.ts:188:25)
+    at eval (eval at evaluate (:311:30), <anonymous>:19:15)
+    at async <anonymous>:337:30
+    at /home/daniel/Projects/telperion/.worktrees/fn-9-real-species-profiles-and-procedural/tests/browser/integration.mjs:186:34 {
+  log: []
+}
+
+Node.js v26.8.1

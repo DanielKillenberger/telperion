@@ -1,0 +1,459 @@
+{
+  "status": "all final software gates and mature worker exits pass; visual fidelity remains blocked",
+  "generation_commit": "314efc4",
+  "capture_runner_commit": "83f846c",
+  "final": [
+    {
+      "name": "native",
+      "command": [
+        "npm",
+        "run",
+        "rust:test"
+      ],
+      "exit_code": 0,
+      "seconds": 171.4061405658722,
+      "log": "/tmp/fn99-pass5-verified-gates/native.log",
+      "sha256": "f671dbc562e4961016b429bc7672a94adb991a348f4f2975716cd9ad80240d9a"
+    },
+    {
+      "name": "harness",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit_code": 0,
+      "seconds": 63.32585644721985,
+      "log": "/tmp/fn99-pass5-verified-gates/harness.log",
+      "sha256": "9a6012d0f9e936c4975c2e7fb30f0aa57056687aefe13961d84a9a53235d70ae"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.19782423973083496,
+      "log": "/tmp/fn99-pass5-verified-gates/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.10256814956665039,
+      "log": "/tmp/fn99-pass5-verified-gates/clippy.log",
+      "sha256": "ee1d3fffa2022e962e63e0dbe4d35c9c198450a20c29fc09030f635dbb38bfcd"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "seconds": 2.019439220428467,
+      "log": "/tmp/fn99-pass5-verified-gates/typecheck.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.0029747486114501953,
+      "log": "/tmp/fn99-pass5-verified-gates/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.4326324462890625,
+      "log": "/tmp/fn99-pass5-verified-gates/flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    }
+  ],
+  "numeric": {
+    "command": [
+      "node",
+      "tests/browser/species.mjs",
+      "--measure-only",
+      "--output",
+      "/tmp/fn99-pass5-verified-replay"
+    ],
+    "exit_code": 0,
+    "seconds": 385.54387855529785,
+    "log": "/tmp/fn99-pass5-verified-replay/run.log",
+    "sha256": "43bc2ed2610d3a6390a9e71e609a1f1c7c4cdf625c74ec4086c8ab465b05ee0b"
+  },
+  "mature_capture": {
+    "command": [
+      "python3",
+      "/tmp/fn99-pass5-capture.py",
+      "/tmp/fn99-pass5-qa"
+    ],
+    "exit_code": 0,
+    "seconds": 2014.304120540619,
+    "log": "/tmp/fn99-pass5-final-capture-process/run.log",
+    "sha256": "ef9eae5cf7b4f655bc88dfc6be17b756ce4c02d5fc2f9f1b1984a4fed99e4069"
+  },
+  "wasm_browser": {
+    "command": [
+      "npm",
+      "run",
+      "rust:test:wasm"
+    ],
+    "exit_code": 0,
+    "seconds": 191.1073522567749,
+    "log": "/tmp/fn99-pass5-clean-browser/run.log",
+    "sha256": "f5e3d62f4dd6354991954ff269ea614af392c9b96e02c20b83934225a01072e2"
+  },
+  "build": {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exit_code": 0,
+    "seconds": 2.5704851150512695,
+    "log": "/tmp/fn99-pass5-verified-build/run.log",
+    "sha256": "a6879c8f987ddc4b1a842f68eeba17450ab78b09fad7c3ca560a525d63e93b59"
+  },
+  "attempts": [
+    {
+      "name": "reused Vite browser integration",
+      "receipt": {
+        "command": [
+          "npm",
+          "run",
+          "rust:test:wasm"
+        ],
+        "exit_code": 1,
+        "seconds": 1.8671536445617676,
+        "log": "/tmp/fn99-pass5-verified-browser/run.log",
+        "sha256": "a0b33a843dc1f69c790674927f43cea6e41425b3e76f8c57209b1b1e7365ea49"
+      },
+      "reason": "Tree core is not initialized. Reused Vite served a timestamped core dependency while integration imported the unversioned core singleton. Clean standard rust:test:wasm builds and starts its own fresh server; no production or test source modification."
+    },
+    {
+      "name": "unbounded rotations",
+      "reason": "Existing synthetic envelope invariant failed; final code rejects whole out-of-envelope transformations.",
+      "gates": [
+        {
+          "name": "native",
+          "command": [
+            "npm",
+            "run",
+            "rust:test"
+          ],
+          "exit_code": 101,
+          "seconds": 38.35172152519226,
+          "log": "/tmp/fn99-pass5-gates/native.log",
+          "sha256": "441bc7a8a9bfe1a91a12b6689e287ba6bbef3d43e971bd6644c1f01ed65900f2"
+        },
+        {
+          "name": "harness",
+          "command": [
+            "npm",
+            "test"
+          ],
+          "exit_code": 0,
+          "seconds": 69.67000699043274,
+          "log": "/tmp/fn99-pass5-gates/harness.log",
+          "sha256": "8f3ced08fe1691f89f4b22c71ce45585d791e8f51950225924b607e33211386d"
+        },
+        {
+          "name": "fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--check"
+          ],
+          "exit_code": 0,
+          "seconds": 0.20432400703430176,
+          "log": "/tmp/fn99-pass5-gates/fmt.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0,
+          "seconds": 0.684786319732666,
+          "log": "/tmp/fn99-pass5-gates/clippy.log",
+          "sha256": "30ee914e77d2f9cc84674cf1b6added4baf4c18187da54059de5c86c8a727cea"
+        },
+        {
+          "name": "typecheck",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit_code": 0,
+          "seconds": 2.3131234645843506,
+          "log": "/tmp/fn99-pass5-gates/typecheck.log",
+          "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+        },
+        {
+          "name": "diff",
+          "command": [
+            "git",
+            "diff",
+            "--check"
+          ],
+          "exit_code": 0,
+          "seconds": 0.00446009635925293,
+          "log": "/tmp/fn99-pass5-gates/diff.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "flow",
+          "command": [
+            "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+            "validate",
+            "--all",
+            "--json"
+          ],
+          "exit_code": 0,
+          "seconds": 0.43088579177856445,
+          "log": "/tmp/fn99-pass5-gates/flow.log",
+          "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+        }
+      ]
+    },
+    {
+      "name": "structural transverse compression",
+      "reason": "Existing intermediate-fork invariant failed; final narrowing is local-only and preserves every structural axis.",
+      "gates": [
+        {
+          "name": "native",
+          "command": [
+            "npm",
+            "run",
+            "rust:test"
+          ],
+          "exit_code": 101,
+          "seconds": 172.46020364761353,
+          "log": "/tmp/fn99-pass5-final-gates/native.log",
+          "sha256": "a87401e9d01b6696c07451e88acffb3413f9dac3d835e2798350d05906caa951"
+        },
+        {
+          "name": "harness",
+          "command": [
+            "npm",
+            "test"
+          ],
+          "exit_code": 0,
+          "seconds": 64.99772906303406,
+          "log": "/tmp/fn99-pass5-final-gates/harness.log",
+          "sha256": "f3473202b0172b46b1dfda8f9ab20e297a779dfb40e970ae283f004bd771c772"
+        },
+        {
+          "name": "fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--all",
+            "--check"
+          ],
+          "exit_code": 0,
+          "seconds": 0.4001145362854004,
+          "log": "/tmp/fn99-pass5-final-gates/fmt.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit_code": 0,
+          "seconds": 1.2142479419708252,
+          "log": "/tmp/fn99-pass5-final-gates/clippy.log",
+          "sha256": "4e357298abe9760ba3d91d2b9fa0fe82a9fb3600ebd31522679424d35174bf51"
+        },
+        {
+          "name": "typecheck",
+          "command": [
+            "npm",
+            "run",
+            "typecheck"
+          ],
+          "exit_code": 0,
+          "seconds": 3.206366539001465,
+          "log": "/tmp/fn99-pass5-final-gates/typecheck.log",
+          "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+        },
+        {
+          "name": "diff",
+          "command": [
+            "git",
+            "diff",
+            "--check"
+          ],
+          "exit_code": 0,
+          "seconds": 0.003718137741088867,
+          "log": "/tmp/fn99-pass5-final-gates/diff.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "flow",
+          "command": [
+            "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+            "validate",
+            "--all",
+            "--json"
+          ],
+          "exit_code": 0,
+          "seconds": 0.45148491859436035,
+          "log": "/tmp/fn99-pass5-final-gates/flow.log",
+          "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+        }
+      ]
+    },
+    {
+      "name": "pilot norway-spruce-1-whole",
+      "process": {
+        "exit_code": 1,
+        "seconds": 187.74869871139526
+      },
+      "log": "/tmp/fn99-pass5-pilot/norway-spruce-1-whole.log",
+      "sha256": "89427b968615a855442cbaaa8b646cca069d7ff01c0ed7cecd66951e41681dda",
+      "reason": "Browser target crashed during concurrent heavy work; no acceptance from missing PNG. Final serialized batched capture succeeds."
+    },
+    {
+      "name": "pilot norway-spruce-4250668600-whole",
+      "process": {
+        "exit_code": 1,
+        "seconds": 3.5364325046539307
+      },
+      "log": "/tmp/fn99-pass5-pilot/norway-spruce-4250668600-whole.log",
+      "sha256": "89427b968615a855442cbaaa8b646cca069d7ff01c0ed7cecd66951e41681dda",
+      "reason": "Browser target crashed during concurrent heavy work; no acceptance from missing PNG. Final serialized batched capture succeeds."
+    },
+    {
+      "name": "first numeric outer recorder",
+      "receipt": {
+        "recorder_exit": 143,
+        "numeric_cases": 48,
+        "all_case_results_pass": true,
+        "note": "Outer recorder terminated before saving child exit; raw results retained as pilot evidence only. Final guarded build receives a separate fully detached replay."
+      },
+      "reason": "All raw case results retained, but no explicit child exit; not the final numeric claim."
+    },
+    {
+      "name": "guarded structural-compression replay",
+      "receipt": {
+        "command": [
+          "node",
+          "tests/browser/species.mjs",
+          "--measure-only",
+          "--output",
+          "/tmp/fn99-pass5-final-replay"
+        ],
+        "exit_code": 0,
+        "seconds": 388.3793375492096,
+        "log": "/tmp/fn99-pass5-final-replay/run.log",
+        "sha256": "0390954df0b6eba24eafc44b8cdc532da567f030f691d31da214e623e9fdfd0a"
+      },
+      "reason": "Exit 0 but superseded by local-only fork preservation at 314efc4."
+    },
+    {
+      "name": "stopped pending scheduling",
+      "receipt": {
+        "pipeline_pid": 2811939,
+        "signal": "SIGTERM",
+        "reason": "Stop scheduling after structural fork regression; independent numeric recorder/child allowed to finish. No pending captures relabeled as final."
+      }
+    }
+  ],
+  "batch_parity": "pass5-batch-parity.json",
+  "notes": [
+    "REVIEW_MODE=none: no review matrix, subagents, external agents, Claude, Cloud Agents, PR, merge or owner approval.",
+    "Final numeric/capture/browser recorders and their commands use separate sessions and file-backed logs; explicit final child exits are preserved.",
+    "Final flow validate reports zero errors; nine stale runtime-state warnings belong to prior FN6/FN7 tasks. FN9 has no warnings."
+  ],
+  "post_evidence_checks": [
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/fn99-pass5-close/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "runner-syntax",
+      "command": [
+        "node",
+        "--check",
+        "tests/browser/species.mjs"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/fn99-pass5-close/runner-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/fn99-pass5-close/flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    },
+    {
+      "name": "flow-status",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "show",
+        "fn-9-real-species-profiles-and-procedural.9",
+        "--json"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/fn99-pass5-close/flow-status.log",
+      "sha256": "f7a9a9a0bbf0c39a3d4da2323f54660d81c64f4d29c21aae18e0c8819f7d0f10"
+    }
+  ],
+  "clean_browser_evidence": "/tmp/fn99-pass5-clean-browser/evidence"
+}

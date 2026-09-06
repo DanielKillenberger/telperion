@@ -1,0 +1,23 @@
+{
+  "base_commit": "de230d59391ead7f1382aae5f695a5c2f5f96754",
+  "commits": [
+    "fc2add4a01efdbbe45c63e6084e2606e99f7a747"
+  ],
+  "tests": [
+    "baseline: green (cargo test --release -p telperion-core --test growth --test foliage; npm run typecheck)",
+    "red-to-green: foliage geometry/attachment/invalid connector tests (.flow/tmp/foliage-red.log)",
+    "red-to-green: transformed species metrics (.flow/tmp/foliage-metrics-red.log)",
+    "red-to-green: multi-edge same-twig station continuity (.flow/tmp/foliage-continuity-red.log)",
+    "cargo test --release -p telperion-core --test growth --test foliage (18 passed; .flow/tmp/foliage-verify-parent.log)",
+    "cargo test --release -p telperion-core --test foliage --test field (14 passed; .flow/tmp/foliage-verify-task.log)",
+    "cargo test --release -p telperion-core --test species_metrics (5 passed; .flow/tmp/foliage-verify-metrics.log)",
+    "npm run typecheck (exit 0; .flow/tmp/foliage-verify-typecheck.log)",
+    "cargo check --workspace (exit 0; .flow/tmp/foliage-verify-workspace.log)",
+    "rustfmt --edition 2021 (seven touched Rust files)",
+    "git diff --check (exit 0)",
+    "Integrated HEAD fc2add4a01efdbbe45c63e6084e2606e99f7a747, after task 3 done: cargo test --release -p telperion-core --test growth --test foliage --test field --test species_metrics \u2014 32 passed; .flow/tmp/fn9-integrated-foliage.log",
+    "Integrated: cargo check --workspace; cargo fmt --all --check; git diff --check \u2014 passed after task 3 done",
+    "Combined tree: cargo test --release --workspace \u2014 54 passed, 4 existing external-reference tests ignored; npm run typecheck \u2014 passed"
+  ],
+  "prs": []
+}

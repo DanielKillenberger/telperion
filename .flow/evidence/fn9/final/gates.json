@@ -1,0 +1,64 @@
+{
+  "production": "0a8f343",
+  "passing": [
+    {
+      "command": "npm run rust:test",
+      "exit_code": 0,
+      "log": "logs/fn9-taper-final-native.log"
+    },
+    {
+      "command": "npm test",
+      "exit_code": 0,
+      "log": "logs/fn9-taper-final-harness.log"
+    },
+    {
+      "command": "npm run build",
+      "exit_code": 0,
+      "log": "logs/fn9-taper-final-build.log"
+    },
+    {
+      "command": "node tests/browser/integration.mjs (final geometry; includes Wasm binding checks)",
+      "exit_code": 0,
+      "log": "logs/fn9-complete-browser.log"
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log": "logs/fn9-taper-clippy.log"
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0,
+      "log": "logs/fn9-taper-fmt.log"
+    },
+    {
+      "command": "python /tmp/fn9-complete-captures.py (capture only; visual separate)",
+      "exit_code": 0,
+      "log": "logs/fn9-complete-captures.log"
+    },
+    {
+      "command": "python /tmp/fn9-complete-measure.py",
+      "exit_code": 0,
+      "log": "logs/fn9-complete-measure.log"
+    },
+    {
+      "command": "node tests/browser/integration.mjs (shared fixture + invalid URL recovery)",
+      "exit_code": 0,
+      "log": "logs/fn9-shared-fixture-browser.log"
+    }
+  ],
+  "earlier_failures": [
+    {
+      "log": "logs/fn9-final-browser.log",
+      "reason": "small fixture exceeded existing foliage budget; explicit compact anatomy fixed it without raising budget"
+    },
+    {
+      "log": "logs/fn9-url-recovery.log",
+      "reason": "Vite HMR module identity split in test imports; clean test server passes"
+    },
+    {
+      "log": "logs/fn9-taper-red.log",
+      "reason": "expected red regression proves actual blunt structural terminal"
+    }
+  ]
+}

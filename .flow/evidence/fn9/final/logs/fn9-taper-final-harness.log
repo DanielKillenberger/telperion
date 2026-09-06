@@ -1,0 +1,25 @@
+
+> telperion@0.1.0 pretest
+> npm run wasm:build
+
+
+> telperion@0.1.0 wasm:build
+> node scripts/build-wasm.mjs
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-9-real-species-profiles-and-procedural/crates/telperion-core)
+   Compiling telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-9-real-species-profiles-and-procedural/crates/telperion-wasm)
+    Finished `release` profile [optimized] target(s) in 2.69s
+Built Wasm and regenerated Rust family metadata.
+
+> telperion@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/daniel/Projects/telperion/.worktrees/fn-9-real-species-profiles-and-procedural
+
+
+ Test Files  3 passed (3)
+      Tests  106 passed (106)
+   Start at  13:01:08
+   Duration  40.83s (transform 175ms, setup 0ms, import 309ms, tests 40.66s, environment 0ms)
+

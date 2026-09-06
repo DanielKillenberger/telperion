@@ -1,0 +1,1430 @@
+[
+  {
+    "id": "oregon-white-oak-1",
+    "view": "whole",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "bare",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "element",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "junction-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-front",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-left",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-right",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-alt-front",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-alt-left",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-alt-right",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    },
+    "after_hashes": {
+      "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+      "indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18"
+    }
+  },
+  {
+    "id": "oregon-white-oak-2",
+    "view": "whole",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a788e3dc1715f923a68526a528a15d4504933d0b254e634ed96be75b789ee3e4",
+      "indices": "b7bbbcc3aae95e752ad77d25caf1e0f017fc038f53adc31258d38ec3c9c1ced3",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "1c8b5dd8b48a46709b06b6cfb4815caa3555a48f3c4e51f5c4841fb08e5aa68e"
+    },
+    "after_hashes": {
+      "wood": "a788e3dc1715f923a68526a528a15d4504933d0b254e634ed96be75b789ee3e4",
+      "indices": "b7bbbcc3aae95e752ad77d25caf1e0f017fc038f53adc31258d38ec3c9c1ced3",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "1c8b5dd8b48a46709b06b6cfb4815caa3555a48f3c4e51f5c4841fb08e5aa68e"
+    }
+  },
+  {
+    "id": "oregon-white-oak-2",
+    "view": "bare",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a788e3dc1715f923a68526a528a15d4504933d0b254e634ed96be75b789ee3e4",
+      "indices": "b7bbbcc3aae95e752ad77d25caf1e0f017fc038f53adc31258d38ec3c9c1ced3",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "1c8b5dd8b48a46709b06b6cfb4815caa3555a48f3c4e51f5c4841fb08e5aa68e"
+    },
+    "after_hashes": {
+      "wood": "a788e3dc1715f923a68526a528a15d4504933d0b254e634ed96be75b789ee3e4",
+      "indices": "b7bbbcc3aae95e752ad77d25caf1e0f017fc038f53adc31258d38ec3c9c1ced3",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "1c8b5dd8b48a46709b06b6cfb4815caa3555a48f3c4e51f5c4841fb08e5aa68e"
+    }
+  },
+  {
+    "id": "oregon-white-oak-2",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a788e3dc1715f923a68526a528a15d4504933d0b254e634ed96be75b789ee3e4",
+      "indices": "b7bbbcc3aae95e752ad77d25caf1e0f017fc038f53adc31258d38ec3c9c1ced3",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "1c8b5dd8b48a46709b06b6cfb4815caa3555a48f3c4e51f5c4841fb08e5aa68e"
+    },
+    "after_hashes": {
+      "wood": "a788e3dc1715f923a68526a528a15d4504933d0b254e634ed96be75b789ee3e4",
+      "indices": "b7bbbcc3aae95e752ad77d25caf1e0f017fc038f53adc31258d38ec3c9c1ced3",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "1c8b5dd8b48a46709b06b6cfb4815caa3555a48f3c4e51f5c4841fb08e5aa68e"
+    }
+  },
+  {
+    "id": "oregon-white-oak-3",
+    "view": "whole",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d8e3b5cb3e0273b20313cd349f88252b8c0ac27561c5c89af3a8cd28e3d7bde7",
+      "indices": "f5d9d9cc007361344b6054fc89cbe6338d2015bec883ffb2d11294aef0ef85fd",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "e58cb841554b3317a9f6203e70b75ebb2feb4e69769959eb56b79f30c64a1342"
+    },
+    "after_hashes": {
+      "wood": "d8e3b5cb3e0273b20313cd349f88252b8c0ac27561c5c89af3a8cd28e3d7bde7",
+      "indices": "f5d9d9cc007361344b6054fc89cbe6338d2015bec883ffb2d11294aef0ef85fd",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "e58cb841554b3317a9f6203e70b75ebb2feb4e69769959eb56b79f30c64a1342"
+    }
+  },
+  {
+    "id": "oregon-white-oak-3",
+    "view": "bare",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d8e3b5cb3e0273b20313cd349f88252b8c0ac27561c5c89af3a8cd28e3d7bde7",
+      "indices": "f5d9d9cc007361344b6054fc89cbe6338d2015bec883ffb2d11294aef0ef85fd",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "e58cb841554b3317a9f6203e70b75ebb2feb4e69769959eb56b79f30c64a1342"
+    },
+    "after_hashes": {
+      "wood": "d8e3b5cb3e0273b20313cd349f88252b8c0ac27561c5c89af3a8cd28e3d7bde7",
+      "indices": "f5d9d9cc007361344b6054fc89cbe6338d2015bec883ffb2d11294aef0ef85fd",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "e58cb841554b3317a9f6203e70b75ebb2feb4e69769959eb56b79f30c64a1342"
+    }
+  },
+  {
+    "id": "oregon-white-oak-3",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "d8e3b5cb3e0273b20313cd349f88252b8c0ac27561c5c89af3a8cd28e3d7bde7",
+      "indices": "f5d9d9cc007361344b6054fc89cbe6338d2015bec883ffb2d11294aef0ef85fd",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "e58cb841554b3317a9f6203e70b75ebb2feb4e69769959eb56b79f30c64a1342"
+    },
+    "after_hashes": {
+      "wood": "d8e3b5cb3e0273b20313cd349f88252b8c0ac27561c5c89af3a8cd28e3d7bde7",
+      "indices": "f5d9d9cc007361344b6054fc89cbe6338d2015bec883ffb2d11294aef0ef85fd",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "e58cb841554b3317a9f6203e70b75ebb2feb4e69769959eb56b79f30c64a1342"
+    }
+  },
+  {
+    "id": "oregon-white-oak-2666899686",
+    "view": "whole",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "9441f10ff24dafc3f59d9fefaec3b759ac3304f35d3eeaaaf1804558684f72a0",
+      "indices": "c03a475ac5d38920e1d456a1093a74278e0dc85870641fb56f6375c68def1892",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "d76c29d4e39c51edc18cf761248a51ce0292469ed4867dbd5b18b03e284459c4"
+    },
+    "after_hashes": {
+      "wood": "9441f10ff24dafc3f59d9fefaec3b759ac3304f35d3eeaaaf1804558684f72a0",
+      "indices": "c03a475ac5d38920e1d456a1093a74278e0dc85870641fb56f6375c68def1892",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "d76c29d4e39c51edc18cf761248a51ce0292469ed4867dbd5b18b03e284459c4"
+    }
+  },
+  {
+    "id": "oregon-white-oak-2666899686",
+    "view": "bare",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "9441f10ff24dafc3f59d9fefaec3b759ac3304f35d3eeaaaf1804558684f72a0",
+      "indices": "c03a475ac5d38920e1d456a1093a74278e0dc85870641fb56f6375c68def1892",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "d76c29d4e39c51edc18cf761248a51ce0292469ed4867dbd5b18b03e284459c4"
+    },
+    "after_hashes": {
+      "wood": "9441f10ff24dafc3f59d9fefaec3b759ac3304f35d3eeaaaf1804558684f72a0",
+      "indices": "c03a475ac5d38920e1d456a1093a74278e0dc85870641fb56f6375c68def1892",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "d76c29d4e39c51edc18cf761248a51ce0292469ed4867dbd5b18b03e284459c4"
+    }
+  },
+  {
+    "id": "oregon-white-oak-2666899686",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "9441f10ff24dafc3f59d9fefaec3b759ac3304f35d3eeaaaf1804558684f72a0",
+      "indices": "c03a475ac5d38920e1d456a1093a74278e0dc85870641fb56f6375c68def1892",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "d76c29d4e39c51edc18cf761248a51ce0292469ed4867dbd5b18b03e284459c4"
+    },
+    "after_hashes": {
+      "wood": "9441f10ff24dafc3f59d9fefaec3b759ac3304f35d3eeaaaf1804558684f72a0",
+      "indices": "c03a475ac5d38920e1d456a1093a74278e0dc85870641fb56f6375c68def1892",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "d76c29d4e39c51edc18cf761248a51ce0292469ed4867dbd5b18b03e284459c4"
+    }
+  },
+  {
+    "id": "oregon-white-oak-762807349",
+    "view": "whole",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "ad2d68e81ffe8c0048259fae492cf02097dacf5e67adf1cd632f147dee9941d3",
+      "indices": "4375d5efc7983c9085f50a7c744d31dc4d8378834d4cf7518c0026d51d3b1fd8",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "9ed227e067090af19bf1ea0d16793c3e1a4d83b5626a0a5e267caecfea70c89e"
+    },
+    "after_hashes": {
+      "wood": "ad2d68e81ffe8c0048259fae492cf02097dacf5e67adf1cd632f147dee9941d3",
+      "indices": "4375d5efc7983c9085f50a7c744d31dc4d8378834d4cf7518c0026d51d3b1fd8",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "9ed227e067090af19bf1ea0d16793c3e1a4d83b5626a0a5e267caecfea70c89e"
+    }
+  },
+  {
+    "id": "oregon-white-oak-762807349",
+    "view": "bare",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "ad2d68e81ffe8c0048259fae492cf02097dacf5e67adf1cd632f147dee9941d3",
+      "indices": "4375d5efc7983c9085f50a7c744d31dc4d8378834d4cf7518c0026d51d3b1fd8",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "9ed227e067090af19bf1ea0d16793c3e1a4d83b5626a0a5e267caecfea70c89e"
+    },
+    "after_hashes": {
+      "wood": "ad2d68e81ffe8c0048259fae492cf02097dacf5e67adf1cd632f147dee9941d3",
+      "indices": "4375d5efc7983c9085f50a7c744d31dc4d8378834d4cf7518c0026d51d3b1fd8",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "9ed227e067090af19bf1ea0d16793c3e1a4d83b5626a0a5e267caecfea70c89e"
+    }
+  },
+  {
+    "id": "oregon-white-oak-762807349",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "ad2d68e81ffe8c0048259fae492cf02097dacf5e67adf1cd632f147dee9941d3",
+      "indices": "4375d5efc7983c9085f50a7c744d31dc4d8378834d4cf7518c0026d51d3b1fd8",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "9ed227e067090af19bf1ea0d16793c3e1a4d83b5626a0a5e267caecfea70c89e"
+    },
+    "after_hashes": {
+      "wood": "ad2d68e81ffe8c0048259fae492cf02097dacf5e67adf1cd632f147dee9941d3",
+      "indices": "4375d5efc7983c9085f50a7c744d31dc4d8378834d4cf7518c0026d51d3b1fd8",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "9ed227e067090af19bf1ea0d16793c3e1a4d83b5626a0a5e267caecfea70c89e"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1444323199",
+    "view": "whole",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "f38f9f44cd4c10700351590d205459e8fae9e421b7b8a76f5bf9f969e6a6669d",
+      "indices": "c70f157bbd8787c70fc31d8ae43dc879314322cfa06dc99acfba77c21d353a78",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "b249ecfa704b360a991f905ef22b75ff64fcecbc84be6b39b6870c0a93878ce9"
+    },
+    "after_hashes": {
+      "wood": "f38f9f44cd4c10700351590d205459e8fae9e421b7b8a76f5bf9f969e6a6669d",
+      "indices": "c70f157bbd8787c70fc31d8ae43dc879314322cfa06dc99acfba77c21d353a78",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "b249ecfa704b360a991f905ef22b75ff64fcecbc84be6b39b6870c0a93878ce9"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1444323199",
+    "view": "bare",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "f38f9f44cd4c10700351590d205459e8fae9e421b7b8a76f5bf9f969e6a6669d",
+      "indices": "c70f157bbd8787c70fc31d8ae43dc879314322cfa06dc99acfba77c21d353a78",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "b249ecfa704b360a991f905ef22b75ff64fcecbc84be6b39b6870c0a93878ce9"
+    },
+    "after_hashes": {
+      "wood": "f38f9f44cd4c10700351590d205459e8fae9e421b7b8a76f5bf9f969e6a6669d",
+      "indices": "c70f157bbd8787c70fc31d8ae43dc879314322cfa06dc99acfba77c21d353a78",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "b249ecfa704b360a991f905ef22b75ff64fcecbc84be6b39b6870c0a93878ce9"
+    }
+  },
+  {
+    "id": "oregon-white-oak-1444323199",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "f38f9f44cd4c10700351590d205459e8fae9e421b7b8a76f5bf9f969e6a6669d",
+      "indices": "c70f157bbd8787c70fc31d8ae43dc879314322cfa06dc99acfba77c21d353a78",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "b249ecfa704b360a991f905ef22b75ff64fcecbc84be6b39b6870c0a93878ce9"
+    },
+    "after_hashes": {
+      "wood": "f38f9f44cd4c10700351590d205459e8fae9e421b7b8a76f5bf9f969e6a6669d",
+      "indices": "c70f157bbd8787c70fc31d8ae43dc879314322cfa06dc99acfba77c21d353a78",
+      "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+      "matrices": "b249ecfa704b360a991f905ef22b75ff64fcecbc84be6b39b6870c0a93878ce9"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "whole",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "bare",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "element",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "junction-detail",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-front",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-left",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-right",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-alt-front",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-alt-left",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-alt-right",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "branch-curtain",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-upper",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-lower",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-upper",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-lower",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-contact-front",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-contact-left",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-contact-right",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-contact-front",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-contact-left",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-contact-right",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-clear-front",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-clear-left",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-clear-right",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-root-front",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-root-left",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-root-right",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-tip-front",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-tip-left",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-tip-right",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "a702f329ca1ef81397279bb1670cf5fc773f3cade1aa736dd6e618d5f17afb8b",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f1271de5e799a82aeb58393e248304040da77a8d2568ef4472499e19ef431139"
+    },
+    "after_hashes": {
+      "wood": "0dd7a4a31a6f41561ae0da5deaa3aa88268fea4b1ee463710bcfb683275ec670",
+      "indices": "85efd057e0d1335a9d0913b1993cf3a51daf25203bb8f17c3a6cf5676d3ef786",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "66cb5a26824e6a944d8ec639ea67d85d86ff82dbaf3d4e08b60d44acaec04f28"
+    }
+  },
+  {
+    "id": "norway-spruce-2",
+    "view": "whole",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "4e2e4acdaa26e1c7e0a643e799eb6e06e6e274391049cb407d8677af82f2d723",
+      "indices": "73c8f2ff7140a7629b1b40938b4bce995727416679ce980ae151286d96bf346e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "4f91be4dfa48a1e599e78e3763e2e1a661482179b293af9db05368357b8ca963"
+    },
+    "after_hashes": {
+      "wood": "31c84e007f4b5476f6acb64a962f2f9c38136913e1c0cbe0a890841d8eeb5fab",
+      "indices": "73c8f2ff7140a7629b1b40938b4bce995727416679ce980ae151286d96bf346e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "efa2930ee7a7f9a4c9bcb839d43fc340bb078342bebd45bd4e3a7cca0a72b279"
+    }
+  },
+  {
+    "id": "norway-spruce-2",
+    "view": "bare",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "4e2e4acdaa26e1c7e0a643e799eb6e06e6e274391049cb407d8677af82f2d723",
+      "indices": "73c8f2ff7140a7629b1b40938b4bce995727416679ce980ae151286d96bf346e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "4f91be4dfa48a1e599e78e3763e2e1a661482179b293af9db05368357b8ca963"
+    },
+    "after_hashes": {
+      "wood": "31c84e007f4b5476f6acb64a962f2f9c38136913e1c0cbe0a890841d8eeb5fab",
+      "indices": "73c8f2ff7140a7629b1b40938b4bce995727416679ce980ae151286d96bf346e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "efa2930ee7a7f9a4c9bcb839d43fc340bb078342bebd45bd4e3a7cca0a72b279"
+    }
+  },
+  {
+    "id": "norway-spruce-2",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "4e2e4acdaa26e1c7e0a643e799eb6e06e6e274391049cb407d8677af82f2d723",
+      "indices": "73c8f2ff7140a7629b1b40938b4bce995727416679ce980ae151286d96bf346e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "4f91be4dfa48a1e599e78e3763e2e1a661482179b293af9db05368357b8ca963"
+    },
+    "after_hashes": {
+      "wood": "31c84e007f4b5476f6acb64a962f2f9c38136913e1c0cbe0a890841d8eeb5fab",
+      "indices": "73c8f2ff7140a7629b1b40938b4bce995727416679ce980ae151286d96bf346e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "efa2930ee7a7f9a4c9bcb839d43fc340bb078342bebd45bd4e3a7cca0a72b279"
+    }
+  },
+  {
+    "id": "norway-spruce-3",
+    "view": "whole",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "ebe3dcd2ced1d319d4da61fbcce2d6f92c5dce1a2fba1d6e30b8995c73782126",
+      "indices": "c98c60de9a636f89b3018d3e0f069938164dfc70f14dff78c23a6c057374a32e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "88889218e3eaa4f024bed7ce47618e7ebb6c18ec1b04b42c51b74a1385f12cc2"
+    },
+    "after_hashes": {
+      "wood": "9b2083187808c2f452b12e931faa412ada131062ffa8aac32b1c07ee7492a379",
+      "indices": "c98c60de9a636f89b3018d3e0f069938164dfc70f14dff78c23a6c057374a32e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "803c35fd96304ca4aee4e1b7e46b0487d615aaf03e9c2b5cb45f9c9f851052f7"
+    }
+  },
+  {
+    "id": "norway-spruce-3",
+    "view": "bare",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "ebe3dcd2ced1d319d4da61fbcce2d6f92c5dce1a2fba1d6e30b8995c73782126",
+      "indices": "c98c60de9a636f89b3018d3e0f069938164dfc70f14dff78c23a6c057374a32e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "88889218e3eaa4f024bed7ce47618e7ebb6c18ec1b04b42c51b74a1385f12cc2"
+    },
+    "after_hashes": {
+      "wood": "9b2083187808c2f452b12e931faa412ada131062ffa8aac32b1c07ee7492a379",
+      "indices": "c98c60de9a636f89b3018d3e0f069938164dfc70f14dff78c23a6c057374a32e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "803c35fd96304ca4aee4e1b7e46b0487d615aaf03e9c2b5cb45f9c9f851052f7"
+    }
+  },
+  {
+    "id": "norway-spruce-3",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "ebe3dcd2ced1d319d4da61fbcce2d6f92c5dce1a2fba1d6e30b8995c73782126",
+      "indices": "c98c60de9a636f89b3018d3e0f069938164dfc70f14dff78c23a6c057374a32e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "88889218e3eaa4f024bed7ce47618e7ebb6c18ec1b04b42c51b74a1385f12cc2"
+    },
+    "after_hashes": {
+      "wood": "9b2083187808c2f452b12e931faa412ada131062ffa8aac32b1c07ee7492a379",
+      "indices": "c98c60de9a636f89b3018d3e0f069938164dfc70f14dff78c23a6c057374a32e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "803c35fd96304ca4aee4e1b7e46b0487d615aaf03e9c2b5cb45f9c9f851052f7"
+    }
+  },
+  {
+    "id": "norway-spruce-1982700925",
+    "view": "whole",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "1d277d5ae6be6c278c229d8dcd259114266be2fb6c2a309c44ee428d574d232e",
+      "indices": "b182b320d1871064c50d113a7be3b6b1037d5bc160c43032f6fe42912963c7b9",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "fcff924a45802c2adc0126a9bb85c65cf594103f86ae1afeb53258c378e2a31c"
+    },
+    "after_hashes": {
+      "wood": "f9054e6f70239a920798f37ad645859088a7b57853ac3162d587d855728451f8",
+      "indices": "b182b320d1871064c50d113a7be3b6b1037d5bc160c43032f6fe42912963c7b9",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "4ca89c0091d33673641ddfc29c463a7234235f1e032f798857b72f02abda0e76"
+    }
+  },
+  {
+    "id": "norway-spruce-1982700925",
+    "view": "bare",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "1d277d5ae6be6c278c229d8dcd259114266be2fb6c2a309c44ee428d574d232e",
+      "indices": "b182b320d1871064c50d113a7be3b6b1037d5bc160c43032f6fe42912963c7b9",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "fcff924a45802c2adc0126a9bb85c65cf594103f86ae1afeb53258c378e2a31c"
+    },
+    "after_hashes": {
+      "wood": "f9054e6f70239a920798f37ad645859088a7b57853ac3162d587d855728451f8",
+      "indices": "b182b320d1871064c50d113a7be3b6b1037d5bc160c43032f6fe42912963c7b9",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "4ca89c0091d33673641ddfc29c463a7234235f1e032f798857b72f02abda0e76"
+    }
+  },
+  {
+    "id": "norway-spruce-1982700925",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "1d277d5ae6be6c278c229d8dcd259114266be2fb6c2a309c44ee428d574d232e",
+      "indices": "b182b320d1871064c50d113a7be3b6b1037d5bc160c43032f6fe42912963c7b9",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "fcff924a45802c2adc0126a9bb85c65cf594103f86ae1afeb53258c378e2a31c"
+    },
+    "after_hashes": {
+      "wood": "f9054e6f70239a920798f37ad645859088a7b57853ac3162d587d855728451f8",
+      "indices": "b182b320d1871064c50d113a7be3b6b1037d5bc160c43032f6fe42912963c7b9",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "4ca89c0091d33673641ddfc29c463a7234235f1e032f798857b72f02abda0e76"
+    }
+  },
+  {
+    "id": "norway-spruce-281313742",
+    "view": "whole",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a6c9eb5b62c2a3d2747ceec88c5993e7dd3ac8be59f127f3bac19202d74e1343",
+      "indices": "d7b6d7b00c9960b4ea39484f6c8d75e38204e6bced5ceaf267973f1d4cdf5b55",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f6411ed8c56295d7e807109e703c70e8732b3329c305f6430072bf46d0a70c9e"
+    },
+    "after_hashes": {
+      "wood": "06a782faa6de327a5a07a254af1d0e3b739dd945310b0015d43c771b78efc69d",
+      "indices": "d7b6d7b00c9960b4ea39484f6c8d75e38204e6bced5ceaf267973f1d4cdf5b55",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "97964d77cc0a1eb5e8f2f879fad708939bcb906b6ce520f3ef552ef78eeb9320"
+    }
+  },
+  {
+    "id": "norway-spruce-281313742",
+    "view": "bare",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a6c9eb5b62c2a3d2747ceec88c5993e7dd3ac8be59f127f3bac19202d74e1343",
+      "indices": "d7b6d7b00c9960b4ea39484f6c8d75e38204e6bced5ceaf267973f1d4cdf5b55",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f6411ed8c56295d7e807109e703c70e8732b3329c305f6430072bf46d0a70c9e"
+    },
+    "after_hashes": {
+      "wood": "06a782faa6de327a5a07a254af1d0e3b739dd945310b0015d43c771b78efc69d",
+      "indices": "d7b6d7b00c9960b4ea39484f6c8d75e38204e6bced5ceaf267973f1d4cdf5b55",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "97964d77cc0a1eb5e8f2f879fad708939bcb906b6ce520f3ef552ef78eeb9320"
+    }
+  },
+  {
+    "id": "norway-spruce-281313742",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "a6c9eb5b62c2a3d2747ceec88c5993e7dd3ac8be59f127f3bac19202d74e1343",
+      "indices": "d7b6d7b00c9960b4ea39484f6c8d75e38204e6bced5ceaf267973f1d4cdf5b55",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "f6411ed8c56295d7e807109e703c70e8732b3329c305f6430072bf46d0a70c9e"
+    },
+    "after_hashes": {
+      "wood": "06a782faa6de327a5a07a254af1d0e3b739dd945310b0015d43c771b78efc69d",
+      "indices": "d7b6d7b00c9960b4ea39484f6c8d75e38204e6bced5ceaf267973f1d4cdf5b55",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "97964d77cc0a1eb5e8f2f879fad708939bcb906b6ce520f3ef552ef78eeb9320"
+    }
+  },
+  {
+    "id": "norway-spruce-2271779095",
+    "view": "whole",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "caa66898b44e3910868b795123aef9df4d06f79aff42b2b57de5243c08d8aa7c",
+      "indices": "9effa5b5b596a92226b05a190d72f75d24251171324f96782b159a40e3dee95e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "52cff542e157f8d1496450cf12fc1aefc5185682b7a842725445857ff4694745"
+    },
+    "after_hashes": {
+      "wood": "6f2ea1fa2119a825b2d7a3005629e0760b8ced8aa44a739df6fe276a5cf2a9ff",
+      "indices": "9effa5b5b596a92226b05a190d72f75d24251171324f96782b159a40e3dee95e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "5bd345a8a58f220789be37d61f316910940d4742bb6674b0a61bd12416ef94f6"
+    }
+  },
+  {
+    "id": "norway-spruce-2271779095",
+    "view": "bare",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "caa66898b44e3910868b795123aef9df4d06f79aff42b2b57de5243c08d8aa7c",
+      "indices": "9effa5b5b596a92226b05a190d72f75d24251171324f96782b159a40e3dee95e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "52cff542e157f8d1496450cf12fc1aefc5185682b7a842725445857ff4694745"
+    },
+    "after_hashes": {
+      "wood": "6f2ea1fa2119a825b2d7a3005629e0760b8ced8aa44a739df6fe276a5cf2a9ff",
+      "indices": "9effa5b5b596a92226b05a190d72f75d24251171324f96782b159a40e3dee95e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "5bd345a8a58f220789be37d61f316910940d4742bb6674b0a61bd12416ef94f6"
+    }
+  },
+  {
+    "id": "norway-spruce-2271779095",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "caa66898b44e3910868b795123aef9df4d06f79aff42b2b57de5243c08d8aa7c",
+      "indices": "9effa5b5b596a92226b05a190d72f75d24251171324f96782b159a40e3dee95e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "52cff542e157f8d1496450cf12fc1aefc5185682b7a842725445857ff4694745"
+    },
+    "after_hashes": {
+      "wood": "6f2ea1fa2119a825b2d7a3005629e0760b8ced8aa44a739df6fe276a5cf2a9ff",
+      "indices": "9effa5b5b596a92226b05a190d72f75d24251171324f96782b159a40e3dee95e",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "5bd345a8a58f220789be37d61f316910940d4742bb6674b0a61bd12416ef94f6"
+    }
+  },
+  {
+    "id": "norway-spruce-4250668600",
+    "view": "whole",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "3e9672e80db8955542d6ac949aa2704f7658bbdc63f3eab7a61c5ac6107ab7b8",
+      "indices": "42ded81b74b097ea5e2997eb8ea1836b3cd0d86fb3f5704ab45eb7ce7e5f9eea",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "540d377a5add719a2133a649012373909fd5a739ce289da78022304872470001"
+    },
+    "after_hashes": {
+      "wood": "21534a2c9d3c16ccd4e17eb1107fa90707ce0eed4e9be2c6c4edab93e2b832ce",
+      "indices": "42ded81b74b097ea5e2997eb8ea1836b3cd0d86fb3f5704ab45eb7ce7e5f9eea",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "cb82836a935f143d2a529d3fda28ba5a65e0ec2052340168c5633f32250b8526"
+    }
+  },
+  {
+    "id": "norway-spruce-4250668600",
+    "view": "bare",
+    "same_png_as_before_taper": false,
+    "before_hashes": {
+      "wood": "3e9672e80db8955542d6ac949aa2704f7658bbdc63f3eab7a61c5ac6107ab7b8",
+      "indices": "42ded81b74b097ea5e2997eb8ea1836b3cd0d86fb3f5704ab45eb7ce7e5f9eea",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "540d377a5add719a2133a649012373909fd5a739ce289da78022304872470001"
+    },
+    "after_hashes": {
+      "wood": "21534a2c9d3c16ccd4e17eb1107fa90707ce0eed4e9be2c6c4edab93e2b832ce",
+      "indices": "42ded81b74b097ea5e2997eb8ea1836b3cd0d86fb3f5704ab45eb7ce7e5f9eea",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "cb82836a935f143d2a529d3fda28ba5a65e0ec2052340168c5633f32250b8526"
+    }
+  },
+  {
+    "id": "norway-spruce-4250668600",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "3e9672e80db8955542d6ac949aa2704f7658bbdc63f3eab7a61c5ac6107ab7b8",
+      "indices": "42ded81b74b097ea5e2997eb8ea1836b3cd0d86fb3f5704ab45eb7ce7e5f9eea",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "540d377a5add719a2133a649012373909fd5a739ce289da78022304872470001"
+    },
+    "after_hashes": {
+      "wood": "21534a2c9d3c16ccd4e17eb1107fa90707ce0eed4e9be2c6c4edab93e2b832ce",
+      "indices": "42ded81b74b097ea5e2997eb8ea1836b3cd0d86fb3f5704ab45eb7ce7e5f9eea",
+      "foliage": "675c367c948693ca98139c0a5bb03098048c68c6a90fff4558e5279fb821cb97",
+      "matrices": "cb82836a935f143d2a529d3fda28ba5a65e0ec2052340168c5633f32250b8526"
+    }
+  },
+  {
+    "id": "ordinary",
+    "view": "whole",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "1bc039d606768e75406b069716dca74d4e94a605d4f452100e9925d34be4ad46",
+      "indices": "2d3ee9bd1db676fb968250990c2d466048c081900df6f5f942db4999f59f906f",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "5ab79c3f924214a7b165d1b5331c24c610935d2be3b7bc8fd10ea42cf9ded382"
+    },
+    "after_hashes": {
+      "wood": "1bc039d606768e75406b069716dca74d4e94a605d4f452100e9925d34be4ad46",
+      "indices": "2d3ee9bd1db676fb968250990c2d466048c081900df6f5f942db4999f59f906f",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "5ab79c3f924214a7b165d1b5331c24c610935d2be3b7bc8fd10ea42cf9ded382"
+    }
+  },
+  {
+    "id": "ordinary",
+    "view": "bare",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "1bc039d606768e75406b069716dca74d4e94a605d4f452100e9925d34be4ad46",
+      "indices": "2d3ee9bd1db676fb968250990c2d466048c081900df6f5f942db4999f59f906f",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "5ab79c3f924214a7b165d1b5331c24c610935d2be3b7bc8fd10ea42cf9ded382"
+    },
+    "after_hashes": {
+      "wood": "1bc039d606768e75406b069716dca74d4e94a605d4f452100e9925d34be4ad46",
+      "indices": "2d3ee9bd1db676fb968250990c2d466048c081900df6f5f942db4999f59f906f",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "5ab79c3f924214a7b165d1b5331c24c610935d2be3b7bc8fd10ea42cf9ded382"
+    }
+  },
+  {
+    "id": "ordinary",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "1bc039d606768e75406b069716dca74d4e94a605d4f452100e9925d34be4ad46",
+      "indices": "2d3ee9bd1db676fb968250990c2d466048c081900df6f5f942db4999f59f906f",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "5ab79c3f924214a7b165d1b5331c24c610935d2be3b7bc8fd10ea42cf9ded382"
+    },
+    "after_hashes": {
+      "wood": "1bc039d606768e75406b069716dca74d4e94a605d4f452100e9925d34be4ad46",
+      "indices": "2d3ee9bd1db676fb968250990c2d466048c081900df6f5f942db4999f59f906f",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "5ab79c3f924214a7b165d1b5331c24c610935d2be3b7bc8fd10ea42cf9ded382"
+    }
+  },
+  {
+    "id": "telperion",
+    "view": "whole",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "8c2e68c2eb43d31af2a086ca412e8a4fdf49fd46c21510aea00e8cbcaf91a45e",
+      "indices": "f87258aa61170fa5e9b8c19d5e8fefd31ae0659b3c0f224a305a411d6e79e3e3",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "f19525f685a819fa179d84abb780dfb8f615512d673e93efab22b1191f2232cf"
+    },
+    "after_hashes": {
+      "wood": "8c2e68c2eb43d31af2a086ca412e8a4fdf49fd46c21510aea00e8cbcaf91a45e",
+      "indices": "f87258aa61170fa5e9b8c19d5e8fefd31ae0659b3c0f224a305a411d6e79e3e3",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "f19525f685a819fa179d84abb780dfb8f615512d673e93efab22b1191f2232cf"
+    }
+  },
+  {
+    "id": "telperion",
+    "view": "bare",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "8c2e68c2eb43d31af2a086ca412e8a4fdf49fd46c21510aea00e8cbcaf91a45e",
+      "indices": "f87258aa61170fa5e9b8c19d5e8fefd31ae0659b3c0f224a305a411d6e79e3e3",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "f19525f685a819fa179d84abb780dfb8f615512d673e93efab22b1191f2232cf"
+    },
+    "after_hashes": {
+      "wood": "8c2e68c2eb43d31af2a086ca412e8a4fdf49fd46c21510aea00e8cbcaf91a45e",
+      "indices": "f87258aa61170fa5e9b8c19d5e8fefd31ae0659b3c0f224a305a411d6e79e3e3",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "f19525f685a819fa179d84abb780dfb8f615512d673e93efab22b1191f2232cf"
+    }
+  },
+  {
+    "id": "telperion",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "8c2e68c2eb43d31af2a086ca412e8a4fdf49fd46c21510aea00e8cbcaf91a45e",
+      "indices": "f87258aa61170fa5e9b8c19d5e8fefd31ae0659b3c0f224a305a411d6e79e3e3",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "f19525f685a819fa179d84abb780dfb8f615512d673e93efab22b1191f2232cf"
+    },
+    "after_hashes": {
+      "wood": "8c2e68c2eb43d31af2a086ca412e8a4fdf49fd46c21510aea00e8cbcaf91a45e",
+      "indices": "f87258aa61170fa5e9b8c19d5e8fefd31ae0659b3c0f224a305a411d6e79e3e3",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "f19525f685a819fa179d84abb780dfb8f615512d673e93efab22b1191f2232cf"
+    }
+  },
+  {
+    "id": "laurelin",
+    "view": "whole",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "12c204a294c1d6b74f8d2cecf5b6cc92ae6002afce939457e24d56189819e580",
+      "indices": "83b091aa1cedf584443c183c72c01779a0711f2ff0800becb77ff407e464f806",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "a1f1434aabba05ebc96c120225940aeade68331986ce5205fc5bb8b7ad6177aa"
+    },
+    "after_hashes": {
+      "wood": "12c204a294c1d6b74f8d2cecf5b6cc92ae6002afce939457e24d56189819e580",
+      "indices": "83b091aa1cedf584443c183c72c01779a0711f2ff0800becb77ff407e464f806",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "a1f1434aabba05ebc96c120225940aeade68331986ce5205fc5bb8b7ad6177aa"
+    }
+  },
+  {
+    "id": "laurelin",
+    "view": "bare",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "12c204a294c1d6b74f8d2cecf5b6cc92ae6002afce939457e24d56189819e580",
+      "indices": "83b091aa1cedf584443c183c72c01779a0711f2ff0800becb77ff407e464f806",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "a1f1434aabba05ebc96c120225940aeade68331986ce5205fc5bb8b7ad6177aa"
+    },
+    "after_hashes": {
+      "wood": "12c204a294c1d6b74f8d2cecf5b6cc92ae6002afce939457e24d56189819e580",
+      "indices": "83b091aa1cedf584443c183c72c01779a0711f2ff0800becb77ff407e464f806",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "a1f1434aabba05ebc96c120225940aeade68331986ce5205fc5bb8b7ad6177aa"
+    }
+  },
+  {
+    "id": "laurelin",
+    "view": "foliage-detail",
+    "same_png_as_before_taper": true,
+    "before_hashes": {
+      "wood": "12c204a294c1d6b74f8d2cecf5b6cc92ae6002afce939457e24d56189819e580",
+      "indices": "83b091aa1cedf584443c183c72c01779a0711f2ff0800becb77ff407e464f806",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "a1f1434aabba05ebc96c120225940aeade68331986ce5205fc5bb8b7ad6177aa"
+    },
+    "after_hashes": {
+      "wood": "12c204a294c1d6b74f8d2cecf5b6cc92ae6002afce939457e24d56189819e580",
+      "indices": "83b091aa1cedf584443c183c72c01779a0711f2ff0800becb77ff407e464f806",
+      "foliage": "36d7a17469af27c8abff3a0abd33d96b984deffc129da9f0d8098e9f7e2cf835",
+      "matrices": "a1f1434aabba05ebc96c120225940aeade68331986ce5205fc5bb8b7ad6177aa"
+    }
+  }
+]

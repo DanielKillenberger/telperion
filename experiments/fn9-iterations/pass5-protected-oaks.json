@@ -1,0 +1,185 @@
+{
+  "comparison": "exact pass3-captures.json geometry and whole/bare/detail PNGs",
+  "cases": [
+    {
+      "id": "oregon-white-oak-1",
+      "view": "whole",
+      "hashes": {
+        "wood": "6e77ae599e6f88cf605ccd3f7c016c87c3ef95edd6de7f448ce372b35046b2e8",
+        "indices": "15c41fd1d1585c3126a94cf94c01f0ed16cf45f921cf7ff96b762b7238861e7b",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "6bf0e48a2f21f11a7f69710ae6be1a8191c97f279d09da8b33fc767825628f07"
+      },
+      "previous_hashes": {
+        "wood": "6e77ae599e6f88cf605ccd3f7c016c87c3ef95edd6de7f448ce372b35046b2e8",
+        "indices": "15c41fd1d1585c3126a94cf94c01f0ed16cf45f921cf7ff96b762b7238861e7b",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "6bf0e48a2f21f11a7f69710ae6be1a8191c97f279d09da8b33fc767825628f07"
+      },
+      "png": "2442e477183e6f3b9f0de0347d2f87979688614697ba5770c708773461ac817b",
+      "previous_png": "2442e477183e6f3b9f0de0347d2f87979688614697ba5770c708773461ac817b",
+      "geometry_hashes_equal": true,
+      "png_hash_equal": true
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "bare",
+      "hashes": {
+        "wood": "6e77ae599e6f88cf605ccd3f7c016c87c3ef95edd6de7f448ce372b35046b2e8",
+        "indices": "15c41fd1d1585c3126a94cf94c01f0ed16cf45f921cf7ff96b762b7238861e7b",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "6bf0e48a2f21f11a7f69710ae6be1a8191c97f279d09da8b33fc767825628f07"
+      },
+      "previous_hashes": {
+        "wood": "6e77ae599e6f88cf605ccd3f7c016c87c3ef95edd6de7f448ce372b35046b2e8",
+        "indices": "15c41fd1d1585c3126a94cf94c01f0ed16cf45f921cf7ff96b762b7238861e7b",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "6bf0e48a2f21f11a7f69710ae6be1a8191c97f279d09da8b33fc767825628f07"
+      },
+      "png": "4268b3992f6d059fee9eecd52613f192489672f6f89cab55eb42abb17bbbe702",
+      "previous_png": "4268b3992f6d059fee9eecd52613f192489672f6f89cab55eb42abb17bbbe702",
+      "geometry_hashes_equal": true,
+      "png_hash_equal": true
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "foliage-detail",
+      "hashes": {
+        "wood": "6e77ae599e6f88cf605ccd3f7c016c87c3ef95edd6de7f448ce372b35046b2e8",
+        "indices": "15c41fd1d1585c3126a94cf94c01f0ed16cf45f921cf7ff96b762b7238861e7b",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "6bf0e48a2f21f11a7f69710ae6be1a8191c97f279d09da8b33fc767825628f07"
+      },
+      "previous_hashes": {
+        "wood": "6e77ae599e6f88cf605ccd3f7c016c87c3ef95edd6de7f448ce372b35046b2e8",
+        "indices": "15c41fd1d1585c3126a94cf94c01f0ed16cf45f921cf7ff96b762b7238861e7b",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "6bf0e48a2f21f11a7f69710ae6be1a8191c97f279d09da8b33fc767825628f07"
+      },
+      "png": "ce503bc01a4ec0a87837177ce5176a589eab25bc84fe4092c553d3b89dbabc1d",
+      "previous_png": "ce503bc01a4ec0a87837177ce5176a589eab25bc84fe4092c553d3b89dbabc1d",
+      "geometry_hashes_equal": true,
+      "png_hash_equal": true
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "view": "whole",
+      "hashes": {
+        "wood": "d651c4180e3ed43ff5fb7a7e60c6db88f82ef20441147b71c1fc8714dd952d90",
+        "indices": "804168f4858dddc86d292b0fbf72554ee8944b66a14f84b2c9cb1a2534df7811",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "c4977977e1611b330af40520eefb0792e66afbc389ee3f8ccc38361ebe47ba58"
+      },
+      "previous_hashes": {
+        "wood": "d651c4180e3ed43ff5fb7a7e60c6db88f82ef20441147b71c1fc8714dd952d90",
+        "indices": "804168f4858dddc86d292b0fbf72554ee8944b66a14f84b2c9cb1a2534df7811",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "c4977977e1611b330af40520eefb0792e66afbc389ee3f8ccc38361ebe47ba58"
+      },
+      "png": "d7ec31d7cd5ed1853971f499d554e2462eb5ca1a446b9cb13082b13150df3e57",
+      "previous_png": "d7ec31d7cd5ed1853971f499d554e2462eb5ca1a446b9cb13082b13150df3e57",
+      "geometry_hashes_equal": true,
+      "png_hash_equal": true
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "view": "bare",
+      "hashes": {
+        "wood": "d651c4180e3ed43ff5fb7a7e60c6db88f82ef20441147b71c1fc8714dd952d90",
+        "indices": "804168f4858dddc86d292b0fbf72554ee8944b66a14f84b2c9cb1a2534df7811",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "c4977977e1611b330af40520eefb0792e66afbc389ee3f8ccc38361ebe47ba58"
+      },
+      "previous_hashes": {
+        "wood": "d651c4180e3ed43ff5fb7a7e60c6db88f82ef20441147b71c1fc8714dd952d90",
+        "indices": "804168f4858dddc86d292b0fbf72554ee8944b66a14f84b2c9cb1a2534df7811",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "c4977977e1611b330af40520eefb0792e66afbc389ee3f8ccc38361ebe47ba58"
+      },
+      "png": "2ec95b88180d0a9ccf2039d0968bda799819047683537ae0b0dff7329ce571e3",
+      "previous_png": "2ec95b88180d0a9ccf2039d0968bda799819047683537ae0b0dff7329ce571e3",
+      "geometry_hashes_equal": true,
+      "png_hash_equal": true
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "view": "foliage-detail",
+      "hashes": {
+        "wood": "d651c4180e3ed43ff5fb7a7e60c6db88f82ef20441147b71c1fc8714dd952d90",
+        "indices": "804168f4858dddc86d292b0fbf72554ee8944b66a14f84b2c9cb1a2534df7811",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "c4977977e1611b330af40520eefb0792e66afbc389ee3f8ccc38361ebe47ba58"
+      },
+      "previous_hashes": {
+        "wood": "d651c4180e3ed43ff5fb7a7e60c6db88f82ef20441147b71c1fc8714dd952d90",
+        "indices": "804168f4858dddc86d292b0fbf72554ee8944b66a14f84b2c9cb1a2534df7811",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "c4977977e1611b330af40520eefb0792e66afbc389ee3f8ccc38361ebe47ba58"
+      },
+      "png": "ff4fee83a8ee113735367500983042fdd36f886056de0bee4bd05684a8589230",
+      "previous_png": "ff4fee83a8ee113735367500983042fdd36f886056de0bee4bd05684a8589230",
+      "geometry_hashes_equal": true,
+      "png_hash_equal": true
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "view": "whole",
+      "hashes": {
+        "wood": "671fdab215adc5bb246b66c50e9b5f1fcc2185d892714b31c34e8882b616a5c9",
+        "indices": "12325c40acc0e9d3b714f0ba4b42c9efc50587fa781ad853b9cd44ad2c483d09",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "3672e2cef5099c1cf31c1fd7ddb3988b75cfd57d781156cb26ba8bbcd30120f2"
+      },
+      "previous_hashes": {
+        "wood": "671fdab215adc5bb246b66c50e9b5f1fcc2185d892714b31c34e8882b616a5c9",
+        "indices": "12325c40acc0e9d3b714f0ba4b42c9efc50587fa781ad853b9cd44ad2c483d09",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "3672e2cef5099c1cf31c1fd7ddb3988b75cfd57d781156cb26ba8bbcd30120f2"
+      },
+      "png": "34ce060b44636c421f92e298d4b7105779301b4e467cae06d80c53f82e7491f1",
+      "previous_png": "34ce060b44636c421f92e298d4b7105779301b4e467cae06d80c53f82e7491f1",
+      "geometry_hashes_equal": true,
+      "png_hash_equal": true
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "view": "bare",
+      "hashes": {
+        "wood": "671fdab215adc5bb246b66c50e9b5f1fcc2185d892714b31c34e8882b616a5c9",
+        "indices": "12325c40acc0e9d3b714f0ba4b42c9efc50587fa781ad853b9cd44ad2c483d09",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "3672e2cef5099c1cf31c1fd7ddb3988b75cfd57d781156cb26ba8bbcd30120f2"
+      },
+      "previous_hashes": {
+        "wood": "671fdab215adc5bb246b66c50e9b5f1fcc2185d892714b31c34e8882b616a5c9",
+        "indices": "12325c40acc0e9d3b714f0ba4b42c9efc50587fa781ad853b9cd44ad2c483d09",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "3672e2cef5099c1cf31c1fd7ddb3988b75cfd57d781156cb26ba8bbcd30120f2"
+      },
+      "png": "762bd5a4318736e35d1e10b28b649544a9ff008ef00d405523b79c27b6764c06",
+      "previous_png": "762bd5a4318736e35d1e10b28b649544a9ff008ef00d405523b79c27b6764c06",
+      "geometry_hashes_equal": true,
+      "png_hash_equal": true
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "view": "foliage-detail",
+      "hashes": {
+        "wood": "671fdab215adc5bb246b66c50e9b5f1fcc2185d892714b31c34e8882b616a5c9",
+        "indices": "12325c40acc0e9d3b714f0ba4b42c9efc50587fa781ad853b9cd44ad2c483d09",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "3672e2cef5099c1cf31c1fd7ddb3988b75cfd57d781156cb26ba8bbcd30120f2"
+      },
+      "previous_hashes": {
+        "wood": "671fdab215adc5bb246b66c50e9b5f1fcc2185d892714b31c34e8882b616a5c9",
+        "indices": "12325c40acc0e9d3b714f0ba4b42c9efc50587fa781ad853b9cd44ad2c483d09",
+        "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+        "matrices": "3672e2cef5099c1cf31c1fd7ddb3988b75cfd57d781156cb26ba8bbcd30120f2"
+      },
+      "png": "580b9b2341b00476b787f799206411bea0bcd7258c2877d5664d347b224e9772",
+      "previous_png": "580b9b2341b00476b787f799206411bea0bcd7258c2877d5664d347b224e9772",
+      "geometry_hashes_equal": true,
+      "png_hash_equal": true
+    }
+  ]
+}
