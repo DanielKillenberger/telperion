@@ -147,6 +147,12 @@ async function capture(job) {
         if (view.startsWith('peg-')) {
           direction.x = -direction.x; direction.z = -direction.z;
           const axis = tip.clone().sub(base), length2 = axis.lengthSq();
+          // A needle's radial direction is perpendicular to its twig. Compare
+          // in that plane: an outward-pointing twig otherwise cannot satisfy
+          // a world-radial facing threshold, even with attached needles present.
+          const facing = outward.clone().addScaledVector(axis, -outward.dot(axis) / length2);
+          if (facing.lengthSq() < 1e-12) facing.crossVectors(axis, Math.abs(axis.y) < Math.sqrt(length2) * .9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0));
+          facing.normalize();
           const matrix = new THREE.Matrix4(), location = new THREE.Vector3();
           let nearest = Infinity;
           for (let i = 0; i < canopy.count; i++) {
@@ -155,9 +161,9 @@ async function capture(job) {
             const distance = location.distanceTo(base.clone().addScaledVector(axis, Math.max(0, Math.min(1, fraction))));
             const surfaceRadius = values[node * 6 + 4] * (1 - fraction) + values[node * 6 + 3] * fraction;
             const contactRadial = location.clone().sub(base.clone().addScaledVector(axis, fraction)).normalize();
-            if (fraction > .1 && fraction < .5 && Math.abs(distance - surfaceRadius) < Math.max(.0002, surfaceRadius * .5) && contactRadial.dot(outward) > .5 && fraction < nearest) {
+            if (fraction > .1 && fraction < .5 && Math.abs(distance - surfaceRadius) < Math.max(.0002, surfaceRadius * .5) && contactRadial.dot(facing) > .5 && fraction < nearest) {
               nearest = fraction; selectedInstance = i;
-              selectedTwig.attachment = { fraction, distance, surfaceRadius, origin: location.toArray() };
+              selectedTwig.attachment = { fraction, distance, surfaceRadius, origin: location.toArray(), facing: facing.toArray() };
             }
           }
           if (selectedInstance === null) throw Error('No attached unit on exterior twig');

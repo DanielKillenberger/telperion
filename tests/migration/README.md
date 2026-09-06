@@ -150,70 +150,25 @@ RSS is on stderr. Species measurements include separate measurement overhead.
 Do not compare these directly with historical measurements on another host or
 interpret native time as software/hardware GPU time.
 
-Corrective QA retains spruce `4250668600` as a mandatory capture even when its
-numeric width passes. Supplemental `junction-detail` images for species seed 1
-use the same local subject as foliage detail with full wood and unrestricted
-near/far depth, so camera cuts do not masquerade as surface defects. Occlusion
-can still make a junction unassessed. `element` images isolate a single unit.
+Spruce `4250668600` remains a required mature capture even after its numeric width repair. All full-size captures use the authored presets and recorded seeds, without the smaller fixtures used by the binding/UI integration tests. Those 4 m fixtures use three spruce tiers, three primaries per tier and 0.4 m secondary spacing to exercise ownership, anatomy, orbit and retry behavior within bounded software-rendering cost. The 12,000-instance binding budget still rejects overflow; it is never a truncation policy.
 
-Pass 2 adds `exterior-front`, `exterior-left` and `exterior-right` for both
-species' seed 1. Selection uses an actual terminal Twig node on the outward
-crown, between 25% and 80% of tree height, and follows its parent and grandparent
-socket. The same node is viewed from three cameras looking outward through the
-crown. Original wood and foliage remain intact, with unrestricted depth;
-receipts include node IDs and positions. Spruce `peg-upper` / `peg-lower` frame
-the first eligible attached needle on that twig from above and below. These are
-diagnostic views, not automatic attachment or fidelity passes. Bulk pass-2
-replay is under `/tmp/fn99-fix2-replay` and captures under `/tmp/fn99-fix2-qa`;
-compact evidence uses `pass2-*` to preserve the earlier corrective receipts.
+The runner captures whole, bare and attached-foliage views for every required specimen, plus selected element, exterior, branch-curtain, peg and socket views. Exterior views follow an actual terminal twig and its connected parent/socket at multiple angles. Peg/socket cameras retain complete wood and foliage at unrestricted depth. Occluded anatomy remains unassessed in that view; a neighbouring branch or a small numerical origin gap is not visual proof of the selected connection.
 
+`--targets FILE` can retain endpoint/parent/socket identities from a previous capture manifest when topology is unchanged. A topology mismatch fails explicitly. After an architectural correction, select new targets and record their identities; do not reuse stale node IDs.
 
-Pass 4 retains both exterior terminal/socket targets and adds three
-`peg-contact-*` angles at each spruce target (including `peg-alt-contact-*`).
-The 6 mm half-width contact cameras derive from the actual attachment radial and
-twig tangent; JSON retains those vectors, exact instance/endpoint/socket IDs,
-rendered facet intersection and signed origin gap. Upper/lower peg views now
-face the selected outward needle from outside the twig. `branch-curtain` frames
-an actual descending structural secondary from outside the crown. Every one of
-these views keeps connected, uncropped wood and foliage. Occlusion still means
-unassessed contact; a near-zero geometric gap does not establish visual anatomy.
+`--frustum-cull` conservatively rejects only foliage whose transformed prototype bounding sphere lies wholly outside the camera frustum. `--batch-instances` submits every original matrix, in order, in batches of at most 100,000. Neither changes maturity, geometry, foliage density or visible depth. Use both for large captures.
 
-For branch-scale diagnosis, run `cargo run --release -p telperion-core --example
-curtain_audit`. It reports per-secondary bare/needle-bearing supporting lengths,
-centreline bounds and overlapping bearing bounds. The eligibility rule matches
-needle placement, but bounds overlap is only a spatial diagnostic, not a visual
-fidelity metric. The ignored `scaffold_directions` and `retained_supports` tests
-provide structural and shedding traces (`cargo test --release -p telperion-core
-scaffold_directions -- --ignored --nocapture`). Frozen seeds and profiles remain
-unchanged throughout these diagnostics.
+On a Linux host with working Vulkan graphics, the optional wrapper enables GPU-backed headless capture:
 
+```bash
+CHROMIUM_EXECUTABLE="$PWD/scripts/species-chromium-gpu.sh" \
+  node tests/browser/species.mjs --capture-only --output /tmp/species-run \
+  --frustum-cull --batch-instances
+```
 
-`--frustum-cull` optionally reduces detail-frame GPU submission by rejecting only
-foliage whose transformed prototype bounding sphere lies wholly outside a camera
-frustum plane. A Frobenius-norm radius bound also covers sheared transforms;
-original instance order, generated output hashes, wood, cameras and clipping
-planes remain unchanged. Receipts retain original/submitted counts. Pass-4 paired
-spruce peg, oak exterior and shared foliage captures have byte-identical PNGs
-with and without this optimization. Whole/bare views are unaffected. This is
-visibility culling, not a generation cap, foliage-density change or removal of
-visible occluders.
+The wrapper follows [Chromium's documented headless GPU route](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/gpu/using-gpu-hardware-in-headless-chrome.md). The renderer string in each capture is authoritative; this is not a hardware frame-rate benchmark. Omit the override to use Playwright's software backend. The CPU-only native measurements require no browser or GPU.
 
-Pass 5 adds `--targets .flow/evidence/fn9/pass4-captures.json` to pin the retained
-exterior endpoint, parent and socket IDs. A topology mismatch fails capture.
-The three supplementary `peg-clear-*` views use a 3 mm half-width and tangential
-connector profile; their name does not certify visibility. They retain the
-complete connected scene and unrestricted depth. Read the per-view observations
-before drawing any attachment conclusion.
-
-`--batch-instances` submits the original canopy in ordered slices of at most
-100,000 matrices per draw. Every retained instance uses its original matrix,
-prototype and material. This bounds individual software-driver draw assembly;
-it does not reduce maturity, count or depth. Paired oak whole and spruce branch
-captures have exact PNG and geometry parity with the original single draw.
-Batch receipts enumerate the submitted ranges. These options combine with
-`--frustum-cull` for software capture.
-
-The local occupancy audit is reproducible without the browser:
+For branch-level diagnosis, `cargo run --release -p telperion-core --example curtain_audit` reports actual support and needle-bearing lengths. The optional occupancy exporter remains available:
 
 ```bash
 cargo run --release -p telperion-core --example occupancy_audit -- /tmp/species-occupancy
@@ -222,16 +177,4 @@ python3 -m venv --system-site-packages /tmp/species-audit-venv
 /tmp/species-audit-venv/bin/python scripts/analyze-species-occupancy.py /tmp/species-occupancy
 ```
 
-It traces each upper oak support's retained twig endpoints and reconstructs
-spruce placement run order, checking the complete instance count before selecting
-an exterior descending system. The diagnostic projects original needle triangles
-and matrices in the secondary's vertical plane and each shoot's own tangent
-frame. The raster pitch and longitudinal bins are explicit. These projections
-exclude wood and other systems to measure needle coverage; they never replace
-intact renderer views or establish a botanical acceptance threshold.
-
-`socket-root-*` and `socket-tip-*` additionally inspect the two actual junctions
-on the first spruce target, at three angles each and a 10 mm half-width. Receipts
-identify the joint, incoming node and departing node; complete wood and foliage
-remain. These connected local views supplement the complete exterior chain and
-must be inspected for occlusion independently of peg contact or centreline data.
+These geometric diagnostics do not replace intact rendered views or establish a botanical acceptance threshold. Earlier iterative reports and captures are archived intact in [experiments/fn9-iterations](../../experiments/fn9-iterations/README.md); [the current report](../../.flow/evidence/fn9/REPORT.md) records the latest implementation and verdict.

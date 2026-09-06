@@ -97,7 +97,11 @@ try {
       specimen.skeleton.growth.maxNodes = 12000;
       specimen.canopy.maxInstances = 12000;
       specimen.skeleton.twigs.twig.internodeLength = 0.04;
-      if (specimen.skeleton.habit.kind === 'tiered') specimen.skeleton.habit.tiers = 3;
+      if (specimen.skeleton.habit.kind === 'tiered') {
+        specimen.skeleton.habit.tiers = 3;
+        specimen.skeleton.habit.branchesPerTier = 3;
+        specimen.skeleton.habit.secondarySpacing = 0.4;
+      }
       else { specimen.skeleton.habit.scaffoldLimbs = 3; specimen.skeleton.habit.subdivisions = 2; }
       const output = engine.build(specimen, { foliage: true, structure: true, field: true });
       const foliage = output.foliage, d = output.diagnostics;
@@ -141,6 +145,8 @@ try {
       const zero = structuredClone(specimen); zero.canopy.size = 0;
       const emptyFoliage = engine.build(zero, { foliage: true });
       check(emptyFoliage.foliage.matrices.length === 0 && emptyFoliage.foliage.bounds === null && emptyFoliage.diagnostics.biologicalUnits === 0, id + ' empty biological geometry');
+      const limited = structuredClone(specimen); limited.canopy.maxInstances = 1;
+      await rejects(() => engine.build(limited, { foliage: true }), id + ' foliage budget rejects instead of truncating');
     }
     engine.dispose(); engine.dispose();
     await rejects(() => engine.build(family, {}), 'disposed engine');
@@ -187,7 +193,11 @@ try {
         preset.skeleton.seed = 42;
         preset.skeleton.envelope.height = 4;
         preset.skeleton.attractors = 40;
-        if (preset.skeleton.habit.kind === 'tiered') preset.skeleton.habit.tiers = 3;
+        if (preset.skeleton.habit.kind === 'tiered') {
+          preset.skeleton.habit.tiers = 3;
+          preset.skeleton.habit.branchesPerTier = 3;
+          preset.skeleton.habit.secondarySpacing = 0.4;
+        }
         if (preset.skeleton.habit.kind === 'spreading') { preset.skeleton.habit.scaffoldLimbs = 3; preset.skeleton.habit.subdivisions = 2; }
         const stage = createStage(document.querySelector('canvas'));
         let bounds, stats, draws;
@@ -233,6 +243,8 @@ try {
     preset.skeleton.envelope.height = 4;
     preset.skeleton.attractors = 40;
     preset.skeleton.habit.tiers = 3;
+    preset.skeleton.habit.branchesPerTier = 3;
+    preset.skeleton.habit.secondarySpacing = 0.4;
     preset.canopy.size = 0;
     const output = treeCore().build(preset, { surface: true, foliage: true });
     treeCore().release();
@@ -262,7 +274,11 @@ try {
         const fixture = structuredClone(family);
         fixture.skeleton.envelope.height = 4;
         fixture.skeleton.attractors = 40;
-        if (fixture.skeleton.habit.kind === 'tiered') fixture.skeleton.habit.tiers = 3;
+        if (fixture.skeleton.habit.kind === 'tiered') {
+          fixture.skeleton.habit.tiers = 3;
+          fixture.skeleton.habit.branchesPerTier = 3;
+          fixture.skeleton.habit.secondarySpacing = 0.4;
+        }
         if (fixture.skeleton.habit.kind === 'spreading') { fixture.skeleton.habit.scaffoldLimbs = 3; fixture.skeleton.habit.subdivisions = 2; }
         const output = originalBuild.call(this, fixture, outputs);
         window.viewerBuild = { seed: fixture.skeleton.seed, signature: JSON.stringify(Array.from(output.foliage?.matrices ?? output.surface?.positions ?? [])) };
