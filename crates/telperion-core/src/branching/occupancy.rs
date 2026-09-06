@@ -203,6 +203,9 @@ pub(super) fn transverse_curtains(tree: &mut Tree, envelope: Envelope) {
 /// this clothes the supporting axis instead of extending every fan past its tip.
 pub(super) fn longitudinal_curtains(tree: &mut Tree, envelope: Envelope) {
     let first = tree.crossover;
+    if first == 0 {
+        return;
+    }
     let mut structural_children = vec![0; first];
     for n in &tree.nodes[1..first] {
         structural_children[n.parent.unwrap() as usize] += 1;
