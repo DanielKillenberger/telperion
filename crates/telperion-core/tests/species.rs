@@ -252,6 +252,36 @@ fn scaffold_reaches_and_hanging_secondaries_subdivide_before_their_tips() {
     for preset in [Preset::OregonWhiteOak, Preset::NorwaySpruce] {
         let family = preset.parameters();
         let report = branching::generate(&family.skeleton, family.radii).unwrap();
+        let twigs: Vec<_> = report
+            .tree
+            .nodes
+            .iter()
+            .filter(|n| n.kind == telperion_core::tree::NodeKind::Twig)
+            .collect();
+        assert!(!twigs.is_empty());
+        assert!(
+            twigs.iter().all(|n| n.radius < n.start_radius * 0.5),
+            "species twig ends must narrow"
+        );
+        if preset == Preset::NorwaySpruce {
+            let all = &report.tree.nodes;
+            let mut pendant = vec![false; all.len()];
+            let mut descendants = 0;
+            for (i, n) in all.iter().enumerate().skip(1) {
+                let parent = n.parent.unwrap() as usize;
+                let direction = (n.position - all[parent].position).normalized();
+                pendant[i] = if i < report.tree.crossover {
+                    direction.y < -0.5
+                } else {
+                    pendant[parent]
+                };
+                if i >= report.tree.crossover && pendant[i] {
+                    assert!(direction.y < 0.0, "pendant descendant {i} turned upward");
+                    descendants += 1;
+                }
+            }
+            assert!(descendants > 100);
+        }
         let nodes = &report.tree.nodes[..report.tree.crossover];
         let mut children = vec![Vec::new(); nodes.len()];
         for (i, node) in nodes.iter().enumerate().skip(1) {

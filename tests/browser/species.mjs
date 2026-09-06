@@ -99,6 +99,7 @@ async function capture(job) {
         const { values, topology } = output.structure;
         const point = i => new THREE.Vector3(...values.subarray(i * 6, i * 6 + 3));
         const outward = new THREE.Vector3(.62, 0, 1).normalize();
+        if (view.includes('-alt-')) outward.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
         const children = new Uint32Array(topology.length / 3);
         for (let i = 1; i < children.length; i++) children[topology[i * 3]]++;
         let best = -Infinity;
@@ -115,11 +116,11 @@ async function capture(job) {
         Object.assign(selectedTwig, { parent, socket, tip: tip.toArray(), base: base.toArray(), support: support.toArray() });
         bounds = new THREE.Box3().setFromPoints([tip, base, support]);
         bounds.expandByScalar(id === 'norway-spruce' ? .035 : .12);
-        // Camera sits just inside the crown and looks outward through its selected
-        // connected terminal. Original wood and all foliage remain intact.
+        // Camera sits outside the selected exterior terminal and looks inward.
+        // Original connected wood and all foliage remain intact at unrestricted depth.
         const yaw = view.endsWith('left') ? -.65 : view.endsWith('right') ? .65 : 0;
-        direction = outward.clone().negate().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-        direction.y = view === 'peg-upper' ? .65 : view === 'peg-lower' ? -.65 : .18;
+        direction = outward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+        direction.y = view.startsWith('peg-') && view.endsWith('upper') ? .65 : view.startsWith('peg-') && view.endsWith('lower') ? -.65 : .18;
         direction.normalize();
         if (view.startsWith('peg-')) {
           const axis = tip.clone().sub(base), length2 = axis.lengthSq();
@@ -137,6 +138,21 @@ async function capture(job) {
           }
           if (selectedInstance === null) throw Error('No attached unit on exterior twig');
           canopy.getMatrixAt(selectedInstance, matrix); location.setFromMatrixPosition(matrix);
+          // Intersect the actual rendered polygonal surface, including socket
+          // sinking/swelling. The centreline residual alone cannot establish contact.
+          const fraction = selectedTwig.attachment.fraction;
+          const centreline = base.clone().addScaledVector(axis, fraction);
+          const radial = location.clone().sub(centreline).normalize();
+          const ray = new THREE.Raycaster(centreline, radial, 0, .03);
+          tree.updateMatrixWorld(true);
+          const wood = tree.getObjectByName('grower-trunk');
+          if (!wood?.isMesh) throw Error('Missing rendered wood for contact check');
+          const side = wood.material.side; wood.material.side = THREE.DoubleSide;
+          const hit = ray.intersectObject(wood, false)[0]; wood.material.side = side;
+          selectedTwig.attachment.renderedSurface = hit ? {
+            distance: hit.distance, point: hit.point.toArray(), faceIndex: hit.faceIndex,
+            originGap: location.distanceTo(centreline) - hit.distance,
+          } : null;
           bounds = new THREE.Box3(location.clone().addScalar(-.045), location.clone().addScalar(.045));
         }
       }
@@ -237,7 +253,7 @@ const sourceFiles = (await command('git', ['ls-files', 'src/browser', 'harness/s
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async path => [path, sha(await readFile(path))])));
 const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), wasmSha256: sha(await readFile('src/browser/telperion.wasm')), profilesSha256: sha(await readFile('.flow/evidence/fn9/profiles.json')), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))) };
 await save(join(out, 'provenance.json'), provenance);
-const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', ...(c.id === 'norway-spruce-1' ? ['peg-upper', 'peg-lower'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
+const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', 'exterior-alt-front', 'exterior-alt-left', 'exterior-alt-right', ...(c.id === 'norway-spruce-1' ? ['peg-upper', 'peg-lower', 'peg-alt-upper', 'peg-alt-lower'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
 const suffix = option('--case') ? `-${option('--case')}` : '';
 const capturesPath = join(out, `captures${suffix}.json`);
 await save(join(out, `capture-plan${suffix}.json`), jobs);

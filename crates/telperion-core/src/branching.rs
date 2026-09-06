@@ -179,6 +179,14 @@ fn headroom(tree: &Tree, c: &GrowthConfig, t: TwigParams) -> usize {
 }
 /// Retain illuminated subtrees and complete leader runs; remap every parent and run ID.
 pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usize> {
+    shed_with_upper_supports(tree, envelope, shell_depth, false)
+}
+fn shed_with_upper_supports(
+    tree: &mut Tree,
+    envelope: Envelope,
+    shell_depth: f64,
+    protect_upper: bool,
+) -> Result<usize> {
     tree.validate()?;
     envelope.validate()?;
     if !shell_depth.is_finite() || shell_depth < 0.0 {
@@ -196,9 +204,23 @@ pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usi
     let profile = envelope.profile();
     let mut keep = vec![false; count];
     keep[..first].fill(true);
+    // The broad envelope is not a light model for a crooked open-grown crown.
+    // Preserve the already-grown subdivisions of upper scaffold supports rather
+    // than leaving their retained leader runs naked after radial shell removal.
+    let upper = tree.nodes[..first]
+        .iter()
+        .map(|n| n.position.y)
+        .fold(0.0, f64::max)
+        * 0.75;
+    let mut protected = vec![false; count];
+    for (i, n) in tree.nodes.iter().enumerate().take(first) {
+        protected[i] = protect_upper && n.position.y >= upper;
+    }
     for (i, n) in tree.nodes.iter().enumerate().skip(first) {
+        protected[i] = protected[n.parent.unwrap() as usize];
         let r = n.position.x.hypot(n.position.z);
-        keep[i] = envelope.radius_at(n.position.y) - r <= shell
+        keep[i] = protected[i]
+            || envelope.radius_at(n.position.y) - r <= shell
             || distance_to_profile(&profile, r, n.position.y) <= shell;
     }
     for i in (first..count).rev() {
@@ -287,10 +309,18 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
         Some(&bias),
         params.habit,
     )?;
-    let removed = shed(&mut tree, params.envelope, 0.45)?;
+    let removed = shed_with_upper_supports(
+        &mut tree,
+        params.envelope,
+        0.45,
+        matches!(params.habit, BranchHabit::Spreading(_)),
+    )?;
     radius::solve(&mut tree, params.envelope, radii)?;
     Ok(GrowthReport {
         tree,
         shed: removed,
     })
 }
+
+#[cfg(test)]
+mod audit;

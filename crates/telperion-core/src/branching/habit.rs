@@ -338,8 +338,10 @@ impl Builder<'_> {
                 let side = if k % 2 == 0 { -1.0 } else { 1.0 };
                 pendants.push((
                     first + k,
-                    (tangent * side * 0.55 - Vec3::Y).normalized(),
-                    length * (0.65 - 0.3 * fraction),
+                    (tangent * side * 0.35 - Vec3::Y).normalized(),
+                    // Long overlapping pendants remain below the secondary;
+                    // their narrower fan concentrates branchlet mass into a curtain.
+                    length * (0.95 - 0.45 * fraction),
                 ));
             }
             if self.tree.diagnostics.node_capped {

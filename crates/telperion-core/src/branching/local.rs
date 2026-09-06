@@ -19,6 +19,7 @@ struct Shoot {
     internodes: usize,
     key: u32,
     run: Option<Rc<Run>>,
+    pendant: bool,
 }
 fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
     p.y < config.trunk_height
@@ -203,7 +204,8 @@ pub(super) fn append_with_habit(
         if direction.length_squared() == 0.0 {
             continue;
         }
-        let length = branch_length(n.radius);
+        let pendant = matches!(habit, BranchHabit::Tiered(_)) && direction.y < -0.5;
+        let length = branch_length(n.radius) * if pendant { 1.35 } else { 1.0 };
         frontier.push(Shoot {
             at: i,
             direction,
@@ -217,6 +219,7 @@ pub(super) fn append_with_habit(
             internodes: t.internodes(n.radius, length),
             key: i as u32,
             run: None,
+            pendant,
         });
     }
     let planner = Planner {
@@ -316,7 +319,23 @@ pub(super) fn append_with_habit(
                     tree.diagnostics.level_capped = true;
                     continue;
                 }
-                let wanted = if !lateral {
+                let wanted = if lateral && s.pendant {
+                    // Secondary descendants stay in a hanging plane. Alternating
+                    // narrow departures build overlapping branchlet curtains,
+                    // rather than a radial spray that forgets its supporting axis.
+                    let horizontal = Vec3::new(from.x, 0.0, from.z);
+                    let across = if horizontal.length_squared() > 1e-9 {
+                        Vec3::new(-horizontal.z, 0.0, horizontal.x).normalized()
+                    } else {
+                        Vec3::X
+                    };
+                    let side = if (first_lateral + c) % 2 == 0 {
+                        -1.0
+                    } else {
+                        1.0
+                    };
+                    (from * 0.35 - Vec3::Y + across * side * 0.48).normalized()
+                } else if !lateral {
                     from
                 } else {
                     let azimuth = if origin {
@@ -359,6 +378,11 @@ pub(super) fn append_with_habit(
                 if !candidate.is_finite() {
                     return Err(Error::ResourceLimit("branch position overflow"));
                 }
+                let separation = if s.pendant {
+                    8.0_f64.to_radians().cos()
+                } else {
+                    separation
+                };
                 if lateral
                     && (from.dot(heading) >= separation
                         || accepted.iter().any(|a| a.dot(heading) >= separation))
@@ -375,7 +399,11 @@ pub(super) fn append_with_habit(
                 let id = tree.nodes.len() as u32;
                 let branch = if starts { id } else { s.branch.unwrap() };
                 let distal = if is_twig {
-                    twig_radius
+                    if matches!(habit, BranchHabit::Colonizing) {
+                        twig_radius
+                    } else {
+                        twig_radius * 0.25
+                    }
                 } else {
                     twig_radius
                         + (radius - twig_radius)
@@ -424,6 +452,7 @@ pub(super) fn append_with_habit(
                         internodes,
                         key,
                         run,
+                        pendant: s.pendant,
                     });
                 }
             }

@@ -111,6 +111,7 @@ impl Preset {
                 shoulder: 1.0,
             };
             p.skeleton.bias = BiasParams::NONE;
+            p.skeleton.twigs.twig.diameter = 0.002;
             p.skeleton.twigs.twig.internode_length = 0.0025;
             p.skeleton.twigs.twig.bearing_diameter = 0.02;
             p.radii.trunk_radius = 0.015;
