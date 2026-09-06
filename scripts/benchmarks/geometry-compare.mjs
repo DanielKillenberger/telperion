@@ -78,7 +78,7 @@ export async function loadProjectedGaps(path,capture){
     if(!p||!['roi_pixels','occupied_pixels','exterior_pixels','enclosed_pixels'].every(k=>count(p[k]))||p.roi_pixels!==p.occupied_pixels+p.exterior_pixels+p.enclosed_pixels)fail();
     for(const prefix of ['occupied','exterior','enclosed'])if(p.roi_pixels?!near(p[prefix+'_ratio'],p[prefix+'_pixels']/p.roi_pixels):p[prefix+'_ratio']!==null)fail();
   };
-  if(gaps?.status!=='measured'||gaps.definition!=='projected-gaps-v1'||gaps.background_connectivity!==4||gaps.foreground_connectivity!==8||!finite(gaps.metres_per_pixel)||gaps.metres_per_pixel<=0||!Array.isArray(gaps.sensitivity)||gaps.sensitivity.length!==2)fail();
+  if(gaps?.status!=='measured'||gaps.definition!=='projected-gaps-v1'||!equal(gaps.units,{area:'pixels; projected m2',coverage:'linear MSAA fraction',ratio:'ROI area fraction'})||gaps.background_connectivity!==4||gaps.foreground_connectivity!==8||!finite(gaps.metres_per_pixel)||gaps.metres_per_pixel<=0||!Array.isArray(gaps.sensitivity)||gaps.sensitivity.length!==2)fail();
   const measurements=[gaps.primary,...gaps.sensitivity];
   for(let i=0;i<measurements.length;i++){
     const p=measurements[i];partition(p);

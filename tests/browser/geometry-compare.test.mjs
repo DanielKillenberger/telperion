@@ -28,7 +28,7 @@ test('R4 passing whole views require one hashed, successful and complete gap art
   const saveGap=async value=>{await writeFile(join(dir,'view/gaps.json'),JSON.stringify(value));record.artifacts=[await artifact(dir,'view/gaps.json','application/json')];};
   await saveGap(valid);assert.deepEqual(await loadProjectedGaps(dir,record),valid);
   record.artifacts.push(record.artifacts[0]);await assert.rejects(loadProjectedGaps(dir,record),/gap/);
-  for(const mutate of [g=>g.status='failed',g=>delete g.primary,g=>g.primary.occupied_ratio=null,g=>g.primary.occupied_pixels++,g=>g.sensitivity=[],g=>g.primary.height_bands.pop()]){
+  for(const mutate of [g=>g.status='failed',g=>delete g.units,g=>delete g.primary,g=>g.primary.occupied_ratio=null,g=>g.primary.occupied_pixels++,g=>g.sensitivity=[],g=>g.primary.height_bands.pop()]){
    const bad=structuredClone(valid);mutate(bad);await saveGap(bad);await assert.rejects(loadProjectedGaps(dir,record),/gap/);
   }
   await saveGap(valid);await writeFile(join(dir,'view/gaps.json'),'{}');await assert.rejects(loadProjectedGaps(dir,record),/hash\/size/);

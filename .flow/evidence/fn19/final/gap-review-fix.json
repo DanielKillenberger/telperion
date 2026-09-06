@@ -53,5 +53,32 @@
       }
     }
   ],
-  "original_evidence": "Original mature and replay artifacts unchanged; omission control uses separate hard-linked files and a replaced manifest, never rewrites shared artifacts."
+  "original_evidence": "Original mature and replay artifacts unchanged; omission control uses separate hard-linked files and a replaced manifest, never rewrites shared artifacts.",
+  "followup_units_validation": {
+    "checks": [
+      {
+        "root": "/tmp/fn19-mature-visual-20260906",
+        "passing_whole_view_results": 24
+      },
+      {
+        "root": "/tmp/fn19-task4-visual-replay-v3/baseline",
+        "passing_whole_view_results": 12
+      },
+      {
+        "root": "/tmp/fn19-task4-visual-replay-v3/candidate",
+        "passing_whole_view_results": 12
+      }
+    ],
+    "focused_tests_passed": 17,
+    "files": [
+      {
+        "path": "scripts/benchmarks/geometry-compare.mjs",
+        "sha256": "fa94223b5c0db7fb99dd71947d620cd4f894b493909ea0c645d6f3ed608d5837"
+      },
+      {
+        "path": "tests/browser/geometry-compare.test.mjs",
+        "sha256": "e8d470c5ae3d94c5591e00c1257ef40557d3bf8d1020b2d2b86b887e38a3c293"
+      }
+    ]
+  }
 }
