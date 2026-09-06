@@ -41,7 +41,7 @@
     "src/browser/presets.generated.ts": "260adecf466b4968bde89991ea795d87af48d14c9403e9f8d01802ba4aacb7e7",
     "src/browser/three.ts": "869dd9d442d3c60c989851521dea72f47a61b0fb25465dbcf5385690e41903eb",
     "tests/browser/integration.mjs": "ac244f006cf7857244aa4c9afd60cbcf198e0d7f0f83a835fde9b9cde328dd6d",
-    "tests/browser/species.mjs": "32f2957e3cae65ab744fc0c19b691cf752b901db853fb54d007abaf60a664baa",
+    "tests/browser/species.mjs": "d58e456e50eb84441e6ce79d3c216e183a8be058b2fd631e298d9ebe5ccfa621",
     "src/browser/telperion.wasm": "d36a2433cbfbfc63113d4b182d57a6ec85d77d20dec147b5fc515c05fd85567d",
     "target/release/examples/species_measure": "e58ff8b5ec4902a5bf3dab5c4cfbbcce071a33091a8fa6322c160faa4802bfe9",
     ".flow/evidence/fn9/seeds.json": "1ad38fedabaf3cf806c3927108ea3e0961a609f6d14238101a9494dc1206e508",
@@ -104,5 +104,17 @@
     "norway-spruce-175890410.jsonl": "bf9b9b1a1c7672b14aac885a88aab081eca4739adfac04eda0e7a7fcbb8bfb3e",
     "norway-spruce-847818543.jsonl": "4d5480b99f11dabdba9427e88ae3270501003163ee3958b7ce46252fef8ad901",
     "oregon-white-oak-762807349.jsonl": "800558ace8c58b3c182f0334f9674b89f654de5f92bdbaa515af8d28cbf97bc4"
-  }
+  },
+  "capture_runner_variants": [
+    {
+      "commit": "5eb89c6",
+      "sha256": "32f2957e3cae65ab744fc0c19b691cf752b901db853fb54d007abaf60a664baa",
+      "usage": "Completed initial whole views; authentic original receipts preserved."
+    },
+    {
+      "commit": "4af35df",
+      "sha256": "d58e456e50eb84441e6ce79d3c216e183a8be058b2fd631e298d9ebe5ccfa621",
+      "usage": "Remaining views; optional conservative frustum rejection with three exact PNG equivalence checks."
+    }
+  ]
 }
