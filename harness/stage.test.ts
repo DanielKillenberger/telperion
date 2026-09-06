@@ -243,13 +243,13 @@ function instancedCrown(count = 12, reach = 10): THREE.InstancedMesh {
 }
 
 describe("measureSubject", () => {
-  it("preserves the native adapter's exact leaf bounds while measuring its subject", () => {
+  it("recomputes exact transformed bounds instead of trusting supplied prototype bounds", () => {
     const matrix = new THREE.Matrix4().makeTranslation(10, 20, 30);
     const output = { foliage: {
       positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]),
       indices: new Uint32Array([0, 1, 2]),
       matrices: new Float32Array(matrix.elements),
-      bounds: { min: [10, 20, 30], max: [11, 21, 30] },
+      bounds: { min: [0, 0, 0], max: [1, 1, 0] },
     } } as TreeOutput;
     const material = new THREE.MeshBasicMaterial();
     const tree = materializeTree(output, { surface: material, element: material });

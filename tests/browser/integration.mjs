@@ -2,7 +2,7 @@ import { pathToFileURL } from 'node:url';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
 const url = process.env.BROWSER_URL ?? 'http://127.0.0.1:5184';
-const out = process.env.BROWSER_EVIDENCE ?? '/tmp/fn8-browser';
+const out = process.env.BROWSER_EVIDENCE ?? '.flow/tmp/fn98-browser';
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE, headless: true,
   args: ['--no-sandbox'] });
@@ -156,7 +156,76 @@ try {
     return { speciesAnatomy: true, identityCatalogue: true, independentOutputs: true, meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true, partialDiagnostics: true };
   });
   await writeFile(out + '/bindings.json', JSON.stringify(bindings, null, 2));
+  await page.setViewportSize({ width: 960, height: 720 });
+  const captures = [];
+  for (const id of ['oregon-white-oak', 'norway-spruce']) {
+    for (const view of ['whole', 'bare', 'foliage-detail']) {
+      await page.goto(url + '/');
+      const capture = await page.evaluate(async ({ id, view }) => {
+        const THREE = await import('/node_modules/.vite/deps/three.js');
+        const { initializeTreeCore, presetById } = await import('/src/browser/core.ts');
+        const { buildPreset, selectSpecimenView, countDraws } = await import('/harness/skeleton-view.ts');
+        const { createStage, measureSubject } = await import('/harness/stage.ts');
+        await initializeTreeCore();
+        const preset = presetById(id);
+        preset.skeleton.seed = 42;
+        preset.skeleton.envelope.height = 4;
+        preset.skeleton.attractors = 40;
+        if (preset.skeleton.habit.kind === 'tiered') preset.skeleton.habit.tiers = 3;
+        const stage = createStage(document.querySelector('canvas'));
+        let bounds, stats, draws;
+        stage.setTree(clay => {
+          const built = buildPreset(preset, clay, view !== 'bare');
+          stats = built.stats;
+          const tree = selectSpecimenView(built.tree, view);
+          bounds = measureSubject(tree);
+          draws = countDraws(tree);
+          tree.traverse(node => {
+            if (node instanceof THREE.InstancedMesh && (!Number.isFinite(node.boundingSphere.radius) || node.boundingSphere.radius <= 0)) throw Error('invalid instance sphere');
+          });
+          return tree;
+        });
+        if (bounds.isEmpty() || ![...bounds.min, ...bounds.max].every(Number.isFinite)) throw Error('invalid displayed bounds');
+        stage.frame(4);
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const gl = document.querySelector('canvas').getContext('webgl2');
+        const debug = gl.getExtension('WEBGL_debug_renderer_info');
+        const backend = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+        if (stage.stats().drawCalls < draws.drawCalls + (view === 'foliage-detail' ? 1 : 2)) throw Error('subject draws missing');
+        window.captureStage = stage;
+        return { id, view, preset, stats, draws, bounds: { min: bounds.min.toArray(), max: bounds.max.toArray() }, backend, rendered: stage.stats() };
+      }, { id, view });
+      await page.screenshot({ path: `${out}/${id}-${view}.png`, timeout: 240000 });
+      await page.mouse.move(700, 350);
+      await page.mouse.down();
+      await page.mouse.move(850, 390, { steps: 8 });
+      await page.mouse.up();
+      await page.waitForTimeout(500);
+      const rotated = await page.evaluate(() => window.captureStage.stats());
+      if (rotated.drawCalls < capture.draws.drawCalls + (view === 'foliage-detail' ? 1 : 2) || rotated.triangles <= 0) throw Error(id + ' invisible after orbit');
+      captures.push({ ...capture, rotated });
+      console.log('captured', id, view, capture.backend, capture.stats.instances);
+      await page.evaluate(() => window.captureStage.dispose());
+    }
+  }
+  await writeFile(out + '/captures.json', JSON.stringify(captures, null, 2));
   await page.unroute(url + '/');
+  // Apply the same documented small fixture before the first UI render.
+  // Full-size Ordinary can exhaust the software GPU during the failure/retry gate.
+  await page.route('**/src/browser/core.ts', async route => {
+    const response = await route.fetch();
+    const source = await response.text();
+    await route.fulfill({ response, body: source + `
+      const originalBuild = TreeEngine.prototype.build;
+      TreeEngine.prototype.build = function(family, outputs) {
+        const fixture = structuredClone(family);
+        fixture.skeleton.envelope.height = 4;
+        fixture.skeleton.attractors = 40;
+        if (fixture.skeleton.habit.kind === 'tiered') fixture.skeleton.habit.tiers = 3;
+        return originalBuild.call(this, fixture, outputs);
+      };
+    ` });
+  });
   let failedLoad = false;
   await page.route('**/telperion.wasm', route => {
     if (!failedLoad) { failedLoad = true; return route.abort('failed'); }
@@ -182,6 +251,22 @@ try {
   await page.getByRole('button', { name: 'retry build' }).click();
   await page.getByRole('alert').waitFor({ state: 'detached' });
   if (await stats.textContent() === before) throw Error('UI retry did not build changed specimen');
+  for (const name of ['oregon white oak', 'norway spruce']) {
+    await page.getByRole('button', { name, exact: true }).click();
+    await page.waitForTimeout(1000);
+    if (await seed.inputValue() !== '17') throw Error('species selection reset seed');
+    if (await page.getByRole('checkbox', { name: 'enable supernatural effects' }).isChecked()) throw Error('natural species enables effects');
+    if (await page.locator('fieldset').filter({ hasText: 'Botanical' }).count() !== 1 || await page.locator('fieldset').filter({ hasText: 'Supernatural' }).count() !== 1) throw Error('control groups missing');
+    const first = await stats.textContent();
+    await seed.fill('18');
+    await page.waitForFunction(before => [...document.querySelectorAll('.gd-note')].some(node => /tris, .* verts, .* nodes/.test(node.textContent) && node.textContent !== before), first);
+    for (const view of ['bare', 'foliage-detail', 'whole']) {
+      await page.getByLabel('view', { exact: true }).selectOption(view);
+      await page.waitForTimeout(1000);
+      if (await page.getByRole('alert').count()) throw Error('view build failed');
+    }
+    await seed.fill('17');
+  }
   await page.screenshot({ path: out + '/viewer.png' });
   await writeFile(out + '/viewer.json', JSON.stringify({ loadFailureRetry: failedLoad, buildFailureRetry: true, previousDiagnosticsPreserved: true }, null, 2));
   console.log({ ...result, ...bindings, loadFailureRetry: failedLoad, buildFailureRetry: true });

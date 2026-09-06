@@ -652,6 +652,10 @@ export function createStage(
        under the dials - so a camera placed at fixed multiples of
        `height` clips the crown at one setting and leaves the tree a
        speck at another. */
+    const detail = tree?.userData.specimenView === "foliage-detail";
+    figure.visible = !detail;
+    controls.maxPolarAngle = detail ? Math.PI : Math.PI * 0.495;
+    camera.near = detail ? 0.0001 : 0.1;
     const box = subjectBox(height);
     const size = box.getSize(new THREE.Vector3());
     const centre = box.getCenter(new THREE.Vector3());
@@ -671,9 +675,10 @@ export function createStage(
     controls.target.copy(centre);
     camera.position
       .copy(centre)
-      .addScaledVector(FRAME_DIRECTION, Math.max(distance, 1));
+      .addScaledVector(detail ? tree!.userData.detailDirection ?? FRAME_DIRECTION : FRAME_DIRECTION,
+        Math.max(distance + size.length() / 2, detail ? 0.001 : 1));
     // Never underground, however low the subject's centre sits.
-    camera.position.y = Math.max(camera.position.y, FIGURE_HEIGHT);
+    if (!detail) camera.position.y = Math.max(camera.position.y, FIGURE_HEIGHT);
 
     // On the first frame the room has not seen a tree yet, so it is
     // sized from the same fallback the camera just used.

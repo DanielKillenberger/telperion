@@ -29,6 +29,9 @@ import {
 import {
   buildComparison,
   buildTree,
+  selectSpecimenView,
+  countDraws,
+  type SpecimenView,
   presetToParams,
   type TreeStats,
 } from "./skeleton-view";
@@ -51,6 +54,7 @@ import "./grower-dev.css";
  *  a dearer one waits `BUILD_SETTLE_MS` after the last notch. About
  *  five frames. Branch generations down to fixed twig anatomy can
  *  take seconds, so the measured last build decides the schedule. */
+const SUPERNATURAL = new Set(["torsion", "writheAmplitude", "writheWavelength", "spiralRate"]);
 const BUILD_LIVE_MS = 80;
 const BUILD_SETTLE_MS = 250;
 
@@ -92,7 +96,8 @@ export function GrowerDev() {
   /* Foliage off shows the branching bare. It is a view of the same tree,
      not a parameter of it, so it lives beside the lighting check rather
      than in the dials a preset would have to state. */
-  const [foliage, setFoliage] = useState(true);
+  const [view, setView] = useState<SpecimenView>("whole");
+  const foliage = view !== "bare";
   /* The spec's acceptance test: both presets on the ground together,
      built from the library's own objects rather than from the dials,
      so what stands there is what the preset file says. The dials keep
@@ -148,11 +153,15 @@ export function GrowerDev() {
           if (compare) {
             const result = buildComparison(TWO_TREES, clay, foliage);
             built.stats = result.stats;
-            return result.group;
+            const subject = selectSpecimenView(result.group, view);
+            built.stats = { ...result.stats, ...countDraws(subject) };
+            return subject;
           }
           const result = buildTree(params, clay, foliage);
           built.stats = result.stats;
-          return result.tree;
+          const subject = selectSpecimenView(result.tree, view);
+          built.stats = { ...result.stats, ...countDraws(subject) };
+          return subject;
         });
         setBuildError(null);
         setStats(built.stats);
@@ -202,7 +211,7 @@ export function GrowerDev() {
        Every read of "what is on the stage" is a call site of that
        replacement, and the ones outside the effect that builds it are
        the ones that get missed. */
-  }, [params, compare, logDepth, foliage, coreReady, loadAttempt]);
+  }, [params, compare, logDepth, foliage, view, coreReady, loadAttempt]);
 
   useEffect(() => {
     stageRef.current?.setLightingCheck(lightingCheck);
@@ -230,13 +239,14 @@ export function GrowerDev() {
   const commitSeed = useCallback((raw: string) => {
     setSeedText(raw);
     const seed = normalizeSeed(raw);
-    if (seed !== null) setParams((prev) => ({ ...prev, seed }));
+    if (seed !== null) { setParams((prev) => ({ ...prev, seed })); stageRef.current?.frameNext(); }
   }, []);
 
   const reroll = useCallback(() => {
     const seed = randomSeed();
     setSeedText(String(seed));
     setParams((prev) => ({ ...prev, seed }));
+    stageRef.current?.frameNext();
   }, []);
 
   /* Loads a named tree onto the dials. Every dial, exactly: the panel
@@ -246,8 +256,7 @@ export function GrowerDev() {
      picking a tree to steer is a request to look at that one. */
   const loadPreset = useCallback((preset: TreePreset) => {
     const loaded = presetToParams(preset);
-    setSeedText(String(loaded.seed));
-    setParams(loaded);
+    setParams(prev => ({ ...loaded, seed: prev.seed }));
     setCompare(false);
     stageRef.current?.frameNext();
   }, []);
@@ -358,7 +367,49 @@ export function GrowerDev() {
           </button>
         </div>
 
-        {SLIDERS.map((spec) => (
+        <div className="gd-row">
+          <label htmlFor="gd-view">view</label>
+          <select id="gd-view" value={view} onChange={event => {
+            setView(event.target.value as SpecimenView);
+            stageRef.current?.frameNext();
+          }}>
+            <option value="whole">whole tree</option>
+            <option value="bare">bare branches</option>
+            <option value="foliage-detail">foliage detail</option>
+          </select>
+        </div>
+        {view === "foliage-detail" && <p className="gd-note">One placed foliage unit with its connector, at generated scale. Empty foliage leaves an empty stage.</p>}
+        {[false, true].map(supernatural => (
+          <fieldset key={String(supernatural)}>
+            <legend>{supernatural ? "Supernatural" : "Botanical"}</legend>
+            {supernatural ? <label className="gd-check">
+              <input type="checkbox" checked={params.supernaturalEnabled}
+                onChange={event => setParams(prev => ({ ...prev, supernaturalEnabled: event.target.checked }))} />
+              enable supernatural effects
+            </label> : <>
+              <p className="gd-note">{params.family.skeleton.habit.kind} habit · {params.family.element.anatomy}</p>
+              {Object.entries(params.family.skeleton.habit).filter(([, value]) => typeof value === "number").map(([key, value]) => (
+                <label className="gd-row" key={key}>
+                  {key.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`)}
+                  <input type="number" value={value} step="any" onChange={event => {
+                    const number = event.target.valueAsNumber;
+                    if (Number.isFinite(number)) setParams(prev => ({ ...prev, family: { ...prev.family,
+                      skeleton: { ...prev.family.skeleton, habit: { ...prev.family.skeleton.habit, [key]: number } } } }));
+                  }} />
+                </label>
+              ))}
+              {(["length", "width", "connectorLength"] as const).map(key => (
+                <label className="gd-row" key={key}>
+                  foliage {key.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`)} (m)
+                  <input type="number" min="0" step="0.001" value={params.family.element[key]} onChange={event => {
+                    const number = event.target.valueAsNumber;
+                    if (Number.isFinite(number)) setParams(prev => ({ ...prev, family: { ...prev.family,
+                      element: { ...prev.family.element, [key]: number } } }));
+                  }} />
+                </label>
+              ))}
+            </>}
+        {SLIDERS.filter(spec => SUPERNATURAL.has(spec.key) === supernatural).map((spec) => (
           <Fragment key={spec.key}>
             {spec.group === undefined ? null : (
               <h3 className="gd-group">{spec.group}</h3>
@@ -389,6 +440,9 @@ export function GrowerDev() {
           </Fragment>
         ))}
 
+          </fieldset>
+        ))}
+
         <div className="gd-row">
           <label className="gd-check">
             <input
@@ -402,7 +456,7 @@ export function GrowerDev() {
             <input
               type="checkbox"
               checked={foliage}
-              onChange={(event) => setFoliage(event.target.checked)}
+              onChange={(event) => { setView(event.target.checked ? "whole" : "bare"); stageRef.current?.frameNext(); }}
             />
             foliage
           </label>
@@ -477,7 +531,7 @@ export function GrowerDev() {
         <p className="gd-note">
           {stats === null
             ? "building..."
-            : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.drawCalls.toLocaleString()} draws, ${stats.instances.toLocaleString()} leaves, ${stats.buildMs.toFixed(1)} ms`}
+            : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.drawCalls.toLocaleString()} draws, ${stats.instances.toLocaleString()} foliage instances, ${stats.buildMs.toFixed(1)} ms`}
         </p>
 
         {stats !== null ? (

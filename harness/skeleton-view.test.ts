@@ -6,6 +6,7 @@ import { initializeTreeCore, LAURELIN, TWO_TREES, PRESETS as CATALOGUE, ORDINARY
 import { DEFAULT_PARAMS, SLIDERS, type GrowerParams } from "./params";
 import {
   buildComparison,
+  selectSpecimenView,
   buildPreset,
   buildTree,
   countDraws,
@@ -792,4 +793,29 @@ describe("the forest's own numbers", () => {
     expect(off.stats.nodes).toBe(on.stats.nodes);
   });
 
+});
+
+
+describe("specimen views", () => {
+  it("isolates an actual placed unit and recalculates its bounds", () => {
+    const subject = new THREE.Group();
+    subject.add(new THREE.Mesh(new THREE.BoxGeometry(), clay.surface));
+    const foliage = new THREE.InstancedMesh(new THREE.BoxGeometry(0.02, 0.1, 0.01), clay.element, 3);
+    for (let i = 0; i < 3; i++) foliage.setMatrixAt(i, new THREE.Matrix4().makeTranslation(i * 10, 4, 0));
+    subject.add(foliage);
+    selectSpecimenView(subject, "foliage-detail");
+    expect(subject.children).toEqual([foliage]);
+    expect(foliage.count).toBe(1);
+    expect(foliage.boundingBox!.getCenter(new THREE.Vector3()).toArray()).toEqual([10, 4, 0]);
+    expect(foliage.boundingSphere!.radius).toBeLessThan(0.06);
+  });
+  it("handles an empty detail and removes foliage for a bare view", () => {
+    const empty = new THREE.Group();
+    empty.add(new THREE.Mesh(new THREE.BoxGeometry(), clay.surface));
+    expect(selectSpecimenView(empty, "foliage-detail").children).toHaveLength(0);
+    const bare = new THREE.Group();
+    bare.add(new THREE.Mesh(new THREE.BoxGeometry(), clay.surface));
+    bare.add(new THREE.InstancedMesh(new THREE.BoxGeometry(), clay.element, 0));
+    expect(selectSpecimenView(bare, "bare").children).toHaveLength(1);
+  });
 });

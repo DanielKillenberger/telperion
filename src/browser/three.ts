@@ -29,9 +29,8 @@ export function materializeTree(output: TreeOutput, materials: { surface: THREE.
       const mesh = new THREE.InstancedMesh(geometry, materials.element, 0);
       mesh.count = f.matrices.length / 16;
       mesh.instanceMatrix = new THREE.InstancedBufferAttribute(f.matrices, 16);
-      mesh.userData.nativeBounds = true;
-      mesh.boundingBox = box(f.bounds);
-      mesh.boundingSphere = mesh.boundingBox.getBoundingSphere(new THREE.Sphere());
+      recomputeInstanceBounds(mesh);
+      mesh.userData.anatomy = f.anatomy;
       mesh.name = "grower-canopy"; group.add(mesh);
     }
     return group;
@@ -41,4 +40,22 @@ export function disposeTreeGeometry(group: THREE.Object3D): void {
   group.traverse(object => {
     if (object instanceof THREE.Mesh) { object.geometry.dispose(); if (object instanceof THREE.InstancedMesh) object.dispose(); }
   });
+}
+
+/** Measure transformed vertices, including connectors, rather than the prototype
+ * box. Call again after changing matrices or the displayed instance count. */
+export function recomputeInstanceBounds(mesh: THREE.InstancedMesh): void {
+  const bounds = new THREE.Box3();
+  const matrix = new THREE.Matrix4();
+  const vertex = new THREE.Vector3();
+  const positions = mesh.geometry.getAttribute("position");
+  for (let i = 0; i < mesh.count; i++) {
+    mesh.getMatrixAt(i, matrix);
+    for (let v = 0; v < positions.count; v++) {
+      bounds.expandByPoint(vertex.fromBufferAttribute(positions, v).applyMatrix4(matrix));
+    }
+  }
+  mesh.boundingBox = bounds;
+  mesh.boundingSphere = bounds.getBoundingSphere(new THREE.Sphere());
+  mesh.userData.nativeBounds = true;
 }
