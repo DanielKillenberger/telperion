@@ -94,12 +94,14 @@ try {
       // Small valid fixtures retain the authored habit and element anatomy.
       specimen.skeleton.envelope.height = 4;
       specimen.skeleton.attractors = 40;
-      specimen.skeleton.growth.maxNodes = 1200;
+      specimen.skeleton.growth.maxNodes = 12000;
       specimen.canopy.maxInstances = 12000;
       specimen.skeleton.twigs.twig.internodeLength = 0.04;
       if (specimen.skeleton.habit.kind === 'tiered') specimen.skeleton.habit.tiers = 3;
+      else { specimen.skeleton.habit.scaffoldLimbs = 3; specimen.skeleton.habit.subdivisions = 2; }
       const output = engine.build(specimen, { foliage: true, structure: true, field: true });
       const foliage = output.foliage, d = output.diagnostics;
+      check(d.complete, id + ' small binding fixture completes without truncation');
       check(!output.surface && !d.stages.surface && d.timings.surfaceMs === 0, id + ' independent foliage');
       check(d.instances > 0 && d.biologicalUnits === d.instances && foliage.matrices.length === d.instances * 16, id + ' one biological unit per matrix');
       const a = foliage.anatomy;

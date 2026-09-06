@@ -155,3 +155,14 @@ numeric width passes. Supplemental `junction-detail` images for species seed 1
 use the same local subject as foliage detail with full wood and unrestricted
 near/far depth, so camera cuts do not masquerade as surface defects. Occlusion
 can still make a junction unassessed. `element` images isolate a single unit.
+
+Pass 2 adds `exterior-front`, `exterior-left` and `exterior-right` for both
+species' seed 1. Selection uses an actual terminal Twig node on the outward
+crown, between 25% and 80% of tree height, and follows its parent and grandparent
+socket. The same node is viewed from three cameras looking outward through the
+crown. Original wood and foliage remain intact, with unrestricted depth;
+receipts include node IDs and positions. Spruce `peg-upper` / `peg-lower` frame
+the first eligible attached needle on that twig from above and below. These are
+diagnostic views, not automatic attachment or fidelity passes. Bulk pass-2
+replay is under `/tmp/fn99-fix2-replay` and captures under `/tmp/fn99-fix2-qa`;
+compact evidence uses `pass2-*` to preserve the earlier corrective receipts.

@@ -129,8 +129,10 @@ async function capture(job) {
             canopy.getMatrixAt(i, matrix); location.setFromMatrixPosition(matrix);
             const fraction = location.clone().sub(base).dot(axis) / length2;
             const distance = location.distanceTo(base.clone().addScaledVector(axis, Math.max(0, Math.min(1, fraction))));
-            if (fraction > .1 && fraction < .5 && distance < .02 && fraction < nearest) {
+            const surfaceRadius = values[node * 6 + 4] * (1 - fraction) + values[node * 6 + 3] * fraction;
+            if (fraction > .1 && fraction < .5 && Math.abs(distance - surfaceRadius) < 1e-5 && fraction < nearest) {
               nearest = fraction; selectedInstance = i;
+              selectedTwig.attachment = { fraction, distance, surfaceRadius, origin: location.toArray() };
             }
           }
           if (selectedInstance === null) throw Error('No attached unit on exterior twig');
