@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "packet_id": "fn19-v1-independent-review",
+  "benchmark_id": "fn19-v1",
+  "status": "unassessed",
+  "independent_R3": "unresolved",
+  "reviewer": {
+    "name": null,
+    "role": null,
+    "relevant_expertise": null,
+    "relation_to_implementation": null
+  },
+  "actual_feedback": [],
+  "external_contact": "none",
+  "instructions": "Assess supported/contradicted/unassessed per trait with view/reference IDs and rationale. Collection success is not biological approval. All failed/unavailable views remain in visual.json. Qualitative reference imagery has unknown scale/age; no matched competitor assets. Preserve disagreements and original feedback separately from implementer inspection.",
+  "evidence": [
+    "../REPORT.md",
+    "numeric.json",
+    "visual.json",
+    "sources.json",
+    "../references.json"
+  ],
+  "traits": [
+    {
+      "trait": "species crown habit",
+      "status": "unassessed",
+      "evidence_ids": [],
+      "rationale": null
+    },
+    {
+      "trait": "scaffold hierarchy and local taper",
+      "status": "unassessed",
+      "evidence_ids": [],
+      "rationale": null
+    },
+    {
+      "trait": "base/fork surface continuity",
+      "status": "unassessed",
+      "evidence_ids": [],
+      "rationale": null
+    },
+    {
+      "trait": "connected shoot organization and organ identity",
+      "status": "unassessed",
+      "evidence_ids": [],
+      "rationale": null
+    },
+    {
+      "trait": "visible surface detail",
+      "status": "unassessed",
+      "evidence_ids": [],
+      "rationale": null
+    },
+    {
+      "trait": "rendering artifacts/occlusion",
+      "status": "unassessed",
+      "evidence_ids": [],
+      "rationale": null
+    }
+  ],
+  "case_ids": [
+    "oregon-white-oak-1",
+    "oregon-white-oak-2",
+    "oregon-white-oak-3",
+    "oregon-white-oak-3407793930",
+    "oregon-white-oak-1701335265",
+    "oregon-white-oak-1462003817",
+    "norway-spruce-1",
+    "norway-spruce-2",
+    "norway-spruce-3",
+    "norway-spruce-3501386541",
+    "norway-spruce-3258201723",
+    "norway-spruce-2774604799"
+  ]
+}

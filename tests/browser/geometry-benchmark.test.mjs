@@ -76,3 +76,11 @@ test('R4: timeout, missing hardware and interrupted subprocesses retain distinct
  assert.match(terminalProcessFailure({expired:false,text:'source-mismatch: served rig'}).reason,/source-mismatch/);
  assert.equal(terminalProcessFailure({expired:false,text:'crashed'}).capture_status,'fail');
 });
+
+import { validateCaptureRules } from './geometry-benchmark.mjs';
+test('R4 capture rules compare object values independent of key order but preserve arrays and changed values',()=>{
+ const frozen={render:{width_px:1600,nested:{a:1,b:2},samples:[64,128]},required_views:[{id:'whole',azimuth_deg:[0,90]}]};
+ const reordered={render:{samples:[64,128],nested:{b:2,a:1},width_px:1600},required_views:[{azimuth_deg:[0,90],id:'whole'}]};
+ assert.doesNotThrow(()=>validateCaptureRules(reordered,frozen));
+ for(const mutate of [p=>p.render.width_px=800,p=>p.render.samples.reverse(),p=>p.required_views[0].azimuth_deg.reverse(),p=>delete p.render.nested]){const changed=structuredClone(reordered);mutate(changed);assert.throws(()=>validateCaptureRules(changed,frozen),/unsupported capture rules/);}
+});

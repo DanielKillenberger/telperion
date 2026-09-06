@@ -1,0 +1,49 @@
+✔ R2/R3: projected holes, openings and excluded background retain pixel and square-metre units (1.991008ms)
+✔ R2: diagonal gap connectivity and threshold closure are diagnostic, never biological approval (0.219474ms)
+✔ R2/R4: empty, clipped, nonfinite and malformed masks fail without a favorable zero (0.769835ms)
+✔ R4: convergence uses complete arrays and partial tiles, rejecting missing/nonfinite samples (0.853287ms)
+✔ R4: protocol/source/camera/ROI/crop identities and required artifacts fail closed (0.263065ms)
+✔ R5: inventory is extensible but a third taxon cannot inherit another generator (0.157514ms)
+✔ R4: missing masks, incomplete artifacts, changed bytes and path escapes cannot pass (6.995455ms)
+✔ R4: the actual replay preflight rejects a changed camera, source, protocol or reference receipt (0.253445ms)
+✔ R4: timeout, missing hardware and interrupted subprocesses retain distinct nonpassing dispositions (0.681713ms)
+✖ R4 capture rules compare object values independent of key order but preserve arrays and changed values (0.586381ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65.339729
+
+✖ failing tests:
+
+test at tests/browser/geometry-benchmark.test.mjs:81:1
+✖ R4 capture rules compare object values independent of key order but preserve arrays and changed values (0.586381ms)
+  AssertionError [ERR_ASSERTION]: Got unwanted exception.
+  Actual message: "invalid-manifest: unsupported capture rules"
+      at TestContext.<anonymous> (file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/tests/browser/geometry-benchmark.test.mjs:84:9)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: Error: invalid-manifest: unsupported capture rules
+        at validateCaptureRules (file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/tests/browser/geometry-benchmark.mjs:12:103)
+        at file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/tests/browser/geometry-benchmark.test.mjs:84:26
+        at getActual (node:assert:580:5)
+        at strict.doesNotThrow (node:assert:748:32)
+        at TestContext.<anonymous> (file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/tests/browser/geometry-benchmark.test.mjs:84:9)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1402:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+        at Test.postRun (node:internal/test_runner/test:1542:19)
+        at Test.run (node:internal/test_runner/test:1467:12),
+    expected: undefined,
+    operator: 'doesNotThrow',
+    diff: 'simple'
+  }

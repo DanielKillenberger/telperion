@@ -4,10 +4,14 @@ import { execFileSync, spawn } from 'node:child_process';
 import { resolve, dirname, relative, isAbsolute, basename, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { platform, release } from 'node:os';
+import { isDeepStrictEqual } from 'node:util';
 import { analyzeGaps, convergence, rasterizeHull } from './geometry-benchmark-diagnostics.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 export const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const encoded=value=>JSON.stringify(value,null,2)+'\n';
+export function validateCaptureRules(protocol,frozen) {
+  for(const key of ['render','required_views'])if(!isDeepStrictEqual(protocol[key],frozen[key]))throw Error('invalid-manifest: unsupported capture rules');
+}
 const json=async path=>JSON.parse(await readFile(path,'utf8'));
 const save=async(path,value)=>{const temp=path+'.writing';await writeFile(temp,encoded(value),{flush:true});await rename(temp,path);};
 export async function contained(base,name) {
@@ -100,7 +104,7 @@ async function worker(jobPath) {
         const fixed=job.fixed?.entries.find(e=>e.case_id===record.case_id&&e.view===record.view&&e.azimuth_deg===record.azimuth_deg);
         if(!job.prepare&&!fixed)throw Error('roi-mismatch: missing frozen conditions');
         const prepared=await page.evaluate(({view,azimuth,fixed})=>window.rig.prepare(view,azimuth,fixed),{view:record.view,azimuth:record.azimuth_deg,fixed});
-        if(fixed&&encoded(prepared.camera)!==encoded(fixed.camera))throw Error('roi-mismatch: changed capture camera');
+        if(fixed&&!isDeepStrictEqual(prepared.camera,fixed.camera))throw Error('roi-mismatch: changed capture camera');
         const dir=job.case_dir+'/'+record.view+'-'+record.azimuth_deg;await mkdir(await contained(out,dir),{recursive:true});
         record.camera=prepared.camera;record.selected_target=prepared.target;record.geometry_sha256=geometry;record.artifacts=[geometryArtifact];
         let roi=null;
@@ -178,7 +182,7 @@ partial, failed or unavailable required capture. Visual/botanical judgments stay
   const protocolPath=resolve(option('--protocol')??'.flow/evidence/fn19/protocol.json'),referencePath=resolve(option('--references')??'.flow/evidence/fn19/references.json');
   const protocol=await json(protocolPath),admissions=await preflight(protocolPath,referencePath);
   const frozen=await json(join(root,'.flow/evidence/fn19/protocol.json'));
-  for(const key of ['render','required_views'])if(encoded(protocol[key])!==encoded(frozen[key]))throw Error('invalid-manifest: unsupported capture rules');
+  validateCaptureRules(protocol,frozen);
   if(option('--case')&&!protocol.cases.some(c=>c.id===option('--case')))throw Error('invalid-manifest: unknown case');
   if(option('--view')&&!protocol.required_views.some(v=>v.id===option('--view')))throw Error('invalid-manifest: unknown view');
   const sourcePaths=git('ls-files','--cached','--others','--exclude-standard','--','crates/telperion-core/src','crates/telperion-wasm/src','crates/telperion-core/Cargo.toml','crates/telperion-wasm/Cargo.toml','Cargo.toml','Cargo.lock','src/browser/core.ts','src/browser/presets.generated.ts','src/browser/three.ts').split('\n');

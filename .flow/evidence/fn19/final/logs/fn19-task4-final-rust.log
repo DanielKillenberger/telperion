@@ -1,0 +1,27 @@
+    Finished `release` profile [optimized] target(s) in 0.04s
+     Running tests/geometry_benchmark.rs (target/release/deps/geometry_benchmark-86240a5aa60ae412)
+
+running 4 tests
+test biological_centroid_bins_count_needles_and_exclude_connectors ... ok
+test analytic_axes_taper_angles_and_degeneracy ... ok
+test frozen_parameters_resolve_without_default_substitution ... ok
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.023s
+
+OK
+test receipt_manifest_and_replay_controls ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/species_metrics.rs (target/release/deps/species_metrics-91894ddc50ebd907)
+
+running 5 tests
+test gates_do_not_pass_estimates_missing_values_or_outliers ... ok
+test analytic_units_dbh_axes_and_retained_area ... ok
+test overflow_and_degenerate_geometry_fail_explicitly ... ok
+test missing_ambiguous_truncated_and_nonfinite_are_distinct ... ok
+test measured_species_subsets_exclude_connectors_and_use_transformed_geometry ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

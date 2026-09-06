@@ -1,0 +1,39 @@
+✔ R4 unchanged replay compares measured values, not metadata alone (1.854817ms)
+✔ R4 mismatched protocol, reference, cohort, tool, conditions and interrupted or failed cases never pass (0.50416ms)
+✔ R4 native and browser source domains match shared files without false aggregate mismatch (0.437969ms)
+✖ R4 image changes surface while camera changes and failed views reject comparison; costs remain separate (1.00405ms)
+✔ R4 receipt loader rejects stale binaries/source, interrupted JSONL and tampered metric artifacts (1024.255264ms)
+✔ R4 compact reports still detect raw axis-sample changes through full metric digests (0.350527ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1086.057852
+
+✖ failing tests:
+
+test at tests/browser/geometry-compare.test.mjs:9:1
+✖ R4 image changes surface while camera changes and failed views reject comparison; costs remain separate (1.00405ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - true
+  
+      at TestContext.<anonymous> (file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/tests/browser/geometry-compare.test.mjs:9:623)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

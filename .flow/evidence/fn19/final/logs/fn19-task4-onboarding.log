@@ -1,0 +1,72 @@
+{
+  "checks": [
+    "old protocol bytes preserved",
+    "old references bytes preserved",
+    "old cohort preserved in later version",
+    "later cohort adds one species and six cases",
+    "oak and spruce runnable, botanical assessment unassessed",
+    "pine unsupported, never admitted with implemented=false",
+    "oregon-white-oak independent profile admitted",
+    "oregon-white-oak specimen manifest preserved",
+    "oregon-white-oak full native parameters valid",
+    "norway-spruce independent profile admitted",
+    "norway-spruce specimen manifest preserved",
+    "norway-spruce full native parameters valid",
+    "duplicate species ID rejected",
+    "missing reference ID rejected",
+    "reused holdout rejected",
+    "missing evidence hash rejected",
+    "unsupported anatomy on implemented species rejected",
+    "competing core changes rejected",
+    "one shared capability owner accepted",
+    "overlapping exclusive measurement window rejected",
+    "one coordinated window accepted",
+    "unavailable expert never passes"
+  ],
+  "admissions": [
+    {
+      "species_id": "oregon-white-oak",
+      "status": "admitted",
+      "reasons": [],
+      "missing_capabilities": [],
+      "evidence_ids": [
+        "O-WHOLE",
+        "O-BARE",
+        "O-LEAF"
+      ],
+      "implemented": true,
+      "botanical_validation": "unassessed"
+    },
+    {
+      "species_id": "norway-spruce",
+      "status": "admitted",
+      "reasons": [],
+      "missing_capabilities": [],
+      "evidence_ids": [
+        "S-WHOLE",
+        "S-BRANCH",
+        "S-NEEDLE"
+      ],
+      "implemented": true,
+      "botanical_validation": "unassessed"
+    },
+    {
+      "species_id": "scots-pine",
+      "status": "unsupported-anatomy",
+      "reasons": [
+        "generator identity or required anatomy unavailable"
+      ],
+      "missing_capabilities": [
+        "paired-needle-fascicle",
+        "woody-axes"
+      ],
+      "evidence_ids": [
+        "P-DESCRIPTION"
+      ],
+      "implemented": false,
+      "botanical_validation": "unassessed"
+    }
+  ],
+  "generation": "not-run",
+  "expert_status": "unassessed"
+}

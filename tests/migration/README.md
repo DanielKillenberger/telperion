@@ -178,3 +178,162 @@ python3 -m venv --system-site-packages /tmp/species-audit-venv
 ```
 
 These geometric diagnostics do not replace intact rendered views or establish a botanical acceptance threshold. Earlier iterative reports and captures are archived intact in [experiments/fn9-iterations](../../experiments/fn9-iterations/README.md); [the current report](../../.flow/evidence/fn9/REPORT.md) records the latest implementation and verdict.
+
+## Comparative botanical benchmark (fn19)
+
+The [report](../../.flow/evidence/fn19/REPORT.md) and compact
+[final evidence](../../.flow/evidence/fn19/final/) supplement fn9 without changing
+its historical receipts. Inputs are the frozen
+[protocol](../../.flow/evidence/fn19/protocol.json) and
+[reference inventory](../../.flow/evidence/fn19/references.json). The twelve mature
+cases include six holdouts frozen before diagnostics. Once generated and
+inspected these are regression cases; their historical `holdout-at-freeze` role
+does not make them fresh for subsequent tuning.
+
+Run from the source checkout, using new directories at every collection step:
+
+```bash
+npm ci
+npm run wasm:build
+cargo build --release -p telperion-core --example geometry_benchmark
+cargo test --release -p telperion-core --test geometry_benchmark --test species_metrics
+node --test tests/browser/geometry-benchmark.test.mjs tests/browser/geometry-compare.test.mjs
+npm run typecheck
+# Freeze source/tool/binary content before mature collection.
+target/release/examples/geometry_benchmark \
+  --protocol .flow/evidence/fn19/protocol.json \
+  --references .flow/evidence/fn19/references.json --output /tmp/fn19-numeric-NEW
+# Separate terminal; keep this server on this exact source checkout:
+npx vite --host 127.0.0.1 --port 5199 --strictPort
+# Back in the collection terminal:
+export BROWSER_URL=http://127.0.0.1:5199
+export CHROMIUM_EXECUTABLE="$PWD/scripts/species-chromium-gpu.sh"
+node tests/browser/geometry-benchmark.mjs --prepare --output /tmp/fn19-conditions-NEW
+node tests/browser/geometry-benchmark.mjs \
+  --conditions /tmp/fn19-conditions-NEW/conditions.json --output /tmp/fn19-visual-NEW
+```
+
+The GPU wrapper is optional; actual backend strings are authoritative. Do not
+change cameras, parameters, physical resolution, sampling, seeds or foliage to
+make a case pass. Preparation generates geometry and freezes semantic targets,
+1600×1000 orthographic views and crown ROI bytes. It does not capture images;
+its run is intentionally failed/partial for image collection even when its exit
+code reports successful condition preparation. Each case has a five-minute cap.
+Full capture retains all 84 terminal view records, including failed or unavailable
+ones. `--case`/`--view` are partial diagnostics, never full baseline evidence.
+Failed preparation targets remain failures in replay; do not fit substitute views.
+
+Replay another source revision by building it in an isolated checkout, running
+its numerical collector, serving its own Wasm and capturing against the **same
+complete baseline conditions directory**. Transfer `run.json`, `conditions.json`
+and all referenced ROI files together. Never run `--prepare` on a candidate.
+Keep metric/capture tool bytes identical on both sides. Source revisions and
+geometry hashes may differ; protocol/reference/case/parameter and camera rules
+must agree. Dirty source is allowed only when every relevant source and binary
+is content-identified. Native identity covers core files; visual identity adds
+bindings. Their common core files and native support binary must agree within a
+combined run, while their aggregate domain hashes naturally differ.
+
+```bash
+node scripts/benchmarks/geometry-compare.mjs \
+  --protocol .flow/evidence/fn19/protocol.json \
+  --references .flow/evidence/fn19/references.json \
+  --baseline /tmp/fn19-numeric-BASE --candidate /tmp/fn19-numeric-CANDIDATE \
+  --baseline-visual /tmp/fn19-visual-BASE --candidate-visual /tmp/fn19-visual-CANDIDATE \
+  --output /tmp/fn19-comparison-NEW
+```
+
+Omit both visual options for an explicitly numerical-only comparison. Exit 0
+means comparable measured evidence, not unchanged geometry or biological approval.
+Metric/image changes are surfaced; failed/missing/interrupted cases, changed
+protocols, stale artifacts and incomparable cameras remain inconclusive (exit 1).
+Costs stay a separate inconclusive domain: native `generation` measures only
+skeleton branching, not mesh/foliage generation, measurement or end-to-end time.
+Browser generation, capture preparation, CPU memory, Wasm capacity, estimated GPU
+allocation and GPU time retain their own domains and unavailable reasons.
+Uncoordinated or contended samples cannot establish a speedup.
+
+A cheap independent native replay and failed/changed comparison controls use
+artificial 2m specimens, never substitute mature evidence:
+
+```bash
+python3 -B crates/telperion-core/examples/geometry_benchmark/native_controls.py \
+  --binary target/release/examples/geometry_benchmark \
+  --output /tmp/fn19-controls-NEW --receipt /tmp/fn19-controls-NEW.json
+node scripts/benchmarks/geometry-compare.mjs \
+  --protocol /tmp/fn19-controls-NEW/protocol.json \
+  --references .flow/evidence/fn19/references.json \
+  --baseline /tmp/fn19-controls-NEW/baseline --candidate /tmp/fn19-controls-NEW/candidate \
+  --output /tmp/fn19-controls-comparison-NEW
+```
+
+The [onboarding guide](../../docs/species-onboarding.md),
+[template](../../templates/species-profile.md) and
+[oak/spruce packets](../../.flow/evidence/fn19/onboarding-examples/README.md)
+assign research, profile, capability, implementation and validation ownership.
+Research/profile work and species-owned template changes can run concurrently
+in separate worktrees. Shared capabilities, registry/binding edits, catalogue
+integration and exclusive measurement windows require one coordinator and ordered
+dependencies. Recheck admitted species after shared integration.
+
+The later illustrative manifest is validated by
+`python3 -B .flow/evidence/fn19/onboarding-examples/verify.py`. It parses Scots pine
+but retains `unsupported-anatomy`, `implemented=false`: paired-needle fascicles
+and adequate profile evidence are unmet. Never generate pine from the borrowed
+parser fixture. A new cohort requires its own benchmark/reference version and
+both comparison sides; comparing it with fn19-v1 is inconclusive. Older cohorts
+are immutable, not a catalogue size limit.
+
+Fn20/fn21 can cite the stable finding IDs in the report, per-case IDs in
+`final/numeric.json`, per-view IDs in `final/visual.json` and the independent
+review packet. Collection success, implementer inspection and independent
+botanical assessment remain separate. No qualified independent feedback is
+available in this baseline: R3's independent portion stays unresolved, and
+biological superiority is unestablished.
+
+To reproduce the final combiner's deliberately changed/failed receipt controls
+following the tiny native replay above:
+
+```bash
+python3 -B .flow/evidence/fn19/final/replay-controls.py \
+  --native-controls /tmp/fn19-controls-NEW --output /tmp/fn19-combiner-controls-NEW
+```
+
+Those mutations test reporting and rejection paths only. They are labeled
+synthetic fixtures and never presented as a production geometry revision.
+
+For a real visual replay of that same artificial cohort, keep the same built
+source, Wasm, tool files and browser, and run these sequentially against the
+server configured above. Use a disk-backed output root if `/tmp` is small.
+
+```bash
+node tests/browser/geometry-benchmark.mjs \
+  --protocol /tmp/fn19-controls-NEW/protocol.json --prepare \
+  --output /tmp/fn19-visual-controls-NEW/conditions
+node tests/browser/geometry-benchmark.mjs \
+  --protocol /tmp/fn19-controls-NEW/protocol.json \
+  --conditions /tmp/fn19-visual-controls-NEW/conditions/conditions.json \
+  --output /tmp/fn19-visual-controls-NEW/baseline
+node tests/browser/geometry-benchmark.mjs \
+  --protocol /tmp/fn19-controls-NEW/protocol.json \
+  --conditions /tmp/fn19-visual-controls-NEW/conditions/conditions.json \
+  --output /tmp/fn19-visual-controls-NEW/candidate
+python3 -B .flow/evidence/fn19/final/visual-replay-controls.py \
+  --native-controls /tmp/fn19-controls-NEW \
+  --visual-controls /tmp/fn19-visual-controls-NEW \
+  --output /tmp/fn19-visual-comparison-controls-NEW
+```
+
+The last command compares both independent runs and asserts unchanged measured
+values and image hashes. It then substitutes an existing second-azimuth PNG into
+a separate receipt fixture and verifies that the image change is reported.
+Original captures remain unchanged. Projected-gap values and geometry changes
+are also emitted per view. This small replay tests the workflow; the twelve-case
+mature baseline remains a separate cohort.
+
+The mature baseline predates the semantic key-order validator fix. Its capture tool
+identity remains historical. For a later geometry comparison, use that
+same historical measurement tool on the candidate, or collect both source
+revisions again with one corrected tool version and retain the original evidence.
+Never relabel old captures with a new tool hash. The small replay uses the corrected
+tool on both sides and is not compared directly with the mature cohort.

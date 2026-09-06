@@ -124,3 +124,12 @@ for all recorded seeds. Then start `npx vite --host 127.0.0.1 --port 5184` and r
 [migration guide](tests/migration/README.md#species-evidence-and-replay) for the
 full replay protocol and failure semantics. Software capture timings do not
 predict hardware GPU frame times.
+
+The [comparative botanical benchmark](.flow/evidence/fn19/REPORT.md) freezes twelve
+mature oak/spruce specimens, structural distributions and matched anatomy views.
+Its [replay guide](tests/migration/README.md#comparative-botanical-benchmark-fn19)
+separates collection failures, engineering inspection and pending independent
+botanical assessment. To expand the catalogue, use the
+[species onboarding workflow](docs/species-onboarding.md),
+[dispatch template](templates/species-profile.md) and
+[independent example packets](.flow/evidence/fn19/onboarding-examples/README.md).
