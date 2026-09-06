@@ -1,0 +1,1022 @@
+{
+  "created_at": "2026-09-06T20:31:36.817839+00:00",
+  "roots": [
+    {
+      "original_path": "/tmp/fn19-visibility-pilot-1",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-pilot-1",
+      "files": 1,
+      "verified": true,
+      "artifacts": {
+        "run.json": {
+          "bytes": 14452,
+          "sha256": "dbb158c96bd05f46afae62adb52749a74d9f7959ebdf1d332ce91c364e110457"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-pilot-2",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-pilot-2",
+      "files": 5,
+      "verified": true,
+      "artifacts": {
+        "0-attached-shoot-128.png": {
+          "bytes": 1201145,
+          "sha256": "27527c70c759b36c292a4deb0d1e746f94a129adcd92834549f0a7e0204e8b7d"
+        },
+        "0-attached-shoot-64.png": {
+          "bytes": 1200098,
+          "sha256": "9773bda4228baaaa7c78dfa86fe9b81b3dd849f9e3f196854fa119a24ca9d741"
+        },
+        "0-fork-128.png": {
+          "bytes": 434065,
+          "sha256": "4e929d8ae69eda6b3307909ffc633bcfb91098d16e1c6a4bce8cceb51a9d1421"
+        },
+        "0-fork-64.png": {
+          "bytes": 433272,
+          "sha256": "bfe4efd8abb1886c252914b47952c2212377086259266928a47d87e3ff5ed142"
+        },
+        "run.json": {
+          "bytes": 60318,
+          "sha256": "ac157df6457000adfbd42360a9513619d516c406c515f84a63245194a1e97900"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-pilot-3",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-pilot-3",
+      "files": 5,
+      "verified": true,
+      "artifacts": {
+        "0-attached-shoot-128.png": {
+          "bytes": 170971,
+          "sha256": "d50541f41fc170dee267f729c42c82309a551dfab5abd0e87006c35c7a2528fc"
+        },
+        "0-attached-shoot-64.png": {
+          "bytes": 170671,
+          "sha256": "422579b936d05d59778695e0092408c60867ffbc9312a42636b67e8aff4e5f34"
+        },
+        "0-fork-128.png": {
+          "bytes": 434065,
+          "sha256": "4e929d8ae69eda6b3307909ffc633bcfb91098d16e1c6a4bce8cceb51a9d1421"
+        },
+        "0-fork-64.png": {
+          "bytes": 433272,
+          "sha256": "bfe4efd8abb1886c252914b47952c2212377086259266928a47d87e3ff5ed142"
+        },
+        "run.json": {
+          "bytes": 66332,
+          "sha256": "bcb0a9799b4fa19bdc107a88f3e5eb9f1df99ecceecf0a063ee391df7da4b528"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-pilot-4-oak2",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-pilot-4-oak2",
+      "files": 5,
+      "verified": true,
+      "artifacts": {
+        "1-attached-shoot-128.png": {
+          "bytes": 400672,
+          "sha256": "1a59a716e6057950a39d858e4311bb8237aa71714dbdb2503c80e6cef89b44bf"
+        },
+        "1-attached-shoot-64.png": {
+          "bytes": 400256,
+          "sha256": "291046b4c60d5df5747bf335a509dfa7ec4a6fd62b41bf3a180ae962e8c32cb4"
+        },
+        "1-fork-128.png": {
+          "bytes": 1394935,
+          "sha256": "91f27b7408e05435032ed3f188aba913eed0ef91aa63bde3cfe39fd194098af4"
+        },
+        "1-fork-64.png": {
+          "bytes": 1394083,
+          "sha256": "68010298e29ac7486b65176a9277cd277cd99d42763148baeed86852e89bd2a8"
+        },
+        "run.json": {
+          "bytes": 73370,
+          "sha256": "c76b1bd66d934ca87219b54fae49bf7542cddcd6d37b3922500c918723f881b7"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-pilot-5-oak1",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-pilot-5-oak1",
+      "files": 3,
+      "verified": true,
+      "artifacts": {
+        "0-attached-shoot-128.png": {
+          "bytes": 170971,
+          "sha256": "d50541f41fc170dee267f729c42c82309a551dfab5abd0e87006c35c7a2528fc"
+        },
+        "0-attached-shoot-64.png": {
+          "bytes": 170671,
+          "sha256": "422579b936d05d59778695e0092408c60867ffbc9312a42636b67e8aff4e5f34"
+        },
+        "run.json": {
+          "bytes": 44170,
+          "sha256": "e2024babb669656e8f474579fefb3f8a31471996894cead72cf9a41516a60fc1"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-pilot-5-oak2",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-pilot-5-oak2",
+      "files": 5,
+      "verified": true,
+      "artifacts": {
+        "1-attached-shoot-128.png": {
+          "bytes": 400672,
+          "sha256": "1a59a716e6057950a39d858e4311bb8237aa71714dbdb2503c80e6cef89b44bf"
+        },
+        "1-attached-shoot-64.png": {
+          "bytes": 400256,
+          "sha256": "291046b4c60d5df5747bf335a509dfa7ec4a6fd62b41bf3a180ae962e8c32cb4"
+        },
+        "1-fork-128.png": {
+          "bytes": 1469796,
+          "sha256": "9bdeaa63c7c6f5b4c2d96b7f56654e25109899d2b9068dc1f0ca332d5e7765b8"
+        },
+        "1-fork-64.png": {
+          "bytes": 1468777,
+          "sha256": "01964c0627399cb057dac7e74d4b9f847ed7e63e1f2a539cceef404ca76dd384"
+        },
+        "run.json": {
+          "bytes": 74002,
+          "sha256": "300755ca032a7c92a7a87f767ba32e4e9daacd531502f99c2048b00e204136dc"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-pilot-5-spruce1",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-pilot-5-spruce1",
+      "files": 5,
+      "verified": true,
+      "artifacts": {
+        "6-attached-shoot-128.png": {
+          "bytes": 2112203,
+          "sha256": "87cf94580b128687599665009f5ced221a439f1bea2b5830ffadeeeb75c2b832"
+        },
+        "6-attached-shoot-64.png": {
+          "bytes": 2111116,
+          "sha256": "31500d5e5bef92f2d15cdc78cc09e2c599b859c1fdf7614d7f29f914f440bfe9"
+        },
+        "6-fork-128.png": {
+          "bytes": 3171731,
+          "sha256": "af53ebc60ed7def606f46181f7fb5722b9968bf770e0d24733481fc4511b4b1d"
+        },
+        "6-fork-64.png": {
+          "bytes": 3171642,
+          "sha256": "930cebc54de7a7ac55fc222fa4191e78add29825770b9d9a41575bf8cd8b2b20"
+        },
+        "run.json": {
+          "bytes": 69477,
+          "sha256": "b02cc58473a08d59e86f116924379ec4f10ccf843208179b13b72b977450306a"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v2-mature-20260906",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v2-mature-20260906",
+      "files": 12,
+      "verified": true,
+      "artifacts": {
+        "3-fork-128.png": {
+          "bytes": 1871570,
+          "sha256": "6cab52b1d4f0bd869e57a818131571cbbcdefc885f5b59d6352f33b63938e9cb"
+        },
+        "3-fork-64.png": {
+          "bytes": 1870502,
+          "sha256": "0134a751e16fbcd300b173ea410522701958bb5afe0b406b264c8f69023399d6"
+        },
+        "protocol.json": {
+          "bytes": 2329,
+          "sha256": "ee08495b1226b4e62dd05768ed0d3664d439612b47030570197f87e9f37148fb"
+        },
+        "1-attached-shoot-128.png": {
+          "bytes": 400672,
+          "sha256": "1a59a716e6057950a39d858e4311bb8237aa71714dbdb2503c80e6cef89b44bf"
+        },
+        "1-attached-shoot-64.png": {
+          "bytes": 400256,
+          "sha256": "291046b4c60d5df5747bf335a509dfa7ec4a6fd62b41bf3a180ae962e8c32cb4"
+        },
+        "1-fork-128.png": {
+          "bytes": 1640341,
+          "sha256": "6a539baac7ee7fc12d88f112491d8a1566d09c9e2beb66156bea9b5d52f55ad0"
+        },
+        "1-fork-64.png": {
+          "bytes": 1639405,
+          "sha256": "bef7eb0a7f185cf7b2ca6b0c44b9566e7c34fd839efad53725a0eb5468251b75"
+        },
+        "0-attached-shoot-128.png": {
+          "bytes": 170971,
+          "sha256": "d50541f41fc170dee267f729c42c82309a551dfab5abd0e87006c35c7a2528fc"
+        },
+        "0-attached-shoot-64.png": {
+          "bytes": 170671,
+          "sha256": "422579b936d05d59778695e0092408c60867ffbc9312a42636b67e8aff4e5f34"
+        },
+        "0-fork-128.png": {
+          "bytes": 434065,
+          "sha256": "4e929d8ae69eda6b3307909ffc633bcfb91098d16e1c6a4bce8cceb51a9d1421"
+        },
+        "0-fork-64.png": {
+          "bytes": 433272,
+          "sha256": "bfe4efd8abb1886c252914b47952c2212377086259266928a47d87e3ff5ed142"
+        },
+        "run.json": {
+          "bytes": 147945,
+          "sha256": "91d5455e437603b6ef90eb1d5f10c2773f3026172a4cb0988d7cd1b395037b62"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-final",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-final",
+      "files": 51,
+      "verified": true,
+      "artifacts": {
+        "11-attached-shoot-128.png": {
+          "bytes": 282683,
+          "sha256": "8c5aed233034b51e44ccbc7854db175bf8f667fb3b9b617c32bb33e425162d14"
+        },
+        "11-attached-shoot-64.png": {
+          "bytes": 280292,
+          "sha256": "d651657ad5b07db3fead7aa4e16313f52e3bb6337ad243480e48ea649b23b3a8"
+        },
+        "11-fork-128.png": {
+          "bytes": 2191398,
+          "sha256": "3a59657e5d94f264ca6e2ab4959667397216166641666b3535b916f187d1fcf5"
+        },
+        "11-fork-64.png": {
+          "bytes": 2187877,
+          "sha256": "056b6e7906bbc63879bc854ba54b523e7799ee9e2cd243974a7a3caf7182f600"
+        },
+        "10-attached-shoot-128.png": {
+          "bytes": 419313,
+          "sha256": "d1580b5f34860f1fa2464e8d31a62953605b757f617413af3a1de6af13b887f3"
+        },
+        "10-attached-shoot-64.png": {
+          "bytes": 418626,
+          "sha256": "d4315117f289f5aa76b447f7417fe8da79b8b940ddad2884350be8a6af932728"
+        },
+        "10-fork-128.png": {
+          "bytes": 2036364,
+          "sha256": "2f33d06ed6cd4515cd388ca6bfd49634774da516b74cd0ff81b784503591f5e1"
+        },
+        "10-fork-64.png": {
+          "bytes": 2036164,
+          "sha256": "7f74b940eb14d88d973e5d1f5c0a9c6bdb6794c02547adea74c35cb94aa9ef94"
+        },
+        "9-attached-shoot-128.png": {
+          "bytes": 209985,
+          "sha256": "0ce3399e1416be20d58379c7d356e8a60bcdb6ace2a6b3bdafd6d3f07864cdfe"
+        },
+        "9-attached-shoot-64.png": {
+          "bytes": 209809,
+          "sha256": "dc36ac5f9060f5b0cc6c293705a2092eba0250fae6e7558bc41ea7d37845c98f"
+        },
+        "9-fork-128.png": {
+          "bytes": 2058032,
+          "sha256": "25618b0496de541e4661ed474fc93e294bc13b0b0a9dc78ea74f15e48330b79b"
+        },
+        "9-fork-64.png": {
+          "bytes": 2053823,
+          "sha256": "fbaa0e7ac6b68626d2aff029b4310e63319ba9ffb92b692d3269a6aa363dacfb"
+        },
+        "8-attached-shoot-128.png": {
+          "bytes": 321366,
+          "sha256": "27c432b9e45302cf3505254d5dff7a5ada391cace9220e662cebdfc0104030f4"
+        },
+        "8-attached-shoot-64.png": {
+          "bytes": 321343,
+          "sha256": "e1d4cc8b1af8d46be252ef3641612024346c04b2fa0b7d71861dadf7d52bbd38"
+        },
+        "8-fork-128.png": {
+          "bytes": 2255842,
+          "sha256": "b5abc6e05b743ee63c1853b65d11e694c3ad2b8a0754a6abee22429371c9ae2c"
+        },
+        "8-fork-64.png": {
+          "bytes": 2253242,
+          "sha256": "81ea9a97c33ed1023eba5132b640c38d34dd05df75e23bf01b677e5b64cadd8d"
+        },
+        "7-attached-shoot-128.png": {
+          "bytes": 192743,
+          "sha256": "4283a3f3a68cf7574483a1d43d90c9531347eae61c96d868c4e472abfd96204a"
+        },
+        "7-attached-shoot-64.png": {
+          "bytes": 191998,
+          "sha256": "476500a055ddd193492b28a47c614789f7c091107cb416a1b7adc88c981c4658"
+        },
+        "7-fork-128.png": {
+          "bytes": 2018904,
+          "sha256": "2d4eca697614056f6b9727f227bb2938e5fdd41997fe679b1926c55f56f72249"
+        },
+        "7-fork-64.png": {
+          "bytes": 2015247,
+          "sha256": "822ac7cba6c9f2df2c4b378036e20b073448837868f77cd35ccc49204d1bd8ea"
+        },
+        "6-attached-shoot-128.png": {
+          "bytes": 245805,
+          "sha256": "ed784e59e85fdf6aa2fbbe63f8a68caca3eeefa14d8579d210f86c641c59192d"
+        },
+        "6-attached-shoot-64.png": {
+          "bytes": 244870,
+          "sha256": "447a637869397309944c313e7b1e271b3b7a1d357dad2131791a32f46f674161"
+        },
+        "6-fork-128.png": {
+          "bytes": 2089344,
+          "sha256": "54c067d9f51ca8b306ea368b6432ae23384b04674bd744d657a78545d66f4067"
+        },
+        "6-fork-64.png": {
+          "bytes": 2086670,
+          "sha256": "a000e0d57b4547df16f1bc7f8e8d07557763e8c6e1fb1c6d95df06667d95386f"
+        },
+        "5-attached-shoot-128.png": {
+          "bytes": 196795,
+          "sha256": "d0bdc67342cf37f05b432e4b291cfd54183d800e6d352e18fabde334d0b9ec60"
+        },
+        "5-attached-shoot-64.png": {
+          "bytes": 195652,
+          "sha256": "1f4992a16d1936e57c3e7c256c94d9401e77f7a64b5180a15bf773f03279af82"
+        },
+        "5-fork-128.png": {
+          "bytes": 382056,
+          "sha256": "178dc2ae738dd33d5136ac37365b77f538ae9c142c81df75753a14559f18297e"
+        },
+        "5-fork-64.png": {
+          "bytes": 381483,
+          "sha256": "3701cb6dd56ad8ac79a615e5561589f8f2b34a18f9e0fab8e573bbaedc838efa"
+        },
+        "4-attached-shoot-128.png": {
+          "bytes": 192086,
+          "sha256": "f56bad10db42079cb6951c90233931ad68c93f5cd5f1cef6d8ca2c2ca30ee67d"
+        },
+        "4-attached-shoot-64.png": {
+          "bytes": 191434,
+          "sha256": "59a6ecc8245c3aea2550aa097a13053d12e1cfd99ea2b5117db0e6f88a0798c8"
+        },
+        "4-fork-128.png": {
+          "bytes": 779371,
+          "sha256": "43973cfc1c3efa8c8a482f0370063b9599fd630108080cdfdd6ed6ef3ebcc60e"
+        },
+        "4-fork-64.png": {
+          "bytes": 780336,
+          "sha256": "7173ed36c0283e65f933ae579314a3ba109c63c6ad5e24e25bbfb21e6573dfca"
+        },
+        "3-attached-shoot-128.png": {
+          "bytes": 154955,
+          "sha256": "0c67c1e6548376a5f08a82e3cd0c4bc8be174b3622a6b918ce63c691fe330be0"
+        },
+        "3-attached-shoot-64.png": {
+          "bytes": 154439,
+          "sha256": "6adaf98252464c9cf7353e901f9284685fa112a64203cf2ef4d0c0c231e99bca"
+        },
+        "3-fork-128.png": {
+          "bytes": 429569,
+          "sha256": "1d8c37dc27ac5ba7a627b842f2970c0366223bfbf3058a4f868670cfe5128055"
+        },
+        "3-fork-64.png": {
+          "bytes": 428775,
+          "sha256": "ebec87c870c5066aded2e33e462b1188af7518945f491eb846809b76bcb089c9"
+        },
+        "2-attached-shoot-128.png": {
+          "bytes": 219241,
+          "sha256": "4b5afe728bfb5a2f09728542df1612ca45e8f177cd08d30779c4941ccaa8bfbf"
+        },
+        "2-attached-shoot-64.png": {
+          "bytes": 218978,
+          "sha256": "608459109401026ee9b83af4c4554373ee2a38aae47b5d92579f9efb84436251"
+        },
+        "2-fork-128.png": {
+          "bytes": 819100,
+          "sha256": "571e90a2a4b55ec429ee7b7ea44d17eb18820e947a0a6a8f866137cacd00506f"
+        },
+        "2-fork-64.png": {
+          "bytes": 817820,
+          "sha256": "c37f585f7d0a1b3d5cb8e1a6e9dc88329101f0056415805fa412016e578be526"
+        },
+        "1-attached-shoot-128.png": {
+          "bytes": 135106,
+          "sha256": "584ae3093efb74357172af1b40cba1163d969381281fba85dd11b26be5ae2fd9"
+        },
+        "1-attached-shoot-64.png": {
+          "bytes": 135346,
+          "sha256": "ddcaa8a1e84947663e22ce48f6def3e5cc5884b4e1d62579b2e789a62b6c6390"
+        },
+        "1-fork-128.png": {
+          "bytes": 315735,
+          "sha256": "034553a66648472b7f656904b8574175a5065610f149ca32942f6794449971e3"
+        },
+        "1-fork-64.png": {
+          "bytes": 315081,
+          "sha256": "685131229b9650a04a422abcac1b24dc0baec95bb5f6610217fc0faf710e407b"
+        },
+        "0-attached-shoot-128.png": {
+          "bytes": 146726,
+          "sha256": "3a964896925c7a7edcd9dcdc40b0d328256d07018cdc6ebd27d27c84877049f4"
+        },
+        "0-attached-shoot-64.png": {
+          "bytes": 146428,
+          "sha256": "6defc6d17f656bf8326a9c2bd682db3fd547664b97c71a05aed0c9ed3259f972"
+        },
+        "0-fork-128.png": {
+          "bytes": 434065,
+          "sha256": "4e929d8ae69eda6b3307909ffc633bcfb91098d16e1c6a4bce8cceb51a9d1421"
+        },
+        "0-fork-64.png": {
+          "bytes": 433272,
+          "sha256": "bfe4efd8abb1886c252914b47952c2212377086259266928a47d87e3ff5ed142"
+        },
+        "run.json": {
+          "bytes": 438488,
+          "sha256": "4e5b1f0affa266f6369a907aa9e42d21316c7c6fcb6701b3d88f882f091aafca"
+        },
+        "admissions.json": {
+          "bytes": 378217,
+          "sha256": "de480fe7237d7211bc1331b1286d23e8a2bae8dda15eb1c5eb58b996f7b94215"
+        },
+        "protocol.json": {
+          "bytes": 3267,
+          "sha256": "7a2e007e8fadccfdc0dbc1c669ecc217d3113e75bf31a91c9ef901c38d4bc5dd"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-fork4-alt",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-fork4-alt",
+      "files": 3,
+      "verified": true,
+      "artifacts": {
+        "preview.json": {
+          "bytes": 23507,
+          "sha256": "058a3e3e7bc147c68d3829de184df7331ec102aba4e71902b8cb40fb490be89d"
+        },
+        "preview.png": {
+          "bytes": 740695,
+          "sha256": "0244202aa965dc9a9bc82574e3de698272d3fab5e0250975abcfecf7298297ec"
+        },
+        "proposal-input.json": {
+          "bytes": 382314,
+          "sha256": "438d4102b3b4388161661d354f99a315b4813dec1ffc606c28f39d4e0a5c60eb"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-proposal-10",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-proposal-10",
+      "files": 4,
+      "verified": true,
+      "artifacts": {
+        "10-attached-shoot-1.png": {
+          "bytes": 180064,
+          "sha256": "072f31ab8eb6018805e13b70bb9e77aa9fd7d1ed7817cc074a7b9b58443ee244"
+        },
+        "10-fork-1.png": {
+          "bytes": 1788472,
+          "sha256": "c5b60182234cb896de4978330fce31cba4f7adcc3d31d54f4ddeefd6ab0a37c7"
+        },
+        "run.json": {
+          "bytes": 69589,
+          "sha256": "d37cb027f19fb1fc2d52d855ef168b6ac0709a0eb5e33484a253d0ad8cab8b0a"
+        },
+        "protocol.json": {
+          "bytes": 3501,
+          "sha256": "3080cacf2da0bf7dac552d6f01b179a865f4514bf5e56e2fa51e56ebbe8a06e2"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-proposal-11",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-proposal-11",
+      "files": 4,
+      "verified": true,
+      "artifacts": {
+        "11-attached-shoot-1.png": {
+          "bytes": 124953,
+          "sha256": "85ae8c6a72e1f1af3abde952ec95aa2cf9d0b59e4a0b4f2c1e44daa1c7483958"
+        },
+        "11-fork-1.png": {
+          "bytes": 1899569,
+          "sha256": "0b402b86569c36b00ed8aa07c5678a9f22a260b379bdf08ca4a2b0d134a64ff0"
+        },
+        "run.json": {
+          "bytes": 69621,
+          "sha256": "128d460ab550cad84091ecd5b8dcb5c469eb1580e954067bec62a4e7164abc63"
+        },
+        "protocol.json": {
+          "bytes": 3501,
+          "sha256": "3080cacf2da0bf7dac552d6f01b179a865f4514bf5e56e2fa51e56ebbe8a06e2"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-proposal-6",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-proposal-6",
+      "files": 4,
+      "verified": true,
+      "artifacts": {
+        "6-attached-shoot-1.png": {
+          "bytes": 176689,
+          "sha256": "649f6c77a2c625942c194aa943320453ed9a9f0e68f6ff05d61cc6bfa98c6f98"
+        },
+        "6-fork-1.png": {
+          "bytes": 1807561,
+          "sha256": "b650421af59ff744473eef631906c98d92c0d9e87af8e4a8f35007d8d74be5ef"
+        },
+        "run.json": {
+          "bytes": 69493,
+          "sha256": "115a4dda2b37ca76f09f1d0d8f5a9bfa00f12ecf3f75a16f0fd7c07d7a0c3f5b"
+        },
+        "protocol.json": {
+          "bytes": 3501,
+          "sha256": "3080cacf2da0bf7dac552d6f01b179a865f4514bf5e56e2fa51e56ebbe8a06e2"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-proposal-7",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-proposal-7",
+      "files": 4,
+      "verified": true,
+      "artifacts": {
+        "7-attached-shoot-1.png": {
+          "bytes": 143310,
+          "sha256": "fe34d6dc1dc24f9747d2de22475de165148d3e9c74e87a0a17101043bb19d361"
+        },
+        "7-fork-1.png": {
+          "bytes": 1730576,
+          "sha256": "522e9e2fe3c6d707fa35455a72ab7df43e185939ef039535a4fe93c8879d7aa0"
+        },
+        "run.json": {
+          "bytes": 69470,
+          "sha256": "8beeaa0ea0bf2eec2cf03b085e05b8ea4e06cfb84b7b6d7cf6de92f47ddae83b"
+        },
+        "protocol.json": {
+          "bytes": 3501,
+          "sha256": "3080cacf2da0bf7dac552d6f01b179a865f4514bf5e56e2fa51e56ebbe8a06e2"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-proposal-8",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-proposal-8",
+      "files": 4,
+      "verified": true,
+      "artifacts": {
+        "8-attached-shoot-1.png": {
+          "bytes": 201396,
+          "sha256": "e90532086a45222fa526abfcc97c8c768a3d29b7e2ef04e04c30faf566f20721"
+        },
+        "8-fork-1.png": {
+          "bytes": 1967016,
+          "sha256": "537102185c35a4cdb551219aab90c896a4a1f53389753ace35b25395ef80288f"
+        },
+        "run.json": {
+          "bytes": 69560,
+          "sha256": "dc1e1905de8fa710f98d16c7931ea9beceb6bd4083db869d0c9c19cdf637a7b5"
+        },
+        "protocol.json": {
+          "bytes": 3501,
+          "sha256": "3080cacf2da0bf7dac552d6f01b179a865f4514bf5e56e2fa51e56ebbe8a06e2"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-proposal-9",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-proposal-9",
+      "files": 4,
+      "verified": true,
+      "artifacts": {
+        "9-attached-shoot-1.png": {
+          "bytes": 97314,
+          "sha256": "b5c45948d6bf6bcbf10a86a036b0c9da827341465738527b63b58f7b81e4ec2f"
+        },
+        "9-fork-1.png": {
+          "bytes": 1802181,
+          "sha256": "1dcaf784b3751db5ed9c24901ff73cf432369f9891efc93bfc44632e2d49339d"
+        },
+        "run.json": {
+          "bytes": 69522,
+          "sha256": "33a9d83a8e947ee6dda6d357d5ff4dd840f29d607e53483463ce243be226252c"
+        },
+        "protocol.json": {
+          "bytes": 3501,
+          "sha256": "3080cacf2da0bf7dac552d6f01b179a865f4514bf5e56e2fa51e56ebbe8a06e2"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-proposal-source",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-proposal-source",
+      "files": 47,
+      "verified": true,
+      "artifacts": {
+        "identity.json": {
+          "bytes": 7075,
+          "sha256": "81e1d5505f4927ac2295e1b1af52a5f8e21ede9394e59dfe089543b87f76f239"
+        },
+        "vite.config.ts": {
+          "bytes": 812,
+          "sha256": "30796fa8b04d3e68f0daab6e8e733cb25d9675c47a7352bd406eba0adc522c9a"
+        },
+        "package-lock.json": {
+          "bytes": 78771,
+          "sha256": "09151e36dd4759b4e0dbc87afd9e8d60c5edd3e9a8fc4a127aeb72e711c18afa"
+        },
+        "Cargo.toml": {
+          "bytes": 136,
+          "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+        },
+        "Cargo.lock": {
+          "bytes": 2779,
+          "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+        },
+        "harness/stage.ts": {
+          "bytes": 38897,
+          "sha256": "9cdc407bd209c50821bbd573af4128fb67b914e7c3efa35a14c09f3e00bbbc83"
+        },
+        ".flow/evidence/fn19/visibility-v2/protocol.json": {
+          "bytes": 3501,
+          "sha256": "3080cacf2da0bf7dac552d6f01b179a865f4514bf5e56e2fa51e56ebbe8a06e2"
+        },
+        "crates/telperion-wasm/Cargo.toml": {
+          "bytes": 254,
+          "sha256": "315de268378b8f47c50aba3c78933b3fc5011afe6862fd8dd0766b7724670998"
+        },
+        "crates/telperion-core/Cargo.toml": {
+          "bytes": 197,
+          "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+        },
+        "crates/telperion-core/src/twigs.rs": {
+          "bytes": 3537,
+          "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+        },
+        "crates/telperion-core/src/tree.rs": {
+          "bytes": 2627,
+          "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+        },
+        "crates/telperion-core/src/surface.rs": {
+          "bytes": 11533,
+          "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+        },
+        "crates/telperion-core/src/rng.rs": {
+          "bytes": 697,
+          "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+        },
+        "crates/telperion-core/src/radius.rs": {
+          "bytes": 2713,
+          "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+        },
+        "crates/telperion-core/src/presets.rs": {
+          "bytes": 7836,
+          "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+        },
+        "crates/telperion-core/src/noise.rs": {
+          "bytes": 3458,
+          "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+        },
+        "crates/telperion-core/src/math.rs": {
+          "bytes": 3083,
+          "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+        },
+        "crates/telperion-core/src/lib.rs": {
+          "bytes": 838,
+          "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+        },
+        "crates/telperion-core/src/foliage.rs": {
+          "bytes": 4836,
+          "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+        },
+        "crates/telperion-core/src/field.rs": {
+          "bytes": 9566,
+          "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+        },
+        "crates/telperion-core/src/envelope.rs": {
+          "bytes": 4498,
+          "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+        },
+        "crates/telperion-core/src/colonization.rs": {
+          "bytes": 9965,
+          "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+        },
+        "crates/telperion-core/src/branching.rs": {
+          "bytes": 10234,
+          "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+        },
+        "crates/telperion-core/src/bias.rs": {
+          "bytes": 4825,
+          "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+        },
+        "crates/telperion-core/examples/geometry_benchmark.rs": {
+          "bytes": 5133,
+          "sha256": "d966128e067d36d58d256db1803f057cbb278e4a53820542bbeb44345fb3b569"
+        },
+        "crates/telperion-core/examples/geometry_benchmark/runner.py": {
+          "bytes": 21702,
+          "sha256": "bfcd9a6c1184a5fae6d424e0ce7291efe3b487e0bb13394c55f09b09fd9cf199"
+        },
+        "crates/telperion-core/examples/geometry_benchmark/params.rs": {
+          "bytes": 11550,
+          "sha256": "0704618d4d04d21928174caa7b4eea1f759bc289c437b0c1db38871b0177a547"
+        },
+        "crates/telperion-core/src/surface/paths.rs": {
+          "bytes": 2297,
+          "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+        },
+        "crates/telperion-core/src/surface/frames.rs": {
+          "bytes": 1906,
+          "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+        },
+        "crates/telperion-core/src/surface/attachment.rs": {
+          "bytes": 8993,
+          "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+        },
+        "crates/telperion-core/src/foliage/placement.rs": {
+          "bytes": 16950,
+          "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+        },
+        "crates/telperion-core/src/foliage/element.rs": {
+          "bytes": 13285,
+          "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+        },
+        "crates/telperion-core/src/colonization/grid.rs": {
+          "bytes": 2864,
+          "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+        },
+        "crates/telperion-core/src/colonization/fill.rs": {
+          "bytes": 5118,
+          "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+        },
+        "crates/telperion-core/src/branching/local.rs": {
+          "bytes": 19105,
+          "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+        },
+        "crates/telperion-core/src/branching/habit.rs": {
+          "bytes": 19927,
+          "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+        },
+        "crates/telperion-core/src/branching/audit.rs": {
+          "bytes": 5762,
+          "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+        },
+        "crates/telperion-wasm/src/params.rs": {
+          "bytes": 13374,
+          "sha256": "6e36f78790af84b412e3dc96c4936db23d458eb2393bd7e7200e863f5556195e"
+        },
+        "crates/telperion-wasm/src/lib.rs": {
+          "bytes": 15864,
+          "sha256": "da1b8014bf62fc075eccc9b7e9da9ad70c47e9152bb415a31e3c7bac9196a880"
+        },
+        "src/browser/three.ts": {
+          "bytes": 2986,
+          "sha256": "869dd9d442d3c60c989851521dea72f47a61b0fb25465dbcf5385690e41903eb"
+        },
+        "src/browser/presets.generated.ts": {
+          "bytes": 14526,
+          "sha256": "260adecf466b4968bde89991ea795d87af48d14c9403e9f8d01802ba4aacb7e7"
+        },
+        "src/browser/core.ts": {
+          "bytes": 8131,
+          "sha256": "24e880fae471dc895d25981f91fef70c3fa097542932db8b018986a4ee30598f"
+        },
+        "tests/browser/geometry-visibility.mjs": {
+          "bytes": 11293,
+          "sha256": "5d55cfec79b757169702b01dd3bf31e2719401ff5207d6ffe223e928c6fd2525"
+        },
+        "tests/browser/geometry-benchmark.test.mjs": {
+          "bytes": 8579,
+          "sha256": "3c18c90436583387a98f5368a0d52bd062bc2b856a2e2253646a0c78b1763724"
+        },
+        "tests/browser/geometry-benchmark.mjs": {
+          "bytes": 26731,
+          "sha256": "3b7f585cf741a491ef150c5ef91007d4fc59661deea8ee5cad3eca05e7291326"
+        },
+        "tests/browser/geometry-benchmark-rig.mjs": {
+          "bytes": 24509,
+          "sha256": "0a3ccbe15ceff44654d5e2507c2c7ede857c25ffd3f78264f282639ba3000ac4"
+        },
+        "tests/browser/geometry-benchmark-diagnostics.mjs": {
+          "bytes": 6469,
+          "sha256": "6c4e1358c04347e65bf18378038b51af3eb0b845eed1cbaad8f4fc9b5772e300"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-proposals",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-proposals",
+      "files": 14,
+      "verified": true,
+      "artifacts": {
+        "5-attached-shoot-1.png": {
+          "bytes": 109210,
+          "sha256": "828dbba260e4d0de7c74ac2bd67750aa88093169d87ec8ab437f9d07fcd6fed5"
+        },
+        "5-fork-1.png": {
+          "bytes": 335380,
+          "sha256": "d9d78f42be7c08314b09b2a71a4ff32de114e5aa74894bd09db654166518bdd9"
+        },
+        "4-attached-shoot-1.png": {
+          "bytes": 109652,
+          "sha256": "0c0d38ec53a35563a09ad77a7847d6dc0f94b2cc863f7d9b1b952704146547b3"
+        },
+        "4-fork-1.png": {
+          "bytes": 882483,
+          "sha256": "ccb29bad76b74264c8243f6f0a6914ff80103dc51cc6c54959b095b5a27f0e9d"
+        },
+        "3-attached-shoot-1.png": {
+          "bytes": 112789,
+          "sha256": "5bb03c99effedc0167a472f6943f971a422eb2ec9bf258c9ceaadca156980a3a"
+        },
+        "3-fork-1.png": {
+          "bytes": 387336,
+          "sha256": "01700a37d35351ab83a74d47f28ded96dd920162e59414f131a3b13de2029d8d"
+        },
+        "2-attached-shoot-1.png": {
+          "bytes": 114871,
+          "sha256": "c7a45920a8cc8fedd70ec77ffc5ab674eeb0cfbf40b8c8ae0cc66327b627829d"
+        },
+        "2-fork-1.png": {
+          "bytes": 734040,
+          "sha256": "f788b8cfe5c83960cc5a7b963928374421d81d914dcefdc96b66b1e1c007ed8d"
+        },
+        "1-attached-shoot-1.png": {
+          "bytes": 84014,
+          "sha256": "5929bbab832ede1ae1591b85ca881cfd7075e555c02dc286d94de92799515273"
+        },
+        "1-fork-1.png": {
+          "bytes": 286260,
+          "sha256": "7963dc9f7046efc9c76cdce3db986eb91bb7392f4e1d3f1944b25761f90617f4"
+        },
+        "0-attached-shoot-1.png": {
+          "bytes": 103232,
+          "sha256": "851f8b2c98781092ccd70391c95c1586f77a6affd30f35ed5b6ee913e9f7a762"
+        },
+        "0-fork-1.png": {
+          "bytes": 349776,
+          "sha256": "1f7bee89cb2107f37f48450600c0e11648dd255cbb654633d1cbcd37d5a22ee8"
+        },
+        "run.json": {
+          "bytes": 383143,
+          "sha256": "53593e37bfada1a2a1952389b9317e02120acb4b9f3487b7a9f7d41c5fb4aa8d"
+        },
+        "protocol.json": {
+          "bytes": 3501,
+          "sha256": "3080cacf2da0bf7dac552d6f01b179a865f4514bf5e56e2fa51e56ebbe8a06e2"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-wide-1",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-wide-1",
+      "files": 2,
+      "verified": true,
+      "artifacts": {
+        "preview.json": {
+          "bytes": 20758,
+          "sha256": "a3951ccab583821a46c20ea16353b1b0ed8932b255872e14150a1d2a9136a634"
+        },
+        "preview.png": {
+          "bytes": 115198,
+          "sha256": "59572f5d6bc8b5e8206bfe162738d75fba80e8057f67ca0a3cbdec6e28107b41"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-wide-10",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-wide-10",
+      "files": 3,
+      "verified": true,
+      "artifacts": {
+        "preview.json": {
+          "bytes": 18867,
+          "sha256": "dbd056af0e5a664e900a371d287af894424c13bdad9a59d8346cc6187a1e7988"
+        },
+        "preview.png": {
+          "bytes": 312141,
+          "sha256": "b2dff8fe95f2035afd0c62699ba9e1b58312bf6811c438ec1383906459d48b4c"
+        },
+        "proposal-input.json": {
+          "bytes": 69589,
+          "sha256": "d37cb027f19fb1fc2d52d855ef168b6ac0709a0eb5e33484a253d0ad8cab8b0a"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-wide-11",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-wide-11",
+      "files": 3,
+      "verified": true,
+      "artifacts": {
+        "preview.json": {
+          "bytes": 18883,
+          "sha256": "418e692dc1e83705eaaa8a03fe4df59d460c578711cac81a3518901067ad431e"
+        },
+        "preview.png": {
+          "bytes": 217053,
+          "sha256": "96b5142312aac09ae2308f03fcf3a9e7ab3765a626b497e5b8a82c29bbdca68e"
+        },
+        "proposal-input.json": {
+          "bytes": 69621,
+          "sha256": "128d460ab550cad84091ecd5b8dcb5c469eb1580e954067bec62a4e7164abc63"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-wide-2",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-wide-2",
+      "files": 2,
+      "verified": true,
+      "artifacts": {
+        "preview.json": {
+          "bytes": 20753,
+          "sha256": "f0c37966a043ef0578aa3a2e583454e161fd1744362b8416a6848667ded3bf6f"
+        },
+        "preview.png": {
+          "bytes": 176234,
+          "sha256": "60dbeb972f81339b416d8f25fe8917d560d6b8ed20fa5046621e7ee5fdb3cb56"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-wide-4",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-wide-4",
+      "files": 3,
+      "verified": true,
+      "artifacts": {
+        "preview.json": {
+          "bytes": 20702,
+          "sha256": "40c20c0864941451d07f299421daa5e0c5baceb5b021bb03470a8cb0aee376c9"
+        },
+        "preview.png": {
+          "bytes": 127906,
+          "sha256": "75cb8954747a8da7444be270ce80ea4a41ea799fb3de2c2d43de41f1ac5590d8"
+        },
+        "proposal-input.json": {
+          "bytes": 383143,
+          "sha256": "53593e37bfada1a2a1952389b9317e02120acb4b9f3487b7a9f7d41c5fb4aa8d"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-wide-5",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-wide-5",
+      "files": 3,
+      "verified": true,
+      "artifacts": {
+        "preview.json": {
+          "bytes": 20740,
+          "sha256": "df8f5983f46a158ba07395b996dd83b8a724b180d913bba44e4cc00be44ea5a9"
+        },
+        "preview.png": {
+          "bytes": 130260,
+          "sha256": "b3581786f74ea693795d975e29dc5bc02053f05be2f4ea0fd82cf6f9edf24beb"
+        },
+        "proposal-input.json": {
+          "bytes": 383143,
+          "sha256": "53593e37bfada1a2a1952389b9317e02120acb4b9f3487b7a9f7d41c5fb4aa8d"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-wide-8",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-wide-8",
+      "files": 3,
+      "verified": true,
+      "artifacts": {
+        "preview.json": {
+          "bytes": 18897,
+          "sha256": "8a153467c9d9b46649c512c52111f02b5b316648dc202ba2ca0d2007e02868d4"
+        },
+        "preview.png": {
+          "bytes": 236349,
+          "sha256": "f87809e158293a6963205209bd0a6e8e99473a7cd117cd73db718252a7bc716f"
+        },
+        "proposal-input.json": {
+          "bytes": 69560,
+          "sha256": "dc1e1905de8fa710f98d16c7931ea9beceb6bd4083db869d0c9c19cdf637a7b5"
+        }
+      }
+    },
+    {
+      "original_path": "/tmp/fn19-visibility-v22-wide-9",
+      "durable_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-visibility/fn19-visibility-v22-wide-9",
+      "files": 3,
+      "verified": true,
+      "artifacts": {
+        "preview.json": {
+          "bytes": 18818,
+          "sha256": "4edbf6d9895a6b48fa28812f25339cda63867a76a6386b0ea16971115e0b1d1a"
+        },
+        "preview.png": {
+          "bytes": 165904,
+          "sha256": "6686a30328c72beb2a4af8c6ac6053bc6ccabaab95858c1c3018b95d4093a912"
+        },
+        "proposal-input.json": {
+          "bytes": 69522,
+          "sha256": "33a9d83a8e947ee6dda6d357d5ff4dd840f29d607e53483463ce243be226252c"
+        }
+      }
+    }
+  ],
+  "all_bytes_and_sha256_verified": true
+}

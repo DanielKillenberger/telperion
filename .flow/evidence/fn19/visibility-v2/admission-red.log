@@ -1,0 +1,38 @@
+✔ R2/R3: projected holes, openings and excluded background retain pixel and square-metre units (1.283757ms)
+✔ R2: diagonal gap connectivity and threshold closure are diagnostic, never biological approval (0.214544ms)
+✔ R2/R4: empty, clipped, nonfinite and malformed masks fail without a favorable zero (0.749646ms)
+✔ R4: convergence uses complete arrays and partial tiles, rejecting missing/nonfinite samples (0.792397ms)
+✔ R4: protocol/source/camera/ROI/crop identities and required artifacts fail closed (0.284736ms)
+✔ R5: inventory is extensible but a third taxon cannot inherit another generator (0.157903ms)
+✔ R4: missing masks, incomplete artifacts, changed bytes and path escapes cannot pass (6.463716ms)
+✔ R4: the actual replay preflight rejects a changed camera, source, protocol or reference receipt (0.248786ms)
+✔ R4: timeout, missing hardware and interrupted subprocesses retain distinct nonpassing dispositions (0.649334ms)
+✔ R4 capture rules compare object values independent of key order but preserve arrays and changed values (0.436279ms)
+✔ visibility supplement rejects missing anatomy, altered geometry and undeclared instance filtering (0.840728ms)
+✔ local visibility rejects a parent-surface hit far outside the selected lateral radius (0.789126ms)
+✔ collar-facing direction excludes the child axial component (0.163623ms)
+✖ visibility admissions require the exact mature cohort, not arbitrary unique views (0.94819ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 13
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 68.59231
+
+✖ failing tests:
+
+test at tests/browser/geometry-benchmark.test.mjs:111:2
+✖ visibility admissions require the exact mature cohort, not arbitrary unique views (0.94819ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-report/tests/browser/geometry-benchmark.test.mjs:117:9)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /cohort/,
+    operator: 'throws',
+    diff: 'simple'
+  }
