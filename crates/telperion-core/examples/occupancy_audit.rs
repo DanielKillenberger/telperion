@@ -7,6 +7,21 @@ use telperion_core::{
     presets::Preset,
     tree::NodeKind,
 };
+use telperion_core::{tree, Error, Result};
+// Reuse the exact surface path ordering to select original mesh triangles.
+#[path = "../src/surface/paths.rs"]
+mod wood_paths;
+fn reserved<T>(n: usize) -> telperion_core::Result<Vec<T>> {
+    let mut v = Vec::new();
+    v.try_reserve(n)
+        .map_err(|_| telperion_core::Error::ResourceLimit("audit"))?;
+    Ok(v)
+}
+fn filled<T: Clone>(n: usize, x: T) -> telperion_core::Result<Vec<T>> {
+    let mut v = reserved(n)?;
+    v.resize(n, x);
+    Ok(v)
+}
 fn xyz(p: Vec3) -> [f64; 3] {
     [p.x, p.y, p.z]
 }
@@ -103,6 +118,38 @@ fn main() {
                 for i in 1..tree.nodes.len() {
                     in_system[i] = i == root || in_system[tree.nodes[i].parent.unwrap() as usize];
                 }
+                let mesh =
+                    telperion_core::surface::build(&tree, f.skeleton.envelope.height, &f.surface)
+                        .unwrap();
+                let paths = wood_paths::paths(&tree.nodes).unwrap();
+                let segments = f.surface.radial_segments.max(f.surface.lobes * 4) as usize;
+                let mut index_offset = 0;
+                let mut wood_triangles = Vec::new();
+                for path in &paths.runs {
+                    let ns = &paths.nodes[path.start..path.end];
+                    let buried = usize::from(path.trunk && f.surface.flare_depth > 0.0);
+                    let samples = ns.len() + buried;
+                    for edge in 0..samples - 1 {
+                        let child = ns[(edge + 1).saturating_sub(buried)];
+                        if in_system[child] {
+                            for tri in mesh.indices[index_offset + edge * segments * 6
+                                ..index_offset + (edge + 1) * segments * 6]
+                                .chunks_exact(3)
+                            {
+                                wood_triangles.push(
+                                    tri.iter()
+                                        .map(|&v| {
+                                            mesh.positions[v as usize * 3..v as usize * 3 + 3]
+                                                .to_vec()
+                                        })
+                                        .collect::<Vec<_>>(),
+                                );
+                            }
+                        }
+                    }
+                    index_offset += samples * segments * 6;
+                }
+                assert_eq!(index_offset, mesh.indices.len());
                 let mut offset = 0;
                 let mut runs = Vec::new();
                 for (i, &selected) in in_system.iter().enumerate().skip(1) {
@@ -134,7 +181,7 @@ fn main() {
                     offset += count;
                 }
                 assert_eq!(offset, placed.matrices.len());
-                data["curtain"] = json!({"root":root,"socket":tree.nodes[root].parent,"origin":xyz(tree.nodes[tree.nodes[root].parent.unwrap() as usize].position),"runs":runs,"prototype":element.positions.iter().map(|&p|xyz(p)).collect::<Vec<_>>(),"needle_indices":element.indices[element.anatomy.unwrap().indices].to_vec(),"total_instances":placed.matrices.len()});
+                data["curtain"] = json!({"root":root,"socket":tree.nodes[root].parent,"origin":xyz(tree.nodes[tree.nodes[root].parent.unwrap() as usize].position),"wood_triangles":wood_triangles,"runs":runs,"prototype":element.positions.iter().map(|&p|xyz(p)).collect::<Vec<_>>(),"needle_indices":element.indices[element.anatomy.unwrap().indices].to_vec(),"total_instances":placed.matrices.len()});
             }
             std::fs::write(
                 format!("{output}/{}-{seed}.json", preset.profile_id().unwrap()),

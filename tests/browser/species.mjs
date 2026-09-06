@@ -138,7 +138,7 @@ async function capture(job) {
           if (radial.lengthSq() < 1e-8) radial = outward.clone().addScaledVector(tangent, -outward.dot(tangent));
           radial.normalize();
           const around = tangent.clone().cross(radial).normalize();
-          const angle = view.endsWith('left') ? -.75 : view.endsWith('right') ? .75 : 0;
+          const angle = contactAngle ?? (view.endsWith('left') ? -.75 : view.endsWith('right') ? .75 : 0);
           direction = radial.clone().multiplyScalar(.6).addScaledVector(around, .8).addScaledVector(tangent, .15).normalize().applyAxisAngle(tangent, angle);
           bounds = new THREE.Box3(joint.clone().addScalar(-.010), joint.clone().addScalar(.010));
           selectedTwig.socketCamera = { jointNode: root ? socket : parent, incomingNode: root ? topology[socket * 3] : socket, departingNode: root ? parent : node, joint: joint.toArray(), tangent: tangent.toArray(), radial: radial.toArray(), angle, halfWidth: .010 };

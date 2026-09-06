@@ -8,18 +8,6 @@ pub(super) fn upper_descendants(tree: &mut Tree, envelope: Envelope) {
         .map(|n| n.position.y)
         .fold(0.0, f64::max)
         * 0.75;
-    let mut centre = Vec3::ZERO;
-    let mut count = 0;
-    for n in &tree.nodes[..first] {
-        if n.position.y >= upper {
-            centre += n.position;
-            count += 1;
-        }
-    }
-    if count == 0 {
-        return;
-    }
-    centre = centre / count as f64;
     let mut owner = vec![usize::MAX; tree.nodes.len()];
     let mut centroids = vec![Vec3::ZERO; tree.nodes.len()];
     let mut counts = vec![0; tree.nodes.len()];
@@ -35,6 +23,55 @@ pub(super) fn upper_descendants(tree: &mut Tree, envelope: Envelope) {
             counts[owner[i]] += 1;
         }
     }
+    // Empty endpoint voxels bracketed by crown mass on two independent axes
+    // are inter-mass candidates, not a turn toward the crown's mean position.
+    // World-space sampling makes the decision independent of a showcase camera.
+    use std::collections::BTreeSet;
+    let cell = |p: Vec3| {
+        [
+            (p.x / 0.5).floor() as i32,
+            (p.y / 0.5).floor() as i32,
+            (p.z / 0.5).floor() as i32,
+        ]
+    };
+    let occupied: BTreeSet<_> = tree
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Twig)
+        .map(|n| cell(n.position))
+        .collect();
+    let mut empty = BTreeSet::new();
+    for &c in &occupied {
+        for axis in 0..3 {
+            for step in 1..=6 {
+                let mut q = c;
+                q[axis] += step;
+                if occupied.contains(&q) {
+                    continue;
+                }
+                let bracketed = (0..3)
+                    .filter(|&a| {
+                        [-1, 1].iter().all(|&sign| {
+                            (1..=6).any(|r| {
+                                let mut v = q;
+                                v[a] += sign * r;
+                                occupied.contains(&v)
+                            })
+                        })
+                    })
+                    .count();
+                if bracketed >= 2 {
+                    empty.insert(q);
+                }
+            }
+        }
+    }
+    let mut groups = vec![Vec::new(); tree.nodes.len()];
+    for i in first..tree.nodes.len() {
+        if owner[i] != usize::MAX {
+            groups[owner[i]].push(i);
+        }
+    }
     let mut rotations = vec![None; tree.nodes.len()];
     for i in first..tree.nodes.len() {
         if owner[i] != i || counts[i] == 0 {
@@ -42,15 +79,53 @@ pub(super) fn upper_descendants(tree: &mut Tree, envelope: Envelope) {
         }
         let base = tree.nodes[tree.nodes[i].parent.unwrap() as usize].position;
         let from = (centroids[i] / counts[i] as f64 - base).normalized();
-        let toward = (centre - base).normalized();
-        if from.dot(toward) > 0.25 {
-            continue;
+        let reach = groups[i]
+            .iter()
+            .map(|&j| tree.nodes[j].position.distance(base))
+            .fold(0.0, f64::max);
+        let mut best = 0;
+        for &q in &empty {
+            let target = Vec3::new(q[0] as f64 + 0.5, q[1] as f64 + 0.5, q[2] as f64 + 0.5) * 0.5;
+            // Feasibility first: an unchanged connected group cannot reach
+            // beyond its longest displacement from the retained insertion.
+            if target.y < upper || target.distance(base) > reach {
+                continue;
+            }
+            let toward = (target - base).normalized();
+            let axis = from.cross(toward);
+            if axis.length_squared() < 1e-12 {
+                continue;
+            }
+            let axis = axis.normalized();
+            let angle = from.dot(toward).clamp(-1.0, 1.0).acos();
+            let hits: BTreeSet<_> = groups[i]
+                .iter()
+                .filter(|&&j| tree.nodes[j].kind == NodeKind::Twig)
+                .map(|&j| cell(base + (tree.nodes[j].position - base).rotate(axis, angle)))
+                .filter(|c| empty.contains(c))
+                .collect();
+            if hits.len() <= best {
+                continue;
+            }
+            let fits = groups[i].iter().all(|&j| {
+                let parent = tree.nodes[j].parent.unwrap() as usize;
+                let end = base + (tree.nodes[j].position - base).rotate(axis, angle);
+                let start = base + (tree.nodes[parent].position - base).rotate(axis, angle);
+                end.y >= upper
+                    && (0..=8).all(|k| envelope.contains(start.lerp(end, k as f64 / 8.0), 0.0))
+            });
+            if fits {
+                best = hits.len();
+                rotations[i] = Some((base, axis, angle));
+            }
         }
-        let hinge = from.cross(toward);
-        if hinge.length_squared() < 1e-12 {
-            continue;
+        if let Some((base, axis, angle)) = rotations[i] {
+            for &j in &groups[i] {
+                empty.remove(&cell(
+                    base + (tree.nodes[j].position - base).rotate(axis, angle),
+                ));
+            }
         }
-        rotations[i] = Some((base, hinge.normalized(), 35.0_f64.to_radians()));
     }
     // A rigid group must fit as a whole. Reject a proposed rotation rather
     // than clipping endpoints or moving its socket outside the growth envelope.
@@ -123,6 +198,78 @@ pub(super) fn transverse_curtains(tree: &mut Tree, envelope: Envelope) {
     }
 }
 
+/// Reattach branched local fans along their existing uninterrupted descending
+/// support. Translating the whole fan retains its lengths and needle stations;
+/// this clothes the supporting axis instead of extending every fan past its tip.
+pub(super) fn longitudinal_curtains(tree: &mut Tree, envelope: Envelope) {
+    let first = tree.crossover;
+    let mut structural_children = vec![0; first];
+    for n in &tree.nodes[1..first] {
+        structural_children[n.parent.unwrap() as usize] += 1;
+    }
+    let mut owner = vec![0; tree.nodes.len()];
+    let mut groups = vec![Vec::new(); tree.nodes.len()];
+    for i in first..tree.nodes.len() {
+        let p = tree.nodes[i].parent.unwrap() as usize;
+        owner[i] = if p < first { i } else { owner[p] };
+        groups[owner[i]].push(i);
+    }
+    for (root, group) in groups.iter().enumerate().skip(first) {
+        // A single terminal is an anatomical target, not a redistributable fan.
+        if group.len() < 3 {
+            continue;
+        }
+        let old = tree.nodes[root].parent.unwrap() as usize;
+        let base = tree.nodes[old].position;
+        let reach = group
+            .iter()
+            .map(|&i| tree.nodes[i].position.distance(base))
+            .fold(0.0, f64::max);
+        let mut at = old;
+        while let Some(p) = tree.nodes[at].parent.map(|p| p as usize) {
+            let Some(g) = tree.nodes[p].parent.map(|p| p as usize) else {
+                break;
+            };
+            if structural_children[p] != 1
+                || (tree.nodes[at].position - tree.nodes[p].position)
+                    .normalized()
+                    .y
+                    >= -0.5
+                || (tree.nodes[p].position - tree.nodes[g].position)
+                    .normalized()
+                    .y
+                    >= -0.5
+                || base.distance(tree.nodes[p].position) > reach * 0.5
+            {
+                break;
+            }
+            at = p;
+        }
+        if at == old {
+            continue;
+        }
+        let shift = tree.nodes[at].position - base;
+        if !group.iter().all(|&i| {
+            let parent = tree.nodes[i].parent.unwrap() as usize;
+            (0..=8).all(|k| {
+                envelope.contains(
+                    tree.nodes[parent]
+                        .position
+                        .lerp(tree.nodes[i].position, k as f64 / 8.0)
+                        + shift,
+                    0.0,
+                )
+            })
+        }) {
+            continue;
+        }
+        tree.nodes[root].parent = Some(at as u32);
+        for &i in group {
+            tree.nodes[i].position += shift;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -149,6 +296,45 @@ mod tests {
         }
         tree.crossover = 4;
         tree
+    }
+    #[test]
+    fn longitudinal_fans_keep_structural_forks_and_single_terminals() {
+        let mut tree = fixture();
+        tree.nodes[2].position = Vec3::new(0., 9., 0.);
+        tree.nodes[3].position = Vec3::new(0., 8.9, 0.);
+        tree.nodes[5].position = Vec3::new(0.05, 8.5, 0.);
+        for x in [-0.1, 0.1] {
+            let mut n = tree.nodes[5].clone();
+            n.position = Vec3::new(x, 8.2, 0.);
+            n.parent = Some(5);
+            n.branch = tree.nodes.len() as u32;
+            tree.nodes.push(n);
+        }
+        let before = tree.clone();
+        longitudinal_curtains(
+            &mut tree,
+            Envelope {
+                height: 24.,
+                spread: 1.,
+                crown_base: 0.,
+                ..Envelope::default()
+            },
+        );
+        tree.validate().unwrap();
+        assert_eq!(&tree.nodes[..5], &before.nodes[..5]);
+        assert_eq!(tree.nodes[5].parent, Some(2));
+        for i in 5..tree.nodes.len() {
+            let a = &tree.nodes[i];
+            let b = &before.nodes[i];
+            assert!(
+                (a.position
+                    .distance(tree.nodes[a.parent.unwrap() as usize].position)
+                    - b.position
+                        .distance(before.nodes[b.parent.unwrap() as usize].position))
+                .abs()
+                    < 1e-12
+            );
+        }
     }
     #[test]
     fn curtain_keeps_primary_tip_and_socket_topology() {
@@ -195,7 +381,8 @@ mod tests {
             },
         );
         tree.validate().unwrap();
-        assert_ne!(tree.nodes[4].position, before.nodes[4].position);
+        // No bracketed empty reach exists in this sparse fixture.
+        assert_eq!(tree.nodes[4].position, before.nodes[4].position);
         assert_eq!(tree.nodes[5].position, before.nodes[5].position);
         for (i, n) in tree.nodes.iter().enumerate().skip(1) {
             let p = n.parent.unwrap() as usize;

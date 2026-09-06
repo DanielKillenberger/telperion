@@ -324,6 +324,7 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
     }
     if matches!(params.habit, BranchHabit::Tiered(_)) {
         occupancy::transverse_curtains(&mut tree, params.envelope);
+        occupancy::longitudinal_curtains(&mut tree, params.envelope);
     }
     radius::solve(&mut tree, params.envelope, radii)?;
     Ok(GrowthReport {

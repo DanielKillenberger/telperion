@@ -40,9 +40,16 @@ for p in sorted(src.glob('*-[0-9]*.json')):
    pts=(needle-lo)/pitch
    for tri in indices:draw.polygon([tuple(v) for v in pts[tri]],fill=1)
   a=np.array(im);bins=[]
+  wood=Image.new('1',tuple(size));wd=ImageDraw.Draw(wood)
+  for triangle in c.get('wood_triangles',[]):
+   v=np.array(triangle)-origin
+   q=np.stack([v@across,-v[:,1]],axis=-1)
+   wd.polygon([tuple(pt) for pt in (q-lo)/pitch],fill=1)
+  w=np.array(wood)
+  wood_diagnostic=dict(available='wood_triangles' in c,method='Original swept surface side triangles on the same selected connected system; end caps excluded; clipped to needle projection bounds.',projected_area_m2=float(w.sum()*pitch*pitch),needle_only_area_m2=float((a&~w).sum()*pitch*pitch),wood_only_area_m2=float((w&~a).sum()*pitch*pitch),overlap_area_m2=float((w&a).sum()*pitch*pitch))
   for start in range(0,len(a),100):
-   band=a[start:start+100];bins.append(dict(depth_m=float(lo[1]+start*pitch),mean_covered_width_m=float(band.sum(1).mean()*pitch),fraction_covered=float(band.mean())))
-  row['curtain']=dict(root=c['root'],socket=c['socket'],total_instances=c['total_instances'],selected_instances=len(xy),pitch_m=pitch,bounds=[lo.tolist(),hi.tolist()],covered_area_m2=float(a.sum()*pitch*pitch),bbox_coverage=float(a.mean()),bins_50mm=bins,runs=runs)
+   band=a[start:start+100];bins.append(dict(depth_m=float(lo[1]+start*pitch),mean_covered_width_m=float(band.sum(1).mean()*pitch),fraction_covered=float(band.mean()),wood_fraction=float(w[start:start+100].mean()),needle_wood_overlap_fraction=float((band&w[start:start+100]).mean())))
+  row['curtain']=dict(wood_projection=wood_diagnostic,root=c['root'],socket=c['socket'],total_instances=c['total_instances'],selected_instances=len(xy),pitch_m=pitch,bounds=[lo.tolist(),hi.tolist()],covered_area_m2=float(a.sum()*pitch*pitch),bbox_coverage=float(a.mean()),bins_50mm=bins,runs=runs)
   print(p.stem,'coverage',round(a.mean(),3),'size',np.round(hi-lo,3),'runs',len(runs),'needle',len(xy))
  rows.append(row)
 (src/'summary.json').write_text(json.dumps(dict(method='Exact original instance IDs/matrices; projected needle triangles only (wood excluded), vertical tangent plane of selected exterior secondary. 0.5mm diagnostic raster; 50mm longitudinal bands. Not a botanical gate or rendered acceptance.',cases=rows),indent=2))
