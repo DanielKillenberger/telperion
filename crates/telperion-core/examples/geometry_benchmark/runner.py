@@ -124,7 +124,7 @@ def manifest(protocol, references):
     sources = {s['id'] for s in references['sources']}
     for ref in references['references']:
         check('reference', ref, protocol)
-        if ref['source_id'] not in sources:
+        if ref['source_id'] not in sources and ref['source_id'] != ref['id']:
             raise ValueError('invalid-manifest: unresolved attribution source')
     for s in protocol['species']:
         check('species', s, protocol)
