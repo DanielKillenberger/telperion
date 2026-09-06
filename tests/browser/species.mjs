@@ -116,10 +116,10 @@ async function capture(job) {
         Object.assign(selectedTwig, { parent, socket, tip: tip.toArray(), base: base.toArray(), support: support.toArray() });
         bounds = new THREE.Box3().setFromPoints([tip, base, support]);
         bounds.expandByScalar(id === 'norway-spruce' ? .035 : .12);
-        // Camera sits outside the selected exterior terminal and looks inward.
+        // Camera looks outward through the selected exterior terminal.
         // Original connected wood and all foliage remain intact at unrestricted depth.
         const yaw = view.endsWith('left') ? -.65 : view.endsWith('right') ? .65 : 0;
-        direction = outward.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+        direction = outward.clone().negate().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         direction.y = view.startsWith('peg-') && view.endsWith('upper') ? .65 : view.startsWith('peg-') && view.endsWith('lower') ? -.65 : .18;
         direction.normalize();
         if (view.startsWith('peg-')) {
