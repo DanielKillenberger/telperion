@@ -292,6 +292,26 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
         BranchHabit::Spreading(_) | BranchHabit::Tiered(_) => 0,
     };
     radius::solve(&mut tree, params.envelope, radii)?;
+    if !matches!(params.habit, BranchHabit::Colonizing) {
+        let mut has_children = vec![false; tree.crossover];
+        for node in tree.nodes.iter().skip(1) {
+            if let Some(parent) = has_children.get_mut(node.parent.unwrap() as usize) {
+                *parent = true;
+            }
+        }
+        let tip_radius = twigs.twig.diameter / 2.0 * 0.25;
+        for (i, node) in tree
+            .nodes
+            .iter_mut()
+            .take(tree.crossover)
+            .enumerate()
+            .skip(1)
+        {
+            if node.kind == NodeKind::Structural && !has_children[i] {
+                node.radius = node.radius.min(tip_radius);
+            }
+        }
+    }
     Ok(GrowthReport {
         tree,
         shed: removed,
