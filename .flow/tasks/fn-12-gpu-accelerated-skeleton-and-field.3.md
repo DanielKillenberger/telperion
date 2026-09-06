@@ -23,9 +23,12 @@ Only if task 2 qualifies a practical workload, integrate a small explicit asynch
 
 
 ## Done summary
-TBD
+Recorded the evidence-based rejection of production GPU queries and documented the optional owned f64 snapshot API. R1 CPU stage/query evidence is complete with GPU growth/construction and per-round costs explicitly inconclusive; R2 retains CPU behavior after precision and cold timing failures; R3 support, resource, lifecycle and whole-request failures are documented in .flow/evidence/fn12/REPORT.md.
 
+Baseline: green (five focused field tests and typecheck before edits). Final validation: 106 harness tests, package build and CPU-only browser bindings passed. Native workspace tests (69 passed, six ignored), fmt and clippy reused conductor observations after the last Rust change; no Rust changes followed. Task 2 GPU hardware/failure evidence reused for this documentation-only decision. Durable command evidence: .flow/evidence/fn12/validation.json. No additional tests were skipped after the docs-only classification because these relevant checks had already run.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 080b8e07ad19ecce4fc337b0d7fd4b7e0888b8c5
+- Tests: baseline: green, cargo test --release -p telperion-core --test field (5 passed), npm run typecheck, npm test (106 passed), npm run build, BINDINGS_ONLY=1 PLAYWRIGHT_MODULE=/tmp/fn9-browser/node_modules/playwright/index.mjs BROWSER_URL=http://127.0.0.1:5188 npm run test:browser, cargo test --release --workspace (conductor receipt reused; Rust unchanged; 69 passed, 6 ignored), cargo fmt --all -- --check (conductor receipt reused; Rust unchanged), cargo clippy --workspace --all-targets -- -D warnings (conductor receipt reused; Rust unchanged), Task 2 gpu-tests.json hardware and controlled failure checks reused; no GPU rerun for docs
 - PRs:
