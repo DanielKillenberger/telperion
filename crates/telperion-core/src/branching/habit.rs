@@ -183,6 +183,7 @@ impl Builder<'_> {
             return Ok(());
         }
         let mut shoots = Vec::new();
+        let mut infill = Vec::new();
         let phase = self.rng.range(0.0, TAU);
         for j in 0..p.scaffold_limbs {
             let azimuth =
@@ -199,7 +200,17 @@ impl Builder<'_> {
         while !shoots.is_empty() && !self.tree.diagnostics.node_capped {
             let mut next = Vec::new();
             for (start, direction, length, order) in shoots {
+                let first = self.tree.nodes.len();
                 let (end, heading) = self.crooked_axis(start, direction, length, p.crookedness)?;
+                // Lateral systems arise along the scaffold, not only at its end.
+                // Defer them so the established scaffold keeps its random stream.
+                if order + 2 <= p.subdivisions && end != start {
+                    let count = self.tree.nodes.len() - first;
+                    for fraction in [0.4, 0.7] {
+                        let at = first + ((count - 1) as f64 * fraction) as usize;
+                        infill.push((at, length * 0.45));
+                    }
+                }
                 if end == start || order == p.subdivisions {
                     continue;
                 }
@@ -220,6 +231,29 @@ impl Builder<'_> {
                 }
             }
             shoots = next;
+        }
+        for (at, length) in infill {
+            let parent = self.tree.nodes[at].parent.unwrap() as usize;
+            let heading =
+                (self.tree.nodes[at].position - self.tree.nodes[parent].position).normalized();
+            let normal = heading.perpendicular();
+            let phase = self.rng.range(0.0, TAU);
+            let across = normal * phase.cos() + heading.cross(normal) * phase.sin();
+            let direction = (heading * 0.45 + across * 0.85 + Vec3::Y * 0.1).normalized();
+            let (end, tip) = self.crooked_axis(at, direction, length, p.crookedness)?;
+            if end != at {
+                for side in [-1.0, 1.0] {
+                    self.crooked_axis(
+                        end,
+                        (tip + across * side * 0.65).normalized(),
+                        length * 0.55,
+                        p.crookedness,
+                    )?;
+                }
+            }
+            if self.tree.diagnostics.node_capped {
+                break;
+            }
         }
         Ok(())
     }
@@ -289,10 +323,30 @@ impl Builder<'_> {
                 }
             }
         }
+        let mut pendants = Vec::new();
         for (at, radial, length) in primaries {
             let tangent = Vec3::new(-radial.z, 0.0, radial.x);
             let direction =
                 (radial * 0.15 + tangent * self.rng.range(-0.3, 0.3) - Vec3::Y).normalized();
+            let first = self.tree.nodes.len();
+            self.crooked_axis(at, direction, length, 4.0)?;
+            let count = self.tree.nodes.len() - first;
+            // Alternating fine axes along each secondary form a hanging fan.
+            // Needle density is unchanged; the supporting architecture supplies mass.
+            for k in 0..count.saturating_sub(1) {
+                let fraction = (k + 1) as f64 / count as f64;
+                let side = if k % 2 == 0 { -1.0 } else { 1.0 };
+                pendants.push((
+                    first + k,
+                    (tangent * side * 0.55 - Vec3::Y).normalized(),
+                    length * (0.65 - 0.3 * fraction),
+                ));
+            }
+            if self.tree.diagnostics.node_capped {
+                break;
+            }
+        }
+        for (at, direction, length) in pendants {
             self.crooked_axis(at, direction, length, 4.0)?;
             if self.tree.diagnostics.node_capped {
                 break;

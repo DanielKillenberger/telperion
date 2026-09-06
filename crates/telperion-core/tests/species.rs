@@ -246,3 +246,40 @@ fn spruce_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert_eq!(family.skeleton.twigs.twig.stations_per_internode, 1);
     assert!(Preset::from_id("Picea abies").is_none());
 }
+
+#[test]
+fn scaffold_reaches_and_hanging_secondaries_subdivide_before_their_tips() {
+    for preset in [Preset::OregonWhiteOak, Preset::NorwaySpruce] {
+        let family = preset.parameters();
+        let report = branching::generate(&family.skeleton, family.radii).unwrap();
+        let nodes = &report.tree.nodes[..report.tree.crossover];
+        let mut children = vec![Vec::new(); nodes.len()];
+        for (i, node) in nodes.iter().enumerate().skip(1) {
+            children[node.parent.unwrap() as usize].push(i);
+        }
+        let mut mid_axis_forks = 0;
+        for (i, node) in nodes.iter().enumerate().skip(1) {
+            if children[i].len() < 2 {
+                continue;
+            }
+            let from = (node.position - nodes[node.parent.unwrap() as usize].position).normalized();
+            if preset == Preset::NorwaySpruce && from.y > -0.8 {
+                continue;
+            }
+            let alignments: Vec<_> = children[i]
+                .iter()
+                .map(|&j| from.dot((nodes[j].position - node.position).normalized()))
+                .collect();
+            // A continuing axis plus a departing side axis, not a terminal fork
+            // or foliage merely placed directly on an exposed scaffold.
+            if alignments.iter().any(|&dot| dot > 0.95) && alignments.iter().any(|&dot| dot < 0.93)
+            {
+                mid_axis_forks += 1;
+            }
+        }
+        assert!(
+            mid_axis_forks > 30,
+            "{preset:?}: only {mid_axis_forks} intermediate forks"
+        );
+    }
+}
