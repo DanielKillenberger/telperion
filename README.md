@@ -96,6 +96,7 @@ Ordinary, Telperion and Laurelin. Choose species independently of the unsigned
 parameters and seed reproduce the specimen. Different seeds vary structure and
 placement, not species identity. Whole, bare-branch and foliage-detail views
 support inspection; the viewer's detail view isolates one placed unit.
+Open `/?species=norway-spruce&seed=1` to load a full-foliage specimen directly.
 
 Browser consumers can use `presetById('oregon-white-oak')`, set
 `family.skeleton.seed`, then pass the family to `TreeEngine.build`. Native

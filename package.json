@@ -36,6 +36,7 @@
   "scripts": {
     "dev": "npm run wasm:build && vite",
     "build": "npm run wasm:build && tsc -p tsconfig.build.json && vite build",
+    "pretest": "npm run wasm:build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "rust:build": "cargo build --release --workspace && cargo build --release --target wasm32-unknown-unknown -p telperion-wasm",
