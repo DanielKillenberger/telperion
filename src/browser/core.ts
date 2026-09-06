@@ -38,6 +38,18 @@ export interface Diagnostics {
   fieldBytes: number; revision: number; timings: Timings;
   stages: { surface: boolean; foliage: boolean; field: boolean };
 }
+/** Owned canonical f64 CPU BVH data for generation experiments; survives release,
+ * rebuild and disposal. Mutating these arrays cannot alter the native field.
+ * Bounds: six f64 min/max xyz per node then item. Topology: four u32 per
+ * node [start,end,left,right], then primitive IDs; UINT32_MAX children = leaf. */
+export interface FieldSnapshot {
+  schema: 1; revision: number; bounds: Bounds | null;
+  /** Eight f64: a xyz, b xyz, proximal and distal radius. */
+  wood: Float64Array;
+  woodIndex: { bounds: Float64Array; topology: Uint32Array; nodeCount: number };
+  leaves: { bounds: Float64Array; topology: Uint32Array; nodeCount: number };
+  timings: { extractionMs: number; copyMs: number; totalMs: number };
+}
 export interface TreeOutput {
   surface?: { positions: Float32Array; normals: Float32Array; indices: Uint32Array; bounds: Bounds | null };
   foliage?: { positions: Float32Array; indices: Uint32Array; matrices: Float32Array; anatomy: FoliageAnatomy | null; bounds: Bounds | null };
@@ -46,7 +58,7 @@ export interface TreeOutput {
   structure?: { values: Float64Array; topology: Uint32Array };
   /** Query packed x,y,z,halfExtent cells. Bits: wood=1, foliage=2.
    * Invalid after this engine's next build or release; copied results remain owned. */
-  field?: { query(cells: Float64Array): Uint8Array };
+  field?: { query(cells: Float64Array): Uint8Array; snapshot(): FieldSnapshot };
   diagnostics: Diagnostics;
 }
 interface Exports extends WebAssembly.Exports {
@@ -54,6 +66,7 @@ interface Exports extends WebAssembly.Exports {
   request_alloc(n: number): number; request_ptr(): number;
   metadata_ptr(): number; metadata_len(): number; build(): number; release(): void;
   buffer_ptr(slot: number): number; buffer_len(slot: number): number;
+  field_snapshot(revision: number): number; field_snapshot_release(): void;
   query_alloc(count: number): number; query_ptr(): number; query(revision: number): number;
 }
 export class TreeEngine {
@@ -103,9 +116,29 @@ export class TreeEngine {
     if (outputs.surface) result.surface = { positions: f32(0), normals: f32(1), indices: u32(2), bounds: diagnostics.surfaceBounds };
     if (outputs.foliage) result.foliage = { positions: f32(3), indices: u32(4), matrices: f32(5), anatomy: diagnostics.foliageAnatomy, bounds: diagnostics.foliageBounds };
     if (outputs.structure) result.structure = { values: new Float64Array(e.memory.buffer, e.buffer_ptr(6), e.buffer_len(6)).slice(), topology: u32(7) };
-    if (outputs.field) result.field = { query: cells => this.query(diagnostics.revision, cells) };
+    if (outputs.field) result.field = { query: cells => this.query(diagnostics.revision, cells), snapshot: () => this.snapshot(diagnostics) };
     diagnostics.timings.transferMs = performance.now() - transfer;
     diagnostics.timings.buildMs = performance.now() - started;
+    return result;
+  }
+  private snapshot(diagnostics: Diagnostics): FieldSnapshot {
+    const start = performance.now(), e = this.e;
+    let result: FieldSnapshot;
+    try {
+      this.check(e.field_snapshot(diagnostics.revision));
+      const meta = this.metadata() as { woodNodes: number; leafNodes: number; extractionMs: number };
+      const copy = performance.now();
+      const f64 = (slot: number) => new Float64Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
+      const u32 = (slot: number) => new Uint32Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
+      result = {
+        schema: 1, revision: diagnostics.revision, bounds: structuredClone(diagnostics.fieldBounds),
+        wood: f64(9),
+        woodIndex: { bounds: f64(10), topology: u32(11), nodeCount: meta.woodNodes },
+        leaves: { bounds: f64(12), topology: u32(13), nodeCount: meta.leafNodes },
+        timings: { extractionMs: meta.extractionMs, copyMs: performance.now() - copy, totalMs: 0 },
+      };
+    } finally { e.field_snapshot_release(); }
+    result.timings.totalMs = performance.now() - start;
     return result;
   }
   private query(revision: number, cells: Float64Array): Uint8Array {
