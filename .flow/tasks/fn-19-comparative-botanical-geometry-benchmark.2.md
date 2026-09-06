@@ -44,9 +44,20 @@ Keep DBH ambiguity and existing order/length estimated status visible. Do not ad
 - [ ] Existing species metric tests and output semantics remain unchanged; receipts separate baseline/candidate source identity and measurement/cost domains.
 
 ## Done summary
-TBD
+Added a native benchmark runner for frozen species/case manifests, operational axis distributions and biological-unit centroid bins. Existing species_metrics output is preserved in each native artifact; immutable receipts retain every case disposition and verify source/tool/binary identities before replay comparison.
 
+Analytic geometry tests cover axis lengths, circular diameters, nearest-rank summaries, taper, lateral angles, tied dominance, zero-length exclusions, empty foliage, individual needles and nonfinite geometry. Six Python controls cover malformed/duplicate/missing manifests, independent inventory expansion without false implementation, unsupported generators, interruption, changed/dropped/duplicated cases and artifact containment. Six 2m artificial historical-seed fixtures reproduce all numerical measurements across two native runs; six capped cases remain failed and retained. No mature specimen, frozen holdout or qualifying performance run was performed.
+
+baseline: green — pre-edit species_metrics 5/5 and npm run typecheck passed. New benchmark tests/help did not exist at baseline.
+Verify: geometry_benchmark 4/4 (including six Python controls), species_metrics 5/5, npm run typecheck and runner --help passed. Native control replay passed; .flow/evidence/fn19/measurement-controls.json records identities and outcomes. Gate classify required full checks; no skip receipts claimed. A first Verify exposed overstrict attribution resolution for frozen self-identifying comparator records; the implementation was corrected and affected controls rerun green. Baseline remained green.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
+Numeric runs do not require render outputs. Optional conditions identity is null unless explicitly supplied. Allocation/GPU/capture domains are unavailable; native generation timing is a nonexclusive observation. Independent botanical assessment remains unassessed. The runner uses Python 3 standard-library receipt handling with native Rust generation and metrics, and rebuilds the native example before collecting source/binary identities.
+
+Raw verification runs remain in this workspace at .flow/tmp/fn19-native-controls-final-2; usage notes are in the assigned NOTES_DIR/task2-measurement-interface.md. Shared review, lifecycle completion and gate receipt mutations are deferred to the conductor.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2554948ee3650d9924efe5ce9a0e33a55e5c6948, 18cf081ae6ebc608c9952aa3d874d3db9448b5ab, 880452cf7d3aa7d3054ffef510648ee3b254181c
+- Tests: baseline: green (cargo test --release -p telperion-core --test species_metrics: 5 passed; /tmp/fn19-task2-baseline-rust.log), baseline: green (npm run typecheck; /tmp/fn19-task2-baseline-ts.log), flowctl gate classify --base f0606620a8a2c6251e212a8b91363e9df1be2837: FULL (Rust code paths), cargo test --release -p telperion-core --test geometry_benchmark: exit 0, 4 Rust tests including 6 Python controls; /tmp/fn19-task2-verify-geometry-final.log, cargo test --release -p telperion-core --test species_metrics: exit 0, 5 tests; /tmp/fn19-task2-verify-species.log, npm run typecheck: exit 0; /tmp/fn19-task2-verify-typecheck.log, cargo run --release -p telperion-core --example geometry_benchmark -- --help: exit 0; /tmp/fn19-task2-verify-help.log, python3 -B crates/telperion-core/examples/geometry_benchmark/native_controls.py --binary target/release/examples/geometry_benchmark --output .flow/tmp/fn19-native-controls-final-2 --receipt .flow/evidence/fn19/measurement-controls.json: exit 0; /tmp/fn19-task2-verify-native-final.log, First Verify geometry/native controls failed on overstrict comparator attribution resolution; fixed in 18cf081 and affected controls rerun green (logs /tmp/fn19-task2-verify-geometry.log and /tmp/fn19-task2-verify-native.log preserve red observation)., Integrated cargo test --release -p telperion-core --test geometry_benchmark --test species_metrics: PASS (4+5 Rust, 6 Python controls), Integrated npm run typecheck: PASS, Integrated cargo fmt --all -- --check: PASS, Integrated cargo run --release -p telperion-core --example geometry_benchmark -- --help: PASS
 - PRs:
