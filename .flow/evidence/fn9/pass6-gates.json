@@ -1,0 +1,241 @@
+{
+  "generation_commit": "9e1e889",
+  "status": "Final software gates pass; visual acceptance remains separate",
+  "final": [
+    {
+      "name": "native",
+      "command": [
+        "npm",
+        "run",
+        "rust:test"
+      ],
+      "exit_code": 0,
+      "seconds": 186.34455251693726,
+      "log": "/tmp/fn99-pass6-verified-gates/native.log",
+      "sha256": "89440034c862bc31e96c0280abdfc5e0737f4092d7dbfe86f9fb98cb4c6baa47"
+    },
+    {
+      "name": "harness",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit_code": 0,
+      "seconds": 63.6917450428009,
+      "log": "/tmp/fn99-pass6-verified-gates/harness.log",
+      "sha256": "ed1d242a64e638b73e7b54ccb942c386964afd042b6480ab4991236f4f4110e7"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.20022797584533691,
+      "log": "/tmp/fn99-pass6-verified-gates/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.6151847839355469,
+      "log": "/tmp/fn99-pass6-verified-gates/clippy.log",
+      "sha256": "25c91746330736c82474b26f73792ee8ffebcc134f7b00799ff39add71be52ef"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "seconds": 1.9782984256744385,
+      "log": "/tmp/fn99-pass6-verified-gates/typecheck.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "seconds": 7.034510135650635,
+      "log": "/tmp/fn99-pass6-verified-gates/build.log",
+      "sha256": "6fdedca09ee133b841d173aab5c19b8594c4eafe06a0677403fe92a69ba148b5"
+    },
+    {
+      "name": "wasm-browser",
+      "command": [
+        "npm",
+        "run",
+        "rust:test:wasm"
+      ],
+      "exit_code": 0,
+      "seconds": 172.23767256736755,
+      "log": "/tmp/fn99-pass6-verified-gates/wasm-browser.log",
+      "sha256": "cb5b8463a7a7ca9147837782677fec0c24f53a2fe939eb56330bdcc686472f08"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.002763032913208008,
+      "log": "/tmp/fn99-pass6-verified-gates/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.39860033988952637,
+      "log": "/tmp/fn99-pass6-verified-gates/flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    }
+  ],
+  "initial_attempt": [
+    {
+      "name": "native",
+      "command": [
+        "npm",
+        "run",
+        "rust:test"
+      ],
+      "exit_code": 101,
+      "seconds": 37.74962329864502,
+      "log": "/tmp/fn99-pass6-gates/native.log",
+      "sha256": "cbbf51f14d71db64aacaf2cba152e064176ac305c7edceb81216066495d0f8ce"
+    },
+    {
+      "name": "harness",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit_code": 0,
+      "seconds": 66.22082018852234,
+      "log": "/tmp/fn99-pass6-gates/harness.log",
+      "sha256": "6e23b1f761a6830963501b63838c3d6c258092b35ed1022a9c2de9defeaf0746"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.2871413230895996,
+      "log": "/tmp/fn99-pass6-gates/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 0.3721761703491211,
+      "log": "/tmp/fn99-pass6-gates/clippy.log",
+      "sha256": "8680461195924c6eb671811cd8ac92d7aa35bd1b60dc8c53d7b69688a74da276"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "seconds": 2.89829683303833,
+      "log": "/tmp/fn99-pass6-gates/typecheck.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "seconds": 8.184579133987427,
+      "log": "/tmp/fn99-pass6-gates/build.log",
+      "sha256": "07d83c2fa0ae1fb8e810b7508936047003229b1c6980ab167910a255651e527b"
+    },
+    {
+      "name": "wasm-browser",
+      "command": [
+        "npm",
+        "run",
+        "rust:test:wasm"
+      ],
+      "exit_code": 0,
+      "seconds": 272.75033354759216,
+      "log": "/tmp/fn99-pass6-gates/wasm-browser.log",
+      "sha256": "487ad7cae51a45b955dfd818413fd86985d7b8c8e9088d63c798736c65cc0bbe"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.0031082630157470703,
+      "log": "/tmp/fn99-pass6-gates/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.40392041206359863,
+      "log": "/tmp/fn99-pass6-gates/flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    }
+  ],
+  "failures_and_fixes": [
+    "Initial native suite caught empty-tree slice panic in longitudinal redistribution; 9e1e889 returns before indexing an empty structural prefix. Existing growth regression and final full native suite pass.",
+    "Initial audit example compile failed due to imported path module crate aliases; fixed before final gates.",
+    "Initial Clippy rejected constant chunks_exact; changed to as_chunks before final gates.",
+    "An audit analysis was invoked before its output directory existed; no result from that attempt is used.",
+    "Unpinned descendant-subtree projections were superseded by exact original bearing node selection; shrinking sample membership supplies no acceptance."
+  ]
+}
