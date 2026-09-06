@@ -130,6 +130,22 @@ fn main() {
                 for i in 1..tree.nodes.len() {
                     in_system[i] = i == root || in_system[tree.nodes[i].parent.unwrap() as usize];
                 }
+                // Reattachment can move a local run above the sampled edge.
+                // Pin original supporting node IDs rather than silently comparing
+                // a smaller new subtree with a misleading coverage percentage.
+                let pinned = std::env::args().nth(2).map(|directory| {
+                    let bytes =
+                        std::fs::read(format!("{directory}/norway-spruce-{seed}.json")).unwrap();
+                    let previous: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+                    assert_eq!(previous["curtain"]["root"].as_u64().unwrap() as usize, root);
+                    in_system.fill(false);
+                    for run in previous["curtain"]["runs"].as_array().unwrap() {
+                        for node in run["nodes"].as_array().unwrap().iter().skip(1) {
+                            in_system[node.as_u64().unwrap() as usize] = true;
+                        }
+                    }
+                    directory
+                });
                 let mesh =
                     telperion_core::surface::build(&tree, f.skeleton.envelope.height, &f.surface)
                         .unwrap();
@@ -194,7 +210,7 @@ fn main() {
                     offset += count;
                 }
                 assert_eq!(offset, placed.matrices.len());
-                data["curtain"] = json!({"root":root,"socket":tree.nodes[root].parent,"origin":xyz(tree.nodes[tree.nodes[root].parent.unwrap() as usize].position),"wood_triangles":wood_triangles,"runs":runs,"prototype":element.positions.iter().map(|&p|xyz(p)).collect::<Vec<_>>(),"needle_indices":element.indices[element.anatomy.unwrap().indices].to_vec(),"total_instances":placed.matrices.len()});
+                data["curtain"] = json!({"root":root,"socket":tree.nodes[root].parent,"origin":xyz(tree.nodes[tree.nodes[root].parent.unwrap() as usize].position),"pinned_reference":pinned,"wood_triangles":wood_triangles,"runs":runs,"prototype":element.positions.iter().map(|&p|xyz(p)).collect::<Vec<_>>(),"needle_indices":element.indices[element.anatomy.unwrap().indices].to_vec(),"total_instances":placed.matrices.len()});
             }
             std::fs::write(
                 format!("{output}/{}-{seed}.json", preset.profile_id().unwrap()),
