@@ -24,9 +24,16 @@ Use raw WebGPU independent of Three; portable snapshot supplies indexed tapered 
 
 
 ## Done summary
-TBD
+Implemented a benchmark-only indexed WGSL candidate for both wood and foliage, with paired full-preset measurements, complete failure outcomes, deterministic disposal, limit/input checks and timestamp/readback accounting. The authoritative direct cold stopwatch includes fresh snapshot extraction through device disposal; every cold workload and two-query amortization estimate rejects adoption. Ordinary 64³ differs in two foliage cells (one false negative); Ordinary/Telperion contact matrices differ in 65/54 cells. Every differing cell and CPU/GPU flags is preserved, and repeats reproduce those differences exactly.
 
+The final Telperion 64³ source-resident submeasurement passes local timing/grid-parity gates (25.4 ms CPU versus 11.8 ms GPU medians), while earlier runs varied and the general uncorrected field contract fails contact precision. No production API or automatic backend was added. GPU growth/construction performance remains explicitly inconclusive: their CPU prerequisites were measured and dependency screening was code analysis, not GPU execution.
+
+R1/R2 evidence: `.flow/evidence/fn12/gpu-results.json`, `gpu-input-verification.json`, preserved preliminary/internal-timing runs, and `scripts/benchmarks/generation-gpu.md`. R3 tests: `tests/browser/generation-gpu.mjs` plus `gpu-tests.json` distinguish real hardware execution/device.destroy loss from controlled shader/device/allocation/submission/readback/traversal/timeout/capability failures; they verify whole-request errors, cleanup counts and reuse/disposal behavior.
+
+Baseline: green (five Rust field tests and typecheck). The new helper reproduction failed first for the absent module. Final Rust field tests (five), typecheck, syntax, helper/failure tests and actual GPU checks passed. All twelve direct-lifecycle benchmark observations completed without caps; canonical parameter/source/input/CPU hashes match task 1. Source and staging/mapped buffers, logical memory bounds, Wasm high-water and opaque driver allowances are recorded separately.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5659b41301b6e415b28827894c172c3dec3156ed
+- Tests: baseline: green (pre-edit Rust field suite: 5 passed; npm run typecheck: passed), red reproduction: node tests/browser/generation-gpu.mjs failed with ERR_MODULE_NOT_FOUND before candidate implementation (/tmp/fn12-task2-red.log), /home/daniel/.cargo/bin/cargo test --release -p telperion-core --test field: 5 passed (/tmp/fn12-task2-verify-rust.log), npm run typecheck: passed (/tmp/fn12-task2-verify-ts.log), node --check scripts/benchmarks/generation-gpu.mjs: passed, node --check scripts/benchmarks/generation-gpu-run.mjs: passed, node tests/browser/generation-gpu.mjs: helper and controlled failure tests passed (/tmp/fn12-gpu-helper-final.log), PLAYWRIGHT_MODULE=/tmp/fn9-browser/node_modules/playwright/index.mjs timeout 600 node tests/browser/generation-gpu.mjs --hardware: passed (.flow/evidence/fn12/gpu-tests.json), PLAYWRIGHT_MODULE=/tmp/fn9-browser/node_modules/playwright/index.mjs GENERATION_OUTPUT=/tmp/fn12-gpu-lifecycle timeout 600 node scripts/benchmarks/generation-gpu-run.mjs: exit 0, 12 complete repeated full-preset observations; all mismatches preserved; cold rejected, giant64 resident submeasurement positive (.flow/evidence/fn12/gpu-results.json), Independent canonical source/input/CPU flag SHA256 comparison with task1: passed (.flow/evidence/fn12/gpu-input-verification.json), git diff --check: passed
 - PRs:
