@@ -188,6 +188,7 @@ try {
         preset.skeleton.envelope.height = 4;
         preset.skeleton.attractors = 40;
         if (preset.skeleton.habit.kind === 'tiered') preset.skeleton.habit.tiers = 3;
+        if (preset.skeleton.habit.kind === 'spreading') { preset.skeleton.habit.scaffoldLimbs = 3; preset.skeleton.habit.subdivisions = 2; }
         const stage = createStage(document.querySelector('canvas'));
         let bounds, stats, draws;
         stage.setTree(clay => {
@@ -262,6 +263,7 @@ try {
         fixture.skeleton.envelope.height = 4;
         fixture.skeleton.attractors = 40;
         if (fixture.skeleton.habit.kind === 'tiered') fixture.skeleton.habit.tiers = 3;
+        if (fixture.skeleton.habit.kind === 'spreading') { fixture.skeleton.habit.scaffoldLimbs = 3; fixture.skeleton.habit.subdivisions = 2; }
         const output = originalBuild.call(this, fixture, outputs);
         window.viewerBuild = { seed: fixture.skeleton.seed, signature: JSON.stringify(Array.from(output.foliage?.matrices ?? output.surface?.positions ?? [])) };
         return output;
