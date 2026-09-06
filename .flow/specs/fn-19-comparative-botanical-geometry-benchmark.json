@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-19-comparative-botanical-geometry-benchmark",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-09-06T19:23:43.281612Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-06T20:40:49.140744Z",
   "created_at": "2026-09-06T15:51:12.548790Z",
   "default_impl": null,
   "default_review": null,
@@ -10,7 +10,7 @@
   "id": "fn-19-comparative-botanical-geometry-benchmark",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": "2026-09-06T16:07:51.091273Z",
   "review_attempts": [
@@ -96,11 +96,63 @@
       "timestamp": "2026-09-06T19:23:43.271877Z",
       "tool_calls": 26,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d3b3c007cc01f7016bf6426bdc0e87c0a621be39ef6490779c864129c9296f17",
+      "backend": "codex",
+      "base_sha": "38d8401078e584d4b6f19480e8e782b0282b9099",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7bc593acf683e49676ae9afd649f7e76",
+            "classification": "introduced",
+            "findingId": "finding-7bc593acf683e49676ae9afd649f7e76",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6947ff27582a25c968c5f07b21cf5f20",
+            "classification": "introduced",
+            "findingId": "finding-6947ff27582a25c968c5f07b21cf5f20",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c934c743e595c824a890181505ae962e206834bb",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 7971,
+      "output_sha256": "5d3781f19f4ac305df7d7a1fa0c38319831dbec87bb09b79b5d11bb5c86c6106",
+      "reservation_id": "12c36b58768c4ecfa52b12c241267b0d",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-06T20:40:49.138160Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -122,5 +174,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-06T19:23:43.287735Z"
+  "updated_at": "2026-09-06T20:40:49.141461Z"
 }
