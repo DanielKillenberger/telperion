@@ -261,9 +261,6 @@ pub(super) fn append_with_habit(
         for s in frontier {
             let from = s.direction;
             let position = tree.nodes[s.at].position;
-            let twig_length = s.pendant_floor.map_or(t.twig.length, |floor| {
-                t.twig.length.min((position.y - floor).max(0.0) * 0.18)
-            });
             let phase = s.phase + divergence;
             let binormal = from.cross(s.normal);
             let mut accepted: Vec<Vec3> = Vec::with_capacity(7);
@@ -329,16 +326,11 @@ pub(super) fn append_with_habit(
                     s.radius
                 };
                 let length = if lateral { s.length * ratio } else { s.length };
-                let length = if lateral || s.branch.is_none() {
-                    s.pendant_floor.map_or(length, |floor| {
-                        length.min((position.y - floor - twig_length).max(0.0) * 0.18)
-                    })
+                let length = if s.pendant {
+                    length.min(t.twig.length)
                 } else {
                     length
                 };
-                if length <= 1e-9 {
-                    continue;
-                }
                 let generation = s.generation + usize::from(lateral);
                 let terminal = !lateral && s.completed == s.internodes;
                 let is_twig = terminal
@@ -363,7 +355,10 @@ pub(super) fn append_with_habit(
                     } else {
                         1.0
                     };
-                    (from * 0.2 - Vec3::Y * 0.7 + across * side * 0.7).normalized()
+                    let downward = s.pendant_floor.map_or(0.35, |floor| {
+                        ((position.y - floor) / t.twig.length * 0.5).clamp(0.0, 0.35)
+                    });
+                    (across * side - Vec3::Y * downward).normalized()
                 } else if !lateral {
                     from
                 } else {
@@ -381,8 +376,16 @@ pub(super) fn append_with_habit(
                         position,
                         if lateral { wanted } else { from },
                         wanted,
-                        twig_length,
+                        t.twig.length,
                     );
+                    let twig_length = s.pendant_floor.map_or(t.twig.length, |floor| {
+                        t.twig
+                            .length
+                            .min((position.y - floor).max(0.0) / (-heading.y).max(1e-9) * 0.8)
+                    });
+                    if twig_length <= 1e-9 {
+                        continue;
+                    }
                     let p = position + heading * twig_length;
                     if rejected(config, p) || s.pendant_floor.is_some_and(|floor| p.y < floor) {
                         continue;
@@ -390,6 +393,12 @@ pub(super) fn append_with_habit(
                     (p, heading)
                 } else {
                     if starts {
+                        let length = s.pendant_floor.map_or(length, |floor| {
+                            length.min(
+                                (position.y - floor).max(0.0) / (-wanted.normalized().y).max(1e-9)
+                                    * 0.8,
+                            )
+                        });
                         run = planner.run(
                             position,
                             if lateral { wanted } else { from },

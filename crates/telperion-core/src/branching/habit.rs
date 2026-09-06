@@ -438,8 +438,8 @@ impl Builder<'_> {
                 let side = if k % 2 == 0 { -1.0 } else { 1.0 };
                 pendants.push((
                     first + k,
-                    (tangent * side * 0.8 - Vec3::Y).normalized(),
-                    length * (1.0 - fraction) * 0.12,
+                    (tangent * side * 3.0 - Vec3::Y).normalized(),
+                    (length * (1.0 - fraction) * 0.35).min(0.25),
                 ));
             }
             if self.tree.diagnostics.node_capped {
