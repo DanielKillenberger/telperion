@@ -1,0 +1,20 @@
+
+> telperion@0.1.0 test:browser
+> node tests/browser/integration.mjs
+
+{
+  fieldSnapshots: true,
+  snapshotOwnership: true,
+  snapshotExactFlags: true,
+  speciesAnatomy: true,
+  identityCatalogue: true,
+  independentOutputs: true,
+  meshFree: true,
+  ownership: true,
+  malformed: true,
+  empty: true,
+  staleFields: true,
+  deterministic: true,
+  partialDiagnostics: true
+}
+Browser disconnected
