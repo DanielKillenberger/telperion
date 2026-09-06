@@ -127,5 +127,29 @@
       "status": "superseded: runtime rustc resolved system version",
       "replacement": "Verified replay uses required toolchain homes and rustc 1.98.1, exit 0"
     }
-  ]
+  ],
+  "initial_capture": {
+    "command": [
+      "python3",
+      "/tmp/fn99-pass5-capture.py",
+      "/tmp/fn99-pass7-qa"
+    ],
+    "exit_code": 1,
+    "seconds": 59.64919471740723,
+    "log": "/tmp/fn99-pass7-capture-process/run.log",
+    "sha256": "adf412235f97b3dd01af9956f40c3ca252e45f3713a2db8cc85de6e77e2adde8"
+  },
+  "capture_fix": "6046e59 uses stable preset IDs; all initial 156 failures require replacement. Verified recorder is /tmp/fn99-pass7-capture-verified.",
+  "concurrent_capture_attempt": {
+    "command": [
+      "python3",
+      "/tmp/fn99-pass7-capture.py",
+      "/tmp/fn99-pass7-qa"
+    ],
+    "exit_code": -15,
+    "seconds": 1249.8595027923584,
+    "log": "/tmp/fn99-pass7-capture-verified/run.log",
+    "sha256": "fb245df7ae8a61a5db5cb0935f54354639b1e95dab5dfcac587b747b78f603ca"
+  },
+  "concurrent_capture_note": "Two browsers succeeded for detail views and protected oaks, then mature spruce workers crashed. Runner stopped and outstanding worker process groups terminated; final serial recorder replaces all failed/interrupted work while retaining verified successes."
 }

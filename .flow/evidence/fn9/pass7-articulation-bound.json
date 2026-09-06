@@ -1,0 +1,367 @@
+{
+  "method": "Seed2 original verified pass6 ray. Original maximal upper-support subtree sockets and group minimum-height floor pinned. Conserved root-to-node path length is an optimistic fully articulated bound, allowing all joints to straighten independently; not a feasible whole-group solution or leaf-area result. Ray is clipped to the existing group floor. Leaves excluded.",
+  "optimistically_reachable_groups": 0,
+  "groups": [
+    {
+      "root": 283,
+      "socket": 282,
+      "original_group_floor_m": 10.635991164481453,
+      "unconstrained_closest_ray_point": [
+        5.7553244151320015,
+        9.654375650483148,
+        4.766918786512285
+      ],
+      "height_constrained_closest_ray_point": [
+        7.583190181497404,
+        10.635991164481453,
+        8.251071507055386
+      ],
+      "distance_to_height_constrained_ray_m": 8.547311931785977,
+      "maximum_path_length_m": 4.505634213016814,
+      "longest_path_endpoint": 74072,
+      "optimistic_articulated_shortfall_m": 4.041677718769163
+    },
+    {
+      "root": 288,
+      "socket": 287,
+      "original_group_floor_m": 11.136236790379625,
+      "unconstrained_closest_ray_point": [
+        5.603155851960608,
+        9.572656836607177,
+        4.476865477833613
+      ],
+      "height_constrained_closest_ray_point": [
+        8.514697315720301,
+        11.136236790379625,
+        10.026646702799404
+      ],
+      "distance_to_height_constrained_ray_m": 9.984395424933709,
+      "maximum_path_length_m": 5.153767874854557,
+      "longest_path_endpoint": 74081,
+      "optimistic_articulated_shortfall_m": 4.830627550079152
+    },
+    {
+      "root": 1962,
+      "socket": 1958,
+      "original_group_floor_m": 11.158608921920024,
+      "unconstrained_closest_ray_point": [
+        5.750470006404598,
+        9.651768695965046,
+        4.7576656445773295
+      ],
+      "height_constrained_closest_ray_point": [
+        8.556356450870634,
+        11.158608921920024,
+        10.10605449725584
+      ],
+      "distance_to_height_constrained_ray_m": 9.5041233540897,
+      "maximum_path_length_m": 2.959926451858684,
+      "longest_path_endpoint": 74307,
+      "optimistic_articulated_shortfall_m": 6.544196902231016
+    },
+    {
+      "root": 185,
+      "socket": 184,
+      "original_group_floor_m": 11.05903153966978,
+      "unconstrained_closest_ray_point": [
+        2.8081806898062958,
+        8.07167627726005,
+        -0.8507250346983923
+      ],
+      "height_constrained_closest_ray_point": [
+        8.37093345630311,
+        11.05903153966978,
+        9.75261386563971
+      ],
+      "distance_to_height_constrained_ray_m": 14.122269096915558,
+      "maximum_path_length_m": 7.264284135138896,
+      "longest_path_endpoint": 74068,
+      "optimistic_articulated_shortfall_m": 6.857984961776662
+    },
+    {
+      "root": 784,
+      "socket": 783,
+      "original_group_floor_m": 11.666193609057608,
+      "unconstrained_closest_ray_point": [
+        6.536312632158843,
+        10.07378836896073,
+        6.255585115920532
+      ],
+      "height_constrained_closest_ray_point": [
+        9.501529647421888,
+        11.666193609057608,
+        11.907679006421333
+      ],
+      "distance_to_height_constrained_ray_m": 9.816442679110587,
+      "maximum_path_length_m": 2.788539681476787,
+      "longest_path_endpoint": 74076,
+      "optimistic_articulated_shortfall_m": 7.0279029976338
+    },
+    {
+      "root": 1921,
+      "socket": 1920,
+      "original_group_floor_m": 11.533078354595371,
+      "unconstrained_closest_ray_point": [
+        5.6181597460539585,
+        9.580714351269048,
+        4.505464874674466
+      ],
+      "height_constrained_closest_ray_point": [
+        9.253655797484996,
+        11.533078354595371,
+        11.435198825162512
+      ],
+      "distance_to_height_constrained_ray_m": 10.865962315724548,
+      "maximum_path_length_m": 3.3055608571907276,
+      "longest_path_endpoint": 74298,
+      "optimistic_articulated_shortfall_m": 7.560401458533821
+    },
+    {
+      "root": 1929,
+      "socket": 282,
+      "original_group_floor_m": 11.666193609057608,
+      "unconstrained_closest_ray_point": [
+        5.7553244151320015,
+        9.654375650483148,
+        4.766918786512285
+      ],
+      "height_constrained_closest_ray_point": [
+        9.501529647421888,
+        11.666193609057608,
+        11.907679006421333
+      ],
+      "distance_to_height_constrained_ray_m": 11.210908993526111,
+      "maximum_path_length_m": 3.5008845936934088,
+      "longest_path_endpoint": 74301,
+      "optimistic_articulated_shortfall_m": 7.710024399832703
+    },
+    {
+      "root": 147,
+      "socket": 146,
+      "original_group_floor_m": 10.387660697476951,
+      "unconstrained_closest_ray_point": [
+        1.6092821796707142,
+        7.427833934504951,
+        -3.1359833849600562
+      ],
+      "height_constrained_closest_ray_point": [
+        7.1207741408888126,
+        10.387660697476951,
+        7.369645673957798
+      ],
+      "distance_to_height_constrained_ray_m": 14.042219659139612,
+      "maximum_path_length_m": 6.186837368314253,
+      "longest_path_endpoint": 74021,
+      "optimistic_articulated_shortfall_m": 7.855382290825359
+    },
+    {
+      "root": 1959,
+      "socket": 1958,
+      "original_group_floor_m": 11.646508820457568,
+      "unconstrained_closest_ray_point": [
+        5.750470006404598,
+        9.651768695965046,
+        4.7576656445773295
+      ],
+      "height_constrained_closest_ray_point": [
+        9.464874612240553,
+        11.646508820457568,
+        11.837809685107551
+      ],
+      "distance_to_height_constrained_ray_m": 10.930862755486165,
+      "maximum_path_length_m": 2.959926451858684,
+      "longest_path_endpoint": 74306,
+      "optimistic_articulated_shortfall_m": 7.970936303627481
+    },
+    {
+      "root": 180,
+      "socket": 112,
+      "original_group_floor_m": 11.666193609057608,
+      "unconstrained_closest_ray_point": [
+        2.822663410154327,
+        8.079453906908858,
+        -0.8231190636090631
+      ],
+      "height_constrained_closest_ray_point": [
+        9.501529647421888,
+        11.666193609057608,
+        11.907679006421333
+      ],
+      "distance_to_height_constrained_ray_m": 16.26927902463356,
+      "maximum_path_length_m": 7.3264382158908905,
+      "longest_path_endpoint": 74056,
+      "optimistic_articulated_shortfall_m": 8.942840808742668
+    },
+    {
+      "root": 151,
+      "socket": 150,
+      "original_group_floor_m": 10.827384424395166,
+      "unconstrained_closest_ray_point": [
+        1.2312267673386152,
+        7.224807506238212,
+        -3.8566067576555767
+      ],
+      "height_constrained_closest_ray_point": [
+        7.939583476754507,
+        10.827384424395166,
+        8.930404033602159
+      ],
+      "distance_to_height_constrained_ray_m": 16.339862794046063,
+      "maximum_path_length_m": 5.804658306808387,
+      "longest_path_endpoint": 74026,
+      "optimistic_articulated_shortfall_m": 10.535204487237676
+    },
+    {
+      "root": 1063,
+      "socket": 1062,
+      "original_group_floor_m": 11.666193609057608,
+      "unconstrained_closest_ray_point": [
+        3.096948766281841,
+        8.226752885746178,
+        -0.300295075468469
+      ],
+      "height_constrained_closest_ray_point": [
+        9.501529647421888,
+        11.666193609057608,
+        11.907679006421333
+      ],
+      "distance_to_height_constrained_ray_m": 15.78963499416855,
+      "maximum_path_length_m": 3.9082516364928344,
+      "longest_path_endpoint": 74120,
+      "optimistic_articulated_shortfall_m": 11.881383357675716
+    },
+    {
+      "root": 1220,
+      "socket": 1216,
+      "original_group_floor_m": 10.982853741722904,
+      "unconstrained_closest_ray_point": [
+        1.3869866357762533,
+        7.308454952418433,
+        -3.5597079484790513
+      ],
+      "height_constrained_closest_ray_point": [
+        8.22908281617108,
+        10.982853741722904,
+        9.482227876240962
+      ],
+      "distance_to_height_constrained_ray_m": 16.46419464876597,
+      "maximum_path_length_m": 3.0302027019781876,
+      "longest_path_endpoint": 74151,
+      "optimistic_articulated_shortfall_m": 13.433991946787785
+    },
+    {
+      "root": 1197,
+      "socket": 1196,
+      "original_group_floor_m": 11.338275571354771,
+      "unconstrained_closest_ray_point": [
+        1.6600853240401392,
+        7.455116657115424,
+        -3.039145905466775
+      ],
+      "height_constrained_closest_ray_point": [
+        8.89091363051594,
+        11.338275571354771,
+        10.743764513542338
+      ],
+      "distance_to_height_constrained_ray_m": 17.44424246794892,
+      "maximum_path_length_m": 3.6177480519906284,
+      "longest_path_endpoint": 74147,
+      "optimistic_articulated_shortfall_m": 13.826494415958294
+    },
+    {
+      "root": 1217,
+      "socket": 1216,
+      "original_group_floor_m": 11.639713820425369,
+      "unconstrained_closest_ray_point": [
+        1.3869866357762533,
+        7.308454952418433,
+        -3.5597079484790513
+      ],
+      "height_constrained_closest_ray_point": [
+        9.452221646018863,
+        11.639713820425369,
+        11.813691466201405
+      ],
+      "distance_to_height_constrained_ray_m": 18.995035074649174,
+      "maximum_path_length_m": 3.030202701978187,
+      "longest_path_endpoint": 74150,
+      "optimistic_articulated_shortfall_m": 15.964832372670987
+    },
+    {
+      "root": 333,
+      "socket": 332,
+      "original_group_floor_m": 10.838932282782057,
+      "unconstrained_closest_ray_point": [
+        -0.2905150892913291,
+        6.407589173111484,
+        -6.757247016532034
+      ],
+      "height_constrained_closest_ray_point": [
+        7.961086738183468,
+        10.838932282782057,
+        8.971392079982202
+      ],
+      "distance_to_height_constrained_ray_m": 19.54312614145519,
+      "maximum_path_length_m": 3.4044317503250356,
+      "longest_path_endpoint": 73999,
+      "optimistic_articulated_shortfall_m": 16.138694391130155
+    },
+    {
+      "root": 337,
+      "socket": 221,
+      "original_group_floor_m": 11.508131624370915,
+      "unconstrained_closest_ray_point": [
+        -0.14742492294052667,
+        6.484432631627502,
+        -6.484498327023253
+      ],
+      "height_constrained_closest_ray_point": [
+        9.207202503389933,
+        11.508131624370915,
+        11.346652732786527
+      ],
+      "distance_to_height_constrained_ray_m": 21.710897080822793,
+      "maximum_path_length_m": 4.128370773018677,
+      "longest_path_endpoint": 74003,
+      "optimistic_articulated_shortfall_m": 17.582526307804116
+    },
+    {
+      "root": 334,
+      "socket": 221,
+      "original_group_floor_m": 11.666193609057608,
+      "unconstrained_closest_ray_point": [
+        -0.14742492294052667,
+        6.484432631627502,
+        -6.484498327023253
+      ],
+      "height_constrained_closest_ray_point": [
+        9.501529647421888,
+        11.666193609057608,
+        11.907679006421333
+      ],
+      "distance_to_height_constrained_ray_m": 22.33588270640287,
+      "maximum_path_length_m": 4.033407440051799,
+      "longest_path_endpoint": 74001,
+      "optimistic_articulated_shortfall_m": 18.30247526635107
+    },
+    {
+      "root": 330,
+      "socket": 329,
+      "original_group_floor_m": 11.33400656360412,
+      "unconstrained_closest_ray_point": [
+        -0.4845068510171231,
+        6.30341012101591,
+        -7.127020846108067
+      ],
+      "height_constrained_closest_ray_point": [
+        8.882964313280741,
+        11.33400656360412,
+        10.72861206866311
+      ],
+      "distance_to_height_constrained_ray_m": 21.835193308249476,
+      "maximum_path_length_m": 3.433290109214155,
+      "longest_path_endpoint": 73997,
+      "optimistic_articulated_shortfall_m": 18.40190319903532
+    }
+  ]
+}
