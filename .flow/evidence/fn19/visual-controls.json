@@ -1,0 +1,2489 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "fn19-v1",
+  "purpose": "Capture adapter controls; synthetic small smoke, not mature baseline",
+  "upstream_method": {
+    "upstream_commit": "367c192fbfea459b676c6979b0323df839f448a3",
+    "files": [
+      {
+        "path": "tests/browser/rendering.mjs",
+        "sha256": "5a4c1f19e9894ac3a77991cfc828bbb1b3d0dfe82b4d69bd6e1b776fc3fd4cd6"
+      },
+      {
+        "path": "tests/browser/fixtures/rendering.json",
+        "sha256": "c0478b536d9a212308d1cef053525aa7d4a78b191ec6efdcaa3a5ea3032c2020"
+      }
+    ],
+    "adaptation": "Benchmark-only neutral rig; reuse offline Halton integration, no dependency on unfinished optimized renderer. Actual capture tool identity and binary hashes belong to each run."
+  },
+  "analytic": {
+    "command": "node --test tests/browser/geometry-benchmark.test.mjs",
+    "exit_code": 0,
+    "tests": 9,
+    "log": "/tmp/fn19-task3-verify-node.log",
+    "coverage": [
+      "holes/openings/outside ROI",
+      "diagonal connectivity and threshold sensitivity",
+      "empty/clipped/collinear/nonfinite/incomplete masks",
+      "64/128 convergence and partial tiles",
+      "protocol/source/camera/ROI/crop identity mismatch",
+      "additional-species support fixture without substitution",
+      "missing masks/artifacts, hash drift and path/symlink escapes",
+      "actual replay provenance mismatch",
+      "timeout/hardware/interruption terminal dispositions"
+    ]
+  },
+  "integration_controls": [
+    {
+      "kind": "changed-camera",
+      "exit_code": 1,
+      "expected": "reject",
+      "reason": "roi-mismatch: conditions_sha256",
+      "log": "/tmp/fn19-task3-changed-camera.log"
+    },
+    {
+      "kind": "missing-mask",
+      "exit_code": 1,
+      "expected": "reject",
+      "reason": "required frozen roi.u8 missing",
+      "log": "/tmp/fn19-task3-missing-mask.log"
+    }
+  ],
+  "artifact_verification": {
+    "status": "passed",
+    "log": "/tmp/fn19-task3-artifact-verification.log",
+    "checks": "Frozen schemas, artifact hashes, PNG CRC/zlib decode and1600x1000 dimensions, float32 lengths, all7 selected views complete, partial cohort retained",
+    "initial_inconclusive": "Optional Pillow unavailable; reran verification with standard-library PNG decoding without rerunning captures."
+  },
+  "fixture": {
+    "benchmark_id": "fn19-capture-smoke-v1",
+    "protocol_copy": "/tmp/fn19-capture-smoke-oak-final/protocol.json",
+    "changes": "Separate synthetic4m protocol, .3 spread, oak3 scaffold limbs/2 subdivisions, spruce3 tiers/3 primaries/.4m secondary spacing. Original unit geometry, foliage density, physical1600x1000 resolution and64/128 sampling retained. Frozen mature parameters unchanged."
+  },
+  "smoke": [
+    {
+      "directory": "/tmp/fn19-capture-smoke-oak-final",
+      "case_id": "oregon-white-oak-1",
+      "run_sha256": "0543ee13eabdb8ff462dc5ae3603d1193944fa80540db4f756405e071bf34ab9",
+      "captures_sha256": "ef5ea19530dc57336e53a4ee3404f3bc421f35c3d561e10c2c6d493a4d5d4c2e",
+      "protocol_sha256": "baa53224fa2e54a02ec3deab6e94253ce87e940dcdd671cac012e28a727aa139",
+      "source_sha256": "9e9abb74b25d6276fb90648c69072fac075af7c381dbec33d920ac295691c7db",
+      "tool_sha256": "bca233a80614d8fa085521a0296af0572f823bf753193c66e32e63221affdf46",
+      "conditions_sha256": "a47a7e22f6aca7d1f39a9d7ff44860ddea52df1d6b96720ecda5497980138706",
+      "run_status": "failed",
+      "partial": true,
+      "cli_exit": 1,
+      "cli_exit_reason": "Explicit case selection retains 77 unselected views pending; not cohort completion",
+      "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+      "browser": "151.0.7922.173",
+      "wasm_sha256": "3c50f635bbd9cbe98141450e5660345652fa8e757edf752db4722e7797b5574a",
+      "observed_elapsed_s": 91.13989819335937,
+      "views": [
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-oak-final",
+          "case_id": "oregon-white-oak-1",
+          "view": "whole",
+          "azimuth_deg": 0,
+          "conditions_sha256": "a47a7e22f6aca7d1f39a9d7ff44860ddea52df1d6b96720ecda5497980138706",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              2.0637328392328715,
+              2.923465633785057,
+              3.3027696885406104
+            ],
+            "target_m": [
+              -0.011107169923099347,
+              1.9864411135210702,
+              -0.0437464552593424
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -4.83593203704399,
+            "right_m": 4.83593203704399,
+            "top_m": 3.0224575231524935,
+            "bottom_m": -3.0224575231524935,
+            "near_m": 1,
+            "far_m": 7.094972838962219,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "whole",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              -0.011107169923099347,
+              1.9864411135210702,
+              -0.0437464552593424
+            ],
+            "node_indices": [],
+            "axis_order": 0,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "40342061dd64401fcfd3189fd8b4c0a8da87b3c8a76a0f18d1459f79208a16a4",
+          "artifacts": [
+            {
+              "path": "cases/0/geometry.json",
+              "bytes": 8428,
+              "sha256": "212def75250682de3a089095e8c3dd40ee1e9dcac4bb4b02145805586b56473a",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/whole-0/anatomy.json",
+              "bytes": 123,
+              "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/whole-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "cdb7457ce8297332a8ff1f4bf1a922ab5c0c8a7bfa0c49947936d3e45de2a9b4",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-0/beauty-native.png",
+              "bytes": 205398,
+              "sha256": "0f88f157c3999f9840b7eb642c9f273e629db8432703ea9b4e4d948681dd6224",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "473e8f35603e4955bddab486b387a4f67ab1f2ff2468ffbe4de1c06d234a5977",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-0/beauty-64.png",
+              "bytes": 237537,
+              "sha256": "9e690ef01127f6e468d809e2167a5ff7cd9ae91510dccc88e1cfa624cf179977",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "7d59314014680f118e747bdc0a78bb2307e6ace352168ab51d52220f1b104d80",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-0/beauty-128.png",
+              "bytes": 237712,
+              "sha256": "cf4bf1495dad8e01b05a97fdde422908c1b6a5554dfd67377ac2238fe3b5f3f5",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "8536ff06b14b6d3c5347f64e50435a6c5d1490c333ec88800e9d83ccca126f39",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-0/coverage-native.png",
+              "bytes": 85293,
+              "sha256": "8fc5df76a93013d5c167cc2b3414eb8933c2388f27195d72a395d09cc93d07b0",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "4a11b7436a22284be26ac76ae83d648af81788816d85b3f93f67ce4207748ff7",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-0/coverage-64.png",
+              "bytes": 145316,
+              "sha256": "2e2a5b3e6ebd647c65a8d1d4e97bb1c1924cdcb3bd3bfead5c4aed2d98ae3351",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "14356b18f0b809bbe7311dbb1b2e0d127b30bc79d31c3cafedecd26ddff5c5f9",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-0/coverage-128.png",
+              "bytes": 146251,
+              "sha256": "395cc150c27f8cb5f08d2682e2c3fcadfcf71cbaa6d522d5584b5ccf26f2bdc1",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-0/sampling.json",
+              "bytes": 420,
+              "sha256": "66b64491fd55d267fad4653f6483ced0a134ef5ff40c90619fd02f185769f5d1",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/whole-0/gaps.json",
+              "bytes": 6578,
+              "sha256": "4d0a6e059c108ff10838947cc783d8835de186107a64d2bf1276ec200f17d790",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/whole-0/roi.u8",
+              "bytes": 1600000,
+              "sha256": "752a58d88c297f4142aedf886edc02fe22cdf3abd266cd4a8cf7d0e727f8dec0",
+              "media_type": "application/octet-stream"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.00047217561068031683,
+            "coverage_tile_max": 0.0010305373452865751,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-oak-final",
+          "case_id": "oregon-white-oak-1",
+          "view": "whole",
+          "azimuth_deg": 90,
+          "conditions_sha256": "a47a7e22f6aca7d1f39a9d7ff44860ddea52df1d6b96720ecda5497980138706",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              3.366326449279991,
+              2.9321225268979356,
+              -2.1377552991652573
+            ],
+            "target_m": [
+              -0.011107169923099347,
+              1.9864411135210702,
+              -0.0437464552593424
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -4.854441212435219,
+            "right_m": 4.854441212435219,
+            "top_m": 3.034025757772012,
+            "bottom_m": -3.034025757772012,
+            "near_m": 1,
+            "far_m": 7.169759904938687,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "whole",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              -0.011107169923099347,
+              1.9864411135210702,
+              -0.0437464552593424
+            ],
+            "node_indices": [],
+            "axis_order": 0,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "40342061dd64401fcfd3189fd8b4c0a8da87b3c8a76a0f18d1459f79208a16a4",
+          "artifacts": [
+            {
+              "path": "cases/0/geometry.json",
+              "bytes": 8428,
+              "sha256": "212def75250682de3a089095e8c3dd40ee1e9dcac4bb4b02145805586b56473a",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/whole-90/anatomy.json",
+              "bytes": 123,
+              "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/whole-90/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "33e3e1a39c0eee012948daaff624a21c38b00ee7401f4ab18d1dea82cb8faf25",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-90/beauty-native.png",
+              "bytes": 192767,
+              "sha256": "bef075acdaca29d6269514f968af1eab5202d1671aace1bf14acf3b83888ae33",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-90/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "d433fc433186720646d4731c50d1451a6e2d6e454140cb0f833c8212af68b31a",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-90/beauty-64.png",
+              "bytes": 222501,
+              "sha256": "3e18d14c17918397cdcb0cc710b725f9a2dc50200fdcc58fc396b1225679dfd0",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-90/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "d4339e6ecd0ff9b3d2e681cd90591930057f9da87feb5c475f8298f9ff3e86f6",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-90/beauty-128.png",
+              "bytes": 222733,
+              "sha256": "cccd09c3d9f4bbd60edcaecdf70ecaa1f8c40cd32f5fb26e15dcf4f1b3f6c911",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-90/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "44a72ee92a6c1b3cf567b7004ed1374fd15285e099db4058465eebaee1634843",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-90/coverage-native.png",
+              "bytes": 81394,
+              "sha256": "4b9f22c6c4bc00a5e5e79b23556901d033e3bd68a129c53987e47105ed4bf4a9",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-90/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "9d90d916332095b2e63bc4b09464f79b3bdfd390439ed46c5e3b3e210583133f",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-90/coverage-64.png",
+              "bytes": 139198,
+              "sha256": "293e3423769be9413593e2df45b0fd1b47d85241667ca1bba22ddf6fe08d978a",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-90/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "34d17ba77ec49b5812ffea2bd60759cc7aa68d9ab82da24a5c245293dbf65e2c",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/whole-90/coverage-128.png",
+              "bytes": 140190,
+              "sha256": "5915b98fa99e82353dcc55bc938619ad779ba35081942a15e70bc04e224537dd",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/whole-90/sampling.json",
+              "bytes": 420,
+              "sha256": "a122823f4b6d183f55fdc8a44304fcf43fb037e536f0a9e4d5260c93e290f49b",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/whole-90/gaps.json",
+              "bytes": 6581,
+              "sha256": "4ba29aa48e6e38681b59f89bdf969ee8bdcef93b18c7f8f23db04362a6d163f8",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/whole-90/roi.u8",
+              "bytes": 1600000,
+              "sha256": "4684275bc08ff77bbab90577b7417a56d80ae961f90349e88b613adf3db6539e",
+              "media_type": "application/octet-stream"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.00044726660785961994,
+            "coverage_tile_max": 0.0008939842264226172,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-oak-final",
+          "case_id": "oregon-white-oak-1",
+          "view": "bare",
+          "azimuth_deg": 0,
+          "conditions_sha256": "a47a7e22f6aca7d1f39a9d7ff44860ddea52df1d6b96720ecda5497980138706",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              2.0637328392328715,
+              2.923465633785057,
+              3.3027696885406104
+            ],
+            "target_m": [
+              -0.011107169923099347,
+              1.9864411135210702,
+              -0.0437464552593424
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -4.83593203704399,
+            "right_m": 4.83593203704399,
+            "top_m": 3.0224575231524935,
+            "bottom_m": -3.0224575231524935,
+            "near_m": 1,
+            "far_m": 7.094972838962219,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "bare",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              -0.011107169923099347,
+              1.9864411135210702,
+              -0.0437464552593424
+            ],
+            "node_indices": [],
+            "axis_order": 0,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "40342061dd64401fcfd3189fd8b4c0a8da87b3c8a76a0f18d1459f79208a16a4",
+          "artifacts": [
+            {
+              "path": "cases/0/geometry.json",
+              "bytes": 8428,
+              "sha256": "212def75250682de3a089095e8c3dd40ee1e9dcac4bb4b02145805586b56473a",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/bare-0/anatomy.json",
+              "bytes": 123,
+              "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/bare-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "edd21820e04229a24699fdd2f96c4f84727d7860b0d6230ca6f7b6ec807243b8",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-0/beauty-native.png",
+              "bytes": 117584,
+              "sha256": "b61c71c8e2e46ab9edc8a27ef1d2a565956813ad1167bec7b9b39fbd5d3f4b2f",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "b0d39f64f52cbe3e116e09ed2643c9117884e314d906f145c1b73fba7abdb5c7",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-0/beauty-64.png",
+              "bytes": 135642,
+              "sha256": "331dcc90ee242c3483e65d1e7619e46e6a358caf0c35982dc7fc63c0b87e424a",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "0cabb99fc740335d590b43ec04840d002389028742a66765d64577cc0ba51a93",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-0/beauty-128.png",
+              "bytes": 135650,
+              "sha256": "a74c89c356e2df8128444a3990baee9e98ebbd1afe96d3b4bffe9e931d26b8c5",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "56e3cc9fbdfedf1ab4f67fde0ef1b9cd4ed01cc8ce7444b7f478c238efb22c88",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-0/coverage-native.png",
+              "bytes": 34917,
+              "sha256": "0f6498f229e069dacdc9fc745c7718d95716dbbab0e907d1a2f4e8bca25c3401",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "56e3cc9fbdfedf1ab4f67fde0ef1b9cd4ed01cc8ce7444b7f478c238efb22c88",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-0/coverage-64.png",
+              "bytes": 34917,
+              "sha256": "0f6498f229e069dacdc9fc745c7718d95716dbbab0e907d1a2f4e8bca25c3401",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "56e3cc9fbdfedf1ab4f67fde0ef1b9cd4ed01cc8ce7444b7f478c238efb22c88",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-0/coverage-128.png",
+              "bytes": 34917,
+              "sha256": "0f6498f229e069dacdc9fc745c7718d95716dbbab0e907d1a2f4e8bca25c3401",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-0/sampling.json",
+              "bytes": 400,
+              "sha256": "022529d089683b7491eab689ea48aa9354f654acfa58b0e65d319a8fb150e50d",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.00030155244349742164,
+            "coverage_tile_max": 0,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-oak-final",
+          "case_id": "oregon-white-oak-1",
+          "view": "bare",
+          "azimuth_deg": 90,
+          "conditions_sha256": "a47a7e22f6aca7d1f39a9d7ff44860ddea52df1d6b96720ecda5497980138706",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              3.366326449279991,
+              2.9321225268979356,
+              -2.1377552991652573
+            ],
+            "target_m": [
+              -0.011107169923099347,
+              1.9864411135210702,
+              -0.0437464552593424
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -4.854441212435219,
+            "right_m": 4.854441212435219,
+            "top_m": 3.034025757772012,
+            "bottom_m": -3.034025757772012,
+            "near_m": 1,
+            "far_m": 7.169759904938687,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "bare",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              -0.011107169923099347,
+              1.9864411135210702,
+              -0.0437464552593424
+            ],
+            "node_indices": [],
+            "axis_order": 0,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "40342061dd64401fcfd3189fd8b4c0a8da87b3c8a76a0f18d1459f79208a16a4",
+          "artifacts": [
+            {
+              "path": "cases/0/geometry.json",
+              "bytes": 8428,
+              "sha256": "212def75250682de3a089095e8c3dd40ee1e9dcac4bb4b02145805586b56473a",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/bare-90/anatomy.json",
+              "bytes": 123,
+              "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/bare-90/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "9c57299773b5f710503c96c136f0b47dd280d643eb25ed39c0396392e5eb89a1",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-90/beauty-native.png",
+              "bytes": 113733,
+              "sha256": "c229d4b156a48f62a113338166f7332484ee2134533eb947abca09b71afaebfc",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-90/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "7e54184c3217f7a0a0dee4286795792d7c310562c7e06afe7a987a60751d2bab",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-90/beauty-64.png",
+              "bytes": 130994,
+              "sha256": "a13b11ff3bcfc8d9380b23bf477a8b26c47451dd385f18720a0909a66a97ebd9",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-90/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "56d8522575ba183ba6b7b6dc23bc23cecd9d5bb8984684f139cffb0abcf790a9",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-90/beauty-128.png",
+              "bytes": 131430,
+              "sha256": "c99d6cb3b5b4225c9553c561c8cbe92b8a7dda64b5443281e041df112997d65a",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-90/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "56e3cc9fbdfedf1ab4f67fde0ef1b9cd4ed01cc8ce7444b7f478c238efb22c88",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-90/coverage-native.png",
+              "bytes": 34917,
+              "sha256": "0f6498f229e069dacdc9fc745c7718d95716dbbab0e907d1a2f4e8bca25c3401",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-90/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "56e3cc9fbdfedf1ab4f67fde0ef1b9cd4ed01cc8ce7444b7f478c238efb22c88",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-90/coverage-64.png",
+              "bytes": 34917,
+              "sha256": "0f6498f229e069dacdc9fc745c7718d95716dbbab0e907d1a2f4e8bca25c3401",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-90/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "56e3cc9fbdfedf1ab4f67fde0ef1b9cd4ed01cc8ce7444b7f478c238efb22c88",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/bare-90/coverage-128.png",
+              "bytes": 34917,
+              "sha256": "0f6498f229e069dacdc9fc745c7718d95716dbbab0e907d1a2f4e8bca25c3401",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/bare-90/sampling.json",
+              "bytes": 399,
+              "sha256": "7cdc4f722cd20cc9a35d7f8901b3bb72c072fce54fec356a43c632f9ae7f5187",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0003071833380071752,
+            "coverage_tile_max": 0,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-oak-final",
+          "case_id": "oregon-white-oak-1",
+          "view": "base",
+          "azimuth_deg": 0,
+          "conditions_sha256": "a47a7e22f6aca7d1f39a9d7ff44860ddea52df1d6b96720ecda5497980138706",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              2.2297851683903334,
+              1.5069997534666022,
+              3.596427690952151
+            ],
+            "target_m": [
+              0,
+              0.5,
+              0
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -2.4000000000000004,
+            "right_m": 2.4000000000000004,
+            "top_m": 1.5,
+            "bottom_m": -1.5,
+            "near_m": 1,
+            "far_m": 7.094972838962219,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "base",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              0,
+              0.5,
+              0
+            ],
+            "node_indices": [
+              0,
+              1
+            ],
+            "axis_order": 0,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "40342061dd64401fcfd3189fd8b4c0a8da87b3c8a76a0f18d1459f79208a16a4",
+          "artifacts": [
+            {
+              "path": "cases/0/geometry.json",
+              "bytes": 8428,
+              "sha256": "212def75250682de3a089095e8c3dd40ee1e9dcac4bb4b02145805586b56473a",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/base-0/anatomy.json",
+              "bytes": 296,
+              "sha256": "842dc16bff6695c8852a8dad2f3054e8323c95b97e7e6677c20c5d259425536a",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/base-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "c5d02b157c71ec44fd34c818e8ca4b3bfbab7148fb165b8b8a210a02872ecec0",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/base-0/beauty-native.png",
+              "bytes": 232065,
+              "sha256": "780470811d2bdb3af1deba697cd460370de3742b77ef7685e0f00d5aef477394",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/base-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "50e692fc147b32b1d0dd7f85a905e3d6504ffbd4d3d7510b4f2a15196801749f",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/base-0/beauty-64.png",
+              "bytes": 270723,
+              "sha256": "18801e307dc591ff652b81e0b4459fa3adf4570a2e27c06d720e7a42b1df7c34",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/base-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "30643fc8e37fee7085cb5ddb34e5fa13ca186667981bf9289a38d3a165fb20ee",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/base-0/beauty-128.png",
+              "bytes": 271038,
+              "sha256": "2e264e3acd66d28eaba1ffb3c2b4330edd22d1abca1a5dc01772f06dd5ada7f2",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/base-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "93f765fdd1f11c98ac47595e1a93f2997cee30ced442321d2cb68dc75a7bd5c1",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/base-0/coverage-native.png",
+              "bytes": 69381,
+              "sha256": "b2f705581f0f440da67baf19987af5651cfeaa64ff681a9502e7317528d895c0",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/base-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "8c1b82f9695cb7bcc12efc2330b2c5eacfdcbc20d44c2138dafe7bea1d1ca490",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/base-0/coverage-64.png",
+              "bytes": 110643,
+              "sha256": "0a7761965c40b5aefa6d1014fd0f9561ec20b3864fe575a68b20fd0782c9d4e0",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/base-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "ae46935177f2b6783ffc56b4df44193e24224fead348102a88f415f8557130e8",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/base-0/coverage-128.png",
+              "bytes": 111466,
+              "sha256": "7f9fc188f13b91243ded31a7fdfad5d62fd20e4178bf2b6ed7d5cb9633c102cd",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/base-0/sampling.json",
+              "bytes": 419,
+              "sha256": "4b4fd8d9474f979a17d8f7153e18b4614558d9b8e2935f91df19f58d08074237",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0003751591087162389,
+            "coverage_tile_max": 0.0008931497504818253,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-oak-final",
+          "case_id": "oregon-white-oak-1",
+          "view": "fork",
+          "azimuth_deg": 0,
+          "conditions_sha256": "a47a7e22f6aca7d1f39a9d7ff44860ddea52df1d6b96720ecda5497980138706",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              2.162112283126283,
+              2.491382915187671,
+              3.3627575945339636
+            ],
+            "target_m": [
+              0.36840275025144337,
+              1.68132054550226,
+              0.46967770280035215
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -0.8,
+            "right_m": 0.8,
+            "top_m": 0.5,
+            "bottom_m": -0.5,
+            "near_m": 1,
+            "far_m": 7.094972838962219,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "fork",
+            "query_normalized": [
+              0.25,
+              0.35,
+              0.25
+            ],
+            "selected_position_m": [
+              0.36840275025144337,
+              1.68132054550226,
+              0.46967770280035215
+            ],
+            "node_indices": [
+              48,
+              49,
+              73,
+              69
+            ],
+            "axis_order": 1,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "40342061dd64401fcfd3189fd8b4c0a8da87b3c8a76a0f18d1459f79208a16a4",
+          "artifacts": [
+            {
+              "path": "cases/0/geometry.json",
+              "bytes": 8428,
+              "sha256": "212def75250682de3a089095e8c3dd40ee1e9dcac4bb4b02145805586b56473a",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/fork-0/anatomy.json",
+              "bytes": 313,
+              "sha256": "4ad8b917a1b183adb15a19856f998ec1e52d303ab3fc3d1fd8e44ac9db756c31",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/fork-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "028fba086c4653f9016cbad17361c594b2fecb9fc446e45a17eb9ed2eae4c0ef",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/fork-0/beauty-native.png",
+              "bytes": 764879,
+              "sha256": "90fd64ed4da5bfbae89d9c414e95cc8b6fb0a809716b767fcb24e90305e38586",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/fork-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "612832bcf7e9776252773d6f63bcfedf4ebc35b28bacbd49ad6bffdddcf0b195",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/fork-0/beauty-64.png",
+              "bytes": 923139,
+              "sha256": "0ff9c62057fef37ff14fedd2f4ad9877746c532f541eec86e383f67b69a2948e",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/fork-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "d20d4e093c26b626373f92760cd0f4f5723339baed581aa27a7595f4966d1868",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/fork-0/beauty-128.png",
+              "bytes": 924058,
+              "sha256": "cf7e9ac7bcaaf0966591d7ac397664badcaf4e642aace9d18ad41bef66694f99",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/fork-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "b08044b81b4d5b369a78668c1db7570b3a6e86ceb1984458a7abaca0728af46e",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/fork-0/coverage-native.png",
+              "bytes": 132497,
+              "sha256": "88d8d47f935817869d05282b1ff85f163492784e4417f5a6c23eb62906711796",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/fork-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "467d834141962596c76b94b3768ba9fdf0521e0346c770725775488f54be1844",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/fork-0/coverage-64.png",
+              "bytes": 251850,
+              "sha256": "cb04497616265c899917c41959600c828896a759de246f43edaf6d06eb310d8a",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/fork-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "c4bd8b6b873afabc2957fed0cecfc6a1f3b5147e008c75d25b21bc0fcad30e6b",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/fork-0/coverage-128.png",
+              "bytes": 254474,
+              "sha256": "6c2e9b0031e77a7a8f0e41d91d615555f56228a6ff163a7c42969fae7867f74d",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/fork-0/sampling.json",
+              "bytes": 419,
+              "sha256": "9f7bf4533cb4be1a96adf3d1a758d269da7044d17408ef33692f2e3bbee20631",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0005891518374101965,
+            "coverage_tile_max": 0.0008088966678769793,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-oak-final",
+          "case_id": "oregon-white-oak-1",
+          "view": "attached-shoot",
+          "azimuth_deg": 0,
+          "conditions_sha256": "a47a7e22f6aca7d1f39a9d7ff44860ddea52df1d6b96720ecda5497980138706",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              2.461521278610636,
+              2.7197475407794043,
+              3.1131819221679793
+            ],
+            "target_m": [
+              0.8545299089517315,
+              1.994009502868931,
+              0.5212603582020041
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -0.5933448060339325,
+            "right_m": 0.5933448060339325,
+            "top_m": 0.37084050377120775,
+            "bottom_m": -0.37084050377120775,
+            "near_m": 1,
+            "far_m": 7.094972838962219,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "attached-shoot",
+            "query_normalized": [
+              0.7,
+              0.5,
+              0.7
+            ],
+            "selected_position_m": [
+              0.8545299089517315,
+              1.994009502868931,
+              0.5212603582020041
+            ],
+            "node_indices": [
+              233,
+              258,
+              281
+            ],
+            "axis_order": 3,
+            "resolution": "occluded",
+            "reason": "occluded-target: first drawn surface does not expose selected woody neighbourhood"
+          },
+          "geometry_sha256": "40342061dd64401fcfd3189fd8b4c0a8da87b3c8a76a0f18d1459f79208a16a4",
+          "artifacts": [
+            {
+              "path": "cases/0/geometry.json",
+              "bytes": 8428,
+              "sha256": "212def75250682de3a089095e8c3dd40ee1e9dcac4bb4b02145805586b56473a",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/anatomy.json",
+              "bytes": 402,
+              "sha256": "aca146a5ecdce6903609cf7e7103282d09b072fd4b1965cce55c6ef3f85aaaea",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "adc154c07787f2b29e9ec7f991b33ff7540f305ef458f1206ab415876f6100fd",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/beauty-native.png",
+              "bytes": 658273,
+              "sha256": "0183d5bf4f78fa6e73acf6103a0994035b5f2ea612dc5db20e70747a8c117ca1",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "06c709b7034adddc9ed3af6bc32f1568998dc3151092dc62df4f28758e4bcb6b",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/beauty-64.png",
+              "bytes": 825633,
+              "sha256": "058cf17189d56a797a3a5eec30166dd509f77bdcd915052299e9e27df2aea24f",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "ba35c1f739135609efa72188db8cc92fc25931e1f8af702394388cdfa4a0f99f",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/beauty-128.png",
+              "bytes": 827161,
+              "sha256": "6796d59ee5c7609c86164dc68a0d8436c4abadebf9fa5cd68ad39be94911d59b",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "f54edf36af65a092a4b0f387a0bcbd94b1fd4e539a3c208327ed1aee6d1d62e1",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/coverage-native.png",
+              "bytes": 132824,
+              "sha256": "62eea79f2b919558ca89d004151b9d16ee6068c78c276a8b28b6d657625eb486",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "02ba3b75207e72ec1a0ed9a2f8eae17758c68934992452676a874a0809b014bf",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/coverage-64.png",
+              "bytes": 265428,
+              "sha256": "cdbdf02ff376f682ea7b195d689bd3cb17c4a2a870bee1d70393243afd0d0134",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "bddccb139fe56ca3887eebb27e1c63db525d905fc47374261b582f8b59d3659c",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/coverage-128.png",
+              "bytes": 268065,
+              "sha256": "0b4c915dea3fd073783780e251626b95637b313ca1fa81f71b0bd054ab92e60f",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/0/attached-shoot-0/sampling.json",
+              "bytes": 419,
+              "sha256": "617a494d85eec4641b8d0ab21c8f376a02589e8df7d6f6c083e7a7e845d1741c",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0005751527596699275,
+            "coverage_tile_max": 0.0008163145976141095,
+            "reason": null
+          },
+          "reason": "occluded-target: first drawn surface does not expose selected woody neighbourhood"
+        }
+      ],
+      "inspection": {
+        "observer": "implementation worker",
+        "independent": false,
+        "status": "inspected",
+        "framing": "Whole subject has visible margin; base and local views preserve original surrounding wood/foliage.",
+        "anatomy": "Base and fork visible; selected shoot attachment overlaps foliage and remains unassessed.",
+        "biological_assessment": "unassessed"
+      }
+    },
+    {
+      "directory": "/tmp/fn19-capture-smoke-spruce-2",
+      "case_id": "norway-spruce-1",
+      "run_sha256": "af7c0a14f3156e6203fdb31c6d1acc6837e26324f34d2c38443d5dd8a99f5f23",
+      "captures_sha256": "5631027e4e4be33a31ac66ad90df5ca3b4bd786c6bed61be04347bf8a6090ce1",
+      "protocol_sha256": "baa53224fa2e54a02ec3deab6e94253ce87e940dcdd671cac012e28a727aa139",
+      "source_sha256": "9e9abb74b25d6276fb90648c69072fac075af7c381dbec33d920ac295691c7db",
+      "tool_sha256": "d7ad4cf179600487b843e98223209ec1804809da1c32b302e8a12b8e6f9e1f49",
+      "conditions_sha256": "4db612c1530944079e1e224b4781997d62a6166f48371c798816d4042a9458fe",
+      "run_status": "failed",
+      "partial": true,
+      "cli_exit": 1,
+      "cli_exit_reason": "Explicit case selection retains 77 unselected views pending; not cohort completion",
+      "backend": "ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA)",
+      "browser": "151.0.7922.173",
+      "wasm_sha256": "3c50f635bbd9cbe98141450e5660345652fa8e757edf752db4722e7797b5574a",
+      "observed_elapsed_s": 97.895048828125,
+      "views": [
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-spruce-2",
+          "case_id": "norway-spruce-1",
+          "view": "whole",
+          "azimuth_deg": 0,
+          "conditions_sha256": "4db612c1530944079e1e224b4781997d62a6166f48371c798816d4042a9458fe",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              1.8267538806902373,
+              2.8450569728245116,
+              3.167682616520135
+            ],
+            "target_m": [
+              -0.06215798854827881,
+              1.9919999996200204,
+              0.12105056936123787
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -4.667013623223278,
+            "right_m": 4.667013623223278,
+            "top_m": 2.9168835145145486,
+            "bottom_m": -2.9168835145145486,
+            "near_m": 1,
+            "far_m": 6.369575586167379,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "whole",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              -0.06215798854827881,
+              1.9919999996200204,
+              0.12105056936123787
+            ],
+            "node_indices": [],
+            "axis_order": 0,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "f5d0c04f10b9ac4afc7f0181fa6ff1a0949aaee827d699ac7c168cf82e60228b",
+          "artifacts": [
+            {
+              "path": "cases/6/geometry.json",
+              "bytes": 5593,
+              "sha256": "a9e8c8715dd0607a37a390f3b945a74a02374520cbf079bd352bf6cdbf390bad",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/whole-0/anatomy.json",
+              "bytes": 123,
+              "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/whole-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "701904f31cbbb54b1d23b3a24ee0a1abf7d22f27eb780703f66d83de860bcb98",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-0/beauty-native.png",
+              "bytes": 104312,
+              "sha256": "71c7466e82cd71e594ccc261f1ff6abd1da8b8093bea480c630c13d927bdef8d",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "0c9b192c7b5d62372d0d59f6d1d70387fba17d8ba3e8a286a6e06e38c293e52e",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-0/beauty-64.png",
+              "bytes": 108224,
+              "sha256": "701a7f3ed979bbc7e0c89d4b4926007494754c1259934ce8a0c8e7cd4335949e",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "7ce98ad897d89cb2a1188f15caca7970cdc52b0df81cbe92e2298475dd1b70e9",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-0/beauty-128.png",
+              "bytes": 108642,
+              "sha256": "110c80360fc1466c6cb1e0fc0138d10ca18bfe25fdf7ae5ae20f27a8b031d9f5",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "7e024df0d59c02607d3960b59fad636cb22cd50c6edae4317b9cb5583ef148fb",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-0/coverage-native.png",
+              "bytes": 56768,
+              "sha256": "ddee641588abb568c2bde1503cf1caee881904e03b2f4f4e2d5cfa0dfd313f76",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "c1f63ec90eac10c28f8e66c9bbccce11fb84b444be954b3e13a6d70aeb7b957b",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-0/coverage-64.png",
+              "bytes": 84492,
+              "sha256": "d127b60790fad1f71b0d6febf41a659c2c280b6c43b4150c00641e3652348ad9",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "65a9492ab3e94363d5c67c0299846b1fe2a30c047552a525c79cafcc37d2eeb0",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-0/coverage-128.png",
+              "bytes": 84830,
+              "sha256": "3863a661bd7a2ad270d395d91fd4bc1ce309892d8cd75447b93c7e54f5cffb62",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-0/sampling.json",
+              "bytes": 419,
+              "sha256": "4a5ecf16d87fb04e0c5430ba86dabe1918dabed92bf5135fe406f34eecbf0cdb",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/whole-0/gaps.json",
+              "bytes": 4500,
+              "sha256": "fa2dfc25d8fbfd6e60fd9736a0201c3d2cc2e94678e7e55a2dea3fe10b51ae9b",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/whole-0/roi.u8",
+              "bytes": 1600000,
+              "sha256": "86946c7d5114ec38462b571b7e1c8a29286abdd86857b0d92782e8742f62609c",
+              "media_type": "application/octet-stream"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0004436847134704989,
+            "coverage_tile_max": 0.0016510666773683624,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-spruce-2",
+          "case_id": "norway-spruce-1",
+          "view": "whole",
+          "azimuth_deg": 90,
+          "conditions_sha256": "4db612c1530944079e1e224b4781997d62a6166f48371c798816d4042a9458fe",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              3.013496470791447,
+              2.853183248235144,
+              -1.7858551954293915
+            ],
+            "target_m": [
+              -0.06215798854827881,
+              1.9919999996200204,
+              0.12105056936123787
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -4.6843882927371086,
+            "right_m": 4.6843882927371086,
+            "top_m": 2.9277426829606927,
+            "bottom_m": -2.9277426829606927,
+            "near_m": 1,
+            "far_m": 6.439778635616353,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "whole",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              -0.06215798854827881,
+              1.9919999996200204,
+              0.12105056936123787
+            ],
+            "node_indices": [],
+            "axis_order": 0,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "f5d0c04f10b9ac4afc7f0181fa6ff1a0949aaee827d699ac7c168cf82e60228b",
+          "artifacts": [
+            {
+              "path": "cases/6/geometry.json",
+              "bytes": 5593,
+              "sha256": "a9e8c8715dd0607a37a390f3b945a74a02374520cbf079bd352bf6cdbf390bad",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/whole-90/anatomy.json",
+              "bytes": 123,
+              "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/whole-90/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "88380c97488a424e823e22d309e61edfab4b75b56a9c1fce05e53131b796f604",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-90/beauty-native.png",
+              "bytes": 111411,
+              "sha256": "2b0fb31fce3bdb89f3e6006a5160b46a52f9d2718455c17b619003b9689cf8b7",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-90/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "d615d7693088168350e0599e87808102b477534b38ff48eb2e369057b6e43e7f",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-90/beauty-64.png",
+              "bytes": 115327,
+              "sha256": "5bac09b49384613b8339351562c16d6212fdf16d04220aec56eead687d3d4612",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-90/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "59f9985ed673e4167ebcaa09a6d494383173d284cb90e47b3942a84cf1c0cb4c",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-90/beauty-128.png",
+              "bytes": 115877,
+              "sha256": "5b4bd22b3f27e3c0e50c1d037f575f246aaadbeecc743ad0a05558be5090f1d8",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-90/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "8dcb22c2a21b91386a2b6f90458e4036177f0bb05c97a89882c7f01e80ea55d5",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-90/coverage-native.png",
+              "bytes": 58302,
+              "sha256": "7e85c0053c51c4db0d4c93d78bd93c42ef831c144bc1dac0728a5776cccb8032",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-90/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "3a7ad324eeb4e1e397def07f03382863d62e90511c1cd6e9b5ed3517d74110f2",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-90/coverage-64.png",
+              "bytes": 88063,
+              "sha256": "bfa7197ca85d628876d877778617edb6f4b07c0850b9878b5d3fe0a0829b9f89",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-90/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "e553d60a45f3eacf02215e2d2750afe6cd4b224ebd506a27a3138b0a018de58c",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/whole-90/coverage-128.png",
+              "bytes": 88768,
+              "sha256": "84e9eb057dcd4acc94505b35947d9cfda473b5f563740eb2e572057513f27a32",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/whole-90/sampling.json",
+              "bytes": 418,
+              "sha256": "4fe631ea8cb5aa757c29f4f5ec834eda9c9b30639cad2a885b1c851503822bed",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/whole-90/gaps.json",
+              "bytes": 4506,
+              "sha256": "c9870598873a7005d85830aa787cb0134e6cc46f73a307aff6af79a916ad52c7",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/whole-90/roi.u8",
+              "bytes": 1600000,
+              "sha256": "89d2e3060e266152a035ee00566011bc77dfaed90c9c60752b6cd905907fcf86",
+              "media_type": "application/octet-stream"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0004653983155727469,
+            "coverage_tile_max": 0.001509959653049009,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-spruce-2",
+          "case_id": "norway-spruce-1",
+          "view": "bare",
+          "azimuth_deg": 0,
+          "conditions_sha256": "4db612c1530944079e1e224b4781997d62a6166f48371c798816d4042a9458fe",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              1.8267538806902373,
+              2.8450569728245116,
+              3.167682616520135
+            ],
+            "target_m": [
+              -0.06215798854827881,
+              1.9919999996200204,
+              0.12105056936123787
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -4.667013623223278,
+            "right_m": 4.667013623223278,
+            "top_m": 2.9168835145145486,
+            "bottom_m": -2.9168835145145486,
+            "near_m": 1,
+            "far_m": 6.369575586167379,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "bare",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              -0.06215798854827881,
+              1.9919999996200204,
+              0.12105056936123787
+            ],
+            "node_indices": [],
+            "axis_order": 0,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "f5d0c04f10b9ac4afc7f0181fa6ff1a0949aaee827d699ac7c168cf82e60228b",
+          "artifacts": [
+            {
+              "path": "cases/6/geometry.json",
+              "bytes": 5593,
+              "sha256": "a9e8c8715dd0607a37a390f3b945a74a02374520cbf079bd352bf6cdbf390bad",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/bare-0/anatomy.json",
+              "bytes": 123,
+              "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/bare-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "569dde714d944da0ec78f2034236d71cb7dae640bcd43ca55695faf756327534",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-0/beauty-native.png",
+              "bytes": 89694,
+              "sha256": "10a57beaadd98f1f8a894e302ec29cafe218168a1a547b82ac4961a6706aa4b7",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "ba9f161c9f6c4739e8bb13b681e7a453c88c834f19fa283c07dc6bcbc5813d8e",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-0/beauty-64.png",
+              "bytes": 97482,
+              "sha256": "3867c982b3e63c761843187dba479bf41b7c61191aca0b670f3802032a76c1e5",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "63b1dc3751c204fa76b0049e3bb375ed47626bae790b2912ca2b5326e0a553a5",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-0/beauty-128.png",
+              "bytes": 97959,
+              "sha256": "cc11ce9b1217dc37bff351f16d74993ab34dc819a60941d72afe92f875fe3b78",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "7e024df0d59c02607d3960b59fad636cb22cd50c6edae4317b9cb5583ef148fb",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-0/coverage-native.png",
+              "bytes": 56768,
+              "sha256": "ddee641588abb568c2bde1503cf1caee881904e03b2f4f4e2d5cfa0dfd313f76",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "c1f63ec90eac10c28f8e66c9bbccce11fb84b444be954b3e13a6d70aeb7b957b",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-0/coverage-64.png",
+              "bytes": 84492,
+              "sha256": "d127b60790fad1f71b0d6febf41a659c2c280b6c43b4150c00641e3652348ad9",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "65a9492ab3e94363d5c67c0299846b1fe2a30c047552a525c79cafcc37d2eeb0",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-0/coverage-128.png",
+              "bytes": 84830,
+              "sha256": "3863a661bd7a2ad270d395d91fd4bc1ce309892d8cd75447b93c7e54f5cffb62",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-0/sampling.json",
+              "bytes": 419,
+              "sha256": "deeba01adba6fd10f080c46a979fdeb248a18fa45821928ace1f589077e79a66",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0003678779433114706,
+            "coverage_tile_max": 0.0016510666773683624,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-spruce-2",
+          "case_id": "norway-spruce-1",
+          "view": "bare",
+          "azimuth_deg": 90,
+          "conditions_sha256": "4db612c1530944079e1e224b4781997d62a6166f48371c798816d4042a9458fe",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              3.013496470791447,
+              2.853183248235144,
+              -1.7858551954293915
+            ],
+            "target_m": [
+              -0.06215798854827881,
+              1.9919999996200204,
+              0.12105056936123787
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -4.6843882927371086,
+            "right_m": 4.6843882927371086,
+            "top_m": 2.9277426829606927,
+            "bottom_m": -2.9277426829606927,
+            "near_m": 1,
+            "far_m": 6.439778635616353,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "bare",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              -0.06215798854827881,
+              1.9919999996200204,
+              0.12105056936123787
+            ],
+            "node_indices": [],
+            "axis_order": 0,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "f5d0c04f10b9ac4afc7f0181fa6ff1a0949aaee827d699ac7c168cf82e60228b",
+          "artifacts": [
+            {
+              "path": "cases/6/geometry.json",
+              "bytes": 5593,
+              "sha256": "a9e8c8715dd0607a37a390f3b945a74a02374520cbf079bd352bf6cdbf390bad",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/bare-90/anatomy.json",
+              "bytes": 123,
+              "sha256": "731f164fd2527d28655a29f2087e0fcd2c500ae2598d481b2bf69c7870d836b2",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/bare-90/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "4331e5f23de1a4208f6d62ebf736f0c71be260a983eee56e4f15cef801155254",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-90/beauty-native.png",
+              "bytes": 95967,
+              "sha256": "489ad076d6827935a55f7a94c7b5f5f78d3d3d66d76d6d1ab39cac31a885ed7b",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-90/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "645f4dabc75bb505e926e02a502a14f199315ac771602fe707ed50c7fa1c890c",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-90/beauty-64.png",
+              "bytes": 104279,
+              "sha256": "c3e8141950e88217f739519b44bfae37178733c421c42f9ea3bf6379ca41d227",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-90/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "282778faf3e9e734e754db560daab49979db4cafe9d65a87f6efc463f5d11d19",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-90/beauty-128.png",
+              "bytes": 105010,
+              "sha256": "2a49dcb8f54bce88edab884105661b950bbcd6488a2d60daa087fc876e464beb",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-90/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "8dcb22c2a21b91386a2b6f90458e4036177f0bb05c97a89882c7f01e80ea55d5",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-90/coverage-native.png",
+              "bytes": 58302,
+              "sha256": "7e85c0053c51c4db0d4c93d78bd93c42ef831c144bc1dac0728a5776cccb8032",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-90/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "3a7ad324eeb4e1e397def07f03382863d62e90511c1cd6e9b5ed3517d74110f2",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-90/coverage-64.png",
+              "bytes": 88063,
+              "sha256": "bfa7197ca85d628876d877778617edb6f4b07c0850b9878b5d3fe0a0829b9f89",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-90/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "e553d60a45f3eacf02215e2d2750afe6cd4b224ebd506a27a3138b0a018de58c",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/bare-90/coverage-128.png",
+              "bytes": 88768,
+              "sha256": "84e9eb057dcd4acc94505b35947d9cfda473b5f563740eb2e572057513f27a32",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/bare-90/sampling.json",
+              "bytes": 418,
+              "sha256": "c8f26da99abc3e8fb6abeb318bf086265a47da499a1a0881b837eb9d2dbbd565",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0004007170579223968,
+            "coverage_tile_max": 0.001509959653049009,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-spruce-2",
+          "case_id": "norway-spruce-1",
+          "view": "base",
+          "azimuth_deg": 0,
+          "conditions_sha256": "4db612c1530944079e1e224b4781997d62a6166f48371c798816d4042a9458fe",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              2.1009497569470508,
+              1.4488160192664101,
+              3.3886286402371786
+            ],
+            "target_m": [
+              0,
+              0.5,
+              0
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -2.4000000000000004,
+            "right_m": 2.4000000000000004,
+            "top_m": 1.5,
+            "bottom_m": -1.5,
+            "near_m": 1,
+            "far_m": 6.369575586167379,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "base",
+            "query_normalized": [
+              0,
+              0,
+              0
+            ],
+            "selected_position_m": [
+              0,
+              0.5,
+              0
+            ],
+            "node_indices": [
+              0,
+              1
+            ],
+            "axis_order": 0,
+            "resolution": "occluded",
+            "reason": "occluded-target: first drawn surface does not expose selected woody neighbourhood"
+          },
+          "geometry_sha256": "f5d0c04f10b9ac4afc7f0181fa6ff1a0949aaee827d699ac7c168cf82e60228b",
+          "artifacts": [
+            {
+              "path": "cases/6/geometry.json",
+              "bytes": 5593,
+              "sha256": "a9e8c8715dd0607a37a390f3b945a74a02374520cbf079bd352bf6cdbf390bad",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/base-0/anatomy.json",
+              "bytes": 278,
+              "sha256": "0c1fcabca7ca201bff0b1f081c9a14aacf9c9bfd1467f0910e6c9b9479827adc",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/base-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "e73cb059f4451969e9de1e50701973b664c6a5d9bd757068590b430e5edeab0d",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/base-0/beauty-native.png",
+              "bytes": 207983,
+              "sha256": "b2e127793aba7e4bef0a66b43851c854cb9a68075a460be744691761ab8f90f0",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/base-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "92ccba84eec36a568ade22a6ea01706cfc94ba82d7ed27ed9a1e592b97182833",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/base-0/beauty-64.png",
+              "bytes": 208932,
+              "sha256": "e2dedac47b05d6cdf78f6ebbe6c4c31906f7f19b429d95a9e7d6ee32ad6e782f",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/base-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "6ef4381d3d57e400d1decdd2d416b2c723f7b5e2f0ab05ee48209ed35bc6d4c4",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/base-0/beauty-128.png",
+              "bytes": 209529,
+              "sha256": "0b0b6170b94d96ce5d039c100ee0720236024115438ba868556ba807c7677fd8",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/base-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "9c60ff3a1922db1ab2d79b476cebe6586dc3ac38eeab331f8203fd1a01def341",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/base-0/coverage-native.png",
+              "bytes": 82477,
+              "sha256": "522b997583cdcbeeac1ead4f7a39031c379a6ecb53163e7dce9fafcce6f0e07d",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/base-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "970ea3f7902ac1c14041f4ba8ee3095adb144d9176e27495a0897de89c9c99c0",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/base-0/coverage-64.png",
+              "bytes": 137333,
+              "sha256": "10fa871c9d3f911e64641dd5efce103fb846f427e7a472b9755df9eb43e2dc8f",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/base-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "596d52a99db5e377de4b98b545ea06bbbd7c8ba97888a616373aa697c1a215d4",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/base-0/coverage-128.png",
+              "bytes": 138793,
+              "sha256": "cd7c2fceb44af85b1b951c816cd91cc55609a33f5374068a632e06489181755a",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/base-0/sampling.json",
+              "bytes": 418,
+              "sha256": "2a8788ffb570492bdb47133746be4171a396e71a3fd7919a45e5e818755ab16d",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0005969972001753312,
+            "coverage_tile_max": 0.001570167292811675,
+            "reason": null
+          },
+          "reason": "occluded-target: first drawn surface does not expose selected woody neighbourhood"
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-spruce-2",
+          "case_id": "norway-spruce-1",
+          "view": "fork",
+          "azimuth_deg": 0,
+          "conditions_sha256": "4db612c1530944079e1e224b4781997d62a6166f48371c798816d4042a9458fe",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              1.9435743839280641,
+              2.7038302266828005,
+              3.134797393432361
+            ],
+            "target_m": [
+              0,
+              1.826086956521739,
+              0
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -0.8,
+            "right_m": 0.8,
+            "top_m": 0.5,
+            "bottom_m": -0.5,
+            "near_m": 1,
+            "far_m": 6.369575586167379,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "fork",
+            "query_normalized": [
+              0.25,
+              0.35,
+              0.25
+            ],
+            "selected_position_m": [
+              0,
+              1.826086956521739,
+              0
+            ],
+            "node_indices": [
+              20,
+              21,
+              22,
+              56,
+              60,
+              58
+            ],
+            "axis_order": 1,
+            "resolution": "resolved",
+            "reason": null
+          },
+          "geometry_sha256": "f5d0c04f10b9ac4afc7f0181fa6ff1a0949aaee827d699ac7c168cf82e60228b",
+          "artifacts": [
+            {
+              "path": "cases/6/geometry.json",
+              "bytes": 5593,
+              "sha256": "a9e8c8715dd0607a37a390f3b945a74a02374520cbf079bd352bf6cdbf390bad",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/fork-0/anatomy.json",
+              "bytes": 329,
+              "sha256": "5a9e2582132368fc5598ccfdfdfd8adcfe19877416ec420396fad9a5c2778259",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/fork-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "c45a8beb36f40d600b2d67589e37899ad26919b82bbcdc56b9a2a53e83bc1429",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/fork-0/beauty-native.png",
+              "bytes": 405514,
+              "sha256": "773e47837c7552d4ebd5d6e2a64c5bd57560d32a1d3601b2b9d8b12b24c2b8b8",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/fork-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "9612b4029ba561084ba8b0ecf361400db33244be2be0ab14429eb87201076653",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/fork-0/beauty-64.png",
+              "bytes": 404409,
+              "sha256": "e47ad3f0c8ca1209a86db6cfcbcdbbd59279ff1002ef0c5774f130705dc69485",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/fork-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "fc1e52d370ea11a706474f7859f1bfaebe4f522de5dd4ef2344ff3bcdc7c6f49",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/fork-0/beauty-128.png",
+              "bytes": 405110,
+              "sha256": "fd0c89879413068ea3b576e0714f85c2c3df93f2a39e28048ef40db3303bc55e",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/fork-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "2aae1e3320989fdbd74e224ca92bd6f16c1163b7e9f5e628a91f7b7c784f1197",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/fork-0/coverage-native.png",
+              "bytes": 119978,
+              "sha256": "52536706860d257b9019aa11ee85808917a326189ae8e4f920116d949105a46e",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/fork-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "5fd39a94070e127ce5f6969aea4b1a2c18a7dc2a305acaed3b1b8136248bfef4",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/fork-0/coverage-64.png",
+              "bytes": 215368,
+              "sha256": "36212b75538ea76a90c7d6430e93b26774bce1f6dc04e2737e273a8a171dcd69",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/fork-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "d908f35e594f97ee629c90d2ddb6fdf30007aef02ab022f4c58485e0e51a1034",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/fork-0/coverage-128.png",
+              "bytes": 217591,
+              "sha256": "1d84863fba75279b2786e5e47a9753b3fcc847781c9ae39b259fed88fab99dd2",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/fork-0/sampling.json",
+              "bytes": 419,
+              "sha256": "d5f1afc64f316fefff8cf1e65b51a1b442fdfcd7fa0f20f02483542ff2963b0c",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0005909724912172423,
+            "coverage_tile_max": 0.0011704360322255525,
+            "reason": null
+          },
+          "reason": null
+        },
+        {
+          "schema_version": 1,
+          "run_id": "fn19-capture-smoke-spruce-2",
+          "case_id": "norway-spruce-1",
+          "view": "attached-shoot",
+          "azimuth_deg": 0,
+          "conditions_sha256": "4db612c1530944079e1e224b4781997d62a6166f48371c798816d4042a9458fe",
+          "capture_status": "pass",
+          "visual_status": "unassessed",
+          "assessment": "unassessed",
+          "expert_status": "unassessed",
+          "owner_feedback": null,
+          "camera": {
+            "projection": "orthographic",
+            "position_m": [
+              1.9283144891037853,
+              2.5414855011902535,
+              3.1897150513613277
+            ],
+            "target_m": [
+              0.1784849472674951,
+              1.7512399016512838,
+              0.3674093387221501
+            ],
+            "up": [
+              0,
+              1,
+              0
+            ],
+            "left_m": -0.364598970359206,
+            "right_m": 0.364598970359206,
+            "top_m": 0.22787435647450374,
+            "bottom_m": -0.22787435647450374,
+            "near_m": 1,
+            "far_m": 6.369575586167379,
+            "width_px": 1600,
+            "height_px": 1000,
+            "dpr": 1
+          },
+          "selected_target": {
+            "rule": "attached-shoot",
+            "query_normalized": [
+              0.7,
+              0.5,
+              0.7
+            ],
+            "selected_position_m": [
+              0.1784849472674951,
+              1.7512399016512838,
+              0.3674093387221501
+            ],
+            "node_indices": [
+              334,
+              835,
+              1495
+            ],
+            "axis_order": 3,
+            "resolution": "occluded",
+            "reason": "occluded-target: first drawn surface does not expose selected woody neighbourhood"
+          },
+          "geometry_sha256": "f5d0c04f10b9ac4afc7f0181fa6ff1a0949aaee827d699ac7c168cf82e60228b",
+          "artifacts": [
+            {
+              "path": "cases/6/geometry.json",
+              "bytes": 5593,
+              "sha256": "a9e8c8715dd0607a37a390f3b945a74a02374520cbf079bd352bf6cdbf390bad",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/anatomy.json",
+              "bytes": 1198,
+              "sha256": "6dfe2d538f755427d408e8fa7fbb487b5b6396bfde1cfedce0111bbee940ccf6",
+              "media_type": "application/json"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/beauty-native.f32",
+              "bytes": 19200000,
+              "sha256": "94cfab2189d44a2046395dc0e40ded173e10c6370728816f55971138ad5cc424",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/beauty-native.png",
+              "bytes": 1187751,
+              "sha256": "711c1e0562dea3b239f639d7647374599df004ae0bd9ac52a59965ed56b36837",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/beauty-64.f32",
+              "bytes": 19200000,
+              "sha256": "2a594bbfce7074fdd91edb1827cd79ee7d2872600b6bddd3877608ba034c84e1",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/beauty-64.png",
+              "bytes": 1241332,
+              "sha256": "54f3ac3634572bd0b431709ae9e9775b509ee023125703a14d031dd252a78158",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/beauty-128.f32",
+              "bytes": 19200000,
+              "sha256": "d18c936e9ae027a279d0135e742202b1fe464e42e8c9a1915ff27ebd024dd23a",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/beauty-128.png",
+              "bytes": 1241745,
+              "sha256": "9ee13bb27b8af699f615ca80a35456a3c8fec43adb3c9ae2c1688f32a1b5a899",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/coverage-native.f32",
+              "bytes": 6400000,
+              "sha256": "e8d44f18348d1a66a1d4de0f6fae15b5030da5dad89045a8f34acf4aac05fdad",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/coverage-native.png",
+              "bytes": 253406,
+              "sha256": "5572bafc3f9df87b770b6bf50ae5290a5d5db6641562446b6102f8f9aa691c65",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/coverage-64.f32",
+              "bytes": 6400000,
+              "sha256": "45c622515f8beef69bde390d0e5a9f29a5e164bf8ff57403a4adb6eacffe2d51",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/coverage-64.png",
+              "bytes": 499544,
+              "sha256": "51822ba3fb54f8e19fa94719ed814a13bd98c04a08e03fb52d5529f112a0d575",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/coverage-128.f32",
+              "bytes": 6400000,
+              "sha256": "5bb7baf63b9c6db701974fb8be11273a01e48dc763aa0e4b7895ed274071ef1f",
+              "media_type": "application/octet-stream"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/coverage-128.png",
+              "bytes": 499631,
+              "sha256": "595ab2a6b0c1717e293fe47ee442b228b73433015d9ee3a7553f5300923aac19",
+              "media_type": "image/png"
+            },
+            {
+              "path": "cases/6/attached-shoot-0/sampling.json",
+              "bytes": 418,
+              "sha256": "9d1b20572214819069d8b8e5dee8116ceba969fd66f70e927440fd4112a703a4",
+              "media_type": "application/json"
+            }
+          ],
+          "convergence": {
+            "status": "measured",
+            "samples": [
+              64,
+              128
+            ],
+            "beauty_rmse": 0.0008365071395814229,
+            "coverage_tile_max": 0.001076249767720583,
+            "reason": null
+          },
+          "reason": "occluded-target: first drawn surface does not expose selected woody neighbourhood"
+        }
+      ],
+      "inspection": {
+        "observer": "implementation worker",
+        "independent": false,
+        "status": "inspected",
+        "framing": "Whole subject has visible margin; base and local views preserve original surrounding wood/foliage.",
+        "anatomy": "Tier fork and connected needle-bearing structure visible; selected shoot attachment overlaps wood/foliage and remains unassessed. Base has conservative occlusion flag.",
+        "biological_assessment": "unassessed"
+      }
+    }
+  ],
+  "failed_preparations": [
+    {
+      "directory": "/tmp/fn19-capture-smoke-conditions-spruce-2",
+      "cause": "Served-source attestation rejected Vite raw/module representation before geometry; no fixture or camera tuning.",
+      "process": {
+        "code": 1,
+        "expired": false,
+        "text": "page.evaluate: Error: source-mismatch: served tests/browser/geometry-benchmark-rig.mjs\n    at eval (eval at evaluate (:311:30), <anonymous>:2:272)\n    at async <anonymous>:337:30\n    at worker (/home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-captures/tests/browser/geometry-benchmark.mjs:84:27) {\n  log: []\n}\n"
+      }
+    },
+    {
+      "directory": "/tmp/fn19-capture-smoke-conditions-spruce-3",
+      "cause": "Served-source attestation rejected Vite raw/module representation before geometry; no fixture or camera tuning.",
+      "process": {
+        "code": 1,
+        "expired": false,
+        "text": "page.evaluate: Error: source-mismatch: served tests/browser/geometry-benchmark-diagnostics.mjs\n    at eval (eval at evaluate (:311:30), <anonymous>:2:349)\n    at async <anonymous>:337:30\n    at worker (/home/daniel/Projects/telperion/.worktrees/fn-19-comparative-botanical-geometry-benchmark/.worktrees/fn19-captures/tests/browser/geometry-benchmark.mjs:84:27) {\n  log: []\n}\n"
+      }
+    }
+  ],
+  "implementation_evolution": [
+    "Earlier wood-only visibility experiments retained at /tmp/fn19-capture-smoke-oak-1 and /tmp/fn19-capture-smoke-spruce-1; not final anatomy approval.",
+    "Oak-final and spruce-2 tool hashes differ: oak-final also verifies blank bare-state coverage and per-band exterior/enclosed statistics. Separate smoke controls, not a revision comparison.",
+    "After captures, orthographic off-centre candidate visibility uses Raycaster.setFromCamera; terminal hardware classification was unit-tested. No post-change mature/candidate image run claimed."
+  ],
+  "dispositions": {
+    "capture": "14 selected views complete; others pending in deliberate partial runs",
+    "convergence": "14 views numerically converged",
+    "visual": "bounded implementation inspection; occluded traits unassessed",
+    "expert": "unassessed",
+    "biological_superiority": "unestablished",
+    "timing": "nonexclusive observations during concurrent fn13 GPU work"
+  },
+  "gates": {
+    "node": "passed9",
+    "help": "passed",
+    "typecheck": "passed",
+    "species_metrics": "passed5",
+    "baseline": "green Rust5 and TypeScript; new test/runner absent before implementation"
+  }
+}
