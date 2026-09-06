@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-06T11:44:04.836292Z",
+  "depends_on": [
+    "fn-13-tree-detail-by-viewing-distance.1"
+  ],
+  "id": "fn-13-tree-detail-by-viewing-distance.2",
+  "priority": null,
+  "spec": "fn-13-tree-detail-by-viewing-distance",
+  "spec_path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.2.md",
+  "status": "todo",
+  "title": "Prove a coverage-preserving rendering candidate",
+  "updated_at": "2026-09-06T11:44:04.836292Z"
+}
