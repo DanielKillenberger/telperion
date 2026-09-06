@@ -1,0 +1,72 @@
+{
+  "branch_name": "fn-19-comparative-botanical-geometry-benchmark",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-06T15:51:12.548790Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-19-comparative-botanical-geometry-benchmark",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": "2026-09-06T16:07:51.091273Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "a32e8baebffec9d961bc0fa6e4f37afacc1e1f491bc9dc972e59aabf046751db",
+      "backend": "codex",
+      "base_sha": "2fcac3540993afcd13927a30e9e5238f7bad0df3",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6edcd68cb3fd8c51da4af287ab63cfa9478a8a47",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 271943,
+      "output_sha256": "7858f74524fdfa5abb3bda1ad1bd16781e4c14e7a55147940635105a5a970743",
+      "reservation_id": "71c19e35f9b14c458477871e79b97c80",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-06T16:01:44.997677Z",
+      "tool_calls": 13,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-19-comparative-botanical-geometry-benchmark.md",
+  "status": "open",
+  "title": "Comparative botanical geometry benchmark",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-06T16:07:51.091284Z"
+}
