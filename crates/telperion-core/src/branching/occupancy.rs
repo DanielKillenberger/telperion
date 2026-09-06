@@ -77,25 +77,30 @@ pub(super) fn upper_descendants(tree: &mut Tree, envelope: Envelope) {
 }
 
 pub(super) fn transverse_curtains(tree: &mut Tree, envelope: Envelope) {
-    let mut sockets = vec![None; tree.nodes.len()];
+    let first = tree.crossover;
     let original: Vec<_> = tree.nodes.iter().map(|n| n.position).collect();
     let mut roots = vec![0; tree.nodes.len()];
+    let mut bases = vec![Vec3::ZERO; tree.nodes.len()];
     let mut valid = vec![true; tree.nodes.len()];
-    for i in 1..tree.nodes.len() {
+    for i in first..tree.nodes.len() {
         let parent = tree.nodes[i].parent.unwrap() as usize;
-        sockets[i] = sockets[parent];
         roots[i] = roots[parent];
-        let direction = (original[i] - original[parent]).normalized();
-        if i < tree.crossover && sockets[i].is_none() && direction.y < -0.5 {
-            sockets[i] = Some(original[parent]);
-            roots[i] = i;
+        if parent < first {
+            if let Some(grand) = tree.nodes[parent].parent {
+                let heading = (original[parent] - original[grand as usize]).normalized();
+                if heading.y < -0.5 {
+                    roots[i] = i;
+                    bases[i] = original[parent];
+                }
+            }
         }
-        if let Some(base) = sockets[i] {
+        if roots[i] != 0 {
+            let base = bases[roots[i]];
             let delta = original[i] - base;
             tree.nodes[i].position = base + Vec3::new(delta.x * 0.2, delta.y, delta.z * 0.2);
         }
     }
-    for i in 1..tree.nodes.len() {
+    for i in first..tree.nodes.len() {
         if roots[i] == 0 {
             continue;
         }
@@ -111,7 +116,7 @@ pub(super) fn transverse_curtains(tree: &mut Tree, envelope: Envelope) {
             valid[roots[i]] = false;
         }
     }
-    for i in 1..tree.nodes.len() {
+    for i in first..tree.nodes.len() {
         if !valid[roots[i]] {
             tree.nodes[i].position = original[i];
         }
@@ -165,7 +170,7 @@ mod tests {
             assert_eq!(a.branch, b.branch);
             assert_eq!(a.kind, b.kind);
             assert_eq!(a.position.y, b.position.y);
-            if [0, 1, 2, 4].contains(&i) {
+            if [0, 1, 2, 3, 4].contains(&i) {
                 assert_eq!(a.position, b.position);
             }
         }

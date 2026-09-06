@@ -197,3 +197,35 @@ spruce peg, oak exterior and shared foliage captures have byte-identical PNGs
 with and without this optimization. Whole/bare views are unaffected. This is
 visibility culling, not a generation cap, foliage-density change or removal of
 visible occluders.
+
+Pass 5 adds `--targets .flow/evidence/fn9/pass4-captures.json` to pin the retained
+exterior endpoint, parent and socket IDs. A topology mismatch fails capture.
+The three supplementary `peg-clear-*` views use a 3 mm half-width and tangential
+connector profile; their name does not certify visibility. They retain the
+complete connected scene and unrestricted depth. Read the per-view observations
+before drawing any attachment conclusion.
+
+`--batch-instances` submits the original canopy in ordered slices of at most
+100,000 matrices per draw. Every retained instance uses its original matrix,
+prototype and material. This bounds individual software-driver draw assembly;
+it does not reduce maturity, count or depth. Paired oak whole and spruce branch
+captures have exact PNG and geometry parity with the original single draw.
+Batch receipts enumerate the submitted ranges. These options combine with
+`--frustum-cull` for software capture.
+
+The local occupancy audit is reproducible without the browser:
+
+```bash
+cargo run --release -p telperion-core --example occupancy_audit -- /tmp/species-occupancy
+python3 -m venv --system-site-packages /tmp/species-audit-venv
+/tmp/species-audit-venv/bin/pip install numpy pillow
+/tmp/species-audit-venv/bin/python scripts/analyze-species-occupancy.py /tmp/species-occupancy
+```
+
+It traces each upper oak support's retained twig endpoints and reconstructs
+spruce placement run order, checking the complete instance count before selecting
+an exterior descending system. The diagnostic projects original needle triangles
+and matrices in the secondary's vertical plane and each shoot's own tangent
+frame. The raster pitch and longitudinal bins are explicit. These projections
+exclude wood and other systems to measure needle coverage; they never replace
+intact renderer views or establish a botanical acceptance threshold.
