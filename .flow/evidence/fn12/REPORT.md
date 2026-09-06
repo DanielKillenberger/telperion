@@ -2,8 +2,10 @@
 
 No production GPU path qualifies. The benchmark-only WebGPU indexed query candidate
 fails every cold timing gate and the CPU field's occupancy contract. The optional
-owned CPU `field.snapshot()` boundary ships; GPU code stays under
-`scripts/benchmarks/`. Generation, geometry, botanical inputs, synchronous queries
+owned CPU `field.snapshot()` boundary remains; the rejected GPU implementation,
+runner, dedicated tests and operating guide were removed on September 7. The
+snapshot API and CPU measurement helpers support fn18's field-generation checks.
+Generation, geometry, botanical inputs, synchronous queries
 and default output selection retain their existing behavior. No asynchronous GPU
 package entry point or automatic backend switching was added.
 
@@ -68,8 +70,9 @@ one false negative. Raw cells and flags are retained. Both wood and foliage cont
 predicates drift; no epsilon relaxation, boundary correction or workload reduction
 was applied.
 
-[Preliminary](gpu-preliminary.json) and [internal-timing](gpu-internal-timing.json)
-runs remain available and failed every resident timing qualification. The final
+Preliminary and internal-timing runs failed every resident timing qualification.
+Their superseded dumps remain in Git history at `6f3adb2`, alongside the rejected
+implementation; the working tree retains the authoritative final raw run. The final
 run supersedes their cold sums with a direct caller stopwatch. This observed
 variability limits performance claims; no slow sample was discarded. The CPU
 baseline's interrupted export attempt is documented in its protocol and is
@@ -126,10 +129,12 @@ stack and visit guard bound the experimental request.
 
 Build with the pinned Rust toolchain and `npm ci`, then `npm run wasm:build` and
 serve Vite on port 5188. The [CPU protocol](../../../scripts/benchmarks/generation.md)
-and [GPU protocol](../../../scripts/benchmarks/generation-gpu.md) give exact runner
-commands, binary bundle layouts and local Playwright/Chromium overrides. GPU timing
-requires exclusive GPU access and no competing CPU benchmark/test load. No additional
-GPU run was needed for this documentation-only decision.
+gives the retained runner commands, binary bundle layouts and local
+Playwright/Chromium overrides. Historical GPU reproduction requires a separate
+checkout of `6f3adb2`; its `scripts/benchmarks/generation-gpu.md` records the removed
+runner's commands and configuration. GPU timing requires exclusive GPU access and
+no competing CPU benchmark/test load. No additional GPU run was needed for the
+rejection or removal.
 
 Native workspace tests, formatting and clippy ran after the snapshot Rust change;
 no Rust code changed afterward. Durable receipts: [native tests](native-tests.log)

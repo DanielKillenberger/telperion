@@ -92,10 +92,11 @@ locally, but did not qualify a complete lifecycle or the general precision contr
 Skeleton and field-construction GPU performance remain inconclusive; only their
 CPU stages and code dependencies were examined. Production generation and queries
 remain synchronous CPU operations, with no automatic backend selection or new GPU
-entry point. The benchmark-only WebGPU runner was exercised on Linux Chromium 151
-and an RTX 3080; it is not a supported production backend or a cross-device
-repeatability guarantee. See the [CPU reproduction](scripts/benchmarks/generation.md)
-and [GPU protocol and failure behavior](scripts/benchmarks/generation-gpu.md).
+entry point. The rejected WebGPU implementation, runner and dedicated tests have
+been removed. The report retains final timing and correctness evidence from Linux
+Chromium 151 and an RTX 3080. The snapshot API and
+[CPU reproduction tools](scripts/benchmarks/generation.md) remain in use by the
+field-generation follow-up's correctness checks and measurements.
 
 The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.md) measured a narrower and older workload. Its numbers are historical, not a full-engine migration result. Further botanical realism and species visual QA remain future work; leaf appearance is currently judged as geometry in clay. Full lifecycle simulation is not implemented.
 

@@ -32,3 +32,9 @@ stage: impl-review - skipped(config: REVIEW_MODE=none)
 - Commits: 080b8e07ad19ecce4fc337b0d7fd4b7e0888b8c5
 - Tests: baseline: green, cargo test --release -p telperion-core --test field (5 passed), npm run typecheck, npm test (106 passed), npm run build, BINDINGS_ONLY=1 PLAYWRIGHT_MODULE=/tmp/fn9-browser/node_modules/playwright/index.mjs BROWSER_URL=http://127.0.0.1:5188 npm run test:browser, cargo test --release --workspace (conductor receipt reused; Rust unchanged; 69 passed, 6 ignored), cargo fmt --all -- --check (conductor receipt reused; Rust unchanged), cargo clippy --workspace --all-targets -- -D warnings (conductor receipt reused; Rust unchanged), Task 2 gpu-tests.json hardware and controlled failure checks reused; no GPU rerun for docs
 - PRs:
+
+## Owner-authorized removal of rejected experiment
+
+On 2026-09-07 the owner requested removal of the rejected implementation and unused material. Removed the WebGPU candidate, dedicated runner/tests/operating guide, and superseded preliminary/internal timing dumps. README and final report now describe removal and point historical reproduction to commit 6f3adb2. Final raw timing, correctness and input-verification evidence remain.
+
+Retained Field::snapshot(), Wasm/browser bindings, CPU baseline and generation-inputs helpers because fn18's exact/approximate oracles and measurements import them. Their bytes and the existing integration tests are unchanged. No fn18 worktree changes or GPU measurements were made. Cleanup verification: TypeScript checking, syntax checks for both CPU helper modules and browser integration, removed-import scan, history recoverability and git diff --check passed.
