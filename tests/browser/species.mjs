@@ -123,6 +123,7 @@ async function capture(job) {
         direction.y = view.startsWith('peg-') && view.endsWith('upper') ? .65 : view.startsWith('peg-') && view.endsWith('lower') ? -.65 : .18;
         direction.normalize();
         if (view.startsWith('peg-')) {
+          direction.x = -direction.x; direction.z = -direction.z;
           const axis = tip.clone().sub(base), length2 = axis.lengthSq();
           const matrix = new THREE.Matrix4(), location = new THREE.Vector3();
           let nearest = Infinity;
@@ -132,7 +133,7 @@ async function capture(job) {
             const distance = location.distanceTo(base.clone().addScaledVector(axis, Math.max(0, Math.min(1, fraction))));
             const surfaceRadius = values[node * 6 + 4] * (1 - fraction) + values[node * 6 + 3] * fraction;
             const contactRadial = location.clone().sub(base.clone().addScaledVector(axis, fraction)).normalize();
-            if (fraction > .1 && fraction < .5 && Math.abs(distance - surfaceRadius) < Math.max(.0002, surfaceRadius * .5) && contactRadial.dot(outward) < -.5 && fraction < nearest) {
+            if (fraction > .1 && fraction < .5 && Math.abs(distance - surfaceRadius) < Math.max(.0002, surfaceRadius * .5) && contactRadial.dot(outward) > .5 && fraction < nearest) {
               nearest = fraction; selectedInstance = i;
               selectedTwig.attachment = { fraction, distance, surfaceRadius, origin: location.toArray() };
             }
@@ -181,7 +182,7 @@ async function capture(job) {
         if (!selectedTwig) throw Error('No descending structural branch');
         const centre = new THREE.Vector3(...selectedTwig.base).add(new THREE.Vector3(0, -.55, 0));
         bounds = new THREE.Box3(centre.clone().add(new THREE.Vector3(-.8,-.95,-.8)), centre.clone().add(new THREE.Vector3(.8,.65,.8)));
-        direction = outward.clone().negate(); direction.y = .12; direction.normalize();
+        direction = outward.clone(); direction.y = .12; direction.normalize();
       }
       if (view === 'foliage-detail' || view === 'junction-detail') {
         if (!canopy?.count) throw Error('No attached foliage to inspect');
