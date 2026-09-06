@@ -1,0 +1,62 @@
+{
+  "task": "fn-12-gpu-accelerated-skeleton-and-field.3",
+  "baseline": "green: focused field and typecheck observed exit 0 before edits",
+  "classification": "TIER_B: docs-only; checks below were already run, no test skip claimed",
+  "checks": [
+    {
+      "command": "cargo test --release -p telperion-core --test field",
+      "exitCode": 0,
+      "log": "field-tests.log",
+      "result": "5 passed; pre-edit baseline"
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "typecheck.log",
+      "result": "passed; pre-edit baseline"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "log": "harness-tests.log",
+      "result": "106 passed in 3 files"
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "log": "build.log",
+      "result": "passed"
+    },
+    {
+      "command": "BINDINGS_ONLY=1 PLAYWRIGHT_MODULE=/tmp/fn9-browser/node_modules/playwright/index.mjs BROWSER_URL=http://127.0.0.1:5188 npm run test:browser",
+      "exitCode": 0,
+      "log": "browser-bindings.log",
+      "result": "passed; rendering deliberately excluded; GPU disabled"
+    }
+  ],
+  "reusedNativeChecks": [
+    {
+      "command": "cargo test --release --workspace",
+      "exitCode": 0,
+      "log": "native-tests.log",
+      "result": "69 passed, 6 ignored",
+      "provenance": "Conductor observed after task 1 Rust changes; Rust unchanged through tasks 2 and 3, verified against task 3 base."
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "exitCode": 0,
+      "log": "native-fmt.log",
+      "result": "passed",
+      "provenance": "Conductor observed after task 1 Rust changes; Rust unchanged through tasks 2 and 3, verified against task 3 base."
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets -- -D warnings",
+      "exitCode": 0,
+      "log": "native-clippy.log",
+      "result": "passed",
+      "provenance": "Conductor observed after task 1 Rust changes; Rust unchanged through tasks 2 and 3, verified against task 3 base."
+    }
+  ],
+  "gpuChecks": "Task 2 gpu-tests.json reused; no GPU benchmark rerun for documentation-only change.",
+  "review": "Skipped per owner instruction; parent spec left open."
+}

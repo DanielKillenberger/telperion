@@ -1,0 +1,2614 @@
+{
+  "recordedAt": "2026-09-06T11:55:38.911Z",
+  "schema": 1,
+  "method": "CPU only, mesh-free full presets; alternating paired Ordinary/Telperion, one warmup and five measured samples each. Indexed Rust/Wasm query wall time includes cell transfer and copied flags. JS snapshot traversal is correctness-only. Grids 32^3 and 64^3 plus fixed point/outside/contact matrix. Packing is f64-to-f32 conversion plus topology copies, not a qualified GPU layout. No GPU timings.",
+  "source": {
+    "commit": "2b20adecc67e02db78a27a3c2de7294aeca22312",
+    "dirty": " M crates/telperion-core/src/field.rs\n M crates/telperion-core/tests/field.rs\n M crates/telperion-wasm/src/lib.rs\n M src/browser/core.ts\n M tests/browser/integration.mjs\n?? scripts/benchmarks/generation-inputs.mjs\n?? scripts/benchmarks/generation.mjs\n",
+    "wasmSha256": "23b185fdd26f001b916570ab5d806fac63087c6c18843932f522fdb807ab74d4"
+  },
+  "hardware": {
+    "cpu": "AMD Ryzen 9 5950X 16-Core Processor",
+    "logicalCpus": 32,
+    "totalMemoryBytes": 33561411584,
+    "platform": "linux",
+    "osRelease": "7.1.9-arch1-2",
+    "browser": "151.0.7922.173",
+    "gpu": "disabled; adapter not requested"
+  },
+  "subjects": [
+    {
+      "subject": "ordinary",
+      "family": {
+        "canopy": {
+          "attachment": "generic",
+          "clump": 5,
+          "clumpSpan": 0.3,
+          "divergence": 137.508,
+          "maxInstances": 4294967295,
+          "outward": 0.6,
+          "scatter": 18,
+          "shootRadius": 0.12,
+          "size": 1,
+          "sizeVariation": 0.35,
+          "spacing": 0.006,
+          "upward": 0.35
+        },
+        "element": {
+          "anatomy": "genericBlade",
+          "axialSegments": 5,
+          "baseFullness": 0.85,
+          "card": false,
+          "connectorLength": 0.01,
+          "crossSegments": 2,
+          "cup": 0.18,
+          "curl": 0.12,
+          "length": 0.12,
+          "tipSharpness": 1.6,
+          "widestAt": 0.42,
+          "width": 0.06
+        },
+        "radii": {
+          "forkExponent": 2,
+          "lengthTaper": 0.6,
+          "trunkRadius": 0.02
+        },
+        "shellDepth": 0.45,
+        "skeleton": {
+          "attractors": 500,
+          "bias": {
+            "gravitropism": 0.7,
+            "lean": 0.05,
+            "supernatural": {
+              "enabled": false,
+              "spiralRate": 0,
+              "writheAmplitude": 0,
+              "writheWavelength": 0.45
+            }
+          },
+          "envelope": {
+            "crownBase": 0.3,
+            "fullness": 0.45,
+            "height": 24,
+            "shoulder": 2.2,
+            "spread": 0.3
+          },
+          "growth": {
+            "maxTurnPerStep": 35
+          },
+          "habit": {
+            "kind": "colonizing"
+          },
+          "seed": 42,
+          "step": 0.022,
+          "twigs": {
+            "angle": 45,
+            "angleVariation": 10,
+            "divergence": 137.508,
+            "internodeFactor": 2.5,
+            "laterals": 2,
+            "lengthRatio": 0.4,
+            "limbRadius": 0.1,
+            "ratioPower": 1.3,
+            "reach": 0.2,
+            "twig": {
+              "bearingDiameter": 0.05,
+              "diameter": 0.005,
+              "internodeLength": 0.02,
+              "length": 0.25,
+              "stationsPerInternode": 1
+            },
+            "vigourVariation": 0.15
+          }
+        },
+        "surface": {
+          "flareDepth": 0.004,
+          "flareFalloff": 0.022,
+          "flareRadius": 2.1,
+          "forkSocket": 0.5,
+          "forkSwell": 1.35,
+          "lobeDepth": 0,
+          "lobes": 5,
+          "radialSegments": 12,
+          "twistRate": 0
+        }
+      },
+      "parameterHash": "57220db381851fbb858bf598aaa53a994757313a9e240d4251c569a1db2fce7c",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "requestedOutputs": {
+        "field": true
+      }
+    },
+    {
+      "subject": "telperion",
+      "family": {
+        "canopy": {
+          "attachment": "generic",
+          "clump": 6,
+          "clumpSpan": 0.28,
+          "divergence": 137.508,
+          "maxInstances": 4294967295,
+          "outward": 0.42,
+          "scatter": 14,
+          "shootRadius": 0.1,
+          "size": 1,
+          "sizeVariation": 0.28,
+          "spacing": 0.0045,
+          "upward": 0.55
+        },
+        "element": {
+          "anatomy": "genericBlade",
+          "axialSegments": 5,
+          "baseFullness": 0.85,
+          "card": false,
+          "connectorLength": 0.01,
+          "crossSegments": 2,
+          "cup": 0.18,
+          "curl": 0.12,
+          "length": 0.12,
+          "tipSharpness": 1.6,
+          "widestAt": 0.42,
+          "width": 0.06
+        },
+        "radii": {
+          "forkExponent": 2.15,
+          "lengthTaper": 0.75,
+          "trunkRadius": 0.05
+        },
+        "shellDepth": 0.45,
+        "skeleton": {
+          "attractors": 1600,
+          "bias": {
+            "gravitropism": 0.95,
+            "lean": 0.04,
+            "supernatural": {
+              "enabled": true,
+              "spiralRate": 2.6,
+              "writheAmplitude": 0.11,
+              "writheWavelength": 0.34
+            }
+          },
+          "envelope": {
+            "crownBase": 0.38,
+            "fullness": 0.58,
+            "height": 148,
+            "shoulder": 1.5,
+            "spread": 0.24
+          },
+          "growth": {
+            "maxTurnPerStep": 26
+          },
+          "habit": {
+            "kind": "colonizing"
+          },
+          "seed": 1,
+          "step": 0.022,
+          "twigs": {
+            "angle": 45,
+            "angleVariation": 10,
+            "divergence": 137.508,
+            "internodeFactor": 3.5,
+            "laterals": 4,
+            "lengthRatio": 0.4,
+            "limbRadius": 0.1,
+            "ratioPower": 1.3,
+            "reach": 0.2,
+            "twig": {
+              "bearingDiameter": 0.05,
+              "diameter": 0.005,
+              "internodeLength": 0.02,
+              "length": 0.5,
+              "stationsPerInternode": 1
+            },
+            "vigourVariation": 0.15
+          }
+        },
+        "surface": {
+          "flareDepth": 0.004,
+          "flareFalloff": 0.022,
+          "flareRadius": 2,
+          "forkSocket": 0.5,
+          "forkSwell": 1.35,
+          "lobeDepth": 0.11,
+          "lobes": 7,
+          "radialSegments": 12,
+          "twistRate": 2.4
+        }
+      },
+      "parameterHash": "398e90b95a8dafa65ad83b99d86657e0b7058047bfe8fd587ea2bc9b08fa9d50",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.0.0 Safari/537.36",
+      "requestedOutputs": {
+        "field": true
+      }
+    }
+  ],
+  "samples": [
+    {
+      "sample": -1,
+      "warmup": true,
+      "subject": "ordinary",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 538,
+        "fieldBounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "fieldBytes": 6935792,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          48,
+          497,
+          91,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 636,
+        "instances": 55438,
+        "leavesPlaced": 56082,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 11766,
+        "revision": 1,
+        "shed": 2779,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 98,
+          "fieldMs": 27.59999999962747,
+          "foliageMs": 48.200000000186265,
+          "growthMs": 21.799999999813735,
+          "surfaceMs": 0,
+          "transferMs": 0.19999999925494194,
+          "buildMs": 101.19999999925494
+        },
+        "twigs": 4314
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "woodNodes": 4095,
+        "leafNodes": 16383,
+        "woodItems": 11766,
+        "leafItems": 55438,
+        "hashes": {
+          "wood": "fc045218c8d6a76e123fc98f2e71593c318b31e4c155ecd9965edd341e10a53d",
+          "woodBounds": "4808a0981446c9f55ff77516ecf80c8084828ee31904b48370f2d7e07f973841",
+          "woodTopology": "9e1aa7a53972b0cca07a75cb148207fddf55dc41bb86cb082a6d0c7165caf12e",
+          "leafBounds": "6d53f075800a3fb34be952255ae4f4b35570b26a9be153a4cbabc1135c9c6c35",
+          "leafTopology": "f93363eb40849e6f5dc0bf454607304038235b08a16265697b945fd6f575e800"
+        },
+        "timings": {
+          "extractionMs": 1.099999999627471,
+          "copyMs": 2.6000000005587935,
+          "totalMs": 3.7000000001862645
+        }
+      },
+      "packingMs": 1.900000000372529,
+      "hashingMs": 5.400000000372529,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 2.199999999254942,
+          "queryMs": 5.7000000001862645,
+          "wood": 2586,
+          "foliage": 1846,
+          "cellsHash": "cc34870e2117572e57a25339bfef3dfb781b56d505f7060407cde075c1836bd4",
+          "flagsHash": "235879e7ffce410d2d447cce0715f8b050bade7ce81c81474737c19f4740669a",
+          "hashMs": 1.2000000001862645,
+          "verificationMs": 15.5,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 109.09999999869615,
+          "candidateSharedPreparationMs": 5.6000000005587935
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 8.299999999813735,
+          "queryMs": 22.5,
+          "wood": 9404,
+          "foliage": 7500,
+          "cellsHash": "86487b57a59487db226a0f2ae3f53e7a44150eec5446bc99132d12cfac17942d",
+          "flagsHash": "5da6822238806891095d80015dac2269aa3a8bb07fa9b72760d4c50cb80ab55d",
+          "hashMs": 6.3999999994412065,
+          "verificationMs": 55.40000000037253,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 131.99999999906868,
+          "candidateSharedPreparationMs": 5.6000000005587935
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.39999999944120646,
+          "queryMs": 0.30000000074505806,
+          "wood": 355,
+          "foliage": 414,
+          "cellsHash": "34d3c4753a0ffae6d7feb94294f05bc5c7b66cd231e49c8616137837f8af4a90",
+          "flagsHash": "179f876c154b3a48b9191e58d8a3f56c57ffd6d94ef9c0e23123143395dd5e3a",
+          "hashMs": 0,
+          "verificationMs": 0.6999999992549419,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 101.8999999994412,
+          "candidateSharedPreparationMs": 5.6000000005587935
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 6935792,
+        "wasmBeforeSnapshotBytes": 17104896,
+        "wasmHighWaterBytes": 25559040,
+        "nativeSnapshotTransientBytes": 5558224,
+        "jsOwnedSnapshotBytes": 5558224,
+        "jsPackedBytes": 3077344,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    },
+    {
+      "sample": -1,
+      "warmup": true,
+      "subject": "telperion",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 522,
+        "fieldBounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "fieldBytes": 152842304,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          0,
+          0,
+          0,
+          1002,
+          73,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 1075,
+        "instances": 1360279,
+        "leavesPlaced": 1382875,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 177543,
+        "revision": 1,
+        "shed": 43909,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 2065.9000000003725,
+          "fieldMs": 686.5,
+          "foliageMs": 977,
+          "growthMs": 401.5,
+          "surfaceMs": 0,
+          "transferMs": 0.20000000018626451,
+          "buildMs": 2069.2999999998137
+        },
+        "twigs": 55315
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "woodNodes": 65535,
+        "leafNodes": 524287,
+        "woodItems": 177543,
+        "leafItems": 1360279,
+        "hashes": {
+          "wood": "e75aacb679fd3744858e80a21b7f09b11e781d0d629b5389ad0d5388530d0d82",
+          "woodBounds": "1f113830e0db62419b6c8263788b977a179935f719fa71ae5d346eef4f4067ab",
+          "woodTopology": "46b826a7b1adf691f750d8ca289c4effa62483fb191b8541511dac56e4cf0829",
+          "leafBounds": "f5ab63afab2144314ab7da961aefaf97e24e33bd08fa5ce6fc36b1917c105794",
+          "leafTopology": "5375dac7734a2ef5e7351bb6c01772c63a6a801afe9b9c5690ed03c959b9d300"
+        },
+        "timings": {
+          "extractionMs": 23.800000000745058,
+          "copyMs": 24.90000000037253,
+          "totalMs": 48.90000000037253
+        }
+      },
+      "packingMs": 20.199999999254942,
+      "hashingMs": 74.20000000018626,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 2.2000000001862645,
+          "queryMs": 7.7000000001862645,
+          "wood": 2004,
+          "foliage": 1351,
+          "cellsHash": "97eb85c201501353bcbb3b98d087e755f6b4dc2d1266596f06fdddf9b2e59ce8",
+          "flagsHash": "7b57863efc29746e727af3adebe37fe8511e802bd14ff85c6f14d1f1a43c7f8c",
+          "hashMs": 1,
+          "verificationMs": 16.09999999962747,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 2079.2000000001863,
+          "candidateSharedPreparationMs": 69.09999999962747
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 7.7999999998137355,
+          "queryMs": 26,
+          "wood": 10804,
+          "foliage": 6833,
+          "cellsHash": "c4ed77d220764b183f0a0c3f805502604123102dbfb856c5fa85db847b1a41a1",
+          "flagsHash": "ecb077c6d7cfb30109c635de67ae30a11dc4868e15120ae48668ed66e2dfa872",
+          "hashMs": 5.5,
+          "verificationMs": 49.799999999813735,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 2103.0999999996275,
+          "candidateSharedPreparationMs": 69.09999999962747
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.20000000018626451,
+          "queryMs": 0.40000000037252903,
+          "wood": 372,
+          "foliage": 313,
+          "cellsHash": "f4cb7caf0a9fbe568947bcc48f41f0e7d661ee2a8a6acab6458b71758a3a6ea2",
+          "flagsHash": "47471cd62cb046e80caaa167fe920d30abcfe737b6ff7c176a9f6c62b78610db",
+          "hashMs": 0,
+          "verificationMs": 0.599999999627471,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 2069.9000000003725,
+          "candidateSharedPreparationMs": 69.09999999962747
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 152842304,
+        "wasmBeforeSnapshotBytes": 289669120,
+        "wasmHighWaterBytes": 380174336,
+        "nativeSnapshotTransientBytes": 129078104,
+        "jsOwnedSnapshotBytes": 129078104,
+        "jsPackedBytes": 72333272,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    },
+    {
+      "sample": 0,
+      "warmup": false,
+      "subject": "telperion",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 522,
+        "fieldBounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "fieldBytes": 152842304,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          0,
+          0,
+          0,
+          1002,
+          73,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 1075,
+        "instances": 1360279,
+        "leavesPlaced": 1382875,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 177543,
+        "revision": 3,
+        "shed": 43909,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 1607.7000000001863,
+          "fieldMs": 656.4000000003725,
+          "foliageMs": 636.5,
+          "growthMs": 314.5,
+          "surfaceMs": 0,
+          "transferMs": 0.09999999962747097,
+          "buildMs": 1607.9000000003725
+        },
+        "twigs": 55315
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "woodNodes": 65535,
+        "leafNodes": 524287,
+        "woodItems": 177543,
+        "leafItems": 1360279,
+        "hashes": {
+          "wood": "e75aacb679fd3744858e80a21b7f09b11e781d0d629b5389ad0d5388530d0d82",
+          "woodBounds": "1f113830e0db62419b6c8263788b977a179935f719fa71ae5d346eef4f4067ab",
+          "woodTopology": "46b826a7b1adf691f750d8ca289c4effa62483fb191b8541511dac56e4cf0829",
+          "leafBounds": "f5ab63afab2144314ab7da961aefaf97e24e33bd08fa5ce6fc36b1917c105794",
+          "leafTopology": "5375dac7734a2ef5e7351bb6c01772c63a6a801afe9b9c5690ed03c959b9d300"
+        },
+        "timings": {
+          "extractionMs": 26.200000000186265,
+          "copyMs": 23.700000000186265,
+          "totalMs": 49.90000000037253
+        }
+      },
+      "packingMs": 21.5,
+      "hashingMs": 75.59999999962747,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 2,
+          "queryMs": 6.7999999998137355,
+          "wood": 2004,
+          "foliage": 1351,
+          "cellsHash": "97eb85c201501353bcbb3b98d087e755f6b4dc2d1266596f06fdddf9b2e59ce8",
+          "flagsHash": "7b57863efc29746e727af3adebe37fe8511e802bd14ff85c6f14d1f1a43c7f8c",
+          "hashMs": 1,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 1616.7000000001863,
+          "candidateSharedPreparationMs": 71.40000000037253
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 8.200000000186265,
+          "queryMs": 25.700000000186265,
+          "wood": 10804,
+          "foliage": 6833,
+          "cellsHash": "c4ed77d220764b183f0a0c3f805502604123102dbfb856c5fa85db847b1a41a1",
+          "flagsHash": "ecb077c6d7cfb30109c635de67ae30a11dc4868e15120ae48668ed66e2dfa872",
+          "hashMs": 5.5,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 1641.800000000745,
+          "candidateSharedPreparationMs": 71.40000000037253
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.09999999962747097,
+          "queryMs": 0.40000000037252903,
+          "wood": 372,
+          "foliage": 313,
+          "cellsHash": "f4cb7caf0a9fbe568947bcc48f41f0e7d661ee2a8a6acab6458b71758a3a6ea2",
+          "flagsHash": "47471cd62cb046e80caaa167fe920d30abcfe737b6ff7c176a9f6c62b78610db",
+          "hashMs": 0,
+          "verificationMs": 2,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 1608.4000000003725,
+          "candidateSharedPreparationMs": 71.40000000037253
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 152842304,
+        "wasmBeforeSnapshotBytes": 380174336,
+        "wasmHighWaterBytes": 380174336,
+        "nativeSnapshotTransientBytes": 129078104,
+        "jsOwnedSnapshotBytes": 129078104,
+        "jsPackedBytes": 72333272,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true,
+      "artifacts": {
+        "byteOrder": "little-endian",
+        "path": "telperion-inputs.bin",
+        "arrays": [
+          {
+            "name": "wood",
+            "type": "Float64Array",
+            "length": 1420344,
+            "bytes": 11362752,
+            "offset": 0
+          },
+          {
+            "name": "woodBounds",
+            "type": "Float64Array",
+            "length": 1458468,
+            "bytes": 11667744,
+            "offset": 11362752
+          },
+          {
+            "name": "woodTopology",
+            "type": "Uint32Array",
+            "length": 439683,
+            "bytes": 1758732,
+            "offset": 23030496
+          },
+          {
+            "name": "leafBounds",
+            "type": "Float64Array",
+            "length": 11307396,
+            "bytes": 90459168,
+            "offset": 24789228
+          },
+          {
+            "name": "leafTopology",
+            "type": "Uint32Array",
+            "length": 3457427,
+            "bytes": 13829708,
+            "offset": 115248396
+          },
+          {
+            "name": "cells-32",
+            "type": "Float64Array",
+            "length": 131072,
+            "bytes": 1048576,
+            "offset": 129078104
+          },
+          {
+            "name": "flags-32",
+            "type": "Uint8Array",
+            "length": 32768,
+            "bytes": 32768,
+            "offset": 130126680
+          },
+          {
+            "name": "cells-64",
+            "type": "Float64Array",
+            "length": 1048576,
+            "bytes": 8388608,
+            "offset": 130159448
+          },
+          {
+            "name": "flags-64",
+            "type": "Uint8Array",
+            "length": 262144,
+            "bytes": 262144,
+            "offset": 138548056
+          },
+          {
+            "name": "cells-boundary",
+            "type": "Float64Array",
+            "length": 2316,
+            "bytes": 18528,
+            "offset": 138810200
+          },
+          {
+            "name": "flags-boundary",
+            "type": "Uint8Array",
+            "length": 579,
+            "bytes": 579,
+            "offset": 138828728
+          }
+        ],
+        "saveMs": 622.8400490000004
+      }
+    },
+    {
+      "sample": 0,
+      "warmup": false,
+      "subject": "ordinary",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 538,
+        "fieldBounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "fieldBytes": 6935792,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          48,
+          497,
+          91,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 636,
+        "instances": 55438,
+        "leavesPlaced": 56082,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 11766,
+        "revision": 3,
+        "shed": 2779,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 60.299999999813735,
+          "fieldMs": 23,
+          "foliageMs": 26,
+          "growthMs": 11.200000000186265,
+          "surfaceMs": 0,
+          "transferMs": 0,
+          "buildMs": 60.5
+        },
+        "twigs": 4314
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "woodNodes": 4095,
+        "leafNodes": 16383,
+        "woodItems": 11766,
+        "leafItems": 55438,
+        "hashes": {
+          "wood": "fc045218c8d6a76e123fc98f2e71593c318b31e4c155ecd9965edd341e10a53d",
+          "woodBounds": "4808a0981446c9f55ff77516ecf80c8084828ee31904b48370f2d7e07f973841",
+          "woodTopology": "9e1aa7a53972b0cca07a75cb148207fddf55dc41bb86cb082a6d0c7165caf12e",
+          "leafBounds": "6d53f075800a3fb34be952255ae4f4b35570b26a9be153a4cbabc1135c9c6c35",
+          "leafTopology": "f93363eb40849e6f5dc0bf454607304038235b08a16265697b945fd6f575e800"
+        },
+        "timings": {
+          "extractionMs": 0.5,
+          "copyMs": 2.2999999998137355,
+          "totalMs": 2.7999999998137355
+        }
+      },
+      "packingMs": 1.5,
+      "hashingMs": 4.7000000001862645,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 1.400000000372529,
+          "queryMs": 3.8999999994412065,
+          "wood": 2586,
+          "foliage": 1846,
+          "cellsHash": "cc34870e2117572e57a25339bfef3dfb781b56d505f7060407cde075c1836bd4",
+          "flagsHash": "235879e7ffce410d2d447cce0715f8b050bade7ce81c81474737c19f4740669a",
+          "hashMs": 0.900000000372529,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 65.79999999981374,
+          "candidateSharedPreparationMs": 4.2999999998137355
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 9.199999999254942,
+          "queryMs": 19.800000000745058,
+          "wood": 9404,
+          "foliage": 7500,
+          "cellsHash": "86487b57a59487db226a0f2ae3f53e7a44150eec5446bc99132d12cfac17942d",
+          "flagsHash": "5da6822238806891095d80015dac2269aa3a8bb07fa9b72760d4c50cb80ab55d",
+          "hashMs": 6.599999999627471,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 89.5,
+          "candidateSharedPreparationMs": 4.2999999998137355
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.20000000018626451,
+          "queryMs": 0.20000000018626451,
+          "wood": 355,
+          "foliage": 414,
+          "cellsHash": "34d3c4753a0ffae6d7feb94294f05bc5c7b66cd231e49c8616137837f8af4a90",
+          "flagsHash": "179f876c154b3a48b9191e58d8a3f56c57ffd6d94ef9c0e23123143395dd5e3a",
+          "hashMs": 0,
+          "verificationMs": 1.599999999627471,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 60.90000000037253,
+          "candidateSharedPreparationMs": 4.2999999998137355
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 6935792,
+        "wasmBeforeSnapshotBytes": 32440320,
+        "wasmHighWaterBytes": 32440320,
+        "nativeSnapshotTransientBytes": 5558224,
+        "jsOwnedSnapshotBytes": 5558224,
+        "jsPackedBytes": 3077344,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true,
+      "artifacts": {
+        "byteOrder": "little-endian",
+        "path": "ordinary-inputs.bin",
+        "arrays": [
+          {
+            "name": "wood",
+            "type": "Float64Array",
+            "length": 94128,
+            "bytes": 753024,
+            "offset": 0
+          },
+          {
+            "name": "woodBounds",
+            "type": "Float64Array",
+            "length": 95166,
+            "bytes": 761328,
+            "offset": 753024
+          },
+          {
+            "name": "woodTopology",
+            "type": "Uint32Array",
+            "length": 28146,
+            "bytes": 112584,
+            "offset": 1514352
+          },
+          {
+            "name": "leafBounds",
+            "type": "Float64Array",
+            "length": 430926,
+            "bytes": 3447408,
+            "offset": 1626936
+          },
+          {
+            "name": "leafTopology",
+            "type": "Uint32Array",
+            "length": 120970,
+            "bytes": 483880,
+            "offset": 5074344
+          },
+          {
+            "name": "cells-32",
+            "type": "Float64Array",
+            "length": 131072,
+            "bytes": 1048576,
+            "offset": 5558224
+          },
+          {
+            "name": "flags-32",
+            "type": "Uint8Array",
+            "length": 32768,
+            "bytes": 32768,
+            "offset": 6606800
+          },
+          {
+            "name": "cells-64",
+            "type": "Float64Array",
+            "length": 1048576,
+            "bytes": 8388608,
+            "offset": 6639568
+          },
+          {
+            "name": "flags-64",
+            "type": "Uint8Array",
+            "length": 262144,
+            "bytes": 262144,
+            "offset": 15028176
+          },
+          {
+            "name": "cells-boundary",
+            "type": "Float64Array",
+            "length": 2316,
+            "bytes": 18528,
+            "offset": 15290320
+          },
+          {
+            "name": "flags-boundary",
+            "type": "Uint8Array",
+            "length": 579,
+            "bytes": 579,
+            "offset": 15308848
+          }
+        ],
+        "saveMs": 85.0010599999996
+      }
+    },
+    {
+      "sample": 1,
+      "warmup": false,
+      "subject": "ordinary",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 538,
+        "fieldBounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "fieldBytes": 6935792,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          48,
+          497,
+          91,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 636,
+        "instances": 55438,
+        "leavesPlaced": 56082,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 11766,
+        "revision": 5,
+        "shed": 2779,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 58.59999999962747,
+          "fieldMs": 22.700000000186265,
+          "foliageMs": 24.899999999441206,
+          "growthMs": 11,
+          "surfaceMs": 0,
+          "transferMs": 0.10000000055879354,
+          "buildMs": 58.90000000037253
+        },
+        "twigs": 4314
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "woodNodes": 4095,
+        "leafNodes": 16383,
+        "woodItems": 11766,
+        "leafItems": 55438,
+        "hashes": {
+          "wood": "fc045218c8d6a76e123fc98f2e71593c318b31e4c155ecd9965edd341e10a53d",
+          "woodBounds": "4808a0981446c9f55ff77516ecf80c8084828ee31904b48370f2d7e07f973841",
+          "woodTopology": "9e1aa7a53972b0cca07a75cb148207fddf55dc41bb86cb082a6d0c7165caf12e",
+          "leafBounds": "6d53f075800a3fb34be952255ae4f4b35570b26a9be153a4cbabc1135c9c6c35",
+          "leafTopology": "f93363eb40849e6f5dc0bf454607304038235b08a16265697b945fd6f575e800"
+        },
+        "timings": {
+          "extractionMs": 0.2999999998137355,
+          "copyMs": 1.7999999998137355,
+          "totalMs": 2.099999999627471
+        }
+      },
+      "packingMs": 1.6000000005587935,
+      "hashingMs": 4.7999999998137355,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 1.400000000372529,
+          "queryMs": 3.7999999998137355,
+          "wood": 2586,
+          "foliage": 1846,
+          "cellsHash": "cc34870e2117572e57a25339bfef3dfb781b56d505f7060407cde075c1836bd4",
+          "flagsHash": "235879e7ffce410d2d447cce0715f8b050bade7ce81c81474737c19f4740669a",
+          "hashMs": 0.7999999998137355,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 64.1000000005588,
+          "candidateSharedPreparationMs": 3.7000000001862645
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 7.900000000372529,
+          "queryMs": 19.5,
+          "wood": 9404,
+          "foliage": 7500,
+          "cellsHash": "86487b57a59487db226a0f2ae3f53e7a44150eec5446bc99132d12cfac17942d",
+          "flagsHash": "5da6822238806891095d80015dac2269aa3a8bb07fa9b72760d4c50cb80ab55d",
+          "hashMs": 5.5,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 86.30000000074506,
+          "candidateSharedPreparationMs": 3.7000000001862645
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0,
+          "queryMs": 0.2999999998137355,
+          "wood": 355,
+          "foliage": 414,
+          "cellsHash": "34d3c4753a0ffae6d7feb94294f05bc5c7b66cd231e49c8616137837f8af4a90",
+          "flagsHash": "179f876c154b3a48b9191e58d8a3f56c57ffd6d94ef9c0e23123143395dd5e3a",
+          "hashMs": 0.10000000055879354,
+          "verificationMs": 0.40000000037252903,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 59.200000000186265,
+          "candidateSharedPreparationMs": 3.7000000001862645
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 6935792,
+        "wasmBeforeSnapshotBytes": 32440320,
+        "wasmHighWaterBytes": 32440320,
+        "nativeSnapshotTransientBytes": 5558224,
+        "jsOwnedSnapshotBytes": 5558224,
+        "jsPackedBytes": 3077344,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    },
+    {
+      "sample": 1,
+      "warmup": false,
+      "subject": "telperion",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 522,
+        "fieldBounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "fieldBytes": 152842304,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          0,
+          0,
+          0,
+          1002,
+          73,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 1075,
+        "instances": 1360279,
+        "leavesPlaced": 1382875,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 177543,
+        "revision": 5,
+        "shed": 43909,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 1602,
+          "fieldMs": 656.3999999994412,
+          "foliageMs": 634.7000000001863,
+          "growthMs": 310.5,
+          "surfaceMs": 0,
+          "transferMs": 0.09999999962747097,
+          "buildMs": 1602.4000000003725
+        },
+        "twigs": 55315
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "woodNodes": 65535,
+        "leafNodes": 524287,
+        "woodItems": 177543,
+        "leafItems": 1360279,
+        "hashes": {
+          "wood": "e75aacb679fd3744858e80a21b7f09b11e781d0d629b5389ad0d5388530d0d82",
+          "woodBounds": "1f113830e0db62419b6c8263788b977a179935f719fa71ae5d346eef4f4067ab",
+          "woodTopology": "46b826a7b1adf691f750d8ca289c4effa62483fb191b8541511dac56e4cf0829",
+          "leafBounds": "f5ab63afab2144314ab7da961aefaf97e24e33bd08fa5ce6fc36b1917c105794",
+          "leafTopology": "5375dac7734a2ef5e7351bb6c01772c63a6a801afe9b9c5690ed03c959b9d300"
+        },
+        "timings": {
+          "extractionMs": 20.200000000186265,
+          "copyMs": 23.09999999962747,
+          "totalMs": 43.299999999813735
+        }
+      },
+      "packingMs": 18.699999999254942,
+      "hashingMs": 76.79999999981374,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 1.400000000372529,
+          "queryMs": 6.7999999998137355,
+          "wood": 2004,
+          "foliage": 1351,
+          "cellsHash": "97eb85c201501353bcbb3b98d087e755f6b4dc2d1266596f06fdddf9b2e59ce8",
+          "flagsHash": "7b57863efc29746e727af3adebe37fe8511e802bd14ff85c6f14d1f1a43c7f8c",
+          "hashMs": 1,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 1610.6000000005588,
+          "candidateSharedPreparationMs": 61.99999999906868
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 7.900000000372529,
+          "queryMs": 25.5,
+          "wood": 10804,
+          "foliage": 6833,
+          "cellsHash": "c4ed77d220764b183f0a0c3f805502604123102dbfb856c5fa85db847b1a41a1",
+          "flagsHash": "ecb077c6d7cfb30109c635de67ae30a11dc4868e15120ae48668ed66e2dfa872",
+          "hashMs": 5.7000000001862645,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 1635.800000000745,
+          "candidateSharedPreparationMs": 61.99999999906868
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.20000000018626451,
+          "queryMs": 0.2999999998137355,
+          "wood": 372,
+          "foliage": 313,
+          "cellsHash": "f4cb7caf0a9fbe568947bcc48f41f0e7d661ee2a8a6acab6458b71758a3a6ea2",
+          "flagsHash": "47471cd62cb046e80caaa167fe920d30abcfe737b6ff7c176a9f6c62b78610db",
+          "hashMs": 0.10000000055879354,
+          "verificationMs": 3.099999999627471,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 1602.9000000003725,
+          "candidateSharedPreparationMs": 61.99999999906868
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 152842304,
+        "wasmBeforeSnapshotBytes": 380174336,
+        "wasmHighWaterBytes": 380174336,
+        "nativeSnapshotTransientBytes": 129078104,
+        "jsOwnedSnapshotBytes": 129078104,
+        "jsPackedBytes": 72333272,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    },
+    {
+      "sample": 2,
+      "warmup": false,
+      "subject": "telperion",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 522,
+        "fieldBounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "fieldBytes": 152842304,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          0,
+          0,
+          0,
+          1002,
+          73,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 1075,
+        "instances": 1360279,
+        "leavesPlaced": 1382875,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 177543,
+        "revision": 7,
+        "shed": 43909,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 1599.9000000003725,
+          "fieldMs": 655.0999999996275,
+          "foliageMs": 635.2000000001863,
+          "growthMs": 309.20000000018626,
+          "surfaceMs": 0,
+          "transferMs": 0.20000000018626451,
+          "buildMs": 1600.2999999998137
+        },
+        "twigs": 55315
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "woodNodes": 65535,
+        "leafNodes": 524287,
+        "woodItems": 177543,
+        "leafItems": 1360279,
+        "hashes": {
+          "wood": "e75aacb679fd3744858e80a21b7f09b11e781d0d629b5389ad0d5388530d0d82",
+          "woodBounds": "1f113830e0db62419b6c8263788b977a179935f719fa71ae5d346eef4f4067ab",
+          "woodTopology": "46b826a7b1adf691f750d8ca289c4effa62483fb191b8541511dac56e4cf0829",
+          "leafBounds": "f5ab63afab2144314ab7da961aefaf97e24e33bd08fa5ce6fc36b1917c105794",
+          "leafTopology": "5375dac7734a2ef5e7351bb6c01772c63a6a801afe9b9c5690ed03c959b9d300"
+        },
+        "timings": {
+          "extractionMs": 20.299999999813735,
+          "copyMs": 23.59999999962747,
+          "totalMs": 43.89999999944121
+        }
+      },
+      "packingMs": 19.90000000037253,
+      "hashingMs": 76.70000000018626,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 1.400000000372529,
+          "queryMs": 7.099999999627471,
+          "wood": 2004,
+          "foliage": 1351,
+          "cellsHash": "97eb85c201501353bcbb3b98d087e755f6b4dc2d1266596f06fdddf9b2e59ce8",
+          "flagsHash": "7b57863efc29746e727af3adebe37fe8511e802bd14ff85c6f14d1f1a43c7f8c",
+          "hashMs": 1.1000000005587935,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 1608.7999999998137,
+          "candidateSharedPreparationMs": 63.799999999813735
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 8,
+          "queryMs": 25.799999999813735,
+          "wood": 10804,
+          "foliage": 6833,
+          "cellsHash": "c4ed77d220764b183f0a0c3f805502604123102dbfb856c5fa85db847b1a41a1",
+          "flagsHash": "ecb077c6d7cfb30109c635de67ae30a11dc4868e15120ae48668ed66e2dfa872",
+          "hashMs": 5.5,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 1634.0999999996275,
+          "candidateSharedPreparationMs": 63.799999999813735
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.20000000018626451,
+          "queryMs": 0.40000000037252903,
+          "wood": 372,
+          "foliage": 313,
+          "cellsHash": "f4cb7caf0a9fbe568947bcc48f41f0e7d661ee2a8a6acab6458b71758a3a6ea2",
+          "flagsHash": "47471cd62cb046e80caaa167fe920d30abcfe737b6ff7c176a9f6c62b78610db",
+          "hashMs": 0,
+          "verificationMs": 2.2999999998137355,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 1600.9000000003725,
+          "candidateSharedPreparationMs": 63.799999999813735
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 152842304,
+        "wasmBeforeSnapshotBytes": 380174336,
+        "wasmHighWaterBytes": 380174336,
+        "nativeSnapshotTransientBytes": 129078104,
+        "jsOwnedSnapshotBytes": 129078104,
+        "jsPackedBytes": 72333272,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    },
+    {
+      "sample": 2,
+      "warmup": false,
+      "subject": "ordinary",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 538,
+        "fieldBounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "fieldBytes": 6935792,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          48,
+          497,
+          91,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 636,
+        "instances": 55438,
+        "leavesPlaced": 56082,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 11766,
+        "revision": 7,
+        "shed": 2779,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 59.09999999962747,
+          "fieldMs": 23.200000000186265,
+          "foliageMs": 25.09999999962747,
+          "growthMs": 10.799999999813735,
+          "surfaceMs": 0,
+          "transferMs": 0,
+          "buildMs": 59.39999999944121
+        },
+        "twigs": 4314
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "woodNodes": 4095,
+        "leafNodes": 16383,
+        "woodItems": 11766,
+        "leafItems": 55438,
+        "hashes": {
+          "wood": "fc045218c8d6a76e123fc98f2e71593c318b31e4c155ecd9965edd341e10a53d",
+          "woodBounds": "4808a0981446c9f55ff77516ecf80c8084828ee31904b48370f2d7e07f973841",
+          "woodTopology": "9e1aa7a53972b0cca07a75cb148207fddf55dc41bb86cb082a6d0c7165caf12e",
+          "leafBounds": "6d53f075800a3fb34be952255ae4f4b35570b26a9be153a4cbabc1135c9c6c35",
+          "leafTopology": "f93363eb40849e6f5dc0bf454607304038235b08a16265697b945fd6f575e800"
+        },
+        "timings": {
+          "extractionMs": 0.6000000005587935,
+          "copyMs": 2.5,
+          "totalMs": 3.1000000005587935
+        }
+      },
+      "packingMs": 1.699999999254942,
+      "hashingMs": 5,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 2,
+          "queryMs": 4.1000000005587935,
+          "wood": 2586,
+          "foliage": 1846,
+          "cellsHash": "cc34870e2117572e57a25339bfef3dfb781b56d505f7060407cde075c1836bd4",
+          "flagsHash": "235879e7ffce410d2d447cce0715f8b050bade7ce81c81474737c19f4740669a",
+          "hashMs": 0.8999999994412065,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 65.5,
+          "candidateSharedPreparationMs": 4.7999999998137355
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 13.799999999813735,
+          "queryMs": 20.299999999813735,
+          "wood": 9404,
+          "foliage": 7500,
+          "cellsHash": "86487b57a59487db226a0f2ae3f53e7a44150eec5446bc99132d12cfac17942d",
+          "flagsHash": "5da6822238806891095d80015dac2269aa3a8bb07fa9b72760d4c50cb80ab55d",
+          "hashMs": 5.7000000001862645,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 93.49999999906868,
+          "candidateSharedPreparationMs": 4.7999999998137355
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 1.199999999254942,
+          "queryMs": 0.30000000074505806,
+          "wood": 355,
+          "foliage": 414,
+          "cellsHash": "34d3c4753a0ffae6d7feb94294f05bc5c7b66cd231e49c8616137837f8af4a90",
+          "flagsHash": "179f876c154b3a48b9191e58d8a3f56c57ffd6d94ef9c0e23123143395dd5e3a",
+          "hashMs": 1.7999999998137355,
+          "verificationMs": 2.7999999998137355,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 60.89999999944121,
+          "candidateSharedPreparationMs": 4.7999999998137355
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 6935792,
+        "wasmBeforeSnapshotBytes": 32440320,
+        "wasmHighWaterBytes": 32440320,
+        "nativeSnapshotTransientBytes": 5558224,
+        "jsOwnedSnapshotBytes": 5558224,
+        "jsPackedBytes": 3077344,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    },
+    {
+      "sample": 3,
+      "warmup": false,
+      "subject": "ordinary",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 538,
+        "fieldBounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "fieldBytes": 6935792,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          48,
+          497,
+          91,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 636,
+        "instances": 55438,
+        "leavesPlaced": 56082,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 11766,
+        "revision": 9,
+        "shed": 2779,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 59.700000000186265,
+          "fieldMs": 23.09999999962747,
+          "foliageMs": 25.200000000186265,
+          "growthMs": 11.299999999813735,
+          "surfaceMs": 0,
+          "transferMs": 0.09999999962747097,
+          "buildMs": 59.90000000037253
+        },
+        "twigs": 4314
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "woodNodes": 4095,
+        "leafNodes": 16383,
+        "woodItems": 11766,
+        "leafItems": 55438,
+        "hashes": {
+          "wood": "fc045218c8d6a76e123fc98f2e71593c318b31e4c155ecd9965edd341e10a53d",
+          "woodBounds": "4808a0981446c9f55ff77516ecf80c8084828ee31904b48370f2d7e07f973841",
+          "woodTopology": "9e1aa7a53972b0cca07a75cb148207fddf55dc41bb86cb082a6d0c7165caf12e",
+          "leafBounds": "6d53f075800a3fb34be952255ae4f4b35570b26a9be153a4cbabc1135c9c6c35",
+          "leafTopology": "f93363eb40849e6f5dc0bf454607304038235b08a16265697b945fd6f575e800"
+        },
+        "timings": {
+          "extractionMs": 0.599999999627471,
+          "copyMs": 1.7999999998137355,
+          "totalMs": 2.5
+        }
+      },
+      "packingMs": 1.7000000001862645,
+      "hashingMs": 5.1000000005587935,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 2.2999999998137355,
+          "queryMs": 3.7999999998137355,
+          "wood": 2586,
+          "foliage": 1846,
+          "cellsHash": "cc34870e2117572e57a25339bfef3dfb781b56d505f7060407cde075c1836bd4",
+          "flagsHash": "235879e7ffce410d2d447cce0715f8b050bade7ce81c81474737c19f4740669a",
+          "hashMs": 1.900000000372529,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 66,
+          "candidateSharedPreparationMs": 4.2000000001862645
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 7.7999999998137355,
+          "queryMs": 20.5,
+          "wood": 9404,
+          "foliage": 7500,
+          "cellsHash": "86487b57a59487db226a0f2ae3f53e7a44150eec5446bc99132d12cfac17942d",
+          "flagsHash": "5da6822238806891095d80015dac2269aa3a8bb07fa9b72760d4c50cb80ab55d",
+          "hashMs": 5.7999999998137355,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 88.20000000018626,
+          "candidateSharedPreparationMs": 4.2000000001862645
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.19999999925494194,
+          "queryMs": 0.30000000074505806,
+          "wood": 355,
+          "foliage": 414,
+          "cellsHash": "34d3c4753a0ffae6d7feb94294f05bc5c7b66cd231e49c8616137837f8af4a90",
+          "flagsHash": "179f876c154b3a48b9191e58d8a3f56c57ffd6d94ef9c0e23123143395dd5e3a",
+          "hashMs": 0,
+          "verificationMs": 2.7999999998137355,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 60.40000000037253,
+          "candidateSharedPreparationMs": 4.2000000001862645
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 6935792,
+        "wasmBeforeSnapshotBytes": 32440320,
+        "wasmHighWaterBytes": 32440320,
+        "nativeSnapshotTransientBytes": 5558224,
+        "jsOwnedSnapshotBytes": 5558224,
+        "jsPackedBytes": 3077344,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    },
+    {
+      "sample": 3,
+      "warmup": false,
+      "subject": "telperion",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 522,
+        "fieldBounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "fieldBytes": 152842304,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          0,
+          0,
+          0,
+          1002,
+          73,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 1075,
+        "instances": 1360279,
+        "leavesPlaced": 1382875,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 177543,
+        "revision": 9,
+        "shed": 43909,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 1754.7999999998137,
+          "fieldMs": 740.5,
+          "foliageMs": 694.2000000001863,
+          "growthMs": 319.6000000005588,
+          "surfaceMs": 0,
+          "transferMs": 0.10000000055879354,
+          "buildMs": 1755
+        },
+        "twigs": 55315
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "woodNodes": 65535,
+        "leafNodes": 524287,
+        "woodItems": 177543,
+        "leafItems": 1360279,
+        "hashes": {
+          "wood": "e75aacb679fd3744858e80a21b7f09b11e781d0d629b5389ad0d5388530d0d82",
+          "woodBounds": "1f113830e0db62419b6c8263788b977a179935f719fa71ae5d346eef4f4067ab",
+          "woodTopology": "46b826a7b1adf691f750d8ca289c4effa62483fb191b8541511dac56e4cf0829",
+          "leafBounds": "f5ab63afab2144314ab7da961aefaf97e24e33bd08fa5ce6fc36b1917c105794",
+          "leafTopology": "5375dac7734a2ef5e7351bb6c01772c63a6a801afe9b9c5690ed03c959b9d300"
+        },
+        "timings": {
+          "extractionMs": 21.399999999441206,
+          "copyMs": 22.59999999962747,
+          "totalMs": 44.09999999962747
+        }
+      },
+      "packingMs": 19.699999999254942,
+      "hashingMs": 82.29999999981374,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 1.5,
+          "queryMs": 6.8999999994412065,
+          "wood": 2004,
+          "foliage": 1351,
+          "cellsHash": "97eb85c201501353bcbb3b98d087e755f6b4dc2d1266596f06fdddf9b2e59ce8",
+          "flagsHash": "7b57863efc29746e727af3adebe37fe8511e802bd14ff85c6f14d1f1a43c7f8c",
+          "hashMs": 1,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 1763.3999999994412,
+          "candidateSharedPreparationMs": 63.79999999888241
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 9,
+          "queryMs": 26.200000000186265,
+          "wood": 10804,
+          "foliage": 6833,
+          "cellsHash": "c4ed77d220764b183f0a0c3f805502604123102dbfb856c5fa85db847b1a41a1",
+          "flagsHash": "ecb077c6d7cfb30109c635de67ae30a11dc4868e15120ae48668ed66e2dfa872",
+          "hashMs": 5.7999999998137355,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 1790.2000000001863,
+          "candidateSharedPreparationMs": 63.79999999888241
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.40000000037252903,
+          "queryMs": 0.5,
+          "wood": 372,
+          "foliage": 313,
+          "cellsHash": "f4cb7caf0a9fbe568947bcc48f41f0e7d661ee2a8a6acab6458b71758a3a6ea2",
+          "flagsHash": "47471cd62cb046e80caaa167fe920d30abcfe737b6ff7c176a9f6c62b78610db",
+          "hashMs": 0,
+          "verificationMs": 3,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 1755.9000000003725,
+          "candidateSharedPreparationMs": 63.79999999888241
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 152842304,
+        "wasmBeforeSnapshotBytes": 380174336,
+        "wasmHighWaterBytes": 380174336,
+        "nativeSnapshotTransientBytes": 129078104,
+        "jsOwnedSnapshotBytes": 129078104,
+        "jsPackedBytes": 72333272,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    },
+    {
+      "sample": 4,
+      "warmup": false,
+      "subject": "telperion",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 522,
+        "fieldBounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "fieldBytes": 152842304,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          0,
+          0,
+          0,
+          1002,
+          73,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 1075,
+        "instances": 1360279,
+        "leavesPlaced": 1382875,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 177543,
+        "revision": 11,
+        "shed": 43909,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 1853.2999999998137,
+          "fieldMs": 714.4000000003725,
+          "foliageMs": 794.5999999996275,
+          "growthMs": 344,
+          "surfaceMs": 0,
+          "transferMs": 0,
+          "buildMs": 1853.5999999996275
+        },
+        "twigs": 55315
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            35.525022762312986,
+            147.99726143009804,
+            33.653236788518
+          ],
+          "min": [
+            -32.708016379396405,
+            -7.400000000000002,
+            -35.3203400483531
+          ]
+        },
+        "woodNodes": 65535,
+        "leafNodes": 524287,
+        "woodItems": 177543,
+        "leafItems": 1360279,
+        "hashes": {
+          "wood": "e75aacb679fd3744858e80a21b7f09b11e781d0d629b5389ad0d5388530d0d82",
+          "woodBounds": "1f113830e0db62419b6c8263788b977a179935f719fa71ae5d346eef4f4067ab",
+          "woodTopology": "46b826a7b1adf691f750d8ca289c4effa62483fb191b8541511dac56e4cf0829",
+          "leafBounds": "f5ab63afab2144314ab7da961aefaf97e24e33bd08fa5ce6fc36b1917c105794",
+          "leafTopology": "5375dac7734a2ef5e7351bb6c01772c63a6a801afe9b9c5690ed03c959b9d300"
+        },
+        "timings": {
+          "extractionMs": 26,
+          "copyMs": 26.799999999813735,
+          "totalMs": 52.90000000037253
+        }
+      },
+      "packingMs": 20.40000000037253,
+      "hashingMs": 82.20000000018626,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 2.099999999627471,
+          "queryMs": 7.6000000005587935,
+          "wood": 2004,
+          "foliage": 1351,
+          "cellsHash": "97eb85c201501353bcbb3b98d087e755f6b4dc2d1266596f06fdddf9b2e59ce8",
+          "flagsHash": "7b57863efc29746e727af3adebe37fe8511e802bd14ff85c6f14d1f1a43c7f8c",
+          "hashMs": 1.199999999254942,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 1863.2999999998137,
+          "candidateSharedPreparationMs": 73.30000000074506
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 8.200000000186265,
+          "queryMs": 28.100000000558794,
+          "wood": 10804,
+          "foliage": 6833,
+          "cellsHash": "c4ed77d220764b183f0a0c3f805502604123102dbfb856c5fa85db847b1a41a1",
+          "flagsHash": "ecb077c6d7cfb30109c635de67ae30a11dc4868e15120ae48668ed66e2dfa872",
+          "hashMs": 6,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 1889.9000000003725,
+          "candidateSharedPreparationMs": 73.30000000074506
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.10000000055879354,
+          "queryMs": 0.39999999944120646,
+          "wood": 372,
+          "foliage": 313,
+          "cellsHash": "f4cb7caf0a9fbe568947bcc48f41f0e7d661ee2a8a6acab6458b71758a3a6ea2",
+          "flagsHash": "47471cd62cb046e80caaa167fe920d30abcfe737b6ff7c176a9f6c62b78610db",
+          "hashMs": 0,
+          "verificationMs": 2.7000000001862645,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 1854.0999999996275,
+          "candidateSharedPreparationMs": 73.30000000074506
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 152842304,
+        "wasmBeforeSnapshotBytes": 380174336,
+        "wasmHighWaterBytes": 380174336,
+        "nativeSnapshotTransientBytes": 129078104,
+        "jsOwnedSnapshotBytes": 129078104,
+        "jsPackedBytes": 72333272,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    },
+    {
+      "sample": 4,
+      "warmup": false,
+      "subject": "ordinary",
+      "diagnostics": {
+        "attractionCapped": false,
+        "biologicalUnits": null,
+        "capped": false,
+        "complete": true,
+        "crossover": 538,
+        "fieldBounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "fieldBytes": 6935792,
+        "foliageAnatomy": null,
+        "foliageBounds": null,
+        "generationCounts": [
+          0,
+          48,
+          497,
+          91,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "handoffs": 636,
+        "instances": 55438,
+        "leavesPlaced": 56082,
+        "levelCapped": false,
+        "levelCappedHandoffs": 0,
+        "nodes": 11766,
+        "revision": 11,
+        "shed": 2779,
+        "stages": {
+          "field": true,
+          "foliage": true,
+          "surface": false
+        },
+        "surfaceBounds": null,
+        "timings": {
+          "coreMs": 70.90000000037253,
+          "fieldMs": 26.200000000186265,
+          "foliageMs": 32.09999999962747,
+          "growthMs": 12.5,
+          "surfaceMs": 0,
+          "transferMs": 0.09999999962747097,
+          "buildMs": 71.29999999981374
+        },
+        "twigs": 4314
+      },
+      "snapshot": {
+        "schema": 1,
+        "bounds": {
+          "max": [
+            6.463887610609014,
+            23.88924007572089,
+            6.766796743322922
+          ],
+          "min": [
+            -6.286909447325687,
+            -0.48,
+            -6.252300371795044
+          ]
+        },
+        "woodNodes": 4095,
+        "leafNodes": 16383,
+        "woodItems": 11766,
+        "leafItems": 55438,
+        "hashes": {
+          "wood": "fc045218c8d6a76e123fc98f2e71593c318b31e4c155ecd9965edd341e10a53d",
+          "woodBounds": "4808a0981446c9f55ff77516ecf80c8084828ee31904b48370f2d7e07f973841",
+          "woodTopology": "9e1aa7a53972b0cca07a75cb148207fddf55dc41bb86cb082a6d0c7165caf12e",
+          "leafBounds": "6d53f075800a3fb34be952255ae4f4b35570b26a9be153a4cbabc1135c9c6c35",
+          "leafTopology": "f93363eb40849e6f5dc0bf454607304038235b08a16265697b945fd6f575e800"
+        },
+        "timings": {
+          "extractionMs": 0.40000000037252903,
+          "copyMs": 2.099999999627471,
+          "totalMs": 2.5
+        }
+      },
+      "packingMs": 1.6000000005587935,
+      "hashingMs": 5.2999999998137355,
+      "nonfinitePacked": false,
+      "queries": [
+        {
+          "size": 32,
+          "cells": 32768,
+          "cellsMs": 1.5,
+          "queryMs": 3.900000000372529,
+          "wood": 2586,
+          "foliage": 1846,
+          "cellsHash": "cc34870e2117572e57a25339bfef3dfb781b56d505f7060407cde075c1836bd4",
+          "flagsHash": "235879e7ffce410d2d447cce0715f8b050bade7ce81c81474737c19f4740669a",
+          "hashMs": 1,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 1048576,
+            "resultBytes": 32768
+          },
+          "coldCpuMs": 76.70000000018626,
+          "candidateSharedPreparationMs": 4.1000000005587935
+        },
+        {
+          "size": 64,
+          "cells": 262144,
+          "cellsMs": 19.200000000186265,
+          "queryMs": 22.100000000558794,
+          "wood": 9404,
+          "foliage": 7500,
+          "cellsHash": "86487b57a59487db226a0f2ae3f53e7a44150eec5446bc99132d12cfac17942d",
+          "flagsHash": "5da6822238806891095d80015dac2269aa3a8bb07fa9b72760d4c50cb80ab55d",
+          "hashMs": 5.7999999998137355,
+          "verificationMs": null,
+          "mismatchCount": null,
+          "memory": {
+            "cellsBytes": 8388608,
+            "resultBytes": 262144
+          },
+          "coldCpuMs": 112.6000000005588,
+          "candidateSharedPreparationMs": 4.1000000005587935
+        },
+        {
+          "size": "boundary",
+          "cells": 579,
+          "cellsMs": 0.900000000372529,
+          "queryMs": 0.19999999925494194,
+          "wood": 355,
+          "foliage": 414,
+          "cellsHash": "34d3c4753a0ffae6d7feb94294f05bc5c7b66cd231e49c8616137837f8af4a90",
+          "flagsHash": "179f876c154b3a48b9191e58d8a3f56c57ffd6d94ef9c0e23123143395dd5e3a",
+          "hashMs": 0,
+          "verificationMs": 3,
+          "mismatchCount": 0,
+          "memory": {
+            "cellsBytes": 18528,
+            "resultBytes": 579
+          },
+          "coldCpuMs": 72.3999999994412,
+          "candidateSharedPreparationMs": 4.1000000005587935
+        }
+      ],
+      "memory": {
+        "nativeFieldBytes": 6935792,
+        "wasmBeforeSnapshotBytes": 32440320,
+        "wasmHighWaterBytes": 32440320,
+        "nativeSnapshotTransientBytes": 5558224,
+        "jsOwnedSnapshotBytes": 5558224,
+        "jsPackedBytes": 3077344,
+        "note": "Wasm high-water includes allocator capacity and staging: do not add nativeField/transient bytes to it. JS source and packed arrays coexist; Wasm query scratch duplicates the largest cells/result buffers. Browser/GC/hash/download overhead is not estimated."
+      },
+      "repeatable": true,
+      "valid": true
+    }
+  ],
+  "summary": [
+    {
+      "subject": "ordinary",
+      "stages": {
+        "coreMs": {
+          "median": 59.700000000186265,
+          "p95": 70.90000000037253,
+          "min": 58.59999999962747,
+          "max": 70.90000000037253
+        },
+        "fieldMs": {
+          "median": 23.09999999962747,
+          "p95": 26.200000000186265,
+          "min": 22.700000000186265,
+          "max": 26.200000000186265
+        },
+        "foliageMs": {
+          "median": 25.200000000186265,
+          "p95": 32.09999999962747,
+          "min": 24.899999999441206,
+          "max": 32.09999999962747
+        },
+        "growthMs": {
+          "median": 11.200000000186265,
+          "p95": 12.5,
+          "min": 10.799999999813735,
+          "max": 12.5
+        },
+        "surfaceMs": {
+          "median": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "transferMs": {
+          "median": 0.09999999962747097,
+          "p95": 0.10000000055879354,
+          "min": 0,
+          "max": 0.10000000055879354
+        },
+        "buildMs": {
+          "median": 59.90000000037253,
+          "p95": 71.29999999981374,
+          "min": 58.90000000037253,
+          "max": 71.29999999981374
+        }
+      },
+      "snapshotMs": {
+        "median": 2.5,
+        "p95": 3.1000000005587935,
+        "min": 2.099999999627471,
+        "max": 3.1000000005587935
+      },
+      "packingMs": {
+        "median": 1.6000000005587935,
+        "p95": 1.7000000001862645,
+        "min": 1.5,
+        "max": 1.7000000001862645
+      },
+      "queries": [
+        {
+          "size": 32,
+          "queryMs": {
+            "median": 3.8999999994412065,
+            "p95": 4.1000000005587935,
+            "min": 3.7999999998137355,
+            "max": 4.1000000005587935
+          }
+        },
+        {
+          "size": 64,
+          "queryMs": {
+            "median": 20.299999999813735,
+            "p95": 22.100000000558794,
+            "min": 19.5,
+            "max": 22.100000000558794
+          }
+        },
+        {
+          "size": "boundary",
+          "queryMs": {
+            "median": 0.2999999998137355,
+            "p95": 0.30000000074505806,
+            "min": 0.19999999925494194,
+            "max": 0.30000000074505806
+          }
+        }
+      ]
+    },
+    {
+      "subject": "telperion",
+      "stages": {
+        "coreMs": {
+          "median": 1607.7000000001863,
+          "p95": 1853.2999999998137,
+          "min": 1599.9000000003725,
+          "max": 1853.2999999998137
+        },
+        "fieldMs": {
+          "median": 656.4000000003725,
+          "p95": 740.5,
+          "min": 655.0999999996275,
+          "max": 740.5
+        },
+        "foliageMs": {
+          "median": 636.5,
+          "p95": 794.5999999996275,
+          "min": 634.7000000001863,
+          "max": 794.5999999996275
+        },
+        "growthMs": {
+          "median": 314.5,
+          "p95": 344,
+          "min": 309.20000000018626,
+          "max": 344
+        },
+        "surfaceMs": {
+          "median": 0,
+          "p95": 0,
+          "min": 0,
+          "max": 0
+        },
+        "transferMs": {
+          "median": 0.09999999962747097,
+          "p95": 0.20000000018626451,
+          "min": 0,
+          "max": 0.20000000018626451
+        },
+        "buildMs": {
+          "median": 1607.9000000003725,
+          "p95": 1853.5999999996275,
+          "min": 1600.2999999998137,
+          "max": 1853.5999999996275
+        }
+      },
+      "snapshotMs": {
+        "median": 44.09999999962747,
+        "p95": 52.90000000037253,
+        "min": 43.299999999813735,
+        "max": 52.90000000037253
+      },
+      "packingMs": {
+        "median": 19.90000000037253,
+        "p95": 21.5,
+        "min": 18.699999999254942,
+        "max": 21.5
+      },
+      "queries": [
+        {
+          "size": 32,
+          "queryMs": {
+            "median": 6.8999999994412065,
+            "p95": 7.6000000005587935,
+            "min": 6.7999999998137355,
+            "max": 7.6000000005587935
+          }
+        },
+        {
+          "size": 64,
+          "queryMs": {
+            "median": 25.799999999813735,
+            "p95": 28.100000000558794,
+            "min": 25.5,
+            "max": 28.100000000558794
+          }
+        },
+        {
+          "size": "boundary",
+          "queryMs": {
+            "median": 0.40000000037252903,
+            "p95": 0.5,
+            "min": 0.2999999998137355,
+            "max": 0.5
+          }
+        }
+      ]
+    }
+  ],
+  "finishedAt": "2026-09-06T11:55:53.589Z"
+}

@@ -1,0 +1,265 @@
+{
+  "recordedAt": "2026-09-06T12:13:46.746Z",
+  "browser": "151.0.7922.173",
+  "args": [
+    "--enable-gpu",
+    "--use-gl=angle",
+    "--use-angle=vulkan",
+    "--enable-features=Vulkan",
+    "--disable-vulkan-surface",
+    "--enable-unsafe-webgpu",
+    "--ozone-platform=x11"
+  ],
+  "helperTests": {
+    "passed": true,
+    "coverage": [
+      "missing navigator.gpu",
+      "null adapter",
+      "unavailable timestamp feature (controlled)",
+      "empty and malformed snapshots",
+      "invalid/nonfinite/negative/overflow cells",
+      "overlapping f32-unsafe cells",
+      "buffer and dispatch limits",
+      "late device allocation timeout cleanup",
+      "idempotent disposal and post-input-failure reuse"
+    ]
+  },
+  "controlledFailures": [
+    {
+      "kind": "device",
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "device-creation",
+          "message": "controlled device failure"
+        },
+        "stage": "device-creation"
+      },
+      "counts": {
+        "created": 0,
+        "destroyed": 0,
+        "deviceDestroyed": 0
+      },
+      "observation": "controlled API double"
+    },
+    {
+      "kind": "shader",
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "shader",
+          "message": "controlled shader failure"
+        },
+        "stage": "shader"
+      },
+      "counts": {
+        "created": 0,
+        "destroyed": 0,
+        "deviceDestroyed": 1
+      },
+      "observation": "controlled API double"
+    },
+    {
+      "kind": "pipeline",
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "shader",
+          "message": "controlled pipeline failure"
+        },
+        "stage": "shader"
+      },
+      "counts": {
+        "created": 0,
+        "destroyed": 0,
+        "deviceDestroyed": 1
+      },
+      "observation": "controlled API double"
+    },
+    {
+      "kind": "allocation",
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "upload",
+          "message": "controlled allocation failure"
+        },
+        "stage": "upload"
+      },
+      "counts": {
+        "created": 0,
+        "destroyed": 0,
+        "deviceDestroyed": 1
+      },
+      "observation": "controlled API double"
+    },
+    {
+      "kind": "submission",
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "submission",
+          "message": "controlled submission failure"
+        },
+        "stage": "submission"
+      },
+      "counts": {
+        "created": 9,
+        "destroyed": 9,
+        "deviceDestroyed": 1
+      },
+      "observation": "controlled API double"
+    },
+    {
+      "kind": "readback",
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "readback",
+          "message": "controlled readback failure"
+        },
+        "stage": "readback"
+      },
+      "counts": {
+        "created": 9,
+        "destroyed": 9,
+        "deviceDestroyed": 1
+      },
+      "observation": "controlled API double"
+    },
+    {
+      "kind": "loss",
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "device-lost",
+          "message": "GPU device lost: controlled loss"
+        },
+        "stage": "readback"
+      },
+      "counts": {
+        "created": 9,
+        "destroyed": 9,
+        "deviceDestroyed": 1
+      },
+      "observation": "controlled API double"
+    },
+    {
+      "kind": "timeout",
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "timeout",
+          "message": "GPU timeout"
+        },
+        "stage": "readback"
+      },
+      "counts": {
+        "created": 9,
+        "destroyed": 9,
+        "deviceDestroyed": 1
+      },
+      "observation": "controlled API double"
+    },
+    {
+      "kind": "traversal",
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "traversal",
+          "message": "GPU traversal failed; no partial result"
+        },
+        "stage": "readback"
+      },
+      "counts": {
+        "created": 9,
+        "destroyed": 9,
+        "deviceDestroyed": 1
+      },
+      "observation": "controlled API double"
+    }
+  ],
+  "actual": {
+    "passed": true,
+    "adapter": {
+      "info": {
+        "vendor": "nvidia",
+        "architecture": "ampere",
+        "device": "",
+        "description": "",
+        "isFallbackAdapter": false
+      },
+      "features": [
+        "depth32float-stencil8",
+        "chromium-experimental-subgroup-matrix",
+        "rg11b10ufloat-renderable",
+        "texture-formats-tier1",
+        "bgra8unorm-storage",
+        "chromium-experimental-multi-draw-indirect",
+        "texture-compression-bc",
+        "dual-source-blending",
+        "core-features-and-limits",
+        "chromium-experimental-timestamp-query-inside-passes",
+        "float32-filterable",
+        "indirect-first-instance",
+        "float32-blendable",
+        "subgroup-size-control",
+        "depth-clip-control",
+        "texture-compression-bc-sliced-3d",
+        "timestamp-query",
+        "texture-formats-tier2",
+        "clip-distances",
+        "primitive-index",
+        "texture-component-swizzle",
+        "subgroups"
+      ],
+      "requiredLimits": {
+        "maxStorageBufferBindingSize": 134217728,
+        "maxBufferSize": 268435456
+      },
+      "adapterLimits": {
+        "maxBufferSize": 4294967292,
+        "maxStorageBufferBindingSize": 2147483644,
+        "maxComputeWorkgroupsPerDimension": 65535,
+        "maxComputeInvocationsPerWorkgroup": 1024,
+        "maxComputeWorkgroupSizeX": 1024,
+        "maxStorageBuffersPerShaderStage": 16
+      },
+      "timestampStatus": "disabled for capability test"
+    },
+    "flags": [
+      1,
+      1,
+      2,
+      2,
+      0,
+      0
+    ],
+    "outsideRangeCount": 1,
+    "invalid": {
+      "ok": false,
+      "error": {
+        "code": "invalid-input",
+        "message": "invalid query input"
+      },
+      "stage": "input"
+    },
+    "disposed": {
+      "ok": false,
+      "error": {
+        "code": "disposed",
+        "message": "GPU field disposed"
+      },
+      "stage": "lifecycle"
+    },
+    "lost": {
+      "ok": false,
+      "error": {
+        "code": "device-lost",
+        "message": "Device was destroyed."
+      },
+      "stage": "lifecycle"
+    },
+    "observation": "actual WebGPU shader execution, optional timestamps disabled, actual explicit device.destroy loss; unsupported adapter and other failures are controlled doubles"
+  }
+}

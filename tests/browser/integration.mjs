@@ -20,7 +20,7 @@ const url = process.env.BROWSER_URL ?? 'http://127.0.0.1:5184';
 const out = process.env.BROWSER_EVIDENCE ?? '.flow/tmp/fn98-browser';
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE, headless: true,
-  args: ['--no-sandbox'] });
+  args: ['--no-sandbox', ...(process.env.BINDINGS_ONLY === '1' ? ['--disable-gpu'] : [])] });
 try {
   const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 });
   await page.addInitScript({ content: `window.compactSpeciesFixture = ${compactSpeciesFixture.toString()};` });
@@ -41,7 +41,7 @@ try {
   browser.on('disconnected', () => console.log('Browser disconnected'));
   await page.route(url + '/', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body style="margin:0;width:100vw;height:100vh;overflow:hidden"><canvas style="display:block;width:100%;height:100%"></canvas></body></html>' }));
   await page.goto(url + '/');
-  const result = await page.evaluate(async () => {
+  const result = process.env.BINDINGS_ONLY === '1' ? { skipped: 'rendering (bindings-only)' } : await page.evaluate(async () => {
     const check = (ok, message) => { if (!ok) throw Error(message); };
     const THREE = await import('/node_modules/.vite/deps/three.js');
     const { createStage } = await import('/harness/stage.ts');
@@ -83,16 +83,33 @@ try {
     for (const bad of [new Float64Array(3), new Float64Array([NaN,0,0,1]), new Float64Array([0,0,0,-1]), new Float32Array(4)])
       await rejects(() => meshFree.field.query(bad), 'invalid query must reject');
     check(meshFree.field.query(cells)[0] === 1, 'queries recover after errors');
+    const { querySnapshot, boundaryCells, gridCells, snapshotArrays } = await import('/scripts/benchmarks/generation-inputs.mjs');
+    const snapshot = meshFree.field.snapshot();
+    check(snapshot.wood.length === meshFree.diagnostics.nodes * 8, 'snapshot wood count');
+    check(snapshot.leaves.bounds.length / 6 - snapshot.leaves.nodeCount === meshFree.diagnostics.instances, 'snapshot foliage count');
+    for (const packed of [cells, new Float64Array(), boundaryCells(snapshot), gridCells(snapshot.bounds, 8)]) {
+      const reference = meshFree.field.query(packed), copied = querySnapshot(snapshot, packed);
+      check(copied.length === reference.length && copied.every((v,i) => v === reference[i]), 'snapshot exact indexed flags');
+    }
+    for (const bad of [new Float64Array(3), new Float64Array([NaN,0,0,1]), new Float64Array([0,0,0,-1]), new Float64Array([0,0,0,Infinity]), new Float64Array([Number.MAX_VALUE,0,0,0]), new Float32Array(4)])
+      await rejects(() => querySnapshot(snapshot, bad), 'snapshot invalid query');
+    const snapshotSaved = snapshot.wood.slice();
+    snapshot.wood[6] = 0;
+    check(meshFree.field.query(cells)[0] === 1, 'snapshot mutation isolated');
+    snapshot.wood.set(snapshotSaved);
     const saved = meshFree.structure.values.slice();
     engine.release(); engine.release();
     check(saved.every((v,i) => v === meshFree.structure.values[i]), 'owned copies survive release');
     await rejects(() => meshFree.field.query(cells), 'released field handle');
+    await rejects(() => meshFree.field.snapshot(), 'released snapshot handle');
+    check(querySnapshot(snapshot, cells).every((v,i) => v === hits[i]), 'snapshot survives release');
     const structureOnly = engine.build(family, { structure: true });
     check(!structureOnly.surface && !structureOnly.foliage && !structureOnly.field && structureOnly.diagnostics.leavesPlaced === 0, 'optional outputs skipped');
     check(saved.every((v,i) => v === structureOnly.structure.values[i]), 'repeat deterministic');
     const field = engine.build(family, { field: true }).field;
     engine.build(family, {});
     await rejects(() => field.query(cells), 'rebuild stales field handle');
+    await rejects(() => field.snapshot(), 'rebuild stales snapshot handle');
     for (const bad of [NaN, Infinity, -1]) {
       const p = structuredClone(family); p.skeleton.envelope.height = bad;
       await rejects(() => engine.build(p, { surface: true }), 'bad height');
@@ -156,7 +173,13 @@ try {
       const limited = structuredClone(specimen); limited.canopy.maxInstances = 1;
       await rejects(() => engine.build(limited, { foliage: true }), id + ' foliage budget rejects instead of truncating');
     }
+    const zeroNodes = structuredClone(empty); zeroNodes.skeleton.growth.maxNodes = 0;
+    const emptySnapshot = engine.build(zeroNodes, {field:true}).field.snapshot();
+    check(Object.values(snapshotArrays(emptySnapshot)).every(a => a.length === 0), 'empty snapshot');
+    check(querySnapshot(emptySnapshot,cells).every(v => v === 0), 'empty snapshot occupancy');
     engine.dispose(); engine.dispose();
+    await rejects(() => meshFree.field.snapshot(), 'disposed snapshot handle');
+    check(querySnapshot(snapshot,cells).every((v,i) => v === hits[i]), 'owned snapshot survives disposal');
     await rejects(() => engine.build(family, {}), 'disposed engine');
     // Exercise the native boundary directly, including malformed JSON and allocated byte validation.
     const bytes = await (await fetch('/src/browser/telperion.wasm')).arrayBuffer();
@@ -179,13 +202,20 @@ try {
     check(e.request_alloc(65537) === 1 && e.build() === 1, 'oversized request leaves no prior request');
     check(raw('{"family":{"skeleton":{"attractors":0}},"outputs":{"surface":true}}') === 0 && e.buffer_len(0) === 0, 'native empty recovery');
     check(raw(JSON.stringify({ family, outputs: { field: true } })) === 0, 'native field-only build');
+    check([9,10,11,12,13].every(slot => e.buffer_len(slot) === 0), 'ordinary field has no snapshot copies');
     check([0,1,2,3,4,5].every(slot => e.buffer_len(slot) === 0), 'field-only allocates no render buffers');
+    const revision = JSON.parse(new TextDecoder().decode(new Uint8Array(e.memory.buffer,e.metadata_ptr(),e.metadata_len()))).revision;
+    check(e.field_snapshot(revision) === 0 && e.buffer_len(9) > 0, 'native explicit snapshot');
+    e.field_snapshot_release(); e.field_snapshot_release();
+    check([9,10,11,12,13].every(slot => e.buffer_len(slot) === 0), 'native snapshot staging freed');
+    check(e.field_snapshot(revision - 1) === 1 && [9,10,11,12,13].every(slot => e.buffer_len(slot) === 0), 'stale snapshot returns no partial buffers');
     check(e.buffer_len(999) === 0 && e.buffer_ptr(999) === 0, 'unknown buffer slot');
     check(e.query_alloc(0) === 0 && e.query(0) === 1, 'no stale query accepted');
     e.release(); e.release();
-    return { speciesAnatomy: true, identityCatalogue: true, independentOutputs: true, meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true, partialDiagnostics: true };
+    return { fieldSnapshots: true, snapshotOwnership: true, snapshotExactFlags: true, speciesAnatomy: true, identityCatalogue: true, independentOutputs: true, meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true, partialDiagnostics: true };
   });
   await writeFile(out + '/bindings.json', JSON.stringify(bindings, null, 2));
+  if (process.env.BINDINGS_ONLY === '1') { console.log(bindings); process.exitCode = 0; } else {
   await page.setViewportSize({ width: 960, height: 720 });
   const captures = [];
   for (const id of ['oregon-white-oak', 'norway-spruce']) {
@@ -335,4 +365,5 @@ try {
   console.log('UI invalid species URL recovered');
   await writeFile(out + '/viewer.json', JSON.stringify({ loadFailureRetry: failedLoad, buildFailureRetry: true, previousDiagnosticsPreserved: true, speciesSelection: true, independentSeeds: true, seedGeometryChanges: true, allViews: true, emptyRendering }, null, 2));
   console.log({ ...result, ...bindings, loadFailureRetry: failedLoad, buildFailureRetry: true });
+  }
 } finally { await browser.close(); }
