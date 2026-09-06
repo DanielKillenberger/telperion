@@ -24970,5 +24970,7 @@
       "visual_status": "unassessed",
       "owner_feedback": null
     }
-  ]
+  ],
+  "species_measure_sha256": "1cc0e5839a1781d9a7d556e74c5ba9cd35b0859296277bb143e9d7fa85f31655",
+  "binary_note": "Rebuilt by final native workspace suite after the empty-tree fix; final 48-case replay follows that suite."
 }

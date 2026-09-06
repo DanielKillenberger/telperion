@@ -1,0 +1,725 @@
+{
+  "method": "Per-case native measured individual foliage units and anatomy node counts; wood path tessellation changes are retained separately.",
+  "cases": [
+    {
+      "id": "oregon-white-oak-1",
+      "before_units": 517361,
+      "after_units": 517361,
+      "before_nodes": {
+        "status": "measured",
+        "value": 84291
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 84291
+      },
+      "before_wood_triangles": 4966680,
+      "after_wood_triangles": 4966680
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "before_units": 469989,
+      "after_units": 469989,
+      "before_nodes": {
+        "status": "measured",
+        "value": 75664
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 75664
+      },
+      "before_wood_triangles": 4477520,
+      "after_wood_triangles": 4477520
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "before_units": 467662,
+      "after_units": 467662,
+      "before_nodes": {
+        "status": "measured",
+        "value": 76424
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 76424
+      },
+      "before_wood_triangles": 4500480,
+      "after_wood_triangles": 4500480
+    },
+    {
+      "id": "oregon-white-oak-5",
+      "before_units": 421317,
+      "after_units": 421317,
+      "before_nodes": {
+        "status": "measured",
+        "value": 77756
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 77756
+      },
+      "before_wood_triangles": 4412320,
+      "after_wood_triangles": 4412320
+    },
+    {
+      "id": "oregon-white-oak-8",
+      "before_units": 447109,
+      "after_units": 447109,
+      "before_nodes": {
+        "status": "measured",
+        "value": 73632
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 73632
+      },
+      "before_wood_triangles": 4324120,
+      "after_wood_triangles": 4324120
+    },
+    {
+      "id": "oregon-white-oak-13",
+      "before_units": 327275,
+      "after_units": 327275,
+      "before_nodes": {
+        "status": "measured",
+        "value": 54862
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 54862
+      },
+      "before_wood_triangles": 3206560,
+      "after_wood_triangles": 3206560
+    },
+    {
+      "id": "oregon-white-oak-21",
+      "before_units": 400595,
+      "after_units": 400595,
+      "before_nodes": {
+        "status": "measured",
+        "value": 75201
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 75201
+      },
+      "before_wood_triangles": 4247560,
+      "after_wood_triangles": 4247560
+    },
+    {
+      "id": "oregon-white-oak-34",
+      "before_units": 459979,
+      "after_units": 459979,
+      "before_nodes": {
+        "status": "measured",
+        "value": 75383
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 75383
+      },
+      "before_wood_triangles": 4435360,
+      "after_wood_triangles": 4435360
+    },
+    {
+      "id": "oregon-white-oak-55",
+      "before_units": 442221,
+      "after_units": 442221,
+      "before_nodes": {
+        "status": "measured",
+        "value": 72261
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 72261
+      },
+      "before_wood_triangles": 4254640,
+      "after_wood_triangles": 4254640
+    },
+    {
+      "id": "oregon-white-oak-89",
+      "before_units": 427869,
+      "after_units": 427869,
+      "before_nodes": {
+        "status": "measured",
+        "value": 69177
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 69177
+      },
+      "before_wood_triangles": 4089040,
+      "after_wood_triangles": 4089040
+    },
+    {
+      "id": "oregon-white-oak-144",
+      "before_units": 506961,
+      "after_units": 506961,
+      "before_nodes": {
+        "status": "measured",
+        "value": 83032
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 83032
+      },
+      "before_wood_triangles": 4882400,
+      "after_wood_triangles": 4882400
+    },
+    {
+      "id": "oregon-white-oak-233",
+      "before_units": 479973,
+      "after_units": 479973,
+      "before_nodes": {
+        "status": "measured",
+        "value": 78706
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 78706
+      },
+      "before_wood_triangles": 4631000,
+      "after_wood_triangles": 4631000
+    },
+    {
+      "id": "oregon-white-oak-2666899686",
+      "before_units": 493844,
+      "after_units": 493844,
+      "before_nodes": {
+        "status": "measured",
+        "value": 81120
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 81120
+      },
+      "before_wood_triangles": 4766760,
+      "after_wood_triangles": 4766760
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "before_units": 455650,
+      "after_units": 455650,
+      "before_nodes": {
+        "status": "measured",
+        "value": 75307
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 75307
+      },
+      "before_wood_triangles": 4418600,
+      "after_wood_triangles": 4418600
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "before_units": 430053,
+      "after_units": 430053,
+      "before_nodes": {
+        "status": "measured",
+        "value": 70284
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 70284
+      },
+      "before_wood_triangles": 4140160,
+      "after_wood_triangles": 4140160
+    },
+    {
+      "id": "oregon-white-oak-3117916676",
+      "before_units": 508547,
+      "after_units": 508547,
+      "before_nodes": {
+        "status": "measured",
+        "value": 82845
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 82845
+      },
+      "before_wood_triangles": 4881360,
+      "after_wood_triangles": 4881360
+    },
+    {
+      "id": "oregon-white-oak-2181659276",
+      "before_units": 404443,
+      "after_units": 404443,
+      "before_nodes": {
+        "status": "measured",
+        "value": 67775
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 67775
+      },
+      "before_wood_triangles": 3958640,
+      "after_wood_triangles": 3958640
+    },
+    {
+      "id": "oregon-white-oak-696710047",
+      "before_units": 443716,
+      "after_units": 443716,
+      "before_nodes": {
+        "status": "measured",
+        "value": 73198
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 73198
+      },
+      "before_wood_triangles": 4296040,
+      "after_wood_triangles": 4296040
+    },
+    {
+      "id": "oregon-white-oak-4067290831",
+      "before_units": 541606,
+      "after_units": 541606,
+      "before_nodes": {
+        "status": "measured",
+        "value": 87557
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 87557
+      },
+      "before_wood_triangles": 5169880,
+      "after_wood_triangles": 5169880
+    },
+    {
+      "id": "oregon-white-oak-2671455042",
+      "before_units": 381966,
+      "after_units": 381966,
+      "before_nodes": {
+        "status": "measured",
+        "value": 64220
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 64220
+      },
+      "before_wood_triangles": 3749640,
+      "after_wood_triangles": 3749640
+    },
+    {
+      "id": "oregon-white-oak-690286437",
+      "before_units": 496327,
+      "after_units": 496327,
+      "before_nodes": {
+        "status": "measured",
+        "value": 81038
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 81038
+      },
+      "before_wood_triangles": 4772080,
+      "after_wood_triangles": 4772080
+    },
+    {
+      "id": "oregon-white-oak-1352641425",
+      "before_units": 541333,
+      "after_units": 541333,
+      "before_nodes": {
+        "status": "measured",
+        "value": 87785
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 87785
+      },
+      "before_wood_triangles": 5181640,
+      "after_wood_triangles": 5181640
+    },
+    {
+      "id": "oregon-white-oak-204973394",
+      "before_units": 470951,
+      "after_units": 470951,
+      "before_nodes": {
+        "status": "measured",
+        "value": 77178
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 77178
+      },
+      "before_wood_triangles": 4539080,
+      "after_wood_triangles": 4539080
+    },
+    {
+      "id": "oregon-white-oak-535441218",
+      "before_units": 522639,
+      "after_units": 522639,
+      "before_nodes": {
+        "status": "measured",
+        "value": 85006
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 85006
+      },
+      "before_wood_triangles": 5011040,
+      "after_wood_triangles": 5011040
+    },
+    {
+      "id": "norway-spruce-1",
+      "before_units": 5219761,
+      "after_units": 5219761,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58942
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58942
+      },
+      "before_wood_triangles": 3396880,
+      "after_wood_triangles": 3415800
+    },
+    {
+      "id": "norway-spruce-2",
+      "before_units": 5163971,
+      "after_units": 5163971,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58337
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58337
+      },
+      "before_wood_triangles": 3366240,
+      "after_wood_triangles": 3383720
+    },
+    {
+      "id": "norway-spruce-3",
+      "before_units": 5126384,
+      "after_units": 5126384,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58046
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58046
+      },
+      "before_wood_triangles": 3341280,
+      "after_wood_triangles": 3360440
+    },
+    {
+      "id": "norway-spruce-5",
+      "before_units": 5174959,
+      "after_units": 5174959,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58487
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58487
+      },
+      "before_wood_triangles": 3372480,
+      "after_wood_triangles": 3390400
+    },
+    {
+      "id": "norway-spruce-8",
+      "before_units": 5235752,
+      "after_units": 5235752,
+      "before_nodes": {
+        "status": "measured",
+        "value": 59058
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 59058
+      },
+      "before_wood_triangles": 3404280,
+      "after_wood_triangles": 3422760
+    },
+    {
+      "id": "norway-spruce-13",
+      "before_units": 5174861,
+      "after_units": 5174861,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58570
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58570
+      },
+      "before_wood_triangles": 3378280,
+      "after_wood_triangles": 3396160
+    },
+    {
+      "id": "norway-spruce-21",
+      "before_units": 5149982,
+      "after_units": 5149982,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58182
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58182
+      },
+      "before_wood_triangles": 3351400,
+      "after_wood_triangles": 3368840
+    },
+    {
+      "id": "norway-spruce-34",
+      "before_units": 5213683,
+      "after_units": 5213683,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58888
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58888
+      },
+      "before_wood_triangles": 3396240,
+      "after_wood_triangles": 3414160
+    },
+    {
+      "id": "norway-spruce-55",
+      "before_units": 5154720,
+      "after_units": 5154720,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58252
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58252
+      },
+      "before_wood_triangles": 3361600,
+      "after_wood_triangles": 3379600
+    },
+    {
+      "id": "norway-spruce-89",
+      "before_units": 5174411,
+      "after_units": 5174411,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58478
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58478
+      },
+      "before_wood_triangles": 3369160,
+      "after_wood_triangles": 3387960
+    },
+    {
+      "id": "norway-spruce-144",
+      "before_units": 5209509,
+      "after_units": 5209509,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58793
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58793
+      },
+      "before_wood_triangles": 3390920,
+      "after_wood_triangles": 3408840
+    },
+    {
+      "id": "norway-spruce-233",
+      "before_units": 5204704,
+      "after_units": 5204704,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58796
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58796
+      },
+      "before_wood_triangles": 3394240,
+      "after_wood_triangles": 3410840
+    },
+    {
+      "id": "norway-spruce-1982700925",
+      "before_units": 5172988,
+      "after_units": 5172988,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58475
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58475
+      },
+      "before_wood_triangles": 3372520,
+      "after_wood_triangles": 3390400
+    },
+    {
+      "id": "norway-spruce-281313742",
+      "before_units": 5240583,
+      "after_units": 5240583,
+      "before_nodes": {
+        "status": "measured",
+        "value": 59226
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 59226
+      },
+      "before_wood_triangles": 3418000,
+      "after_wood_triangles": 3434280
+    },
+    {
+      "id": "norway-spruce-2271779095",
+      "before_units": 5121018,
+      "after_units": 5121018,
+      "before_nodes": {
+        "status": "measured",
+        "value": 57866
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 57866
+      },
+      "before_wood_triangles": 3331480,
+      "after_wood_triangles": 3350240
+    },
+    {
+      "id": "norway-spruce-1428158753",
+      "before_units": 5149740,
+      "after_units": 5149740,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58277
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58277
+      },
+      "before_wood_triangles": 3360600,
+      "after_wood_triangles": 3378440
+    },
+    {
+      "id": "norway-spruce-370981056",
+      "before_units": 5126166,
+      "after_units": 5126166,
+      "before_nodes": {
+        "status": "measured",
+        "value": 57917
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 57917
+      },
+      "before_wood_triangles": 3338760,
+      "after_wood_triangles": 3356720
+    },
+    {
+      "id": "norway-spruce-2571381872",
+      "before_units": 5183764,
+      "after_units": 5183764,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58614
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58614
+      },
+      "before_wood_triangles": 3380360,
+      "after_wood_triangles": 3397840
+    },
+    {
+      "id": "norway-spruce-1986682132",
+      "before_units": 5161022,
+      "after_units": 5161022,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58380
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58380
+      },
+      "before_wood_triangles": 3368640,
+      "after_wood_triangles": 3386200
+    },
+    {
+      "id": "norway-spruce-2749500550",
+      "before_units": 5134317,
+      "after_units": 5134317,
+      "before_nodes": {
+        "status": "measured",
+        "value": 57999
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 57999
+      },
+      "before_wood_triangles": 3346680,
+      "after_wood_triangles": 3363240
+    },
+    {
+      "id": "norway-spruce-175890410",
+      "before_units": 5203677,
+      "after_units": 5203677,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58765
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58765
+      },
+      "before_wood_triangles": 3389720,
+      "after_wood_triangles": 3406840
+    },
+    {
+      "id": "norway-spruce-847818543",
+      "before_units": 5203410,
+      "after_units": 5203410,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58757
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58757
+      },
+      "before_wood_triangles": 3384160,
+      "after_wood_triangles": 3402840
+    },
+    {
+      "id": "norway-spruce-4250668600",
+      "before_units": 5158718,
+      "after_units": 5158718,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58349
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58349
+      },
+      "before_wood_triangles": 3363640,
+      "after_wood_triangles": 3381520
+    },
+    {
+      "id": "norway-spruce-893982483",
+      "before_units": 5181840,
+      "after_units": 5181840,
+      "before_nodes": {
+        "status": "measured",
+        "value": 58577
+      },
+      "after_nodes": {
+        "status": "measured",
+        "value": 58577
+      },
+      "before_wood_triangles": 3379480,
+      "after_wood_triangles": 3396880
+    }
+  ]
+}
