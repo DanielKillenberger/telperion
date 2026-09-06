@@ -161,7 +161,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-19-comparative-botanical-geometry-benchmark.md",
-  "status": "open",
+  "status": "done",
   "title": "Comparative botanical geometry benchmark",
   "tracker": {
     "baseHashFlow": null,
@@ -174,5 +174,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-06T20:40:49.141461Z"
+  "updated_at": "2026-09-06T21:35:28.670220Z"
 }

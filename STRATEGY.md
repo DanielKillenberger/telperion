@@ -1,6 +1,6 @@
 ---
 name: Telperion
-last_updated: 2026-09-06
+last_updated: 2026-09-05
 generator: flow-next-strategy
 ---
 
@@ -44,12 +44,12 @@ _Why it serves the approach:_ the whole tree responds to the same authored rules
 
 ### The core and integration
 
-One lean Rust generation core serves browser Wasm and native integrations, with small boundaries between tree state, generation rules and output representations. Consumers request structure, meshes, instances or spatial fields as needed; a block world can sample wood and foliage without paying to construct a surface mesh. Portable tree and rendering data stay separate from engine-specific drawing and material implementations, keeping future engines able to preserve the same visual fidelity without requiring an external-engine proof in every rendering pass. The migration replaces the young TypeScript core without a backwards-compatibility requirement, while latency, memory and binding costs remain measured obligations.
+One lean Rust generation core serves browser Wasm and native integrations, with small boundaries between tree state, generation rules and output representations. Consumers request structure, meshes, instances or spatial fields as needed; a block world can sample wood and foliage without paying to construct a surface mesh. The migration replaces the young TypeScript core without a backwards-compatibility requirement, while latency, memory and binding costs remain measured obligations.
 
 _Why it serves the approach:_ an engine-independent tree state gives simulation and integration room to grow while keeping each representation optional.
 
 ### Surface and rendering at scale
 
-Continuous surfaces, natural forks and tips, foliage and bark make the underlying structure legible from close views to the canopy. Hierarchy and continuous rendering representations keep generation, updates and rendering within game budgets from a hero tree to a forest while preserving visible fidelity at every distance, without visible stepping, thinning or shimmer. This fidelity direction applies across consuming engines; concrete integrations validate it when undertaken, while current rendering work preserves the architectural option.
+Continuous surfaces, natural forks and tips, foliage and bark make the underlying structure legible from close views to the canopy. Hierarchy and level of detail keep generation, updates and rendering within game budgets as scenes grow from a hero tree to a forest, with native game integration as the practical test.
 
 _Why it serves the approach:_ visual fidelity and measured runtime cost jointly determine whether a generated tree belongs in a real-time world.
