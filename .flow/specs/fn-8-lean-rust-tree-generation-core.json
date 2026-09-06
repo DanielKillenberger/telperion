@@ -55,7 +55,7 @@
     "plan": 1
   },
   "spec_path": ".flow/specs/fn-8-lean-rust-tree-generation-core.md",
-  "status": "open",
+  "status": "done",
   "title": "Lean Rust tree generation core",
   "tracker": {
     "baseHashFlow": null,
@@ -68,5 +68,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T18:53:51.818631Z"
+  "updated_at": "2026-09-06T22:06:57.429985Z"
 }

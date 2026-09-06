@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-1-the-canopy-real-leaf-geometry-culled-to.md",
-  "status": "open",
+  "status": "done",
   "title": "The canopy: real leaf geometry, culled to a shell, in one instanced draw",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T17:09:18.792760Z"
+  "updated_at": "2026-09-06T22:06:54.875671Z"
 }
