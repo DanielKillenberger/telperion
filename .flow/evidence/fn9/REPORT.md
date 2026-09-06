@@ -1,6 +1,6 @@
 # FN9 species completion evidence
 
-2026-09-06. The required numeric and visual checks pass at production `0a8f343`; independent implementation review is SHIP; spec-completion review follows. No owner approval or merge is claimed. Earlier reports and captures are preserved intact in [the iteration archive](../../../experiments/fn9-iterations/README.md). The frozen [profiles](profiles.json), [seeds](seeds.json) and [references](REFERENCES.md) remain unchanged.
+2026-09-06. The required numeric and visual checks pass at production `0a8f343`; same-model implementation review is SHIP. Spec-completion review remains unassessed: its preflight could not resolve the default main ref, and further Astra review was stopped after the owner questioned using the builder model for review. No owner approval or merge is claimed. Earlier reports and captures are preserved intact in [the iteration archive](../../../experiments/fn9-iterations/README.md). The frozen [profiles](profiles.json), [seeds](seeds.json) and [references](REFERENCES.md) remain unchanged.
 
 ## Current implementation
 
@@ -23,7 +23,7 @@ Final native workspace tests pass (68 passed, 6 explicitly ignored historical/di
 
 ## Inspected visual disposition
 
-All 84 captures succeeded; 59 views were inspected for the final decision: the 39 required mature whole/bare/foliage views, nine shared-template views and eleven representative anatomy/curtain/junction views. [Per-view observations](final/visual.json) retain limitations and unassessed optional angles; [capture receipts](final/captures.json) retain renderer, preset, camera, source/Wasm/runner and PNG hashes. The 35 numeric-only specimens remain visually unassessed. Owner feedback is null throughout.
+All 84 captures succeeded; 59 views were inspected for the final decision: the 39 required mature whole/bare/foliage views, nine shared-template views and eleven representative anatomy/curtain/junction views. [Per-view observations](final/visual.json) retain limitations and unassessed optional angles; [capture receipts](final/captures.json) retain renderer, preset, camera, source/Wasm/runner and PNG hashes. The 35 numeric-only specimens remain visually unassessed. Per-view owner feedback fields remain null. After using the served viewer, the owner said, “but good job on the implementation looks good”; that feedback is recorded separately below.
 
 The six oaks have broad irregular crowns, low crooked spreading limbs and fine subdivisions, with alternate attached lobed blades. Seed 2 retains a deep upper notch; its former enclosed central window now has foliage. The frozen rubric asks for irregular windows and substantial spreading crown mass, not an opaque or perfectly symmetric crown. The final oak PNGs exactly match the already inspected pre-taper images.
 
@@ -47,3 +47,11 @@ Ordinary, Telperion and Laurelin were checked in all nine required views. Their 
 The compact numeric receipt summarizes individual branch-length samples by count/range/quantiles and pins the full raw JSONL by hash; all gating checks remain intact. [Per-case costs](final/costs.json) preserve before/after native counts, times and output sizes. Baseline numeric concurrency was one, final concurrency three alongside capture work; no controlled speed comparison or software-GPU performance claim is made. Spruce seed 1 renders roughly 7.9 million individual needles. [Sources](final/sources.json) pin production and local reference hashes. [Gate records](final/gates.json) preserve commands, scope and logs, including earlier corrected failures.
 
 Historical exact-count/protected-hash/no-lower-infill conditions were iteration controls, not attributed requirements; task 9 records their supersession by the architecture repair. Frozen botanical targets, numeric ranges and seeds were not relaxed. The iteration archive is preserved intact.
+
+## Owner feedback and handoff
+
+The owner questioned same-model implementation review after expecting it to be skipped. The completed Astra review is retained honestly as same-model review; no cross-model independence is claimed. The separate completion-review command failed before dispatch because its default `main...HEAD` snapshot could not resolve. No completion verdict was obtained and no further Astra review was dispatched. The spec remains open with completion_review_status unknown; all nine implementation tasks are done.
+
+Owner feedback on 2026-09-06 after the live spruce was served: “but good job on the implementation looks good”. This is implementation feedback, not an invented per-seed rubric score. The live full-foliage page remains at http://127.0.0.1:5184/?species=norway-spruce&seed=1. Temporary test servers and the session-owned worker worktree were removed after integration. No PR, merge or release was performed.
+
+stage: completion-review - failed(error: default main snapshot unavailable before dispatch; further Astra review stopped following owner steering)
