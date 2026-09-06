@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R3, R4, R5]
+satisfies: [R1, R2, R3, R4, R5]
 ---
 # fn-19-comparative-botanical-geometry-benchmark.4 Publish the baseline assessment and verified revision replay
 
