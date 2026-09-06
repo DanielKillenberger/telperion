@@ -39,6 +39,9 @@ node tests/browser/integration.mjs
 
 ## Done summary
 Implemented independent catalogue/seed selection, distinct botanical and supernatural controls, and whole/bare/actual-foliage-detail framing. Recomputed transformed instance bounds and preserved Two Trees comparison. Typecheck, 82 affected tests, and the full headless integration gate pass. Durable inspected oak/spruce whole, bare and detail PNGs plus exact inputs/backend metadata are committed under .flow/evidence/fn9/viewer/. SwiftShader succeeds on complete 4 m fixtures; full-size mature captures and reference fidelity remain task 9 work. See .flow/evidence/fn9/neutral-viewer.md. No reviews, PR or merge. Next job: fn-9.9.
+
+Runtime state reconciled on 2026-09-06 from this committed completion receipt after fetching remote through 1297516. The preceding tests describe the original completion, not a fresh fidelity verdict.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: b038e44
 - Tests: npm run typecheck: passed, npm test -- harness/stage.test.ts harness/skeleton-view.test.ts: 82 passed, exit 0, BROWSER_EVIDENCE=.flow/tmp/fn98-browser node tests/browser/integration.mjs: passed, exit 0; six durable species PNGs and SwiftShader metadata, git diff --check: passed

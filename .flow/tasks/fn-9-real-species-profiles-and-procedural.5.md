@@ -36,6 +36,9 @@ cargo test --release -p telperion-core --test species --test species_metrics
 
 ## Done summary
 Registered native Oregon white oak with explicit profile identity and calibrated spreading/lobed/alternate Family. All 12 fixed seeds pass numeric and geometry gates; deterministic full outputs and meaningful cross-seed variation tested. Template-only density calibration, no shared-rule changes. Final visual acceptance remains pending task 9; failed software captures and initial sparse crown recorded in broadleaf.md. Calibration/evidence SHA: d068391a9d043decc81ff1b556b8622f420618aa. REVIEW_MODE=none; no reviews or merge.
+
+Runtime state reconciled on 2026-09-06 from this committed completion receipt after fetching remote through 1297516. The preceding tests describe the original completion, not a fresh fidelity verdict.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: d068391a9d043decc81ff1b556b8622f420618aa
 - Tests: cargo test --release -p telperion-core --test species --test species_metrics: 7 passed; all 12 fixed seeds checked, cargo test --release -p telperion-core --test growth --test foliage --test surface: 28 passed, cargo check --workspace: passed, cargo fmt --all --check: passed, git diff --check: passed, species_measure: all 12 frozen oak cases pass on committed calibration, CLI unknown preset and mismatched species/profile: explicit failures, independent continuation verified

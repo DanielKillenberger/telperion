@@ -8,7 +8,7 @@ Run cross-seed visual QA and document the species workflow. See the parent spec 
 
 **Size:** M
 **Files:** `tests/browser/species.mjs`, `package.json`, `README.md`, `tests/migration/README.md`, `.flow/evidence/fn9/REPORT.md`
-**Touches:** [tests/browser/species.mjs, package.json, README.md, tests/migration/README.md, .flow/evidence/fn9/REPORT.md]
+**Touches:** [crates/telperion-core/src/branching.rs, crates/telperion-core/src/branching/**, crates/telperion-core/src/foliage/**, crates/telperion-core/src/presets.rs, crates/telperion-core/tests/**, tests/browser/species.mjs, scripts/*species*, package.json, README.md, tests/migration/README.md, .flow/evidence/fn9/**]
 
 ### Approach
 - Add a compact headless runner using the existing integration capture pattern. Render the parent protocol, record camera/browser/renderer metadata and output hashes, preserve per-case results on failure, and write bulk output outside the checkout by default.
@@ -39,6 +39,10 @@ node tests/browser/integration.mjs
 node tests/browser/species.mjs --help
 ```
 
+### Resumed architecture correction (2026-09-06)
+The owner requested cleanup and completion after fetching pass 7. R6 authorizes targeted shared-rule corrections. The measured seed-2 window cannot be reached by rotations of frozen upper descendants. Inspect the spreading habit's hardcoded structural shell shedding, which can remove already-grown internal subdivisions despite full foliage retention. Spruce places most needle-bearing terminal runs below its descending secondary span; allocate subordinate shoots along that span during growth instead of post-hoc fan transforms. Remove superseded occupancy repairs if the upstream correction replaces them. Add small geometric regressions and re-run frozen numeric seeds and all reference views.
+
+Frozen botanical targets, seed identities and honest geometry/visual evidence remain required. Historical pass reports' unchanged-count/protected-hash/no-lower-infill conditions have no attributed owner requirement in this spec and are superseded by this evidence-driven architecture repair. Record changed counts and outputs; do not weaken profile dimensions, resource/finite checks or natural/supernatural separation. Keep prior evidence recoverable through Git and replace bulky iterative output with a compact reproducible final receipt.
 ## Acceptance
 - [x] All 24 recorded seeds per species have explicit numeric results; required fixed/fresh image sets are inspected against source references.
 - [ ] Trait-level evidence supports R3–R6, or outstanding failures remain explicit and prevent task completion; no unearned owner approval is recorded.

@@ -45,6 +45,9 @@ Implemented the identity-based Ordinary/oak/spruce/Two Trees catalogue, generate
 Verified native roundtrip/rejection tests, 104 harness tests, typecheck, strict binding-only Clippy, formatting, byte-identical regeneration, and the headless Wasm/species/ownership/viewer-retry gate. Intentional historical fixture updates and environment fallback are documented in `.flow/evidence/fn9/wasm-bindings.md`.
 
 Implementation: 3c1d43b (pushed). No PR or merge. No new whole PNGs; existing `.flow/tmp/oak-{1,2,3}-whole.png` confirmed foliage-on. Next job: fn-9.8.
+
+Runtime state reconciled on 2026-09-06 from this committed completion receipt after fetching remote through 1297516. The preceding tests describe the original completion, not a fresh fidelity verdict.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 3c1d43b59c44d1443a6e164840aa776b42306433
 - Tests: npm run wasm:build: passed; generated TS and Wasm byte-identical on repeat, npm run rust:test:wasm: passed; headless species anatomy/ownership/independent outputs and viewer retries, npm run typecheck: passed, npm test -- --reporter=dot: 104 passed, npm test -- harness/params.test.ts harness/skeleton-view.test.ts -t "presetToParams|carried native controls": 8 passed after final comparison naming change, cargo test --release -p telperion-wasm: 2 passed, cargo clippy -p telperion-wasm --all-targets --no-deps -- -D warnings: passed, cargo fmt --all --check: passed, git diff --check: passed

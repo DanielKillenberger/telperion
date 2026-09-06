@@ -36,6 +36,9 @@ cargo test --release -p telperion-core --test species --test species_metrics --t
 
 ## Done summary
 Registered native NorwaySpruce against frozen Picea abies profile. All 12 spruce and 12 oak cases pass numeric gates and structural/geometry checks; 37 focused tests plus workspace/fmt checks green. Bare diagnostic captures 1–3 inspected; whole software captures timed out, final visual acceptance remains task 9. Contextual DBH ambiguity and targeted follow-up retained in conifer.md. No shared rule or target change; no task 7 start, review or merge.
+
+Runtime state reconciled on 2026-09-06 from this committed completion receipt after fetching remote through 1297516. The preceding tests describe the original completion, not a fresh fidelity verdict.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 5a40d45a7988f4231cff42a33c299d01ffc9b7a8
 - Tests: cargo test --release -p telperion-core --test species --test species_metrics --test foliage --test growth --test surface: 37 passed; all 12 fixed seeds per species, cargo check --workspace: passed, cargo fmt --all --check: passed, git diff --check: passed, species_measure on committed calibration: all 24 spruce/oak fixed cases pass
