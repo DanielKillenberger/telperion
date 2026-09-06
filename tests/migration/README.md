@@ -337,3 +337,53 @@ same historical measurement tool on the candidate, or collect both source
 revisions again with one corrected tool version and retain the original evidence.
 Never relabel old captures with a new tool hash. The small replay uses the corrected
 tool on both sides and is not compared directly with the mature cohort.
+
+### Versioned local-anatomy visibility supplement
+
+The separate `fn19-visibility-v2.2` diagnostic protocol lives at
+[visibility-v2/protocol.json](../../.flow/evidence/fn19/visibility-v2/protocol.json).
+It preserves the v1 population, parameters, selected semantic targets and all
+wood arrays. Exact per-case depth planes may crop remote context; depth-cut ends
+are crop boundaries, not anatomy defects. Fork captures hide foliage; attached-shoot captures
+retain only the original element transforms assigned geometrically to that
+terminal segment, including connectors. This declared filtering exposes anatomy
+and must never be used as a natural full-foliage or density comparison. Original
+v1 occluded views and their statuses remain unchanged.
+
+With the pinned generator, built Wasm and local Vite server available, run:
+
+```bash
+BROWSER_URL=http://127.0.0.1:5199 \
+CHROMIUM_EXECUTABLE=/tmp/fn9-chromium-gpu \
+node tests/browser/geometry-visibility.mjs \
+  /tmp/fn19-mature-visual-20260906 /tmp/fn19-visibility-NEW \
+  --conditions .flow/evidence/fn19/visibility-v2/admissions.json
+```
+
+`CHROMIUM_EXECUTABLE` is the actual local GPU wrapper used for this evidence;
+replace it with an available browser executable for another machine and retain
+the resulting backend identity. The runner refuses an existing output directory,
+checks every generated array against the original mature receipt, records every
+retained foliage instance index and reuses exact admitted cameras without search
+or refitting. It verifies the complete admission cohort and original preview
+hashes. Replace `--conditions ...` with `--prepare` for single-sample proposals;
+these require direct visual admission and are not mature evidence. Changed
+camera/depth conditions require a new inspected preview and hash. The optional
+positional integer selects one case for diagnostics;
+a complete supplement requires all twelve cases and both local views.
+
+The output retains original 64- and 128-sample PNGs, source/tool hashes, original
+geometry mapping, cameras, visible-probe measurements, failures and pending human
+assessment. Every final image still requires direct inspection: a ray probe alone
+does not establish that the named anatomy is visible. Keep hidden anatomy
+unassessed and preserve failed attempts. Filtered images cannot establish hidden
+rear continuity, independent botanical approval or calibrated species dimensions.
+
+This diagnostic runner is restricted to the pinned original mature geometry. It
+rejects changed generated array hashes and does not implement changed-revision
+comparison. `visibility-v2/capture.json` retains each exact camera, target node
+IDs, retained original instance IDs and filtering conditions. A future candidate
+adapter must reuse those baseline cameras and declared filters while validating
+semantic target/attachment mapping; searching or refitting cameras independently
+for a candidate is not a matched comparison. Do not feed these two filtered
+channels into the v1 seven-view comparison or projected-gap statistics.

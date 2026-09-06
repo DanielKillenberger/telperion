@@ -1,0 +1,103 @@
+{
+  "assessor": "root implementation agent; not independent botanical expert",
+  "inspected_at": "2026-09-06T20:26:45.809965+00:00",
+  "method": "direct full-resolution PNG inspection using view_image",
+  "views": [
+    {
+      "case_index": 0,
+      "view": "fork",
+      "path": "/tmp/fn19-visibility-v22-final/0-fork-128.png",
+      "sha256": "4e929d8ae69eda6b3307909ffc633bcfb91098d16e1c6a4bce8cceb51a9d1421",
+      "status": "visually-usable",
+      "observation": "Shared multi-axis scaffold junction and broad faceted shoulder are visible; uncropped wood context retained."
+    },
+    {
+      "case_index": 0,
+      "view": "attached-shoot",
+      "path": "/tmp/fn19-visibility-v22-final/0-attached-shoot-128.png",
+      "sha256": "3a964896925c7a7edcd9dcdc40b0d328256d07018cdc6ebd27d27c84877049f4",
+      "status": "visually-usable",
+      "observation": "Twig, multiple petioles and blade faces are visible; overlapping blade silhouettes limit hidden-side assessment."
+    },
+    {
+      "case_index": 1,
+      "view": "fork",
+      "path": "/tmp/fn19-visibility-v22-final/1-fork-128.png",
+      "sha256": "034553a66648472b7f656904b8574175a5065610f149ca32942f6794449971e3",
+      "status": "visually-usable",
+      "observation": "Selected lateral root is exposed on the front of the parent; plug-like transition is assessable. Remote crop ends are excluded."
+    },
+    {
+      "case_index": 1,
+      "view": "attached-shoot",
+      "path": "/tmp/fn19-visibility-v22-final/1-attached-shoot-128.png",
+      "sha256": "584ae3093efb74357172af1b40cba1163d969381281fba85dd11b26be5ae2fd9",
+      "status": "visually-usable",
+      "observation": "Incoming parent junction, terminal axis, petioles and blades are visible after depth widening."
+    },
+    {
+      "case_index": 2,
+      "view": "fork",
+      "path": "/tmp/fn19-visibility-v22-final/2-fork-128.png",
+      "sha256": "571e90a2a4b55ec429ee7b7ea44d17eb18820e947a0a6a8f866137cacd00506f",
+      "status": "visually-usable",
+      "observation": "Selected rightward lateral root is visible against the front parent surface; surrounding branches remain in context."
+    },
+    {
+      "case_index": 2,
+      "view": "attached-shoot",
+      "path": "/tmp/fn19-visibility-v22-final/2-attached-shoot-128.png",
+      "sha256": "4b5afe728bfb5a2f09728542df1612ca45e8f177cd08d30779c4941ccaa8bfbf",
+      "status": "visually-usable",
+      "observation": "Parent continuation and terminal twig remain visible; separated petioles and blade faces can be inspected."
+    },
+    {
+      "case_index": 3,
+      "view": "fork",
+      "path": "/tmp/fn19-visibility-v22-final/3-fork-128.png",
+      "sha256": "1d8c37dc27ac5ba7a627b842f2970c0366223bfbf3058a4f868670cfe5128055",
+      "status": "visually-usable",
+      "observation": "Broad branch shoulder is exposed; distal depth-cut opening is separate from the joint and is excluded from defects."
+    },
+    {
+      "case_index": 3,
+      "view": "attached-shoot",
+      "path": "/tmp/fn19-visibility-v22-final/3-attached-shoot-128.png",
+      "sha256": "0c67c1e6548376a5f08a82e3cd0c4bc8be174b3622a6b918ce63c691fe330be0",
+      "status": "visually-usable",
+      "observation": "Twig, connectors and blade faces are visible; upper and lower foliage overlap remains explicit."
+    },
+    {
+      "case_index": 4,
+      "view": "fork",
+      "path": "/tmp/fn19-visibility-v22-final/4-fork-128.png",
+      "sha256": "43973cfc1c3efa8c8a482f0370063b9599fd630108080cdfdd6ed6ef3ebcc60e",
+      "status": "visually-usable",
+      "observation": "Upper/root region of selected rightward lateral is visible after camera change; lower and rear surfaces remain unassessed amid surrounding wood."
+    },
+    {
+      "case_index": 4,
+      "view": "attached-shoot",
+      "path": "/tmp/fn19-visibility-v22-final/4-attached-shoot-128.png",
+      "sha256": "f56bad10db42079cb6951c90233931ad68c93f5cd5f1cef6d8ca2c2ca30ee67d",
+      "status": "visually-usable",
+      "observation": "Terminal axis and multiple petioles are exposed, with incoming wood context extending out of frame."
+    },
+    {
+      "case_index": 5,
+      "view": "fork",
+      "path": "/tmp/fn19-visibility-v22-final/5-fork-128.png",
+      "sha256": "178dc2ae738dd33d5136ac37365b77f538ae9c142c81df75753a14559f18297e",
+      "status": "visually-usable",
+      "observation": "Shared scaffold attachment and faceted collar-like shoulder are visible; distal cropped branch ends are excluded from defects."
+    },
+    {
+      "case_index": 5,
+      "view": "attached-shoot",
+      "path": "/tmp/fn19-visibility-v22-final/5-attached-shoot-128.png",
+      "sha256": "d0bdc67342cf37f05b432e4b291cfd54183d800e6d352e18fabde334d0b9ec60",
+      "status": "visually-usable",
+      "observation": "Terminal twig and petiole sequence are visible despite one crossing bare twig; blade overlap limits hidden-side assessment."
+    }
+  ]
+}

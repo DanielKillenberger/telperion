@@ -1,5 +1,14 @@
 import { convexHull, targetSupport } from './geometry-benchmark-diagnostics.mjs';
 
+export function collarFacing(camera,parent,child) {
+  const length=Math.hypot(...parent),axis=parent.map(x=>x/length),along=child.reduce((s,x,i)=>s+x*axis[i],0),radial=child.map((x,i)=>x-along*axis[i]),r=Math.hypot(...radial);
+  return r>1e-9?camera.reduce((s,x,i)=>s+x*radial[i]/r,0):-1;
+}
+
+export function woodyProbeVisible(hit,point,radius) {
+  return !!hit&&hit.surface==='grower-trunk'&&Math.hypot(...hit.point.map((x,i)=>x-point[i]))<=Math.max(.008,radius*1.5);
+}
+
 // Browser-only adapter. Imports the installed generator and materializer without
 // importing fn13's executable runner or altering the production stage.
 export async function createRig(parameters,species) {
@@ -102,6 +111,7 @@ export async function createRig(parameters,species) {
     camera.position.fromArray(c.position_m);camera.up.fromArray(c.up);camera.lookAt(new THREE.Vector3(...c.target_m));camera.updateMatrixWorld(true);return camera;
   }
   function prepare(view,azimuth,fixed) {
+    canopy.instanceMatrix=originalInstances;canopy.count=f.matrices.length/16;canopy.frustumCulled=true;
     wood.visible=true;canopy.visible=view!=='bare';canopy.material=leafMaterial;canopy.geometry.setIndex(fullIndex);
     const norm=fixed?.environment?.normalization??normalization,{target,span,units}=select(view,norm);
     let c=fixed?.camera;
@@ -141,7 +151,87 @@ export async function createRig(parameters,species) {
   }
   const white=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide,toneMapped:false});
   const fullIndex=canopy.geometry.index,biologicalIndex=new THREE.BufferAttribute(f.indices.slice(...anatomy.indices),1);
+  const originalInstances=canopy.instanceMatrix;
+  function diagnosticInstances(units) {
+    const selected=new Float32Array(units.length*16);
+    units.forEach((unit,i)=>selected.set(f.matrices.subarray(unit*16,unit*16+16),i*16));
+    canopy.instanceMatrix=new THREE.InstancedBufferAttribute(selected,16);canopy.count=units.length;
+    canopy.frustumCulled=false;
+  }
+  function prepareVisibility(view,fixed=null) {
+    if(!['fork','attached-shoot'].includes(view))throw Error('unsupported visibility view');
+    const selected=select(view),target=selected.target,nodes=target.node_indices;
+    const units=view==='attached-shoot'?selected.units:[];
+    diagnosticInstances(units);wood.visible=true;canopy.visible=units.length>0;
+    canopy.material=leafMaterial;canopy.geometry.setIndex(fullIndex);tree.updateMatrixWorld(true);
+    const junction=point(nodes[1]),probes=[],probeRadii=[],frame=[];
+    const lateral=view==='fork'?nodes.slice(2).find(node=>order[node]!==order[nodes[1]]):null;
+    const lateralDirection=lateral===null?null:point(lateral).sub(junction).normalize();
+    let lateralProbe=-1,exitProbe=-1;
+    const parentDirection=junction.clone().sub(point(nodes[0])).normalize();
+    if(view==='fork') {
+      const radius=values[nodes[1]*6+3];
+      for(const node of [nodes[0],...nodes.slice(2)]){
+        const delta=point(node).sub(junction),length=Math.min(delta.length(),Math.max(.15,radius*5));
+        frame.push(junction.clone().addScaledVector(delta.normalize(),length));
+        const distance=length*.8;probes.push(junction.clone().addScaledVector(delta,distance));
+        const t=distance/point(node).distanceTo(junction);
+        probeRadii.push(node===nodes[0]?radius:values[node*6+4]*(1-t)+values[node*6+3]*t);
+        if(node===lateral)lateralProbe=probes.length-1;
+      }
+      frame.push(junction);probes.push(junction);probeRadii.push(radius);
+      if(lateral!==undefined){
+        const sine=lateralDirection.clone().cross(parentDirection).length(),axisLength=point(lateral).distanceTo(junction);
+        const distance=radius/Math.max(1e-9,sine)+values[lateral*6+4]*1.2;
+        if(distance<axisLength){const t=distance/axisLength;exitProbe=probes.length;probes.push(junction.clone().addScaledVector(lateralDirection,distance));probeRadii.push(values[lateral*6+4]*(1-t)+values[lateral*6+3]*t);}
+      }
+    }else {
+      const base=point(nodes[1]),tip=point(nodes[2]),incoming=point(nodes[0]).sub(base);
+      frame.push(base,tip,base.clone().addScaledVector(incoming.normalize(),Math.min(.08,base.distanceTo(tip)*.5)));
+      for(const t of [.15,.5,.85]){probes.push(base.clone().lerp(tip,t));probeRadii.push(values[nodes[2]*6+4]*(1-t)+values[nodes[2]*6+3]*t);}
+      for(const unit of units){matrix.fromArray(f.matrices,unit*16);for(let j=0;j<f.positions.length/3;j++)frame.push(new THREE.Vector3().fromArray(f.positions,j*3).applyMatrix4(matrix));}
+    }
+    const areaNormals=[];
+    for(const unit of units){matrix.fromArray(f.matrices,unit*16);for(let j=anatomy.indices[0];j<anatomy.indices[1];j+=3){
+      const a=new THREE.Vector3().fromArray(f.positions,f.indices[j]*3).applyMatrix4(matrix),b=new THREE.Vector3().fromArray(f.positions,f.indices[j+1]*3).applyMatrix4(matrix),c=new THREE.Vector3().fromArray(f.positions,f.indices[j+2]*3).applyMatrix4(matrix);
+      areaNormals.push(b.sub(a).cross(c.sub(a)));
+    }}
+    const box=new THREE.Box3().setFromPoints(frame),centre=box.getCenter(new THREE.Vector3());
+    const ray=new THREE.Raycaster(),oldSide=wood.material.side;wood.material.side=THREE.DoubleSide;
+    const directions=[];
+    for(const elevation of [-.5,0,.5])for(let azimuth=0;azimuth<16;azimuth++)directions.push(new THREE.Vector3(Math.cos(azimuth*Math.PI/8),elevation,Math.sin(azimuth*Math.PI/8)).normalize());
+    const candidates=directions.map((direction,index)=>({direction,index})).filter(c=>!fixed||c.index===fixed.diagnostic.camera_direction_index).map(({direction,index})=>{
+      const right=new THREE.Vector3(0,1,0).cross(direction).normalize(),up=direction.clone().cross(right).normalize();
+      const local=frame.map(p=>p.clone().sub(centre));
+      const extent=Math.max(...local.map(p=>Math.abs(p.dot(up))*2),...local.map(p=>Math.abs(p.dot(right))*2/1.6));
+      const vertical=Math.max(.1,extent*1.35),zs=corners.map(p=>p.clone().sub(centre).dot(direction)),distance=Math.max(...zs)+2;
+      const localZ=local.map(p=>p.dot(direction)),depthMargin=Math.max(.01,...nodes.map(i=>Math.max(values[i*6+3],values[i*6+4])*1.5));
+      const camera={projection:'orthographic',position_m:centre.clone().addScaledVector(direction,distance).toArray(),target_m:centre.toArray(),up:[0,1,0],left_m:-vertical*.8,right_m:vertical*.8,top_m:vertical/2,bottom_m:-vertical/2,near_m:distance-Math.max(...localZ)-depthMargin,far_m:distance-Math.min(...localZ)+depthMargin,width_px:1600,height_px:1000,dpr:1};
+      if(fixed)Object.assign(camera,fixed.camera);
+      const c=cameraFrom(camera),hits=probes.map((p,probeIndex)=>{
+        const projected=p.clone().project(c);ray.setFromCamera(new THREE.Vector2(projected.x,projected.y),c);ray.near=camera.near_m;ray.far=camera.far_m;
+        const hit=ray.intersectObjects(units.length?[wood,canopy]:[wood],false)[0];
+        return {point_m:p.toArray(),first_surface:hit?.object.name??null,first_hit_m:hit?.point.toArray()??null,local_radius_m:probeRadii[probeIndex],visible:woodyProbeVisible(hit?{surface:hit.object.name,point:hit.point.toArray()}:null,p.toArray(),probeRadii[probeIndex])};
+      });
+      const visible=hits.filter(h=>h.visible).length;
+      const axis=(view==='attached-shoot'?point(nodes[2]):frame[0].clone()).sub(junction).normalize();
+      const separation=1-Math.abs(axis.dot(direction));
+      const projected_area=areaNormals.reduce((sum,n)=>sum+Math.abs(n.dot(direction)),0);
+      const lateral_front=lateralDirection===null?1:collarFacing(direction.toArray(),parentDirection.toArray(),lateralDirection.toArray());
+      const eligible=lateral===null||lateral_front>=.5&&exitProbe>=0&&hits[lateralProbe].visible&&hits[exitProbe].visible;
+      return {index,camera,hits,visible,projected_area,separation,lateral_front,eligible};
+    });
+    wood.material.side=oldSide;
+    candidates.sort((a,b)=>Number(b.eligible)-Number(a.eligible)||b.visible-a.visible||b.projected_area-a.projected_area||b.separation-a.separation||a.index-b.index);
+    const chosen=candidates[0];
+    if(!fixed&&!chosen.visible)throw Error('unassessed: no unobstructed woody probe in deterministic camera search');
+    const actualDirection=new THREE.Vector3().fromArray(chosen.camera.position_m).sub(new THREE.Vector3().fromArray(chosen.camera.target_m)).normalize();
+    const depths=corners.map(p=>new THREE.Vector3().fromArray(chosen.camera.position_m).sub(p).dot(actualDirection));
+    const depth_crop={near_m:chosen.camera.near_m,far_m:chosen.camera.far_m,source:fixed?'visually admitted exact camera':'automatic local-volume proposal',whole_tree_bounds_clipped:Math.min(...depths)<chosen.camera.near_m||Math.max(...depths)>chosen.camera.far_m,interpretation:'Any depth-cut ends are crop boundaries, never anatomical cap evidence'};
+    return {camera:chosen.camera,target,leaf_state:units.length?'selected-attachment-only':'hidden',diagnostic:{version:'fn19-visibility-v2.2',view,geometry_hashes:hashes,wood:'original-arrays-declared-camera-depth',retained_unit_indices:units,original_unit_count:f.matrices.length/16,attachment_mapping:'original matrix origins within tapered terminal segment; same geometric attachment rule as v1; no generator ownership ID available',foliage_filter:view==='fork'?'all foliage hidden':'only selected terminal-segment attachment matrices retained, including original connectors',target_rule:'unchanged v1 normalized semantic target and tie order',camera_rule:'48 fixed spherical directions; selected lateral radial direction perpendicular to incoming parent must face camera (dot >= 0.5); distal and parent-surface-exit probes must be visible at branch-specific radii; most visible woody probes, then greatest projected retained biological area, then least axial foreshortening, then direction index',automatic_visibility:chosen.eligible?'probe-supported proposal':'unassessed: side-branch probe model did not admit this proposal',depth_crop,selected_lateral_node:lateral,lateral_front_dot:chosen.lateral_front,camera_direction_index:chosen.index,projected_nodes_px:nodes.map(i=>{const p=point(i).project(cameraFrom(chosen.camera));return {node:i,x:(p.x+1)*800,y:(1-p.y)*500};}),visible_probe_count:chosen.visible,probe_count:probes.length,probes:chosen.hits,candidate_scores:candidates.map(c=>({index:c.index,eligible:c.eligible,lateral_front_dot:c.lateral_front,visible:c.visible,projected_area:c.projected_area,separation:c.separation})),frame_margin:1.35,assessment:'unassessed pending direct image inspection',density_use:'prohibited: diagnostic filtering is not natural foliage density'}};
+  }
   function raw(condition,channel,offset=null) {
+    if(condition.diagnostic){if(canopy.count!==condition.diagnostic.retained_unit_indices.length)diagnosticInstances(condition.diagnostic.retained_unit_indices);}else{canopy.instanceMatrix=originalInstances;canopy.count=f.matrices.length/16;canopy.frustumCulled=true;}
     const c=condition.camera,camera=cameraFrom(c);if(offset)camera.setViewOffset(1600,1000,offset[0],offset[1],1600,1000);
     const mask=channel==='coverage';wood.visible=!mask;canopy.visible=condition.leaf_state!=='hidden';canopy.material=mask?white:leafMaterial;canopy.geometry.setIndex(mask?biologicalIndex:fullIndex);scene.background=new THREE.Color(mask?0x000000:0xc6ced5);
     renderer.render(scene,camera);gl.finish();if(gl.isContextLost()||gl.getError()!==gl.NO_ERROR||(!renderer.info.render.triangles&&!(mask&&condition.leaf_state==='hidden')))throw Error('hardware-unavailable: lost context or empty draw');
@@ -150,5 +240,5 @@ export async function createRig(parameters,species) {
     for(let y=0;y<1000;y++)for(let x=0;x<1600;x++)for(let k=0;k<channels;k++)data[(y*1600+x)*channels+k]=pixels[((999-y)*1600+x)*4+k]/255;
     return data;
   }
-  return {prepare,raw,metadata:{hashes,three_revision:THREE.REVISION,wasm_sha256:wasmHash,generation_ms:generationMs,preparation_ms:performance.now()-started-generationMs,wasm_bytes:wasmBytes,backend,diagnostics:output.diagnostics,normalization,source_array_bytes:Object.values(arrays).reduce((n,a)=>n+a.byteLength,0),samples:gl.getParameter(gl.SAMPLES),encoding:'linear unsigned8 framebuffer MSAA; Float64 averaging; float32 little endian; sRGB preview',exclusive_window:false}};
+  return {prepare,prepareVisibility,raw,metadata:{hashes,three_revision:THREE.REVISION,wasm_sha256:wasmHash,generation_ms:generationMs,preparation_ms:performance.now()-started-generationMs,wasm_bytes:wasmBytes,backend,diagnostics:output.diagnostics,normalization,source_array_bytes:Object.values(arrays).reduce((n,a)=>n+a.byteLength,0),samples:gl.getParameter(gl.SAMPLES),encoding:'linear unsigned8 framebuffer MSAA; Float64 averaging; float32 little endian; sRGB preview',exclusive_window:false}};
 }

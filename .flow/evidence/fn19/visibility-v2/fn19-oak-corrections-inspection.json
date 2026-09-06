@@ -1,0 +1,47 @@
+[
+  {
+    "case_index": 1,
+    "view": "attached-shoot",
+    "visibility": "named anatomy visible",
+    "observation": "Incoming parent bend and nearby lateral connection are now visible, with the retained terminal twig, petioles and lobed leaf faces. The previously isolated depth-cut sprig is resolved.",
+    "assessor": "conductor; implementation-side visual inspection",
+    "preview_path": "/tmp/fn19-visibility-v22-wide-1/preview.png",
+    "preview_sha256": "59572f5d6bc8b5e8206bfe162738d75fba80e8057f67ca0a3cbdec6e28107b41"
+  },
+  {
+    "case_index": 2,
+    "view": "attached-shoot",
+    "visibility": "named anatomy visible",
+    "observation": "Incoming parent and a neighboring lateral remain connected in frame; terminal twig and several petioles are clear. The previously depth-cut incoming segment is restored without changing the selected organs.",
+    "assessor": "conductor; implementation-side visual inspection",
+    "preview_path": "/tmp/fn19-visibility-v22-wide-2/preview.png",
+    "preview_sha256": "60dbeb972f81339b416d8f25fe8917d560d6b8ed20fa5046621e7ee5fdb3cb56"
+  },
+  {
+    "case_index": 4,
+    "view": "attached-shoot",
+    "visibility": "named anatomy visible",
+    "observation": "Incoming wood continues beyond the image frame. Terminal axis, multiple petioles and lobed blade faces are clear; the prior incoming depth-cut end is removed.",
+    "assessor": "conductor; implementation-side visual inspection",
+    "preview_path": "/tmp/fn19-visibility-v22-wide-4/preview.png",
+    "preview_sha256": "75cb8954747a8da7444be270ce80ea4a41ea799fb3de2c2d43de41f1ac5590d8"
+  },
+  {
+    "case_index": 5,
+    "view": "attached-shoot",
+    "visibility": "named anatomy visible",
+    "observation": "Incoming wood continues beyond the upper frame with a neighboring branch retained. Multiple petiole attachments and blade faces remain inspectable despite one crossing twig.",
+    "assessor": "conductor; implementation-side visual inspection",
+    "preview_path": "/tmp/fn19-visibility-v22-wide-5/preview.png",
+    "preview_sha256": "b3581786f74ea693795d975e29dc5bc02053f05be2f4ea0fd82cf6f9edf24beb"
+  },
+  {
+    "case_index": 4,
+    "view": "fork",
+    "visibility": "named anatomy visible",
+    "observation": "The shared junction, upper/root transition of the selected rightward lateral and its outgoing axis are assessable. The foreground sibling is better separated than in the initial proposal. Lower and rear surfaces remain unassessed; visible distal cut ends are crop boundaries.",
+    "assessor": "conductor; implementation-side visual inspection",
+    "preview_path": "/tmp/fn19-visibility-v22-fork4-alt/preview.png",
+    "preview_sha256": "0244202aa965dc9a9bc82574e3de698272d3fab5e0250975abcfecf7298297ec"
+  }
+]

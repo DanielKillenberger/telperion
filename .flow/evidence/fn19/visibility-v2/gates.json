@@ -1,0 +1,25 @@
+{
+  "baseline": "green: ten focused Node tests before edits",
+  "red_to_green": [
+    "new mapping export reproduction",
+    "parent radius false-positive reproduction",
+    "radial-facing axial-component reproduction",
+    "wrong admission cohort reproduction"
+  ],
+  "final_tests": [
+    {
+      "command": "node --test tests/browser/geometry-benchmark.test.mjs",
+      "exit_code": 0,
+      "passed": 14,
+      "log": "final-node.log"
+    },
+    {
+      "command": "npm run typecheck",
+      "exit_code": 0,
+      "log": "final-typecheck.log"
+    }
+  ],
+  "production_changes": false,
+  "full_rust_vitest": "not rerun: conductor limited this completion fix to focused Node/TypeScript and actual captures",
+  "review": "skipped(config: REVIEW_MODE=none); conductor owns completion review"
+}

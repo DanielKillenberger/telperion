@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "captured": 24,
+  "directly_inspected": 24,
+  "original128_pngs_retained": 24,
+  "hashed_capture_pngs_verified": 48,
+  "conditions": "All24 exact cameras, targets and retained instance indices equal frozen admissions",
+  "geometry": "All24 original array hashes and Wasm equal original mature v1 case receipts",
+  "source": "All consumed files still match clean frozen tool receipt",
+  "beauty_rmse_64_128_range": [
+    0.0001809491014137857,
+    0.0017114272674504459
+  ],
+  "capture_exit_code": 0,
+  "tool_commit": "5234c624bc5664cdc2bba53d95338e0df7a96127",
+  "tool_sha256": "47689a8f524aba74aeeb9de94fe0a64574de920b7be005f7d02d81614d574b35",
+  "independent_botanical_assessment": "unassessed"
+}
