@@ -4,7 +4,7 @@ import hashlib, json, pathlib, shutil, sys
 raw=pathlib.Path(sys.argv[1]).resolve()
 out=pathlib.Path(__file__).resolve().parent
 run=json.loads((raw/'run.json').read_text())
-assert run['version']=='fn19-visibility-v2'
+assert run['version']=='fn19-visibility-v2.2'
 assert len(run['records'])==24 and len({(r['case_id'],r['view']) for r in run['records']})==24
 assert all(r['status'] in ['captured','fail','interrupted'] for r in run['records'])
 (out/'images').mkdir(exist_ok=True)

@@ -1,0 +1,56 @@
+[
+  {
+    "case_index": 0,
+    "view": "fork",
+    "admission": "pending correction or additional assessment",
+    "reason": "Depth planes slice outgoing wood into prominent cut ends at the named junction; use a separately verified clear camera.",
+    "preview_path": "/tmp/fn19-visibility-v22-proposals/0-fork-1.png",
+    "preview_sha256": "1f7bee89cb2107f37f48450600c0e11648dd255cbb654633d1cbcd37d5a22ee8",
+    "assessor": "conductor; implementation-side visual inspection"
+  },
+  {
+    "case_index": 1,
+    "view": "attached-shoot",
+    "admission": "pending correction or additional assessment",
+    "reason": "Organ attachments visible, but incoming wood is depth-cut inside the frame; wider context requested.",
+    "preview_path": "/tmp/fn19-visibility-v22-proposals/1-attached-shoot-1.png",
+    "preview_sha256": "5929bbab832ede1ae1591b85ca881cfd7075e555c02dc286d94de92799515273",
+    "assessor": "conductor; implementation-side visual inspection"
+  },
+  {
+    "case_index": 2,
+    "view": "attached-shoot",
+    "admission": "pending correction or additional assessment",
+    "reason": "Organ attachments visible, but incoming wood is depth-cut inside the frame; wider context requested.",
+    "preview_path": "/tmp/fn19-visibility-v22-proposals/2-attached-shoot-1.png",
+    "preview_sha256": "c7a45920a8cc8fedd70ec77ffc5ab674eeb0cfbf40b8c8ae0cc66327b627829d",
+    "assessor": "conductor; implementation-side visual inspection"
+  },
+  {
+    "case_index": 4,
+    "view": "attached-shoot",
+    "admission": "pending correction or additional assessment",
+    "reason": "Organ attachments visible, but incoming wood is depth-cut inside the frame; wider context requested.",
+    "preview_path": "/tmp/fn19-visibility-v22-proposals/4-attached-shoot-1.png",
+    "preview_sha256": "0c0d38ec53a35563a09ad77a7847d6dc0f94b2cc863f7d9b1b952704146547b3",
+    "assessor": "conductor; implementation-side visual inspection"
+  },
+  {
+    "case_index": 5,
+    "view": "attached-shoot",
+    "admission": "pending correction or additional assessment",
+    "reason": "Organ attachments visible, but incoming wood is depth-cut inside the frame; wider context requested.",
+    "preview_path": "/tmp/fn19-visibility-v22-proposals/5-attached-shoot-1.png",
+    "preview_sha256": "828dbba260e4d0de7c74ac2bd67750aa88093169d87ec8ab437f9d07fcd6fed5",
+    "assessor": "conductor; implementation-side visual inspection"
+  },
+  {
+    "case_index": 4,
+    "view": "fork",
+    "admission": "pending correction or additional assessment",
+    "reason": "Selected lateral619 upper transition visible; sibling3005 overlaps lower junction. Worker second assessment requested before admission.",
+    "preview_path": "/tmp/fn19-visibility-v22-proposals/4-fork-1.png",
+    "preview_sha256": "ccb29bad76b74264c8243f6f0a6914ff80103dc51cc6c54959b095b5a27f0e9d",
+    "assessor": "conductor; implementation-side visual inspection"
+  }
+]

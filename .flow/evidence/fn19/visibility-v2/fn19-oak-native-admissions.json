@@ -1,0 +1,3476 @@
+{
+  "version": "fn19-visibility-v2.2",
+  "partial": true,
+  "views": [
+    {
+      "case_id": "oregon-white-oak-1",
+      "case_index": 0,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "observation": "Terminal twig, multiple short petiole connectors and lobed blade faces are visible. Retained leaf overlap remains, but does not hide the attachment anatomy. Incoming wood continues beyond the frame.",
+      "assessor": "conductor; implementation-side visual inspection, not independent botanical assessment",
+      "preview_path": "/tmp/fn19-visibility-v22-proposals/0-attached-shoot-1.png",
+      "preview_sha256": "851f8b2c98781092ccd70391c95c1586f77a6affd30f35ed5b6ee913e9f7a762",
+      "condition": {
+        "camera": {
+          "projection": "orthographic",
+          "position_m": [
+            21.449223889071803,
+            0.43361883538688417,
+            -6.443860819793455
+          ],
+          "target_m": [
+            7.716537240568563,
+            10.144094688453489,
+            7.288825828709792
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "left_m": -0.265856974410886,
+          "right_m": 0.265856974410886,
+          "top_m": 0.16616060900680377,
+          "bottom_m": -0.16616060900680377,
+          "near_m": 21.52208509658019,
+          "far_m": 21.85112528427098,
+          "width_px": 1600,
+          "height_px": 1000,
+          "dpr": 1
+        },
+        "target": {
+          "rule": "attached-shoot",
+          "query_normalized": [
+            0.7,
+            0.5,
+            0.7
+          ],
+          "selected_position_m": [
+            7.602196356877325,
+            10.17500288064302,
+            7.223792712921882
+          ],
+          "node_indices": [
+            30498,
+            47064,
+            63195
+          ],
+          "axis_order": 4,
+          "resolution": "resolved",
+          "reason": null
+        },
+        "leaf_state": "selected-attachment-only",
+        "diagnostic": {
+          "version": "fn19-visibility-v2.2",
+          "view": "attached-shoot",
+          "geometry_hashes": {
+            "wood": "d433ef4903994cae8666dbaa7b73cb1af13f786a215504f4fdf0a5f8e9d056d3",
+            "wood_normals": "1b079299e11855973a3ecce0df5bc932bd0fd6b6841e2788b397e3487ca8b75a",
+            "wood_indices": "dab0f736c715b62f8315cfd97184254e2ed6cfcbbe2a9f12eedd9289993ca715",
+            "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+            "foliage_indices": "2f38cd61cd65dcfa22cbe7576de548d9e063a944c744df37dea14cbfe8e2910a",
+            "matrices": "75506e0c4d07ff9ac3f9dd883af39b84da543a611eeb740c6bc7b5c53cf7ab18",
+            "structure": "03b50938dcb9bc2d366a703deafafe5470c5a01453fbf6459765a4b9b5a7fa27",
+            "topology": "276c52cf8d62eb1be2967734a6f2ec3e65f75e501893a42e9ab645ee5163cf7a"
+          },
+          "wood": "original-arrays-local-depth-volume",
+          "retained_unit_indices": [
+            343019,
+            343020,
+            343021,
+            343022,
+            343023,
+            343024,
+            343025,
+            343026,
+            343027,
+            343028,
+            343029,
+            343030
+          ],
+          "original_unit_count": 542672,
+          "attachment_mapping": "original matrix origins within tapered terminal segment; same geometric attachment rule as v1; no generator ownership ID available",
+          "foliage_filter": "only selected terminal-segment attachment matrices retained, including original connectors",
+          "target_rule": "unchanged v1 normalized semantic target and tie order",
+          "camera_rule": "48 fixed spherical directions; selected lateral radial direction perpendicular to incoming parent must face camera (dot >= 0.5); distal and parent-surface-exit probes must be visible at branch-specific radii; most visible woody probes, then greatest projected retained biological area, then least axial foreshortening, then direction index",
+          "automatic_visibility": "probe-supported proposal",
+          "depth_crop": "selected local anatomy and retained full element vertices, plus 1.5 times maximum local node radius (minimum 0.01 m); remote context clipped; cut ends are crop boundaries",
+          "selected_lateral_node": null,
+          "lateral_front_dot": 1,
+          "camera_direction_index": 14,
+          "projected_nodes_px": [
+            {
+              "node": 30498,
+              "x": 1917.4798565367864,
+              "y": 344.0131513258345
+            },
+            {
+              "node": 47064,
+              "x": 1181.668592088105,
+              "y": 463.73195097302124
+            },
+            {
+              "node": 63195,
+              "x": 522.5310905115774,
+              "y": 570.9756890127144
+            }
+          ],
+          "visible_probe_count": 3,
+          "probe_count": 3,
+          "probes": [
+            {
+              "point_m": [
+                7.634658839329476,
+                10.162499938478238,
+                7.237796771985878
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                7.6362148038946405,
+                10.161399705382925,
+                7.236240807420713
+              ],
+              "local_radius_m": 0.0022187500000000002,
+              "visible": true
+            },
+            {
+              "point_m": [
+                7.710404631717828,
+                10.13332640676041,
+                7.270472909801868
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                7.711500360536418,
+                10.132551609482443,
+                7.269377180983276
+              ],
+              "local_radius_m": 0.0015625,
+              "visible": true
+            },
+            {
+              "point_m": [
+                7.78615042410618,
+                10.104152875042583,
+                7.303149047617858
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                7.786785963615918,
+                10.103703480745537,
+                7.302513508108119
+              ],
+              "local_radius_m": 0.0009062500000000002,
+              "visible": true
+            }
+          ],
+          "candidate_scores": [
+            {
+              "index": 14,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.06007395087386367,
+              "separation": 0.5395835278853589
+            },
+            {
+              "index": 0,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05980018667602395,
+              "separation": 0.07661832766927901
+            },
+            {
+              "index": 13,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05936172148570479,
+              "separation": 0.8631821737874948
+            },
+            {
+              "index": 36,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05819959522920185,
+              "separation": 0.8150899868969037
+            },
+            {
+              "index": 12,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05819959522920185,
+              "separation": 0.8150899868969036
+            },
+            {
+              "index": 35,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05676449529220673,
+              "separation": 0.544213101233512
+            },
+            {
+              "index": 11,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05676449529220673,
+              "separation": 0.5442131012335116
+            },
+            {
+              "index": 3,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05604862049406464,
+              "separation": 0.24600052950867546
+            },
+            {
+              "index": 34,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05527490263091362,
+              "separation": 0.3654257195594981
+            },
+            {
+              "index": 10,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.055274902630913614,
+              "separation": 0.365425719559498
+            },
+            {
+              "index": 4,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05461352055706942,
+              "separation": 0.5168774151720672
+            },
+            {
+              "index": 9,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.053957594224813346,
+              "separation": 0.3059466000230797
+            },
+            {
+              "index": 33,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.053957594224813346,
+              "separation": 0.3059466000230797
+            },
+            {
+              "index": 5,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05345139430056646,
+              "separation": 0.8386052544876683
+            },
+            {
+              "index": 45,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05345139430056645,
+              "separation": 0.8386052544876686
+            },
+            {
+              "index": 8,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05301311833730411,
+              "separation": 0.3748308993941155
+            },
+            {
+              "index": 32,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05301311833730411,
+              "separation": 0.3748308993941155
+            },
+            {
+              "index": 46,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.0527391649124076,
+              "separation": 0.8377960996101954
+            },
+            {
+              "index": 6,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.0527391649124076,
+              "separation": 0.8377960996101952
+            },
+            {
+              "index": 47,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05258526286056419,
+              "separation": 0.5615916075310944
+            },
+            {
+              "index": 7,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05258526286056418,
+              "separation": 0.561591607531094
+            },
+            {
+              "index": 17,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.023046810105904245,
+              "separation": 0.0573188132879362
+            },
+            {
+              "index": 25,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.023046810105904245,
+              "separation": 0.05731881328793609
+            },
+            {
+              "index": 16,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.022252749512664222,
+              "separation": 0.13433380127597716
+            },
+            {
+              "index": 24,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.022252749512664222,
+              "separation": 0.13433380127597716
+            },
+            {
+              "index": 18,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.021055554546182593,
+              "separation": 0.1238184905505697
+            },
+            {
+              "index": 26,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.021055554546182593,
+              "separation": 0.12381849055056948
+            },
+            {
+              "index": 23,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.019722854801012053,
+              "separation": 0.3431386207361182
+            },
+            {
+              "index": 27,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.016896236261775076,
+              "separation": 0.32370886002171695
+            },
+            {
+              "index": 22,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.015857920949546824,
+              "separation": 0.6519446307259544
+            },
+            {
+              "index": 28,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.013850177558297589,
+              "separation": 0.6265584249601082
+            },
+            {
+              "index": 21,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.013337742592658911,
+              "separation": 0.9862610844420152
+            },
+            {
+              "index": 15,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.06022785292570714,
+              "separation": 0.2633790358062579
+            },
+            {
+              "index": 2,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.057538213155357634,
+              "separation": 0.06721314783466159
+            },
+            {
+              "index": 29,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.013337742592658911,
+              "separation": 0.9862610844420155
+            },
+            {
+              "index": 39,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.06022785292570715,
+              "separation": 0.26337903580625754
+            },
+            {
+              "index": 38,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.06007395087386367,
+              "separation": 0.5395835278853587
+            },
+            {
+              "index": 40,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.05980018667602395,
+              "separation": 0.07661832766927901
+            },
+            {
+              "index": 37,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.059361721485704774,
+              "separation": 0.8631821737874952
+            },
+            {
+              "index": 1,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.05885698276198299,
+              "separation": 0.007734028298243212
+            },
+            {
+              "index": 41,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.05885698276198299,
+              "separation": 0.007734028298243212
+            },
+            {
+              "index": 42,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.057538213155357634,
+              "separation": 0.06721314783466148
+            },
+            {
+              "index": 43,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.05604862049406464,
+              "separation": 0.24600052950867513
+            },
+            {
+              "index": 44,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.05461352055706942,
+              "separation": 0.5168774151720671
+            },
+            {
+              "index": 31,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.019722854801012053,
+              "separation": 0.34313862073611856
+            },
+            {
+              "index": 30,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.015857920949546824,
+              "separation": 0.6519446307259545
+            },
+            {
+              "index": 20,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.013850177558297589,
+              "separation": 0.6265584249601084
+            },
+            {
+              "index": 19,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 0,
+              "projected_area": 0.016896236261775072,
+              "separation": 0.3237088600217173
+            }
+          ],
+          "frame_margin": 1.35,
+          "assessment": "unassessed pending direct image inspection",
+          "density_use": "prohibited: diagnostic filtering is not natural foliage density"
+        }
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-2",
+      "case_index": 1,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "observation": "Selected lateral-to-parent transition is exposed on the front of the parent. Its rounded base and outgoing axis are traceable. Remote depth-cut ends lie outside the named junction and are crop boundaries, not geometry findings.",
+      "assessor": "conductor; implementation-side visual inspection, not independent botanical assessment",
+      "preview_path": "/tmp/fn19-visibility-v22-proposals/1-fork-1.png",
+      "preview_sha256": "7963dc9f7046efc9c76cdce3db986eb91bb7392f4e1d3f1944b25761f90617f4",
+      "condition": {
+        "camera": {
+          "projection": "orthographic",
+          "position_m": [
+            -7.652663163434019,
+            17.08697597289575,
+            -15.138956340164587
+          ],
+          "target_m": [
+            -0.5064660416821027,
+            7.750019473908555,
+            2.113489670560433
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "left_m": -1.0252386953040733,
+          "right_m": 1.0252386953040733,
+          "top_m": 0.6407741845650458,
+          "bottom_m": -0.6407741845650458,
+          "near_m": 20.40376075650697,
+          "far_m": 21.193979333261375,
+          "width_px": 1600,
+          "height_px": 1000,
+          "dpr": 1
+        },
+        "target": {
+          "rule": "fork",
+          "query_normalized": [
+            0.25,
+            0.35,
+            0.25
+          ],
+          "selected_position_m": [
+            -0.4891775265289098,
+            7.738357543841974,
+            2.12040953046893
+          ],
+          "node_indices": [
+            53,
+            54,
+            55,
+            903
+          ],
+          "axis_order": 1,
+          "resolution": "resolved",
+          "reason": null
+        },
+        "leaf_state": "hidden",
+        "diagnostic": {
+          "version": "fn19-visibility-v2.2",
+          "view": "fork",
+          "geometry_hashes": {
+            "wood": "a788e3dc1715f923a68526a528a15d4504933d0b254e634ed96be75b789ee3e4",
+            "wood_normals": "24d64f6979d2d9c67328c6af31620b1279babbf4d5f1f347170394a0ec3910a2",
+            "wood_indices": "b7bbbcc3aae95e752ad77d25caf1e0f017fc038f53adc31258d38ec3c9c1ced3",
+            "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+            "foliage_indices": "2f38cd61cd65dcfa22cbe7576de548d9e063a944c744df37dea14cbfe8e2910a",
+            "matrices": "1c8b5dd8b48a46709b06b6cfb4815caa3555a48f3c4e51f5c4841fb08e5aa68e",
+            "structure": "f5ca744fa481fa927ce6bf2940664591c69c35633e94e05f8534e8abc6f0c72a",
+            "topology": "0dd9ce28b00bc29b585aa11602eb0d3824c749c08cfd8df2e01c79a5c9c678a5"
+          },
+          "wood": "original-arrays-local-depth-volume",
+          "retained_unit_indices": [],
+          "original_unit_count": 495781,
+          "attachment_mapping": "original matrix origins within tapered terminal segment; same geometric attachment rule as v1; no generator ownership ID available",
+          "foliage_filter": "all foliage hidden",
+          "target_rule": "unchanged v1 normalized semantic target and tie order",
+          "camera_rule": "48 fixed spherical directions; selected lateral radial direction perpendicular to incoming parent must face camera (dot >= 0.5); distal and parent-surface-exit probes must be visible at branch-specific radii; most visible woody probes, then greatest projected retained biological area, then least axial foreshortening, then direction index",
+          "automatic_visibility": "probe-supported proposal",
+          "depth_crop": "selected local anatomy and retained full element vertices, plus 1.5 times maximum local node radius (minimum 0.01 m); remote context clipped; cut ends are crop boundaries",
+          "selected_lateral_node": 903,
+          "lateral_front_dot": 0.7237429074753978,
+          "camera_direction_index": 43,
+          "projected_nodes_px": [
+            {
+              "node": 53,
+              "x": 704.0014583204074,
+              "y": 870.3703703703709
+            },
+            {
+              "node": 54,
+              "x": 789.6028976531558,
+              "y": 503.5994589339023
+            },
+            {
+              "node": 55,
+              "x": 1013.2139969511893,
+              "y": 192.06132760071415
+            },
+            {
+              "node": 903,
+              "x": 645.4236207522872,
+              "y": 244.19347916913324
+            }
+          ],
+          "visible_probe_count": 5,
+          "probe_count": 5,
+          "probes": [
+            {
+              "point_m": [
+                -0.4996276378840533,
+                7.437537482913474,
+                1.8658478125260425
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.5599139672432552,
+                7.516305368142547,
+                1.720303738561368
+              ],
+              "local_radius_m": 0.1711124091143359,
+              "visible": true
+            },
+            {
+              "point_m": [
+                -0.6364642453339459,
+                8.011163065581169,
+                2.3638994725582223
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.6932081146638911,
+                8.085302503731459,
+                2.2269076536403407
+              ],
+              "local_radius_m": 0.16795255058447545,
+              "visible": true
+            },
+            {
+              "point_m": [
+                -0.3695524319689824,
+                8.057836692877004,
+                2.0229425534676824
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.3790076705965717,
+                8.070190557491882,
+                2.000115588137483
+              ],
+              "local_radius_m": 0.022396773596288045,
+              "visible": true
+            },
+            {
+              "point_m": [
+                -0.4891775265289098,
+                7.738357543841974,
+                2.12040953046893
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.548850493922556,
+                7.816324033042786,
+                1.9763462432801422
+              ],
+              "local_radius_m": 0.1711124091143359,
+              "visible": true
+            },
+            {
+              "point_m": [
+                -0.4125541056185589,
+                7.942993413921295,
+                2.0579790410210426
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.4227475685246507,
+                7.956311815038237,
+                2.0333698446256108
+              ],
+              "local_radius_m": 0.022468421590407087,
+              "visible": true
+            }
+          ],
+          "candidate_scores": [
+            {
+              "index": 43,
+              "eligible": true,
+              "lateral_front_dot": 0.7237429074753978,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.7985824042024123
+            },
+            {
+              "index": 31,
+              "eligible": true,
+              "lateral_front_dot": 0.6223698423030068,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.7773741740302678
+            },
+            {
+              "index": 44,
+              "eligible": true,
+              "lateral_front_dot": 0.9017718847419047,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.7636907119828766
+            },
+            {
+              "index": 30,
+              "eligible": true,
+              "lateral_front_dot": 0.7717054029554238,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5621322913811178
+            },
+            {
+              "index": 29,
+              "eligible": true,
+              "lateral_front_dot": 0.8035558115347757,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.4135517980885296
+            },
+            {
+              "index": 27,
+              "eligible": true,
+              "lateral_front_dot": 0.5140296844931915,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.39326282519721534
+            },
+            {
+              "index": 28,
+              "eligible": true,
+              "lateral_front_dot": 0.7130721320595285,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.3542527273707742
+            },
+            {
+              "index": 24,
+              "eligible": false,
+              "lateral_front_dot": -0.37828411495662606,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.9734911794248279
+            },
+            {
+              "index": 16,
+              "eligible": false,
+              "lateral_front_dot": 0.37828411495662595,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.9734911794248278
+            },
+            {
+              "index": 2,
+              "eligible": false,
+              "lateral_front_dot": -0.47571931415889507,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.9160925460460241
+            },
+            {
+              "index": 42,
+              "eligible": false,
+              "lateral_front_dot": 0.475719314158895,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.9160925460460241
+            },
+            {
+              "index": 1,
+              "eligible": false,
+              "lateral_front_dot": -0.19546044853536088,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.9016687163498894
+            },
+            {
+              "index": 41,
+              "eligible": false,
+              "lateral_front_dot": 0.19546044853536074,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.9016687163498893
+            },
+            {
+              "index": 3,
+              "eligible": false,
+              "lateral_front_dot": -0.7237429074753982,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.7985824042024121
+            },
+            {
+              "index": 17,
+              "eligible": false,
+              "lateral_front_dot": 0.07660806026214051,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.7283922605094368
+            },
+            {
+              "index": 25,
+              "eligible": false,
+              "lateral_front_dot": -0.07660806026214056,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.7283922605094368
+            },
+            {
+              "index": 0,
+              "eligible": false,
+              "lateral_front_dot": 0.07436681765696479,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.6824455787872801
+            },
+            {
+              "index": 40,
+              "eligible": false,
+              "lateral_front_dot": -0.07436681765696487,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.6824455787872801
+            },
+            {
+              "index": 18,
+              "eligible": false,
+              "lateral_front_dot": -0.23673087715346025,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5246431578011944
+            },
+            {
+              "index": 26,
+              "eligible": false,
+              "lateral_front_dot": 0.23673087715346025,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5246431578011944
+            },
+            {
+              "index": 9,
+              "eligible": false,
+              "lateral_front_dot": -0.3325011128317982,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.41580202137712674
+            },
+            {
+              "index": 33,
+              "eligible": false,
+              "lateral_front_dot": 0.33250111283179795,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.41580202137712663
+            },
+            {
+              "index": 19,
+              "eligible": false,
+              "lateral_front_dot": -0.514029684493192,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.3932628251972152
+            },
+            {
+              "index": 23,
+              "eligible": false,
+              "lateral_front_dot": -0.6223698423030065,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.7773741740302681
+            },
+            {
+              "index": 4,
+              "eligible": false,
+              "lateral_front_dot": -0.9017718847419047,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.7636907119828766
+            },
+            {
+              "index": 32,
+              "eligible": false,
+              "lateral_front_dot": 0.6023283790241236,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.635025158939736
+            },
+            {
+              "index": 15,
+              "eligible": false,
+              "lateral_front_dot": 0.2926837291305595,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.45961277669736433
+            },
+            {
+              "index": 20,
+              "eligible": false,
+              "lateral_front_dot": -0.7130721320595286,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.3542527273707742
+            },
+            {
+              "index": 14,
+              "eligible": false,
+              "lateral_front_dot": 0.4262535151612984,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.2670945842139516
+            },
+            {
+              "index": 34,
+              "eligible": false,
+              "lateral_front_dot": 0.05224224720826387,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.23356328377304014
+            },
+            {
+              "index": 35,
+              "eligible": false,
+              "lateral_front_dot": -0.19578134610823927,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.11605314192942817
+            },
+            {
+              "index": 6,
+              "eligible": false,
+              "lateral_front_dot": -0.9542150765284572,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.9496238464869355
+            },
+            {
+              "index": 46,
+              "eligible": false,
+              "lateral_front_dot": 0.9542150765284573,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.9496238464869355
+            },
+            {
+              "index": 47,
+              "eligible": false,
+              "lateral_front_dot": 0.8206452904977184,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.8578579610296517
+            },
+            {
+              "index": 7,
+              "eligible": false,
+              "lateral_front_dot": -0.8206452904977181,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.8578579610296515
+            },
+            {
+              "index": 5,
+              "eligible": false,
+              "lateral_front_dot": -0.9827029480062865,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.816729413233864
+            },
+            {
+              "index": 45,
+              "eligible": false,
+              "lateral_front_dot": 0.9827029480062865,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.816729413233864
+            },
+            {
+              "index": 8,
+              "eligible": false,
+              "lateral_front_dot": -0.6023283790241237,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.635025158939736
+            },
+            {
+              "index": 22,
+              "eligible": false,
+              "lateral_front_dot": -0.7717054029554237,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.5621322913811179
+            },
+            {
+              "index": 39,
+              "eligible": false,
+              "lateral_front_dot": -0.2926837291305593,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.45961277669736456
+            },
+            {
+              "index": 21,
+              "eligible": false,
+              "lateral_front_dot": -0.8035558115347756,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.4135517980885297
+            },
+            {
+              "index": 10,
+              "eligible": false,
+              "lateral_front_dot": -0.05224224720826387,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.23356328377304014
+            },
+            {
+              "index": 11,
+              "eligible": false,
+              "lateral_front_dot": 0.195781346108239,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.1160531419294284
+            },
+            {
+              "index": 13,
+              "eligible": false,
+              "lateral_front_dot": 0.45474138663912766,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.13420015096088012
+            },
+            {
+              "index": 12,
+              "eligible": false,
+              "lateral_front_dot": 0.3738103233747458,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.0811614497098927
+            },
+            {
+              "index": 36,
+              "eligible": false,
+              "lateral_front_dot": -0.37381032337474585,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.0811614497098927
+            },
+            {
+              "index": 38,
+              "eligible": false,
+              "lateral_front_dot": -0.4262535151612984,
+              "visible": 1,
+              "projected_area": 0,
+              "separation": 0.2670945842139516
+            },
+            {
+              "index": 37,
+              "eligible": false,
+              "lateral_front_dot": -0.4547413866391277,
+              "visible": 1,
+              "projected_area": 0,
+              "separation": 0.13420015096088012
+            }
+          ],
+          "frame_margin": 1.35,
+          "assessment": "unassessed pending direct image inspection",
+          "density_use": "prohibited: diagnostic filtering is not natural foliage density"
+        }
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-3",
+      "case_index": 2,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "observation": "Selected lateral origin and its short rounded transition against the front of the parent are visible; outgoing lateral and incoming/continuing parent axes can be traced. Other branch crop ends are excluded from anatomical judgments.",
+      "assessor": "conductor; implementation-side visual inspection, not independent botanical assessment",
+      "preview_path": "/tmp/fn19-visibility-v22-proposals/2-fork-1.png",
+      "preview_sha256": "f788b8cfe5c83960cc5a7b963928374421d81d914dcefdc96b66b1e1c007ed8d",
+      "condition": {
+        "camera": {
+          "projection": "orthographic",
+          "position_m": [
+            -12.606213921312051,
+            0.30165412674793757,
+            -9.968941675124732
+          ],
+          "target_m": [
+            -1.1658879155827793,
+            8.391186224383913,
+            1.4713843306045362
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "left_m": -0.8063477267269044,
+          "right_m": 0.8063477267269044,
+          "top_m": 0.5039673292043152,
+          "bottom_m": -0.5039673292043152,
+          "near_m": 17.73596552687529,
+          "far_m": 18.57832467587815,
+          "width_px": 1600,
+          "height_px": 1000,
+          "dpr": 1
+        },
+        "target": {
+          "rule": "fork",
+          "query_normalized": [
+            0.25,
+            0.35,
+            0.25
+          ],
+          "selected_position_m": [
+            -1.0359294613932757,
+            8.402725496593497,
+            1.4711078473098302
+          ],
+          "node_indices": [
+            17,
+            18,
+            19,
+            1043
+          ],
+          "axis_order": 1,
+          "resolution": "resolved",
+          "reason": null
+        },
+        "leaf_state": "hidden",
+        "diagnostic": {
+          "version": "fn19-visibility-v2.2",
+          "view": "fork",
+          "geometry_hashes": {
+            "wood": "d8e3b5cb3e0273b20313cd349f88252b8c0ac27561c5c89af3a8cd28e3d7bde7",
+            "wood_normals": "7530fcc3dca40c7388903d5bddf75ea9e04a99ccf7af82b11b4a1d3864e59840",
+            "wood_indices": "f5d9d9cc007361344b6054fc89cbe6338d2015bec883ffb2d11294aef0ef85fd",
+            "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+            "foliage_indices": "2f38cd61cd65dcfa22cbe7576de548d9e063a944c744df37dea14cbfe8e2910a",
+            "matrices": "e58cb841554b3317a9f6203e70b75ebb2feb4e69769959eb56b79f30c64a1342",
+            "structure": "f67419550700685b9328cc653e2e0e118db0f4f134db8db986f1852b38356458",
+            "topology": "646bb9b15e7ebd094285eda5f1b31f70a40226c704629b2e64185928ce97a960"
+          },
+          "wood": "original-arrays-local-depth-volume",
+          "retained_unit_indices": [],
+          "original_unit_count": 569699,
+          "attachment_mapping": "original matrix origins within tapered terminal segment; same geometric attachment rule as v1; no generator ownership ID available",
+          "foliage_filter": "all foliage hidden",
+          "target_rule": "unchanged v1 normalized semantic target and tie order",
+          "camera_rule": "48 fixed spherical directions; selected lateral radial direction perpendicular to incoming parent must face camera (dot >= 0.5); distal and parent-surface-exit probes must be visible at branch-specific radii; most visible woody probes, then greatest projected retained biological area, then least axial foreshortening, then direction index",
+          "automatic_visibility": "probe-supported proposal",
+          "depth_crop": "selected local anatomy and retained full element vertices, plus 1.5 times maximum local node radius (minimum 0.01 m); remote context clipped; cut ends are crop boundaries",
+          "selected_lateral_node": 1043,
+          "lateral_front_dot": 0.6231918757135188,
+          "camera_direction_index": 10,
+          "projected_nodes_px": [
+            {
+              "node": 17,
+              "x": 436.642287564208,
+              "y": 870.3703703703698
+            },
+            {
+              "node": 18,
+              "x": 708.6349430746934,
+              "y": 530.4464191841284
+            },
+            {
+              "node": 19,
+              "x": 1011.6115307266844,
+              "y": 197.4925851551464
+            },
+            {
+              "node": 1043,
+              "x": 1145.3879660825899,
+              "y": 472.6248951461706
+            }
+          ],
+          "visible_probe_count": 4,
+          "probe_count": 5,
+          "probes": [
+            {
+              "point_m": [
+                -0.8934925947322452,
+                8.087333584836326,
+                1.3033784628577447
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -1.0032555661137739,
+                8.00971944344926,
+                1.1936154914762138
+              ],
+              "local_radius_m": 0.15857688484697885,
+              "visible": true
+            },
+            {
+              "point_m": [
+                -1.2132564164591308,
+                8.699654572815334,
+                1.6392796050334453
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -1.4901942924025988,
+                8.503829922768308,
+                1.3623417290899766
+              ],
+              "local_radius_m": 0.15569745778222485,
+              "visible": false
+            },
+            {
+              "point_m": [
+                -1.386299854757512,
+                8.383191120331164,
+                1.6187878426755113
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -1.401011187783638,
+                8.372788636988094,
+                1.604076509649385
+              ],
+              "local_radius_m": 0.02065602781615023,
+              "visible": true
+            },
+            {
+              "point_m": [
+                -1.0359294613932757,
+                8.402725496593497,
+                1.4711078473098302
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -1.1445531511402294,
+                8.325916948975921,
+                1.362484157562875
+              ],
+              "local_radius_m": 0.15857688484697885,
+              "visible": true
+            },
+            {
+              "point_m": [
+                -1.2240885223897062,
+                8.392234970098439,
+                1.5504162871273373
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -1.2403474244090518,
+                8.38073819022591,
+                1.5341573851079904
+              ],
+              "local_radius_m": 0.020747375606822004,
+              "visible": true
+            }
+          ],
+          "candidate_scores": [
+            {
+              "index": 10,
+              "eligible": true,
+              "lateral_front_dot": 0.6231918757135188,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5916367044702482
+            },
+            {
+              "index": 26,
+              "eligible": false,
+              "lateral_front_dot": 0.4505929213549671,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.9534946867900038
+            },
+            {
+              "index": 3,
+              "eligible": false,
+              "lateral_front_dot": 0.10272628768821754,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.8668661057779161
+            },
+            {
+              "index": 27,
+              "eligible": false,
+              "lateral_front_dot": 0.13130529603202043,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.7387894878447389
+            },
+            {
+              "index": 19,
+              "eligible": false,
+              "lateral_front_dot": -0.13130529603201996,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.7387894878447385
+            },
+            {
+              "index": 2,
+              "eligible": false,
+              "lateral_front_dot": -0.18285324615041953,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.6748279377922244
+            },
+            {
+              "index": 42,
+              "eligible": false,
+              "lateral_front_dot": 0.18285324615041965,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.6748279377922244
+            },
+            {
+              "index": 20,
+              "eligible": false,
+              "lateral_front_dot": 0.20797237032632956,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5638512214959226
+            },
+            {
+              "index": 41,
+              "eligible": false,
+              "lateral_front_dot": 0.40707624849577684,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.4764572142351011
+            },
+            {
+              "index": 4,
+              "eligible": false,
+              "lateral_front_dot": 0.40618545777812276,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.9766643520533174
+            },
+            {
+              "index": 44,
+              "eligible": false,
+              "lateral_front_dot": -0.40618545777812265,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.9766643520533174
+            },
+            {
+              "index": 18,
+              "eligible": false,
+              "lateral_front_dot": -0.450592921354967,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.9534946867900038
+            },
+            {
+              "index": 5,
+              "eligible": false,
+              "lateral_front_dot": 0.6813253563373349,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.879584505096739
+            },
+            {
+              "index": 43,
+              "eligible": false,
+              "lateral_front_dot": -0.10272628768821707,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.8668661057779159
+            },
+            {
+              "index": 25,
+              "eligible": false,
+              "lateral_front_dot": 0.7012818590366239,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.8247201019002229
+            },
+            {
+              "index": 9,
+              "eligible": false,
+              "lateral_front_dot": 0.8474148780588759,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.7900074280273713
+            },
+            {
+              "index": 33,
+              "eligible": false,
+              "lateral_front_dot": -0.8474148780588759,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.7900074280273712
+            },
+            {
+              "index": 28,
+              "eligible": false,
+              "lateral_front_dot": -0.20797237032632945,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5638512214959227
+            },
+            {
+              "index": 1,
+              "eligible": false,
+              "lateral_front_dot": -0.40707624849577684,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.47645721423510123
+            },
+            {
+              "index": 21,
+              "eligible": false,
+              "lateral_front_dot": 0.515588128576727,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.45531265297583
+            },
+            {
+              "index": 35,
+              "eligible": false,
+              "lateral_front_dot": -0.3376123418748815,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.39959853648455634
+            },
+            {
+              "index": 12,
+              "eligible": false,
+              "lateral_front_dot": 0.0341531717849764,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.24312899431578994
+            },
+            {
+              "index": 32,
+              "eligible": false,
+              "lateral_front_dot": -0.9761454293904506,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.9645105627294408
+            },
+            {
+              "index": 7,
+              "eligible": false,
+              "lateral_front_dot": 0.9897854702133639,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.911420411807078
+            },
+            {
+              "index": 47,
+              "eligible": false,
+              "lateral_front_dot": -0.9897854702133638,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.9114204118070779
+            },
+            {
+              "index": 45,
+              "eligible": false,
+              "lateral_front_dot": -0.6813253563373352,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.879584505096739
+            },
+            {
+              "index": 6,
+              "eligible": false,
+              "lateral_front_dot": 0.8862584279596054,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.8566738800204838
+            },
+            {
+              "index": 46,
+              "eligible": false,
+              "lateral_front_dot": -0.8862584279596055,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.8566738800204838
+            },
+            {
+              "index": 17,
+              "eligible": false,
+              "lateral_front_dot": -0.7012818590366237,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.824720101900223
+            },
+            {
+              "index": 16,
+              "eligible": false,
+              "lateral_front_dot": -0.8452069908158372,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.6296196661599079
+            },
+            {
+              "index": 24,
+              "eligible": false,
+              "lateral_front_dot": 0.8452069908158372,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.6296196661599078
+            },
+            {
+              "index": 34,
+              "eligible": false,
+              "lateral_front_dot": -0.6231918757135186,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.5916367044702481
+            },
+            {
+              "index": 31,
+              "eligible": false,
+              "lateral_front_dot": -0.8604570200637904,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.4909062787406596
+            },
+            {
+              "index": 29,
+              "eligible": false,
+              "lateral_front_dot": -0.5155881285767274,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.4553126529758298
+            },
+            {
+              "index": 30,
+              "eligible": false,
+              "lateral_front_dot": -0.7447102680693419,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.4296977954370711
+            },
+            {
+              "index": 22,
+              "eligible": false,
+              "lateral_front_dot": 0.744710268069342,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.429697795437071
+            },
+            {
+              "index": 36,
+              "eligible": false,
+              "lateral_front_dot": -0.034153171784976316,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.24312899431578983
+            },
+            {
+              "index": 8,
+              "eligible": false,
+              "lateral_front_dot": 0.9761454293904506,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.9645105627294409
+            },
+            {
+              "index": 23,
+              "eligible": false,
+              "lateral_front_dot": 0.8604570200637904,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.49090627874065973
+            },
+            {
+              "index": 11,
+              "eligible": false,
+              "lateral_front_dot": 0.337612341874882,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.3995985364845567
+            },
+            {
+              "index": 0,
+              "eligible": false,
+              "lateral_front_dot": -0.5358067998273515,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.30195407953303155
+            },
+            {
+              "index": 40,
+              "eligible": false,
+              "lateral_front_dot": 0.5358067998273515,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.30195407953303155
+            },
+            {
+              "index": 37,
+              "eligible": false,
+              "lateral_front_dot": 0.2409867267742359,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.1460491473592116
+            },
+            {
+              "index": 13,
+              "eligible": false,
+              "lateral_front_dot": -0.24098672677423608,
+              "visible": 1,
+              "projected_area": 0,
+              "separation": 0.14604914735921148
+            },
+            {
+              "index": 39,
+              "eligible": false,
+              "lateral_front_dot": 0.5494468406502648,
+              "visible": 0,
+              "projected_area": 0,
+              "separation": 0.17788505406955035
+            },
+            {
+              "index": 15,
+              "eligible": false,
+              "lateral_front_dot": -0.5494468406502647,
+              "visible": 0,
+              "projected_area": 0,
+              "separation": 0.17788505406955024
+            },
+            {
+              "index": 38,
+              "eligible": false,
+              "lateral_front_dot": 0.4459197983965063,
+              "visible": 0,
+              "projected_area": 0,
+              "separation": 0.1231385222829563
+            },
+            {
+              "index": 14,
+              "eligible": false,
+              "lateral_front_dot": -0.44591979839650636,
+              "visible": 0,
+              "projected_area": 0,
+              "separation": 0.12313852228295619
+            }
+          ],
+          "frame_margin": 1.35,
+          "assessment": "unassessed pending direct image inspection",
+          "density_use": "prohibited: diagnostic filtering is not natural foliage density"
+        }
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-3407793930",
+      "case_index": 3,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "observation": "The broad lateral-to-parent junction shoulder and connected parent axes are exposed. A depth-cut end farther along the outgoing branch is a recorded crop boundary, not evidence about end-cap or junction geometry.",
+      "assessor": "conductor; implementation-side visual inspection, not independent botanical assessment",
+      "preview_path": "/tmp/fn19-visibility-v22-proposals/3-fork-1.png",
+      "preview_sha256": "01700a37d35351ab83a74d47f28ded96dd920162e59414f131a3b13de2029d8d",
+      "condition": {
+        "camera": {
+          "projection": "orthographic",
+          "position_m": [
+            -10.330822637549744,
+            18.353835825402847,
+            14.581697470602323
+          ],
+          "target_m": [
+            2.346088245878277,
+            9.389906175233344,
+            1.9047865871743024
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "left_m": -0.826931208050986,
+          "right_m": 0.826931208050986,
+          "top_m": 0.5168320050318662,
+          "bottom_m": -0.5168320050318662,
+          "near_m": 19.617349573578952,
+          "far_m": 20.440043016912153,
+          "width_px": 1600,
+          "height_px": 1000,
+          "dpr": 1
+        },
+        "target": {
+          "rule": "fork",
+          "query_normalized": [
+            0.25,
+            0.35,
+            0.25
+          ],
+          "selected_position_m": [
+            2.355177364914881,
+            9.34262128993451,
+            1.8487991881207704
+          ],
+          "node_indices": [
+            20,
+            21,
+            67,
+            60
+          ],
+          "axis_order": 1,
+          "resolution": "resolved",
+          "reason": null
+        },
+        "leaf_state": "hidden",
+        "diagnostic": {
+          "version": "fn19-visibility-v2.2",
+          "view": "fork",
+          "geometry_hashes": {
+            "wood": "da0e1f08fc69d58210598fe5ef25db99e39aa003bc0b68b7fd2bbc4a6b1a27d8",
+            "wood_normals": "fd6953a022900697f801e97062372ea3eff6b39959cd3c156b8c435c4c63f789",
+            "wood_indices": "8048897aa8a560467bce918650e6616741d56c5830c816305c852ba68f5bd2a2",
+            "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+            "foliage_indices": "2f38cd61cd65dcfa22cbe7576de548d9e063a944c744df37dea14cbfe8e2910a",
+            "matrices": "47774fe56cc7d2d795c2e0adb8d69255b816fdf8c857ee9d656bfa45c7b30698",
+            "structure": "3248f7cb1628245e050be719fc1aa8039dde00e48eef5259570639df3191785a",
+            "topology": "24b63e6284d8338c189f552c0e428b851e3f87e2fd0d99517ab9d32e5face086"
+          },
+          "wood": "original-arrays-local-depth-volume",
+          "retained_unit_indices": [],
+          "original_unit_count": 526747,
+          "attachment_mapping": "original matrix origins within tapered terminal segment; same geometric attachment rule as v1; no generator ownership ID available",
+          "foliage_filter": "all foliage hidden",
+          "target_rule": "unchanged v1 normalized semantic target and tie order",
+          "camera_rule": "48 fixed spherical directions; selected lateral radial direction perpendicular to incoming parent must face camera (dot >= 0.5); distal and parent-surface-exit probes must be visible at branch-specific radii; most visible woody probes, then greatest projected retained biological area, then least axial foreshortening, then direction index",
+          "automatic_visibility": "probe-supported proposal",
+          "depth_crop": "selected local anatomy and retained full element vertices, plus 1.5 times maximum local node radius (minimum 0.01 m); remote context clipped; cut ends are crop boundaries",
+          "selected_lateral_node": 60,
+          "lateral_front_dot": 0.9946441995029429,
+          "camera_direction_index": 38,
+          "projected_nodes_px": [
+            {
+              "node": 20,
+              "x": 377.8800357532222,
+              "y": 792.7901577516972
+            },
+            {
+              "node": 21,
+              "x": 767.9179196498179,
+              "y": 521.0067149357882
+            },
+            {
+              "node": 67,
+              "x": 1005.8813943242601,
+              "y": 129.62962962962987
+            },
+            {
+              "node": 60,
+              "x": 1090.9937557940434,
+              "y": 265.8512653947284
+            }
+          ],
+          "visible_probe_count": 5,
+          "probe_count": 5,
+          "probes": [
+            {
+              "point_m": [
+                2.0546446826099856,
+                9.142588835901462,
+                1.6931992082907623
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                1.9538276506371748,
+                9.21387724286854,
+                1.7940162402635735
+              ],
+              "local_radius_m": 0.15990823526462253,
+              "visible": true
+            },
+            {
+              "point_m": [
+                2.6411674567612096,
+                9.600628141833024,
+                1.8410972259036675
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                2.5629866591789536,
+                9.655910313962012,
+                1.9192780234859228
+              ],
+              "local_radius_m": 0.11270081088143194,
+              "visible": true
+            },
+            {
+              "point_m": [
+                2.487820951186745,
+                9.618309560445693,
+                2.0939790064364296
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                2.405735857703254,
+                9.676352486682205,
+                2.1760640999199197
+              ],
+              "local_radius_m": 0.11125514821095278,
+              "visible": true
+            },
+            {
+              "point_m": [
+                2.355177364914881,
+                9.34262128993451,
+                1.8487991881207704
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                2.2556607748899005,
+                9.412990145581738,
+                1.9483157781457496
+              ],
+              "local_radius_m": 0.15990823526462253,
+              "visible": true
+            },
+            {
+              "point_m": [
+                2.5082278652003667,
+                9.660723573735073,
+                2.131699363755389
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                2.425741866113807,
+                9.719049983042128,
+                2.214185362841949
+              ],
+              "local_radius_m": 0.11108676525348016,
+              "visible": true
+            }
+          ],
+          "candidate_scores": [
+            {
+              "index": 38,
+              "eligible": true,
+              "lateral_front_dot": 0.9946441995029429,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.9943878457501883
+            },
+            {
+              "index": 39,
+              "eligible": true,
+              "lateral_front_dot": 0.9553779064140646,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.731312609651894
+            },
+            {
+              "index": 20,
+              "eligible": true,
+              "lateral_front_dot": 0.5627978975874589,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.6041933017643102
+            },
+            {
+              "index": 40,
+              "eligible": true,
+              "lateral_front_dot": 0.8062999860134642,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.543785992927122
+            },
+            {
+              "index": 41,
+              "eligible": true,
+              "lateral_front_dot": 0.5701062002874198,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.46035722303920523
+            },
+            {
+              "index": 21,
+              "eligible": true,
+              "lateral_front_dot": 0.7647851172443939,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.9268755724186047
+            },
+            {
+              "index": 22,
+              "eligible": true,
+              "lateral_front_dot": 0.8503407355952217,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.7393096257024201
+            },
+            {
+              "index": 37,
+              "eligible": true,
+              "lateral_front_dot": 0.9181209281071514,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.7070391186910064
+            },
+            {
+              "index": 6,
+              "eligible": true,
+              "lateral_front_dot": 0.5264915515595295,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5392750358424095
+            },
+            {
+              "index": 23,
+              "eligible": true,
+              "lateral_front_dot": 0.8064396853096405,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.4451825701461236
+            },
+            {
+              "index": 24,
+              "eligible": true,
+              "lateral_front_dot": 0.6397655033296179,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.23552143885255417
+            },
+            {
+              "index": 4,
+              "eligible": false,
+              "lateral_front_dot": 0.2693054186681024,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.8735361316719901
+            },
+            {
+              "index": 44,
+              "eligible": false,
+              "lateral_front_dot": -0.2693054186681023,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.8735361316719901
+            },
+            {
+              "index": 45,
+              "eligible": false,
+              "lateral_front_dot": -0.44996828016373797,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.8378480714012144
+            },
+            {
+              "index": 15,
+              "eligible": false,
+              "lateral_front_dot": -0.9553779064140647,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.7313126096518943
+            },
+            {
+              "index": 3,
+              "eligible": false,
+              "lateral_front_dot": 0.01200725002241615,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.6388167121505953
+            },
+            {
+              "index": 43,
+              "eligible": false,
+              "lateral_front_dot": -0.012007250022415705,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.638816712150595
+            },
+            {
+              "index": 0,
+              "eligible": false,
+              "lateral_front_dot": -0.8062999860134641,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.543785992927122
+            },
+            {
+              "index": 2,
+              "eligible": false,
+              "lateral_front_dot": -0.2827549120107221,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.49372757391989697
+            },
+            {
+              "index": 42,
+              "eligible": false,
+              "lateral_front_dot": 0.2827549120107222,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.49372757391989675
+            },
+            {
+              "index": 1,
+              "eligible": false,
+              "lateral_front_dot": -0.5701062002874197,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.46035722303920534
+            },
+            {
+              "index": 31,
+              "eligible": false,
+              "lateral_front_dot": -0.8064396853096407,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.44518257014612406
+            },
+            {
+              "index": 19,
+              "eligible": false,
+              "lateral_front_dot": 0.275129799798479,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.34176901291974526
+            },
+            {
+              "index": 14,
+              "eligible": false,
+              "lateral_front_dot": -0.994644199502943,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.9943878457501885
+            },
+            {
+              "index": 5,
+              "eligible": false,
+              "lateral_front_dot": 0.4499682801637379,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.8378480714012148
+            },
+            {
+              "index": 28,
+              "eligible": false,
+              "lateral_front_dot": -0.5627978975874588,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.6041933017643102
+            },
+            {
+              "index": 16,
+              "eligible": false,
+              "lateral_front_dot": -0.6397655033296178,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.23552143885255417
+            },
+            {
+              "index": 18,
+              "eligible": false,
+              "lateral_front_dot": -0.05442431595197328,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.17955442497939267
+            },
+            {
+              "index": 17,
+              "eligible": false,
+              "lateral_front_dot": -0.37569282295639034,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.14224523847826953
+            },
+            {
+              "index": 29,
+              "eligible": false,
+              "lateral_front_dot": -0.7647851172443942,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.9268755724186051
+            },
+            {
+              "index": 30,
+              "eligible": false,
+              "lateral_front_dot": -0.8503407355952217,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.7393096257024202
+            },
+            {
+              "index": 13,
+              "eligible": false,
+              "lateral_front_dot": -0.9181209281071514,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.7070391186910067
+            },
+            {
+              "index": 12,
+              "eligible": false,
+              "lateral_front_dot": -0.7374580666115158,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.41842332176421115
+            },
+            {
+              "index": 27,
+              "eligible": false,
+              "lateral_front_dot": -0.2751297997984786,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.34176901291974504
+            },
+            {
+              "index": 7,
+              "eligible": false,
+              "lateral_front_dot": 0.48722525847065107,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.27619979974411524
+            },
+            {
+              "index": 26,
+              "eligible": false,
+              "lateral_front_dot": 0.054424315951973334,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.17955442497939256
+            },
+            {
+              "index": 46,
+              "eligible": false,
+              "lateral_front_dot": -0.5264915515595295,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.5392750358424097
+            },
+            {
+              "index": 25,
+              "eligible": false,
+              "lateral_front_dot": 0.3756928229563905,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.14224523847826953
+            },
+            {
+              "index": 8,
+              "eligible": false,
+              "lateral_front_dot": 0.33814733807005065,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.08867318301934324
+            },
+            {
+              "index": 32,
+              "eligible": false,
+              "lateral_front_dot": -0.3381473380700506,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.08867318301934324
+            },
+            {
+              "index": 36,
+              "eligible": false,
+              "lateral_front_dot": 0.7374580666115158,
+              "visible": 1,
+              "projected_area": 0,
+              "separation": 0.41842332176421126
+            },
+            {
+              "index": 47,
+              "eligible": false,
+              "lateral_front_dot": -0.48722525847065123,
+              "visible": 1,
+              "projected_area": 0,
+              "separation": 0.27619979974411546
+            },
+            {
+              "index": 35,
+              "eligible": false,
+              "lateral_front_dot": 0.4801598979658296,
+              "visible": 1,
+              "projected_area": 0,
+              "separation": 0.1837039022428164
+            },
+            {
+              "index": 11,
+              "eligible": false,
+              "lateral_front_dot": -0.48015989796582914,
+              "visible": 1,
+              "projected_area": 0,
+              "separation": 0.18370390224281619
+            },
+            {
+              "index": 9,
+              "eligible": false,
+              "lateral_front_dot": 0.1019535523440063,
+              "visible": 1,
+              "projected_area": 0,
+              "separation": 0.005244413131426429
+            },
+            {
+              "index": 10,
+              "eligible": false,
+              "lateral_front_dot": -0.18539773593269124,
+              "visible": 0,
+              "projected_area": 0,
+              "separation": 0.03861476401211794
+            },
+            {
+              "index": 34,
+              "eligible": false,
+              "lateral_front_dot": 0.1853977359326913,
+              "visible": 0,
+              "projected_area": 0,
+              "separation": 0.03861476401211794
+            },
+            {
+              "index": 33,
+              "eligible": false,
+              "lateral_front_dot": -0.10195355234400613,
+              "visible": 0,
+              "projected_area": 0,
+              "separation": 0.00524441313142654
+            }
+          ],
+          "frame_margin": 1.35,
+          "assessment": "unassessed pending direct image inspection",
+          "density_use": "prohibited: diagnostic filtering is not natural foliage density"
+        }
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-3407793930",
+      "case_index": 3,
+      "view": "attached-shoot",
+      "visibility": "named anatomy visible",
+      "observation": "Terminal twig, multiple short petiole attachments and lobed blade faces are visible. The incoming connected wood continues beyond the two-dimensional frame; retained leaf overlap does not prevent inspecting several connections.",
+      "assessor": "conductor; implementation-side visual inspection, not independent botanical assessment",
+      "preview_path": "/tmp/fn19-visibility-v22-proposals/3-attached-shoot-1.png",
+      "preview_sha256": "5bb03c99effedc0167a472f6943f971a422eb2ec9bf258c9ceaadca156980a3a",
+      "condition": {
+        "camera": {
+          "projection": "orthographic",
+          "position_m": [
+            -4.691827178171694,
+            2.2893270029486867,
+            21.524554627729977
+          ],
+          "target_m": [
+            10.497421686399198,
+            13.029747876216833,
+            6.335305763159083
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "left_m": -0.2816271143925886,
+          "right_m": 0.2816271143925886,
+          "top_m": 0.17601694649536787,
+          "bottom_m": -0.17601694649536787,
+          "near_m": 23.871753892339996,
+          "far_m": 24.11388979588955,
+          "width_px": 1600,
+          "height_px": 1000,
+          "dpr": 1
+        },
+        "target": {
+          "rule": "attached-shoot",
+          "query_normalized": [
+            0.7,
+            0.5,
+            0.7
+          ],
+          "selected_position_m": [
+            10.40769179792529,
+            13.049828254579156,
+            6.238632477023886
+          ],
+          "node_indices": [
+            79685,
+            80808,
+            81756
+          ],
+          "axis_order": 1,
+          "resolution": "resolved",
+          "reason": null
+        },
+        "leaf_state": "selected-attachment-only",
+        "diagnostic": {
+          "version": "fn19-visibility-v2.2",
+          "view": "attached-shoot",
+          "geometry_hashes": {
+            "wood": "da0e1f08fc69d58210598fe5ef25db99e39aa003bc0b68b7fd2bbc4a6b1a27d8",
+            "wood_normals": "fd6953a022900697f801e97062372ea3eff6b39959cd3c156b8c435c4c63f789",
+            "wood_indices": "8048897aa8a560467bce918650e6616741d56c5830c816305c852ba68f5bd2a2",
+            "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+            "foliage_indices": "2f38cd61cd65dcfa22cbe7576de548d9e063a944c744df37dea14cbfe8e2910a",
+            "matrices": "47774fe56cc7d2d795c2e0adb8d69255b816fdf8c857ee9d656bfa45c7b30698",
+            "structure": "3248f7cb1628245e050be719fc1aa8039dde00e48eef5259570639df3191785a",
+            "topology": "24b63e6284d8338c189f552c0e428b851e3f87e2fd0d99517ab9d32e5face086"
+          },
+          "wood": "original-arrays-local-depth-volume",
+          "retained_unit_indices": [
+            510147,
+            510148,
+            510149,
+            510150,
+            510151,
+            510152,
+            510153,
+            510157,
+            510158,
+            510154,
+            510155,
+            510156
+          ],
+          "original_unit_count": 526747,
+          "attachment_mapping": "original matrix origins within tapered terminal segment; same geometric attachment rule as v1; no generator ownership ID available",
+          "foliage_filter": "only selected terminal-segment attachment matrices retained, including original connectors",
+          "target_rule": "unchanged v1 normalized semantic target and tie order",
+          "camera_rule": "48 fixed spherical directions; selected lateral radial direction perpendicular to incoming parent must face camera (dot >= 0.5); distal and parent-surface-exit probes must be visible at branch-specific radii; most visible woody probes, then greatest projected retained biological area, then least axial foreshortening, then direction index",
+          "automatic_visibility": "probe-supported proposal",
+          "depth_crop": "selected local anatomy and retained full element vertices, plus 1.5 times maximum local node radius (minimum 0.01 m); remote context clipped; cut ends are crop boundaries",
+          "selected_lateral_node": null,
+          "lateral_front_dot": 1,
+          "camera_direction_index": 6,
+          "projected_nodes_px": [
+            {
+              "node": 79685,
+              "x": -261.4929592070194,
+              "y": 351.95888100361935
+            },
+            {
+              "node": 80808,
+              "x": 425.5844922174366,
+              "y": 455.2181150857463
+            },
+            {
+              "node": 81756,
+              "x": 1107.38788224878,
+              "y": 557.6847230398691
+            }
+          ],
+          "visible_probe_count": 3,
+          "probe_count": 3,
+          "probes": [
+            {
+              "point_m": [
+                10.429176195668491,
+                13.04096926412519,
+                6.268063565038918
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                10.427741188525516,
+                13.039954560843341,
+                6.269498572181888
+              ],
+              "local_radius_m": 0.0022187500000000002,
+              "visible": true
+            },
+            {
+              "point_m": [
+                10.479306457069292,
+                13.02029828639927,
+                6.336736103740657
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                10.478295974496177,
+                13.01958376731955,
+                6.33774658631377
+              ],
+              "local_radius_m": 0.0015625,
+              "visible": true
+            },
+            {
+              "point_m": [
+                10.529436718470091,
+                12.999627308673348,
+                6.405408642442396
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                10.528850760466835,
+                12.999212973795757,
+                6.405994600445652
+              ],
+              "local_radius_m": 0.0009062500000000002,
+              "visible": true
+            }
+          ],
+          "candidate_scores": [
+            {
+              "index": 6,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.051566195576175575,
+              "separation": 0.7603256214081187
+            },
+            {
+              "index": 47,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05135384682456149,
+              "separation": 0.9008566733322547
+            },
+            {
+              "index": 7,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05135384682456148,
+              "separation": 0.9008566733322543
+            },
+            {
+              "index": 5,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05122551524834448,
+              "separation": 0.44191196979962055
+            },
+            {
+              "index": 8,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.050622536137784765,
+              "separation": 0.5932168386571297
+            },
+            {
+              "index": 32,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.050622536137784765,
+              "separation": 0.5932168386571297
+            },
+            {
+              "index": 4,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.05038367133270528,
+              "separation": 0.19237796387270578
+            },
+            {
+              "index": 9,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.04957512961553064,
+              "separation": 0.3635902506337497
+            },
+            {
+              "index": 33,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.04957512961553064,
+              "separation": 0.3635902506337496
+            },
+            {
+              "index": 43,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.049168826934080014,
+              "separation": 0.04971289399835055
+            },
+            {
+              "index": 3,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.04916882693408001,
+              "separation": 0.04971289399835077
+            },
+            {
+              "index": 10,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.04821073740737595,
+              "separation": 0.24693547571846985
+            },
+            {
+              "index": 34,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.04821073740737595,
+              "separation": 0.24693547571846985
+            },
+            {
+              "index": 35,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.046698381834473536,
+              "separation": 0.2610121459139738
+            },
+            {
+              "index": 11,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.046698381834473536,
+              "separation": 0.2610121459139736
+            },
+            {
+              "index": 1,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.0463885620026899,
+              "separation": 0.15229099871812668
+            },
+            {
+              "index": 41,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.0463885620026899,
+              "separation": 0.15229099871812668
+            },
+            {
+              "index": 12,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.045483537435848244,
+              "separation": 0.4036772157883288
+            },
+            {
+              "index": 36,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.045483537435848244,
+              "separation": 0.4036772157883288
+            },
+            {
+              "index": 0,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.045246411602564734,
+              "separation": 0.38191758674150666
+            },
+            {
+              "index": 37,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.04464169352020908,
+              "separation": 0.6532112217152436
+            },
+            {
+              "index": 13,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.04464169352020907,
+              "separation": 0.6532112217152438
+            },
+            {
+              "index": 15,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.044513361943992066,
+              "separation": 0.6895574214166317
+            },
+            {
+              "index": 38,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.04430101319237783,
+              "separation": 0.9716248733237416
+            },
+            {
+              "index": 14,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.04430101319237783,
+              "separation": 0.9716248733237414
+            },
+            {
+              "index": 18,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.02007519560466573,
+              "separation": 0.03992839341193233
+            },
+            {
+              "index": 27,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.01884521873173644,
+              "separation": 0.05566658913892819
+            },
+            {
+              "index": 19,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.018845218731736432,
+              "separation": 0.0556665891389283
+            },
+            {
+              "index": 25,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.018437630999066208,
+              "separation": 0.17035239671718383
+            },
+            {
+              "index": 24,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.01532777079660994,
+              "separation": 0.4270827268479923
+            },
+            {
+              "index": 31,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 3,
+              "projected_area": 0.012747845311143244,
+              "separation": 0.7710345183081805
+            },
+            {
+              "index": 46,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.05156619557617557,
+              "separation": 0.7603256214081184
+            },
+            {
+              "index": 45,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.05122551524834448,
+              "separation": 0.4419119697996208
+            },
+            {
+              "index": 2,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.04776593109956756,
+              "separation": 0.03563622380284692
+            },
+            {
+              "index": 42,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.04776593109956756,
+              "separation": 0.03563622380284681
+            },
+            {
+              "index": 40,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.04524641160256473,
+              "separation": 0.3819175867415068
+            },
+            {
+              "index": 39,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.044513361943992066,
+              "separation": 0.6895574214166312
+            },
+            {
+              "index": 26,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.02007519560466573,
+              "separation": 0.03992839341193233
+            },
+            {
+              "index": 17,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.018437630999066208,
+              "separation": 0.17035239671718383
+            },
+            {
+              "index": 28,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.015315934744007569,
+              "separation": 0.21517098626583597
+            },
+            {
+              "index": 20,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.015315934744007565,
+              "separation": 0.21517098626583608
+            },
+            {
+              "index": 23,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.012747845311143242,
+              "separation": 0.7710345183081799
+            },
+            {
+              "index": 29,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.01211765083891709,
+              "separation": 0.49415848624104464
+            },
+            {
+              "index": 30,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.011188683328700365,
+              "separation": 0.8501557712213128
+            },
+            {
+              "index": 22,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 2,
+              "projected_area": 0.011188683328700363,
+              "separation": 0.8501557712213128
+            },
+            {
+              "index": 44,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.05038367133270528,
+              "separation": 0.19237796387270578
+            },
+            {
+              "index": 16,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.015327770796609944,
+              "separation": 0.4270827268479922
+            },
+            {
+              "index": 21,
+              "eligible": true,
+              "lateral_front_dot": 1,
+              "visible": 1,
+              "projected_area": 0.01211765083891709,
+              "separation": 0.4941584862410444
+            }
+          ],
+          "frame_margin": 1.35,
+          "assessment": "unassessed pending direct image inspection",
+          "density_use": "prohibited: diagnostic filtering is not natural foliage density"
+        }
+      }
+    },
+    {
+      "case_id": "oregon-white-oak-1462003817",
+      "case_index": 5,
+      "view": "fork",
+      "visibility": "named anatomy visible",
+      "observation": "The shared multiway scaffold junction is exposed: incoming parent and several proximal outgoing axes are visible. Distal depth-cut ends are separated from the named junction and are crop boundaries, not cap or collar evidence.",
+      "assessor": "conductor; implementation-side visual inspection, not independent botanical assessment",
+      "preview_path": "/tmp/fn19-visibility-v22-proposals/5-fork-1.png",
+      "preview_sha256": "d9d78f42be7c08314b09b2a71a4ff32de114e5aa74894bd09db654166518bdd9",
+      "condition": {
+        "camera": {
+          "projection": "orthographic",
+          "position_m": [
+            -13.368674990238596,
+            14.492260696186294,
+            13.261649555394976
+          ],
+          "target_m": [
+            -0.11232642811728503,
+            5.118606734137776,
+            0.005300993273664678
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "left_m": -1.1259130723920472,
+          "right_m": 1.1259130723920472,
+          "top_m": 0.7036956702450294,
+          "bottom_m": -0.7036956702450294,
+          "near_m": 19.991959591415384,
+          "far_m": 21.843559672850834,
+          "width_px": 1600,
+          "height_px": 1000,
+          "dpr": 1
+        },
+        "target": {
+          "rule": "fork",
+          "query_normalized": [
+            0.25,
+            0.35,
+            0.25
+          ],
+          "selected_position_m": [
+            0,
+            5.13024,
+            0
+          ],
+          "node_indices": [
+            9,
+            10,
+            46,
+            36,
+            19,
+            11,
+            28
+          ],
+          "axis_order": 1,
+          "resolution": "resolved",
+          "reason": null
+        },
+        "leaf_state": "hidden",
+        "diagnostic": {
+          "version": "fn19-visibility-v2.2",
+          "view": "fork",
+          "geometry_hashes": {
+            "wood": "86421f1876b6b821ebf55e187d93a9f18ec4aee9faa6cdcf67a1f6f3aac500a2",
+            "wood_normals": "84edd7414d33f4ac737912fb89d7cc3bb448e0d8db70f9ee085db7203f09ec74",
+            "wood_indices": "e4e59465dd2d5a1941f28de1a8e56433a53ff8fdf01b192eda8f24c27e0f1853",
+            "foliage": "9c5ce50ba0a53382f3739808551cd6cc62205ed2ce7d3da9a154887c2f8be658",
+            "foliage_indices": "2f38cd61cd65dcfa22cbe7576de548d9e063a944c744df37dea14cbfe8e2910a",
+            "matrices": "5c8d33e6abfc5a52a02877b1ae8cbbc6ca07aa12305f3669a131434125fb8bc5",
+            "structure": "8095ab12b5bd35620c5e71e6f5c6587ab3c4f70716f0f63c2110e2d1ff7e616b",
+            "topology": "ed66abad6b4e79e8d4a7aa6d00a12b83223b4e5081db600a43e9bac46a3c379a"
+          },
+          "wood": "original-arrays-local-depth-volume",
+          "retained_unit_indices": [],
+          "original_unit_count": 577070,
+          "attachment_mapping": "original matrix origins within tapered terminal segment; same geometric attachment rule as v1; no generator ownership ID available",
+          "foliage_filter": "all foliage hidden",
+          "target_rule": "unchanged v1 normalized semantic target and tie order",
+          "camera_rule": "48 fixed spherical directions; selected lateral radial direction perpendicular to incoming parent must face camera (dot >= 0.5); distal and parent-surface-exit probes must be visible at branch-specific radii; most visible woody probes, then greatest projected retained biological area, then least axial foreshortening, then direction index",
+          "automatic_visibility": "unassessed: side-branch probe model did not admit this proposal",
+          "depth_crop": "selected local anatomy and retained full element vertices, plus 1.5 times maximum local node radius (minimum 0.01 m); remote context clipped; cut ends are crop boundaries",
+          "selected_lateral_node": 36,
+          "lateral_front_dot": 0.3673692035420581,
+          "camera_direction_index": 38,
+          "projected_nodes_px": [
+            {
+              "node": 9,
+              "x": 853.7721162267574,
+              "y": 792.2147077416697
+            },
+            {
+              "node": 10,
+              "x": 853.7721162267574,
+              "y": 466.17702224918827
+            },
+            {
+              "node": 46,
+              "x": 714.8929123816465,
+              "y": 142.05824101396652
+            },
+            {
+              "node": 36,
+              "x": 598.1068898639371,
+              "y": 333.20876578018175
+            },
+            {
+              "node": 19,
+              "x": 1081.7315831489364,
+              "y": 297.34349794056357
+            },
+            {
+              "node": 11,
+              "x": 942.3047062870978,
+              "y": 129.6296296296325
+            },
+            {
+              "node": 28,
+              "x": 870.5165474309689,
+              "y": 292.4510042187406
+            }
+          ],
+          "visible_probe_count": 6,
+          "probe_count": 7,
+          "probes": [
+            {
+              "point_m": [
+                0,
+                4.7198208,
+                0
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.2628120552119615,
+                4.905656986417949,
+                0.2628120552119615
+              ],
+              "local_radius_m": 0.3799993674995241,
+              "visible": true
+            },
+            {
+              "point_m": [
+                0.03584272730172072,
+                5.434716074813381,
+                -0.25697751946171543
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.09552581818153527,
+                5.527607664159202,
+                -0.12560897397846027
+              ],
+              "local_radius_m": 0.17149533423760988,
+              "visible": true
+            },
+            {
+              "point_m": [
+                -0.29523940713692026,
+                5.3624590256363875,
+                -0.11185161246119216
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.4399089523493718,
+                5.464755842087284,
+                0.032817932751258994
+              ],
+              "local_radius_m": 0.17127082006233052,
+              "visible": true
+            },
+            {
+              "point_m": [
+                0.09751654167180614,
+                5.402145837964903,
+                0.26545910869957895
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.04650599877127526,
+                5.5039851529559165,
+                0.40948164914265917
+              ],
+              "local_radius_m": 0.16745808751908975,
+              "visible": true
+            },
+            {
+              "point_m": [
+                0.1155171221492642,
+                5.5220459746204416,
+                0.025451686429261256
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.03836245377850034,
+                5.630855266245073,
+                0.17933126235702623
+              ],
+              "local_radius_m": 0.16546125494385616,
+              "visible": true
+            },
+            {
+              "point_m": [
+                -0.15378903818041093,
+                5.467099548265195,
+                0.18045088683494603
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.4053547376763422,
+                5.644983360292702,
+                0.4320165863308745
+              ],
+              "local_radius_m": 0.16544889744008626,
+              "visible": false
+            },
+            {
+              "point_m": [
+                0,
+                5.13024,
+                0
+              ],
+              "first_surface": "grower-trunk",
+              "first_hit_m": [
+                -0.24945318372731862,
+                5.306630037802158,
+                0.24945318372731862
+              ],
+              "local_radius_m": 0.3799993674995241,
+              "visible": true
+            }
+          ],
+          "candidate_scores": [
+            {
+              "index": 38,
+              "eligible": false,
+              "lateral_front_dot": 0.3673692035420581,
+              "visible": 6,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 16,
+              "eligible": false,
+              "lateral_front_dot": -0.9351400292945939,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 17,
+              "eligible": false,
+              "lateral_front_dot": -0.9995331753052012,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 21,
+              "eligible": false,
+              "lateral_front_dot": 0.03055211063579122,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 22,
+              "eligible": false,
+              "lateral_front_dot": 0.4107312559799992,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 23,
+              "eligible": false,
+              "lateral_front_dot": 0.7283802908893595,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 29,
+              "eligible": false,
+              "lateral_front_dot": -0.030552110635791496,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 30,
+              "eligible": false,
+              "lateral_front_dot": -0.4107312559799991,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 31,
+              "eligible": false,
+              "lateral_front_dot": -0.7283802908893592,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 0,
+              "eligible": false,
+              "lateral_front_dot": -0.8364146695935427,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 5,
+              "eligible": false,
+              "lateral_front_dot": 0.027326638495089317,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 6,
+              "eligible": false,
+              "lateral_front_dot": 0.3673692035420581,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 7,
+              "eligible": false,
+              "lateral_front_dot": 0.6514831375598714,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 9,
+              "eligible": false,
+              "lateral_front_dot": 0.8940096502994578,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 15,
+              "eligible": false,
+              "lateral_front_dot": -0.6514831375598711,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 32,
+              "eligible": false,
+              "lateral_front_dot": -0.8364146695935427,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 47,
+              "eligible": false,
+              "lateral_front_dot": -0.6514831375598711,
+              "visible": 5,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 18,
+              "eligible": false,
+              "lateral_front_dot": -0.9117564561663889,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 25,
+              "eligible": false,
+              "lateral_front_dot": 0.9995331753052012,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 26,
+              "eligible": false,
+              "lateral_front_dot": 0.9117564561663889,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 27,
+              "eligible": false,
+              "lateral_front_dot": 0.6851730816691008,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 28,
+              "eligible": false,
+              "lateral_front_dot": 0.3542783165971437,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 1,
+              "eligible": false,
+              "lateral_front_dot": -0.8940096502994576,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 2,
+              "eligible": false,
+              "lateral_front_dot": -0.8154997659649411,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 3,
+              "eligible": false,
+              "lateral_front_dot": -0.6128374347860495,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 4,
+              "eligible": false,
+              "lateral_front_dot": -0.31687615954616205,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 8,
+              "eligible": false,
+              "lateral_front_dot": 0.8364146695935427,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 10,
+              "eligible": false,
+              "lateral_front_dot": 0.8154997659649412,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 11,
+              "eligible": false,
+              "lateral_front_dot": 0.6128374347860499,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 12,
+              "eligible": false,
+              "lateral_front_dot": 0.31687615954616216,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 13,
+              "eligible": false,
+              "lateral_front_dot": -0.02732663849508954,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 14,
+              "eligible": false,
+              "lateral_front_dot": -0.36736920354205793,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 33,
+              "eligible": false,
+              "lateral_front_dot": -0.8940096502994576,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 37,
+              "eligible": false,
+              "lateral_front_dot": 0.027326638495089317,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 42,
+              "eligible": false,
+              "lateral_front_dot": 0.8154997659649412,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 44,
+              "eligible": false,
+              "lateral_front_dot": 0.31687615954616216,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 45,
+              "eligible": false,
+              "lateral_front_dot": -0.02732663849508954,
+              "visible": 4,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 19,
+              "eligible": false,
+              "lateral_front_dot": -0.6851730816691004,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 20,
+              "eligible": false,
+              "lateral_front_dot": -0.3542783165971436,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 24,
+              "eligible": false,
+              "lateral_front_dot": 0.9351400292945939,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 1
+            },
+            {
+              "index": 34,
+              "eligible": false,
+              "lateral_front_dot": -0.8154997659649411,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 36,
+              "eligible": false,
+              "lateral_front_dot": -0.31687615954616205,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 40,
+              "eligible": false,
+              "lateral_front_dot": 0.8364146695935427,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 43,
+              "eligible": false,
+              "lateral_front_dot": 0.6128374347860499,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 46,
+              "eligible": false,
+              "lateral_front_dot": -0.36736920354205793,
+              "visible": 3,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 35,
+              "eligible": false,
+              "lateral_front_dot": -0.6128374347860495,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 39,
+              "eligible": false,
+              "lateral_front_dot": 0.6514831375598714,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            },
+            {
+              "index": 41,
+              "eligible": false,
+              "lateral_front_dot": 0.8940096502994578,
+              "visible": 2,
+              "projected_area": 0,
+              "separation": 0.5527864045000421
+            }
+          ],
+          "frame_margin": 1.35,
+          "assessment": "unassessed pending direct image inspection",
+          "density_use": "prohibited: diagnostic filtering is not natural foliage density"
+        }
+      }
+    }
+  ]
+}

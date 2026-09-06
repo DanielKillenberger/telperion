@@ -7,27 +7,42 @@ import {sha,artifact} from './geometry-benchmark.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const json=async p=>JSON.parse(await readFile(p,'utf8'));
 const save=(p,v)=>writeFile(p,JSON.stringify(v,null,2)+'\n');
-export function validateVisibilityMapping(record,original) {
-  if(record.version!=='fn19-visibility-v2'||!['fork','attached-shoot'].includes(record.view))throw Error('unsupported diagnostic');
-  if(!isDeepStrictEqual(record.geometry_hashes,original.hashes)||record.wood!=='full-connected-original')throw Error('source-mismatch: geometry');
+export function validateVisibilityMapping(record,original,admitted=false) {
+  if(record.version!=='fn19-visibility-v2.2'||!['fork','attached-shoot'].includes(record.view))throw Error('unsupported diagnostic');
+  if(!isDeepStrictEqual(record.geometry_hashes,original.hashes)||record.wood!=='original-arrays-declared-camera-depth')throw Error('source-mismatch: geometry');
   const units=record.retained_unit_indices;
   if(!Array.isArray(units)||new Set(units).size!==units.length||units.some(i=>!Number.isInteger(i)||i<0||i>=record.original_unit_count))throw Error('invalid attachment mapping');
   if(record.view==='attached-shoot'&&!units.length||record.view==='fork'&&units.length)throw Error('invalid diagnostic filter');
-  if(!(record.visible_probe_count>0&&record.visible_probe_count<=record.probe_count))throw Error('unassessed: hidden woody anatomy');
+  if(!(Number.isInteger(record.visible_probe_count)&&record.visible_probe_count>=0&&record.visible_probe_count<=record.probe_count&&(admitted||record.visible_probe_count>0)))throw Error('unassessed: hidden woody anatomy');
+}
+export function validateVisibilityAdmissions(admissions,cases) {
+  if(admissions.version!=='fn19-visibility-v2.2'||admissions.views.length!==24||new Set(admissions.views.map(v=>v.case_id+'/'+v.view)).size!==24)throw Error('incomplete/duplicate admissions');
+  if(cases?.length!==12||admissions.views.some(v=>cases[v.case_index]?.id!==v.case_id||!['fork','attached-shoot'].includes(v.view)))throw Error('admission cohort mismatch');
+  for(const v of admissions.views)if(v.visibility!=='named anatomy visible'||!v.observation||!v.preview_sha256||!v.condition?.camera||!v.condition?.target||!v.condition?.diagnostic)throw Error('unassessed admission');
 }
 async function main() {
-  const [baselineArg,outputArg,caseArg]=process.argv.slice(2);
-  if(!baselineArg||!outputArg)throw Error('usage: node tests/browser/geometry-visibility.mjs V1_VISUAL_RUN NEW_OUTPUT [CASE_INDEX]');
+  const args=process.argv.slice(2),prepare=args.includes('--prepare'),conditionIndex=args.indexOf('--conditions'),conditionPath=conditionIndex<0?null:args[conditionIndex+1];
+  const positional=args.filter((x,i)=>x!=='--prepare'&&x!=='--conditions'&&(conditionIndex<0||i!==conditionIndex+1));
+  const [baselineArg,outputArg,caseArg]=positional;
+  if(!baselineArg||!outputArg)throw Error('usage: node tests/browser/geometry-visibility.mjs V1_VISUAL_RUN NEW_OUTPUT [CASE_INDEX] --prepare | --conditions ADMISSIONS_JSON');
+  if(prepare===!!conditionPath)throw Error('choose exactly one of --prepare or --conditions');
+  const admissions=conditionPath?await json(resolve(conditionPath)):null;
   const baseline=resolve(baselineArg),out=resolve(outputArg),original=await json(join(baseline,'run.json'));
   const protocol=await json(join(root,'.flow/evidence/fn19/protocol.json'));
   if(sha(await readFile(join(root,'.flow/evidence/fn19/protocol.json')))!==original.protocol_sha256)throw Error('protocol mismatch');
   const pinned=await json(join(root,'.flow/evidence/fn19/final/visual.json'));
   if(!isDeepStrictEqual(original,pinned.run))throw Error('source-mismatch: baseline differs from pinned mature receipt');
+  if(admissions){
+    validateVisibilityAdmissions(admissions,original.cases);
+    for(const v of admissions.views)if(sha(await readFile(resolve(dirname(resolve(conditionPath)),v.preview_path)))!==v.preview_sha256)throw Error('admission preview hash mismatch');
+  }
   await mkdir(out,{recursive:false});
+  await writeFile(join(out,'protocol.json'),await readFile(join(root,'.flow/evidence/fn19/visibility-v2/protocol.json')));
+  if(admissions)await save(join(out,'admissions.json'),admissions);
   const toolPaths=[...original.tool.files.map(f=>f.path),'tests/browser/geometry-visibility.mjs','.flow/evidence/fn19/visibility-v2/protocol.json'];
   const files=[];for(const path of [...new Set([...original.source.files.map(f=>f.path),...toolPaths])].sort())files.push({path,sha256:sha(await readFile(join(root,path)))});
   for(const expected of original.source.files)if(files.find(f=>f.path===expected.path)?.sha256!==expected.sha256)throw Error('source-mismatch: '+expected.path);
-  const run={version:'fn19-visibility-v2',created_at:new Date().toISOString(),baseline:{path:baseline,run_sha256:sha(await readFile(join(baseline,'run.json'))),protocol_sha256:original.protocol_sha256,source:original.source},tool:{commit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),dirty:!!execFileSync('git',['status','--porcelain','--',...files.map(f=>f.path)],{cwd:root,encoding:'utf8'}).trim(),files,sha256:sha(JSON.stringify(files))},render:{width:1600,height:1000,samples:[64,128],channels:['neutral-beauty'],density_comparison:false},records:[],status:'started'};
+  const run={version:'fn19-visibility-v2.2',created_at:new Date().toISOString(),baseline:{path:baseline,run_sha256:sha(await readFile(join(baseline,'run.json'))),protocol_sha256:original.protocol_sha256,source:original.source},tool:{commit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),dirty:!!execFileSync('git',['status','--porcelain','--',...files.map(f=>f.path)],{cwd:root,encoding:'utf8'}).trim(),files,sha256:sha(JSON.stringify(files))},conditions_sha256:admissions?sha(await readFile(resolve(conditionPath))):null,render:{width:1600,height:1000,samples:prepare?[1]:[64,128],channels:['neutral-beauty'],density_comparison:false},records:[],status:'started'};
   const cases=original.cases.map((c,index)=>({...c,index})).filter(c=>caseArg===undefined||c.index===Number(caseArg));
   if(!cases.length)throw Error('empty case selection');
   for(const c of cases)for(const view of ['fork','attached-shoot'])run.records.push({case_id:c.id,case_index:c.index,view,status:'interrupted',assessment:'unassessed',reason:'pending',artifacts:[]});
@@ -52,22 +67,26 @@ async function main() {
       if(!isDeepStrictEqual(meta.hashes,prior.hashes)||meta.wasm_sha256!==prior.wasm_sha256)throw Error('source-mismatch: original generated arrays/Wasm');
       for(const record of records){
         try {
-          const condition=await page.evaluate(view=>{window.condition=window.rig.prepareVisibility(view);return window.condition;},record.view);
-          validateVisibilityMapping(condition.diagnostic,prior);
+          const fixed=admissions?.views.find(v=>v.case_id===c.id&&v.view===record.view)?.condition;
+          if(admissions&&!fixed)throw Error('missing admitted view');
+          const condition=await page.evaluate(({view,fixed})=>{window.condition=window.rig.prepareVisibility(view,fixed);return window.condition;},{view:record.view,fixed});
+          if(fixed&&(!isDeepStrictEqual(condition.target,fixed.target)||!isDeepStrictEqual(condition.diagnostic.retained_unit_indices,fixed.diagnostic.retained_unit_indices)||!isDeepStrictEqual(condition.camera,fixed.camera)))throw Error('changed admitted anatomy/camera');
+          validateVisibilityMapping(condition.diagnostic,prior,!!fixed);
           record.condition=condition;record.geometry=meta;record.browser=browser.version();record.parameters=original.parameters[c.id];
           const prefix=c.index+'-'+record.view;
+          await save(join(out,'run.json'),run);
           await page.evaluate(()=>{window.sum=new Float64Array(1600*1000*3);window.samples=0;});
-          for(let stop=8;stop<=128;stop+=8){
+          for(const stop of prepare?[1]:Array.from({length:16},(_,i)=>(i+1)*8)){
             await page.evaluate(stop=>{function radical(i,b){let f=1,r=0;for(;i;i=Math.floor(i/b)){f/=b;r+=f*(i%b);}return r;}for(;window.samples<stop;window.samples++){const index=window.samples+1,a=window.rig.raw(window.condition,'beauty',[radical(index,2)-.5,radical(index,3)-.5]);for(let j=0;j<a.length;j++)window.sum[j]+=a[j];}},stop);
             if(stop===64)await page.evaluate(()=>{window.mean64=Float32Array.from(window.sum,x=>x/64);});
             if(stop===128)record.beauty_rmse_64_128=await page.evaluate(()=>{let sum=0;for(let i=0;i<window.sum.length;i++)sum+=(window.sum[i]/128-window.mean64[i])**2;return Math.sqrt(sum/window.sum.length);});
-            if(stop===64||stop===128){
+            if(stop===1||stop===64||stop===128){
               const png=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=1600;canvas.height=1000;const pixels=new Uint8ClampedArray(1600*1000*4);for(let i=0;i<1600*1000;i++){for(let k=0;k<3;k++){const x=window.sum[i*3+k]/window.samples,s=x<=.0031308?12.92*x:1.055*x**(1/2.4)-.055;pixels[i*4+k]=Math.round(Math.max(0,Math.min(1,s))*255);}pixels[i*4+3]=255;}canvas.getContext('2d').putImageData(new ImageData(pixels,1600,1000),0,0);return canvas.toDataURL('image/png').split(',')[1];});
               const name=prefix+'-'+stop+'.png';await writeFile(join(out,name),Buffer.from(png,'base64'));record.artifacts.push(await artifact(out,name,'image/png'));
             }
           }
-          if(!Number.isFinite(record.beauty_rmse_64_128)||record.beauty_rmse_64_128>.005)throw Error('unassessed: beauty convergence exceeds 0.005');
-          record.status='captured';record.reason='diagnostic capture complete; direct anatomy inspection pending';
+          if(!prepare&&(!Number.isFinite(record.beauty_rmse_64_128)||record.beauty_rmse_64_128>.005))throw Error('unassessed: beauty convergence exceeds 0.005');
+          record.status=prepare?'proposed':'captured';record.reason=prepare?'single-sample proposal requires direct visual admission':'fixed admitted conditions captured; final direct inspection pending';
         }catch(e){record.status='fail';record.reason=String(e);}
         await save(join(out,'run.json'),run);console.log(c.id,record.view,record.status,record.condition?.diagnostic.visible_probe_count);
       }
@@ -75,7 +94,8 @@ async function main() {
     finally{clearTimeout(caseTimer);await browser?.close();await save(join(out,'run.json'),run);}
   }
   for(const f of files)if(sha(await readFile(join(root,f.path)))!==f.sha256)throw Error('source-mismatch: tool changed during capture '+f.path);
-  run.status=run.records.every(r=>r.status==='captured')?'captured':'incomplete';await save(join(out,'run.json'),run);
-  process.exitCode=run.status==='captured'?0:1;
+  if(admissions&&sha(await readFile(resolve(conditionPath)))!==run.conditions_sha256)throw Error('admissions changed during capture');
+  run.status=run.records.every(r=>r.status===(prepare?'proposed':'captured'))?(prepare?'proposed':'captured'):'incomplete';await save(join(out,'run.json'),run);
+  process.exitCode=['captured','proposed'].includes(run.status)?0:1;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))main().catch(e=>{console.error(e);process.exitCode=1;});

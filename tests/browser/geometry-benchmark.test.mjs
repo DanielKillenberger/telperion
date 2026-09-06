@@ -88,8 +88,32 @@ test('R4 capture rules compare object values independent of key order but preser
 test('visibility supplement rejects missing anatomy, altered geometry and undeclared instance filtering', async () => {
   const {validateVisibilityMapping}=await import('./geometry-visibility.mjs');
   const base={hashes:{wood:'wood',matrices:'matrices'}};
-  const good={version:'fn19-visibility-v2',view:'attached-shoot',geometry_hashes:base.hashes,wood:'full-connected-original',retained_unit_indices:[2,4],original_unit_count:6,visible_probe_count:3,probe_count:3};
+  const good={version:'fn19-visibility-v2.2',view:'attached-shoot',geometry_hashes:base.hashes,wood:'original-arrays-declared-camera-depth',retained_unit_indices:[2,4],original_unit_count:6,visible_probe_count:3,probe_count:3};
   assert.doesNotThrow(()=>validateVisibilityMapping(good,base));
   for(const patch of [{geometry_hashes:{wood:'changed',matrices:'matrices'}},{retained_unit_indices:[]},{retained_unit_indices:[2,2]},{retained_unit_indices:[6]},{wood:'pruned'},{visible_probe_count:0}])assert.throws(()=>validateVisibilityMapping({...good,...patch},base));
+  assert.doesNotThrow(()=>validateVisibilityMapping({...good,visible_probe_count:0},base,true));
   assert.doesNotThrow(()=>validateVisibilityMapping({...good,view:'fork',retained_unit_indices:[]},base));
 });
+
+test('local visibility rejects a parent-surface hit far outside the selected lateral radius', async () => {
+  const {woodyProbeVisible}=await import('./geometry-benchmark-rig.mjs');
+  assert.equal(woodyProbeVisible({surface:'grower-trunk',point:[.17,0,0]},[0,0,0],.02),false);
+  assert.equal(woodyProbeVisible({surface:'grower-trunk',point:[.02,0,0]},[0,0,0],.02),true);
+  assert.equal(woodyProbeVisible({surface:'grower-canopy',point:[.01,0,0]},[0,0,0],.02),false);
+});
+
+test('collar-facing direction excludes the child axial component', async () => {
+  const {collarFacing}=await import('./geometry-benchmark-rig.mjs');
+  assert.equal(collarFacing([0,1,0],[0,1,0],[1,10,0]),0);
+  assert.equal(collarFacing([1,0,0],[0,1,0],[1,10,0]),1);
+  assert.equal(collarFacing([-1,0,0],[0,1,0],[1,10,0]),-1);
+});
+
+ test('visibility admissions require the exact mature cohort, not arbitrary unique views', async () => {
+ const {validateVisibilityAdmissions}=await import('./geometry-visibility.mjs');
+ const cases=Array.from({length:12},(_,i)=>({id:'case-'+i}));
+ const views=cases.flatMap((c,case_index)=>['fork','attached-shoot'].map(view=>({case_id:c.id,case_index,view,visibility:'named anatomy visible',observation:'inspected attachment',preview_sha256:'a'.repeat(64),preview_path:'preview.png',condition:{camera:{},target:{},diagnostic:{}}})));
+ assert.doesNotThrow(()=>validateVisibilityAdmissions({version:'fn19-visibility-v2.2',views},cases));
+ const changed=structuredClone(views);changed[0].case_id='other';
+ assert.throws(()=>validateVisibilityAdmissions({version:'fn19-visibility-v2.2',views:changed},cases),/cohort/);
+ });

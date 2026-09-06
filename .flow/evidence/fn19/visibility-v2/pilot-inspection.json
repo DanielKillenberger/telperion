@@ -1,0 +1,18 @@
+{
+  "version": "fn19-visibility-v2",
+  "scope": "Pilot observations only; final twenty-four views inspected separately",
+  "observations": [
+    {
+      "path": "/tmp/fn19-visibility-pilot-2/0-fork-128.png",
+      "sha256": "4e929d8ae69eda6b3307909ffc633bcfb91098d16e1c6a4bce8cceb51a9d1421",
+      "observer": "conductor implementation-side visual inspection; not independent botanical review",
+      "observation": "Named junction clearly exposed; incoming trunk and outgoing connectivity visible. Broad faceted cap-like transition and abrupt angular boundaries at outgoing axes; surrounding twigs retained. Hidden watertightness unassessed."
+    },
+    {
+      "path": "/tmp/fn19-visibility-pilot-3/0-attached-shoot-128.png",
+      "sha256": "d50541f41fc170dee267f729c42c82309a551dfab5abd0e87006c35c7a2528fc",
+      "observer": "conductor implementation-side visual inspection; not independent botanical review",
+      "observation": "Selected terminal twig traceable, several short petiole connections and lobed blade faces visible. Some retained-leaf overlap remains, but multiple attachments are assessable. Full wood context leaves the frame."
+    }
+  ]
+}

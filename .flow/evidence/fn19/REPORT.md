@@ -98,7 +98,7 @@ worker and conductor observations separate from expert feedback.
 | ID / priority | Anatomical location and finding | Evidence and confidence | Handoff |
 |---|---|---|---|
 | FN19-G01 / high | Trunk base forms a smooth near-rotational trumpet flare, with angular silhouette transitions and a rounded lower rim; distinct buttress/root ridges are not visible | All twelve specimens `base/0`, also whole/bare silhouettes. High confidence in visible geometry; dedicated botanical base reference unavailable, so no calibrated species threshold | fn20: replace generic flare assumptions with reference-backed root/buttress anatomy; retain these frames as before evidence |
-| FN19-V01 / high | Foliage overlap hides the selected fork/collar and prevents confident isolation of the attached shoot | Oak `fork/0` and `attached-shoot/0` across seeds; some selectors say resolved despite inadequate visible anatomy. High confidence in visibility limitation, not proof of a hidden geometry defect | fn20/fn21: keep hidden traits unassessed; establish a new versioned visibility fixture before validating collar/shoot changes, without editing this frozen baseline |
+| FN19-V01 / high | Foliage overlap hides the selected fork/collar and prevents confident isolation of the attached shoot | Oak `fork/0` and `attached-shoot/0` across seeds; some selectors say resolved despite inadequate visible anatomy. High confidence in visibility limitation, not proof of a hidden geometry defect | fn20/fn21: keep hidden traits unassessed; use the separate visibility-v2.1 diagnostic below for exposed anatomy; preserve these original occluded views and their status |
 | FN19-G02 / medium | Exposed front-facing fork has a rounded plug-like junction shoulder; trunk bends have angular silhouette changes, with no clearly resolved directional collar/ridge | Oak 1462003817 `fork/0`. Medium confidence in scoped surface-anatomy finding; no close calibrated botanical fork reference. Watertightness, intersection and side/rear continuity cannot be inferred | fn20: validate reference-backed local collars/ridges and directional transition geometry at this retained view |
 | FN19-D02 / medium | Spruce shows repeated horizontal tiers in both whole and bare views, with hanging needle-bearing subdivisions | All six spruce specimens, both azimuths. High confidence that tiering is geometric; medium confidence as an organization question. S-WHOLE/S-BRANCH are qualitative and uncalibrated, and whole-scale needle coverage is resolution-dependent | fn21: assess tier regularity and connected-shoot organization against attributed age/context evidence; do not equate subpixel visibility with missing needles |
 | FN19-D01 / medium | Mature-only shoot/crown evidence cannot establish developmental organization across age or crowded growth | Protocol population, O-LEAF, S-BRANCH/S-NEEDLE and explicit age/context gaps in the reference inventory. High confidence that evidence is absent; no inferred developmental failure | fn21: acquire attributed age/context and connected-shoot evidence; add a later cohort while retaining this one |
@@ -121,6 +121,49 @@ Representative full-resolution original PNGs are retained with their hashes:
 [spruce bare](final/previews/norway-spruce-1-bare-0.png), and
 [spruce attached shoot](final/previews/norway-spruce-1-attached-shoot-0.png).
 These are previews of the original captures, without resizing or retouching.
+
+## Separate local-anatomy diagnostic supplement — visibility v2.1
+
+The original v1 local views retain their occluded/unassessed statuses. A separate
+[versioned visibility protocol](visibility-v2/protocol.json) addresses the capture
+limitation with two diagnostic views per original specimen. It keeps the same
+semantic targets, exact mature parameters and generated geometry. Every original
+wood triangle remains connected and drawn. Fork diagnostics suppress foliage;
+shoot diagnostics retain the original complete elements and connectors mapped
+to the selected terminal segment, suppressing unrelated foliage. The mapping is
+geometric inference under the existing tapered-segment rule, because generator
+output has no foliage-owner ID. Original instance indices are retained.
+
+The selected lateral must face the camera and pass a branch-specific visibility
+probe. A uniform finite camera search ranks the eligible fixed directions by visible woody probes,
+projected retained biological surface area, axial foreshortening and fixed index.
+The frame includes the local junction or terminal, a short incoming parent
+segment and all retained elements. This is a declared anatomy diagnostic, not a
+natural full-foliage view, density measurement or replacement for any of the
+84 v1 views. The supplement uses neutral 1600×1000 renders at 64 and 128 samples,
+with the same 0.005 beauty-convergence ceiling; no gap statistics are computed.
+
+The [capture receipt](visibility-v2/capture.json) retains exact cameras, semantic
+node IDs, retained original instance IDs, original geometry hashes, actual
+backend and complete executable identities. The capture source was frozen at
+CAPTURE_SOURCE_FREEZE, with content identity CAPTURE_TOOL_IDENTITY.
+[Direct image inspections](visibility-v2/inspection.json) distinguish anatomy
+visibility from collection and from independent botanical assessment. Original
+128-sample PNGs are retained without resizing, annotations or retouching.
+
+The [superseded v2 attempt](visibility-v2/failed-attempt-inspection.json) is
+preserved: a broad parent surface falsely satisfied a small lateral's probe,
+leaving the collar hidden. Direct inspection caught this. Version v2.1 measures
+probe depth against the local interpolated branch radius and requires a
+front-facing selected lateral; it does not promote probe success to expert or
+anatomical approval.
+
+The supplement runner only reproduces the pinned original geometry and rejects
+changed generated arrays. It is not a changed-revision comparator. A future
+candidate adapter must reuse the retained baseline cameras and declared filters
+and validate semantic mappings; independently searching or refitting candidate
+cameras would not be a matched comparison. V1 and visibility-v2.1 conditions must
+remain separate. Independent botanical assessment is still unassessed.
 
 ## Revision replay and costs
 

@@ -340,7 +340,7 @@ tool on both sides and is not compared directly with the mature cohort.
 
 ### Versioned local-anatomy visibility supplement
 
-The separate `fn19-visibility-v2` diagnostic protocol lives at
+The separate `fn19-visibility-v2.1` diagnostic protocol lives at
 [visibility-v2/protocol.json](../../.flow/evidence/fn19/visibility-v2/protocol.json).
 It preserves the v1 population, parameters, selected semantic targets and all
 connected wood geometry. Fork captures hide foliage; attached-shoot captures
@@ -372,3 +372,12 @@ assessment. Every final image still requires direct inspection: a ray probe alon
 does not establish that the named anatomy is visible. Keep hidden anatomy
 unassessed and preserve failed attempts. Filtered images cannot establish hidden
 rear continuity, independent botanical approval or calibrated species dimensions.
+
+This diagnostic runner is restricted to the pinned original mature geometry. It
+rejects changed generated array hashes and does not implement changed-revision
+comparison. `visibility-v2/capture.json` retains each exact camera, target node
+IDs, retained original instance IDs and filtering conditions. A future candidate
+adapter must reuse those baseline cameras and declared filters while validating
+semantic target/attachment mapping; searching or refitting cameras independently
+for a candidate is not a matched comparison. Do not feed these two filtered
+channels into the v1 seven-view comparison or projected-gap statistics.
