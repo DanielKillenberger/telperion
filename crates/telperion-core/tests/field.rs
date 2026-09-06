@@ -205,3 +205,40 @@ fn species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_un
         assert!(kept.bounds(&degenerate).is_err());
     }
 }
+
+#[test]
+fn portable_snapshot_is_optional_owned_and_preserves_index() {
+    let empty = Field::new(&Tree::default(), None)
+        .unwrap()
+        .snapshot()
+        .unwrap();
+    assert!(empty.wood.is_empty());
+    assert_eq!(empty.wood_index.node_count, 0);
+    assert!(empty.leaves.bounds.is_empty());
+    let mut root = Node::root();
+    root.radius = 1.;
+    root.start_radius = 1.;
+    let tree = Tree {
+        nodes: vec![root],
+        crossover: 1,
+        ..Default::default()
+    };
+    let field = Field::new(&tree, None).unwrap();
+    let before = field.storage_bytes();
+    let mut snapshot = field.snapshot().unwrap();
+    assert_eq!(field.storage_bytes(), before);
+    assert_eq!(snapshot.wood, vec![0., 0., 0., 0., 0., 0., 1., 1.]);
+    assert_eq!(snapshot.wood_index.node_count, 1);
+    assert_eq!(
+        snapshot.wood_index.topology,
+        vec![0, 1, u32::MAX, u32::MAX, 0]
+    );
+    assert_eq!(
+        snapshot.wood_index.bounds,
+        vec![-1., -1., -1., 1., 1., 1., -1., -1., -1., 1., 1., 1.]
+    );
+    snapshot.wood[6] = 0.;
+    assert!(field.query(Vec3::new(1., 0., 0.), 0.).unwrap().wood);
+    drop(field);
+    assert_eq!(snapshot.wood[7], 1.);
+}

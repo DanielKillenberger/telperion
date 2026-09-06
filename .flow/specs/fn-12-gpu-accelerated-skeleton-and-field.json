@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-12-gpu-accelerated-skeleton-and-field.md",
-  "status": "open",
+  "status": "done",
   "title": "GPU-accelerated skeleton and field generation",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T22:06:49.047173Z"
+  "updated_at": "2026-09-06T22:10:44.396161Z"
 }

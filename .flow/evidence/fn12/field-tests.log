@@ -1,0 +1,11 @@
+    Finished `release` profile [optimized] target(s) in 0.01s
+     Running tests/field.rs (target/release/deps/field-b18300b4719fb6aa)
+
+running 5 tests
+test empty_and_invalid_queries ... ok
+test portable_snapshot_is_optional_owned_and_preserves_index ... ok
+test tapered_wood_and_flat_leaf_cells ... ok
+test species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_units ... ok
+test generated_block_consumer_and_giant_samples_without_surface ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.20s

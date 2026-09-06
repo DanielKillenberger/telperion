@@ -3,7 +3,13 @@ mod params;
 use serde_json::{json, Value};
 use std::cell::RefCell;
 use telperion_core::{
-    branching, field::Field, foliage, math::Vec3, surface, tree::NodeKind, twigs, Error, Result,
+    branching,
+    field::{Field, FieldSnapshot},
+    foliage,
+    math::Vec3,
+    surface,
+    tree::NodeKind,
+    twigs, Error, Result,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -30,6 +36,7 @@ struct Output {
     structure: Vec<f64>,
     topology: Vec<u32>,
     field: Option<Field>,
+    snapshot: Option<FieldSnapshot>,
 }
 #[derive(Default)]
 struct Engine {
@@ -336,6 +343,26 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
             6 => o.structure.as_ptr().cast(),
             7 => o.topology.as_ptr().cast(),
             8 => e.occupancy.as_ptr(),
+            9 => o
+                .snapshot
+                .as_ref()
+                .map_or(std::ptr::null(), |s| s.wood.as_ptr().cast()),
+            10 => o
+                .snapshot
+                .as_ref()
+                .map_or(std::ptr::null(), |s| s.wood_index.bounds.as_ptr().cast()),
+            11 => o
+                .snapshot
+                .as_ref()
+                .map_or(std::ptr::null(), |s| s.wood_index.topology.as_ptr().cast()),
+            12 => o
+                .snapshot
+                .as_ref()
+                .map_or(std::ptr::null(), |s| s.leaves.bounds.as_ptr().cast()),
+            13 => o
+                .snapshot
+                .as_ref()
+                .map_or(std::ptr::null(), |s| s.leaves.topology.as_ptr().cast()),
             _ => std::ptr::null(),
         }
     })
@@ -355,9 +382,39 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
             6 => o.structure.len(),
             7 => o.topology.len(),
             8 => e.occupancy.len(),
+            9 => o.snapshot.as_ref().map_or(0, |s| s.wood.len()),
+            10 => o.snapshot.as_ref().map_or(0, |s| s.wood_index.bounds.len()),
+            11 => o
+                .snapshot
+                .as_ref()
+                .map_or(0, |s| s.wood_index.topology.len()),
+            12 => o.snapshot.as_ref().map_or(0, |s| s.leaves.bounds.len()),
+            13 => o.snapshot.as_ref().map_or(0, |s| s.leaves.topology.len()),
             _ => 0,
         }
     })
+}
+/// Explicit experiment export; ordinary builds and queries never allocate snapshots.
+#[no_mangle]
+pub extern "C" fn field_snapshot(revision: u32) -> u32 {
+    ENGINE.with(|e| {
+        let mut e = e.borrow_mut();
+        e.output.snapshot = None;
+        let start = clock();
+        let result = (|| {
+            if e.revision != revision { return Err(Error::InvalidInput("stale field handle")); }
+            let snapshot = e.output.field.as_ref().ok_or(Error::InvalidInput("no field requested"))?.snapshot()?;
+            let meta = json!({"woodNodes":snapshot.wood_index.node_count,"leafNodes":snapshot.leaves.node_count,
+                "extractionMs":clock()-start});
+            e.output.snapshot = Some(snapshot);
+            Ok(meta)
+        })();
+        status(&mut e, result)
+    })
+}
+#[no_mangle]
+pub extern "C" fn field_snapshot_release() {
+    ENGINE.with(|e| e.borrow_mut().output.snapshot = None);
 }
 #[no_mangle]
 pub extern "C" fn query_alloc(count: u32) -> u32 {

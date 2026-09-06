@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-06T11:47:09.346389Z",
+  "depends_on": [
+    "fn-12-gpu-accelerated-skeleton-and-field.1"
+  ],
+  "id": "fn-12-gpu-accelerated-skeleton-and-field.2",
+  "priority": null,
+  "spec": "fn-12-gpu-accelerated-skeleton-and-field",
+  "spec_path": ".flow/tasks/fn-12-gpu-accelerated-skeleton-and-field.2.md",
+  "status": "todo",
+  "title": "Measure a WebGPU indexed field candidate against the CPU reference",
+  "updated_at": "2026-09-06T11:47:09.346389Z"
+}

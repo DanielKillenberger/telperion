@@ -28,6 +28,23 @@ pub struct Field {
     wood_index: Index,
     leaves: Index,
 }
+/// Optional owned f64 experiment input. No snapshot storage is retained by Field.
+/// Wood records are [ax, ay, az, bx, by, bz, start_radius, end_radius].
+pub struct FieldSnapshot {
+    pub wood: Vec<f64>,
+    pub wood_index: IndexSnapshot,
+    pub leaves: IndexSnapshot,
+}
+/// Exact CPU median BVH order. Bounds are six f64 values (min xyz, max xyz)
+/// per node, then per item. Topology contains four u32 values per node
+/// (item start, exclusive end, left, right), then one primitive ID per item.
+/// u32::MAX children denote a leaf; an empty index has zero nodes and items.
+/// Root is node zero; leaf primitive IDs are unused. All ranges are index-local.
+pub struct IndexSnapshot {
+    pub bounds: Vec<f64>,
+    pub topology: Vec<u32>,
+    pub node_count: u32,
+}
 struct Segment {
     a: Vec3,
     b: Vec3,
@@ -127,6 +144,23 @@ impl Field {
             foliage: self.leaves.any(cell, |_| true),
         })
     }
+    /// Copies only on explicit request; allocation failure returns ResourceLimit.
+    pub fn snapshot(&self) -> Result<FieldSnapshot> {
+        let mut wood = reserved(
+            self.wood
+                .len()
+                .checked_mul(8)
+                .ok_or(Error::ResourceLimit("snapshot size"))?,
+        )?;
+        for s in &self.wood {
+            wood.extend([s.a.x, s.a.y, s.a.z, s.b.x, s.b.y, s.b.z, s.start, s.end]);
+        }
+        Ok(FieldSnapshot {
+            wood,
+            wood_index: self.wood_index.snapshot()?,
+            leaves: self.leaves.snapshot()?,
+        })
+    }
     /// Heap capacity owned by this field, excluding allocator bookkeeping.
     pub fn storage_bytes(&self) -> usize {
         self.wood.capacity() * std::mem::size_of::<Segment>()
@@ -202,6 +236,49 @@ struct Index {
     nodes: Vec<Node>,
 }
 impl Index {
+    fn snapshot(&self) -> Result<IndexSnapshot> {
+        let u32_index =
+            |n: usize| u32::try_from(n).map_err(|_| Error::ResourceLimit("snapshot index"));
+        let node_count = u32_index(self.nodes.len())?;
+        u32_index(self.items.len())?;
+        let bounds_len = self
+            .nodes
+            .len()
+            .checked_add(self.items.len())
+            .and_then(|n| n.checked_mul(6))
+            .ok_or(Error::ResourceLimit("snapshot size"))?;
+        let topology_len = self
+            .nodes
+            .len()
+            .checked_mul(4)
+            .and_then(|n| n.checked_add(self.items.len()))
+            .ok_or(Error::ResourceLimit("snapshot size"))?;
+        let mut bounds = reserved(bounds_len)?;
+        let mut topology = reserved(topology_len)?;
+        for b in self
+            .nodes
+            .iter()
+            .map(|n| n.bounds)
+            .chain(self.items.iter().map(|i| i.bounds))
+        {
+            bounds.extend([b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z]);
+        }
+        for n in &self.nodes {
+            let (left, right) = match n.children {
+                Some((l, r)) => (u32_index(l)?, u32_index(r)?),
+                None => (u32::MAX, u32::MAX),
+            };
+            topology.extend([u32_index(n.start)?, u32_index(n.end)?, left, right]);
+        }
+        for i in &self.items {
+            topology.push(u32_index(i.id)?);
+        }
+        Ok(IndexSnapshot {
+            bounds,
+            topology,
+            node_count,
+        })
+    }
     fn new(mut items: Vec<Item>) -> Result<Self> {
         // Median partition gives bounded depth and O(n log n) construction,
         // without duplicating large primitives across grid cells.

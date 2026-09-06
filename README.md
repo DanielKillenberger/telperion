@@ -31,6 +31,17 @@ engine.dispose();
 
 Field handles expire on the next native build or release; copied query results remain owned. Field construction places retained foliage internally. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
 
+The optional `tree.field!.snapshot()` exports an owned schema-1 CPU field snapshot
+for experiments and other consumers. It contains f64 wood segments and BVH bounds,
+u32 topology, revision, union bounds and extraction timings; the
+[exact layout](scripts/benchmarks/generation.md#portable-snapshot-contract) defines
+each array. Existing builds and queries make no snapshot copies. Extraction needs
+a live field revision: release, rebuild (including a failed native rebuild) and
+disposal invalidate the handle. Already copied arrays survive these operations,
+and caller mutations cannot change the CPU field. Extraction errors throw without
+a partial snapshot; temporary Wasm staging is released after copying or failure.
+The giant snapshot alone is about 129 MB, so opt in only when needed.
+
 ## Architecture
 
 The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator.
@@ -73,6 +84,19 @@ The repository pins Rust in `rust-toolchain.toml`. `dev` and `build` regenerate 
 ## Measurements and limits
 
 The [FN8 report](.flow/evidence/fn8/REPORT.md) owns the matched full-build measurements, binding costs, native observations, memory-domain limits and GPU results. CPU generation latency and GPU frame time are separate measurements. Wasm linear-memory capacity is a high-water allocation, not live heap or total browser memory; release allows allocator reuse and dispose allows host reclamation once references are gone. Scene replacement retains the previous tree until the new build succeeds, so transient coexistence matters.
+
+The [FN12 generation report](.flow/evidence/fn12/REPORT.md) records a **rejected
+production GPU query candidate**. All cold workloads were slower and f32 contact
+results differed from the f64 CPU reference. A giant 64³ resident query improved
+locally, but did not qualify a complete lifecycle or the general precision contract.
+Skeleton and field-construction GPU performance remain inconclusive; only their
+CPU stages and code dependencies were examined. Production generation and queries
+remain synchronous CPU operations, with no automatic backend selection or new GPU
+entry point. The rejected WebGPU implementation, runner and dedicated tests have
+been removed. The report retains final timing and correctness evidence from Linux
+Chromium 151 and an RTX 3080. The snapshot API and
+[CPU reproduction tools](scripts/benchmarks/generation.md) remain in use by the
+field-generation follow-up's correctness checks and measurements.
 
 The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.md) measured a narrower and older workload. Its numbers are historical, not a full-engine migration result. Further botanical realism and species visual QA remain future work; leaf appearance is currently judged as geometry in clay. Full lifecycle simulation is not implemented.
 
