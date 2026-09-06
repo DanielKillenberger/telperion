@@ -342,14 +342,14 @@ fn profile_blades_have_rounded_lobes_and_needles_have_four_sides() {
             assert_eq!(first.len(), 4);
             assert!(first.iter().any(|v| v.z > 0.) && first.iter().any(|v| v.z < 0.));
             let mut edges = std::collections::BTreeMap::new();
-            for tri in e.indices[a.indices.clone()].chunks_exact(3) {
+            for tri in e.indices[a.indices.clone()].as_chunks::<3>().0.iter() {
                 for (u, v) in [(tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0])] {
                     *edges.entry((u.min(v), u.max(v))).or_insert(0) += 1;
                 }
             }
             assert!(edges.values().all(|n| *n == 2), "closed needle surface");
         }
-        for tri in e.indices.chunks_exact(3) {
+        for tri in e.indices.as_chunks::<3>().0.iter() {
             let [a, b, c] = [tri[0], tri[1], tri[2]].map(|v| e.positions[v as usize]);
             assert!((b - a).cross(c - a).length() > 0.);
         }

@@ -131,7 +131,7 @@ fn fixed_species(preset: Preset) {
             let p = &wood.positions[i as usize * 3..];
             Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
         };
-        for triangle in wood.indices.chunks_exact(3) {
+        for triangle in wood.indices.as_chunks::<3>().0.iter() {
             let a = point(triangle[0]);
             assert!(
                 (point(triangle[1]) - a)

@@ -85,7 +85,19 @@ fn main() {
             }
         }
         let query_ms = ms(t);
-        println!("{{\"subject\":\"{name}\",\"sample\":{sample},\"fieldOnly\":{field_only},\"nodes\":{},\"vertices\":{},\"leaves\":{},\"growthMs\":{growth_ms},\"surfaceMs\":{surface_ms},\"placementMs\":{placement_ms},\"cullMs\":{cull_ms},\"boundsMs\":{bounds_ms},\"fieldMs\":{field_ms},\"buildMs\":{build_ms},\"queryMs\":{query_ms},\"occupied\":{occupied},\"fieldBytes\":{}}}",report.tree.nodes.len(),mesh.as_ref().map_or(0,|m|m.positions.len()/3),kept.matrices.len(),field.as_ref().map_or(0,Field::storage_bytes));
+        println!(
+            "{}",
+            serde_json::json!({
+                "subject": name, "sample": sample, "fieldOnly": field_only,
+                "nodes": report.tree.nodes.len(), "vertices": mesh.as_ref().map_or(0, |m| m.positions.len()/3),
+                "triangles": mesh.as_ref().map_or(0, |m| m.indices.len()/3), "leaves": kept.matrices.len(),
+                "woodBytes": mesh.as_ref().map_or(0, |m| (m.positions.len()+m.normals.len()+m.indices.len())*4),
+                "matrixBytes": kept.matrices.len()*64,
+                "growthMs": growth_ms, "surfaceMs": surface_ms, "placementMs": placement_ms,
+                "cullMs": cull_ms, "boundsMs": bounds_ms, "fieldMs": field_ms, "buildMs": build_ms,
+                "queryMs": query_ms, "occupied": occupied, "fieldBytes": field.as_ref().map_or(0, Field::storage_bytes)
+            })
+        );
         black_box((&report, &mesh, &kept, &field));
     }
     eprintln!(

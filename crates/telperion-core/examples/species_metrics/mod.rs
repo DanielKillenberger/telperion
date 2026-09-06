@@ -51,7 +51,9 @@ pub fn measure(
     m["nodes"] = scalar(tree.nodes.len(), "measured");
     let ground = tree.nodes.first().map_or(0., |n| n.position.y);
     let wood_top = wood
-        .chunks_exact(3)
+        .as_chunks::<3>()
+        .0
+        .iter()
         .map(|p| p[1] as f64 - ground)
         .reduce(f64::max);
     m["wood_height_m"] = wood_top.map_or_else(
@@ -253,7 +255,7 @@ pub fn measure(
             widths.push(extent(|p| p.x) * scale(0));
             &element.indices[..]
         };
-        for tri in triangles.chunks_exact(3) {
+        for tri in triangles.as_chunks::<3>().0.iter() {
             let a = transform_point(mat, element.positions[tri[0] as usize]);
             let b = transform_point(mat, element.positions[tri[1] as usize]);
             let c = transform_point(mat, element.positions[tri[2] as usize]);

@@ -97,7 +97,7 @@ impl Element {
                 || self.indices[a.indices.clone()]
                     .iter()
                     .any(|i| !a.vertices.contains(&(*i as usize)))
-                || self.indices.chunks_exact(3).any(|t| {
+                || self.indices.as_chunks::<3>().0.iter().any(|t| {
                     let [p, q, r] = [t[0], t[1], t[2]].map(|i| self.positions[i as usize]);
                     (q - p).cross(r - p).length_squared() <= 0.
                 })

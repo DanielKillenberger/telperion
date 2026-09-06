@@ -40,16 +40,16 @@ node tests/browser/species.mjs --help
 ```
 
 ## Acceptance
-- [ ] All 24 recorded seeds per species have explicit numeric results; required fixed/fresh image sets are inspected against source references.
+- [x] All 24 recorded seeds per species have explicit numeric results; required fixed/fresh image sets are inspected against source references.
 - [ ] Trait-level evidence supports R3–R6, or outstanding failures remain explicit and prevent task completion; no unearned owner approval is recorded.
-- [ ] Ordinary and both Two Trees are checked for shared-rule regressions, with same-host CPU/count/size results and renderer identity reported.
-- [ ] Documented CPU-only replay succeeds, or a concrete environment limitation remains unassessed; missing captures never silently pass.
-- [ ] Native workspace tests, Wasm checks, harness tests, formatting/clippy, typecheck, build and relevant headless integration all pass; evidence remains compact.
+- [x] Ordinary and both Two Trees are checked for shared-rule regressions, with same-host CPU/count/size results and renderer identity reported.
+- [x] Documented CPU-only replay succeeds, or a concrete environment limitation remains unassessed; missing captures never silently pass.
+- [x] Native workspace tests, Wasm checks, harness tests, formatting/clippy, typecheck, build and relevant headless integration all pass; evidence remains compact.
 
 ## Done summary
-TBD
-
+Blocked:
+FN-9.9 QA rejects completion. All 48 recorded seeds measured and all 50 mature PNGs captured/inspected, but fresh spruce 4250668600 exceeds crown width (9.225869594 m > 9.144 m). Both species fail healthy leaf-on crown mass; oak lobes and spruce needle taper fail reference shape. Terminal/socket fidelity remains unassessed; contextual spruce DBH remains ambiguous. See .flow/evidence/fn9/REPORT.md and retained per-case evidence. Resume corrective generation/anatomy work using the same seeds and references, then rerun QA. No owner approval; no PR or merge until acceptance passes.
 ## Evidence
-- Commits:
-- Tests:
-- PRs:
+- Commits: `fe1eefa` (fresh-seed manifest before generation); final QA/evidence commit in branch history.
+- Tests: full native workspace, Wasm/browser integration, 106 harness tests, typecheck/build; Rust 1.98 Clippy findings corrected and focused 19-test species/foliage/measurement suite passed. Detailed gates in `.flow/evidence/fn9/REPORT.md`.
+- PRs: none; task blocked, not eligible for make-pr.

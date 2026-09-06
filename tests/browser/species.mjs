@@ -40,10 +40,13 @@ const json = async path => JSON.parse(await readFile(path, 'utf8'));
 const save = (path, value) => writeFile(path, JSON.stringify(value, null, 2) + '\n');
 async function command(program, argv, limit = timeout) {
   return new Promise(resolveResult => {
-    const child = spawn(program, argv, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(program, argv, { stdio: ['ignore', 'pipe', 'pipe'], detached: process.platform !== 'win32' });
     let stdout = '', stderr = '', expired = false;
     child.stdout.on('data', x => { stdout += x; }); child.stderr.on('data', x => { stderr += x; });
-    const timer = setTimeout(() => { expired = true; child.kill('SIGKILL'); }, limit);
+    const timer = setTimeout(() => {
+      expired = true;
+      try { if (process.platform === 'win32') child.kill('SIGKILL'); else process.kill(-child.pid, 'SIGKILL'); } catch { /* already exited */ }
+    }, limit);
     child.on('error', error => { clearTimeout(timer); resolveResult({ code: -1, error: String(error), stdout, stderr }); });
     child.on('close', code => { clearTimeout(timer); resolveResult({ code, expired, stdout, stderr }); });
   });
@@ -56,6 +59,7 @@ async function capture(job) {
     const url = process.env.BROWSER_URL ?? 'http://127.0.0.1:5184';
     await page.route(url + '/', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><canvas></canvas>' }));
     await page.goto(url + '/');
+    await save(job.result, { ...job, browser: browser.version(), capture_status: 'started' });
     const result = await page.evaluate(async ({ preset: id, seed, view }) => {
       const THREE = await import('/node_modules/.vite/deps/three.js');
       const { TreeEngine, presetById } = await import('/src/browser/core.ts');
@@ -75,7 +79,7 @@ async function capture(job) {
       renderer.setPixelRatio(1); renderer.setSize(960, 720); renderer.toneMapping = THREE.NoToneMapping;
       const gl = renderer.getContext(), debug = gl.getExtension('WEBGL_debug_renderer_info');
       const backend = gl.getParameter(debug ? debug.UNMASKED_RENDERER_WEBGL : gl.RENDERER);
-      const materials = { surface: new THREE.MeshStandardMaterial({ color: 0x888580, roughness: 1 }), element: new THREE.MeshStandardMaterial({ color: 0x888580, roughness: 1, side: THREE.DoubleSide }) };
+      const materials = { surface: new THREE.MeshStandardMaterial({ color: 0x9d968c, roughness: .92 }), element: new THREE.MeshStandardMaterial({ color: 0x9d968c, roughness: .92, side: THREE.DoubleSide, flatShading: true, alphaTest: .5 }) };
       let tree = materializeTree(output, materials);
       let bounds = measureSubject(tree);
       const fullBounds = { min: bounds.min.toArray(), max: bounds.max.toArray() };
@@ -105,7 +109,7 @@ async function capture(job) {
         bounds = new THREE.Box3(centre.clone().addScalar(-radius), centre.clone().addScalar(radius));
       }
       if (bounds.isEmpty() || ![...bounds.min, ...bounds.max].every(Number.isFinite)) throw Error('Missing/invalid bounds');
-      const scene = new THREE.Scene(); scene.background = new THREE.Color(0xc5ced3);
+      const scene = new THREE.Scene(); scene.background = new THREE.Color(0xc6ced5);
       scene.add(new THREE.HemisphereLight(0xffffff, 0x6a6966, 3.1), tree);
       const centre = bounds.getCenter(new THREE.Vector3()), size = bounds.getSize(new THREE.Vector3());
       const distance = Math.max(size.y / 2 / Math.tan(38 * Math.PI / 360), Math.max(size.x, size.z) / 2 / (Math.tan(38 * Math.PI / 360) * 960 / 720)) * 1.3 + size.length() / 2;
@@ -150,6 +154,14 @@ for (const p of profiles.profiles) {
 }
 const out = resolve(option('--output') ?? join(tmpdir(), `telperion-species-${Date.now()}`));
 await mkdir(out, { recursive: true }); console.log(out);
+if (!args.includes('--capture-only')) {
+  for (const p of profiles.profiles) for (const seed of [...seeds.fixed, ...seeds.fresh[p.id]]) {
+    let exists = false;
+    try { await access(join(out, `${p.id}-${seed}.jsonl`)); exists = true; } catch { /* new output */ }
+    if (exists) throw Error('Existing numeric evidence: use a new output directory or --capture-only');
+  }
+  await writeFile(join(out, 'measurement-lock.json'), JSON.stringify({ started: new Date().toISOString() }), { flag: 'wx' });
+}
 await save(join(out, 'seeds.json'), seeds);
 const cases = profiles.profiles.flatMap(p => ['fixed', 'fresh'].flatMap(group => (group === 'fixed' ? seeds.fixed : seeds.fresh[p.id]).map((seed, index) => ({ id: `${p.id}-${seed}`, preset: p.id, seed, group, required: index < 3 }))));
 for (const c of cases) {
@@ -160,8 +172,8 @@ for (const c of cases) {
     await save(join(out, `${c.id}-process.json`), run);
   }
   try {
-    const events = (await readFile(path, 'utf8')).trim().split('\n').map(JSON.parse);
-    c.numeric = events.findLast(e => e.event === 'completed' || e.event === 'failed') ?? { numeric_status: 'unassessed', reason: 'No completed case' };
+    const events = (await readFile(path, 'utf8')).split('\n').slice(0, -1).map(JSON.parse);
+    c.numeric = events.findLast(e => (e.event === 'completed' || e.event === 'failed') && e.case === `${c.id}:${c.preset}:${c.preset}:${c.seed}`) ?? { numeric_status: 'unassessed', reason: 'No completed case' };
   } catch (error) { c.numeric = { numeric_status: 'unassessed', reason: String(error) }; }
   c.required ||= c.numeric.numeric_status !== 'pass';
   c.visual_status = 'unassessed'; c.owner_feedback = null;
@@ -171,20 +183,28 @@ await save(join(out, 'numeric.json'), cases);
 if (args.includes('--measure-only')) { process.exit(cases.every(c => c.numeric.numeric_status === 'pass') ? 0 : 1); }
 const subjects = [...cases.filter(c => c.required), ...['ordinary', 'telperion', 'laurelin'].map(preset => ({ id: preset, preset, seed: null }))];
 if (option('--case') && !subjects.some(c => c.id === option('--case'))) throw Error('Unknown or non-required capture case');
-const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element'] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
-await save(join(out, 'capture-plan.json'), jobs);
+const sourceFiles = (await command('git', ['ls-files', 'src/browser', 'harness/stage.ts', 'harness/skeleton-view.ts', 'package-lock.json'])).stdout.trim().split('\n');
+const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async path => [path, sha(await readFile(path))])));
+const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), wasmSha256: sha(await readFile('src/browser/telperion.wasm')), profilesSha256: sha(await readFile('.flow/evidence/fn9/profiles.json')), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))) };
+await save(join(out, 'provenance.json'), provenance);
+const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element'] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
+const suffix = option('--case') ? `-${option('--case')}` : '';
+const capturesPath = join(out, `captures${suffix}.json`);
+await save(join(out, `capture-plan${suffix}.json`), jobs);
 for (const job of jobs.filter(j => !option('--case') || j.id === option('--case'))) {
   try {
     // Reuse only matching successful receipt + PNG hash; preserve failures.
     const old = await json(job.result);
-    if (old.capture_status === 'pass' && old.preset.skeleton.seed === (job.seed ?? old.preset.skeleton.seed) && old.pngSha256 === sha(await readFile(job.png))) { Object.assign(job, old); continue; }
+    if (old.id === job.id && old.view === job.view && old.capture_status === 'pass' && old.provenance?.sourceSha256 === provenance.sourceSha256 && old.provenance?.wasmSha256 === provenance.wasmSha256 && old.provenance?.runnerSha256 === provenance.runnerSha256 && old.preset.skeleton.seed === (job.seed ?? old.preset.skeleton.seed) && old.pngSha256 === sha(await readFile(job.png))) { Object.assign(job, old); await save(capturesPath, jobs); continue; }
+      await save(job.result + `.previous-${Date.now()}`, old);
   } catch { /* capture not available */ }
-  const path = join(out, 'job.json'); await save(path, job);
+  const path = join(out, `${job.id}-${job.view}-job.json`); await save(path, job);
+  await save(job.result, { ...job, capture_status: 'pending' });
   const run = await command(process.execPath, [fileURLToPath(import.meta.url), '--worker', path], timeout);
   if (run.code === 0) Object.assign(job, await json(job.result));
   else { job.capture_status = 'fail'; job.error = run; await save(job.result, job); }
-  await save(join(out, 'captures.json'), jobs);
+  await save(capturesPath, jobs);
   console.log(job.id, job.view, job.capture_status);
 }
-await save(join(out, 'summary.json'), { protocol_status: 'unassessed', reason: 'Human trait inspection required; see REPORT.md. Missing/failed images never pass.', partial: !!option('--case'), numeric: cases.map(c => ({ id: c.id, status: c.numeric.numeric_status ?? 'unassessed' })), captures: jobs.map(j => ({ id: j.id, view: j.view, status: j.capture_status, path: j.png })), owner_feedback: null });
+await save(join(out, `summary${suffix}.json`), { protocol_status: 'unassessed', reason: 'Human trait inspection required; see REPORT.md. Missing/failed images never pass.', partial: !!option('--case'), numeric: cases.map(c => ({ id: c.id, status: c.numeric.numeric_status ?? 'unassessed' })), captures: jobs.map(j => ({ id: j.id, view: j.view, status: j.capture_status, path: j.png })), owner_feedback: null });
 process.exitCode = 1;
