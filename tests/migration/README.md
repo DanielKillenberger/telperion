@@ -166,3 +166,23 @@ the first eligible attached needle on that twig from above and below. These are
 diagnostic views, not automatic attachment or fidelity passes. Bulk pass-2
 replay is under `/tmp/fn99-fix2-replay` and captures under `/tmp/fn99-fix2-qa`;
 compact evidence uses `pass2-*` to preserve the earlier corrective receipts.
+
+
+Pass 4 retains both exterior terminal/socket targets and adds three
+`peg-contact-*` angles at each spruce target (including `peg-alt-contact-*`).
+The 6 mm half-width contact cameras derive from the actual attachment radial and
+twig tangent; JSON retains those vectors, exact instance/endpoint/socket IDs,
+rendered facet intersection and signed origin gap. Upper/lower peg views now
+face the selected outward needle from outside the twig. `branch-curtain` frames
+an actual descending structural secondary from outside the crown. Every one of
+these views keeps connected, uncropped wood and foliage. Occlusion still means
+unassessed contact; a near-zero geometric gap does not establish visual anatomy.
+
+For branch-scale diagnosis, run `cargo run --release -p telperion-core --example
+curtain_audit`. It reports per-secondary bare/needle-bearing supporting lengths,
+centreline bounds and overlapping bearing bounds. The eligibility rule matches
+needle placement, but bounds overlap is only a spatial diagnostic, not a visual
+fidelity metric. The ignored `scaffold_directions` and `retained_supports` tests
+provide structural and shedding traces (`cargo test --release -p telperion-core
+scaffold_directions -- --ignored --nocapture`). Frozen seeds and profiles remain
+unchanged throughout these diagnostics.

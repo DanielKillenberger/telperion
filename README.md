@@ -104,6 +104,11 @@ consumers use `Preset::OregonWhiteOak.parameters()` or
 presets disable the separate supernatural group; Telperion and Laurelin enable
 it explicitly. Botanical lean and gravitropism remain independent.
 
+Native needle placement can use `foliage::place_on_surface` with the family’s
+`SurfaceParams` to attach to the rendered polygonal sweep and fork sockets without
+building mesh indices or normals. The browser engine and species measurement
+runner use this path. `foliage::place` retains the circular-radius placement API.
+
 The [frozen botanical profiles](.flow/evidence/fn9/profiles.json) define mature
 open-grown contexts, source-backed dimensional gates, contextual estimates and
 unknown quantities. [References](.flow/evidence/fn9/REFERENCES.md) attribute the
