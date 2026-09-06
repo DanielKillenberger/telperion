@@ -9,6 +9,8 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXE
 try {
   const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 });
   page.setDefaultTimeout(120000);
+  page.on('crash', () => console.error('Browser renderer crashed'));
+  browser.on('disconnected', () => console.log('Browser disconnected'));
   await page.route(url + '/', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body style="margin:0;width:100vw;height:100vh;overflow:hidden"><canvas style="display:block;width:100%;height:100%"></canvas></body></html>' }));
   await page.goto(url + '/');
   const result = await page.evaluate(async () => {
@@ -208,11 +210,35 @@ try {
       await page.evaluate(() => window.captureStage.dispose());
     }
   }
+  const emptyRendering = await page.evaluate(async () => {
+    const { treeCore, presetById } = await import('/src/browser/core.ts');
+    const { materializeTree } = await import('/src/browser/three.ts');
+    const { createStage, measureSubject } = await import('/harness/stage.ts');
+    const preset = presetById('norway-spruce');
+    preset.skeleton.envelope.height = 4;
+    preset.skeleton.attractors = 40;
+    preset.skeleton.habit.tiers = 3;
+    preset.canopy.size = 0;
+    const output = treeCore().build(preset, { surface: true, foliage: true });
+    treeCore().release();
+    const stage = createStage(document.querySelector('canvas'));
+    stage.setTree(clay => {
+      const tree = materializeTree(output, clay);
+      if (tree.getObjectByName('grower-canopy') || measureSubject(tree).isEmpty()) throw Error('empty foliage corrupts wood');
+      return tree;
+    });
+    stage.frame(4);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    if (stage.stats().drawCalls < 3) throw Error('empty foliage interrupts rendering');
+    stage.dispose();
+    return true;
+  });
+  await writeFile(out + '/empty-rendering.json', JSON.stringify({ emptyRendering }));
   await writeFile(out + '/captures.json', JSON.stringify(captures, null, 2));
   await page.unroute(url + '/');
   // Apply the same documented small fixture before the first UI render.
   // Full-size Ordinary can exhaust the software GPU during the failure/retry gate.
-  await page.route('**/src/browser/core.ts', async route => {
+  await page.route('**/src/browser/core.ts*', async route => {
     const response = await route.fetch();
     const source = await response.text();
     await route.fulfill({ response, body: source + `
@@ -222,7 +248,9 @@ try {
         fixture.skeleton.envelope.height = 4;
         fixture.skeleton.attractors = 40;
         if (fixture.skeleton.habit.kind === 'tiered') fixture.skeleton.habit.tiers = 3;
-        return originalBuild.call(this, fixture, outputs);
+        const output = originalBuild.call(this, fixture, outputs);
+        window.viewerBuild = { seed: fixture.skeleton.seed, signature: JSON.stringify(Array.from(output.foliage?.matrices ?? output.surface?.positions ?? [])) };
+        return output;
       };
     ` });
   });
@@ -233,11 +261,13 @@ try {
   });
   await page.goto(url + '/');
   await page.getByRole('alert').waitFor();
+  console.log('UI load failure surfaced');
   await page.getByRole('button', { name: 'retry build' }).click();
   await page.getByRole('alert').waitFor({ state: 'detached' });
   const stats = page.locator('.gd-note').filter({ hasText: /tris, .* verts, .* nodes/ });
   await stats.waitFor();
   const before = await stats.textContent();
+  console.log('UI initial', before);
   await page.evaluate(async () => {
     const { initializeTreeCore } = await import('/src/browser/core.ts');
     const engine = await initializeTreeCore();
@@ -258,8 +288,12 @@ try {
     if (await page.getByRole('checkbox', { name: 'enable supernatural effects' }).isChecked()) throw Error('natural species enables effects');
     if (await page.locator('fieldset').filter({ hasText: 'Botanical' }).count() !== 1 || await page.locator('fieldset').filter({ hasText: 'Supernatural' }).count() !== 1) throw Error('control groups missing');
     const first = await stats.textContent();
+    const firstGeometry = await page.evaluate(() => window.viewerBuild.signature);
+    console.log('UI selected', name, await stats.textContent());
     await seed.fill('18');
     await page.waitForFunction(before => [...document.querySelectorAll('.gd-note')].some(node => /tris, .* verts, .* nodes/.test(node.textContent) && node.textContent !== before), first);
+    const changed = await page.evaluate(() => window.viewerBuild);
+    if (changed.seed !== 18 || changed.signature === firstGeometry) throw Error('UI seed did not vary geometry');
     for (const view of ['bare', 'foliage-detail', 'whole']) {
       await page.getByLabel('view', { exact: true }).selectOption(view);
       await page.waitForTimeout(1000);
@@ -268,6 +302,6 @@ try {
     await seed.fill('17');
   }
   await page.screenshot({ path: out + '/viewer.png' });
-  await writeFile(out + '/viewer.json', JSON.stringify({ loadFailureRetry: failedLoad, buildFailureRetry: true, previousDiagnosticsPreserved: true }, null, 2));
+  await writeFile(out + '/viewer.json', JSON.stringify({ loadFailureRetry: failedLoad, buildFailureRetry: true, previousDiagnosticsPreserved: true, speciesSelection: true, independentSeeds: true, seedGeometryChanges: true, allViews: true, emptyRendering }, null, 2));
   console.log({ ...result, ...bindings, loadFailureRetry: failedLoad, buildFailureRetry: true });
 } finally { await browser.close(); }

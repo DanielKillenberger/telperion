@@ -114,15 +114,16 @@ describe("toSkeletonParams", () => {
     expect(toSkeletonParams(DEFAULT_PARAMS).bias).toEqual(DEFAULT_BIAS);
   });
 
-  it("scales the three departure-from-vertical terms by torsion", () => {
+  it("scales supernatural bending without changing botanical lean", () => {
     /* One move from straight to writhing. Gravitropism is outside it:
        a tree that wants to grow up still wants to when it is not
        twisting, and folding it in would make torsion 0 a tree with no
        opinion about direction at all. */
+    expect(toSkeletonParams({ ...DEFAULT_PARAMS, lean: 0.2, torsion: 0 }).bias.lean).toBe(0.2);
     const straight = toSkeletonParams({ ...DEFAULT_PARAMS, torsion: 0 });
     expect(straight.bias).toEqual({
       gravitropism: DEFAULT_BIAS.gravitropism,
-      lean: 0,
+      lean: DEFAULT_BIAS.lean,
       supernatural: {
         enabled: DEFAULT_PARAMS.supernaturalEnabled,
         writheAmplitude: 0,
@@ -134,7 +135,7 @@ describe("toSkeletonParams", () => {
     const doubled = toSkeletonParams({ ...DEFAULT_PARAMS, torsion: 2 });
     expect(doubled.bias).toEqual({
       gravitropism: DEFAULT_BIAS.gravitropism,
-      lean: DEFAULT_BIAS.lean * 2,
+      lean: DEFAULT_BIAS.lean,
       supernatural: {
         enabled: DEFAULT_PARAMS.supernaturalEnabled,
         writheAmplitude: DEFAULT_BIAS.supernatural.writheAmplitude * 2,
@@ -502,7 +503,7 @@ describe("buildTree", () => {
        the trunk's own girth as a bow. */
     const trunkBow = (torsion: number): number => {
       const crownBase = DEFAULT_PARAMS.height * 0.3;
-      const trunk = centreline({ torsion, supernaturalEnabled: true, writheAmplitude: 0.1, spiralRate: 0 }).filter(
+      const trunk = centreline({ torsion, lean: 0, supernaturalEnabled: true, writheAmplitude: 0.1, spiralRate: 0 }).filter(
         (point) => point.y <= crownBase,
       );
       expect(trunk.length).toBeGreaterThan(8);

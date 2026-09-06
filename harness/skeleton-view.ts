@@ -26,9 +26,9 @@ const ATTRACTORS_MAX = 1600;
  *  through, and so do the five bias dials - they carry the library's
  *  own names and units, so there is nothing here to translate and
  *  nothing to drift. `torsion` is the one dial that is not a library
- *  term: it scales the three that are departures from vertical, so one
- *  move takes the tree from straight to writhing without walking three
- *  sliders. Gravitropism is deliberately outside it - a tree that wants
+ *  term: it scales the supernatural bending terms, so one
+ *  move takes the tree from straight to writhing without walking separate
+ *  sliders. Lean and gravitropism are deliberately outside it - a tree that wants
  *  to grow up still wants to when it is not twisting.
  *  `density` is the attractor count, and `step` and the branch-law
  *  rules go through under the library's own names. Twig anatomy stays
@@ -73,7 +73,7 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
     },
     bias: {
       gravitropism: params.gravitropism,
-      lean: params.lean * params.torsion,
+      lean: params.lean,
       supernatural: {
         enabled: params.supernaturalEnabled,
         writheAmplitude: params.writheAmplitude * params.torsion,
@@ -118,7 +118,7 @@ export function toRadiusParams(params: GrowerParams): RadiusParams {
  *  does.
  *
  *  `twistRate` is the surface's rotation and it is deliberately not
- *  scaled by the panel's `torsion` master: `torsion` gathers the three
+ *  scaled by the panel's `torsion` master: `torsion` gathers the supernatural
  *  terms that bend the CENTRELINE, and the plait is a different
  *  mechanism that happens to the skin. Folding them together would
  *  make one dial mean two things, which is the thing the spec's
