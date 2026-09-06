@@ -111,6 +111,8 @@
     "/tmp/fn99-fix2-replay/norway-spruce-175890410.jsonl": "cb2aabba2cd7163da7cf90c2a8bac9dbb8e88b36b271ba377d707a3889a501bb",
     "/tmp/fn99-fix2-replay/norway-spruce-847818543.jsonl": "c37b693f03ea9d2b2b678fad8f3b5efcb37c0e79d19fe4afedc0b11779b160b2",
     "/tmp/fn99-fix2-replay/oregon-white-oak-762807349.jsonl": "d3d8fbeb262821be9018215008052d2109b2cc12b2ddc58b3760ab02959b28cd",
-    "tests/browser/integration.mjs": "ac38e3107a66cc329ad397ea700ad419abf6b85214fbb023f6a12090a68e534f"
-  }
+    "tests/browser/integration.mjs": "ac244f006cf7857244aa4c9afd60cbcf198e0d7f0f83a835fde9b9cde328dd6d",
+    "target/release/examples/measure": "9a56b3ce6baa455bef10996a58fd83a13edfea2fced501197d6ba79f0da183bf"
+  },
+  "browser_fixture_commit": "972b3bd"
 }
