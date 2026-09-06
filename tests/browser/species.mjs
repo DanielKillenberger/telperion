@@ -97,7 +97,7 @@ async function capture(job) {
       }
       let selectedInstance = null;
       let selectedTwig = null;
-      const exterior = view.startsWith('exterior-') || view.startsWith('peg-');
+      const exterior = view.startsWith('exterior-') || view.startsWith('peg-') || view.startsWith('socket-');
       if (exterior) {
         const { values, topology } = output.structure;
         const point = i => new THREE.Vector3(...values.subarray(i * 6, i * 6 + 3));
@@ -127,6 +127,22 @@ async function capture(job) {
         direction = outward.clone().negate().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
         direction.y = view.startsWith('peg-') && view.endsWith('upper') ? .65 : view.startsWith('peg-') && view.endsWith('lower') ? -.65 : .18;
         direction.normalize();
+        if (view.startsWith('socket-')) {
+          const root = view.startsWith('socket-root-');
+          const joint = root ? support : base;
+          const incoming = root ? point(topology[socket * 3]) : support;
+          const outgoing = root ? base : tip;
+          const tangent = joint.clone().sub(incoming).normalize();
+          const branch = outgoing.clone().sub(joint).normalize();
+          let radial = branch.clone().addScaledVector(tangent, -branch.dot(tangent));
+          if (radial.lengthSq() < 1e-8) radial = outward.clone().addScaledVector(tangent, -outward.dot(tangent));
+          radial.normalize();
+          const around = tangent.clone().cross(radial).normalize();
+          const angle = view.endsWith('left') ? -.75 : view.endsWith('right') ? .75 : 0;
+          direction = radial.clone().multiplyScalar(.6).addScaledVector(around, .8).addScaledVector(tangent, .15).normalize().applyAxisAngle(tangent, angle);
+          bounds = new THREE.Box3(joint.clone().addScalar(-.010), joint.clone().addScalar(.010));
+          selectedTwig.socketCamera = { jointNode: root ? socket : parent, incomingNode: root ? topology[socket * 3] : socket, departingNode: root ? parent : node, joint: joint.toArray(), tangent: tangent.toArray(), radial: radial.toArray(), angle, halfWidth: .010 };
+        }
         if (view.startsWith('peg-')) {
           direction.x = -direction.x; direction.z = -direction.z;
           const axis = tip.clone().sub(base), length2 = axis.lengthSq();
@@ -333,7 +349,7 @@ const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes
 await save(join(out, 'provenance.json'), provenance);
 const retainedTargets = option('--targets') ? (await json(option('--targets'))).captures : [];
 if (!Array.isArray(retainedTargets)) throw Error('Invalid target receipts');
-const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', 'exterior-alt-front', 'exterior-alt-left', 'exterior-alt-right', ...(c.id === 'norway-spruce-1' ? ['branch-curtain', 'peg-upper', 'peg-lower', 'peg-alt-upper', 'peg-alt-lower', 'peg-contact-front', 'peg-contact-left', 'peg-contact-right', 'peg-alt-contact-front', 'peg-alt-contact-left', 'peg-alt-contact-right', 'peg-clear-front', 'peg-clear-left', 'peg-clear-right'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, batchInstances: args.includes('--batch-instances'), fixedTarget: retainedTargets.find(r => r.id === c.id && r.view === view.replace('-clear-', '-contact-'))?.selectedTwig ?? null, frustumCull: args.includes('--frustum-cull'), provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
+const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', 'exterior-alt-front', 'exterior-alt-left', 'exterior-alt-right', ...(c.id === 'norway-spruce-1' ? ['branch-curtain', 'peg-upper', 'peg-lower', 'peg-alt-upper', 'peg-alt-lower', 'peg-contact-front', 'peg-contact-left', 'peg-contact-right', 'peg-alt-contact-front', 'peg-alt-contact-left', 'peg-alt-contact-right', 'peg-clear-front', 'peg-clear-left', 'peg-clear-right', 'socket-root-front', 'socket-root-left', 'socket-root-right', 'socket-tip-front', 'socket-tip-left', 'socket-tip-right'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, batchInstances: args.includes('--batch-instances'), fixedTarget: retainedTargets.find(r => r.id === c.id && r.view === (view.startsWith('socket-') ? 'exterior-' + view.split('-').at(-1) : view.replace('-clear-', '-contact-')))?.selectedTwig ?? null, frustumCull: args.includes('--frustum-cull'), provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
 const suffix = option('--case') ? `-${option('--case')}` : '';
 const capturesPath = join(out, `captures${suffix}.json`);
 await save(join(out, `capture-plan${suffix}.json`), jobs);

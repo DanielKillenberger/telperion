@@ -229,3 +229,9 @@ and matrices in the secondary's vertical plane and each shoot's own tangent
 frame. The raster pitch and longitudinal bins are explicit. These projections
 exclude wood and other systems to measure needle coverage; they never replace
 intact renderer views or establish a botanical acceptance threshold.
+
+`socket-root-*` and `socket-tip-*` additionally inspect the two actual junctions
+on the first spruce target, at three angles each and a 10 mm half-width. Receipts
+identify the joint, incoming node and departing node; complete wood and foliage
+remain. These connected local views supplement the complete exterior chain and
+must be inspected for occlusion independently of peg contact or centreline data.
