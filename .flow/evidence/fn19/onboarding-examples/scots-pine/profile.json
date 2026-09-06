@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "profiles": [
+    {
+      "id": "scots-pine",
+      "scientific_name": "Pinus sylvestris",
+      "readiness": "unmet",
+      "context": "Proposed mature open-grown species form; age and dimensions not yet matched",
+      "sources": [
+        "OSU-PINE"
+      ],
+      "anatomy": {
+        "element": "Two needles per fascicle with persistent sheath; unavailable in generator"
+      },
+      "metrics": {},
+      "limitations": [
+        "Illustrative profile only; dimensions, parameter calibration and per-scale references incomplete."
+      ],
+      "botanical_validation": "unassessed"
+    }
+  ]
+}

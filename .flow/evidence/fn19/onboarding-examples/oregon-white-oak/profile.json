@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "provenance": ".flow/evidence/fn9/profiles.json",
+  "definitions": {
+    "height_m": "Maximum Y of actual wood/retained foliage above root ground Y=0; exclude root flare below ground. Also report wood-only height. Envelope height is a parameter, not a measurement.",
+    "dbh_m": "Diameter at 1.3 m above root ground along dominant trunk, interpolating intersecting structural edge radii; report 2*radius as circular-equivalent centreline model proxy. Multi-stem at this plane is ambiguous and must be flagged, not summed. Sources using US breast height (~1.37 m) are approximate comparisons; retain measurement height.",
+    "crown_width_m": "Maximum of X and Z retained-foliage AABB spans; also report both spans. Approximation to field maximum spread; do not use wood buttress or envelope width.",
+    "crown_base_m": "Lowest retained foliage Y above ground; report live primary-branch insertion separately. Hanging foliage and branch insertion are different.",
+    "crown_width_height_ratio": "crown_width_m / height_m.",
+    "foliage_length_m": "Base-to-tip longitudinal extent of each transformed blade or needle, excluding separately modeled petiole/peg; use actual geometry, not unscaled parameter. Report min/max and median.",
+    "foliage_width_m": "Maximum blade width transverse to midrib; needle width is maximum cross-section span, not its length or its projected screen width.",
+    "branch_count": "Biological axes beginning at forks, excluding trunk. Collapse degree-two chains; choose thickest child as axis continuation, tie-break by stable node index. Report this operational estimate separately from stored branch-run count and nodes.",
+    "branch_order": "Trunk order 0; continuing dominant axis retains order, lateral at fork increases it by one. Histogram counts branch origins, not all nodes.",
+    "twig_count": "Unique retained twig runs (NodeKind::Twig), each a terminal fine woody axis; does not imply one leaf.",
+    "foliage_units": "Oak: one simple blade per instance. Spruce: one individual needle per instance; no fascicles or leaflets. Always report units_per_instance, pre-cull instances, retained instances, actual individual units and discarded units.",
+    "leaf_area_m2": "Sum transformed triangle areas once for a single blade sheet; do not double for double-sided rendering. For a closed needle report total external surface area separately from one-view projected area. Neither is field occupancy."
+  },
+  "profiles": [
+    {
+      "id": "oregon-white-oak",
+      "scientific_name": "Quercus garryana",
+      "common_name": "Oregon white oak",
+      "readiness": "ready",
+      "context": "Mature tree-form, healthy leaf-on, open-grown Pacific Northwest savanna/park; adequate site, no clipping, pollarding, shrubby variety or closed forest suppression. Winter image is branch-anatomy reference only.",
+      "sources": [
+        "OSU-OAK",
+        "USFS-OAK",
+        "OWIC-OAK",
+        "OSU-OAK-ID"
+      ],
+      "metrics": {
+        "height_m": {
+          "unit": "m",
+          "range": [
+            15,
+            27
+          ],
+          "classification": "gating",
+          "source": [
+            "USFS-OAK",
+            "OWIC-OAK"
+          ],
+          "confidence": "high",
+          "note": "Mature favorable-site range; wider OSU landscape range 12\u201327 m is contextual, not substituted."
+        },
+        "dbh_m": {
+          "unit": "m",
+          "range": [
+            0.6,
+            1.0
+          ],
+          "classification": "gating",
+          "source": [
+            "USFS-OAK",
+            "OWIC-OAK"
+          ],
+          "confidence": "medium",
+          "note": "Approximate mature diameter comparison; 1.3 m model plane vs source US DBH convention."
+        },
+        "crown_width_m": {
+          "unit": "m",
+          "range": null,
+          "classification": "contextual",
+          "source": [],
+          "confidence": "unknown",
+          "note": "No context-matched biological range located; report actual value without a pass claim."
+        },
+        "crown_width_height_ratio": {
+          "unit": "ratio",
+          "range": [
+            0.8,
+            1.4
+          ],
+          "classification": "contextual",
+          "source": [
+            "OWIC-OAK",
+            "O-WHOLE"
+          ],
+          "confidence": "low",
+          "note": "Engineering estimate around documented width comparable to height, informed by uncalibrated photo. Not a measured population interval."
+        },
+        "crown_base_m": {
+          "unit": "m",
+          "range": null,
+          "classification": "contextual",
+          "source": [],
+          "confidence": "unknown",
+          "note": "No context-matched biological range located; report actual value without a pass claim."
+        },
+        "foliage_length_m": {
+          "unit": "m",
+          "range": [
+            0.05,
+            0.15
+          ],
+          "classification": "gating",
+          "source": [
+            "OSU-OAK"
+          ],
+          "confidence": "high",
+          "note": ""
+        },
+        "foliage_width_m": {
+          "unit": "m",
+          "range": [
+            0.0508,
+            0.127
+          ],
+          "classification": "gating",
+          "source": [
+            "OSU-OAK-ID"
+          ],
+          "confidence": "medium",
+          "note": "2\u20135 inches; no joint length-width distribution. Avoid independently sampling biologically implausible combinations."
+        },
+        "branch_count": {
+          "unit": "axes",
+          "range": null,
+          "classification": "contextual",
+          "source": [],
+          "confidence": "unknown",
+          "note": "No context-matched biological range located; report actual value without a pass claim."
+        },
+        "branch_order": {
+          "unit": "order",
+          "range": null,
+          "classification": "contextual",
+          "source": [],
+          "confidence": "unknown",
+          "note": "No context-matched biological range located; report actual value without a pass claim."
+        },
+        "twig_count": {
+          "unit": "runs",
+          "range": null,
+          "classification": "contextual",
+          "source": [],
+          "confidence": "unknown",
+          "note": "No context-matched biological range located; report actual value without a pass claim."
+        },
+        "foliage_units": {
+          "unit": "individual leaves",
+          "range": null,
+          "classification": "contextual",
+          "source": [],
+          "confidence": "unknown",
+          "note": "No context-matched biological range located; report actual value without a pass claim."
+        },
+        "leaf_area_m2": {
+          "unit": "m2",
+          "range": null,
+          "classification": "contextual",
+          "source": [],
+          "confidence": "unknown",
+          "note": "No context-matched biological range located; report actual value without a pass claim."
+        }
+      },
+      "anatomy": {
+        "element": "Single pinnately lobed blade with rounded lobes, rounded terminal lobe, visible narrow petiole connection; no bristle tips. Lobe count is contextual (sources differ), not a hard identity count.",
+        "attachment": "Alternate individual leaves along local twig; blade bases connect to twig by petiole, not floating clusters.",
+        "branching": "Short substantial bole, multiple heavy ascending/spreading crooked limbs, irregular rounded crown; natural irregularity must remain possible with supernatural effects disabled."
+      },
+      "rubric": {
+        "crown_silhouette": "Broad rounded outline, not narrow pointed crown; O-WHOLE.",
+        "branching_habit": "Substantial low primary limbs spread and bend irregularly, fine branching subdivides their ends; O-BARE.",
+        "crown_gaps": "Irregular windows between foliage-bearing limbs, no uniform shell or sparse upward whiskers; O-WHOLE.",
+        "terminal_taper": "Thick limbs reduce to fine twigs without abrupt stumps, bead-like joints or needles of wood; O-BARE.",
+        "foliage_shape_attachment": "Rounded lobes and alternate attached individual blades visible at detail scale; O-LEAF."
+      }
+    }
+  ]
+}

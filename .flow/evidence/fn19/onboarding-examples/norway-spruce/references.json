@@ -1,0 +1,110 @@
+{
+  "reference_version": "fn19-references-v1",
+  "sources": [
+    {
+      "id": "OSU-SPRUCE",
+      "url": "https://landscapeplants.oregonstate.edu/plants/picea-abies",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "verified": "2026-09-06",
+      "use": "Species-form pyramidal habit, drooping secondaries, individual four-sided needles; exclude cultivars."
+    }
+  ],
+  "references": [
+    {
+      "id": "S-WHOLE",
+      "species_id": "norway-spruce",
+      "kind": "real",
+      "source_id": "OSU-SPRUCE",
+      "scale": [
+        "whole"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab977.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Two landscape tree-form specimens; age unknown; right tree shown densely foliated",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed.",
+      "accessed_at": "2026-09-06",
+      "asset_sha256": "49df5c91efafdf76d356a21a0adcac6c1d1d93cb6d86ca5cc889317cb5b8ec90",
+      "observation": "Persistent leader, conical tiers and variable openness; left specimen shows hanging secondary systems.",
+      "limitations": [
+        "Image has two individuals; no exact scale; left crown edge cropped, never extract a numerical mask or infer matched dimensions.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ]
+    },
+    {
+      "id": "S-BRANCH",
+      "species_id": "norway-spruce",
+      "kind": "real",
+      "source_id": "OSU-SPRUCE",
+      "scale": [
+        "attached-shoot"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab428B.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Attached branch system; whole-tree age/context unknown",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed.",
+      "accessed_at": "2026-09-06",
+      "asset_sha256": "d3792f4dade2389e47a6f6be326bfbedd3e33a518493e4c719893cc3d1cdf800",
+      "observation": "Upturned primary tip and hanging secondary branchlets retain visible surrounding connectivity.",
+      "limitations": [
+        "No ruler, no bare framework, no fork-collar close-up.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ]
+    },
+    {
+      "id": "S-NEEDLE",
+      "species_id": "norway-spruce",
+      "kind": "real",
+      "source_id": "OSU-SPRUCE",
+      "scale": [
+        "attached-shoot"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab347A_0.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Twig montage, upper and underside views; age/context unknown",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed.",
+      "accessed_at": "2026-09-06",
+      "asset_sha256": "47e6c9dd3175e6a5deb0fad36da9b034a627f1ab1cb50f411fa1feee7ebd37e6",
+      "observation": "Individual needles around twig and peg attachment visible.",
+      "limitations": [
+        "Montage of local views; not one calibrated three-dimensional shoot.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ]
+    },
+    {
+      "id": "SPEEDTREE-SEEDLING",
+      "species_id": "norway-spruce",
+      "kind": "competitor",
+      "source_id": "SPEEDTREE-SEEDLING",
+      "scale": [
+        "whole",
+        "bare",
+        "base",
+        "fork",
+        "attached-shoot"
+      ],
+      "matching": "unavailable",
+      "url": "https://store.speedtree.com/store/norway_spruce_seedling_games/",
+      "attribution": "SpeedTree model library",
+      "context": "Unmatched public demonstration; seedling only for SPEEDTREE-SEEDLING",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public documentation/linking only; commercial/research asset license not acquired",
+      "accessed_at": "2026-09-06",
+      "asset_sha256": null,
+      "observation": "Official search-indexed listing identifies Picea abies seedling with SPM export requirements. Direct browser retrieval unavailable. Wrong age for mature cohort; no purchase or mesh access.",
+      "limitations": [
+        "Discovery record, not a matched specimen or an inspected benchmark capture.",
+        "Absence of comparable assets conveys no competitor quality or superiority result."
+      ]
+    }
+  ]
+}

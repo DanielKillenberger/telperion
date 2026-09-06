@@ -1,0 +1,1789 @@
+{
+  "scope": "Tracked readable text in this checkout only; no claim about other worktrees or unrecorded/private runs. Recheck concurrent reservations before generation.",
+  "purpose": "Illustrative ungenerated cohort; not an authorized production seed freeze.",
+  "method": "OS cryptographic u32, exclude all recorded integer tokens and duplicates",
+  "excluded_integer_count": 42067,
+  "files": [
+    {
+      "path": ".flow/.gitignore",
+      "sha256": "35591cc6656d9f12c9c76bff324582aba033c5f98ccfe7a888fbcebdb0f39b9d"
+    },
+    {
+      "path": ".flow/config.json",
+      "sha256": "5b3866c3cd9e425d11fe1f0f4fdfc506f93bada96ffb337ab8e8f91a89c11d8a"
+    },
+    {
+      "path": ".flow/evidence/fn19/PROTOCOL.md",
+      "sha256": "fb0dff3e7012d7a1ca8956b1b343ef700c9f464bd6ab0abfc450784d85db8c02"
+    },
+    {
+      "path": ".flow/evidence/fn19/REFERENCES.md",
+      "sha256": "4c7bf68abdd97e4adc64a8e52a3cb480445d2eed1dcf8518e4c8a5db93762207"
+    },
+    {
+      "path": ".flow/evidence/fn19/measurement-controls.json",
+      "sha256": "cf8a8a54e1afdf2221ae2b3d9cde8c7019406edcaef0836e3d058ff62bba7847"
+    },
+    {
+      "path": ".flow/evidence/fn19/protocol.json",
+      "sha256": "04bee659801454dc7aff2818d84f9dd72591e574802bebfbaed64599656d4fb9"
+    },
+    {
+      "path": ".flow/evidence/fn19/references.json",
+      "sha256": "db491b8d6bf19dfde6b476d8f7099ef8d41abb079fb689c71aa855bffcc41533"
+    },
+    {
+      "path": ".flow/evidence/fn19/visual-controls.json",
+      "sha256": "16f201de5ad4a41e955f3d74adceff3045a9c43131b77504b9cbb7ff904b1b96"
+    },
+    {
+      "path": ".flow/evidence/fn8/REPORT.md",
+      "sha256": "2c949c3723d33fe08a67692ecb83779e3ac783683ca38647766dfb276c62cbfd"
+    },
+    {
+      "path": ".flow/evidence/fn9/BASELINE.md",
+      "sha256": "cdda953a33178f9e77dd24728e529f59417ce80950fe5daec83e9d1737762f21"
+    },
+    {
+      "path": ".flow/evidence/fn9/HANDOFF.md",
+      "sha256": "a3a6a258e93cb7707b9b1b248d54a364cb8863fdd8282d38c51722587a479f17"
+    },
+    {
+      "path": ".flow/evidence/fn9/HISTORY.md",
+      "sha256": "612174a49746d1e3fffc4771d247c9d6b57eb17fc46ecff5a7f43732070a612b"
+    },
+    {
+      "path": ".flow/evidence/fn9/REFERENCES.md",
+      "sha256": "7967bb9a100b8374a1ff5ff7983ee2703c7985657db75d1c5f8dd183b9ee06f5"
+    },
+    {
+      "path": ".flow/evidence/fn9/REPORT.md",
+      "sha256": "da336e2e57a6abfe0ea6d442834fc756cf112d827bef280eaa8a883b395744b5"
+    },
+    {
+      "path": ".flow/evidence/fn9/branching-completion.md",
+      "sha256": "1fcac4a34641722b834d0718b7cd03eaae6d0b09a0632272d5cd99927d368e1d"
+    },
+    {
+      "path": ".flow/evidence/fn9/broadleaf-evidence.json",
+      "sha256": "d6e2fa33a7229ebc6c8bd776199c736aba83c2e93838a630d2aa5a7b27d9fa70"
+    },
+    {
+      "path": ".flow/evidence/fn9/broadleaf-measurements.json",
+      "sha256": "ef4de1651b3770ef68c5b5ee3c5184aa658b2cb5eddd2493cfde88c50face313"
+    },
+    {
+      "path": ".flow/evidence/fn9/broadleaf.md",
+      "sha256": "98e038e849da0e858085437bf228ad02cb5a4b9ee8052cdbdd243ec698c746da"
+    },
+    {
+      "path": ".flow/evidence/fn9/conifer-evidence.json",
+      "sha256": "2a07d0443de1fdcae35c00224122b62e448ea6dac6c495625763c51336835687"
+    },
+    {
+      "path": ".flow/evidence/fn9/conifer-measurements.json",
+      "sha256": "304b70370da566cd6431f9e1232e3f638380a3052beda9fc708cbdba2d88c8b5"
+    },
+    {
+      "path": ".flow/evidence/fn9/conifer-oak-regression.json",
+      "sha256": "e508145dcd12463d05a6ebbab9b3d279af937f4d0006881063da0724403c045c"
+    },
+    {
+      "path": ".flow/evidence/fn9/conifer.md",
+      "sha256": "84a7f42de9587737ce6ad65c814ffe64bc93662f3d429739c791fd763f170ac0"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/WORK-HANDOFF.md",
+      "sha256": "10a786f5a33d47e0d82f01bc07bcb1f64516a0e8eba6aa2c616ee232a50f986b"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/capture-coordinator.py",
+      "sha256": "710a83ef3717eeb61ac096cd35aaa5baecb0021d43f1e46cecfbdbc5a1eb766e"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/captures.json",
+      "sha256": "fbf3a6df6a25da8ae202b02c004c11e6e35678292b1bc4855e8a558b799cee1d"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/costs.json",
+      "sha256": "c3f33d96e797b28139b31fc5b2c1c24e090135bf1d4573e8981d22a71888543c"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/gates.json",
+      "sha256": "0364b0073edb1cc3f18fe97533ca9ff6a4ac62f2150e217d3c0977dac66ca120"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/implementation-review.json",
+      "sha256": "19495937d67348cd83865b3fc8cabc998703931cfe8a348bf48694911aeb2984"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-complete-browser.log",
+      "sha256": "98c5d5f738ffd1ee115f31a2dfbefb2775c2a25cce09c35a12ac0b125524ee36"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-complete-captures.log",
+      "sha256": "adcafc6b3a9c59db48f0061e4c2bfeb4c59c82b3a07fc30bde8e1ef7c3327e5a"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-complete-measure.log",
+      "sha256": "091de4eb1c72631b991815af4306c8cf9fe25d195a246734e6de39bab0c7b92d"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-final-browser-compact.log",
+      "sha256": "64a3420b91bb3ee5a86cb51cffc02a1a6b6e6ca008f12e31b4a472751d701b06"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-final-browser.log",
+      "sha256": "cc2d94c737a87a2ea11f1f6a9f7173ed4ec98dfb1fdc41a99f3e9af2fc672dea"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-shared-fixture-browser.log",
+      "sha256": "5f7960e8f698184fe7620f0b4b54f804ed6e821b37e1b560acf4a668af95bd43"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-taper-clippy.log",
+      "sha256": "352b08e53d048045c714a33958511ff48859c90f949c224588447b82ebf22bec"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-taper-final-build.log",
+      "sha256": "8fe2eddb16883e8760494c3ad10a37bb9aec0777cbf4cfa1cb818668954f0d6e"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-taper-final-harness.log",
+      "sha256": "1f475c06ada6e1ac1d3bf210d363a9cbcc2cccb0c4c442cdc8c63efc809f159b"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-taper-final-native.log",
+      "sha256": "562cbea89be44cd084f859690533bb9883a50af67f55ceb6e4e7053201bec134"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-taper-fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-taper-focused.log",
+      "sha256": "b97e895733c6e73551a8b98133f76bf4febc3727b606a3a1aa2928ba49d3c24e"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-taper-red.log",
+      "sha256": "e080ffbb5e31646e3d2d87b644073cab5d5fae875889d73e191b38a3b45ef86b"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-url-recovery-clean.log",
+      "sha256": "3b6aabcdd9f1a07ea188917b2e0ac35d793fd01ba74e6a6359cc24f760f3d3e5"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/logs/fn9-url-recovery.log",
+      "sha256": "7e5a93d59411bb3b2d6a70aecabd19c9fe677b581370f921050ccb3b49e9818f"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/measure-coordinator.py",
+      "sha256": "1622cf79cb03b5aa7319065ed2cbb76a7b028c930bf148de73f3342fd5e91946"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/numeric.json",
+      "sha256": "c8488a3e2188a0de148d82c004d8e89d82bdea602d2d621181b3fda385614269"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/owner-feedback.json",
+      "sha256": "52555a1a7bbd39a0bd8aca911bdc7b403ddec2d6e2fa9807accf48a7580338aa"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/quality-audit.md",
+      "sha256": "ee08cbd2498729454bb11b6b5a9bf9b144be41a5e6789f13e280d7fafd00d78b"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/served-viewer.json",
+      "sha256": "20f40796c2b05acc334bda7d24e8d1c0b9a30089a64facfee2ae7c2b6d3fc544"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/sources.json",
+      "sha256": "733fded56d575dc134bcf005e6c451683063bceb936d5a9e52f4eb236d18cf55"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/taper-comparison.json",
+      "sha256": "64fc83db4140be0156d2bf949e4b06bbf93f4d688e537b1106c4858b9406433c"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/terminal-regression.json",
+      "sha256": "749f4527336576d908358a775cb579add23c2c0b16e53ad84c3a54fc29e33449"
+    },
+    {
+      "path": ".flow/evidence/fn9/final/visual.json",
+      "sha256": "958ab94a4d59abae5ab16d2d54bd0778a95cbf27d230f6651c7da27b9180ae7c"
+    },
+    {
+      "path": ".flow/evidence/fn9/foliage-completion.md",
+      "sha256": "fb166be078d006046895c965cafc0df922f56492e6a106518a1dbb3512849e8e"
+    },
+    {
+      "path": ".flow/evidence/fn9/handoff/branching-evidence.json",
+      "sha256": "bb3c5c5661b99e079ec1faf6ee2436373dc6cd41d1e35a296b901721d9c5f883"
+    },
+    {
+      "path": ".flow/evidence/fn9/handoff/branching-summary.md",
+      "sha256": "c42b6e4a7bcceaf71e2548da598493b3320d2b7a12c3279b9ffd2b2eb53dd83b"
+    },
+    {
+      "path": ".flow/evidence/fn9/handoff/environment.md",
+      "sha256": "c0c3e8eb46f7ee4194a26c7c1cd475d15ea879c58a1bec2d781aeaed28409a91"
+    },
+    {
+      "path": ".flow/evidence/fn9/handoff/flow-checkpoint.json",
+      "sha256": "dab2c0b763b4fb1826390675658528c7d54c67d49f4b3f61fae7e163d5b8abfc"
+    },
+    {
+      "path": ".flow/evidence/fn9/handoff/foliage-evidence.json",
+      "sha256": "a4cbad5ef55b0291756358a05c4417b08bf50e85a8a9ac0abe6bc5b3e7e92cae"
+    },
+    {
+      "path": ".flow/evidence/fn9/handoff/foliage-summary.md",
+      "sha256": "c5ea648b8a52e064b7dd3ed645d30df01212052cbea4ecc139fe78feaae85471"
+    },
+    {
+      "path": ".flow/evidence/fn9/handoff/habits.rs",
+      "sha256": "bdcdf5a907da57de80bf67f68323bfe47dc57da4ab1314c28e2e9b32a43137d7"
+    },
+    {
+      "path": ".flow/evidence/fn9/handoff/render.py",
+      "sha256": "d913b6be4864354ab5cbc18b33e1de9536d87dafeb46a8292f812aaa570a7f5f"
+    },
+    {
+      "path": ".flow/evidence/fn9/handoff/visual-architecture.md",
+      "sha256": "90c32a187a03ba5bc2338ab0f91da35e75346b2d39bbb3c4796bba2787c1105f"
+    },
+    {
+      "path": ".flow/evidence/fn9/neutral-viewer.md",
+      "sha256": "770293d4dfd911410c3093225c8e33dafaf8494d1bdf58bd183a5aa3bbdbe472"
+    },
+    {
+      "path": ".flow/evidence/fn9/profiles.json",
+      "sha256": "9b3578ffbe959c45e8d0159ebad2daeb3b1058c934a0d2c2da20a1f26acfd671"
+    },
+    {
+      "path": ".flow/evidence/fn9/seeds.json",
+      "sha256": "1ad38fedabaf3cf806c3927108ea3e0961a609f6d14238101a9494dc1206e508"
+    },
+    {
+      "path": ".flow/evidence/fn9/viewer/bindings.json",
+      "sha256": "d9e8a8cf1b5b387bcf35f4dba749d7eb8d6dd57406a30d91819f17d39c5a68a8"
+    },
+    {
+      "path": ".flow/evidence/fn9/viewer/captures.json",
+      "sha256": "81ae48aad6b8ae17550975405b3216011d53a653bc81519a2819ab0df4777ae4"
+    },
+    {
+      "path": ".flow/evidence/fn9/viewer/empty-rendering.json",
+      "sha256": "0790dc05368abe4d4954316c40b1d993a5fe66802f78bdfe6fc1a14989c46d4f"
+    },
+    {
+      "path": ".flow/evidence/fn9/viewer/transaction.json",
+      "sha256": "11872f3e160e9371dbe29724cd51def41a3c3b7784a52b38b77f135cda55056a"
+    },
+    {
+      "path": ".flow/evidence/fn9/viewer/viewer.json",
+      "sha256": "1de14c0585272c6639ce9abae12771bb73ca473802cda25787e89195e68a40f6"
+    },
+    {
+      "path": ".flow/evidence/fn9/wasm-bindings-evidence.json",
+      "sha256": "9f5831ea1650668ac1f761d20d2b97f56180b839934f891820818ce2a2ef6899"
+    },
+    {
+      "path": ".flow/evidence/fn9/wasm-bindings.md",
+      "sha256": "88dcde0a226b0fd26057335e3108433290d95c6b543da8035e7ebe82cdba0a12"
+    },
+    {
+      "path": ".flow/memory/bug/runtime-errors/a-trunk-region-guard-on-the-parent-node-2026-09-04.md",
+      "sha256": "51ee2b8cec9f4007ac5cb0ca629dea770d64c261b7b38a93af95c55ebb26193f"
+    },
+    {
+      "path": ".flow/memory/bug/runtime-errors/interpenetrating-junctions-contain-the-2026-09-04.md",
+      "sha256": "27de4bb82344e4ef3b34965d655b878c2c35799f3342d850abfd28674799238e"
+    },
+    {
+      "path": ".flow/memory/bug/runtime-errors/zero-width-is-not-no-constraint-the-2026-09-04.md",
+      "sha256": "813230f3b7c4361b4a581818567eead5a221e4a245d174bcc164e4f6bcbfd7e5"
+    },
+    {
+      "path": ".flow/memory/bug/ui/a-mid-task-instruction-that-adds-a-2026-09-04.md",
+      "sha256": "fe05ce953bc344b971e0bb6c77e83282b70f4398558c536d9b7f01aed3318343"
+    },
+    {
+      "path": ".flow/memory/bug/ui/a-second-subject-on-stage-makes-every-2026-09-04.md",
+      "sha256": "4fad953f252bdc84c0d715acccb900e453123a9856978a8561452408fa7418df"
+    },
+    {
+      "path": ".flow/memory/bug/ui/a-slack-band-around-an-orbit-pivot-2026-09-04.md",
+      "sha256": "fc17e14797851bf092826a6a97d9284be22207fa3c45419dbfb2159c5c36f238"
+    },
+    {
+      "path": ".flow/memory/bug/ui/an-ac-that-enumerates-the-default-state-2026-09-04.md",
+      "sha256": "36deb12ec5acc3ee2b19f805c227c21d8bc6c3c3b852d92dcae313d3eb94c9d3"
+    },
+    {
+      "path": ".flow/meta.json",
+      "sha256": "3fd9f95d52ac3f295ef8e9e0379ffcb95df82f57e7e0aa8b1fe2f547a21fe1de"
+    },
+    {
+      "path": ".flow/prospects/parallel-work-alongside-fn-6-2026-09-05.md",
+      "sha256": "d8b5f5b1c65a3ab9b960c23b88450e7b5250e694b97e6b4d1e8b19f3e55cf83a"
+    },
+    {
+      "path": ".flow/specs/fn-1-the-canopy-real-leaf-geometry-culled-to.json",
+      "sha256": "592fce7ffffbc1c4286166e14971926f27f4f345968a32b752a23c4791dc459e"
+    },
+    {
+      "path": ".flow/specs/fn-1-the-canopy-real-leaf-geometry-culled-to.md",
+      "sha256": "a6e682e71fbc42ab21e6fd4ff3d436300951dbc3cbfaac2a098a79f3d1c9124c"
+    },
+    {
+      "path": ".flow/specs/fn-10-legendary-tree-profiles-and.json",
+      "sha256": "7cb18761c80168e7b250b37495f4a141884abee1086b063857a84aad052783a8"
+    },
+    {
+      "path": ".flow/specs/fn-10-legendary-tree-profiles-and.md",
+      "sha256": "77b8ccfee161d46e500e87d049f5437ff8e2264bee77f70eb281bdd42c5fcd10"
+    },
+    {
+      "path": ".flow/specs/fn-11-growth-over-time.json",
+      "sha256": "054bbd004091758e4ac0d797e3a624b7f8b2caade18e9bb4cfb50a17dbbc955b"
+    },
+    {
+      "path": ".flow/specs/fn-11-growth-over-time.md",
+      "sha256": "c14fdff860316557998818643c6805ae7f4904cca49929c144dcc9d748e66f73"
+    },
+    {
+      "path": ".flow/specs/fn-12-gpu-accelerated-skeleton-and-field.json",
+      "sha256": "ee15ec30ceb6bc7480122b09957edf52565c67242d460c05d50863f0a150d915"
+    },
+    {
+      "path": ".flow/specs/fn-12-gpu-accelerated-skeleton-and-field.md",
+      "sha256": "c7e2be866c00b6416ececbd651d97b73fe309131c9ce9440c8636bf36e1cf8b3"
+    },
+    {
+      "path": ".flow/specs/fn-13-tree-detail-by-viewing-distance.json",
+      "sha256": "ad8c3dcb85e7d6bff66329441ae17d12f9697f246817efe6d42e0657221e4d25"
+    },
+    {
+      "path": ".flow/specs/fn-13-tree-detail-by-viewing-distance.md",
+      "sha256": "db595670bedd0ca651184bfde8f3a7bbab84f9c437003c2858d53f19bac0e896"
+    },
+    {
+      "path": ".flow/specs/fn-14-bark-and-foliage-appearance.json",
+      "sha256": "195061901ca0bb1d9c44734da388e20cc40a5017286da796718351e20cd5a795"
+    },
+    {
+      "path": ".flow/specs/fn-14-bark-and-foliage-appearance.md",
+      "sha256": "75aecd40b52377a0c5dae251be7e8c49dce6c508bb96a073a81e5e6a9496a32c"
+    },
+    {
+      "path": ".flow/specs/fn-15-wind-and-structural-motion.json",
+      "sha256": "86bce2b412cc8da7b2919e7cd41e1a6b1f79114d740a0afddd5f1f711d666a31"
+    },
+    {
+      "path": ".flow/specs/fn-15-wind-and-structural-motion.md",
+      "sha256": "89ee0450d6d0d2565acd3ae33ba1a3fbbd449fd11feb9d5644c83a0f5adfe68e"
+    },
+    {
+      "path": ".flow/specs/fn-16-environment-and-damage-response.json",
+      "sha256": "eba5c54f7d90a41dc4f980adbf44d3cadd56494577655484c6e77c33c1aa04b2"
+    },
+    {
+      "path": ".flow/specs/fn-16-environment-and-damage-response.md",
+      "sha256": "535688b74c70dd448217084ef003a15b560437c4756f708200c48ec702752d75"
+    },
+    {
+      "path": ".flow/specs/fn-17-first-external-engine-integration.json",
+      "sha256": "c697f1d6af4027f60e895dbeec0a2e09e1da922a8da3d46bd25abceaae13a0c8"
+    },
+    {
+      "path": ".flow/specs/fn-17-first-external-engine-integration.md",
+      "sha256": "1a1373c01ac07ed13635507dba431ee7a99295a2df04107a0fa000a115726618"
+    },
+    {
+      "path": ".flow/specs/fn-18-faster-field-generation.json",
+      "sha256": "4cd7b13a63e67185d3423f81721b23f1f34e21bdf2969abe99468b84d8a98aa3"
+    },
+    {
+      "path": ".flow/specs/fn-18-faster-field-generation.md",
+      "sha256": "ec5b3d15542bc4cab141705dd2b1576f272ad71ee57cfc16b0be8d8c61d9b954"
+    },
+    {
+      "path": ".flow/specs/fn-19-comparative-botanical-geometry-benchmark.json",
+      "sha256": "d70d5e12151d0205a810a38629107d08204de3a76b650ce198fc5867347c9d5e"
+    },
+    {
+      "path": ".flow/specs/fn-19-comparative-botanical-geometry-benchmark.md",
+      "sha256": "8a794f05feec26c2bb24c995bb7938e9b4e75d2c4e961a8c56849a2056810e60"
+    },
+    {
+      "path": ".flow/specs/fn-2-the-twig-layer-the-branching-order.json",
+      "sha256": "a6c8e9b806b33a8d086162ba7fc3dab036aea095f9e80ce7415c7398c3612bbc"
+    },
+    {
+      "path": ".flow/specs/fn-2-the-twig-layer-the-branching-order.md",
+      "sha256": "07a1413ebebe590bcc5492733a189c801f7efcd278950a19c9084cec3bdb32a3"
+    },
+    {
+      "path": ".flow/specs/fn-20-woody-anatomy-from-roots-through-branch.json",
+      "sha256": "70137f3cf96cd6f9275060e3414ccb56d3f1de36d3c133a1b5c87f80b2238fa8"
+    },
+    {
+      "path": ".flow/specs/fn-20-woody-anatomy-from-roots-through-branch.md",
+      "sha256": "1b200235739290e37b1d2e779c04ab0f7c5e7c44104e77e5625644c6b99cdb3b"
+    },
+    {
+      "path": ".flow/specs/fn-21-developmental-shoots-and-within-species.json",
+      "sha256": "d64b1fd67036dd9e027fcb656379ea8a6d27cb257314781c1e29379edc215232"
+    },
+    {
+      "path": ".flow/specs/fn-21-developmental-shoots-and-within-species.md",
+      "sha256": "ca00247133a9e53cb16c704df1ee9c47407accb0d6b4f7fbf1daa83ac23ccbca"
+    },
+    {
+      "path": ".flow/specs/fn-3-branching-depth-the-dial-the-skeleton.json",
+      "sha256": "84c76f8642a27c5542c46555405b23c0adffdc17a49642573d4150a8b071e18b"
+    },
+    {
+      "path": ".flow/specs/fn-3-branching-depth-the-dial-the-skeleton.md",
+      "sha256": "d7085ca413d9c2e785004a563ea6097e276709148b68336c915bcf8aabd6ac33"
+    },
+    {
+      "path": ".flow/specs/fn-4-limbs-that-pass-through-each-other-and.json",
+      "sha256": "b61ea18cea1a2e54fc57d4c43ba6fba2aad7b7d6d548aeed0ed512e9bb1d6d04"
+    },
+    {
+      "path": ".flow/specs/fn-4-limbs-that-pass-through-each-other-and.md",
+      "sha256": "1e0c6a0c0bef51aaad68f2dd29672e294dff511441877aaee3a32c06556cb204"
+    },
+    {
+      "path": ".flow/specs/fn-5-branch-until-the-tips-bear-leaves-one.json",
+      "sha256": "ba2234b69351bb0d7545d4319c4cb55b00bbe24d7584cdb9ba744094e317f4ba"
+    },
+    {
+      "path": ".flow/specs/fn-5-branch-until-the-tips-bear-leaves-one.md",
+      "sha256": "802e720ded05b91951c916388f6f297453c312496a133a5fe8fd94f2e1fb081e"
+    },
+    {
+      "path": ".flow/specs/fn-6-branch-generations-below-the-crossover.json",
+      "sha256": "0b9ec8186e63be314a96797233c2b0fb9873323052467316a73234f5a405b379"
+    },
+    {
+      "path": ".flow/specs/fn-6-branch-generations-below-the-crossover.md",
+      "sha256": "af90fb3b52a93bc160919e86b861fd38f78ba1de3adef4834666fcf33971c381"
+    },
+    {
+      "path": ".flow/specs/fn-7-rust-surface-benchmark-prototype.json",
+      "sha256": "9f4d23782ccc71a378742e5e0100536bd27a602516ad8be0109740d48dbbb85e"
+    },
+    {
+      "path": ".flow/specs/fn-7-rust-surface-benchmark-prototype.md",
+      "sha256": "15079750ba70dd26eff2ec646d98da5f686838ec5b7d4521db620b79f7e0ae1d"
+    },
+    {
+      "path": ".flow/specs/fn-8-lean-rust-tree-generation-core.json",
+      "sha256": "3636b46b5d2f73fbe85fa0809fa98b2279462d1fe859dacf3fbadcf224cd3371"
+    },
+    {
+      "path": ".flow/specs/fn-8-lean-rust-tree-generation-core.md",
+      "sha256": "9ca189cdff792eb1f447872297bcc6d96a72e85352903c7ce9b533929aef5ab6"
+    },
+    {
+      "path": ".flow/specs/fn-9-real-species-profiles-and-procedural.json",
+      "sha256": "d2da486151985304b3d83555abdf889157c11e73532050b5eddcfb988bc1bc66"
+    },
+    {
+      "path": ".flow/specs/fn-9-real-species-profiles-and-procedural.md",
+      "sha256": "a8ef6289b591a3ccb0e3885571be0c3ef5798cc85a35fb807ce21588380e2419"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.1.json",
+      "sha256": "bdbb9ba1d71bfbf997476ec36bb40073aa4f3de4599c28317fb6aad4d1207dc0"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.1.md",
+      "sha256": "ed2505798e4ad1b62fca78969e7b215a317e8f61fe1dc8a6ecce442ded0e212c"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.2.json",
+      "sha256": "b62ad86c5482d273741efae96fb1777701b08dc33953bea3f20597edb9471b47"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.2.md",
+      "sha256": "9b10b3a8f9cdd7d64784d6b4a8004a7b7ce41e1820a1b09beb81b72995504080"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.3.json",
+      "sha256": "dd0b9bcd308d01e575bd450d17e38dcca74796e370b30be94bcfa77f11c143f7"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.3.md",
+      "sha256": "71f305a7f8a1ceb775e0dc70c0e41f82b1a88ecf0c7adb29b6175ed79150f3e8"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.4.json",
+      "sha256": "0f9868c78ee16f0d9fa7a46f342ad0f039672f9cb9e04b33bb04f6fe7379b9f4"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.4.md",
+      "sha256": "08e70a60a889e0ff02f61d8babfe657bb22815579faa5a10c0f813d4ee3b4094"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.5.json",
+      "sha256": "7de04bdca0b784d887c04def62638990df0e8a4c3e4152acc4a501fa7def33de"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.5.md",
+      "sha256": "c80481611236d6bd29ce11cf574c66262726375292499949eae505fa3cff2590"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.6.json",
+      "sha256": "beff5f3ed54570787c8bdc332b40c18b7cb2f9511fd12d90ce5ea6418ccedaab"
+    },
+    {
+      "path": ".flow/tasks/fn-1-the-canopy-real-leaf-geometry-culled-to.6.md",
+      "sha256": "5ee84425b454af11af20de1aed79dcbf9be8a66599aa4ae6afd3ff7fa16a0e5f"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.1.json",
+      "sha256": "113be7a39d71b7745b72925394472b47e0e9c713209c212db944e61556997fa8"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.1.md",
+      "sha256": "dc31585fb3c1bd0faa40e43580dca4171dea9cf85e0b001a9df3ad28a00eacf6"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.2.json",
+      "sha256": "c25df7e6fe00c251cff20e1e1085b8d9b84ca44d7c5c95af2edfc78b57c7af57"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.2.md",
+      "sha256": "74fbf4761fbdc45f75d9634697d80ad14560fe2d7b22b2900976b10d60f3dc90"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.3.json",
+      "sha256": "6eaa02f65c97513360cd9b0b8bfda4eba0484acd139e5f814658ac660265de07"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.3.md",
+      "sha256": "c8acf6d341a1c974d27c36104e54773ae593e76df653aee6a4232cc66dda71d6"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.4.json",
+      "sha256": "6d2dc6ad5864bedace3422b620ce32babaf8097d2d20b18b0454d990ab0cde30"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.4.md",
+      "sha256": "88a96c15f422fb97450d214ebbcebfc3736a75c3e1714a5e8bf6b3b59c8f7f75"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.5.json",
+      "sha256": "38bc74903a5c384bb4c933db27c115cb461302d722f96d86b27f34e5164df3b4"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.5.md",
+      "sha256": "fc5457c0373a1cc545d6268277fdd303f09a66f62d76b86730f163958ff656bd"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.6.json",
+      "sha256": "a0896bd2511a2e227cea9255fd9b98eac29c62abbe39e4f811f1b85826d09007"
+    },
+    {
+      "path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.6.md",
+      "sha256": "5d550d69c15c48aa5a4218e664286e14e587da0264770d60d259d77b9ac08115"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.1.json",
+      "sha256": "5281b33b8886267da2131b042795b8acfd72aaedfcbb38ccbbe55572e122a749"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.1.md",
+      "sha256": "3f3cb01feca59c5cc9b1be10ea963d278b655064dfbf1f68d5368732253e566f"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.2.json",
+      "sha256": "4e76130f79b8d8dc78346a0e12741fdd2cc62027bee029dde5811c4b2bd00763"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.2.md",
+      "sha256": "b323922b15138befea9b4050244a3edc63b28b5fc6cb0cc548d6474146593268"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.3.json",
+      "sha256": "a8c43890d909fe2237b24f54e184ca64c2029893c4777f0abe01ea6f942b2231"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.3.md",
+      "sha256": "8f386260aa2d6c6aadf2380ac2e6ae5b8897dcc1773441895ffe9ef3ce02482c"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.4.json",
+      "sha256": "3a07664f8a3012a654dc892dc5e7203bf682bfd641843ca123b37a4451c83012"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.4.md",
+      "sha256": "dd7426a613c5d38aa4b53c9ef80217dfd6f7ebd351879eb9d5d61c9a60e998ab"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.5.json",
+      "sha256": "af79a08d6d8679d473005bbdfacd4407cdcdd6fc82289c3d7629423b0c4f6fe0"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.5.md",
+      "sha256": "302c43e9eccc598d1aeceb3f6e1d10bdccbe85be767ac092ec9a413edd128841"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.6.json",
+      "sha256": "e9f6b8f4e59250fd3b688627f146fe75960726690ccb327e867bb62fb75021c9"
+    },
+    {
+      "path": ".flow/tasks/fn-18-faster-field-generation.6.md",
+      "sha256": "c3ba995da19fbeaf86a29bf3829cdf8d343149df0335ce690aae58ee2e371cc7"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.1.json",
+      "sha256": "fd58487386fc76faf103c6496261492b1c782fe79569e827933778260c94b301"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.1.md",
+      "sha256": "5f1ceb3d28ae40c041de21c5701e928dd6917000b1fd9a01f99ddaad2d24ed5b"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.2.json",
+      "sha256": "77b0651d016f97ca8b04207b1776cf2739a25c1720253b3ab0e5b3c76027d518"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.2.md",
+      "sha256": "47611b97c64ed54fbbeca191d6ed544793173b6c94cc9351efeb4bc49cd0790f"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.3.json",
+      "sha256": "25b014ad9ccee6b26fa7818621b4a448397848f168b26fbb9eb934cbb589c602"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.3.md",
+      "sha256": "061681371c8c6ee09ff3cb7dc5c509ea3e56b2b3acaefcf62424fe76c9601b8a"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.4.json",
+      "sha256": "33d0afa5434268f12925694b31b88586cbaf9cdd8d17222e4874af588cd254ed"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.4.md",
+      "sha256": "2be77b74af3b27b6151a201b74a4af4327709f2ed84755a5e3f484af0dcbd03a"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.5.json",
+      "sha256": "3edffb2fb453cc609073e3ab8f0177c75c23de3cb3ee2a2fb87383a244e404e3"
+    },
+    {
+      "path": ".flow/tasks/fn-19-comparative-botanical-geometry-benchmark.5.md",
+      "sha256": "33d2b6b6aaf85ba3921e234f09e6f366433345be60ca0b278a20cb66d187df61"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.1.json",
+      "sha256": "1d5aa7188e6b8bb2e080ddb2dccb7ca08a836b3595a368218f65a8f89809bd33"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.1.md",
+      "sha256": "882661b98011c9ad1c7c5a06c77f0be1dfd0b27e0c2a12deecab49dfe490ebb4"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.2.json",
+      "sha256": "e1f9946b680009189da2cf0f0c9ec3d456359983f869561644003e81b67517a9"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.2.md",
+      "sha256": "eb26c909c18bd5c5008c6d2f92cece38ad0b933293c1d81dc076ca9665e3a946"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.3.json",
+      "sha256": "497e69170afd85b517562c9d205fcb4d6b6915977e04e76f218faa2e9286f654"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.3.md",
+      "sha256": "3296a8aee97bd73288f75d7fa967ea6fcbcd51ac71860fefa36d62be35b039b7"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.4.json",
+      "sha256": "78067832380474f7694bab787047b719b2f0c581245fa9da356273c89ef6fd1e"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.4.md",
+      "sha256": "7bc9cd2d7051458bee7327ea03096fe564b3319d95880e77c0af4f828b7bd493"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.5.json",
+      "sha256": "85ca7b245d574e4ddc4078a5c752e3825b4e57f216745afb72e6123ef74b1b9b"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.5.md",
+      "sha256": "bcf76627b57dd5a1076936fc3f54bf0e7e306f9cafdb00bce5268c106f988748"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.6.json",
+      "sha256": "63c235a86872f57bc937db8d5d66e21cce5c42af43af72f0357240c92730997c"
+    },
+    {
+      "path": ".flow/tasks/fn-5-branch-until-the-tips-bear-leaves-one.6.md",
+      "sha256": "197713e39c45956befd4bbe69bf02d4c50cfb52fc9d5d0fc9aa0641c2c266c02"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.1.json",
+      "sha256": "c8c5a57b28fd0dd34f0760c3247b4095504ae0ebcefb227666f87d732a5b20bc"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.1.md",
+      "sha256": "c235a3ac5a69f7c508f4bdab28e325110e0d88d2da55681495b4dc12c726f5f9"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.2.json",
+      "sha256": "c8c7848c2154e80e0ab1524ded5466b5b68b7ea8ae7a46a592307a74f336992c"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.2.md",
+      "sha256": "e381b7b5294e9a7d8ae494dd0ff3bc1ca848d6a20cb72f6a956b9eb578a12b4c"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.3.json",
+      "sha256": "bf16846f1311bbcf5a1981c62fd245ca81ad368ab92c27a15e59fcebad54ce0a"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.3.md",
+      "sha256": "9f7ed1376033a6939f97651f74309369a673c7e7325e745ec4543d5c08a2464b"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.4.json",
+      "sha256": "2ed5ede7cc572d5221f07cb85e7e6fc4a5b5173f86c27438008a268c27e97be3"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.4.md",
+      "sha256": "67558510c01a07c81b9db55afe13d6c91240dfe044a4bba39fce4ab829a9b1ec"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.5.json",
+      "sha256": "ff8ad402e60b87002fdc61e3de9994484f9195bb508014b3e1cd97806de722ae"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.5.md",
+      "sha256": "d5b9e9c85cbdcc23beeb0d171a582fc0712ef9ace8f22ac1cbff6788453c9dbc"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.6.json",
+      "sha256": "5714065b7038829e9a3d4c4943620083b2887e7be41795ed28d1aebe92569adf"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.6.md",
+      "sha256": "7874797ccb033b9a3b2b982986bcfc96a2b7df430623940601205722d6fff135"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.7.json",
+      "sha256": "792e11fdb163950820177a44d8d58e4d8d0974f1ab1d1cce02d6886e9d0720eb"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.7.md",
+      "sha256": "2bd3e96ea8e06fc6cc914950d782270cb39b1b71390a2b964ee48d57688d270b"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.8.json",
+      "sha256": "ec02ea86c692143d01cfca6696b25c76f335b17a022f3de7df7033e7bfac0ef4"
+    },
+    {
+      "path": ".flow/tasks/fn-6-branch-generations-below-the-crossover.8.md",
+      "sha256": "2aa1ba2fd47844d666544e44b04c0549a6875ef5a82844e167b47eda7ea57619"
+    },
+    {
+      "path": ".flow/tasks/fn-7-rust-surface-benchmark-prototype.1.json",
+      "sha256": "b3257b82b16f336c9e2563728ce7e554c91557c3452e5ed1de89dde5b40f987e"
+    },
+    {
+      "path": ".flow/tasks/fn-7-rust-surface-benchmark-prototype.1.md",
+      "sha256": "6f34691369f535804f5a7cf9d0f5a5096c58b42b46800cae7d88290e1f75a0bd"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.1.json",
+      "sha256": "ac9b9e9d1c652e49a9a8e69a03c81082e42eb74ee87373ed6494295f21265f08"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.1.md",
+      "sha256": "257cef472e49ae311ecfa042962032e97029b75665b95f252219e2fe3cea594d"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.2.json",
+      "sha256": "6665dde56c57381f5ff3e9f349547e542ea28d08b1a985bc4d922d9118dedb45"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.2.md",
+      "sha256": "5b4c1fbcc9d1e23cedb457039900c59948c6e8b1a3060638444372b231dcb072"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.3.json",
+      "sha256": "2d04c46b203bb086a665846b9e8fd6caf793af030074aac9bf221eebe89364c2"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.3.md",
+      "sha256": "9e3175e95b4943294876cd22fc1d1706f582a73c42f75a917a1fbc647e1ff00f"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.4.json",
+      "sha256": "a7f3318cd4cb4554db43584336b4eb8caa9277703dd47a25909d839d2ecd8317"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.4.md",
+      "sha256": "6b76352bdccaacb2b0ddbad1102d1a891198867c42e2a41e6a22f17a396eb77e"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.5.json",
+      "sha256": "d1fb40f514c37ff1035e74ab09e7971c30f6d23d00289bea79d1ef696566b78a"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.5.md",
+      "sha256": "29b79405304486b08a6d44cd1e0c0b300769d3b81ce61a60f9b793df760725f5"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.6.json",
+      "sha256": "de8eaad259db59894283b264a741b2678c8fe5fef785e6ab5fb646232ad16d91"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.6.md",
+      "sha256": "9f69551329fab75cc80c32b487bc9d5ebf765d366fa720ea81425a74b6f3f00d"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.7.json",
+      "sha256": "039427bdf2936cdc73bf8e9b37c7b30942775358ae66361a6d9af6bc7a042f8e"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.7.md",
+      "sha256": "ab91d135503abbf84e885189957d485f807ff5ac34d991823a9b761aea62c3bf"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.8.json",
+      "sha256": "4a9435b29bc81007e38d938b8575300cd383df1f2850c0a279c3bf713e4e8abe"
+    },
+    {
+      "path": ".flow/tasks/fn-8-lean-rust-tree-generation-core.8.md",
+      "sha256": "c5d388790b3f2145f40f98ec432cbde7856f907ab0797da2bed8f08f6bcfed27"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.1.json",
+      "sha256": "3ebf542e947cf583116fd98f9094035d1e286259c4427d69a67ac5d4108f7ca4"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.1.md",
+      "sha256": "c5de9096b8a472da3f4772aad363e72dba05f4d22b3182577aa5fe7992837518"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.2.json",
+      "sha256": "968cd653b14c0e61ecc14638b5379c5dd475f89dace61665e65be4ec435b57e8"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.2.md",
+      "sha256": "a6e714f66c6143f85472c82ccc71d1d93b0db90446a2378abfe8407b60d72f8a"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.3.json",
+      "sha256": "52408863d002dbc3bbd2613a5c548c03ebe0666b948d3c5d720d84c9f511270d"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.3.md",
+      "sha256": "8111d6c71301dba9336d9789d53206906210252b0f13af25f0d4e8299c7ed28a"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.4.json",
+      "sha256": "300af6c24e887c77faa39555b167da6c675f39f546b976639493ca4cff763bf2"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.4.md",
+      "sha256": "805011e0aa5a4a40779a0f8bba75614e1257d53f533a0d35eb93e830d488b343"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.5.json",
+      "sha256": "a4d16fca743644ec68f9f92c8249cca2d6e0f1b07fb356bc9ee3f0406a1303be"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.5.md",
+      "sha256": "3a35235fd4fdf224e5f21b769b05c0e2b8608b3d5903354cfc82a93166226435"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.6.json",
+      "sha256": "16238f1683221a2a8bd26964e34d98cc86c4460706f5dcda23ea3dd748b5225f"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.6.md",
+      "sha256": "46b4cb90f40cc7347b8fdf05df6fde8aa65ff4d79fa7ffe2688d596f075bcf1e"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.7.json",
+      "sha256": "f7c97e436f41254ac27aaab54a4b8c066e5cd42bb158b528edcc61df2700f1f1"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.7.md",
+      "sha256": "746016032e150690e25dd5ebae43652a5c611d13528a7db0f7ddd860b8866ff2"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.8.json",
+      "sha256": "16febc82a392ee46bf21f8c5202e33afdfacc2377bf9235b670bc44a60cceb00"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.8.md",
+      "sha256": "d157cb6481283d592510675cc71f14a30e5d7489388045b172a1abf88fe53ed4"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.9.json",
+      "sha256": "2db7ec0268608834765dc674c9a46caaf77d6276bef3654391b0e06addbeac64"
+    },
+    {
+      "path": ".flow/tasks/fn-9-real-species-profiles-and-procedural.9.md",
+      "sha256": "366390da4f4c408daea793f4d9b0981b258b4af775b6d98a058d80e6184a0382"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "4434caa8faad3744da0fc4eaccf962986e60c4315e4c01bcefd17aba67575bee"
+    },
+    {
+      "path": ".worktrees/.gitignore",
+      "sha256": "240a3e0d37d2e86b614063f5347eb02d4f99ca6c254de6b82871ff8d95532a7d"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "4e864017359d8acd8c46bda33168d73dc9134609c81c122ef5594e74db836023"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "0afb42cc8770489249d595f57675c9d649ddbb89571efe3feb5f39e352ec95ff"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "6a85194587f06d1fa4dd7c686ec05942bedc8373c76e694b301cf847d8095a5f"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "720dd3c6901d6901a98cf786f2bc4e6bf5f237d69f20be169727403912fa9fa1"
+    },
+    {
+      "path": "README.md",
+      "sha256": "f9eb3763259fcad3b9e9d650c233b91d614b771668f3ef0d574e46ae21bb3df6"
+    },
+    {
+      "path": "STRATEGY.md",
+      "sha256": "53c118c6f03e2c96ed61e7e117006f9f137b626190b0683bc9bf0cd66b455578"
+    },
+    {
+      "path": "crates/telperion-core/Cargo.toml",
+      "sha256": "b05c70f9d4b981f950f656333e58495e8b39065bdbdf1d331f41c70608d8a586"
+    },
+    {
+      "path": "crates/telperion-core/examples/curtain_audit.rs",
+      "sha256": "1db1b243345e1ce75ac43b098ea7971cc57d5f4b3654eea71df41bc165852047"
+    },
+    {
+      "path": "crates/telperion-core/examples/foundation.rs",
+      "sha256": "63623823055e90895f5d7702900a925411096932a883cbf6f9532175c05e21fe"
+    },
+    {
+      "path": "crates/telperion-core/examples/geometry_benchmark.rs",
+      "sha256": "d966128e067d36d58d256db1803f057cbb278e4a53820542bbeb44345fb3b569"
+    },
+    {
+      "path": "crates/telperion-core/examples/geometry_benchmark/metrics.rs",
+      "sha256": "3a9501e9d82d6359c611e8bda0ea2d95f84ab960ed3cfd5407c19952921d11c4"
+    },
+    {
+      "path": "crates/telperion-core/examples/geometry_benchmark/native_controls.py",
+      "sha256": "bc9cd48886aee1e33eb95aaa11def2686a8f7d4fe20e55681af2a6798f89c5a9"
+    },
+    {
+      "path": "crates/telperion-core/examples/geometry_benchmark/params.rs",
+      "sha256": "0704618d4d04d21928174caa7b4eea1f759bc289c437b0c1db38871b0177a547"
+    },
+    {
+      "path": "crates/telperion-core/examples/geometry_benchmark/runner.py",
+      "sha256": "bfcd9a6c1184a5fae6d424e0ce7291efe3b487e0bb13394c55f09b09fd9cf199"
+    },
+    {
+      "path": "crates/telperion-core/examples/geometry_benchmark/test_controls.py",
+      "sha256": "68fc1d87b5e4c73cbb3aebcd906c6d99e49a0281c5f718078ee48cc336841339"
+    },
+    {
+      "path": "crates/telperion-core/examples/measure.rs",
+      "sha256": "406b23d2f7c407f1473eaf46250fe085383c141260744055d271fb3a43628bcf"
+    },
+    {
+      "path": "crates/telperion-core/examples/occupancy_audit.rs",
+      "sha256": "31f8603cd0fd44a283d610307670ef2389e2179fe5b3330ac4c2b1211cfc19f9"
+    },
+    {
+      "path": "crates/telperion-core/examples/species_measure.rs",
+      "sha256": "2bb82e5ea6be19666254936fc7cf92db039933444be0e80be7cadc0686854241"
+    },
+    {
+      "path": "crates/telperion-core/examples/species_metrics/mod.rs",
+      "sha256": "6a25f14b6cf86b27a631692f4bbe448dba8e4cd3d15e3d75b87f406cd713b956"
+    },
+    {
+      "path": "crates/telperion-core/src/bias.rs",
+      "sha256": "851c0b8a08e9ca85dadadf273a3a5e87ac1b57db96685724a4b92c1b0568dba5"
+    },
+    {
+      "path": "crates/telperion-core/src/branching.rs",
+      "sha256": "cb22ee37de6832e3637954ee66c1704a54f783b0e0b8e6ae7edf78108c6675e9"
+    },
+    {
+      "path": "crates/telperion-core/src/branching/audit.rs",
+      "sha256": "b15c852d1f7300fe0c0825010b7311c5d20cf270ad8be79ac04c6788ba697318"
+    },
+    {
+      "path": "crates/telperion-core/src/branching/habit.rs",
+      "sha256": "71b1803bdef01b365e6a394fee8dccf76a6b5b84414f5943e9bb2b281a7e3950"
+    },
+    {
+      "path": "crates/telperion-core/src/branching/local.rs",
+      "sha256": "444b44af661788ab84768e8283adf93d69244cd96b9b0e563eeab68b2836c585"
+    },
+    {
+      "path": "crates/telperion-core/src/colonization.rs",
+      "sha256": "b81bfbf8453438dbc59ab230859c66fd5c4cafb0834257aca66422caf733602a"
+    },
+    {
+      "path": "crates/telperion-core/src/colonization/fill.rs",
+      "sha256": "df46a8f8e91e6cca20aaa8ef9dbbb780557b69d448bb73ee170d7bdad92617ef"
+    },
+    {
+      "path": "crates/telperion-core/src/colonization/grid.rs",
+      "sha256": "b702f4151c3ee08741c2369a7607a0fdc570d401d6c5bf0b912bf32d615ea76c"
+    },
+    {
+      "path": "crates/telperion-core/src/envelope.rs",
+      "sha256": "37d16178be05c908892ca4b8d69f606d738f6c3ba33349b5d8f8baea82494de3"
+    },
+    {
+      "path": "crates/telperion-core/src/field.rs",
+      "sha256": "abf7f847f65e71a68c88bdc74fa36e408e22e65316117a7773a62d5e29939f79"
+    },
+    {
+      "path": "crates/telperion-core/src/foliage.rs",
+      "sha256": "097b84bacc832feac8d508609dfad1110f912cb1066ef7a253f1c3c97cffd9bb"
+    },
+    {
+      "path": "crates/telperion-core/src/foliage/element.rs",
+      "sha256": "f420f9fb9572f0384e28f7d9b5f5fe6b6fb092d736c2735ae7d2c5a474044770"
+    },
+    {
+      "path": "crates/telperion-core/src/foliage/placement.rs",
+      "sha256": "483a00c0b16b7df38a20f6efa691170411a270cf59002618907fe3d92b145562"
+    },
+    {
+      "path": "crates/telperion-core/src/lib.rs",
+      "sha256": "5362cfc35bdf572e95844fb50cf238e8b9da838f5a7ed4addc8cd791193e0d66"
+    },
+    {
+      "path": "crates/telperion-core/src/math.rs",
+      "sha256": "080af666179d2a3cabc5f867154dbd5ffa1c7d4d370bf28653a7dd1cb140de25"
+    },
+    {
+      "path": "crates/telperion-core/src/noise.rs",
+      "sha256": "3f26c8ff7632b827d1d204d85f06b35f6b3d0ababde07f50b85f3216c577f6c6"
+    },
+    {
+      "path": "crates/telperion-core/src/presets.rs",
+      "sha256": "2ab47c8805c14e68451f95a4484056426a7df19987441043fc621e33330b8ea8"
+    },
+    {
+      "path": "crates/telperion-core/src/radius.rs",
+      "sha256": "1c5bc3cad3268a381ab0a63b9c58521c40c5d2ba13062137eb2e96bc8e5fd7f3"
+    },
+    {
+      "path": "crates/telperion-core/src/rng.rs",
+      "sha256": "0a512bfde05bb1a49a8eb3745d347862e1a57e1136c90c633b5b923723e6a499"
+    },
+    {
+      "path": "crates/telperion-core/src/surface.rs",
+      "sha256": "08275af19d96bdc0c81096df86753dbe3205ea7b946eafe4eddecf19fbaa59f2"
+    },
+    {
+      "path": "crates/telperion-core/src/surface/attachment.rs",
+      "sha256": "6904465bb430dc8dc3bef73dbe25317a1996fe93d4de2857bad8f21a78cef6ac"
+    },
+    {
+      "path": "crates/telperion-core/src/surface/frames.rs",
+      "sha256": "5034bd22184c0c1acd18da1dc09bff93fbcdda47a60f876b603cd19245456105"
+    },
+    {
+      "path": "crates/telperion-core/src/surface/paths.rs",
+      "sha256": "05d940c6864e02601c159116c49f3ebe15bfb4d6039f0045cb9a2858d941fa24"
+    },
+    {
+      "path": "crates/telperion-core/src/tree.rs",
+      "sha256": "5a44d2308bef4c4fe461d88e389bcc59e36d757580e9d8a12fe871548039be7a"
+    },
+    {
+      "path": "crates/telperion-core/src/twigs.rs",
+      "sha256": "31f8c7e33985b55ee426388e1c92214fb4c339490e12af7f568c54dd4832a3d3"
+    },
+    {
+      "path": "crates/telperion-core/tests/colonization.rs",
+      "sha256": "2e5a266c46db10414bf211159b08f3a4f422e1fe487ca924eff31d046e64bcfd"
+    },
+    {
+      "path": "crates/telperion-core/tests/crown_reference.mjs",
+      "sha256": "805658a0d20ca39a058945855362e92712f433ed16eaecd9ce24dcd6e0b71a6c"
+    },
+    {
+      "path": "crates/telperion-core/tests/crown_reference.rs",
+      "sha256": "0048094adcd0330cdbb04d23f51bf8b1729f8de31060e74834c2240cab88df87"
+    },
+    {
+      "path": "crates/telperion-core/tests/crown_retention.rs",
+      "sha256": "6160921b4a2d2c408659a2bd32e63c8a1fdc2f8644490122429b15c6313cb72a"
+    },
+    {
+      "path": "crates/telperion-core/tests/field.rs",
+      "sha256": "58219e5ae7babe1bf15709065167f37fc5390c05d989a5e2b3523dec4590e67e"
+    },
+    {
+      "path": "crates/telperion-core/tests/foliage.rs",
+      "sha256": "132b04b4da61ab67a2fe6edb2f20ba77e30cd513f32542a77539c6575081f28c"
+    },
+    {
+      "path": "crates/telperion-core/tests/foliage_reference.rs",
+      "sha256": "50dbed1aeaa9fa769d42f19c7d0e7e406341a2174c0a241cbd5ce754b4fc822b"
+    },
+    {
+      "path": "crates/telperion-core/tests/geometry_benchmark.rs",
+      "sha256": "6475d6bfd21aa517c8bcc3967a9d07cf697cc2b82dbd6f87224e16c05aadc1c5"
+    },
+    {
+      "path": "crates/telperion-core/tests/growth.rs",
+      "sha256": "86c97db097fb8e5878b92fbba745c8a3acd3ab3d4c35af047fcf5af414b18658"
+    },
+    {
+      "path": "crates/telperion-core/tests/growth_reference.rs",
+      "sha256": "6d651012bea7203a69651845c927a3ac565e4524e91d8309239ba25a63fb8335"
+    },
+    {
+      "path": "crates/telperion-core/tests/profile_distance.rs",
+      "sha256": "25b9dea3b539ae80b640c72f77d6ec4449f6339ee7cc1092814c922cd404b166"
+    },
+    {
+      "path": "crates/telperion-core/tests/species.rs",
+      "sha256": "b9fb736f1131d5ccb378c55223b938857a2cd7f7386e8123560988eec83682dc"
+    },
+    {
+      "path": "crates/telperion-core/tests/species_metrics.rs",
+      "sha256": "e0723daad02cb1d353f843f10f9f2c5a7e2be5d99336fbd6d836183ce3e11f8a"
+    },
+    {
+      "path": "crates/telperion-core/tests/surface.rs",
+      "sha256": "967085fb2fc47c397e7ffd43360da1b5132998f8eca8e2623b944c2120b09d63"
+    },
+    {
+      "path": "crates/telperion-core/tests/surface_attachments.rs",
+      "sha256": "e32f532e60dcaa617a410bafa02b8a80916d3f45c696f25a4ea9bead085a9b8f"
+    },
+    {
+      "path": "crates/telperion-core/tests/surface_reference.md",
+      "sha256": "eed83b76a77063708147906bbacc08722c3c332879f9c6a0a02cb99d3bdd520d"
+    },
+    {
+      "path": "crates/telperion-core/tests/surface_reference.mjs",
+      "sha256": "8570763bce2704dd584d143ee514c19b82b7f52e60c2b7bb2e74302325e21bc3"
+    },
+    {
+      "path": "crates/telperion-core/tests/surface_reference.rs",
+      "sha256": "8c07cc5951d394706d1990de182c3233ad38d4e435f77cf08c67b48be824cf3b"
+    },
+    {
+      "path": "crates/telperion-core/tests/terminal_taper.rs",
+      "sha256": "f89adbb616ed2800ef3a5d13c253c812f4a3558e1bd2231e80cab4336f248e9a"
+    },
+    {
+      "path": "crates/telperion-wasm/Cargo.toml",
+      "sha256": "315de268378b8f47c50aba3c78933b3fc5011afe6862fd8dd0766b7724670998"
+    },
+    {
+      "path": "crates/telperion-wasm/src/lib.rs",
+      "sha256": "da1b8014bf62fc075eccc9b7e9da9ad70c47e9152bb415a31e3c7bac9196a880"
+    },
+    {
+      "path": "crates/telperion-wasm/src/params.rs",
+      "sha256": "6e36f78790af84b412e3dc96c4936db23d458eb2393bd7e7200e863f5556195e"
+    },
+    {
+      "path": "experiments/fn9-iterations/README.md",
+      "sha256": "07ccb96f8a6c7a9843fae219febf77c2a1dbce49d35769ddd9d0445cc3610db9"
+    },
+    {
+      "path": "experiments/fn9-iterations/REPORT-before-correction.md",
+      "sha256": "247f32aeeafc3e1f9004a587ea6442b96250bbb49020ac438fbb99a044c375eb"
+    },
+    {
+      "path": "experiments/fn9-iterations/REPORT-pass1.md",
+      "sha256": "e47478e601c3c1fceb5c4f15841cb6f42ed7a8d2620b90d17b84fbc30d9d814d"
+    },
+    {
+      "path": "experiments/fn9-iterations/REPORT-pass2.md",
+      "sha256": "3e198454eaa3e985f599b6acce3e0ad59d39e4bc64b91ba97e3c3ceba421dfdd"
+    },
+    {
+      "path": "experiments/fn9-iterations/REPORT-pass3.md",
+      "sha256": "d6183bb2c56d70379742be68bf90d6df31938d6a75b9cb8256f6a5f3a27f590b"
+    },
+    {
+      "path": "experiments/fn9-iterations/REPORT-pass4.md",
+      "sha256": "be48cedf11a8faa8e0a7a3015a7ee42510f5d518341152cda4b0b2d325dca82e"
+    },
+    {
+      "path": "experiments/fn9-iterations/REPORT-pass5.md",
+      "sha256": "a56569eb2008847f92657f3701a599365737230b986195da91c59185bbe42b68"
+    },
+    {
+      "path": "experiments/fn9-iterations/REPORT-pass6.md",
+      "sha256": "d4c6698558e81cbc1385db73ee88fc23f809c43f778ec724e3d1c80246efda29"
+    },
+    {
+      "path": "experiments/fn9-iterations/corrective-captures.json",
+      "sha256": "ce813d337417f9b4b7da2ff89b6063cc8ad5876f07d7ef7f2c8bdb61013a5d70"
+    },
+    {
+      "path": "experiments/fn9-iterations/corrective-costs.json",
+      "sha256": "b5fc1d5743494b81b0812a19f7c8eff083c00eea775a247c3c38ec64847431b3"
+    },
+    {
+      "path": "experiments/fn9-iterations/corrective-gates.json",
+      "sha256": "ae8b0440f62c660d42ffeb73f65abd199c39972e89c83dc5e771bb1942487764"
+    },
+    {
+      "path": "experiments/fn9-iterations/corrective-numeric.json",
+      "sha256": "e8981ed6ab1677a101d873abd3b112a07a2177d36b8fb1aa80f954e1c6d3f5b9"
+    },
+    {
+      "path": "experiments/fn9-iterations/corrective-sources.json",
+      "sha256": "d75c64e139b9b35138c85bb021d1c06186b4cf19febd00f0b2250c3f10e0b428"
+    },
+    {
+      "path": "experiments/fn9-iterations/corrective-visual.json",
+      "sha256": "2d7b7e320482bd6812749a28a3f1f5fe254e49f204c34e54130b160c934e414d"
+    },
+    {
+      "path": "experiments/fn9-iterations/cross-seed-captures.json",
+      "sha256": "e5767c56cff186c0243e4009c288fd89f8bcfab108a004f3c7d8c68caa819418"
+    },
+    {
+      "path": "experiments/fn9-iterations/cross-seed-costs.json",
+      "sha256": "f8a4561545100ca15bcb37b818230222c5c829c25c047e26356d456903a4999c"
+    },
+    {
+      "path": "experiments/fn9-iterations/cross-seed-gates.json",
+      "sha256": "42e50b7cdd8bde694a611510f53452decb134ac1356f2242902f5d0fc8dcab2a"
+    },
+    {
+      "path": "experiments/fn9-iterations/cross-seed-numeric.json",
+      "sha256": "40ea798285dcde76fd980fa764a36683db694c536e7d97c9f7041c22c7f1656a"
+    },
+    {
+      "path": "experiments/fn9-iterations/cross-seed-sources.json",
+      "sha256": "937e7bc0337023389bf66f8f3d0b71bc9bde9d48e182132376e2d8d41d4c05c5"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass2-captures.json",
+      "sha256": "055162bd7642dbf93e1d06811c77980aaef5cb99da08dd9e8cd43e76fc2405f8"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass2-costs.json",
+      "sha256": "cd0fcac771412b3c39346a24e02f62a9e6a76fe74d334e08aa1dee4a0f57cfbd"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass2-gates.json",
+      "sha256": "7b5843278c19d23fdd50b112b2b64d96ea43e597bf43e1d0a95d0e1215826534"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass2-numeric.json",
+      "sha256": "d8fc1a531bd2acab34c0ca043fc702942edb2e55a6922c7ea8c3fddbc6a145f0"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass2-shared.json",
+      "sha256": "cb0c7fca680e8fa18e5c603c284451fd2e30bec651be1d006aac852d30c7bf60"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass2-sources.json",
+      "sha256": "dc84d9d54fdf4fa7a9e8961958a730259ae62193fe4d70f6611f33ebb89eefda"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass2-visual.json",
+      "sha256": "3d15968cf669862353bca31e6f5f69974c0027d4f77b6c2df4c5f00076ceaae0"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass3-captures.json",
+      "sha256": "2f266597325fc4f4ef44f79bafec901ffc9b088918bdbd0eada32e7693353730"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass3-costs.json",
+      "sha256": "5f8cc49898029ec6b9a9fac4139d84e6147f689cd10195bf610e64349a31a0cf"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass3-gates.json",
+      "sha256": "2b833c4be1a232e3cd933bf3fa19e8c53ffa4fc9887c877bd692f61e9927f1cf"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass3-numeric.json",
+      "sha256": "4768259972c1238eef41c5839e6b3f480bf337450ae7b98ed112015afa521604"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass3-scaffold-audit.json",
+      "sha256": "9a85db7128abb7912c73658096e33f3dae27498867b93bd472c38489880fa184"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass3-shared.json",
+      "sha256": "12bdf0a3fa97095628f6644a17ea390af93c9a14f71e7b797a6fc5e866d699ce"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass3-sources.json",
+      "sha256": "c142a84a63ebecbd47fe34ae0d6ab752daf127d25e9e0356c5ed515cb8a06aff"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass3-visual.json",
+      "sha256": "ba5dc27bbabf387c6f7f24b95b6598813217aeeb0f21300bcd7e9cc7e064f5bb"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-captures.json",
+      "sha256": "fc8a7e16c96338afec1800f405dc9ea07ea2e9164d3adfd5d5a3d36033276cf2"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-contacts.json",
+      "sha256": "ee59e23bf37ebb99afc0decfc806741dd4ee1f07a249cab32f441e6cf5b6a074"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-costs.json",
+      "sha256": "f11c64a5cf2d25cae7b580b7c0d2e91a5f71a0804c9b6658eda6939a274fd8b5"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-curtain-audit.json",
+      "sha256": "fc2e114937671417156fc087734e5454983c95a9ee5291b5040f3a8327e362bb"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-frustum-equivalence.json",
+      "sha256": "7ad3bc36f3382e800be3e4181d0b176b04082a9250cbc4d0037bb520a2570d4f"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-gates.json",
+      "sha256": "90d204fcc391239a78bf63f15bff2ce778036cc1c3d22da5ea8794b69caa380d"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-numeric.json",
+      "sha256": "50bbec09aeff2dd46df36c55ace342fb8414b04ab126edf8e876f5b478d36531"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-oak-audit.json",
+      "sha256": "d93536903d1cc25961843369d7fcca938e7663855b5333f08fbe31193ac7db00"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-protected-oaks.json",
+      "sha256": "c61461a3cc61033848ba092daab1bb7e88c0a16a0672dc33459e61628b75f1f7"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-shared.json",
+      "sha256": "c7695f3361d3f258f325dd71624505f5a1b6385aaca287a4a98a04d06ee565cb"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-sources.json",
+      "sha256": "fa0b4904d851251ba66a10193f807d7ce18016e7a7de256d76b0f454e5dc0f00"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass4-visual.json",
+      "sha256": "c55511f073986e888aaf429c1c51131e8fcdd3349f2e928df0a8d34270c003f6"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-batch-parity.json",
+      "sha256": "82f0809e4f20e838308d4d8dbca80a35af16966c477eca89dff0edb6eaf3536a"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-captures.json",
+      "sha256": "cdedd48a10c517ada3dbee48e285d0a6f02806553fa5c4c1a00f208770714ac5"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-contacts.json",
+      "sha256": "be483d45660b5d5fbe694128b9ad20f3f82e345ebe3b49672669fabd89ec594b"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-costs.json",
+      "sha256": "b199d62297d206f5b4f623c9e838a2ba3a43c01d0e05167f09e855ca1d550e3b"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-curtain-audit.json",
+      "sha256": "567b5654d93a023850cfcfa07188121aa42bae315fd247d994b1c2a764e2b542"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-curtain-pilot-audit.json",
+      "sha256": "613638579c3c2bf822bd71d28c0af410f31108c6703c501c86506df24ff792bc"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-gates.json",
+      "sha256": "794d717927c6a2d59006e8e1e5e1731d598a3ef9c823dd38602d3e83fc2c8a37"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-numeric.json",
+      "sha256": "44f514314aa1e8639ceae25ee307a3b029418385ccacd3cc666a6dd6f40a1367"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-oak-audit.json",
+      "sha256": "b45d767ddb46a1ac38b830f042d974807069154c27cdb5f0db4da7bcf2b515bf"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-oak-pilot-audit.json",
+      "sha256": "b50a47cc83882aba1bd1d3d40da6b54ca491fad3d2bd82559b475f869f178e89"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-pilot.json",
+      "sha256": "6f77d36752ff6c462b2de7c6c9626b71dffc3ac0168aeffb2425e8a55e87ab12"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-protected-oaks.json",
+      "sha256": "2c4770a58c481da1e252d4c52d1e77c69abe0028f08a75a25781e3ee6b573d40"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-shared.json",
+      "sha256": "10d3d8c2b7fd8d78deaf582b3825fdbe51399f8e751d006c15012aafa9203409"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-sources.json",
+      "sha256": "6a5a71b315b4019c9f9a4fad21cfdc80e7aa42d0cbf487646c425216aade869a"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass5-visual.json",
+      "sha256": "788e453d7f9387cff5344f15f402fe19831c357af56f051a1eadc0f4f8316fca"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-captures.json",
+      "sha256": "d934b54bbac2e815614c502b09c2b28c9a1f750c036313ea0281da9d8dbba078"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-contacts.json",
+      "sha256": "66fc94a2db80c8b166234eed5ff8b0a884568e49b4af9279c61a8314b15a3625"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-costs.json",
+      "sha256": "ce1957f7c0b3e123194fa7560d889f242326218ee14fbeac6f7ac8c56c0adaf8"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-count-parity.json",
+      "sha256": "d31412c0ac34e7b7ec3ae7aacebe6ae120970085fd1a09f64b30f6f72b9e90be"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-curtain-audit.json",
+      "sha256": "51a3c7d5b6f4ea62c5a21e5feb17b1a424234d9f4c3f31f9a17855ede5a9ecb2"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-gates.json",
+      "sha256": "af627a9aa1f8894a3a55577739978a821df57ce7890ace353bfb90d646492931"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-numeric.json",
+      "sha256": "992276e945afb4a5b418005bf5e01daca0cedb951ea8a133f62375b5386fa43f"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-oak-audit.json",
+      "sha256": "539df434e714c3d399b49da4f33370d1622697bbea2b0f9f5e6ced2aa2f09374"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-protected-oaks.json",
+      "sha256": "3b3ed69ffd9f30972f39ef6aa9ce4912e115bb82a4dcc6f43e0523607ccd4eb9"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-reach-before.json",
+      "sha256": "7f3fa33325491d0bfb8b345a1a59cf411d17502df7b517228849d099792a1751"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-shared.json",
+      "sha256": "f606091618b865a64da64139efd3b6223413b5e0c25efbde43215fa6054dc837"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-sources.json",
+      "sha256": "a1daa2d9906b188691166099600466f208285e80e9e4963e643337d422f4a9a6"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-target-projections.json",
+      "sha256": "31a944a6d53d28bb2b9fe2075473ee99225f8d57c0350aa45e1ee85dffe04690"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-visual.json",
+      "sha256": "877ea4ee697177dfae61705a106612ab4fe3af6d1b9cd039d09e6786983a4cf9"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass6-window-rays.json",
+      "sha256": "0f669ea3e158dd2b71809b15f0e430db18613b5c9dfeb4245001588b3810b214"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-articulation-bound.json",
+      "sha256": "8b6d94aecff29d71598f2aef999c65f4adf624655f8903cee5c9585e4e2de485"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-costs.json",
+      "sha256": "495103f0afb5a7a51f2c394833a7bc6095cdc3ef34660f7999273e3e4c7c8aa2"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-count-parity.json",
+      "sha256": "364c8ed4a0a0c33da345c1ebd0e88a197f0bcae1cecb3caae48088feb98a8216"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-curtain-audit.json",
+      "sha256": "f04c40ad4910428a161c874752902c932edc0faffbcb47834948069ed33feeef"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-gates.json",
+      "sha256": "abb4044c8e86af1841ed1072ec8df6f15a64de1639f1a97cd91a2c455388f4b5"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-numeric.json",
+      "sha256": "6c6715e9a4ee4f4099ef0322794e94128dc02f46d45fac3e2f5193e3d1f654c1"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-scaffold-reach.json",
+      "sha256": "3b74dc27ab46bf14a8689bd0375471802c774edf685926e61de5d4e97a5bafb0"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-sources.json",
+      "sha256": "ce267976f3227b02a4632c75a1ca038d84f22ab2863bc66dfe465b04006e624a"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-structure-parity.json",
+      "sha256": "8c748ff406d9176fc4b36d70daf19cef3d705efb183ea0c3251ecd4b27a13981"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-target-projections.json",
+      "sha256": "14978793833f05ef3e8cfa2a73cd8ece3ec9f22629b7c36b623881bfaeca7c4e"
+    },
+    {
+      "path": "experiments/fn9-iterations/pass7-whole-secondary-allocation.json",
+      "sha256": "c60e586f8b4ddfc8e8aa27ec14f5896b637b27f496baf1b74505e187f584b8b4"
+    },
+    {
+      "path": "experiments/fn9-iterations/scripts/audit-species-allocation.py",
+      "sha256": "08c95b0bcfad492df03ce1c61dac7a360afe229e80a9a1d1eb183fe1865283ab"
+    },
+    {
+      "path": "experiments/fn9-iterations/scripts/audit-species-articulation.py",
+      "sha256": "da561e6fe52b58c2cd48eee328d36c975ee4e3bce26812a94d5970f18f1dbabc"
+    },
+    {
+      "path": "experiments/fn9-iterations/scripts/audit-species-scaffold-reach.py",
+      "sha256": "19581fed047b0f04f611f9bf634f04ff634cb7bb076351b8a60d941a927d91a7"
+    },
+    {
+      "path": "experiments/fn9-iterations/scripts/prepare-species-pass7.py",
+      "sha256": "b895a84bb0deda794945170add2043bc786814ebd907a51abf1eba26dd291518"
+    },
+    {
+      "path": "experiments/rust-surface-benchmark/REPORT.md",
+      "sha256": "8880f82d41ee34cd5d7c82c2ac6ec6920f234c01f28ae3836d8f31f23a5aab31"
+    },
+    {
+      "path": "harness/GrowerDev.tsx",
+      "sha256": "2f158990840f06ae8c9d4ba2acbd8f024272b3e7e0db7133660d7cf5520acf87"
+    },
+    {
+      "path": "harness/grower-dev.css",
+      "sha256": "b5b8a3d525390c95104ca626af6b5e4bd75aa9f17d0d9031f9eb13bcefbb8e1e"
+    },
+    {
+      "path": "harness/main.tsx",
+      "sha256": "ba4023822c946d5bd4dadd0120ffae9988e7f3dc62d45389d6372550b66f401a"
+    },
+    {
+      "path": "harness/params.test.ts",
+      "sha256": "2f4eb379761bda32fd38a1d9ace5e8c664a99621e38c25b4b7d475f932bea236"
+    },
+    {
+      "path": "harness/params.ts",
+      "sha256": "f4fcbd0a7bf69693c1596597af242fc5ddbe4f2605bf711632b32d5c63dde92f"
+    },
+    {
+      "path": "harness/skeleton-view.test.ts",
+      "sha256": "071ec6c1386dc9224b75a193f8cd8d1ce6d23f0e1f8312f46aae5297d3d1a74f"
+    },
+    {
+      "path": "harness/skeleton-view.ts",
+      "sha256": "da726a4d17fbcf22aa3d004695d6cd947dbfdfdbd2747bed568bc01d3a600852"
+    },
+    {
+      "path": "harness/stage.test.ts",
+      "sha256": "89cdb6a5d8509f9c0b501cbbd4c2432b0c9b7e132a84a279b62840b1714eba6e"
+    },
+    {
+      "path": "harness/stage.ts",
+      "sha256": "9cdc407bd209c50821bbd573af4128fb67b914e7c3efa35a14c09f3e00bbbc83"
+    },
+    {
+      "path": "index.html",
+      "sha256": "602dcee2d7ef0e32c4b1fe641e8982b192031160cea36f86b7bdad80f0ba8aba"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "09151e36dd4759b4e0dbc87afd9e8d60c5edd3e9a8fc4a127aeb72e711c18afa"
+    },
+    {
+      "path": "package.json",
+      "sha256": "03cc82ca9d7e30d8c073792820d48df10574f01b0f06ce133bad9aca36686099"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "sha256": "9500030ccefd0bab631fb7f1763f79f4103eca3a344c36cf15be869e330683bb"
+    },
+    {
+      "path": "scripts/analyze-species-occupancy.py",
+      "sha256": "ae27cac26187c7c4ca781734ad4dbd62f94d49f49f4de6701d84d327ac457b88"
+    },
+    {
+      "path": "scripts/benchmarks/field.mjs",
+      "sha256": "be056eacbf31508a6b3ed9062cf0c513a73f9134699d8869f028225604c030f1"
+    },
+    {
+      "path": "scripts/benchmarks/measure.mjs",
+      "sha256": "a619c5ee490b27ad425da2dcaa338228eda474ec74fd3c8f8d154d8edd2949c8"
+    },
+    {
+      "path": "scripts/benchmarks/memory.mjs",
+      "sha256": "cda9cc342f22e850edaa75af630202f826c07f9413d3c2c9193759df454e4d8b"
+    },
+    {
+      "path": "scripts/build-wasm.mjs",
+      "sha256": "5a01f52f44cdbefbed814ae430ce1a0c29f9500deb11d99612fe720bebe7dd82"
+    },
+    {
+      "path": "scripts/compare-migration.mjs",
+      "sha256": "cdeeea2e4a5b1f098cee97501d9e7b24d067a7810c414aac211091e335c3e631"
+    },
+    {
+      "path": "scripts/export-reference.mjs",
+      "sha256": "7819ed89b9ba86015bdcaa79ff9bd3f8d408fbf70bf57ab33ee6ab710d5a0ad3"
+    },
+    {
+      "path": "scripts/species-chromium-gpu.sh",
+      "sha256": "81717bb85e0a95ba1566281278a3bc6e250c762c63d587ce0d1578c90037a0f7"
+    },
+    {
+      "path": "scripts/test-wasm.mjs",
+      "sha256": "ffb8402077e7bffce0642b2337eac68e6d1dea179e8d1703f0f4addd10cc78a8"
+    },
+    {
+      "path": "src/browser/assets.d.ts",
+      "sha256": "f9d18661a8b8d42d6d7de1015b1fde9d88916a54c0b67a3b8d56908945bd3f65"
+    },
+    {
+      "path": "src/browser/core.ts",
+      "sha256": "24e880fae471dc895d25981f91fef70c3fa097542932db8b018986a4ee30598f"
+    },
+    {
+      "path": "src/browser/presets.generated.ts",
+      "sha256": "260adecf466b4968bde89991ea795d87af48d14c9403e9f8d01802ba4aacb7e7"
+    },
+    {
+      "path": "src/browser/three.ts",
+      "sha256": "869dd9d442d3c60c989851521dea72f47a61b0fb25465dbcf5385690e41903eb"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "843370dc1edbb7049be1350e88a5868e362000fc1c17e57c55e1073cf7c19d36"
+    },
+    {
+      "path": "tests/browser/geometry-benchmark-diagnostics.mjs",
+      "sha256": "6c4e1358c04347e65bf18378038b51af3eb0b845eed1cbaad8f4fc9b5772e300"
+    },
+    {
+      "path": "tests/browser/geometry-benchmark-rig.mjs",
+      "sha256": "7d9a33b9a7556a6f9dffc98ddeed0c99fd5d365903d76ba29f74b4922db44101"
+    },
+    {
+      "path": "tests/browser/geometry-benchmark.mjs",
+      "sha256": "5186da9117d2a087c80eb77afe3b4bf9cc3140b2861b8fbf8d7d5cc691b79b11"
+    },
+    {
+      "path": "tests/browser/geometry-benchmark.test.mjs",
+      "sha256": "f6e67e54b07a46795b3065f8ce2fc4825e30bb751269a0051bcee6041d8aa6b5"
+    },
+    {
+      "path": "tests/browser/integration.mjs",
+      "sha256": "3a2ae72347e2496f67972536705f5761ad263f4b366d20457343436ada855a22"
+    },
+    {
+      "path": "tests/browser/migration.mjs",
+      "sha256": "6ddc32a1bf864878f285727c9bdc0c75958293be8446955c89ecc3349955f641"
+    },
+    {
+      "path": "tests/browser/species.mjs",
+      "sha256": "663dc8c63cd3d90cba8d6bd76d808679ed093accdba17eb6efd38aeabee435d3"
+    },
+    {
+      "path": "tests/migration/README.md",
+      "sha256": "2f29c0c96abd022c5d0e368abdaba2349fbd80b48edd890e2478fe98344e6115"
+    },
+    {
+      "path": "tests/migration/fixtures/capped.json",
+      "sha256": "ed1737e58a03d35709b2cbd13717e99fdc316668a23b292cd4b86f11bd8b7e0b"
+    },
+    {
+      "path": "tests/migration/fixtures/degenerate.json",
+      "sha256": "dbdef0d2238ea4fc64c4b03c3d255155fa8bfc2669aa2ae72b9c94d0e793d783"
+    },
+    {
+      "path": "tests/migration/fixtures/empty.json",
+      "sha256": "13de01329c28c5d731499c605edde187ff8ce2a6067346e7d32318611a46265e"
+    },
+    {
+      "path": "tests/migration/fixtures/envelope-crossing.json",
+      "sha256": "6e8ad28f0fd61a0845a0cb5b79a4402190a2bdd2ee2caae713f9347735e3e8e4"
+    },
+    {
+      "path": "tests/migration/fixtures/laurelin.json",
+      "sha256": "1c26f332ba7c31b07a40dcba183ca681d92b8be316b7dc00f35c8a58cc761219"
+    },
+    {
+      "path": "tests/migration/fixtures/manifest.json",
+      "sha256": "0b3797d81a93068c930e30b08c1d97be2254a74395258e2da3ef12f5f710a9c8"
+    },
+    {
+      "path": "tests/migration/fixtures/ordinary.json",
+      "sha256": "6871ce87660f7d4c34d4dd7dfd5310a298ec44817fb59f80c78ed720ef563824"
+    },
+    {
+      "path": "tests/migration/fixtures/provenance.json",
+      "sha256": "fab795154573af74812cdc48c14f7173ff25fa950487ab52372b94c220a2de79"
+    },
+    {
+      "path": "tests/migration/fixtures/telperion.json",
+      "sha256": "1101cfed96650e49ff7a6fb500ef7de0b0015725c29395df556a7d355f3d96f0"
+    },
+    {
+      "path": "tests/migration/foundation.rs",
+      "sha256": "6f2d4f2a3460a088f3d3de01bb6cb05b61220ba9c8b95d251d5c0da6a6e84f40"
+    },
+    {
+      "path": "tests/migration/growth-reference.mjs",
+      "sha256": "f973d56c1b79ac883b7498556030bcb33e173ac90034977ba748a45037dbdcb6"
+    },
+    {
+      "path": "tests/migration/reference.ts",
+      "sha256": "7fd5fe55453a3358ab2deeba28389a8dde7638f1fef2dce59e6cfdee6f9e4406"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "sha256": "e4f36d5a6e16a3633fd7051dd8684c38e167fc5af5c6c744bd42c1c4a76960f8"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "0d0b220ac689af59b6b9abd8b4513aff1eb0a8ee34b95b540e41a8b79d3bc3d7"
+    },
+    {
+      "path": "vite.config.ts",
+      "sha256": "30796fa8b04d3e68f0daab6e8e733cb25d9675c47a7352bd406eba0adc522c9a"
+    },
+    {
+      "path": "vitest.config.ts",
+      "sha256": "85849e995037ce3070c0308379417f97587e0b560484ec9a703d022f77fe23ce"
+    }
+  ],
+  "reserved": [
+    874705908,
+    583724120,
+    3413577754
+  ]
+}

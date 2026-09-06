@@ -1,0 +1,52 @@
+{
+  "benchmark_id": "fn19-v1",
+  "cases": [
+    {
+      "id": "norway-spruce-1",
+      "species_id": "norway-spruce",
+      "seed": 1,
+      "seed_role": "regression",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-2",
+      "species_id": "norway-spruce",
+      "seed": 2,
+      "seed_role": "regression",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3",
+      "species_id": "norway-spruce",
+      "seed": 3,
+      "seed_role": "regression",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3501386541",
+      "species_id": "norway-spruce",
+      "seed": 3501386541,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3258201723",
+      "species_id": "norway-spruce",
+      "seed": 3258201723,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-2774604799",
+      "species_id": "norway-spruce",
+      "seed": 2774604799,
+      "seed_role": "holdout-at-freeze",
+      "parameter_species_id": "norway-spruce"
+    }
+  ],
+  "seed_evidence": ".flow/evidence/fn19/protocol.json#/seed_audit",
+  "fresh_for_future_tuning": false,
+  "receipts": [],
+  "generation_status": "not-run-by-this-packet",
+  "expert_status": "unassessed"
+}
