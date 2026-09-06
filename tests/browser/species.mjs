@@ -65,7 +65,7 @@ async function capture(job) {
     await page.route(url + '/', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><canvas></canvas>' }));
     await page.goto(url + '/');
     await save(job.result, { ...job, browser: browser.version(), capture_status: 'started' });
-    const result = await page.evaluate(async ({ preset: id, seed, view, frustumCull = false, fixedTarget = null, contactAngle = null, batchInstances = false }) => {
+    const result = await page.evaluate(async ({ preset: id, seed, view, frustumCull = false, fixedTarget = null, contactAngle = null, contactElevation = null, batchInstances = false }) => {
       const THREE = await import('/node_modules/.vite/deps/three.js');
       const { TreeEngine, presetById } = await import('/src/browser/core.ts');
       const { materializeTree, recomputeInstanceBounds } = await import('/src/browser/three.ts');
@@ -140,8 +140,9 @@ async function capture(job) {
           const around = tangent.clone().cross(radial).normalize();
           const angle = contactAngle ?? (view.endsWith('left') ? -.75 : view.endsWith('right') ? .75 : 0);
           direction = radial.clone().multiplyScalar(.6).addScaledVector(around, .8).addScaledVector(tangent, .15).normalize().applyAxisAngle(tangent, angle);
+          if (contactElevation !== null) direction = direction.addScaledVector(tangent, -direction.dot(tangent)).normalize().multiplyScalar(Math.cos(contactElevation)).addScaledVector(tangent, Math.sin(contactElevation));
           bounds = new THREE.Box3(joint.clone().addScalar(-.010), joint.clone().addScalar(.010));
-          selectedTwig.socketCamera = { jointNode: root ? socket : parent, incomingNode: root ? topology[socket * 3] : socket, departingNode: root ? parent : node, joint: joint.toArray(), tangent: tangent.toArray(), radial: radial.toArray(), angle, halfWidth: .010 };
+          selectedTwig.socketCamera = { jointNode: root ? socket : parent, incomingNode: root ? topology[socket * 3] : socket, departingNode: root ? parent : node, joint: joint.toArray(), tangent: tangent.toArray(), radial: radial.toArray(), angle, elevation: contactElevation, halfWidth: .010 };
         }
         if (view.startsWith('peg-')) {
           direction.x = -direction.x; direction.z = -direction.z;
@@ -188,7 +189,8 @@ async function capture(job) {
               direction = radial.clone().multiplyScalar(.22).addScaledVector(around, .95).addScaledVector(tangent, -.15).normalize().applyAxisAngle(tangent, angle);
               bounds = new THREE.Box3(location.clone().addScalar(-.003), location.clone().addScalar(.003));
             }
-            selectedTwig.attachment.contactCamera = { radial: radial.toArray(), tangent: tangent.toArray(), angle, halfWidth: view.includes('-clear-') ? .003 : .006 };
+            if (contactElevation !== null) direction = direction.addScaledVector(tangent, -direction.dot(tangent)).normalize().multiplyScalar(Math.cos(contactElevation)).addScaledVector(tangent, Math.sin(contactElevation));
+            selectedTwig.attachment.contactCamera = { radial: radial.toArray(), tangent: tangent.toArray(), angle, elevation: contactElevation, halfWidth: view.includes('-clear-') ? .003 : .006 };
           }
         }
       }

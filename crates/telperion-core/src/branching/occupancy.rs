@@ -151,6 +151,144 @@ pub(super) fn upper_descendants(tree: &mut Tree, envelope: Envelope) {
     }
 }
 
+/// Move an entire upper structural subtree at its retained socket. Unlike a
+/// local fan rotation, this includes the intervening scaffold in the reach.
+/// Four fixed orthographic projections detect inter-mass windows independently
+/// of the QA camera. The score is only a search heuristic, not leaf coverage.
+pub(super) fn upper_scaffolds(tree: &mut Tree, envelope: Envelope) {
+    let first = tree.crossover;
+    if first == 0 {
+        return;
+    }
+    let upper = tree.nodes[..first]
+        .iter()
+        .map(|n| n.position.y)
+        .fold(0.0, f64::max)
+        * 0.75;
+    let mut minimum: Vec<_> = tree
+        .nodes
+        .iter()
+        .enumerate()
+        .map(|(i, n)| {
+            if i < first {
+                n.position.y
+            } else {
+                f64::INFINITY
+            }
+        })
+        .collect();
+    for i in (1..tree.nodes.len()).rev() {
+        let p = tree.nodes[i].parent.unwrap() as usize;
+        minimum[p] = minimum[p].min(minimum[i]);
+    }
+    let mut owner = vec![0; tree.nodes.len()];
+    let mut groups = vec![Vec::new(); first];
+    for i in 1..tree.nodes.len() {
+        let p = tree.nodes[i].parent.unwrap() as usize;
+        owner[i] = owner[p];
+        if owner[i] == 0 && i < first && minimum[i] >= upper {
+            owner[i] = i;
+        }
+        if owner[i] != 0 {
+            groups[owner[i]].push(i);
+        }
+    }
+    let directions = [
+        Vec3::X,
+        Vec3::Z,
+        Vec3::new(1., 0., 1.).normalized(),
+        Vec3::new(1., 0., -1.).normalized(),
+    ];
+    let project = |p: Vec3, d: Vec3| ((p.dot(d) / 0.5).floor() as i32, (p.y / 0.5).floor() as i32);
+    for (root, group) in groups.iter().enumerate().skip(1) {
+        if group.len() < 100 {
+            continue;
+        }
+        let base = tree.nodes[tree.nodes[root].parent.unwrap() as usize].position;
+        let floor = group
+            .iter()
+            .map(|&i| tree.nodes[i].position.y)
+            .fold(upper, f64::min);
+        let points: Vec<_> = group
+            .iter()
+            .copied()
+            .filter(|&i| tree.nodes[i].kind == NodeKind::Twig)
+            .collect();
+        let mut holes = Vec::new();
+        for d in directions {
+            let mut rows =
+                std::collections::BTreeMap::<i32, std::collections::BTreeSet<i32>>::new();
+            for n in &tree.nodes {
+                if n.kind == NodeKind::Twig {
+                    let (x, y) = project(n.position, d);
+                    rows.entry(y).or_default().insert(x);
+                }
+            }
+            let mut gaps = std::collections::BTreeSet::new();
+            for (&y, xs) in &rows {
+                if y as f64 * 0.5 < upper {
+                    continue;
+                }
+                for x in *xs.first().unwrap()..=*xs.last().unwrap() {
+                    if !xs.contains(&x)
+                        && rows.get(&(y - 1)).is_some_and(|r| {
+                            r.range(..x).next().is_some() && r.range(x + 1..).next().is_some()
+                        })
+                        && rows.get(&(y + 1)).is_some_and(|r| {
+                            r.range(..x).next().is_some() && r.range(x + 1..).next().is_some()
+                        })
+                    {
+                        gaps.insert((x, y));
+                    }
+                }
+            }
+            holes.push(gaps);
+        }
+        let mut best = 0;
+        let mut choice = None;
+        for axis in directions {
+            for angle in [-0.6, -0.4, -0.2, 0.2, 0.4, 0.6] {
+                let score: usize = directions
+                    .iter()
+                    .zip(&holes)
+                    .map(|(&d, gaps)| {
+                        points
+                            .iter()
+                            .step_by(4)
+                            .map(|&i| {
+                                project(
+                                    base + (tree.nodes[i].position - base).rotate(axis, angle),
+                                    d,
+                                )
+                            })
+                            .filter(|q| gaps.contains(q))
+                            .collect::<std::collections::BTreeSet<_>>()
+                            .len()
+                    })
+                    .sum();
+                if score <= best {
+                    continue;
+                }
+                let fits = group.iter().all(|&i| {
+                    let p = tree.nodes[i].parent.unwrap() as usize;
+                    let a = base + (tree.nodes[p].position - base).rotate(axis, angle);
+                    let b = base + (tree.nodes[i].position - base).rotate(axis, angle);
+                    b.y >= floor && (0..=8).all(|k| envelope.contains(a.lerp(b, k as f64 / 8.), 0.))
+                });
+                if fits {
+                    best = score;
+                    choice = Some((axis, angle));
+                }
+            }
+        }
+        if let Some((axis, angle)) = choice {
+            for &i in group {
+                tree.nodes[i].position = base + (tree.nodes[i].position - base).rotate(axis, angle);
+            }
+        }
+    }
+}
+
 pub(super) fn transverse_curtains(tree: &mut Tree, envelope: Envelope) {
     let first = tree.crossover;
     let original: Vec<_> = tree.nodes.iter().map(|n| n.position).collect();
@@ -273,6 +411,124 @@ pub(super) fn longitudinal_curtains(tree: &mut Tree, envelope: Envelope) {
     }
 }
 
+/// Allocate complete local fans across the original whole secondary system.
+/// Structural forks are immutable. A fan may cross a fork when reattached, but
+/// never leaves its original secondary, and every original descendant travels
+/// with it. Single terminals (including anatomy targets) keep their sockets.
+pub(super) fn allocate_curtains(tree: &mut Tree, envelope: Envelope) {
+    let first = tree.crossover;
+    if first == 0 {
+        return;
+    }
+    let mut system = vec![0; tree.nodes.len()];
+    let mut owner = vec![0; tree.nodes.len()];
+    let mut supports = vec![Vec::new(); first];
+    let mut groups = vec![Vec::new(); tree.nodes.len()];
+    for i in 1..tree.nodes.len() {
+        let p = tree.nodes[i].parent.unwrap() as usize;
+        system[i] = system[p];
+        if i < first {
+            if system[i] == 0
+                && (tree.nodes[i].position - tree.nodes[p].position)
+                    .normalized()
+                    .y
+                    < -0.5
+            {
+                system[i] = i;
+            }
+            if system[i] != 0 {
+                supports[system[i]].push(i);
+            }
+        } else {
+            owner[i] = if p < first { i } else { owner[p] };
+            groups[owner[i]].push(i);
+        }
+    }
+    let band = |y: f64| (y / 0.15).floor() as i32;
+    let mut occupied = vec![std::collections::BTreeMap::<i32, usize>::new(); first];
+    for (i, n) in tree.nodes.iter().enumerate().skip(first) {
+        if system[i] != 0 && n.kind == NodeKind::Twig {
+            *occupied[system[i]].entry(band(n.position.y)).or_default() += 1;
+        }
+    }
+    for (root, group) in groups.iter().enumerate().skip(first) {
+        let sys = system[root];
+        if sys == 0 || group.len() < 3 {
+            continue;
+        }
+        let old = tree.nodes[root].parent.unwrap() as usize;
+        let base = tree.nodes[old].position;
+        let tips: Vec<_> = group
+            .iter()
+            .copied()
+            .filter(|&i| tree.nodes[i].kind == NodeKind::Twig)
+            .collect();
+        if tips.is_empty() {
+            continue;
+        }
+        for &i in &tips {
+            *occupied[sys]
+                .get_mut(&band(tree.nodes[i].position.y))
+                .unwrap() -= 1;
+        }
+        let top = tree.nodes[tree.nodes[sys].parent.unwrap() as usize]
+            .position
+            .y;
+        let bottom = supports[sys]
+            .iter()
+            .map(|&i| tree.nodes[i].position.y)
+            .fold(top, f64::min);
+        let cost = |shift: Vec3| -> usize {
+            tips.iter()
+                .map(|&i| {
+                    let y = tree.nodes[i].position.y + shift.y;
+                    occupied[sys].get(&band(y)).copied().unwrap_or(0)
+                        + if y < bottom || y > top { 1000 } else { 0 }
+                })
+                .sum()
+        };
+        let mut best = cost(Vec3::ZERO);
+        let mut choice = old;
+        for &candidate in &supports[sys] {
+            let shift = tree.nodes[candidate].position - base;
+            if shift.y < 0. || shift.length() > top - bottom {
+                continue;
+            }
+            let score = cost(shift);
+            if score >= best {
+                continue;
+            }
+            if group.iter().all(|&i| {
+                let p = tree.nodes[i].parent.unwrap() as usize;
+                (0..=8).all(|k| {
+                    envelope.contains(
+                        tree.nodes[p]
+                            .position
+                            .lerp(tree.nodes[i].position, k as f64 / 8.)
+                            + shift,
+                        0.,
+                    )
+                })
+            }) {
+                best = score;
+                choice = candidate;
+            }
+        }
+        let shift = tree.nodes[choice].position - base;
+        if choice != old {
+            tree.nodes[root].parent = Some(choice as u32);
+            for &i in group {
+                tree.nodes[i].position += shift;
+            }
+        }
+        for &i in &tips {
+            *occupied[sys]
+                .entry(band(tree.nodes[i].position.y))
+                .or_default() += 1;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -339,6 +595,57 @@ mod tests {
             );
         }
     }
+    #[test]
+    fn allocation_clothes_secondary_without_moving_forks_or_single_targets() {
+        let mut tree = fixture();
+        tree.nodes[2].position = Vec3::new(0., 9., 0.);
+        tree.nodes[3].position = Vec3::new(0., 8., 0.);
+        tree.nodes[5].position = Vec3::new(0.05, 7.8, 0.);
+        for x in [-0.1, 0.1] {
+            let mut n = tree.nodes[5].clone();
+            n.position = Vec3::new(x, 7.5, 0.);
+            n.parent = Some(5);
+            n.branch = tree.nodes.len() as u32;
+            tree.nodes.push(n);
+        }
+        let before = tree.clone();
+        allocate_curtains(
+            &mut tree,
+            Envelope {
+                height: 24.,
+                spread: 1.,
+                crown_base: 0.,
+                ..Envelope::default()
+            },
+        );
+        tree.validate().unwrap();
+        assert_eq!(&tree.nodes[..5], &before.nodes[..5]);
+        assert_eq!(tree.nodes[5].parent, Some(2));
+        assert_eq!(tree.nodes.len(), before.nodes.len());
+        for i in 5..tree.nodes.len() {
+            let a = &tree.nodes[i];
+            let b = &before.nodes[i];
+            assert_eq!(a.branch, b.branch);
+            assert_eq!(a.kind, b.kind);
+            assert!(
+                (a.position
+                    .distance(tree.nodes[a.parent.unwrap() as usize].position)
+                    - b.position
+                        .distance(before.nodes[b.parent.unwrap() as usize].position))
+                .abs()
+                    < 1e-12
+            );
+        }
+    }
+
+    #[test]
+    fn empty_reallocation_is_valid() {
+        let mut tree = Tree::default();
+        upper_scaffolds(&mut tree, Envelope::default());
+        allocate_curtains(&mut tree, Envelope::default());
+        assert!(tree.nodes.is_empty());
+    }
+
     #[test]
     fn curtain_keeps_primary_tip_and_socket_topology() {
         let mut tree = fixture();

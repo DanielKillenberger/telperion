@@ -1,0 +1,389 @@
+{
+  "method": "Maximal structural subtrees whose structural support descendants are all above original 75% structural-height boundary. Original lower supports excluded. Radius includes structural and retained local descendants around the unchanged socket. Optimistic sphere only; not whole-group or visual acceptance.",
+  "cases": [
+    {
+      "seed": 2,
+      "ray": {
+        "seed": 2,
+        "pixel": [
+          553,
+          372
+        ],
+        "png": "c70b1b6d655d51c3c0be8d8fb0bd995b843780a1bce111b3e6d146f560ec1f5c",
+        "camera": {
+          "position": [
+            25.454365371536586,
+            20.23331671361438,
+            42.31588348801908
+          ],
+          "target": [
+            -0.4632261710395369,
+            8.528597952450966,
+            0.5133164838640489
+          ],
+          "near": 0.1,
+          "far": 4000,
+          "fov": 38,
+          "aspect": 1.3333333333333333
+        },
+        "reachable_upper_supports": 0,
+        "closest_supports": [
+          {
+            "node": 745,
+            "maximum_endpoint_reach_m": 2.514934378825911,
+            "distance_to_window_ray_m": 5.47472415888739,
+            "reach_shortfall_m": 2.9597897800614787
+          },
+          {
+            "node": 742,
+            "maximum_endpoint_reach_m": 2.519689529184403,
+            "distance_to_window_ray_m": 5.874316532351832,
+            "reach_shortfall_m": 3.3546270031674292
+          },
+          {
+            "node": 1222,
+            "maximum_endpoint_reach_m": 2.4986138519048335,
+            "distance_to_window_ray_m": 6.130125292745957,
+            "reach_shortfall_m": 3.6315114408411233
+          },
+          {
+            "node": 1901,
+            "maximum_endpoint_reach_m": 2.4905132998210084,
+            "distance_to_window_ray_m": 6.173560580296368,
+            "reach_shortfall_m": 3.683047280475359
+          },
+          {
+            "node": 1898,
+            "maximum_endpoint_reach_m": 2.5094277570782344,
+            "distance_to_window_ray_m": 6.220115382501768,
+            "reach_shortfall_m": 3.7106876254235335
+          }
+        ]
+      },
+      "eligible_groups": 19,
+      "optimistically_reachable": 0,
+      "closest": [
+        {
+          "root": 180,
+          "socket": 112,
+          "nodes": 4042,
+          "reach_m": 5.904457764584134,
+          "ray_distance_m": 6.718948174767318,
+          "shortfall_m": 0.8144904101831845
+        },
+        {
+          "root": 185,
+          "socket": 184,
+          "nodes": 4172,
+          "reach_m": 6.034947584158818,
+          "ray_distance_m": 6.865797754467994,
+          "shortfall_m": 0.8308501703091755
+        },
+        {
+          "root": 147,
+          "socket": 146,
+          "nodes": 3853,
+          "reach_m": 5.609029555791418,
+          "ray_distance_m": 6.904967264699433,
+          "shortfall_m": 1.2959377089080153
+        },
+        {
+          "root": 151,
+          "socket": 150,
+          "nodes": 3935,
+          "reach_m": 5.211821190730506,
+          "ray_distance_m": 6.745580846784536,
+          "shortfall_m": 1.5337596560540305
+        },
+        {
+          "root": 334,
+          "socket": 221,
+          "nodes": 367,
+          "reach_m": 3.64296039658668,
+          "ray_distance_m": 6.377028938399034,
+          "shortfall_m": 2.7340685418123543
+        },
+        {
+          "root": 337,
+          "socket": 221,
+          "nodes": 383,
+          "reach_m": 3.296380784152289,
+          "ray_distance_m": 6.377028938399034,
+          "shortfall_m": 3.080648154246745
+        },
+        {
+          "root": 288,
+          "socket": 287,
+          "nodes": 1301,
+          "reach_m": 4.285788637203654,
+          "ray_distance_m": 7.6135553054682275,
+          "shortfall_m": 3.327766668264573
+        },
+        {
+          "root": 1197,
+          "socket": 1196,
+          "nodes": 340,
+          "reach_m": 3.500987603317573,
+          "ray_distance_m": 6.8534060518252335,
+          "shortfall_m": 3.3524184485076605
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "ray": {
+        "seed": 3,
+        "pixel": [
+          343,
+          292
+        ],
+        "png": "e0453b6fa0c88c0d30a4256d3740df6b958ada78b6c6d6aa63f9d38af0502cc4",
+        "camera": {
+          "position": [
+            26.70956056274681,
+            21.546905556958773,
+            44.83239508374864
+          ],
+          "target": [
+            -0.30742040277283067,
+            9.345688346724097,
+            1.2566193329105086
+          ],
+          "near": 0.1,
+          "far": 4000,
+          "fov": 38,
+          "aspect": 1.3333333333333333
+        },
+        "reachable_upper_supports": 22,
+        "closest_supports": [
+          {
+            "node": 634,
+            "maximum_endpoint_reach_m": 2.381620119114285,
+            "distance_to_window_ray_m": 1.522364374842651,
+            "reach_shortfall_m": -0.859255744271634
+          },
+          {
+            "node": 1760,
+            "maximum_endpoint_reach_m": 2.387434071498957,
+            "distance_to_window_ray_m": 1.6414122690189585,
+            "reach_shortfall_m": -0.7460218024799983
+          },
+          {
+            "node": 637,
+            "maximum_endpoint_reach_m": 2.381248831615804,
+            "distance_to_window_ray_m": 1.6765123023617137,
+            "reach_shortfall_m": -0.7047365292540904
+          },
+          {
+            "node": 655,
+            "maximum_endpoint_reach_m": 2.3917582065111973,
+            "distance_to_window_ray_m": 1.777784266508106,
+            "reach_shortfall_m": -0.6139739400030912
+          },
+          {
+            "node": 218,
+            "maximum_endpoint_reach_m": 2.980755689244116,
+            "distance_to_window_ray_m": 2.3716617507965605,
+            "reach_shortfall_m": -0.6090939384475553
+          }
+        ]
+      },
+      "eligible_groups": 27,
+      "optimistically_reachable": 4,
+      "closest": [
+        {
+          "root": 130,
+          "socket": 129,
+          "nodes": 4181,
+          "reach_m": 7.43394281987746,
+          "ray_distance_m": 3.375034101309255,
+          "shortfall_m": -4.058908718568205
+        },
+        {
+          "root": 135,
+          "socket": 134,
+          "nodes": 3959,
+          "reach_m": 6.558614234847021,
+          "ray_distance_m": 3.6717131816147828,
+          "shortfall_m": -2.8869010532322386
+        },
+        {
+          "root": 749,
+          "socket": 748,
+          "nodes": 53,
+          "reach_m": 2.4182936792283196,
+          "ray_distance_m": 1.8877317153411988,
+          "shortfall_m": -0.5305619638871208
+        },
+        {
+          "root": 746,
+          "socket": 745,
+          "nodes": 53,
+          "reach_m": 2.3180457242729386,
+          "ray_distance_m": 2.0392543078569334,
+          "shortfall_m": -0.27879141641600524
+        },
+        {
+          "root": 750,
+          "socket": 427,
+          "nodes": 119,
+          "reach_m": 2.700000546115899,
+          "ray_distance_m": 2.8132376313094727,
+          "shortfall_m": 0.11323708519357378
+        },
+        {
+          "root": 259,
+          "socket": 258,
+          "nodes": 773,
+          "reach_m": 3.995947239108958,
+          "ray_distance_m": 4.356886278301665,
+          "shortfall_m": 0.36093903919270653
+        },
+        {
+          "root": 753,
+          "socket": 427,
+          "nodes": 115,
+          "reach_m": 2.4414116765389235,
+          "ray_distance_m": 2.8132376313094727,
+          "shortfall_m": 0.37182595477054914
+        },
+        {
+          "root": 166,
+          "socket": 165,
+          "nodes": 3591,
+          "reach_m": 5.857073396630585,
+          "ray_distance_m": 6.619159097671492,
+          "shortfall_m": 0.762085701040907
+        }
+      ]
+    },
+    {
+      "seed": 2666899686,
+      "ray": {
+        "seed": 2666899686,
+        "pixel": [
+          464,
+          312
+        ],
+        "png": "2e9cd7bf57027ffe464305d334bc1a5ac25b78b3dc0b05853d8a754d3bd1f3fb",
+        "camera": {
+          "position": [
+            27.761750843115813,
+            20.99674740167088,
+            43.18038760384601
+          ],
+          "target": [
+            1.1150212314931256,
+            8.96274048029289,
+            0.20179145606747628
+          ],
+          "near": 0.1,
+          "far": 4000,
+          "fov": 38,
+          "aspect": 1.3333333333333333
+        },
+        "reachable_upper_supports": 11,
+        "closest_supports": [
+          {
+            "node": 1279,
+            "maximum_endpoint_reach_m": 2.412684397574935,
+            "distance_to_window_ray_m": 0.6373936233975063,
+            "reach_shortfall_m": -1.7752907741774284
+          },
+          {
+            "node": 584,
+            "maximum_endpoint_reach_m": 2.4038425786578888,
+            "distance_to_window_ray_m": 1.3625617354408026,
+            "reach_shortfall_m": -1.0412808432170861
+          },
+          {
+            "node": 587,
+            "maximum_endpoint_reach_m": 2.390560600488006,
+            "distance_to_window_ray_m": 1.823830173180529,
+            "reach_shortfall_m": -0.5667304273074767
+          },
+          {
+            "node": 1615,
+            "maximum_endpoint_reach_m": 2.401554140648564,
+            "distance_to_window_ray_m": 1.8985833271395416,
+            "reach_shortfall_m": -0.5029708135090223
+          },
+          {
+            "node": 310,
+            "maximum_endpoint_reach_m": 2.7513125964738663,
+            "distance_to_window_ray_m": 2.3126077649544032,
+            "reach_shortfall_m": -0.43870483151946305
+          }
+        ]
+      },
+      "eligible_groups": 40,
+      "optimistically_reachable": 16,
+      "closest": [
+        {
+          "root": 192,
+          "socket": 115,
+          "nodes": 4045,
+          "reach_m": 6.089820362668166,
+          "ray_distance_m": 0.5941359145961435,
+          "shortfall_m": -5.495684448072023
+        },
+        {
+          "root": 188,
+          "socket": 115,
+          "nodes": 4004,
+          "reach_m": 6.0738104281736724,
+          "ray_distance_m": 0.5941359145961435,
+          "shortfall_m": -5.479674513577529
+        },
+        {
+          "root": 171,
+          "socket": 170,
+          "nodes": 3349,
+          "reach_m": 4.802462098008752,
+          "ray_distance_m": 2.837083125345456,
+          "shortfall_m": -1.9653789726632955
+        },
+        {
+          "root": 1279,
+          "socket": 1278,
+          "nodes": 51,
+          "reach_m": 2.5350860267057027,
+          "ray_distance_m": 0.5803391682459913,
+          "shortfall_m": -1.9547468584597114
+        },
+        {
+          "root": 284,
+          "socket": 283,
+          "nodes": 1195,
+          "reach_m": 4.13100244602533,
+          "ray_distance_m": 2.381306051932954,
+          "shortfall_m": -1.7496963940923762
+        },
+        {
+          "root": 583,
+          "socket": 582,
+          "nodes": 84,
+          "reach_m": 2.5572180608735136,
+          "ray_distance_m": 1.5067963931605115,
+          "shortfall_m": -1.050421667713002
+        },
+        {
+          "root": 1526,
+          "socket": 170,
+          "nodes": 365,
+          "reach_m": 3.6172655000912903,
+          "ray_distance_m": 2.837083125345456,
+          "shortfall_m": -0.7801823747458343
+        },
+        {
+          "root": 282,
+          "socket": 281,
+          "nodes": 775,
+          "reach_m": 3.717155734430759,
+          "ray_distance_m": 2.93760118561403,
+          "shortfall_m": -0.779554548816729
+        }
+      ]
+    }
+  ]
+}
