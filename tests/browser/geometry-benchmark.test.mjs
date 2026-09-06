@@ -84,3 +84,12 @@ test('R4 capture rules compare object values independent of key order but preser
  assert.doesNotThrow(()=>validateCaptureRules(reordered,frozen));
  for(const mutate of [p=>p.render.width_px=800,p=>p.render.samples.reverse(),p=>p.required_views[0].azimuth_deg.reverse(),p=>delete p.render.nested]){const changed=structuredClone(reordered);mutate(changed);assert.throws(()=>validateCaptureRules(changed,frozen),/unsupported capture rules/);}
 });
+
+test('visibility supplement rejects missing anatomy, altered geometry and undeclared instance filtering', async () => {
+  const {validateVisibilityMapping}=await import('./geometry-visibility.mjs');
+  const base={hashes:{wood:'wood',matrices:'matrices'}};
+  const good={version:'fn19-visibility-v2',view:'attached-shoot',geometry_hashes:base.hashes,wood:'full-connected-original',retained_unit_indices:[2,4],original_unit_count:6,visible_probe_count:3,probe_count:3};
+  assert.doesNotThrow(()=>validateVisibilityMapping(good,base));
+  for(const patch of [{geometry_hashes:{wood:'changed',matrices:'matrices'}},{retained_unit_indices:[]},{retained_unit_indices:[2,2]},{retained_unit_indices:[6]},{wood:'pruned'},{visible_probe_count:0}])assert.throws(()=>validateVisibilityMapping({...good,...patch},base));
+  assert.doesNotThrow(()=>validateVisibilityMapping({...good,view:'fork',retained_unit_indices:[]},base));
+});

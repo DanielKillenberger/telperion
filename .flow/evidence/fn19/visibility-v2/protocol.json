@@ -1,0 +1,40 @@
+{
+  "version": "fn19-visibility-v2",
+  "purpose": "Supplement the occluded fn19-v1 local views with declared anatomy diagnostics; never replace or relabel v1 captures.",
+  "parent_protocol_sha256": "04bee659801454dc7aff2818d84f9dd72591e574802bebfbaed64599656d4fb9",
+  "population": "All twelve original mature fn19-v1 specimens, exact original parameters and generated array hashes",
+  "views": [
+    "fork",
+    "attached-shoot"
+  ],
+  "target_selection": "Reuse the v1 normalized semantic target and deterministic tie ordering. No case-specific camera or target overrides.",
+  "wood": "All connected original surface triangles retained, with original positions, normals and indices.",
+  "fork_foliage": "All foliage suppressed to expose the woody junction.",
+  "shoot_foliage": "Retain original complete element prototypes and transforms whose origins map to the selected terminal segment under the v1 tapered-segment attachment rule. Suppress unrelated foliage. Record every original instance index. Attachment ownership is geometric inference because the generator exposes no owner ID.",
+  "camera": "Search 48 fixed directions: elevations -0.5, 0, 0.5 and sixteen azimuths in pi/8 increments. Rank by visible woody probe count, then greatest projected retained biological triangle area, then least axial foreshortening, then index. Frame the named local anatomy (shoot terminal plus at most 0.08 m of incoming parent segment) and retained full elements with a 1.35 margin. Retain full-tree depth range.",
+  "render": {
+    "width": 1600,
+    "height": 1000,
+    "dpr": 1,
+    "samples": [
+      64,
+      128
+    ],
+    "channel": "neutral beauty",
+    "jitter": "Halton bases 2 and 3",
+    "colour": "linear averaging, sRGB PNG",
+    "shadows": false,
+    "wind": false,
+    "ground": false,
+    "beauty_rmse_64_128_max": 0.005
+  },
+  "visibility_gate": "No visible woody probe is a failure. Probe success is provisional: every final image requires direct inspection of the named junction or connected shoot and attachments. Hidden anatomy remains unassessed.",
+  "prohibited_inferences": [
+    "natural full-foliage appearance",
+    "biological density or gap statistics",
+    "independent botanical approval",
+    "hidden rear-surface continuity",
+    "species-calibrated dimensions"
+  ],
+  "case_timeout_seconds": 300
+}

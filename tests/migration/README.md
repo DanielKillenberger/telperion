@@ -337,3 +337,38 @@ same historical measurement tool on the candidate, or collect both source
 revisions again with one corrected tool version and retain the original evidence.
 Never relabel old captures with a new tool hash. The small replay uses the corrected
 tool on both sides and is not compared directly with the mature cohort.
+
+### Versioned local-anatomy visibility supplement
+
+The separate `fn19-visibility-v2` diagnostic protocol lives at
+[visibility-v2/protocol.json](../../.flow/evidence/fn19/visibility-v2/protocol.json).
+It preserves the v1 population, parameters, selected semantic targets and all
+connected wood geometry. Fork captures hide foliage; attached-shoot captures
+retain only the original element transforms assigned geometrically to that
+terminal segment, including connectors. This declared filtering exposes anatomy
+and must never be used as a natural full-foliage or density comparison. Original
+v1 occluded views and their statuses remain unchanged.
+
+With the pinned generator, built Wasm and local Vite server available, run:
+
+```bash
+BROWSER_URL=http://127.0.0.1:5199 \
+CHROMIUM_EXECUTABLE=/tmp/fn9-chromium-gpu \
+node tests/browser/geometry-visibility.mjs \
+  /tmp/fn19-mature-visual-20260906 /tmp/fn19-visibility-NEW
+```
+
+`CHROMIUM_EXECUTABLE` is the actual local GPU wrapper used for this evidence;
+replace it with an available browser executable for another machine and retain
+the resulting backend identity. The runner refuses an existing output directory,
+checks every generated array against the original mature receipt, records every
+retained foliage instance index and searches the same finite camera directions
+for each specimen. The optional final integer selects one case for diagnostics;
+a complete supplement requires all twelve cases and both local views.
+
+The output retains original 64- and 128-sample PNGs, source/tool hashes, original
+geometry mapping, cameras, visible-probe measurements, failures and pending human
+assessment. Every final image still requires direct inspection: a ray probe alone
+does not establish that the named anatomy is visible. Keep hidden anatomy
+unassessed and preserve failed attempts. Filtered images cannot establish hidden
+rear continuity, independent botanical approval or calibrated species dimensions.
