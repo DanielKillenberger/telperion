@@ -334,6 +334,18 @@ try {
     await seed.fill('17');
   }
   await page.screenshot({ path: out + '/viewer.png' });
+  await page.goto(url + '/?species=unknown');
+  const linkAlert = page.getByRole('alert');
+  await linkAlert.waitFor();
+  if (!(await linkAlert.textContent()).includes('Unknown tree preset: unknown')) throw Error('invalid species URL did not explain the identity error');
+  await stats.waitFor();
+  await page.getByRole('button', { name: 'dismiss link error' }).click();
+  await linkAlert.waitFor({ state: 'detached' });
+  await page.getByRole('button', { name: 'norway spruce', exact: true }).click();
+  await page.waitForTimeout(1000);
+  if (await page.getByRole('alert').count()) throw Error('species URL recovery failed');
+  await page.screenshot({ path: out + '/viewer-link-recovery.png' });
+  console.log('UI invalid species URL recovered');
   await writeFile(out + '/viewer.json', JSON.stringify({ loadFailureRetry: failedLoad, buildFailureRetry: true, previousDiagnosticsPreserved: true, speciesSelection: true, independentSeeds: true, seedGeometryChanges: true, allViews: true, emptyRendering }, null, 2));
   console.log({ ...result, ...bindings, loadFailureRetry: failedLoad, buildFailureRetry: true });
 } finally { await browser.close(); }

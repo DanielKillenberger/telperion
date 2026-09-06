@@ -88,13 +88,19 @@ export function GrowerDev() {
     return () => { active = false; };
   }, [loadAttempt]);
 
-  const [params, setParams] = useState<GrowerParams>(() => {
-    const query = new URLSearchParams(window.location.search);
-    const id = query.get("species");
-    const initial = id ? presetToParams(presetById(id)) : DEFAULT_PARAMS;
-    const seed = query.has("seed") ? normalizeSeed(query.get("seed")!) : null;
-    return seed === null ? initial : { ...initial, seed };
+  const [initialLink] = useState(() => {
+    try {
+      const query = new URLSearchParams(window.location.search);
+      const id = query.get("species");
+      const initial = id ? presetToParams(presetById(id)) : DEFAULT_PARAMS;
+      const seed = query.has("seed") ? normalizeSeed(query.get("seed")!) : null;
+      return { params: seed === null ? initial : { ...initial, seed }, error: null };
+    } catch (error) {
+      return { params: DEFAULT_PARAMS, error: String(error) };
+    }
   });
+  const [params, setParams] = useState<GrowerParams>(initialLink.params);
+  const [linkError, setLinkError] = useState(initialLink.error);
   // The seed box is free text so a half-typed number is not thrown
   // away mid-keystroke; `params.seed` only moves when it parses.
   const [seedText, setSeedText] = useState(String(params.seed));
@@ -324,6 +330,10 @@ export function GrowerDev() {
 
       <aside className="gd-panel">
         <h1 className="gd-title">grower</h1>
+        {linkError && <div role="alert" className="gd-note gd-warn">
+          {linkError}. Showing the default tree; choose a preset below.
+          <button className="gd-button" onClick={() => setLinkError(null)}>dismiss link error</button>
+        </div>}
         {buildError && <div role="alert" className="gd-note gd-warn">
           {buildError}
           <button className="gd-button" onClick={() => setLoadAttempt(n => n + 1)}>retry build</button>

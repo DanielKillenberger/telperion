@@ -1,11 +1,72 @@
 {
   "branch_name": "fn-9-real-species-profiles-and-procedural",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-05T21:53:06.156128Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-9-real-species-profiles-and-procedural",
+  "impl_review_rounds": {
+    "fn-9-real-species-profiles-and-procedural.9": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "26c7c05be5c675ae1c25fd0e9bcfdd4b64f53ab32e8e0b86ab7223f1f236cf9c",
+      "backend": "codex",
+      "base_sha": "12975169e3ba35db087aeb5e13c2927a173a0f3a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-887673dd20f8903d752187c2744b09c2",
+            "classification": "introduced",
+            "findingId": "finding-887673dd20f8903d752187c2744b09c2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9da2c5b53c41e55668a0266bcd823d861028bc78",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1739,
+      "output_sha256": "d2a632eb223bdd8c02a4ab0ae5713a484bf17ae5429ed5d24eb4e882bb5ba09f",
+      "reservation_id": "2e52ee462b0f4b059e46a69ec0480e27",
+      "round_consumed": true,
+      "scope": "impl:fn-9-real-species-profiles-and-procedural.9",
+      "superseded_by": null,
+      "task": "fn-9-real-species-profiles-and-procedural.9",
+      "timestamp": "2026-09-06T10:53:00.462093Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-9-real-species-profiles-and-procedural.9": 0
+  },
   "spec_path": ".flow/specs/fn-9-real-species-profiles-and-procedural.md",
   "status": "open",
   "title": "Real-species profiles and procedural templates",
@@ -20,5 +81,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T23:12:14.423341Z"
+  "updated_at": "2026-09-06T10:53:00.464601Z"
 }
