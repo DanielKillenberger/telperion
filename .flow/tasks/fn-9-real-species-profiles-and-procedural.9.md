@@ -47,9 +47,11 @@ node tests/browser/species.mjs --help
 - [x] Native workspace tests, Wasm checks, harness tests, formatting/clippy, typecheck, build and relevant headless integration all pass; evidence remains compact.
 
 ## Done summary
-Blocked:
-FN-9.9 QA rejects completion. All 48 recorded seeds measured and all 50 mature PNGs captured/inspected, but fresh spruce 4250668600 exceeds crown width (9.225869594 m > 9.144 m). Both species fail healthy leaf-on crown mass; oak lobes and spruce needle taper fail reference shape. Terminal/socket fidelity remains unassessed; contextual spruce DBH remains ambiguous. See .flow/evidence/fn9/REPORT.md and retained per-case evidence. Resume corrective generation/anatomy work using the same seeds and references, then rerun QA. No owner approval; no PR or merge until acceptance passes.
+Blocked after corrective QA:
+All 48 retained numeric cases pass at generation `1f2ebf4`; spruce `4250668600` now measures 8.813982965 m against the unchanged 9.144 m maximum. All 52 final required/supplemental/shared-template PNGs were captured and personally inspected. Oak lobes, spruce needle shaft and foliage-bearing distribution improved, but every inspected species crown still fails healthy mass/gaps; spruce curtains, peg/orientation and complete terminal/socket fidelity remain unmet or unassessed. Ordinary, Telperion and Laurelin geometry and PNG hashes exactly match previous QA. No owner approval, PR, merge or completion. See the corrective REPORT and retained before-fix evidence.
+
 ## Evidence
-- Commits: `fe1eefa` (fresh-seed manifest before generation); final QA/evidence commit in branch history.
-- Tests: full native workspace, Wasm/browser integration, 106 harness tests, typecheck/build; Rust 1.98 Clippy findings corrected and focused 19-test species/foliage/measurement suite passed. Detailed gates in `.flow/evidence/fn9/REPORT.md`.
-- PRs: none; task blocked, not eligible for make-pr.
+- Commits: `fe1eefa` freezes seeds; `3a50326` and `1f2ebf4` implement corrective generation and regressions; final browser/evidence receipt in branch history.
+- Tests: 48/48 numeric replay; full native workspace, isolated Wasm/browser integration (exit 0), 106 harness tests, fmt, Clippy with `-D warnings`, typecheck and build. Browser process result is recorded separately in `corrective-gates.json`; no image-existence fidelity pass.
+- Visuals: 52 inspected PNGs; unchanged nine shared-template geometry/PNG hashes; same-host native counts/costs. `.flow/evidence/fn9/REPORT.md`, `corrective-*.json` and `qa-preview/fix-*.png`.
+- PRs: none; Flow remains blocked and not eligible for make-pr.

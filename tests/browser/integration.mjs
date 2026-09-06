@@ -8,6 +8,18 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXE
   args: ['--no-sandbox'] });
 try {
   const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 });
+  // Software WebGL must finish each submitted frame before the next one queues.
+  // Preserve full fixture geometry, animation/orbit and screenshot assertions;
+  // this is synchronization, not a GPU performance measurement.
+  await page.addInitScript(() => {
+    const schedule = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = callback => schedule(time => {
+      callback(time);
+      for (const canvas of document.querySelectorAll('canvas')) {
+        canvas.getContext('webgl2')?.finish();
+      }
+    });
+  });
   page.setDefaultTimeout(120000);
   page.on('crash', () => console.error('Browser renderer crashed'));
   browser.on('disconnected', () => console.log('Browser disconnected'));

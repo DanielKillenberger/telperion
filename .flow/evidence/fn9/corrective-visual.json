@@ -1,0 +1,370 @@
+{
+  "visual_status": "fail",
+  "owner_feedback": null,
+  "reference_directory": "/tmp/fn99-refs",
+  "cases": {
+    "oregon-white-oak-1": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail",
+        "element",
+        "junction-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "pass",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "pass"
+      },
+      "observation": "Rounded unequal lobes and alternate petiole-bearing leaves now visible. More crown mass, but upper-left bare ascending sprays and open upper centre still miss O-WHOLE. Unclipped wood reveals many overlapping axes and rounded twig ends; complete socket/taper fidelity unresolved.",
+      "png_sha256": {
+        "whole": "8abb05dfd0233436fbbd649b8154a6ccecff57d168809034824125b3e0eb9f04",
+        "bare": "32264c03fe3281dee20bfe1a6f9c5437dfd5bc018763f3bc83b95694f24852cb",
+        "foliage-detail": "7b680c6bb2b0586b44893f709298210ae78624be63888d354c8c3ad690965ad9",
+        "element": "58e8863b20caf1f99e24c28a61ba1c4493443669bb0a78adc0d61c5a305a9283",
+        "junction-detail": "ab5ad76d413bdc4176febf3cfa7c837dccfd42940f76e25310b68fe93a4d9b35"
+      }
+    },
+    "oregon-white-oak-2": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "pass",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "unassessed"
+      },
+      "observation": "Large central crown void and sparse upright top persist despite denser lateral foliage. Rounded lobes visible, but overlapping wood obscures enough attachment to withhold a combined foliage pass; clipped cuts are not seam evidence.",
+      "png_sha256": {
+        "whole": "e66235d652a32f6641b6881db24c28456567e078ef6d1729da137505ff897126",
+        "bare": "a9d46a775c5fac5a6171feb9f2fd168b51afa5757fbb90a223e6cbd5b96e338d",
+        "foliage-detail": "8d8d7f9d8e8821c3d0a3794c66f51b00da47d07f33a285f62f88d7a3757597de"
+      }
+    },
+    "oregon-white-oak-3": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "pass",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "pass"
+      },
+      "observation": "More foliage on left and lower lateral groups, but sparse central ascending scaffolds and disconnected-looking crown masses miss the rounded leaf-on silhouette. Rounded lobes and alternate attached blades visible; camera-cut wood cannot diagnose seams.",
+      "png_sha256": {
+        "whole": "db7a6484baf16a898e58c45595f0c9c73d0a5a33182c2b26042ecae3470e1a4e",
+        "bare": "1284f8e385e55916c3c956e27c594d093dc4ef1595364edb6903634cc0583c87",
+        "foliage-detail": "26b315ef1802e7360d9e12a3698c30aec38b25924f136353f56580e3a695908d"
+      }
+    },
+    "oregon-white-oak-2666899686": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "pass",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "pass"
+      },
+      "observation": "Dense left/lower foliage still contrasts with exposed tall central scaffolds and isolated right sprays. Rounded individual blades alternate visibly along local twigs.",
+      "png_sha256": {
+        "whole": "be70bcc21c4a9d74e750f7cbab33ed8146cef2c49d1848bb064079e9bbd895ba",
+        "bare": "beafe96d4f318c7f3c4c61e86fc8fc43015e4d87491feafcc504287c69ce0e08",
+        "foliage-detail": "772ca463e7b7ea71bce07f229174bdabec97172937d0cc27af9cdcf945dd61e7"
+      }
+    },
+    "oregon-white-oak-762807349": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "pass",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "pass"
+      },
+      "observation": "Large open centre and long exposed curving scaffolds terminate in separate foliage tufts; healthy rounded crown still absent. Rounded blades and alternate petiole attachment are visible.",
+      "png_sha256": {
+        "whole": "b6c48dde85a5faa7e97d1eae4204a6aeefa9a241a1b6bf1e02c07a0ac05bc20a",
+        "bare": "30c624ae2aad81efcfb34e2ca9f2e3d7287550671a9ae4bb7231b786aab683ee",
+        "foliage-detail": "406293f6e24a4b06f55e235729e45876994c52be16cb4807fd5b6f4a57b13faf"
+      }
+    },
+    "oregon-white-oak-1444323199": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "pass",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "pass"
+      },
+      "observation": "Broad low lateral crown is fuller, but exposed limbs, top whiskers and sparse intervening foliage remain. Clear rounded lobes with narrow petioles and alternate attachment; rounded wood ends still require dedicated socket/tip diagnosis.",
+      "png_sha256": {
+        "whole": "bce75f09473a5f39f7c38f55b0f6e5f483caf14673e6fa96492fde7b15c19e5a",
+        "bare": "445f9cff7051c98d22f5fa4312e4f3d79f28b8e9fc7f1e3cd27973ec69a66206",
+        "foliage-detail": "aa7c2d543ffcad6cdd48c42632f248f1ee17f8ccc93e05a6fdc78fa19feed135"
+      }
+    },
+    "norway-spruce-1": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail",
+        "element",
+        "junction-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "fail",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "unassessed"
+      },
+      "observation": "More needles and shorter pointed tips with persistent shaft width; whole crown remains transparent and wood-dominated, lacking S-BRANCH curtains. Needles surround slender axes; full-depth detail is heavily occluded, so peg contact, upper-side forward bias and complete socket/tip fidelity remain unresolved.",
+      "png_sha256": {
+        "whole": "e97491562deee687152e548068bd67033fcbe7868e07889e3e27b56219de9424",
+        "bare": "8198dc49a569f828b7648ac3aff1690b181270f9b62ae585e584854e44a8ee59",
+        "foliage-detail": "78a29861078a9b42a473874b9b898c5dc4fe95026ade1e99e2782375bc702a73",
+        "element": "6206100d89e5061bc771aea9d8817b860dd20115f15403965fa9e1323fcdbbdf",
+        "junction-detail": "7416e00ba02443289bb9658864df3d876dfeff70e9f71b681c6d42970ea683a4"
+      }
+    },
+    "norway-spruce-2": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "fail",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "unassessed"
+      },
+      "observation": "Conical leader retained but foliage remains a transparent fine network rather than drooping leafy curtains. Needle shaft taper improved and single radial units visible; peg contact and upper-side orientation cannot be resolved confidently in this clipped view.",
+      "png_sha256": {
+        "whole": "32da604cf879b81e18f2153ca699da074eeaa5b78030f51da4a9759a236758e8",
+        "bare": "d96b00488990bf3f9cb81eb1f1a669ef3c93ea0778fe584830ba9183e4cae78c",
+        "foliage-detail": "114761d63af29d3581e86e2caad4bbd288ba5f235ac5c303839da848a83cec30"
+      }
+    },
+    "norway-spruce-3": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "fail",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "unassessed"
+      },
+      "observation": "Hanging axes and radial needles visible, but no substantial foliage-bearing curtains at whole scale; trunk and regular primary tiers remain exposed. Needle shaft is fuller; crowded/clipped local geometry prevents confident peg and junction judgment.",
+      "png_sha256": {
+        "whole": "e5b26e0e0f6c8f2dd65d23e3e9e200029d13873f53370d8f0ae40389187fa524",
+        "bare": "290b2fa7758eea43b1a898ff107ccf4a3de96ed44ea9eca16214cb7b8081f3a3",
+        "foliage-detail": "99b3d151cbbc6441cabdc564b75912694ead684c37d82253d69a8f72b17699e4"
+      }
+    },
+    "norway-spruce-1982700925": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "fail",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "unassessed"
+      },
+      "observation": "Whole crown remains sparse with exposed tier framework. Slender support axes now visibly bear needles; fuller shafts and separate radial units are visible. Peg/forward-bias detail and rounded twig-end fidelity remain unresolved.",
+      "png_sha256": {
+        "whole": "5f5ab67fd665d4c85d524f1d881dc30d20eb846d16803c8bd0df97088a4ee1aa",
+        "bare": "321ec8ea91914e3523f8f3d08c58141fa9f48d73bf3de471408b6a179159e718",
+        "foliage-detail": "4700e8cdf7f0f686eb74c2396b05535716268c5f3e39700a34b620fcc1823572"
+      }
+    },
+    "norway-spruce-281313742": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "fail",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "unassessed"
+      },
+      "observation": "Exposed regular tiers and transparent crown remain despite extra hanging shoots and needles. Single needles now clothe a slender supporting axis, but peg contact and full tip/socket fidelity are unresolved at this crop.",
+      "png_sha256": {
+        "whole": "9a275ef07e15cc763875e60ffc0c9e8e3cff3058e07e7c88d3a41c79a74bcb68",
+        "bare": "e0755970d50f9d4cc54eed6c7906bdedc626e962304344182e2e5d32df438813",
+        "foliage-detail": "fb59dd3c32aa1e6f0c522fbcc2f1698c0a0fab3710eff8399377dd05fadca792"
+      }
+    },
+    "norway-spruce-2271779095": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "fail",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "unassessed"
+      },
+      "observation": "Leader and hanging structural axes present, but transparent whole crown and visible primary wood still fail curtain mass. Fuller needles surround local axes; overlapping wood leaves peg/forward-bias and junction fidelity unassessed.",
+      "png_sha256": {
+        "whole": "525f23b854ec15e400f2c7359fc1f6dd8c39800fe585090851606d129e0cdfe1",
+        "bare": "7e3ed208fa2d908af260b9d176ee15375de944e65d0b50bb0ac633145a6aaa7b",
+        "foliage-detail": "fd3f12289288f80ac669eb72551e7e1f1d84f4f640170419270a8d462c633cce"
+      }
+    },
+    "norway-spruce-4250668600": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "traits": {
+        "crown_silhouette": "fail",
+        "branching_habit": "fail",
+        "crown_gaps": "fail",
+        "terminal_taper": "unassessed",
+        "foliage_shape_attachment": "unassessed"
+      },
+      "observation": "Retained width regression now passes numerically, but still shares sparse transparent crown/curtain failure. Radial needles have improved shafts; peg/forward-bias and complete tip/socket fidelity remain unresolved.",
+      "png_sha256": {
+        "whole": "7f67d497c9542fb470572bb5f71b4e84ed21c2b2890c3276f8d3d61eda3b45a0",
+        "bare": "2d84b6d3056a6c9c42f3a3baa345b70426eb09b3d2f6b4c4c3677ac92dc0ff6d",
+        "foliage-detail": "3ae2c806e2572dc82e7028cbb9f38c15748733ff9a95d17f327dffda5f3382d5"
+      }
+    },
+    "ordinary": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "observation": "Narrow upright sparse crown and flared base persist. Geometry and PNG hashes exactly match pre-correction QA for all three views; these are retained historical defects, no new corrective regression.",
+      "png_sha256": {
+        "whole": "c31db7ca162433c4a805108f64b9f605d5db8afc71570c4fea1b82151272c8a5",
+        "bare": "f0d64c5c5397fe34b9d64e0bc5f2cd8f1290856b04cdc9287ec64ee66d6dcf41",
+        "foliage-detail": "d46b1b46e83334cd4c477433471842848359c1615353e635e01e38e6fb3ead11"
+      }
+    },
+    "telperion": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "observation": "Strong authored spiral, narrow irregular sparse crown and broad flare persist. All three geometry and PNG hashes match pre-correction QA exactly; no new corrective geometry regression. Earlier age of giant defects before FN9 remains unassessed.",
+      "png_sha256": {
+        "whole": "4aab1f569bc10527def905a4fb53ecc05d0102892157fd459748150e80c94c41",
+        "bare": "e348b3c3a921421483b91beeeb4ff67f7195faa1bdb8ced8b0e6a6f895041258",
+        "foliage-detail": "6d408ee3b06e2969d9a3fdcea6671116fcf963088788a4ca948d54e55ed3521a"
+      }
+    },
+    "laurelin": {
+      "views": [
+        "whole",
+        "bare",
+        "foliage-detail"
+      ],
+      "observation": "Broad sweeping limbs, sparse foliage and wide lobed flare persist. All three geometry and PNG hashes match pre-correction QA exactly; no new corrective geometry regression. Earlier age of giant defects before FN9 remains unassessed.",
+      "png_sha256": {
+        "whole": "cbd22598e4b7295e1cb30b0753425fb1ab0fcc60bd350f77df0f53a52414b41e",
+        "bare": "154d92e0a5f7d3e631206b12cb489a52a259c0aaf019d8734a7f572140c20955",
+        "foliage-detail": "066d9fea4672e126983c08305a82bcceb1e0ac7b680fd6d68164ee58d17849c9"
+      }
+    }
+  },
+  "shared_template_comparison": [
+    {
+      "id": "ordinary",
+      "view": "whole",
+      "geometry_hashes_equal": true,
+      "png_sha256": "c31db7ca162433c4a805108f64b9f605d5db8afc71570c4fea1b82151272c8a5"
+    },
+    {
+      "id": "ordinary",
+      "view": "bare",
+      "geometry_hashes_equal": true,
+      "png_sha256": "f0d64c5c5397fe34b9d64e0bc5f2cd8f1290856b04cdc9287ec64ee66d6dcf41"
+    },
+    {
+      "id": "ordinary",
+      "view": "foliage-detail",
+      "geometry_hashes_equal": true,
+      "png_sha256": "d46b1b46e83334cd4c477433471842848359c1615353e635e01e38e6fb3ead11"
+    },
+    {
+      "id": "telperion",
+      "view": "whole",
+      "geometry_hashes_equal": true,
+      "png_sha256": "4aab1f569bc10527def905a4fb53ecc05d0102892157fd459748150e80c94c41"
+    },
+    {
+      "id": "telperion",
+      "view": "bare",
+      "geometry_hashes_equal": true,
+      "png_sha256": "e348b3c3a921421483b91beeeb4ff67f7195faa1bdb8ced8b0e6a6f895041258"
+    },
+    {
+      "id": "telperion",
+      "view": "foliage-detail",
+      "geometry_hashes_equal": true,
+      "png_sha256": "6d408ee3b06e2969d9a3fdcea6671116fcf963088788a4ca948d54e55ed3521a"
+    },
+    {
+      "id": "laurelin",
+      "view": "whole",
+      "geometry_hashes_equal": true,
+      "png_sha256": "cbd22598e4b7295e1cb30b0753425fb1ab0fcc60bd350f77df0f53a52414b41e"
+    },
+    {
+      "id": "laurelin",
+      "view": "bare",
+      "geometry_hashes_equal": true,
+      "png_sha256": "154d92e0a5f7d3e631206b12cb489a52a259c0aaf019d8734a7f572140c20955"
+    },
+    {
+      "id": "laurelin",
+      "view": "foliage-detail",
+      "geometry_hashes_equal": true,
+      "png_sha256": "066d9fea4672e126983c08305a82bcceb1e0ac7b680fd6d68164ee58d17849c9"
+    }
+  ]
+}
