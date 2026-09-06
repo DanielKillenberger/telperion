@@ -320,10 +320,10 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
         matches!(params.habit, BranchHabit::Spreading(_)),
     )?;
     if repaired {
-        occupancy::upper_descendants(&mut tree);
+        occupancy::upper_descendants(&mut tree, params.envelope);
     }
     if matches!(params.habit, BranchHabit::Tiered(_)) {
-        occupancy::transverse_curtains(&mut tree);
+        occupancy::transverse_curtains(&mut tree, params.envelope);
     }
     radius::solve(&mut tree, params.envelope, radii)?;
     Ok(GrowthReport {

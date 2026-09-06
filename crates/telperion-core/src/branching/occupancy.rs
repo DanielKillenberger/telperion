@@ -1,7 +1,7 @@
 //! Connected descendant redistribution after retention; no new nodes or buds.
 use super::*;
 
-pub(super) fn upper_descendants(tree: &mut Tree) {
+pub(super) fn upper_descendants(tree: &mut Tree, envelope: Envelope) {
     let first = tree.crossover;
     let upper = tree.nodes[..first]
         .iter()
@@ -52,6 +52,21 @@ pub(super) fn upper_descendants(tree: &mut Tree) {
         }
         rotations[i] = Some((base, hinge.normalized(), 35.0_f64.to_radians()));
     }
+    // A rigid group must fit as a whole. Reject a proposed rotation rather
+    // than clipping endpoints or moving its socket outside the growth envelope.
+    for i in first..tree.nodes.len() {
+        if owner[i] == usize::MAX {
+            continue;
+        }
+        if let Some((base, axis, angle)) = rotations[owner[i]] {
+            let parent = tree.nodes[i].parent.unwrap() as usize;
+            let end = base + (tree.nodes[i].position - base).rotate(axis, angle);
+            let start = base + (tree.nodes[parent].position - base).rotate(axis, angle);
+            if (0..=8).any(|k| !envelope.contains(start.lerp(end, k as f64 / 8.0), 0.0)) {
+                rotations[owner[i]] = None;
+            }
+        }
+    }
     for i in first..tree.nodes.len() {
         if owner[i] != usize::MAX {
             if let Some((base, axis, angle)) = rotations[owner[i]] {
@@ -61,19 +76,44 @@ pub(super) fn upper_descendants(tree: &mut Tree) {
     }
 }
 
-pub(super) fn transverse_curtains(tree: &mut Tree) {
+pub(super) fn transverse_curtains(tree: &mut Tree, envelope: Envelope) {
     let mut sockets = vec![None; tree.nodes.len()];
     let original: Vec<_> = tree.nodes.iter().map(|n| n.position).collect();
+    let mut roots = vec![0; tree.nodes.len()];
+    let mut valid = vec![true; tree.nodes.len()];
     for i in 1..tree.nodes.len() {
         let parent = tree.nodes[i].parent.unwrap() as usize;
         sockets[i] = sockets[parent];
+        roots[i] = roots[parent];
         let direction = (original[i] - original[parent]).normalized();
         if i < tree.crossover && sockets[i].is_none() && direction.y < -0.5 {
             sockets[i] = Some(original[parent]);
+            roots[i] = i;
         }
         if let Some(base) = sockets[i] {
             let delta = original[i] - base;
             tree.nodes[i].position = base + Vec3::new(delta.x * 0.2, delta.y, delta.z * 0.2);
+        }
+    }
+    for i in 1..tree.nodes.len() {
+        if roots[i] == 0 {
+            continue;
+        }
+        let parent = tree.nodes[i].parent.unwrap() as usize;
+        if (0..=8).any(|k| {
+            !envelope.contains(
+                tree.nodes[parent]
+                    .position
+                    .lerp(tree.nodes[i].position, k as f64 / 8.0),
+                0.0,
+            )
+        }) {
+            valid[roots[i]] = false;
+        }
+    }
+    for i in 1..tree.nodes.len() {
+        if !valid[roots[i]] {
+            tree.nodes[i].position = original[i];
         }
     }
 }
@@ -109,7 +149,15 @@ mod tests {
     fn curtain_keeps_primary_tip_and_socket_topology() {
         let mut tree = fixture();
         let before = tree.clone();
-        transverse_curtains(&mut tree);
+        transverse_curtains(
+            &mut tree,
+            Envelope {
+                height: 24.,
+                spread: 1.,
+                crown_base: 0.,
+                ..Envelope::default()
+            },
+        );
         tree.validate().unwrap();
         assert_eq!(tree.nodes.len(), before.nodes.len());
         for (i, (a, b)) in tree.nodes.iter().zip(&before.nodes).enumerate() {
@@ -132,7 +180,15 @@ mod tests {
         tree.nodes[3].position.y = 5.;
         tree.nodes[5].position.y = 4.;
         let before = tree.clone();
-        upper_descendants(&mut tree);
+        upper_descendants(
+            &mut tree,
+            Envelope {
+                height: 24.,
+                spread: 1.,
+                crown_base: 0.,
+                ..Envelope::default()
+            },
+        );
         tree.validate().unwrap();
         assert_ne!(tree.nodes[4].position, before.nodes[4].position);
         assert_eq!(tree.nodes[5].position, before.nodes[5].position);
