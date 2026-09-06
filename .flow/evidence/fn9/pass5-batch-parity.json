@@ -1,0 +1,163 @@
+{
+  "status": "exact paired PNG and geometry parity",
+  "generation": "7dda8fd",
+  "runnerSha256": "d9a7f8a8d0621562680c86da85da37e7e792a9af422faac277cbc461ba0e9224",
+  "cases": [
+    {
+      "name": "oregon-white-oak-2-whole",
+      "unbatched": "7c9223f976ab15444294584ed00a1f872285e77ed2621d61dfae97f76e98ed49",
+      "batched": "7c9223f976ab15444294584ed00a1f872285e77ed2621d61dfae97f76e98ed49",
+      "geometry_equal": true,
+      "png_equal": true,
+      "batches": {
+        "method": "ordered original matrix slices; same prototype, material and depth; no omitted instances",
+        "batches": [
+          {
+            "first": 0,
+            "count": 100000
+          },
+          {
+            "first": 100000,
+            "count": 100000
+          },
+          {
+            "first": 200000,
+            "count": 100000
+          },
+          {
+            "first": 300000,
+            "count": 100000
+          },
+          {
+            "first": 400000,
+            "count": 69989
+          }
+        ]
+      },
+      "before_receipt": "/tmp/fn99-pass5-pilot/oregon-white-oak-2-whole.json",
+      "after_receipt": "/tmp/fn99-pass5-batch-parity/oregon-white-oak-2-whole.json"
+    },
+    {
+      "name": "norway-spruce-1-branch-curtain",
+      "unbatched": "b5276bbd95a206b1244c4400ce3a7cffe08be4988cc09f175b703c4f9f9c87b7",
+      "batched": "b5276bbd95a206b1244c4400ce3a7cffe08be4988cc09f175b703c4f9f9c87b7",
+      "geometry_equal": true,
+      "png_equal": true,
+      "batches": {
+        "method": "ordered original matrix slices; same prototype, material and depth; no omitted instances",
+        "batches": [
+          {
+            "first": 0,
+            "count": 100000
+          },
+          {
+            "first": 100000,
+            "count": 100000
+          },
+          {
+            "first": 200000,
+            "count": 100000
+          },
+          {
+            "first": 300000,
+            "count": 100000
+          },
+          {
+            "first": 400000,
+            "count": 100000
+          },
+          {
+            "first": 500000,
+            "count": 100000
+          },
+          {
+            "first": 600000,
+            "count": 100000
+          },
+          {
+            "first": 700000,
+            "count": 100000
+          },
+          {
+            "first": 800000,
+            "count": 100000
+          },
+          {
+            "first": 900000,
+            "count": 100000
+          },
+          {
+            "first": 1000000,
+            "count": 100000
+          },
+          {
+            "first": 1100000,
+            "count": 100000
+          },
+          {
+            "first": 1200000,
+            "count": 100000
+          },
+          {
+            "first": 1300000,
+            "count": 100000
+          },
+          {
+            "first": 1400000,
+            "count": 100000
+          },
+          {
+            "first": 1500000,
+            "count": 100000
+          },
+          {
+            "first": 1600000,
+            "count": 100000
+          },
+          {
+            "first": 1700000,
+            "count": 100000
+          },
+          {
+            "first": 1800000,
+            "count": 100000
+          },
+          {
+            "first": 1900000,
+            "count": 100000
+          },
+          {
+            "first": 2000000,
+            "count": 100000
+          },
+          {
+            "first": 2100000,
+            "count": 100000
+          },
+          {
+            "first": 2200000,
+            "count": 100000
+          },
+          {
+            "first": 2300000,
+            "count": 100000
+          },
+          {
+            "first": 2400000,
+            "count": 100000
+          },
+          {
+            "first": 2500000,
+            "count": 100000
+          },
+          {
+            "first": 2600000,
+            "count": 88527
+          }
+        ]
+      },
+      "before_receipt": "/tmp/fn99-pass5-pilot/norway-spruce-1-branch-curtain.json",
+      "after_receipt": "/tmp/fn99-pass5-batch-parity/norway-spruce-1-branch-curtain.json"
+    }
+  ]
+}

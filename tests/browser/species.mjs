@@ -16,6 +16,8 @@ if (args.includes('--help')) {
   --capture-only              Reuse measurements in --output; do not regenerate
   --case ID                    Capture only this case (partial, never protocol pass)
   --frustum-cull               Conservatively skip offscreen foliage in detail frames
+  --batch-instances            Submit original foliage in bounded ordered draws
+  --targets FILE               Prior capture receipts pin exterior endpoint/socket IDs
   --timeout-ms N               Per native/capture process limit (default 300000)
 BROWSER_URL defaults to http://127.0.0.1:5184 (start Vite separately).
 Build species_measure and Wasm first; install Playwright Chromium. Optional
@@ -29,10 +31,10 @@ Exit 1 for failed/missing required evidence or unassessed visual results.
 Human inspection goes in REPORT.md; this runner never awards visual approval.`);
   process.exit(0);
 }
-const known = new Set(['--draw-seeds', '--seeds', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms', '--worker', '--frustum-cull']);
+const known = new Set(['--draw-seeds', '--seeds', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms', '--worker', '--frustum-cull', '--targets', '--batch-instances']);
 for (let i = 0; i < args.length; i++) {
   if (!known.has(args[i])) throw Error(`Unknown option ${args[i]}`);
-  if (['--seeds', '--output', '--case', '--timeout-ms', '--worker'].includes(args[i])) {
+  if (['--seeds', '--output', '--case', '--timeout-ms', '--worker', '--targets'].includes(args[i])) {
     if (!args[++i] || args[i].startsWith('--')) throw Error('Missing option value');
   }
 }
@@ -63,7 +65,7 @@ async function capture(job) {
     await page.route(url + '/', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><canvas></canvas>' }));
     await page.goto(url + '/');
     await save(job.result, { ...job, browser: browser.version(), capture_status: 'started' });
-    const result = await page.evaluate(async ({ preset: id, seed, view, frustumCull = false }) => {
+    const result = await page.evaluate(async ({ preset: id, seed, view, frustumCull = false, fixedTarget = null, contactAngle = null, batchInstances = false }) => {
       const THREE = await import('/node_modules/.vite/deps/three.js');
       const { TreeEngine, presetById } = await import('/src/browser/core.ts');
       const { materializeTree, recomputeInstanceBounds } = await import('/src/browser/three.ts');
@@ -111,8 +113,10 @@ async function capture(job) {
           const score = tip.dot(outward);
           if (score > best) { best = score; selectedTwig = { node: i }; }
         }
+        if (fixedTarget) selectedTwig = { node: fixedTarget.node };
         if (!selectedTwig) throw Error('No exterior terminal twig');
         const node = selectedTwig.node, parent = topology[node * 3], socket = topology[parent * 3];
+        if (fixedTarget && (parent !== fixedTarget.parent || socket !== fixedTarget.socket)) throw Error('Retained target topology changed');
         const tip = point(node), base = point(parent), support = point(socket);
         Object.assign(selectedTwig, { parent, socket, tip: tip.toArray(), base: base.toArray(), support: support.toArray() });
         bounds = new THREE.Box3().setFromPoints([tip, base, support]);
@@ -157,13 +161,18 @@ async function capture(job) {
             originGap: location.distanceTo(centreline) - hit.distance,
           } : null;
           bounds = new THREE.Box3(location.clone().addScalar(-.015), location.clone().addScalar(.015));
-          if (view.includes('-contact-')) {
+          if (view.includes('-contact-') || view.includes('-clear-')) {
             const tangent = axis.clone().normalize();
             const around = tangent.clone().cross(radial).normalize();
-            const angle = view.endsWith('left') ? -.85 : view.endsWith('right') ? .85 : 0;
+            const angle = contactAngle ?? (view.endsWith('left') ? -.85 : view.endsWith('right') ? .85 : 0);
             direction = radial.clone().multiplyScalar(.45).addScaledVector(around, .8).addScaledVector(tangent, .25).normalize().applyAxisAngle(tangent, angle);
             bounds = new THREE.Box3(location.clone().addScalar(-.006), location.clone().addScalar(.006));
-            selectedTwig.attachment.contactCamera = { radial: radial.toArray(), tangent: tangent.toArray(), angle, halfWidth: .006 };
+            if (view.includes('-clear-')) {
+              // Tangential connector profile; all connected scene geometry and depth remain.
+              direction = radial.clone().multiplyScalar(.22).addScaledVector(around, .95).addScaledVector(tangent, -.15).normalize().applyAxisAngle(tangent, angle);
+              bounds = new THREE.Box3(location.clone().addScalar(-.003), location.clone().addScalar(.003));
+            }
+            selectedTwig.attachment.contactCamera = { radial: radial.toArray(), tangent: tangent.toArray(), angle, halfWidth: view.includes('-clear-') ? .003 : .006 };
           }
         }
       }
@@ -234,6 +243,23 @@ async function capture(job) {
         canopy.instanceMatrix = new THREE.InstancedBufferAttribute(matrices,16);
         canopy.count = retained.length; recomputeInstanceBounds(canopy);
       }
+      let instanceBatches = null;
+      if (batchInstances && canopy?.visible && canopy.count > 100000 && view !== 'element') {
+        // Bound software-driver draw assembly without dropping or reordering
+        // triangles. Every original matrix is submitted exactly once.
+        const parent = canopy.parent, source = canopy.instanceMatrix.array;
+        const batches = [];
+        for (let first = 0; first < canopy.count; first += 100000) {
+          const count = Math.min(100000, canopy.count - first);
+          const mesh = new THREE.InstancedMesh(canopy.geometry, canopy.material, count);
+          mesh.instanceMatrix = new THREE.InstancedBufferAttribute(source.subarray(first * 16, (first + count) * 16), 16);
+          mesh.matrix.copy(canopy.matrix); mesh.matrixAutoUpdate = false;
+          mesh.frustumCulled = false; mesh.renderOrder = 1 + batches.length;
+          parent.add(mesh); batches.push({ first, count });
+        }
+        parent.remove(canopy);
+        instanceBatches = { method: 'ordered original matrix slices; same prototype, material and depth; no omitted instances', batches };
+      }
       // Exactly one frame avoids a software GPU animation queue starving capture.
       renderer.render(scene, camera); gl.finish();
       if (gl.isContextLost() || gl.getError() !== gl.NO_ERROR || !renderer.info.render.triangles) throw Error('Missing rendered geometry/context lost');
@@ -241,7 +267,7 @@ async function capture(job) {
       return { png, preset, diagnostics: output.diagnostics, hashes, backend, userAgent: navigator.userAgent,
         camera: { position: camera.position.toArray(), target: centre.toArray(), near: camera.near, far: camera.far, fov: camera.fov, aspect: camera.aspect },
         fullBounds, displayedBounds: { min: bounds.min.toArray(), max: bounds.max.toArray() }, selectedInstance, selectedTwig,
-        frustumCulling, displayedInstances: canopy?.visible ? canopy.count : 0, rendered: { ...renderer.info.render },
+        frustumCulling, instanceBatches, displayedInstances: canopy?.visible ? canopy.count : 0, rendered: { ...renderer.info.render },
         environment: { width: 960, height: 720, dpr: 1, antialias: true, neutral: true, frames: 1, ground: false, shadows: false } };
     }, job);
     const png = Buffer.from(result.png, 'base64'); delete result.png;
@@ -305,7 +331,9 @@ const sourceFiles = (await command('git', ['ls-files', 'src/browser', 'harness/s
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async path => [path, sha(await readFile(path))])));
 const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), wasmSha256: sha(await readFile('src/browser/telperion.wasm')), profilesSha256: sha(await readFile('.flow/evidence/fn9/profiles.json')), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))) };
 await save(join(out, 'provenance.json'), provenance);
-const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', 'exterior-alt-front', 'exterior-alt-left', 'exterior-alt-right', ...(c.id === 'norway-spruce-1' ? ['branch-curtain', 'peg-upper', 'peg-lower', 'peg-alt-upper', 'peg-alt-lower', 'peg-contact-front', 'peg-contact-left', 'peg-contact-right', 'peg-alt-contact-front', 'peg-alt-contact-left', 'peg-alt-contact-right'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, frustumCull: args.includes('--frustum-cull'), provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
+const retainedTargets = option('--targets') ? (await json(option('--targets'))).captures : [];
+if (!Array.isArray(retainedTargets)) throw Error('Invalid target receipts');
+const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail', 'exterior-front', 'exterior-left', 'exterior-right', 'exterior-alt-front', 'exterior-alt-left', 'exterior-alt-right', ...(c.id === 'norway-spruce-1' ? ['branch-curtain', 'peg-upper', 'peg-lower', 'peg-alt-upper', 'peg-alt-lower', 'peg-contact-front', 'peg-contact-left', 'peg-contact-right', 'peg-alt-contact-front', 'peg-alt-contact-left', 'peg-alt-contact-right', 'peg-clear-front', 'peg-clear-left', 'peg-clear-right'] : [])] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, batchInstances: args.includes('--batch-instances'), fixedTarget: retainedTargets.find(r => r.id === c.id && r.view === view.replace('-clear-', '-contact-'))?.selectedTwig ?? null, frustumCull: args.includes('--frustum-cull'), provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
 const suffix = option('--case') ? `-${option('--case')}` : '';
 const capturesPath = join(out, `captures${suffix}.json`);
 await save(join(out, `capture-plan${suffix}.json`), jobs);
@@ -313,7 +341,7 @@ for (const job of jobs.filter(j => !option('--case') || j.id === option('--case'
   try {
     // Reuse only matching successful receipt + PNG hash; preserve failures.
     const old = await json(job.result);
-    if (old.id === job.id && old.view === job.view && !!old.frustumCull === job.frustumCull && old.capture_status === 'pass' && old.provenance?.sourceSha256 === provenance.sourceSha256 && old.provenance?.wasmSha256 === provenance.wasmSha256 && old.provenance?.runnerSha256 === provenance.runnerSha256 && old.preset.skeleton.seed === (job.seed ?? old.preset.skeleton.seed) && old.pngSha256 === sha(await readFile(job.png))) { Object.assign(job, old); await save(capturesPath, jobs); continue; }
+    if (old.id === job.id && old.view === job.view && !!old.batchInstances === job.batchInstances && JSON.stringify(old.fixedTarget ?? null) === JSON.stringify(job.fixedTarget) && !!old.frustumCull === job.frustumCull && old.capture_status === 'pass' && old.provenance?.sourceSha256 === provenance.sourceSha256 && old.provenance?.wasmSha256 === provenance.wasmSha256 && old.provenance?.runnerSha256 === provenance.runnerSha256 && old.preset.skeleton.seed === (job.seed ?? old.preset.skeleton.seed) && old.pngSha256 === sha(await readFile(job.png))) { Object.assign(job, old); await save(capturesPath, jobs); continue; }
       await save(job.result + `.previous-${Date.now()}`, old);
   } catch { /* capture not available */ }
   const path = join(out, `${job.id}-${job.view}-job.json`); await save(path, job);
