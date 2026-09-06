@@ -42,9 +42,17 @@ The current core registers species centrally. A workflow document must acknowled
 
 
 ## Done summary
-TBD
+Reusable dispatch template and stage/ownership guide accompany separate oak and spruce packets containing attributed profiles, complete parameters and specimen lists. A later illustrative cohort preserves original protocol/reference hashes and twelve cases; Scots pine parses but actual admission reports unsupported-anatomy with implemented=false, never runnable admission or botanical approval.
 
+R5: verify.py uses actual task-2 manifest/admission/schema/native support and parameter parsing. Its 22 checks cover old identity, expansion, duplicate IDs, missing references/profile hash, reused holdouts, unsupported anatomy, coordinator ownership/resource examples and unavailable expert input. Workflow controls are explicitly coordinator examples, not a native scheduler. Pine profile is incomplete and parameter payload is parser-shape-only; no generation or production changes.
+
+baseline: green (Rust 5/5, TypeScript after npm ci). Verify: parent Quick commands passed; onboarding 22, admission controls 6/6, visual controls 9/9 passed. Initial fixture check rejected an incorrect seed-role spelling; fixture corrected to frozen holdout-at-freeze. Logs: workspace .flow/tmp/task5-*. Classify FULL; no gate skips. Precommit receipt declined staged docs; no receipt claimed.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; parallel-wave conductor owns review)
+stage: plan-sync - skipped(config: planSync.enabled=false; conductor owns lifecycle)
+
+Working tree clean; conductor owns integration, review and completion.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7550dd7fb66220f14cd65992babe1cd4331270da
+- Tests: baseline: green (species_metrics 5/5 and TypeScript after npm ci), cargo test --release -p telperion-core --test species_metrics: 5/5 passed, npm run typecheck: passed, cargo build --release -p telperion-core --example geometry_benchmark: passed, python3 -B .flow/evidence/fn19/onboarding-examples/verify.py: 22 checks passed, python3 -B -m unittest discover -s crates/telperion-core/examples/geometry_benchmark -p test_controls.py: 6/6 passed, node --test tests/browser/geometry-benchmark.test.mjs: 9/9 passed, git diff --check: passed, gate classify: FULL; parent Quick commands executed, gate receipt: NO_RECEIPT due to staged docs before commit; no receipt claimed, Integrated python3 -B .flow/evidence/fn19/onboarding-examples/verify.py: PASS 22 checks, Integrated npm run typecheck: PASS
 - PRs:
