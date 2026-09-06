@@ -43,9 +43,20 @@ Fn9's final report does not establish competitor superiority. Existing branch-or
 - [ ] Task 2 and task 3 can implement against the same frozen receipt/definition contract without editing one another's files; fn9 evidence stays unchanged.
 
 ## Done summary
-TBD
+Frozen fn19-v1 supplies twelve explicit mature specimens with full preset parameters, six newly drawn seeds audited against 2,637 seed-bearing files, hashed baseline source identity, and shared JSON Schema receipt/admission contracts. Precise axis/taper/angle/bin/mask definitions and fixed baseline camera conditions let downstream numeric and capture workers implement independently.
 
+Verified primary botanical pages and opened all six attributed OSU images. Both species admit bounded qualitative comparisons; dedicated base/fork detail and bare spruce references remain explicit gaps, and no quantitative competitor match or independent botanical assessment is claimed. All four authored artifacts parse and cross-check; no fn9 or production files changed.
+
+baseline: green — Rust species_metrics 5/5, TypeScript and runner help passed. Verify: JSON Schema/case/reference/hash/link checks passed and TypeScript passed. Gate classify: docs-only. Full check details and logs are in the evidence JSON. Cross-check program and temporary downloaded assets live in this workspace's ignored .flow/tmp; no source pixels are committed.
+
+GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
+GATE_SKIPPED:smoke:docs-only - cumulative diff classified tier-B (no executable paths touched)
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; user requested)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
+Downstream workers consume protocol.json schema.$defs and PROTOCOL.md cross-field semantics; conditions are prepared once from baseline and reused unchanged across revisions. The historical source and adapted capture-tool identities are separate.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 554720e77abd495f249bf2c5c7f9ff828ad21582
+- Tests: baseline: green, cargo test --release -p telperion-core --test species_metrics (baseline: exit 0, 5 tests; /tmp/fn19-task1-baseline-rust.log), npm run typecheck (baseline and verify: exit 0; /tmp/fn19-task1-baseline-types.log, /tmp/fn19-task1-verify-types.log), node tests/browser/species.mjs --help (baseline: exit 0; /tmp/fn19-task1-baseline-help.log), .flow/tmp/validation-venv/bin/python .flow/tmp/check-protocol.py (exit 0; /tmp/fn19-task1-crosscheck.log), git diff --cached --check (exit 0), GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:smoke:docs-only - cumulative diff classified tier-B (no executable paths touched), Integrated target npm run typecheck: PASS, Integrated target protocol schema/case/reference/hash/link cross-check: PASS
 - PRs:
