@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-5-branch-until-the-tips-bear-leaves-one.md",
-  "status": "open",
+  "status": "done",
   "title": "Branch until the tips bear leaves: one recursion, trunk to twig",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T18:03:53.590126Z"
+  "updated_at": "2026-09-06T22:06:56.155415Z"
 }

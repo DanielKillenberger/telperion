@@ -182,3 +182,6 @@ It runs first because it needs no canopy. If the timer-query path turns out to b
 | R7 | Same seed and parameters yield an identical canopy | fn-1-the-canopy-real-leaf-geometry-culled-to.3 | Owner sign-off in clay is a manual gate on .5, not an automated check |
 | R8 | Canopy contributes to subject bounds so framing stays on the subject | fn-1-the-canopy-real-leaf-geometry-culled-to.5 | — |
 
+## Historical closure (2026-09-07)
+
+Closed as a completed historical implementation superseded by the fn6 branching work and fn8 Rust migration. All six tasks are done and their concrete evidence commits are ancestors of master. This closure does not retroactively award missing owner approval or the old GPU frame-budget target; historical timing and sign-off limits remain in the original task evidence. Current rendering performance belongs to fn13 and current species/geometry assessment to fn9/fn19. The legacy `HEAD` token in task 6 is not an immutable evidence identity and is not used as proof of closure; its concrete 6eab840 commit is retained.

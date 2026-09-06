@@ -167,3 +167,6 @@ It runs first because nothing deeper works without it. Every step below today's 
 | R8 | Owner confirms in clay, the trees still read as themselves, and states the shipping depth | .6 | Manual gate; .6 prepares the comparison the judgement is made against |
 | R9 | The bias field shapes twigs as it shapes limbs | .3 | Task .3 needs its acceptance extended; plan-sync is off, so this is a manual sync |
 
+## Historical closure (2026-09-07)
+
+Closed as a completed historical implementation superseded by fn6 and the fn8 Rust migration. All six tasks are done and their recorded implementation commits are ancestors of master. Fn6 replaced the authored depth count with branch generations derived from radius and one fixed twig; this spec already marks its owner-selected shipping-depth criterion superseded by fn6 R3/R7. No missing historical GPU timing or owner sign-off is converted into a pass by this closure. Current rendering performance remains fn13's responsibility.

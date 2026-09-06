@@ -71,3 +71,7 @@ Replace the procedural tree engine with a lean Rust core that improves runtime e
 | R5 | FN-8.6 |
 | R6 | FN-8.7 |
 | R7 | FN-8.1, FN-8.6, FN-8.7, FN-8.8 |
+
+## Merged implementation closure (2026-09-07)
+
+All eight tasks are done and their evidence commits are ancestors of master. The implementation landed through PR #1 (Lean Rust tree generation core), merged at 2fcac3540993afcd13927a30e9e5238f7bad0df3. This administrative closure reconciles the stale open spec with that merged history. It makes no new performance or review claim and preserves the original report's limits.
