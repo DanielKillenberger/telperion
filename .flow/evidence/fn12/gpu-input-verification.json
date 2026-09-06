@@ -1,0 +1,21 @@
+{
+  "checkedAgainst": "scripts/benchmarks/generation-baseline.json",
+  "candidateSourceHashMatchesFinalFile": true,
+  "checks": [
+    {
+      "subject": "ordinary",
+      "parameterHashEqual": true,
+      "allSnapshotArrayHashesEqual": true,
+      "allQueryAndCPUFlagHashesEqual": true,
+      "directColdAndResidentGPUHashesEqual": true
+    },
+    {
+      "subject": "telperion",
+      "parameterHashEqual": true,
+      "allSnapshotArrayHashesEqual": true,
+      "allQueryAndCPUFlagHashesEqual": true,
+      "directColdAndResidentGPUHashesEqual": true
+    }
+  ],
+  "runnerSha256": "f3c7c08f759e9042e61678616872a473543cfe22ec90bdb958c847ffa19044cf"
+}
