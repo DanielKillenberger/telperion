@@ -1,0 +1,1013 @@
+{
+  "comparison": "All 48 frozen cases against pass6, original anatomical nodes and individual foliage units",
+  "cases": [
+    {
+      "id": "norway-spruce-1",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5219761
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5219761
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58942
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58942
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-13",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5174861
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5174861
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58570
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58570
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-1428158753",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5149740
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5149740
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58277
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58277
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-144",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5209509
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5209509
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58793
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58793
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-175890410",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5203677
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5203677
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58765
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58765
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-1982700925",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5172988
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5172988
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58475
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58475
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-1986682132",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5161022
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5161022
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58380
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58380
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-2",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5163971
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5163971
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58337
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58337
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-21",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5149982
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5149982
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58182
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58182
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-2271779095",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5121018
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5121018
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 57866
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 57866
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-233",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5204704
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5204704
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58796
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58796
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-2571381872",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5183764
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5183764
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58614
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58614
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-2749500550",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5134317
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5134317
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 57999
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 57999
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-281313742",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5240583
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5240583
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 59226
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 59226
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-3",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5126384
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5126384
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58046
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58046
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-34",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5213683
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5213683
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58888
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58888
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-370981056",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5126166
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5126166
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 57917
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 57917
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-4250668600",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5158718
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5158718
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58349
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58349
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-5",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5174959
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5174959
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58487
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58487
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-55",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5154720
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5154720
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58252
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58252
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-8",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5235752
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5235752
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 59058
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 59058
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-847818543",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5203410
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5203410
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58757
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58757
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-89",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5174411
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5174411
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58478
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58478
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "norway-spruce-893982483",
+      "foliage_units": {
+        "status": "measured",
+        "value": 5181840
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 5181840
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 58577
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 58577
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "foliage_units": {
+        "status": "measured",
+        "value": 517361
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 517361
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 84291
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 84291
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-13",
+      "foliage_units": {
+        "status": "measured",
+        "value": 327275
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 327275
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 54862
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 54862
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-1352641425",
+      "foliage_units": {
+        "status": "measured",
+        "value": 541333
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 541333
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 87785
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 87785
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-144",
+      "foliage_units": {
+        "status": "measured",
+        "value": 506961
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 506961
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 83032
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 83032
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "foliage_units": {
+        "status": "measured",
+        "value": 430053
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 430053
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 70284
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 70284
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "foliage_units": {
+        "status": "measured",
+        "value": 469989
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 469989
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 75664
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 75664
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-204973394",
+      "foliage_units": {
+        "status": "measured",
+        "value": 470951
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 470951
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 77178
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 77178
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-21",
+      "foliage_units": {
+        "status": "measured",
+        "value": 400595
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 400595
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 75201
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 75201
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-2181659276",
+      "foliage_units": {
+        "status": "measured",
+        "value": 404443
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 404443
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 67775
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 67775
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-233",
+      "foliage_units": {
+        "status": "measured",
+        "value": 479973
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 479973
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 78706
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 78706
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-2666899686",
+      "foliage_units": {
+        "status": "measured",
+        "value": 493844
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 493844
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 81120
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 81120
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-2671455042",
+      "foliage_units": {
+        "status": "measured",
+        "value": 381966
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 381966
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 64220
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 64220
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "foliage_units": {
+        "status": "measured",
+        "value": 467662
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 467662
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 76424
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 76424
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-3117916676",
+      "foliage_units": {
+        "status": "measured",
+        "value": 508547
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 508547
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 82845
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 82845
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-34",
+      "foliage_units": {
+        "status": "measured",
+        "value": 459979
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 459979
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 75383
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 75383
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-4067290831",
+      "foliage_units": {
+        "status": "measured",
+        "value": 541606
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 541606
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 87557
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 87557
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-5",
+      "foliage_units": {
+        "status": "measured",
+        "value": 421317
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 421317
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 77756
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 77756
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-535441218",
+      "foliage_units": {
+        "status": "measured",
+        "value": 522639
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 522639
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 85006
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 85006
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-55",
+      "foliage_units": {
+        "status": "measured",
+        "value": 442221
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 442221
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 72261
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 72261
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-690286437",
+      "foliage_units": {
+        "status": "measured",
+        "value": 496327
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 496327
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 81038
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 81038
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-696710047",
+      "foliage_units": {
+        "status": "measured",
+        "value": 443716
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 443716
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 73198
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 73198
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "foliage_units": {
+        "status": "measured",
+        "value": 455650
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 455650
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 75307
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 75307
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-8",
+      "foliage_units": {
+        "status": "measured",
+        "value": 447109
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 447109
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 73632
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 73632
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    },
+    {
+      "id": "oregon-white-oak-89",
+      "foliage_units": {
+        "status": "measured",
+        "value": 427869
+      },
+      "previous_foliage_units": {
+        "status": "measured",
+        "value": 427869
+      },
+      "nodes": {
+        "status": "measured",
+        "value": 69177
+      },
+      "previous_nodes": {
+        "status": "measured",
+        "value": 69177
+      },
+      "foliage_equal": true,
+      "nodes_equal": true
+    }
+  ]
+}

@@ -1,0 +1,1973 @@
+{
+  "note": "Same host; concurrent uncontrolled load. No speedup or hardware GPU claim.",
+  "cases": [
+    {
+      "id": "norway-spruce-1",
+      "before_timing_ms": {
+        "foliage": 2910.879863,
+        "growth": 68.594723,
+        "measurement": 8167.781539,
+        "surface": 130.196079,
+        "total": 11277.453317
+      },
+      "after_timing_ms": {
+        "foliage": 2923.7372100000002,
+        "growth": 82.954205,
+        "measurement": 8476.174228,
+        "surface": 135.43586,
+        "total": 11618.302598
+      },
+      "before_bytes": {
+        "retained_matrices": 334064704,
+        "wood_indices": 40989600,
+        "wood_positions": 21129672
+      },
+      "after_bytes": {
+        "retained_matrices": 334064704,
+        "wood_indices": 41021760,
+        "wood_positions": 21147360
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8879,
+        "wood_triangles": 3415800,
+        "wood_vertices": 1760806
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8879,
+        "wood_triangles": 3418480,
+        "wood_vertices": 1762280
+      }
+    },
+    {
+      "id": "norway-spruce-13",
+      "before_timing_ms": {
+        "foliage": 2856.6016360000003,
+        "growth": 71.880684,
+        "measurement": 7980.219647,
+        "surface": 129.8349,
+        "total": 11038.538086
+      },
+      "after_timing_ms": {
+        "foliage": 2921.379642,
+        "growth": 83.381846,
+        "measurement": 8370.695576999999,
+        "surface": 133.85979600000002,
+        "total": 11509.318088
+      },
+      "before_bytes": {
+        "retained_matrices": 331191104,
+        "wood_indices": 40753920,
+        "wood_positions": 21008976
+      },
+      "after_bytes": {
+        "retained_matrices": 331191104,
+        "wood_indices": 40788960,
+        "wood_positions": 21028248
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8949,
+        "wood_triangles": 3396160,
+        "wood_vertices": 1750748
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8949,
+        "wood_triangles": 3399080,
+        "wood_vertices": 1752354
+      }
+    },
+    {
+      "id": "norway-spruce-1428158753",
+      "before_timing_ms": {
+        "foliage": 3030.968184,
+        "growth": 68.440104,
+        "measurement": 8244.41752,
+        "surface": 134.03857,
+        "total": 11477.865331
+      },
+      "after_timing_ms": {
+        "foliage": 3061.586452,
+        "growth": 130.324742,
+        "measurement": 8158.823958999999,
+        "surface": 196.543626,
+        "total": 11547.280022
+      },
+      "before_bytes": {
+        "retained_matrices": 329583360,
+        "wood_indices": 40541280,
+        "wood_positions": 20899056
+      },
+      "after_bytes": {
+        "retained_matrices": 329583360,
+        "wood_indices": 40574880,
+        "wood_positions": 20917536
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8772,
+        "wood_triangles": 3378440,
+        "wood_vertices": 1741588
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8772,
+        "wood_triangles": 3381240,
+        "wood_vertices": 1743128
+      }
+    },
+    {
+      "id": "norway-spruce-144",
+      "before_timing_ms": {
+        "foliage": 2823.2113050000003,
+        "growth": 69.997529,
+        "measurement": 8088.868951,
+        "surface": 124.250717,
+        "total": 11106.329536000001
+      },
+      "after_timing_ms": {
+        "foliage": 3038.462178,
+        "growth": 79.560513,
+        "measurement": 8671.820763,
+        "surface": 142.229676,
+        "total": 11932.07395
+      },
+      "before_bytes": {
+        "retained_matrices": 333408576,
+        "wood_indices": 40906080,
+        "wood_positions": 21087312
+      },
+      "after_bytes": {
+        "retained_matrices": 333408576,
+        "wood_indices": 40933440,
+        "wood_positions": 21102360
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8996,
+        "wood_triangles": 3408840,
+        "wood_vertices": 1757276
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8996,
+        "wood_triangles": 3411120,
+        "wood_vertices": 1758530
+      }
+    },
+    {
+      "id": "norway-spruce-175890410",
+      "before_timing_ms": {
+        "foliage": 2888.709259,
+        "growth": 66.92643199999999,
+        "measurement": 7934.177777000001,
+        "surface": 130.905636,
+        "total": 11020.720174
+      },
+      "after_timing_ms": {
+        "foliage": 2989.638395,
+        "growth": 85.216031,
+        "measurement": 8514.981152,
+        "surface": 134.35950599999998,
+        "total": 11724.196459
+      },
+      "before_bytes": {
+        "retained_matrices": 333035328,
+        "wood_indices": 40882080,
+        "wood_positions": 21074784
+      },
+      "after_bytes": {
+        "retained_matrices": 333035328,
+        "wood_indices": 40912800,
+        "wood_positions": 21091680
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8896,
+        "wood_triangles": 3406840,
+        "wood_vertices": 1756232
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8896,
+        "wood_triangles": 3409400,
+        "wood_vertices": 1757640
+      }
+    },
+    {
+      "id": "norway-spruce-1982700925",
+      "before_timing_ms": {
+        "foliage": 2929.366091,
+        "growth": 73.49257100000001,
+        "measurement": 8174.642124,
+        "surface": 136.309506,
+        "total": 11313.811398
+      },
+      "after_timing_ms": {
+        "foliage": 2960.2259289999997,
+        "growth": 83.48339,
+        "measurement": 8652.387458,
+        "surface": 131.610479,
+        "total": 11827.708167
+      },
+      "before_bytes": {
+        "retained_matrices": 331071232,
+        "wood_indices": 40684800,
+        "wood_positions": 20973240
+      },
+      "after_bytes": {
+        "retained_matrices": 331071232,
+        "wood_indices": 40715520,
+        "wood_positions": 20990136
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 9013,
+        "wood_triangles": 3390400,
+        "wood_vertices": 1747770
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 9013,
+        "wood_triangles": 3392960,
+        "wood_vertices": 1749178
+      }
+    },
+    {
+      "id": "norway-spruce-1986682132",
+      "before_timing_ms": {
+        "foliage": 2879.614234,
+        "growth": 67.720349,
+        "measurement": 8108.247780999999,
+        "surface": 132.529158,
+        "total": 11188.112399
+      },
+      "after_timing_ms": {
+        "foliage": 2904.291902,
+        "growth": 85.41189,
+        "measurement": 8425.353739,
+        "surface": 133.518791,
+        "total": 11548.57755
+      },
+      "before_bytes": {
+        "retained_matrices": 330305408,
+        "wood_indices": 40634400,
+        "wood_positions": 20947800
+      },
+      "after_bytes": {
+        "retained_matrices": 330305408,
+        "wood_indices": 40664160,
+        "wood_positions": 20964168
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8931,
+        "wood_triangles": 3386200,
+        "wood_vertices": 1745650
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8931,
+        "wood_triangles": 3388680,
+        "wood_vertices": 1747014
+      }
+    },
+    {
+      "id": "norway-spruce-2",
+      "before_timing_ms": {
+        "foliage": 2888.7224539999997,
+        "growth": 65.23242,
+        "measurement": 8088.824156999999,
+        "surface": 124.685695,
+        "total": 11167.465740000001
+      },
+      "after_timing_ms": {
+        "foliage": 2956.709612,
+        "growth": 83.77834800000001,
+        "measurement": 8333.10627,
+        "surface": 136.19201,
+        "total": 11509.787288
+      },
+      "before_bytes": {
+        "retained_matrices": 330494144,
+        "wood_indices": 40604640,
+        "wood_positions": 20932464
+      },
+      "after_bytes": {
+        "retained_matrices": 330494144,
+        "wood_indices": 40635360,
+        "wood_positions": 20949360
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8916,
+        "wood_triangles": 3383720,
+        "wood_vertices": 1744372
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8916,
+        "wood_triangles": 3386280,
+        "wood_vertices": 1745780
+      }
+    },
+    {
+      "id": "norway-spruce-21",
+      "before_timing_ms": {
+        "foliage": 2817.482178,
+        "growth": 68.266126,
+        "measurement": 7984.796052,
+        "surface": 126.205702,
+        "total": 10996.751193
+      },
+      "after_timing_ms": {
+        "foliage": 2999.478843,
+        "growth": 88.729927,
+        "measurement": 8421.510201000001,
+        "surface": 146.021857,
+        "total": 11655.741945999998
+      },
+      "before_bytes": {
+        "retained_matrices": 329598848,
+        "wood_indices": 40426080,
+        "wood_positions": 20837976
+      },
+      "after_bytes": {
+        "retained_matrices": 329598848,
+        "wood_indices": 40452000,
+        "wood_positions": 20852232
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8895,
+        "wood_triangles": 3368840,
+        "wood_vertices": 1736498
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8895,
+        "wood_triangles": 3371000,
+        "wood_vertices": 1737686
+      }
+    },
+    {
+      "id": "norway-spruce-2271779095",
+      "before_timing_ms": {
+        "foliage": 2978.227506,
+        "growth": 69.33257499999999,
+        "measurement": 8211.897485,
+        "surface": 128.24242,
+        "total": 11387.700920000001
+      },
+      "after_timing_ms": {
+        "foliage": 3133.7957159999996,
+        "growth": 87.267182,
+        "measurement": 8443.114005,
+        "surface": 136.24304,
+        "total": 11800.420902999998
+      },
+      "before_bytes": {
+        "retained_matrices": 327745152,
+        "wood_indices": 40202880,
+        "wood_positions": 20722800
+      },
+      "after_bytes": {
+        "retained_matrices": 327745152,
+        "wood_indices": 40233600,
+        "wood_positions": 20739696
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 9134,
+        "wood_triangles": 3350240,
+        "wood_vertices": 1726900
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 9134,
+        "wood_triangles": 3352800,
+        "wood_vertices": 1728308
+      }
+    },
+    {
+      "id": "norway-spruce-233",
+      "before_timing_ms": {
+        "foliage": 2815.4299260000003,
+        "growth": 80.291072,
+        "measurement": 8135.875476000001,
+        "surface": 134.714298,
+        "total": 11166.312388
+      },
+      "after_timing_ms": {
+        "foliage": 3111.605456,
+        "growth": 84.034408,
+        "measurement": 8332.921859,
+        "surface": 161.40953299999998,
+        "total": 11689.973041
+      },
+      "before_bytes": {
+        "retained_matrices": 333101056,
+        "wood_indices": 40930080,
+        "wood_positions": 21100440
+      },
+      "after_bytes": {
+        "retained_matrices": 333101056,
+        "wood_indices": 40959360,
+        "wood_positions": 21116544
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8840,
+        "wood_triangles": 3410840,
+        "wood_vertices": 1758370
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8840,
+        "wood_triangles": 3413280,
+        "wood_vertices": 1759712
+      }
+    },
+    {
+      "id": "norway-spruce-2571381872",
+      "before_timing_ms": {
+        "foliage": 2840.383234,
+        "growth": 67.476023,
+        "measurement": 8022.682587,
+        "surface": 131.978929,
+        "total": 11062.521953
+      },
+      "after_timing_ms": {
+        "foliage": 3010.632337,
+        "growth": 82.15204,
+        "measurement": 9037.73375,
+        "surface": 133.183675,
+        "total": 12263.703027
+      },
+      "before_bytes": {
+        "retained_matrices": 331760896,
+        "wood_indices": 40774080,
+        "wood_positions": 21019008
+      },
+      "after_bytes": {
+        "retained_matrices": 331760896,
+        "wood_indices": 40806240,
+        "wood_positions": 21036696
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 9133,
+        "wood_triangles": 3397840,
+        "wood_vertices": 1751584
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 9133,
+        "wood_triangles": 3400520,
+        "wood_vertices": 1753058
+      }
+    },
+    {
+      "id": "norway-spruce-2749500550",
+      "before_timing_ms": {
+        "foliage": 2874.171707,
+        "growth": 74.890973,
+        "measurement": 8106.704132000001,
+        "surface": 155.654138,
+        "total": 11211.422053
+      },
+      "after_timing_ms": {
+        "foliage": 3098.028598,
+        "growth": 80.450429,
+        "measurement": 8286.787462,
+        "surface": 144.37719299999998,
+        "total": 11609.64505
+      },
+      "before_bytes": {
+        "retained_matrices": 328596288,
+        "wood_indices": 40358880,
+        "wood_positions": 20805408
+      },
+      "after_bytes": {
+        "retained_matrices": 328596288,
+        "wood_indices": 40390560,
+        "wood_positions": 20822832
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8910,
+        "wood_triangles": 3363240,
+        "wood_vertices": 1733784
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8910,
+        "wood_triangles": 3365880,
+        "wood_vertices": 1735236
+      }
+    },
+    {
+      "id": "norway-spruce-281313742",
+      "before_timing_ms": {
+        "foliage": 2895.120665,
+        "growth": 77.267477,
+        "measurement": 8303.024036,
+        "surface": 137.572545,
+        "total": 11412.985929
+      },
+      "after_timing_ms": {
+        "foliage": 3165.074382,
+        "growth": 93.617435,
+        "measurement": 8606.002484999999,
+        "surface": 151.40957,
+        "total": 12016.104691
+      },
+      "before_bytes": {
+        "retained_matrices": 335397312,
+        "wood_indices": 41211360,
+        "wood_positions": 21244824
+      },
+      "after_bytes": {
+        "retained_matrices": 335397312,
+        "wood_indices": 41248800,
+        "wood_positions": 21265416
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8752,
+        "wood_triangles": 3434280,
+        "wood_vertices": 1770402
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8752,
+        "wood_triangles": 3437400,
+        "wood_vertices": 1772118
+      }
+    },
+    {
+      "id": "norway-spruce-3",
+      "before_timing_ms": {
+        "foliage": 2835.869314,
+        "growth": 77.599745,
+        "measurement": 8067.832384000001,
+        "surface": 139.539103,
+        "total": 11120.841579
+      },
+      "after_timing_ms": {
+        "foliage": 2897.5774859999997,
+        "growth": 88.914792,
+        "measurement": 8130.54472,
+        "surface": 140.07797,
+        "total": 11257.116069
+      },
+      "before_bytes": {
+        "retained_matrices": 328088576,
+        "wood_indices": 40325280,
+        "wood_positions": 20785800
+      },
+      "after_bytes": {
+        "retained_matrices": 328088576,
+        "wood_indices": 40358880,
+        "wood_positions": 20804280
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8955,
+        "wood_triangles": 3360440,
+        "wood_vertices": 1732150
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8955,
+        "wood_triangles": 3363240,
+        "wood_vertices": 1733690
+      }
+    },
+    {
+      "id": "norway-spruce-34",
+      "before_timing_ms": {
+        "foliage": 2868.28185,
+        "growth": 66.336524,
+        "measurement": 8094.6657000000005,
+        "surface": 126.293181,
+        "total": 11155.578802999999
+      },
+      "after_timing_ms": {
+        "foliage": 3011.904563,
+        "growth": 95.800839,
+        "measurement": 8406.201684,
+        "surface": 148.44492200000002,
+        "total": 11662.353127999999
+      },
+      "before_bytes": {
+        "retained_matrices": 333675712,
+        "wood_indices": 40969920,
+        "wood_positions": 21120144
+      },
+      "after_bytes": {
+        "retained_matrices": 333675712,
+        "wood_indices": 41003040,
+        "wood_positions": 21138360
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8826,
+        "wood_triangles": 3414160,
+        "wood_vertices": 1760012
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8826,
+        "wood_triangles": 3416920,
+        "wood_vertices": 1761530
+      }
+    },
+    {
+      "id": "norway-spruce-370981056",
+      "before_timing_ms": {
+        "foliage": 2942.84382,
+        "growth": 67.38982899999999,
+        "measurement": 8224.113377,
+        "surface": 131.340938,
+        "total": 11365.689262
+      },
+      "after_timing_ms": {
+        "foliage": 2907.1457029999997,
+        "growth": 82.17741600000001,
+        "measurement": 8422.306552,
+        "surface": 129.443566,
+        "total": 11541.074504999999
+      },
+      "before_bytes": {
+        "retained_matrices": 328074624,
+        "wood_indices": 40280640,
+        "wood_positions": 20764344
+      },
+      "after_bytes": {
+        "retained_matrices": 328074624,
+        "wood_indices": 40308960,
+        "wood_positions": 20779920
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 9088,
+        "wood_triangles": 3356720,
+        "wood_vertices": 1730362
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 9088,
+        "wood_triangles": 3359080,
+        "wood_vertices": 1731660
+      }
+    },
+    {
+      "id": "norway-spruce-4250668600",
+      "before_timing_ms": {
+        "foliage": 2831.413772,
+        "growth": 71.34979399999999,
+        "measurement": 8019.349266000001,
+        "surface": 125.382079,
+        "total": 11047.496222
+      },
+      "after_timing_ms": {
+        "foliage": 3009.804086,
+        "growth": 78.919538,
+        "measurement": 8449.693619,
+        "surface": 220.712796,
+        "total": 11759.130987
+      },
+      "before_bytes": {
+        "retained_matrices": 330157952,
+        "wood_indices": 40578240,
+        "wood_positions": 20917656
+      },
+      "after_bytes": {
+        "retained_matrices": 330157952,
+        "wood_indices": 40608480,
+        "wood_positions": 20934288
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8899,
+        "wood_triangles": 3381520,
+        "wood_vertices": 1743138
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8899,
+        "wood_triangles": 3384040,
+        "wood_vertices": 1744524
+      }
+    },
+    {
+      "id": "norway-spruce-5",
+      "before_timing_ms": {
+        "foliage": 2798.600835,
+        "growth": 66.16187099999999,
+        "measurement": 7954.227938,
+        "surface": 127.724682,
+        "total": 10946.716452
+      },
+      "after_timing_ms": {
+        "foliage": 2839.32716,
+        "growth": 118.526223,
+        "measurement": 8311.241301,
+        "surface": 132.652096,
+        "total": 11401.748183
+      },
+      "before_bytes": {
+        "retained_matrices": 331197376,
+        "wood_indices": 40684800,
+        "wood_positions": 20972952
+      },
+      "after_bytes": {
+        "retained_matrices": 331197376,
+        "wood_indices": 40712640,
+        "wood_positions": 20988264
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8763,
+        "wood_triangles": 3390400,
+        "wood_vertices": 1747746
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8763,
+        "wood_triangles": 3392720,
+        "wood_vertices": 1749022
+      }
+    },
+    {
+      "id": "norway-spruce-55",
+      "before_timing_ms": {
+        "foliage": 2810.919438,
+        "growth": 71.77664,
+        "measurement": 7994.900153,
+        "surface": 128.705377,
+        "total": 11006.302952
+      },
+      "after_timing_ms": {
+        "foliage": 2879.333459,
+        "growth": 79.18922500000001,
+        "measurement": 8317.682438,
+        "surface": 129.057152,
+        "total": 11405.263377000001
+      },
+      "before_bytes": {
+        "retained_matrices": 329902080,
+        "wood_indices": 40555200,
+        "wood_positions": 20907312
+      },
+      "after_bytes": {
+        "retained_matrices": 329902080,
+        "wood_indices": 40585920,
+        "wood_positions": 20924208
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8979,
+        "wood_triangles": 3379600,
+        "wood_vertices": 1742276
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8979,
+        "wood_triangles": 3382160,
+        "wood_vertices": 1743684
+      }
+    },
+    {
+      "id": "norway-spruce-8",
+      "before_timing_ms": {
+        "foliage": 3014.032907,
+        "growth": 66.94378900000001,
+        "measurement": 8091.281169,
+        "surface": 153.050419,
+        "total": 11325.309245999999
+      },
+      "after_timing_ms": {
+        "foliage": 3017.479336,
+        "growth": 79.257853,
+        "measurement": 8389.391494,
+        "surface": 142.004922,
+        "total": 11628.135119999999
+      },
+      "before_bytes": {
+        "retained_matrices": 335088128,
+        "wood_indices": 41073120,
+        "wood_positions": 21172824
+      },
+      "after_bytes": {
+        "retained_matrices": 335088128,
+        "wood_indices": 41100000,
+        "wood_positions": 21187608
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8731,
+        "wood_triangles": 3422760,
+        "wood_vertices": 1764402
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8731,
+        "wood_triangles": 3425000,
+        "wood_vertices": 1765634
+      }
+    },
+    {
+      "id": "norway-spruce-847818543",
+      "before_timing_ms": {
+        "foliage": 2860.01044,
+        "growth": 71.22973300000001,
+        "measurement": 8054.0754529999995,
+        "surface": 125.50339799999999,
+        "total": 11110.820284000001
+      },
+      "after_timing_ms": {
+        "foliage": 2980.677478,
+        "growth": 90.754803,
+        "measurement": 8567.262787000001,
+        "surface": 137.114023,
+        "total": 11775.810764999998
+      },
+      "before_bytes": {
+        "retained_matrices": 333018240,
+        "wood_indices": 40834080,
+        "wood_positions": 21048576
+      },
+      "after_bytes": {
+        "retained_matrices": 333018240,
+        "wood_indices": 40867680,
+        "wood_positions": 21067056
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8743,
+        "wood_triangles": 3402840,
+        "wood_vertices": 1754048
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8743,
+        "wood_triangles": 3405640,
+        "wood_vertices": 1755588
+      }
+    },
+    {
+      "id": "norway-spruce-89",
+      "before_timing_ms": {
+        "foliage": 2819.8238140000003,
+        "growth": 76.766956,
+        "measurement": 8008.134736000001,
+        "surface": 129.561241,
+        "total": 11034.287851000001
+      },
+      "after_timing_ms": {
+        "foliage": 2991.6589030000005,
+        "growth": 86.453544,
+        "measurement": 8683.616606,
+        "surface": 130.852789,
+        "total": 11892.582902999999
+      },
+      "before_bytes": {
+        "retained_matrices": 331162304,
+        "wood_indices": 40655520,
+        "wood_positions": 20957064
+      },
+      "after_bytes": {
+        "retained_matrices": 331162304,
+        "wood_indices": 40678560,
+        "wood_positions": 20969736
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8927,
+        "wood_triangles": 3387960,
+        "wood_vertices": 1746422
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8927,
+        "wood_triangles": 3389880,
+        "wood_vertices": 1747478
+      }
+    },
+    {
+      "id": "norway-spruce-893982483",
+      "before_timing_ms": {
+        "foliage": 2877.4953170000003,
+        "growth": 66.31783700000001,
+        "measurement": 8087.561742,
+        "surface": 133.909866,
+        "total": 11165.285745000001
+      },
+      "after_timing_ms": {
+        "foliage": 2949.50015,
+        "growth": 86.121813,
+        "measurement": 8465.816766,
+        "surface": 141.040528,
+        "total": 11642.480625
+      },
+      "before_bytes": {
+        "retained_matrices": 331637760,
+        "wood_indices": 40762560,
+        "wood_positions": 21013560
+      },
+      "after_bytes": {
+        "retained_matrices": 331637760,
+        "wood_indices": 40796160,
+        "wood_positions": 21032040
+      },
+      "before_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8870,
+        "wood_triangles": 3396880,
+        "wood_vertices": 1751130
+      },
+      "after_counts": {
+        "prototype_triangles": 56,
+        "prototype_vertices": 32,
+        "shed_nodes": 8870,
+        "wood_triangles": 3399680,
+        "wood_vertices": 1752670
+      }
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "before_timing_ms": {
+        "foliage": 145.211796,
+        "growth": 44.600292,
+        "measurement": 4737.920086,
+        "surface": 195.73803,
+        "total": 5123.471175
+      },
+      "after_timing_ms": {
+        "foliage": 144.701573,
+        "growth": 77.743883,
+        "measurement": 4940.923994000001,
+        "surface": 321.257388,
+        "total": 5484.627663
+      },
+      "before_bytes": {
+        "retained_matrices": 33111104,
+        "wood_indices": 59600160,
+        "wood_positions": 30757104
+      },
+      "after_bytes": {
+        "retained_matrices": 33111104,
+        "wood_indices": 59600160,
+        "wood_positions": 30757104
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 2110,
+        "wood_triangles": 4966680,
+        "wood_vertices": 2563092
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 2110,
+        "wood_triangles": 4966680,
+        "wood_vertices": 2563092
+      }
+    },
+    {
+      "id": "oregon-white-oak-13",
+      "before_timing_ms": {
+        "foliage": 87.187954,
+        "growth": 138.899607,
+        "measurement": 3032.729546,
+        "surface": 124.67876199999999,
+        "total": 3383.496984
+      },
+      "after_timing_ms": {
+        "foliage": 100.047587,
+        "growth": 484.98747199999997,
+        "measurement": 3229.094308,
+        "surface": 129.738207,
+        "total": 3943.868617
+      },
+      "before_bytes": {
+        "retained_matrices": 20945600,
+        "wood_indices": 38478720,
+        "wood_positions": 19846608
+      },
+      "after_bytes": {
+        "retained_matrices": 20945600,
+        "wood_indices": 38478720,
+        "wood_positions": 19846608
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 35647,
+        "wood_triangles": 3206560,
+        "wood_vertices": 1653884
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 35647,
+        "wood_triangles": 3206560,
+        "wood_vertices": 1653884
+      }
+    },
+    {
+      "id": "oregon-white-oak-1352641425",
+      "before_timing_ms": {
+        "foliage": 149.54487799999998,
+        "growth": 36.662012000000004,
+        "measurement": 5036.0583639999995,
+        "surface": 199.269329,
+        "total": 5421.535856
+      },
+      "after_timing_ms": {
+        "foliage": 158.58936100000003,
+        "growth": 43.31968,
+        "measurement": 5184.412146,
+        "surface": 234.334186,
+        "total": 5620.656447
+      },
+      "before_bytes": {
+        "retained_matrices": 34645312,
+        "wood_indices": 62179680,
+        "wood_positions": 32091984
+      },
+      "after_bytes": {
+        "retained_matrices": 34645312,
+        "wood_indices": 62179680,
+        "wood_positions": 32091984
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 415,
+        "wood_triangles": 5181640,
+        "wood_vertices": 2674332
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 415,
+        "wood_triangles": 5181640,
+        "wood_vertices": 2674332
+      }
+    },
+    {
+      "id": "oregon-white-oak-144",
+      "before_timing_ms": {
+        "foliage": 134.15977900000001,
+        "growth": 50.668281,
+        "measurement": 4649.4985130000005,
+        "surface": 184.719398,
+        "total": 5019.046907
+      },
+      "after_timing_ms": {
+        "foliage": 148.18393799999998,
+        "growth": 48.937648,
+        "measurement": 4784.868479,
+        "surface": 191.71123500000002,
+        "total": 5173.702111
+      },
+      "before_bytes": {
+        "retained_matrices": 32445504,
+        "wood_indices": 58588800,
+        "wood_positions": 30231072
+      },
+      "after_bytes": {
+        "retained_matrices": 32445504,
+        "wood_indices": 58588800,
+        "wood_positions": 30231072
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 10246,
+        "wood_triangles": 4882400,
+        "wood_vertices": 2519256
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 10246,
+        "wood_triangles": 4882400,
+        "wood_vertices": 2519256
+      }
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "before_timing_ms": {
+        "foliage": 118.308629,
+        "growth": 58.418759,
+        "measurement": 4026.464378,
+        "surface": 183.890465,
+        "total": 4387.083557000001
+      },
+      "after_timing_ms": {
+        "foliage": 121.791057,
+        "growth": 40.109575,
+        "measurement": 4156.6595990000005,
+        "surface": 163.321829,
+        "total": 4481.882833000001
+      },
+      "before_bytes": {
+        "retained_matrices": 27523392,
+        "wood_indices": 49681920,
+        "wood_positions": 25638240
+      },
+      "after_bytes": {
+        "retained_matrices": 27523392,
+        "wood_indices": 49681920,
+        "wood_positions": 25638240
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 6919,
+        "wood_triangles": 4140160,
+        "wood_vertices": 2136520
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 6919,
+        "wood_triangles": 4140160,
+        "wood_vertices": 2136520
+      }
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "before_timing_ms": {
+        "foliage": 134.220218,
+        "growth": 124.968205,
+        "measurement": 4332.487709999999,
+        "surface": 166.956074,
+        "total": 4758.63316
+      },
+      "after_timing_ms": {
+        "foliage": 126.84060199999999,
+        "growth": 261.613614,
+        "measurement": 4429.849521,
+        "surface": 174.27546999999998,
+        "total": 4992.580003000001
+      },
+      "before_bytes": {
+        "retained_matrices": 30079296,
+        "wood_indices": 53730240,
+        "wood_positions": 27735696
+      },
+      "after_bytes": {
+        "retained_matrices": 30079296,
+        "wood_indices": 53730240,
+        "wood_positions": 27735696
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 1970,
+        "wood_triangles": 4477520,
+        "wood_vertices": 2311308
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 1970,
+        "wood_triangles": 4477520,
+        "wood_vertices": 2311308
+      }
+    },
+    {
+      "id": "oregon-white-oak-204973394",
+      "before_timing_ms": {
+        "foliage": 132.82749199999998,
+        "growth": 43.263187,
+        "measurement": 4352.01803,
+        "surface": 176.473362,
+        "total": 4704.583434
+      },
+      "after_timing_ms": {
+        "foliage": 129.63734,
+        "growth": 42.127581,
+        "measurement": 4353.892981,
+        "surface": 203.031987,
+        "total": 4728.691017
+      },
+      "before_bytes": {
+        "retained_matrices": 30140864,
+        "wood_indices": 54468960,
+        "wood_positions": 28105656
+      },
+      "after_bytes": {
+        "retained_matrices": 30140864,
+        "wood_indices": 54468960,
+        "wood_positions": 28105656
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 8713,
+        "wood_triangles": 4539080,
+        "wood_vertices": 2342138
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 8713,
+        "wood_triangles": 4539080,
+        "wood_vertices": 2342138
+      }
+    },
+    {
+      "id": "oregon-white-oak-21",
+      "before_timing_ms": {
+        "foliage": 104.26159,
+        "growth": 54.907987999999996,
+        "measurement": 3761.562778,
+        "surface": 170.60783800000002,
+        "total": 4091.3416729999994
+      },
+      "after_timing_ms": {
+        "foliage": 117.22582,
+        "growth": 50.697547,
+        "measurement": 3990.117409,
+        "surface": 184.283135,
+        "total": 4342.324919000001
+      },
+      "before_bytes": {
+        "retained_matrices": 25638080,
+        "wood_indices": 50970720,
+        "wood_positions": 26229072
+      },
+      "after_bytes": {
+        "retained_matrices": 25638080,
+        "wood_indices": 50970720,
+        "wood_positions": 26229072
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 15949,
+        "wood_triangles": 4247560,
+        "wood_vertices": 2185756
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 15949,
+        "wood_triangles": 4247560,
+        "wood_vertices": 2185756
+      }
+    },
+    {
+      "id": "oregon-white-oak-2181659276",
+      "before_timing_ms": {
+        "foliage": 107.412123,
+        "growth": 59.234193,
+        "measurement": 3808.733453,
+        "surface": 151.985696,
+        "total": 4127.366426
+      },
+      "after_timing_ms": {
+        "foliage": 110.644034,
+        "growth": 57.787783000000005,
+        "measurement": 3899.186574,
+        "surface": 170.17077799999998,
+        "total": 4237.790308000001
+      },
+      "before_bytes": {
+        "retained_matrices": 25884352,
+        "wood_indices": 47503680,
+        "wood_positions": 24500424
+      },
+      "after_bytes": {
+        "retained_matrices": 25884352,
+        "wood_indices": 47503680,
+        "wood_positions": 24500424
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 19067,
+        "wood_triangles": 3958640,
+        "wood_vertices": 2041702
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 19067,
+        "wood_triangles": 3958640,
+        "wood_vertices": 2041702
+      }
+    },
+    {
+      "id": "oregon-white-oak-233",
+      "before_timing_ms": {
+        "foliage": 123.61827,
+        "growth": 42.873188999999996,
+        "measurement": 4440.152486999999,
+        "surface": 178.443818,
+        "total": 4785.088779
+      },
+      "after_timing_ms": {
+        "foliage": 138.747475,
+        "growth": 44.049119999999995,
+        "measurement": 4552.955064,
+        "surface": 181.77473,
+        "total": 4917.527238
+      },
+      "before_bytes": {
+        "retained_matrices": 30718272,
+        "wood_indices": 55572000,
+        "wood_positions": 28675656
+      },
+      "after_bytes": {
+        "retained_matrices": 30718272,
+        "wood_indices": 55572000,
+        "wood_positions": 28675656
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 10412,
+        "wood_triangles": 4631000,
+        "wood_vertices": 2389638
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 10412,
+        "wood_triangles": 4631000,
+        "wood_vertices": 2389638
+      }
+    },
+    {
+      "id": "oregon-white-oak-2666899686",
+      "before_timing_ms": {
+        "foliage": 137.334513,
+        "growth": 150.791153,
+        "measurement": 4577.83938,
+        "surface": 186.061738,
+        "total": 5052.028151
+      },
+      "after_timing_ms": {
+        "foliage": 137.201761,
+        "growth": 357.670296,
+        "measurement": 4817.451559,
+        "surface": 190.09146299999998,
+        "total": 5502.416141000001
+      },
+      "before_bytes": {
+        "retained_matrices": 31606016,
+        "wood_indices": 57201120,
+        "wood_positions": 29513736
+      },
+      "after_bytes": {
+        "retained_matrices": 31606016,
+        "wood_indices": 57201120,
+        "wood_positions": 29513736
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 10531,
+        "wood_triangles": 4766760,
+        "wood_vertices": 2459478
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 10531,
+        "wood_triangles": 4766760,
+        "wood_vertices": 2459478
+      }
+    },
+    {
+      "id": "oregon-white-oak-2671455042",
+      "before_timing_ms": {
+        "foliage": 109.940876,
+        "growth": 59.282466,
+        "measurement": 3561.10455,
+        "surface": 159.810965,
+        "total": 3890.140266
+      },
+      "after_timing_ms": {
+        "foliage": 106.48444599999999,
+        "growth": 57.670185,
+        "measurement": 3626.3734560000003,
+        "surface": 149.551027,
+        "total": 3940.0799600000005
+      },
+      "before_bytes": {
+        "retained_matrices": 24445824,
+        "wood_indices": 44995680,
+        "wood_positions": 23206344
+      },
+      "after_bytes": {
+        "retained_matrices": 24445824,
+        "wood_indices": 44995680,
+        "wood_positions": 23206344
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 26972,
+        "wood_triangles": 3749640,
+        "wood_vertices": 1933862
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 26972,
+        "wood_triangles": 3749640,
+        "wood_vertices": 1933862
+      }
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "before_timing_ms": {
+        "foliage": 128.90249500000002,
+        "growth": 140.047429,
+        "measurement": 4359.5086280000005,
+        "surface": 168.95239,
+        "total": 4797.412289000001
+      },
+      "after_timing_ms": {
+        "foliage": 125.10705,
+        "growth": 312.050803,
+        "measurement": 4462.017429,
+        "surface": 176.066935,
+        "total": 5075.243215
+      },
+      "before_bytes": {
+        "retained_matrices": 29930368,
+        "wood_indices": 54005760,
+        "wood_positions": 27868992
+      },
+      "after_bytes": {
+        "retained_matrices": 29930368,
+        "wood_indices": 54005760,
+        "wood_positions": 27868992
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 14605,
+        "wood_triangles": 4500480,
+        "wood_vertices": 2322416
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 14605,
+        "wood_triangles": 4500480,
+        "wood_vertices": 2322416
+      }
+    },
+    {
+      "id": "oregon-white-oak-3117916676",
+      "before_timing_ms": {
+        "foliage": 141.700254,
+        "growth": 41.102464999999995,
+        "measurement": 4809.375599,
+        "surface": 205.511542,
+        "total": 5197.69091
+      },
+      "after_timing_ms": {
+        "foliage": 150.148141,
+        "growth": 43.995369,
+        "measurement": 4804.498235,
+        "surface": 209.306201,
+        "total": 5207.949059
+      },
+      "before_bytes": {
+        "retained_matrices": 32547008,
+        "wood_indices": 58576320,
+        "wood_positions": 30228696
+      },
+      "after_bytes": {
+        "retained_matrices": 32547008,
+        "wood_indices": 58576320,
+        "wood_positions": 30228696
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 6583,
+        "wood_triangles": 4881360,
+        "wood_vertices": 2519058
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 6583,
+        "wood_triangles": 4881360,
+        "wood_vertices": 2519058
+      }
+    },
+    {
+      "id": "oregon-white-oak-34",
+      "before_timing_ms": {
+        "foliage": 124.45476,
+        "growth": 40.370898000000004,
+        "measurement": 4208.272784,
+        "surface": 176.098243,
+        "total": 4549.197733999999
+      },
+      "after_timing_ms": {
+        "foliage": 138.836659,
+        "growth": 43.090329,
+        "measurement": 4381.817906,
+        "surface": 200.887124,
+        "total": 4764.633276
+      },
+      "before_bytes": {
+        "retained_matrices": 29438656,
+        "wood_indices": 53224320,
+        "wood_positions": 27464184
+      },
+      "after_bytes": {
+        "retained_matrices": 29438656,
+        "wood_indices": 53224320,
+        "wood_positions": 27464184
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 6437,
+        "wood_triangles": 4435360,
+        "wood_vertices": 2288682
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 6437,
+        "wood_triangles": 4435360,
+        "wood_vertices": 2288682
+      }
+    },
+    {
+      "id": "oregon-white-oak-4067290831",
+      "before_timing_ms": {
+        "foliage": 139.28105599999998,
+        "growth": 127.59548000000001,
+        "measurement": 5089.10339,
+        "surface": 206.038019,
+        "total": 5562.019418
+      },
+      "after_timing_ms": {
+        "foliage": 150.091483,
+        "growth": 404.372595,
+        "measurement": 5119.149776,
+        "surface": 215.859569,
+        "total": 5889.474602
+      },
+      "before_bytes": {
+        "retained_matrices": 34662784,
+        "wood_indices": 62038560,
+        "wood_positions": 32019840
+      },
+      "after_bytes": {
+        "retained_matrices": 34662784,
+        "wood_indices": 62038560,
+        "wood_positions": 32019840
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 4375,
+        "wood_triangles": 5169880,
+        "wood_vertices": 2668320
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 4375,
+        "wood_triangles": 5169880,
+        "wood_vertices": 2668320
+      }
+    },
+    {
+      "id": "oregon-white-oak-5",
+      "before_timing_ms": {
+        "foliage": 114.744162,
+        "growth": 47.773586,
+        "measurement": 3949.647816,
+        "surface": 169.586527,
+        "total": 4281.753211
+      },
+      "after_timing_ms": {
+        "foliage": 113.759145,
+        "growth": 46.118342999999996,
+        "measurement": 3989.958347,
+        "surface": 183.852058,
+        "total": 4333.688789
+      },
+      "before_bytes": {
+        "retained_matrices": 26964288,
+        "wood_indices": 52947840,
+        "wood_positions": 27255168
+      },
+      "after_bytes": {
+        "retained_matrices": 26964288,
+        "wood_indices": 52947840,
+        "wood_positions": 27255168
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 9550,
+        "wood_triangles": 4412320,
+        "wood_vertices": 2271264
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 9550,
+        "wood_triangles": 4412320,
+        "wood_vertices": 2271264
+      }
+    },
+    {
+      "id": "oregon-white-oak-535441218",
+      "before_timing_ms": {
+        "foliage": 145.797818,
+        "growth": 44.546913,
+        "measurement": 4860.239283,
+        "surface": 199.128352,
+        "total": 5249.7137760000005
+      },
+      "after_timing_ms": {
+        "foliage": 152.505459,
+        "growth": 49.243511,
+        "measurement": 4941.472831,
+        "surface": 206.444619,
+        "total": 5349.667687
+      },
+      "before_bytes": {
+        "retained_matrices": 33448896,
+        "wood_indices": 60132480,
+        "wood_positions": 31032720
+      },
+      "after_bytes": {
+        "retained_matrices": 33448896,
+        "wood_indices": 60132480,
+        "wood_positions": 31032720
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 3240,
+        "wood_triangles": 5011040,
+        "wood_vertices": 2586060
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 3240,
+        "wood_triangles": 5011040,
+        "wood_vertices": 2586060
+      }
+    },
+    {
+      "id": "oregon-white-oak-55",
+      "before_timing_ms": {
+        "foliage": 124.107111,
+        "growth": 49.315709999999996,
+        "measurement": 4074.365772,
+        "surface": 172.562774,
+        "total": 4420.352366
+      },
+      "after_timing_ms": {
+        "foliage": 123.386508,
+        "growth": 46.084732,
+        "measurement": 4175.016716,
+        "surface": 175.433121,
+        "total": 4519.922036
+      },
+      "before_bytes": {
+        "retained_matrices": 28302144,
+        "wood_indices": 51055680,
+        "wood_positions": 26346360
+      },
+      "after_bytes": {
+        "retained_matrices": 28302144,
+        "wood_indices": 51055680,
+        "wood_positions": 26346360
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 18478,
+        "wood_triangles": 4254640,
+        "wood_vertices": 2195530
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 18478,
+        "wood_triangles": 4254640,
+        "wood_vertices": 2195530
+      }
+    },
+    {
+      "id": "oregon-white-oak-690286437",
+      "before_timing_ms": {
+        "foliage": 143.076565,
+        "growth": 43.926561,
+        "measurement": 4628.964904,
+        "surface": 187.75381299999998,
+        "total": 5003.723603
+      },
+      "after_timing_ms": {
+        "foliage": 136.55789,
+        "growth": 38.616241,
+        "measurement": 4666.791013,
+        "surface": 190.390466,
+        "total": 5032.356743
+      },
+      "before_bytes": {
+        "retained_matrices": 31764928,
+        "wood_indices": 57264960,
+        "wood_positions": 29550816
+      },
+      "after_bytes": {
+        "retained_matrices": 31764928,
+        "wood_indices": 57264960,
+        "wood_positions": 29550816
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 4540,
+        "wood_triangles": 4772080,
+        "wood_vertices": 2462568
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 4540,
+        "wood_triangles": 4772080,
+        "wood_vertices": 2462568
+      }
+    },
+    {
+      "id": "oregon-white-oak-696710047",
+      "before_timing_ms": {
+        "foliage": 128.691445,
+        "growth": 57.131432000000004,
+        "measurement": 4146.357156,
+        "surface": 168.2551,
+        "total": 4500.436033
+      },
+      "after_timing_ms": {
+        "foliage": 133.141742,
+        "growth": 55.938178,
+        "measurement": 4242.03041,
+        "surface": 173.77683,
+        "total": 4604.888438999999
+      },
+      "before_bytes": {
+        "retained_matrices": 28397824,
+        "wood_indices": 51552480,
+        "wood_positions": 26597112
+      },
+      "after_bytes": {
+        "retained_matrices": 28397824,
+        "wood_indices": 51552480,
+        "wood_positions": 26597112
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 21032,
+        "wood_triangles": 4296040,
+        "wood_vertices": 2216426
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 21032,
+        "wood_triangles": 4296040,
+        "wood_vertices": 2216426
+      }
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "before_timing_ms": {
+        "foliage": 133.687501,
+        "growth": 44.580055,
+        "measurement": 4222.547391,
+        "surface": 176.71554,
+        "total": 4577.531362000001
+      },
+      "after_timing_ms": {
+        "foliage": 133.51014,
+        "growth": 49.714037000000005,
+        "measurement": 4493.617264,
+        "surface": 203.731631,
+        "total": 4880.5739140000005
+      },
+      "before_bytes": {
+        "retained_matrices": 29161600,
+        "wood_indices": 53023200,
+        "wood_positions": 27355392
+      },
+      "after_bytes": {
+        "retained_matrices": 29161600,
+        "wood_indices": 53023200,
+        "wood_positions": 27355392
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 10706,
+        "wood_triangles": 4418600,
+        "wood_vertices": 2279616
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 10706,
+        "wood_triangles": 4418600,
+        "wood_vertices": 2279616
+      }
+    },
+    {
+      "id": "oregon-white-oak-8",
+      "before_timing_ms": {
+        "foliage": 148.920727,
+        "growth": 48.750422,
+        "measurement": 4157.656903,
+        "surface": 174.990767,
+        "total": 4530.319771
+      },
+      "after_timing_ms": {
+        "foliage": 122.770871,
+        "growth": 50.231127,
+        "measurement": 4410.906029000001,
+        "surface": 177.798992,
+        "total": 4761.708063
+      },
+      "before_bytes": {
+        "retained_matrices": 28614976,
+        "wood_indices": 51889440,
+        "wood_positions": 26772024
+      },
+      "after_bytes": {
+        "retained_matrices": 28614976,
+        "wood_indices": 51889440,
+        "wood_positions": 26772024
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 17992,
+        "wood_triangles": 4324120,
+        "wood_vertices": 2231002
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 17992,
+        "wood_triangles": 4324120,
+        "wood_vertices": 2231002
+      }
+    },
+    {
+      "id": "oregon-white-oak-89",
+      "before_timing_ms": {
+        "foliage": 119.577838,
+        "growth": 113.700726,
+        "measurement": 3959.971892,
+        "surface": 155.318294,
+        "total": 4348.569804000001
+      },
+      "after_timing_ms": {
+        "foliage": 138.955759,
+        "growth": 301.47207399999996,
+        "measurement": 4269.584091000001,
+        "surface": 162.908862,
+        "total": 4872.921960000001
+      },
+      "before_bytes": {
+        "retained_matrices": 27383616,
+        "wood_indices": 49068480,
+        "wood_positions": 25327416
+      },
+      "after_bytes": {
+        "retained_matrices": 27383616,
+        "wood_indices": 49068480,
+        "wood_positions": 25327416
+      },
+      "before_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 6297,
+        "wood_triangles": 4089040,
+        "wood_vertices": 2110618
+      },
+      "after_counts": {
+        "prototype_triangles": 268,
+        "prototype_vertices": 201,
+        "shed_nodes": 6297,
+        "wood_triangles": 4089040,
+        "wood_vertices": 2110618
+      }
+    }
+  ]
+}

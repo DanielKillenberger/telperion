@@ -1,7 +1,9 @@
-import json,pathlib,numpy as np
+"""Audit maximal upper-subtree reach against durable pass-6 rays; optional source directory."""
+import json,pathlib,sys,numpy as np
+source=pathlib.Path(sys.argv[1]) if len(sys.argv)>1 else pathlib.Path("/tmp/fn99-pass6-final-audit")
 rows=[]
 for case in json.load(open('.flow/evidence/fn9/pass6-window-rays.json'))['cases']:
- s=case['seed'];d=json.load(open(f'/tmp/fn99-pass6-final-audit/oregon-white-oak-{s}.json'));nodes=d['structure'];first=d['crossover'];xyz=np.array([n[:3] for n in nodes]);minimum=np.full(len(nodes),np.inf);minimum[:first]=xyz[:first,1]
+ s=case['seed'];d=json.load(open(source/f'oregon-white-oak-{s}.json'));nodes=d['structure'];first=d['crossover'];xyz=np.array([n[:3] for n in nodes]);minimum=np.full(len(nodes),np.inf);minimum[:first]=xyz[:first,1]
  for i in range(len(nodes)-1,0,-1):minimum[nodes[i][3]]=min(minimum[nodes[i][3]],minimum[i])
  owner=np.zeros(len(nodes),int);groups={}
  for i in range(1,len(nodes)):
