@@ -1,0 +1,77 @@
+{
+  "method": "Same support and ordered terminal endpoint arrays, pass5 final versus pass6; 0.5m world endpoint voxels. Not leaf area or visual acceptance.",
+  "cases": [
+    {
+      "seed": 1,
+      "upper_terminal_descendants": 15483,
+      "changed_endpoints": 0,
+      "maximum_displacement_m": 0.0,
+      "before_occupied_voxels": 3217,
+      "after_occupied_voxels": 3217,
+      "entered_voxels": 0,
+      "vacated_voxels": 0,
+      "before_sha256": "5c811a81a3981e13ad8a31f21982815e904708f359bc5c998fdf25966449b937",
+      "after_sha256": "e89dc2027cc20379adf9f3b1a7f11c94da57f8bd66002f768f08614ea153167b"
+    },
+    {
+      "seed": 2,
+      "upper_terminal_descendants": 10271,
+      "changed_endpoints": 8429,
+      "maximum_displacement_m": 5.23684305488301,
+      "before_occupied_voxels": 1793,
+      "after_occupied_voxels": 2086,
+      "entered_voxels": 591,
+      "vacated_voxels": 298,
+      "before_sha256": "fef22a23f6041da53653200611dc1340555fad41587720c17e4b775f4fdb60da",
+      "after_sha256": "8d42c59ac37c7e6b2daff7dd1b9eb4ebc3bead25f0927a6200b63a3b42d923d6"
+    },
+    {
+      "seed": 3,
+      "upper_terminal_descendants": 10007,
+      "changed_endpoints": 7862,
+      "maximum_displacement_m": 4.675368353972281,
+      "before_occupied_voxels": 2231,
+      "after_occupied_voxels": 2573,
+      "entered_voxels": 696,
+      "vacated_voxels": 354,
+      "before_sha256": "1bbb8902806a17968c64799f9cfa899c491444bec2ae8656391bbba45e3e2c03",
+      "after_sha256": "c594c4ea1224fa9610eed873ff4c825bcb32e76ce6d81a6472edf92d2da51f40"
+    },
+    {
+      "seed": 2666899686,
+      "upper_terminal_descendants": 9909,
+      "changed_endpoints": 7781,
+      "maximum_displacement_m": 5.375068355814076,
+      "before_occupied_voxels": 2018,
+      "after_occupied_voxels": 2429,
+      "entered_voxels": 784,
+      "vacated_voxels": 373,
+      "before_sha256": "1062857e53124b3bac34a89ab75896002aa82823f7ddbe21267b8918f581a258",
+      "after_sha256": "8fbed5bbf5d98b03acea32da0017f1d9b3e3d386f9a1f3357a82ad50818e022b"
+    },
+    {
+      "seed": 762807349,
+      "upper_terminal_descendants": 10790,
+      "changed_endpoints": 0,
+      "maximum_displacement_m": 0.0,
+      "before_occupied_voxels": 2210,
+      "after_occupied_voxels": 2210,
+      "entered_voxels": 0,
+      "vacated_voxels": 0,
+      "before_sha256": "88708cfff86e1bca9c39f5973ab77ac7c56660d0d3ef65dd4ec74929dcdcdabc",
+      "after_sha256": "8a72d8d3879a0f40106b49488fa41bac3c91239c70a8146caee539d2a9f85c2b"
+    },
+    {
+      "seed": 1444323199,
+      "upper_terminal_descendants": 8985,
+      "changed_endpoints": 0,
+      "maximum_displacement_m": 0.0,
+      "before_occupied_voxels": 2418,
+      "after_occupied_voxels": 2418,
+      "entered_voxels": 0,
+      "vacated_voxels": 0,
+      "before_sha256": "060bdcd71b5b86becdd875b14a3502d49c2211d1861be3f981c67fe5df250211",
+      "after_sha256": "182f759e044f59e550e24578e8aea433336223fd3a7086ac2f37c1473cc038d0"
+    }
+  ]
+}
