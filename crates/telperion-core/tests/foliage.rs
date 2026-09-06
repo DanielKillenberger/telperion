@@ -502,3 +502,49 @@ fn alternate_stations_continue_across_subdivided_twig_runs() {
     let whole = place(&twig(0.03), Envelope::default(), 3, p, stations).unwrap();
     assert_eq!(split, whole);
 }
+
+#[test]
+fn needles_retain_shaft_width_before_the_distal_point() {
+    let e = build_element(species_element(ElementAnatomy::FourSidedNeedle)).unwrap();
+    let sections = &e.anatomy.as_ref().unwrap().sections;
+    let width = |i: usize| {
+        let row = &e.positions[sections[i].clone()];
+        row.iter().map(|p| p.x).fold(f64::NEG_INFINITY, f64::max)
+            - row.iter().map(|p| p.x).fold(f64::INFINITY, f64::min)
+    };
+    // The rejected wedge lost most of its width by the final shaft section.
+    assert!(width(sections.len() - 2) > 0.8 * width(1));
+}
+
+#[test]
+fn evergreen_needles_clothe_slender_supports_but_not_thick_limbs() {
+    let mut t = twig(0.08);
+    t.nodes[1].kind = NodeKind::Branch;
+    t.crossover = t.nodes.len();
+    let stations = Some(TwigPlacement::default());
+    let needles = CanopyParams {
+        attachment: Attachment::RadialNeedles,
+        shoot_radius: 0.005,
+        ..bare()
+    };
+    let placed = place(&t, Envelope::default(), 1, needles, stations).unwrap();
+    assert_eq!(placed.matrices.len(), 4);
+    assert!(place(
+        &t,
+        Envelope::default(),
+        1,
+        CanopyParams {
+            attachment: Attachment::Alternate,
+            ..needles
+        },
+        stations
+    )
+    .unwrap()
+    .matrices
+    .is_empty());
+    t.nodes[1].start_radius = 0.006;
+    assert!(place(&t, Envelope::default(), 1, needles, stations)
+        .unwrap()
+        .matrices
+        .is_empty());
+}

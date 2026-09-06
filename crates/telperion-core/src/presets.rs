@@ -68,7 +68,7 @@ impl Preset {
             // Mature, open-grown Quercus garryana. Metre dimensions are
             // calibrated against the frozen profile, not inferred from seed.
             p.skeleton.habit = BranchHabit::Spreading(SpreadingHabit {
-                subdivisions: 4,
+                subdivisions: 5,
                 ..Default::default()
             });
             p.skeleton.envelope = Envelope {
@@ -79,7 +79,7 @@ impl Preset {
                 shoulder: 2.2,
             };
             p.skeleton.bias = BiasParams::NONE;
-            p.skeleton.twigs.laterals = 3;
+            p.skeleton.twigs.laterals = 4;
             p.skeleton.twigs.length_ratio = 0.45;
             p.skeleton.twigs.twig.bearing_diameter = 0.03;
             p.radii.trunk_radius = 0.018;
@@ -90,6 +90,8 @@ impl Preset {
                 connector_length: 0.012,
                 ..Default::default()
             };
+            // Retain interior leaf-bearing shoots in the healthy open-grown crown.
+            p.shell_depth = 1.0;
             p.canopy.attachment = Attachment::Alternate;
             p.canopy.divergence = 180.0;
             p.canopy.size_variation = 0.2;
@@ -97,16 +99,19 @@ impl Preset {
         }
         if self == Self::NorwaySpruce {
             // Open-grown landscape Picea abies; one needle per local station.
-            p.skeleton.habit = BranchHabit::Tiered(TieredHabit::default());
+            p.skeleton.habit = BranchHabit::Tiered(TieredHabit {
+                secondary_spacing: 0.20,
+                ..Default::default()
+            });
             p.skeleton.envelope = Envelope {
                 height: 15.0,
                 crown_base: 0.04,
-                spread: 0.32,
+                spread: 0.31,
                 fullness: 0.15,
                 shoulder: 1.0,
             };
             p.skeleton.bias = BiasParams::NONE;
-            p.skeleton.twigs.twig.internode_length = 0.004;
+            p.skeleton.twigs.twig.internode_length = 0.0025;
             p.skeleton.twigs.twig.bearing_diameter = 0.02;
             p.radii.trunk_radius = 0.015;
             p.element = ElementParams {
@@ -116,6 +121,9 @@ impl Preset {
                 connector_length: 0.001,
                 ..Default::default()
             };
+            p.shell_depth = 1.0;
+            // Evergreen foliage also persists on slender supporting branchlets.
+            p.canopy.shoot_radius = 0.025;
             p.canopy.attachment = Attachment::RadialNeedles;
             p.canopy.size_variation = 0.2;
             return p;

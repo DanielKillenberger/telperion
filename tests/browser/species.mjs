@@ -20,7 +20,7 @@ BROWSER_URL defaults to http://127.0.0.1:5184 (start Vite separately).
 Build species_measure and Wasm first; install Playwright Chromium. Optional
 PLAYWRIGHT_MODULE / CHROMIUM_EXECUTABLE overrides. Results checkpoint per case.
 Whole and bare share full bounds; foliage-detail shows attached local foliage;
-element isolates one unit as supplemental evidence. JSON records cameras,
+element isolates one unit; junction-detail keeps full wood without local clipping. JSON records cameras,
 parameters, renderer, hashes, numeric/visual/missing/owner fields separately.
 Exit 1 for failed/missing required evidence or unassessed visual results.
 Human inspection goes in REPORT.md; this runner never awards visual approval.`);
@@ -91,7 +91,7 @@ async function capture(job) {
         direction = tree.userData.detailDirection ?? direction;
       }
       let selectedInstance = null;
-      if (view === 'foliage-detail') {
+      if (view === 'foliage-detail' || view === 'junction-detail') {
         if (!canopy?.count) throw Error('No attached foliage to inspect');
         selectedInstance = Math.floor(canopy.count / 2);
         const matrix = new THREE.Matrix4(); canopy.getMatrixAt(selectedInstance, matrix);
@@ -113,7 +113,7 @@ async function capture(job) {
       scene.add(new THREE.HemisphereLight(0xffffff, 0x6a6966, 3.1), tree);
       const centre = bounds.getCenter(new THREE.Vector3()), size = bounds.getSize(new THREE.Vector3());
       const distance = Math.max(size.y / 2 / Math.tan(38 * Math.PI / 360), Math.max(size.x, size.z) / 2 / (Math.tan(38 * Math.PI / 360) * 960 / 720)) * 1.3 + size.length() / 2;
-      const detail = view === 'foliage-detail' || view === 'element';
+      const detail = view === 'foliage-detail' || view === 'junction-detail' || view === 'element';
       const camera = new THREE.PerspectiveCamera(38, 960 / 720, detail ? .0001 : .1, Math.max(4000, distance * 4));
       camera.position.copy(centre).addScaledVector(direction, distance); camera.lookAt(centre);
       if (view === 'foliage-detail') { camera.near = Math.max(.0001, distance - size.length() / 2); camera.far = distance + size.length() / 2; camera.updateProjectionMatrix(); }
@@ -175,7 +175,8 @@ for (const c of cases) {
     const events = (await readFile(path, 'utf8')).split('\n').slice(0, -1).map(JSON.parse);
     c.numeric = events.findLast(e => (e.event === 'completed' || e.event === 'failed') && e.case === `${c.id}:${c.preset}:${c.preset}:${c.seed}`) ?? { numeric_status: 'unassessed', reason: 'No completed case' };
   } catch (error) { c.numeric = { numeric_status: 'unassessed', reason: String(error) }; }
-  c.required ||= c.numeric.numeric_status !== 'pass';
+  // Retain the original width counterexample even after its numeric repair.
+  c.required ||= c.id === 'norway-spruce-4250668600' || c.numeric.numeric_status !== 'pass';
   c.visual_status = 'unassessed'; c.owner_feedback = null;
   console.log(c.id, c.numeric.numeric_status ?? 'failed');
 }
@@ -187,7 +188,7 @@ const sourceFiles = (await command('git', ['ls-files', 'src/browser', 'harness/s
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async path => [path, sha(await readFile(path))])));
 const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), wasmSha256: sha(await readFile('src/browser/telperion.wasm')), profilesSha256: sha(await readFile('.flow/evidence/fn9/profiles.json')), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))) };
 await save(join(out, 'provenance.json'), provenance);
-const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element'] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
+const jobs = subjects.flatMap(c => ['whole', 'bare', 'foliage-detail', ...(c === subjects[0] || c.id === 'norway-spruce-1' ? ['element', 'junction-detail'] : [])].map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
 const suffix = option('--case') ? `-${option('--case')}` : '';
 const capturesPath = join(out, `captures${suffix}.json`);
 await save(join(out, `capture-plan${suffix}.json`), jobs);

@@ -66,8 +66,17 @@ fn fixed_species(preset: Preset) {
     let mut heights = Vec::new();
     let mut widths = Vec::new();
     let mut leaf_counts = std::collections::BTreeSet::new();
-    for seed in manifest["protocol"]["fixed_seeds"].as_array().unwrap() {
-        let seed = seed.as_u64().unwrap() as u32;
+    let mut seeds: Vec<u32> = manifest["protocol"]["fixed_seeds"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|seed| seed.as_u64().unwrap() as u32)
+        .collect();
+    if preset == Preset::NorwaySpruce {
+        // Original retained crown-width failure; never replace with a showcase seed.
+        seeds.push(4_250_668_600);
+    }
+    for seed in seeds {
         let mut family = preset.parameters();
         family.skeleton.seed = seed;
         let a = branching::generate(&family.skeleton, family.radii).unwrap();

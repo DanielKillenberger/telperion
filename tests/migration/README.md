@@ -149,3 +149,9 @@ samples, stage times, nodes, retained instances, wood counts and buffer bytes;
 RSS is on stderr. Species measurements include separate measurement overhead.
 Do not compare these directly with historical measurements on another host or
 interpret native time as software/hardware GPU time.
+
+Corrective QA retains spruce `4250668600` as a mandatory capture even when its
+numeric width passes. Supplemental `junction-detail` images for species seed 1
+use the same local subject as foliage detail with full wood and unrestricted
+near/far depth, so camera cuts do not masquerade as surface defects. Occlusion
+can still make a junction unassessed. `element` images isolate a single unit.

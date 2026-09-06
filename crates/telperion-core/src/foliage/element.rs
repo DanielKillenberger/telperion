@@ -217,7 +217,8 @@ fn build_anatomy(p: ElementParams) -> Result<Element> {
                 * if row == 0 {
                     0.35
                 } else {
-                    (1. - t) / (1. - 1. / rows as f64)
+                    // Retain the four-sided shaft until the short distal point.
+                    1.0 - 0.12 * t
                 };
             let start = e.positions.len();
             for (x, z) in [(1., 0.), (0., 1.), (-1., 0.), (0., -1.)] {
@@ -253,22 +254,21 @@ fn build_anatomy(p: ElementParams) -> Result<Element> {
             e.indices.extend([base, side, (side + 1) % 4]);
         }
     } else {
-        let rows = p.axial_segments.max(48);
+        let rows = p.axial_segments.max(64);
         let columns = p.cross_segments + p.cross_segments % 2;
         e.positions.push(Vec3::new(0., p.connector_length, 0.));
         sections.push(0..1);
         for row in 1..rows {
-            let t = row as f64 / rows as f64;
-            let envelope = (std::f64::consts::PI * t).sin().sqrt();
-            let lobe = 0.68 + 0.32 * (8. * std::f64::consts::PI * t).cos();
-            let half = p.width * 0.5 * envelope * lobe;
+            let t = (1.0 - (std::f64::consts::PI * row as f64 / rows as f64).cos()) * 0.5;
+            let left = oak_half_width(t, false) * p.width * 0.5;
+            let right = oak_half_width(t, true) * p.width * 0.5;
             let start = e.positions.len();
             for col in 0..=columns {
                 let x = 2. * col as f64 / columns as f64 - 1.;
                 e.positions.push(Vec3::new(
-                    x * half,
+                    x * if x < 0.0 { left } else { right },
                     p.connector_length + t * p.length,
-                    p.curl * p.length * t * t + p.cup * half * x * x,
+                    p.curl * p.length * t * t + p.cup * if x < 0.0 { left } else { right } * x * x,
                 ));
             }
             sections.push(start..e.positions.len());
@@ -315,6 +315,26 @@ fn build_anatomy(p: ElementParams) -> Result<Element> {
     }
     e.validate()?;
     Ok(e)
+}
+
+/// Unequal rounded lateral lobes joined by a narrow midrib region. Elliptic
+/// ends give each lobe a rounded nose; staggered sides avoid a periodic wave.
+fn oak_half_width(t: f64, right: bool) -> f64 {
+    let mut width = 0.17 * (std::f64::consts::PI * t).sin().sqrt();
+    for (centre, reach, half_height) in [
+        (0.15, 0.62, 0.115),
+        (0.36, 0.94, 0.14),
+        (0.59, 1.0, 0.15),
+        (0.78, 0.73, 0.12),
+        (0.88, 0.45, 0.12),
+    ] {
+        let centre = centre + if right && centre < 0.85 { 0.018 } else { 0.0 };
+        let along = (t - centre) / half_height;
+        if along.abs() < 1.0 {
+            width = width.max(reach * (1.0 - along * along).sqrt());
+        }
+    }
+    width
 }
 
 fn connector(e: &mut Element, length: f64, radius: f64) {

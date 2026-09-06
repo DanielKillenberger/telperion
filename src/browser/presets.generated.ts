@@ -247,7 +247,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lengthTaper": 0.6,
         "trunkRadius": 0.018
       },
-      "shellDepth": 0.45,
+      "shellDepth": 1,
       "skeleton": {
         "attractors": 500,
         "bias": {
@@ -274,7 +274,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crookedness": 24,
           "kind": "spreading",
           "scaffoldLimbs": 5,
-          "subdivisions": 4
+          "subdivisions": 5
         },
         "seed": 42,
         "step": 0.022,
@@ -283,7 +283,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angleVariation": 10,
           "divergence": 137.508,
           "internodeFactor": 2.5,
-          "laterals": 3,
+          "laterals": 4,
           "lengthRatio": 0.45,
           "limbRadius": 0.1,
           "ratioPower": 1.3,
@@ -325,7 +325,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "maxInstances": 4294967295,
         "outward": 0.6,
         "scatter": 18,
-        "shootRadius": 0.12,
+        "shootRadius": 0.025,
         "size": 1,
         "sizeVariation": 0.2,
         "spacing": 0.006,
@@ -350,7 +350,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lengthTaper": 0.6,
         "trunkRadius": 0.015
       },
-      "shellDepth": 0.45,
+      "shellDepth": 1,
       "skeleton": {
         "attractors": 500,
         "bias": {
@@ -368,7 +368,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "fullness": 0.15,
           "height": 15,
           "shoulder": 1,
-          "spread": 0.32
+          "spread": 0.31
         },
         "growth": {
           "maxTurnPerStep": 35
@@ -377,7 +377,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "branchesPerTier": 5,
           "kind": "tiered",
           "secondaryLength": 0.3,
-          "secondarySpacing": 0.35,
+          "secondarySpacing": 0.2,
           "tiers": 16,
           "upturn": 0.12
         },
@@ -396,7 +396,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.005,
-            "internodeLength": 0.004,
+            "internodeLength": 0.0025,
             "length": 0.25,
             "stationsPerInternode": 1
           },

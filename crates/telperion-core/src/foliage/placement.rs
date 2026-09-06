@@ -65,7 +65,8 @@ impl Default for TwigPlacement {
     }
 }
 
-/// With anatomy, only marked incoming twig edges bear leaves. Without it,
+/// Blades use marked twig edges; needles also persist on slender branchlets
+/// within shoot_radius (a fraction of root radius). Without anatomy,
 /// terminal runs use the radius threshold and height-relative spacing/clump.
 pub fn place(
     tree: &Tree,
@@ -124,7 +125,7 @@ pub fn place(
     let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
     if let Some(t) = twig {
         if p.attachment != Attachment::Generic {
-            for run in twig_runs(tree) {
+            for run in twig_runs(tree, p) {
                 place_run(tree, &run, envelope, p, Some(t), &mut rng, &mut out)?;
             }
             return Ok(out);
@@ -426,23 +427,30 @@ fn frames(points: &[Vec3]) -> Vec<(Vec3, Vec3, Vec3)> {
     result
 }
 
-fn twig_runs(tree: &Tree) -> Vec<Vec<usize>> {
+fn twig_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
+    let bearing = |i: usize| {
+        let n = &tree.nodes[i];
+        n.parent.is_some()
+            && (n.kind == NodeKind::Twig
+                || (p.attachment == Attachment::RadialNeedles
+                    && n.radius.max(n.start_radius) <= tree.nodes[0].radius * p.shoot_radius))
+    };
     let mut children = vec![Vec::new(); tree.nodes.len()];
-    for (i, n) in tree.nodes.iter().enumerate().skip(tree.crossover) {
-        if n.kind == NodeKind::Twig {
+    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+        if bearing(i) {
             if let Some(parent) = n.parent {
                 children[parent as usize].push(i);
             }
         }
     }
     let continues = |parent: usize, child: usize| {
-        tree.nodes[parent].kind == NodeKind::Twig
+        bearing(parent)
             && tree.nodes[parent].branch == tree.nodes[child].branch
             && children[parent].len() == 1
     };
     let mut runs = Vec::new();
-    for (i, n) in tree.nodes.iter().enumerate().skip(tree.crossover) {
-        if n.kind != NodeKind::Twig {
+    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+        if !bearing(i) {
             continue;
         }
         let Some(parent) = n.parent.map(|p| p as usize) else {
