@@ -2,7 +2,7 @@
 Run from repo root after building Wasm: python scripts/prepare-species-pass7.py OUT
 Execute each job with node tests/browser/species.mjs --worker JOB.json.
 """
-import hashlib,json,pathlib,subprocess,sys,math
+import hashlib,json,pathlib,subprocess,sys,math,re
 out=pathlib.Path(sys.argv[1]);out.mkdir(parents=True,exist_ok=True)
 sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
 files=subprocess.check_output(['git','ls-files','src/browser','harness/stage.ts','harness/skeleton-view.ts','package-lock.json'],text=True).splitlines()
@@ -12,7 +12,8 @@ old=json.loads(pathlib.Path('.flow/evidence/fn9/pass6-captures.json').read_text(
 jobs=[]
 for c in old:
  if 'scan' in c['view']:continue
- j={k:c[k] for k in ['id','preset','seed','view']}
+ j={k:c[k] for k in ['id','seed','view']}
+ j['preset']=re.sub(r'-[0-9]+$','',c['id'])
  j.update(batchInstances=True,frustumCull=True,fixedTarget=c.get('fixedTarget'),provenance=provenance)
  jobs.append(j)
 for view in ['peg-clear-front','socket-root-front','socket-tip-front']:
