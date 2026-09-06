@@ -26,13 +26,11 @@ fn retained_supports() {
             local::append_with_habit(&mut tree, &config, p.twigs, seed, Some(&bias), p.habit)
                 .unwrap();
             let before = tree.clone();
-            let removed = shed_with_upper_supports(
-                &mut tree,
-                p.envelope,
-                0.45,
-                matches!(p.habit, BranchHabit::Spreading(_)),
-            )
-            .unwrap();
+            let removed = if matches!(p.habit, BranchHabit::Colonizing) {
+                shed(&mut tree, p.envelope, 0.45).unwrap()
+            } else {
+                0
+            };
             let mut descendants = vec![[0usize; 2]; structural.nodes.len()];
             let mut owner = vec![0; before.nodes.len()];
             for (i, entry) in owner.iter_mut().enumerate().take(structural.nodes.len()) {
@@ -84,48 +82,6 @@ fn retained_supports() {
             }
         }
     }
-}
-
-#[test]
-fn upper_retention_does_not_disable_lower_shedding() {
-    let mut tree = Tree::default();
-    for (i, (y, parent)) in [
-        (0.0, None),
-        (6.0, Some(0)),
-        (12.0, Some(1)),
-        (6.2, Some(1)),
-        (12.2, Some(2)),
-    ]
-    .into_iter()
-    .enumerate()
-    {
-        tree.nodes.push(Node {
-            position: Vec3::new(0.0, y, 0.0),
-            parent,
-            branch: i as u32,
-            kind: if i < 3 {
-                NodeKind::Structural
-            } else {
-                NodeKind::Twig
-            },
-            ..Node::root()
-        });
-    }
-    tree.crossover = 3;
-    let envelope = Envelope {
-        height: 24.0,
-        crown_base: 0.0,
-        spread: 0.55,
-        ..Envelope::default()
-    };
-    assert_eq!(
-        shed_with_upper_supports(&mut tree, envelope, 0.0, true).unwrap(),
-        1
-    );
-    assert_eq!(tree.nodes.len(), 4);
-    assert_eq!(tree.nodes[3].position.y, 12.2);
-    assert_eq!(tree.nodes[3].parent, Some(2));
-    tree.validate().unwrap();
 }
 
 #[test]

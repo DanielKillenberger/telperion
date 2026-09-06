@@ -21,6 +21,7 @@ struct Shoot {
     run: Option<Rc<Run>>,
     pendant: bool,
     curtain_across: Vec3,
+    pendant_floor: Option<f64>,
 }
 fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
     p.y < config.trunk_height
@@ -188,6 +189,26 @@ pub(super) fn append_with_habit(
     for n in tree.nodes.iter().skip(1) {
         children[n.parent.unwrap() as usize] += 1;
     }
+    let mut pendant_floor = vec![None; crossover];
+    if matches!(habit, BranchHabit::Tiered(_)) {
+        let mut continuation = vec![None; crossover];
+        for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+            continuation[n.parent.unwrap() as usize].get_or_insert(i);
+        }
+        for (i, n) in tree.nodes.iter().enumerate().skip(1) {
+            let parent = n.parent.unwrap() as usize;
+            pendant_floor[i] = pendant_floor[parent];
+            if pendant_floor[i].is_none()
+                && (n.position - tree.nodes[parent].position).normalized().y < -0.5
+            {
+                let mut end = i;
+                while let Some(next) = continuation[end] {
+                    end = next;
+                }
+                pendant_floor[i] = Some(tree.nodes[end].position.y);
+            }
+        }
+    }
     let divergence = t.divergence.to_radians();
     let tilt = t.angle.to_radians();
     let separation = (tilt.min(config.max_turn_per_step.to_radians()) / 2.0)
@@ -205,8 +226,8 @@ pub(super) fn append_with_habit(
         if direction.length_squared() == 0.0 {
             continue;
         }
-        let pendant = matches!(habit, BranchHabit::Tiered(_)) && direction.y < -0.5;
-        let length = branch_length(n.radius) * if pendant { 1.35 } else { 1.0 };
+        let pendant = pendant_floor[i].is_some();
+        let length = branch_length(n.radius);
         frontier.push(Shoot {
             at: i,
             direction,
@@ -222,6 +243,7 @@ pub(super) fn append_with_habit(
             run: None,
             pendant,
             curtain_across: Vec3::new(-n.position.z, 0.0, n.position.x).normalized(),
+            pendant_floor: pendant_floor[i],
         });
     }
     let planner = Planner {
@@ -239,6 +261,9 @@ pub(super) fn append_with_habit(
         for s in frontier {
             let from = s.direction;
             let position = tree.nodes[s.at].position;
+            let twig_length = s.pendant_floor.map_or(t.twig.length, |floor| {
+                t.twig.length.min((position.y - floor).max(0.0) * 0.18)
+            });
             let phase = s.phase + divergence;
             let binormal = from.cross(s.normal);
             let mut accepted: Vec<Vec3> = Vec::with_capacity(7);
@@ -304,6 +329,16 @@ pub(super) fn append_with_habit(
                     s.radius
                 };
                 let length = if lateral { s.length * ratio } else { s.length };
+                let length = if lateral || s.branch.is_none() {
+                    s.pendant_floor.map_or(length, |floor| {
+                        length.min((position.y - floor - twig_length).max(0.0) * 0.18)
+                    })
+                } else {
+                    length
+                };
+                if length <= 1e-9 {
+                    continue;
+                }
                 let generation = s.generation + usize::from(lateral);
                 let terminal = !lateral && s.completed == s.internodes;
                 let is_twig = terminal
@@ -322,18 +357,13 @@ pub(super) fn append_with_habit(
                     continue;
                 }
                 let wanted = if lateral && s.pendant {
-                    // Secondary descendants stay in a hanging plane. Alternating
-                    // narrow departures build overlapping branchlet curtains,
-                    // rather than a radial spray that forgets its supporting axis.
-                    // Inherit the primary's vertical plane through every order;
-                    // rotating from each child's heading produces crossing sprays.
                     let across = s.curtain_across;
                     let side = if (first_lateral + c) % 2 == 0 {
                         -1.0
                     } else {
                         1.0
                     };
-                    (from * 0.35 - Vec3::Y + across * side * 0.28).normalized()
+                    (from * 0.2 - Vec3::Y * 0.7 + across * side * 0.7).normalized()
                 } else if !lateral {
                     from
                 } else {
@@ -351,10 +381,10 @@ pub(super) fn append_with_habit(
                         position,
                         if lateral { wanted } else { from },
                         wanted,
-                        t.twig.length,
+                        twig_length,
                     );
-                    let p = position + heading * t.twig.length;
-                    if rejected(config, p) {
+                    let p = position + heading * twig_length;
+                    if rejected(config, p) || s.pendant_floor.is_some_and(|floor| p.y < floor) {
                         continue;
                     }
                     (p, heading)
@@ -453,6 +483,7 @@ pub(super) fn append_with_habit(
                         run,
                         pendant: s.pendant,
                         curtain_across: s.curtain_across,
+                        pendant_floor: s.pendant_floor,
                     });
                 }
             }

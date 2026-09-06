@@ -82,7 +82,6 @@ struct Builder<'a> {
     config: &'a GrowthConfig,
     bias: &'a GrowthBias,
     rng: Rng,
-    repaired: bool,
 }
 impl Builder<'_> {
     fn capped(&mut self) -> bool {
@@ -149,9 +148,21 @@ impl Builder<'_> {
         length: f64,
         bend: f64,
     ) -> Result<(usize, Vec3)> {
+        self.segmented_axis(at, direction, length, bend, 3.0)
+    }
+    fn segmented_axis(
+        &mut self,
+        at: usize,
+        direction: Vec3,
+        length: f64,
+        bend: f64,
+        min_units: f64,
+    ) -> Result<(usize, Vec3)> {
         let mut at = at;
         let mut heading = direction;
-        let units = (length / self.config.step_distance).ceil().clamp(3.0, 16.0) as usize;
+        let units = (length / self.config.step_distance)
+            .ceil()
+            .clamp(min_units, 16.0) as usize;
         for _ in 0..units {
             let normal = heading.perpendicular();
             let phase = self.rng.range(0.0, TAU);
@@ -336,7 +347,6 @@ impl Builder<'_> {
             if yaw == 0.0 && tilt == 0.0 {
                 continue;
             }
-            self.repaired = true;
             let radial = Vec3::new(centres[o].x, 0.0, centres[o].z).normalized();
             let hinge = Vec3::new(-radial.z, 0.0, radial.x);
             for i in 1..nodes.len() {
@@ -419,7 +429,7 @@ impl Builder<'_> {
             let direction =
                 (radial * 0.15 + tangent * self.rng.range(-0.3, 0.3) - Vec3::Y).normalized();
             let first = self.tree.nodes.len();
-            self.crooked_axis(at, direction, length, 4.0)?;
+            self.segmented_axis(at, direction, length, 4.0, 8.0)?;
             let count = self.tree.nodes.len() - first;
             // Alternating fine axes along each secondary form a hanging fan.
             // Needle density is unchanged; the supporting architecture supplies mass.
@@ -428,10 +438,8 @@ impl Builder<'_> {
                 let side = if k % 2 == 0 { -1.0 } else { 1.0 };
                 pendants.push((
                     first + k,
-                    (tangent * side * 0.35 - Vec3::Y).normalized(),
-                    // Long overlapping pendants remain below the secondary;
-                    // their narrower fan concentrates branchlet mass into a curtain.
-                    length * (0.95 - 0.45 * fraction),
+                    (tangent * side * 0.8 - Vec3::Y).normalized(),
+                    length * (1.0 - fraction) * 0.12,
                 ));
             }
             if self.tree.diagnostics.node_capped {
@@ -448,19 +456,11 @@ impl Builder<'_> {
     }
 }
 
-#[cfg(test)]
 pub(super) fn generate(
     params: &SkeletonParams,
     config: &GrowthConfig,
     bias: &GrowthBias,
 ) -> Result<Tree> {
-    generate_with_repairs(params, config, bias).map(|(tree, _)| tree)
-}
-pub(super) fn generate_with_repairs(
-    params: &SkeletonParams,
-    config: &GrowthConfig,
-    bias: &GrowthBias,
-) -> Result<(Tree, bool)> {
     let mut b = Builder {
         tree: Tree::default(),
         envelope: if matches!(params.habit, BranchHabit::Spreading(_)) {
@@ -471,7 +471,6 @@ pub(super) fn generate_with_repairs(
         config,
         bias,
         rng: Rng::new(params.seed ^ 0x742be831),
-        repaired: false,
     };
     if !b.capped() {
         b.tree.nodes.push(Node::root());
@@ -485,5 +484,5 @@ pub(super) fn generate_with_repairs(
     }
     b.tree.crossover = b.tree.nodes.len();
     b.tree.validate()?;
-    Ok((b.tree, b.repaired))
+    Ok(b.tree)
 }

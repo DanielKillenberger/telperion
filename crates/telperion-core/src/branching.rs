@@ -1,7 +1,6 @@
 //! Crown, local branches, shell shedding, and final radius solve, in botanical order.
 mod habit;
 mod local;
-mod occupancy;
 use crate::{
     bias::{BiasParams, GrowthBias},
     colonization::{self, GrowthConfig},
@@ -180,14 +179,6 @@ fn headroom(tree: &Tree, c: &GrowthConfig, t: TwigParams) -> usize {
 }
 /// Retain illuminated subtrees and complete leader runs; remap every parent and run ID.
 pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usize> {
-    shed_with_upper_supports(tree, envelope, shell_depth, false)
-}
-fn shed_with_upper_supports(
-    tree: &mut Tree,
-    envelope: Envelope,
-    shell_depth: f64,
-    protect_upper: bool,
-) -> Result<usize> {
     tree.validate()?;
     envelope.validate()?;
     if !shell_depth.is_finite() || shell_depth < 0.0 {
@@ -205,23 +196,9 @@ fn shed_with_upper_supports(
     let profile = envelope.profile();
     let mut keep = vec![false; count];
     keep[..first].fill(true);
-    // The broad envelope is not a light model for a crooked open-grown crown.
-    // Preserve the already-grown subdivisions of upper scaffold supports rather
-    // than leaving their retained leader runs naked after radial shell removal.
-    let upper = tree.nodes[..first]
-        .iter()
-        .map(|n| n.position.y)
-        .fold(0.0, f64::max)
-        * 0.75;
-    let mut protected = vec![false; count];
-    for (i, n) in tree.nodes.iter().enumerate().take(first) {
-        protected[i] = protect_upper && n.position.y >= upper;
-    }
     for (i, n) in tree.nodes.iter().enumerate().skip(first) {
-        protected[i] = protected[n.parent.unwrap() as usize];
         let r = n.position.x.hypot(n.position.z);
-        keep[i] = protected[i]
-            || envelope.radius_at(n.position.y) - r <= shell
+        keep[i] = envelope.radius_at(n.position.y) - r <= shell
             || distance_to_profile(&profile, r, n.position.y) <= shell;
     }
     for i in (first..count).rev() {
@@ -289,13 +266,10 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
     };
     let config = params.resolved_growth(points.len())?;
     let bias = GrowthBias::new(params.envelope, params.seed, params.bias)?;
-    let (mut tree, repaired) = if params.habit == BranchHabit::Colonizing {
-        (
-            colonization::colonize(&points, Vec3::ZERO, &config, Some(&bias))?,
-            false,
-        )
+    let mut tree = if params.habit == BranchHabit::Colonizing {
+        colonization::colonize(&points, Vec3::ZERO, &config, Some(&bias))?
     } else {
-        habit::generate_with_repairs(params, &config, &bias)?
+        habit::generate(params, &config, &bias)?
     };
     radius::solve(&mut tree, params.envelope, radii)?;
     let max_nodes = config
@@ -313,21 +287,10 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
         Some(&bias),
         params.habit,
     )?;
-    let removed = shed_with_upper_supports(
-        &mut tree,
-        params.envelope,
-        0.45,
-        matches!(params.habit, BranchHabit::Spreading(_)),
-    )?;
-    if repaired {
-        occupancy::upper_descendants(&mut tree, params.envelope);
-        occupancy::upper_scaffolds(&mut tree, params.envelope);
-    }
-    if matches!(params.habit, BranchHabit::Tiered(_)) {
-        occupancy::transverse_curtains(&mut tree, params.envelope);
-        occupancy::longitudinal_curtains(&mut tree, params.envelope);
-        occupancy::allocate_curtains(&mut tree, params.envelope);
-    }
+    let removed = match params.habit {
+        BranchHabit::Colonizing => shed(&mut tree, params.envelope, 0.45)?,
+        BranchHabit::Spreading(_) | BranchHabit::Tiered(_) => 0,
+    };
     radius::solve(&mut tree, params.envelope, radii)?;
     Ok(GrowthReport {
         tree,
