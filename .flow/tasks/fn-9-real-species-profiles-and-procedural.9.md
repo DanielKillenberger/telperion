@@ -44,17 +44,19 @@ The owner requested cleanup and completion after fetching pass 7. R6 authorizes 
 
 Frozen botanical targets, seed identities and honest geometry/visual evidence remain required. Historical pass reports' unchanged-count/protected-hash/no-lower-infill conditions have no attributed owner requirement in this spec and are superseded by this evidence-driven architecture repair. Record changed counts and outputs; do not weaken profile dimensions, resource/finite checks or natural/supernatural separation. Keep prior evidence recoverable through Git and replace bulky iterative output with a compact reproducible final receipt.
 ## Acceptance
-- [ ] All 24 recorded seeds per species have explicit numeric results; required fixed/fresh image sets are inspected against source references. Numeric replay passes 48/48; final image inspection is in progress.
-- [ ] Trait-level evidence supports R3–R6, or outstanding failures remain explicit and prevent task completion; no unearned owner approval is recorded.
-- [ ] Ordinary and both Two Trees are checked for shared-rule regressions, with same-host CPU/count/size results and renderer identity reported.
+- [x] All 24 recorded seeds per species have explicit numeric results; required fixed/fresh image sets are inspected against source references. Final replay passes 48/48; 39 required mature views and nine shared views are inspected, with representative anatomy supplements.
+- [x] Trait-level evidence supports R3–R6, or outstanding failures remain explicit and prevent task completion; no unearned owner approval is recorded.
+- [x] Ordinary and both Two Trees are checked for shared-rule regressions, with same-host CPU/count/size results and renderer identity reported.
 - [x] Documented CPU-only replay succeeds, or a concrete environment limitation remains unassessed; missing captures never silently pass.
 - [x] Native workspace tests, Wasm checks, harness tests, formatting/clippy, typecheck, build and relevant headless integration all pass; evidence remains compact. Final native suite, Wasm/browser integration, 106 harness tests, fmt, strict Clippy, typecheck and build pass. The final mature capture runner requires manual inspection and intentionally does not award a visual verdict.
 
 
 ## Current evidence
-Production corrections are integrated through `ec75925`. Earlier blocked pass reports and images are preserved intact under `experiments/fn9-iterations/`; their iterative restrictions were superseded above. Final numeric replay is `/tmp/fn9-final-20260906/numeric.json` (48/48 pass). Final image inspection and independent implementation review remain required before completion.
+Final production is `0a8f343`. The final report, 48 numeric results, all 84 capture receipts and 59 scoped per-view observations are durable under `.flow/evidence/fn9/`. Required trait evidence supports R3–R6; optional occluded seam views and numeric-only cases remain explicitly unassessed. A retained real blunt terminal (spruce node5978) was corrected and reinspected without moving nodes or changing topology. Frozen targets and seeds remain unchanged.
 
-The requested live spruce viewer is served on `http://127.0.0.1:5184/?species=norway-spruce&seed=1` with full foliage. The browser fixtures retain their resource budgets and use explicit compact anatomy; rejection at a one-instance budget is checked. Peg close-up selection projects the viewing direction into the twig cross-section, so a radially aligned twig can select an attached needle.
+The requested full-foliage spruce is served at `http://127.0.0.1:5184/?species=norway-spruce&seed=1`. Unknown species links now show a recoverable error; browser regression passes. The small fixture anatomy is shared across binding/render/UI tests while binding-specific resource limits remain explicit.
+
+Final native suite (68 passed, 6 historical/diagnostic ignored), 106 harness tests, Wasm/browser integration, build, typecheck, fmt, strict Clippy and numeric/capture execution pass. Independent implementation review remains required before flowctl done. Historical reports and images are preserved intact under `experiments/fn9-iterations/`.
 
 ## Done summary
 TBD

@@ -1,0 +1,61 @@
+   Compiling telperion-core v0.1.0 (/tmp/telperion-fn9-fidelity/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 6.81s
+     Running tests/crown_retention.rs (target/release/deps/crown_retention-2e29ce183c881642)
+
+running 3 tests
+oak2 retained window: 59 twig endpoints within 0.5m ray
+test oak_infill_reaches_the_retained_seed_two_window ... ok
+seed 1: nodes=113005 bearing thirds/below=[1675.8333333332666, 5477.749413456696, 6428.5448582293575, 0.0]
+seed 2: nodes=104231 bearing thirds/below=[1724.75, 5295.0, 6128.972269529566, 0.0]
+test spreading_crown_retains_generated_interior_subdivisions ... ok
+seed 3: nodes=113168 bearing thirds/below=[1671.666666666599, 5415.58333333252, 6424.702589322004, 0.0]
+seed 4250668600: nodes=113851 bearing thirds/below=[1724.583333333261, 5522.583333332396, 6506.4753551024005, 0.0]
+test spruce_bearing_shoots_follow_the_secondary_span ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/foliage.rs (target/release/deps/foliage-5207b58bfb1eb724)
+
+running 12 tests
+test alternate_stations_continue_across_subdivided_twig_runs ... ok
+test evergreen_needles_clothe_slender_supports_but_not_thick_limbs ... ok
+test malformed_element_is_rejected_even_when_first_vertex_is_outside_shell ... ok
+test profile_blades_have_rounded_lobes_and_needles_have_four_sides ... ok
+test element_anatomy_and_bounds ... ok
+test needles_retain_shaft_width_before_the_distal_point ... ok
+test fallback_folds_zero_edges_and_clumps_at_terminal_tip ... ok
+test species_attachment_uses_local_twig_and_connected_origins ... ok
+test shell_membership_empty_and_invalid ... ok
+test species_empty_degenerate_and_invalid_controls_are_explicit ... ok
+test shell_keeps_leaf_extent_and_crown_underside ... ok
+test twig_stations_and_owned_deterministic_frames ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/growth.rs (target/release/deps/growth-78e35375a807725a)
+
+running 13 tests
+test clipped_local_axis_still_subdivides_before_its_terminal_twig ... ok
+test generation_limit_is_explicit ... ok
+test local_anatomy_attachment_taper_and_resolution ... ok
+test shedding_keeps_whole_runs_and_terminal_transition ... ok
+test fork_conservation_and_appended_radius_independence ... ok
+test empty_caps_invalid_and_finite_rails ... ok
+test shedding_remaps_runs_preserves_transitions_and_caps ... ok
+test natural_bias_is_independent_of_disabled_effects ... ok
+test spreading_habit_subdivides_crooked_substantial_axes_without_effects ... ok
+test family_and_seed_controls_rederive_growth ... ok
+test tiered_habit_has_a_continuous_leader_and_hanging_wood ... ok
+test habit_topology_bounds_seeds_and_limits_are_explicit ... ok
+test complete_presets_are_deterministic_and_solved ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s
+
+     Running tests/terminal_taper.rs (target/release/deps/terminal_taper-2df4b94ad105715c)
+
+running 1 test
+spruce seed1: 807 childless structural ends; node5978 radius=0.00025m
+test only_childless_species_structure_gets_terminal_taper ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s
+

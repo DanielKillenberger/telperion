@@ -1,0 +1,27 @@
+captured oregon-white-oak whole ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA) 1586
+captured oregon-white-oak bare ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA) 0
+captured oregon-white-oak foliage-detail ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA) 1586
+captured norway-spruce whole ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA) 107578
+captured norway-spruce bare ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA) 0
+captured norway-spruce foliage-detail ANGLE (NVIDIA, Vulkan 1.4.341 (NVIDIA NVIDIA GeForce RTX 3080 (0x00002206)), NVIDIA) 107578
+UI load failure surfaced
+UI initial 14,160 tris, 7,204 verts, 292 nodes, 2 draws, 746 foliage instances, 8.0 ms
+UI selected oregon white oak 21,920 tris, 11,218 verts, 419 nodes, 2 draws, 1,586 foliage instances, 12.1 ms
+UI selected norway spruce 116,440 tris, 59,998 verts, 2,022 nodes, 2 draws, 107,714 foliage instances, 305.1 ms
+UI invalid species URL recovered
+{
+  transactionalReplacement: true,
+  speciesAnatomy: true,
+  identityCatalogue: true,
+  independentOutputs: true,
+  meshFree: true,
+  ownership: true,
+  malformed: true,
+  empty: true,
+  staleFields: true,
+  deterministic: true,
+  partialDiagnostics: true,
+  loadFailureRetry: true,
+  buildFailureRetry: true
+}
+Browser disconnected

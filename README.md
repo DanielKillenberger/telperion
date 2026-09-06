@@ -15,7 +15,7 @@ engine.release(); // returned arrays are owned copies and remain usable
 engine.dispose();
 ```
 
-`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains the Two Trees. The optional `materializeTree` / `disposeTreeGeometry` adapter supplies Three.js objects; the consumer owns materials, lights and rendering. Three.js is a peer dependency. The native core has no external Rust dependencies; `serde_json` belongs to the Wasm binding only.
+`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all five named templates; `TWO_TREES` contains Telperion and Laurelin. The optional `materializeTree` / `disposeTreeGeometry` adapter supplies Three.js objects; the consumer owns materials, lights and rendering. Three.js is a peer dependency. The native core has no external Rust dependencies; `serde_json` belongs to the Wasm binding only.
 
 For a block-based consumer, request occupancy without constructing a wood surface or transferring render buffers:
 

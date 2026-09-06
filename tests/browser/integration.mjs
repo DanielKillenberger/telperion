@@ -1,5 +1,20 @@
 import { pathToFileURL } from 'node:url';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+// Shared anatomy for small binding, renderer and UI fixtures. Binding-specific
+// resource limits and internode spacing remain explicit at their call site.
+function compactSpeciesFixture(family) {
+  const fixture = structuredClone(family);
+  fixture.skeleton.envelope.height = 4;
+  fixture.skeleton.attractors = 40;
+  const habit = fixture.skeleton.habit;
+  if (habit.kind === 'tiered') {
+    habit.tiers = 3;
+    habit.branchesPerTier = 3;
+    habit.secondarySpacing = 0.4;
+  }
+  if (habit.kind === 'spreading') { habit.scaffoldLimbs = 3; habit.subdivisions = 2; }
+  return fixture;
+}
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
 const url = process.env.BROWSER_URL ?? 'http://127.0.0.1:5184';
 const out = process.env.BROWSER_EVIDENCE ?? '.flow/tmp/fn98-browser';
@@ -8,6 +23,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXE
   args: ['--no-sandbox'] });
 try {
   const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 });
+  await page.addInitScript({ content: `window.compactSpeciesFixture = ${compactSpeciesFixture.toString()};` });
   // Software WebGL must finish each submitted frame before the next one queues.
   // Preserve full fixture geometry, animation/orbit and screenshot assertions;
   // this is synchronization, not a GPU performance measurement.
@@ -90,19 +106,11 @@ try {
     await rejects(() => presetById('missing'), 'unknown browser identity');
     await rejects(() => engine.build('missing', {}), 'unknown native identity');
     for (const [id, unit] of [['oregon-white-oak', 'leaf'], ['norway-spruce', 'needle']]) {
-      const specimen = presetById(id);
+      const specimen = window.compactSpeciesFixture(presetById(id));
       // Small valid fixtures retain the authored habit and element anatomy.
-      specimen.skeleton.envelope.height = 4;
-      specimen.skeleton.attractors = 40;
       specimen.skeleton.growth.maxNodes = 12000;
       specimen.canopy.maxInstances = 12000;
       specimen.skeleton.twigs.twig.internodeLength = 0.04;
-      if (specimen.skeleton.habit.kind === 'tiered') {
-        specimen.skeleton.habit.tiers = 3;
-        specimen.skeleton.habit.branchesPerTier = 3;
-        specimen.skeleton.habit.secondarySpacing = 0.4;
-      }
-      else { specimen.skeleton.habit.scaffoldLimbs = 3; specimen.skeleton.habit.subdivisions = 2; }
       const output = engine.build(specimen, { foliage: true, structure: true, field: true });
       const foliage = output.foliage, d = output.diagnostics;
       check(d.complete, id + ' small binding fixture completes without truncation');
@@ -189,16 +197,8 @@ try {
         const { buildPreset, selectSpecimenView, countDraws } = await import('/harness/skeleton-view.ts');
         const { createStage, measureSubject } = await import('/harness/stage.ts');
         await initializeTreeCore();
-        const preset = presetById(id);
+        const preset = window.compactSpeciesFixture(presetById(id));
         preset.skeleton.seed = 42;
-        preset.skeleton.envelope.height = 4;
-        preset.skeleton.attractors = 40;
-        if (preset.skeleton.habit.kind === 'tiered') {
-          preset.skeleton.habit.tiers = 3;
-          preset.skeleton.habit.branchesPerTier = 3;
-          preset.skeleton.habit.secondarySpacing = 0.4;
-        }
-        if (preset.skeleton.habit.kind === 'spreading') { preset.skeleton.habit.scaffoldLimbs = 3; preset.skeleton.habit.subdivisions = 2; }
         const stage = createStage(document.querySelector('canvas'));
         let bounds, stats, draws;
         stage.setTree(clay => {
@@ -239,12 +239,7 @@ try {
     const { treeCore, presetById } = await import('/src/browser/core.ts');
     const { materializeTree } = await import('/src/browser/three.ts');
     const { createStage, measureSubject } = await import('/harness/stage.ts');
-    const preset = presetById('norway-spruce');
-    preset.skeleton.envelope.height = 4;
-    preset.skeleton.attractors = 40;
-    preset.skeleton.habit.tiers = 3;
-    preset.skeleton.habit.branchesPerTier = 3;
-    preset.skeleton.habit.secondarySpacing = 0.4;
+    const preset = window.compactSpeciesFixture(presetById('norway-spruce'));
     preset.canopy.size = 0;
     const output = treeCore().build(preset, { surface: true, foliage: true });
     treeCore().release();
@@ -271,15 +266,7 @@ try {
     await route.fulfill({ response, body: source + `
       const originalBuild = TreeEngine.prototype.build;
       TreeEngine.prototype.build = function(family, outputs) {
-        const fixture = structuredClone(family);
-        fixture.skeleton.envelope.height = 4;
-        fixture.skeleton.attractors = 40;
-        if (fixture.skeleton.habit.kind === 'tiered') {
-          fixture.skeleton.habit.tiers = 3;
-          fixture.skeleton.habit.branchesPerTier = 3;
-          fixture.skeleton.habit.secondarySpacing = 0.4;
-        }
-        if (fixture.skeleton.habit.kind === 'spreading') { fixture.skeleton.habit.scaffoldLimbs = 3; fixture.skeleton.habit.subdivisions = 2; }
+        const fixture = window.compactSpeciesFixture(family);
         const output = originalBuild.call(this, fixture, outputs);
         window.viewerBuild = { seed: fixture.skeleton.seed, signature: JSON.stringify(Array.from(output.foliage?.matrices ?? output.surface?.positions ?? [])) };
         return output;

@@ -1,0 +1,32 @@
+
+> telperion@0.1.0 rust:test:wasm
+> node scripts/test-wasm.mjs
+
+    Finished `release` profile [optimized] target(s) in 0.04s
+Built Wasm and regenerated Rust family metadata.
+captured oregon-white-oak whole ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver) 1586
+captured oregon-white-oak bare ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver) 0
+captured oregon-white-oak foliage-detail ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver) 1586
+captured norway-spruce whole ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver) 107578
+captured norway-spruce bare ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver) 0
+captured norway-spruce foliage-detail ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver) 107578
+UI load failure surfaced
+UI initial 14,160 tris, 7,204 verts, 292 nodes, 2 draws, 746 foliage instances, 4.8 ms
+UI selected oregon white oak 21,920 tris, 11,218 verts, 419 nodes, 2 draws, 1,586 foliage instances, 10.3 ms
+UI selected norway spruce 116,440 tris, 59,998 verts, 2,022 nodes, 2 draws, 107,714 foliage instances, 261.0 ms
+{
+  transactionalReplacement: true,
+  speciesAnatomy: true,
+  identityCatalogue: true,
+  independentOutputs: true,
+  meshFree: true,
+  ownership: true,
+  malformed: true,
+  empty: true,
+  staleFields: true,
+  deterministic: true,
+  partialDiagnostics: true,
+  loadFailureRetry: true,
+  buildFailureRetry: true
+}
+Browser disconnected

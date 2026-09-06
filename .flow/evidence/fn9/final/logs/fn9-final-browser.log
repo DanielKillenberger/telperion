@@ -1,0 +1,21 @@
+
+> telperion@0.1.0 rust:test:wasm
+> node scripts/test-wasm.mjs
+
+    Finished `release` profile [optimized] target(s) in 0.01s
+Built Wasm and regenerated Rust family metadata.
+Browser disconnected
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Error: Tree core: foliage instance budget
+    at TreeEngine.check (http://127.0.0.1:5173/src/browser/core.ts:44:21)
+    at TreeEngine.build (http://127.0.0.1:5173/src/browser/core.ts:63:10)
+    at eval (eval at evaluate (:311:30), <anonymous>:57:29)
+    at async <anonymous>:337:30
+    at /home/daniel/Projects/telperion/.worktrees/fn-9-real-species-profiles-and-procedural/tests/browser/integration.mjs:46:31 {
+  log: []
+}
+
+Node.js v26.8.1

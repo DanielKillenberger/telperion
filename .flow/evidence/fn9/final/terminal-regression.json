@@ -1,0 +1,13 @@
+{
+  "node": 5978,
+  "parent": 5977,
+  "seed": 1,
+  "edge_length_mm": 41.899,
+  "proximal_radius_mm": 2.048824,
+  "distal_radius_before_mm": 2.045393,
+  "distal_radius_after_mm": 0.25,
+  "corrected_childless_structural_ends": 807,
+  "other_node_fields": "unchanged; verified by terminal_taper test",
+  "before_png_sha256": "5caae17d6468e95b73fa2e99934c4df83c741cb931651a62b5850e06b9228a40",
+  "after_png_sha256": "a95dd2ef80454dbe04906232c4916a6de9fc7ac7cebec430848f71bb6336aefd"
+}

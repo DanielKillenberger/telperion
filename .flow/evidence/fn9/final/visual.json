@@ -1,0 +1,733 @@
+[
+  {
+    "id": "oregon-white-oak-1",
+    "view": "whole",
+    "pngSha256": "83f43b23728f0fe46c9d2ff865e0dcd09dd08cf291b476dd854aaad7d57b549e",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Broad irregular crown with substantial foliage masses and windows between spreading limbs; not a sparse upward shell.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "bare",
+    "pngSha256": "aaffd78c4c9f9f4b03b1d9f8c19d3df43fa651cf3696308f19ad236151c52a95",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Low crooked spreading primary limbs subdivide to fine terminal structure.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "foliage-detail",
+    "pngSha256": "21ee6642a9da3d7fb7bd50d1090526cc24c49ecc950d4d6608d7fb4706cc2315",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Rounded lobed individual blades with alternate petiole attachment; some crossing wood occludes local junctions.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "element",
+    "pngSha256": "b5bbdfcfb971de9561b1f397458f0af6d8c158d5de50514f5749b77e1a054964",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Rounded lobes and petiole visible on isolated original blade.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "junction-detail",
+    "pngSha256": "5c9ac86c78ead63f050b6aeec38cfa1ee12e9d1140e3f60dec446e3f77412cb8",
+    "inspection": "inspected",
+    "assessment": "unassessed",
+    "note": "Connected wood/foliage retained; crossing branches limit visibility of the selected junction.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-front",
+    "pngSha256": "2b16948d92d1692064c336019da3e5e8e50ad01d0b1bc1ed9d1ab2bb2d509788",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Connected original twig shows alternate petiole insertions and lobed blades.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-left",
+    "pngSha256": "da921e44f0e09ebb3a543a7fc3f1b6e40902c657e3b2d577465d7c3a9a1892b4",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-right",
+    "pngSha256": "ffe6a146703b58f332173aa3e2e213e614fbd390be09467e12b2cd7b219fc99c",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-alt-front",
+    "pngSha256": "be89b3d91158d3c05d82d2c993745822b8c2ad32593186a94aa86e0cc9ad187f",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-alt-left",
+    "pngSha256": "f5b3f4f51f8b915fddac6658745cf672c8f0d6902df80144bcceaedf89b4edd4",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1",
+    "view": "exterior-alt-right",
+    "pngSha256": "7934aa6f2f622b8e673228e64e36855f414c0e0f366cefeb91f9d131d1bd8ad2",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-2",
+    "view": "whole",
+    "pngSha256": "e23452f117ae3695302354871b44b708626092ff5e0b0e173e9de0a4f6514a36",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Broad irregular crown with substantial foliage masses and windows between spreading limbs; not a sparse upward shell. A deep upper notch remains; the prior enclosed central window has foliage. This is an irregular broad crown, not an opaque canopy target.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-2",
+    "view": "bare",
+    "pngSha256": "0bd4871f715a5c1c75cdfa703e4f96fd63658bf45e420dbe45a805932d33665e",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Low crooked spreading primary limbs subdivide to fine terminal structure.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-2",
+    "view": "foliage-detail",
+    "pngSha256": "0c12815586810fff2fb1b70cdc0644f845de3776578565619a75632ce8196a8e",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Rounded lobed individual blades with alternate petiole attachment; some crossing wood occludes local junctions.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-3",
+    "view": "whole",
+    "pngSha256": "aa1217d98d1935298ed7eaea1a527522b583ce25b9299742ebf1c66091c24786",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Broad irregular crown with substantial foliage masses and windows between spreading limbs; not a sparse upward shell.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-3",
+    "view": "bare",
+    "pngSha256": "67eeb86d5e3f03cdddf1a3ba3f70ad32c85f2cd6aacdd7f6f8358edf6da2a947",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Low crooked spreading primary limbs subdivide to fine terminal structure.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-3",
+    "view": "foliage-detail",
+    "pngSha256": "b1d8a680af2a806dda26a49b40cc1aae616c03a9df58678ca265d7e8855c568a",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Rounded lobed individual blades with alternate petiole attachment; some crossing wood occludes local junctions.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-2666899686",
+    "view": "whole",
+    "pngSha256": "91b15608bdf5f9df0db09f668faf626ecbf2e60a19222bcb5b8876791836c6ce",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Broad irregular crown with substantial foliage masses and windows between spreading limbs; not a sparse upward shell.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-2666899686",
+    "view": "bare",
+    "pngSha256": "c100db1d45ea4fd6ba6fb437fc88277206c102aaca01a9750729074bdf4d8732",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Low crooked spreading primary limbs subdivide to fine terminal structure.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-2666899686",
+    "view": "foliage-detail",
+    "pngSha256": "5afb555bfb8ef550e65d8bec53d2f8c73ee7a9774716a2ba2352405ba03d562e",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Rounded lobed individual blades with alternate petiole attachment; some crossing wood occludes local junctions.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-762807349",
+    "view": "whole",
+    "pngSha256": "3a8db8cccda199330f8a1bf7452ce92beca7861dfa253df150fc9fc8c6dcb929",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Broad irregular crown with substantial foliage masses and windows between spreading limbs; not a sparse upward shell.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-762807349",
+    "view": "bare",
+    "pngSha256": "1fd0e4590c3a2d08780ffda9fb1f4006b5f503d83143df99090423baa7c96ae3",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Low crooked spreading primary limbs subdivide to fine terminal structure.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-762807349",
+    "view": "foliage-detail",
+    "pngSha256": "b92fe0564264957a109006b4ef448795a816281aeab5a602b7b57f9d0ca8e576",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Rounded lobed individual blades with alternate petiole attachment; some crossing wood occludes local junctions.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1444323199",
+    "view": "whole",
+    "pngSha256": "bfe1f44e73da76468f4e89c8ba77d1f105aeb76b3bfedfe590a358e2986eb4ae",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Broad irregular crown with substantial foliage masses and windows between spreading limbs; not a sparse upward shell.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1444323199",
+    "view": "bare",
+    "pngSha256": "8d9f8cd1699e8f4c9d29d361fb911987c2172127139595847bb5543b74290d7c",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Low crooked spreading primary limbs subdivide to fine terminal structure.",
+    "owner_feedback": null
+  },
+  {
+    "id": "oregon-white-oak-1444323199",
+    "view": "foliage-detail",
+    "pngSha256": "73ddd3d1acb3f06eb2c4e22c18408a1f7dbfb3e7527c2cd28f745f3112e9dab4",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Rounded lobed individual blades with alternate petiole attachment; some crossing wood occludes local junctions.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "whole",
+    "pngSha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Conical taper, dominant leader and irregular separated tiers; hanging sprays are substantial with visible spaces.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "bare",
+    "pngSha256": "95b96abdbd71e81a08d3e4099f160b63e3d5e70c3ec92c9dfed2d525822aec04",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Dominant leader, spreading primary tiers and descending secondary systems; fine endpoints remain visible.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "foliage-detail",
+    "pngSha256": "be0b8412ea8ee7bee3424af39f9610bde7c7324067f61f1e8930f4f452e1a800",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Individual angular needles surround attached twig with forward bias. Exposed structural tips now narrow; cut polygons at camera planes are clipping. Peg relief is resolved in representative high-magnification views, not claimed in every detail pixel.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "element",
+    "pngSha256": "73c3ee44fee954e3617af41dc1a21f749b2ecd3e80bd4f2fa9bc85185e955e3b",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Four-sided individual needle with narrow basal peg and pointed distal shape.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "junction-detail",
+    "pngSha256": "a95dd2ef80454dbe04906232c4916a6de9fc7ac7cebec430848f71bb6336aefd",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Retained blunt-end counterexample node5978 now tapers over the same final edge; neighboring connected wood remains. Distant bare-looking shoots have foliage outside the local display subset.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-front",
+    "pngSha256": "a45b9946defe34fffa9d4ecd815928807368e860f193380824ca57f6bf8c8dd1",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Needles surround continuous original twig with forward bias; thin terminal taper visible.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-left",
+    "pngSha256": "de2ce9533ca24c3edbb209d5e5af095b21af87efa39ae468bdbc8e9560e5cb92",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-right",
+    "pngSha256": "18f94e2fd78ae2d84c828c40c562c6f458a83a821d303fbaec1c7871985da363",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-alt-front",
+    "pngSha256": "6157d9f4cc575de0c1481d486b463d50dc86e5c172f36e763f9b8b167ff4ee76",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-alt-left",
+    "pngSha256": "745c5eb3639e552f83ceb90f13d7de16b7b7bb5238e398dd3a1abffd5f9e0b78",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "exterior-alt-right",
+    "pngSha256": "c3e8f0d50f4b32ba42b7c644e69b00ef4899d99df3b8c78404a34a978cda6d8d",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "branch-curtain",
+    "pngSha256": "f564bb23e25b4b7f2ff5ebd99030a86c8d8a27f76d8e48e17a36e398087e7aea",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Substantial hanging/diagonal sprays distributed along secondaries, separated by irregular spaces.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-upper",
+    "pngSha256": "4e0cfab85dae1722dfe952faf1a3ac717c581bdc3f0c87d2e31b76804177a781",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-lower",
+    "pngSha256": "1ebe68b340e6d0478bc863f06e2cfd636960f1bc55490981d33bce81c37b64ae",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-upper",
+    "pngSha256": "1d53e1f81341aea735e2a438c1057f525cc4d63704eec1371e996951b85e7058",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-lower",
+    "pngSha256": "3f70759de6fb96f81a37eec79b3f5f05cb49112497d38b332553337e7b196211",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-contact-front",
+    "pngSha256": "a0deb9866095ca853309fe22edd35bba2dfa8248df23bbde85a56bb367913395",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-contact-left",
+    "pngSha256": "aa0952c4348c91cbe3ed868a3401b8ca441e0948b401063d361f7d25dcb8ebd0",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-contact-right",
+    "pngSha256": "87e0e843b80a08f9177ec6c1ebcc9d0624a6fedbf7c319505f444a06483421c4",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-contact-front",
+    "pngSha256": "106e84b825986fa722d3b3f64377880b1ee830f2d8ce71a3d4ede5859a63c069",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-contact-left",
+    "pngSha256": "153fe8e5683d6c66ef30695251383203de8e3f3a9daa1465a91675c8be590c3a",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-alt-contact-right",
+    "pngSha256": "8f3140442f519ddd5f48b29bed9fccc32a73477fffb7f1cfc3c703ca75375fd9",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-clear-front",
+    "pngSha256": "23b9fb1dd1e5aef36f23853d9837c39f2652b42b1ff8e496d79808ace3d71794",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Local selected needle/base contact meets twig surface; remaining angles are not implicitly approved.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-clear-left",
+    "pngSha256": "88ea5b02d6840314afe77d67d8fba4fbd547f43b842849d2b2aea69dc4a43a8d",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Selected needle base visibly meets the twig in the connected scene; four-sided relief is visible.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "peg-clear-right",
+    "pngSha256": "cf1da1d28d390703ffed40c03e863b229e826fd4b60f8fc0798817b3119716e1",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-root-front",
+    "pngSha256": "816c59752c23ac1ec894e7211ea61873d5b81a00095b4b850f7774bc1d6af03d",
+    "inspection": "inspected",
+    "assessment": "unassessed",
+    "note": "Visible branch insertion meets its parent; nearby needles occlude part of the boundary, so no complete hidden-seam claim.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-root-left",
+    "pngSha256": "610ea48d5378c66ccde774bfca06bce91ceba481967a2b31fd8563b0e58f0e95",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-root-right",
+    "pngSha256": "744115e53ef27aa244d321e172c29dfaf9f70c459bb0427230520ad48d6f93c1",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-tip-front",
+    "pngSha256": "589a8b9c7abc78129e6c2cda9cb34879233adb55d23f4d4f166dd03fdd7626e0",
+    "inspection": "inspected",
+    "assessment": "unassessed",
+    "note": "Crossing needles occlude the selected distal junction; this optional seam view remains unresolved.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-tip-left",
+    "pngSha256": "d18663d731435230ffca5527f2a00edf18d746527da62f3e78c610652349db4e",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1",
+    "view": "socket-tip-right",
+    "pngSha256": "3e63a802dc34220ef20e05c58fc469e249c47f88d4f972499d84494093f7d0bf",
+    "inspection": "not assessed in final decision",
+    "assessment": "unassessed",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-2",
+    "view": "whole",
+    "pngSha256": "7bb5ae045b9a0f4facd41bc464c2e6fc25208ab2eabeaf4f35f00280112d2d0c",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Conical taper, dominant leader and irregular separated tiers; hanging sprays are substantial with visible spaces.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-2",
+    "view": "bare",
+    "pngSha256": "2cb032d831ab025f938e44d1c53b94397174ced9f91f9296f0efdf653333d5bf",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Dominant leader, spreading primary tiers and descending secondary systems; fine endpoints remain visible.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-2",
+    "view": "foliage-detail",
+    "pngSha256": "3b9c724448811f2e4e50925c353430ab66833b5ace8ab00262da53f609b0a70e",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Individual angular needles surround attached twig with forward bias. Exposed structural tips now narrow; cut polygons at camera planes are clipping. Peg relief is resolved in representative high-magnification views, not claimed in every detail pixel.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-3",
+    "view": "whole",
+    "pngSha256": "c35731615edea33dc9a088a2ae4676281e91e4677b1d4a94141bb3adad827d65",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Conical taper, dominant leader and irregular separated tiers; hanging sprays are substantial with visible spaces.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-3",
+    "view": "bare",
+    "pngSha256": "303d542b9365940e365c225ff19d66dad068f508d2776d5dbec08a1a1a053a75",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Dominant leader, spreading primary tiers and descending secondary systems; fine endpoints remain visible.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-3",
+    "view": "foliage-detail",
+    "pngSha256": "8181340bac3936c80122650d04c0dd9324b2fe1b93fa161c4c8fcb90d25b05e6",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Individual angular needles surround attached twig with forward bias. Exposed structural tips now narrow; cut polygons at camera planes are clipping. Peg relief is resolved in representative high-magnification views, not claimed in every detail pixel.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1982700925",
+    "view": "whole",
+    "pngSha256": "fa5a7164dcdc46b9eda4f69942ab61eb78e8bdd5e0818241220737c76265fe21",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Conical taper, dominant leader and irregular separated tiers; hanging sprays are substantial with visible spaces.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1982700925",
+    "view": "bare",
+    "pngSha256": "1c6a71f4692e4a8b347cdbcfdda645d5243f68631897dd89f700e75a21a4c4fc",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Dominant leader, spreading primary tiers and descending secondary systems; fine endpoints remain visible.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-1982700925",
+    "view": "foliage-detail",
+    "pngSha256": "5b8a668358b49396f87a052bb74852b3942fb084979c1af2104197fa4e6f7c2d",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Individual angular needles surround attached twig with forward bias. Exposed structural tips now narrow; cut polygons at camera planes are clipping. Peg relief is resolved in representative high-magnification views, not claimed in every detail pixel.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-281313742",
+    "view": "whole",
+    "pngSha256": "0951c7d19e98f4e57d3fc5e8b03c81b6cb77364ec5cced4b3cd0ac64bbae229a",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Conical taper, dominant leader and irregular separated tiers; hanging sprays are substantial with visible spaces.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-281313742",
+    "view": "bare",
+    "pngSha256": "fd0f5c34b727b0aa17f4afaed70308377b823f910690edc2e539ae6ee17e3ee2",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Dominant leader, spreading primary tiers and descending secondary systems; fine endpoints remain visible.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-281313742",
+    "view": "foliage-detail",
+    "pngSha256": "66e11c75703e7c40f534e42929285df9fd7d95d88e086c07e0376885d985db17",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Individual angular needles surround attached twig with forward bias. Exposed structural tips now narrow; cut polygons at camera planes are clipping. Peg relief is resolved in representative high-magnification views, not claimed in every detail pixel.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-2271779095",
+    "view": "whole",
+    "pngSha256": "d08fa1e6e622c773b24aa5a96f719ad3d2cacfa18a1895e31cf8f5bddceaed02",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Conical taper, dominant leader and irregular separated tiers; hanging sprays are substantial with visible spaces.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-2271779095",
+    "view": "bare",
+    "pngSha256": "fb84aad15e4ec133dd87807ac5c51e489f27c731961708d6d97105a0f1e78632",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Dominant leader, spreading primary tiers and descending secondary systems; fine endpoints remain visible.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-2271779095",
+    "view": "foliage-detail",
+    "pngSha256": "ae56803bd783538bae096efc8b46491c2597419d24ecadce1adf670123d0a56e",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Individual angular needles surround attached twig with forward bias. Exposed structural tips now narrow; cut polygons at camera planes are clipping. Peg relief is resolved in representative high-magnification views, not claimed in every detail pixel.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-4250668600",
+    "view": "whole",
+    "pngSha256": "a6d4a000a40d51dc17364c40fb8dfc5afdfb9bfc1cd2b261f84afba2fe3e7e86",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Conical taper, dominant leader and irregular separated tiers; hanging sprays are substantial with visible spaces.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-4250668600",
+    "view": "bare",
+    "pngSha256": "816b57c0cb887cfcd9d629fef2598ee5f14786449ce09c1484d9404e81123eac",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Dominant leader, spreading primary tiers and descending secondary systems; fine endpoints remain visible.",
+    "owner_feedback": null
+  },
+  {
+    "id": "norway-spruce-4250668600",
+    "view": "foliage-detail",
+    "pngSha256": "66f918f7208413a9a21b118db945942d00d504f9df2790c8c27f551985def9ab",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Individual angular needles surround attached twig with forward bias. Exposed structural tips now narrow; cut polygons at camera planes are clipping. Peg relief is resolved in representative high-magnification views, not claimed in every detail pixel.",
+    "owner_feedback": null
+  },
+  {
+    "id": "ordinary",
+    "view": "whole",
+    "pngSha256": "2393024b1e5c8a26cd5124ebb991dbe4b883f6d59528f27e0774fbcbfae54d10",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Historical sparse upward/sweeping shared-template form retained; not judged against natural-species rubric.",
+    "owner_feedback": null
+  },
+  {
+    "id": "ordinary",
+    "view": "bare",
+    "pngSha256": "691e7517d5dd51b353ea33caac94fb44a01185d8f760c108efe6ff92bc36862a",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Historical shared scaffold retained with no new shared-rule regression.",
+    "owner_feedback": null
+  },
+  {
+    "id": "ordinary",
+    "view": "foliage-detail",
+    "pngSha256": "31a80f7a1d8e85c0de2f2b37196484f4be79b77b9e1a4c231d3be9b0c498d039",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Historical pointed leaf form and sparse placement retained; not a natural-species anatomy assertion.",
+    "owner_feedback": null
+  },
+  {
+    "id": "telperion",
+    "view": "whole",
+    "pngSha256": "944a4af92d2597052d8ec690727fddc570da03526445faaf3b7137445a3807b9",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Historical sparse upward/sweeping shared-template form retained; not judged against natural-species rubric.",
+    "owner_feedback": null
+  },
+  {
+    "id": "telperion",
+    "view": "bare",
+    "pngSha256": "16ea793cc834d80625754e6efc1de8c2266dd07fda0539db15a86c3b8459b9eb",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Historical shared scaffold retained with no new shared-rule regression.",
+    "owner_feedback": null
+  },
+  {
+    "id": "telperion",
+    "view": "foliage-detail",
+    "pngSha256": "2b465d5de23e9cab2747d0c3fd51b2c0cd183447c729636c54841c682d2dea51",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Historical pointed leaf form and sparse placement retained; not a natural-species anatomy assertion.",
+    "owner_feedback": null
+  },
+  {
+    "id": "laurelin",
+    "view": "whole",
+    "pngSha256": "78acab30a13cbf0e33548f6a0e10034598817764c7c78a5ffcb7b0d9c50f2d9d",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Historical sparse upward/sweeping shared-template form retained; not judged against natural-species rubric.",
+    "owner_feedback": null
+  },
+  {
+    "id": "laurelin",
+    "view": "bare",
+    "pngSha256": "edfb4533bcf604178527e5806b4c876cc2b195562726960953c54de2053f765a",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Historical shared scaffold retained with no new shared-rule regression.",
+    "owner_feedback": null
+  },
+  {
+    "id": "laurelin",
+    "view": "foliage-detail",
+    "pngSha256": "06edd05b6e4157cd5098f5b4d220d7e03997a022b1b6ca23e45f76a71ad66f9f",
+    "inspection": "inspected",
+    "assessment": "supported",
+    "note": "Historical pointed leaf form and sparse placement retained; not a natural-species anatomy assertion.",
+    "owner_feedback": null
+  }
+]
