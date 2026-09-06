@@ -86,3 +86,32 @@ fn spruce_bearing_shoots_follow_the_secondary_span() {
         }
     }
 }
+
+#[test]
+fn oak_infill_reaches_the_retained_seed_two_window() {
+    use telperion_core::math::Vec3;
+    let mut family = Preset::OregonWhiteOak.parameters();
+    family.skeleton.seed = 2;
+    let report = branching::generate(&family.skeleton, family.radii).unwrap();
+    let camera = Vec3::new(25.454365371536586, 20.23331671361438, 42.31588348801908);
+    let target = Vec3::new(-0.4632261710395369, 8.528597952450966, 0.5133164838640489);
+    let forward = (target - camera).normalized();
+    let right = forward.cross(Vec3::Y).normalized();
+    let up = right.cross(forward);
+    let tangent = 19.0_f64.to_radians().tan();
+    let ray = (forward
+        + right * ((553.0 / 960.0 * 2.0 - 1.0) * tangent * 4.0 / 3.0)
+        + up * ((1.0 - 372.0 / 720.0 * 2.0) * tangent))
+        .normalized();
+    let near = report
+        .tree
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Twig && (n.position - camera).cross(ray).length() < 0.5)
+        .count();
+    println!("oak2 retained window: {near} twig endpoints within 0.5m ray");
+    assert!(
+        near > 10,
+        "retained seed2 window has only {near} nearby endpoints"
+    );
+}

@@ -244,6 +244,18 @@ impl Builder<'_> {
             }
             shoots = next;
         }
+        let mut children = vec![0; self.tree.nodes.len()];
+        for n in self.tree.nodes.iter().skip(1) {
+            children[n.parent.unwrap() as usize] += 1;
+        }
+        let mut occupied: Vec<_> = self
+            .tree
+            .nodes
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| children[*i] == 0)
+            .map(|(_, n)| n.position)
+            .collect();
         for (at, length) in infill {
             let parent = self.tree.nodes[at].parent.unwrap() as usize;
             let heading =
@@ -251,16 +263,37 @@ impl Builder<'_> {
             let normal = heading.perpendicular();
             let phase = self.rng.range(0.0, TAU);
             let across = normal * phase.cos() + heading.cross(normal) * phase.sin();
-            let direction = (heading * 0.45 + across * 0.85 + Vec3::Y * 0.1).normalized();
+            let start = self.tree.nodes[at].position;
+            let direction = (0..24)
+                .filter_map(|j| {
+                    let azimuth = phase + TAU * j as f64 / 24.0;
+                    let lateral = normal * azimuth.cos() + heading.cross(normal) * azimuth.sin();
+                    let direction = (heading * 0.45 + lateral * 0.85 + Vec3::Y * 0.1).normalized();
+                    let end = start + direction * length;
+                    if !self.envelope.contains(end, 0.0) || end.y < self.config.trunk_height {
+                        return None;
+                    }
+                    let distance = occupied
+                        .iter()
+                        .map(|p| p.distance(end))
+                        .fold(f64::INFINITY, f64::min);
+                    Some((direction, distance))
+                })
+                .max_by(|a, b| a.1.total_cmp(&b.1))
+                .map_or(
+                    (heading * 0.45 + across * 0.85 + Vec3::Y * 0.1).normalized(),
+                    |v| v.0,
+                );
             let (end, tip) = self.crooked_axis(at, direction, length, p.crookedness)?;
             if end != at {
                 for side in [-1.0, 1.0] {
-                    self.crooked_axis(
+                    let (tip, _) = self.crooked_axis(
                         end,
                         (tip + across * side * 0.65).normalized(),
                         length * 0.55,
                         p.crookedness,
                     )?;
+                    occupied.push(self.tree.nodes[tip].position);
                 }
             }
             if self.tree.diagnostics.node_capped {

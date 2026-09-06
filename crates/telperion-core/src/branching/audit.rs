@@ -104,12 +104,12 @@ fn scaffold_directions() {
 }
 
 #[test]
-fn accepted_oak_scaffolds_are_unchanged() {
-    // Pass-3 structural positions and parent links, before pass-4 spacing repair.
+fn spreading_scaffold_geometry_is_reproducible() {
+    // Structural positions and parent links after reachable infill orientation.
     for (seed, expected) in [
-        (1, 8709238459600713761),
-        (762807349, 3941552297145586417),
-        (1444323199, 4459427015154599464),
+        (1, 1398409437268954371),
+        (762807349, 13183752583828909538),
+        (1444323199, 7487937408135586528),
     ] {
         let mut f = Preset::OregonWhiteOak.parameters();
         f.skeleton.seed = seed;
@@ -127,6 +127,6 @@ fn accepted_oak_scaffolds_are_unchanged() {
                 hash = (hash ^ byte as u64).wrapping_mul(1099511628211);
             }
         }
-        assert_eq!(hash, expected, "accepted oak {seed} scaffold changed");
+        assert_eq!(hash, expected, "oak {seed} scaffold changed");
     }
 }
