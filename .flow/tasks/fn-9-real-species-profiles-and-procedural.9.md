@@ -44,19 +44,20 @@ node tests/browser/species.mjs --help
 - [ ] Trait-level evidence supports R3–R6, or outstanding failures remain explicit and prevent task completion; no unearned owner approval is recorded.
 - [x] Ordinary and both Two Trees are checked for shared-rule regressions, with same-host CPU/count/size results and renderer identity reported.
 - [x] Documented CPU-only replay succeeds, or a concrete environment limitation remains unassessed; missing captures never silently pass.
-- [x] Native workspace tests, Wasm checks, harness tests, formatting/clippy, typecheck, build and relevant headless integration all pass; evidence remains compact.
+- [ ] Native workspace tests, Wasm checks, harness tests, formatting/clippy, typecheck, build and relevant headless integration all pass; evidence remains compact. Latest isolated browser assertions pass, but recorder exit 143 leaves its child exit unassessed; earlier explicit exit 0 has a mixed-log limitation.
 
 ## Done summary
 
-Blocked:
-FN-9.9 remains blocked after pass-2 architecture and inspected QA at production 3f3533c. All 48 retained numeric cases pass; spruce 4250668600 is 8.621604388 m <= unchanged 9.144 m. All 60 final image hashes are personally inspected. Oak upper bare sprays and every spruce crown/curtain mass still fail. Uncropped spruce seed-1 exterior detail now proves blunt terminal-cap taper failure; peg contact and complete socket fidelity remain unresolved. Upper-side forward bias passes only the seed-1 supplemental view. All nine shared-template geometry/PNG hashes match pass 1; software gates pass with isolated browser exit 0. No PR, merge, completion or owner approval.
+Blocked after pass-3 implementation and personal inspection. Production `d797508` passes all 48 retained numeric cases; spruce 4250668600 width is 8.685860226 m <= unchanged 9.144 m. Upper-support shedding demonstrably stripped oak foliage-bearing descendants; targeted retention repairs the upper sprays without changing lower shedding. Three required oak crown cases still fail (2, 3, 2666899686). Spruce descending hierarchy and terminal radius improve, but all seven inspected spruce crowns still lack substantial curtains. Seed-1 actual twig taper passes only supplemental inspected endpoints; complete socket/peg contact remains unassessed. All 70 final images are inspected, and all nine shared geometry/PNG hashes exactly match pass 2. No PR, merge, completion or owner approval.
 
-See .flow/evidence/fn9/REPORT.md and pass2-* evidence. Next work: trace upper oak local handoffs/radius/shedding; reshape spruce pendant local systems; correct actual terminal caps and resolve peg/socket contact. Keep every seed and frozen range; do not substitute a global foliage count/shell increase.
+Blocked:
+Pass 3 remains visually blocked after 70 personally inspected images: oak 2, 3, 2666899686 crown gaps/mass fail; all seven required spruce crowns lack substantial hanging curtains; complete socket/peg contact unresolved. Numeric 48/48 pass, retained spruce 4250668600 width 8.685860226 <= 9.144 m, nine shared geometry/PNG hashes unchanged. Evidence: .flow/evidence/fn9/REPORT.md and pass3-*. No PR, merge, completion or owner approval. Next target remaining scaffold spacing, foliage-bearing secondary hierarchy, and actual rendered surface contact; preserve every seed/range.
 
 ## Evidence
 
-- Commits: `3f3533c` architectural placement and regression; `54702f2` / `0d608f6` actual exterior twig/socket cameras and surface-radius needle selection; `972b3bd` consistent complete small browser fixtures. Numeric, cost, gate and final visual evidence commits remain in branch history.
-- Tests: all 48 retained numeric cases, native workspace, 106 harness tests, fmt, Clippy `-D warnings`, typecheck, build, isolated Wasm/browser integration exit 0, final diff and Flow validation. Receipt replay exits expected 1 because automated visual approval is never granted.
-- Visuals: `.flow/evidence/fn9/REPORT.md`, `pass2-visual.json`, `pass2-captures.json`, `pass2-shared.json`, and `qa-preview/pass2-*.png`. Bulk captures `/tmp/fn99-fix2-qa`; raw measurements `/tmp/fn99-fix2-replay`. Prior report preserved as `REPORT-pass1.md`.
-- Next: trace upper oak handoffs/radius/shedding, reshape spruce local pendant systems into substantial curtains, correct actual terminal caps and resolve peg/socket contact. Preserve every seed and frozen target; no global foliage-count substitute.
-- PRs: none; Flow remains blocked and ineligible for make-pr.
+- Implementation: `d797508`; exterior runner correction `2dfa2d2`; numeric/source/cost evidence `0a29b99`.
+- Tests: 48 retained numeric cases, native workspace, 106 harness tests, fmt, Clippy `-D warnings`, typecheck, build; explicit final browser and cheap-check receipts in `pass3-gates.json`. Capture runner exit 1 preserves unassessed automated visual approval.
+- Visuals: `.flow/evidence/fn9/REPORT.md`, `pass3-visual.json`, `pass3-captures.json`, `pass3-shared.json`, `qa-preview/pass3-*.png`. Bulk `/tmp/fn99-fix3-qa`; numeric `/tmp/fn99-fix3-final-replay`; prior report `REPORT-pass2.md`.
+- Diagnosis: `pass3-scaffold-audit.json` records retained/lost upper descendants for all 13 visual specimens.
+- Next: preserve upper retention; target remaining oak scaffold spacing/directions; inspect spruce foliage-bearing versus bare secondary lengths and overlap before revising hierarchy; resolve actual polygonal surface/socket contact. Preserve all seeds and frozen targets; no global foliage-count substitute.
+- PRs: none; blocked and ineligible for make-pr.

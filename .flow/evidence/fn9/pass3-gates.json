@@ -1,0 +1,223 @@
+{
+  "production_commit": "d797508",
+  "final": [
+    {
+      "name": "native",
+      "command": [
+        "npm",
+        "run",
+        "rust:test"
+      ],
+      "exit_code": 0,
+      "seconds": 201.02991843223572,
+      "log": "/tmp/fn99-fix3-gates/native.log",
+      "sha256": "9bafe4ce860d60fe01506850949fd0c669ee143a4b6bd62895d893c27b2fc309"
+    },
+    {
+      "name": "harness",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit_code": 0,
+      "seconds": 85.63558459281921,
+      "log": "/tmp/fn99-fix3-gates/harness.log",
+      "sha256": "279e56efec273be5c3a4d279f0a43dae7d16548571ab365dd0f0f11a2cd5e4b4"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.45070457458496094,
+      "log": "/tmp/fn99-fix3-gates/fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 1.585890531539917,
+      "log": "/tmp/fn99-fix3-gates/clippy.log",
+      "sha256": "501a089df0b100d7c3a31fe4ef31c05e31da7181c2002bd32db448683d8369ab"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "seconds": 3.765000820159912,
+      "log": "/tmp/fn99-fix3-gates/typecheck.log",
+      "sha256": "f147f1d4a925124a869a55c054ecc1279e0fe623a5008bf98b3fa65d8ebdfc58"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "seconds": 4.744991064071655,
+      "log": "/tmp/fn99-fix3-gates/build.log",
+      "sha256": "23eeb8bfebac4c151789e704a6df164ad4abb472a7a6357d5050eada380b2a03"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.009170055389404297,
+      "log": "/tmp/fn99-fix3-gates/diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.4527277946472168,
+      "log": "/tmp/fn99-fix3-gates/flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    },
+    {
+      "name": "final-diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/fn99-fix3-gates/final-diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "final-flow",
+      "command": [
+        "/home/box/.cursor/plugins/local/flow-next/bin/flowctl",
+        "validate",
+        "--all",
+        "--json"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/fn99-fix3-gates/final-flow.log",
+      "sha256": "dd51c26c0f580ac9e120846fe2408da9cbf99c70285ce748ce1cb3f242e33d63"
+    },
+    {
+      "name": "runner-syntax",
+      "command": [
+        "node",
+        "--check",
+        "tests/browser/species.mjs"
+      ],
+      "exit_code": 0,
+      "log": "/tmp/fn99-fix3-gates/runner-syntax.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "wasm_browser": {
+    "name": "wasm-browser-isolated",
+    "command": [
+      "npm",
+      "run",
+      "rust:test:wasm"
+    ],
+    "exit_code": 0,
+    "seconds": 252.93298721313477,
+    "log": "/tmp/fn99-fix3-gates/wasm-browser.log",
+    "sha256": "a1ef01829675a06465803c42d1d3c0b4748a00e411740f6e096969e857036b9b",
+    "limitation": "Exit 0 recorded, but log contains an earlier overlapping failed process; retain subsequent isolated attempt evidence separately."
+  },
+  "capture_attempts": [
+    {
+      "path": "/tmp/fn99-fix3-qa/initial-oak.log",
+      "result": "Two inward-looking exterior page targets crashed. Outward protocol restored; failures preserved in .previous-* receipts."
+    }
+  ],
+  "notes": [
+    "REVIEW_MODE=none: no review matrix or review agents, Claude CLI, Cloud Agents, merge or owner approval.",
+    "All 106 harness tests retained. Mature fidelity captures use uncapped production presets independently of software fixtures."
+  ],
+  "later_browser_attempts": [
+    {
+      "name": "wasm-browser-verified",
+      "command": [
+        "npm",
+        "run",
+        "rust:test:wasm"
+      ],
+      "environment": {
+        "BROWSER_URL": "http://127.0.0.1:5184",
+        "BROWSER_EVIDENCE": "/tmp/fn99-fix3-browser-verified"
+      },
+      "exit_code": 1,
+      "seconds": 1.9434435367584229,
+      "log": "/tmp/fn99-fix3-gates/wasm-browser-verified.log",
+      "sha256": "8317c4a1ce03b86efcd5564676042db1fed56a37d8a7f24814e748fa18d3b59d"
+    },
+    {
+      "name": "fresh-isolated-browser",
+      "recorder_exit_code": 143,
+      "child_exit_code": null,
+      "log": "/tmp/fn99-fix3-gates/wasm-browser-isolated.log",
+      "sha256": "8a658199e4d3ce396d88344e5d18372b0f617ad3676da180ef89346d10e9dc3a",
+      "limitation": "All assertions and viewer receipt completed, then recorder terminated before saving child exit. Do not infer exit 0.",
+      "viewer": {
+        "loadFailureRetry": true,
+        "buildFailureRetry": true,
+        "previousDiagnosticsPreserved": true,
+        "speciesSelection": true,
+        "independentSeeds": true,
+        "seedGeometryChanges": true,
+        "allViews": true,
+        "emptyRendering": true
+      },
+      "bindings": {
+        "speciesAnatomy": true,
+        "identityCatalogue": true,
+        "independentOutputs": true,
+        "meshFree": true,
+        "ownership": true,
+        "malformed": true,
+        "empty": true,
+        "staleFields": true,
+        "deterministic": true,
+        "partialDiagnostics": true
+      }
+    }
+  ],
+  "capture_close_attempts": [
+    {
+      "view": "peg-alt-close-upper",
+      "exit_code": 0,
+      "log": "/tmp/fn99-fix3-qa/close-upper.log"
+    },
+    {
+      "view": "peg-alt-close-lower",
+      "exit_code": 0,
+      "log": "/tmp/fn99-fix3-qa/close-lower.log"
+    }
+  ]
+}
