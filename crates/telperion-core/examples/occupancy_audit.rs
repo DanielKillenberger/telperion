@@ -61,6 +61,18 @@ fn main() {
                 * 0.75;
             let supports:Vec<_>=(1..tree.crossover).filter(|&i|!points[i].is_empty()&&(preset!=Preset::OregonWhiteOak||tree.nodes[i].position.y>=upper)).map(|i|json!({"node":i,"parent":tree.nodes[i].parent,"position":xyz(tree.nodes[i].position),"twig_endpoints":points[i]})).collect();
             let mut data = json!({"preset":preset.profile_id(),"seed":seed,"nodes":tree.nodes.len(),"crossover":tree.crossover,"upper_m":upper,"supports":supports});
+            data["structure"] = json!(tree
+                .nodes
+                .iter()
+                .map(|n| json!([
+                    n.position.x,
+                    n.position.y,
+                    n.position.z,
+                    n.parent,
+                    n.branch,
+                    format!("{:?}", n.kind)
+                ]))
+                .collect::<Vec<_>>());
             if preset == Preset::NorwaySpruce {
                 let t = f.skeleton.twigs.resolved().unwrap();
                 let placed = foliage::place_on_surface(
@@ -134,7 +146,8 @@ fn main() {
                         if in_system[child] {
                             for tri in mesh.indices[index_offset + edge * segments * 6
                                 ..index_offset + (edge + 1) * segments * 6]
-                                .chunks_exact(3)
+                                .as_chunks::<3>()
+                                .0
                             {
                                 wood_triangles.push(
                                     tri.iter()

@@ -52,4 +52,4 @@ for p in sorted(src.glob('*-[0-9]*.json')):
   row['curtain']=dict(wood_projection=wood_diagnostic,root=c['root'],socket=c['socket'],total_instances=c['total_instances'],selected_instances=len(xy),pitch_m=pitch,bounds=[lo.tolist(),hi.tolist()],covered_area_m2=float(a.sum()*pitch*pitch),bbox_coverage=float(a.mean()),bins_50mm=bins,runs=runs)
   print(p.stem,'coverage',round(a.mean(),3),'size',np.round(hi-lo,3),'runs',len(runs),'needle',len(xy))
  rows.append(row)
-(src/'summary.json').write_text(json.dumps(dict(method='Exact original instance IDs/matrices; projected needle triangles only (wood excluded), vertical tangent plane of selected exterior secondary. 0.5mm diagnostic raster; 50mm longitudinal bands. Not a botanical gate or rendered acceptance.',cases=rows),indent=2))
+(src/'summary.json').write_text(json.dumps(dict(method='Exact original instance IDs/matrices; projected needle triangles with separate original wood side-triangle masks where supplied, vertical tangent plane of selected exterior secondary. 0.5mm diagnostic raster; 50mm longitudinal bands. Not a botanical gate or rendered acceptance.',cases=rows),indent=2))
