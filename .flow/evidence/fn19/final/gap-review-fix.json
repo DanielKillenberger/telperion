@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "finding": "R4 required projected-gap artifact omission",
+  "implementation_base": "029bcbd691a0cb220bb91765e577cd1d4b9c5ea6",
+  "tool_files": [
+    {
+      "path": "scripts/benchmarks/geometry-compare.mjs",
+      "sha256": "02eeb36437483fcc21a6f6c577b81c1b04d8740e000d67b79e16eee7ff314847"
+    },
+    {
+      "path": "tests/browser/geometry-compare.test.mjs",
+      "sha256": "b62518e992b32cdc9445387b0bd7c9146f61cc12ee48c2170f8b9596c95cf534"
+    },
+    {
+      "path": "tests/browser/geometry-benchmark.mjs",
+      "sha256": "3b7f585cf741a491ef150c5ef91007d4fc59661deea8ee5cad3eca05e7291326"
+    },
+    {
+      "path": "tests/browser/geometry-benchmark-diagnostics.mjs",
+      "sha256": "6c4e1358c04347e65bf18378038b51af3eb0b845eed1cbaad8f4fc9b5772e300"
+    }
+  ],
+  "validation": "Each passing whole view requires exactly one verified artifact with measured projected-gaps-v1 status, finite consistent pixel partitions and ratios, four height bands, histogram support, and both threshold sensitivities.",
+  "focused_tests": {
+    "command": "node --test tests/browser/geometry-benchmark.test.mjs tests/browser/geometry-compare.test.mjs",
+    "passed": 17
+  },
+  "controls": [
+    {
+      "control": "replay",
+      "status": "comparable",
+      "reasons": [],
+      "views": 42,
+      "report": {
+        "path": "/tmp/fn19-gapfix-replay/comparison.json",
+        "preserved_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-review-controls/fn19-gapfix-replay/comparison.json",
+        "bytes": 428097,
+        "sha256": "9ab9d17ab326210568f6d9aa99b887663f42a1a1d921b65cbe81de166f3eab74"
+      }
+    },
+    {
+      "control": "omission",
+      "status": "inconclusive",
+      "reasons": [
+        "Error: missing/duplicate required projected-gap artifact"
+      ],
+      "views": 0,
+      "report": {
+        "path": "/tmp/fn19-gapfix-omission/comparison.json",
+        "preserved_path": "/home/daniel/Projects/telperion/.git/flow-artifacts/fn19-review-controls/fn19-gapfix-omission/comparison.json",
+        "bytes": 832,
+        "sha256": "a110336b8eddff828483ef949baf640cc0bdd68a92d57bf8ed1b8107807b2329"
+      }
+    }
+  ],
+  "original_evidence": "Original mature and replay artifacts unchanged; omission control uses separate hard-linked files and a replaced manifest, never rewrites shared artifacts."
+}

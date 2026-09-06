@@ -1,0 +1,25 @@
+✔ R2/R3: projected holes, openings and excluded background retain pixel and square-metre units (1.251975ms)
+✔ R2: diagonal gap connectivity and threshold closure are diagnostic, never biological approval (0.210354ms)
+✔ R2/R4: empty, clipped, nonfinite and malformed masks fail without a favorable zero (0.747366ms)
+✔ R4: convergence uses complete arrays and partial tiles, rejecting missing/nonfinite samples (0.865208ms)
+✔ R4: protocol/source/camera/ROI/crop identities and required artifacts fail closed (0.262135ms)
+✔ R5: inventory is extensible but a third taxon cannot inherit another generator (0.188794ms)
+✔ R4: missing masks, incomplete artifacts, changed bytes and path escapes cannot pass (6.83507ms)
+✔ R4: the actual replay preflight rejects a changed camera, source, protocol or reference receipt (0.258825ms)
+✔ R4: timeout, missing hardware and interrupted subprocesses retain distinct nonpassing dispositions (0.707585ms)
+✔ R4 capture rules compare object values independent of key order but preserve arrays and changed values (0.427789ms)
+✔ R4 unchanged replay compares measured values, not metadata alone (0.925849ms)
+✔ R4 mismatched protocol, reference, cohort, tool, conditions and interrupted or failed cases never pass (0.45549ms)
+✔ R4 native and browser source domains match shared files without false aggregate mismatch (0.394768ms)
+✔ R4 image changes surface while camera changes and failed views reject comparison; costs remain separate (0.764276ms)
+✔ R4 passing whole views require one hashed, successful and complete gap artifact (10.913794ms)
+✔ R4 receipt loader rejects stale binaries/source, interrupted JSONL and tampered metric artifacts (871.100465ms)
+✔ R4 compact reports still detect raw axis-sample changes through full metric digests (0.221525ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 938.266052

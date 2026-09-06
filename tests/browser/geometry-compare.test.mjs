@@ -13,6 +13,29 @@ import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { sha, artifact } from './geometry-benchmark.mjs';
 import { comparePaths } from '../../scripts/benchmarks/geometry-compare.mjs';
+import { loadProjectedGaps } from '../../scripts/benchmarks/geometry-compare.mjs';
+import { analyzeGaps } from './geometry-benchmark-diagnostics.mjs';
+test('R4 passing whole views require one hashed, successful and complete gap artifact',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'fn19-gap-receipt-'));
+ try {
+  await mkdir(join(dir,'view'));
+  const coverage=new Float32Array(25),roi=new Uint8Array(25);
+  for(let y=1;y<4;y++)for(let x=1;x<4;x++){roi[y*5+x]=1;coverage[y*5+x]=1;}
+  coverage[12]=0;
+  const valid=analyzeGaps({coverage,roi,width:5,height:5,metresPerPixel:.1});
+  const record={view:'whole',capture_status:'pass',artifacts:[]};
+  await assert.rejects(loadProjectedGaps(dir,record),/gap/);
+  const saveGap=async value=>{await writeFile(join(dir,'view/gaps.json'),JSON.stringify(value));record.artifacts=[await artifact(dir,'view/gaps.json','application/json')];};
+  await saveGap(valid);assert.deepEqual(await loadProjectedGaps(dir,record),valid);
+  record.artifacts.push(record.artifacts[0]);await assert.rejects(loadProjectedGaps(dir,record),/gap/);
+  for(const mutate of [g=>g.status='failed',g=>delete g.primary,g=>g.primary.occupied_ratio=null,g=>g.primary.occupied_pixels++,g=>g.sensitivity=[],g=>g.primary.height_bands.pop()]){
+   const bad=structuredClone(valid);mutate(bad);await saveGap(bad);await assert.rejects(loadProjectedGaps(dir,record),/gap/);
+  }
+  await saveGap(valid);await writeFile(join(dir,'view/gaps.json'),'{}');await assert.rejects(loadProjectedGaps(dir,record),/hash\/size/);
+  assert.equal(await loadProjectedGaps(dir,{view:'fork',capture_status:'pass',artifacts:[]}),null);
+  assert.equal(await loadProjectedGaps(dir,{view:'whole',capture_status:'fail',artifacts:[]}),null);
+ } finally {await rm(dir,{recursive:true,force:true});}
+});
 test('R4 receipt loader rejects stale binaries/source, interrupted JSONL and tampered metric artifacts',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'fn19-combiner-test-')),base=join(dir,'base');await mkdir(base);
  const protocol=resolve('.flow/evidence/fn19/protocol.json'),references=resolve('.flow/evidence/fn19/references.json'),p=JSON.parse(await readFile(protocol));

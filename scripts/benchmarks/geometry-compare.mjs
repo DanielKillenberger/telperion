@@ -62,6 +62,37 @@ export async function loadNumeric(path,protocolPath,referencesPath){
   for(const row of Object.values(result.rows))if(row.event==='completed'&&row.numeric_status==='pass'&&(!['axes','foliage_bins'].every(k=>['measured','estimated'].includes(row.metrics[k]?.status))||!row.artifacts.some(a=>a.path.endsWith('/native.json'))))throw Error('missing numeric evidence');
   result.captures=null;return result;
 }
+export async function loadProjectedGaps(path,capture){
+  const artifacts=capture.artifacts.filter(a=>a.path.endsWith('/gaps.json'));
+  const required=capture.view==='whole'&&capture.capture_status==='pass';
+  if(!required&&!artifacts.length)return null;
+  if(artifacts.length!==1)throw Error('missing/duplicate required projected-gap artifact');
+  await verifyArtifacts(path,artifacts);
+  const gaps=await json(resolve(path,artifacts[0].path));
+  if(!required)return gaps;
+  const fail=()=>{throw Error('invalid or unsuccessful projected-gap evidence');};
+  const count=x=>Number.isSafeInteger(x)&&x>=0;
+  const finite=x=>typeof x==='number'&&Number.isFinite(x);
+  const near=(a,b)=>finite(a)&&Math.abs(a-b)<=1e-10*Math.max(1,Math.abs(b));
+  const partition=p=>{
+    if(!p||!['roi_pixels','occupied_pixels','exterior_pixels','enclosed_pixels'].every(k=>count(p[k]))||p.roi_pixels!==p.occupied_pixels+p.exterior_pixels+p.enclosed_pixels)fail();
+    for(const prefix of ['occupied','exterior','enclosed'])if(p.roi_pixels?!near(p[prefix+'_ratio'],p[prefix+'_pixels']/p.roi_pixels):p[prefix+'_ratio']!==null)fail();
+  };
+  if(gaps?.status!=='measured'||gaps.definition!=='projected-gaps-v1'||gaps.background_connectivity!==4||gaps.foreground_connectivity!==8||!finite(gaps.metres_per_pixel)||gaps.metres_per_pixel<=0||!Array.isArray(gaps.sensitivity)||gaps.sensitivity.length!==2)fail();
+  const measurements=[gaps.primary,...gaps.sensitivity];
+  for(let i=0;i<measurements.length;i++){
+    const p=measurements[i];partition(p);
+    if(!p.roi_pixels||p.threshold!==[.5,.25,.75][i]||!['hole_count','largest_hole_pixels','outside_roi_pixels'].every(k=>count(p[k]))||p.largest_hole_pixels>p.enclosed_pixels||p.hole_count>p.enclosed_pixels||!near(p.largest_hole_m2,p.largest_hole_pixels*gaps.metres_per_pixel**2)||!Array.isArray(p.height_bands)||p.height_bands.length!==4)fail();
+    const total=p.occupied_pixels+p.outside_roi_pixels;
+    if(total?!near(p.outside_roi_fraction,p.outside_roi_pixels/total):p.outside_roi_fraction!==null)fail();
+    for(const band of p.height_bands)partition(band);
+    for(const k of ['roi_pixels','occupied_pixels','exterior_pixels','enclosed_pixels'])if(p.height_bands.reduce((n,b)=>n+b[k],0)!==p[k])fail();
+    const histogram=p.hole_area_histogram;
+    if(!equal(histogram?.edges_px,[1,4,16,64,256,1024,null])||!Array.isArray(histogram?.counts)||histogram.counts.length!==6||!histogram.counts.every(count)||histogram.counts.reduce((a,b)=>a+b,0)!==p.hole_count)fail();
+    if(i)for(const k of ['occupied_pixels','hole_count','enclosed_pixels','exterior_pixels'])if(p.difference_from_primary?.[k]!==p[k]-gaps.primary[k])fail();
+  }
+  return gaps;
+}
 export async function addVisual(numeric,path,protocolPath){
   const run=await json(resolve(path,'run.json')),p=await json(protocolPath);
   for(const d of ['source','tool'])await identity(run[d]);
@@ -79,8 +110,7 @@ export async function addVisual(numeric,path,protocolPath){
   for(const c of captures){
     if(c.run_id!==run.run_id||c.conditions_sha256!==run.conditions_sha256)throw Error('capture identity mismatch');
     if(c.artifacts.length)await verifyArtifacts(path,c.artifacts);
-    const gapArtifact=c.artifacts.find(a=>a.path.endsWith('/gaps.json'));
-    c.projected_gaps=gapArtifact?await json(resolve(path,gapArtifact.path)):null;
+    c.projected_gaps=await loadProjectedGaps(path,c);
     const geometryArtifact=c.artifacts.find(a=>a.path.endsWith('/geometry.json'));
     if(geometryArtifact){
       const geometry=await json(resolve(path,geometryArtifact.path));
