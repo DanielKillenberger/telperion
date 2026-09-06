@@ -1,0 +1,835 @@
+{
+  "visual_status": "fail",
+  "owner_feedback": null,
+  "reference_directory": "/tmp/fn99-refs",
+  "inspected_images": 120,
+  "other_numeric_specimens_visually_unassessed": 35,
+  "traits": {
+    "oregon-white-oak-1": {
+      "silhouette": "P",
+      "habit": "P",
+      "gaps": "P",
+      "taper_socket": "U",
+      "foliage": "P",
+      "observation": "Protected rounded crown mass and natural crooked scaffold habit retained; exact pass-3 whole image and geometry. Whole scale does not assess terminal/socket anatomy."
+    },
+    "oregon-white-oak-2": {
+      "silhouette": "F",
+      "habit": "P",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "P",
+      "observation": "Fails crown silhouette/gaps: elevated upper-left mass and large right-hand window remain after empty-reach placement. Habit remains spreading; no complete anatomy judgment at whole scale."
+    },
+    "oregon-white-oak-3": {
+      "silhouette": "F",
+      "habit": "P",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "P",
+      "observation": "Fails silhouette/gaps: the upper cap remains separated from the lower left mass and right lobe despite local empty-reach placement. Spreading scaffold habit retained."
+    },
+    "oregon-white-oak-2666899686": {
+      "silhouette": "F",
+      "habit": "P",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "P",
+      "observation": "Fails silhouette/gaps: the upper arch still surrounds a conspicuous central window above the lower crown. Local placement has not restored rounded continuous crown mass."
+    },
+    "oregon-white-oak-762807349": {
+      "silhouette": "P",
+      "habit": "P",
+      "gaps": "P",
+      "taper_socket": "U",
+      "foliage": "P",
+      "observation": "Protected broad crown and crooked open scaffold habit retained. Internal openings remain those of the accepted protected specimen, not a newly stacked mass."
+    },
+    "oregon-white-oak-1444323199": {
+      "silhouette": "P",
+      "habit": "P",
+      "gaps": "P",
+      "taper_socket": "U",
+      "foliage": "U",
+      "observation": "Protected crown mass and spreading crooked scaffold retained with exact pass-3 geometry and whole PNG. Whole-tree scale does not establish foliage attachment or socket continuity."
+    },
+    "norway-spruce-1": {
+      "silhouette": "F",
+      "habit": "F",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "U",
+      "observation": "Fails S-BRANCH curtain mass, silhouette and gaps: leader and hanging axes remain, but the crown is still a transparent fine woody network rather than substantial needle-clothed curtains. First-target peg-clear-front supports narrow local relief only; complete peg/socket remains U after the connected angular views."
+    },
+    "norway-spruce-2": {
+      "silhouette": "F",
+      "habit": "F",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "U",
+      "observation": "Fails substantial curtain mass and crown gaps: thin transparent hanging strands and exposed wood still dominate. Leader and low tiers remain; whole scale does not establish attachment details."
+    },
+    "norway-spruce-3": {
+      "silhouette": "F",
+      "habit": "F",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "U",
+      "observation": "Fails curtain mass and gaps: exposed tiers and very fine hanging strands still leave the crown transparent. Leader, primary upturns and low branch retention remain visible."
+    },
+    "norway-spruce-1982700925": {
+      "silhouette": "F",
+      "habit": "F",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "U",
+      "observation": "Fresh specimen still fails S-BRANCH curtain mass: fine transparent strands and exposed structural tiers dominate despite retained leader and low branches."
+    },
+    "norway-spruce-281313742": {
+      "silhouette": "F",
+      "habit": "F",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "U",
+      "observation": "Fails silhouette/gaps and S-BRANCH mass: retained leader and hanging tiers remain a transparent woody network with thin strands rather than substantial curtains."
+    },
+    "norway-spruce-2271779095": {
+      "silhouette": "F",
+      "habit": "F",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "U",
+      "observation": "Fails S-BRANCH curtain mass and gaps: thin pendant strands leave a transparent crown despite the retained leader and tier architecture."
+    },
+    "norway-spruce-4250668600": {
+      "silhouette": "F",
+      "habit": "F",
+      "gaps": "F",
+      "taper_socket": "U",
+      "foliage": "U",
+      "observation": "Retained width counterexample passes at 8.688967 m; transparent woody crown still lacks substantial curtains."
+    }
+  },
+  "views": [
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan00-front",
+      "pngSha256": "6b4f04965726b536bf9ed2a7ee721a16ea381094fb80c916b287fab6002ae627",
+      "observation": "First-target local connector relief is visible in the centre. This tight peg view does not establish either branch/socket junction or complete target acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan01-front",
+      "pngSha256": "6b3afb4f2792775c3e37e067837b4fc9e88902899d752925db2d5abc1e6d4921",
+      "observation": "The selected needle base and short polygonal connector are visible near the centre, but this view does not establish an unambiguous continuous contact or either socket. No complete-target pass."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan02-front",
+      "pngSha256": "a3b198da4df71ba7402c4dd7598b0d4a469b738f95f2166b5c069bfbb08bf187",
+      "observation": "The selected central contact is hidden by the supporting wood or overlapping needles from this direction. Other visible needle bases do not establish the selected target."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan03-front",
+      "pngSha256": "fe8cdb1896b98c6f61d3e69c4754eaabea0c34a89cb4b8753535265aa641c8a3",
+      "observation": "The selected central contact is hidden by the supporting wood or overlapping needles from this direction. Other visible needle bases do not establish the selected target."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan04-front",
+      "pngSha256": "92e89584bf1a730c155871dbd4b0a433a80d8e9e54105f5d449cb70253b4b0e6",
+      "observation": "The selected central contact is hidden by the supporting wood or overlapping needles from this direction. Other visible needle bases do not establish the selected target."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan05-front",
+      "pngSha256": "dbbf706880b38185db3f7b9bf86b9f2dc2b4113c300c33787018ea7310516f3d",
+      "observation": "The selected central peg contact is behind the supporting twig at this angle. Visible neighbouring connectors cannot substitute for it; full target remains unassessed."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan06-front",
+      "pngSha256": "7488bf3841f4f9858dc4b1efb910d0a8d293234635a10fd5ea1eeb0f9e94f6c5",
+      "observation": "The selected central peg contact is behind the supporting twig at this angle. Visible neighbouring connectors cannot substitute for it; full target remains unassessed."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan07-front",
+      "pngSha256": "c306a07beffa15c587a5c662e96e65bbef0a854e34cf61f2fd09a987fc44dcde",
+      "observation": "The twig or a foreground needle hides the selected contact. The image does not show the complete selected peg and both sockets unobscured."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan08-front",
+      "pngSha256": "71e66cdbc19abb0f70fa827a01a8ec8aa7db57cd9482596a2d63b1d92415f864",
+      "observation": "The twig or a foreground needle hides the selected contact. The image does not show the complete selected peg and both sockets unobscured."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan09-front",
+      "pngSha256": "92f464956c96da81e42a638ecf12853d91cf1bcb83e806e9efab34f7fb207b81",
+      "observation": "The selected needle overlaps its root in this nearly face-on direction. A complete projecting peg profile and continuous root contact are not jointly resolved; neither branch socket is shown."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan10-front",
+      "pngSha256": "158a4f0679c680e3992b4ca986a26c763ea7a7afd063bf8a753d864848771ca6",
+      "observation": "The selected needle overlaps its root in this nearly face-on direction. A complete projecting peg profile and continuous root contact are not jointly resolved; neither branch socket is shown."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-scan11-front",
+      "pngSha256": "4f9a9368b3d2082d1d31d59a3f7a73c69d30f478fbf1811b87e931b041b4e735",
+      "observation": "A short connector is visible, but its face overlaps the supporting bark; this view adds no complete peg/socket acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan00-front",
+      "pngSha256": "f54f3554bb8c14651b53f3686c1e6367e3ccadca1fd9a3488627b82ad647001b",
+      "observation": "The departing branch and part of its root shoulder are visible, but needles overlap one junction flank. Complete unobscured root/socket continuity remains unassessed."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan02-front",
+      "pngSha256": "e9694a2ee198eec79687c61b610071cc05a1d21cabd5fbd34cf5b62e0118e071",
+      "observation": "The exact departing axis projects upward from the joint. Supporting wood and needles obscure its insertion; the separately visible rightward branch shoulder cannot substitute for this selected target."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan01-front",
+      "pngSha256": "43eb269075727f2f30a7a1cd273bb691fa7ae4137e1a48dcaae73d2751c3a187",
+      "observation": "The supporting wood faces the camera and hides the selected branch insertion behind it. No root/socket acceptance is inferred."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan03-front",
+      "pngSha256": "ce758025acf41426664938d9f1c2792bd982b7da072b4608d9a91822d115dc47",
+      "observation": "The root shoulder is partly visible, but foreground needles cross the junction region. Complete root/socket continuity is not established by this angle."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan04-front",
+      "pngSha256": "60658e8eb0c6272d06065bc45f64134b237bb4b87303e628c8333ef92874f8e8",
+      "observation": "The root shoulder is partly visible, but foreground needles cross the junction region. Complete root/socket continuity is not established by this angle."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan05-front",
+      "pngSha256": "4d2a7dbd718c820c2e79f6204235c36542f12bd460d143427c33bf8ee9b18f43",
+      "observation": "Projection of the exact departing node identifies the branch extending right from the joint. Its insertion is hidden by the foreground supporting wood; the visible upward branch shoulder belongs to another departure and supplies no target acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan06-front",
+      "pngSha256": "e280022e8ed630e90308e46a17401522aa65529e5c4c515ef73177bef2d74ccc",
+      "observation": "Projection of the exact departing node identifies the branch extending right from the joint. Its insertion is hidden by the foreground supporting wood; the visible upward branch shoulder belongs to another departure and supplies no target acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan07-front",
+      "pngSha256": "6fb8b81158c0eee507a86c2d9c17ed16a8093f67300a631578e158142e862655",
+      "observation": "Needles and the supporting wood cover the selected central insertion. Visible neighbouring branch shoulders do not establish this root/socket contact."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan08-front",
+      "pngSha256": "2ee4387894d93319a3dadb47b10be5f8b06e4c5716513f029c47e81d0eeb4468",
+      "observation": "Needles and the supporting wood cover the selected central insertion. Visible neighbouring branch shoulders do not establish this root/socket contact."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan09-front",
+      "pngSha256": "b678990f82422edb7619cee9267857e2545e5d6121c87be76335bda66553d169",
+      "observation": "Foreground needles cross the selected branch insertion. A visible smooth shoulder on another departure does not certify the selected socket."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan10-front",
+      "pngSha256": "505dd8a45af2e12c2675dd85b517879ba6adfe774646f82b02e0a22b69fc0451",
+      "observation": "Foreground needles cross the selected branch insertion. A visible smooth shoulder on another departure does not certify the selected socket."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-scan11-front",
+      "pngSha256": "b8f7f708cc369dd13775dc32cba11a2873684f9cbfcfd014b5cd14474483cb49",
+      "observation": "The leftward selected branch is visible, but foreground needles overlap its insertion. The root/socket remains unresolved."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan00-front",
+      "pngSha256": "e134f085c8574ebd63f3e6f39e373b650cc40e8efdbbcda78033b4712a982e53",
+      "observation": "The selected distal junction shows a continuous visible lower shoulder; needles and the supporting axis obscure the other flank. This partial view does not establish complete first-target acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan01-front",
+      "pngSha256": "1c9b3659d35093371475547ae8b93c80d861831e50b2083b449f2d4f0e18f0de",
+      "observation": "The selected distal junction shows a continuous visible lower shoulder; needles and the supporting axis obscure the other flank. This partial view does not establish complete first-target acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan02-front",
+      "pngSha256": "8a73ec66165c9eb196704576fc3832486630d1f63e9206474f8b787e46a5bc72",
+      "observation": "The selected distal insertion is obscured by needles or the supporting twig. No full contact or taper acceptance is inferred from the apparent centreline continuation."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan03-front",
+      "pngSha256": "9030c40a366fa65b272e7e1db4d9ae10872fa6fae8a4767d2c7e696287a56891",
+      "observation": "The selected distal insertion is obscured by needles or the supporting twig. No full contact or taper acceptance is inferred from the apparent centreline continuation."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan04-front",
+      "pngSha256": "a623c3b01e7224bb0c86061924b25c85bf5f252b93a4114f979cf09ce6516dda",
+      "observation": "The selected distal insertion is obscured by needles or the supporting twig. No full contact or taper acceptance is inferred from the apparent centreline continuation."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan05-front",
+      "pngSha256": "cb300d9683a1518bc9acb2ee5081d8f01a3f87c97a54a3d8d24256f78219c668",
+      "observation": "The far-side selected junction is hidden by the supporting axis and overlapping needles. Centreline alignment is not a visible seam or a pass."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan06-front",
+      "pngSha256": "bb21e46fd176f41634eb4b8e47908cc3c458113ffb72e9a6cf3385edb54d578f",
+      "observation": "The far-side selected junction is hidden by the supporting axis and overlapping needles. Centreline alignment is not a visible seam or a pass."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan07-front",
+      "pngSha256": "1d757a26824001aeb54262806d1c7666f9ef5fcf41b40c433fe68bd1d341df7d",
+      "observation": "The far-side selected junction is hidden by the supporting axis and overlapping needles. Centreline alignment is not a visible seam or a pass."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan08-front",
+      "pngSha256": "18b40d1ace1c3f415b94fb561a4bef1bc08f0e85034967a6c7d7a0ab461841ad",
+      "observation": "The distal branch is visible, but needles cover a contact flank at its insertion. Full first-target continuity remains unresolved."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-left",
+      "pngSha256": "e9e01ca7743dfa8e4bebb5965a8a5b6f2e7434979b5258f11202112bdf7d7555",
+      "observation": "The selected needle overlaps its own root or is hidden by the supporting wood. No unambiguous full peg/socket continuity is visible."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-right",
+      "pngSha256": "f71f17aaae56a9f031dd07890ee5079685a5fa49db988625eaabb8e944939eba",
+      "observation": "The selected needle overlaps its own root or is hidden by the supporting wood. No unambiguous full peg/socket continuity is visible."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-contact-front",
+      "pngSha256": "ab328cc4da594ffab43bd0263a272948c7be3b1d78bba3789d1db4d82d814121",
+      "observation": "The selected needle overlaps its own root or is hidden by the supporting wood. No unambiguous full peg/socket continuity is visible."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-contact-left",
+      "pngSha256": "cae8d403fb023884424e9a3c256677763fc37ed494faa554424b25e29aeef783",
+      "observation": "The selected contact is covered by its needle or the twig from this angle. Visible adjacent connectors are not a substitute."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-contact-right",
+      "pngSha256": "d3f287aca8d10f686c86d043d311581904430dd3686e2ef27cac793bc614ed9b",
+      "observation": "The selected contact is covered by its needle or the twig from this angle. Visible adjacent connectors are not a substitute."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan09-front",
+      "pngSha256": "236632ccb3f0d49332c4338810510bb83b25bf566c2415f6cfae2a68dcc7ff1e",
+      "observation": "Foreground needles cross the selected distal junction; complete contact remains unassessed."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-clear-front",
+      "pngSha256": "6b4f04965726b536bf9ed2a7ee721a16ea381094fb80c916b287fab6002ae627",
+      "observation": "First-target local connector relief is visible in the centre. This tight peg view does not establish either branch/socket junction or complete target acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-alt-contact-front",
+      "pngSha256": "93054c52a3f1da27d5100a10ad35f2af9ea9a8dfbff3e10dc044c20703ed8dc1",
+      "observation": "Alternate target: the selected needle or supporting wood overlaps the connector root. Complete peg/socket continuity remains unassessed; no first-target local pass is transferred."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-alt-contact-left",
+      "pngSha256": "4dd7731e790dff0de316a91391ce958b70744a83a30f3cdc01789a1329891fc3",
+      "observation": "Alternate target: the selected needle or supporting wood overlaps the connector root. Complete peg/socket continuity remains unassessed; no first-target local pass is transferred."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-alt-contact-right",
+      "pngSha256": "c1ef460d7a354e0260783abdcfec6d3f29d660a6d8040950c1c1a0d7a97f82af",
+      "observation": "Alternate target: the selected needle or supporting wood overlaps the connector root. Complete peg/socket continuity remains unassessed; no first-target local pass is transferred."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-left",
+      "pngSha256": "e224fb01ac01498217fe4f450db6e53ebc24c947b7ae6f370d1bf77b01132e22",
+      "observation": "The selected root insertion is partly hidden by needles or supporting wood. No continuity is inferred through the occlusion."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-right",
+      "pngSha256": "b9b84ce1809392d5c8c9f5876719886a6259fbebc468e6ce6872128f850da0a8",
+      "observation": "The selected root insertion is partly hidden by needles or supporting wood. No continuity is inferred through the occlusion."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan10-front",
+      "pngSha256": "675b4cc8209cfee49f92a093afec43deadef45c1528d708020037f5a06ee1e94",
+      "observation": "The selected distal insertion is covered by overlapping wood and needles in this direction. Complete target remains unresolved."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-root-front",
+      "pngSha256": "f54f3554bb8c14651b53f3686c1e6367e3ccadca1fd9a3488627b82ad647001b",
+      "observation": "The departing branch and part of its root shoulder are visible, but needles overlap one junction flank. Complete unobscured root/socket continuity remains unassessed."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-scan11-front",
+      "pngSha256": "64de6230efc5594f51c39191bd82a89f3bd3a745924c71809c8302f29c2c952d",
+      "observation": "Needles cover the selected distal contact at the frame centre. No full continuity or terminal-taper acceptance is inferred."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-left",
+      "pngSha256": "8e68925fe58a4f2dc8b3d9b96608b8e6485a2079537784832c9722242bf64206",
+      "observation": "Needles cover the selected distal contact at the frame centre. No full continuity or terminal-taper acceptance is inferred."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-right",
+      "pngSha256": "ab6cbbb492a33c87ac6392b9bc6d22f24adcfe10a0a770c6f2a8aba2dea1b808",
+      "observation": "Needles cover the selected distal contact at the frame centre. No full continuity or terminal-taper acceptance is inferred."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "socket-tip-front",
+      "pngSha256": "e134f085c8574ebd63f3e6f39e373b650cc40e8efdbbcda78033b4712a982e53",
+      "observation": "The selected distal junction shows a continuous visible lower shoulder; needles and the supporting axis obscure the other flank. This partial view does not establish complete first-target acceptance."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "whole",
+      "pngSha256": "2442e477183e6f3b9f0de0347d2f87979688614697ba5770c708773461ac817b",
+      "observation": "Protected rounded crown mass and natural crooked scaffold habit retained; exact pass-3 whole image and geometry. Whole scale does not assess terminal/socket anatomy."
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "view": "whole",
+      "pngSha256": "c70b1b6d655d51c3c0be8d8fb0bd995b843780a1bce111b3e6d146f560ec1f5c",
+      "observation": "Fails crown silhouette/gaps: elevated upper-left mass and large right-hand window remain after empty-reach placement. Habit remains spreading; no complete anatomy judgment at whole scale."
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "view": "whole",
+      "pngSha256": "e0453b6fa0c88c0d30a4256d3740df6b958ada78b6c6d6aa63f9d38af0502cc4",
+      "observation": "Fails silhouette/gaps: the upper cap remains separated from the lower left mass and right lobe despite local empty-reach placement. Spreading scaffold habit retained."
+    },
+    {
+      "id": "oregon-white-oak-2666899686",
+      "view": "whole",
+      "pngSha256": "2e9cd7bf57027ffe464305d334bc1a5ac25b78b3dc0b05853d8a754d3bd1f3fb",
+      "observation": "Fails silhouette/gaps: the upper arch still surrounds a conspicuous central window above the lower crown. Local placement has not restored rounded continuous crown mass."
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "view": "whole",
+      "pngSha256": "d7ec31d7cd5ed1853971f499d554e2462eb5ca1a446b9cb13082b13150df3e57",
+      "observation": "Protected broad crown and crooked open scaffold habit retained. Internal openings remain those of the accepted protected specimen, not a newly stacked mass."
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "view": "whole",
+      "pngSha256": "34ce060b44636c421f92e298d4b7105779301b4e467cae06d80c53f82e7491f1",
+      "observation": "Protected crown mass and spreading crooked scaffold retained with exact pass-3 geometry and whole PNG. Whole-tree scale does not establish foliage attachment or socket continuity."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "whole",
+      "pngSha256": "54be62bc0bf1d4012e26b3640d56416641e7743bd6699e3efd987cfef60d14b6",
+      "observation": "Fails S-BRANCH curtain mass, silhouette and gaps: leader and hanging axes remain, but the crown is still a transparent fine woody network rather than substantial needle-clothed curtains."
+    },
+    {
+      "id": "norway-spruce-2",
+      "view": "whole",
+      "pngSha256": "cb75e2bb1d72d5685b7ee5280250f8abbadb743acf36b0253f759c29daa55b45",
+      "observation": "Fails substantial curtain mass and crown gaps: thin transparent hanging strands and exposed wood still dominate. Leader and low tiers remain; whole scale does not establish attachment details."
+    },
+    {
+      "id": "norway-spruce-3",
+      "view": "whole",
+      "pngSha256": "7be94b63d579c667f00079d8b1934794cbc123194b112ea797a397346673c409",
+      "observation": "Fails curtain mass and gaps: exposed tiers and very fine hanging strands still leave the crown transparent. Leader, primary upturns and low branch retention remain visible."
+    },
+    {
+      "id": "norway-spruce-1982700925",
+      "view": "whole",
+      "pngSha256": "8b96b4a1f96749427cdd58cef9f68393885e241c438a2fb59181a69166d766ad",
+      "observation": "Fresh specimen still fails S-BRANCH curtain mass: fine transparent strands and exposed structural tiers dominate despite retained leader and low branches."
+    },
+    {
+      "id": "norway-spruce-281313742",
+      "view": "whole",
+      "pngSha256": "30934a7e6a377ead2396ae66e7b7c3788be85b225fd8c017604293f4b366d3da",
+      "observation": "Fails silhouette/gaps and S-BRANCH mass: retained leader and hanging tiers remain a transparent woody network with thin strands rather than substantial curtains."
+    },
+    {
+      "id": "norway-spruce-2271779095",
+      "view": "whole",
+      "pngSha256": "b08629d932b8ada6a9a22754c9578383a744a59c4d75967e8f6329cb7b518c86",
+      "observation": "Fails S-BRANCH curtain mass and gaps: thin pendant strands leave a transparent crown despite the retained leader and tier architecture."
+    },
+    {
+      "id": "norway-spruce-4250668600",
+      "view": "whole",
+      "pngSha256": "a5c6ffe2d2413d3809a0a7969e6833f80e74c9dc7f2330ba71de457910a60a64",
+      "observation": "Retained width counterexample passes dimensions but fails visual curtain mass and gaps: the mature crown is still a transparent woody network with narrow strands."
+    },
+    {
+      "id": "ordinary",
+      "view": "whole",
+      "pngSha256": "c31db7ca162433c4a805108f64b9f605d5db8afc71570c4fea1b82151272c8a5",
+      "observation": "Historical upright sparse ordinary crown and exposed twigs retained; no newly observed shared-rule change."
+    },
+    {
+      "id": "telperion",
+      "view": "whole",
+      "pngSha256": "4aab1f569bc10527def905a4fb53ecc05d0102892157fd459748150e80c94c41",
+      "observation": "Historical spiral trunk and sparse sweeping upright crown retained; no newly observed shared-rule change."
+    },
+    {
+      "id": "laurelin",
+      "view": "whole",
+      "pngSha256": "cbd22598e4b7295e1cb30b0753425fb1ab0fcc60bd350f77df0f53a52414b41e",
+      "observation": "Historical broad sweeping wood-dominated crown and flared base retained; no newly observed shared-rule change."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "branch-curtain",
+      "pngSha256": "8b024b505c93edcb1a94875ca3c006661837af0dac8f75cf7d67b95e7e7fe49f",
+      "observation": "Connected branch-scale view still fails S-BRANCH: long thin needle strands and exposed wood dominate despite increased local overlap. Structural forks remain visible; isolated coverage gains do not establish curtain mass."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "bare",
+      "pngSha256": "4268b3992f6d059fee9eecd52613f192489672f6f89cab55eb42abb17bbbe702",
+      "observation": "Protected crooked ascending scaffold and fine retained subdivisions are visible in the bare view. Whole scale does not resolve individual terminal/socket junctions."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "bare",
+      "pngSha256": "aa9545d26bb4ae64b562d2c626ea56bbda6af8a1836b35f41e418564875360a6",
+      "observation": "Bare view retains the continuous leader, primary tiers/upturns and intact descending structural forks. It supplies no needle-curtain or peg acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "foliage-detail",
+      "pngSha256": "849c84da0e6c4462767f796bd63948500fdd9923ee15bf2f4c6ba5dbdbffd29f",
+      "observation": "Individual pointed needles surround the local shoots, but the selected peg and branch/socket surfaces are not resolved. Unrelated retained wood and foreground occlusion remain visible."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "element",
+      "pngSha256": "ee33f491b6e49a63a5c095157c61a93da62e0d55bc239026a736ef29589f4074",
+      "observation": "Isolated blade shows rounded lateral/terminal lobes and a narrowed petiole. This verifies visible element form only, not twig attachment."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "exterior-alt-front",
+      "pngSha256": "2cab8adf8803d754111d4860e105cc07b868f0745ceec411ea971e770f64d6ae",
+      "observation": "Alternate exterior chain carries petioled rounded-lobed leaves. Blades obscure the terminal and socket surfaces; complete taper/socket remains unassessed."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "element",
+      "pngSha256": "4c7035fa108621d29f32936b487b977e0ee7f179ee28ae95f726e4dfb543a924",
+      "observation": "Isolated elongated pointed needle and short basal connector are visible. An isolated prototype cannot establish attachment or complete peg/socket continuity."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "exterior-front",
+      "pngSha256": "d7d01af37ca39f0c328d635189647688ddf5dd78fed1a9848d3c1c1f644aab4f",
+      "observation": "Pinned first-target exterior chain retains individual needles and branching context, but needles or nearer branches obscure terminal/socket surfaces. No complete target acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "exterior-left",
+      "pngSha256": "f729c1ae0bad146e28d28c5967ecc08a9bb5f4813340d48621e656671562ead5",
+      "observation": "Pinned first-target exterior chain retains individual needles and branching context, but needles or nearer branches obscure terminal/socket surfaces. No complete target acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "exterior-right",
+      "pngSha256": "900a7a7f7ff43a0492aa78b07b265d4bfdf16bfa1e06ba541c27fd968f3e26d9",
+      "observation": "Pinned first-target exterior chain retains individual needles and branching context, but needles or nearer branches obscure terminal/socket surfaces. No complete target acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "exterior-alt-front",
+      "pngSha256": "f7a2b37e0c03d47749aafe6174ee2a3571b21f6e84c7e37bf82cd179e060592d",
+      "observation": "Alternate exterior remains a sparse radial needle arrangement; complete endpoint/socket polygonal continuity is not unobscured at this framing. U, not acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "exterior-alt-left",
+      "pngSha256": "9707a1389b72cf0e12f5bee8a0ee2a9152c92a31b4f959630dd8d0ce528a7c71",
+      "observation": "Alternate exterior remains a sparse radial needle arrangement; complete endpoint/socket polygonal continuity is not unobscured at this framing. U, not acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "exterior-alt-right",
+      "pngSha256": "dab13e87ff9696a88ceb8d24f012c160d600b4d8a62c494bdd50ffa8695d4ff3",
+      "observation": "Alternate exterior remains a sparse radial needle arrangement; complete endpoint/socket polygonal continuity is not unobscured at this framing. U, not acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "junction-detail",
+      "pngSha256": "1d64b405db5ed7c4af5cc531998f71e7389d10f28154e3ee8bfd679d7e9123b4",
+      "observation": "Junction view heavily screened by foreground wood and needle polygons; continuity unresolved, no inferred seam or acceptance."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-alt-lower",
+      "pngSha256": "6128f8c5303a97c23b0a3a407a23c0195d4c3b1046b5ba61c8769c67a1d28053",
+      "observation": "Connected upper/lower peg context is obstructed by crossing needles and wood; neither full first-target nor alternate relief/socket continuity can be accepted from this angle. U."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-alt-upper",
+      "pngSha256": "6655768a450d7a82cd82906feb7f544254568433279fb7b315cb48a2578ced2a",
+      "observation": "Connected upper/lower peg context is obstructed by crossing needles and wood; neither full first-target nor alternate relief/socket continuity can be accepted from this angle. U."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-lower",
+      "pngSha256": "5e754f5cb02b1f234c14e55f233b2da4d3e63065a1a8c7dd905538ccc293a794",
+      "observation": "Connected upper/lower peg context is obstructed by crossing needles and wood; neither full first-target nor alternate relief/socket continuity can be accepted from this angle. U."
+    },
+    {
+      "id": "norway-spruce-1",
+      "view": "peg-upper",
+      "pngSha256": "b1f39c62396a101b6cf0a3e1f30d4a3b55cb74a855ca53ffa85f6cc9826e0014",
+      "observation": "Connected upper/lower peg context is obstructed by crossing needles and wood; neither full first-target nor alternate relief/socket continuity can be accepted from this angle. U."
+    },
+    {
+      "id": "norway-spruce-2",
+      "view": "bare",
+      "pngSha256": "943cb90fe95bf0893d42d4b75bf9b6d54f1e77752382f36f4bdd593968736324",
+      "observation": "Bare silhouette retains leader and tiered upturned primary axes with fine hanging structural forks; mass acceptance requires foliated view."
+    },
+    {
+      "id": "norway-spruce-3",
+      "view": "bare",
+      "pngSha256": "cac54c475f484e708258870dfb521f7b68d719bf3268f49250ac230acde5e9c9",
+      "observation": "Bare silhouette retains leader and tiered upturned primary axes with fine hanging structural forks; mass acceptance requires foliated view."
+    },
+    {
+      "id": "norway-spruce-2",
+      "view": "foliage-detail",
+      "pngSha256": "d402e79b09e996de0718c002d68030089276ef04a7678564c9c88263ba661d1c",
+      "observation": "Pointed radial needles visible on narrow hanging local shoots; long exposed wood above and below the needle bands. Complete peg/socket connection is not resolved at this scale. U foliage attachment."
+    },
+    {
+      "id": "norway-spruce-3",
+      "view": "foliage-detail",
+      "pngSha256": "26ff4144f6bcac8cbc6943cd47b6bb552b1e193eabc4333d2353ce565cebfdc5",
+      "observation": "Pointed radial needles visible on narrow hanging local shoots; long exposed wood above and below the needle bands. Complete peg/socket connection is not resolved at this scale. U foliage attachment."
+    },
+    {
+      "id": "norway-spruce-1982700925",
+      "view": "bare",
+      "pngSha256": "4306fe7388d8a4b095808803db268882dd162dde61f46140d999590ef4fa70ad",
+      "observation": "Bare crown retains leader, tiered primary upturn and hanging structural forks."
+    },
+    {
+      "id": "norway-spruce-1982700925",
+      "view": "foliage-detail",
+      "pngSha256": "c0bde42db75e0c032563e8be4b2e138b34c7ce1a15d6f6e2705e347cdd5332cc",
+      "observation": "Dense narrow band of radial needles, with long naked woody spans; complete peg/socket polygonal continuity not demonstrated. U."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "exterior-alt-left",
+      "pngSha256": "e3d5fdd6800e6614664eebba383f0d16188521c887bd574f91ff1467d5cddafe",
+      "observation": "Alternate oak exterior has lobed petioled blades and a tapering small branch; overlapping blades obscure the complete terminal/socket target, so anatomy U."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "exterior-alt-right",
+      "pngSha256": "7d1ea0138204a177eec4c3b29ea1b738a7dcbda4ab9f4f1ac87ec3f3f59360b7",
+      "observation": "Alternate oak exterior has lobed petioled blades and a tapering small branch; overlapping blades obscure the complete terminal/socket target, so anatomy U."
+    },
+    {
+      "id": "norway-spruce-281313742",
+      "view": "bare",
+      "pngSha256": "85a1748662b1e6ec12c607aa6f775e623cf4c625f81558114d1fdb99d72b8711",
+      "observation": "Bare leader and primary upturns retained with fine hanging axes; foliage mass assessed separately."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "exterior-front",
+      "pngSha256": "0201fe3540e710613338881f325ad4d572e3ed0c791369dc851d6fea4eaf986e",
+      "observation": "Lobed petioled leaves and tapering branch visible. Overlapping blades and limited projected terminal/socket resolution do not establish complete polygonal continuity. U anatomy."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "exterior-left",
+      "pngSha256": "0d9d9017569f09d264e21ae176c03b3afdac51f8672cddc5aa170a712989642b",
+      "observation": "Lobed petioled leaves and tapering branch visible. Overlapping blades and limited projected terminal/socket resolution do not establish complete polygonal continuity. U anatomy."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "exterior-right",
+      "pngSha256": "acc76077b383d474b961f98f8f3bb9d3cdb4bc595314e5cd7cabaa3d98bb8237",
+      "observation": "Lobed petioled leaves and tapering branch visible. Overlapping blades and limited projected terminal/socket resolution do not establish complete polygonal continuity. U anatomy."
+    },
+    {
+      "id": "norway-spruce-2271779095",
+      "view": "bare",
+      "pngSha256": "51de976093109187b939e51af039cdbdebe299edd3c20066ff2bffb55a150097",
+      "observation": "Bare leader, tiers and hanging forks retained; no curtain mass acceptance."
+    },
+    {
+      "id": "norway-spruce-281313742",
+      "view": "foliage-detail",
+      "pngSha256": "52ca791df64bbbdaeb40fc288d93550f2d83642331cbaa6653262649d33c9b80",
+      "observation": "Individual pointed radial needles on widely separated fine shoots; substantial curtain mass absent. Full attachment not resolved, U."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "foliage-detail",
+      "pngSha256": "ce503bc01a4ec0a87837177ce5176a589eab25bc84fe4092c553d3b89dbabc1d",
+      "observation": "Rounded lobes and short petioles visible on oak leaf cluster. Foliage shape P; terminal/socket anatomy unresolved."
+    },
+    {
+      "id": "oregon-white-oak-1",
+      "view": "junction-detail",
+      "pngSha256": "58ab9a3f8c4e7dec4d9045d4b517315b4d3128690c9bd0f2b13d0040190b7e18",
+      "observation": "Oak junction remains overlapped by leaf cluster and crossing wood. U complete terminal/socket continuity."
+    },
+    {
+      "id": "norway-spruce-2271779095",
+      "view": "foliage-detail",
+      "pngSha256": "41eea2d07a2ad82f4776406d8bd66922330bf1c7f6badd442d61048ebe799bbc",
+      "observation": "Radial needles concentrated in narrow bands with long exposed surrounding woody axes; U complete attachment."
+    },
+    {
+      "id": "norway-spruce-4250668600",
+      "view": "bare",
+      "pngSha256": "75589482511f01cb6ca8e66b7fdbd719082765efa378059350864086d3d00d52",
+      "observation": "Width counterexample bare view retains leader and upturned primary tiers with hanging forks."
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "view": "bare",
+      "pngSha256": "762bd5a4318736e35d1e10b28b649544a9ff008ef00d405523b79c27b6764c06",
+      "observation": "Protected oak retains crooked spreading scaffold and original upper fine branching."
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "view": "foliage-detail",
+      "pngSha256": "580b9b2341b00476b787f799206411bea0bcd7258c2877d5664d347b224e9772",
+      "observation": "Protected foliage-detail remains heavily screened by crossing wood; lobes partly visible but foliage attachment and complete socket remain U."
+    },
+    {
+      "id": "norway-spruce-4250668600",
+      "view": "foliage-detail",
+      "pngSha256": "89f6384aa337eb82fce2bf9652dbb5819cfec992297893ffea32807f23929aea",
+      "observation": "Radial pointed needles visible in localized bands; extensive exposed wood and unresolved complete peg/socket attachment. U."
+    },
+    {
+      "id": "ordinary",
+      "view": "bare",
+      "pngSha256": "f0d64c5c5397fe34b9d64e0bc5f2cd8f1290856b04cdc9287ec64ee66d6dcf41",
+      "observation": "Shared Ordinary bare habit remains narrow with sweeping upright branches; historical form retained."
+    },
+    {
+      "id": "ordinary",
+      "view": "foliage-detail",
+      "pngSha256": "d46b1b46e83334cd4c477433471842848359c1615353e635e01e38e6fb3ead11",
+      "observation": "Shared Ordinary angular blades on fine stems; sparse historical foliage retained, not a species-fidelity acceptance."
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "view": "bare",
+      "pngSha256": "c808eb6b9196a2151dbc1ac93570b44154b00fe1a2a5efb028a69a775303428c",
+      "observation": "Oak 2 bare structure exposes separated elevated terminal masses and the large right-hand window; spreading scaffold retained but the repair has not bridged the gap."
+    },
+    {
+      "id": "laurelin",
+      "view": "bare",
+      "pngSha256": "154d92e0a5f7d3e631206b12cb489a52a259c0aaf019d8734a7f572140c20955",
+      "observation": "Shared Laurelin retains broad sweeping woody crown and angular flared base; historical form, no new fidelity acceptance."
+    },
+    {
+      "id": "laurelin",
+      "view": "foliage-detail",
+      "pngSha256": "066d9fea4672e126983c08305a82bcceb1e0ac7b680fd6d68164ee58d17849c9",
+      "observation": "Shared Laurelin retains angular sparse leaf cluster; cropped twig context cannot establish a new seam finding."
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "view": "foliage-detail",
+      "pngSha256": "6ca8b51494545f67d3b81302ca762038c42b9cbee14ec222ce2404e9d98a774b",
+      "observation": "Oak 2 shows rounded lobes and short petioles; foliage shape P, complete socket anatomy unresolved behind surrounding wood."
+    },
+    {
+      "id": "oregon-white-oak-2666899686",
+      "view": "bare",
+      "pngSha256": "189040a2673849ff2c8904f2fe89ef5c1dd6f462d263378bdde879aead21bde1",
+      "observation": "Oak fresh 2666899686 retains crooked spreading scaffold but elevated upper branching still surrounds the central inter-mass opening."
+    },
+    {
+      "id": "oregon-white-oak-2666899686",
+      "view": "foliage-detail",
+      "pngSha256": "b38159227616821dae644a2b016a5da2dbc2ed9b98a30f875750f08603e1ed39",
+      "observation": "Rounded lobes and short petioled blades visible; foliage shape P. Complete branch/socket continuity remains unresolved at this framing."
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "view": "foliage-detail",
+      "pngSha256": "bd2f1344115d236a3355cff856e8ea3c36caf8b0510e27bc17ae4e77bf090928",
+      "observation": "Rounded lobes and short petioled blades visible; foliage shape P. Complete branch/socket continuity remains unresolved at this framing."
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "view": "bare",
+      "pngSha256": "a714a6034111aca98a5d62156b538955d3f6e411af23c612cb367e4b0e3f69a9",
+      "observation": "Oak 3 bare upper cap remains apart from lower masses with inter-mass windows; crooked spreading scaffold retained."
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "view": "bare",
+      "pngSha256": "2ec95b88180d0a9ccf2039d0968bda799819047683537ae0b0dff7329ce571e3",
+      "observation": "Protected oak bare view retains crooked open scaffold and upper fine branching."
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "view": "foliage-detail",
+      "pngSha256": "ff4fee83a8ee113735367500983042fdd36f886056de0bee4bd05684a8589230",
+      "observation": "Protected oak has rounded lobes and visible short petioles, foliage shape P; full socket anatomy U amid crossing wood."
+    },
+    {
+      "id": "telperion",
+      "view": "bare",
+      "pngSha256": "e348b3c3a921421483b91beeeb4ff67f7195faa1bdb8ced8b0e6a6f895041258",
+      "observation": "Shared Telperion retains twisted trunk and narrow sweeping upright crown; historical form retained."
+    },
+    {
+      "id": "telperion",
+      "view": "foliage-detail",
+      "pngSha256": "6d408ee3b06e2969d9a3fdcea6671116fcf963088788a4ca948d54e55ed3521a",
+      "observation": "Shared Telperion retains sparse angular blades on tapering terminal shoot; no species-fidelity acceptance inferred."
+    }
+  ]
+}

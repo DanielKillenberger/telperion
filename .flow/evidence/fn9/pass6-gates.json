@@ -237,5 +237,39 @@
     "Initial Clippy rejected constant chunks_exact; changed to as_chunks before final gates.",
     "An audit analysis was invoked before its output directory existed; no result from that attempt is used.",
     "Unpinned descendant-subtree projections were superseded by exact original bearing node selection; shrinking sample membership supplies no acceptance."
-  ]
+  ],
+  "capture": {
+    "command": [
+      "python3",
+      "/tmp/fn99-pass5-capture.py",
+      "/tmp/fn99-pass6-qa"
+    ],
+    "exit_code": 0,
+    "seconds": 2217.141340970993,
+    "log": "/tmp/fn99-pass6-capture-process/run.log",
+    "sha256": "ef9eae5cf7b4f655bc88dfc6be17b756ce4c02d5fc2f9f1b1984a4fed99e4069"
+  },
+  "angular_scan": {
+    "command": [
+      "python3",
+      "/tmp/fn99-pass5-capture.py",
+      "/tmp/fn99-pass6-contact-scan-final"
+    ],
+    "exit_code": 0,
+    "seconds": 632.0934090614319,
+    "log": "/tmp/fn99-pass6-scan-process/run.log",
+    "sha256": "79023ebd4d60dc232be034798300e938f6003631159b300fefa0bcec3c1e62d5"
+  },
+  "final_evidence_checks": {
+    "diff_exit_code": 0,
+    "flow_exit_code": 0,
+    "flow_valid": true,
+    "flow_total_errors": 0,
+    "flow_total_warnings": 9,
+    "warning_context": "Historical fn-6/fn-7 committed snapshots lack runtime state; fn-9 has no warnings.",
+    "fn99_status": "blocked",
+    "capture_provenance_and_inspection_assertions": 120,
+    "protected_exact_comparisons": 9,
+    "shared_exact_comparisons": 9
+  }
 }
