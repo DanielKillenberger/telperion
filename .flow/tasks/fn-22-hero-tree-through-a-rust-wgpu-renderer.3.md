@@ -38,9 +38,30 @@ Add the instanced foliage draw, the `submit` contract with the pure fit check an
 - [ ] Headless still for spruce at seed 1 shows foliage; `--view leaf` shows one needle or leaf at generated scale; an unknown view exits non-zero
 - [ ] `cargo test --release -p telperion-render` passes; clippy clean; every file under 400 lines
 ## Done summary
-TBD
+The crown reaches the pixels: one instanced draw takes the core's own placement matrices up as they lie, the element mesh goes with them once, and both faces of a leaf light so a crown seen from underneath is a crown rather than a field of holes. `submit` now reports the wood counts, the placement count and the bounds it was handed, and refuses a tree larger than the device granted by naming the buffer and both sizes instead of quietly truncating it. The three views the harness offers are back on the new renderer, and the conformance sweep holds every shipped family and twenty generated parameter sets to the same submit and the same frame.
 
+Scope notes for the reviewer:
+
+- **`submit` keeps task 2's signature; no `Transform` was added.** The task's approach sketch writes `submit(&TreeMesh, Transform)`, but nothing in this spec places a tree anywhere but the origin, and neither shader carries a model matrix. A parameter every caller passes as the identity, threaded through two pipelines to be multiplied by nothing, is dead API that lies about a capability. The acceptance asks for counts and bounds, and those it returns. A placement transform earns its keep in the forest spec, where there is a second tree to place.
+- **`hero_pose` had two tree-scale constants that the leaf view exposed.** The eye was floored at the scale figure's 1.8 m and the near plane fixed at 0.1 m; against a 2 cm needle that put the camera eight metres of its own length away and clipped what was left. Both now scale with the subject: the eye-height floor applies only to a subject taller than a person, and the near plane is the smaller of a tenth of a metre and half the reach. The tree poses are bit-identical — every task 2 camera test passes untouched — and the new case was confirmed red against the old constants before the fix.
+- **Leaf normals are computed, not shipped.** The core's `Element` carries positions and indices only. The renderer folds area-weighted vertex normals over the element once per tree, so cup and curl read under the same hemisphere as the wood, and `@builtin(front_facing)` flips the normal toward the eye rather than a second uniform.
+- **The leaf view draws no room.** A 400 m ground disc and a 1.8 m figure behind a 2 cm needle are a wall, not a scale reference. Whole and bare keep both.
+- **`Region` and the held buffers moved to `buffer.rs`.** Foliage needs exactly the wood's allocate-with-headroom and reuse-if-it-fits behaviour; extracting it beat a second copy. `wood.rs` fell from 256 lines to 114 and the reuse decision is still tested without a device.
+- **`fits` judges the allocation, not the payload.** Buffers are taken with a quarter again of headroom, and the headroom is what the device has to grant; checking the payload alone would pass a mesh that then failed at allocation.
+- **A non-blank still proves nothing on its own.** The room is always in frame, so `has_subject` is satisfied by the ground disc even when no tree was drawn. Every conformance assertion is against the frame statistics measured on the tree's own submitted counts, not against the picture not being flat.
+- **The random sweep walks unsigned leaves too.** `canopy.maxInstances` is `usize::MAX`; read through `as_i64` it fell out as a float and the schema refused all sixty sets. The walk now takes `as_u64` first and lets the casts saturate. Yield is 20 rendered of 25 tried, the five refusals being ranges the jitter pushed out of bounds — which is the loop working, not failing.
+- **Inherited red, not caused here:** `cargo clippy --workspace --all-targets -- -D warnings` fails in `crates/telperion-core/examples/geometry_benchmark/metrics.rs:238` (`assign_op_pattern`). That file is untouched by this task and outside its declared Touches, so it is recorded rather than fixed. Clippy is clean for `telperion-render` itself, and `cargo test --release --workspace` is green.
+- `Cargo.lock` moved as the mechanical consequence of the dev-dependency added to `crates/telperion-render/Cargo.toml`; it is the only path in the diff outside the declared Touches.
+- Every file is under 400 lines; the largest is `src/scene.rs` at 347.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; parallel wave - conductor reviews after integration)
+stage: gate-classify - ran (FULL; full workspace suite green, receipt a80d6bb1-unittest)
+
+Conductor decisions: no Transform on submit accepted (nothing places a tree off the origin in this spec; the forest spec adds it); subject-scaled eye floor and near plane accepted; the inherited clippy red in the core geometry_benchmark example is out of scope and goes to Phase 4.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: wave-join - ran (commit a80d6bb already on target; no integration needed)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a80d6bb1ff92f2f6d9a4c3d096be2692390d30cb
+- Tests: cargo test --release --workspace: passed (green receipt a80d6bb1-unittest), cargo test --release -p telperion-render: passed (19 unit, 4 conformance, 4 submit, 2 headless), cargo fmt --all -- --check: passed, cargo clippy --release -p telperion-render --all-targets -- -D warnings: passed, cargo clippy --workspace --all-targets -- -D warnings: INHERITED RED in crates/telperion-core/examples/geometry_benchmark/metrics.rs:238 (assign_op_pattern), untouched by this task and outside its Touches, cargo run --release -p telperion-render --example headless -- --preset norway-spruce --seed 1 --size 512x512: 7911960 placements drawn, foliage visible, headless --view leaf on norway-spruce: one needle at generated scale filling the frame, headless --view sideways: exit 1, unknown view named
 - PRs:
