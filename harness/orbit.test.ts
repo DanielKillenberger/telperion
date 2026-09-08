@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { eyeOf, orbitOf, push, turn, type Point } from "./orbit";
+import { eyeOf, orbitOf, pan, push, turn, type Point } from "./orbit";
 
 /* The camera moves when it is asked to and at no other time, and it
    moves where it was asked. Neither claim needs a GPU: an orbit is
@@ -61,6 +61,40 @@ describe("turn", () => {
       // picture rolls; the margin is what keeps a horizontal offset.
       expect(Math.hypot(eyeOf(orbit)[0], eyeOf(orbit)[2])).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("pan", () => {
+  it("slides the target across the picture plane and takes the eye along", () => {
+    const orbit = orbitOf(EYE, TARGET);
+    const slid = pan(orbit, 120, -80);
+    const moved: Point = [
+      slid.target[0] - TARGET[0],
+      slid.target[1] - TARGET[1],
+      slid.target[2] - TARGET[2],
+    ];
+    // Across the picture means at right angles to the line of sight.
+    const sight: Point = [EYE[0] - TARGET[0], EYE[1] - TARGET[1], EYE[2] - TARGET[2]];
+    const along = moved[0] * sight[0] + moved[1] * sight[1] + moved[2] * sight[2];
+    expect(Math.hypot(...moved)).toBeGreaterThan(0);
+    expect(along / (Math.hypot(...moved) * Math.hypot(...sight))).toBeCloseTo(0, 9);
+    expect(distance(eyeOf(slid), slid.target)).toBeCloseTo(orbit.distance, 9);
+    expect(slid.yaw).toBe(orbit.yaw);
+    expect(slid.elevation).toBe(orbit.elevation);
+  });
+
+  it("follows the hand: a drag to the right moves the target to the picture's left", () => {
+    // Looking down -Z from +Z, the picture's right is +X.
+    const orbit = orbitOf([0, 5, 20], [0, 5, 0]);
+    expect(pan(orbit, 100, 0).target[0]).toBeLessThan(0);
+    // A drag downwards drops the subject, which lifts the target.
+    expect(pan(orbit, 0, 100).target[1]).toBeGreaterThan(5);
+  });
+
+  it("is reversible, so a slide back lands where it left", () => {
+    const orbit = orbitOf(EYE, TARGET);
+    const back = pan(pan(orbit, 90, -40), -90, 40);
+    for (const axis of [0, 1, 2]) expect(back.target[axis]).toBeCloseTo(TARGET[axis], 9);
   });
 });
 

@@ -105,6 +105,33 @@ export function push(orbit: Orbit, notches: number): Orbit {
   };
 }
 
+/** A drag across eight hundred pixels slides the subject one framed
+ *  distance across the picture: the same sweep of the hand that turns
+ *  it once round, so the two moves feel like one instrument. */
+const SLIDE_PER_PIXEL = 1 / 800;
+
+/** The orbit after a shifted drag: the target slides across the picture
+ *  plane so the subject follows the hand, and the eye goes with it.
+ *  Distance and angles are untouched, so a slide never changes what the
+ *  wheel and the turn are calibrated to. */
+export function pan(orbit: Orbit, dx: number, dy: number): Orbit {
+  const step = orbit.distance * SLIDE_PER_PIXEL;
+  const [sinYaw, cosYaw] = [Math.sin(orbit.yaw), Math.cos(orbit.yaw)];
+  const [sinUp, cosUp] = [Math.sin(orbit.elevation), Math.cos(orbit.elevation)];
+  // The picture's right and up, in the room's metres.
+  const right: Point = [cosYaw, 0, -sinYaw];
+  const up: Point = [-sinUp * sinYaw, cosUp, -sinUp * cosYaw];
+  const [x, y, z] = orbit.target;
+  return {
+    ...orbit,
+    target: [
+      x + (up[0] * dy - right[0] * dx) * step,
+      y + (up[1] * dy - right[1] * dx) * step,
+      z + (up[2] * dy - right[2] * dx) * step,
+    ],
+  };
+}
+
 /** Where the eye stands, in the renderer's own metres. */
 export function eyeOf(orbit: Orbit): Point {
   const flat = orbit.distance * Math.cos(orbit.elevation);

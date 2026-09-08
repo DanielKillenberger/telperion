@@ -7,7 +7,7 @@ import {
   type View,
 } from "../src/browser/render";
 
-import { eyeOf, orbitOf, push, turn, type Orbit } from "./orbit";
+import { eyeOf, orbitOf, pan, push, turn, type Orbit } from "./orbit";
 
 /* ------------------------------------------------------------------ *
  * THE CLAY ROOM, ON THE RUST RENDERER
@@ -107,7 +107,9 @@ export async function createStage(
   };
   const onPointerMove = (event: PointerEvent): void => {
     if (dragging !== event.pointerId || orbit === null) return;
-    look(turn(orbit, event.clientX - last[0], event.clientY - last[1]));
+    // Shift slides the subject across the picture; a bare drag walks round it.
+    const move = event.shiftKey ? pan : turn;
+    look(move(orbit, event.clientX - last[0], event.clientY - last[1]));
     last = [event.clientX, event.clientY];
   };
   const onPointerUp = (event: PointerEvent): void => {
