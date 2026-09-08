@@ -41,9 +41,19 @@ Give the core the one engine-neutral mesh call (spec §API Contracts, Mesh outpu
 - [ ] Every touched file stays under 400 lines
 
 ## Done summary
-TBD
+The core gained `mesh::build(&Family, Detail::Full) -> Result<TreeMesh>`, the one engine-neutral mesh call: it runs the same chain the C-ABI binding runs (growth, the plaited wood surface, the culled foliage) and returns the wood surface, one foliage element with its instance matrices, union bounds and the derived wood-vertex, wood-triangle and foliage-instance counts. The JSON parameter mirror moved from the binding into the core behind a `json` feature, so the renderer wasm module will parse the panel's schema without linking the C-ABI, while the default core stays serde-free.
 
+Scope notes for the reviewer:
+- `foliage::Bounds` converts into `surface::Bounds` (a `From` impl in `mesh.rs`); no third bounds type was added. `TreeMesh::bounds` is non-optional and a mesh with no geometry at all is `Error::InvalidInput("mesh has no geometry")`.
+- The binding's own `generate` chain is unchanged in behaviour but now lives in `crates/telperion-wasm/src/generate.rs`. The split is what brings the touched `lib.rs` from 524 to 280 lines, which the task's "every touched file stays under 400 lines" criterion required.
+- The binding-equivalence pin lives in that new module's unit tests rather than in `crates/telperion-core/tests/mesh.rs` as the acceptance text suggested: `generate` is private to the binding, and reaching it from a core test would need a dev-dependency cycle back onto the crate the core is supposed to know nothing about. `crates/telperion-core/tests/mesh.rs` carries the five-preset contract and the generator-rejection case; `crates/telperion-wasm/src/generate.rs` carries the oak and spruce count-and-bounds equality against the binding (oak 2,795,666 wood vertices / 5,416,480 triangles / 567,801 instances; spruce 3,589,724 / 6,938,160 / 7,923,516).
+- `serde` left the wasm crate's own manifest; it now arrives through the core's `json` feature. `Cargo.lock` changed accordingly. `src/browser/presets.generated.ts` is byte-identical.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; parallel wave - conductor reviews after integration)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: wave-join - ran (commit 6243121 already on target; no integration needed)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6243121df520d0a9544c5c9b6dd03f77db37b0d7
+- Tests: cargo test --release --workspace (76 passed, 0 failed; +3 new: mesh contract, generator-rejection, binding equivalence), cargo clippy --workspace --all-targets (clean; 2 inherited geometry_benchmark warnings, unchanged from baseline), cargo fmt --all -- --check (clean), cargo build -p telperion-core (default features; cargo tree --edges normal shows no serde), cargo test --release -p telperion-core --features json --lib (params::tests::catalogue_roundtrips_all_controls_and_identities ok), npm run wasm:build && git diff --exit-code -- src/browser/presets.generated.ts (byte-identical), npm test (3 files, 106 passed), npm run rust:test:wasm (browser integration, all 16 checks true), red-first: perturbing mesh::build's placement seed failed generate::tests::mesh_build_matches_the_binding_chain_for_oak_and_spruce on bounds, then reverted
 - PRs:
