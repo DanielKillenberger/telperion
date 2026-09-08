@@ -9,6 +9,7 @@ mod foliage;
 mod headless;
 mod scene;
 mod submit;
+mod timing;
 mod view;
 mod wood;
 
@@ -17,10 +18,15 @@ pub use camera::{hero_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
 pub use device::{Gpu, RenderError, Result};
 pub use scene::{DEPTH_FORMAT, GROUND_REACH};
 pub use submit::{fits, Submitted};
+pub use timing::{
+    judge, Hardware, Report, Session, Verdict, CONDITIONING, CONTENTION_RATIO, MEASURED, WARMUP,
+};
 pub use view::View;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use headless::{render, write_png, Still, STILL_FORMAT};
+pub use headless::{attachment, render, write_png, Still, STILL_FORMAT};
+#[cfg(not(target_arch = "wasm32"))]
+pub use timing::run as measure;
 
 use telperion_core::{mesh::TreeMesh, surface::Bounds};
 
@@ -130,13 +136,17 @@ impl Renderer {
         self.foliage.region()
     }
 
-    /// Draws one frame into the given colour and depth views.
+    /// Draws one frame into the given colour and depth views: the room first,
+    /// then the vegetation in a pass of its own. The timestamp pair, when one
+    /// is given, goes around that second pass, so what is measured is the tree
+    /// and not the floor it stands on.
     pub fn draw(
         &mut self,
         camera: &Camera,
         aspect: f64,
         colour: &wgpu::TextureView,
         depth: &wgpu::TextureView,
+        timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
     ) -> FrameStats {
         self.scene.set_camera(&self.gpu, camera, aspect);
         let mut encoder = self
@@ -145,45 +155,69 @@ impl Renderer {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("frame"),
             });
-        let stats = {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("frame"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: colour,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(self.scene.background()),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                timestamp_writes: None,
-                occlusion_query_set: None,
-                multiview_mask: None,
-            });
+        let room = {
+            let mut pass = pass(
+                &mut encoder,
+                "room",
+                colour,
+                depth,
+                Some(self.scene.background()),
+                None,
+            );
             self.scene.bind(&mut pass);
             match self.view {
                 // A leaf is judged on its own: at 0.1 m the room around it is a
                 // wall, and the scale figure is not a scale for a leaf.
+                View::Leaf => FrameStats::default(),
+                _ => self.scene.draw(&mut pass),
+            }
+        };
+        let vegetation = {
+            let mut pass = pass(&mut encoder, "vegetation", colour, depth, None, timestamps);
+            self.scene.bind(&mut pass);
+            match self.view {
                 View::Leaf => self.foliage.draw(&mut pass, self.view),
-                view => {
-                    self.scene.draw(&mut pass)
-                        + self.wood.draw(&mut pass)
-                        + self.foliage.draw(&mut pass, view)
-                }
+                view => self.wood.draw(&mut pass) + self.foliage.draw(&mut pass, view),
             }
         };
         self.gpu.queue.submit([encoder.finish()]);
-        stats
+        room + vegetation
     }
+}
+
+/// One pass of a frame. The first pass of a frame clears the targets and every
+/// later one loads them, which is the whole difference between them.
+fn pass<'encoder>(
+    encoder: &'encoder mut wgpu::CommandEncoder,
+    label: &'static str,
+    colour: &wgpu::TextureView,
+    depth: &wgpu::TextureView,
+    clear: Option<wgpu::Color>,
+    timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
+) -> wgpu::RenderPass<'encoder> {
+    encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        label: Some(label),
+        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+            view: colour,
+            depth_slice: None,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: clear.map_or(wgpu::LoadOp::Load, wgpu::LoadOp::Clear),
+                store: wgpu::StoreOp::Store,
+            },
+        })],
+        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+            view: depth,
+            depth_ops: Some(wgpu::Operations {
+                load: clear.map_or(wgpu::LoadOp::Load, |_| wgpu::LoadOp::Clear(1.0)),
+                store: wgpu::StoreOp::Store,
+            }),
+            stencil_ops: None,
+        }),
+        timestamp_writes: timestamps,
+        occlusion_query_set: None,
+        multiview_mask: None,
+    })
 }
 
 /// The one pipeline shape every pass shares: clay under a hemisphere, depth

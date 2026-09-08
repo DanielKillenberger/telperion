@@ -34,7 +34,15 @@ impl Still {
     }
 }
 
-fn target(gpu: &Gpu, label: &str, format: wgpu::TextureFormat, size: (u32, u32)) -> wgpu::Texture {
+/// An offscreen render target of this format and size. The timing session
+/// draws into the same pair of textures the still is taken from, so what is
+/// measured is the frame that was judged.
+pub fn attachment(
+    gpu: &Gpu,
+    label: &str,
+    format: wgpu::TextureFormat,
+    size: (u32, u32),
+) -> wgpu::Texture {
     gpu.device.create_texture(&wgpu::TextureDescriptor {
         label: Some(label),
         size: wgpu::Extent3d {
@@ -53,18 +61,19 @@ fn target(gpu: &Gpu, label: &str, format: wgpu::TextureFormat, size: (u32, u32))
 
 /// Renders one frame at this size and brings it back to the host.
 pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32) -> Result<Still> {
-    let colour = target(
+    let colour = attachment(
         renderer.gpu(),
         "still",
         renderer.colour_format(),
         (width, height),
     );
-    let depth = target(renderer.gpu(), "still depth", DEPTH_FORMAT, (width, height));
+    let depth = attachment(renderer.gpu(), "still depth", DEPTH_FORMAT, (width, height));
     let stats = renderer.draw(
         camera,
         f64::from(width) / f64::from(height),
         &colour.create_view(&Default::default()),
         &depth.create_view(&Default::default()),
+        None,
     );
 
     // Rows land in the readback buffer padded to the copy alignment; the

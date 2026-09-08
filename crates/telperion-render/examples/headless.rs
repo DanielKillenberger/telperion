@@ -8,11 +8,12 @@ use telperion_core::{
     presets::Preset,
 };
 use telperion_render::{
-    hero_pose, render, write_png, Gpu, Renderer, View, GROUND_REACH, STILL_FORMAT,
+    attachment, hero_pose, measure, render, write_png, Gpu, Renderer, View, DEPTH_FORMAT,
+    GROUND_REACH, STILL_FORMAT,
 };
 
-const USAGE: &str =
-    "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] [--view whole|bare|leaf]";
+const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] \
+                     [--view whole|bare|leaf] [--timing <json>]";
 
 struct Arguments {
     preset: String,
@@ -20,11 +21,12 @@ struct Arguments {
     out: PathBuf,
     size: (u32, u32),
     view: View,
+    timing: Option<PathBuf>,
 }
 
 fn parse() -> Result<Arguments, String> {
     let (mut preset, mut seed, mut out, mut size) = (None, None, None, (1024u32, 1024u32));
-    let mut view = View::default();
+    let (mut view, mut timing) = (View::default(), None);
     let mut args = std::env::args().skip(1);
     while let Some(flag) = args.next() {
         let mut value = || args.next().ok_or(format!("{flag} needs a value\n{USAGE}"));
@@ -38,6 +40,7 @@ fn parse() -> Result<Arguments, String> {
                 );
             }
             "--out" => out = Some(PathBuf::from(value()?)),
+            "--timing" => timing = Some(PathBuf::from(value()?)),
             "--size" => {
                 let raw = value()?;
                 size = parse_size(&raw)?;
@@ -57,6 +60,7 @@ fn parse() -> Result<Arguments, String> {
         out: out.ok_or(format!("--out is required\n{USAGE}"))?,
         size,
         view,
+        timing,
     })
 }
 
@@ -94,6 +98,19 @@ fn run() -> Result<(), String> {
     let camera = hero_pose(bounds, f64::from(width) / f64::from(height), GROUND_REACH);
     let still = render(&mut renderer, &camera, width, height).map_err(|error| error.to_string())?;
     write_png(&arguments.out, &still).map_err(|error| error.to_string())?;
+    if let Some(path) = &arguments.timing {
+        let report = time(&mut renderer, &camera, arguments.size)?;
+        write(path, &report.to_json())?;
+        let detail = match (report.p50_ms(), report.p95_ms()) {
+            (Some(median), Some(tail)) => format!("p50 {median:.3} ms, p95 {tail:.3} ms"),
+            _ => report
+                .verdict()
+                .reason()
+                .unwrap_or("no reason given")
+                .to_owned(),
+        };
+        println!("{}: {} - {detail}", path.display(), report.verdict().name());
+    }
 
     println!(
         "{} {}x{} on {adapter}: {} wood vertices, {} wood triangles, \
@@ -109,6 +126,39 @@ fn run() -> Result<(), String> {
         still.stats.draw_calls,
     );
     Ok(())
+}
+
+/// Measures the vegetation pass of the tree already on stage, into targets of
+/// the still's own size so the number belongs to the picture beside it.
+fn time(
+    renderer: &mut Renderer,
+    camera: &telperion_render::Camera,
+    size: (u32, u32),
+) -> Result<telperion_render::Report, String> {
+    let (width, height) = size;
+    let colour = attachment(renderer.gpu(), "timing", STILL_FORMAT, size);
+    let depth = attachment(renderer.gpu(), "timing depth", DEPTH_FORMAT, size);
+    measure(
+        renderer,
+        camera,
+        f64::from(width) / f64::from(height),
+        &colour.create_view(&Default::default()),
+        &depth.create_view(&Default::default()),
+    )
+    .map_err(|error| error.to_string())
+}
+
+/// Writes a small text record where it was asked for, naming the path when it
+/// cannot; the still's own writer is for pixels.
+fn write(path: &std::path::Path, text: &str) -> Result<(), String> {
+    if let Some(parent) = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+    {
+        std::fs::create_dir_all(parent)
+            .map_err(|error| format!("cannot write {}: {error}", path.display()))?;
+    }
+    std::fs::write(path, text).map_err(|error| format!("cannot write {}: {error}", path.display()))
 }
 
 fn main() {
