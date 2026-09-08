@@ -46,9 +46,41 @@ Compile the renderer to a wasm-bindgen module, build it from a script that check
 - [ ] Orbit unit tests pass; `npm run typecheck` and `npm test` pass; no authored untyped JavaScript under `src` or `harness`
 - [ ] After React's development double-mount the live-device counter reads one; `GrowerDev.tsx` ends shorter than it started
 ## Done summary
-TBD
+The renderer now compiles to a wasm-bindgen module and draws the harness
+canvas: `web.rs` exports a `WebRenderer` over a canvas surface with
+`setTree`, `setView`, `heroCamera`, `setCamera`, `resize`, `frame`, `stats`,
+`timing` and `dispose`, generation runs inside that module so only parameter
+text goes in and counts come back, and every failure arrives in JavaScript as
+the Rust error's own words. `scripts/build-render.mjs` builds the module and
+generates its gitignored glue, refusing with the exact `cargo install
+wasm-bindgen-cli --version 0.2.128` line when the CLI is missing or
+mismatched. The page is cut over: the dial-to-family composition moved to
+`harness/family.ts` with its own tests, `harness/orbit.ts` carries the orbit
+arithmetic under unit test, `harness/rust-stage.ts` owns the frame loop, the
+pointer and the frame latch, and `GrowerDev.tsx` drives all of it in 204
+fewer lines with the timing session in place of the pixel-ratio sweep.
+Nothing the page imports reaches `three` or the old stage.
 
+Verified in Chromium on a hardware adapter: oak and spruce render in clay,
+presets and dials regenerate and redraw, whole, bare and leaf switch, the
+timing button reported a valid p50 of 0.327 ms and p95 of 0.331 ms over 120
+frames, a parameter set the generator refuses shows its message with the
+previous tree still on screen, a software-only adapter names that condition,
+and the live device count reads one after React's development double-mount.
+
+Follow-ups for task 7, not built here: `tsconfig.build.json` still sweeps
+`src/browser/render.ts` into the library declarations, so `dist` carries an
+unreferenced `browser/render.d.ts` pointing at glue that is not shipped; the
+file is outside this task's Touches, and `npm run build` was wired to
+generate the glue first so it passes either way.
+
+stage: impl-review - skipped(policy: parallel-wave - the conductor reviews after it integrates)
+
+Conductor decisions: GrowerDev.tsx ends at 412 lines, down from 616, within the about-400 rule; wasm-bindgen-cli 0.2.128 was installed on this machine by the worker; the tsconfig.build.json declaration sweep is carried to task 7.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: wave-join - ran (commit 458fe01 already on target; no integration needed)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 458fe0157c3eda9df8c9083892d65f174ddab129
+- Tests: cargo test --release --workspace, npm test, npm run typecheck, npm run build, npm run render:build (glue emitted; both refusal paths exercised with a missing and a mismatched CLI), browser smoke on hardware WebGPU (Chromium --enable-unsafe-webgpu --enable-features=Vulkan,VulkanFromANGLE --use-angle=vulkan): oak and spruce render, presets and dials regenerate, whole/bare/leaf switch, timing valid p50 0.327 ms p95 0.331 ms over 120 frames, generator rejection keeps the previous tree, software-only adapter names the condition, live devices = 1 after StrictMode double-mount
 - PRs:
