@@ -48,7 +48,8 @@
     "render:build": "node scripts/build-render.mjs",
     "species:measure": "cargo build --release -p telperion-core --example species_measure && node tests/browser/species.mjs --measure-only",
     "species:qa": "node tests/browser/species.mjs",
-    "test:browser": "node tests/browser/integration.mjs"
+    "test:browser": "node tests/browser/integration.mjs",
+    "test:render": "node scripts/test-render.mjs"
   },
   "peerDependencies": {
     "three": ">=0.160.0"

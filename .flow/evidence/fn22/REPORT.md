@@ -53,6 +53,63 @@ magnitude wider than anything observed here. Performance is reported and not
 gated in this spec; the 2 ms hero target belongs to the fast-hero spec, and
 spruce at 94 ms is the distance to it, measured rather than estimated.
 
+## The same trees in the browser
+
+The same session protocol, the same seed and the same canvas size, run on the
+page's own module through Chrome's WebGPU. Both trees are the ones the native
+rows measured: seed 7 through the panel's own dial composition, and the counts
+below match the native table exactly, so these are two measurements of one tree
+and not two trees.
+
+| Species | Adapter | Backend | p50 | p95 | Verdict |
+|---|---|---|---:|---:|---|
+| Oregon white oak | nvidia ampere, as WebGPU reports it | webgpu | 17.86 ms | 17.88 ms | valid |
+| Norway spruce | nvidia ampere, as WebGPU reports it | webgpu | 62.91 ms | 62.93 ms | valid |
+
+Chromium 153.0.8010.12, launched with `--no-sandbox --enable-unsafe-webgpu
+--enable-features=Vulkan --use-angle=vulkan --disable-vulkan-surface
+--ignore-gpu-blocklist`. The raw records are
+[oak](oak-browser-timing.json) and [spruce](spruce-browser-timing.json).
+
+Two things about a browser number. Chrome quantizes WebGPU timestamps to 100
+microseconds unless developer features or the unsafe-WebGPU flag are on; these
+percentiles are finer than that step, so this session was not quantized, and each
+record says so from its own numbers rather than from an assumption. And the
+module cannot name the hardware: WebGPU tells it nothing about the adapter, so
+the Rust record's adapter and driver fields are empty and the page's own view of
+the adapter is recorded beside them.
+
+Oak agrees with the native measurement to within a tenth of a percent. Spruce
+does not: 62.9 ms in the browser against 94.2 ms native, on the same tree, the
+same canvas and the same GPU. Both sessions are `valid` and both are tight, so
+this is not noise or contention; something differs between the two pipelines on
+the instance-heavy tree, and nothing here establishes what. The native rows stay
+the reference the later specs compare against, and the gap is a question for the
+fast-hero spec rather than an answer from this one.
+
+## The page, driven
+
+`npm run test:render` drives the page the way the owner does, on the hardware
+adapter, and its scenarios are the browser half of R1 and R6. Every shipped
+preset renders: Ordinary, Oregon white oak, Norway spruce, Telperion and
+Laurelin all come back with wood, foliage and a canvas that reads back as a
+picture rather than a blank, and no two of them draw the same one. Eight notches
+of the height dial rebuild the tree and the panel's counts move with it
+(4,313,760 to 4,381,024 wood triangles on Laurelin). The bare view drops the
+foliage and keeps the wood (0 instances, 4,381,664 triangles), the leaf view is
+one placed element (1 instance, 16 triangles), and the whole view is both. A
+second browser launched with `--disable-gpu` never draws: the panel says "no
+hardware GPU adapter; the only one offered was the software fallback", which is
+the renderer's own sentence.
+
+The five minute soak (`SOAK=1`, [soak.json](soak.json)) held one canvas and one
+live device across ten polls with no rebuild the page asked for itself, and the
+orbit answered a drag at the end. It ran on a display that belongs to a person:
+344 keystrokes and pointer events arrived from the desktop during those five
+minutes, which is why the canvas hash moves between polls while the tree does
+not. The record counts them rather than hiding them, and the claim it makes is
+unaffected - one device, one canvas, no rebuild.
+
 ## A note on the framing, for the owner's eye
 
 The tree occupies roughly half the frame height in both stills, which is looser

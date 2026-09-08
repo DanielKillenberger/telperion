@@ -1,0 +1,154 @@
+{
+  "minutes": 5,
+  "poll_seconds": 30,
+  "preset": "oregon-white-oak",
+  "tree": [
+    5190920,
+    2679126,
+    542672
+  ],
+  "browser": "153.0.8010.12",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist"
+  ],
+  "samples": [
+    {
+      "minutes": 0.5,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 51,
+        "hash": "c08fa55e"
+      },
+      "stray": 5
+    },
+    {
+      "minutes": 1,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 86,
+        "hash": "43a264c1"
+      },
+      "stray": 36
+    },
+    {
+      "minutes": 1.5,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 78,
+        "hash": "e7dace66"
+      },
+      "stray": 37
+    },
+    {
+      "minutes": 2.01,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 78,
+        "hash": "e7dace66"
+      },
+      "stray": 38
+    },
+    {
+      "minutes": 2.51,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 78,
+        "hash": "e7dace66"
+      },
+      "stray": 38
+    },
+    {
+      "minutes": 3.01,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 78,
+        "hash": "e7dace66"
+      },
+      "stray": 38
+    },
+    {
+      "minutes": 3.51,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 78,
+        "hash": "e7dace66"
+      },
+      "stray": 38
+    },
+    {
+      "minutes": 4.01,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 78,
+        "hash": "e7dace66"
+      },
+      "stray": 38
+    },
+    {
+      "minutes": 4.51,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 78,
+        "hash": "e7dace66"
+      },
+      "stray": 38
+    },
+    {
+      "minutes": 5.01,
+      "devices": 1,
+      "canvases": 1,
+      "sameCanvas": true,
+      "rebuilds": 0,
+      "picture": {
+        "colours": 78,
+        "hash": "e7dace66"
+      },
+      "stray": 38
+    }
+  ],
+  "stray_input": 344,
+  "orbit": {
+    "before": {
+      "colours": 78,
+      "hash": "e7dace66"
+    },
+    "after": {
+      "colours": 56,
+      "hash": "734b4e97"
+    },
+    "responded": true
+  },
+  "verdict": "one canvas, one device, no rebuild nobody asked for, orbit responds"
+}
