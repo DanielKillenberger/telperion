@@ -40,44 +40,48 @@ impl Camera {
     }
 }
 
-/// The eight corners of a box, the points a frame has to hold.
-fn corners(bounds: Bounds) -> [Vec3; 8] {
-    let (lo, hi) = (bounds.min, bounds.max);
-    [
-        Vec3::new(lo.x, lo.y, lo.z),
-        Vec3::new(hi.x, lo.y, lo.z),
-        Vec3::new(lo.x, hi.y, lo.z),
-        Vec3::new(hi.x, hi.y, lo.z),
-        Vec3::new(lo.x, lo.y, hi.z),
-        Vec3::new(hi.x, lo.y, hi.z),
-        Vec3::new(lo.x, hi.y, hi.z),
-        Vec3::new(hi.x, hi.y, hi.z),
-    ]
+/// How far the crown reaches in a direction. A tree fills its bounds the way a
+/// crown does, as the ellipsoid the box inscribes, not out to the box's own
+/// corners: at a three-quarter view a corner fit is set by a corner that holds
+/// nothing but air. The support of an ellipsoid with these half-extents is the
+/// length of the direction scaled by them.
+fn reach_of(half: Vec3, direction: Vec3) -> f64 {
+    Vec3::new(
+        half.x * direction.x,
+        half.y * direction.y,
+        half.z * direction.z,
+    )
+    .length()
 }
 
-/// The pose that judges a tree of these bounds at this aspect: every corner of
-/// the bounds inside the frame with the margin and no more, solved corner by
-/// corner so a near corner that subtends more is what sets the distance, and
-/// never underground however low the subject's centre sits.
+/// The pose that judges a tree of these bounds at this aspect: the crown
+/// inscribed in the bounds sits inside the frame with the margin and no more,
+/// solved as the support of that crown along the frame's edges, and never
+/// underground however low the subject's centre sits.
 pub fn hero_pose(bounds: Bounds, aspect: f64, ground_reach: f64) -> Camera {
     let size = bounds.max - bounds.min;
     let centre = (bounds.min + bounds.max) * 0.5;
+    let half = size * 0.5;
 
     // The picture's axes at the hero direction, the same frame `look_at` builds.
     let back = FRAME_DIRECTION.normalized();
     let right = Vec3::Y.cross(back).normalized();
     let up = back.cross(right);
-    // The vertical half-angle is the camera's own; the horizontal one is that
+    // A point sits inside an edge when its depth plus its offset toward that
+    // edge over the edge's tangent is under the distance; the crown's furthest
+    // such point is its support along `back + offset / tangent`, once per edge.
+    // The vertical tangent is the camera's own; the horizontal one is that
     // times the aspect, so a wide viewport pulls in and a tall one pulls back.
     let tangent = (FIELD_OF_VIEW.to_radians() / 2.0).tan();
-    let solved = corners(bounds)
+    let edges = [
+        up * (FRAME_MARGIN / tangent),
+        up * (-FRAME_MARGIN / tangent),
+        right * (FRAME_MARGIN / (tangent * aspect.max(0.1))),
+        right * (-FRAME_MARGIN / (tangent * aspect.max(0.1))),
+    ];
+    let solved = edges
         .iter()
-        .map(|corner| {
-            let offset = *corner - centre;
-            let need = (offset.dot(up).abs() / tangent)
-                .max(offset.dot(right).abs() / (tangent * aspect.max(0.1)));
-            offset.dot(back) + need * FRAME_MARGIN
-        })
+        .map(|edge| reach_of(half, back + *edge))
         .fold(0.0, f64::max);
     // A subject with no extent at all leaves nothing to solve, and the eye
     // would land on the target with no direction to look along.
@@ -175,44 +179,63 @@ mod tests {
         }
     }
 
+    /// Points over the whole surface of the crown the bounds inscribe.
+    fn crown(bounds: Bounds) -> Vec<Vec3> {
+        let centre = (bounds.min + bounds.max) * 0.5;
+        let half = (bounds.max - bounds.min) * 0.5;
+        let mut points = Vec::new();
+        for i in 0..=36 {
+            let polar = std::f64::consts::PI * f64::from(i) / 36.0;
+            for j in 0..72 {
+                let azimuth = std::f64::consts::TAU * f64::from(j) / 72.0;
+                points.push(Vec3::new(
+                    centre.x + half.x * polar.sin() * azimuth.cos(),
+                    centre.y + half.y * polar.cos(),
+                    centre.z + half.z * polar.sin() * azimuth.sin(),
+                ));
+            }
+        }
+        points
+    }
+
     #[test]
-    fn every_corner_sits_inside_the_frame() {
+    fn the_whole_crown_sits_inside_the_frame() {
         for aspect in [0.6, 1.0, 16.0 / 9.0, 3.0] {
             let camera = hero_pose(oak_bounds(), aspect, crate::GROUND_REACH);
             let view_projection = camera.view_projection(aspect);
-            for corner in corners(oak_bounds()) {
-                let (x, y, depth) = project(&view_projection, corner);
+            for point in crown(oak_bounds()) {
+                let (x, y, depth) = project(&view_projection, point);
                 assert!(
                     x.abs() <= 1.0 && y.abs() <= 1.0,
-                    "corner {corner:?} left the frame at aspect {aspect}: {x}, {y}"
+                    "crown point {point:?} left the frame at aspect {aspect}: {x}, {y}"
                 );
                 assert!(
                     (0.0..=1.0).contains(&depth),
-                    "corner {corner:?} left the depth range at aspect {aspect}: {depth}"
+                    "crown point {point:?} left the depth range at aspect {aspect}: {depth}"
                 );
             }
         }
     }
 
     #[test]
-    fn the_margin_is_the_only_air_around_the_subject() {
-        // The tightest corner sits exactly on the margin line: any further
-        // back and the tree is smaller than the rule says, any closer and a
-        // corner leaves the frame.
+    fn the_margin_is_the_only_air_around_the_crown() {
+        // The crown's tightest point sits on the margin line: any further
+        // back and the tree is smaller than the rule says, any closer and the
+        // crown leaves the frame.
         for aspect in [0.6, 1.0, 16.0 / 9.0, 3.0] {
             let camera = hero_pose(oak_bounds(), aspect, crate::GROUND_REACH);
             let view_projection = camera.view_projection(aspect);
-            let tightest = corners(oak_bounds())
+            let tightest = crown(oak_bounds())
                 .iter()
-                .map(|&corner| {
-                    let (x, y, _) = project(&view_projection, corner);
+                .map(|&point| {
+                    let (x, y, _) = project(&view_projection, point);
                     x.abs().max(y.abs())
                 })
                 .fold(0.0, f64::max);
             assert!(
-                (tightest - 1.0 / FRAME_MARGIN).abs() < 2e-3,
-                "the tightest corner sits at {tightest} of the half-frame at aspect \
-                 {aspect}; the margin says {}",
+                (tightest - 1.0 / FRAME_MARGIN).abs() < 5e-3,
+                "the crown's tightest point sits at {tightest} of the half-frame at \
+                 aspect {aspect}; the margin says {}",
                 1.0 / FRAME_MARGIN
             );
         }
@@ -254,15 +277,15 @@ mod tests {
             let camera = hero_pose(element, 1.0, crate::GROUND_REACH);
             let view_projection = camera.view_projection(1.0);
             let (mut low, mut high) = (f64::MAX, f64::MIN);
-            for corner in corners(element) {
-                let (x, y, depth) = project(&view_projection, corner);
+            for point in crown(element) {
+                let (x, y, depth) = project(&view_projection, point);
                 assert!(
                     x.abs() <= 1.0 && y.abs() <= 1.0,
-                    "a {name} corner {corner:?} left the frame: {x}, {y}"
+                    "a {name} point {point:?} left the frame: {x}, {y}"
                 );
                 assert!(
                     (0.0..=1.0).contains(&depth),
-                    "a {name} corner {corner:?} left the depth range: {depth}"
+                    "a {name} point {point:?} left the depth range: {depth}"
                 );
                 (low, high) = (low.min(y), high.max(y));
             }

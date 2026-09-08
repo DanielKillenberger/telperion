@@ -114,16 +114,21 @@ unaffected - one device, one canvas, no rebuild.
 
 The first stills framed the tree at about half the frame height, a faithful port
 of the old harness rule with its orbit stand-off. The owner judged that too far
-away (2026-09-09), so the rule changed rather than the port: the hero pose now
-fits every corner of the subject's bounds inside the frame with a margin of 1.15
-and nothing else, solved corner by corner so the near corner that subtends most
-is the one that sets the distance. The tightest corner sits exactly on the margin
-line, which a unit test pins at four aspects. Orbiting can now carry a corner
-past the edge; the wheel is how a hand pulls back, and the orbit's travel limits
-scale from the framed distance as before. The stills and native timing records
-above were re-rendered at the new pose; the browser rows predate it, and stand
-because the frame is vertex-bound (see the probe below) and does not move with
-how much of the picture the tree covers.
+away (2026-09-09), so the rule changed rather than the port. A box fit does not
+help at a three-quarter view: the box's near corner sets the distance and holds
+nothing but air. The hero pose now frames the crown the bounds inscribe, the
+ellipsoid with the box's half-extents, and asks that it sit inside the frame with
+a margin of 1.15 and nothing else. That is four support evaluations, one per
+frame edge, and the crown's tightest point lands on the margin line, which a
+unit test pins at four aspects over the whole crown surface. The oak now fills
+about four fifths of the frame height and the spruce about nine tenths.
+Orbiting can carry a tip past the edge; the wheel is how a hand pulls back, and
+the orbit's travel limits scale from the framed distance as before. The scale
+figure stands outside the crown and may be cropped at the bottom of a tall
+subject's frame. The stills and native timing records above were re-rendered at
+the new pose; the browser rows predate it and stand, because the frame is
+vertex-bound (see the probe below) and does not move with how much of the
+picture the tree covers.
 
 ## Where the spruce frame goes: a resolution probe
 
