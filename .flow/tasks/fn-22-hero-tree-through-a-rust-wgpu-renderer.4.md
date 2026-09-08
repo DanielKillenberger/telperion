@@ -38,9 +38,44 @@ Rewrite the prototype's timing idea as `timing.rs`: timestamp pairs around the v
 - [ ] `cargo test --release -p telperion-render` passes; clippy clean; every file under 400 lines
 
 ## Done summary
-TBD
+Rewrote the prototype's timing idea as `crates/telperion-render/src/timing.rs`: the
+frame now draws the room and the vegetation in two passes so a pass-level timestamp
+pair measures the tree and not the floor, and the session runs 8 conditioning, 8
+warmup and 120 measured frames into nearest-rank p50 and p95 behind a four-way
+verdict (`Valid`, `Unavailable`, `Disjoint`, `Contended`) that no invalid session can
+carry a number past - the percentile fields are absent from the JSON, not zero.
+`headless --timing <json>` writes the record beside the still, and
+`.flow/evidence/fn22/` holds the oak and spruce hero stills, both native records and
+`REPORT.md` with the numbers, their verdicts and an empty owner slot per species.
 
+Measured on this machine (RTX 3080, vulkan, 1600x1000, seed 7, whole view): oak p50
+17.87 ms / p95 18.08 ms, spruce p50 94.18 ms / p95 94.19 ms, both `valid`.
+
+Hero pose judged and deliberately left alone: `hero_pose` is a faithful port of
+`harness/stage.ts:667-680` including the half-diagonal orbit stand-off, which is what
+makes the tree fill about half the frame. On the oak fixture the camera tests use,
+the orbit-safe floor would recover 55% to 63% of frame height and no more, at the
+cost of the clearance `the_margin_keeps_the_subject_clear_all_the_way_round` pins.
+Framing tighter means changing the rule for both renderers, so it is recorded in
+REPORT.md for the owner rather than changed here.
+
+Two deviations from the task's Approach, both deliberate. `FrameStats` does not carry
+a per-frame vegetation millisecond: the timestamp readback is asynchronous, so `draw`
+cannot honestly return the number for the frame it just drew; the value lives in the
+session that resolves it. And the blocking half of the readback (`Session::sample`,
+`Session::read`, `timing::run`) is native-gated while `Verdict`, `judge`, `Report`,
+`Hardware` and `Session::{new, writes, resolve}` are target-independent, so task 5
+awaits the same mapping callback rather than rewriting the protocol.
+
+baseline: green via handoff (green (verified at a80d6bb1 by fn-22-hero-tree-through-a-rust-wgpu-renderer.3))
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+Conductor decisions: two-pass frame accepted (the timestamp pair brackets vegetation only); per-frame vegetation ms dropped from FrameStats because the readback is asynchronous; hero pose left as the faithful port with the framing question recorded in REPORT.md for the owner.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: wave-join - ran (commit 959d01d already on target; no integration needed)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 959d01d2e67045895e4c3ec5ebf55af61641e28d
+- Tests: cargo test --release --workspace (108 tests, 28 suites, exit 0), cargo clippy --release --workspace --all-targets (telperion-render clean; one inherited assign_op_pattern warning in crates/telperion-core/examples/geometry_benchmark/metrics.rs, outside Touches), cargo fmt --all -- --check (clean), cargo run --release -p telperion-render --example headless -- --preset oregon-white-oak --seed 7 --size 1600x1000 --out .flow/evidence/fn22/oak-hero.png --timing .flow/evidence/fn22/oak-native-timing.json, cargo run --release -p telperion-render --example headless -- --preset norway-spruce --seed 7 --size 1600x1000 --out .flow/evidence/fn22/spruce-hero.png --timing .flow/evidence/fn22/spruce-native-timing.json
 - PRs:
