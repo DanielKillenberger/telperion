@@ -53,7 +53,7 @@
  * ------------------------------------------------------------------ */
 
 import { ORDINARY, type Family } from "../src/browser/core";
-import { presetToParams } from "./skeleton-view";
+import { presetToParams } from "./family";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
 export const SEED_MAX = 0xff_ff_ff_ff;

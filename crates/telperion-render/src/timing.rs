@@ -4,10 +4,9 @@
 //! timestamp feature only, never the native-only inside-pass ones, so the same
 //! session runs in a browser. The readback is callback-driven for the same
 //! reason: a browser's queue advances on its own and `poll` does nothing there.
-use crate::{
-    device::{Gpu, RenderError, Result},
-    Camera, Renderer,
-};
+use crate::device::{Gpu, RenderError, Result};
+#[cfg(not(target_arch = "wasm32"))]
+use crate::{Camera, Renderer};
 
 /// Frames drawn before the timer is started at all: long enough for the driver
 /// to have finished allocating the targets and for the clocks to have settled.
@@ -303,6 +302,37 @@ impl Session {
     /// here: judging is one place, not two.
     fn duration_ms(&self, ticks: [u64; 2]) -> f64 {
         (ticks[1] as f64 - ticks[0] as f64) * f64::from(self.period) / 1e6
+    }
+}
+
+/// The browser half of the readback. The same mapping callback the blocking
+/// half waits on, awaited instead: a browser's queue advances on its own and
+/// `poll` does nothing there.
+#[cfg(target_arch = "wasm32")]
+impl Session {
+    /// What the last resolved pair cost, in milliseconds.
+    pub async fn sample_ms(&self) -> Result<f64> {
+        let lost = |reason: String| RenderError::DeviceLost { reason };
+        let (sender, receiver) = futures_channel::oneshot::channel();
+        self.readback
+            .slice(..)
+            .map_async(wgpu::MapMode::Read, move |result| {
+                let _ = sender.send(result);
+            });
+        receiver
+            .await
+            .map_err(|_| lost("the timestamp readback never completed".into()))?
+            .map_err(|error| lost(error.to_string()))?;
+
+        let view = self
+            .readback
+            .slice(..)
+            .get_mapped_range()
+            .map_err(|error| lost(error.to_string()))?;
+        let ticks = bytemuck::pod_read_unaligned::<[u64; 2]>(&view[..PAIR as usize]);
+        drop(view);
+        self.readback.unmap();
+        Ok(self.duration_ms(ticks))
     }
 }
 

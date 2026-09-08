@@ -8,16 +8,19 @@
  * hundredth commit. The owner is the only judge of the look, and this
  * is what they judge from.
  *
- * Everything visual belongs to stage.ts. This component owns the
- * params, the panel, and the lifecycle of the stage on the canvas -
- * nothing else. Seed and every slider regenerate in place; there is no
- * reload and no route change anywhere in the loop.
+ * Everything visual belongs to the stage, and the stage is the Rust
+ * renderer now. This component owns the params, the panel, and the
+ * lifecycle of the stage on the canvas - nothing else. Seed and every
+ * slider regenerate in place; there is no reload and no route change
+ * anywhere in the loop.
  * ------------------------------------------------------------------ */
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { PRESETS, TWO_TREES, presetById, initializeTreeCore, type TreePreset } from "../src/browser/core";
+import { PRESETS, presetById, type TreePreset } from "../src/browser/core";
+import type { FrameStats, Submitted, TimingReport, View } from "../src/browser/render";
 
+import { familyJson, presetToParams } from "./family";
 import {
   DEFAULT_PARAMS,
   SLIDERS,
@@ -26,30 +29,9 @@ import {
   randomSeed,
   readSlider,
 } from "./params";
-import {
-  buildComparison,
-  buildTree,
-  selectSpecimenView,
-  countDraws,
-  type SpecimenView,
-  presetToParams,
-  type TreeStats,
-} from "./skeleton-view";
-import {
-  createStage,
-  describeSweep,
-  sweepRatios,
-  type FrameStats,
-  type Stage,
-  type SweepResult,
-} from "./stage";
+import { createStage, type Stage } from "./rust-stage";
 import "./grower-dev.css";
 
-/** A dial's value, at a precision that can tell its own steps apart -
- *  which is the STEP's business and not the value's. Keying it off the
- *  value put a single dial at two precisions on either side of 0.1:
- *  the trunk dial, whose step is 0.001, read `0.050` and then `0.15`
- *  on two adjacent notches, as if it had skipped a hundred of them. */
 /** A build this cheap, in milliseconds, runs on every notch of a dial;
  *  a dearer one waits `BUILD_SETTLE_MS` after the last notch. About
  *  five frames. Branch generations down to fixed twig anatomy can
@@ -58,34 +40,57 @@ const SUPERNATURAL = new Set(["torsion", "writheAmplitude", "writheWavelength", 
 const BUILD_LIVE_MS = 80;
 const BUILD_SETTLE_MS = 250;
 
+/** A dial's value, at a precision that can tell its own steps apart -
+ *  which is the STEP's business and not the value's. Keying it off the
+ *  value put a single dial at two precisions on either side of 0.1. */
 function format(value: number, step: number): string {
   const decimals = Math.max(0, Math.ceil(-Math.log10(step) - 1e-9));
   return value.toFixed(decimals);
 }
 
-/** What the scale figure is standing next to when the comparison is
- *  up: the taller of the trees on the ground. The stage frames the
- *  subject it can measure and uses this only to place the figure, so
- *  the tallest is the right answer - it is the one whose foot the
- *  figure has to look small beside. */
-function tallestPresetHeight(): number {
-  return Math.max(
-    ...TWO_TREES.map((preset) => preset.skeleton.envelope.height),
-  );
+/** The timing session as the panel says it, and the old sweep's honesty
+ *  rule kept word for word: WITHOUT A VALID VERDICT THERE IS NO
+ *  MILLISECOND FIGURE IN THIS STRING. An invalid session carries no
+ *  number that could be read as a pass, so there is none to print. */
+function describeTiming(report: TimingReport): string {
+  const who = `${report.adapter} (${report.backend})`;
+  if (report.verdict !== "valid" || report.p50_ms === undefined || report.p95_ms === undefined) {
+    return `${report.verdict}: ${report.reason ?? "no reason given"} - no frame time reported, on ${who}`;
+  }
+  return `vegetation p50 ${report.p50_ms.toFixed(3)} ms, p95 ${report.p95_ms.toFixed(3)} ms over ${report.samples} frames on ${who} - valid`;
 }
 
 export function GrowerDev() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<Stage | null>(null);
 
-  const [coreReady, setCoreReady] = useState(false);
+  const [ready, setReady] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
+
+  /* One device per canvas, for the canvas's whole life. React's
+     development double-mount builds a stage and disposes it before the
+     live one, so the cleanup disposes whatever this mount created -
+     including a stage that arrives after the mount is already gone. */
   useEffect(() => {
-    let active = true;
-    initializeTreeCore().then(() => { if (active) { setCoreReady(true); setBuildError(null); } },
-      error => { if (active) setBuildError(String(error)); });
-    return () => { active = false; };
+    const canvas = canvasRef.current;
+    if (canvas === null) return;
+    let cancelled = false;
+    createStage(canvas, { onError: (message) => setBuildError(message) }).then(
+      (stage) => {
+        if (cancelled) { stage.dispose(); return; }
+        stageRef.current = stage;
+        setReady(true);
+        setBuildError(null);
+      },
+      (error: unknown) => { if (!cancelled) setBuildError(String(error)); },
+    );
+    return () => {
+      cancelled = true;
+      stageRef.current?.dispose();
+      stageRef.current = null;
+      setReady(false);
+    };
   }, [loadAttempt]);
 
   const [initialLink] = useState(() => {
@@ -104,84 +109,41 @@ export function GrowerDev() {
   // The seed box is free text so a half-typed number is not thrown
   // away mid-keystroke; `params.seed` only moves when it parses.
   const [seedText, setSeedText] = useState(String(params.seed));
-  const [lightingCheck, setLightingCheck] = useState(false);
-  /* Foliage off shows the branching bare. It is a view of the same tree,
-     not a parameter of it, so it lives beside the lighting check rather
-     than in the dials a preset would have to state. */
-  const [view, setView] = useState<SpecimenView>("whole");
-  const foliage = view !== "bare";
-  /* The spec's acceptance test: both presets on the ground together,
-     built from the library's own objects rather than from the dials,
-     so what stands there is what the preset file says. The dials keep
-     their own tree and get it back the moment this goes off. */
-  const [compare, setCompare] = useState(false);
-  // What the last build cost. The surface is allowed to cost more than
-  // the tube viewer did; it is not allowed to cost it silently, so the
-  // panel says the number every time a dial moves.
-  const [stats, setStats] = useState<TreeStats | null>(null);
+  /* Which view of the same tree is drawn. A view is a way of looking at
+     a tree rather than a parameter of it, so it lives beside the dials
+     rather than among the ones a preset would have to state. */
+  const [view, setView] = useState<View>("whole");
+  // What the last build cost and what went up. The surface is allowed
+  // to cost more than the tube viewer did; it is not allowed to cost it
+  // silently, so the panel says the numbers every time a dial moves.
+  const [stats, setStats] = useState<(Submitted & { buildMs: number }) | null>(null);
   /* The last full build selects immediate or settle-after-drag updates.
      More branch generations and finer geometric internodes can cost
      seconds. A ref lets the measured cost steer the next effect
      without triggering another build itself. */
   const lastBuildMs = useRef(0);
-  /* The flag under suspicion. It is a renderer CONSTRUCTION flag, so
-     turning it over is not a setter: it builds a new renderer, and a
-     WebGL canvas hands out one context for its whole life, so the
-     canvas goes with it. Hence the key on the element below - React
-     puts a fresh canvas in the DOM and the stage effect builds the
-     stage on it. Expensive, and a dev harness measuring itself can
-     afford it once per click. */
-  const [logDepth, setLogDepth] = useState(true);
-  /* What the renderer is told to draw at, or null for the harness
-     default of min(dpr, 2). Not a GrowerParams member and deliberately
-     not: it is a property of the picture's resolution, not of the tree,
-     and a preset that carried one would be authoring a frame rate. */
-  const [pixelRatio, setPixelRatio] = useState<number | null>(null);
   // What the renderer did on the last frame, polled - it changes when
   // the camera moves, which no React state does.
   const [frameStats, setFrameStats] = useState<FrameStats | null>(null);
-  const [sweep, setSweep] = useState<SweepResult | null>(null);
-  const [sweeping, setSweeping] = useState(false);
+  const [timing, setTiming] = useState<TimingReport | null>(null);
+  const [measuring, setMeasuring] = useState(false);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas === null) return;
-    const stage = createStage(canvas, { logarithmicDepthBuffer: logDepth });
-    stageRef.current = stage;
-    return () => {
-      stage.dispose();
-      stageRef.current = null;
-    };
-  }, [logDepth]);
-
-  useEffect(() => {
-    if (!coreReady) return;
+    if (!ready) return;
     const build = (): void => {
       try {
-        // `setTree` calls its builder synchronously, so the stats are in
-        // hand by the time it returns.
-        const built: { stats: TreeStats | null } = { stats: null };
-        stageRef.current?.setTree((clay) => {
-          if (compare) {
-            const result = buildComparison(TWO_TREES, clay, foliage);
-            built.stats = result.stats;
-            const subject = selectSpecimenView(result.group, view);
-            built.stats = { ...result.stats, ...countDraws(subject) };
-            return subject;
-          }
-          const result = buildTree(params, clay, foliage);
-          built.stats = result.stats;
-          const subject = selectSpecimenView(result.tree, view);
-          built.stats = { ...result.stats, ...countDraws(subject) };
-          return subject;
-        });
+        const started = performance.now();
+        const submitted = stageRef.current?.setTree(familyJson(params));
+        if (submitted === undefined) return;
+        const buildMs = performance.now() - started;
         setBuildError(null);
-        setStats(built.stats);
-        lastBuildMs.current = built.stats?.buildMs ?? 0;
-        stageRef.current?.frameIfWaiting(
-          compare ? tallestPresetHeight() : params.height,
-        );
+        setStats({ ...submitted, buildMs });
+        lastBuildMs.current = buildMs;
+        stageRef.current?.frameIfWaiting();
       } catch (error) {
+        /* The generator's or the renderer's own words. Nothing was
+           replaced, so the tree already on the canvas stays where it is
+           beside the message. */
         setBuildError(String(error));
       }
     };
@@ -189,64 +151,38 @@ export function GrowerDev() {
     /* A cheap tree rebuilds on every notch; an expensive one waits for
        the dial to rest. The threshold is the build cost itself, which
        is the one number that says whether rebuilding per notch would
-       hold the slider still: under it the drag reads as live, over it
-       the build runs once the events stop arriving. A tree at depth
-       is still built at depth - this defers, it does not coarsen. */
+       hold the slider still. A tree at depth is still built at depth -
+       this defers, it does not coarsen. */
     if (lastBuildMs.current <= BUILD_LIVE_MS) {
       build();
-    } else {
-      const handle = window.setTimeout(build, BUILD_SETTLE_MS);
-      return () => {
-        window.clearTimeout(handle);
-      };
+      return;
     }
+    const handle = window.setTimeout(build, BUILD_SETTLE_MS);
+    return () => { window.clearTimeout(handle); };
 
     /* Frame once, off the first real tree, and then never again on the
        camera's own initiative. A camera that re-frames whenever the
-       tree changes size follows the height dial around the scene while
+       tree changes size follows the height dial around the room while
        it is being dragged, which reads as the room moving rather than
-       the tree growing - the owner's word for it was disorienting. So
-       the camera moves when it is asked to and at no other time:
-       reframe, reset, or the mouse.
-
-       "Once" belongs to the stage and is latched there. This component
-       outlives its own stage - React's development double-mount builds
-       one, disposes it and builds a second - so a latch held here
-       would be spent on a stage that no longer exists and would leave
-       the live one unframed. */
-    /* `logDepth` is in the deps of this effect and of every other one
-       that configures the stage, because turning it over replaces the
-       stage: a fresh one has no subject, no lighting mode and no pinned
-       resolution until it is told again. The stage effect is declared
-       above this one, so on the commit where the flag changes React
-       runs it first and this rebuilds onto the stage that now exists.
-       Every read of "what is on the stage" is a call site of that
-       replacement, and the ones outside the effect that builds it are
-       the ones that get missed. */
-  }, [params, compare, logDepth, foliage, view, coreReady, loadAttempt]);
+       the tree growing. "Once" belongs to the stage and is latched
+       there: this component outlives its own stage. */
+  }, [params, ready]);
 
   useEffect(() => {
-    stageRef.current?.setLightingCheck(lightingCheck);
-  }, [lightingCheck, logDepth]);
-
-  useEffect(() => {
-    stageRef.current?.setPixelRatio(pixelRatio);
-  }, [pixelRatio, logDepth]);
+    if (!ready) return;
+    stageRef.current?.setView(view);
+  }, [view, ready]);
 
   /* The renderer's own numbers, four times a second. They belong to
-     frames rather than to renders the panel asked for - the draw count
-     moves when the camera moves and the pixel ratio moves when the
-     display does - so nothing but a poll sees them. */
+     frames rather than to trees the panel asked for - the drawn
+     triangle count moves when the view does - so nothing but a poll
+     sees them. */
   useEffect(() => {
-    const read = (): void => {
-      setFrameStats(stageRef.current?.stats() ?? null);
-    };
+    const read = (): void => { setFrameStats(stageRef.current?.stats() ?? null); };
     read();
     const handle = window.setInterval(read, 250);
-    return () => {
-      window.clearInterval(handle);
-    };
-  }, [logDepth]);
+    return () => { window.clearInterval(handle); };
+  }, [ready]);
 
   const commitSeed = useCallback((raw: string) => {
     setSeedText(raw);
@@ -264,53 +200,35 @@ export function GrowerDev() {
   /* Loads a named tree onto the dials. Every dial, exactly: the panel
      reaches all of the preset's terms, so this puts the owner ON the
      authored tree rather than near it, with the whole parameter set
-     under their hands to argue with. Leaves the comparison, because
-     picking a tree to steer is a request to look at that one. */
+     under their hands to argue with. */
   const loadPreset = useCallback((preset: TreePreset) => {
-    const loaded = presetToParams(preset);
-    setParams(prev => ({ ...loaded, seed: prev.seed }));
-    setCompare(false);
-    stageRef.current?.frameNext();
-  }, []);
-
-  const toggleCompare = useCallback(() => {
-    setCompare((prev) => !prev);
-    // The subject is about to change size by a factor of three, so the
-    // camera has to move; `frameNext` frames whatever the effect
-    // builds rather than the tree standing there now.
+    setParams((prev) => ({ ...presetToParams(preset), seed: prev.seed }));
     stageRef.current?.frameNext();
   }, []);
 
   const reset = useCallback(() => {
     setSeedText(String(DEFAULT_PARAMS.seed));
-    setCompare(false);
     // A fresh object rather than DEFAULT_PARAMS itself: reset from an
     // already-default state still has to rebuild and re-frame, and
     // React elides a state write that is the same reference.
     setParams({ ...DEFAULT_PARAMS });
-    /* Not `frame()`. `setParams` is asynchronous and the tree standing
-       on the stage right now is the one being replaced - framing it
-       measures the outgoing subject, which at 400 m parks the camera
-       758 m out looking at y=200 and then installs a 24 m tree at the
-       origin. `frameNext` frames the tree this click actually builds,
-       which is what makes reset at least as good as reframe at
-       recovering a lost view rather than strictly worse. */
+    /* Not `frame()`. `setParams` is asynchronous and the tree on the
+       canvas right now is the one being replaced; `frameNext` frames
+       the tree this click actually builds. */
     stageRef.current?.frameNext();
   }, []);
 
-  /* The measurement. It drives the applied pixel ratio through the
-     four points itself and restores whatever was pinned before, so the
-     only thing the owner has to bring is vsync off - which is a browser
-     flag and cannot be asserted from in here. */
-  const runSweep = useCallback(async () => {
+  const runTiming = useCallback(async () => {
     const stage = stageRef.current;
     if (stage === null) return;
-    setSweeping(true);
-    setSweep(null);
+    setMeasuring(true);
+    setTiming(null);
     try {
-      setSweep(await stage.sweep());
+      setTiming(await stage.timing());
+    } catch (error) {
+      setBuildError(String(error));
     } finally {
-      setSweeping(false);
+      setMeasuring(false);
     }
   }, []);
 
@@ -318,15 +236,7 @@ export function GrowerDev() {
 
   return (
     <div className="gd">
-      {/* Keyed on the depth-buffer flag: a WebGL canvas hands out one
-          context for its whole life, so a renderer built the other way
-          needs a canvas of its own. React replacing the element is what
-          makes the flag togglable at all. */}
-      <canvas
-        className="gd-canvas"
-        key={logDepth ? "log-depth" : "linear-depth"}
-        ref={canvasRef}
-      />
+      <canvas className="gd-canvas" ref={canvasRef} />
 
       <aside className="gd-panel">
         <h1 className="gd-title">grower</h1>
@@ -338,9 +248,10 @@ export function GrowerDev() {
           {buildError}
           <button className="gd-button" onClick={() => setLoadAttempt(n => n + 1)}>retry build</button>
         </div>}
-        {!coreReady && !buildError && <p role="status" className="gd-note">Loading tree core…</p>}
+        {!ready && !buildError && <p role="status" className="gd-note">Starting the renderer…</p>}
         <p className="gd-note">
           clay. flat grey, neutral sky, no bloom. this is the judging mode.
+          drag to walk round the tree, wheel to come in.
         </p>
 
         <div className="gd-row">
@@ -373,28 +284,17 @@ export function GrowerDev() {
               {preset.name.toLowerCase()}
             </button>
           ))}
-          <button
-            className={compare ? "gd-button gd-button-on" : "gd-button"}
-            type="button"
-            aria-pressed={compare}
-            onClick={toggleCompare}
-          >
-            both
-          </button>
         </div>
 
         <div className="gd-row">
           <label htmlFor="gd-view">view</label>
-          <select id="gd-view" value={view} onChange={event => {
-            setView(event.target.value as SpecimenView);
-            stageRef.current?.frameNext();
-          }}>
+          <select id="gd-view" value={view} onChange={event => setView(event.target.value as View)}>
             <option value="whole">whole tree</option>
             <option value="bare">bare branches</option>
-            <option value="foliage-detail">foliage detail</option>
+            <option value="leaf">single leaf</option>
           </select>
         </div>
-        {view === "foliage-detail" && <p className="gd-note">One placed foliage unit with its connector, at generated scale. Empty foliage leaves an empty stage.</p>}
+        {view === "leaf" && <p className="gd-note">One placed foliage unit with its connector, at generated scale. Empty foliage leaves an empty canvas.</p>}
         {[false, true].map(supernatural => (
           <fieldset key={String(supernatural)}>
             <legend>{supernatural ? "Supernatural" : "Botanical"}</legend>
@@ -460,148 +360,44 @@ export function GrowerDev() {
         ))}
 
         <div className="gd-row">
-          <label className="gd-check">
-            <input
-              type="checkbox"
-              checked={lightingCheck}
-              onChange={(event) => setLightingCheck(event.target.checked)}
-            />
-            lighting check
-          </label>
-          <label className="gd-check">
-            <input
-              type="checkbox"
-              checked={foliage}
-              onChange={(event) => { setView(event.target.checked ? "whole" : "bare"); stageRef.current?.frameNext(); }}
-            />
-            foliage
-          </label>
-          <button
-            className="gd-button"
-            type="button"
-            onClick={() =>
-              stageRef.current?.frame(
-                // The subject's height, not a dial's: while the
-                // comparison is up the dials are not what is standing
-                // there, and `height` is what places the scale figure.
-                compare ? tallestPresetHeight() : params.height,
-              )
-            }
-          >
+          <button className="gd-button" type="button" onClick={() => stageRef.current?.frame()}>
             reframe
           </button>
           <button className="gd-button" type="button" onClick={reset}>
             reset
           </button>
-        </div>
-
-        <div className="gd-row">
-          <label className="gd-check">
-            <input
-              type="checkbox"
-              checked={logDepth}
-              onChange={(event) => setLogDepth(event.target.checked)}
-            />
-            log depth
-          </label>
           <button
             className="gd-button"
             type="button"
-            disabled={sweeping}
-            onClick={() => {
-              void runSweep();
-            }}
+            disabled={measuring || !ready}
+            onClick={() => { void runTiming(); }}
           >
-            {sweeping ? "sweeping..." : "sweep"}
+            {measuring ? "timing..." : "gpu timing"}
           </button>
-        </div>
-
-        {/* The applied pixel ratio, by hand. `auto` is what the harness
-            has always drawn at - min(dpr, 2) - and the other four are
-            the sweep's own points, so the owner can sit at one of them
-            and look at the tree rather than only read a number. */}
-        <div className="gd-row">
-          <button
-            className={pixelRatio === null ? "gd-button gd-button-on" : "gd-button"}
-            type="button"
-            aria-pressed={pixelRatio === null}
-            onClick={() => setPixelRatio(null)}
-          >
-            dpr auto
-          </button>
-          {sweepRatios(frameStats?.pixelRatioRaw ?? window.devicePixelRatio).map((ratio) => (
-            <button
-              className={
-                pixelRatio === ratio ? "gd-button gd-button-on" : "gd-button"
-              }
-              type="button"
-              key={ratio}
-              aria-pressed={pixelRatio === ratio}
-              onClick={() => setPixelRatio(ratio)}
-            >
-              {ratio.toFixed(2)}
-            </button>
-          ))}
         </div>
 
         <p className="gd-note">
           {stats === null
             ? "building..."
-            : `${stats.triangles.toLocaleString()} tris, ${stats.vertices.toLocaleString()} verts, ${stats.nodes.toLocaleString()} nodes, ${stats.drawCalls.toLocaleString()} draws, ${stats.instances.toLocaleString()} foliage instances, ${stats.buildMs.toFixed(1)} ms`}
+            : `${stats.woodTriangles.toLocaleString()} wood tris, ${stats.woodVertices.toLocaleString()} wood verts, ${stats.foliageInstances.toLocaleString()} foliage instances, ${stats.buildMs.toFixed(1)} ms`}
         </p>
 
-        {stats !== null ? (
-          <p className="gd-note">
-            {stats.generations === null
-              ? "no surviving handoffs"
-              : `derived generations min / median / max: ${stats.generations.min} / ${stats.generations.median} / ${stats.generations.max}; ${stats.handoffs.toLocaleString()} surviving handoffs; ${stats.levelCappedHandoffs.toLocaleString()} level-capped by radius law; ${stats.twigs.toLocaleString()} twigs; ${stats.leavesPlaced.toLocaleString()} leaves placed`}
-          </p>
-        ) : null}
-        {stats?.attractionCapped && <p role="status">Partial tree: attractor resource limit reached.</p>}
-        {stats?.levelCapped ? (
-          <p className="gd-note gd-warn">
-            generation safety cap reached during growth. lower length ratio
-            or raise radius power to reach twig radius sooner.
-          </p>
-        ) : null}
-
-        {/* The ceiling, in words. A capped tree is the ceiling's shape
-            and not the envelope's, and a node count alone cannot say
-            which it was - so the stop is never silent. */}
-        {stats?.capped ? (
-          <p className="gd-note gd-warn">
-            node ceiling reached: growth was stopped, not finished. this
-            tree is the ceiling&apos;s shape, not the envelope&apos;s - raise
-            the growth step or lower limbRadius.
-          </p>
-        ) : null}
-
         {/* The renderer's half, which the build cannot know: what the
-            scene actually cost last frame, at what resolution, and how
-            the two suspect settings are standing. `dpr` is reported
-            raw and applied because the gap between them is the largest
-            single fill term in this room. */}
+            scene actually cost on the last frame, at the view standing
+            now. */}
         <p className="gd-note">
           {frameStats === null
             ? "no renderer yet"
-            : `${frameStats.drawCalls.toLocaleString()} scene draws, ${frameStats.triangles.toLocaleString()} tris drawn, dpr ${frameStats.pixelRatioRaw.toFixed(2)} raw / ${frameStats.pixelRatioApplied.toFixed(2)} applied, log depth ${frameStats.logarithmicDepthBuffer ? "on" : "off"}, gpu timer ${frameStats.gpuTimer ? "available" : "unavailable"}`}
+            : `${frameStats.drawCalls.toLocaleString()} scene draws, ${frameStats.triangles.toLocaleString()} tris drawn, ${frameStats.instances.toLocaleString()} instances drawn`}
         </p>
 
         <p className="gd-note gd-warn">
-          {sweeping
-            ? `sweeping ${sweepRatios(frameStats?.pixelRatioRaw ?? window.devicePixelRatio).map((ratio) => ratio.toFixed(2)).join(" / ")} - do not resize the window`
-            : sweep === null
-              ? "no sweep yet. run it with vsync off: google-chrome --disable-gpu-vsync --disable-frame-rate-limit"
-              : describeSweep(sweep)}
+          {measuring
+            ? "timing - do not resize the window"
+            : timing === null
+              ? "no timing yet. chrome quantizes webgpu timestamps to 100 us unless its developer features are on."
+              : describeTiming(timing)}
         </p>
-
-        {compare ? (
-          <p className="gd-note gd-warn">
-            both presets, as authored in the library. the dials below are
-            not what is standing there - pick telperion or laurelin to
-            put one of them under the dials.
-          </p>
-        ) : null}
 
         <p className="gd-note gd-warn">
           one swept surface, lobed section winding along its own length,

@@ -14,6 +14,8 @@ pub enum RenderError {
     DeviceRefused { requirement: String, detail: String },
     /// The device went away mid-render.
     DeviceLost { reason: String },
+    /// The canvas surface could not give the frame that was asked for.
+    Surface(String),
     /// A buffer this tree needs is larger than the device granted.
     Oversize {
         buffer: &'static str,
@@ -39,6 +41,7 @@ impl std::fmt::Display for RenderError {
                 detail,
             } => write!(f, "the GPU device was refused on {requirement}: {detail}"),
             Self::DeviceLost { reason } => write!(f, "the GPU device was lost: {reason}"),
+            Self::Surface(detail) => write!(f, "the canvas gave no frame: {detail}"),
             Self::Oversize {
                 buffer,
                 bytes,
@@ -78,6 +81,11 @@ pub struct Gpu {
     pub adapter: wgpu::AdapterInfo,
     /// Whether the adapter granted timestamp queries; the timing session reads it.
     pub timestamps: bool,
+    /// The adapter the device came from, kept so a surface can be asked what it
+    /// prefers on it, and the instance it came from, so the canvas surface and
+    /// the device are the same platform's. A canvas is the only caller.
+    source: wgpu::Adapter,
+    instance: wgpu::Instance,
     lost: Arc<Mutex<Option<String>>>,
 }
 
@@ -151,8 +159,42 @@ impl Gpu {
             queue,
             adapter: info,
             timestamps,
+            source: adapter,
+            instance,
             lost,
         })
+    }
+
+    /// A drawing surface on this platform's own instance: a page canvas, and
+    /// nothing else today.
+    pub fn create_surface<'target>(
+        &self,
+        target: impl Into<wgpu::SurfaceTarget<'target>>,
+    ) -> Result<wgpu::Surface<'target>> {
+        self.instance
+            .create_surface(target)
+            .map_err(|error| RenderError::Surface(error.to_string()))
+    }
+
+    /// How this surface wants to be configured on this device at this size:
+    /// the adapter's own preferred format, and opaque compositing, which is
+    /// the only mode the web backend offers.
+    pub fn surface_config(
+        &self,
+        surface: &wgpu::Surface<'_>,
+        width: u32,
+        height: u32,
+    ) -> Result<wgpu::SurfaceConfiguration> {
+        let mut config = surface
+            .get_default_config(&self.source, width, height)
+            .ok_or_else(|| {
+                RenderError::Surface(format!(
+                    "\"{}\" does not support this drawing surface",
+                    self.adapter.name
+                ))
+            })?;
+        config.alpha_mode = wgpu::CompositeAlphaMode::Opaque;
+        Ok(config)
     }
 
     /// The device-lost error if the device has gone away, checked after a poll.

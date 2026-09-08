@@ -11,6 +11,8 @@ mod scene;
 mod submit;
 mod timing;
 mod view;
+#[cfg(target_arch = "wasm32")]
+mod web;
 mod wood;
 
 pub use buffer::Region;
@@ -22,6 +24,9 @@ pub use timing::{
     judge, Hardware, Report, Session, Verdict, CONDITIONING, CONTENTION_RATIO, MEASURED, WARMUP,
 };
 pub use view::View;
+
+#[cfg(target_arch = "wasm32")]
+pub use web::WebRenderer;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use headless::{attachment, render, write_png, Still, STILL_FORMAT};

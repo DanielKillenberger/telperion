@@ -16,6 +16,18 @@ bytemuck = { version = "1", features = ["derive"] }
 pollster = "1"
 png = "0.18"
 
+# The browser target parses the panel's parameter JSON in Rust, so the schema
+# the binding publishes is the schema the renderer reads. The wasm-bindgen
+# version is exact because the CLI that generates the glue must match it.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+telperion-core = { path = "../telperion-core", features = ["json"] }
+serde_json = "1"
+wasm-bindgen = "=0.2.128"
+wasm-bindgen-futures = "0.4"
+futures-channel = "0.3"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["HtmlCanvasElement"] }
+
 [dev-dependencies]
 # The conformance sweep reads the shipped families as JSON and walks them; the
 # renderer library itself never sees a parameter name.
