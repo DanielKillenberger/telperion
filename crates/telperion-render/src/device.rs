@@ -14,6 +14,12 @@ pub enum RenderError {
     DeviceRefused { requirement: String, detail: String },
     /// The device went away mid-render.
     DeviceLost { reason: String },
+    /// A buffer this tree needs is larger than the device granted.
+    Oversize {
+        buffer: &'static str,
+        bytes: u64,
+        limit: u64,
+    },
     /// The generator rejected the parameters.
     Generation(telperion_core::Error),
     /// The still could not be written where it was asked for.
@@ -33,6 +39,14 @@ impl std::fmt::Display for RenderError {
                 detail,
             } => write!(f, "the GPU device was refused on {requirement}: {detail}"),
             Self::DeviceLost { reason } => write!(f, "the GPU device was lost: {reason}"),
+            Self::Oversize {
+                buffer,
+                bytes,
+                limit,
+            } => write!(
+                f,
+                "the {buffer} buffer needs {bytes} bytes, above the device's limit of {limit}"
+            ),
             Self::Generation(error) => write!(f, "the generator rejected the tree: {error}"),
             Self::Output { path, message } => write!(f, "cannot write {path}: {message}"),
         }
@@ -169,6 +183,12 @@ mod tests {
                 reason: "Destroyed: dropped".into(),
             }
             .to_string(),
+            RenderError::Oversize {
+                buffer: "foliage instances",
+                bytes: 507_000_000,
+                limit: 268_435_456,
+            }
+            .to_string(),
             RenderError::Output {
                 path: "/nope/x.png".into(),
                 message: "permission denied".into(),
@@ -179,7 +199,14 @@ mod tests {
         assert!(messages[1].contains("llvmpipe") && messages[1].contains("fallback"));
         assert!(messages[2].contains("max_buffer_size") && messages[2].contains("refused"));
         assert!(messages[3].contains("lost") && messages[3].contains("Destroyed"));
-        assert!(messages[4].contains("/nope/x.png") && messages[4].contains("permission denied"));
+        assert!(
+            messages[4].contains("foliage instances")
+                && messages[4].contains("507000000")
+                && messages[4].contains("268435456"),
+            "an oversize buffer must name itself and both sizes: {}",
+            messages[4]
+        );
+        assert!(messages[5].contains("/nope/x.png") && messages[5].contains("permission denied"));
     }
 
     #[test]

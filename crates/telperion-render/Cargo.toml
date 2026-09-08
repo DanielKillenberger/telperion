@@ -15,3 +15,10 @@ bytemuck = { version = "1", features = ["derive"] }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 pollster = "1"
 png = "0.18"
+
+[dev-dependencies]
+# The conformance sweep reads the shipped families as JSON and walks them; the
+# renderer library itself never sees a parameter name.
+telperion-core = { path = "../telperion-core", features = ["json"] }
+serde_json = "1"
+wgpu = "30"

@@ -284,14 +284,24 @@ impl Scene {
         );
     }
 
-    /// Draws the room. One call: the ground and the figure share a buffer.
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
-        pass.set_pipeline(&self.pipeline);
+    /// Binds the camera and the light every pipeline in the pass draws under.
+    /// It is bound once per pass and not per subject, because a view that
+    /// leaves the room out still needs the light.
+    pub fn bind(&self, pass: &mut wgpu::RenderPass<'_>) {
         pass.set_bind_group(0, &self.bind_group, &[]);
+    }
+
+    /// Draws the room. One call: the ground and the figure share a buffer.
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> crate::FrameStats {
+        pass.set_pipeline(&self.pipeline);
         pass.set_vertex_buffer(0, self.vertices.slice(..));
         pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
         pass.draw_indexed(0..self.index_count, 0, 0..1);
-        self.index_count / 3
+        crate::FrameStats {
+            draw_calls: 1,
+            triangles: self.index_count / 3,
+            instances: 0,
+        }
     }
 }
 

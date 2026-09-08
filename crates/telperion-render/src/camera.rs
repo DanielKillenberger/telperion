@@ -12,8 +12,8 @@ pub const FRAME_MARGIN: f64 = 1.3;
 /// three-quarter view from the front right, a little above the middle. Only the
 /// angle is authored; the distance is solved.
 const FRAME_DIRECTION: Vec3 = Vec3::new(0.62, 0.28, 1.0);
-/// Nothing is visible closer than this and the room is what moves, so the near
-/// plane is fixed at every subject size.
+/// The near plane for a subject the size of a tree. Anything small enough that
+/// a tenth of a metre would clip it draws its own near plane from its reach.
 const NEAR: f64 = 0.1;
 
 /// A pose the renderer can draw from. Metres, Y up, right-handed.
@@ -53,15 +53,27 @@ pub fn hero_pose(bounds: Bounds, aspect: f64, ground_reach: f64) -> Camera {
         .max(across / (half_angle.tan() * aspect.max(0.1)))
         * FRAME_MARGIN;
 
-    let reach = (distance + size.length() / 2.0).max(1.0);
+    let solved = distance + size.length() / 2.0;
+    // A subject with no extent at all leaves nothing to solve, and the eye
+    // would land on the target with no direction to look along.
+    let reach = if solved > 0.0 { solved } else { NEAR * 2.0 };
     let mut position = centre + FRAME_DIRECTION.normalized() * reach;
-    position.y = position.y.max(crate::scene::FIGURE_HEIGHT);
+    // The eye stands on the floor at least, and at a person's eye height for
+    // anything taller than a person. A leaf is not looked at from 1.8 m, so
+    // for a subject shorter than the figure the direction alone places it.
+    position.y = position.y.max(if size.y > crate::scene::FIGURE_HEIGHT {
+        crate::scene::FIGURE_HEIGHT
+    } else {
+        0.0
+    });
 
     Camera {
         position,
         target: centre,
         field_of_view: FIELD_OF_VIEW,
-        near: NEAR,
+        // A leaf is looked at from centimetres away; a near plane fixed at a
+        // tenth of a metre would clip the whole subject out of the frame.
+        near: NEAR.min(reach / 2.0),
         // The far plane clears the whole ground disc from wherever the camera
         // stands: the disc reaches `ground_reach` from the origin and the
         // camera is `reach` out from a target inside it.
@@ -214,6 +226,50 @@ mod tests {
         };
         let camera = hero_pose(flat, 1.0, crate::GROUND_REACH);
         assert!(camera.position.y >= crate::scene::FIGURE_HEIGHT);
+    }
+
+    #[test]
+    fn a_subject_smaller_than_a_person_still_fills_its_frame() {
+        // The leaf view frames one element: a hand-sized blade, or a spruce
+        // needle two centimetres long. Held to a person's eye height, or to a
+        // tree's near plane, either is a speck in the middle of the frame.
+        for (name, element) in [
+            (
+                "blade",
+                Bounds {
+                    min: Vec3::new(-0.03, 0.0, -0.01),
+                    max: Vec3::new(0.03, 0.13, 0.01),
+                },
+            ),
+            (
+                "needle",
+                Bounds {
+                    min: Vec3::new(-0.0005, 0.0, -0.0005),
+                    max: Vec3::new(0.0005, 0.02, 0.0005),
+                },
+            ),
+        ] {
+            let camera = hero_pose(element, 1.0, crate::GROUND_REACH);
+            let view_projection = camera.view_projection(1.0);
+            let (mut low, mut high) = (f64::MAX, f64::MIN);
+            for corner in corners(element) {
+                let (x, y, depth) = project(&view_projection, corner);
+                assert!(
+                    x.abs() <= 1.0 && y.abs() <= 1.0,
+                    "a {name} corner {corner:?} left the frame: {x}, {y}"
+                );
+                assert!(
+                    (0.0..=1.0).contains(&depth),
+                    "a {name} corner {corner:?} left the depth range: {depth}"
+                );
+                (low, high) = (low.min(y), high.max(y));
+            }
+            assert!(
+                high - low > 1.0,
+                "the {name} covers {:.0}% of the frame height: it is a speck",
+                (high - low) * 50.0
+            );
+        }
     }
 
     #[test]

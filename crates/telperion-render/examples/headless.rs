@@ -7,19 +7,24 @@ use telperion_core::{
     mesh::{self, Detail},
     presets::Preset,
 };
-use telperion_render::{hero_pose, render, write_png, Gpu, Renderer, GROUND_REACH, STILL_FORMAT};
+use telperion_render::{
+    hero_pose, render, write_png, Gpu, Renderer, View, GROUND_REACH, STILL_FORMAT,
+};
 
-const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH]";
+const USAGE: &str =
+    "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] [--view whole|bare|leaf]";
 
 struct Arguments {
     preset: String,
     seed: u32,
     out: PathBuf,
     size: (u32, u32),
+    view: View,
 }
 
 fn parse() -> Result<Arguments, String> {
     let (mut preset, mut seed, mut out, mut size) = (None, None, None, (1024u32, 1024u32));
+    let mut view = View::default();
     let mut args = std::env::args().skip(1);
     while let Some(flag) = args.next() {
         let mut value = || args.next().ok_or(format!("{flag} needs a value\n{USAGE}"));
@@ -37,6 +42,12 @@ fn parse() -> Result<Arguments, String> {
                 let raw = value()?;
                 size = parse_size(&raw)?;
             }
+            "--view" => {
+                let raw = value()?;
+                view = View::from_id(&raw).ok_or_else(|| {
+                    format!("unknown view \"{raw}\"; one of {}", View::NAMES.join(", "))
+                })?;
+            }
             other => return Err(format!("unknown argument \"{other}\"\n{USAGE}")),
         }
     }
@@ -45,6 +56,7 @@ fn parse() -> Result<Arguments, String> {
         seed: seed.ok_or(format!("--seed is required\n{USAGE}"))?,
         out: out.ok_or(format!("--out is required\n{USAGE}"))?,
         size,
+        view,
     })
 }
 
@@ -72,25 +84,28 @@ fn run() -> Result<(), String> {
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|error| error.to_string())?;
     let adapter = gpu.adapter.name.clone();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let submitted = renderer.submit(&tree);
+    let submitted = renderer.submit(&tree).map_err(|error| error.to_string())?;
+    renderer.set_view(arguments.view);
 
     let (width, height) = arguments.size;
-    let camera = hero_pose(
-        tree.bounds,
-        f64::from(width) / f64::from(height),
-        GROUND_REACH,
-    );
+    // The leaf view frames the element, the others the whole tree; the
+    // renderer knows which, so the pose is solved on whatever is on stage.
+    let bounds = renderer.bounds().ok_or("nothing was submitted to frame")?;
+    let camera = hero_pose(bounds, f64::from(width) / f64::from(height), GROUND_REACH);
     let still = render(&mut renderer, &camera, width, height).map_err(|error| error.to_string())?;
     write_png(&arguments.out, &still).map_err(|error| error.to_string())?;
 
     println!(
-        "{} {}x{} on {adapter}: {} wood vertices, {} wood triangles, {} drawn in {} calls",
+        "{} {}x{} on {adapter}: {} wood vertices, {} wood triangles, \
+         {} foliage instances; {} triangles and {} instances drawn in {} calls",
         arguments.out.display(),
         width,
         height,
         submitted.wood_vertices,
         submitted.wood_triangles,
+        submitted.foliage_instances,
         still.stats.triangles,
+        still.stats.instances,
         still.stats.draw_calls,
     );
     Ok(())

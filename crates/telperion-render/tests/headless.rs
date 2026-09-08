@@ -5,27 +5,17 @@ use telperion_core::{
     mesh::{self, Detail},
     presets::Preset,
 };
-use telperion_render::{hero_pose, render, Gpu, RenderError, Renderer, GROUND_REACH, STILL_FORMAT};
+use telperion_render::{hero_pose, render, Renderer, GROUND_REACH, STILL_FORMAT};
 
-/// A device, or `None` with the reason printed. Every device-backed assertion
-/// below hangs off this.
-fn gpu() -> Option<Gpu> {
-    match pollster::block_on(Gpu::request(None)) {
-        Ok(gpu) => Some(gpu),
-        Err(error @ (RenderError::WebGpuUnavailable(_) | RenderError::FallbackOnly { .. })) => {
-            println!("skipped: {error}");
-            None
-        }
-        Err(error) => panic!("the device was there and still refused: {error}"),
-    }
-}
+mod common;
+use common::gpu;
 
 #[test]
 fn a_tree_reaches_the_pixels() {
     let Some(gpu) = gpu() else { return };
     let tree = mesh::build(&Preset::Ordinary.parameters(), Detail::Full).expect("the core built");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let submitted = renderer.submit(&tree);
+    let submitted = renderer.submit(&tree).expect("the tree fits the device");
 
     assert_eq!(submitted.wood_vertices, tree.wood_vertices());
     assert_eq!(submitted.wood_triangles, tree.wood_triangles());
@@ -64,9 +54,9 @@ fn a_second_smaller_tree_reuses_the_wood_buffers() {
     );
 
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    renderer.submit(&large);
+    renderer.submit(&large).expect("the large tree fits");
     let (before, ..) = renderer.wood_regions().expect("the wood was uploaded");
-    renderer.submit(&small);
+    renderer.submit(&small).expect("the small tree fits");
     let (after, ..) = renderer
         .wood_regions()
         .expect("the second tree was uploaded");

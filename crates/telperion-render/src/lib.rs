@@ -1,36 +1,50 @@
 //! One tree, one clay room, one GPU. The renderer takes the core's mesh and
 //! draws it; it knows nothing about which tree it is or where the parameters
 //! came from.
+mod buffer;
 mod camera;
 mod device;
+mod foliage;
 #[cfg(not(target_arch = "wasm32"))]
 mod headless;
 mod scene;
+mod submit;
+mod view;
 mod wood;
 
+pub use buffer::Region;
 pub use camera::{hero_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
 pub use device::{Gpu, RenderError, Result};
 pub use scene::{DEPTH_FORMAT, GROUND_REACH};
-pub use wood::Region;
+pub use submit::{fits, Submitted};
+pub use view::View;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use headless::{render, write_png, Still, STILL_FORMAT};
 
-use telperion_core::mesh::TreeMesh;
+use telperion_core::{mesh::TreeMesh, surface::Bounds};
 
 /// What one frame cost, in the terms a reader of a timing record needs.
+/// `instances` counts the foliage placements drawn, which is the number the
+/// view changes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct FrameStats {
     pub draw_calls: u32,
     pub triangles: u32,
+    pub instances: u32,
 }
 
-/// What a submitted tree turned into on the GPU. The counts are the mesh's own,
-/// so a caller can check them against what the core reported.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct Submitted {
-    pub wood_vertices: usize,
-    pub wood_triangles: usize,
+impl std::ops::Add for FrameStats {
+    type Output = Self;
+
+    /// A frame's cost is what each pass in it cost, so the passes add up.
+    fn add(self, other: Self) -> Self {
+        Self {
+            draw_calls: self.draw_calls + other.draw_calls,
+            triangles: self.triangles.saturating_add(other.triangles),
+            instances: self.instances.saturating_add(other.instances),
+        }
+    }
 }
 
 /// A device with the room built on it, holding at most one tree.
@@ -38,6 +52,9 @@ pub struct Renderer {
     gpu: Gpu,
     scene: scene::Scene,
     wood: wood::Wood,
+    foliage: foliage::Foliage,
+    view: View,
+    bounds: Option<Bounds>,
     colour_format: wgpu::TextureFormat,
 }
 
@@ -47,10 +64,14 @@ impl Renderer {
     pub fn new(gpu: Gpu, colour_format: wgpu::TextureFormat) -> Self {
         let scene = scene::Scene::new(&gpu, colour_format);
         let wood = wood::Wood::new(&gpu, scene.layout(), colour_format);
+        let foliage = foliage::Foliage::new(&gpu, scene.layout(), colour_format);
         Self {
             gpu,
             scene,
             wood,
+            foliage,
+            view: View::default(),
+            bounds: None,
             colour_format,
         }
     }
@@ -63,21 +84,50 @@ impl Renderer {
         self.colour_format
     }
 
-    /// Uploads one tree's wood in place from the core's arrays and stands the
-    /// scale figure beside it.
-    pub fn submit(&mut self, mesh: &TreeMesh) -> Submitted {
+    /// Uploads one tree in place from the core's arrays and stands the scale
+    /// figure beside it. A tree the device cannot hold is refused whole,
+    /// before anything of it goes up.
+    pub fn submit(&mut self, mesh: &TreeMesh) -> Result<Submitted> {
+        fits(&self.gpu.device.limits(), mesh)?;
         self.wood.submit(&self.gpu, &mesh.wood);
+        self.foliage.submit(&self.gpu, &mesh.foliage);
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
-        Submitted {
+        self.bounds = Some(mesh.bounds);
+        Ok(Submitted {
             wood_vertices: mesh.wood_vertices(),
             wood_triangles: mesh.wood_triangles(),
+            foliage_instances: mesh.foliage_instances(),
+            bounds: mesh.bounds,
+        })
+    }
+
+    /// Selects what the next frame draws of the submitted tree.
+    pub fn set_view(&mut self, view: View) {
+        self.view = view;
+    }
+
+    pub fn view(&self) -> View {
+        self.view
+    }
+
+    /// The bounds of what the current view draws, which is what a caller frames
+    /// the camera on. The leaf view frames the element, not the tree.
+    pub fn bounds(&self) -> Option<Bounds> {
+        match self.view {
+            View::Leaf => self.foliage.bounds(),
+            _ => self.bounds,
         }
     }
 
     /// The live wood ranges: what is used of what was allocated.
     pub fn wood_regions(&self) -> Option<(Region, Region, Region)> {
         self.wood.regions()
+    }
+
+    /// The live foliage instance range.
+    pub fn foliage_region(&self) -> Option<Region> {
+        self.foliage.region()
     }
 
     /// Draws one frame into the given colour and depth views.
@@ -95,7 +145,7 @@ impl Renderer {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("frame"),
             });
-        let triangles = {
+        let stats = {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("frame"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -119,13 +169,20 @@ impl Renderer {
                 occlusion_query_set: None,
                 multiview_mask: None,
             });
-            self.scene.draw(&mut pass) + self.wood.draw(&mut pass)
+            self.scene.bind(&mut pass);
+            match self.view {
+                // A leaf is judged on its own: at 0.1 m the room around it is a
+                // wall, and the scale figure is not a scale for a leaf.
+                View::Leaf => self.foliage.draw(&mut pass, self.view),
+                view => {
+                    self.scene.draw(&mut pass)
+                        + self.wood.draw(&mut pass)
+                        + self.foliage.draw(&mut pass, view)
+                }
+            }
         };
         self.gpu.queue.submit([encoder.finish()]);
-        FrameStats {
-            draw_calls: 2,
-            triangles,
-        }
+        stats
     }
 }
 
