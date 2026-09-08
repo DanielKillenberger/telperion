@@ -162,6 +162,10 @@ Active tracks served by this plan:
 
 Captured one at a time as each becomes next. Order: one foliage placement path with templates as pure value tables (every preset and random parameter sets render, spruce and oak hashes unchanged); fast hero (2 ms on an idle GPU, smooth rotation, compact instance records); coarse-first generation with detail budgets, identical refinement and streamed submission through the append seam, the enabler for unique runtime trees in a seeded game, where compact tapered wood and the worker question return; a third species reached by generalizing the generator then writing values; Unreal integration through fn-17 with Nanite foliage; a Valheim mod as the Unity proof of unique per-position runtime trees; a modest web forest. Shaded aggregates fold into the web forest. Viewer stability is R6 here.
 
+Findings parked for the first successor (the single placement path with templates as pure value tables), recorded 2026-09-08 while the owner drove the Rust renderer:
+- The density dial maps to the attractor count, and attractors are sampled only under the colonizing habit; the spreading (oak) and tiered (spruce) habits build their scaffolds from their own rules and ignore it. Either those habits take the same budget to decide limbs, subdivisions and tiers, or the dial is renamed to say what it is and the habits get their own dials.
+- The lobed-blade outline function in the foliage element is named after the oak, and a scaffold audit module inside the core names the oak and spruce presets to hash their skeletons; both are the last species names left in the core library.
+
 ## Quick commands
 
 ```bash
