@@ -110,25 +110,20 @@ minutes, which is why the canvas hash moves between polls while the tree does
 not. The record counts them rather than hiding them, and the claim it makes is
 unaffected - one device, one canvas, no rebuild.
 
-## A note on the framing, for the owner's eye
+## Framing, after the owner's verdict
 
-The tree occupies roughly half the frame height in both stills, which is looser
-than the framing margin's own words suggest. This is faithful, not broken: the
-Rust `hero_pose` is a port of the harness's rule at `harness/stage.ts:667-680`,
-stand-off included, so a browser frame and a headless still of the same tree are
-the same picture by construction.
-
-The looseness is in the rule itself. The margin solves a distance that fits the
-subject with a quarter again its extent, and then adds half the subject's own
-diagonal on top as orbit clearance. On the oak fixture the camera tests use
-(18.2 x 22.6 x 17.8 m) that is a 42.7 m solve plus a 17.0 m stand-off, and the
-tree's height then covers 55% of the frame rather than the 77% the margin alone
-would give. Most of the stand-off is load-bearing: an all-angle fit on the
-subject's bounding sphere needs 52.3 m with no margin left, so tightening to the
-orbit-safe floor would recover 55% to 63% and no more, at the cost of the
-clearance the orbit test pins. Framing the tree larger means changing the rule
-for both renderers - a decision about the composition, not a defect in the port -
-so nothing was changed here.
+The first stills framed the tree at about half the frame height, a faithful port
+of the old harness rule with its orbit stand-off. The owner judged that too far
+away (2026-09-09), so the rule changed rather than the port: the hero pose now
+fits every corner of the subject's bounds inside the frame with a margin of 1.15
+and nothing else, solved corner by corner so the near corner that subtends most
+is the one that sets the distance. The tightest corner sits exactly on the margin
+line, which a unit test pins at four aspects. Orbiting can now carry a corner
+past the edge; the wheel is how a hand pulls back, and the orbit's travel limits
+scale from the framed distance as before. The stills and native timing records
+above were re-rendered at the new pose; the browser rows predate it, and stand
+because the frame is vertex-bound (see the probe below) and does not move with
+how much of the picture the tree covers.
 
 ## Where the spruce frame goes: a resolution probe
 
@@ -150,8 +145,12 @@ deliberately; the stills above are what is being judged.
 
 ### Oregon white oak
 
-> _verdict:_
+> _verdict (owner, 2026-09-09):_ it looks good, almost the same as the previous render in JS, just slightly darker.
 
 ### Norway spruce
 
-> _verdict:_
+> _verdict (owner, 2026-09-09):_ reads as a spruce.
+
+### Framing
+
+> _decision (owner, 2026-09-09):_ the camera is too far away in these stills; tighten the hero pose. The faithful port of the old rule is not the composition wanted.
