@@ -1,8 +1,11 @@
-use serde_json::{json, Value};
-use telperion_core::{
+//! JSON wire mirror of the parameter family, shared by the C-ABI binding and
+//! the renderer. Gated behind the `json` feature so the default core stays
+//! serde-free.
+use crate::{
     presets::{Family, Preset},
     Error, Result,
 };
+use serde_json::{json, Value};
 
 // This table is the wire schema: it also emits the browser's preset metadata.
 macro_rules! fields {
@@ -110,7 +113,7 @@ pub fn by_identity(id: &str) -> Result<Family> {
     f.skeleton
         .growth
         .max_turn_per_step
-        .get_or_insert(telperion_core::colonization::GrowthConfig::default().max_turn_per_step);
+        .get_or_insert(crate::colonization::GrowthConfig::default().max_turn_per_step);
     Ok(f)
 }
 pub fn metadata(f: &Family) -> Value {
@@ -153,7 +156,7 @@ pub fn parse(v: &Value) -> Result<Family> {
     Ok(f)
 }
 
-// Serialization belongs to the binding; native core remains serde-free.
+// Serialization lives behind the `json` feature; the default core stays serde-free.
 trait Wire: Sized {
     fn encode(&self) -> Value;
     fn decode(value: Value) -> Result<Self>;
@@ -186,10 +189,10 @@ macro_rules! enum_wire {
         }
     };
 }
-enum_wire!(telperion_core::foliage::ElementAnatomy, {
+enum_wire!(crate::foliage::ElementAnatomy, {
     GenericBlade => "genericBlade", LobedBlade => "lobedBlade", FourSidedNeedle => "fourSidedNeedle"
 });
-enum_wire!(telperion_core::foliage::Attachment, {
+enum_wire!(crate::foliage::Attachment, {
     Generic => "generic", Alternate => "alternate", RadialNeedles => "radialNeedles"
 });
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -211,7 +214,7 @@ enum Habit {
         upturn: f64,
     },
 }
-impl Wire for telperion_core::branching::BranchHabit {
+impl Wire for crate::branching::BranchHabit {
     fn encode(&self) -> Value {
         let wire = match *self {
             Self::Colonizing => Habit::Colonizing {},
@@ -231,7 +234,7 @@ impl Wire for telperion_core::branching::BranchHabit {
         json!(wire)
     }
     fn decode(value: Value) -> Result<Self> {
-        use telperion_core::branching::{SpreadingHabit, TieredHabit};
+        use crate::branching::{SpreadingHabit, TieredHabit};
         let wire =
             serde_json::from_value(value).map_err(|_| Error::InvalidInput("habit parameters"))?;
         let habit = match wire {

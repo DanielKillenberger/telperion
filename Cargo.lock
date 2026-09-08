@@ -90,6 +90,7 @@ dependencies = [
 name = "telperion-core"
 version = "0.1.0"
 dependencies = [
+ "serde",
  "serde_json",
 ]
 
@@ -97,7 +98,6 @@ dependencies = [
 name = "telperion-wasm"
 version = "0.1.0"
 dependencies = [
- "serde",
  "serde_json",
  "telperion-core",
 ]
