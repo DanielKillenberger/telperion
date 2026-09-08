@@ -44,9 +44,25 @@ Create `crates/telperion-render` on wgpu with typed device creation, the clay sc
 - [ ] `crates/telperion-render/src` contains no `presets` reference (`grep -r presets crates/telperion-render/src` is empty)
 - [ ] `cargo test --release -p telperion-render` passes here and skips with a printed reason when no adapter exists; clippy clean; every file under 400 lines
 ## Done summary
-TBD
+`crates/telperion-render` now draws the hero tree: a wgpu 30 device whose every failure names its own condition, the clay room rebuilt in Rust, the harness's framing rule solved from bounds alone, the core's wood arrays uploaded as they lie, and a native offscreen render out to PNG behind a headless example. The oak still renders at 1024x1024 in about a second on this machine and the spec's early proof point holds: wgpu on this toolchain and the plaited surface are the right base for the foliage, timing and browser tasks.
 
+Scope notes for the reviewer:
+
+- `hero_pose` takes the aspect and the ground reach, not bounds alone as the API sketch had it. Both are load-bearing: the harness solves the horizontal fit against the aspect, and the far plane is sized off the ground disc from wherever the camera stands. The camera unit tests are margin-sensitive by construction - dropping `FRAME_MARGIN` to 1.0 fails both of them, which is how the assertions were checked before they were trusted.
+- The acceptance asked for a unit test showing the corners inside the frame "with the margin". Asserting the widest corner at `1/FRAME_MARGIN` is false for perspective: the solve fits the subject's centre plane, and a near corner subtends more. The margin's real purpose, in the harness's own words, is that the subject stays clear of every edge while it is orbited - so the test turns the pose through a full circle at four aspects and asserts no corner ever leaves. That is what the number buys, and it is strictly stronger than the static claim.
+- Buffer reuse is decided in one pure `Region` type, so the "second smaller submit reuses them" criterion is a unit test with no device, and the same decision is exercised against real hardware in `tests/headless.rs`.
+- The device asks for the adapter's `max_buffer_size` now, ahead of task 3's 507 MB of spruce instance matrices, and pre-checks the limits with `check_limits_with_fail_fn` so a refusal names the limit instead of arriving as a validation panic.
+- No oversize-buffer rejection and no foliage draw: R3's fit check and the instanced foliage pipeline are task 3's, and building them here would have been scope. The frame loop is already shaped for a surface (nothing configures while a texture is held), for task 5.
+- `wgpu::Device::poll` is checked for device loss on the readback path, and the device-lost callback stores the reason, so `RenderError::DeviceLost` carries something real rather than a placeholder.
+- Line counts: the largest file is `src/scene.rs` at 337. Nothing under `src` mentions a named family; only `examples/headless.rs` resolves an id.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; parallel wave - conductor reviews after integration)
+
+Conductor note: the oak still at 1024x1024 frames the tree at roughly a third of the frame height; task 4 judges the hero pose framing against the harness rule when it records the evidence stills.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: wave-join - ran (commit 9ddf531 already on target; no integration needed)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9ddf53170b6d5787a5464b6877e78725261b70da
+- Tests: cargo test --release --workspace (green, suite_rc=0; green receipt 9ddf5317-unittest), cargo test --release -p telperion-render (17 tests: 15 unit, 2 device-backed), WGPU_BACKEND=noop cargo test --release -p telperion-render --test headless (both device tests skip with a printed reason), cargo clippy --workspace --all-targets --release (telperion-render clean; one inherited assign_op_pattern warning in crates/telperion-core/examples/geometry_benchmark/metrics.rs, untouched by this task), cargo fmt --all -- --check (clean), cargo run --release -p telperion-render --example headless -- --preset oregon-white-oak --seed 1 --out /tmp/oak.png (exit 0, 183 KB PNG, 5,190,920 wood triangles in 2 draw calls on an RTX 3080), example error paths: unknown id, unwritable path, missing --out, malformed --size, malformed --seed, no adapter (WGPU_BACKEND=noop) all exit 1 with the reason on stderr, grep -r presets crates/telperion-render/src (empty)
 - PRs:
