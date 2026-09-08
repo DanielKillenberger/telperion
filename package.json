@@ -6,13 +6,13 @@
     "procedural",
     "tree",
     "generator",
-    "three",
-    "threejs",
     "space-colonization",
     "foliage",
     "canopy",
     "geometry",
-    "webgl"
+    "wgpu",
+    "webgpu",
+    "rust"
   ],
   "license": "MIT",
   "author": "Daniel Killenberger",
@@ -46,23 +46,17 @@
     "migration:reference": "node scripts/export-reference.mjs",
     "wasm:build": "node scripts/build-wasm.mjs",
     "render:build": "node scripts/build-render.mjs",
-    "species:measure": "cargo build --release -p telperion-core --example species_measure && node tests/browser/species.mjs --measure-only",
-    "species:qa": "node tests/browser/species.mjs",
-    "test:browser": "node tests/browser/integration.mjs",
+    "species:measure": "cargo build --release -p telperion-core --example species_measure && node tests/species.mjs --measure-only",
+    "species:qa": "cargo build --release -p telperion-core --example species_measure && cargo build --release -p telperion-render --example headless && node tests/species.mjs",
     "test:render": "node scripts/test-render.mjs"
-  },
-  "peerDependencies": {
-    "three": ">=0.160.0"
   },
   "devDependencies": {
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
-    "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^4.3.4",
     "playwright": "^1.63.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "three": "^0.185.0",
     "typescript": "5.7.2",
     "vite": "^6.0.0",
     "vitest": "^4.1.11"

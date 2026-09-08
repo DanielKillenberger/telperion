@@ -4,7 +4,8 @@ import { createServer } from 'vite';
 
 /* The browser conformance run: build the two wasm modules the page loads,
  * serve the harness on a port nobody else is on, and hand the test its URL.
- * BROWSER_URL targets an already-served harness instead.
+ * BROWSER_URL targets an already-served harness instead. The binding contract
+ * has its own suite, on no adapter at all: `npm run rust:test:wasm`.
  *
  * The renderer needs a real GPU, and on Linux a real GPU needs a display: a
  * headless Chromium here is offered SwiftShader and nothing else, which the

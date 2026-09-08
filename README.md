@@ -15,7 +15,7 @@ engine.release(); // returned arrays are owned copies and remain usable
 engine.dispose();
 ```
 
-`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all five named templates; `TWO_TREES` contains Telperion and Laurelin. The optional `materializeTree` / `disposeTreeGeometry` adapter supplies Three.js objects; the consumer owns materials, lights and rendering. Three.js is a peer dependency. The native core has no external Rust dependencies; `serde_json` belongs to the Wasm binding only.
+`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all five named templates; `TWO_TREES` contains Telperion and Laurelin. `createRenderer(canvas)` puts the Rust renderer on a canvas and draws the tree its own module generates; it is the package's only rendering path and it has no runtime dependencies. The native core has no external Rust dependencies; `serde_json` belongs to the Wasm binding only.
 
 For a block-based consumer, request occupancy without constructing a wood surface or transferring render buffers:
 
@@ -44,7 +44,7 @@ The giant snapshot alone is about 129 MB, so opt in only when needed.
 
 ## Architecture
 
-The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator.
+The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator and no TypeScript renderer.
 
 | Owner in `crates/telperion-core/src` | Responsibility |
 |---|---|
@@ -55,9 +55,11 @@ The native entry is `branching::generate(&family.skeleton, family.radii)`. Its s
 | `field` | Wood and foliage cell occupancy, independently of render meshes |
 | `presets` | Named parameter sets and scale choices |
 
+`crates/telperion-render` draws that output on wgpu, and is the only renderer in the repository. It compiles to two targets from one code path: a wasm module the page loads through `src/browser/render.ts`, which generates and uploads inside its own linear memory, and a native offscreen target whose `headless` example writes a PNG at the hero pose and, on request, a GPU timing record. The renderer owns the whole scene - ground, clay hemisphere lighting, the 1.8 m scale figure, camera and the whole, bare and single-leaf views - and it never names a species: only the headless entry point resolves a preset id.
+
 The crown envelope controls the silhouette. Space colonization establishes structural limbs, then local branch laws continue down to leaf-bearing twigs. Forks conserve cross-sectional area with a tunable exponent. Branch resolution and lateral count are independent. Terminal twig anatomy is measured in metres; the giant presets retain fine twigs instead of uniformly enlarging them.
 
-Botanical and output changes have separate owners. A representative development exercise and the retained test mapping are in [the migration guide](tests/migration/README.md#changing-a-rule-or-an-output). Native mesh-free examples are exercised in `crates/telperion-core/tests/field.rs`; browser ownership and failure recovery are checked in `tests/browser/integration.mjs`.
+Botanical and output changes have separate owners. A representative development exercise and the retained test mapping are in [the migration guide](tests/migration/README.md#changing-a-rule-or-an-output). Native mesh-free examples are exercised in `crates/telperion-core/tests/field.rs`; browser binding ownership and failure recovery are checked in `tests/browser/bindings.mjs`, and the page on a real GPU in `tests/browser/render.mjs`.
 
 ## Build and develop
 
@@ -65,9 +67,11 @@ Install Rust through rustup, then:
 
 ```sh
 rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy --target wasm32-unknown-unknown
+cargo install wasm-bindgen-cli --version 0.2.128   # the version Cargo.lock pins
 npm ci
 npm run rust:build
 npm run wasm:build
+npm run render:build
 npm run rust:test
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
@@ -76,12 +80,24 @@ npm run typecheck
 npm run build
 npx playwright install chromium
 npm run rust:test:wasm
+npm run test:render
 npm run dev
 ```
 
-The repository pins Rust in `rust-toolchain.toml`. `dev` and `build` regenerate Wasm and its preset metadata. Build Wasm before running the Node harness tests from a clean checkout. The package embeds the Wasm binary; consumers do not need Rust. The development viewer exposes the parameters, both presets and comparison mode in neutral clay, with optional lighting inspection and GPU timing.
+The repository pins Rust in `rust-toolchain.toml`, and `render:build` checks the installed `wasm-bindgen` against the version the crate pins before it generates the glue - a mismatch fails with the command to run. `dev` and `build` regenerate both Wasm modules and the preset metadata. Build them before running the Node harness tests from a clean checkout. The package embeds both binaries; consumers do not need Rust. The development viewer exposes every generator parameter, the five presets and the whole, bare and single-leaf views in neutral clay, with a GPU timing session on the button beside them.
+
+A still without a browser, from the same renderer:
+
+```sh
+cargo run --release -p telperion-render --example headless -- \
+  --preset norway-spruce --seed 7 --view whole --out /tmp/spruce.png [--timing /tmp/spruce.json]
+```
+
+`npm run rust:test:wasm` holds the Wasm binding to its contract in a plain headless browser, which needs no adapter at all. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
 
 ## Measurements and limits
+
+Rendering is measured by the renderer's own GPU timing session - conditioning frames, warmup and measured samples, with a verdict that is `valid`, `unavailable`, `disjoint` or `contended`, and no millisecond figure at all unless the verdict is valid. The [FN22 report](.flow/evidence/fn22/REPORT.md) records the native and browser sessions for oak and spruce beside the stills they were measured on. That is the rendering path, and it is unrelated to the rejected GPU query backend below, which was about generation and occupancy rather than drawing.
 
 The [FN8 report](.flow/evidence/fn8/REPORT.md) owns the matched full-build measurements, binding costs, native observations, memory-domain limits and GPU results. CPU generation latency and GPU frame time are separate measurements. Wasm linear-memory capacity is a high-water allocation, not live heap or total browser memory; release allows allocator reuse and dispose allows host reclamation once references are gone. Scene replacement retains the previous tree until the new build succeeds, so transient coexistence matters.
 
@@ -104,7 +120,7 @@ The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.
 
 MIT
 
-Historical measurement payloads and the frozen FN7 implementation live in Git history. The reports link to their pinned archive. Current browser benchmark runners live in `scripts/benchmarks/` and write results outside the repository by default. Retrieve the old evidence without changing this checkout:
+Historical measurement payloads and the frozen FN7 implementation live in Git history. The reports link to their pinned archive. The remaining generation benchmark runners live in `scripts/benchmarks/` and write results outside the repository by default; the browser rendering runners retired with the Three.js stage. Retrieve the old evidence without changing this checkout:
 
 ```sh
 mkdir -p /tmp/telperion-history
@@ -118,8 +134,8 @@ The viewer's species selector exposes Oregon white oak (`oregon-white-oak`,
 Ordinary, Telperion and Laurelin. Choose species independently of the unsigned
 32-bit specimen seed; changing species preserves the seed. Identical family
 parameters and seed reproduce the specimen. Different seeds vary structure and
-placement, not species identity. Whole, bare-branch and foliage-detail views
-support inspection; the viewer's detail view isolates one placed unit.
+placement, not species identity. Whole, bare-branch and single-leaf views
+support inspection; the leaf view isolates one placed unit at generated scale.
 Open `/?species=norway-spruce&seed=1` to load a full-foliage specimen directly.
 
 Browser consumers can use `presetById('oregon-white-oak')`, set
@@ -140,20 +156,20 @@ unknown quantities. [References](.flow/evidence/fn9/REFERENCES.md) attribute the
 photographs and research; [cross-seed QA](.flow/evidence/fn9/REPORT.md) records
 remaining fidelity failures. A numeric pass alone is not botanical approval.
 
-CPU-only measurement needs Rust, not a GPU. Headless visual capture additionally
-needs the built Wasm module, Vite, Playwright Chromium and working WebGL (software
-rendering is acceptable). Run `npm run species:measure -- --output /tmp/species-run`
-for all recorded seeds. Then start `npx vite --host 127.0.0.1 --port 5184` and run
-`npm run species:qa -- --capture-only --output /tmp/species-run`. See the
-[migration guide](tests/migration/README.md#species-evidence-and-replay) for the
-full replay protocol and failure semantics. Software capture timings do not
-predict hardware GPU frame times.
+CPU-only measurement needs Rust, not a GPU. The stills additionally need a
+hardware adapter, which the renderer requires and names when it is missing; no
+browser, page or Playwright is in that path any more. Run
+`npm run species:qa -- --output /tmp/species-run` for the whole protocol, or
+`npm run species:measure -- --output /tmp/species-run` for the numbers alone. See
+the [migration guide](tests/migration/README.md#species-evidence-and-replay) for
+the full replay protocol and failure semantics.
 
 The [comparative botanical benchmark](.flow/evidence/fn19/REPORT.md) freezes twelve
 mature oak/spruce specimens, structural distributions and matched anatomy views.
-Its [replay guide](tests/migration/README.md#comparative-botanical-benchmark-fn19)
+Its [record](tests/migration/README.md#comparative-botanical-benchmark-fn19)
 separates collection failures, engineering inspection and pending independent
-botanical assessment. To expand the catalogue, use the
+botanical assessment; the rig itself measured the Three.js renderer and is
+retired with that renderer. To expand the catalogue, use the
 [species onboarding workflow](docs/species-onboarding.md),
 [dispatch template](templates/species-profile.md) and
 [independent example packets](.flow/evidence/fn19/onboarding-examples/README.md).

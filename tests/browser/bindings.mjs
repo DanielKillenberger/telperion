@@ -1,6 +1,18 @@
 import { pathToFileURL } from 'node:url';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
-// Shared anatomy for small binding, renderer and UI fixtures. Binding-specific
+import { writeFile, mkdir } from 'node:fs/promises';
+
+/* ------------------------------------------------------------------ *
+ * THE BINDING, IN A BROWSER
+ *
+ * The Wasm core as a page reaches it: loading, owned copies, field
+ * handles and snapshots, independent outputs, the errors it must
+ * refuse, and the raw C ABI underneath. None of it draws anything, so
+ * none of it needs a GPU - this runs in a plain headless Chromium and
+ * has nothing to say about the renderer. The picture is the render
+ * suite's business, on the hardware adapter, beside this one.
+ * ------------------------------------------------------------------ */
+
+// Shared anatomy for small binding and UI fixtures. Binding-specific
 // resource limits and internode spacing remain explicit at their call site.
 function compactSpeciesFixture(family) {
   const fixture = structuredClone(family);
@@ -17,48 +29,17 @@ function compactSpeciesFixture(family) {
 }
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
 const url = process.env.BROWSER_URL ?? 'http://127.0.0.1:5184';
-const out = process.env.BROWSER_EVIDENCE ?? '.flow/tmp/fn98-browser';
+const out = process.env.BROWSER_EVIDENCE ?? '.flow/tmp/bindings';
 await mkdir(out, { recursive: true });
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE, headless: true,
-  args: ['--no-sandbox', ...(process.env.BINDINGS_ONLY === '1' ? ['--disable-gpu'] : [])] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE, headless: true, args: ['--no-sandbox'] });
 try {
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 });
+  const page = await browser.newPage({ viewport: { width: 800, height: 600 }, deviceScaleFactor: 1 });
   await page.addInitScript({ content: `window.compactSpeciesFixture = ${compactSpeciesFixture.toString()};` });
-  // Software WebGL must finish each submitted frame before the next one queues.
-  // Preserve full fixture geometry, animation/orbit and screenshot assertions;
-  // this is synchronization, not a GPU performance measurement.
-  await page.addInitScript(() => {
-    const schedule = window.requestAnimationFrame.bind(window);
-    window.requestAnimationFrame = callback => schedule(time => {
-      callback(time);
-      for (const canvas of document.querySelectorAll('canvas')) {
-        canvas.getContext('webgl2')?.finish();
-      }
-    });
-  });
   page.setDefaultTimeout(120000);
-  page.on('crash', () => console.error('Browser renderer crashed'));
+  page.on('crash', () => console.error('Browser crashed'));
   browser.on('disconnected', () => console.log('Browser disconnected'));
-  await page.route(url + '/', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body style="margin:0;width:100vw;height:100vh;overflow:hidden"><canvas style="display:block;width:100%;height:100%"></canvas></body></html>' }));
+  await page.route(url + '/', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body></body></html>' }));
   await page.goto(url + '/');
-  const result = process.env.BINDINGS_ONLY === '1' ? { skipped: 'rendering (bindings-only)' } : await page.evaluate(async () => {
-    const check = (ok, message) => { if (!ok) throw Error(message); };
-    const THREE = await import('/node_modules/.vite/deps/three.js');
-    const { createStage } = await import('/harness/stage.ts');
-    const stage = createStage(document.querySelector('canvas'));
-    let subject, disposed = false;
-    stage.setTree(clay => {
-      subject = new THREE.Mesh(new THREE.BoxGeometry(), clay.surface);
-      subject.geometry.addEventListener('dispose', () => { disposed = true; });
-      return subject;
-    });
-    let rejected = false;
-    try { stage.setTree(() => { throw Error('injected build failure'); }); } catch { rejected = true; }
-    check(rejected && !disposed && subject.parent !== null, 'failed replacement must preserve prior scene and geometry');
-    stage.dispose(); check(disposed, 'previous scene eventually disposed');
-    return { transactionalReplacement: true };
-  });
-  await writeFile(out + '/transaction.json', JSON.stringify(result, null, 2));
   const bindings = await page.evaluate(async () => {
     const check = (ok, message) => { if (!ok) throw Error(message); };
     const rejects = async (action, message) => { let failed = false; try { await action(); } catch { failed = true; } check(failed, message); };
@@ -215,155 +196,5 @@ try {
     return { fieldSnapshots: true, snapshotOwnership: true, snapshotExactFlags: true, speciesAnatomy: true, identityCatalogue: true, independentOutputs: true, meshFree: true, ownership: true, malformed: true, empty: true, staleFields: true, deterministic: true, partialDiagnostics: true };
   });
   await writeFile(out + '/bindings.json', JSON.stringify(bindings, null, 2));
-  if (process.env.BINDINGS_ONLY === '1') { console.log(bindings); process.exitCode = 0; } else {
-  await page.setViewportSize({ width: 960, height: 720 });
-  const captures = [];
-  for (const id of ['oregon-white-oak', 'norway-spruce']) {
-    for (const view of ['whole', 'bare', 'foliage-detail']) {
-      await page.goto(url + '/');
-      const capture = await page.evaluate(async ({ id, view }) => {
-        const THREE = await import('/node_modules/.vite/deps/three.js');
-        const { initializeTreeCore, presetById } = await import('/src/browser/core.ts');
-        const { buildPreset, selectSpecimenView, countDraws } = await import('/harness/skeleton-view.ts');
-        const { createStage, measureSubject } = await import('/harness/stage.ts');
-        await initializeTreeCore();
-        const preset = window.compactSpeciesFixture(presetById(id));
-        preset.skeleton.seed = 42;
-        const stage = createStage(document.querySelector('canvas'));
-        let bounds, stats, draws;
-        stage.setTree(clay => {
-          const built = buildPreset(preset, clay, view !== 'bare');
-          stats = built.stats;
-          const tree = selectSpecimenView(built.tree, view);
-          bounds = measureSubject(tree);
-          draws = countDraws(tree);
-          tree.traverse(node => {
-            if (node instanceof THREE.InstancedMesh && (!Number.isFinite(node.boundingSphere.radius) || node.boundingSphere.radius <= 0)) throw Error('invalid instance sphere');
-          });
-          return tree;
-        });
-        if (bounds.isEmpty() || ![...bounds.min, ...bounds.max].every(Number.isFinite)) throw Error('invalid displayed bounds');
-        stage.frame(4);
-        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        const gl = document.querySelector('canvas').getContext('webgl2');
-        const debug = gl.getExtension('WEBGL_debug_renderer_info');
-        const backend = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
-        if (stage.stats().drawCalls < draws.drawCalls + (view === 'foliage-detail' ? 1 : 2)) throw Error('subject draws missing');
-        window.captureStage = stage;
-        return { id, view, preset, stats, draws, bounds: { min: bounds.min.toArray(), max: bounds.max.toArray() }, backend, rendered: stage.stats() };
-      }, { id, view });
-      await page.screenshot({ path: `${out}/${id}-${view}.png`, timeout: 240000 });
-      await page.mouse.move(700, 350);
-      await page.mouse.down();
-      await page.mouse.move(850, 390, { steps: 8 });
-      await page.mouse.up();
-      await page.waitForTimeout(500);
-      const rotated = await page.evaluate(() => window.captureStage.stats());
-      if (rotated.drawCalls < capture.draws.drawCalls + (view === 'foliage-detail' ? 1 : 2) || rotated.triangles <= 0) throw Error(id + ' invisible after orbit');
-      captures.push({ ...capture, rotated });
-      console.log('captured', id, view, capture.backend, capture.stats.instances);
-      await page.evaluate(() => window.captureStage.dispose());
-    }
-  }
-  const emptyRendering = await page.evaluate(async () => {
-    const { treeCore, presetById } = await import('/src/browser/core.ts');
-    const { materializeTree } = await import('/src/browser/three.ts');
-    const { createStage, measureSubject } = await import('/harness/stage.ts');
-    const preset = window.compactSpeciesFixture(presetById('norway-spruce'));
-    preset.canopy.size = 0;
-    const output = treeCore().build(preset, { surface: true, foliage: true });
-    treeCore().release();
-    const stage = createStage(document.querySelector('canvas'));
-    stage.setTree(clay => {
-      const tree = materializeTree(output, clay);
-      if (tree.getObjectByName('grower-canopy') || measureSubject(tree).isEmpty()) throw Error('empty foliage corrupts wood');
-      return tree;
-    });
-    stage.frame(4);
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    if (stage.stats().drawCalls < 3) throw Error('empty foliage interrupts rendering');
-    stage.dispose();
-    return true;
-  });
-  await writeFile(out + '/empty-rendering.json', JSON.stringify({ emptyRendering }));
-  await writeFile(out + '/captures.json', JSON.stringify(captures, null, 2));
-  await page.unroute(url + '/');
-  // Apply the same documented small fixture before the first UI render.
-  // Full-size Ordinary can exhaust the software GPU during the failure/retry gate.
-  await page.route('**/src/browser/core.ts*', async route => {
-    const response = await route.fetch();
-    const source = await response.text();
-    await route.fulfill({ response, body: source + `
-      const originalBuild = TreeEngine.prototype.build;
-      TreeEngine.prototype.build = function(family, outputs) {
-        const fixture = window.compactSpeciesFixture(family);
-        const output = originalBuild.call(this, fixture, outputs);
-        window.viewerBuild = { seed: fixture.skeleton.seed, signature: JSON.stringify(Array.from(output.foliage?.matrices ?? output.surface?.positions ?? [])) };
-        return output;
-      };
-    ` });
-  });
-  let failedLoad = false;
-  await page.route('**/telperion.wasm', route => {
-    if (!failedLoad) { failedLoad = true; return route.abort('failed'); }
-    return route.continue();
-  });
-  await page.goto(url + '/');
-  await page.getByRole('alert').waitFor();
-  console.log('UI load failure surfaced');
-  await page.getByRole('button', { name: 'retry build' }).click();
-  await page.getByRole('alert').waitFor({ state: 'detached' });
-  const stats = page.locator('.gd-note').filter({ hasText: /tris, .* verts, .* nodes/ });
-  await stats.waitFor();
-  const before = await stats.textContent();
-  console.log('UI initial', before);
-  await page.evaluate(async () => {
-    const { initializeTreeCore } = await import('/src/browser/core.ts');
-    const engine = await initializeTreeCore();
-    const build = engine.build.bind(engine);
-    engine.build = (...args) => { engine.build = build; throw Error('injected native build failure'); };
-  });
-  const seed = page.getByRole('textbox');
-  await seed.fill('17');
-  await page.getByRole('alert').waitFor();
-  if (await stats.textContent() !== before) throw Error('failed UI build replaced prior diagnostics');
-  await page.getByRole('button', { name: 'retry build' }).click();
-  await page.getByRole('alert').waitFor({ state: 'detached' });
-  if (await stats.textContent() === before) throw Error('UI retry did not build changed specimen');
-  for (const name of ['oregon white oak', 'norway spruce']) {
-    await page.getByRole('button', { name, exact: true }).click();
-    await page.waitForTimeout(1000);
-    if (await seed.inputValue() !== '17') throw Error('species selection reset seed');
-    if (await page.getByRole('checkbox', { name: 'enable supernatural effects' }).isChecked()) throw Error('natural species enables effects');
-    if (await page.locator('fieldset').filter({ hasText: 'Botanical' }).count() !== 1 || await page.locator('fieldset').filter({ hasText: 'Supernatural' }).count() !== 1) throw Error('control groups missing');
-    const first = await stats.textContent();
-    const firstGeometry = await page.evaluate(() => window.viewerBuild.signature);
-    console.log('UI selected', name, await stats.textContent());
-    await seed.fill('18');
-    await page.waitForFunction(before => [...document.querySelectorAll('.gd-note')].some(node => /tris, .* verts, .* nodes/.test(node.textContent) && node.textContent !== before), first);
-    const changed = await page.evaluate(() => window.viewerBuild);
-    if (changed.seed !== 18 || changed.signature === firstGeometry) throw Error('UI seed did not vary geometry');
-    for (const view of ['bare', 'foliage-detail', 'whole']) {
-      await page.getByLabel('view', { exact: true }).selectOption(view);
-      await page.waitForTimeout(1000);
-      if (await page.getByRole('alert').count()) throw Error('view build failed');
-    }
-    await seed.fill('17');
-  }
-  await page.screenshot({ path: out + '/viewer.png' });
-  await page.goto(url + '/?species=unknown');
-  const linkAlert = page.getByRole('alert');
-  await linkAlert.waitFor();
-  if (!(await linkAlert.textContent()).includes('Unknown tree preset: unknown')) throw Error('invalid species URL did not explain the identity error');
-  await stats.waitFor();
-  await page.getByRole('button', { name: 'dismiss link error' }).click();
-  await linkAlert.waitFor({ state: 'detached' });
-  await page.getByRole('button', { name: 'norway spruce', exact: true }).click();
-  await page.waitForTimeout(1000);
-  if (await page.getByRole('alert').count()) throw Error('species URL recovery failed');
-  await page.screenshot({ path: out + '/viewer-link-recovery.png' });
-  console.log('UI invalid species URL recovered');
-  await writeFile(out + '/viewer.json', JSON.stringify({ loadFailureRetry: failedLoad, buildFailureRetry: true, previousDiagnosticsPreserved: true, speciesSelection: true, independentSeeds: true, seedGeometryChanges: true, allViews: true, emptyRendering }, null, 2));
-  console.log({ ...result, ...bindings, loadFailureRetry: failedLoad, buildFailureRetry: true });
-  }
+  console.log(bindings);
 } finally { await browser.close(); }
