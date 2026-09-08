@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-09-07T13:43:57.808016Z",
+  "depends_on": [
+    "fn-13-tree-detail-by-viewing-distance.12"
+  ],
+  "id": "fn-13-tree-detail-by-viewing-distance.13",
+  "priority": null,
+  "spec": "fn-13-tree-detail-by-viewing-distance",
+  "spec_path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.13.md",
+  "status": "todo",
+  "title": "Freeze representation protocol and bounded source-union references",
+  "updated_at": "2026-09-07T15:22:30.544718Z"
+}

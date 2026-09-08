@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-07T09:28:13.062932Z",
+  "depends_on": [
+    "fn-13-tree-detail-by-viewing-distance.7"
+  ],
+  "id": "fn-13-tree-detail-by-viewing-distance.8",
+  "priority": null,
+  "spec": "fn-13-tree-detail-by-viewing-distance",
+  "spec_path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.8.md",
+  "status": "todo",
+  "title": "Build and validate a reusable multi-needle span library",
+  "updated_at": "2026-09-07T11:15:52.406593Z"
+}

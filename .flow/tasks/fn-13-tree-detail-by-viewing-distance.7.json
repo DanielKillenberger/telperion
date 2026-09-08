@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-07T09:28:13.062864Z",
+  "depends_on": [
+    "fn-13-tree-detail-by-viewing-distance.1"
+  ],
+  "id": "fn-13-tree-detail-by-viewing-distance.7",
+  "priority": null,
+  "spec": "fn-13-tree-detail-by-viewing-distance",
+  "spec_path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.7.md",
+  "status": "todo",
+  "title": "Correct GPU measurement and minimal batched submission",
+  "updated_at": "2026-09-07T11:01:05.976075Z"
+}

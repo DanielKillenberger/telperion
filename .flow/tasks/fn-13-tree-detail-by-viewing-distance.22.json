@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-09-08T14:57:51.959039Z",
+  "depends_on": [
+    "fn-13-tree-detail-by-viewing-distance.19"
+  ],
+  "id": "fn-13-tree-detail-by-viewing-distance.22",
+  "priority": 1,
+  "spec": "fn-13-tree-detail-by-viewing-distance",
+  "spec_path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.22.md",
+  "status": "todo",
+  "title": "Settle the full-frustum 1,024-tree view: cell target and preparation throughput",
+  "updated_at": "2026-09-08T15:40:55.103535Z"
+}

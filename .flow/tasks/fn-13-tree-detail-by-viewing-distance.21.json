@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T14:18:17.207562Z",
+  "depends_on": [
+    "fn-13-tree-detail-by-viewing-distance.19",
+    "fn-13-tree-detail-by-viewing-distance.20",
+    "fn-13-tree-detail-by-viewing-distance.22"
+  ],
+  "id": "fn-13-tree-detail-by-viewing-distance.21",
+  "priority": 3,
+  "spec": "fn-13-tree-detail-by-viewing-distance",
+  "spec_path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.21.md",
+  "status": "todo",
+  "title": "Final renderer acceptance and documentation",
+  "updated_at": "2026-09-08T14:57:52.795343Z"
+}

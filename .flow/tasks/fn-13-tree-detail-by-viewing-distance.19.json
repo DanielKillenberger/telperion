@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T14:18:16.407106Z",
+  "depends_on": [
+    "fn-13-tree-detail-by-viewing-distance.4"
+  ],
+  "id": "fn-13-tree-detail-by-viewing-distance.19",
+  "priority": 1,
+  "spec": "fn-13-tree-detail-by-viewing-distance",
+  "spec_path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.19.md",
+  "status": "todo",
+  "title": "Bound retained CPU memory for distant trees",
+  "updated_at": "2026-09-08T14:18:16.407106Z"
+}
