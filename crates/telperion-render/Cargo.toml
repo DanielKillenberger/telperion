@@ -1,0 +1,17 @@
+[package]
+name = "telperion-render"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+telperion-core = { path = "../telperion-core" }
+wgpu = "30"
+bytemuck = { version = "1", features = ["derive"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pollster = "1"
+png = "0.18"
