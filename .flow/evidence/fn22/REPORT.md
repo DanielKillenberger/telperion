@@ -130,6 +130,19 @@ clearance the orbit test pins. Framing the tree larger means changing the rule
 for both renderers - a decision about the composition, not a defect in the port -
 so nothing was changed here.
 
+## Where the spruce frame goes: a resolution probe
+
+Run by the conductor after the browser rows landed, native headless, seed 7, whole view unless noted, RTX 3080 on vulkan.
+
+| Run | p50 | p95 | Verdict |
+|---|---:|---:|---|
+| 1600x1000, whole | 93.42 ms | 93.43 ms | valid |
+| 800x500, whole | 93.36 ms | 93.39 ms | valid |
+| 400x250, whole | 93.28 ms | 93.31 ms | valid |
+| 1600x1000, bare (wood only) | 0.71 ms | 0.71 ms | valid |
+
+The time does not move with resolution and the wood alone costs under a millisecond, so the whole spruce frame is the needles: 7.9 million instances of a 56-triangle element, most of them smaller than a pixel, bound by vertex shading and primitive assembly rather than by pixels. That is also why the oak agrees between browser and native while the spruce does not: the oak frame is dominated by rasterising large leaves, which both pipelines do alike, and the spruce frame by the per-vertex path, where the two pipelines differ (Tint against naga shader codegen, and Vulkan robust buffer access on the native side). The fast-hero spec starts from here: the compact needle representation is worth an order of magnitude, the pipeline gap about a third.
+
 ## Owner verdict
 
 One slot per species, in the owner's eye sense of the strategy (R7). Left empty

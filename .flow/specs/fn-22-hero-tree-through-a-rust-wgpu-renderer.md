@@ -165,6 +165,9 @@ Captured one at a time as each becomes next. Order: one foliage placement path w
 Findings parked for the first successor (the single placement path with templates as pure value tables), recorded 2026-09-08 while the owner drove the Rust renderer:
 - The density dial maps to the attractor count, and attractors are sampled only under the colonizing habit; the spreading (oak) and tiered (spruce) habits build their scaffolds from their own rules and ignore it. Either those habits take the same budget to decide limbs, subdivisions and tiers, or the dial is renamed to say what it is and the habits get their own dials.
 - The lobed-blade outline function in the foliage element is named after the oak, and a scaffold audit module inside the core names the oak and spruce presets to hash their skeletons; both are the last species names left in the core library.
+- The panel's load-failure retry, build-failure alert and unknown `?species=` link error lost their automated coverage when the old integration rig was retired; the flows still exist on the Rust page.
+- Species QA stills now carry the renderer's ground disc and 1.8 m figure; a QA still may want a flag to omit them.
+- Spruce measures 62.9 ms in the browser against 94.2 ms native for the same frame; the resolution probe in the fn22 evidence report shows the frame is vertex-bound, so the fast-hero spec owns both the pipeline gap and the needle representation.
 
 ## Quick commands
 
