@@ -39,9 +39,94 @@ Run the orbit session on the fn-22 page under hardware WebGPU and record R2. Mir
 - [ ] Without the timestamp feature the orbit record carries wall numbers and reads GPU time as unavailable, covered by a software-flags run that skips with a printed reason rather than failing
 
 ## Done summary
-TBD
+The oak holds 60 frames per second in the browser. A ten-second orbit at 1600
+by 1000, native pixel ratio, on the RTX 3080 in Chrome keeps a frame-to-frame
+wall **p50 of 10.00 ms, a p95 of 10.10 ms and a worst frame of 10.10 ms over
+999 frames** on this machine's 100 Hz display, against R2's 16.7 ms tail and
+33 ms ceiling. R2 is met with two thirds of the budget unspent. The session's
+GPU numbers stand beside it: vegetation 2.251 ms, selection 0.063 ms, together
+2.315 ms, valid verdict, unquantized. The spruce is recorded and not gated at a
+wall p50 of 30.00 ms, which is its 29.4 ms vegetation pass and nothing else.
 
+The suite was run twice end to end, once before and once after a note change;
+both passed and the second run's records are the committed ones. Every verdict
+came back valid and first-run, so nothing was repeated for contention.
+
+`WebRenderer.orbit()` is the page's entry point. It runs the same protocol
+`timing()` runs - conditioning, warmup, 120 measured frames, each awaited on its
+own readback - with the camera advancing through one turn, and then draws ten
+seconds of frames **the way the page draws them**: no timestamps, no readback,
+nothing between one frame and the next but the frame itself, timed by the
+`requestAnimationFrame` clock the browser hands any loop it paces.
+
+That split is the one decision worth defending. A frame carrying a timestamp
+readback is paced by the readback and not by the display - task 4 named this
+about the native orbit, whose wall number is the loop's pace and not a frame
+rate. So the GPU numbers and the cadence are measured over different frames on
+purpose: the cadence claim is only worth what the frames it was read from cost
+a viewer.
+
+Three more decisions.
+
+**The wall clock stands on its own account in the record.** `with_wall` no
+longer defers to the GPU verdict. The host's clock is not the GPU's: a browser
+without the timestamp feature still draws frames, and the cadence they kept is
+what a page's frame rate means. So the record can say GPU time is unavailable
+and report the wall numbers beside it - which is exactly R2's error case. The
+series is still refused unless every wait is a duration. The record also carries
+`wall_frames`, because a wall window is a length of time and how many frames it
+came to is the display's answer, not a constant. This changed task 4's
+assertion that an invalid verdict takes no wall numbers; that test now covers
+selection and levels, and a new one pins the untimed-orbit record.
+
+**A timed browser frame now writes both timestamp pairs.** The browser path
+called `Renderer::draw` with the render pair alone while `resolve` read all four
+queries, so two of them were never written - a latent hazard task 4 left when it
+widened the query set. `Live::draw` takes both pairs or neither, and the browser
+now reads the selection pass too: 0.063 ms of the oak's frame, 0.752 ms of the
+spruce's.
+
+**The rig's evidence folder defaults to this spec's.** It defaulted to
+`.flow/evidence/fn22`, so a plain `npm run test:render` would have written over
+a closed spec's committed records. The host flagged the default as fixable
+inside this task, and it is fixed.
+
+Chromium is launched with three more flags - background timer throttling,
+occluded-window backgrounding and renderer backgrounding all disabled - and the
+timing page is brought to the front. A browser slows its animation clock when it
+decides nobody is looking, and this display belongs to somebody; the page being
+measured is one a viewer is watching. The flags are in every record, as
+fn-22's protocol requires. Both clocks are coarsened to Chrome's 100
+microsecond step, which is why the wall numbers land on a 0.1 ms grid; the
+record's note now says so rather than leaving a reader to wonder at a frame time
+of exactly 10.00 ms.
+
+Four deviations from the declared Touches, named rather than buried.
+`crates/telperion-render/src/web/session.rs` is new - the task's own key context
+asked for the session glue to move to a sibling module rather than push `web.rs`
+past 400 lines, and `web.rs` ends at 341. `timing/report.rs` carries the wall
+contract above, `timing.rs`'s wasm `sample_ms` returns both pairs like its
+native twin, `tests/timing.rs` follows the contract change, and
+`Cargo.toml` adds web-sys's `Window` feature for the animation frame. None of
+them is reachable from inside the declared list.
+
+AC5's software-flags case is covered where it can be. A browser launched with
+`--disable-gpu` is offered no adapter at all, so the renderer refuses before a
+session exists; the run prints that reason and continues rather than failing.
+The record rule it stands for - wall numbers kept, GPU time unavailable - is
+asserted directly in the Rust timing suite.
+
+Not done here, by scope: no stills, no owner verdict, no report update - task 6
+owns all three and the browser rows are on disk for it. `species:qa` was not run
+for the same reason.
+
+Follow-up worth a later spec, not built here: the browser's vegetation pass
+reads 2.25 ms against the native target's 1.75 ms on the same tree and GPU, a
+half-millisecond the fn-22 gap did not predict. It is inside the budget, so it
+was not chased.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1dc7829b229f7c7099d6916b66fcd601937a7e5e
+- Tests: cargo test --release --workspace (29 suites, 0 failed), RENDER_EVIDENCE=.flow/evidence/fn23 npm run test:render (5 presets, dial, views, 2 timing sessions, 2 orbit sessions; run twice, both PASS), npm test (64 vitest cases), npm run typecheck, npm run rust:test:wasm, cargo clippy --release --workspace --all-targets, cargo clippy --release --target wasm32-unknown-unknown -p telperion-render, baseline: green via handoff (verified at 1e42b09 by fn-23-fast-hero-the-oak-inside-the-frame.4)
 - PRs:
