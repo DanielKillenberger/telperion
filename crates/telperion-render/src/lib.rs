@@ -18,6 +18,7 @@ mod wood;
 pub use buffer::Region;
 pub use camera::{hero_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
 pub use device::{Gpu, RenderError, Result};
+pub use foliage::Level;
 pub use scene::{DEPTH_FORMAT, GROUND_REACH};
 pub use submit::{fits, Submitted};
 pub use timing::{
@@ -99,9 +100,16 @@ impl Renderer {
     /// figure beside it. A tree the device cannot hold is refused whole,
     /// before anything of it goes up.
     pub fn submit(&mut self, mesh: &TreeMesh) -> Result<Submitted> {
+        self.submit_at(mesh, Level::default())
+    }
+
+    /// The same upload with the crown held at one level, which is how a
+    /// measurement asks what the leaves cost. The level travels with the tree
+    /// rather than sitting on the renderer, so no later frame inherits it.
+    pub fn submit_at(&mut self, mesh: &TreeMesh, level: Level) -> Result<Submitted> {
         fits(&self.gpu.device.limits(), mesh)?;
         self.wood.submit(&self.gpu, &mesh.wood);
-        self.foliage.submit(&self.gpu, &mesh.foliage);
+        self.foliage.submit(&self.gpu, &mesh.foliage, level);
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.bounds = Some(mesh.bounds);

@@ -56,6 +56,48 @@ fn positions(element: &Element) -> Vec<f32> {
         .collect()
 }
 
+/// How much of the element each instance draws. `Full` is the element as the
+/// core built it, every section and every triangle. `Quad` is the probe's
+/// stand-in: the blade's extent as two triangles, which asks whether the frame
+/// is spent on primitives or on pixels, and answers it without any of the level
+/// machinery it would take to find out properly.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Level {
+    #[default]
+    Full,
+    Quad,
+}
+
+impl Level {
+    /// The names a caller may pass. The full element is the absence of a
+    /// choice, so it has no name here.
+    pub const NAMES: [&'static str; 1] = ["quad"];
+
+    /// The level of that name, or nothing. An unknown name is the caller's to
+    /// report; the renderer never guesses one.
+    pub fn from_id(id: &str) -> Option<Self> {
+        match id {
+            "quad" => Some(Self::Quad),
+            _ => None,
+        }
+    }
+}
+
+/// The stand-in: the element's axis-aligned extent in the blade plane as four
+/// vertices and two triangles, one normal along the face the blade points at.
+/// It covers what the blade covers from the front, so the pixels stay and only
+/// the primitives go.
+fn quad(bounds: Bounds) -> (Vec<f32>, Vec<f32>, Vec<u32>) {
+    let (min, max) = (bounds.min, bounds.max);
+    let (left, right) = (min.x as f32, max.x as f32);
+    let (bottom, top) = (min.y as f32, max.y as f32);
+    let positions = vec![
+        left, bottom, 0.0, right, bottom, 0.0, right, top, 0.0, left, top, 0.0,
+    ];
+    let normals = [0.0, 0.0, 1.0].repeat(4);
+    (positions, normals, vec![0, 1, 2, 0, 2, 3])
+}
+
 /// The element as it stands at the origin, which is what the leaf view frames.
 fn element_bounds(element: &Element) -> Option<Bounds> {
     element
@@ -136,35 +178,50 @@ impl Foliage {
         }
     }
 
-    /// Uploads the element once and the placements as the core packed them.
-    pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage) {
+    /// Uploads the element once, at the level asked for, and the placements as
+    /// the core packed them. The level changes what one instance draws and
+    /// nothing about how many there are.
+    pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
         let element = &foliage.element;
-        self.index_count = element.indices.len() as u32;
         self.instance_count = foliage.instances.matrices.len() as u32;
         self.bounds = element_bounds(element);
-        if self.index_count == 0 {
+        // An element with no triangles draws nothing at any level, so the
+        // stand-in is built only where there was something to stand in for.
+        let geometry = match (level, self.bounds) {
+            _ if element.indices.is_empty() => None,
+            (Level::Full, _) => Some((
+                positions(element),
+                normals(element),
+                element.indices.clone(),
+            )),
+            (Level::Quad, Some(bounds)) => Some(quad(bounds)),
+            (Level::Quad, None) => None,
+        };
+        let Some((positions, normals, indices)) = geometry else {
+            self.index_count = 0;
             return;
-        }
+        };
+        self.index_count = indices.len() as u32;
         buffer::write(
             gpu,
             &mut self.positions,
             "foliage positions",
             wgpu::BufferUsages::VERTEX,
-            bytemuck::cast_slice(&positions(element)),
+            bytemuck::cast_slice(&positions),
         );
         buffer::write(
             gpu,
             &mut self.normals,
             "foliage normals",
             wgpu::BufferUsages::VERTEX,
-            bytemuck::cast_slice(&normals(element)),
+            bytemuck::cast_slice(&normals),
         );
         buffer::write(
             gpu,
             &mut self.indices,
             "foliage indices",
             wgpu::BufferUsages::INDEX,
-            bytemuck::cast_slice(&element.indices),
+            bytemuck::cast_slice(&indices),
         );
         buffer::write(
             gpu,
@@ -251,5 +308,56 @@ mod tests {
         assert!(bounds.max.y > bounds.min.y, "the leaf has no length");
         assert!(bounds.max.x > bounds.min.x, "the leaf has no width");
         assert!(element_bounds(&Element::default()).is_none());
+    }
+
+    #[test]
+    fn every_level_name_the_usage_line_offers_resolves_and_nothing_else_does() {
+        for name in Level::NAMES {
+            assert!(
+                Level::from_id(name).is_some(),
+                "{name} is offered but unknown"
+            );
+        }
+        // The unnamed one: no flag at all is the element whole.
+        assert_eq!(Level::default(), Level::Full);
+        for unknown in ["", "Quad", "full", "1", "coarse"] {
+            assert_eq!(Level::from_id(unknown), None, "{unknown:?} was guessed at");
+        }
+    }
+
+    #[test]
+    fn the_stand_in_spans_the_blade_in_two_triangles() {
+        let element = build_element(ElementParams::default()).expect("the core built a leaf");
+        let bounds = element_bounds(&element).expect("a leaf has vertices");
+        let (positions, normals, indices) = quad(bounds);
+
+        assert_eq!(indices.len(), 6, "the stand-in is not two triangles");
+        assert_eq!(positions.len(), 4 * 3, "the stand-in is not four vertices");
+        assert_eq!(normals.len(), positions.len());
+        assert!(
+            indices.iter().all(|i| (*i as usize) < 4),
+            "the stand-in indexes a vertex it does not have"
+        );
+        // It stands in for the blade, so it covers exactly the blade's extent
+        // in the plane the blade faces out of, and no more.
+        let corners = positions.as_chunks::<3>().0;
+        let extent = |axis: usize, pick: fn(f32, f32) -> f32| {
+            corners.iter().map(|c| c[axis]).fold(f32::NAN, pick)
+        };
+        assert_eq!(extent(0, f32::min), bounds.min.x as f32);
+        assert_eq!(extent(0, f32::max), bounds.max.x as f32);
+        assert_eq!(extent(1, f32::min), bounds.min.y as f32);
+        assert_eq!(extent(1, f32::max), bounds.max.y as f32);
+        assert!(
+            corners.iter().all(|c| c[2] == 0.0),
+            "the quad is not planar"
+        );
+        for normal in normals.as_chunks::<3>().0 {
+            assert_eq!(
+                normal,
+                &[0.0, 0.0, 1.0],
+                "a stand-in normal is off the face"
+            );
+        }
     }
 }

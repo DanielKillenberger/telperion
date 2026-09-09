@@ -8,12 +8,12 @@ use telperion_core::{
     presets::Preset,
 };
 use telperion_render::{
-    attachment, hero_pose, measure, render, write_png, Gpu, Renderer, View, DEPTH_FORMAT,
+    attachment, hero_pose, measure, render, write_png, Gpu, Level, Renderer, View, DEPTH_FORMAT,
     GROUND_REACH, STILL_FORMAT,
 };
 
 const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] \
-                     [--view whole|bare|leaf] [--timing <json>]";
+                     [--view whole|bare|leaf] [--level quad] [--timing <json>]";
 
 struct Arguments {
     preset: String,
@@ -21,12 +21,13 @@ struct Arguments {
     out: PathBuf,
     size: (u32, u32),
     view: View,
+    level: Level,
     timing: Option<PathBuf>,
 }
 
 fn parse() -> Result<Arguments, String> {
     let (mut preset, mut seed, mut out, mut size) = (None, None, None, (1024u32, 1024u32));
-    let (mut view, mut timing) = (View::default(), None);
+    let (mut view, mut level, mut timing) = (View::default(), Level::default(), None);
     let mut args = std::env::args().skip(1);
     while let Some(flag) = args.next() {
         let mut value = || args.next().ok_or(format!("{flag} needs a value\n{USAGE}"));
@@ -51,6 +52,15 @@ fn parse() -> Result<Arguments, String> {
                     format!("unknown view \"{raw}\"; one of {}", View::NAMES.join(", "))
                 })?;
             }
+            "--level" => {
+                let raw = value()?;
+                level = Level::from_id(&raw).ok_or_else(|| {
+                    format!(
+                        "unknown level \"{raw}\"; one of {}",
+                        Level::NAMES.join(", ")
+                    )
+                })?;
+            }
             other => return Err(format!("unknown argument \"{other}\"\n{USAGE}")),
         }
     }
@@ -60,6 +70,7 @@ fn parse() -> Result<Arguments, String> {
         out: out.ok_or(format!("--out is required\n{USAGE}"))?,
         size,
         view,
+        level,
         timing,
     })
 }
@@ -88,7 +99,9 @@ fn run() -> Result<(), String> {
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|error| error.to_string())?;
     let adapter = gpu.adapter.name.clone();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let submitted = renderer.submit(&tree).map_err(|error| error.to_string())?;
+    let submitted = renderer
+        .submit_at(&tree, arguments.level)
+        .map_err(|error| error.to_string())?;
     renderer.set_view(arguments.view);
 
     let (width, height) = arguments.size;
