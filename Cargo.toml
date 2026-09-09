@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/telperion-core", "crates/telperion-wasm"]
+members = ["crates/telperion-core", "crates/telperion-render", "crates/telperion-wasm"]
 resolver = "2"
 
 [profile.release]

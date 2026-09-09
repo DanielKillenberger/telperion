@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T17:10:39.958565Z",
+  "depends_on": [
+    "fn-22-hero-tree-through-a-rust-wgpu-renderer.3"
+  ],
+  "id": "fn-22-hero-tree-through-a-rust-wgpu-renderer.5",
+  "priority": null,
+  "spec": "fn-22-hero-tree-through-a-rust-wgpu-renderer",
+  "spec_path": ".flow/tasks/fn-22-hero-tree-through-a-rust-wgpu-renderer.5.md",
+  "status": "todo",
+  "title": "Browser target and panel wiring",
+  "updated_at": "2026-09-08T17:44:49.700133Z"
+}

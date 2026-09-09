@@ -6,7 +6,10 @@ pub mod envelope;
 pub mod field;
 pub mod foliage;
 pub mod math;
+pub mod mesh;
 pub mod noise;
+#[cfg(feature = "json")]
+pub mod params;
 pub mod presets;
 pub mod radius;
 pub mod rng;

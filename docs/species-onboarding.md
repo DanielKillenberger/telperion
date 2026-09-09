@@ -34,7 +34,7 @@ python3 .flow/evidence/fn19/onboarding-examples/verify.py
 
 This calls task 2's real manifest/schema/admission helpers and native support/parameter parser. It does not generate trees. Old protocol/reference hashes and the original twelve cases are checked. Oak/spruce are runnable but botanical validation remains unassessed here. Pine parses as an additional manifest in a later version and returns `unsupported-anatomy`, `implemented=false`; it is not admitted runnable catalogue content. Its borrowed parameter payload is a parser fixture only, never pine geometry.
 
-For implemented future species, numeric runs use `target/release/examples/geometry_benchmark --protocol FILE --references FILE --output NEW_DIR`. Consult `node tests/browser/geometry-benchmark.mjs --help` for capture prepare/replay conditions. Task 4 integrates comparison evidence after numeric/visual runs. Do not measure the illustrative pine cohort.
+For implemented future species, numeric runs use `target/release/examples/geometry_benchmark --protocol FILE --references FILE --output NEW_DIR`. Stills come from the renderer's headless target: `npm run species:qa` captures every required specimen whole, bare and as a single leaf, one process per still, and `cargo run --release -p telperion-render --example headless` renders one tree on demand. The fn19 browser capture rig retired with the Three.js renderer; see [the migration guide](../tests/migration/README.md#comparative-botanical-benchmark-fn19). Task 4 integrates comparison evidence after numeric/visual runs. Do not measure the illustrative pine cohort.
 
 ## Failed prerequisites and recovery
 

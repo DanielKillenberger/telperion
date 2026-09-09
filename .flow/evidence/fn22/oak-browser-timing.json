@@ -1,0 +1,57 @@
+{
+  "species": "Oregon white oak",
+  "preset": "oregon-white-oak",
+  "seed": 7,
+  "view": "whole",
+  "submitted": {
+    "bounds": {
+      "max": [
+        7.6250192030221,
+        17.548194502208634,
+        12.548721025940232
+      ],
+      "min": [
+        -12.552015155569293,
+        -0.09600000083446503,
+        -8.909661746289867
+      ]
+    },
+    "foliageInstances": 555204,
+    "woodTriangles": 5280080,
+    "woodVertices": 2725520
+  },
+  "report": {
+    "adapter": "",
+    "driver": "",
+    "backend": "webgpu",
+    "conditioning": 8,
+    "warmup": 8,
+    "measured": 120,
+    "samples": 120,
+    "verdict": "valid",
+    "p50_ms": 17.9482,
+    "p95_ms": 17.9597
+  },
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "webgpu": {
+    "vendor": "nvidia",
+    "architecture": "ampere",
+    "device": "",
+    "description": ""
+  },
+  "canvas": {
+    "width": 1600,
+    "height": 1000
+  },
+  "browser": "153.0.8010.12",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist"
+  ],
+  "quantization_us": 100,
+  "note": "Chrome quantizes WebGPU timestamps to 100 microseconds unless developer features or --enable-unsafe-webgpu are on. The percentiles here are finer than that step, so this session was not quantized."
+}

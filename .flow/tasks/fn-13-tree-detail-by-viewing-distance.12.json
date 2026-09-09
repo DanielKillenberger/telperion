@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-09-07T13:43:57.807945Z",
+  "depends_on": [
+    "fn-13-tree-detail-by-viewing-distance.8"
+  ],
+  "id": "fn-13-tree-detail-by-viewing-distance.12",
+  "priority": null,
+  "spec": "fn-13-tree-detail-by-viewing-distance",
+  "spec_path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.12.md",
+  "status": "todo",
+  "title": "Measure projected needle detail and draft the probe protocol",
+  "updated_at": "2026-09-07T14:41:49.026458Z"
+}

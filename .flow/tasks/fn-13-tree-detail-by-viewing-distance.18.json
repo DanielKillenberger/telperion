@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-07T15:49:10.086687Z",
+  "depends_on": [
+    "fn-13-tree-detail-by-viewing-distance.13"
+  ],
+  "id": "fn-13-tree-detail-by-viewing-distance.18",
+  "priority": null,
+  "spec": "fn-13-tree-detail-by-viewing-distance",
+  "spec_path": ".flow/tasks/fn-13-tree-detail-by-viewing-distance.18.md",
+  "status": "todo",
+  "title": "Qualify template-driven foliage input across tree and leaf shapes",
+  "updated_at": "2026-09-07T18:04:08.458057Z"
+}

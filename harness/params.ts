@@ -3,9 +3,9 @@
  *
  * The harness's half of the generator contract. The panel renders
  * whatever is in SLIDERS and hands the generator a GrowerParams; it
- * knows nothing else about either. skeleton-view.ts translates these
- * into the generator's own arguments, so a new dial is added here and
- * the panel picks it up for free.
+ * knows nothing else about either. family.ts translates these into the
+ * generator's own arguments, so a new dial is added here and the panel
+ * picks it up for free.
  *
  * Every name here points at a mechanism the spec already committed to:
  * `height` and `spread` are the authored envelope, the five bias dials
@@ -53,7 +53,7 @@
  * ------------------------------------------------------------------ */
 
 import { ORDINARY, type Family } from "../src/browser/core";
-import { presetToParams } from "./skeleton-view";
+import { presetToParams } from "./family";
 
 /** Seeds are unsigned 32-bit integers, and nothing else is a seed. */
 export const SEED_MAX = 0xff_ff_ff_ff;

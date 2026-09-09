@@ -25,15 +25,15 @@
   },
   "pipeline": {
     "chainStages": "off",
-    "qa": "on"
+    "qa": "off"
   },
   "planSync": {
     "crossSpec": false,
     "enabled": false
   },
   "review": {
-    "backend": "codex:gpt-6-astra:high",
-    "maxIterations": 8
+    "backend": "none",
+    "maxIterations": 2
   },
   "scouts": {
     "github": true

@@ -235,7 +235,7 @@ pub fn foliage_bins(tree: &Tree, element: &Element, kept: &Instances) -> Result<
             }
             ymin = ymin.min(p.y);
             ymax = ymax.max(p.y);
-            centroid = centroid + p / (anatomy.vertices.len() as f64);
+            centroid += p / (anatomy.vertices.len() as f64);
         }
         let r = (centroid.x - root.position.x).hypot(centroid.z - root.position.z);
         radius = radius.max(r);

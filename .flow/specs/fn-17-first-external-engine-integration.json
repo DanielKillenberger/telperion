@@ -1,7 +1,9 @@
 {
   "branch_name": "fn-17-first-external-engine-integration",
   "created_at": "2026-09-05T22:06:52.969315Z",
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-22-hero-tree-through-a-rust-wgpu-renderer"
+  ],
   "id": "fn-17-first-external-engine-integration",
   "next_task": 1,
   "plan_review_status": "unknown",
@@ -20,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T22:06:53.403811Z"
+  "updated_at": "2026-09-08T17:10:41.126141Z"
 }
