@@ -154,6 +154,20 @@ Active tracks served by this plan:
 | R4 | Owner verdict on the oak still against fn-22's | fn-23-fast-hero-the-oak-inside-the-frame.6 | — |
 | R5 | Every preset and twenty random sets through one path; spruce recorded, not gated | fn-23-fast-hero-the-oak-inside-the-frame.3, .6 | — |
 
+## Owner verdict
+
+R4 is the owner's judgment of the oak still, recorded here in the owner's own
+words. Compare `.flow/evidence/fn23/oak-hero.png` with
+`.flow/evidence/fn22/oak-hero.png`: Oregon white oak, seed 7, whole view, hero
+pose, 1600 by 1000, the same machine, one drawn with every leaf at the finest
+level and one with each leaf at the coarsest level its projected error allowed.
+`.flow/evidence/fn23/REPORT.md` carries the measured pixel difference between
+them as an aid. The spec closes only on an accepting verdict.
+
+### Oregon white oak, hero pose
+
+> _verdict (owner, pending):_
+
 ## References
 
 - fn-22 evidence report and timing records under `.flow/evidence/fn22/`, the numeric baseline and the report shape this spec's evidence follows.
