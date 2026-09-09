@@ -2,14 +2,14 @@
 //! a tree the device cannot hold is refused by name rather than truncated, and
 //! each view draws what its name promises.
 use telperion_core::{
-    foliage::{Element, Instances},
+    foliage::{build_element, Element, ElementParams, Instances, Level as Section},
     math::Vec3,
     mesh::{self, Detail, Foliage, TreeMesh},
     params,
     surface::{Bounds, SurfaceMesh},
 };
 use telperion_render::{
-    fits, hero_pose, render, Region, Renderer, View, GROUND_REACH, STILL_FORMAT,
+    fits, hero_pose, render, Level, Region, Renderer, View, GROUND_REACH, MAX_LEVELS, STILL_FORMAT,
 };
 
 mod common;
@@ -39,9 +39,36 @@ fn small() -> TreeMesh {
     }
 }
 
+/// A mesh with no wood at all and an element carrying this many levels over
+/// this many indices: what the selection buffers are sized from, and nothing
+/// else in the way of judging them.
+fn crown(levels: usize, indices: usize, instances: usize) -> TreeMesh {
+    let mut mesh = small();
+    mesh.wood = SurfaceMesh {
+        positions: Vec::new(),
+        normals: Vec::new(),
+        indices: Vec::new(),
+        bounds: None,
+        runs: 0,
+    };
+    mesh.foliage.element = Element {
+        level_indices: vec![0; indices],
+        levels: (0..levels)
+            .map(|n| Section {
+                indices: 0..3,
+                deviation: 1.0 / (n + 1) as f64,
+            })
+            .collect(),
+        ..Element::default()
+    };
+    mesh.foliage.instances.matrices = vec![[0.0; 16]; instances];
+    mesh
+}
+
 fn limit(bytes: u64) -> wgpu::Limits {
     wgpu::Limits {
         max_buffer_size: bytes,
+        max_storage_buffer_binding_size: bytes,
         ..Default::default()
     }
 }
@@ -113,12 +140,81 @@ fn every_buffer_that_will_not_fit_is_refused_by_name_and_by_size() {
 }
 
 #[test]
+fn every_buffer_selection_needs_is_judged_and_named_before_the_upload() {
+    // Each case is the smallest limit that leaves the buffer under test the
+    // first one that will not fit, so the name in the message is that
+    // buffer's and no earlier one's.
+    let cases: [(&str, u64, TreeMesh); 4] = [
+        ("foliage level indices", 4_096, crown(3, 2_000, 1)),
+        // A list is aligned up to a bindable offset, so a crown of one leaf
+        // still costs one alignment per level.
+        ("foliage level lists", 800, crown(3, 10, 1)),
+        ("foliage level counters", 50, crown(MAX_LEVELS, 4, 0)),
+        ("foliage indirect arguments", 100, crown(MAX_LEVELS, 4, 0)),
+    ];
+    for (buffer, granted, mesh) in cases {
+        let message = fits(&limit(granted), &mesh)
+            .expect_err("a selection buffer over the limit went through")
+            .to_string();
+        assert!(
+            message.contains(buffer),
+            "{buffer} is not the buffer named: {message}"
+        );
+    }
+    // The same crowns fit a device that grants enough for them.
+    for mesh in [crown(3, 2_000, 1), crown(MAX_LEVELS, 4, 0)] {
+        fits(&limit(1 << 20), &mesh).expect("a kilobyte-sized crown does not fit a megabyte");
+    }
+}
+
+#[test]
+fn a_ladder_longer_than_selection_can_tally_is_refused_by_its_length() {
+    let mesh = crown(MAX_LEVELS + 1, 10, 1);
+    let message = fits(&limit(1 << 20), &mesh)
+        .expect_err("a ladder past the tally went through")
+        .to_string();
+    assert!(
+        message.contains(&(MAX_LEVELS + 1).to_string())
+            && message.contains(&MAX_LEVELS.to_string()),
+        "the refusal names neither the ladder nor the limit: {message}"
+    );
+    fits(&limit(1 << 20), &crown(MAX_LEVELS, 10, 1)).expect("a ladder the tally holds was refused");
+}
+
+#[test]
+fn a_crown_with_no_leaves_submits_draws_and_frames() {
+    let Some(gpu) = gpu() else { return };
+    let mut mesh = crown(0, 0, 0);
+    mesh.foliage.element = build_element(ElementParams::default()).expect("the core built a leaf");
+    mesh.wood = small().wood;
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let submitted = renderer
+        .submit(&mesh)
+        .expect("an empty crown fits any device");
+    assert_eq!(submitted.foliage_instances, 0);
+
+    let camera = hero_pose(mesh.bounds, 1.0, GROUND_REACH);
+    let still = render(&mut renderer, &camera, 64, 64).expect("the frame was drawn");
+    assert_eq!(
+        still.stats.instances, 0,
+        "a crown with no leaves drew leaves"
+    );
+    assert!(
+        still.has_subject(),
+        "the room around the empty crown was not drawn either"
+    );
+}
+
+#[test]
 fn a_submitted_tree_is_the_tree_the_core_counted() {
     let Some(gpu) = gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     // The two species the spec judges: one broad crown of half a million
-    // leaves, one conifer of nearly eight million needles.
-    for id in ["oregon-white-oak", "norway-spruce"] {
+    // leaves, one evergreen of nearly eight million needles. The oak's
+    // coarsest level deviates 13 mm from its own outline and the needle's
+    // 0.7 mm, so eight times the pixels outgrows the oak's coarsest level and
+    // still does not reach half a pixel of the needle's.
+    for (id, outgrows) in [("oregon-white-oak", true), ("norway-spruce", false)] {
         let family = params::by_identity(id).expect("a shipped family");
         let tree = mesh::build(&family, Detail::Full).expect("the core built the tree");
         let submitted = renderer.submit(&tree).expect("the tree fits the device");
@@ -144,6 +240,60 @@ fn a_submitted_tree_is_the_tree_the_core_counted() {
             (tree.foliage_instances() * size_of::<[f32; 16]>()) as u64,
             "{id}: the live instance range is not the crown that was built"
         );
+
+        // Every leaf leaves the pass in exactly one place: a level, or the
+        // bucket for the ones the frame does not show.
+        let levels = tree.foliage.element.levels.len();
+        let camera = hero_pose(tree.bounds, 1.0, GROUND_REACH);
+        render(&mut renderer, &camera, 256, 256).expect("the frame was drawn");
+        let counted = renderer.level_counts().expect("the pass counted");
+        assert_eq!(
+            counted.len(),
+            levels + 1,
+            "{id}: a counter per level and one"
+        );
+        assert_eq!(
+            counted.iter().sum::<u32>(),
+            tree.foliage_instances() as u32,
+            "{id}: the levels and the unseen bucket do not account for the crown: {counted:?}"
+        );
+        // The whole tree in 256 pixels puts every leaf's deviation far under
+        // half a pixel, so the coarsest level is the one that can carry it.
+        assert_eq!(
+            counted[0] + counted[levels],
+            tree.foliage_instances() as u32,
+            "{id}: a leaf under half a pixel was drawn finer than the coarsest: {counted:?}"
+        );
+
+        // The same tree in eight times the pixels does not fit in the coarsest
+        // level any more: the decision is the projected deviation, not a
+        // constant.
+        render(&mut renderer, &camera, 2_048, 2_048).expect("the larger frame was drawn");
+        let near = renderer.level_counts().expect("the pass counted");
+        assert!(
+            near[0] <= counted[0],
+            "{id}: more pixels chose a coarser level: {near:?}"
+        );
+        assert_eq!(
+            near[0] < counted[0],
+            outgrows,
+            "{id}: eight times the pixels was expected to outgrow the coarsest level: \
+             {outgrows}, and the counts went {counted:?} to {near:?}"
+        );
+
+        // Forcing a level puts every leaf the frame shows in it and nowhere
+        // else, which is how a measurement asks what one level costs.
+        let forced = levels - 1;
+        renderer
+            .submit_at(&tree, Level::Forced(forced as u32))
+            .expect("the tree fits the device");
+        render(&mut renderer, &camera, 256, 256).expect("the forced frame was drawn");
+        let held = renderer.level_counts().expect("the pass counted");
+        assert_eq!(
+            held[forced] + held[levels],
+            tree.foliage_instances() as u32,
+            "{id}: forcing level {forced} left leaves elsewhere: {held:?}"
+        );
     }
 }
 
@@ -159,6 +309,7 @@ fn each_view_draws_what_its_name_promises() {
         "the tree has no crown to hide"
     );
 
+    let mut selected = None;
     for (view, instances) in [
         (View::Whole, submitted.foliage_instances as u32),
         (View::Bare, 0),
@@ -176,7 +327,36 @@ fn each_view_draws_what_its_name_promises() {
             still.stats.instances, instances,
             "{view:?} drew the wrong crown"
         );
+        // Only the whole view selects. The counters the whole view left behind
+        // are still there after the other two, because neither ran the pass
+        // that clears and fills them.
+        let counted = renderer.level_counts().expect("the crown has counters");
+        match view {
+            View::Whole => selected = Some(counted),
+            _ => assert_eq!(
+                selected.as_ref(),
+                Some(&counted),
+                "{view:?} ran the selection pass"
+            ),
+        }
     }
+    // The leaf view is one instance of the element whole, in one draw, with
+    // no room and no wood around it.
+    renderer.set_view(View::Leaf);
+    let bounds = renderer.bounds().expect("the leaf frames itself");
+    let leaf = render(
+        &mut renderer,
+        &hero_pose(bounds, 1.0, GROUND_REACH),
+        256,
+        256,
+    )
+    .expect("the frame was drawn");
+    assert_eq!(leaf.stats.draw_calls, 1, "the leaf view is one draw");
+    assert_eq!(
+        leaf.stats.triangles,
+        (tree.foliage.element.indices.len() / 3) as u32,
+        "the leaf view drew something other than the element whole"
+    );
 
     // The leaf is framed on the element itself, which is centimetres across,
     // not on the tree it was taken from.

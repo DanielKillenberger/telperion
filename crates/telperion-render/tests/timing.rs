@@ -129,7 +129,7 @@ fn a_session_on_a_device_never_reports_a_percentile_it_did_not_earn() {
     let report = measure(
         &mut renderer,
         &camera,
-        aspect,
+        size,
         &colour.create_view(&Default::default()),
         &depth.create_view(&Default::default()),
     )

@@ -8,6 +8,7 @@ mod foliage;
 #[cfg(not(target_arch = "wasm32"))]
 mod headless;
 mod scene;
+mod select;
 mod submit;
 mod timing;
 mod view;
@@ -18,8 +19,8 @@ mod wood;
 pub use buffer::Region;
 pub use camera::{hero_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
 pub use device::{Gpu, RenderError, Result};
-pub use foliage::Level;
 pub use scene::{DEPTH_FORMAT, GROUND_REACH};
+pub use select::{Level, MAX_LEVELS};
 pub use submit::{fits, Submitted};
 pub use timing::{
     judge, Hardware, Report, Session, Verdict, CONDITIONING, CONTENTION_RATIO, MEASURED, WARMUP,
@@ -149,25 +150,38 @@ impl Renderer {
         self.foliage.region()
     }
 
-    /// Draws one frame into the given colour and depth views: the room first,
-    /// then the vegetation in a pass of its own. The timestamp pair, when one
-    /// is given, goes around that second pass, so what is measured is the tree
-    /// and not the floor it stands on.
+    /// What the last frame's selection counted: one entry per level, coarsest
+    /// first, and last the leaves no level drew because the frame did not
+    /// show them. Reading it stalls on the device, so it belongs to a check or
+    /// a record and never to a frame.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn level_counts(&self) -> Option<Vec<u32>> {
+        self.foliage.counted(&self.gpu)
+    }
+
+    /// Draws one frame into the given colour and depth views, at the size in
+    /// pixels those views were taken at: the crown's levels are chosen first,
+    /// then the room, then the vegetation in a pass of its own. The timestamp
+    /// pair, when one is given, goes around that vegetation pass, so what is
+    /// measured is the tree and not the floor it stands on.
     pub fn draw(
         &mut self,
         camera: &Camera,
-        aspect: f64,
+        viewport: (u32, u32),
         colour: &wgpu::TextureView,
         depth: &wgpu::TextureView,
         timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
     ) -> FrameStats {
-        self.scene.set_camera(&self.gpu, camera, aspect);
+        self.scene
+            .set_camera(&self.gpu, camera, aspect_of(viewport));
         let mut encoder = self
             .gpu
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("frame"),
             });
+        self.foliage
+            .dispatch(&self.gpu, &mut encoder, camera, viewport, self.view);
         let room = {
             let mut pass = pass(
                 &mut encoder,
@@ -196,6 +210,12 @@ impl Renderer {
         self.gpu.queue.submit([encoder.finish()]);
         room + vegetation
     }
+}
+
+/// The frame's aspect, from the pixels it is drawn into. A viewport with no
+/// height is a frame nobody sees; it still has to divide.
+fn aspect_of((width, height): (u32, u32)) -> f64 {
+    f64::from(width.max(1)) / f64::from(height.max(1))
 }
 
 /// One pass of a frame. The first pass of a frame clears the targets and every
@@ -237,7 +257,7 @@ fn pass<'encoder>(
 /// tested, and no culling because a swept surface may plait either way round.
 fn pipeline(
     gpu: &Gpu,
-    bind_group_layout: &wgpu::BindGroupLayout,
+    bind_group_layouts: &[Option<&wgpu::BindGroupLayout>],
     shader: &wgpu::ShaderModule,
     colour_format: wgpu::TextureFormat,
     buffers: &[Option<wgpu::VertexBufferLayout<'_>>],
@@ -247,7 +267,7 @@ fn pipeline(
         .device
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some(label),
-            bind_group_layouts: &[Some(bind_group_layout)],
+            bind_group_layouts,
             immediate_size: 0,
         });
     gpu.device

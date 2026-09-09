@@ -13,7 +13,7 @@ use telperion_render::{
 };
 
 const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] \
-                     [--view whole|bare|leaf] [--level quad] [--timing <json>]";
+                     [--view whole|bare|leaf] [--level <n>] [--timing <json>]";
 
 struct Arguments {
     preset: String,
@@ -21,13 +21,15 @@ struct Arguments {
     out: PathBuf,
     size: (u32, u32),
     view: View,
-    level: Level,
+    /// The level every leaf the frame shows is held at, judged against the
+    /// element once there is an element to judge it against.
+    level: Option<u32>,
     timing: Option<PathBuf>,
 }
 
 fn parse() -> Result<Arguments, String> {
     let (mut preset, mut seed, mut out, mut size) = (None, None, None, (1024u32, 1024u32));
-    let (mut view, mut level, mut timing) = (View::default(), Level::default(), None);
+    let (mut view, mut level, mut timing) = (View::default(), None, None);
     let mut args = std::env::args().skip(1);
     while let Some(flag) = args.next() {
         let mut value = || args.next().ok_or(format!("{flag} needs a value\n{USAGE}"));
@@ -54,12 +56,10 @@ fn parse() -> Result<Arguments, String> {
             }
             "--level" => {
                 let raw = value()?;
-                level = Level::from_id(&raw).ok_or_else(|| {
-                    format!(
-                        "unknown level \"{raw}\"; one of {}",
-                        Level::NAMES.join(", ")
-                    )
-                })?;
+                level = Some(
+                    raw.parse::<u32>()
+                        .map_err(|_| format!("--level wants a level number, not \"{raw}\""))?,
+                );
             }
             other => return Err(format!("unknown argument \"{other}\"\n{USAGE}")),
         }
@@ -96,11 +96,12 @@ fn run() -> Result<(), String> {
     family.skeleton.seed = arguments.seed;
 
     let tree = mesh::build(&family, Detail::Full).map_err(|error| error.to_string())?;
+    let level = level_of(arguments.level, tree.foliage.element.levels.len())?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|error| error.to_string())?;
     let adapter = gpu.adapter.name.clone();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let submitted = renderer
-        .submit_at(&tree, arguments.level)
+        .submit_at(&tree, level)
         .map_err(|error| error.to_string())?;
     renderer.set_view(arguments.view);
 
@@ -141,6 +142,22 @@ fn run() -> Result<(), String> {
     Ok(())
 }
 
+/// The level the crown is held at, or the choice made per frame. A number the
+/// element has no level for is refused by name, with the range it has.
+fn level_of(asked: Option<u32>, levels: usize) -> Result<Level, String> {
+    match asked {
+        None => Ok(Level::Chosen),
+        Some(level) if (level as usize) < levels => Ok(Level::Forced(level)),
+        Some(level) if levels == 0 => Err(format!(
+            "--level {level}: this tree's element carries no levels"
+        )),
+        Some(level) => Err(format!(
+            "--level {level} is out of range: 0 (coarsest) to {} (finest)",
+            levels - 1
+        )),
+    }
+}
+
 /// Measures the vegetation pass of the tree already on stage, into targets of
 /// the still's own size so the number belongs to the picture beside it.
 fn time(
@@ -148,13 +165,12 @@ fn time(
     camera: &telperion_render::Camera,
     size: (u32, u32),
 ) -> Result<telperion_render::Report, String> {
-    let (width, height) = size;
     let colour = attachment(renderer.gpu(), "timing", STILL_FORMAT, size);
     let depth = attachment(renderer.gpu(), "timing depth", DEPTH_FORMAT, size);
     measure(
         renderer,
         camera,
-        f64::from(width) / f64::from(height),
+        size,
         &colour.create_view(&Default::default()),
         &depth.create_view(&Default::default()),
     )

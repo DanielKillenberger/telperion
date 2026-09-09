@@ -1,29 +1,28 @@
-//! The crown: one leaf element drawn once per instance matrix. The matrices go
-//! up as the core wrote them; only the element's f64 positions are narrowed,
-//! once per tree, because a vertex buffer holds f32.
+//! The crown: one leaf element, drawn once per instance at the level selection
+//! chose for it. The placements go up as the core wrote them, as a storage
+//! buffer the vertex shader reads through the level's own index list; only the
+//! element's f64 positions are narrowed, once per tree, because a vertex
+//! buffer holds f32.
 use telperion_core::{foliage::Element, math::Vec3, mesh, surface::Bounds};
 
 use crate::{
     buffer::{self, Held, Region},
     device::Gpu,
+    select::{Level, Select},
     view::View,
-    FrameStats,
+    Camera, FrameStats,
 };
 
-/// Positions and normals step per vertex; the placement steps per instance, one
-/// mat4 as the four columns the core already packed.
+/// Positions and normals step per vertex. Nothing steps per instance any more:
+/// the placement is looked up, not fed in.
 const POSITION: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x3];
 const NORMAL: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![1 => Float32x3];
-const PLACEMENT: [wgpu::VertexAttribute; 4] =
-    wgpu::vertex_attr_array![2 => Float32x4, 3 => Float32x4, 4 => Float32x4, 5 => Float32x4];
-/// Column-major, the same layout the core's instance matrices use.
-const IDENTITY: [f32; 16] = [
-    1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-];
 
 /// The element's own vertex normals, area-weighted over the triangles that
 /// share each vertex. The core ships positions and indices only, and a leaf
-/// with no normal has no cup and no curl to see.
+/// with no normal has no cup and no curl to see. The whole element is summed,
+/// whichever level ends up drawn: a coarse level's vertices are the fine
+/// one's, so the leaf keeps the shading it had.
 fn normals(element: &Element) -> Vec<f32> {
     let mut summed = vec![Vec3::ZERO; element.positions.len()];
     for triangle in element.indices.as_chunks::<3>().0 {
@@ -56,48 +55,6 @@ fn positions(element: &Element) -> Vec<f32> {
         .collect()
 }
 
-/// How much of the element each instance draws. `Full` is the element as the
-/// core built it, every section and every triangle. `Quad` is the probe's
-/// stand-in: the blade's extent as two triangles, which asks whether the frame
-/// is spent on primitives or on pixels, and answers it without any of the level
-/// machinery it would take to find out properly.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Level {
-    #[default]
-    Full,
-    Quad,
-}
-
-impl Level {
-    /// The names a caller may pass. The full element is the absence of a
-    /// choice, so it has no name here.
-    pub const NAMES: [&'static str; 1] = ["quad"];
-
-    /// The level of that name, or nothing. An unknown name is the caller's to
-    /// report; the renderer never guesses one.
-    pub fn from_id(id: &str) -> Option<Self> {
-        match id {
-            "quad" => Some(Self::Quad),
-            _ => None,
-        }
-    }
-}
-
-/// The stand-in: the element's axis-aligned extent in the blade plane as four
-/// vertices and two triangles, one normal along the face the blade points at.
-/// It covers what the blade covers from the front, so the pixels stay and only
-/// the primitives go.
-fn quad(bounds: Bounds) -> (Vec<f32>, Vec<f32>, Vec<u32>) {
-    let (min, max) = (bounds.min, bounds.max);
-    let (left, right) = (min.x as f32, max.x as f32);
-    let (bottom, top) = (min.y as f32, max.y as f32);
-    let positions = vec![
-        left, bottom, 0.0, right, bottom, 0.0, right, top, 0.0, left, top, 0.0,
-    ];
-    let normals = [0.0, 0.0, 1.0].repeat(4);
-    (positions, normals, vec![0, 1, 2, 0, 2, 3])
-}
-
 /// The element as it stands at the origin, which is what the leaf view frames.
 fn element_bounds(element: &Element) -> Option<Bounds> {
     element
@@ -112,17 +69,15 @@ fn element_bounds(element: &Element) -> Option<Bounds> {
         })
 }
 
-/// The foliage pipeline and the buffers one tree's crown lives in.
+/// The foliage pipeline, the buffers one tree's crown lives in, and the pass
+/// that decides which level each of its leaves is drawn at.
 pub struct Foliage {
     pipeline: wgpu::RenderPipeline,
-    /// The leaf view's placement: one matrix, never rewritten.
-    identity: wgpu::Buffer,
+    select: Select,
     positions: Option<Held>,
     normals: Option<Held>,
+    /// Every level's triangles in one index buffer, as the core packed them.
     indices: Option<Held>,
-    instances: Option<Held>,
-    index_count: u32,
-    instance_count: u32,
     bounds: Option<Bounds>,
 }
 
@@ -142,121 +97,119 @@ impl Foliage {
                 attributes,
             })
         };
-        let identity = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("foliage identity placement"),
-            size: size_of::<[f32; 16]>() as u64,
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        gpu.queue
-            .write_buffer(&identity, 0, bytemuck::cast_slice(&IDENTITY));
+        let select = Select::new(gpu);
         Self {
             pipeline: crate::pipeline(
                 gpu,
-                layout,
+                &[Some(layout), Some(select.draw_layout())],
                 &shader,
                 colour_format,
-                &[
-                    vertex(&POSITION),
-                    vertex(&NORMAL),
-                    Some(wgpu::VertexBufferLayout {
-                        array_stride: size_of::<[f32; 16]>() as u64,
-                        step_mode: wgpu::VertexStepMode::Instance,
-                        attributes: &PLACEMENT,
-                    }),
-                ],
+                &[vertex(&POSITION), vertex(&NORMAL)],
                 "foliage",
             ),
-            identity,
+            select,
             positions: None,
             normals: None,
             indices: None,
-            instances: None,
-            index_count: 0,
-            instance_count: 0,
             bounds: None,
         }
     }
 
-    /// Uploads the element once, at the level asked for, and the placements as
-    /// the core packed them. The level changes what one instance draws and
-    /// nothing about how many there are.
+    /// Uploads the element once with every level's triangles, and the
+    /// placements selection reads. The level asked for changes what each
+    /// instance draws and nothing about how many there are.
     pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
         let element = &foliage.element;
-        self.instance_count = foliage.instances.matrices.len() as u32;
         self.bounds = element_bounds(element);
-        // An element with no triangles draws nothing at any level, so the
-        // stand-in is built only where there was something to stand in for.
-        let geometry = match (level, self.bounds) {
-            _ if element.indices.is_empty() => None,
-            (Level::Full, _) => Some((
-                positions(element),
-                normals(element),
-                element.indices.clone(),
-            )),
-            (Level::Quad, Some(bounds)) => Some(quad(bounds)),
-            (Level::Quad, None) => None,
-        };
-        let Some((positions, normals, indices)) = geometry else {
-            self.index_count = 0;
+        self.select.submit(gpu, foliage, level);
+        if element.level_indices.is_empty() {
             return;
-        };
-        self.index_count = indices.len() as u32;
+        }
         buffer::write(
             gpu,
             &mut self.positions,
             "foliage positions",
             wgpu::BufferUsages::VERTEX,
-            bytemuck::cast_slice(&positions),
+            bytemuck::cast_slice(&positions(element)),
         );
         buffer::write(
             gpu,
             &mut self.normals,
             "foliage normals",
             wgpu::BufferUsages::VERTEX,
-            bytemuck::cast_slice(&normals),
+            bytemuck::cast_slice(&normals(element)),
         );
         buffer::write(
             gpu,
             &mut self.indices,
-            "foliage indices",
+            "foliage level indices",
             wgpu::BufferUsages::INDEX,
-            bytemuck::cast_slice(&indices),
-        );
-        buffer::write(
-            gpu,
-            &mut self.instances,
-            "foliage instances",
-            wgpu::BufferUsages::VERTEX,
-            bytemuck::cast_slice(&foliage.instances.matrices),
+            bytemuck::cast_slice(&element.level_indices),
         );
     }
 
-    /// Draws the crown this view asks for: every placement, one at the origin,
-    /// or none at all.
+    /// Chooses a level for every leaf of the crown, before the frame draws
+    /// any of it. Only the whole view selects: the bare view has no crown to
+    /// select from, and the leaf view is one instance at one known level.
+    pub fn dispatch(
+        &self,
+        gpu: &Gpu,
+        encoder: &mut wgpu::CommandEncoder,
+        camera: &Camera,
+        viewport: (u32, u32),
+        view: View,
+    ) {
+        if view == View::Whole {
+            self.select.dispatch(gpu, encoder, camera, viewport);
+        }
+    }
+
+    /// Draws the crown this view asks for: every placement at the level
+    /// selection gave it, one leaf at the origin whole, or none at all.
+    ///
+    /// No count comes back from the device, so the statistics are what was
+    /// issued: one indirect draw per level, and the triangles they can reach
+    /// between them, which is the whole crown at its finest.
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>, view: View) -> FrameStats {
+        if view == View::Bare {
+            return FrameStats::default();
+        }
         let (Some(positions), Some(normals), Some(indices)) =
             (&self.positions, &self.normals, &self.indices)
         else {
             return FrameStats::default();
         };
-        let (placements, instances) = match view {
-            View::Bare => return FrameStats::default(),
-            View::Leaf => (self.identity.slice(..), 1),
-            View::Whole => match &self.instances {
-                Some(held) if self.instance_count > 0 => (held.live(), self.instance_count),
-                _ => return FrameStats::default(),
-            },
+        let Some(finest) = self.select.levels().last().cloned() else {
+            return FrameStats::default();
         };
         pass.set_pipeline(&self.pipeline);
         pass.set_vertex_buffer(0, positions.live());
         pass.set_vertex_buffer(1, normals.live());
-        pass.set_vertex_buffer(2, placements);
         pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.index_count, 0, 0..instances);
+        if view == View::Leaf {
+            self.select.bind_leaf(pass);
+            pass.draw_indexed(finest.clone(), 0, 0..1);
+            return FrameStats {
+                draw_calls: 1,
+                triangles: finest.len() as u32 / 3,
+                instances: 1,
+            };
+        }
+        let mut draws = 0;
+        for level in 0..self.select.levels().len() {
+            let Some((arguments, offset)) = self.select.arguments(level) else {
+                break;
+            };
+            if !self.select.bind_level(pass, level) {
+                break;
+            }
+            pass.draw_indexed_indirect(arguments, offset);
+            draws += 1;
+        }
+        let instances = self.select.instances();
         FrameStats {
-            draw_calls: 1,
-            triangles: (self.index_count / 3).saturating_mul(instances),
+            draw_calls: draws,
+            triangles: (finest.len() as u32 / 3).saturating_mul(instances),
             instances,
         }
     }
@@ -266,9 +219,16 @@ impl Foliage {
         self.bounds
     }
 
-    /// The live instance range, for a caller that wants to see what went up.
+    /// The live placement range, for a caller that wants to see what went up.
     pub fn region(&self) -> Option<Region> {
-        Some(self.instances.as_ref()?.region())
+        self.select.region()
+    }
+
+    /// What the last frame's selection counted per level, the unseen bucket
+    /// last. A stall on the device: a check and a record, not a frame's work.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn counted(&self, gpu: &Gpu) -> Option<Vec<u32>> {
+        self.select.counted(gpu)
     }
 }
 
@@ -290,7 +250,7 @@ mod tests {
                 "{normal:?} is not a unit normal"
             );
         }
-        // A blade faces +Z, so every normal leans that way rather than along
+        // A leaf faces +Z, so every normal leans that way rather than along
         // the leaf's own axis; a normal that did not would flat-shade the cup.
         let facing = normals
             .as_chunks::<3>()
@@ -298,7 +258,7 @@ mod tests {
             .iter()
             .filter(|n| n[2] > 0.5)
             .count();
-        assert!(facing > 0, "no normal faces the blade's own front");
+        assert!(facing > 0, "no normal faces the leaf's own front");
     }
 
     #[test]
@@ -308,56 +268,5 @@ mod tests {
         assert!(bounds.max.y > bounds.min.y, "the leaf has no length");
         assert!(bounds.max.x > bounds.min.x, "the leaf has no width");
         assert!(element_bounds(&Element::default()).is_none());
-    }
-
-    #[test]
-    fn every_level_name_the_usage_line_offers_resolves_and_nothing_else_does() {
-        for name in Level::NAMES {
-            assert!(
-                Level::from_id(name).is_some(),
-                "{name} is offered but unknown"
-            );
-        }
-        // The unnamed one: no flag at all is the element whole.
-        assert_eq!(Level::default(), Level::Full);
-        for unknown in ["", "Quad", "full", "1", "coarse"] {
-            assert_eq!(Level::from_id(unknown), None, "{unknown:?} was guessed at");
-        }
-    }
-
-    #[test]
-    fn the_stand_in_spans_the_blade_in_two_triangles() {
-        let element = build_element(ElementParams::default()).expect("the core built a leaf");
-        let bounds = element_bounds(&element).expect("a leaf has vertices");
-        let (positions, normals, indices) = quad(bounds);
-
-        assert_eq!(indices.len(), 6, "the stand-in is not two triangles");
-        assert_eq!(positions.len(), 4 * 3, "the stand-in is not four vertices");
-        assert_eq!(normals.len(), positions.len());
-        assert!(
-            indices.iter().all(|i| (*i as usize) < 4),
-            "the stand-in indexes a vertex it does not have"
-        );
-        // It stands in for the blade, so it covers exactly the blade's extent
-        // in the plane the blade faces out of, and no more.
-        let corners = positions.as_chunks::<3>().0;
-        let extent = |axis: usize, pick: fn(f32, f32) -> f32| {
-            corners.iter().map(|c| c[axis]).fold(f32::NAN, pick)
-        };
-        assert_eq!(extent(0, f32::min), bounds.min.x as f32);
-        assert_eq!(extent(0, f32::max), bounds.max.x as f32);
-        assert_eq!(extent(1, f32::min), bounds.min.y as f32);
-        assert_eq!(extent(1, f32::max), bounds.max.y as f32);
-        assert!(
-            corners.iter().all(|c| c[2] == 0.0),
-            "the quad is not planar"
-        );
-        for normal in normals.as_chunks::<3>().0 {
-            assert_eq!(
-                normal,
-                &[0.0, 0.0, 1.0],
-                "a stand-in normal is off the face"
-            );
-        }
     }
 }

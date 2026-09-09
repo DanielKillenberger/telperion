@@ -346,11 +346,11 @@ impl Session {
         &self,
         renderer: &mut Renderer,
         camera: &Camera,
-        aspect: f64,
+        viewport: (u32, u32),
         colour: &wgpu::TextureView,
         depth: &wgpu::TextureView,
     ) -> Result<f64> {
-        renderer.draw(camera, aspect, colour, depth, Some(self.writes()));
+        renderer.draw(camera, viewport, colour, depth, Some(self.writes()));
         self.resolve(renderer.gpu());
         Ok(self.duration_ms(self.read(renderer.gpu())?))
     }
@@ -390,7 +390,7 @@ impl Session {
 pub fn run(
     renderer: &mut Renderer,
     camera: &Camera,
-    aspect: f64,
+    viewport: (u32, u32),
     colour: &wgpu::TextureView,
     depth: &wgpu::TextureView,
 ) -> Result<Report> {
@@ -400,14 +400,14 @@ pub fn run(
         Err(reason) => return Ok(Report::unavailable(hardware, reason)),
     };
     for _ in 0..CONDITIONING {
-        renderer.draw(camera, aspect, colour, depth, None);
+        renderer.draw(camera, viewport, colour, depth, None);
     }
     for _ in 0..WARMUP {
-        session.sample(renderer, camera, aspect, colour, depth)?;
+        session.sample(renderer, camera, viewport, colour, depth)?;
     }
     let mut samples = Vec::with_capacity(MEASURED);
     for _ in 0..MEASURED {
-        samples.push(session.sample(renderer, camera, aspect, colour, depth)?);
+        samples.push(session.sample(renderer, camera, viewport, colour, depth)?);
     }
     Ok(Report::measured(hardware, &samples))
 }

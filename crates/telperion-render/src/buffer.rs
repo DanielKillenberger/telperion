@@ -70,6 +70,16 @@ impl Held {
         }
     }
 
+    fn new_reserved(gpu: &Gpu, label: &'static str, usage: wgpu::BufferUsages, bytes: u64) -> Self {
+        let region = Region::new(bytes);
+        Self {
+            buffer: allocate(gpu, label, usage, region.capacity(), &[]),
+            region,
+            usage,
+            label,
+        }
+    }
+
     /// Writes the new contents, reusing the allocation whenever they fit.
     fn write(&mut self, gpu: &Gpu, bytes: &[u8]) {
         if self.region.fit(bytes.len() as u64) {
@@ -77,6 +87,21 @@ impl Held {
         } else {
             self.buffer = allocate(gpu, self.label, self.usage, self.region.capacity(), bytes);
         }
+    }
+
+    /// Takes the same live range with nothing in it, for a buffer the GPU
+    /// fills and the host only reads. What was there before is left there:
+    /// a caller that reserves is a caller that writes before it reads.
+    fn reserve(&mut self, gpu: &Gpu, bytes: u64) {
+        if !self.region.fit(bytes) {
+            self.buffer = allocate(gpu, self.label, self.usage, self.region.capacity(), &[]);
+        }
+    }
+
+    /// The whole allocation, headroom and all: what a binding, a clear or an
+    /// indirect draw addresses by offset rather than by slice.
+    pub fn buffer(&self) -> &wgpu::Buffer {
+        &self.buffer
     }
 
     /// Just the live range, never the headroom above it.
@@ -102,7 +127,9 @@ fn allocate(
         usage: usage | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
-    gpu.queue.write_buffer(&buffer, 0, bytes);
+    if !bytes.is_empty() {
+        gpu.queue.write_buffer(&buffer, 0, bytes);
+    }
     buffer
 }
 
@@ -118,6 +145,62 @@ pub fn write(
         Some(held) => held.write(gpu, bytes),
         None => *slot = Some(Held::new(gpu, label, usage, bytes)),
     }
+}
+
+/// Takes a slot of this size with nothing in it, for a buffer the GPU is the
+/// one that fills. Zero bytes is no buffer at all: a device refuses an empty
+/// allocation, and a caller with nothing to hold has nothing to bind either.
+pub fn reserve(
+    gpu: &Gpu,
+    slot: &mut Option<Held>,
+    label: &'static str,
+    usage: wgpu::BufferUsages,
+    bytes: u64,
+) {
+    if bytes == 0 {
+        *slot = None;
+        return;
+    }
+    match slot {
+        Some(held) => held.reserve(gpu, bytes),
+        None => *slot = Some(Held::new_reserved(gpu, label, usage, bytes)),
+    }
+}
+
+/// Brings a buffer's live range back to the host, copy and all. The device is
+/// waited on, so this belongs to a check or a record and never to a frame; a
+/// device that will not give the bytes up reports nothing rather than half of
+/// them. The buffer must have been taken with `COPY_SRC`.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn read(gpu: &Gpu, held: &Held) -> Option<Vec<u8>> {
+    let size = held.region().used();
+    let readback = gpu.device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("readback"),
+        size,
+        usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+        mapped_at_creation: false,
+    });
+    let mut encoder = gpu
+        .device
+        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("readback"),
+        });
+    encoder.copy_buffer_to_buffer(held.buffer(), 0, &readback, 0, size);
+    gpu.queue.submit([encoder.finish()]);
+
+    let (sender, receiver) = std::sync::mpsc::channel();
+    readback
+        .slice(..)
+        .map_async(wgpu::MapMode::Read, move |result| {
+            let _ = sender.send(result);
+        });
+    gpu.device.poll(wgpu::PollType::wait_indefinitely()).ok()?;
+    receiver.recv().ok()?.ok()?;
+    let view = readback.slice(..).get_mapped_range().ok()?;
+    let bytes = view.to_vec();
+    drop(view);
+    readback.unmap();
+    Some(bytes)
 }
 
 #[cfg(test)]

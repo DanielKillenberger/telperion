@@ -82,7 +82,7 @@ impl Live {
         let colour = frame.texture.create_view(&Default::default());
         self.stats = self.renderer.draw(
             &self.camera,
-            aspect(&self.config),
+            (self.config.width, self.config.height),
             &colour,
             &self.depth,
             timestamps,

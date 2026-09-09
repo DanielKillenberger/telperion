@@ -203,3 +203,44 @@ fn the_renderer_library_never_names_a_family() {
         "only {read} source files were read: check the path"
     );
 }
+
+#[test]
+fn the_selection_path_names_no_family_and_no_anatomy() {
+    // Selection reads sections, deviations and a matrix. A species id or an
+    // anatomy's own word appearing here would mean a branch that the level
+    // rule exists precisely to avoid.
+    let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let files = [
+        source.join("select.rs"),
+        source.join("foliage.rs"),
+        source.join("shaders/select.wgsl"),
+        source.join("shaders/foliage.wgsl"),
+    ];
+    let anatomies = ["blade", "needle", "lobe", "petiole", "conifer", "broadleaf"];
+    for path in files {
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|_| panic!("{} is missing", path.display()))
+            .to_lowercase();
+        for &(_, id, name, _) in params::CATALOGUE {
+            for word in [id, name] {
+                // One family shares its name with the crate, and every file
+                // here imports the crate; that one name proves nothing.
+                if word.to_lowercase().contains("telperion") {
+                    continue;
+                }
+                assert!(
+                    !text.contains(&word.to_lowercase()),
+                    "{} names the family \"{word}\"",
+                    path.display()
+                );
+            }
+        }
+        for anatomy in anatomies {
+            assert!(
+                !text.contains(anatomy),
+                "{} names the anatomy \"{anatomy}\"",
+                path.display()
+            );
+        }
+    }
+}

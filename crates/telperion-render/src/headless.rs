@@ -70,7 +70,7 @@ pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32)
     let depth = attachment(renderer.gpu(), "still depth", DEPTH_FORMAT, (width, height));
     let stats = renderer.draw(
         camera,
-        f64::from(width) / f64::from(height),
+        (width, height),
         &colour.create_view(&Default::default()),
         &depth.create_view(&Default::default()),
         None,
