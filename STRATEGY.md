@@ -1,6 +1,6 @@
 ---
 name: Telperion
-last_updated: 2026-09-05
+last_updated: 2026-09-09
 generator: flow-next-strategy
 ---
 
@@ -12,7 +12,7 @@ Game developers need trees that hold up from a close inspection to a forest, wit
 
 ## Our approach
 
-Build toward realistic simulations of procedurally generated trees, using one persistent botanical structure from trunk to leaf-bearing twig, with growth, surroundings and damage shaping its lifecycle. Parameters define a family, species presets provide named botanical traits, and the seed selects a reproducible specimen; a shared parametric field supplies supernatural character. The project mantra is "Minimalist af, efficient af and beautiful", expressed in lean, elegant code with explicit data flow, small interfaces and abstractions earned by concrete needs, so botanical rules remain easy to change and grow. Generate only the detail and output representation the consuming engine needs, and judge each advance through measured runtime costs and visual evidence.
+Build toward realistic simulations of procedurally generated trees, using one persistent botanical structure from trunk to leaf-bearing twig, with growth, surroundings and damage shaping its lifecycle. Generator parameters define botanical traits, leaf geometry, branching and placement; templates are reusable parameter presets for many tree kinds, the seed selects a reproducible specimen, and a shared parametric field supplies supernatural character. All rendering techniques must generalize across generated trees and leaves through shared geometry and data contracts, so changing supported generator parameters or adding a template requires no renderer code changes. The project mantra is "Minimalist af, efficient af and beautiful": use lean code, explicit data flow and small interfaces, generate only the detail the consuming engine needs, and judge each advance through measured runtime costs and visual evidence.
 
 ## Who it's for
 
@@ -44,12 +44,14 @@ _Why it serves the approach:_ the whole tree responds to the same authored rules
 
 ### The core and integration
 
-One lean Rust generation core serves browser Wasm and native integrations, with small boundaries between tree state, generation rules and output representations. Consumers request structure, meshes, instances or spatial fields as needed; a block world can sample wood and foliage without paying to construct a surface mesh. The migration replaces the young TypeScript core without a backwards-compatibility requirement, while latency, memory and binding costs remain measured obligations.
+One lean Rust generation core serves browser Wasm and native integrations, with small boundaries between tree state, generation rules and output representations. Consumers request structure, meshes, instances or spatial fields as needed; a voxel world such as Minecraft can sample wood and foliage as a spatial field and stream trees in without paying to construct a surface mesh. Portable tree and rendering data stay separate from engine-specific drawing and material implementations, keeping future engines able to preserve the same visual fidelity without requiring an external-engine proof in every rendering pass. The Rust wgpu renderer on master is the first consumer of the core's engine-neutral mesh output and the rig that measures the frame metric, in the browser and in a headless native target.
 
-_Why it serves the approach:_ an engine-independent tree state gives simulation and integration room to grow while keeping each representation optional.
+Integration proofs run in sequence. First, textured trees with wind, collision and chopping or destruction in Unreal Engine; then forests of individually generated specimens within measured generation, memory and frame budgets. A Valheim mod is a later candidate proof point, where each world tree has its own reproducible procedural structure and participates in the existing game's interactions, multiplayer and persistence. That experiment follows the Unreal and forest proofs; its game-specific constraints do not drive the immediate core architecture.
+
+_Why it serves the approach:_ an engine-independent tree state keeps every representation optional, and proving functional trees in an integration we control establishes the foundation for adapting the same botanical state to an existing game's constraints.
 
 ### Surface and rendering at scale
 
-Continuous surfaces, natural forks and tips, foliage and bark make the underlying structure legible from close views to the canopy. Hierarchy and level of detail keep generation, updates and rendering within game budgets as scenes grow from a hero tree to a forest, with native game integration as the practical test.
+Continuous surfaces, natural forks and tips, foliage and bark make the underlying structure legible from close views to the canopy. Simplification, aggregation, filtering, detail selection and streaming operate on generated geometry and measured error, without species-specific paths, needle-specific topology assumptions or hand-modelled foliage clusters. Validate this generality early on materially different tree and leaf shapes before committing to a rendering technique; geometry-dependent choices are allowed, while unsupported inputs remain explicit and fallback geometry must still meet the applicable fidelity and performance requirements. Hierarchy and continuous rendering representations keep generation, updates and rendering within game budgets from a hero tree to a forest, without visible stepping, thinning or shimmer; this fidelity direction applies across consuming engines, with concrete integrations validating it when undertaken.
 
 _Why it serves the approach:_ visual fidelity and measured runtime cost jointly determine whether a generated tree belongs in a real-time world.
