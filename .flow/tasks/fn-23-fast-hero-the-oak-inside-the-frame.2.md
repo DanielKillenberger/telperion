@@ -45,9 +45,60 @@ Give the core's foliage element its nested levels (R3, spec Architecture first b
 - [ ] `mesh::build` signature and `TreeMesh` fields are unchanged; the wasm binding's metadata pin test still passes
 
 ## Done summary
-TBD
+The foliage element now carries nested levels chosen by outline deviation, and
+the tree it belongs to is pinned as unchanged. A level is a subset of the
+element's transverse sections: base, tip and widest are never dropped, the rest
+are added one at a time - always the section furthest from the surface spanned
+between its kept neighbours - until nothing dropped lies outside the tolerance;
+halving the tolerance gives the next level down. Oak gets 13 levels from 4 to
+268 triangles, spruce 4 from 14 to 56, the generic grid 3 from 4 to 16.
 
+Two deviations from the approach as written, both deliberate.
+
+The coarse triangles live in a new `level_indices` buffer rather than being
+appended to `Element::indices`. The renderer sums its foliage normals over the
+whole of `element.indices` and draws all of it (`telperion-render/src/foliage.rs:28`
+and `:195`), and that crate is outside this task's Touches, so extending the
+element's own index list would have silently changed the rendered normals and
+stacked every level into one draw. `level_indices` holds the coarse levels
+followed by a copy of today's list, so the finest level's range is those bytes
+exactly and nothing existing moved. The duplicate costs 3.2 KB on the oak.
+
+A level's triangles are built by moving every vertex to its nearest kept section
+and keeping the element's own triangles that survive, rather than by rebuilding
+strips per anatomy. The lateral topology is then the element's by construction
+instead of by imitation, and there is genuinely one code path for the lobed
+blade, the four-sided needle and the generic grid. The generic grid records its
+sections internally to reach that path; it does not gain a public
+`AnatomyGeometry`, because `anatomy.is_some()` is what the wasm binding and the
+species metrics read as "species anatomy is proven", and flipping it would have
+moved output R3 requires unmoved.
+
+The connector falls out of that same rule with no exemption: its vertices sit
+nearest the base section, so they collapse onto it and every triangle it owns
+dies degenerate. That is what puts the coarsest oak level at 4 triangles rather
+than 20. The consequence worth naming is that the connector is absent from every
+level but the finest, including fine levels whose tolerance is far below its
+12 mm - it returns only at deviation zero. The deviation guarantee the tests
+assert is over section vertices, which the connector is not.
+
+Identity holds. `tests/identity.rs` was written and committed before the element
+was touched, pinning oak and spruce at seed 7: wood vertex and triangle counts,
+instance count, mesh bounds, and FNV hashes of the skeleton, the placement
+matrices and the element itself. All eight literals per species pass unchanged
+after the levels exist, and `mesh.rs` was not edited at all.
+
+For task 3: the oak's 13 levels are more than the spec's arithmetic assumed
+("five lists of 555 thousand indices are 11 MB" becomes about 29 MB and 13
+indirect draws). The fine tail buys little - level 11 is 250 triangles against
+the finest 268 - so a budget that stops emitting once a level is within some
+share of the finest belongs in the selection work, where the memory cost is
+known. Also note `telperion_core::foliage::Level` now shares a name with
+`telperion_render`'s `Level::{Full, Quad}` enum from task 1; task 3 replaces the
+latter.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f19af78dd153cefdce6a6644b50c043115ae1a87, d556b54d8e2b2aa5c533a240c4345f4237658542
+- Tests: cargo test --release --workspace (113 passed, 0 failed, 29 suites), cargo test --release -p telperion-core, cargo fmt --check, cargo clippy --release --workspace --all-targets (no warnings)
 - PRs:
