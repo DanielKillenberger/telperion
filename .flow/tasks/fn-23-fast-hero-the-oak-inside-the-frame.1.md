@@ -74,3 +74,4 @@ stage: impl-review - skipped(config: REVIEW_MODE=none)
 - Commits: 4917a32032ea8339b047623c98acf33527805dbb
 - Tests: cargo test --release --workspace (110 passed, 0 failed; GPU-gated suites ran on the RTX 3080), cargo fmt --all --check, cargo run --release -p telperion-render --example headless -- --preset oregon-white-oak --seed 7 --out /tmp/oak-quad.png --size 1600x1000 --level quad --timing .flow/evidence/fn23/probe-quad-timing.json (valid, p50 1.577 ms), cargo run --release -p telperion-render --example headless -- --preset oregon-white-oak --seed 7 --out /tmp/oak-full.png --size 1600x1000 --timing .flow/evidence/fn23/probe-full-timing.json (valid, p50 18.085 ms), cargo run ... --level 3 (exit 1: unknown level "3"; one of quad)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
