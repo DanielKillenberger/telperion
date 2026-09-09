@@ -16,6 +16,13 @@
 //! cap centre — travels with the section vertex it sits closest to, so the
 //! connector's millimetre of stem collapses onto the blade's base and leaves
 //! the coarse levels without an exemption of its own.
+//!
+//! Halving the tolerance offers far more levels than are worth keeping, and
+//! each one kept costs an index list, a counter and a draw call every frame it
+//! is selected against. A level is therefore emitted only when it carries at
+//! least twice the triangles of the last one emitted, so the ladder is a
+//! doubling one from single digits to the whole element and its length grows
+//! with the logarithm of the element rather than with the tolerance.
 use super::Element;
 use crate::math::Vec3;
 use std::collections::HashSet;
@@ -57,8 +64,9 @@ pub(super) fn nested(e: &Element) -> bool {
 }
 
 /// Returns the shared index buffer and the levels addressing it, coarsest
-/// first. The last level is always the element's own index list, copied byte
-/// for byte, at deviation zero.
+/// first, each at least twice the triangles of the one above it. The last
+/// level is always the element's own index list, copied byte for byte, at
+/// deviation zero.
 pub(super) fn build(
     positions: &[Vec3],
     indices: &[u32],
@@ -89,7 +97,8 @@ pub(super) fn build(
             order.push(section);
         }
         let mut tolerance = errors[0];
-        let mut emitted = usize::MAX;
+        let mut built = usize::MAX;
+        let mut carried = 0;
         while tolerance.is_finite() && tolerance > 0.0 {
             let step = errors
                 .iter()
@@ -99,14 +108,19 @@ pub(super) fn build(
                 // Every section is kept: the element's own indices say it best.
                 break;
             }
-            if step != emitted {
-                emitted = step;
+            if step != built {
+                built = step;
                 let mut kept = anchors(positions, sections);
                 for &section in &order[..step] {
                     kept.insert(kept.partition_point(|&k| k < section), section);
                 }
                 let triangles = simplify(indices, &home, sections, &kept, 0..sections.len());
-                if !triangles.is_empty() {
+                // A level is kept only when it is a level apart from the last
+                // one: at least twice its triangles. The steps in between cost
+                // a list, a counter and a draw call each for a few per cent of
+                // the element, which is not a level, it is a tail.
+                if triangles.len() >= (carried * 2).max(1) {
+                    carried = triangles.len();
                     let start = buffer.len() as u32;
                     buffer.extend(triangles.into_iter().flatten());
                     levels.push(Level {

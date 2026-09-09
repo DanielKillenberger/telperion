@@ -611,21 +611,28 @@ fn triangles(e: &Element, level: &Level) -> Vec<[u32; 3]> {
 #[test]
 fn levels_nest_from_the_widest_section_down_to_the_whole_element() {
     let cases = [
-        ("generic blade", ElementParams::default(), 2, usize::MAX),
-        ("oak", Preset::OregonWhiteOak.parameters().element, 4, 12),
+        ("generic blade", ElementParams::default(), 2..=4, usize::MAX),
+        (
+            "oak",
+            Preset::OregonWhiteOak.parameters().element,
+            4..=8,
+            12,
+        ),
         (
             "spruce",
             Preset::NorwaySpruce.parameters().element,
-            2,
+            2..=4,
             usize::MAX,
         ),
     ];
-    for (name, params, fewest, coarsest_triangles) in cases {
+    for (name, params, wanted, coarsest_triangles) in cases {
         let e = build_element(params).unwrap();
         let sections = sections(&e, params);
+        // The ladder doubles, so its length follows the logarithm of the
+        // element: a longer one is a tail of levels that buy nothing.
         assert!(
-            e.levels.len() >= fewest,
-            "{name}: {} levels, wanted at least {fewest}",
+            wanted.contains(&e.levels.len()),
+            "{name}: {} levels, wanted {wanted:?}",
             e.levels.len()
         );
 
@@ -649,6 +656,25 @@ fn levels_nest_from_the_widest_section_down_to_the_whole_element() {
             "{name}: the coarsest level is {} triangles",
             e.levels[0].indices.len() / 3
         );
+
+        // Every level is a level apart from the one above it: twice the
+        // triangles at least. The finest is the element itself and is kept
+        // whatever it costs, so it only has to be the larger of the two.
+        let counts: Vec<usize> = e.levels.iter().map(|l| l.indices.len() / 3).collect();
+        for (n, pair) in counts.windows(2).enumerate() {
+            let apart = if n + 2 < counts.len() {
+                pair[1] >= pair[0] * 2
+            } else {
+                pair[1] > pair[0]
+            };
+            assert!(
+                apart,
+                "{name}: level {} is {} triangles against level {n}'s {}, no level apart",
+                n + 1,
+                pair[1],
+                pair[0]
+            );
+        }
 
         // Base, tip and the widest section, whole, in every level: dropping the
         // widest is what turns a lobed blade into a sliver.
