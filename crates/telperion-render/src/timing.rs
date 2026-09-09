@@ -197,8 +197,10 @@ impl Session {
 /// `poll` does nothing there.
 #[cfg(target_arch = "wasm32")]
 impl Session {
-    /// What the last resolved vegetation pass cost, in milliseconds.
-    pub async fn sample_ms(&self) -> Result<f64> {
+    /// What the last resolved frame's two passes cost, vegetation first and
+    /// selection second, in milliseconds - the same pair the blocking half
+    /// returns, awaited instead of polled.
+    pub async fn sample_ms(&self) -> Result<(f64, f64)> {
         let lost = |reason: String| RenderError::DeviceLost { reason };
         let (sender, receiver) = futures_channel::oneshot::channel();
         self.readback
@@ -216,10 +218,13 @@ impl Session {
             .slice(..)
             .get_mapped_range()
             .map_err(|error| lost(error.to_string()))?;
-        let ticks = bytemuck::pod_read_unaligned::<[u64; 2]>(&view[..PAIR as usize]);
+        let ticks = bytemuck::pod_read_unaligned::<[u64; 4]>(&view[..PAIRS as usize]);
         drop(view);
         self.readback.unmap();
-        Ok(self.duration_ms(ticks))
+        Ok((
+            self.duration_ms([ticks[0], ticks[1]]),
+            self.duration_ms([ticks[2], ticks[3]]),
+        ))
     }
 }
 

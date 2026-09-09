@@ -17,10 +17,12 @@ use web_sys::HtmlCanvasElement;
 
 use crate::{
     device::{Gpu, RenderError, Result},
-    hero_pose,
-    timing::{Hardware, Report, Session, CONDITIONING, MEASURED, WARMUP},
-    Camera, FrameStats, Renderer, Submitted, View, DEPTH_FORMAT, GROUND_REACH,
+    hero_pose, Camera, FrameStats, Renderer, Submitted, View, DEPTH_FORMAT, GROUND_REACH,
 };
+
+/// The timing protocol as a page runs it, kept beside this file rather than in
+/// it so neither outgrows the project's line rule.
+mod session;
 
 /// What the camera looks at before a tree has been submitted: a subject one
 /// metre across at the origin. A room cannot be fitted to a point, and the
@@ -41,6 +43,13 @@ struct Live {
     camera: Camera,
     stats: FrameStats,
 }
+
+/// The two timestamp pairs a timed frame writes: the vegetation render pass
+/// and the selection compute pass, in the order the record reads them.
+type Pairs<'a> = (
+    wgpu::RenderPassTimestampWrites<'a>,
+    wgpu::ComputePassTimestampWrites<'a>,
+);
 
 impl Live {
     async fn new(canvas: HtmlCanvasElement) -> Result<Self> {
@@ -76,17 +85,26 @@ impl Live {
         self.depth = depth_view(self.renderer.gpu(), width, height);
     }
 
-    /// Draws one frame onto the canvas, timed when a pair is given.
-    fn draw(&mut self, timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>) -> Result<()> {
+    /// Draws one frame onto the canvas at the pose the camera is at. A timed
+    /// frame carries both pairs - one around the vegetation pass, one around
+    /// the selection pass - so no query the resolve reads is left unwritten.
+    fn draw(&mut self, timed: Option<Pairs<'_>>) -> Result<()> {
         let frame = self.texture()?;
         let colour = frame.texture.create_view(&Default::default());
-        self.stats = self.renderer.draw(
-            &self.camera,
-            (self.config.width, self.config.height),
-            &colour,
-            &self.depth,
-            timestamps,
-        );
+        let size = (self.config.width, self.config.height);
+        self.stats = match timed {
+            Some((vegetation, selection)) => self.renderer.draw_timed(
+                &self.camera,
+                size,
+                &colour,
+                &self.depth,
+                vegetation,
+                selection,
+            ),
+            None => self
+                .renderer
+                .draw(&self.camera, size, &colour, &self.depth, None),
+        };
         self.renderer.gpu().queue.present(frame);
         Ok(())
     }
@@ -259,7 +277,21 @@ impl WebRenderer {
     pub fn timing(&self) -> js_sys::Promise {
         let live = Rc::clone(&self.live);
         future_to_promise(async move {
-            measure(&live)
+            session::measure(&live)
+                .await
+                .map(JsValue::from)
+                .map_err(JsValue::from)
+        })
+    }
+
+    /// Runs the same protocol while the camera makes one full turn about the
+    /// pose it stands at, and resolves with the record: the GPU numbers when
+    /// the adapter can be timed, and either way the frame-to-frame wall clock
+    /// of ten seconds of turning, which is the frame rate a viewer would see.
+    pub fn orbit(&self) -> js_sys::Promise {
+        let live = Rc::clone(&self.live);
+        future_to_promise(async move {
+            session::orbit(&live)
                 .await
                 .map(JsValue::from)
                 .map_err(JsValue::from)
@@ -289,34 +321,6 @@ fn borrow(
         .map_err(|_| JsError::new("the renderer is already drawing"))?;
     std::cell::RefMut::filter_map(cell, Option::as_mut)
         .map_err(|_| JsError::new("the renderer is disposed"))
-}
-
-/// The timing protocol, browser side: conditioning frames untimed, then timed
-/// frames whose readback is awaited one at a time.
-async fn measure(live: &Rc<RefCell<Option<Live>>>) -> std::result::Result<String, JsError> {
-    let hardware = Hardware::from(&borrow(live)?.renderer.gpu().adapter);
-    let session = match Session::new(borrow(live)?.renderer.gpu()) {
-        Ok(session) => session,
-        Err(reason) => return Ok(Report::unavailable(hardware, reason).to_json()),
-    };
-    for _ in 0..CONDITIONING {
-        borrow(live)?.draw(None).map_err(js_error)?;
-    }
-    let mut samples = Vec::with_capacity(MEASURED);
-    for index in 0..WARMUP + MEASURED {
-        // The borrow is put down before the await, so nothing holds the canvas
-        // while the browser is carrying the readback.
-        {
-            let mut canvas = borrow(live)?;
-            canvas.draw(Some(session.writes())).map_err(js_error)?;
-            session.resolve(canvas.renderer.gpu());
-        }
-        let sample = session.sample_ms().await.map_err(js_error)?;
-        if index >= WARMUP {
-            samples.push(sample);
-        }
-    }
-    Ok(Report::measured(hardware, &samples).to_json())
 }
 
 fn submitted_json(submitted: &Submitted) -> String {

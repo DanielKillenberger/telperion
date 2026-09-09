@@ -179,9 +179,8 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
         let json = invalid
             .with_selection(&steady(), &quick())
             .with_levels(&[0.004, 0.001], &frames())
-            .with_wall(&steady())
             .to_json();
-        for field in ["selection_", "total_", "levels", "wall_"] {
+        for field in ["selection_", "total_", "levels"] {
             assert!(
                 !json.contains(field),
                 "a {name} record still reads as a {field} number:\n{json}"
@@ -203,6 +202,43 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
     for counts in [ragged, Vec::new()] {
         let report = Report::measured(hardware(), &steady()).with_levels(&[0.004, 0.001], &counts);
         assert!(report.levels().is_empty(), "{}", report.to_json());
+    }
+}
+
+#[test]
+fn the_wall_clock_is_the_one_number_the_gpu_verdict_does_not_govern() {
+    // A browser without the timestamp feature still draws frames, and the
+    // cadence they kept is the frame rate its viewer saw. So the host's own
+    // clock stands where the GPU's cannot: the record says the GPU time is
+    // unavailable and reports the wall numbers beside it, over the frames they
+    // were taken across.
+    let json = Report::unavailable(hardware(), "the adapter does not offer timestamp queries")
+        .with_wall(&steady())
+        .to_json();
+    for field in [
+        "\"verdict\": \"unavailable\"",
+        "\"wall_frames\": 120",
+        "\"wall_p50_ms\"",
+        "\"wall_p95_ms\"",
+        "\"wall_max_ms\"",
+    ] {
+        assert!(
+            json.contains(field),
+            "an untimed orbit lacks {field}:\n{json}"
+        );
+    }
+    assert!(
+        !json.contains("\"p50_ms\"") && !json.contains("\"selection_p50_ms\""),
+        "an untimed orbit reported a GPU number:\n{json}"
+    );
+
+    // What the wall clock does not excuse is a series that is not durations:
+    // a window nobody waited through reports nothing.
+    let mut stopped = steady();
+    stopped[9] = 0.0;
+    for waits in [stopped, Vec::new()] {
+        let report = Report::measured(hardware(), &steady()).with_wall(&waits);
+        assert_eq!(report.wall_p50_ms(), None, "{}", report.to_json());
     }
 }
 

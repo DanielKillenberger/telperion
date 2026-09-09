@@ -35,8 +35,9 @@ pub struct LevelCount {
 }
 
 /// One measured session, in the terms a reader of the evidence needs. Every
-/// percentile exists only on a valid verdict, so nothing in an invalid record
-/// can be mistaken for a number that passed.
+/// GPU percentile exists only on a valid verdict, so nothing in an invalid
+/// record can be mistaken for a number that passed. The wall clock is the one
+/// number that is not the GPU's, and it is judged on its own series.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Report {
     pub hardware: Hardware,
@@ -56,6 +57,10 @@ pub struct Report {
     levels: Vec<LevelCount>,
     /// Frame to frame on the host: median, tail, worst.
     wall: Option<[f64; 3]>,
+    /// How many frame-to-frame waits those three are taken over. A wall
+    /// window is a length of time, so the frames it came to are the display's
+    /// answer rather than a constant, and the record says which.
+    wall_frames: usize,
 }
 
 impl Report {
@@ -125,14 +130,22 @@ impl Report {
     }
 
     /// Adds the frame-to-frame wall clock of an orbit session: how long the
-    /// host waited between one measured frame and the next.
+    /// host waited between one measured frame and the next, and over how many
+    /// frames.
+    ///
+    /// This is the host's own clock and not the GPU's, so it stands on its own
+    /// account rather than on the verdict beside it: a session that could not
+    /// be timed at all still kept a cadence, and on a page that cadence is the
+    /// frame rate a viewer saw. A series that is not durations is still
+    /// refused, here as everywhere.
     pub fn with_wall(mut self, samples: &[f64]) -> Self {
-        if !self.verdict.is_valid() || !durations(samples) {
+        if !durations(samples) {
             return self;
         }
         let [median, tail] = ranked(samples, [0.5, 0.95]);
         let worst = samples.iter().copied().fold(f64::MIN, f64::max);
         self.wall = Some([median, tail, worst]);
+        self.wall_frames = samples.len();
         self
     }
 
@@ -150,6 +163,7 @@ impl Report {
             total: None,
             levels: Vec::new(),
             wall: None,
+            wall_frames: 0,
         }
     }
 
@@ -229,6 +243,7 @@ impl Report {
             fields.push(format!("\"levels\": [\n    {}\n  ]", self.levels_json()));
         }
         if let Some([median, tail, worst]) = self.wall {
+            fields.push(format!("\"wall_frames\": {}", self.wall_frames));
             fields.push(format!("\"wall_p50_ms\": {median:.4}"));
             fields.push(format!("\"wall_p95_ms\": {tail:.4}"));
             fields.push(format!("\"wall_max_ms\": {worst:.4}"));
