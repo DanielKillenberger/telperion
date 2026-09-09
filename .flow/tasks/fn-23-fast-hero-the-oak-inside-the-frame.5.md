@@ -130,3 +130,4 @@ stage: impl-review - skipped(config: REVIEW_MODE=none)
 - Commits: 1dc7829b229f7c7099d6916b66fcd601937a7e5e
 - Tests: cargo test --release --workspace (29 suites, 0 failed), RENDER_EVIDENCE=.flow/evidence/fn23 npm run test:render (5 presets, dial, views, 2 timing sessions, 2 orbit sessions; run twice, both PASS), npm test (64 vitest cases), npm run typecheck, npm run rust:test:wasm, cargo clippy --release --workspace --all-targets, cargo clippy --release --target wasm32-unknown-unknown -p telperion-render, baseline: green via handoff (verified at 1e42b09 by fn-23-fast-hero-the-oak-inside-the-frame.4)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
