@@ -166,7 +166,7 @@ them as an aid. The spec closes only on an accepting verdict.
 
 ### Oregon white oak, hero pose
 
-> _verdict (owner, pending):_
+> _verdict (owner, 2026-09-09):_ side by side they look exactly the same so we achieved the goal
 
 ## References
 

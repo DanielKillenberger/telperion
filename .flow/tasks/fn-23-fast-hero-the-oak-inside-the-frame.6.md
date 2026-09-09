@@ -38,9 +38,68 @@ Close the spec: the preset and random-set sweep on the final path (R5), the spec
 - [ ] `npm run typecheck` and `cargo test --release --workspace` pass
 
 ## Done summary
-TBD
+Everything R4 and R5 ask for is on disk except the one line only the owner can
+write. The oak and spruce stills are committed at seed 7, whole view, hero pose,
+1600 by 1000 from the native headless target, the same command, pose and size as
+fn-22's stills, so the two oaks lay over each other exactly. `REPORT.md` now
+carries the native tables from task 4, the browser still and orbit tables from
+task 5, the preset and random-set sweep, the stills, and verdicts for R1, R2, R4
+and R5. The spec carries a `## Owner verdict` section with an empty slot.
 
+**R5 is met.** `cargo test --release -p telperion-render` renders all five
+shipped families and 20 parameter sets nobody wrote by hand through one submit
+and one frame from a pinned generator seed: 20 rendered, 5 refused, 25 tried.
+The refusals carry the generator's own message, asserted on a negative envelope
+height and a negative leaf length. Two tests hold the no-branch rule by reading
+the source: no renderer file may contain the family table, and `select.rs`,
+`foliage.rs`, `select.wgsl` and `foliage.wgsl` may name neither a shipped family
+nor any of six anatomy words. Task 3 had already pinned the sweep's seed and its
+twenty-set floor, so no test changed here. `npm run species:qa` ran both profiles
+over the protocol's 24 seeds: 48 numeric cases pass, 48 stills captured, none
+missing and none failed. The runner exits 1 while the visual inspection is
+unassessed, which is its standing contract and not a failure of this run.
+
+**R4 waits on the owner.** The comparison is
+`.flow/evidence/fn23/oak-hero.png` against `.flow/evidence/fn22/oak-hero.png`.
+As an aid, not a verdict: 4.6 per cent of the frame differs at all, 1.0 per cent
+by more than 32 of 255 in some channel, the mean absolute difference over the
+whole frame is 0.83 of 255, and the mean luminance moves from 170.83 to 170.88.
+The differences sit inside the crown, where a leaf a few pixels tall is drawn
+from 4 or 12 triangles instead of 268. The report and the spec both hold an
+empty slot for the owner's words.
+
+**Documentation.** `package.json` said foliage was culled to a shell "for one
+instanced draw" and now says one indirect draw per level, each leaf at the
+coarsest level a pixel cannot tell from the finest. The README's draw-path
+paragraph gains the compute pass, the half-pixel rule, the unseen bucket and the
+subset property that keeps a coarse leaf's vertices a fine leaf's; the headless
+example gains `--level` and `--orbit` with a sentence on each; the timing
+paragraph names `selection_p50_ms`, `selection_p95_ms`, `total_p50_ms`,
+`total_p95_ms`, `levels`, `wall_p50_ms`, `wall_p95_ms`, `wall_max_ms` and
+`wall_frames`, says a non-valid verdict carries none of them, and links the FN23
+report beside FN22's. The foliage module doc needed nothing: task 3 already
+rewrote it to the level selection, so the task's premise about that one file was
+stale.
+
+One thing worth knowing that the report now states: the per-frame statistics
+line the headless target prints reports the crown as if every leaf were at the
+finest level, because no count comes back from the device outside a timing
+session. A reader running the oak sees 154 million triangles on that line where
+the measured truth is 5.6 million. That is the documented statistics contract
+from the spec, kept so the panel text and the rigs' parsers are unchanged.
+
+`npm run test:render` was not rerun. This task changed no renderer, page or
+browser code, and a second session would overwrite the browser records task 5
+committed at 1dc7829, which are the numbers this report reads from.
+
+stage: impl-review - skipped(policy: host-deferred - conductor owns the gate)
+
+### Owner verdict (R4)
+
+"side by side they look exactly the same so we achieved the goal" (owner, 2026-09-09). Recorded in the spec and in .flow/evidence/fn23/REPORT.md by the conductor.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 59b6f4fe6dcb33fcc2b7cf886f4bd945225a20e6
+- Tests: cargo test --release --workspace (29 suites, 0 failed), cargo test --release -p telperion-render (5 conformance tests; sweep printed 20 sets rendered, 5 refused, 25 tried), npm run species:qa (48 numeric cases pass, 48 stills captured; runner exits 1 by design while visual inspection is unassessed), npm run typecheck, npm test (64 vitest cases), headless oak-hero.png and spruce-hero.png at seed 7, 1600x1000, whole view, baseline: green via handoff (verified at 1dc7829 by fn-23-fast-hero-the-oak-inside-the-frame.5), SKIPPED: npm run test:render - no renderer, page or browser code changed in this task; task 5 recorded the committed browser sessions at 1dc7829 and rerunning would overwrite them with a second session
 - PRs:

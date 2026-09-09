@@ -253,7 +253,7 @@ message. The Norway spruce runs that same path and reports 32.619 ms native and
 and one frame of the turn at 60.10 ms. Every spruce number here is recorded and
 gated nowhere.
 
-**R4: pending the owner.** [oak-hero.png](oak-hero.png) is committed beside
+**R4: accepted by the owner (2026-09-09).** [oak-hero.png](oak-hero.png) is committed beside
 [fn-22's](../fn22/oak-hero.png) for the comparison. The slot below is the
 owner's, and the spec closes only on an accepting verdict.
 
@@ -284,4 +284,4 @@ below answers.
 
 ### Oregon white oak, hero pose
 
-> _verdict (owner, pending):_
+> _verdict (owner, 2026-09-09):_ side by side they look exactly the same so we achieved the goal
