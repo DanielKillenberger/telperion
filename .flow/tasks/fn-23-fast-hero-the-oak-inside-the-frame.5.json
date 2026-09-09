@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T08:19:40.621771Z",
+  "depends_on": [
+    "fn-23-fast-hero-the-oak-inside-the-frame.4"
+  ],
+  "id": "fn-23-fast-hero-the-oak-inside-the-frame.5",
+  "priority": null,
+  "spec": "fn-23-fast-hero-the-oak-inside-the-frame",
+  "spec_path": ".flow/tasks/fn-23-fast-hero-the-oak-inside-the-frame.5.md",
+  "status": "todo",
+  "title": "The browser at 60 frames per second: the orbit session on the page",
+  "updated_at": "2026-09-09T08:19:40.621771Z"
+}

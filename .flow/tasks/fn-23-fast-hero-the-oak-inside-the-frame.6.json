@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T08:19:40.621803Z",
+  "depends_on": [
+    "fn-23-fast-hero-the-oak-inside-the-frame.5"
+  ],
+  "id": "fn-23-fast-hero-the-oak-inside-the-frame.6",
+  "priority": null,
+  "spec": "fn-23-fast-hero-the-oak-inside-the-frame",
+  "spec_path": ".flow/tasks/fn-23-fast-hero-the-oak-inside-the-frame.6.md",
+  "status": "todo",
+  "title": "Every preset through one path, the stills, the owner's verdict, and the docs that say one draw",
+  "updated_at": "2026-09-09T08:19:40.621803Z"
+}
