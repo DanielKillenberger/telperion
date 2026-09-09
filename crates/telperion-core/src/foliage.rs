@@ -1,5 +1,6 @@
 //! Owned leaf elements and placements. No wood mesh is needed by this module.
 mod element;
+mod levels;
 mod placement;
 use crate::{
     envelope::{distance_to_profile, Envelope},
@@ -9,6 +10,7 @@ use crate::{
 pub use element::{
     build_element, AnatomyGeometry, Element, ElementAnatomy, ElementParams, FoliageUnit,
 };
+pub use levels::Level;
 pub use placement::{place, place_on_surface, Attachment, CanopyParams, TwigPlacement};
 
 #[derive(Debug, Clone, Copy, PartialEq)]

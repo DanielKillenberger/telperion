@@ -21,7 +21,13 @@ import { pathToFileURL } from 'node:url';
  *  evidence records them, because a timing number without the flags it
  *  was measured under is not reproducible. */
 const HARDWARE_FLAGS = ['--no-sandbox', '--enable-unsafe-webgpu', '--enable-features=Vulkan',
-  '--use-angle=vulkan', '--disable-vulkan-surface', '--ignore-gpu-blocklist'];
+  '--use-angle=vulkan', '--disable-vulkan-surface', '--ignore-gpu-blocklist',
+  /* The orbit session is judged on the page's own animation clock, and a
+     browser slows that clock down when it decides nobody is looking. This
+     display belongs to somebody, so a window can be covered mid-run; what
+     is being measured is a page a viewer is watching, not a background tab. */
+  '--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding'];
 /** The other half of R1: a browser with no GPU at all. */
 const SOFTWARE_FLAGS = ['--no-sandbox', '--enable-unsafe-webgpu', '--disable-gpu'];
 
@@ -35,15 +41,27 @@ const quantizationNote = (report) => {
   const step = QUANTIZATION_US / 1000;
   const rounded = report.verdict !== 'valid' || [report.p50_ms, report.p95_ms]
     .every(ms => Math.abs(ms / step - Math.round(ms / step)) < 1e-6);
+  /* The page's own clock is coarsened to the same step, so an orbit's wall
+     numbers land on that grid whatever the GPU timestamps did. Said here
+     rather than left for a reader to wonder at a frame time of exactly
+     10.00 ms. */
+  const wall = report.wall_p50_ms === undefined ? ''
+    : ` The animation clock the wall numbers are taken from is coarsened to that same ` +
+      `${QUANTIZATION_US} microsecond step, so they sit on the grid by construction.`;
   return `Chrome quantizes WebGPU timestamps to ${QUANTIZATION_US} microseconds unless developer ` +
     `features or --enable-unsafe-webgpu are on. ${rounded
       ? 'The percentiles here sit on that grid, so read them as quantized.'
-      : 'The percentiles here are finer than that step, so this session was not quantized.'}`;
+      : 'The percentiles here are finer than that step, so this session was not quantized.'}${wall}`;
 };
 
 /** The seed the native evidence was measured at, so the browser rows
  *  beside it are the same trees. */
 const SEED = 7;
+/** Sixty frames a second, as a page has to hold it: no more than 16.7 ms
+ *  from one frame to the next at the tail, and never a frame past 33 ms,
+ *  which is where a viewer sees the picture stop. */
+const ORBIT_P95_MS = 16.7;
+const ORBIT_MAX_MS = 33;
 const SOAK_MINUTES = 5;
 const SOAK_POLL_MS = 30_000;
 /** The hardware adapter needs a display, and this machine's display
@@ -53,7 +71,9 @@ const SOAK_ATTEMPTS = 3;
 class Disturbed extends Error {}
 
 const url = process.env.BROWSER_URL ?? 'http://127.0.0.1:5173';
-const evidence = process.env.RENDER_EVIDENCE ?? '.flow/evidence/fn22';
+/* The spec being measured, so a plain run files its records where this
+   spec's evidence lives and never writes over a closed spec's numbers. */
+const evidence = process.env.RENDER_EVIDENCE ?? '.flow/evidence/fn23';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE
   ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
 
@@ -137,15 +157,20 @@ async function start(page) {
   return await alert.count() ? { failed: await alert.textContent() } : { stats };
 }
 
-/** One species, timed on a canvas that draws nothing else. */
-async function session(browser, preset, flags) {
+/** One species, timed on a canvas that draws nothing else. A turning
+ *  session orbits the hero pose and reports the page's own frame cadence
+ *  beside the GPU numbers; a still one holds the pose, as fn-22 did. */
+async function session(browser, preset, flags, turning = false) {
   const page = await open(browser, 1600, 1000);
   const route = url + '/render-timing';
   await page.route(route, request => request.fulfill({ contentType: 'text/html',
     body: '<!doctype html><html><body style="margin:0;overflow:hidden">' +
       '<canvas style="display:block;width:100vw;height:100vh"></canvas></body></html>' }));
   await page.goto(route);
-  const measured = await page.evaluate(async ({ id, seed }) => {
+  /* The animation clock the orbit is measured on is the clock of a page
+     somebody is looking at, so this one is in front. */
+  await page.bringToFront();
+  const measured = await page.evaluate(async ({ id, seed, turning }) => {
     const { presetById } = await import('/src/browser/core.ts');
     const { familyJson, presetToParams } = await import('/harness/family.ts');
     const { createRenderer } = await import('/src/browser/render.ts');
@@ -159,22 +184,41 @@ async function session(browser, preset, flags) {
       const submitted = renderer.setTree(familyJson({ ...presetToParams(presetById(id)), seed }));
       renderer.setCamera(renderer.hero());
       renderer.frame();
-      return { submitted, report: await renderer.timing(), userAgent: navigator.userAgent,
+      return { submitted, report: turning ? await renderer.orbit() : await renderer.timing(),
+        userAgent: navigator.userAgent,
         webgpu: { vendor, architecture, device, description },
         canvas: { width: canvas.width, height: canvas.height } };
     } finally { renderer.dispose(); }
-  }, { id: preset.id, seed: SEED });
+  }, { id: preset.id, seed: SEED, turning });
   check(await page.evaluate(() => window.telperionLiveDevices) === 0, 'timing page left a device behind');
   await page.close();
   const record = { species: preset.name, preset: preset.id, seed: SEED, view: 'whole',
-    ...measured, browser: browser.version(), flags,
+    session: turning ? 'orbit' : 'still', ...measured, browser: browser.version(), flags,
     quantization_us: QUANTIZATION_US, note: quantizationNote(measured.report) };
-  await save(`${preset.id === 'norway-spruce' ? 'spruce' : 'oak'}-browser-timing.json`, record);
+  const species = preset.id === 'norway-spruce' ? 'spruce' : 'oak';
+  await save(`${species}-browser-${turning ? 'orbit' : 'timing'}.json`, record);
   const { report } = measured;
-  console.log(`timing ${preset.name}: ${report.verdict}`, report.verdict === 'valid'
-    ? `p50 ${report.p50_ms.toFixed(3)} ms, p95 ${report.p95_ms.toFixed(3)} ms over ${report.samples} frames`
-    : report.reason ?? '');
+  console.log(`${turning ? 'orbit' : 'timing'} ${preset.name}: ${report.verdict}`,
+    report.verdict === 'valid'
+      ? `p50 ${report.p50_ms.toFixed(3)} ms, p95 ${report.p95_ms.toFixed(3)} ms over ${report.samples} frames`
+      : report.reason ?? '',
+    report.wall_p50_ms === undefined ? '' : `| wall p50 ${report.wall_p50_ms.toFixed(2)} ms, ` +
+      `p95 ${report.wall_p95_ms.toFixed(2)} ms, worst ${report.wall_max_ms.toFixed(2)} ms ` +
+      `over ${report.wall_frames} frames`);
   return record;
+}
+
+/** The frame rate the orbit held, judged. The wall clock is the page's own
+ *  and stands whether or not the GPU could be timed, so a record without it
+ *  is a session that never turned rather than one that ran slowly. */
+function judgeOrbit(record) {
+  const { report } = record;
+  check(report.wall_p50_ms !== undefined,
+    `the ${record.species} orbit recorded no frame cadence: ${report.verdict} ${report.reason ?? ''}`);
+  check(report.wall_p95_ms < ORBIT_P95_MS, `the ${record.species} orbit's p95 frame took ` +
+    `${report.wall_p95_ms.toFixed(2)} ms, past the ${ORBIT_P95_MS} ms a 60 fps page has`);
+  check(report.wall_max_ms < ORBIT_MAX_MS, `the ${record.species} orbit's worst frame took ` +
+    `${report.wall_max_ms.toFixed(2)} ms, past ${ORBIT_MAX_MS} ms, over ${report.wall_frames} frames`);
 }
 
 /** Five minutes of nobody touching anything, then a drag. */
@@ -321,9 +365,15 @@ try {
   await page.close();
 
   const timings = [];
+  const orbits = [];
   for (const id of ['oregon-white-oak', 'norway-spruce']) {
-    timings.push(await session(browser, presets.find(preset => preset.id === id), HARDWARE_FLAGS));
+    const preset = presets.find(entry => entry.id === id);
+    timings.push(await session(browser, preset, HARDWARE_FLAGS));
+    orbits.push(await session(browser, preset, HARDWARE_FLAGS, true));
   }
+  /* The oak is what the frame budget is judged on. The spruce's needles are
+     a later spec's problem, so its orbit is recorded and not gated. */
+  judgeOrbit(orbits[0]);
 
   const soaked = process.env.SOAK === '1' ? await soak(browser, HARDWARE_FLAGS) : null;
   if (soaked === null) console.log('soak: not run (SOAK=1 runs the five minute soak)');
@@ -338,8 +388,15 @@ try {
     check(failed !== undefined, 'a browser with no GPU drew a tree anyway');
     check(/WebGPU|adapter/.test(failed), `the no-GPU message names no condition: ${failed}`);
     console.log('no GPU:', failed.replace('retry build', '').trim());
+    /* The other half of the orbit: a session with no timestamp feature keeps
+       its wall numbers and reads GPU time as unavailable. This browser never
+       gets that far - the renderer refuses a software adapter before a
+       session exists - so the case is skipped here with the reason printed,
+       and the record's own rule is asserted in the Rust timing suite. */
+    console.log('orbit without a GPU clock: skipped -',
+      failed.replace('retry build', '').trim());
   } finally { await blind.close(); }
 
-  console.log(`PASS: ${presets.length} presets, dial, views, ${timings.length} timing sessions` +
-    `${soaked ? ', five minute soak' : ''}`);
+  console.log(`PASS: ${presets.length} presets, dial, views, ${timings.length} timing sessions,` +
+    ` ${orbits.length} orbit sessions${soaked ? ', five minute soak' : ''}`);
 } finally { await browser.close(); }

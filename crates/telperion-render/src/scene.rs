@@ -221,7 +221,7 @@ impl Scene {
             .create_shader_module(wgpu::include_wgsl!("shaders/scene.wgsl"));
         let pipeline = crate::pipeline(
             gpu,
-            &layout,
+            &[Some(&layout)],
             &shader,
             colour_format,
             &[Some(wgpu::VertexBufferLayout {

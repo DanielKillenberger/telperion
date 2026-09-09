@@ -41,7 +41,7 @@ impl Wood {
         Self {
             pipeline: crate::pipeline(
                 gpu,
-                layout,
+                &[Some(layout)],
                 &shader,
                 colour_format,
                 &[vertex(&POSITION), vertex(&NORMAL)],

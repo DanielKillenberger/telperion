@@ -22,6 +22,8 @@ pub enum RenderError {
         bytes: u64,
         limit: u64,
     },
+    /// The element carries more levels than selection can tally at once.
+    TooManyLevels { levels: usize, limit: usize },
     /// The generator rejected the parameters.
     Generation(telperion_core::Error),
     /// The still could not be written where it was asked for.
@@ -49,6 +51,10 @@ impl std::fmt::Display for RenderError {
             } => write!(
                 f,
                 "the {buffer} buffer needs {bytes} bytes, above the device's limit of {limit}"
+            ),
+            Self::TooManyLevels { levels, limit } => write!(
+                f,
+                "the foliage element carries {levels} levels, more than the {limit} selection can choose between"
             ),
             Self::Generation(error) => write!(f, "the generator rejected the tree: {error}"),
             Self::Output { path, message } => write!(f, "cannot write {path}: {message}"),
@@ -111,8 +117,13 @@ impl Gpu {
         }
 
         let available = adapter.limits();
+        // The adapter's own maximum buffer size, so a full-detail tree fits,
+        // and its storage binding size with it: the crown's placements are
+        // read by the selection pass and the vertex shader out of one storage
+        // buffer, and a spruce's needles are half a gigabyte of them.
         let limits = wgpu::Limits {
             max_buffer_size: available.max_buffer_size,
+            max_storage_buffer_binding_size: available.max_storage_buffer_binding_size,
             ..wgpu::Limits::default()
         };
         // Ask before requesting, so a refusal names the limit rather than

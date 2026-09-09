@@ -46,6 +46,7 @@ fn fixture() -> (Tree, Element, Instances) {
         positions: vec![Vec3::ZERO, Vec3::new(1., 0., 0.), Vec3::new(0., 2., 0.)],
         indices: vec![0, 1, 2],
         anatomy: None,
+        ..Element::default()
     };
     let instances = Instances {
         matrices: vec![[

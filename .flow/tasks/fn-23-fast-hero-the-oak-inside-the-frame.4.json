@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T08:19:40.621738Z",
+  "depends_on": [
+    "fn-23-fast-hero-the-oak-inside-the-frame.3"
+  ],
+  "id": "fn-23-fast-hero-the-oak-inside-the-frame.4",
+  "priority": null,
+  "spec": "fn-23-fast-hero-the-oak-inside-the-frame",
+  "spec_path": ".flow/tasks/fn-23-fast-hero-the-oak-inside-the-frame.4.md",
+  "status": "todo",
+  "title": "The selection pass timed, the orbit session, and the native gate",
+  "updated_at": "2026-09-09T08:19:40.621738Z"
+}

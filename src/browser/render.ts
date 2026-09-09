@@ -41,9 +41,11 @@ export interface Pose {
   target: Point;
 }
 
-/** The timing session's record, as the Rust report writes it. The
- *  percentiles exist only on a valid verdict, so nothing in an invalid
- *  record can be read as a number that passed. */
+/** The timing session's record, as the Rust report writes it, field for
+ *  field. The GPU percentiles exist only on a valid verdict, so nothing
+ *  in an invalid record can be read as a number that passed. The wall
+ *  clock is the page's own and not the GPU's, so an orbit reports it even
+ *  where there was no GPU clock to read. */
 export interface TimingReport {
   adapter: string;
   driver: string;
@@ -56,6 +58,21 @@ export interface TimingReport {
   reason?: string;
   p50_ms?: number;
   p95_ms?: number;
+  /** The selection compute pass that decides what the vegetation pass draws. */
+  selection_p50_ms?: number;
+  selection_p95_ms?: number;
+  /** Both passes added frame by frame and then ranked: a frame's own cost. */
+  total_p50_ms?: number;
+  total_p95_ms?: number;
+  /** What each level drew, coarsest first, and last the bucket of leaves
+   *  no level drew - which approximated nothing, so it has no deviation.
+   *  Read back only where a session can read the counters. */
+  levels?: { deviation_m: number | null; instances_p50: number }[];
+  /** Frame to frame on the page's own animation clock, over an orbit. */
+  wall_frames?: number;
+  wall_p50_ms?: number;
+  wall_p95_ms?: number;
+  wall_max_ms?: number;
 }
 
 export type View = "whole" | "bare" | "leaf";
@@ -88,6 +105,10 @@ export interface Renderer {
   frame(): void;
   stats(): FrameStats;
   timing(): Promise<TimingReport>;
+  /** The same session while the camera makes one full turn about the pose
+   *  it stands at, ending with ten seconds of frames drawn the way this
+   *  loop draws them - which is where the record's wall numbers come from. */
+  orbit(): Promise<TimingReport>;
   dispose(): void;
 }
 
@@ -125,6 +146,7 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
     frame: () => renderer.frame(),
     stats: () => JSON.parse(renderer.stats()) as FrameStats,
     timing: async () => JSON.parse((await renderer.timing()) as string) as TimingReport,
+    orbit: async () => JSON.parse((await renderer.orbit()) as string) as TimingReport,
     dispose: () => {
       if (disposed) return;
       disposed = true;

@@ -110,6 +110,24 @@ pub fn hero_pose(bounds: Bounds, aspect: f64, ground_reach: f64) -> Camera {
     }
 }
 
+/// The hero pose turned `turn` of a full revolution about the vertical axis
+/// through what it looks at. The eye keeps its height and its distance exactly,
+/// so every frame of an orbit session is the hero pose seen from another side
+/// and none of them is a different composition.
+pub fn orbit_pose(hero: &Camera, turn: f64) -> Camera {
+    let (sine, cosine) = (turn * std::f64::consts::TAU).sin_cos();
+    let offset = hero.position - hero.target;
+    Camera {
+        position: hero.target
+            + Vec3::new(
+                offset.x * cosine + offset.z * sine,
+                offset.y,
+                offset.z * cosine - offset.x * sine,
+            ),
+        ..*hero
+    }
+}
+
 /// Column-major, element `column * 4 + row`.
 fn perspective(field_of_view: f64, aspect: f64, near: f64, far: f64) -> [f64; 16] {
     let f = 1.0 / (field_of_view.to_radians() / 2.0).tan();
@@ -295,6 +313,42 @@ mod tests {
                 (high - low) * 50.0
             );
         }
+    }
+
+    #[test]
+    fn an_orbit_keeps_the_hero_height_and_the_hero_distance() {
+        let hero = hero_pose(oak_bounds(), 16.0 / 9.0, crate::GROUND_REACH);
+        let stand = hero.position.distance(hero.target);
+        let mut turned = Vec::new();
+        for step in 0..24 {
+            let turn = f64::from(step) / 24.0;
+            let camera = orbit_pose(&hero, turn);
+            assert!(
+                (camera.position.y - hero.position.y).abs() < 1e-9,
+                "the eye left the hero elevation at {turn}: {} against {}",
+                camera.position.y,
+                hero.position.y
+            );
+            assert!(
+                (camera.position.distance(camera.target) - stand).abs() < 1e-9,
+                "the eye left the hero distance at {turn}: {} against {stand}",
+                camera.position.distance(camera.target)
+            );
+            assert_eq!(camera.target, hero.target, "the orbit left the subject");
+            assert_eq!(camera.near, hero.near);
+            assert_eq!(camera.far, hero.far);
+            turned.push(camera.position);
+        }
+        // A whole turn is one turn, not a wobble: the quarter is a quarter of
+        // the way round, and the end comes back to the start.
+        assert!(
+            turned[0].distance(turned[6]) > stand,
+            "a quarter turn moved the eye less than the distance it stands at"
+        );
+        assert!(
+            turned[0].distance(orbit_pose(&hero, 1.0).position) < 1e-9,
+            "a full turn did not come back to where it started"
+        );
     }
 
     #[test]
