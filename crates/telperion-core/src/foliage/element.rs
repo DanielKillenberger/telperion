@@ -1,4 +1,4 @@
-use super::range;
+use super::{levels, range, Level};
 use crate::{math::Vec3, Error, Result};
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum ElementAnatomy {
@@ -67,6 +67,12 @@ pub struct Element {
     /// Blade triangles face +Z; needle and connector triangles face outward.
     pub indices: Vec<u32>,
     pub anatomy: Option<AnatomyGeometry>,
+    /// Every level's triangles in one buffer, coarsest first; both are empty
+    /// for an element built by hand.
+    pub level_indices: Vec<u32>,
+    /// Nested simplifications sharing `positions`, coarsest first. Deviations
+    /// strictly decrease to zero at the finest, which is `indices` byte for byte.
+    pub levels: Vec<Level>,
 }
 impl Element {
     pub fn validate(&self) -> Result<()> {
@@ -105,6 +111,9 @@ impl Element {
                 return Err(Error::InvalidInput("foliage anatomy geometry"));
             }
         }
+        if !levels::nested(self) {
+            return Err(Error::InvalidInput("foliage element levels"));
+        }
         Ok(())
     }
 }
@@ -138,7 +147,7 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
     }
     let half = p.width / 2.;
     if p.card {
-        return Ok(Element {
+        let mut e = Element {
             positions: vec![
                 Vec3::new(-half as f32 as f64, 0., 0.),
                 Vec3::new(half as f32 as f64, 0., 0.),
@@ -146,17 +155,21 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
                 Vec3::new(-half as f32 as f64, p.length as f32 as f64, 0.),
             ],
             indices: vec![0, 1, 2, 0, 2, 3],
-            anatomy: None,
-        });
+            ..Element::default()
+        };
+        // Two triangles are already the coarsest a card gets.
+        (e.level_indices, e.levels) = levels::build(&e.positions, &e.indices, &[]);
+        return Ok(e);
     }
     let columns = p.cross_segments + (p.cross_segments % 2);
     let rows = p.axial_segments - 1;
     let mut e = Element {
         positions: Vec::with_capacity((2 + rows * (columns + 1)) as usize),
         indices: Vec::with_capacity((6 * columns * rows) as usize),
-        anatomy: None,
+        ..Element::default()
     };
     e.positions.push(Vec3::ZERO);
+    let mut rows_at = Vec::new();
     for row in 0..rows {
         let t = (row + 1) as f64 / p.axial_segments as f64;
         let profile = if t <= p.widest_at {
@@ -169,6 +182,7 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
                 .powf(p.tip_sharpness)
         };
         let width = half * profile;
+        let start = e.positions.len();
         for col in 0..=columns {
             let x = 2. * col as f64 / columns as f64 - 1.;
             e.positions.push(Vec3::new(
@@ -177,8 +191,15 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
                 p.curl * p.length * t * t + p.cup * width * x * x,
             ));
         }
+        rows_at.push(start..e.positions.len());
     }
     e.positions.push(Vec3::new(0., p.length, p.curl * p.length));
+    // The grid's own sections - attachment point, rows, tip - so it reaches the
+    // level rule through the same door the species anatomies do.
+    let sections: Vec<_> = std::iter::once(0..1)
+        .chain(rows_at)
+        .chain(std::iter::once(e.positions.len() - 1..e.positions.len()))
+        .collect();
     let first = |r, c| 1 + r * (columns + 1) + c;
     for c in 0..columns {
         e.indices.extend([0, first(0, c + 1), first(0, c)]);
@@ -201,6 +222,7 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
     for v in &mut e.positions {
         *v = Vec3::new(v.x as f32 as f64, v.y as f32 as f64, v.z as f32 as f64);
     }
+    (e.level_indices, e.levels) = levels::build(&e.positions, &e.indices, &sections);
     Ok(e)
 }
 
@@ -328,6 +350,11 @@ fn build_anatomy(p: ElementParams) -> Result<Element> {
     for v in &mut e.positions {
         *v = Vec3::new(v.x as f32 as f64, v.y as f32 as f64, v.z as f32 as f64);
     }
+    let (buffer, list) = {
+        let a = e.anatomy.as_ref().expect("anatomy just recorded");
+        levels::build(&e.positions, &e.indices, &a.sections)
+    };
+    (e.level_indices, e.levels) = (buffer, list);
     e.validate()?;
     Ok(e)
 }

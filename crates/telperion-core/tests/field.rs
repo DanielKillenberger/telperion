@@ -40,6 +40,7 @@ fn tapered_wood_and_flat_leaf_cells() {
         positions: vec![Vec3::new(-0.5, 0., 0.), Vec3::new(0.5, 1., 0.)],
         indices: vec![],
         anatomy: None,
+        ..Element::default()
     };
     let instances = Instances {
         matrices: vec![[
@@ -76,6 +77,7 @@ fn tapered_wood_and_flat_leaf_cells() {
         positions: vec![],
         indices: vec![],
         anatomy: None,
+        ..Element::default()
     };
     assert!(
         !Field::new(&tree, Some((&instances, &empty)))

@@ -40,7 +40,11 @@ const PINS: [Pin; 2] = [
         wood_vertices: 2725520,
         wood_triangles: 5280080,
         instances: 555204,
-        min: [-12.552015155569293, -0.09600000083446503, -8.909661746289867],
+        min: [
+            -12.552015155569293,
+            -0.09600000083446503,
+            -8.909661746289867,
+        ],
         max: [7.6250192030221, 17.548194502208634, 12.548721025940232],
         skeleton: 13355296115593757449,
         placement: 7063868679653336678,
@@ -51,7 +55,11 @@ const PINS: [Pin; 2] = [
         wood_vertices: 3575758,
         wood_triangles: 6911320,
         instances: 7895664,
-        min: [-4.401611767518741, -0.05999999865889549, -4.4050304090584245],
+        min: [
+            -4.401611767518741,
+            -0.05999999865889549,
+            -4.4050304090584245,
+        ],
         max: [4.039314475833026, 15.002932289485305, 4.19975920363733],
         skeleton: 4142571929448477079,
         placement: 2060019899569959725,
@@ -94,14 +102,13 @@ fn oak_and_spruce_meshes_are_the_tree_recorded_before_the_levels() {
             "{id}: mesh bounds moved"
         );
         assert_eq!(
-            fnv(
-                m.foliage
-                    .instances
-                    .matrices
-                    .iter()
-                    .flatten()
-                    .flat_map(|v| v.to_le_bytes())
-            ),
+            fnv(m
+                .foliage
+                .instances
+                .matrices
+                .iter()
+                .flatten()
+                .flat_map(|v| v.to_le_bytes())),
             pin.placement,
             "{id}: leaf placement moved"
         );
