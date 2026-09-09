@@ -17,13 +17,14 @@ mod web;
 mod wood;
 
 pub use buffer::Region;
-pub use camera::{hero_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
+pub use camera::{hero_pose, orbit_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
 pub use device::{Gpu, RenderError, Result};
 pub use scene::{DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
 pub use submit::{fits, Submitted};
 pub use timing::{
-    judge, Hardware, Report, Session, Verdict, CONDITIONING, CONTENTION_RATIO, MEASURED, WARMUP,
+    judge, Hardware, LevelCount, Report, Session, Verdict, CONDITIONING, CONTENTION_RATIO,
+    MEASURED, WARMUP,
 };
 pub use view::View;
 
@@ -33,7 +34,7 @@ pub use web::WebRenderer;
 #[cfg(not(target_arch = "wasm32"))]
 pub use headless::{attachment, render, write_png, Still, STILL_FORMAT};
 #[cfg(not(target_arch = "wasm32"))]
-pub use timing::run as measure;
+pub use timing::{orbit as measure_orbit, run as measure};
 
 use telperion_core::{mesh::TreeMesh, surface::Bounds};
 
@@ -68,6 +69,10 @@ pub struct Renderer {
     foliage: foliage::Foliage,
     view: View,
     bounds: Option<Bounds>,
+    /// The tolerance of each level of the crown's element, coarsest first, as
+    /// the core built them. Kept here because a timing record names each
+    /// level by the error it accepts, not by its position in the ladder.
+    level_deviations: Vec<f64>,
     colour_format: wgpu::TextureFormat,
 }
 
@@ -85,6 +90,7 @@ impl Renderer {
             foliage,
             view: View::default(),
             bounds: None,
+            level_deviations: Vec::new(),
             colour_format,
         }
     }
@@ -114,6 +120,13 @@ impl Renderer {
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.bounds = Some(mesh.bounds);
+        self.level_deviations = mesh
+            .foliage
+            .element
+            .levels
+            .iter()
+            .map(|level| level.deviation)
+            .collect();
         Ok(Submitted {
             wood_vertices: mesh.wood_vertices(),
             wood_triangles: mesh.wood_triangles(),
@@ -159,6 +172,13 @@ impl Renderer {
         self.foliage.counted(&self.gpu)
     }
 
+    /// What each level of the submitted crown accepts as error, in metres,
+    /// coarsest first. One shorter than `level_counts`, which ends with the
+    /// bucket of leaves no level drew and so has no tolerance of its own.
+    pub fn level_deviations(&self) -> &[f64] {
+        &self.level_deviations
+    }
+
     /// Draws one frame into the given colour and depth views, at the size in
     /// pixels those views were taken at: the crown's levels are chosen first,
     /// then the room, then the vegetation in a pass of its own. The timestamp
@@ -172,6 +192,42 @@ impl Renderer {
         depth: &wgpu::TextureView,
         timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
     ) -> FrameStats {
+        self.draw_with(camera, viewport, colour, depth, timestamps, None)
+    }
+
+    /// The same frame with a pair around each of the two passes the tree
+    /// costs: the selection pass that decides what is drawn, and the
+    /// vegetation pass that draws it. Both pairs are written on every timed
+    /// frame, whatever the view is showing, so a session never resolves a
+    /// query no pass wrote.
+    pub fn draw_timed(
+        &mut self,
+        camera: &Camera,
+        viewport: (u32, u32),
+        colour: &wgpu::TextureView,
+        depth: &wgpu::TextureView,
+        vegetation: wgpu::RenderPassTimestampWrites<'_>,
+        selection: wgpu::ComputePassTimestampWrites<'_>,
+    ) -> FrameStats {
+        self.draw_with(
+            camera,
+            viewport,
+            colour,
+            depth,
+            Some(vegetation),
+            Some(selection),
+        )
+    }
+
+    fn draw_with(
+        &mut self,
+        camera: &Camera,
+        viewport: (u32, u32),
+        colour: &wgpu::TextureView,
+        depth: &wgpu::TextureView,
+        timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
+        selection: Option<wgpu::ComputePassTimestampWrites<'_>>,
+    ) -> FrameStats {
         self.scene
             .set_camera(&self.gpu, camera, aspect_of(viewport));
         let mut encoder = self
@@ -180,8 +236,14 @@ impl Renderer {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("frame"),
             });
-        self.foliage
-            .dispatch(&self.gpu, &mut encoder, camera, viewport, self.view);
+        self.foliage.dispatch(
+            &self.gpu,
+            &mut encoder,
+            camera,
+            viewport,
+            self.view,
+            selection,
+        );
         let room = {
             let mut pass = pass(
                 &mut encoder,

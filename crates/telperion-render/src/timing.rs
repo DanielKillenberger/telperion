@@ -1,12 +1,18 @@
 //! What the vegetation costs the GPU, and whether that number may be believed.
 //!
-//! One timestamp pair is written around the vegetation pass - the base
-//! timestamp feature only, never the native-only inside-pass ones, so the same
-//! session runs in a browser. The readback is callback-driven for the same
-//! reason: a browser's queue advances on its own and `poll` does nothing there.
+//! Two timestamp pairs are written per timed frame: one around the vegetation
+//! render pass, one around the selection compute pass that decides what it
+//! draws. Both are pass-boundary writes under the base timestamp feature -
+//! never the native-only inside-encoder ones - so the same session runs in a
+//! browser. The readback is callback-driven for the same reason: a browser's
+//! queue advances on its own and `poll` does nothing there.
+mod report;
+
+pub use report::{Hardware, LevelCount, Report};
+
 use crate::device::{Gpu, RenderError, Result};
 #[cfg(not(target_arch = "wasm32"))]
-use crate::{Camera, Renderer};
+use crate::{camera, Camera, Renderer, View};
 
 /// Frames drawn before the timer is started at all: long enough for the driver
 /// to have finished allocating the targets and for the clocks to have settled.
@@ -22,6 +28,9 @@ pub const CONTENTION_RATIO: f64 = 2.0;
 
 /// Bytes of one timestamp pair.
 const PAIR: u64 = 2 * wgpu::QUERY_SIZE as u64;
+/// Both pairs: the vegetation pass first, so a reader of the first sixteen
+/// bytes reads what fn-22's records already meant by them.
+const PAIRS: u64 = 2 * PAIR;
 
 /// Whether a session's numbers may be read as a measurement. Every variant but
 /// `Valid` says why, and a report carrying one has no percentile in it at all.
@@ -63,7 +72,7 @@ impl Verdict {
 }
 
 /// The nearest-rank percentile of an already sorted, non-empty slice.
-fn percentile(sorted: &[f64], fraction: f64) -> f64 {
+pub(super) fn percentile(sorted: &[f64], fraction: f64) -> f64 {
     let rank = (fraction * sorted.len() as f64).ceil().max(1.0) as usize;
     sorted[rank.min(sorted.len()) - 1]
 }
@@ -95,140 +104,7 @@ pub fn judge(samples: &[f64]) -> Verdict {
     Verdict::Valid
 }
 
-/// Who did the measuring, in the adapter's own words for itself.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Hardware {
-    pub adapter: String,
-    pub driver: String,
-    pub backend: &'static str,
-}
-
-impl From<&wgpu::AdapterInfo> for Hardware {
-    fn from(info: &wgpu::AdapterInfo) -> Self {
-        Self {
-            adapter: info.name.clone(),
-            driver: format!("{} {}", info.driver, info.driver_info)
-                .trim()
-                .to_owned(),
-            backend: info.backend.to_str(),
-        }
-    }
-}
-
-/// One measured session, in the terms a reader of the evidence needs. The
-/// percentiles exist only on a valid verdict, so nothing in an invalid record
-/// can be mistaken for a number that passed.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Report {
-    pub hardware: Hardware,
-    pub conditioning: usize,
-    pub warmup: usize,
-    pub measured: usize,
-    /// Samples actually kept, which is `measured` unless the session stopped.
-    pub samples: usize,
-    verdict: Verdict,
-    p50_ms: Option<f64>,
-    p95_ms: Option<f64>,
-}
-
-impl Report {
-    /// The report of a session that ran, judged by its own samples.
-    pub fn measured(hardware: Hardware, samples: &[f64]) -> Self {
-        let verdict = judge(samples);
-        let percentiles = verdict.is_valid().then(|| {
-            let mut sorted = samples.to_vec();
-            sorted.sort_by(f64::total_cmp);
-            (percentile(&sorted, 0.5), percentile(&sorted, 0.95))
-        });
-        Self {
-            samples: samples.len(),
-            p50_ms: percentiles.map(|(median, _)| median),
-            p95_ms: percentiles.map(|(_, tail)| tail),
-            verdict,
-            ..Self::blank(hardware)
-        }
-    }
-
-    /// The report of a session that could not run at all.
-    pub fn unavailable(hardware: Hardware, reason: impl Into<String>) -> Self {
-        Self {
-            verdict: Verdict::Unavailable(reason.into()),
-            ..Self::blank(hardware)
-        }
-    }
-
-    fn blank(hardware: Hardware) -> Self {
-        Self {
-            hardware,
-            conditioning: CONDITIONING,
-            warmup: WARMUP,
-            measured: MEASURED,
-            samples: 0,
-            verdict: Verdict::Valid,
-            p50_ms: None,
-            p95_ms: None,
-        }
-    }
-
-    pub fn verdict(&self) -> &Verdict {
-        &self.verdict
-    }
-
-    /// The median measured frame, milliseconds, on a valid session only.
-    pub fn p50_ms(&self) -> Option<f64> {
-        self.p50_ms
-    }
-
-    /// The p95 measured frame, milliseconds, on a valid session only.
-    pub fn p95_ms(&self) -> Option<f64> {
-        self.p95_ms
-    }
-
-    /// The record as it is committed to the evidence. Absent percentiles are
-    /// absent keys, never zeroes.
-    pub fn to_json(&self) -> String {
-        let mut fields = vec![
-            format!("\"adapter\": {}", quote(&self.hardware.adapter)),
-            format!("\"driver\": {}", quote(&self.hardware.driver)),
-            format!("\"backend\": {}", quote(self.hardware.backend)),
-            format!("\"conditioning\": {}", self.conditioning),
-            format!("\"warmup\": {}", self.warmup),
-            format!("\"measured\": {}", self.measured),
-            format!("\"samples\": {}", self.samples),
-            format!("\"verdict\": {}", quote(self.verdict.name())),
-        ];
-        if let Some(reason) = self.verdict.reason() {
-            fields.push(format!("\"reason\": {}", quote(reason)));
-        }
-        if let (Some(median), Some(tail)) = (self.p50_ms, self.p95_ms) {
-            fields.push(format!("\"p50_ms\": {median:.4}"));
-            fields.push(format!("\"p95_ms\": {tail:.4}"));
-        }
-        format!("{{\n  {}\n}}\n", fields.join(",\n  "))
-    }
-}
-
-/// A JSON string literal. Adapter and driver names are the platform's words,
-/// so they are escaped rather than trusted.
-fn quote(text: &str) -> String {
-    let mut out = String::with_capacity(text.len() + 2);
-    out.push('"');
-    for character in text.chars() {
-        match character {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            control if control < ' ' => out.push_str(&format!("\\u{:04x}", control as u32)),
-            ordinary => out.push(ordinary),
-        }
-    }
-    out.push('"');
-    out
-}
-
-/// The timestamp pair and the buffers that bring it back to the host.
+/// The timestamp pairs and the buffers that bring them back to the host.
 pub struct Session {
     queries: wgpu::QuerySet,
     resolved: wgpu::Buffer,
@@ -250,12 +126,12 @@ impl Session {
             return Err("the adapter does not offer timestamp queries".into());
         }
         let queries = gpu.device.create_query_set(&wgpu::QuerySetDescriptor {
-            label: Some("vegetation pass"),
+            label: Some("vegetation and selection passes"),
             ty: wgpu::QueryType::Timestamp,
-            count: 2,
+            count: 4,
         });
         // Resolving writes at a 256-byte aligned offset, so the destination is
-        // taken at that granularity rather than at the pair's own size.
+        // taken at that granularity rather than at the pairs' own size.
         let size = wgpu::QUERY_RESOLVE_BUFFER_ALIGNMENT;
         Ok(Self {
             queries,
@@ -267,7 +143,7 @@ impl Session {
             }),
             readback: gpu.device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("timestamps readback"),
-                size: PAIR,
+                size: PAIRS,
                 usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
                 mapped_at_creation: false,
             }),
@@ -275,7 +151,7 @@ impl Session {
         })
     }
 
-    /// The pair to write around the pass being measured.
+    /// The pair to write around the vegetation pass.
     pub fn writes(&self) -> wgpu::RenderPassTimestampWrites<'_> {
         wgpu::RenderPassTimestampWrites {
             query_set: &self.queries,
@@ -284,7 +160,18 @@ impl Session {
         }
     }
 
-    /// Queues the copy that brings the last pair back. Callback-driven from
+    /// The pair to write around the selection pass. A timed frame opens that
+    /// pass even when it has nothing to select, so this pair is never the one
+    /// a resolve waits on and no query is left unwritten.
+    pub fn selection_writes(&self) -> wgpu::ComputePassTimestampWrites<'_> {
+        wgpu::ComputePassTimestampWrites {
+            query_set: &self.queries,
+            beginning_of_pass_write_index: Some(2),
+            end_of_pass_write_index: Some(3),
+        }
+    }
+
+    /// Queues the copy that brings the last pairs back. Callback-driven from
     /// here on, which is what lets a browser await the same mapping.
     pub fn resolve(&self, gpu: &Gpu) {
         let mut encoder = gpu
@@ -292,12 +179,12 @@ impl Session {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("timestamps"),
             });
-        encoder.resolve_query_set(&self.queries, 0..2, &self.resolved, 0);
-        encoder.copy_buffer_to_buffer(&self.resolved, 0, &self.readback, 0, PAIR);
+        encoder.resolve_query_set(&self.queries, 0..4, &self.resolved, 0);
+        encoder.copy_buffer_to_buffer(&self.resolved, 0, &self.readback, 0, PAIRS);
         gpu.queue.submit([encoder.finish()]);
     }
 
-    /// The pair as a duration in milliseconds. A clock that ran backwards
+    /// A pair as a duration in milliseconds. A clock that ran backwards
     /// arrives here as a negative number and is refused by the verdict, not
     /// here: judging is one place, not two.
     fn duration_ms(&self, ticks: [u64; 2]) -> f64 {
@@ -310,7 +197,7 @@ impl Session {
 /// `poll` does nothing there.
 #[cfg(target_arch = "wasm32")]
 impl Session {
-    /// What the last resolved pair cost, in milliseconds.
+    /// What the last resolved vegetation pass cost, in milliseconds.
     pub async fn sample_ms(&self) -> Result<f64> {
         let lost = |reason: String| RenderError::DeviceLost { reason };
         let (sender, receiver) = futures_channel::oneshot::channel();
@@ -341,7 +228,8 @@ impl Session {
 /// queueing above.
 #[cfg(not(target_arch = "wasm32"))]
 impl Session {
-    /// Draws one timed frame and returns what its vegetation pass cost.
+    /// Draws one timed frame and returns what its vegetation pass and its
+    /// selection pass cost, in that order.
     fn sample(
         &self,
         renderer: &mut Renderer,
@@ -349,13 +237,24 @@ impl Session {
         viewport: (u32, u32),
         colour: &wgpu::TextureView,
         depth: &wgpu::TextureView,
-    ) -> Result<f64> {
-        renderer.draw(camera, viewport, colour, depth, Some(self.writes()));
+    ) -> Result<(f64, f64)> {
+        renderer.draw_timed(
+            camera,
+            viewport,
+            colour,
+            depth,
+            self.writes(),
+            self.selection_writes(),
+        );
         self.resolve(renderer.gpu());
-        Ok(self.duration_ms(self.read(renderer.gpu())?))
+        let ticks = self.read(renderer.gpu())?;
+        Ok((
+            self.duration_ms([ticks[0], ticks[1]]),
+            self.duration_ms([ticks[2], ticks[3]]),
+        ))
     }
 
-    fn read(&self, gpu: &Gpu) -> Result<[u64; 2]> {
+    fn read(&self, gpu: &Gpu) -> Result<[u64; 4]> {
         let lost = |reason: String| RenderError::DeviceLost { reason };
         let (sender, receiver) = std::sync::mpsc::channel();
         self.readback
@@ -376,16 +275,17 @@ impl Session {
             .slice(..)
             .get_mapped_range()
             .map_err(|error| lost(error.to_string()))?;
-        let ticks = bytemuck::pod_read_unaligned::<[u64; 2]>(&view[..PAIR as usize]);
+        let ticks = bytemuck::pod_read_unaligned::<[u64; 4]>(&view[..PAIRS as usize]);
         drop(view);
         self.readback.unmap();
         Ok(ticks)
     }
 }
 
-/// Runs the whole protocol on what is already submitted and reports it. An
-/// adapter that cannot be timed is an unavailable report, never an error: a
-/// missing measurement is a result, and the caller still has a record to file.
+/// Runs the whole protocol on what is already submitted and reports it, with
+/// the camera held still. An adapter that cannot be timed is an unavailable
+/// report, never an error: a missing measurement is a result, and the caller
+/// still has a record to file.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn run(
     renderer: &mut Renderer,
@@ -394,20 +294,86 @@ pub fn run(
     colour: &wgpu::TextureView,
     depth: &wgpu::TextureView,
 ) -> Result<Report> {
+    collect(renderer, viewport, colour, depth, |_| *camera, false)
+}
+
+/// The same protocol while the camera makes one full turn around the hero
+/// pose, at its own elevation and distance. Conditioning and warmup run at the
+/// start of the turn; the measured frames divide it evenly between them, and
+/// the host's wait from one to the next is reported beside the GPU numbers.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn orbit(
+    renderer: &mut Renderer,
+    hero: &Camera,
+    viewport: (u32, u32),
+    colour: &wgpu::TextureView,
+    depth: &wgpu::TextureView,
+) -> Result<Report> {
+    collect(
+        renderer,
+        viewport,
+        colour,
+        depth,
+        |turn| camera::orbit_pose(hero, turn),
+        true,
+    )
+}
+
+/// One session: conditioning, warmup, then the measured frames, each posed by
+/// `pose` at its own fraction of the way through. What comes back is the two
+/// passes' costs, what the crown drew at each level, and - when the pose
+/// moves - how long the host waited between frames.
+#[cfg(not(target_arch = "wasm32"))]
+fn collect(
+    renderer: &mut Renderer,
+    viewport: (u32, u32),
+    colour: &wgpu::TextureView,
+    depth: &wgpu::TextureView,
+    pose: impl Fn(f64) -> Camera,
+    walls: bool,
+) -> Result<Report> {
     let hardware = Hardware::from(&renderer.gpu().adapter);
     let session = match Session::new(renderer.gpu()) {
         Ok(session) => session,
         Err(reason) => return Ok(Report::unavailable(hardware, reason)),
     };
+    let start = pose(0.0);
     for _ in 0..CONDITIONING {
-        renderer.draw(camera, viewport, colour, depth, None);
+        renderer.draw(&start, viewport, colour, depth, None);
     }
     for _ in 0..WARMUP {
-        session.sample(renderer, camera, viewport, colour, depth)?;
+        session.sample(renderer, &start, viewport, colour, depth)?;
     }
-    let mut samples = Vec::with_capacity(MEASURED);
-    for _ in 0..MEASURED {
-        samples.push(session.sample(renderer, camera, viewport, colour, depth)?);
+
+    // Only the whole view runs selection, so only it has counters worth
+    // reading; a bare or leaf session records the passes and no levels.
+    let crown = renderer.view() == View::Whole;
+    let deviations = renderer.level_deviations().to_vec();
+    let mut vegetation = Vec::with_capacity(MEASURED);
+    let mut selection = Vec::with_capacity(MEASURED);
+    let mut counted: Vec<Vec<u32>> = Vec::with_capacity(MEASURED);
+    let mut wall = Vec::with_capacity(MEASURED);
+    let mut previous: Option<std::time::Instant> = None;
+    for frame in 0..MEASURED {
+        let now = std::time::Instant::now();
+        if let Some(last) = previous.replace(now) {
+            wall.push((now - last).as_secs_f64() * 1e3);
+        }
+        let camera = pose(frame as f64 / MEASURED as f64);
+        let (pass, select) = session.sample(renderer, &camera, viewport, colour, depth)?;
+        vegetation.push(pass);
+        selection.push(select);
+        if let Some(counts) = crown.then(|| renderer.level_counts()).flatten() {
+            counted.push(counts);
+        }
     }
-    Ok(Report::measured(hardware, &samples))
+
+    let report = Report::measured(hardware, &vegetation)
+        .with_selection(&vegetation, &selection)
+        .with_levels(&deviations, &counted);
+    Ok(if walls {
+        report.with_wall(&wall)
+    } else {
+        report
+    })
 }

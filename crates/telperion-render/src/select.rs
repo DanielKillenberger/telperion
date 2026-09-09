@@ -252,34 +252,45 @@ impl Select {
     }
 
     /// Starts the counters and the indirect blocks at nothing and runs the
-    /// pass. A crown that selects nothing never reaches the device.
+    /// pass. `crown` is false for a view with no crown to select from, and a
+    /// crown of no leaves has nothing to run; a timed frame opens the pass
+    /// anyway, empty, so its timestamp pair is written and no resolve is left
+    /// waiting on the device for a query that no pass wrote.
     pub fn dispatch(
         &self,
         gpu: &Gpu,
         encoder: &mut wgpu::CommandEncoder,
         camera: &Camera,
         viewport: (u32, u32),
+        crown: bool,
+        timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) {
-        let (Some(compute), Some(counts), Some(arguments)) =
-            (&self.compute, &self.counts, &self.arguments)
-        else {
-            return;
+        let ready = match (crown, &self.compute, &self.counts, &self.arguments) {
+            (true, Some(compute), Some(counts), Some(args)) => Some((compute, counts, args)),
+            _ => None,
         };
-        gpu.queue.write_buffer(
-            &self.uniforms,
-            0,
-            bytemuck::bytes_of(&self.frame(camera, viewport)),
-        );
-        encoder.clear_buffer(counts.buffer(), 0, Some(counts.region().used()));
-        gpu.queue
-            .write_buffer(arguments.buffer(), 0, bytemuck::cast_slice(&self.reset));
+        if ready.is_none() && timestamps.is_none() {
+            return;
+        }
+        if let Some((_, counts, arguments)) = ready {
+            gpu.queue.write_buffer(
+                &self.uniforms,
+                0,
+                bytemuck::bytes_of(&self.frame(camera, viewport)),
+            );
+            encoder.clear_buffer(counts.buffer(), 0, Some(counts.region().used()));
+            gpu.queue
+                .write_buffer(arguments.buffer(), 0, bytemuck::cast_slice(&self.reset));
+        }
         let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("select"),
-            timestamp_writes: None,
+            timestamp_writes: timestamps,
         });
-        pass.set_pipeline(&self.pipeline);
-        pass.set_bind_group(0, compute, &[]);
-        pass.dispatch_workgroups(self.instances.div_ceil(WORKGROUP), 1, 1);
+        if let Some((compute, _, _)) = ready {
+            pass.set_pipeline(&self.pipeline);
+            pass.set_bind_group(0, compute, &[]);
+            pass.dispatch_workgroups(self.instances.div_ceil(WORKGROUP), 1, 1);
+        }
     }
 
     /// What this frame decides against: the frustum a leaf must fall inside,

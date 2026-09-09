@@ -150,7 +150,9 @@ impl Foliage {
 
     /// Chooses a level for every leaf of the crown, before the frame draws
     /// any of it. Only the whole view selects: the bare view has no crown to
-    /// select from, and the leaf view is one instance at one known level.
+    /// select from, and the leaf view is one instance at one known level. The
+    /// pass is still opened for a timed frame that selects nothing, so its
+    /// timestamp pair is written either way.
     pub fn dispatch(
         &self,
         gpu: &Gpu,
@@ -158,10 +160,16 @@ impl Foliage {
         camera: &Camera,
         viewport: (u32, u32),
         view: View,
+        timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) {
-        if view == View::Whole {
-            self.select.dispatch(gpu, encoder, camera, viewport);
-        }
+        self.select.dispatch(
+            gpu,
+            encoder,
+            camera,
+            viewport,
+            view == View::Whole,
+            timestamps,
+        );
     }
 
     /// Draws the crown this view asks for: every placement at the level
