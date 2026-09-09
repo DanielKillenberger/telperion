@@ -10,7 +10,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-22-hero-tree-through-a-rust-wgpu-renderer.md",
-  "status": "open",
+  "status": "done",
   "title": "Hero tree through a Rust wgpu renderer",
   "tracker": {
     "baseHashFlow": null,
@@ -23,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-08T17:44:48.512476Z"
+  "updated_at": "2026-09-09T09:22:33.931352Z"
 }
