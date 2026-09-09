@@ -39,9 +39,38 @@ Answer the Early proof point before any level exists. Add a `--level quad` switc
 - [ ] If the conclusion is fill-bound: task stops with NEEDS_HUMAN and the two numbers in the task file; tasks 2 onward do not start
 
 ## Done summary
-TBD
+The probe is in and the answer is vertex-bound. `--level quad` makes the headless
+example submit every foliage instance as a two-triangle quad spanning the
+element's blade extent, threaded through a new `Renderer::submit_at` so the level
+travels with the tree rather than sitting on the renderer; the plain `submit`
+delegates at the full element, which is why the browser surface gains nothing.
 
+The oak at seed 7, hero pose, 1600x1000 on the RTX 3080: 18.08 ms whole,
+1.58 ms as quads, both verdicts valid, both records under `.flow/evidence/fn23/`.
+Same 555,204 instances and the same coverage in both; only the triangles per leaf
+change, 268 down to 2. The frame is spent on primitives, not on fill, so the
+spec's levels are the right mechanism and tasks 2 onward proceed. fn-22's report
+reads the oak as raster-bound on large leaves; that reading is wrong, and
+`.flow/evidence/fn23/PROBE.md` says so with both numbers.
+
+Two deviations to note. Both sessions ran with `--size 1600x1000` added to the
+AC's command string, because fn-22's 17.87 ms was measured at that size and the
+AC's own within-10-percent clause is only meaningful against it; the full run
+came in at 18.085 ms, 1.2 percent above. And the unknown-`--level` error case is
+covered by a unit test on `Level::from_id` plus a recorded CLI run (exit 1,
+`unknown level "3"; one of quad`) rather than a test of the example binary, which
+this crate has no rig for.
+
+Triangle arithmetic checks out against fn-22 exactly: 6,391,128 drawn under quad
+is 5,280,080 wood plus 2 x 555,204 leaves plus the room's 640, and the full run's
+154,075,392 reproduces fn-22's number to the triangle.
+
+Follow-up, not built: the stand-in ignores the blade outline and would thin the
+crown visibly, so it is a measurement hook only. Task 3 replaces the `quad` value
+with numeric levels, and `Level::NAMES` is the one place that has to change.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4917a32032ea8339b047623c98acf33527805dbb
+- Tests: cargo test --release --workspace (110 passed, 0 failed; GPU-gated suites ran on the RTX 3080), cargo fmt --all --check, cargo run --release -p telperion-render --example headless -- --preset oregon-white-oak --seed 7 --out /tmp/oak-quad.png --size 1600x1000 --level quad --timing .flow/evidence/fn23/probe-quad-timing.json (valid, p50 1.577 ms), cargo run --release -p telperion-render --example headless -- --preset oregon-white-oak --seed 7 --out /tmp/oak-full.png --size 1600x1000 --timing .flow/evidence/fn23/probe-full-timing.json (valid, p50 18.085 ms), cargo run ... --level 3 (exit 1: unknown level "3"; one of quad)
 - PRs:
