@@ -102,3 +102,4 @@ stage: impl-review - skipped(config: REVIEW_MODE=none)
 - Commits: f19af78dd153cefdce6a6644b50c043115ae1a87, d556b54d8e2b2aa5c533a240c4345f4237658542
 - Tests: cargo test --release --workspace (113 passed, 0 failed, 29 suites), cargo test --release -p telperion-core, cargo fmt --check, cargo clippy --release --workspace --all-targets (no warnings)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
