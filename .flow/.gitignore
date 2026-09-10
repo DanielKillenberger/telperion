@@ -14,3 +14,4 @@ pilot-runs/
 create-first/
 review-fanout/
 # End of auto-managed block. User patterns below this line are preserved.
+artifacts/
