@@ -128,6 +128,45 @@ pub fn orbit_pose(hero: &Camera, turn: f64) -> Camera {
     }
 }
 
+/// The pose partway along a walk between two hero poses. What is interpolated
+/// is the shot and not the matrix: where the camera looks, how far back it
+/// stands and how high it stands, each straight in `at`, with `sweep` degrees
+/// of azimuth turned on top so the eye drifts round the subject as it goes.
+/// `at` is the caller's parameter already eased, so the ease that carries the
+/// tree carries the camera with it.
+pub fn walk_pose(from: &Camera, to: &Camera, at: f64, sweep: f64) -> Camera {
+    let mix = |near: f64, far: f64| near + (far - near) * at;
+    let (near, far) = (from.position - from.target, to.position - to.target);
+    let distance = mix(near.length(), far.length());
+    let elevation = mix(elevation_of(near), elevation_of(far));
+    let azimuth = mix(azimuth_of(near), azimuth_of(far)) + sweep.to_radians();
+    let (rise, run) = elevation.sin_cos();
+    let (across, along) = azimuth.sin_cos();
+    let target = from.target + (to.target - from.target) * at;
+    Camera {
+        position: target + Vec3::new(run * across, rise, run * along) * distance,
+        target,
+        field_of_view: mix(from.field_of_view, to.field_of_view),
+        near: mix(from.near, to.near),
+        far: mix(from.far, to.far),
+    }
+}
+
+/// The angle a stand-off makes above the horizontal, and the one it makes
+/// about the vertical. A camera standing on its subject has neither.
+fn elevation_of(offset: Vec3) -> f64 {
+    let length = offset.length();
+    if length > 0.0 {
+        (offset.y / length).clamp(-1.0, 1.0).asin()
+    } else {
+        0.0
+    }
+}
+
+fn azimuth_of(offset: Vec3) -> f64 {
+    offset.x.atan2(offset.z)
+}
+
 /// Column-major, element `column * 4 + row`.
 fn perspective(field_of_view: f64, aspect: f64, near: f64, far: f64) -> [f64; 16] {
     let f = 1.0 / (field_of_view.to_radians() / 2.0).tan();
@@ -349,6 +388,111 @@ mod tests {
             turned[0].distance(orbit_pose(&hero, 1.0).position) < 1e-9,
             "a full turn did not come back to where it started"
         );
+    }
+
+    fn spruce_bounds() -> Bounds {
+        // Narrower and taller than the oak, and centred elsewhere: a walk
+        // between the two has to move the eye and what it looks at.
+        Bounds {
+            min: Vec3::new(-3.6, 0.0, -3.4),
+            max: Vec3::new(3.5, 31.2, 3.7),
+        }
+    }
+
+    fn ends() -> (Camera, Camera) {
+        let aspect = 16.0 / 9.0;
+        (
+            hero_pose(oak_bounds(), aspect, crate::GROUND_REACH),
+            hero_pose(spruce_bounds(), aspect, crate::GROUND_REACH),
+        )
+    }
+
+    #[test]
+    fn a_walk_stands_at_a_hero_pose_at_each_of_its_ends() {
+        let (oak, spruce) = ends();
+        for (at, end) in [(0.0, oak), (1.0, spruce)] {
+            let pose = walk_pose(&oak, &spruce, at, 0.0);
+            assert!(
+                pose.position.distance(end.position) < 1e-9,
+                "the eye at {at} stands at {:?}, not the hero pose {:?}",
+                pose.position,
+                end.position
+            );
+            assert!(pose.target.distance(end.target) < 1e-9, "the subject moved");
+            assert!((pose.near - end.near).abs() < 1e-12);
+            assert!((pose.far - end.far).abs() < 1e-12);
+        }
+    }
+
+    #[test]
+    fn a_walk_keeps_the_subject_and_the_stand_off_between_its_ends() {
+        let (oak, spruce) = ends();
+        let stand = |camera: &Camera| camera.position.distance(camera.target);
+        let (low, high) = (
+            stand(&oak).min(stand(&spruce)),
+            stand(&oak).max(stand(&spruce)),
+        );
+        let span = oak.target.distance(spruce.target);
+        for step in 0..=24 {
+            let at = f64::from(step) / 24.0;
+            let pose = walk_pose(&oak, &spruce, at, 35.0);
+            let distance = stand(&pose);
+            assert!(
+                distance >= low - 1e-9 && distance <= high + 1e-9,
+                "the eye stood {distance} m out at {at}, outside {low}..{high}"
+            );
+            // The subject walks the straight line between the two centres and
+            // never wanders off it, sweep or no sweep.
+            let walked = pose.target.distance(oak.target);
+            assert!(
+                (walked - span * at).abs() < 1e-9
+                    && (walked + pose.target.distance(spruce.target) - span).abs() < 1e-9,
+                "what the camera looks at is {walked} m along a {span} m line at {at}"
+            );
+            assert!(
+                pose.position.y > 0.0,
+                "the eye went underground at {at}: {}",
+                pose.position.y
+            );
+        }
+    }
+
+    #[test]
+    fn a_whole_sweep_comes_back_to_the_pose_it_left() {
+        let (oak, spruce) = ends();
+        for step in 0..=8 {
+            let at = f64::from(step) / 8.0;
+            let (still, turned) = (
+                walk_pose(&oak, &spruce, at, 0.0),
+                walk_pose(&oak, &spruce, at, 360.0),
+            );
+            assert!(
+                still.position.distance(turned.position) < 1e-9,
+                "a full sweep at {at} landed somewhere else"
+            );
+        }
+    }
+
+    #[test]
+    fn a_sweep_turns_the_eye_about_the_subject_and_keeps_its_height() {
+        let (oak, spruce) = ends();
+        let straight = walk_pose(&oak, &spruce, 0.5, 0.0);
+        let swept = walk_pose(&oak, &spruce, 0.5, 90.0);
+        assert!(
+            (swept.position.y - straight.position.y).abs() < 1e-9,
+            "the sweep changed the eye's height"
+        );
+        assert!(
+            (swept.position.distance(swept.target) - straight.position.distance(straight.target))
+                .abs()
+                < 1e-9,
+            "the sweep changed how far back the eye stands"
+        );
+        assert!(
+            swept.position.distance(straight.position) > 1.0,
+            "a quarter sweep did not move the eye"
+        );
+        assert_eq!(swept.target, straight.target, "the sweep left the subject");
     }
 
     #[test]

@@ -17,7 +17,7 @@ mod web;
 mod wood;
 
 pub use buffer::Region;
-pub use camera::{hero_pose, orbit_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
+pub use camera::{hero_pose, orbit_pose, walk_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
 pub use device::{Gpu, RenderError, Result};
 pub use scene::{DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
