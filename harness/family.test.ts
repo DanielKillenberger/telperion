@@ -4,6 +4,7 @@ import { ORDINARY, PRESETS as CATALOGUE, TWO_TREES } from "../src/browser/core";
 
 import { DEFAULT_PARAMS, SLIDERS } from "./params";
 import {
+  CANOPY_FROM_SLIDERS,
   presetToParams,
   toCanopyParams,
   toFamily,
@@ -257,6 +258,25 @@ describe("toFamily", () => {
       expect(toFamily(presetToParams(preset))).toEqual(family);
     },
   );
+});
+
+describe("CANOPY_FROM_SLIDERS", () => {
+  it("names exactly the canopy terms a slider overwrites", () => {
+    /* What is left over - the lean and contact traits - is what the panel
+       renders as a generic control, so a name missing from the set is a
+       control the next build silently overwrites and a name too many is a
+       trait the owner cannot reach at all. Sentinels rather than the
+       preset's own values: a term that happened to equal its slider would
+       otherwise pass as untouched. */
+    const canopy = DEFAULT_PARAMS.family.canopy;
+    const sentinels = Object.fromEntries(Object.keys(canopy).map((key, index) => [key, -(index + 1)]));
+    const mapped = toCanopyParams({
+      ...DEFAULT_PARAMS,
+      family: { ...DEFAULT_PARAMS.family, canopy: sentinels as unknown as typeof canopy },
+    }) as unknown as Record<string, number>;
+    const overwritten = Object.keys(sentinels).filter((key) => mapped[key] !== sentinels[key]);
+    expect(new Set(overwritten)).toEqual(CANOPY_FROM_SLIDERS);
+  });
 });
 
 describe("familyJson", () => {

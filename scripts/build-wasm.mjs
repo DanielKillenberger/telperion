@@ -11,10 +11,9 @@ const presets = catalogue.map(entry => entry.family);
 function type(values) {
   const present = values.filter(v => v !== null);
   if (!present.length) return 'number';
-  if (typeof present[0] === 'string') return [...new Set(present)].map(v => JSON.stringify(v)).join(' | ');
+  // No family field is a string tag or a tagged variant any more: every
+  // trait is a number, so a scalar types as itself and an object by its keys.
   if (typeof present[0] !== 'object') return typeof present[0];
-  // Tagged variants retain their exact fields; all shapes come from native presets.
-  if ('kind' in present[0]) return [...new Set(present.map(v => typeObject([v])))].join(' | ');
   return typeObject(present);
 }
 function typeObject(values) {

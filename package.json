@@ -1,7 +1,7 @@
 {
   "name": "telperion",
   "version": "0.1.0",
-  "description": "A procedural tree generator. Authored silhouette, space colonization continued by local rules down to leaf-bearing twigs, conserved thickness, one continuous plaited surface, and foliage culled to a shell and drawn one indirect draw per level of detail, each leaf at the coarsest level a pixel cannot tell from the finest.",
+  "description": "A procedural tree generator. Authored silhouette, one builder growing every axis from continuous botanical traits with attractor pull among them, local rules down to leaf-bearing twigs, conserved thickness, one continuous plaited surface, and foliage culled to a shell and drawn one indirect draw per level of detail, each leaf at the coarsest level a pixel cannot tell from the finest.",
   "keywords": [
     "procedural",
     "tree",
