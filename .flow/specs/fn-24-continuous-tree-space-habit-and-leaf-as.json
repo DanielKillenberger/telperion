@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-24-continuous-tree-space-habit-and-leaf-as.md",
-  "status": "open",
+  "status": "done",
   "title": "Continuous tree space: habit and leaf as traits",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T13:50:21.430573Z"
+  "updated_at": "2026-09-10T21:38:49.365685Z"
 }

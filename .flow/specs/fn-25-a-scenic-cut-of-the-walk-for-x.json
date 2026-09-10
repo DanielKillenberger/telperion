@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-25-a-scenic-cut-of-the-walk-for-x.md",
-  "status": "open",
+  "status": "done",
   "title": "A scenic cut of the walk, for X",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T20:48:34.429848Z"
+  "updated_at": "2026-09-10T21:38:49.871437Z"
 }
