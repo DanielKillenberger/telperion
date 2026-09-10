@@ -107,6 +107,22 @@ cargo run --release -p telperion-render --example headless -- \
 
 `--to <preset>` renders a numbered PNG sequence instead of one still: `--frames <n>` frames, 240 by default, each the blend of the two families at the one seed, all of them at the hero pose the first frame's bounds fixed. `--out` names the sequence, so `--out /tmp/walk/frame.png` writes `/tmp/walk/frame-0001.png` onward with `transition.json` beside them, naming both presets, the seed, the size, the frame count, the rate of 24 a second and what the encoder did. When `ffmpeg` is on the path the frames are assembled into `transition.mp4` at that rate; when it is not, the run says so in one line and keeps the sequence, which is the artefact either way.
 
+The same walk stated in seconds, eased, with the camera between the two trees:
+
+```sh
+cargo run --release -p telperion-render --example headless -- \
+  --preset oregon-white-oak --to norway-spruce --seed 7 \
+  --walk 12 --hold 2 --sweep 35 --size 1920x1080 --out .flow/evidence/fn25/whole/frame.png
+```
+
+`--walk <seconds>` gives the blend a length in seconds at 24 frames a second instead of a frame count, and eases it with a smoothstep so the walk leaves and arrives at rest. `--hold <seconds>` holds that many seconds of frames at each end, at the near family before the walk and the far one after it. `--sweep <degrees>` turns the camera that many degrees of azimuth across the whole sequence, holds included, so the shot keeps drifting while the tree stands still. A walk also changes what the camera is: instead of the first frame's pose held throughout, it eases between the two ends' own hero poses - what it looks at, how far back it stands and how high - so neither tree is framed for the other. `--view leaf` walks the same way on the leaf of each end. `--walk` and `--frames` are two ways to say one length and refuse each other; a walk of zero seconds, a negative hold, or a sweep outside -360 to 360 degrees is refused by the name of the flag. `transition.json` carries the walk, the hold, the sweep and the ease beside the frames.
+
+```sh
+node scripts/scenic-cut.mjs --out .flow/evidence/fn25/scenic.mp4
+```
+
+`scripts/scenic-cut.mjs` cuts a whole-tree sequence and a leaf sequence, both already on disk, into the one clip: a half-second crossfade from the first into the second, a light grade of contrast, warmth and a soft vignette, and one ffmpeg encode to 1920 by 1080 H.264 at 24 frames a second. It writes `scenic.json` beside the clip naming every input, the grade and the exact invocation, and it re-reads the finished file rather than assuming it. It renders nothing itself, refuses a sequence it cannot find by naming the path, and on a machine with no `ffmpeg` says so in one line and leaves the sequences standing.
+
 `npm run rust:test:wasm` holds the Wasm binding to its contract in a plain headless browser, which needs no adapter at all. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
 
 ## Measurements and limits
