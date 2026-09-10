@@ -49,9 +49,14 @@ Build the scenic walk on the headless target and the assembly script, prove them
 
 
 ## Done summary
-TBD
+The headless target now walks in seconds rather than frames: `--walk` eases the blend with a smoothstep over a stated duration, `--hold` stands still at each end while the camera keeps moving, and `--sweep` turns a stated azimuth across the whole sequence. A walk no longer holds the first frame's pose - `walk_pose` in `camera.rs` eases between the two ends' own hero poses (what the camera looks at, how far back it stands, how high) so neither tree is framed for the other, and `--view leaf` walks the same way on each end's leaf. The command line and the schedule moved to `examples/headless/walk.rs`, which `tests/walk.rs` compiles in so the plan can be asserted without a device; the `--frames` path keeps its own branch, its own record and its own formula, pinned by a test that spells the old formula out. `scripts/scenic-cut.mjs` reads the two sequences off disk, crossfades and grades them and encodes once through ffmpeg, writing `scenic.json` with every input and the exact invocation and re-reading the finished file rather than assuming it.
 
+One full-size render was taken: 384 whole-tree frames (2 s held, 12 s eased, 2 s held, 35 degrees swept) and 120 leaf frames (5 s, 20 degrees), both 1920x1080. The cut is `.flow/evidence/fn25/scenic.mp4`, h264 yuv420p 1920x1080 at 24 fps, 20.5 s, 52 MB. No frame and no clip was opened; the records beside them are the evidence. R3 is the owner's: the clip is waiting to be viewed and judged.
+
+Two notes for the reviewer. `crates/telperion-render/tests/walk.rs` is new and sits outside the task's declared Touches: an example target's `#[cfg(test)]` module never runs under `cargo test`, so the acceptance criterion that the `--frames` schedule be asserted by a test could not be met inside `examples/**` without a `[[example]] test = true` stanza in `Cargo.toml`, which is equally outside Touches and is an implementation edit rather than a test one. The new file adds no product behaviour. And `--walk` with `--frames` is refused as a clash: the two state one length two ways, and silently preferring either would have been a guess.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e64e7b23daea90b7640cb2d780be8f795a744675, a0a35bacebc0eff1781f04783e963f5cbfa9c751, 6b2e8ad7b29ad17a12da8583e8316e82ce74cf92
+- Tests: cargo test --release -p telperion-render (55 tests, green), cargo fmt --check -p telperion-render, cargo clippy --release -p telperion-render --all-targets, proof render 480x270 --walk 2 --hold 0.5 --sweep 30 (72 frames), leaf proof --walk 0.5 --sweep 20 (12 frames), --frames 3 at 64x64 (record unchanged), node scripts/scenic-cut.mjs: full cut 1920x1080 h264 yuv420p 24 fps 20.5 s; missing sequence, empty directory, bad --fade, over-long fade, bad --size, unknown flag and missing-ffmpeg paths each exercised
 - PRs:
