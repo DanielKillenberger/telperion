@@ -109,9 +109,10 @@ impl Preset {
                 lobe_count: 5,
                 lobe_depth: 0.7,
                 section_roundness: 0.0,
-                // A section at every crest and every sinus, and on them: the
-                // lobes land on sampled stations rather than between them.
-                axial_segments: 20,
+                // Four stations to a half-lobe, landing exactly on every crest
+                // and every sinus: fewer and the margin is drawn as the zigzag
+                // between them rather than as the curve through them.
+                axial_segments: 40,
                 ..Default::default()
             };
             // Retain interior leaf-bearing shoots in the healthy open-grown crown.
