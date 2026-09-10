@@ -75,7 +75,12 @@ fn element_anatomy_and_bounds() {
             ..ElementParams::default()
         })
         .unwrap();
-        for tri in e.indices.as_chunks::<3>().0 {
+        // The blade faces +Z at roundness 0; the connector's sides face out.
+        let blade = e
+            .anatomy
+            .as_ref()
+            .map_or(0..e.indices.len(), |a| a.indices.clone());
+        for tri in e.indices[blade].as_chunks::<3>().0 {
             let a = e.positions[tri[0] as usize];
             let b = e.positions[tri[1] as usize];
             let c = e.positions[tri[2] as usize];
@@ -282,81 +287,120 @@ fn shell_keeps_leaf_extent_and_crown_underside() {
     .is_err());
 }
 
-fn species_element(anatomy: ElementAnatomy) -> ElementParams {
+/// The two ends of the element's trait space, as rows and nothing else: a
+/// deeply lobed blade and a four-sided shaft, built by the one routine.
+fn lobed_blade() -> ElementParams {
     ElementParams {
-        anatomy,
-        length: if anatomy == ElementAnatomy::FourSidedNeedle {
-            0.02
-        } else {
-            0.1
-        },
-        width: if anatomy == ElementAnatomy::FourSidedNeedle {
-            0.0015
-        } else {
-            0.07
-        },
-        connector_length: if anatomy == ElementAnatomy::FourSidedNeedle {
-            0.0007
-        } else {
-            0.012
-        },
+        length: 0.1,
+        width: 0.07,
+        connector_length: 0.012,
         cup: 0.08,
         curl: 0.02,
+        widest_at: 0.55,
+        base_fullness: 0.6,
+        tip_sharpness: 0.6,
+        lobe_count: 5,
+        lobe_depth: 0.7,
+        axial_segments: 20,
+        ..ElementParams::default()
+    }
+}
+fn four_sided_needle() -> ElementParams {
+    ElementParams {
+        length: 0.02,
+        width: 0.0015,
+        connector_length: 0.0007,
+        cup: 0.08,
+        curl: 0.02,
+        widest_at: 0.2,
+        base_fullness: 0.2,
+        tip_sharpness: 0.2,
+        section_roundness: 1.0,
+        cross_segments: 4,
         ..ElementParams::default()
     }
 }
 
 #[test]
-fn profile_blades_have_rounded_lobes_and_needles_have_four_sides() {
-    for shape in [ElementAnatomy::LobedBlade, ElementAnatomy::FourSidedNeedle] {
-        let params = species_element(shape);
+fn one_routine_builds_a_lobed_margin_and_a_four_sided_shaft() {
+    for (name, params) in [("blade", lobed_blade()), ("needle", four_sided_needle())] {
         let e = build_element(params).unwrap();
-        assert_eq!(e, build_element(params).unwrap());
-        let a = e.anatomy.as_ref().expect("explicit biological subset");
-        assert!(a.vertices.end < e.positions.len(), "connector excluded");
+        assert_eq!(e, build_element(params).unwrap(), "{name}: repeatable");
+        let a = e
+            .anatomy
+            .as_ref()
+            .expect("every element publishes its sections");
+        assert!(
+            a.vertices.end < e.positions.len(),
+            "{name}: connector excluded"
+        );
         let first = &e.positions[a.sections[0].clone()];
         assert!(first
             .iter()
             .all(|v| (v.y - params.connector_length).abs() < 1e-8));
         let tip = e.positions[a.sections.last().unwrap().start];
         assert!((tip.y - params.connector_length - params.length).abs() < 1e-8);
-        if shape == ElementAnatomy::LobedBlade {
+        for tri in e.indices.as_chunks::<3>().0.iter() {
+            let [a, b, c] = [tri[0], tri[1], tri[2]].map(|v| e.positions[v as usize]);
+            assert!((b - a).cross(c - a).length() > 0., "{name}: real triangle");
+        }
+
+        let extent = |r: &Range<usize>, f: fn(Vec3) -> f64| {
+            let row = &e.positions[r.clone()];
+            row.iter().map(|v| f(*v)).fold(f64::NEG_INFINITY, f64::max)
+                - row.iter().map(|v| f(*v)).fold(f64::INFINITY, f64::min)
+        };
+        let widths: Vec<_> = a.sections.iter().map(|r| extent(r, |v| v.x)).collect();
+        if params.section_roundness < 0.5 {
             assert_eq!(a.unit, FoliageUnit::Leaf);
-            let widths: Vec<_> = a
-                .sections
-                .iter()
-                .map(|r| {
-                    let row = &e.positions[r.clone()];
-                    row.iter().map(|v| v.x).fold(f64::NEG_INFINITY, f64::max)
-                        - row.iter().map(|v| v.x).fold(f64::INFINITY, f64::min)
-                })
-                .collect();
-            let lobes = widths
+            // One crest per lobe: the margin rises and falls five times.
+            let crests = widths
                 .windows(3)
                 .filter(|w| w[1] > w[0] && w[1] > w[2])
                 .count();
-            assert!(lobes >= 3, "rounded lateral lobes, got {lobes}");
-            let last = &e.positions[a.sections[a.sections.len() - 2].clone()];
-            let half = last.last().unwrap().x;
-            assert!(
-                half > (tip.y - last[0].y),
-                "rounded terminal lobe rather than bristle"
+            assert_eq!(
+                crests, params.lobe_count as usize,
+                "{name}: {crests} crests for {} lobes",
+                params.lobe_count
             );
+            // Sinuses cut toward the midrib and stop at it: section 10 is the
+            // crest at mid-blade, section 12 the sinus past it.
+            let sinus = widths[12] / widths[10];
+            assert!(
+                (0.2..0.6).contains(&sinus),
+                "{name}: sinus at {sinus} of the crest"
+            );
+            assert!(widths.iter().all(|w| w.is_finite() && *w >= 0.));
         } else {
             assert_eq!(a.unit, FoliageUnit::Needle);
-            assert_eq!(first.len(), 4);
-            assert!(first.iter().any(|v| v.z > 0.) && first.iter().any(|v| v.z < 0.));
-            let mut edges = std::collections::BTreeMap::new();
-            for tri in e.indices[a.indices.clone()].as_chunks::<3>().0.iter() {
-                for (u, v) in [(tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0])] {
-                    *edges.entry((u.min(v), u.max(v))).or_insert(0) += 1;
-                }
+            let shaft = &e.positions[a.sections[1].clone()];
+            // The strip is rolled shut: its two edges are one point, and the
+            // section between them spans four sides at the same reach.
+            assert!(
+                (shaft[0] - shaft[shaft.len() - 1]).length() < 1e-9,
+                "{name}: the section closes on itself"
+            );
+            let sides = &shaft[..shaft.len() - 1];
+            let centre = sides.iter().fold(Vec3::ZERO, |a, b| a + *b) / sides.len() as f64;
+            let reach: Vec<f64> = sides
+                .iter()
+                .map(|v| (v.x - centre.x).abs() + (v.z - centre.z).abs())
+                .collect();
+            assert_eq!(reach.len(), 4, "{name}: four sides");
+            let half = params.width / 2.;
+            for r in &reach {
+                assert!(
+                    (r - half).abs() < half * 0.02,
+                    "{name}: reach {r} of {half}"
+                );
             }
-            assert!(edges.values().all(|n| *n == 2), "closed needle surface");
-        }
-        for tri in e.indices.as_chunks::<3>().0.iter() {
-            let [a, b, c] = [tri[0], tri[1], tri[2]].map(|v| e.positions[v as usize]);
-            assert!((b - a).cross(c - a).length() > 0.);
+            assert!(extent(&a.sections[1], |v| v.x) > 0. && extent(&a.sections[1], |v| v.z) > 0.);
+            // The shaft holds its width to the distal point rather than
+            // tapering away like a blade.
+            assert!(
+                widths[widths.len() - 2] > 0.75 * widths[1],
+                "{name}: shaft width"
+            );
         }
     }
 }
@@ -370,8 +414,8 @@ fn species_attachment_uses_local_twig_and_connected_origins() {
         stations_per_internode: 1,
     };
     for (attachment, shape) in [
-        (Attachment::Alternate, ElementAnatomy::LobedBlade),
-        (Attachment::RadialNeedles, ElementAnatomy::FourSidedNeedle),
+        (Attachment::Alternate, lobed_blade()),
+        (Attachment::RadialNeedles, four_sided_needle()),
     ] {
         let p = CanopyParams {
             attachment,
@@ -388,7 +432,7 @@ fn species_attachment_uses_local_twig_and_connected_origins() {
             instances,
             place(&t, Envelope::default(), 4, p, Some(stations)).unwrap()
         );
-        let e = build_element(species_element(shape)).unwrap();
+        let e = build_element(shape).unwrap();
         let mut upper = 0;
         let mut lower = 0;
         for (k, m) in instances.matrices.iter().enumerate() {
@@ -424,19 +468,26 @@ fn species_attachment_uses_local_twig_and_connected_origins() {
 
 #[test]
 fn species_empty_degenerate_and_invalid_controls_are_explicit() {
-    for shape in [ElementAnatomy::LobedBlade, ElementAnatomy::FourSidedNeedle] {
-        for bad in [0., -1., f64::NAN, f64::INFINITY] {
+    for shape in [lobed_blade(), four_sided_needle()] {
+        for bad in [0., -1., f64::NAN, f64::INFINITY, shape.length * 1.01] {
             assert!(build_element(ElementParams {
                 connector_length: bad,
-                ..species_element(shape)
+                ..shape
             })
             .is_err());
         }
-        assert!(build_element(ElementParams {
-            card: true,
-            ..species_element(shape)
-        })
-        .is_err());
+        // A card is the authored extent and nothing else: it carries neither
+        // a lobed margin nor a rounded section, and says so by name.
+        assert_eq!(
+            build_element(ElementParams {
+                card: true,
+                ..shape
+            })
+            .err(),
+            Some(Error::InvalidInput(
+                "leaf card carries no lobes and no section roundness"
+            ))
+        );
     }
     for attachment in [Attachment::Alternate, Attachment::RadialNeedles] {
         let p = CanopyParams {
@@ -510,7 +561,7 @@ fn alternate_stations_continue_across_subdivided_twig_runs() {
 
 #[test]
 fn needles_retain_shaft_width_before_the_distal_point() {
-    let e = build_element(species_element(ElementAnatomy::FourSidedNeedle)).unwrap();
+    let e = build_element(four_sided_needle()).unwrap();
     let sections = &e.anatomy.as_ref().unwrap().sections;
     let width = |i: usize| {
         let row = &e.positions[sections[i].clone()];
@@ -584,21 +635,14 @@ fn distance_to_triangle(p: Vec3, a: Vec3, b: Vec3, c: Vec3) -> f64 {
         .fold(f64::INFINITY, f64::min)
 }
 
-/// The transverse sections a level is chosen from. The species anatomies
-/// publish theirs; the generic grid does not, so its layout — attachment
-/// point, one range per row, tip — is spelled out from its own parameters.
-fn sections(e: &Element, p: ElementParams) -> Vec<Range<usize>> {
-    if let Some(a) = &e.anatomy {
-        return a.sections.clone();
-    }
-    let columns = (p.cross_segments + p.cross_segments % 2) as usize;
-    let rows = (p.axial_segments - 1) as usize;
-    std::iter::once(0..1)
-        .chain((0..rows).map(|r| 1 + r * (columns + 1)..1 + (r + 1) * (columns + 1)))
-        .chain(std::iter::once(
-            1 + rows * (columns + 1)..2 + rows * (columns + 1),
-        ))
-        .collect()
+/// The transverse sections a level is chosen from: every element built by the
+/// one routine publishes its own, whatever its traits say.
+fn sections(e: &Element) -> Vec<Range<usize>> {
+    e.anatomy
+        .as_ref()
+        .expect("a built element publishes its sections")
+        .sections
+        .clone()
 }
 
 fn triangles(e: &Element, level: &Level) -> Vec<[u32; 3]> {
@@ -610,6 +654,9 @@ fn triangles(e: &Element, level: &Level) -> Vec<[u32; 3]> {
 
 #[test]
 fn levels_nest_from_the_widest_section_down_to_the_whole_element() {
+    // The shipped rows, and the corners of the trait space between them: the
+    // ladder reads sections and positions only, so it has to build for every
+    // one of them without knowing which is which.
     let cases = [
         ("generic blade", ElementParams::default(), 2..=4, usize::MAX),
         (
@@ -624,10 +671,55 @@ fn levels_nest_from_the_widest_section_down_to_the_whole_element() {
             2..=4,
             usize::MAX,
         ),
+        (
+            "no lobes at full depth",
+            ElementParams {
+                lobe_count: 0,
+                lobe_depth: 1.0,
+                ..ElementParams::default()
+            },
+            2..=4,
+            usize::MAX,
+        ),
+        (
+            "eight lobes cut to the midrib",
+            ElementParams {
+                lobe_count: 8,
+                lobe_depth: 1.0,
+                axial_segments: 32,
+                ..ElementParams::default()
+            },
+            4..=8,
+            usize::MAX,
+        ),
+        (
+            "a section rolled shut",
+            ElementParams {
+                section_roundness: 1.0,
+                cross_segments: 4,
+                ..ElementParams::default()
+            },
+            2..=4,
+            usize::MAX,
+        ),
+        (
+            "every trait at its limit",
+            ElementParams {
+                lobe_count: 8,
+                lobe_depth: 1.0,
+                section_roundness: 1.0,
+                axial_segments: 32,
+                cross_segments: 4,
+                ..ElementParams::default()
+            },
+            3..=6,
+            usize::MAX,
+        ),
     ];
     for (name, params, wanted, coarsest_triangles) in cases {
-        let e = build_element(params).unwrap();
-        let sections = sections(&e, params);
+        let e = build_element(params).unwrap_or_else(|e| panic!("{name}: {e}"));
+        assert!(e.validate().is_ok(), "{name}: the element is not valid");
+        let sections = sections(&e);
         // The ladder doubles, so its length follows the logarithm of the
         // element: a longer one is a tail of levels that buy nothing.
         assert!(
@@ -761,4 +853,131 @@ fn a_level_list_that_is_not_nested_detail_is_rejected_by_name() {
         Some(Error::InvalidInput("foliage element levels")),
         "a finest level short of the whole element is not a level list"
     );
+}
+
+/// FNV-1a over the element's positions and its whole index list: what the
+/// renderer receives, and nothing about how it was asked for.
+fn element_hash(p: ElementParams) -> u64 {
+    let e = build_element(p).unwrap_or_else(|err| panic!("{p:?}: {err}"));
+    let mut hash = 14695981039346656037_u64;
+    for byte in e
+        .positions
+        .iter()
+        .flat_map(|v| [v.x, v.y, v.z])
+        .flat_map(f64::to_le_bytes)
+        .chain(e.indices.iter().flat_map(|i| i.to_le_bytes()))
+    {
+        hash = (hash ^ byte as u64).wrapping_mul(1099511628211);
+    }
+    hash
+}
+
+#[test]
+fn every_element_trait_moves_every_shipped_preset() {
+    for preset in [
+        Preset::Ordinary,
+        Preset::OregonWhiteOak,
+        Preset::NorwaySpruce,
+        Preset::Telperion,
+        Preset::Laurelin,
+    ] {
+        let p = preset.parameters().element;
+        let base = element_hash(p);
+        for (name, stepped) in [
+            (
+                "lobe count",
+                ElementParams {
+                    lobe_count: p.lobe_count + 1,
+                    // A margin with one more lobe needs the sections to carry
+                    // it; the depth is what puts them there.
+                    lobe_depth: (p.lobe_depth + 0.1).min(1.0),
+                    axial_segments: p.axial_segments.max(2 * p.lobe_count + 3),
+                    ..p
+                },
+            ),
+            (
+                "lobe depth",
+                ElementParams {
+                    lobe_depth: (p.lobe_depth - 0.1).abs(),
+                    lobe_count: p.lobe_count.max(1),
+                    axial_segments: p.axial_segments.max(2 * p.lobe_count.max(1) + 2),
+                    ..p
+                },
+            ),
+            (
+                "section roundness",
+                ElementParams {
+                    section_roundness: (p.section_roundness - 0.1).abs(),
+                    ..p
+                },
+            ),
+        ] {
+            assert_ne!(
+                element_hash(stepped),
+                base,
+                "{preset:?}: {name} moves no vertex"
+            );
+        }
+    }
+}
+
+#[test]
+fn a_margin_with_more_lobes_than_sections_is_rejected_by_both_names() {
+    let entire = ElementParams {
+        lobe_count: 5,
+        lobe_depth: 0.0,
+        axial_segments: 4,
+        ..ElementParams::default()
+    };
+    // Without depth there is no sinus to carry, so the count costs nothing.
+    assert!(build_element(entire).is_ok());
+    assert_eq!(
+        build_element(ElementParams {
+            lobe_depth: 0.4,
+            ..entire
+        })
+        .err(),
+        Some(Error::InvalidInput(
+            "leaf axial segments too few for the lobe count"
+        ))
+    );
+    // A crest and a sinus per lobe, plus the base and the tip, is enough.
+    assert!(build_element(ElementParams {
+        lobe_depth: 0.4,
+        axial_segments: 11,
+        ..entire
+    })
+    .is_ok());
+    for (bad, named) in [
+        (
+            ElementParams {
+                lobe_count: 9,
+                ..ElementParams::default()
+            },
+            "leaf lobe count",
+        ),
+        (
+            ElementParams {
+                lobe_depth: 1.1,
+                ..ElementParams::default()
+            },
+            "leaf lobe depth",
+        ),
+        (
+            ElementParams {
+                section_roundness: -0.01,
+                ..ElementParams::default()
+            },
+            "leaf section roundness",
+        ),
+        (
+            ElementParams {
+                section_roundness: f64::NAN,
+                ..ElementParams::default()
+            },
+            "leaf section roundness",
+        ),
+    ] {
+        assert_eq!(build_element(bad).err(), Some(Error::InvalidInput(named)));
+    }
 }

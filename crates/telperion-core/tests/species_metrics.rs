@@ -137,15 +137,21 @@ fn overflow_and_degenerate_geometry_fail_explicitly() {
 
 #[test]
 fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
-    use telperion_core::foliage::{build_element, ElementAnatomy, ElementParams};
+    use telperion_core::foliage::{build_element, ElementParams};
     let (t, _, mut instances) = fixture();
     // Rotate the nonuniform X/Y/Z scales into world Z/X/Y.
     instances.matrices[0] = [
         0., 0., 2., 0., 3., 0., 0., 0., 0., 4., 0., 0., 1., 5., 0., 1.,
     ];
-    for anatomy in [ElementAnatomy::LobedBlade, ElementAnatomy::FourSidedNeedle] {
+    // A flat blade and a shaft rolled shut, each with a station on its widest
+    // point so the authored width is the measured one.
+    for section_roundness in [0.0, 1.0] {
         let p = ElementParams {
-            anatomy,
+            section_roundness,
+            cross_segments: if section_roundness > 0. { 4 } else { 2 },
+            widest_at: if section_roundness > 0. { 0.2 } else { 0.4 },
+            base_fullness: if section_roundness > 0. { 0.2 } else { 0.85 },
+            tip_sharpness: if section_roundness > 0. { 0.2 } else { 1.6 },
             length: 0.02,
             width: 0.002,
             connector_length: 0.001,
@@ -157,11 +163,8 @@ fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
         let m = measure(&t, &[0., 4., 0.], &e, 3, &instances).unwrap();
         assert_eq!(m["foliage_length_m"]["status"], "measured");
         assert!((m["foliage_length_m"]["max"].as_f64().unwrap() - 0.06).abs() < 1e-8);
-        let expected_width = if anatomy == ElementAnatomy::FourSidedNeedle {
-            0.008
-        } else {
-            0.004
-        };
+        // The blade is measured across its face, the shaft across its section.
+        let expected_width = if section_roundness > 0. { 0.008 } else { 0.004 };
         assert!((m["foliage_width_m"]["max"].as_f64().unwrap() - expected_width).abs() < 1e-8);
         let longer_connector = build_element(ElementParams {
             connector_length: 0.009,
@@ -177,15 +180,16 @@ fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
         );
         assert_eq!(m["units_per_instance"]["value"], 1);
         assert_eq!(m["discarded_units"]["value"], 2);
-        if anatomy == ElementAnatomy::FourSidedNeedle {
+        if section_roundness > 0. {
             let surface = m["needle_surface_area_m2"]["value"].as_f64().unwrap();
             let projected = m["projected_area_m2"]["value"].as_f64().unwrap();
             assert!(surface > 2. * projected);
             assert!(
-                // Five equal intervals; shaft widths .35, 1, .97, .94, .91, 0.
-                // Trapezoidal polygon area = .799 * (.002 * 2) * (.02 * 3).
-                (projected - 0.00019176).abs() < 1e-10,
-                "canonical projected polygon area"
+                // Five equal intervals; the outline profile at 0, .2, .4, .6,
+                // .8, 1 is 0, 1, .98429, .933033, .825217, 0, a trapezoidal
+                // mean of .748508 across (.002 * 2) by (.02 * 3).
+                (projected - 0.000179641_898).abs() < 1e-9,
+                "canonical projected polygon area, got {projected}"
             );
             assert_eq!(m["foliage_unit"], "needle");
         }

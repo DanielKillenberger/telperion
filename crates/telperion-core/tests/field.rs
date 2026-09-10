@@ -178,7 +178,7 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
 fn species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_units() {
     use telperion_core::{
         envelope::Envelope,
-        foliage::{build_element, cull, transform_point, ElementAnatomy, ElementParams},
+        foliage::{build_element, cull, transform_point, ElementParams},
     };
     let matrix = [
         0., 0., 2., 0., 3., 0., 0., 0., 0., 4., 0., 0., 0., 15., 0., 1.,
@@ -186,9 +186,13 @@ fn species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_un
     let instances = Instances {
         matrices: vec![matrix],
     };
-    for anatomy in [ElementAnatomy::LobedBlade, ElementAnatomy::FourSidedNeedle] {
+    for section_roundness in [0.0, 1.0] {
         let element = build_element(ElementParams {
-            anatomy,
+            section_roundness,
+            lobe_count: if section_roundness > 0.0 { 0 } else { 5 },
+            lobe_depth: if section_roundness > 0.0 { 0.0 } else { 0.7 },
+            axial_segments: 12,
+            cross_segments: 4,
             length: 0.02,
             width: 0.002,
             connector_length: 0.001,

@@ -4,7 +4,7 @@ mod species_metrics;
 use serde_json::Value;
 use telperion_core::{
     branching,
-    foliage::{self, Attachment, ElementAnatomy, TwigPlacement},
+    foliage::{self, Attachment, TwigPlacement},
     math::Vec3,
     presets::Preset,
     surface,
@@ -34,7 +34,8 @@ fn oak_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert!(habit.apical_dominance < 0.25 && habit.crookedness > 12.0);
     assert_eq!(habit.attractor_weight, 0.0);
     assert!(!family.skeleton.bias.supernatural.enabled);
-    assert_eq!(family.element.anatomy, ElementAnatomy::LobedBlade);
+    assert!(family.element.lobe_count == 5 && family.element.lobe_depth > 0.5);
+    assert_eq!(family.element.section_roundness, 0.0);
     assert_eq!(family.canopy.attachment, Attachment::Alternate);
     assert_eq!(family.skeleton.twigs.twig.stations_per_internode, 1);
     assert!(Preset::from_id("Quercus garryana").is_none());
@@ -249,7 +250,8 @@ fn spruce_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert_eq!(habit.apical_dominance, 1.0);
     assert!(habit.whorl_strength > 0.8 && habit.rise_secondary < -0.5);
     assert!(!family.skeleton.bias.supernatural.enabled);
-    assert_eq!(family.element.anatomy, ElementAnatomy::FourSidedNeedle);
+    assert_eq!(family.element.section_roundness, 1.0);
+    assert_eq!(family.element.lobe_count, 0);
     assert!(family.element.connector_length > 0.0);
     assert_eq!(family.canopy.attachment, Attachment::RadialNeedles);
     assert_eq!(family.skeleton.twigs.twig.stations_per_internode, 1);

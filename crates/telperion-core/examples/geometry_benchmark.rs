@@ -13,16 +13,19 @@ use telperion_core::{
     surface,
 };
 fn capabilities(preset: &str) -> Value {
-    use telperion_core::foliage::{Attachment, ElementAnatomy};
+    use telperion_core::foliage::Attachment;
     let Some(p) = Preset::from_id(preset) else {
         return json!({"implemented":false,"profile_id":null,"capabilities":[]});
     };
     let f = p.parameters();
     let mut c = vec!["woody-axes"];
-    match f.element.anatomy {
-        ElementAnatomy::LobedBlade => c.push("lobed-blade"),
-        ElementAnatomy::FourSidedNeedle => c.push("four-sided-needle"),
-        _ => {}
+    // The frozen fn-19 protocol names these capabilities; a lobed margin and
+    // a section rolled past halfway are what the names have always meant.
+    if f.element.lobe_count > 0 && f.element.lobe_depth > 0.0 {
+        c.push("lobed-blade");
+    }
+    if f.element.section_roundness >= 0.5 {
+        c.push("four-sided-needle");
     }
     match f.canopy.attachment {
         Attachment::Alternate => c.push("alternate-petiole"),

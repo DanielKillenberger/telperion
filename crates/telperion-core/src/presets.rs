@@ -3,7 +3,7 @@ use crate::{
     bias::{BiasParams, SupernaturalParams},
     branching::{HabitParams, SkeletonParams},
     envelope::Envelope,
-    foliage::{Attachment, CanopyParams, ElementAnatomy, ElementParams},
+    foliage::{Attachment, CanopyParams, ElementParams},
     radius::RadiusParams,
     surface::SurfaceParams,
 };
@@ -96,11 +96,22 @@ impl Preset {
             p.skeleton.twigs.length_ratio = 0.45;
             p.skeleton.twigs.twig.bearing_diameter = 0.03;
             p.radii.trunk_radius = 0.018;
+            // Five lobes on an envelope whose crests sit where the retired
+            // five-lobe table reached; the sinuses cut deeper than that table
+            // did, which is the shape a Quercus garryana leaf actually holds.
             p.element = ElementParams {
-                anatomy: ElementAnatomy::LobedBlade,
                 length: 0.10,
                 width: 0.075,
                 connector_length: 0.012,
+                widest_at: 0.55,
+                base_fullness: 0.6,
+                tip_sharpness: 0.6,
+                lobe_count: 5,
+                lobe_depth: 0.7,
+                section_roundness: 0.0,
+                // A section at every crest and every sinus, and on them: the
+                // lobes land on sampled stations rather than between them.
+                axial_segments: 20,
                 ..Default::default()
             };
             // Retain interior leaf-bearing shoots in the healthy open-grown crown.
@@ -141,11 +152,20 @@ impl Preset {
             p.skeleton.twigs.twig.internode_length = 0.0025;
             p.skeleton.twigs.twig.bearing_diameter = 0.02;
             p.radii.trunk_radius = 0.015;
+            // A shaft that holds its width to the distal point, rolled all
+            // the way round: four sides, four cross segments, no seam vertex
+            // spent on a seam that is not there.
             p.element = ElementParams {
-                anatomy: ElementAnatomy::FourSidedNeedle,
                 length: 0.018,
                 width: 0.0015,
                 connector_length: 0.001,
+                widest_at: 0.2,
+                base_fullness: 0.2,
+                tip_sharpness: 0.2,
+                lobe_count: 0,
+                lobe_depth: 0.0,
+                section_roundness: 1.0,
+                cross_segments: 4,
                 ..Default::default()
             };
             p.shell_depth = 1.0;

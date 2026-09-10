@@ -1,6 +1,8 @@
-//! The tree the core generates, pinned. Every literal here was re-recorded
-//! when fn-24 rebuilt the scaffold from the habit trait table; before that they
-//! were the tree as it stood before the foliage element gained its levels. The
+//! The tree the core generates, pinned. The scaffold literals were re-recorded
+//! when fn-24 rebuilt the scaffold from the habit trait table, and the element
+//! hashes and the oak's bounds again when fn-24 rebuilt the element from the
+//! outline traits; before that they were the tree as it stood before the
+//! foliage element gained its levels. The
 //! pins are a photograph, not a description: if a level ever moves a leaf,
 //! merges one or drops one, these numbers move too.
 //! No device is needed; this is the core's own arithmetic.
@@ -42,14 +44,14 @@ const PINS: [Pin; 2] = [
         wood_triangles: 8255000,
         instances: 869310,
         min: [
-            -13.162276839604127,
+            -13.162358233070957,
             -0.09600000083446503,
-            -13.243110057301594,
+            -13.242490423042556,
         ],
-        max: [13.217528964716088, 23.557588561102154, 13.003740334809699],
+        max: [13.217538440268394, 23.557227415847606, 13.003187181590542],
         skeleton: 18390022991396526971,
         placement: 14162788206097926965,
-        element: 11695892805494521029,
+        element: 314978761731002142,
     },
     Pin {
         id: "norway-spruce",
@@ -60,7 +62,7 @@ const PINS: [Pin; 2] = [
         max: [4.337495164451377, 15.0, 3.8062214356137005],
         skeleton: 5034244784577471711,
         placement: 6468486710499557939,
-        element: 15959525298297657089,
+        element: 7287062639823569932,
     },
 ];
 

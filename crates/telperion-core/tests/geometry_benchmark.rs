@@ -2,7 +2,7 @@
 mod metrics;
 use serde_json::{json, Value};
 use telperion_core::{
-    foliage::{self, ElementAnatomy, ElementParams, Instances},
+    foliage::{self, ElementParams, Instances},
     math::Vec3,
     params,
     tree::{Node, NodeKind, Tree},
@@ -72,7 +72,8 @@ fn biological_centroid_bins_count_needles_and_exclude_connectors() {
         matrices: vec![matrix(1., 0.), matrix(4., 4.)],
     };
     let p = ElementParams {
-        anatomy: ElementAnatomy::FourSidedNeedle,
+        section_roundness: 1.0,
+        cross_segments: 4,
         length: 0.02,
         width: 0.002,
         connector_length: 0.001,
@@ -112,15 +113,28 @@ fn frozen_parameters_resolve_without_default_substitution() {
         serde_json::from_str(include_str!("../../../.flow/evidence/fn19/protocol.json")).unwrap();
     for s in p["species"].as_array().unwrap() {
         let mut given = s["parameters"].clone();
-        // fn-24 retired the tagged habit for the numeric trait table, so the
-        // frozen file speaks the old shape for that one object and no other.
+        // fn-24 retired the tagged habit and the tagged element anatomy for
+        // numeric trait tables, so the frozen file speaks the old shape for
+        // those two objects and no other.
         given["skeleton"]
             .as_object_mut()
             .unwrap()
             .remove("habit")
             .expect("frozen parameters carry a habit");
+        given["element"]
+            .as_object_mut()
+            .unwrap()
+            .remove("anatomy")
+            .expect("frozen parameters carry an anatomy");
         let f = params::parse(&given).unwrap();
-        let emitted = params::metadata(&f);
+        let mut emitted = params::metadata(&f);
+        for trait_name in ["lobeCount", "lobeDepth", "sectionRoundness"] {
+            emitted["element"]
+                .as_object_mut()
+                .unwrap()
+                .remove(trait_name)
+                .expect("the element publishes its outline traits");
+        }
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);
         }

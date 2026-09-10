@@ -25,7 +25,6 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "habit", "attractorWeight"; skeleton.habit.attractor_weight);
         $op!($f, $v, "skeleton", "habit", "twigTipTaper"; skeleton.habit.twig_tip_taper);
         $op!($f, $v, "skeleton", "habit", "sheddingThreshold"; skeleton.habit.shedding_threshold);
-        $op!($f, $v, "element", "anatomy"; element.anatomy);
         $op!($f, $v, "element", "connectorLength"; element.connector_length);
         $op!($f, $v, "canopy", "attachment"; canopy.attachment);
         $op!($f, $v, "skeleton", "seed"; skeleton.seed);
@@ -95,6 +94,9 @@ macro_rules! fields {
         $op!($f, $v, "element", "curl"; element.curl);
         $op!($f, $v, "element", "axialSegments"; element.axial_segments);
         $op!($f, $v, "element", "crossSegments"; element.cross_segments);
+        $op!($f, $v, "element", "lobeCount"; element.lobe_count);
+        $op!($f, $v, "element", "lobeDepth"; element.lobe_depth);
+        $op!($f, $v, "element", "sectionRoundness"; element.section_roundness);
         $op!($f, $v, "element", "card"; element.card);
         $op!($f, $v, "shellDepth"; shell_depth);
     };
@@ -154,10 +156,10 @@ pub fn parse(v: &Value) -> Result<Family> {
                 known(
                     value,
                     s,
-                    if k == "habit" {
-                        "unknown habit trait"
-                    } else {
-                        unknown
+                    match k.as_str() {
+                        "habit" => "unknown habit trait",
+                        "element" => "unknown element trait",
+                        _ => unknown,
                     },
                 )?;
             }
@@ -204,14 +206,11 @@ macro_rules! enum_wire {
             fn encode(&self) -> Value { json!(match self { $(Self::$variant => $name),+ }) }
             fn decode(value: Value) -> Result<Self> {
                 match value.as_str() { $(Some($name) => Ok(Self::$variant)),+,
-                    _ => Err(Error::InvalidInput("unknown anatomy or attachment")) }
+                    _ => Err(Error::InvalidInput("unknown attachment")) }
             }
         }
     };
 }
-enum_wire!(crate::foliage::ElementAnatomy, {
-    GenericBlade => "genericBlade", LobedBlade => "lobedBlade", FourSidedNeedle => "fourSidedNeedle"
-});
 enum_wire!(crate::foliage::Attachment, {
     Generic => "generic", Alternate => "alternate", RadialNeedles => "radialNeedles"
 });
@@ -242,6 +241,49 @@ mod tests {
         }
         assert!(preset(999).is_err());
         assert!(parse(&json!("missing")).is_err());
+        // The element's outline traits are flat numeric rows too.
+        for &(abi, _, _, _) in CATALOGUE.iter() {
+            let mut value = metadata(&preset(abi).unwrap());
+            for (trait_name, set) in [
+                ("lobeCount", json!(3)),
+                ("lobeDepth", json!(0.55)),
+                ("sectionRoundness", json!(0.4)),
+                ("axialSegments", json!(20)),
+            ] {
+                value["element"][trait_name] = set;
+                assert_eq!(value, metadata(&parse(&value).unwrap()));
+            }
+            assert!(crate::foliage::build_element(parse(&value).unwrap().element).is_ok());
+        }
+        // An anatomy tag is a retired shape, not a parameter: the closed schema
+        // refuses it by name, and every trait keeps its range.
+        for bad in [
+            json!({"anatomy":"lobedBlade"}),
+            json!({"anatomy":"fourSidedNeedle","width":0.02}),
+        ] {
+            assert_eq!(
+                parse(&json!({"element":bad})).err(),
+                Some(Error::InvalidInput("unknown element trait"))
+            );
+        }
+        for (trait_name, bad, message) in [
+            ("lobeCount", json!(9), "leaf lobe count"),
+            ("lobeDepth", json!(1.5), "leaf lobe depth"),
+            ("sectionRoundness", json!(-0.5), "leaf section roundness"),
+            (
+                "lobeDepth",
+                json!(0.5),
+                "leaf axial segments too few for the lobe count",
+            ),
+        ] {
+            let mut value = metadata(&preset(0).unwrap());
+            value["element"]["lobeCount"] = json!(5);
+            value["element"][trait_name] = bad;
+            assert_eq!(
+                parse(&value).and_then(|f| crate::foliage::build_element(f.element)),
+                Err(Error::InvalidInput(message))
+            );
+        }
         // A kind tag is a retired shape, not a parameter: the closed schema
         // refuses it by name, and every trait keeps its range.
         for bad in [

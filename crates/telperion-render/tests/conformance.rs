@@ -35,6 +35,13 @@ fn compact(family: &mut Value) {
     habit["attractorWeight"] = json!(0.5);
     habit["twigTipTaper"] = json!(0.5);
     habit["sheddingThreshold"] = json!(0.4);
+    // The element traits that sit on their own bound in a shipped row are
+    // moved off it for the same reason: a needle's section is rolled all the
+    // way shut and tapers as slowly as the schema allows.
+    let element = &mut family["element"];
+    element["sectionRoundness"] = json!(0.5);
+    element["baseFullness"] = json!(0.5);
+    element["tipSharpness"] = json!(0.5);
 }
 
 /// Scales every number in the family by a factor near one. A whole number
