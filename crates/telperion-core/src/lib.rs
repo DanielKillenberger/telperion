@@ -1,5 +1,6 @@
 //! Renderer-independent tree generation. Coordinates and lengths are metres, Y is up.
 pub mod bias;
+pub mod blend;
 pub mod branching;
 pub mod colonization;
 pub mod envelope;

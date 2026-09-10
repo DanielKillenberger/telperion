@@ -1,19 +1,25 @@
 //! The native still: one tree from an id and a seed, rendered offscreen at the
-//! hero pose and written as a PNG. The only place in the renderer that resolves
-//! a named family to parameters.
-use std::path::PathBuf;
+//! hero pose and written as a PNG. With a second preset it is the walk between
+//! the two instead, one blended family per frame as a numbered sequence. The
+//! only place in the renderer that resolves a named family to parameters.
+use std::path::{Path, PathBuf};
 
 use telperion_core::{
+    blend,
     mesh::{self, Detail},
-    presets::Preset,
+    presets::{Family, Preset},
 };
 use telperion_render::{
-    attachment, hero_pose, measure, measure_orbit, render, write_png, Gpu, Level, Renderer, View,
-    DEPTH_FORMAT, GROUND_REACH, STILL_FORMAT,
+    attachment, hero_pose, measure, measure_orbit, render, write_png, Camera, Gpu, Level, Renderer,
+    View, DEPTH_FORMAT, GROUND_REACH, STILL_FORMAT,
 };
 
 const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] \
-                     [--view whole|bare|leaf] [--level <n>] [--timing <json>] [--orbit]";
+                     [--view whole|bare|leaf] [--level <n>] [--timing <json>] [--orbit] \
+                     [--to <preset>] [--frames <n>]";
+/// The rate the frame sequence is written for, and the rate the encoder is
+/// asked for. A frame is a point on the walk, not a moment of a simulation.
+const FPS: u32 = 24;
 
 struct Arguments {
     preset: String,
@@ -29,17 +35,29 @@ struct Arguments {
     /// instead of holding it still. The still beside it is always the hero
     /// pose: the orbit is what is measured, not what is judged.
     orbit: bool,
+    /// The far end of the walk. With it the run is a transition and `--out`
+    /// names the sequence rather than one still.
+    to: Option<String>,
+    frames: u32,
 }
 
 fn parse() -> Result<Arguments, String> {
     let (mut preset, mut seed, mut out, mut size) = (None, None, None, (1024u32, 1024u32));
     let (mut view, mut level, mut timing) = (View::default(), None, None);
-    let mut orbit = false;
+    let (mut orbit, mut to, mut frames) = (false, None, None);
     let mut args = std::env::args().skip(1);
     while let Some(flag) = args.next() {
         let mut value = || args.next().ok_or(format!("{flag} needs a value\n{USAGE}"));
         match flag.as_str() {
             "--preset" => preset = Some(value()?),
+            "--to" => to = Some(value()?),
+            "--frames" => {
+                let raw = value()?;
+                frames = Some(
+                    raw.parse::<u32>()
+                        .map_err(|_| format!("--frames wants a whole number, not \"{raw}\""))?,
+                );
+            }
             "--seed" => {
                 let raw = value()?;
                 seed = Some(
@@ -70,6 +88,18 @@ fn parse() -> Result<Arguments, String> {
             other => return Err(format!("unknown argument \"{other}\"\n{USAGE}")),
         }
     }
+    if to.is_none() && frames.is_some() {
+        return Err(format!(
+            "--frames is the length of a walk; it needs --to\n{USAGE}"
+        ));
+    }
+    if to.is_some() && timing.is_some() {
+        return Err("--timing measures one still; a transition is many".into());
+    }
+    let frames = frames.unwrap_or(240);
+    if to.is_some() && frames < 2 {
+        return Err(format!("--frames {frames}: a walk has two ends"));
+    }
     Ok(Arguments {
         preset: preset.ok_or(format!("--preset is required\n{USAGE}"))?,
         seed: seed.ok_or(format!("--seed is required\n{USAGE}"))?,
@@ -79,6 +109,8 @@ fn parse() -> Result<Arguments, String> {
         level,
         timing,
         orbit,
+        to,
+        frames,
     })
 }
 
@@ -101,6 +133,13 @@ fn run() -> Result<(), String> {
         .ok_or_else(|| format!("unknown tree \"{}\"", arguments.preset))?;
     let mut family = preset.parameters();
     family.skeleton.seed = arguments.seed;
+    if let Some(id) = &arguments.to {
+        let mut far = Preset::from_id(id)
+            .ok_or_else(|| format!("unknown tree \"{id}\""))?
+            .parameters();
+        far.skeleton.seed = arguments.seed;
+        return transition(&arguments, family, far);
+    }
 
     let tree = mesh::build(&family, Detail::Full).map_err(|error| error.to_string())?;
     let level = level_of(arguments.level, tree.foliage.element.levels.len())?;
@@ -144,6 +183,119 @@ fn run() -> Result<(), String> {
         still.stats.draw_calls,
     );
     Ok(())
+}
+
+/// The walk between two families as a numbered PNG sequence. Every frame is one
+/// point between the two rows at the one seed, built and uploaded on its own,
+/// and the camera is the hero pose of the first frame's bounds held for all of
+/// them: what moves through the sequence is the tree, not the shot.
+fn transition(arguments: &Arguments, from: Family, to: Family) -> Result<(), String> {
+    let (directory, stem) = sequence(&arguments.out)?;
+    let (width, height) = arguments.size;
+    let gpu = pollster::block_on(Gpu::request(None)).map_err(|error| error.to_string())?;
+    let adapter = gpu.adapter.name.clone();
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    renderer.set_view(arguments.view);
+    let mut camera: Option<Camera> = None;
+    for frame in 0..arguments.frames {
+        let at = f64::from(frame) / f64::from(arguments.frames - 1);
+        let family = blend::families(&from, &to, at).map_err(|error| error.to_string())?;
+        let tree = mesh::build(&family, Detail::Full)
+            .map_err(|error| format!("frame {frame} at {at}: {error}"))?;
+        let level = level_of(arguments.level, tree.foliage.element.levels.len())?;
+        renderer
+            .submit_at(&tree, level)
+            .map_err(|error| format!("frame {frame}: {error}"))?;
+        if camera.is_none() {
+            let bounds = renderer.bounds().ok_or("nothing was submitted to frame")?;
+            camera = Some(hero_pose(
+                bounds,
+                f64::from(width) / f64::from(height),
+                GROUND_REACH,
+            ));
+        }
+        let pose = camera.as_ref().expect("the pose the first frame fixed");
+        let still =
+            render(&mut renderer, pose, width, height).map_err(|error| error.to_string())?;
+        write_png(&frame_path(&directory, &stem, frame), &still)
+            .map_err(|error| error.to_string())?;
+    }
+    let encoder = encode(&directory, &stem);
+    write(
+        &directory.join("transition.json"),
+        &record(arguments, &encoder),
+    )?;
+    println!(
+        "{} {width}x{height} on {adapter}: {} to {} at seed {}, {} frames at {FPS} fps; {encoder}",
+        frame_path(&directory, &stem, 0).display(),
+        arguments.preset,
+        arguments.to.as_deref().unwrap_or("nowhere"),
+        arguments.seed,
+        arguments.frames,
+    );
+    Ok(())
+}
+
+/// The directory a sequence is written into and the name its frames carry:
+/// `--out .../walk/frame.png` writes `.../walk/frame-0001.png` onward.
+fn sequence(out: &Path) -> Result<(PathBuf, String), String> {
+    let directory = out
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or(Path::new("."))
+        .to_path_buf();
+    let stem = out
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .ok_or_else(|| format!("--out {} names no frame", out.display()))?;
+    Ok((directory, stem.to_owned()))
+}
+
+fn frame_path(directory: &Path, stem: &str, frame: u32) -> PathBuf {
+    directory.join(format!("{stem}-{:04}.png", frame + 1))
+}
+
+/// The sequence assembled by the system encoder, when the machine has one. The
+/// frames are the artefact and the video is the convenience, so a machine with
+/// no `ffmpeg` is told once and keeps its sequence; nothing here fails the run.
+fn encode(directory: &Path, stem: &str) -> String {
+    let video = directory.join("transition.mp4");
+    let rate = FPS.to_string();
+    let assembled = std::process::Command::new("ffmpeg")
+        .args(["-y", "-framerate", rate.as_str(), "-i"])
+        .arg(directory.join(format!("{stem}-%04d.png")))
+        .args(["-c:v", "libx264", "-pix_fmt", "yuv420p"])
+        .arg(&video)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status();
+    match assembled {
+        Ok(status) if status.success() => video.display().to_string(),
+        Ok(status) => format!("the encoder refused the sequence ({status}); the frames stand"),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            "no ffmpeg on the path; the frames stand".to_owned()
+        }
+        Err(error) => format!("the encoder could not be run ({error}); the frames stand"),
+    }
+}
+
+/// What the sequence is, beside it: both ends of the walk, the seed both were
+/// read at, the frame size, how many frames and at what rate, and what the
+/// encoder did.
+fn record(arguments: &Arguments, encoder: &str) -> String {
+    let quoted = |text: &str| text.replace('\\', "\\\\").replace('"', "\\\"");
+    format!(
+        "{{\n  \"from\": \"{}\",\n  \"to\": \"{}\",\n  \"seed\": {},\n  \
+         \"size\": [{}, {}],\n  \"frames\": {},\n  \"fps\": {FPS},\n  \
+         \"encoder\": \"{}\"\n}}\n",
+        quoted(&arguments.preset),
+        quoted(arguments.to.as_deref().unwrap_or("nowhere")),
+        arguments.seed,
+        arguments.size.0,
+        arguments.size.1,
+        arguments.frames,
+        quoted(encoder),
+    )
 }
 
 /// The level the crown is held at, or the choice made per frame. A number the

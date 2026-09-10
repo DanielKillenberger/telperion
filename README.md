@@ -97,6 +97,16 @@ cargo run --release -p telperion-render --example headless -- \
 
 `--level <n>` holds every leaf of the frame at one level instead of letting selection choose, which is how a single level's cost is measured on its own. `--orbit` turns the camera one full revolution about the subject at the hero pose's elevation and distance while the timing session runs; the still beside it is always the hero pose, because the orbit is what is measured and not what is judged.
 
+The same target walks between two presets:
+
+```sh
+cargo run --release -p telperion-render --example headless -- \
+  --preset oregon-white-oak --to norway-spruce --seed 7 --frames 240 \
+  --out /tmp/walk/frame.png
+```
+
+`--to <preset>` renders a numbered PNG sequence instead of one still: `--frames <n>` frames, 240 by default, each the blend of the two families at the one seed, all of them at the hero pose the first frame's bounds fixed. `--out` names the sequence, so `--out /tmp/walk/frame.png` writes `/tmp/walk/frame-0001.png` onward with `transition.json` beside them, naming both presets, the seed, the size, the frame count, the rate of 24 a second and what the encoder did. When `ffmpeg` is on the path the frames are assembled into `transition.mp4` at that rate; when it is not, the run says so in one line and keeps the sequence, which is the artefact either way.
+
 `npm run rust:test:wasm` holds the Wasm binding to its contract in a plain headless browser, which needs no adapter at all. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
 
 ## Measurements and limits
