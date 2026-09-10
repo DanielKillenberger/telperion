@@ -47,6 +47,11 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
             limits.max_buffer_size,
         ),
         (
+            "wood coordinates",
+            bytes(mesh.wood.coords.len(), size_of::<f32>()),
+            limits.max_buffer_size,
+        ),
+        (
             "wood indices",
             bytes(mesh.wood.indices.len(), size_of::<u32>()),
             limits.max_buffer_size,

@@ -1,5 +1,5 @@
-//! The plaited wood surface: the core's own position, normal and index arrays
-//! uploaded as they lie in memory, drawn as one indexed mesh.
+//! The plaited wood surface: the core's own position, normal, coordinate and
+//! index arrays uploaded as they lie in memory, drawn as one indexed mesh.
 use telperion_core::surface::SurfaceMesh;
 
 use crate::{
@@ -8,16 +8,19 @@ use crate::{
     FrameStats,
 };
 
-/// The core keeps positions and normals in separate arrays, so the pipeline
-/// takes two vertex buffers and neither array is interleaved on the way up.
+/// The core keeps positions, normals and surface coordinates in separate
+/// arrays, so the pipeline takes three vertex buffers and no array is
+/// interleaved on the way up.
 const POSITION: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x3];
 const NORMAL: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![1 => Float32x3];
+const COORD: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![2 => Float32x2];
 
 /// The wood pipeline and the buffers one tree's surface lives in.
 pub struct Wood {
     pipeline: wgpu::RenderPipeline,
     positions: Option<Held>,
     normals: Option<Held>,
+    coords: Option<Held>,
     indices: Option<Held>,
     index_count: u32,
 }
@@ -31,9 +34,9 @@ impl Wood {
         let shader = gpu
             .device
             .create_shader_module(wgpu::include_wgsl!("shaders/wood.wgsl"));
-        let vertex = |attributes| {
+        let vertex = |attributes, floats: u64| {
             Some(wgpu::VertexBufferLayout {
-                array_stride: 3 * size_of::<f32>() as u64,
+                array_stride: floats * size_of::<f32>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes,
             })
@@ -44,11 +47,12 @@ impl Wood {
                 &[Some(layout)],
                 &shader,
                 colour_format,
-                &[vertex(&POSITION), vertex(&NORMAL)],
+                &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
                 "wood",
             ),
             positions: None,
             normals: None,
+            coords: None,
             indices: None,
             index_count: 0,
         }
@@ -77,6 +81,16 @@ impl Wood {
         );
         buffer::write(
             gpu,
+            &mut self.coords,
+            "wood coordinates",
+            wgpu::BufferUsages::VERTEX,
+            bytemuck::cast_slice(&buffer::attributes(
+                &mesh.coords,
+                mesh.positions.len() / 3 * 2,
+            )),
+        );
+        buffer::write(
+            gpu,
             &mut self.indices,
             "wood indices",
             wgpu::BufferUsages::INDEX,
@@ -86,14 +100,15 @@ impl Wood {
 
     /// Draws the surface, or nothing when no tree has been submitted.
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> FrameStats {
-        let (Some(positions), Some(normals), Some(indices)) =
-            (&self.positions, &self.normals, &self.indices)
+        let (Some(positions), Some(normals), Some(coords), Some(indices)) =
+            (&self.positions, &self.normals, &self.coords, &self.indices)
         else {
             return FrameStats::default();
         };
         pass.set_pipeline(&self.pipeline);
         pass.set_vertex_buffer(0, positions.live());
         pass.set_vertex_buffer(1, normals.live());
+        pass.set_vertex_buffer(2, coords.live());
         pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
         pass.draw_indexed(0..self.index_count, 0, 0..1);
         FrameStats {

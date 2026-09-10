@@ -13,10 +13,11 @@ use crate::{
     Camera, FrameStats,
 };
 
-/// Positions and normals step per vertex. Nothing steps per instance any more:
-/// the placement is looked up, not fed in.
+/// Positions, normals and surface coordinates step per vertex. Nothing steps per
+/// instance any more: the placement is looked up, not fed in.
 const POSITION: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x3];
 const NORMAL: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![1 => Float32x3];
+const COORD: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![2 => Float32x2];
 
 /// The element's own vertex normals, area-weighted over the triangles that
 /// share each vertex. The core ships positions and indices only, and a leaf
@@ -76,6 +77,7 @@ pub struct Foliage {
     select: Select,
     positions: Option<Held>,
     normals: Option<Held>,
+    coords: Option<Held>,
     /// Every level's triangles in one index buffer, as the core packed them.
     indices: Option<Held>,
     bounds: Option<Bounds>,
@@ -90,9 +92,9 @@ impl Foliage {
         let shader = gpu
             .device
             .create_shader_module(wgpu::include_wgsl!("shaders/foliage.wgsl"));
-        let vertex = |attributes| {
+        let vertex = |attributes, floats: u64| {
             Some(wgpu::VertexBufferLayout {
-                array_stride: 3 * size_of::<f32>() as u64,
+                array_stride: floats * size_of::<f32>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes,
             })
@@ -104,12 +106,13 @@ impl Foliage {
                 &[Some(layout), Some(select.draw_layout())],
                 &shader,
                 colour_format,
-                &[vertex(&POSITION), vertex(&NORMAL)],
+                &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
                 "foliage",
             ),
             select,
             positions: None,
             normals: None,
+            coords: None,
             indices: None,
             bounds: None,
         }
@@ -138,6 +141,16 @@ impl Foliage {
             "foliage normals",
             wgpu::BufferUsages::VERTEX,
             bytemuck::cast_slice(&normals(element)),
+        );
+        buffer::write(
+            gpu,
+            &mut self.coords,
+            "foliage coordinates",
+            wgpu::BufferUsages::VERTEX,
+            bytemuck::cast_slice(&buffer::attributes(
+                &element.coords,
+                element.positions.len() * 2,
+            )),
         );
         buffer::write(
             gpu,
@@ -182,8 +195,8 @@ impl Foliage {
         if view == View::Bare {
             return FrameStats::default();
         }
-        let (Some(positions), Some(normals), Some(indices)) =
-            (&self.positions, &self.normals, &self.indices)
+        let (Some(positions), Some(normals), Some(coords), Some(indices)) =
+            (&self.positions, &self.normals, &self.coords, &self.indices)
         else {
             return FrameStats::default();
         };
@@ -193,6 +206,7 @@ impl Foliage {
         pass.set_pipeline(&self.pipeline);
         pass.set_vertex_buffer(0, positions.live());
         pass.set_vertex_buffer(1, normals.live());
+        pass.set_vertex_buffer(2, coords.live());
         pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
         if view == View::Leaf {
             self.select.bind_leaf(pass);

@@ -22,6 +22,7 @@ fn small() -> TreeMesh {
         wood: SurfaceMesh {
             positions: vec![0.0; 12],
             normals: vec![0.0; 12],
+            coords: vec![0.0; 8],
             indices: vec![0; 6],
             bounds: None,
             runs: 1,
@@ -47,6 +48,7 @@ fn crown(levels: usize, indices: usize, instances: usize) -> TreeMesh {
     mesh.wood = SurfaceMesh {
         positions: Vec::new(),
         normals: Vec::new(),
+        coords: Vec::new(),
         indices: Vec::new(),
         bounds: None,
         runs: 0,
@@ -94,10 +96,15 @@ fn a_tree_is_judged_on_the_allocation_it_needs_not_the_bytes_it_holds() {
 fn every_buffer_that_will_not_fit_is_refused_by_name_and_by_size() {
     let granted = 4_096;
     let over = (granted / size_of::<f32>() as u64) as usize;
-    let cases: [(&str, TreeMesh); 4] = [
+    let cases: [(&str, TreeMesh); 5] = [
         ("wood positions", {
             let mut mesh = small();
             mesh.wood.positions = vec![0.0; over];
+            mesh
+        }),
+        ("wood coordinates", {
+            let mut mesh = small();
+            mesh.wood.coords = vec![0.0; over];
             mesh
         }),
         ("wood normals", {

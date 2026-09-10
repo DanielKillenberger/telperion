@@ -16,7 +16,13 @@ struct Varying {
 };
 
 @vertex
-fn vertex(@location(0) position: vec3<f32>, @location(1) normal: vec3<f32>) -> Varying {
+// The surface coordinate rides along declared and unread: bark is drawn along
+// it in the spec that follows this one.
+fn vertex(
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+    @location(2) coord: vec2<f32>,
+) -> Varying {
     var out: Varying;
     out.clip = u.view_projection * vec4<f32>(position, 1.0);
     out.normal = normal;

@@ -16,6 +16,7 @@ pub(crate) struct Output {
     pub(crate) surface: Option<surface::SurfaceMesh>,
     pub(crate) element_positions: Vec<f32>,
     pub(crate) element_indices: Vec<u32>,
+    pub(crate) element_coords: Vec<f32>,
     pub(crate) instances: foliage::Instances,
     pub(crate) structure: Vec<f64>,
     pub(crate) topology: Vec<u32>,
@@ -133,6 +134,7 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
                 .flat_map(|p| [p.x as f32, p.y as f32, p.z as f32])
                 .collect();
             out.element_indices = blade.indices.clone();
+            out.element_coords = blade.coords.clone();
         }
         element = Some(blade);
     }

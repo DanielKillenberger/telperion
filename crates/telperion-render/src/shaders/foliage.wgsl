@@ -28,6 +28,9 @@ fn vertex(
     @builtin(instance_index) instance: u32,
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>,
+    // Declared and unread: surface detail is drawn along the element's own
+    // coordinate in the spec that follows this one.
+    @location(2) coord: vec2<f32>,
 ) -> Varying {
     let placement = placements[list[instance]];
     var out: Varying;

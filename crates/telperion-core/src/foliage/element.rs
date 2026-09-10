@@ -67,6 +67,10 @@ pub struct Element {
     pub positions: Vec<Vec3>,
     /// Blade triangles face +Z; a rounded section and the connector face outward.
     pub indices: Vec<u32>,
+    /// Two floats per position: the fraction along the blade, base to tip, and
+    /// the fraction across it, midrib to margin. Empty on an element built by
+    /// hand.
+    pub coords: Vec<f32>,
     pub anatomy: Option<AnatomyGeometry>,
     /// Every level's triangles in one buffer, coarsest first; both are empty
     /// for an element built by hand.
@@ -86,6 +90,7 @@ impl Element {
                 .indices
                 .iter()
                 .any(|i| *i as usize >= self.positions.len())
+            || (!self.coords.is_empty() && self.coords.len() != 2 * self.positions.len())
         {
             return Err(Error::InvalidInput("leaf element"));
         }
@@ -169,12 +174,14 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
     let rows = p.axial_segments - 1;
     let mut e = Element {
         positions: Vec::with_capacity((2 + rows * (columns + 1)) as usize),
+        coords: Vec::with_capacity((2 * (2 + rows * (columns + 1))) as usize),
         indices: Vec::with_capacity((6 * columns * rows) as usize),
         ..Element::default()
     };
     // The blade stands on its connector, and narrows to a point at either end:
     // one vertex at the base, one at the tip, a section apiece.
     e.positions.push(Vec3::new(0., p.connector_length, 0.));
+    e.coords.extend([0., 0.]);
     let mut sections = Vec::with_capacity(p.axial_segments as usize + 1);
     sections.push(0..1);
     for row in 1..=rows {
@@ -188,6 +195,12 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
                 p.connector_length + t * p.length,
                 z + p.curl * p.length * t * t,
             ));
+            // Across is measured from the midrib, so the two margins read
+            // alike and the base and the tip sit at nought.
+            e.coords.extend([
+                t as f32,
+                (2. * col as f64 / columns as f64 - 1.).abs() as f32,
+            ]);
         }
         sections.push(start..e.positions.len());
     }
@@ -197,6 +210,7 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
         p.connector_length + p.length,
         p.curl * p.length,
     ));
+    e.coords.extend([1., 0.]);
     sections.push(tip as usize..tip as usize + 1);
     let first = |r, c| 1 + r * (columns + 1) + c;
     for c in 0..columns {
@@ -258,6 +272,9 @@ fn card(p: ElementParams) -> Result<Element> {
             Vec3::new(-half, length, 0.),
         ],
         indices: vec![0, 1, 2, 0, 2, 3],
+        // A card is the blade squashed to its own extent: its corners are the
+        // margin at the base and at the tip.
+        coords: vec![0., 1., 0., 1., 1., 1., 1., 1.],
         ..Element::default()
     };
     // Two triangles are already the coarsest a card gets.
@@ -275,6 +292,9 @@ fn connector(e: &mut Element, length: f64, radius: f64) {
     let base = e.positions.len() as u32;
     e.positions.push(Vec3::ZERO);
     e.positions.push(Vec3::new(0., length, 0.));
+    // The peg is below the blade and has no blade coordinate of its own; it
+    // takes the base's, so a shader reading them sees no seam at the join.
+    e.coords.resize(2 * e.positions.len(), 0.);
     for side in 0..4 {
         let a = start + side;
         let b = start + (side + 1) % 4;

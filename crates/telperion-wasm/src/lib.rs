@@ -174,6 +174,13 @@ pub extern "C" fn buffer_ptr(slot: u32) -> *const u8 {
                 .snapshot
                 .as_ref()
                 .map_or(std::ptr::null(), |s| s.leaves.topology.as_ptr().cast()),
+            // Surface coordinates, two floats a vertex, beside the positions
+            // in slots 0 and 3. A consumer that ignores them reads as before.
+            14 => o
+                .surface
+                .as_ref()
+                .map_or(std::ptr::null(), |s| s.coords.as_ptr().cast()),
+            15 => o.element_coords.as_ptr().cast(),
             _ => std::ptr::null(),
         }
     })
@@ -201,6 +208,8 @@ pub extern "C" fn buffer_len(slot: u32) -> usize {
                 .map_or(0, |s| s.wood_index.topology.len()),
             12 => o.snapshot.as_ref().map_or(0, |s| s.leaves.bounds.len()),
             13 => o.snapshot.as_ref().map_or(0, |s| s.leaves.topology.len()),
+            14 => o.surface.as_ref().map_or(0, |s| s.coords.len()),
+            15 => o.element_coords.len(),
             _ => 0,
         }
     })
