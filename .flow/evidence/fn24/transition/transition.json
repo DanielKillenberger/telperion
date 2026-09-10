@@ -1,0 +1,9 @@
+{
+  "from": "oregon-white-oak",
+  "to": "norway-spruce",
+  "seed": 7,
+  "size": [1600, 1000],
+  "frames": 240,
+  "fps": 24,
+  "encoder": ".flow/evidence/fn24/transition/transition.mp4"
+}

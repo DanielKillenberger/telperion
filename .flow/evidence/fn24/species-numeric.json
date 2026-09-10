@@ -1,0 +1,441 @@
+{
+  "protocol": "fn19 frozen profiles, 24 seeds per species (12 fixed, 12 fresh), numeric half only",
+  "command": "npm run species:measure -- --output <tmp>",
+  "runner": "tests/species.mjs --measure-only",
+  "cases": [
+    {
+      "id": "oregon-white-oak-1",
+      "preset": "oregon-white-oak",
+      "seed": 1,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 7227360,
+      "retained_leaves": 715065
+    },
+    {
+      "id": "oregon-white-oak-2",
+      "preset": "oregon-white-oak",
+      "seed": 2,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 8321760,
+      "retained_leaves": 822744
+    },
+    {
+      "id": "oregon-white-oak-3",
+      "preset": "oregon-white-oak",
+      "seed": 3,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 7534240,
+      "retained_leaves": 744133
+    },
+    {
+      "id": "oregon-white-oak-5",
+      "preset": "oregon-white-oak",
+      "seed": 5,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 8584440,
+      "retained_leaves": 900601
+    },
+    {
+      "id": "oregon-white-oak-8",
+      "preset": "oregon-white-oak",
+      "seed": 8,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 9158000,
+      "retained_leaves": 905424
+    },
+    {
+      "id": "oregon-white-oak-13",
+      "preset": "oregon-white-oak",
+      "seed": 13,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 8164120,
+      "retained_leaves": 809991
+    },
+    {
+      "id": "oregon-white-oak-21",
+      "preset": "oregon-white-oak",
+      "seed": 21,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 8497200,
+      "retained_leaves": 841217
+    },
+    {
+      "id": "oregon-white-oak-34",
+      "preset": "oregon-white-oak",
+      "seed": 34,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 8393080,
+      "retained_leaves": 840125
+    },
+    {
+      "id": "oregon-white-oak-55",
+      "preset": "oregon-white-oak",
+      "seed": 55,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 8378360,
+      "retained_leaves": 871598
+    },
+    {
+      "id": "oregon-white-oak-89",
+      "preset": "oregon-white-oak",
+      "seed": 89,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 8572480,
+      "retained_leaves": 888537
+    },
+    {
+      "id": "oregon-white-oak-144",
+      "preset": "oregon-white-oak",
+      "seed": 144,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 8535800,
+      "retained_leaves": 862771
+    },
+    {
+      "id": "oregon-white-oak-233",
+      "preset": "oregon-white-oak",
+      "seed": 233,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 8753280,
+      "retained_leaves": 873444
+    },
+    {
+      "id": "oregon-white-oak-2666899686",
+      "preset": "oregon-white-oak",
+      "seed": 2666899686,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 8725200,
+      "retained_leaves": 900029
+    },
+    {
+      "id": "oregon-white-oak-762807349",
+      "preset": "oregon-white-oak",
+      "seed": 762807349,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 8527280,
+      "retained_leaves": 843674
+    },
+    {
+      "id": "oregon-white-oak-1444323199",
+      "preset": "oregon-white-oak",
+      "seed": 1444323199,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 6843000,
+      "retained_leaves": 674193
+    },
+    {
+      "id": "oregon-white-oak-3117916676",
+      "preset": "oregon-white-oak",
+      "seed": 3117916676,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 9044400,
+      "retained_leaves": 951171
+    },
+    {
+      "id": "oregon-white-oak-2181659276",
+      "preset": "oregon-white-oak",
+      "seed": 2181659276,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 8794160,
+      "retained_leaves": 916006
+    },
+    {
+      "id": "oregon-white-oak-696710047",
+      "preset": "oregon-white-oak",
+      "seed": 696710047,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 8553800,
+      "retained_leaves": 894972
+    },
+    {
+      "id": "oregon-white-oak-4067290831",
+      "preset": "oregon-white-oak",
+      "seed": 4067290831,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 8117920,
+      "retained_leaves": 802971
+    },
+    {
+      "id": "oregon-white-oak-2671455042",
+      "preset": "oregon-white-oak",
+      "seed": 2671455042,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 9181400,
+      "retained_leaves": 962559
+    },
+    {
+      "id": "oregon-white-oak-690286437",
+      "preset": "oregon-white-oak",
+      "seed": 690286437,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 8625000,
+      "retained_leaves": 900796
+    },
+    {
+      "id": "oregon-white-oak-1352641425",
+      "preset": "oregon-white-oak",
+      "seed": 1352641425,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 9126920,
+      "retained_leaves": 952458
+    },
+    {
+      "id": "oregon-white-oak-204973394",
+      "preset": "oregon-white-oak",
+      "seed": 204973394,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 8251640,
+      "retained_leaves": 863161
+    },
+    {
+      "id": "oregon-white-oak-535441218",
+      "preset": "oregon-white-oak",
+      "seed": 535441218,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 6875840,
+      "retained_leaves": 676884
+    },
+    {
+      "id": "norway-spruce-1",
+      "preset": "norway-spruce",
+      "seed": 1,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5893480,
+      "retained_leaves": 7353754
+    },
+    {
+      "id": "norway-spruce-2",
+      "preset": "norway-spruce",
+      "seed": 2,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5695000,
+      "retained_leaves": 7158192
+    },
+    {
+      "id": "norway-spruce-3",
+      "preset": "norway-spruce",
+      "seed": 3,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5381400,
+      "retained_leaves": 6821925
+    },
+    {
+      "id": "norway-spruce-5",
+      "preset": "norway-spruce",
+      "seed": 5,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5112680,
+      "retained_leaves": 6503412
+    },
+    {
+      "id": "norway-spruce-8",
+      "preset": "norway-spruce",
+      "seed": 8,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5672720,
+      "retained_leaves": 7139681
+    },
+    {
+      "id": "norway-spruce-13",
+      "preset": "norway-spruce",
+      "seed": 13,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5614160,
+      "retained_leaves": 7082695
+    },
+    {
+      "id": "norway-spruce-21",
+      "preset": "norway-spruce",
+      "seed": 21,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5546360,
+      "retained_leaves": 6995926
+    },
+    {
+      "id": "norway-spruce-34",
+      "preset": "norway-spruce",
+      "seed": 34,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5230280,
+      "retained_leaves": 6643466
+    },
+    {
+      "id": "norway-spruce-55",
+      "preset": "norway-spruce",
+      "seed": 55,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5842120,
+      "retained_leaves": 7314737
+    },
+    {
+      "id": "norway-spruce-89",
+      "preset": "norway-spruce",
+      "seed": 89,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 6017680,
+      "retained_leaves": 7481473
+    },
+    {
+      "id": "norway-spruce-144",
+      "preset": "norway-spruce",
+      "seed": 144,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5753280,
+      "retained_leaves": 7196569
+    },
+    {
+      "id": "norway-spruce-233",
+      "preset": "norway-spruce",
+      "seed": 233,
+      "group": "fixed",
+      "numeric_status": "pass",
+      "wood_triangles": 5821560,
+      "retained_leaves": 7277003
+    },
+    {
+      "id": "norway-spruce-1982700925",
+      "preset": "norway-spruce",
+      "seed": 1982700925,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5875800,
+      "retained_leaves": 7320811
+    },
+    {
+      "id": "norway-spruce-281313742",
+      "preset": "norway-spruce",
+      "seed": 281313742,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5411880,
+      "retained_leaves": 6846895
+    },
+    {
+      "id": "norway-spruce-2271779095",
+      "preset": "norway-spruce",
+      "seed": 2271779095,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5986120,
+      "retained_leaves": 7468751
+    },
+    {
+      "id": "norway-spruce-1428158753",
+      "preset": "norway-spruce",
+      "seed": 1428158753,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5471880,
+      "retained_leaves": 6889242
+    },
+    {
+      "id": "norway-spruce-370981056",
+      "preset": "norway-spruce",
+      "seed": 370981056,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5705920,
+      "retained_leaves": 7182049
+    },
+    {
+      "id": "norway-spruce-2571381872",
+      "preset": "norway-spruce",
+      "seed": 2571381872,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5812080,
+      "retained_leaves": 7254492
+    },
+    {
+      "id": "norway-spruce-1986682132",
+      "preset": "norway-spruce",
+      "seed": 1986682132,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5705200,
+      "retained_leaves": 7157909
+    },
+    {
+      "id": "norway-spruce-2749500550",
+      "preset": "norway-spruce",
+      "seed": 2749500550,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5682440,
+      "retained_leaves": 7142836
+    },
+    {
+      "id": "norway-spruce-175890410",
+      "preset": "norway-spruce",
+      "seed": 175890410,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5777720,
+      "retained_leaves": 7231919
+    },
+    {
+      "id": "norway-spruce-847818543",
+      "preset": "norway-spruce",
+      "seed": 847818543,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5565800,
+      "retained_leaves": 7004840
+    },
+    {
+      "id": "norway-spruce-4250668600",
+      "preset": "norway-spruce",
+      "seed": 4250668600,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5654360,
+      "retained_leaves": 7119707
+    },
+    {
+      "id": "norway-spruce-893982483",
+      "preset": "norway-spruce",
+      "seed": 893982483,
+      "group": "fresh",
+      "numeric_status": "pass",
+      "wood_triangles": 5997080,
+      "retained_leaves": 7453626
+    }
+  ],
+  "passed": 48,
+  "total": 48
+}

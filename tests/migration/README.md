@@ -160,7 +160,7 @@ RSS is on stderr. Species measurements include separate measurement overhead.
 Do not compare these directly with historical measurements on another host or
 interpret native time as software/hardware GPU time.
 
-Spruce `4250668600` remains a required mature capture even after its numeric width repair. All full-size captures use the authored presets and recorded seeds, without the smaller fixtures used by the binding/UI integration tests. Those 4 m fixtures use three spruce tiers, three primaries per tier and 0.4 m secondary spacing to exercise ownership, anatomy, orbit and retry behavior within bounded software-rendering cost. The 12,000-instance binding budget still rejects overflow; it is never a truncation policy.
+Spruce `4250668600` remains a required mature capture even after its numeric width repair. All full-size captures use the authored presets and recorded seeds, without the smaller fixtures used by the binding/UI integration tests. Those fixtures are the shipped preset rows with a 4 m envelope and forty attractors and nothing else changed, which exercises ownership, element anatomy, orbit and retry behavior within bounded software-rendering cost; one flat habit row builds every tree, so there is no per-species variant knob left to turn down. The 12,000-instance binding budget still rejects overflow; it is never a truncation policy.
 
 `--frustum-cull`, `--batch-instances`, `--targets` and the `species-chromium-gpu.sh`
 wrapper were all ways of getting a large tree through a software browser GPU, and

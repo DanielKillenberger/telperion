@@ -173,6 +173,40 @@ Active tracks served by this plan:
 - The leaf enums dissolve in the same spec rather than a later one: with them in place the transition has a switch frame and the continuous space is only half proven. [paraphrase]
 - The transition video is the receipt the owner asked for and the one artefact that shows the continuous space rather than two points in it; it costs one headless render and no agent ever opens it. [paraphrase]
 
+## Owner verdict
+
+R3 is the owner's judgment of the oak and the spruce stills, and R4's second
+half is the owner's judgment of the transition video, each recorded here in the
+owner's own words. Compare `.flow/evidence/fn24/oregon-white-oak-hero.png` with
+`.flow/evidence/fn23/oak-hero.png`, and `.flow/evidence/fn24/norway-spruce-hero.png`
+with `.flow/evidence/fn22/spruce-hero.png`: the same preset, seed, whole view,
+hero pose, 1600 by 1000 and machine on both sides, one grown by three habit
+builders and one by the single trait-driven builder. The question is whether
+each still reads as its species at least as well as before, never whether it is
+identical. The video is `.flow/evidence/fn24/transition/transition.mp4`, 240
+frames at 24 per second from the oak row to the spruce row at seed 7; the
+question there is whether it reads as a smooth passage through one tree space.
+`.flow/evidence/fn24/REPORT.md` carries the measured aids. The spec closes only
+on three accepting verdicts, and a rejecting verdict stops the spec with the
+owner's words and a one-paragraph blocker.
+
+Separately from these three: the same report records the oak's native frame at a
+p50 of 2.3043 ms against R6's 2 ms budget, with the browser orbit inside its
+bounds. That stop is a number, not a verdict, and none of the three slots below
+clears it.
+
+### Oregon white oak, hero pose
+
+> _verdict (owner, YYYY-MM-DD):_ 
+
+### Norway spruce, hero pose
+
+> _verdict (owner, YYYY-MM-DD):_ 
+
+### Oak to spruce, the transition video
+
+> _verdict (owner, YYYY-MM-DD):_ 
+
 ## References
 
 - fn-23 spec and `.flow/evidence/fn23/`, the timing protocol, verdict vocabulary and evidence layout this spec's R6 and report follow.
