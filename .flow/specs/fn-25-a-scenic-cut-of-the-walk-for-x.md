@@ -38,3 +38,9 @@ node scripts/scenic-cut.mjs --out .flow/evidence/fn25/scenic.mp4
 | R1 | Eased walk with camera on the headless target | .1 |
 | R2 | Assembly script and the graded clip | .1 |
 | R3 | Owner verdict on the clip | .1, verdict by the owner |
+
+## Owner verdict
+
+R3 is the owner's judgment of the clip at `.flow/evidence/fn25/scenic.mp4`, 20.5 seconds, 1920 by 1080, kept on disk and out of git.
+
+> _verdict (owner, 2026-09-10):_ The owner viewed the clip locally and asked for the pull request and the merge in the same breath ("alright let's make pr's and merge them"). No separate wording on the clip was given; the merge request is taken as acceptance for this spec.
