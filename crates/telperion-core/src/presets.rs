@@ -1,7 +1,7 @@
 //! Named families. Change the seed separately to draw another specimen.
 use crate::{
     bias::{BiasParams, SupernaturalParams},
-    branching::{BranchHabit, SkeletonParams, SpreadingHabit, TieredHabit},
+    branching::{HabitParams, SkeletonParams},
     envelope::Envelope,
     foliage::{Attachment, CanopyParams, ElementAnatomy, ElementParams},
     radius::RadiusParams,
@@ -67,10 +67,23 @@ impl Preset {
         if self == Self::OregonWhiteOak {
             // Mature, open-grown Quercus garryana. Metre dimensions are
             // calibrated against the frozen profile, not inferred from seed.
-            p.skeleton.habit = BranchHabit::Spreading(SpreadingHabit {
-                subdivisions: 5,
-                ..Default::default()
-            });
+            p.skeleton.habit = HabitParams {
+                apical_dominance: 0.1,
+                whorl_strength: 0.1,
+                leader_internode: 2.0,
+                laterals_per_station: 5,
+                lateral_pitch: 55.0,
+                pitch_variation: 20.0,
+                rise_primary: 0.12,
+                rise_secondary: 0.0,
+                crookedness: 24.0,
+                lateral_spacing: 1.6,
+                lateral_length_ratio: 0.45,
+                lateral_orders: 3,
+                attractor_weight: 0.0,
+                twig_tip_taper: 0.25,
+                shedding_threshold: 0.0,
+            };
             p.skeleton.envelope = Envelope {
                 height: 24.0,
                 crown_base: 0.16,
@@ -99,10 +112,23 @@ impl Preset {
         }
         if self == Self::NorwaySpruce {
             // Open-grown landscape Picea abies; one needle per local station.
-            p.skeleton.habit = BranchHabit::Tiered(TieredHabit {
-                secondary_spacing: 0.20,
-                ..Default::default()
-            });
+            p.skeleton.habit = HabitParams {
+                apical_dominance: 1.0,
+                whorl_strength: 1.0,
+                leader_internode: 0.9,
+                laterals_per_station: 5,
+                lateral_pitch: 88.0,
+                pitch_variation: 4.0,
+                rise_primary: 0.12,
+                rise_secondary: -0.8,
+                crookedness: 0.0,
+                lateral_spacing: 0.15,
+                lateral_length_ratio: 0.30,
+                lateral_orders: 4,
+                attractor_weight: 0.0,
+                twig_tip_taper: 0.25,
+                shedding_threshold: 0.0,
+            };
             p.skeleton.envelope = Envelope {
                 height: 15.0,
                 crown_base: 0.04,
@@ -134,6 +160,25 @@ impl Preset {
         }
         let silver = self == Self::Telperion;
         p.skeleton.seed = if silver { 1 } else { 2 };
+        // The Two Trees are an order of magnitude taller than a forest tree,
+        // and every spacing here is a length in metres.
+        p.skeleton.habit = HabitParams {
+            apical_dominance: 0.15,
+            whorl_strength: 0.2,
+            leader_internode: 10.0,
+            laterals_per_station: 4,
+            lateral_pitch: 60.0,
+            pitch_variation: 15.0,
+            rise_primary: 0.05,
+            rise_secondary: 0.0,
+            crookedness: 12.0,
+            lateral_spacing: 10.0,
+            lateral_length_ratio: 0.45,
+            lateral_orders: 3,
+            attractor_weight: 1.0,
+            twig_tip_taper: 1.0,
+            shedding_threshold: 0.45,
+        };
         p.skeleton.envelope = if silver {
             Envelope {
                 height: 148.0,

@@ -20,7 +20,7 @@ fn complete_presets_are_deterministic_and_solved() {
 }
 
 use telperion_core::{
-    branching::{append, shed, SkeletonParams},
+    branching::{append, shed, HabitParams, SkeletonParams},
     colonization::GrowthConfig,
     envelope::Envelope,
     math::Vec3,
@@ -60,8 +60,12 @@ fn local_anatomy_attachment_taper_and_resolution() {
         angle_variation: 0.0,
         ..Default::default()
     };
+    let straight = HabitParams {
+        crookedness: 0.0,
+        ..HabitParams::default()
+    };
     let mut a = crown();
-    append(&mut a, &config, coarse, 7, None).unwrap();
+    append(&mut a, &config, coarse, 7, None, straight).unwrap();
     let mut b = crown();
     append(
         &mut b,
@@ -72,6 +76,7 @@ fn local_anatomy_attachment_taper_and_resolution() {
         },
         7,
         None,
+        straight,
     )
     .unwrap();
     let lateral_roots = |tree: &Tree| {
@@ -155,6 +160,7 @@ fn fork_conservation_and_appended_radius_independence() {
         TwigParams::default(),
         2,
         None,
+        HabitParams::default(),
     )
     .unwrap();
     solve(&mut tree, e, p).unwrap();
@@ -169,7 +175,15 @@ fn shedding_remaps_runs_preserves_transitions_and_caps() {
         max_nodes: 20,
         ..Default::default()
     };
-    append(&mut tree, &config, TwigParams::default(), 0, None).unwrap();
+    append(
+        &mut tree,
+        &config,
+        TwigParams::default(),
+        0,
+        None,
+        HabitParams::default(),
+    )
+    .unwrap();
     assert!(tree.diagnostics.node_capped);
     let original = tree.nodes.len();
     let removed = shed(&mut tree, Envelope::default(), 0.0).unwrap();
@@ -234,6 +248,7 @@ fn generation_limit_is_explicit() {
         t,
         0,
         None,
+        HabitParams::default(),
     )
     .unwrap();
     assert!(tree.diagnostics.level_capped);
@@ -241,23 +256,33 @@ fn generation_limit_is_explicit() {
 }
 #[test]
 fn empty_caps_invalid_and_finite_rails() {
+    // A pull with nothing to pull towards names both fields; a cloud nobody
+    // pulls on costs nothing and grows the rule tree.
     let mut p = SkeletonParams {
         attractors: 0,
         ..Default::default()
     };
     assert_eq!(
+        generate(&p, RadiusParams::default()).err(),
+        Some(telperion_core::Error::InvalidInput(
+            "attractor weight and attractor count"
+        ))
+    );
+    p.habit.attractor_weight = 0.0;
+    assert!(
         generate(&p, RadiusParams::default())
             .unwrap()
             .tree
             .nodes
-            .len(),
-        1
+            .len()
+            > 1
     );
     p.growth.max_nodes = Some(0);
     let zero = generate(&p, RadiusParams::default()).unwrap();
     assert!(zero.tree.nodes.is_empty());
     assert!(zero.tree.diagnostics.node_capped);
     p.attractors = 500;
+    p.habit.attractor_weight = 1.0;
     p.growth.max_nodes = Some(20);
     let capped = generate(&p, RadiusParams::default()).unwrap();
     assert_eq!(capped.tree.nodes.len(), 20);
@@ -283,7 +308,8 @@ fn empty_caps_invalid_and_finite_rails() {
         &GrowthConfig::default(),
         TwigParams::default(),
         0,
-        None
+        None,
+        HabitParams::default()
     )
     .is_err());
     let mut empty = Tree::default();
@@ -365,7 +391,7 @@ fn natural_bias_is_independent_of_disabled_effects() {
     }
 }
 
-fn habit_family(habit: telperion_core::branching::BranchHabit) -> SkeletonParams {
+fn habit_family(habit: HabitParams) -> SkeletonParams {
     SkeletonParams {
         habit,
         envelope: Envelope {
@@ -379,11 +405,51 @@ fn habit_family(habit: telperion_core::branching::BranchHabit) -> SkeletonParams
         ..Default::default()
     }
 }
+/// A row at full apical dominance whose deeper axes hang: a conifer's corner
+/// of the trait space, reached by numbers alone.
+fn hanging_row() -> HabitParams {
+    HabitParams {
+        apical_dominance: 1.0,
+        whorl_strength: 1.0,
+        leader_internode: 0.9,
+        laterals_per_station: 5,
+        lateral_pitch: 88.0,
+        pitch_variation: 4.0,
+        rise_primary: 0.12,
+        rise_secondary: -0.8,
+        crookedness: 0.0,
+        lateral_spacing: 0.2,
+        lateral_length_ratio: 0.3,
+        lateral_orders: 2,
+        attractor_weight: 0.0,
+        twig_tip_taper: 0.25,
+        shedding_threshold: 0.0,
+    }
+}
+/// The opposite corner: the leader yields early and every axis is crooked.
+fn crooked_row() -> HabitParams {
+    HabitParams {
+        apical_dominance: 0.1,
+        whorl_strength: 0.1,
+        leader_internode: 2.0,
+        laterals_per_station: 5,
+        lateral_pitch: 55.0,
+        pitch_variation: 20.0,
+        rise_primary: 0.12,
+        rise_secondary: 0.0,
+        crookedness: 24.0,
+        lateral_spacing: 1.2,
+        lateral_length_ratio: 0.45,
+        lateral_orders: 5,
+        attractor_weight: 0.0,
+        twig_tip_taper: 0.25,
+        shedding_threshold: 0.0,
+    }
+}
 
 #[test]
-fn tiered_habit_has_a_continuous_leader_and_hanging_wood() {
-    use telperion_core::branching::{BranchHabit, TieredHabit};
-    let p = habit_family(BranchHabit::Tiered(TieredHabit::default()));
+fn a_persistent_leader_carries_hanging_wood() {
+    let p = habit_family(hanging_row());
     let tree = generate(&p, RadiusParams::default()).unwrap().tree;
     let structural = &tree.nodes[..tree.crossover];
     assert!(structural
@@ -413,9 +479,8 @@ fn tiered_habit_has_a_continuous_leader_and_hanging_wood() {
 }
 
 #[test]
-fn spreading_habit_subdivides_crooked_substantial_axes_without_effects() {
-    use telperion_core::branching::{BranchHabit, SpreadingHabit};
-    let mut p = habit_family(BranchHabit::Spreading(SpreadingHabit::default()));
+fn a_crooked_row_subdivides_substantial_axes_without_effects() {
+    let mut p = habit_family(crooked_row());
     p.envelope = Envelope {
         height: 20.0,
         crown_base: 0.2,
@@ -466,10 +531,7 @@ fn spreading_habit_subdivides_crooked_substantial_axes_without_effects() {
         "natural crookedness must reach local axes: {local_bends}"
     );
     let mut straight = p.clone();
-    straight.habit = BranchHabit::Spreading(SpreadingHabit {
-        crookedness: 0.0,
-        ..Default::default()
-    });
+    straight.habit.crookedness = 0.0;
     assert_ne!(
         tree.nodes,
         generate(&straight, RadiusParams::default())
@@ -481,11 +543,7 @@ fn spreading_habit_subdivides_crooked_substantial_axes_without_effects() {
 
 #[test]
 fn habit_topology_bounds_seeds_and_limits_are_explicit() {
-    use telperion_core::branching::{BranchHabit, SpreadingHabit, TieredHabit};
-    for habit in [
-        BranchHabit::Spreading(SpreadingHabit::default()),
-        BranchHabit::Tiered(TieredHabit::default()),
-    ] {
+    for habit in [hanging_row(), crooked_row()] {
         let mut p = habit_family(habit);
         let a = generate(&p, RadiusParams::default()).unwrap();
         assert_eq!(a, generate(&p, RadiusParams::default()).unwrap());
@@ -513,22 +571,95 @@ fn habit_topology_bounds_seeds_and_limits_are_explicit() {
             tree.validate().unwrap();
         }
     }
-    for habit in [
-        BranchHabit::Spreading(SpreadingHabit {
-            crookedness: f64::NAN,
-            ..Default::default()
-        }),
-        BranchHabit::Tiered(TieredHabit {
-            secondary_spacing: 0.0,
-            ..Default::default()
-        }),
-        BranchHabit::Tiered(TieredHabit {
-            tiers: 0,
-            ..Default::default()
-        }),
+}
+
+#[test]
+fn every_habit_trait_is_a_range_and_names_itself() {
+    let row = crooked_row();
+    for (habit, named) in [
+        (
+            HabitParams {
+                apical_dominance: 1.5,
+                ..row
+            },
+            "apical dominance",
+        ),
+        (
+            HabitParams {
+                whorl_strength: f64::NAN,
+                ..row
+            },
+            "whorl strength",
+        ),
+        (
+            HabitParams {
+                leader_internode: 0.0,
+                ..row
+            },
+            "leader internode",
+        ),
+        (
+            HabitParams {
+                laterals_per_station: 0,
+                ..row
+            },
+            "laterals per station",
+        ),
+        (
+            HabitParams {
+                crookedness: 61.0,
+                ..row
+            },
+            "crookedness",
+        ),
+        (
+            HabitParams {
+                lateral_spacing: -1.0,
+                ..row
+            },
+            "lateral spacing",
+        ),
+        (
+            HabitParams {
+                rise_secondary: -1.5,
+                ..row
+            },
+            "secondary rise per order",
+        ),
+        (
+            HabitParams {
+                attractor_weight: 1.5,
+                ..row
+            },
+            "attractor weight",
+        ),
+        (
+            HabitParams {
+                shedding_threshold: 2.0,
+                ..row
+            },
+            "shedding threshold",
+        ),
     ] {
-        assert!(generate(&habit_family(habit), RadiusParams::default()).is_err());
+        assert_eq!(
+            generate(&habit_family(habit), RadiusParams::default()).err(),
+            Some(telperion_core::Error::InvalidInput(named))
+        );
     }
+    // Attractors are the one pairing: a pull with nothing to pull towards.
+    let mut p = habit_family(HabitParams {
+        attractor_weight: 0.5,
+        ..row
+    });
+    p.attractors = 0;
+    assert_eq!(
+        generate(&p, RadiusParams::default()).err(),
+        Some(telperion_core::Error::InvalidInput(
+            "attractor weight and attractor count"
+        ))
+    );
+    p.habit.attractor_weight = 0.0;
+    assert!(generate(&p, RadiusParams::default()).is_ok());
 }
 
 #[test]
@@ -553,7 +684,7 @@ fn clipped_local_axis_still_subdivides_before_its_terminal_twig() {
         vigour_variation: 0.0,
         ..Default::default()
     };
-    append(&mut tree, &config, t, 7, None).unwrap();
+    append(&mut tree, &config, t, 7, None, HabitParams::default()).unwrap();
     let origins = tree
         .nodes
         .iter()

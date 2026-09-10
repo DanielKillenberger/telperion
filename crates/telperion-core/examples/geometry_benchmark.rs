@@ -1,8 +1,6 @@
 //! Native generation/measurement with an isolated, bounded process for each declared case.
 #[path = "geometry_benchmark/metrics.rs"]
 mod metrics;
-#[path = "geometry_benchmark/params.rs"]
-mod params;
 #[allow(dead_code)]
 mod species_metrics;
 use serde_json::{json, Value};
@@ -10,14 +8,12 @@ use std::{fs, process::Command, time::Instant};
 use telperion_core::{
     branching,
     foliage::{self, TwigPlacement},
+    params,
     presets::Preset,
     surface,
 };
 fn capabilities(preset: &str) -> Value {
-    use telperion_core::{
-        branching::BranchHabit,
-        foliage::{Attachment, ElementAnatomy},
-    };
+    use telperion_core::foliage::{Attachment, ElementAnatomy};
     let Some(p) = Preset::from_id(preset) else {
         return json!({"implemented":false,"profile_id":null,"capabilities":[]});
     };
@@ -33,7 +29,9 @@ fn capabilities(preset: &str) -> Value {
         Attachment::RadialNeedles => c.push("radial-peg"),
         _ => {}
     }
-    if matches!(f.skeleton.habit, BranchHabit::Tiered(_)) {
+    // The frozen fn-19 protocol names this capability; a family whose deeper
+    // axes hang is what the name has always meant.
+    if f.skeleton.habit.rise_secondary < 0.0 {
         c.push("tiered-secondary");
     }
     json!({"implemented":p.profile_id().is_some(),"profile_id":p.profile_id(),"capabilities":c})

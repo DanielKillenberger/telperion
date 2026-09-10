@@ -24,18 +24,17 @@ fn compact(family: &mut Value) {
     family["skeleton"]["envelope"]["height"] = json!(4.0);
     family["skeleton"]["attractors"] = json!(40);
     let habit = &mut family["skeleton"]["habit"];
-    match habit["kind"].as_str() {
-        Some("tiered") => {
-            habit["tiers"] = json!(3);
-            habit["branchesPerTier"] = json!(3);
-            habit["secondarySpacing"] = json!(0.4);
-        }
-        Some("spreading") => {
-            habit["scaffoldLimbs"] = json!(3);
-            habit["subdivisions"] = json!(2);
-        }
-        _ => {}
-    }
+    habit["leaderInternode"] = json!(0.6);
+    habit["lateralSpacing"] = json!(0.5);
+    habit["lateralsPerStation"] = json!(3);
+    habit["lateralOrders"] = json!(2);
+    // The traits that sit on their own bound in a shipped row are moved off it,
+    // so a jitter of a quarter is still a tree rather than a refusal.
+    habit["apicalDominance"] = json!(0.5);
+    habit["whorlStrength"] = json!(0.4);
+    habit["attractorWeight"] = json!(0.5);
+    habit["twigTipTaper"] = json!(0.5);
+    habit["sheddingThreshold"] = json!(0.4);
 }
 
 /// Scales every number in the family by a factor near one. A whole number

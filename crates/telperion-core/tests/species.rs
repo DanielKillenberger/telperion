@@ -3,7 +3,7 @@ mod species_metrics;
 
 use serde_json::Value;
 use telperion_core::{
-    branching::{self, BranchHabit},
+    branching,
     foliage::{self, Attachment, ElementAnatomy, TwigPlacement},
     math::Vec3,
     presets::Preset,
@@ -28,7 +28,11 @@ fn oak_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert_eq!(profile["scientific_name"], "Quercus garryana");
     assert_eq!(profile["readiness"], "ready");
     let family = preset.parameters();
-    assert!(matches!(family.skeleton.habit, BranchHabit::Spreading(_)));
+    // The oak is a row in the trait table: a leader that yields early, crooked
+    // axes, no attractor pull.
+    let habit = family.skeleton.habit;
+    assert!(habit.apical_dominance < 0.25 && habit.crookedness > 12.0);
+    assert_eq!(habit.attractor_weight, 0.0);
     assert!(!family.skeleton.bias.supernatural.enabled);
     assert_eq!(family.element.anatomy, ElementAnatomy::LobedBlade);
     assert_eq!(family.canopy.attachment, Attachment::Alternate);
@@ -199,7 +203,8 @@ fn fixed_species(preset: Preset) {
     }
     // Engineering regression thresholds for specimen variation, not botanical ranges.
     let dimensions = if preset == Preset::NorwaySpruce {
-        // Tiered leader height is authored; azimuth, curtains and crown width vary.
+        // A persistent leader reaches the authored height on every seed;
+        // azimuth, curtains and crown width are what vary.
         vec![widths]
     } else {
         vec![heights, widths]
@@ -238,7 +243,11 @@ fn spruce_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert_eq!(profile["scientific_name"], "Picea abies");
     assert_eq!(profile["readiness"], "ready");
     let family = preset.parameters();
-    assert!(matches!(family.skeleton.habit, BranchHabit::Tiered(_)));
+    // The spruce is the opposite row: one leader all the way up, whorled
+    // stations, hanging secondaries.
+    let habit = family.skeleton.habit;
+    assert_eq!(habit.apical_dominance, 1.0);
+    assert!(habit.whorl_strength > 0.8 && habit.rise_secondary < -0.5);
     assert!(!family.skeleton.bias.supernatural.enabled);
     assert_eq!(family.element.anatomy, ElementAnatomy::FourSidedNeedle);
     assert!(family.element.connector_length > 0.0);

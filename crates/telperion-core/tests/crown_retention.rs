@@ -34,28 +34,44 @@ fn spruce_bearing_shoots_follow_the_secondary_span() {
         for (i, n) in tree.nodes.iter().enumerate().skip(1) {
             children[n.parent.unwrap() as usize].push(i);
         }
-        let mut owner = vec![None; tree.nodes.len()];
+        let mut owner: Vec<Option<(usize, f64)>> = vec![None; tree.nodes.len()];
         let mut spans = Vec::new();
         for (i, n) in tree.nodes.iter().enumerate().skip(1) {
             let p = n.parent.unwrap() as usize;
-            owner[i] = owner[p];
+            if owner[i].is_none() {
+                // A node the walk below already placed keeps its own distance.
+                owner[i] = owner[p];
+            }
             if i < tree.crossover
                 && owner[i].is_none()
                 && (n.position - tree.nodes[p].position).normalized().y < -0.5
             {
-                let mut end = i;
+                // Walk the hanging axis itself, recording how far along it each
+                // node sits: the wood is judged along the axis it clothes, not
+                // against the height the axis happens to lose.
+                let (mut end, mut along) = (i, 0.0);
+                let mut lowest = tree.nodes[i].position.y;
+                let mut walk = vec![(i, 0.0)];
                 while let Some(&next) = children[end].iter().find(|&&c| c < tree.crossover) {
+                    along += tree.nodes[next].position.distance(tree.nodes[end].position);
+                    lowest = lowest.min(tree.nodes[next].position.y);
+                    walk.push((next, along));
                     end = next;
                 }
-                owner[i] = Some(spans.len());
-                spans.push((tree.nodes[p].position.y, tree.nodes[end].position.y));
+                let span = spans.len();
+                spans.push((along, lowest));
+                for (node, distance) in walk {
+                    owner[node] = Some((span, distance));
+                }
             }
         }
         let mut lengths = [0.0; 4];
         for (i, n) in tree.nodes.iter().enumerate().skip(tree.crossover) {
-            let Some(o) = owner[i] else { continue };
-            let (top, bottom) = spans[o];
-            if top - bottom < 0.3 {
+            let Some((span, along)) = owner[i] else {
+                continue;
+            };
+            let (length, lowest) = spans[span];
+            if length < 0.3 {
                 continue;
             }
             if n.kind != NodeKind::Twig
@@ -64,8 +80,11 @@ fn spruce_bearing_shoots_follow_the_secondary_span() {
                 continue;
             }
             let parent = &tree.nodes[n.parent.unwrap() as usize];
-            let fraction = (top - (n.position.y + parent.position.y) * 0.5) / (top - bottom);
-            let bin = (fraction.max(0.0) * 3.0).floor().min(3.0) as usize;
+            let bin = if (n.position.y + parent.position.y) * 0.5 < lowest {
+                3
+            } else {
+                ((along / length).clamp(0.0, 1.0) * 3.0).floor().min(2.0) as usize
+            };
             lengths[bin] += n.position.distance(parent.position);
         }
         let total: f64 = lengths.iter().sum();
@@ -76,7 +95,7 @@ fn spruce_bearing_shoots_follow_the_secondary_span() {
         assert!(total > 10.0);
         assert!(
             lengths[3] / total < 0.25,
-            "seed {seed}: bearing wood below secondary {lengths:?}"
+            "seed {seed}: bearing wood below the secondary's own reach {lengths:?}"
         );
         for length in &lengths[..3] {
             assert!(

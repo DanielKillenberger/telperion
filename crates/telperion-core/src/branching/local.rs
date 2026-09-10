@@ -163,16 +163,7 @@ pub fn append(
     params: TwigParams,
     seed: u32,
     bias: Option<&GrowthBias>,
-) -> Result<()> {
-    append_with_habit(tree, config, params, seed, bias, BranchHabit::Colonizing)
-}
-pub(super) fn append_with_habit(
-    tree: &mut Tree,
-    config: &GrowthConfig,
-    params: TwigParams,
-    seed: u32,
-    bias: Option<&GrowthBias>,
-    habit: BranchHabit,
+    habit: HabitParams,
 ) -> Result<()> {
     tree.validate_solved()?;
     config.validate()?;
@@ -190,7 +181,7 @@ pub(super) fn append_with_habit(
         children[n.parent.unwrap() as usize] += 1;
     }
     let mut pendant_floor = vec![None; crossover];
-    if matches!(habit, BranchHabit::Tiered(_)) {
+    if habit.rise_secondary < 0.0 {
         let mut continuation = vec![None; crossover];
         for (i, n) in tree.nodes.iter().enumerate().skip(1) {
             continuation[n.parent.unwrap() as usize].get_or_insert(i);
@@ -250,10 +241,7 @@ pub(super) fn append_with_habit(
         config,
         bias,
         twigs: t,
-        crookedness: match habit {
-            BranchHabit::Spreading(p) => p.crookedness,
-            _ => 0.0,
-        },
+        crookedness: habit.crookedness,
         seed,
     };
     while !frontier.is_empty() {
@@ -437,11 +425,7 @@ pub(super) fn append_with_habit(
                 let id = tree.nodes.len() as u32;
                 let branch = if starts { id } else { s.branch.unwrap() };
                 let distal = if is_twig {
-                    if matches!(habit, BranchHabit::Colonizing) {
-                        twig_radius
-                    } else {
-                        twig_radius * 0.25
-                    }
+                    twig_radius * habit.twig_tip_taper
                 } else {
                     twig_radius
                         + (radius - twig_radius)

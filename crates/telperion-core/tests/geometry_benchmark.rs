@@ -1,11 +1,10 @@
 #[path = "../examples/geometry_benchmark/metrics.rs"]
 mod metrics;
-#[path = "../examples/geometry_benchmark/params.rs"]
-mod params;
 use serde_json::{json, Value};
 use telperion_core::{
     foliage::{self, ElementAnatomy, ElementParams, Instances},
     math::Vec3,
+    params,
     tree::{Node, NodeKind, Tree},
 };
 fn tree() -> Tree {
@@ -112,20 +111,50 @@ fn frozen_parameters_resolve_without_default_substitution() {
     let p: Value =
         serde_json::from_str(include_str!("../../../.flow/evidence/fn19/protocol.json")).unwrap();
     for s in p["species"].as_array().unwrap() {
-        let f = params::parse(&s["parameters"]).unwrap();
+        let mut given = s["parameters"].clone();
+        // fn-24 retired the tagged habit for the numeric trait table, so the
+        // frozen file speaks the old shape for that one object and no other.
+        given["skeleton"]
+            .as_object_mut()
+            .unwrap()
+            .remove("habit")
+            .expect("frozen parameters carry a habit");
+        let f = params::parse(&given).unwrap();
         let emitted = params::metadata(&f);
         for key in ["element", "canopy", "radii", "surface"] {
-            same_numbers(&emitted[key], &s["parameters"][key]);
+            same_numbers(&emitted[key], &given[key]);
         }
+        // Every parameter the wire publishes is stated, never defaulted in.
+        stated(&emitted, &given, "");
     }
     assert!(params::parse(&json!({"unknown":3})).is_err());
-    let mut missing = p["species"][0]["parameters"].clone();
-    missing["element"].as_object_mut().unwrap().remove("length");
-    assert!(params::parse(&missing).is_err());
     let mut bad = p["species"][0]["parameters"].clone();
     bad["skeleton"]["seed"] = json!(1.5);
     assert!(params::parse(&bad).is_err());
     assert!(params::by_identity("not-implemented").is_err());
+}
+
+/// Every leaf of the published schema is present in the frozen parameters.
+fn stated(schema: &Value, given: &Value, path: &str) {
+    for (key, value) in schema.as_object().unwrap() {
+        if value.is_null() {
+            // An override the family leaves to the envelope's own derivation.
+            continue;
+        }
+        if path.is_empty() && key == "skeleton" {
+            // The habit is the one object the frozen file no longer speaks.
+            let mut narrowed = value.clone();
+            narrowed.as_object_mut().unwrap().remove("habit");
+            stated(&narrowed, &given[key], "skeleton");
+            continue;
+        }
+        let stated_here = given
+            .get(key)
+            .unwrap_or_else(|| panic!("frozen parameters omit {path}/{key}"));
+        if value.is_object() {
+            stated(value, stated_here, &format!("{path}/{key}"));
+        }
+    }
 }
 
 fn same_numbers(a: &Value, b: &Value) {

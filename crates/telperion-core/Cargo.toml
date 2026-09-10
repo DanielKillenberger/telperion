@@ -17,3 +17,5 @@ path = "../../tests/migration/foundation.rs"
 
 [dev-dependencies]
 serde_json = "1"
+# Examples and tests read the wire the binding publishes, never a second copy.
+telperion-core = { path = ".", features = ["json"] }
