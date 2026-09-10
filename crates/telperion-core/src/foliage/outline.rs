@@ -12,6 +12,15 @@ use std::f64::consts::{FRAC_PI_2, PI, TAU};
 /// lobed section is still a section.
 const MIDRIB: f64 = 0.17;
 
+/// How the cut is distributed along a lobe period. A plain cosine spends as
+/// much of the period cutting as it does at full width, which draws a chevron
+/// between two notches as wide as the lobe itself; raising it broadens the
+/// crest and narrows the notch without moving either. Six is measured, not
+/// chosen: it puts 60.2% of the period within a quarter of the crest and 17.2%
+/// within a quarter of the sinus floor, where the retired five-lobe oak table
+/// sat at 60.2% and 16.9% by the same two contours.
+const LOBE_BROADNESS: i32 = 6;
+
 /// Half the transverse extent at `t` along the axis, in metres. The envelope
 /// is the widest point with its base fullness and tip sharpness; the lobes cut
 /// sinuses into it, `lobe_count` crests along the margin at (2k+1)/2n with a
@@ -29,7 +38,7 @@ pub(super) fn half_width(p: &ElementParams, t: f64) -> f64 {
     let sinus = if p.lobe_count == 0 {
         0.
     } else {
-        0.5 + 0.5 * (TAU * p.lobe_count as f64 * t).cos()
+        (0.5 + 0.5 * (TAU * p.lobe_count as f64 * t).cos()).powi(LOBE_BROADNESS)
     };
     p.width / 2. * envelope * (1. - sinus * p.lobe_depth * (1. - MIDRIB))
 }
