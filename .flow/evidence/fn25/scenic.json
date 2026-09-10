@@ -1,0 +1,67 @@
+{
+  "clip": "/home/daniel/Projects/telperion/.flow/evidence/fn25/scenic.mp4",
+  "size": [
+    1920,
+    1080
+  ],
+  "fps": 24,
+  "fade": 0.5,
+  "planned": {
+    "seconds": 20.5
+  },
+  "grade": "eq=contrast=1.06:saturation=1.05,colorbalance=rm=0.020:gm=0.008:bm=-0.020,vignette=PI/6",
+  "inputs": [
+    {
+      "view": "whole",
+      "pattern": ".flow/evidence/fn25/whole/frame-%04d.png",
+      "frames": 384,
+      "seconds": 16
+    },
+    {
+      "view": "leaf",
+      "pattern": ".flow/evidence/fn25/leaf/frame-%04d.png",
+      "frames": 120,
+      "seconds": 5
+    }
+  ],
+  "ffmpeg": {
+    "command": "ffmpeg",
+    "arguments": [
+      "-y",
+      "-framerate",
+      "24",
+      "-i",
+      ".flow/evidence/fn25/whole/frame-%04d.png",
+      "-framerate",
+      "24",
+      "-i",
+      ".flow/evidence/fn25/leaf/frame-%04d.png",
+      "-filter_complex",
+      "[0:v]scale=1920:1080:flags=lanczos,setsar=1,fps=24[whole];[1:v]scale=1920:1080:flags=lanczos,setsar=1,fps=24[leaf];[whole][leaf]xfade=transition=fade:duration=0.5:offset=15.5[cut];[cut]eq=contrast=1.06:saturation=1.05,colorbalance=rm=0.020:gm=0.008:bm=-0.020,vignette=PI/6[graded]",
+      "-map",
+      "[graded]",
+      "-c:v",
+      "libx264",
+      "-crf",
+      "18",
+      "-pix_fmt",
+      "yuv420p",
+      "-r",
+      "24",
+      "-movflags",
+      "+faststart",
+      ".flow/evidence/fn25/scenic.mp4"
+    ]
+  },
+  "shell": "ffmpeg -y -framerate 24 -i '.flow/evidence/fn25/whole/frame-%04d.png' -framerate 24 -i '.flow/evidence/fn25/leaf/frame-%04d.png' -filter_complex '[0:v]scale=1920:1080:flags=lanczos,setsar=1,fps=24[whole];[1:v]scale=1920:1080:flags=lanczos,setsar=1,fps=24[leaf];[whole][leaf]xfade=transition=fade:duration=0.5:offset=15.5[cut];[cut]eq=contrast=1.06:saturation=1.05,colorbalance=rm=0.020:gm=0.008:bm=-0.020,vignette=PI/6[graded]' -map '[graded]' -c:v libx264 -crf 18 -pix_fmt yuv420p -r 24 -movflags '+faststart' .flow/evidence/fn25/scenic.mp4",
+  "encoded": {
+    "codec": "h264",
+    "size": [
+      1920,
+      1080
+    ],
+    "pixelFormat": "yuv420p",
+    "rate": "24/1",
+    "seconds": 20.5
+  }
+}

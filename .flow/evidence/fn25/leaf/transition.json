@@ -1,0 +1,13 @@
+{
+  "from": "oregon-white-oak",
+  "to": "norway-spruce",
+  "seed": 7,
+  "size": [1920, 1080],
+  "frames": 120,
+  "fps": 24,
+  "walk": 5,
+  "hold": 0,
+  "sweep": 20,
+  "ease": "smoothstep",
+  "encoder": ".flow/evidence/fn25/leaf/transition.mp4"
+}
