@@ -4,7 +4,7 @@ mod species_metrics;
 use serde_json::Value;
 use telperion_core::{
     branching,
-    foliage::{self, Attachment, TwigPlacement},
+    foliage::{self, TwigPlacement},
     math::Vec3,
     presets::Preset,
     surface,
@@ -36,7 +36,11 @@ fn oak_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert!(!family.skeleton.bias.supernatural.enabled);
     assert!(family.element.lobe_count == 5 && family.element.lobe_depth > 0.5);
     assert_eq!(family.element.section_roundness, 0.0);
-    assert_eq!(family.canopy.attachment, Attachment::Alternate);
+    // Blades lean a quarter of the radial along the shoot and sit clear of
+    // the wood; nothing about them is a mode.
+    assert_eq!(family.canopy.forward_lean, 0.25);
+    assert_eq!(family.canopy.lean_rise, 0.0);
+    assert_eq!(family.canopy.surface_contact, 0.0);
     assert_eq!(family.skeleton.twigs.twig.stations_per_internode, 1);
     assert!(Preset::from_id("Quercus garryana").is_none());
     assert!(Preset::from_id("unknown").is_none());
@@ -253,7 +257,11 @@ fn spruce_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert_eq!(family.element.section_roundness, 1.0);
     assert_eq!(family.element.lobe_count, 0);
     assert!(family.element.connector_length > 0.0);
-    assert_eq!(family.canopy.attachment, Attachment::RadialNeedles);
+    // Needles are seated on the wood itself and the upper ones lean hardest
+    // toward the tip.
+    assert_eq!(family.canopy.surface_contact, 1.0);
+    assert_eq!(family.canopy.lean_rise, 1.2);
+    assert!(family.canopy.forward_lean > 0.0 && family.canopy.shoot_radius > 0.0);
     assert_eq!(family.skeleton.twigs.twig.stations_per_internode, 1);
     assert!(Preset::from_id("Picea abies").is_none());
 }

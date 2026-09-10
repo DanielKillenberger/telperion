@@ -113,9 +113,9 @@ fn frozen_parameters_resolve_without_default_substitution() {
         serde_json::from_str(include_str!("../../../.flow/evidence/fn19/protocol.json")).unwrap();
     for s in p["species"].as_array().unwrap() {
         let mut given = s["parameters"].clone();
-        // fn-24 retired the tagged habit and the tagged element anatomy for
-        // numeric trait tables, so the frozen file speaks the old shape for
-        // those two objects and no other.
+        // fn-24 retired the tagged habit, the tagged element anatomy and the
+        // tagged canopy attachment for numeric trait tables, so the frozen
+        // file speaks the old shape for those three objects and no other.
         given["skeleton"]
             .as_object_mut()
             .unwrap()
@@ -126,6 +126,11 @@ fn frozen_parameters_resolve_without_default_substitution() {
             .unwrap()
             .remove("anatomy")
             .expect("frozen parameters carry an anatomy");
+        given["canopy"]
+            .as_object_mut()
+            .unwrap()
+            .remove("attachment")
+            .expect("frozen parameters carry an attachment");
         let f = params::parse(&given).unwrap();
         let mut emitted = params::metadata(&f);
         for trait_name in ["lobeCount", "lobeDepth", "sectionRoundness"] {
@@ -134,6 +139,13 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .unwrap()
                 .remove(trait_name)
                 .expect("the element publishes its outline traits");
+        }
+        for trait_name in ["forwardLean", "leanRise", "surfaceContact"] {
+            emitted["canopy"]
+                .as_object_mut()
+                .unwrap()
+                .remove(trait_name)
+                .expect("the canopy publishes its lean and contact traits");
         }
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);

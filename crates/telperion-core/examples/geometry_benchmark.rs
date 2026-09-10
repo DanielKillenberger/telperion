@@ -13,7 +13,6 @@ use telperion_core::{
     surface,
 };
 fn capabilities(preset: &str) -> Value {
-    use telperion_core::foliage::Attachment;
     let Some(p) = Preset::from_id(preset) else {
         return json!({"implemented":false,"profile_id":null,"capabilities":[]});
     };
@@ -27,10 +26,14 @@ fn capabilities(preset: &str) -> Value {
     if f.element.section_roundness >= 0.5 {
         c.push("four-sided-needle");
     }
-    match f.canopy.attachment {
-        Attachment::Alternate => c.push("alternate-petiole"),
-        Attachment::RadialNeedles => c.push("radial-peg"),
-        _ => {}
+    // The frozen fn-19 protocol names these attachments; a blade that leans
+    // off its own petiole and a needle pegged into the wood are what the
+    // names have always meant.
+    if f.canopy.forward_lean > 0.0 && f.canopy.surface_contact < 0.5 {
+        c.push("alternate-petiole");
+    }
+    if f.canopy.surface_contact >= 0.5 {
+        c.push("radial-peg");
     }
     // The frozen fn-19 protocol names this capability; a family whose deeper
     // axes hang is what the name has always meant.

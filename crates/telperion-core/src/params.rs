@@ -26,7 +26,6 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "habit", "twigTipTaper"; skeleton.habit.twig_tip_taper);
         $op!($f, $v, "skeleton", "habit", "sheddingThreshold"; skeleton.habit.shedding_threshold);
         $op!($f, $v, "element", "connectorLength"; element.connector_length);
-        $op!($f, $v, "canopy", "attachment"; canopy.attachment);
         $op!($f, $v, "skeleton", "seed"; skeleton.seed);
         $op!($f, $v, "skeleton", "attractors"; skeleton.attractors);
         $op!($f, $v, "skeleton", "step"; skeleton.step);
@@ -81,6 +80,9 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "clumpSpan"; canopy.clump_span);
         $op!($f, $v, "canopy", "outward"; canopy.outward);
         $op!($f, $v, "canopy", "upward"; canopy.upward);
+        $op!($f, $v, "canopy", "forwardLean"; canopy.forward_lean);
+        $op!($f, $v, "canopy", "leanRise"; canopy.lean_rise);
+        $op!($f, $v, "canopy", "surfaceContact"; canopy.surface_contact);
         $op!($f, $v, "canopy", "scatter"; canopy.scatter);
         $op!($f, $v, "canopy", "size"; canopy.size);
         $op!($f, $v, "canopy", "sizeVariation"; canopy.size_variation);
@@ -159,6 +161,7 @@ pub fn parse(v: &Value) -> Result<Family> {
                     match k.as_str() {
                         "habit" => "unknown habit trait",
                         "element" => "unknown element trait",
+                        "canopy" => "unknown canopy trait",
                         _ => unknown,
                     },
                 )?;
@@ -200,20 +203,6 @@ scalar_wire!(
     Option<u32>,
     Option<usize>
 );
-macro_rules! enum_wire {
-    ($t:ty, {$($variant:ident => $name:literal),+}) => {
-        impl Wire for $t {
-            fn encode(&self) -> Value { json!(match self { $(Self::$variant => $name),+ }) }
-            fn decode(value: Value) -> Result<Self> {
-                match value.as_str() { $(Some($name) => Ok(Self::$variant)),+,
-                    _ => Err(Error::InvalidInput("unknown attachment")) }
-            }
-        }
-    };
-}
-enum_wire!(crate::foliage::Attachment, {
-    Generic => "generic", Alternate => "alternate", RadialNeedles => "radialNeedles"
-});
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -282,6 +271,51 @@ mod tests {
             assert_eq!(
                 parse(&value).and_then(|f| crate::foliage::build_element(f.element)),
                 Err(Error::InvalidInput(message))
+            );
+        }
+        // The canopy's lean and contact are flat numeric rows as well.
+        for &(abi, _, _, _) in CATALOGUE.iter() {
+            let mut value = metadata(&preset(abi).unwrap());
+            for (trait_name, set) in [
+                ("forwardLean", json!(0.3)),
+                ("leanRise", json!(0.8)),
+                ("surfaceContact", json!(0.5)),
+            ] {
+                value["canopy"][trait_name] = set;
+                assert_eq!(value, metadata(&parse(&value).unwrap()));
+            }
+        }
+        // An attachment tag is a retired shape, not a parameter: the closed
+        // schema refuses it by name, and every trait keeps its range.
+        for bad in [
+            json!({"attachment":"alternate"}),
+            json!({"attachment":"radialNeedles","shootRadius":0.02}),
+        ] {
+            assert_eq!(
+                parse(&json!({"canopy":bad})).err(),
+                Some(Error::InvalidInput("unknown canopy trait"))
+            );
+        }
+        for (trait_name, bad, message) in [
+            ("forwardLean", json!(1.5), "forward lean"),
+            ("leanRise", json!(-0.1), "lean rise"),
+            ("surfaceContact", json!(2.0), "surface contact"),
+        ] {
+            let mut value = metadata(&preset(0).unwrap());
+            value["canopy"][trait_name] = bad;
+            let f = parse(&value).unwrap();
+            assert_eq!(
+                crate::foliage::place(
+                    &crate::branching::generate(&f.skeleton, f.radii)
+                        .unwrap()
+                        .tree,
+                    f.skeleton.envelope,
+                    f.skeleton.seed,
+                    f.canopy,
+                    None,
+                )
+                .err(),
+                Some(Error::InvalidInput(message))
             );
         }
         // A kind tag is a retired shape, not a parameter: the closed schema

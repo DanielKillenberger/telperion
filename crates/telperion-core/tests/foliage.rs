@@ -1,10 +1,11 @@
 use std::collections::BTreeSet;
 use std::ops::Range;
 use telperion_core::{
+    branching,
     envelope::Envelope,
     foliage::*,
     math::Vec3,
-    presets::Preset,
+    presets::{Family, Preset},
     tree::{Node, NodeKind, Tree},
     Error,
 };
@@ -235,7 +236,10 @@ fn fallback_folds_zero_edges_and_clumps_at_terminal_tip() {
         &t,
         Envelope::default(),
         7,
-        p,
+        CanopyParams {
+            shoot_radius: 0.,
+            ..p
+        },
         Some(TwigPlacement::default())
     )
     .unwrap()
@@ -413,19 +417,25 @@ fn species_attachment_uses_local_twig_and_connected_origins() {
         internode_length: 0.01,
         stations_per_internode: 1,
     };
-    for (attachment, shape) in [
-        (Attachment::Alternate, lobed_blade()),
-        (Attachment::RadialNeedles, four_sided_needle()),
-    ] {
-        let p = CanopyParams {
-            attachment,
-            divergence: if attachment == Attachment::Alternate {
-                180.
-            } else {
-                90.
+    for (p, shape) in [
+        (
+            CanopyParams {
+                forward_lean: 0.25,
+                divergence: 180.,
+                ..bare()
             },
-            ..bare()
-        };
+            lobed_blade(),
+        ),
+        (
+            CanopyParams {
+                forward_lean: 0.05,
+                lean_rise: 1.2,
+                divergence: 90.,
+                ..bare()
+            },
+            four_sided_needle(),
+        ),
+    ] {
         let instances = place(&t, Envelope::default(), 4, p, Some(stations)).unwrap();
         assert_eq!(instances.matrices.len(), 8);
         assert_eq!(
@@ -441,7 +451,7 @@ fn species_attachment_uses_local_twig_and_connected_origins() {
             let radial = (root - center).normalized();
             assert!(((root - center).length() - 0.0025).abs() < 1e-6);
             let axis = Vec3::new(m[4] as f64, m[5] as f64, m[6] as f64);
-            if attachment == Attachment::Alternate {
+            if p.lean_rise == 0. {
                 if k > 0 {
                     let prev = &instances.matrices[k - 1];
                     let prev_radial =
@@ -460,7 +470,7 @@ fn species_attachment_uses_local_twig_and_connected_origins() {
                 "connector starts at attachment"
             );
         }
-        if attachment == Attachment::RadialNeedles {
+        if p.lean_rise > 0. {
             assert!(upper > 0 && lower > 0);
         }
     }
@@ -489,13 +499,51 @@ fn species_empty_degenerate_and_invalid_controls_are_explicit() {
             ))
         );
     }
-    for attachment in [Attachment::Alternate, Attachment::RadialNeedles] {
-        let p = CanopyParams {
-            attachment,
-            ..bare()
-        };
-        assert!(place(&twig(0.04), Envelope::default(), 1, p, None).is_err());
-        assert!(place(
+    // Lean and contact are ranged numbers, and each is refused by its own name.
+    for (bad, message) in [
+        (
+            CanopyParams {
+                forward_lean: 1.5,
+                ..bare()
+            },
+            "forward lean",
+        ),
+        (
+            CanopyParams {
+                lean_rise: -0.1,
+                ..bare()
+            },
+            "lean rise",
+        ),
+        (
+            CanopyParams {
+                surface_contact: 1.5,
+                ..bare()
+            },
+            "surface contact",
+        ),
+    ] {
+        assert_eq!(
+            place(
+                &twig(0.04),
+                Envelope::default(),
+                1,
+                bad,
+                Some(TwigPlacement::default())
+            )
+            .err(),
+            Some(Error::InvalidInput(message))
+        );
+    }
+    let p = CanopyParams {
+        forward_lean: 0.25,
+        surface_contact: 0.5,
+        ..bare()
+    };
+    // Stations to an internode is a number, not a mode: a leaf that leans and
+    // seats takes several of them as readily as one.
+    assert_eq!(
+        place(
             &twig(0.04),
             Envelope::default(),
             1,
@@ -505,26 +553,29 @@ fn species_empty_degenerate_and_invalid_controls_are_explicit() {
                 ..TwigPlacement::default()
             })
         )
-        .is_err());
-        let empty = place(
-            &twig(0.),
-            Envelope::default(),
-            1,
-            p,
-            Some(TwigPlacement::default()),
-        )
-        .unwrap();
-        assert!(empty.matrices.is_empty());
-        let zero = place(
-            &twig(0.04),
-            Envelope::default(),
-            1,
-            CanopyParams { size: 0., ..p },
-            Some(TwigPlacement::default()),
-        )
-        .unwrap();
-        assert!(zero.matrices.is_empty());
-    }
+        .unwrap()
+        .matrices
+        .len(),
+        4
+    );
+    let empty = place(
+        &twig(0.),
+        Envelope::default(),
+        1,
+        p,
+        Some(TwigPlacement::default()),
+    )
+    .unwrap();
+    assert!(empty.matrices.is_empty());
+    let zero = place(
+        &twig(0.04),
+        Envelope::default(),
+        1,
+        CanopyParams { size: 0., ..p },
+        Some(TwigPlacement::default()),
+    )
+    .unwrap();
+    assert!(zero.matrices.is_empty());
     let instances = Instances {
         matrices: vec![[
             1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 10., 0., 1.,
@@ -539,14 +590,14 @@ fn species_empty_degenerate_and_invalid_controls_are_explicit() {
 }
 
 #[test]
-fn alternate_stations_continue_across_subdivided_twig_runs() {
+fn leaned_stations_continue_across_subdivided_twig_runs() {
     let mut t = twig(0.03);
     let mut middle = t.nodes[1].clone();
     middle.position.y = 10.01;
     t.nodes.insert(1, middle);
     t.nodes[2].parent = Some(1);
     let p = CanopyParams {
-        attachment: Attachment::Alternate,
+        forward_lean: 0.25,
         divergence: 180.,
         ..bare()
     };
@@ -573,25 +624,26 @@ fn needles_retain_shaft_width_before_the_distal_point() {
 }
 
 #[test]
-fn evergreen_needles_clothe_slender_supports_but_not_thick_limbs() {
+fn shoot_radius_alone_clothes_slender_supports_and_spares_thick_limbs() {
     let mut t = twig(0.08);
     t.nodes[1].kind = NodeKind::Branch;
     t.crossover = t.nodes.len();
     let stations = Some(TwigPlacement::default());
-    let needles = CanopyParams {
-        attachment: Attachment::RadialNeedles,
+    let clothing = CanopyParams {
         shoot_radius: 0.005,
         ..bare()
     };
-    let placed = place(&t, Envelope::default(), 1, needles, stations).unwrap();
+    let placed = place(&t, Envelope::default(), 1, clothing, stations).unwrap();
     assert_eq!(placed.matrices.len(), 4);
+    // The same wood, the same leaf: at zero the trait clothes nothing beyond
+    // the runs the twig layer marked, and this branch is not one of them.
     assert!(place(
         &t,
         Envelope::default(),
         1,
         CanopyParams {
-            attachment: Attachment::Alternate,
-            ..needles
+            shoot_radius: 0.,
+            ..clothing
         },
         stations
     )
@@ -599,7 +651,7 @@ fn evergreen_needles_clothe_slender_supports_but_not_thick_limbs() {
     .matrices
     .is_empty());
     t.nodes[1].start_radius = 0.006;
-    assert!(place(&t, Envelope::default(), 1, needles, stations)
+    assert!(place(&t, Envelope::default(), 1, clothing, stations)
         .unwrap()
         .matrices
         .is_empty());
@@ -979,5 +1031,92 @@ fn a_margin_with_more_lobes_than_sections_is_rejected_by_both_names() {
         ),
     ] {
         assert_eq!(build_element(bad).err(), Some(Error::InvalidInput(named)));
+    }
+}
+
+/// FNV-1a over every instance matrix as the renderer receives it: where each
+/// leaf sits and how it leans, and nothing about how it was asked for.
+fn placement_hash(f: &Family, tree: &Tree) -> u64 {
+    let twig = f.skeleton.twigs.resolved().unwrap().twig;
+    let placed = place_on_surface(
+        tree,
+        f.skeleton.envelope,
+        f.skeleton.seed,
+        f.canopy,
+        Some(TwigPlacement {
+            internode_length: twig.internode_length,
+            stations_per_internode: twig.stations_per_internode,
+        }),
+        &f.surface,
+    )
+    .unwrap_or_else(|err| panic!("{:?}: {err}", f.canopy));
+    let mut hash = 14695981039346656037_u64;
+    for byte in placed
+        .matrices
+        .iter()
+        .flat_map(|m| m.iter().flat_map(|v| v.to_le_bytes()))
+    {
+        hash = (hash ^ byte as u64).wrapping_mul(1099511628211);
+    }
+    hash
+}
+
+/// One step inside a trait's own range, whichever way there is room for it.
+fn step(v: f64, hi: f64) -> f64 {
+    if v + 0.1 <= hi {
+        v + 0.1
+    } else {
+        v - 0.1
+    }
+}
+
+#[test]
+fn every_attachment_trait_moves_every_shipped_preset() {
+    for preset in [
+        Preset::Ordinary,
+        Preset::OregonWhiteOak,
+        Preset::NorwaySpruce,
+        Preset::Telperion,
+        Preset::Laurelin,
+    ] {
+        let family = preset.parameters();
+        let tree = branching::generate(&family.skeleton, family.radii)
+            .unwrap()
+            .tree;
+        let base = placement_hash(&family, &tree);
+        let p = family.canopy;
+        for (name, canopy) in [
+            (
+                "forward lean",
+                CanopyParams {
+                    forward_lean: step(p.forward_lean, 1.),
+                    ..p
+                },
+            ),
+            (
+                "lean rise",
+                CanopyParams {
+                    lean_rise: step(p.lean_rise, 2.),
+                    ..p
+                },
+            ),
+            (
+                "surface contact",
+                CanopyParams {
+                    surface_contact: step(p.surface_contact, 1.),
+                    ..p
+                },
+            ),
+        ] {
+            let stepped = Family {
+                canopy,
+                ..family.clone()
+            };
+            assert_ne!(
+                placement_hash(&stepped, &tree),
+                base,
+                "{preset:?}: {name} moves no leaf"
+            );
+        }
     }
 }

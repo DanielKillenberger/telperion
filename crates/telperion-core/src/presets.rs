@@ -3,7 +3,7 @@ use crate::{
     bias::{BiasParams, SupernaturalParams},
     branching::{HabitParams, SkeletonParams},
     envelope::Envelope,
-    foliage::{Attachment, CanopyParams, ElementParams},
+    foliage::{CanopyParams, ElementParams},
     radius::RadiusParams,
     surface::SurfaceParams,
 };
@@ -117,7 +117,11 @@ impl Preset {
             };
             // Retain interior leaf-bearing shoots in the healthy open-grown crown.
             p.shell_depth = 1.0;
-            p.canopy.attachment = Attachment::Alternate;
+            // Blades alternate along the shoot and lean a quarter of the
+            // radial toward its tip; nothing pulls them outward or up.
+            p.canopy.forward_lean = 0.25;
+            p.canopy.outward = 0.0;
+            p.canopy.upward = 0.0;
             p.canopy.divergence = 180.0;
             p.canopy.size_variation = 0.2;
             return p;
@@ -170,9 +174,14 @@ impl Preset {
                 ..Default::default()
             };
             p.shell_depth = 1.0;
-            // Evergreen foliage also persists on slender supporting branchlets.
+            // Evergreen foliage also persists on slender supporting branchlets,
+            // seated on the wood itself, upper needles leaning toward the tip.
             p.canopy.shoot_radius = 0.025;
-            p.canopy.attachment = Attachment::RadialNeedles;
+            p.canopy.forward_lean = 0.05;
+            p.canopy.lean_rise = 1.2;
+            p.canopy.surface_contact = 1.0;
+            p.canopy.outward = 0.0;
+            p.canopy.upward = 0.0;
             p.canopy.size_variation = 0.2;
             return p;
         }
@@ -270,7 +279,6 @@ impl Preset {
             fork_swell: 1.35,
         };
         p.canopy = CanopyParams {
-            shoot_radius: if silver { 0.1 } else { 0.14 },
             spacing: if silver { 0.0045 } else { 0.0065 },
             divergence: if silver { 137.508 } else { 99.502 },
             clump: if silver { 6 } else { 9 },
