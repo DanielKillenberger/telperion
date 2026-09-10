@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-10T22:26:23.360268Z",
+  "depends_on": [
+    "fn-14-bark-and-foliage-appearance.4",
+    "fn-14-bark-and-foliage-appearance.5"
+  ],
+  "id": "fn-14-bark-and-foliage-appearance.6",
+  "priority": null,
+  "spec": "fn-14-bark-and-foliage-appearance",
+  "spec_path": ".flow/tasks/fn-14-bark-and-foliage-appearance.6.md",
+  "status": "todo",
+  "title": "The evidence: references fetched, lit hero stills, the clock, the report, docs, and the owner's verdicts",
+  "updated_at": "2026-09-10T22:26:23.360268Z"
+}
