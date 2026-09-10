@@ -48,16 +48,17 @@ The native entry is `branching::generate(&family.skeleton, family.radii)`. Its s
 
 | Owner in `crates/telperion-core/src` | Responsibility |
 |---|---|
-| `envelope`, `colonization`, `bias` | Authored crown, attractor growth, directional fields and turn constraints |
+| `envelope`, `colonization`, `bias` | Authored crown, attractor points, directional fields and turn constraints |
+| `branching/traits`, `branching/scaffold` | The numeric habit traits and the one builder that grows every axis from them |
 | `branching/local`, `twigs`, `radius` | Radius-driven branch generations, fixed twig anatomy, local taper and fork conservation |
 | `surface` | Continuous swept wood, transported frames, lobes, twist and sockets |
-| `foliage` | Leaf shape, anatomical stations, phyllotaxis and shell retention |
+| `foliage` | Leaf outline and lean from numeric traits, anatomical stations, phyllotaxis and shell retention |
 | `field` | Wood and foliage cell occupancy, independently of render meshes |
 | `presets` | Named parameter sets and scale choices |
 
 `crates/telperion-render` draws that output on wgpu, and is the only renderer in the repository. It compiles to two targets from one code path: a wasm module the page loads through `src/browser/render.ts`, which generates and uploads inside its own linear memory, and a native offscreen target whose `headless` example writes a PNG at the hero pose and, on request, a GPU timing record. The renderer owns the whole scene - ground, clay hemisphere lighting, the 1.8 m scale figure, camera and the whole, bare and single-leaf views - and it never names a species: only the headless entry point resolves a preset id. The crown is not one draw: a compute pass reads every placement once per frame, projects the leaf element's extent to a pixel size and gives that leaf the coarsest level whose outline deviation projects under half a pixel, or the unseen bucket if it is outside the frustum; the renderer then issues one indexed indirect draw per level, over the instances that chose it. A level is a subset of the element's own sections, so a coarse leaf's vertices are a fine leaf's and no placement, count or bound changes with the level drawn.
 
-The crown envelope controls the silhouette. Space colonization establishes structural limbs, then local branch laws continue down to leaf-bearing twigs. Forks conserve cross-sectional area with a tunable exponent. Branch resolution and lateral count are independent. Terminal twig anatomy is measured in metres; the giant presets retain fine twigs instead of uniformly enlarging them.
+The crown envelope controls the silhouette. One scaffold builder grows every axis inside it from a table of numeric habit traits - apical dominance, whorl strength, station spacing, pitch, rise, crookedness and the rest - and every growth unit of every axis takes its heading from one sum of the rule heading, the pull of the envelope's attractors and the bias field. Attractor pull is a trait weight in that sum rather than a phase of its own, and no species has a builder or a field the others lack: an oak and a spruce are two rows of the same table, and any point between them is a tree. The leaf is a row too - lobe count, lobe depth and section roundness draw the outline, forward lean, lean rise and surface contact place it on its shoot - so there is no anatomy to switch between. Local branch laws continue from the scaffold down to leaf-bearing twigs and read the same traits. Forks conserve cross-sectional area with a tunable exponent. Branch resolution and lateral count are independent. Terminal twig anatomy is measured in metres; the giant presets retain fine twigs instead of uniformly enlarging them.
 
 Botanical and output changes have separate owners. A representative development exercise and the retained test mapping are in [the migration guide](tests/migration/README.md#changing-a-rule-or-an-output). Native mesh-free examples are exercised in `crates/telperion-core/tests/field.rs`; browser binding ownership and failure recovery are checked in `tests/browser/bindings.mjs`, and the page on a real GPU in `tests/browser/render.mjs`.
 
@@ -95,6 +96,16 @@ cargo run --release -p telperion-render --example headless -- \
 ```
 
 `--level <n>` holds every leaf of the frame at one level instead of letting selection choose, which is how a single level's cost is measured on its own. `--orbit` turns the camera one full revolution about the subject at the hero pose's elevation and distance while the timing session runs; the still beside it is always the hero pose, because the orbit is what is measured and not what is judged.
+
+The same target walks between two presets:
+
+```sh
+cargo run --release -p telperion-render --example headless -- \
+  --preset oregon-white-oak --to norway-spruce --seed 7 --frames 240 \
+  --out /tmp/walk/frame.png
+```
+
+`--to <preset>` renders a numbered PNG sequence instead of one still: `--frames <n>` frames, 240 by default, each the blend of the two families at the one seed, all of them at the hero pose the first frame's bounds fixed. `--out` names the sequence, so `--out /tmp/walk/frame.png` writes `/tmp/walk/frame-0001.png` onward with `transition.json` beside them, naming both presets, the seed, the size, the frame count, the rate of 24 a second and what the encoder did. When `ffmpeg` is on the path the frames are assembled into `transition.mp4` at that rate; when it is not, the run says so in one line and keeps the sequence, which is the artefact either way.
 
 `npm run rust:test:wasm` holds the Wasm binding to its contract in a plain headless browser, which needs no adapter at all. `npm run test:render` drives the page on hardware WebGPU: it needs a display, and skips with the renderer's own words when the machine offers no hardware adapter. `npm run species:qa` renders the species stills through the headless target.
 

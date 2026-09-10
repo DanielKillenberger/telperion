@@ -59,7 +59,9 @@ import { presetToParams } from "./family";
 export const SEED_MAX = 0xff_ff_ff_ff;
 
 export interface GrowerParams {
-  /** Preserve native anatomy and non-slider controls until viewer affordances land. */
+  /** The family the panel carries under the generator's own names. Every
+   *  trait no slider owns - the habit table, the leaf's outline and the way
+   *  it sits on its shoot - is edited here and travels through `toFamily`. */
   family: Family;
   supernaturalEnabled: boolean;
   /** uint32. Varies the detail; it does not gamble on the outcome. */

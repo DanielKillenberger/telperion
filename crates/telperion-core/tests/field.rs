@@ -164,7 +164,12 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
         );
         eprintln!("nodes={} retained={} build_ms={:.2} queries={} query_ms={:.2} owned_capacity_bytes={} wood_cells={} foliage_cells={}",tree.nodes.len(),retained.matrices.len(),build.as_secs_f64()*1000.,cells*cells*cells,query.as_secs_f64()*1000.,field.storage_bytes(),wood,leaves);
         if matches!(preset, Preset::Telperion) {
-            assert!(retained.matrices.len() > 1_000_000);
+            // The giant stays a giant: a crown no one could place by hand.
+            // fn-24 rebuilt the Two Trees from the habit trait table, and the
+            // retired colonizer's 1_360_279 placements are 534_638 here, its
+            // wood standing further inside the lit shell. fn-10 owns any
+            // verdict on the Two Trees; this floor is the engineering rail.
+            assert!(retained.matrices.len() > 400_000);
         }
     }
 }
@@ -173,7 +178,7 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
 fn species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_units() {
     use telperion_core::{
         envelope::Envelope,
-        foliage::{build_element, cull, transform_point, ElementAnatomy, ElementParams},
+        foliage::{build_element, cull, transform_point, ElementParams},
     };
     let matrix = [
         0., 0., 2., 0., 3., 0., 0., 0., 0., 4., 0., 0., 0., 15., 0., 1.,
@@ -181,9 +186,13 @@ fn species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_un
     let instances = Instances {
         matrices: vec![matrix],
     };
-    for anatomy in [ElementAnatomy::LobedBlade, ElementAnatomy::FourSidedNeedle] {
+    for section_roundness in [0.0, 1.0] {
         let element = build_element(ElementParams {
-            anatomy,
+            section_roundness,
+            lobe_count: if section_roundness > 0.0 { 0 } else { 5 },
+            lobe_depth: if section_roundness > 0.0 { 0.0 } else { 0.7 },
+            axial_segments: 12,
+            cross_segments: 4,
             length: 0.02,
             width: 0.002,
             connector_length: 0.001,

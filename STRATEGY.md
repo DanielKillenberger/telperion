@@ -1,6 +1,6 @@
 ---
 name: Telperion
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 generator: flow-next-strategy
 ---
 
@@ -12,7 +12,7 @@ Game developers need trees that hold up from a close inspection to a forest, wit
 
 ## Our approach
 
-Build toward realistic simulations of procedurally generated trees, using one persistent botanical structure from trunk to leaf-bearing twig, with growth, surroundings and damage shaping its lifecycle. Generator parameters define botanical traits, leaf geometry, branching and placement; templates are reusable parameter presets for many tree kinds, the seed selects a reproducible specimen, and a shared parametric field supplies supernatural character. All rendering techniques must generalize across generated trees and leaves through shared geometry and data contracts, so changing supported generator parameters or adding a template requires no renderer code changes. The project mantra is "Minimalist af, efficient af and beautiful": use lean code, explicit data flow and small interfaces, generate only the detail the consuming engine needs, and judge each advance through measured runtime costs and visual evidence.
+Build toward realistic simulations of procedurally generated trees, using one persistent botanical structure from trunk to leaf-bearing twig, with growth, surroundings and damage shaping its lifecycle. The generator is one continuous tree space: every generator parameter is a numeric trait that acts on every tree, a template is just a point in that multi-dimensional space, the seed selects a reproducible specimen, and a shared parametric field supplies supernatural character, so smooth interpolation between any kind of tree is a standing requirement and no family field is a switch between ways of building. All rendering techniques must generalize across generated trees and leaves through shared geometry and data contracts, so changing supported generator parameters or adding a template requires no renderer code changes. The project mantra is "Minimalist af, efficient af and beautiful": use lean code, explicit data flow and small interfaces, generate only the detail the consuming engine needs, and judge each advance through measured runtime costs and visual evidence.
 
 ## Who it's for
 

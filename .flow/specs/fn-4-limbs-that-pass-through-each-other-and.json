@@ -4,7 +4,8 @@
   "depends_on_epics": [
     "fn-5-branch-until-the-tips-bear-leaves-one",
     "fn-6-branch-generations-below-the-crossover",
-    "fn-8-lean-rust-tree-generation-core"
+    "fn-8-lean-rust-tree-generation-core",
+    "fn-24-continuous-tree-space-habit-and-leaf-as"
   ],
   "id": "fn-4-limbs-that-pass-through-each-other-and",
   "next_task": 1,
@@ -24,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T18:32:42.705273Z"
+  "updated_at": "2026-09-10T13:49:53.879734Z"
 }

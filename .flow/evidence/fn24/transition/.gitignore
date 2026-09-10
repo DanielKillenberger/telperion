@@ -1,0 +1,4 @@
+# The walked frames are the render, not the receipt: 240 stills at 1600x1000,
+# rewritten by any re-run. transition.json and transition.mp4 are committed.
+frame-*.png
+transition.mp4

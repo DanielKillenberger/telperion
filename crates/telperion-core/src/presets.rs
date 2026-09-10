@@ -1,9 +1,9 @@
 //! Named families. Change the seed separately to draw another specimen.
 use crate::{
     bias::{BiasParams, SupernaturalParams},
-    branching::{BranchHabit, SkeletonParams, SpreadingHabit, TieredHabit},
+    branching::{HabitParams, SkeletonParams},
     envelope::Envelope,
-    foliage::{Attachment, CanopyParams, ElementAnatomy, ElementParams},
+    foliage::{CanopyParams, ElementParams},
     radius::RadiusParams,
     surface::SurfaceParams,
 };
@@ -67,10 +67,23 @@ impl Preset {
         if self == Self::OregonWhiteOak {
             // Mature, open-grown Quercus garryana. Metre dimensions are
             // calibrated against the frozen profile, not inferred from seed.
-            p.skeleton.habit = BranchHabit::Spreading(SpreadingHabit {
-                subdivisions: 5,
-                ..Default::default()
-            });
+            p.skeleton.habit = HabitParams {
+                apical_dominance: 0.1,
+                whorl_strength: 0.1,
+                leader_internode: 2.0,
+                laterals_per_station: 5,
+                lateral_pitch: 55.0,
+                pitch_variation: 20.0,
+                rise_primary: 0.12,
+                rise_secondary: 0.0,
+                crookedness: 24.0,
+                lateral_spacing: 1.6,
+                lateral_length_ratio: 0.45,
+                lateral_orders: 3,
+                attractor_weight: 0.0,
+                twig_tip_taper: 0.25,
+                shedding_threshold: 0.0,
+            };
             p.skeleton.envelope = Envelope {
                 height: 24.0,
                 crown_base: 0.16,
@@ -83,26 +96,55 @@ impl Preset {
             p.skeleton.twigs.length_ratio = 0.45;
             p.skeleton.twigs.twig.bearing_diameter = 0.03;
             p.radii.trunk_radius = 0.018;
+            // Five lobes on an envelope whose crests sit where the retired
+            // five-lobe table reached; the sinuses cut deeper than that table
+            // did, which is the shape a Quercus garryana leaf actually holds.
             p.element = ElementParams {
-                anatomy: ElementAnatomy::LobedBlade,
                 length: 0.10,
                 width: 0.075,
                 connector_length: 0.012,
+                widest_at: 0.55,
+                base_fullness: 0.6,
+                tip_sharpness: 0.6,
+                lobe_count: 5,
+                lobe_depth: 0.7,
+                section_roundness: 0.0,
+                // Four stations to a half-lobe, landing exactly on every crest
+                // and every sinus: fewer and the margin is drawn as the zigzag
+                // between them rather than as the curve through them.
+                axial_segments: 40,
                 ..Default::default()
             };
             // Retain interior leaf-bearing shoots in the healthy open-grown crown.
             p.shell_depth = 1.0;
-            p.canopy.attachment = Attachment::Alternate;
+            // Blades alternate along the shoot and lean a quarter of the
+            // radial toward its tip; nothing pulls them outward or up.
+            p.canopy.forward_lean = 0.25;
+            p.canopy.outward = 0.0;
+            p.canopy.upward = 0.0;
             p.canopy.divergence = 180.0;
             p.canopy.size_variation = 0.2;
             return p;
         }
         if self == Self::NorwaySpruce {
             // Open-grown landscape Picea abies; one needle per local station.
-            p.skeleton.habit = BranchHabit::Tiered(TieredHabit {
-                secondary_spacing: 0.20,
-                ..Default::default()
-            });
+            p.skeleton.habit = HabitParams {
+                apical_dominance: 1.0,
+                whorl_strength: 1.0,
+                leader_internode: 0.9,
+                laterals_per_station: 5,
+                lateral_pitch: 88.0,
+                pitch_variation: 4.0,
+                rise_primary: 0.12,
+                rise_secondary: -0.8,
+                crookedness: 0.0,
+                lateral_spacing: 0.15,
+                lateral_length_ratio: 0.30,
+                lateral_orders: 4,
+                attractor_weight: 0.0,
+                twig_tip_taper: 0.25,
+                shedding_threshold: 0.0,
+            };
             p.skeleton.envelope = Envelope {
                 height: 15.0,
                 crown_base: 0.04,
@@ -115,17 +157,31 @@ impl Preset {
             p.skeleton.twigs.twig.internode_length = 0.0025;
             p.skeleton.twigs.twig.bearing_diameter = 0.02;
             p.radii.trunk_radius = 0.015;
+            // A shaft that holds its width to the distal point, rolled all
+            // the way round: four sides, four cross segments, no seam vertex
+            // spent on a seam that is not there.
             p.element = ElementParams {
-                anatomy: ElementAnatomy::FourSidedNeedle,
                 length: 0.018,
                 width: 0.0015,
                 connector_length: 0.001,
+                widest_at: 0.2,
+                base_fullness: 0.2,
+                tip_sharpness: 0.2,
+                lobe_count: 0,
+                lobe_depth: 0.0,
+                section_roundness: 1.0,
+                cross_segments: 4,
                 ..Default::default()
             };
             p.shell_depth = 1.0;
-            // Evergreen foliage also persists on slender supporting branchlets.
+            // Evergreen foliage also persists on slender supporting branchlets,
+            // seated on the wood itself, upper needles leaning toward the tip.
             p.canopy.shoot_radius = 0.025;
-            p.canopy.attachment = Attachment::RadialNeedles;
+            p.canopy.forward_lean = 0.05;
+            p.canopy.lean_rise = 1.2;
+            p.canopy.surface_contact = 1.0;
+            p.canopy.outward = 0.0;
+            p.canopy.upward = 0.0;
             p.canopy.size_variation = 0.2;
             return p;
         }
@@ -134,6 +190,25 @@ impl Preset {
         }
         let silver = self == Self::Telperion;
         p.skeleton.seed = if silver { 1 } else { 2 };
+        // The Two Trees are an order of magnitude taller than a forest tree,
+        // and every spacing here is a length in metres.
+        p.skeleton.habit = HabitParams {
+            apical_dominance: 0.15,
+            whorl_strength: 0.2,
+            leader_internode: 10.0,
+            laterals_per_station: 4,
+            lateral_pitch: 60.0,
+            pitch_variation: 15.0,
+            rise_primary: 0.05,
+            rise_secondary: 0.0,
+            crookedness: 12.0,
+            lateral_spacing: 10.0,
+            lateral_length_ratio: 0.45,
+            lateral_orders: 3,
+            attractor_weight: 1.0,
+            twig_tip_taper: 1.0,
+            shedding_threshold: 0.45,
+        };
         p.skeleton.envelope = if silver {
             Envelope {
                 height: 148.0,
@@ -204,7 +279,6 @@ impl Preset {
             fork_swell: 1.35,
         };
         p.canopy = CanopyParams {
-            shoot_radius: if silver { 0.1 } else { 0.14 },
             spacing: if silver { 0.0045 } else { 0.0065 },
             divergence: if silver { 137.508 } else { 99.502 },
             clump: if silver { 6 } else { 9 },

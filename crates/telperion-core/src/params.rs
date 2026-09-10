@@ -10,10 +10,22 @@ use serde_json::{json, Value};
 // This table is the wire schema: it also emits the browser's preset metadata.
 macro_rules! fields {
     ($f:ident, $v:ident, $op:ident) => {
-        $op!($f, $v, "skeleton", "habit"; skeleton.habit);
-        $op!($f, $v, "element", "anatomy"; element.anatomy);
+        $op!($f, $v, "skeleton", "habit", "apicalDominance"; skeleton.habit.apical_dominance);
+        $op!($f, $v, "skeleton", "habit", "whorlStrength"; skeleton.habit.whorl_strength);
+        $op!($f, $v, "skeleton", "habit", "leaderInternode"; skeleton.habit.leader_internode);
+        $op!($f, $v, "skeleton", "habit", "lateralsPerStation"; skeleton.habit.laterals_per_station);
+        $op!($f, $v, "skeleton", "habit", "lateralPitch"; skeleton.habit.lateral_pitch);
+        $op!($f, $v, "skeleton", "habit", "pitchVariation"; skeleton.habit.pitch_variation);
+        $op!($f, $v, "skeleton", "habit", "risePrimary"; skeleton.habit.rise_primary);
+        $op!($f, $v, "skeleton", "habit", "riseSecondary"; skeleton.habit.rise_secondary);
+        $op!($f, $v, "skeleton", "habit", "crookedness"; skeleton.habit.crookedness);
+        $op!($f, $v, "skeleton", "habit", "lateralSpacing"; skeleton.habit.lateral_spacing);
+        $op!($f, $v, "skeleton", "habit", "lateralLengthRatio"; skeleton.habit.lateral_length_ratio);
+        $op!($f, $v, "skeleton", "habit", "lateralOrders"; skeleton.habit.lateral_orders);
+        $op!($f, $v, "skeleton", "habit", "attractorWeight"; skeleton.habit.attractor_weight);
+        $op!($f, $v, "skeleton", "habit", "twigTipTaper"; skeleton.habit.twig_tip_taper);
+        $op!($f, $v, "skeleton", "habit", "sheddingThreshold"; skeleton.habit.shedding_threshold);
         $op!($f, $v, "element", "connectorLength"; element.connector_length);
-        $op!($f, $v, "canopy", "attachment"; canopy.attachment);
         $op!($f, $v, "skeleton", "seed"; skeleton.seed);
         $op!($f, $v, "skeleton", "attractors"; skeleton.attractors);
         $op!($f, $v, "skeleton", "step"; skeleton.step);
@@ -68,6 +80,9 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "clumpSpan"; canopy.clump_span);
         $op!($f, $v, "canopy", "outward"; canopy.outward);
         $op!($f, $v, "canopy", "upward"; canopy.upward);
+        $op!($f, $v, "canopy", "forwardLean"; canopy.forward_lean);
+        $op!($f, $v, "canopy", "leanRise"; canopy.lean_rise);
+        $op!($f, $v, "canopy", "surfaceContact"; canopy.surface_contact);
         $op!($f, $v, "canopy", "scatter"; canopy.scatter);
         $op!($f, $v, "canopy", "size"; canopy.size);
         $op!($f, $v, "canopy", "sizeVariation"; canopy.size_variation);
@@ -81,6 +96,9 @@ macro_rules! fields {
         $op!($f, $v, "element", "curl"; element.curl);
         $op!($f, $v, "element", "axialSegments"; element.axial_segments);
         $op!($f, $v, "element", "crossSegments"; element.cross_segments);
+        $op!($f, $v, "element", "lobeCount"; element.lobe_count);
+        $op!($f, $v, "element", "lobeDepth"; element.lobe_depth);
+        $op!($f, $v, "element", "sectionRoundness"; element.section_roundness);
         $op!($f, $v, "element", "card"; element.card);
         $op!($f, $v, "shellDepth"; shell_depth);
     };
@@ -132,19 +150,26 @@ pub fn parse(v: &Value) -> Result<Family> {
     }
     let mut f = preset(0)?;
     let schema = metadata(&f);
-    fn known(v: &Value, schema: &Value) -> Result<()> {
+    fn known(v: &Value, schema: &Value, unknown: &'static str) -> Result<()> {
         let map = v.as_object().ok_or(Error::InvalidInput("family object"))?;
         for (k, value) in map {
-            let s = schema
-                .get(k)
-                .ok_or(Error::InvalidInput("unknown family parameter"))?;
-            if s.is_object() && k != "habit" {
-                known(value, s)?;
+            let s = schema.get(k).ok_or(Error::InvalidInput(unknown))?;
+            if s.is_object() {
+                known(
+                    value,
+                    s,
+                    match k.as_str() {
+                        "habit" => "unknown habit trait",
+                        "element" => "unknown element trait",
+                        "canopy" => "unknown canopy trait",
+                        _ => unknown,
+                    },
+                )?;
             }
         }
         Ok(())
     }
-    known(v, &schema)?;
+    known(v, &schema, "unknown family parameter")?;
     macro_rules! read {
         ($f:ident, $v:ident, $($key:literal),+; $($field:ident).+) => {
             if let Some(value) = $v.pointer(concat!($("/", $key),+)) {
@@ -178,95 +203,6 @@ scalar_wire!(
     Option<u32>,
     Option<usize>
 );
-macro_rules! enum_wire {
-    ($t:ty, {$($variant:ident => $name:literal),+}) => {
-        impl Wire for $t {
-            fn encode(&self) -> Value { json!(match self { $(Self::$variant => $name),+ }) }
-            fn decode(value: Value) -> Result<Self> {
-                match value.as_str() { $(Some($name) => Ok(Self::$variant)),+,
-                    _ => Err(Error::InvalidInput("unknown anatomy or attachment")) }
-            }
-        }
-    };
-}
-enum_wire!(crate::foliage::ElementAnatomy, {
-    GenericBlade => "genericBlade", LobedBlade => "lobedBlade", FourSidedNeedle => "fourSidedNeedle"
-});
-enum_wire!(crate::foliage::Attachment, {
-    Generic => "generic", Alternate => "alternate", RadialNeedles => "radialNeedles"
-});
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
-enum Habit {
-    Colonizing {},
-    #[serde(rename_all = "camelCase")]
-    Spreading {
-        scaffold_limbs: u32,
-        subdivisions: u32,
-        crookedness: f64,
-    },
-    #[serde(rename_all = "camelCase")]
-    Tiered {
-        tiers: u32,
-        branches_per_tier: u32,
-        secondary_spacing: f64,
-        secondary_length: f64,
-        upturn: f64,
-    },
-}
-impl Wire for crate::branching::BranchHabit {
-    fn encode(&self) -> Value {
-        let wire = match *self {
-            Self::Colonizing => Habit::Colonizing {},
-            Self::Spreading(p) => Habit::Spreading {
-                scaffold_limbs: p.scaffold_limbs,
-                subdivisions: p.subdivisions,
-                crookedness: p.crookedness,
-            },
-            Self::Tiered(p) => Habit::Tiered {
-                tiers: p.tiers,
-                branches_per_tier: p.branches_per_tier,
-                secondary_spacing: p.secondary_spacing,
-                secondary_length: p.secondary_length,
-                upturn: p.upturn,
-            },
-        };
-        json!(wire)
-    }
-    fn decode(value: Value) -> Result<Self> {
-        use crate::branching::{SpreadingHabit, TieredHabit};
-        let wire =
-            serde_json::from_value(value).map_err(|_| Error::InvalidInput("habit parameters"))?;
-        let habit = match wire {
-            Habit::Colonizing {} => Self::Colonizing,
-            Habit::Spreading {
-                scaffold_limbs,
-                subdivisions,
-                crookedness,
-            } => Self::Spreading(SpreadingHabit {
-                scaffold_limbs,
-                subdivisions,
-                crookedness,
-            }),
-            Habit::Tiered {
-                tiers,
-                branches_per_tier,
-                secondary_spacing,
-                secondary_length,
-                upturn,
-            } => Self::Tiered(TieredHabit {
-                tiers,
-                branches_per_tier,
-                secondary_spacing,
-                secondary_length,
-                upturn,
-            }),
-        };
-        habit.validate()?;
-        Ok(habit)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -278,24 +214,138 @@ mod tests {
             assert_eq!(value, metadata(&parse(&value).unwrap()));
             value["skeleton"]["bias"]["supernatural"] = json!({"enabled":false,"writheAmplitude":0.12,"writheWavelength":0.4,"spiralRate":3.0});
             value["element"]["connectorLength"] = json!(0.002);
-            for habit in [
-                json!({"kind":"colonizing"}),
-                json!({"kind":"spreading","scaffoldLimbs":6,"subdivisions":2,"crookedness":13.0}),
-                json!({"kind":"tiered","tiers":4,"branchesPerTier":3,"secondarySpacing":0.2,"secondaryLength":0.4,"upturn":0.1}),
+            // Every habit trait is a flat numeric row, set one at a time.
+            for (trait_name, set) in [
+                ("apicalDominance", json!(0.75)),
+                ("whorlStrength", json!(0.4)),
+                ("lateralsPerStation", json!(4)),
+                ("riseSecondary", json!(-0.5)),
+                ("crookedness", json!(13.0)),
+                ("lateralOrders", json!(2)),
+                ("attractorWeight", json!(0.0)),
             ] {
-                value["skeleton"]["habit"] = habit;
+                value["skeleton"]["habit"][trait_name] = set;
                 assert_eq!(value, metadata(&parse(&value).unwrap()));
             }
         }
         assert!(preset(999).is_err());
         assert!(parse(&json!("missing")).is_err());
+        // The element's outline traits are flat numeric rows too.
+        for &(abi, _, _, _) in CATALOGUE.iter() {
+            let mut value = metadata(&preset(abi).unwrap());
+            for (trait_name, set) in [
+                ("lobeCount", json!(3)),
+                ("lobeDepth", json!(0.55)),
+                ("sectionRoundness", json!(0.4)),
+                ("axialSegments", json!(20)),
+            ] {
+                value["element"][trait_name] = set;
+                assert_eq!(value, metadata(&parse(&value).unwrap()));
+            }
+            assert!(crate::foliage::build_element(parse(&value).unwrap().element).is_ok());
+        }
+        // An anatomy tag is a retired shape, not a parameter: the closed schema
+        // refuses it by name, and every trait keeps its range.
         for bad in [
-            json!({"kind":"unknown"}),
-            json!({"kind":"colonizing","crookedness":3}),
-            json!({"kind":"spreading","scaffoldLimbs":0,"subdivisions":2,"crookedness":13}),
-            json!({"kind":"tiered","tiers":4,"branchesPerTier":3,"secondarySpacing":0,"secondaryLength":0.4,"upturn":0.1}),
+            json!({"anatomy":"lobedBlade"}),
+            json!({"anatomy":"fourSidedNeedle","width":0.02}),
         ] {
-            assert!(parse(&json!({"skeleton":{"habit":bad}})).is_err());
+            assert_eq!(
+                parse(&json!({"element":bad})).err(),
+                Some(Error::InvalidInput("unknown element trait"))
+            );
+        }
+        for (trait_name, bad, message) in [
+            ("lobeCount", json!(9), "leaf lobe count"),
+            ("lobeDepth", json!(1.5), "leaf lobe depth"),
+            ("sectionRoundness", json!(-0.5), "leaf section roundness"),
+            (
+                "lobeDepth",
+                json!(0.5),
+                "leaf axial segments too few for the lobe count",
+            ),
+        ] {
+            let mut value = metadata(&preset(0).unwrap());
+            value["element"]["lobeCount"] = json!(5);
+            value["element"][trait_name] = bad;
+            assert_eq!(
+                parse(&value).and_then(|f| crate::foliage::build_element(f.element)),
+                Err(Error::InvalidInput(message))
+            );
+        }
+        // The canopy's lean and contact are flat numeric rows as well.
+        for &(abi, _, _, _) in CATALOGUE.iter() {
+            let mut value = metadata(&preset(abi).unwrap());
+            for (trait_name, set) in [
+                ("forwardLean", json!(0.3)),
+                ("leanRise", json!(0.8)),
+                ("surfaceContact", json!(0.5)),
+            ] {
+                value["canopy"][trait_name] = set;
+                assert_eq!(value, metadata(&parse(&value).unwrap()));
+            }
+        }
+        // An attachment tag is a retired shape, not a parameter: the closed
+        // schema refuses it by name, and every trait keeps its range.
+        for bad in [
+            json!({"attachment":"alternate"}),
+            json!({"attachment":"radialNeedles","shootRadius":0.02}),
+        ] {
+            assert_eq!(
+                parse(&json!({"canopy":bad})).err(),
+                Some(Error::InvalidInput("unknown canopy trait"))
+            );
+        }
+        for (trait_name, bad, message) in [
+            ("forwardLean", json!(1.5), "forward lean"),
+            ("leanRise", json!(-0.1), "lean rise"),
+            ("surfaceContact", json!(2.0), "surface contact"),
+        ] {
+            let mut value = metadata(&preset(0).unwrap());
+            value["canopy"][trait_name] = bad;
+            let f = parse(&value).unwrap();
+            assert_eq!(
+                crate::foliage::place(
+                    &crate::branching::generate(&f.skeleton, f.radii)
+                        .unwrap()
+                        .tree,
+                    f.skeleton.envelope,
+                    f.skeleton.seed,
+                    f.canopy,
+                    None,
+                )
+                .err(),
+                Some(Error::InvalidInput(message))
+            );
+        }
+        // A kind tag is a retired shape, not a parameter: the closed schema
+        // refuses it by name, and every trait keeps its range.
+        for bad in [
+            json!({"kind":"spreading"}),
+            json!({"kind":"tiered","tiers":4}),
+            json!({"scaffoldLimbs":6}),
+        ] {
+            assert_eq!(
+                parse(&json!({"skeleton":{"habit":bad}})).err(),
+                Some(Error::InvalidInput("unknown habit trait"))
+            );
+        }
+        for (trait_name, bad, message) in [
+            ("apicalDominance", json!(1.5), "apical dominance"),
+            ("whorlStrength", json!(-0.1), "whorl strength"),
+            ("leaderInternode", json!(0.0), "leader internode"),
+            ("lateralsPerStation", json!(0), "laterals per station"),
+            ("crookedness", json!(90.0), "crookedness"),
+            ("riseSecondary", json!(-2.0), "secondary rise per order"),
+            ("attractorWeight", json!(2.0), "attractor weight"),
+        ] {
+            let mut habit = json!({});
+            habit[trait_name] = bad;
+            assert_eq!(
+                parse(&json!({"skeleton":{"habit":habit}}))
+                    .and_then(|f| f.skeleton.habit.validate()),
+                Err(Error::InvalidInput(message))
+            );
         }
         assert!(parse(&json!({"skeleton":{"bias":{"writheAmplitude":0.1}}})).is_err());
         assert!(parse(&json!({"skeleton":{"bias":{"supernatural":{"enabled":1}}}})).is_err());

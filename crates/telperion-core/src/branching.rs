@@ -1,6 +1,7 @@
 //! Crown, local branches, shell shedding, and final radius solve, in botanical order.
-mod habit;
 mod local;
+mod scaffold;
+mod traits;
 use crate::{
     bias::{BiasParams, GrowthBias},
     colonization::{self, GrowthConfig},
@@ -12,14 +13,14 @@ use crate::{
     twigs::{branch_length, child_radius, TwigParams, MAX_LEVELS},
     Error, Result,
 };
-pub use habit::{BranchHabit, SpreadingHabit, TieredHabit};
 pub use local::append;
+pub use traits::HabitParams;
 pub const NODE_CEILING: usize = 250_000;
 pub const DEFAULT_STEP: f64 = 0.022;
 #[derive(Debug, Clone)]
 pub struct SkeletonParams {
     pub seed: u32,
-    pub habit: BranchHabit,
+    pub habit: HabitParams,
     pub envelope: Envelope,
     pub attractors: usize,
     pub step: f64,
@@ -31,7 +32,7 @@ impl Default for SkeletonParams {
     fn default() -> Self {
         Self {
             seed: 42,
-            habit: BranchHabit::default(),
+            habit: HabitParams::default(),
             envelope: Envelope::default(),
             attractors: 500,
             step: DEFAULT_STEP,
@@ -258,25 +259,24 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
     if !params.step.is_finite() || params.step <= 0.0 {
         return Err(Error::InvalidInput("growth step"));
     }
+    if params.habit.attractor_weight > 0.0 && params.attractors == 0 {
+        return Err(Error::InvalidInput("attractor weight and attractor count"));
+    }
     let inner = inner_envelope(params.envelope, twigs.reach);
-    let points = if params.habit == BranchHabit::Colonizing {
+    let points = if params.habit.attractor_weight > 0.0 {
         inner.sample(params.attractors, &mut Rng::new(params.seed))?
     } else {
         Vec::new()
     };
     let config = params.resolved_growth(points.len())?;
     let bias = GrowthBias::new(params.envelope, params.seed, params.bias)?;
-    let mut tree = if params.habit == BranchHabit::Colonizing {
-        colonization::colonize(&points, Vec3::ZERO, &config, Some(&bias))?
-    } else {
-        habit::generate(params, &config, &bias)?
-    };
+    let mut tree = scaffold::generate(params, &config, &bias, &points)?;
     radius::solve(&mut tree, params.envelope, radii)?;
     let max_nodes = config
         .max_nodes
         .min(NODE_CEILING)
         .min(tree.nodes.len() + headroom(&tree, &config, twigs));
-    local::append_with_habit(
+    local::append(
         &mut tree,
         &GrowthConfig {
             max_nodes,
@@ -287,29 +287,30 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
         Some(&bias),
         params.habit,
     )?;
-    let removed = match params.habit {
-        BranchHabit::Colonizing => shed(&mut tree, params.envelope, 0.45)?,
-        BranchHabit::Spreading(_) | BranchHabit::Tiered(_) => 0,
+    let removed = if params.habit.shedding_threshold > 0.0 {
+        shed(&mut tree, params.envelope, params.habit.shedding_threshold)?
+    } else {
+        0
     };
     radius::solve(&mut tree, params.envelope, radii)?;
-    if !matches!(params.habit, BranchHabit::Colonizing) {
-        let mut has_children = vec![false; tree.crossover];
-        for node in tree.nodes.iter().skip(1) {
-            if let Some(parent) = has_children.get_mut(node.parent.unwrap() as usize) {
-                *parent = true;
-            }
+    // The distal end of a childless structural axis carries no wood the local
+    // layer would have thinned; the taper trait says how far it narrows.
+    let mut has_children = vec![false; tree.crossover];
+    for node in tree.nodes.iter().skip(1) {
+        if let Some(parent) = has_children.get_mut(node.parent.unwrap() as usize) {
+            *parent = true;
         }
-        let tip_radius = twigs.twig.diameter / 2.0 * 0.25;
-        for (i, node) in tree
-            .nodes
-            .iter_mut()
-            .take(tree.crossover)
-            .enumerate()
-            .skip(1)
-        {
-            if node.kind == NodeKind::Structural && !has_children[i] {
-                node.radius = node.radius.min(tip_radius);
-            }
+    }
+    let tip_radius = twigs.twig.diameter / 2.0 * params.habit.twig_tip_taper;
+    for (i, node) in tree
+        .nodes
+        .iter_mut()
+        .take(tree.crossover)
+        .enumerate()
+        .skip(1)
+    {
+        if node.kind == NodeKind::Structural && !has_children[i] {
+            node.radius = node.radius.min(tip_radius);
         }
     }
     Ok(GrowthReport {

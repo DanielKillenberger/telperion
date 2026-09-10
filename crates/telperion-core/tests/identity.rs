@@ -1,7 +1,10 @@
-//! The tree the core generates, pinned. Every literal here was recorded on the
-//! commit before the foliage element gained its levels, so the pins are a
-//! photograph of the old tree rather than a description of the new one: if a
-//! level ever moved a leaf, merged one or dropped one, these numbers move too.
+//! The tree the core generates, pinned. The scaffold literals were re-recorded
+//! when fn-24 rebuilt the scaffold from the habit trait table, and the element
+//! hashes and the oak's bounds again when fn-24 rebuilt the element from the
+//! outline traits; before that they were the tree as it stood before the
+//! foliage element gained its levels. The
+//! pins are a photograph, not a description: if a level ever moves a leaf,
+//! merges one or drops one, these numbers move too.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -37,33 +40,29 @@ const SEED: u32 = 7;
 const PINS: [Pin; 2] = [
     Pin {
         id: "oregon-white-oak",
-        wood_vertices: 2725520,
-        wood_triangles: 5280080,
-        instances: 555204,
+        wood_vertices: 4262170,
+        wood_triangles: 8255000,
+        instances: 869310,
         min: [
-            -12.552015155569293,
+            -13.163122928115051,
             -0.09600000083446503,
-            -8.909661746289867,
+            -13.242490423042556,
         ],
-        max: [7.6250192030221, 17.548194502208634, 12.548721025940232],
-        skeleton: 13355296115593757449,
-        placement: 7063868679653336678,
-        element: 11695892805494521029,
+        max: [13.217684715842124, 23.557227415847606, 13.003187181590542],
+        skeleton: 18390022991396526971,
+        placement: 14162788206097926965,
+        element: 4207404028969543471,
     },
     Pin {
         id: "norway-spruce",
-        wood_vertices: 3575758,
-        wood_triangles: 6911320,
-        instances: 7895664,
-        min: [
-            -4.401611767518741,
-            -0.05999999865889549,
-            -4.4050304090584245,
-        ],
-        max: [4.039314475833026, 15.002932289485305, 4.19975920363733],
-        skeleton: 4142571929448477079,
-        placement: 2060019899569959725,
-        element: 15959525298297657089,
+        wood_vertices: 2888144,
+        wood_triangles: 5580040,
+        instances: 7012326,
+        min: [-3.89500647744516, -0.05999999865889549, -4.197530933827597],
+        max: [4.337495164451377, 15.0, 3.8062214356137005],
+        skeleton: 5034244784577471711,
+        placement: 6468486710499557939,
+        element: 7287062639823569932,
     },
 ];
 

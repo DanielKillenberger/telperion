@@ -136,6 +136,16 @@ export function toSurfaceParams(params: GrowerParams): SurfaceParams {
   };
 }
 
+/** The canopy terms the sliders own, in the order `toCanopyParams` states
+ *  them. The panel renders every other numeric canopy term - the lean and
+ *  contact traits - as a generic control, and needs to know which ones a
+ *  slider would overwrite. Held to `toCanopyParams` by a test, so the two
+ *  cannot drift apart. */
+export const CANOPY_FROM_SLIDERS: ReadonlySet<string> = new Set([
+  "shootRadius", "spacing", "divergence", "clump", "clumpSpan",
+  "outward", "upward", "scatter", "size", "sizeVariation",
+]);
+
 /** The panel's canopy values, as the placement stage's arguments.
  *
  *  A rename and nothing else: every term carries the library's own

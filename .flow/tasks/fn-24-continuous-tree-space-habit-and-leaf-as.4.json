@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-10T13:50:21.855732Z",
+  "depends_on": [
+    "fn-24-continuous-tree-space-habit-and-leaf-as.1",
+    "fn-24-continuous-tree-space-habit-and-leaf-as.2",
+    "fn-24-continuous-tree-space-habit-and-leaf-as.3"
+  ],
+  "id": "fn-24-continuous-tree-space-habit-and-leaf-as.4",
+  "priority": null,
+  "spec": "fn-24-continuous-tree-space-habit-and-leaf-as",
+  "spec_path": ".flow/tasks/fn-24-continuous-tree-space-habit-and-leaf-as.4.md",
+  "status": "todo",
+  "title": "The flat habit on the wire, the panel and the tests",
+  "updated_at": "2026-09-10T13:50:21.855732Z"
+}

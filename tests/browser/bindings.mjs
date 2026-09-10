@@ -12,19 +12,14 @@ import { writeFile, mkdir } from 'node:fs/promises';
  * suite's business, on the hardware adapter, beside this one.
  * ------------------------------------------------------------------ */
 
-// Shared anatomy for small binding and UI fixtures. Binding-specific
+// Shared shrink for small binding and UI fixtures: a short envelope and a
+// handful of attractors, and nothing per species - one flat habit row builds
+// every tree, so there is no variant knob left to turn down. Binding-specific
 // resource limits and internode spacing remain explicit at their call site.
 function compactSpeciesFixture(family) {
   const fixture = structuredClone(family);
   fixture.skeleton.envelope.height = 4;
   fixture.skeleton.attractors = 40;
-  const habit = fixture.skeleton.habit;
-  if (habit.kind === 'tiered') {
-    habit.tiers = 3;
-    habit.branchesPerTier = 3;
-    habit.secondarySpacing = 0.4;
-  }
-  if (habit.kind === 'spreading') { habit.scaffoldLimbs = 3; habit.subdivisions = 2; }
   return fixture;
 }
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ? pathToFileURL(process.env.PLAYWRIGHT_MODULE).href : 'playwright');
@@ -42,7 +37,9 @@ try {
   await page.goto(url + '/');
   const bindings = await page.evaluate(async () => {
     const check = (ok, message) => { if (!ok) throw Error(message); };
-    const rejects = async (action, message) => { let failed = false; try { await action(); } catch { failed = true; } check(failed, message); };
+    // A `fragment` holds the refusal to the core's own words, so a probe that
+    // expects one field's complaint cannot pass on another field's.
+    const rejects = async (action, message, fragment) => { let failed = false; try { await action(); } catch (error) { failed = fragment === undefined || String(error).includes(fragment); } check(failed, message); };
     const { TreeEngine, ORDINARY, PRESETS, presetById } = await import('/src/browser/core.ts');
     await rejects(() => TreeEngine.create(new Response('', { status: 503 })), 'load failure');
     await rejects(() => TreeEngine.create(new Uint8Array([0, 1, 2])), 'malformed module');
@@ -97,7 +94,11 @@ try {
     }
     const partial = structuredClone(family); partial.skeleton.growth.maxNodes = 20;
     check(!engine.build(partial, {}).diagnostics.complete, 'caps explicitly partial');
-    const empty = structuredClone(family); empty.skeleton.attractors = 0;
+    /* A tree with nowhere to grow is the node ceiling at zero now, not an
+       empty attractor set: one builder grows every axis from the trait row,
+       so a family with no attractors and no pull for them is still a tree,
+       and a positive pull with none to pull toward is refused. */
+    const empty = structuredClone(family); empty.skeleton.growth.maxNodes = 0;
     const result = engine.build(empty, { surface: true, foliage: true });
     check(result.surface.positions.length === 0 && result.surface.bounds === null && result.foliage.matrices.length === 0, 'valid empty outputs');
     check(PRESETS.length === 5 && new Set(PRESETS.map(p => p.id)).size === 5, 'complete identity catalogue');
@@ -105,7 +106,7 @@ try {
     await rejects(() => engine.build('missing', {}), 'unknown native identity');
     for (const [id, unit] of [['oregon-white-oak', 'leaf'], ['norway-spruce', 'needle']]) {
       const specimen = window.compactSpeciesFixture(presetById(id));
-      // Small valid fixtures retain the authored habit and element anatomy.
+      // Small valid fixtures retain the authored habit and element rows.
       specimen.skeleton.growth.maxNodes = 12000;
       specimen.canopy.maxInstances = 12000;
       specimen.skeleton.twigs.twig.internodeLength = 0.04;
@@ -140,9 +141,20 @@ try {
       specimen.skeleton.bias.supernatural = { enabled: false, writheAmplitude: 0.1, writheWavelength: 0.3, spiralRate: 2 };
       const natural = engine.build(specimen, { structure: true });
       check(natural.structure.values.length === original.length && natural.structure.values.every((v, i) => v === original[i]), id + ' disabled stored effects');
-      for (const mutate of [p => p.element.anatomy = 'missing', p => p.canopy.attachment = 'missing', p => p.element.connectorLength = -1, p => p.element.card = true, p => p.skeleton.habit = { kind: 'missing' }, p => p.skeleton.bias.supernatural.enabled = 1, p => p.skeleton.twigs.twig.stationsPerInternode = 2]) {
+      // Each refusal is the core naming the field: the three retired tags are
+      // unknown keys under a closed schema, and a trait outside its range is
+      // the trait by name.
+      for (const [named, mutate] of [
+        ['unknown element trait', p => p.element.anatomy = 'missing'],
+        ['unknown canopy trait', p => p.canopy.attachment = 'missing'],
+        ['unknown habit trait', p => p.skeleton.habit = { kind: 'missing' }],
+        ['crookedness', p => p.skeleton.habit.crookedness = 90],
+        ['foliage connector length', p => p.element.connectorLength = -1],
+        ['leaf card carries no lobes and no section roundness', p => p.element.card = true],
+        ['parameter type or range', p => p.skeleton.bias.supernatural.enabled = 1],
+      ]) {
         const bad = structuredClone(specimen); mutate(bad);
-        await rejects(() => engine.build(bad, { foliage: true }), id + ' invalid anatomy control');
+        await rejects(() => engine.build(bad, { foliage: true }), id + ' refuses ' + named, named);
       }
       const woodOnly = engine.build(specimen, { surface: true });
       check(woodOnly.surface.positions.length > 0 && !woodOnly.foliage && !woodOnly.structure && !woodOnly.field && !woodOnly.diagnostics.stages.foliage && woodOnly.diagnostics.biologicalUnits === null, id + ' independent wood surface');
@@ -154,8 +166,7 @@ try {
       const limited = structuredClone(specimen); limited.canopy.maxInstances = 1;
       await rejects(() => engine.build(limited, { foliage: true }), id + ' foliage budget rejects instead of truncating');
     }
-    const zeroNodes = structuredClone(empty); zeroNodes.skeleton.growth.maxNodes = 0;
-    const emptySnapshot = engine.build(zeroNodes, {field:true}).field.snapshot();
+    const emptySnapshot = engine.build(empty, {field:true}).field.snapshot();
     check(Object.values(snapshotArrays(emptySnapshot)).every(a => a.length === 0), 'empty snapshot');
     check(querySnapshot(emptySnapshot,cells).every(v => v === 0), 'empty snapshot occupancy');
     engine.dispose(); engine.dispose();
@@ -181,7 +192,7 @@ try {
     }
     check(e.preset(999) === 1, 'unknown ABI identity');
     check(e.request_alloc(65537) === 1 && e.build() === 1, 'oversized request leaves no prior request');
-    check(raw('{"family":{"skeleton":{"attractors":0}},"outputs":{"surface":true}}') === 0 && e.buffer_len(0) === 0, 'native empty recovery');
+    check(raw('{"family":{"skeleton":{"growth":{"maxNodes":0}}},"outputs":{"surface":true}}') === 0 && e.buffer_len(0) === 0, 'native empty recovery');
     check(raw(JSON.stringify({ family, outputs: { field: true } })) === 0, 'native field-only build');
     check([9,10,11,12,13].every(slot => e.buffer_len(slot) === 0), 'ordinary field has no snapshot copies');
     check([0,1,2,3,4,5].every(slot => e.buffer_len(slot) === 0), 'field-only allocates no render buffers');

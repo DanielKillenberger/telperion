@@ -102,10 +102,34 @@ describe("branch-law controls", () => {
 });
 
 describe("carried native controls", () => {
-  it("keeps the Ordinary baseline natural and anatomy outside numeric sliders", () => {
+  it("keeps the Ordinary baseline natural and every carried trait a number", () => {
     expect(DEFAULT_PARAMS.supernaturalEnabled).toBe(false);
-    expect(DEFAULT_PARAMS.family.skeleton.habit).toEqual({ kind: "colonizing" });
-    expect(DEFAULT_PARAMS.family.element.anatomy).toBe("genericBlade");
+    /* The habit is the Ordinary row of the trait table, fifteen numbers
+       and no tag. Written out rather than compared to itself: the panel
+       shows the owner these values, and a row the core moves under it is
+       a different default tree than the one the harness was tuned on. */
+    expect(DEFAULT_PARAMS.family.skeleton.habit).toEqual({
+      apicalDominance: 0.5,
+      whorlStrength: 0.3,
+      leaderInternode: 1.5,
+      lateralsPerStation: 3,
+      lateralPitch: 60,
+      pitchVariation: 15,
+      risePrimary: 0.05,
+      riseSecondary: 0,
+      crookedness: 12,
+      lateralSpacing: 0.9,
+      lateralLengthRatio: 0.4,
+      lateralOrders: 3,
+      attractorWeight: 1,
+      twigTipTaper: 1,
+      sheddingThreshold: 0.45,
+    });
+    // The leaf and the way it sits on its shoot are rows as well.
+    expect(DEFAULT_PARAMS.family.element).toMatchObject({ lobeCount: 0, lobeDepth: 0, sectionRoundness: 0 });
+    expect(DEFAULT_PARAMS.family.canopy).toMatchObject({ forwardLean: 0, leanRise: 0, surfaceContact: 0 });
+    expect(DEFAULT_PARAMS.family.element).not.toHaveProperty("anatomy");
+    expect(DEFAULT_PARAMS.family.canopy).not.toHaveProperty("attachment");
     expect(SLIDERS.map(s => s.key)).not.toContain("family");
     expect(SLIDERS.map(s => s.key)).not.toContain("supernaturalEnabled");
   });

@@ -1,6 +1,6 @@
 use telperion_core::{
     envelope::Envelope,
-    foliage::{place, place_on_surface, Attachment, CanopyParams, TwigPlacement},
+    foliage::{place, place_on_surface, CanopyParams, TwigPlacement},
     math::Vec3,
     surface::{build, SurfaceParams},
     tree::{Node, NodeKind, Tree},
@@ -36,7 +36,7 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
     tree.crossover = 3;
     let env = Envelope::default();
     let canopy = CanopyParams {
-        attachment: Attachment::RadialNeedles,
+        surface_contact: 1.0,
         shoot_radius: 0.0,
         ..CanopyParams::default()
     };

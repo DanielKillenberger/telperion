@@ -20,7 +20,7 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { PRESETS, presetById, type TreePreset } from "../src/browser/core";
 import type { FrameStats, Submitted, TimingReport, View } from "../src/browser/render";
 
-import { familyJson, presetToParams } from "./family";
+import { CANOPY_FROM_SLIDERS, familyJson, presetToParams } from "./family";
 import {
   DEFAULT_PARAMS,
   SLIDERS,
@@ -37,6 +37,11 @@ import "./grower-dev.css";
  *  five frames. Branch generations down to fixed twig anatomy can
  *  take seconds, so the measured last build decides the schedule. */
 const SUPERNATURAL = new Set(["torsion", "writheAmplitude", "writheWavelength", "spiralRate"]);
+/** Canopy terms the generic controls leave alone: the ones a slider already
+ *  carries, whose second control the next build would overwrite, and the
+ *  instance budget, which is a resource limit rather than a trait.
+ *  `family.test.ts` holds the slider half to what `toCanopyParams` overrides. */
+const CANOPY_SKIPPED: ReadonlySet<string> = new Set([...CANOPY_FROM_SLIDERS, "maxInstances"]);
 const BUILD_LIVE_MS = 80;
 const BUILD_SETTLE_MS = 250;
 
@@ -46,6 +51,34 @@ const BUILD_SETTLE_MS = 250;
 function format(value: number, step: number): string {
   const decimals = Math.max(0, Math.ceil(-Math.log10(step) - 1e-9));
   return value.toFixed(decimals);
+}
+
+/** Every numeric trait of one family object, as a control. The panel keeps
+ *  no table of its own: a trait the core adds to a family object appears
+ *  under the owner's hand without a line here, and none of them is a tag
+ *  with a label instead of a control. `skip` names the terms a slider
+ *  already owns, whose second control `toFamily` would overwrite on the
+ *  next build. */
+function Traits({ prefix, values, skip, onChange }: {
+  prefix?: string;
+  values: Record<string, unknown>;
+  skip?: ReadonlySet<string>;
+  onChange: (key: string, value: number) => void;
+}) {
+  return <>
+    {Object.entries(values)
+      .filter(([key, value]) => typeof value === "number" && skip?.has(key) !== true)
+      .map(([key, value]) => (
+        <label className="gd-row" key={key}>
+          {prefix === undefined ? "" : `${prefix} `}
+          {key.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`)}
+          <input type="number" value={value as number} step="any" onChange={event => {
+            const number = event.target.valueAsNumber;
+            if (Number.isFinite(number)) onChange(key, number);
+          }} />
+        </label>
+      ))}
+  </>;
 }
 
 /** The timing session as the panel says it, and the old sweep's honesty
@@ -303,27 +336,12 @@ export function GrowerDev() {
                 onChange={event => setParams(prev => ({ ...prev, supernaturalEnabled: event.target.checked }))} />
               enable supernatural effects
             </label> : <>
-              <p className="gd-note">{params.family.skeleton.habit.kind} habit · {params.family.element.anatomy}</p>
-              {Object.entries(params.family.skeleton.habit).filter(([, value]) => typeof value === "number").map(([key, value]) => (
-                <label className="gd-row" key={key}>
-                  {key.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`)}
-                  <input type="number" value={value} step="any" onChange={event => {
-                    const number = event.target.valueAsNumber;
-                    if (Number.isFinite(number)) setParams(prev => ({ ...prev, family: { ...prev.family,
-                      skeleton: { ...prev.family.skeleton, habit: { ...prev.family.skeleton.habit, [key]: number } } } }));
-                  }} />
-                </label>
-              ))}
-              {(["length", "width", "connectorLength"] as const).map(key => (
-                <label className="gd-row" key={key}>
-                  foliage {key.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`)} (m)
-                  <input type="number" min="0" step="0.001" value={params.family.element[key]} onChange={event => {
-                    const number = event.target.valueAsNumber;
-                    if (Number.isFinite(number)) setParams(prev => ({ ...prev, family: { ...prev.family,
-                      element: { ...prev.family.element, [key]: number } } }));
-                  }} />
-                </label>
-              ))}
+              <Traits values={params.family.skeleton.habit} onChange={(key, number) => setParams(prev => ({ ...prev, family: { ...prev.family,
+                skeleton: { ...prev.family.skeleton, habit: { ...prev.family.skeleton.habit, [key]: number } } } }))} />
+              <Traits prefix="foliage" values={params.family.element} onChange={(key, number) => setParams(prev => ({ ...prev, family: { ...prev.family,
+                element: { ...prev.family.element, [key]: number } } }))} />
+              <Traits prefix="leaf" values={params.family.canopy} skip={CANOPY_SKIPPED} onChange={(key, number) => setParams(prev => ({ ...prev, family: { ...prev.family,
+                canopy: { ...prev.family.canopy, [key]: number } } }))} />
             </>}
         {SLIDERS.filter(spec => SUPERNATURAL.has(spec.key) === supernatural).map((spec) => (
           <Fragment key={spec.key}>

@@ -1,8 +1,6 @@
 //! Native generation/measurement with an isolated, bounded process for each declared case.
 #[path = "geometry_benchmark/metrics.rs"]
 mod metrics;
-#[path = "geometry_benchmark/params.rs"]
-mod params;
 #[allow(dead_code)]
 mod species_metrics;
 use serde_json::{json, Value};
@@ -10,30 +8,36 @@ use std::{fs, process::Command, time::Instant};
 use telperion_core::{
     branching,
     foliage::{self, TwigPlacement},
+    params,
     presets::Preset,
     surface,
 };
 fn capabilities(preset: &str) -> Value {
-    use telperion_core::{
-        branching::BranchHabit,
-        foliage::{Attachment, ElementAnatomy},
-    };
     let Some(p) = Preset::from_id(preset) else {
         return json!({"implemented":false,"profile_id":null,"capabilities":[]});
     };
     let f = p.parameters();
     let mut c = vec!["woody-axes"];
-    match f.element.anatomy {
-        ElementAnatomy::LobedBlade => c.push("lobed-blade"),
-        ElementAnatomy::FourSidedNeedle => c.push("four-sided-needle"),
-        _ => {}
+    // The frozen fn-19 protocol names these capabilities; a lobed margin and
+    // a section rolled past halfway are what the names have always meant.
+    if f.element.lobe_count > 0 && f.element.lobe_depth > 0.0 {
+        c.push("lobed-blade");
     }
-    match f.canopy.attachment {
-        Attachment::Alternate => c.push("alternate-petiole"),
-        Attachment::RadialNeedles => c.push("radial-peg"),
-        _ => {}
+    if f.element.section_roundness >= 0.5 {
+        c.push("four-sided-needle");
     }
-    if matches!(f.skeleton.habit, BranchHabit::Tiered(_)) {
+    // The frozen fn-19 protocol names these attachments; a blade that leans
+    // off its own petiole and a needle pegged into the wood are what the
+    // names have always meant.
+    if f.canopy.forward_lean > 0.0 && f.canopy.surface_contact < 0.5 {
+        c.push("alternate-petiole");
+    }
+    if f.canopy.surface_contact >= 0.5 {
+        c.push("radial-peg");
+    }
+    // The frozen fn-19 protocol names this capability; a family whose deeper
+    // axes hang is what the name has always meant.
+    if f.skeleton.habit.rise_secondary < 0.0 {
         c.push("tiered-secondary");
     }
     json!({"implemented":p.profile_id().is_some(),"profile_id":p.profile_id(),"capabilities":c})
