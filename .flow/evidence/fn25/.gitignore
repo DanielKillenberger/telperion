@@ -1,0 +1,5 @@
+# The frame sequences and the clip stay on disk: they are the size of a film
+# and the records beside them are what the repository needs. Only
+# transition.json and scenic.json are committed from here.
+*.png
+*.mp4
