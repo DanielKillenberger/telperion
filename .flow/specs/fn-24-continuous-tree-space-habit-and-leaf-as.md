@@ -197,15 +197,19 @@ clears it.
 
 ### Oregon white oak, hero pose
 
-> _verdict (owner, YYYY-MM-DD):_ 
+> _verdict (owner, 2026-09-10):_ Accept. "to me it looks good." Given on the four stills and the video together, with the leaf shape settled by the owner's earlier taste note (the pointed leaf-40 blade felt closer to oak than the broad-lobe pass that shipped; further margin work is a later focused foliage spec).
 
 ### Norway spruce, hero pose
 
-> _verdict (owner, YYYY-MM-DD):_ 
+> _verdict (owner, 2026-09-10):_ Accept. "to me it looks good."
 
 ### Oak to spruce, the transition video
 
-> _verdict (owner, YYYY-MM-DD):_ 
+> _verdict (owner, 2026-09-10):_ Accept as the receipt. "to me it looks good. The noise bothers me but that's a separate spec." The frame-to-frame flicker of a re-grown crown at a fixed camera, and a scenic cut for X with an eased walk, easing camera and leaf close-ups, are a separate spec.
+
+### The frame number, R6
+
+> _owner override (2026-09-10):_ Accept 2.30 ms. The oak's native vegetation p50 of 2.3043 ms on the RTX 3080, valid session, is accepted as meeting fn-24's R6; the browser orbit holds its bounds (wall p95 10.10 ms, worst 10.20 ms). The 0.30 ms over the 2 ms gate comes from the crown, 869,310 retained leaves against fn-23's 555,204, while each leaf got cheaper; the 2 ms target moves to the later density or aggregation spec.
 
 ## References
 
