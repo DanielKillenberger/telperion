@@ -7,8 +7,10 @@ mod device;
 mod foliage;
 #[cfg(not(target_arch = "wasm32"))]
 mod headless;
+mod pass;
 mod scene;
 mod select;
+mod shadow;
 mod submit;
 mod timing;
 mod view;
@@ -36,6 +38,8 @@ pub use headless::{attachment, render, write_png, Still, STILL_FORMAT};
 #[cfg(not(target_arch = "wasm32"))]
 pub use timing::{orbit as measure_orbit, run as measure};
 
+use pass::{aspect_of, pass};
+pub(crate) use pass::{depth_pipeline, pipeline};
 use telperion_core::{mesh::TreeMesh, surface::Bounds};
 
 /// What one frame cost, in the terms a reader of a timing record needs.
@@ -61,10 +65,21 @@ impl std::ops::Add for FrameStats {
     }
 }
 
+/// The three timestamp pairs a timed frame writes: the vegetation render pass,
+/// the selection compute pass that decides what it draws, and the sun's own
+/// depth pass. Every pair is written on every timed frame, whatever the view is
+/// showing, so a session never resolves a query no pass wrote.
+pub struct Timed<'a> {
+    pub vegetation: wgpu::RenderPassTimestampWrites<'a>,
+    pub selection: wgpu::ComputePassTimestampWrites<'a>,
+    pub shadow: wgpu::RenderPassTimestampWrites<'a>,
+}
+
 /// A device with the room built on it, holding at most one tree.
 pub struct Renderer {
     gpu: Gpu,
     scene: scene::Scene,
+    shadow: shadow::Shadow,
     wood: wood::Wood,
     foliage: foliage::Foliage,
     view: View,
@@ -80,12 +95,14 @@ impl Renderer {
     /// Builds the room on an existing device. The colour format is the target's:
     /// an offscreen texture natively, the configured surface in a browser.
     pub fn new(gpu: Gpu, colour_format: wgpu::TextureFormat) -> Self {
-        let scene = scene::Scene::new(&gpu, colour_format);
-        let wood = wood::Wood::new(&gpu, scene.layout(), colour_format);
-        let foliage = foliage::Foliage::new(&gpu, scene.layout(), colour_format);
+        let shadow = shadow::Shadow::new(&gpu);
+        let scene = scene::Scene::new(&gpu, colour_format, shadow.layout());
+        let wood = wood::Wood::new(&gpu, scene.layout(), &shadow, colour_format);
+        let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, colour_format);
         Self {
             gpu,
             scene,
+            shadow,
             wood,
             foliage,
             view: View::default(),
@@ -191,57 +208,67 @@ impl Renderer {
         &self.level_deviations
     }
 
+    /// The sun's depth map as the last frame left it, a depth per texel, row by
+    /// row: one where nothing stood between that texel and the sun. Reading it
+    /// waits on the device and brings a whole map back, so it belongs to a
+    /// check or a record and never to a frame.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn shadow_depths(&self) -> Option<Vec<f32>> {
+        self.shadow.depths(&self.gpu)
+    }
+
     /// Draws one frame into the given colour and depth views, at the size in
     /// pixels those views were taken at: the crown's levels are chosen first,
-    /// then the room, then the vegetation in a pass of its own. The timestamp
-    /// pair, when one is given, goes around that vegetation pass, so what is
-    /// measured is the tree and not the floor it stands on.
+    /// then the sun's depth map, then the room, then the vegetation in a pass
+    /// of its own.
     pub fn draw(
         &mut self,
         camera: &Camera,
         viewport: (u32, u32),
         colour: &wgpu::TextureView,
         depth: &wgpu::TextureView,
-        timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
     ) -> FrameStats {
-        self.draw_with(camera, viewport, colour, depth, timestamps, None)
+        self.draw_with(camera, viewport, colour, depth, None)
     }
 
-    /// The same frame with a pair around each of the two passes the tree
-    /// costs: the selection pass that decides what is drawn, and the
-    /// vegetation pass that draws it. Both pairs are written on every timed
-    /// frame, whatever the view is showing, so a session never resolves a
-    /// query no pass wrote.
+    /// The same frame with a pair around each of the three passes the tree
+    /// costs: the selection pass that decides what is drawn, the shadow pass
+    /// the sun writes, and the vegetation pass that draws the tree. What each
+    /// measures is the tree and not the floor it stands on.
     pub fn draw_timed(
         &mut self,
         camera: &Camera,
         viewport: (u32, u32),
         colour: &wgpu::TextureView,
         depth: &wgpu::TextureView,
-        vegetation: wgpu::RenderPassTimestampWrites<'_>,
-        selection: wgpu::ComputePassTimestampWrites<'_>,
+        timed: Timed<'_>,
     ) -> FrameStats {
-        self.draw_with(
-            camera,
-            viewport,
-            colour,
-            depth,
-            Some(vegetation),
-            Some(selection),
-        )
+        self.draw_with(camera, viewport, colour, depth, Some(timed))
     }
 
+    /// The statistics are the picture's: the room and the vegetation. The
+    /// sun's pass draws no pixels anybody looks at, and its cost is the third
+    /// pair of a timing record rather than a line in the frame's own count.
     fn draw_with(
         &mut self,
         camera: &Camera,
         viewport: (u32, u32),
         colour: &wgpu::TextureView,
         depth: &wgpu::TextureView,
-        timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
-        selection: Option<wgpu::ComputePassTimestampWrites<'_>>,
+        timed: Option<Timed<'_>>,
     ) -> FrameStats {
+        let light = shadow::light(self.scene.row(), self.bounds());
         self.scene
-            .set_camera(&self.gpu, camera, aspect_of(viewport));
+            .set_frame(&self.gpu, camera, aspect_of(viewport), &light);
+        self.shadow.set_light(&self.gpu, &light);
+        let (vegetation_writes, selection_writes, shadow_writes) = match timed {
+            Some(timed) => (
+                Some(timed.vegetation),
+                Some(timed.selection),
+                Some(timed.shadow),
+            ),
+            None => (None, None, None),
+        };
         let mut encoder = self
             .gpu
             .device
@@ -254,8 +281,23 @@ impl Renderer {
             camera,
             viewport,
             self.view,
-            selection,
+            selection_writes,
         );
+        {
+            let mut pass = self.shadow.begin(&mut encoder, shadow_writes);
+            match self.view {
+                // One blade at the origin is judged on its own shape, with
+                // nothing above it to cast and nothing below it to catch.
+                View::Leaf => {}
+                // Bare wood casts its own shadow and takes it; the crown that
+                // is not drawn is not in the sun's view either.
+                View::Bare => self.wood.draw_shadow(&mut pass),
+                _ => {
+                    self.wood.draw_shadow(&mut pass);
+                    self.foliage.draw_shadow(&mut pass);
+                }
+            }
+        }
         let room = {
             let mut pass = pass(
                 &mut encoder,
@@ -266,6 +308,7 @@ impl Renderer {
                 None,
             );
             self.scene.bind(&mut pass);
+            self.shadow.bind(&mut pass);
             match self.view {
                 // A leaf is judged on its own: at 0.1 m the room around it is a
                 // wall, and the scale figure is not a scale for a leaf.
@@ -274,8 +317,16 @@ impl Renderer {
             }
         };
         let vegetation = {
-            let mut pass = pass(&mut encoder, "vegetation", colour, depth, None, timestamps);
+            let mut pass = pass(
+                &mut encoder,
+                "vegetation",
+                colour,
+                depth,
+                None,
+                vegetation_writes,
+            );
             self.scene.bind(&mut pass);
+            self.shadow.bind(&mut pass);
             match self.view {
                 View::Leaf => self.foliage.draw(&mut pass, self.view),
                 view => self.wood.draw(&mut pass) + self.foliage.draw(&mut pass, view),
@@ -284,95 +335,4 @@ impl Renderer {
         self.gpu.queue.submit([encoder.finish()]);
         room + vegetation
     }
-}
-
-/// The frame's aspect, from the pixels it is drawn into. A viewport with no
-/// height is a frame nobody sees; it still has to divide.
-fn aspect_of((width, height): (u32, u32)) -> f64 {
-    f64::from(width.max(1)) / f64::from(height.max(1))
-}
-
-/// One pass of a frame. The first pass of a frame clears the targets and every
-/// later one loads them, which is the whole difference between them.
-fn pass<'encoder>(
-    encoder: &'encoder mut wgpu::CommandEncoder,
-    label: &'static str,
-    colour: &wgpu::TextureView,
-    depth: &wgpu::TextureView,
-    clear: Option<wgpu::Color>,
-    timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
-) -> wgpu::RenderPass<'encoder> {
-    encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-        label: Some(label),
-        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-            view: colour,
-            depth_slice: None,
-            resolve_target: None,
-            ops: wgpu::Operations {
-                load: clear.map_or(wgpu::LoadOp::Load, wgpu::LoadOp::Clear),
-                store: wgpu::StoreOp::Store,
-            },
-        })],
-        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-            view: depth,
-            depth_ops: Some(wgpu::Operations {
-                load: clear.map_or(wgpu::LoadOp::Load, |_| wgpu::LoadOp::Clear(1.0)),
-                store: wgpu::StoreOp::Store,
-            }),
-            stencil_ops: None,
-        }),
-        timestamp_writes: timestamps,
-        occlusion_query_set: None,
-        multiview_mask: None,
-    })
-}
-
-/// The one pipeline shape every pass shares: clay under a hemisphere, depth
-/// tested, and no culling because a swept surface may plait either way round.
-fn pipeline(
-    gpu: &Gpu,
-    bind_group_layouts: &[Option<&wgpu::BindGroupLayout>],
-    shader: &wgpu::ShaderModule,
-    colour_format: wgpu::TextureFormat,
-    buffers: &[Option<wgpu::VertexBufferLayout<'_>>],
-    label: &'static str,
-) -> wgpu::RenderPipeline {
-    let layout = gpu
-        .device
-        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some(label),
-            bind_group_layouts,
-            immediate_size: 0,
-        });
-    gpu.device
-        .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some(label),
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers,
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(colour_format.into())],
-            }),
-            primitive: wgpu::PrimitiveState {
-                cull_mode: None,
-                ..Default::default()
-            },
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: DEPTH_FORMAT,
-                depth_write_enabled: Some(true),
-                depth_compare: Some(wgpu::CompareFunction::Less),
-                stencil: Default::default(),
-                bias: Default::default(),
-            }),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        })
 }

@@ -73,7 +73,6 @@ pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32)
         (width, height),
         &colour.create_view(&Default::default()),
         &depth.create_view(&Default::default()),
-        None,
     );
 
     // Rows land in the readback buffer padded to the copy alignment; the

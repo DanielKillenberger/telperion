@@ -5,7 +5,7 @@ use bytemuck::{Pod, Zeroable};
 use telperion_core::math::Vec3;
 use wgpu::util::DeviceExt;
 
-use crate::device::Gpu;
+use crate::{device::Gpu, shadow::Light};
 
 /// The scene row - the sun, the sky and the ground as numbers - kept beside
 /// this file rather than in it so neither outgrows the project's line rule.
@@ -50,6 +50,9 @@ struct Vertex {
     colour: [f32; 3],
 }
 
+/// What every pipeline in a frame is drawn under. The camera and the room's
+/// light came first and keep their places; the sun and its map follow them, so
+/// a shader that never grew a sun term reads the block it always read.
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
 struct Uniforms {
@@ -57,6 +60,10 @@ struct Uniforms {
     sky: [f32; 4],
     ground: [f32; 4],
     clay: [f32; 4],
+    light_view_projection: [f32; 16],
+    sun: [f32; 4],
+    /// The direction towards the sun, and a fourth slot the block wants.
+    sun_direction: [f32; 4],
 }
 
 /// sRGB hex to linear, because the shader works in linear and the target
@@ -166,7 +173,11 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(gpu: &Gpu, colour_format: wgpu::TextureFormat) -> Self {
+    pub fn new(
+        gpu: &Gpu,
+        colour_format: wgpu::TextureFormat,
+        shadow: &wgpu::BindGroupLayout,
+    ) -> Self {
         let ground_colour = {
             let c = linear(GROUND);
             [c[0], c[1], c[2]]
@@ -229,9 +240,11 @@ impl Scene {
         let shader = gpu
             .device
             .create_shader_module(wgpu::include_wgsl!("shaders/scene.wgsl"));
+        // The room takes no selection, so the group between the light and the
+        // shadow map is a hole in its layout rather than a group it binds.
         let pipeline = crate::pipeline(
             gpu,
-            &[Some(&layout)],
+            &[Some(&layout), None, Some(shadow)],
             &shader,
             colour_format,
             &[Some(wgpu::VertexBufferLayout {
@@ -293,7 +306,9 @@ impl Scene {
         );
     }
 
-    pub fn set_camera(&self, gpu: &Gpu, camera: &crate::Camera, aspect: f64) {
+    /// Writes the frame's one uniform block: where the eye stands, and where
+    /// the sun stands with the map it threw.
+    pub fn set_frame(&self, gpu: &Gpu, camera: &crate::Camera, aspect: f64, light: &Light) {
         gpu.queue.write_buffer(
             &self.uniforms,
             0,
@@ -302,6 +317,14 @@ impl Scene {
                 sky: linear(SKY_LIGHT),
                 ground: linear(GROUND_LIGHT),
                 clay: linear(CLAY),
+                light_view_projection: light.view_projection,
+                sun: [
+                    self.row.sun_red as f32,
+                    self.row.sun_green as f32,
+                    self.row.sun_blue as f32,
+                    1.0,
+                ],
+                sun_direction: light.direction,
             }),
         );
     }

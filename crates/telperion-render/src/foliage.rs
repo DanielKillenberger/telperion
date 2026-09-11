@@ -74,6 +74,7 @@ fn element_bounds(element: &Element) -> Option<Bounds> {
 /// that decides which level each of its leaves is drawn at.
 pub struct Foliage {
     pipeline: wgpu::RenderPipeline,
+    shadow: wgpu::RenderPipeline,
     select: Select,
     positions: Option<Held>,
     normals: Option<Held>,
@@ -87,6 +88,7 @@ impl Foliage {
     pub fn new(
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,
+        shadow: &crate::shadow::Shadow,
         colour_format: wgpu::TextureFormat,
     ) -> Self {
         let shader = gpu
@@ -103,11 +105,26 @@ impl Foliage {
         Self {
             pipeline: crate::pipeline(
                 gpu,
-                &[Some(layout), Some(select.draw_layout())],
+                &[
+                    Some(layout),
+                    Some(select.draw_layout()),
+                    Some(shadow.layout()),
+                ],
                 &shader,
                 colour_format,
                 &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
                 "foliage",
+            ),
+            // The sun sees a position and a placement. The placements are bound
+            // through the same layout the frame draws a level through; the list
+            // beside them is not read, because the sun takes every placement.
+            shadow: crate::depth_pipeline(
+                gpu,
+                &[Some(shadow.light_layout()), Some(select.draw_layout())],
+                shadow.module(),
+                "foliage",
+                &[vertex(&POSITION, 3)],
+                "foliage shadow",
             ),
             select,
             positions: None,
@@ -234,6 +251,29 @@ impl Foliage {
             triangles: (finest.len() as u32 / 3).saturating_mul(instances),
             instances,
         }
+    }
+
+    /// Writes the crown into the sun's depth map: every placement the tree was
+    /// submitted with, in one instanced draw of the element's coarsest level.
+    ///
+    /// The sun's view is not the camera's, so nothing the selection pass chose
+    /// applies here and none of it is run again; and the coarsest level is a
+    /// handful of triangles a leaf, which is all a shadow the size of a leaf
+    /// can carry anyway.
+    pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>) {
+        let (Some(positions), Some(indices)) = (&self.positions, &self.indices) else {
+            return;
+        };
+        let Some(coarsest) = self.select.levels().first().cloned() else {
+            return;
+        };
+        pass.set_pipeline(&self.shadow);
+        if !self.select.bind_level(pass, 0) {
+            return;
+        }
+        pass.set_vertex_buffer(0, positions.live());
+        pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(coarsest, 0, 0..self.select.instances());
     }
 
     /// The element's bounds at the origin, which frames the leaf view.

@@ -17,7 +17,8 @@ use web_sys::HtmlCanvasElement;
 
 use crate::{
     device::{Gpu, RenderError, Result},
-    hero_pose, Camera, FrameStats, Renderer, SceneRow, Submitted, View, DEPTH_FORMAT, GROUND_REACH,
+    hero_pose, Camera, FrameStats, Renderer, SceneRow, Submitted, Timed, View, DEPTH_FORMAT,
+    GROUND_REACH,
 };
 
 /// The timing protocol as a page runs it, kept beside this file rather than in
@@ -43,13 +44,6 @@ struct Live {
     camera: Camera,
     stats: FrameStats,
 }
-
-/// The two timestamp pairs a timed frame writes: the vegetation render pass
-/// and the selection compute pass, in the order the record reads them.
-type Pairs<'a> = (
-    wgpu::RenderPassTimestampWrites<'a>,
-    wgpu::ComputePassTimestampWrites<'a>,
-);
 
 impl Live {
     async fn new(canvas: HtmlCanvasElement) -> Result<Self> {
@@ -86,24 +80,18 @@ impl Live {
     }
 
     /// Draws one frame onto the canvas at the pose the camera is at. A timed
-    /// frame carries both pairs - one around the vegetation pass, one around
-    /// the selection pass - so no query the resolve reads is left unwritten.
-    fn draw(&mut self, timed: Option<Pairs<'_>>) -> Result<()> {
+    /// frame carries every pair the session resolves, so no query it reads is
+    /// left unwritten.
+    fn draw(&mut self, timed: Option<Timed<'_>>) -> Result<()> {
         let frame = self.texture()?;
         let colour = frame.texture.create_view(&Default::default());
         let size = (self.config.width, self.config.height);
         self.stats = match timed {
-            Some((vegetation, selection)) => self.renderer.draw_timed(
-                &self.camera,
-                size,
-                &colour,
-                &self.depth,
-                vegetation,
-                selection,
-            ),
-            None => self
-                .renderer
-                .draw(&self.camera, size, &colour, &self.depth, None),
+            Some(timed) => {
+                self.renderer
+                    .draw_timed(&self.camera, size, &colour, &self.depth, timed)
+            }
+            None => self.renderer.draw(&self.camera, size, &colour, &self.depth),
         };
         self.renderer.gpu().queue.present(frame);
         Ok(())

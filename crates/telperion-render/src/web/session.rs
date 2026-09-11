@@ -78,24 +78,24 @@ async fn sampled(
 ) -> Result<Report, JsError> {
     let mut vegetation = Vec::with_capacity(MEASURED);
     let mut selection = Vec::with_capacity(MEASURED);
+    let mut shadow = Vec::with_capacity(MEASURED);
     for index in 0..WARMUP + MEASURED {
         // The borrow is put down before the await, so nothing holds the canvas
         // while the browser is carrying the readback.
         {
             let mut canvas = borrow(live)?;
             canvas.camera = pose(index.saturating_sub(WARMUP) as f64 / MEASURED as f64);
-            canvas
-                .draw(Some((session.writes(), session.selection_writes())))
-                .map_err(js_error)?;
+            canvas.draw(Some(session.timed())).map_err(js_error)?;
             session.resolve(canvas.renderer.gpu());
         }
-        let (pass, select) = session.sample_ms().await.map_err(js_error)?;
+        let (pass, select, sun) = session.sample_ms().await.map_err(js_error)?;
         if index >= WARMUP {
             vegetation.push(pass);
             selection.push(select);
+            shadow.push(sun);
         }
     }
-    Ok(Report::measured(hardware, &vegetation).with_selection(&vegetation, &selection))
+    Ok(Report::measured(hardware, &vegetation).with_passes(&vegetation, &selection, &shadow))
 }
 
 /// The wall-clock half: frames drawn the way the page draws them, for the

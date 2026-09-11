@@ -51,8 +51,10 @@ pub struct Report {
     p95_ms: Option<f64>,
     /// The selection compute pass, median and tail.
     selection: Option<[f64; 2]>,
-    /// Selection and vegetation together, per frame and then ranked: the pair
-    /// of numbers the frame budget is spent on.
+    /// The sun's depth pass, median and tail.
+    shadow: Option<[f64; 2]>,
+    /// The three passes the tree costs together, per frame and then ranked:
+    /// the pair of numbers the frame budget is spent on.
     total: Option<[f64; 2]>,
     levels: Vec<LevelCount>,
     /// Frame to frame on the host: median, tail, worst.
@@ -86,21 +88,27 @@ impl Report {
         }
     }
 
-    /// Adds what the selection pass cost, and what it and the vegetation pass
-    /// cost together. A pair no pass wrote reads as a zero rather than a
-    /// duration and is refused here: the frame's own verdict judges the
-    /// frame, and a series that is not durations carries no number at all.
-    pub fn with_selection(mut self, vegetation: &[f64], selection: &[f64]) -> Self {
-        if !self.verdict.is_valid() || !durations(selection) || vegetation.len() != selection.len()
-        {
+    /// Adds what the other two passes of a frame cost - the selection pass and
+    /// the sun's depth pass - and what all three came to together. Each pass
+    /// stands on its own account: a pair no pass wrote reads as a zero rather
+    /// than a duration and is refused, and a refused pass takes only itself and
+    /// the total with it. The frame's own verdict judges the frame.
+    pub fn with_passes(mut self, vegetation: &[f64], selection: &[f64], shadow: &[f64]) -> Self {
+        if !self.verdict.is_valid() {
             return self;
         }
-        let total: Vec<f64> = vegetation
-            .iter()
-            .zip(selection)
-            .map(|(pass, select)| pass + select)
+        let measured = |samples: &[f64]| {
+            (durations(samples) && samples.len() == vegetation.len())
+                .then(|| ranked(samples, [0.5, 0.95]))
+        };
+        self.selection = measured(selection);
+        self.shadow = measured(shadow);
+        if self.selection.is_none() || self.shadow.is_none() {
+            return self;
+        }
+        let total: Vec<f64> = (0..vegetation.len())
+            .map(|frame| vegetation[frame] + selection[frame] + shadow[frame])
             .collect();
-        self.selection = Some(ranked(selection, [0.5, 0.95]));
         self.total = Some(ranked(&total, [0.5, 0.95]));
         self
     }
@@ -160,6 +168,7 @@ impl Report {
             p50_ms: None,
             p95_ms: None,
             selection: None,
+            shadow: None,
             total: None,
             levels: Vec::new(),
             wall: None,
@@ -187,8 +196,19 @@ impl Report {
         self.selection.map(|pair| pair[0])
     }
 
-    /// The median of selection and vegetation together, which is what the
-    /// hero budget is judged on.
+    /// The median shadow pass, milliseconds. The number the sun's own budget is
+    /// judged on.
+    pub fn shadow_p50_ms(&self) -> Option<f64> {
+        self.shadow.map(|pair| pair[0])
+    }
+
+    /// The p95 shadow pass, milliseconds.
+    pub fn shadow_p95_ms(&self) -> Option<f64> {
+        self.shadow.map(|pair| pair[1])
+    }
+
+    /// The median of the three passes together, which is what the hero budget
+    /// is judged on.
     pub fn total_p50_ms(&self) -> Option<f64> {
         self.total.map(|pair| pair[0])
     }
@@ -234,6 +254,10 @@ impl Report {
         if let Some([median, tail]) = self.selection {
             fields.push(format!("\"selection_p50_ms\": {median:.4}"));
             fields.push(format!("\"selection_p95_ms\": {tail:.4}"));
+        }
+        if let Some([median, tail]) = self.shadow {
+            fields.push(format!("\"shadow_p50_ms\": {median:.4}"));
+            fields.push(format!("\"shadow_p95_ms\": {tail:.4}"));
         }
         if let Some([median, tail]) = self.total {
             fields.push(format!("\"total_p50_ms\": {median:.4}"));

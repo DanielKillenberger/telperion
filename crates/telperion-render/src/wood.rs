@@ -15,9 +15,11 @@ const POSITION: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float
 const NORMAL: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![1 => Float32x3];
 const COORD: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![2 => Float32x2];
 
-/// The wood pipeline and the buffers one tree's surface lives in.
+/// The wood pipeline, the depth-only one the sun draws it through, and the
+/// buffers one tree's surface lives in.
 pub struct Wood {
     pipeline: wgpu::RenderPipeline,
+    shadow: wgpu::RenderPipeline,
     positions: Option<Held>,
     normals: Option<Held>,
     coords: Option<Held>,
@@ -29,6 +31,7 @@ impl Wood {
     pub fn new(
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,
+        shadow: &crate::shadow::Shadow,
         colour_format: wgpu::TextureFormat,
     ) -> Self {
         let shader = gpu
@@ -44,11 +47,21 @@ impl Wood {
         Self {
             pipeline: crate::pipeline(
                 gpu,
-                &[Some(layout)],
+                &[Some(layout), None, Some(shadow.layout())],
                 &shader,
                 colour_format,
                 &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
                 "wood",
+            ),
+            // The sun sees a position and nothing else, so the normals and the
+            // coordinates are not bound for it at all.
+            shadow: crate::depth_pipeline(
+                gpu,
+                &[Some(shadow.light_layout())],
+                shadow.module(),
+                "wood",
+                &[vertex(&POSITION, 3)],
+                "wood shadow",
             ),
             positions: None,
             normals: None,
@@ -116,6 +129,19 @@ impl Wood {
             triangles: self.index_count / 3,
             instances: 0,
         }
+    }
+
+    /// Writes the surface into the sun's depth map. The same triangles the
+    /// frame draws, with nothing but their positions bound: what casts a
+    /// shadow is where the wood is, not what it looks like.
+    pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>) {
+        let (Some(positions), Some(indices)) = (&self.positions, &self.indices) else {
+            return;
+        };
+        pass.set_pipeline(&self.shadow);
+        pass.set_vertex_buffer(0, positions.live());
+        pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(0..self.index_count, 0, 0..1);
     }
 
     /// The live ranges, for a caller that wants to see what was uploaded.
