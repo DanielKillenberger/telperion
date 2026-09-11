@@ -91,9 +91,7 @@ impl Foliage {
         shadow: &crate::shadow::Shadow,
         colour_format: wgpu::TextureFormat,
     ) -> Self {
-        let shader = gpu
-            .device
-            .create_shader_module(wgpu::include_wgsl!("shaders/foliage.wgsl"));
+        let shader = crate::pass::lit_shader(gpu, "foliage", include_str!("shaders/foliage.wgsl"));
         let vertex = |attributes, floats: u64| {
             Some(wgpu::VertexBufferLayout {
                 array_stride: floats * size_of::<f32>() as u64,
@@ -113,6 +111,7 @@ impl Foliage {
                 &shader,
                 colour_format,
                 &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
+                crate::pass::Depth::Surface,
                 "foliage",
             ),
             // The sun sees a position and a placement. The placements are bound
@@ -192,14 +191,8 @@ impl Foliage {
         view: View,
         timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) {
-        self.select.dispatch(
-            gpu,
-            encoder,
-            camera,
-            viewport,
-            view == View::Whole,
-            timestamps,
-        );
+        self.select
+            .dispatch(gpu, encoder, camera, viewport, view.selects(), timestamps);
     }
 
     /// Draws the crown this view asks for: every placement at the level

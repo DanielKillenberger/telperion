@@ -1,7 +1,31 @@
-//! The shapes every frame shares: how a pass is opened over the targets, and
-//! the two pipelines a subject may be drawn through - the lit one every colour
-//! pass uses, and the depth-only one the sun writes its map with.
+//! The shapes every frame shares: how a lit shader is built, how a pass is
+//! opened over the targets, and the two pipelines a subject may be drawn
+//! through - the lit one every colour pass uses, and the depth-only one the sun
+//! writes its map with.
 use crate::{device::Gpu, scene::DEPTH_FORMAT};
+
+/// The block, the map and the terms every lit shader is drawn under. WGSL has
+/// no include of its own, so one prelude is put in front of each shader's own
+/// stages here rather than copied into each of them.
+const PRELUDE: &str = include_str!("shaders/common.wgsl");
+
+/// A lit shader: the prelude, then this module's own stages.
+pub fn lit_shader(gpu: &Gpu, label: &str, stages: &str) -> wgpu::ShaderModule {
+    gpu.device
+        .create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some(label),
+            source: wgpu::ShaderSource::Wgsl(format!("{PRELUDE}\n{stages}").into()),
+        })
+}
+
+/// Whether a pipeline takes its own place in the depth buffer, or stands
+/// behind everything that does. Only the sky stands behind: it is not a
+/// surface, it is what is left where no surface is.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Depth {
+    Surface,
+    Behind,
+}
 
 /// The frame's aspect, from the pixels it is drawn into. A viewport with no
 /// height is a frame nobody sees; it still has to divide.
@@ -52,6 +76,7 @@ pub fn pipeline(
     shader: &wgpu::ShaderModule,
     colour_format: wgpu::TextureFormat,
     buffers: &[Option<wgpu::VertexBufferLayout<'_>>],
+    depth: Depth,
     label: &'static str,
 ) -> wgpu::RenderPipeline {
     let layout = gpu
@@ -83,8 +108,11 @@ pub fn pipeline(
             },
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: DEPTH_FORMAT,
-                depth_write_enabled: Some(true),
-                depth_compare: Some(wgpu::CompareFunction::Less),
+                depth_write_enabled: Some(depth == Depth::Surface),
+                depth_compare: Some(match depth {
+                    Depth::Surface => wgpu::CompareFunction::Less,
+                    Depth::Behind => wgpu::CompareFunction::Always,
+                }),
                 stencil: Default::default(),
                 bias: Default::default(),
             }),

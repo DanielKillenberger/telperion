@@ -3,18 +3,21 @@
 
 /// Whole is the tree as it stands; bare strips the crown so the surface can be
 /// judged with nothing over it; leaf isolates one element at the scale it was
-/// generated at, placed at the origin, so its own shape can be read.
+/// generated at, placed at the origin, so its own shape can be read. Clay is
+/// the whole tree in the neutral room instead of outdoors: no sun, no
+/// material, no tone map, so geometry can be inspected with nothing over it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum View {
     #[default]
     Whole,
     Bare,
     Leaf,
+    Clay,
 }
 
 impl View {
     /// The names a caller may pass, in the order a usage line wants them.
-    pub const NAMES: [&'static str; 3] = ["whole", "bare", "leaf"];
+    pub const NAMES: [&'static str; 4] = ["whole", "bare", "leaf", "clay"];
 
     /// The view of that name, or nothing. An unknown name is the caller's to
     /// report; the renderer never guesses one.
@@ -23,8 +26,16 @@ impl View {
             "whole" => Some(Self::Whole),
             "bare" => Some(Self::Bare),
             "leaf" => Some(Self::Leaf),
+            "clay" => Some(Self::Clay),
             _ => None,
         }
+    }
+
+    /// Whether the frame chooses a level for every leaf of the crown. The
+    /// whole tree and the clay room both draw it; the bare view has no crown
+    /// and the leaf view is one instance at one known level.
+    pub fn selects(self) -> bool {
+        matches!(self, Self::Whole | Self::Clay)
     }
 }
 
@@ -40,7 +51,7 @@ mod tests {
                 "{name} is offered but unknown"
             );
         }
-        assert_eq!(View::NAMES.len(), 3, "a view was added without a name");
+        assert_eq!(View::NAMES.len(), 4, "a view was added without a name");
         for unknown in ["", "Whole", "foliage-detail", "wood"] {
             assert_eq!(View::from_id(unknown), None, "{unknown:?} was guessed at");
         }

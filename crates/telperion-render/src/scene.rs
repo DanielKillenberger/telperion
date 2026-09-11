@@ -2,53 +2,31 @@
 //! and a 1.8 m figure at the roots. Nothing here colours the tree; the warm and
 //! cool split is between the subject and everything that is not the subject.
 use bytemuck::{Pod, Zeroable};
-use telperion_core::math::Vec3;
+use telperion_core::{material::MaterialParams, math::Vec3, surface::Bounds};
 use wgpu::util::DeviceExt;
 
-use crate::{device::Gpu, shadow::Light};
+use crate::{
+    device::Gpu,
+    pass::{lit_shader, Depth},
+    shadow::Light,
+    view::View,
+};
 
-/// The scene row - the sun, the sky and the ground as numbers - kept beside
-/// this file rather than in it so neither outgrows the project's line rule.
+/// The scene row - the sun, the sky and the ground as numbers - and the room's
+/// own geometry, each beside this file rather than in it so none of the three
+/// outgrows the project's line rule.
+mod room;
 mod row;
 
+pub use room::{FIGURE_HEIGHT, GROUND_REACH};
 pub use row::SceneRow;
 
-/// The subject stays a warm neutral clay, the room around it is cool, so the
-/// tree reads as a silhouette while keeping one flat value.
-const CLAY: u32 = 0x9d_96_8c;
-const BACKGROUND: u32 = 0xc6_ce_d5;
-const GROUND: u32 = 0xa9_b1_b8;
-const FIGURE: u32 = 0x6b_67_63;
-/// The judging light is one neutral hemisphere and nothing else: form reads off
-/// the surface normal, with no key for weak geometry to hide behind.
-const SKY_LIGHT: u32 = 0xff_ff_ff;
-const GROUND_LIGHT: u32 = 0x6a_69_66;
-
-/// 1.8 m: radius 0.28 twice, plus a 1.24 m body.
-const FIGURE_RADIUS: f64 = 0.28;
-const FIGURE_BODY: f64 = 1.24;
-pub const FIGURE_HEIGHT: f64 = FIGURE_BODY + FIGURE_RADIUS * 2.0;
-
-/// The ground disc's radius in metres. Large enough that every hero subject
-/// stands on a floor and not on a plate; the camera's far plane is solved
-/// against it.
-pub const GROUND_REACH: f64 = 400.0;
-const DISC_SEGMENTS: u32 = 96;
-const FIGURE_SEGMENTS: u32 = 16;
-const FIGURE_STACKS: u32 = 8;
+use room::{
+    disc, figure, figure_indices, fixture, floor, linear, Vertex, ATTRIBUTES, BACKGROUND, CLAY,
+    FIGURE, GROUND, GROUND_LIGHT, SKY_LIGHT,
+};
 
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
-
-const ATTRIBUTES: [wgpu::VertexAttribute; 3] =
-    wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x3];
-
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Pod, Zeroable)]
-struct Vertex {
-    position: [f32; 3],
-    normal: [f32; 3],
-    colour: [f32; 3],
-}
 
 /// What every pipeline in a frame is drawn under. The camera and the room's
 /// light came first and keep their places; the sun and its map follow them, so
@@ -59,100 +37,31 @@ struct Uniforms {
     view_projection: [f32; 16],
     sky: [f32; 4],
     ground: [f32; 4],
+    /// The clay value, and in its fourth slot whether this frame is the clay
+    /// room at all: the one thing every shader branches on.
     clay: [f32; 4],
     light_view_projection: [f32; 16],
     sun: [f32; 4],
     /// The direction towards the sun, and a fourth slot the block wants.
     sun_direction: [f32; 4],
-}
-
-/// sRGB hex to linear, because the shader works in linear and the target
-/// encodes on the way out.
-fn linear(hex: u32) -> [f32; 4] {
-    let channel = |shift: u32| {
-        let c = ((hex >> shift) & 0xff) as f32 / 255.0;
-        if c <= 0.040_45 {
-            c / 12.92
-        } else {
-            ((c + 0.055) / 1.055).powf(2.4)
-        }
-    };
-    [channel(16), channel(8), channel(0), 1.0]
-}
-
-fn disc(colour: [f32; 3], vertices: &mut Vec<Vertex>, indices: &mut Vec<u32>) {
-    let base = vertices.len() as u32;
-    let up = [0.0, 1.0, 0.0];
-    vertices.push(Vertex {
-        position: [0.0, 0.0, 0.0],
-        normal: up,
-        colour,
-    });
-    for step in 0..=DISC_SEGMENTS {
-        let angle = std::f64::consts::TAU * f64::from(step) / f64::from(DISC_SEGMENTS);
-        vertices.push(Vertex {
-            position: [
-                (GROUND_REACH * angle.cos()) as f32,
-                0.0,
-                (GROUND_REACH * angle.sin()) as f32,
-            ],
-            normal: up,
-            colour,
-        });
-    }
-    for step in 0..DISC_SEGMENTS {
-        indices.extend([base, base + step + 2, base + step + 1]);
-    }
-}
-
-/// A capsule standing on the ground at `foot`: two hemispheres of
-/// `FIGURE_RADIUS` around a `FIGURE_BODY` waist. Rings run bottom to top so the
-/// seam between the hemispheres is the body itself.
-fn figure(foot: Vec3, colour: [f32; 3]) -> Vec<Vertex> {
-    let mut vertices = Vec::new();
-    let half = std::f64::consts::FRAC_PI_2;
-    for ring in 0..2 * (FIGURE_STACKS + 1) {
-        let upper = ring > FIGURE_STACKS;
-        let stack = if upper {
-            ring - FIGURE_STACKS - 1
-        } else {
-            ring
-        };
-        let latitude =
-            half * (f64::from(stack) / f64::from(FIGURE_STACKS) - if upper { 0.0 } else { 1.0 });
-        let centre = foot.y + FIGURE_RADIUS + if upper { FIGURE_BODY } else { 0.0 };
-        for step in 0..=FIGURE_SEGMENTS {
-            let angle = std::f64::consts::TAU * f64::from(step) / f64::from(FIGURE_SEGMENTS);
-            let normal = Vec3::new(
-                latitude.cos() * angle.cos(),
-                latitude.sin(),
-                latitude.cos() * angle.sin(),
-            );
-            vertices.push(Vertex {
-                position: [
-                    (foot.x + normal.x * FIGURE_RADIUS) as f32,
-                    (centre + normal.y * FIGURE_RADIUS) as f32,
-                    (foot.z + normal.z * FIGURE_RADIUS) as f32,
-                ],
-                normal: [normal.x as f32, normal.y as f32, normal.z as f32],
-                colour,
-            });
-        }
-    }
-    vertices
-}
-
-fn figure_indices(base: u32) -> Vec<u32> {
-    let mut indices = Vec::new();
-    let stride = FIGURE_SEGMENTS + 1;
-    for ring in 0..2 * FIGURE_STACKS + 1 {
-        for step in 0..FIGURE_SEGMENTS {
-            let a = base + ring * stride + step;
-            let b = a + stride;
-            indices.extend([a, b, a + 1, a + 1, b, b + 1]);
-        }
-    }
-    indices
+    eye: [f32; 4],
+    /// The picture's axes, so a pixel knows which way it looks: the forward
+    /// axis plus each edge scaled by the pixel's place across the frame.
+    ray_right: [f32; 4],
+    ray_up: [f32; 4],
+    ray_forward: [f32; 4],
+    sky_zenith: [f32; 4],
+    sky_horizon: [f32; 4],
+    ground_colour: [f32; 4],
+    /// The material row: bark with its roughness, the leaf's two faces with
+    /// the interior darkening amount, and the offsets one leaf may take.
+    bark: [f32; 4],
+    leaf_front: [f32; 4],
+    leaf_back: [f32; 4],
+    leaf_variation: [f32; 4],
+    /// The ellipsoid the crown's placements fill, and whether there is one.
+    crown_centre: [f32; 4],
+    crown_radii: [f32; 4],
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform
@@ -162,10 +71,17 @@ pub struct Scene {
     /// the view is stored - the frame reads it, nothing about a tree states
     /// it - and set through the renderer's own setter.
     row: SceneRow,
+    /// What the subject is made of, as the family stated it. It arrives with
+    /// the tree and outlives nothing: a second tree brings its own row.
+    material: MaterialParams,
+    /// The ellipsoid the submitted crown's placements fill, which a leaf's
+    /// depth into the crown is measured against. None before a tree is up.
+    crown: Option<Bounds>,
     layout: wgpu::BindGroupLayout,
     bind_group: wgpu::BindGroup,
     uniforms: wgpu::Buffer,
     pipeline: wgpu::RenderPipeline,
+    sky: wgpu::RenderPipeline,
     vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
     index_count: u32,
@@ -178,14 +94,7 @@ impl Scene {
         colour_format: wgpu::TextureFormat,
         shadow: &wgpu::BindGroupLayout,
     ) -> Self {
-        let ground_colour = {
-            let c = linear(GROUND);
-            [c[0], c[1], c[2]]
-        };
-        let figure_colour = {
-            let c = linear(FIGURE);
-            [c[0], c[1], c[2]]
-        };
+        let (ground_colour, figure_colour) = (floor(GROUND), fixture(FIGURE));
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
         disc(ground_colour, &mut vertices, &mut indices);
@@ -237,14 +146,13 @@ impl Scene {
             }],
         });
 
-        let shader = gpu
-            .device
-            .create_shader_module(wgpu::include_wgsl!("shaders/scene.wgsl"));
+        let shader = lit_shader(gpu, "scene", include_str!("shaders/scene.wgsl"));
         // The room takes no selection, so the group between the light and the
         // shadow map is a hole in its layout rather than a group it binds.
+        let groups = [Some(&layout), None, Some(shadow)];
         let pipeline = crate::pipeline(
             gpu,
-            &[Some(&layout), None, Some(shadow)],
+            &groups,
             &shader,
             colour_format,
             &[Some(wgpu::VertexBufferLayout {
@@ -252,15 +160,30 @@ impl Scene {
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &ATTRIBUTES,
             })],
+            Depth::Surface,
             "scene",
+        );
+        // The sky has no geometry and no depth of its own: one triangle over
+        // the frame, drawn before anything else stands in front of it.
+        let sky = crate::pipeline(
+            gpu,
+            &groups,
+            &lit_shader(gpu, "sky", include_str!("shaders/sky.wgsl")),
+            colour_format,
+            &[],
+            Depth::Behind,
+            "sky",
         );
 
         Self {
             row: SceneRow::default(),
+            material: MaterialParams::default(),
+            crown: None,
             layout,
             bind_group,
             uniforms,
             pipeline,
+            sky,
             vertices: vertex_buffer,
             indices: index_buffer,
             index_count: indices.len() as u32,
@@ -283,9 +206,32 @@ impl Scene {
         self.row = row;
     }
 
-    /// The background the frame is cleared to.
-    pub fn background(&self) -> wgpu::Color {
-        let c = linear(BACKGROUND);
+    /// What the subject that is up is made of. It arrives with the tree, so a
+    /// tree submitted without one is drawn in the row every family starts
+    /// from rather than in the last tree's colours.
+    pub fn set_material(&mut self, material: MaterialParams) {
+        self.material = material;
+    }
+
+    /// The ellipsoid a leaf's depth into the crown is measured against.
+    pub fn set_crown(&mut self, crown: Option<Bounds>) {
+        self.crown = crown;
+    }
+
+    /// The background the frame is cleared to: the room's cool neutral, or the
+    /// sky at the horizon outdoors, where the sky's own triangle covers it
+    /// everywhere the frame draws one.
+    pub fn background(&self, view: View) -> wgpu::Color {
+        let c = if view == View::Clay {
+            linear(BACKGROUND)
+        } else {
+            [
+                self.row.sky_horizon_red as f32,
+                self.row.sky_horizon_green as f32,
+                self.row.sky_horizon_blue as f32,
+                1.0,
+            ]
+        };
         wgpu::Color {
             r: f64::from(c[0]),
             g: f64::from(c[1]),
@@ -297,8 +243,7 @@ impl Scene {
     /// Stands the figure clear of the root flare of a subject this tall.
     pub fn place_figure(&self, gpu: &Gpu, height: f64) {
         let foot = Vec3::new(height * 0.16 + 1.2, 0.0, height * 0.2);
-        let c = linear(FIGURE);
-        let vertices = figure(foot, [c[0], c[1], c[2]]);
+        let vertices = figure(foot, fixture(FIGURE));
         gpu.queue.write_buffer(
             &self.vertices,
             self.figure_offset,
@@ -306,9 +251,34 @@ impl Scene {
         );
     }
 
-    /// Writes the frame's one uniform block: where the eye stands, and where
-    /// the sun stands with the map it threw.
-    pub fn set_frame(&self, gpu: &Gpu, camera: &crate::Camera, aspect: f64, light: &Light) {
+    /// Writes the frame's one uniform block: where the eye stands and what it
+    /// looks along, where the sun stands with the map it threw, and the two
+    /// rows the frame is drawn from - the scene's and the subject's.
+    pub fn set_frame(
+        &self,
+        gpu: &Gpu,
+        camera: &crate::Camera,
+        aspect: f64,
+        light: &Light,
+        view: View,
+    ) {
+        let m = &self.material;
+        let colour = |r: f64, g: f64, b: f64, w: f64| [r as f32, g as f32, b as f32, w as f32];
+        let clay = linear(CLAY);
+        let (right, up, forward) = axes(camera, aspect);
+        // A leaf on its own has no crown to stand deep inside, and the clay
+        // room takes no material term at all.
+        let inside = self
+            .crown
+            .filter(|_| view == View::Whole || view == View::Bare);
+        let centre = inside.map_or([0.0; 4], |b| {
+            let c = (b.min + b.max) * 0.5;
+            colour(c.x, c.y, c.z, 1.0)
+        });
+        let radii = inside.map_or([0.0; 4], |b| {
+            let half = (b.max - b.min) * 0.5;
+            colour(half.x, half.y, half.z, 0.0)
+        });
         gpu.queue.write_buffer(
             &self.uniforms,
             0,
@@ -316,15 +286,53 @@ impl Scene {
                 view_projection: camera.view_projection(aspect),
                 sky: linear(SKY_LIGHT),
                 ground: linear(GROUND_LIGHT),
-                clay: linear(CLAY),
-                light_view_projection: light.view_projection,
-                sun: [
-                    self.row.sun_red as f32,
-                    self.row.sun_green as f32,
-                    self.row.sun_blue as f32,
-                    1.0,
+                clay: [
+                    clay[0],
+                    clay[1],
+                    clay[2],
+                    f32::from(u8::from(view == View::Clay)),
                 ],
+                light_view_projection: light.view_projection,
+                sun: colour(self.row.sun_red, self.row.sun_green, self.row.sun_blue, 1.0),
                 sun_direction: light.direction,
+                eye: colour(camera.position.x, camera.position.y, camera.position.z, 1.0),
+                ray_right: colour(right.x, right.y, right.z, 0.0),
+                ray_up: colour(up.x, up.y, up.z, 0.0),
+                ray_forward: colour(forward.x, forward.y, forward.z, 0.0),
+                sky_zenith: colour(
+                    self.row.sky_zenith_red,
+                    self.row.sky_zenith_green,
+                    self.row.sky_zenith_blue,
+                    1.0,
+                ),
+                sky_horizon: colour(
+                    self.row.sky_horizon_red,
+                    self.row.sky_horizon_green,
+                    self.row.sky_horizon_blue,
+                    1.0,
+                ),
+                ground_colour: colour(
+                    self.row.ground_red,
+                    self.row.ground_green,
+                    self.row.ground_blue,
+                    1.0,
+                ),
+                bark: colour(m.bark_red, m.bark_green, m.bark_blue, m.bark_roughness),
+                leaf_front: colour(
+                    m.leaf_front_red,
+                    m.leaf_front_green,
+                    m.leaf_front_blue,
+                    m.interior_darkening,
+                ),
+                leaf_back: colour(m.leaf_back_red, m.leaf_back_green, m.leaf_back_blue, 1.0),
+                leaf_variation: [
+                    m.hue_range_low as f32,
+                    m.hue_range_high as f32,
+                    m.brightness_range_low as f32,
+                    m.brightness_range_high as f32,
+                ],
+                crown_centre: centre,
+                crown_radii: radii,
             }),
         );
     }
@@ -336,39 +344,42 @@ impl Scene {
         pass.set_bind_group(0, &self.bind_group, &[]);
     }
 
-    /// Draws the room. One call: the ground and the figure share a buffer.
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> crate::FrameStats {
+    /// Draws the room: the sky behind everything outdoors, then the ground and
+    /// the figure, which share a buffer and one call.
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>, view: View) -> crate::FrameStats {
+        let mut sky = 0;
+        if view != View::Clay {
+            pass.set_pipeline(&self.sky);
+            pass.draw(0..3, 0..1);
+            sky = 1;
+        }
         pass.set_pipeline(&self.pipeline);
         pass.set_vertex_buffer(0, self.vertices.slice(..));
         pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
         pass.draw_indexed(0..self.index_count, 0, 0..1);
         crate::FrameStats {
-            draw_calls: 1,
-            triangles: self.index_count / 3,
+            draw_calls: 1 + sky,
+            triangles: self.index_count / 3 + sky,
             instances: 0,
         }
     }
 }
 
+/// The picture's axes from the pose it was taken at: where the eye looks, and
+/// how far a pixel at the edge of the frame leans off that in each direction.
+/// A ray through the frame is the forward axis plus the two, so the sky can be
+/// read per pixel without the projection being inverted.
+fn axes(camera: &crate::Camera, aspect: f64) -> (Vec3, Vec3, Vec3) {
+    let forward = (camera.target - camera.position).normalized();
+    let right = forward.cross(Vec3::Y).normalized();
+    let up = right.cross(forward);
+    let tangent = (camera.field_of_view.to_radians() / 2.0).tan();
+    (right * (tangent * aspect), up * tangent, forward)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn the_figure_stands_one_point_eight_metres_tall_on_the_ground() {
-        let vertices = figure(Vec3::new(3.0, 0.0, 1.5), [0.0; 3]);
-        let low = vertices
-            .iter()
-            .fold(f32::MAX, |low, v| low.min(v.position[1]));
-        let high = vertices
-            .iter()
-            .fold(f32::MIN, |high, v| high.max(v.position[1]));
-        assert!(low.abs() < 1e-5, "the figure floats or sinks: {low}");
-        assert!(
-            (f64::from(high) - FIGURE_HEIGHT).abs() < 1e-5,
-            "the figure is {high} m, not {FIGURE_HEIGHT} m"
-        );
-    }
 
     #[test]
     fn sky_and_ground_light_bracket_the_hemisphere_term() {
@@ -377,16 +388,5 @@ mod tests {
         let (sky, ground) = (linear(SKY_LIGHT), linear(GROUND_LIGHT));
         assert!(sky[0] > ground[0] && sky[1] > ground[1] && sky[2] > ground[2]);
         assert!((sky[0] - 1.0).abs() < 1e-6);
-    }
-
-    #[test]
-    fn the_disc_is_wound_one_way_and_covers_its_whole_circle() {
-        let mut vertices = Vec::new();
-        let mut indices = Vec::new();
-        disc([0.0; 3], &mut vertices, &mut indices);
-        assert_eq!(indices.len() as u32, DISC_SEGMENTS * 3);
-        assert!(vertices
-            .iter()
-            .all(|v| v.position[1] == 0.0 && v.normal == [0.0, 1.0, 0.0]));
     }
 }

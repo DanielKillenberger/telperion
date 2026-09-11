@@ -1,6 +1,10 @@
 //! What a tree costs before it is uploaded, and what it turned into after. The
 //! fit check is a pure function so a caller can ask before it owns a device.
-use telperion_core::{mesh::TreeMesh, surface::Bounds};
+use telperion_core::{
+    math::Vec3,
+    mesh::{Foliage, TreeMesh},
+    surface::Bounds,
+};
 
 use crate::{
     buffer::Region,
@@ -16,6 +20,30 @@ pub struct Submitted {
     pub wood_triangles: usize,
     pub foliage_instances: usize,
     pub bounds: Bounds,
+}
+
+/// The ellipsoid the crown's placements fill, which is what a leaf's depth
+/// into the crown is measured against. Taken from where the leaves were put
+/// rather than from every vertex of every blade: the term reads a placement's
+/// own position, and a blade's centimetre of reach either side of it is not
+/// worth a pass over the whole crown to learn.
+pub fn crown_of(foliage: &Foliage) -> Option<Bounds> {
+    let mut bounds: Option<Bounds> = None;
+    for placement in &foliage.instances.matrices {
+        let at = Vec3::new(
+            f64::from(placement[12]),
+            f64::from(placement[13]),
+            f64::from(placement[14]),
+        );
+        bounds = Some(match bounds {
+            Some(b) => Bounds {
+                min: Vec3::new(b.min.x.min(at.x), b.min.y.min(at.y), b.min.z.min(at.z)),
+                max: Vec3::new(b.max.x.max(at.x), b.max.y.max(at.y), b.max.z.max(at.z)),
+            },
+            None => Bounds { min: at, max: at },
+        });
+    }
+    bounds
 }
 
 /// Whether this mesh's buffers fit the limits the device granted. Nothing is
@@ -92,4 +120,41 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
         });
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use telperion_core::foliage::{Element, Instances};
+
+    fn placement(at: [f32; 3]) -> [f32; 16] {
+        let mut m = [0.0; 16];
+        (m[0], m[5], m[10], m[15]) = (1.0, 1.0, 1.0, 1.0);
+        [m[12], m[13], m[14]] = at;
+        m
+    }
+
+    #[test]
+    fn the_crown_is_the_box_the_placements_fill_and_nothing_when_there_are_none() {
+        let foliage = Foliage {
+            element: Element::default(),
+            instances: Instances {
+                matrices: vec![
+                    placement([1.0, 2.0, -3.0]),
+                    placement([-1.0, 6.0, 3.0]),
+                    placement([0.0, 4.0, 0.0]),
+                ],
+            },
+        };
+        let crown = crown_of(&foliage).expect("three leaves stand somewhere");
+        assert_eq!((crown.min.x, crown.min.y, crown.min.z), (-1.0, 2.0, -3.0));
+        assert_eq!((crown.max.x, crown.max.y, crown.max.z), (1.0, 6.0, 3.0));
+        // A crown of no leaves is no interior at all, and the leaf view says so
+        // by having nothing to be deep inside.
+        assert!(crown_of(&Foliage {
+            element: Element::default(),
+            instances: Instances::default(),
+        })
+        .is_none());
+    }
 }

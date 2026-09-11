@@ -12,7 +12,7 @@ mod report;
 pub use report::{Hardware, LevelCount, Report};
 
 #[cfg(not(target_arch = "wasm32"))]
-use crate::{camera, Camera, Renderer, View};
+use crate::{camera, Camera, Renderer};
 use crate::{
     device::{Gpu, RenderError, Result},
     Timed,
@@ -360,9 +360,9 @@ fn collect(
         session.sample(renderer, &start, viewport, colour, depth)?;
     }
 
-    // Only the whole view runs selection, so only it has counters worth
-    // reading; a bare or leaf session records the passes and no levels.
-    let crown = renderer.view() == View::Whole;
+    // Only a view that draws the crown runs selection, so only it has counters
+    // worth reading; a bare or leaf session records the passes and no levels.
+    let crown = renderer.view().selects();
     let deviations = renderer.level_deviations().to_vec();
     let mut vegetation = Vec::with_capacity(MEASURED);
     let mut selection = Vec::with_capacity(MEASURED);

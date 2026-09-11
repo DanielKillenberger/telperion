@@ -23,6 +23,7 @@ pub use camera::{hero_pose, orbit_pose, walk_pose, Camera, FIELD_OF_VIEW, FRAME_
 pub use device::{Gpu, RenderError, Result};
 pub use scene::{SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
+use submit::crown_of;
 pub use submit::{fits, Submitted};
 pub use timing::{
     judge, Hardware, LevelCount, Report, Session, Verdict, CONDITIONING, CONTENTION_RATIO,
@@ -40,7 +41,7 @@ pub use timing::{orbit as measure_orbit, run as measure};
 
 use pass::{aspect_of, pass};
 pub(crate) use pass::{depth_pipeline, pipeline};
-use telperion_core::{mesh::TreeMesh, surface::Bounds};
+use telperion_core::{material::MaterialParams, mesh::TreeMesh, surface::Bounds};
 
 /// What one frame cost, in the terms a reader of a timing record needs.
 /// `instances` counts the foliage placements drawn, which is the number the
@@ -136,6 +137,7 @@ impl Renderer {
         self.foliage.submit(&self.gpu, &mesh.foliage, level);
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
+        self.scene.set_crown(crown_of(&mesh.foliage));
         self.bounds = Some(mesh.bounds);
         self.level_deviations = mesh
             .foliage
@@ -159,6 +161,13 @@ impl Renderer {
 
     pub fn view(&self) -> View {
         self.view
+    }
+
+    /// What the tree that is up is made of, as the family stated it. It is set
+    /// beside the tree rather than carried by the mesh: a mesh is geometry,
+    /// and no vertex of it changes when the bark does.
+    pub fn set_material(&mut self, material: MaterialParams) {
+        self.scene.set_material(material);
     }
 
     /// Puts the sun somewhere else and paints the sky and the ground with it.
@@ -259,7 +268,7 @@ impl Renderer {
     ) -> FrameStats {
         let light = shadow::light(self.scene.row(), self.bounds());
         self.scene
-            .set_frame(&self.gpu, camera, aspect_of(viewport), &light);
+            .set_frame(&self.gpu, camera, aspect_of(viewport), &light, self.view);
         self.shadow.set_light(&self.gpu, &light);
         let (vegetation_writes, selection_writes, shadow_writes) = match timed {
             Some(timed) => (
@@ -304,7 +313,7 @@ impl Renderer {
                 "room",
                 colour,
                 depth,
-                Some(self.scene.background()),
+                Some(self.scene.background(self.view)),
                 None,
             );
             self.scene.bind(&mut pass);
@@ -313,7 +322,7 @@ impl Renderer {
                 // A leaf is judged on its own: at 0.1 m the room around it is a
                 // wall, and the scale figure is not a scale for a leaf.
                 View::Leaf => FrameStats::default(),
-                _ => self.scene.draw(&mut pass),
+                view => self.scene.draw(&mut pass, view),
             }
         };
         let vegetation = {

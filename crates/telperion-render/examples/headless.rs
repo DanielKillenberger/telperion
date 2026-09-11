@@ -43,6 +43,7 @@ fn run() -> Result<(), String> {
     let submitted = renderer
         .submit_at(&tree, level)
         .map_err(|error| error.to_string())?;
+    renderer.set_material(family.material);
     renderer.set_view(arguments.view);
     renderer.set_scene(arguments.scene);
 
@@ -116,6 +117,7 @@ fn transition(arguments: &Arguments, from: Family, to: Family) -> Result<(), Str
         renderer
             .submit_at(&tree, level)
             .map_err(|error| format!("frame {frame}: {error}"))?;
+        renderer.set_material(family.material);
         if ends.is_none() && fixed.is_none() {
             let bounds = renderer.bounds().ok_or("nothing was submitted to frame")?;
             fixed = Some(hero_pose(bounds, aspect, GROUND_REACH));

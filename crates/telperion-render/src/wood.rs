@@ -34,9 +34,7 @@ impl Wood {
         shadow: &crate::shadow::Shadow,
         colour_format: wgpu::TextureFormat,
     ) -> Self {
-        let shader = gpu
-            .device
-            .create_shader_module(wgpu::include_wgsl!("shaders/wood.wgsl"));
+        let shader = crate::pass::lit_shader(gpu, "wood", include_str!("shaders/wood.wgsl"));
         let vertex = |attributes, floats: u64| {
             Some(wgpu::VertexBufferLayout {
                 array_stride: floats * size_of::<f32>() as u64,
@@ -51,6 +49,7 @@ impl Wood {
                 &shader,
                 colour_format,
                 &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
+                crate::pass::Depth::Surface,
                 "wood",
             ),
             // The sun sees a position and nothing else, so the normals and the

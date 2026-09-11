@@ -181,7 +181,11 @@ impl WebRenderer {
             .map_err(|error| JsError::new(&format!("the parameters are not JSON: {error}")))?;
         let family = params::parse(&value).map_err(|error| js_error(RenderError::from(error)))?;
         let mesh = mesh::build(&family, Detail::Full).map_err(|error| js_error(error.into()))?;
-        let submitted = self.borrow()?.renderer.submit(&mesh).map_err(js_error)?;
+        let mut live = self.borrow()?;
+        // The material rides with the tree: these parameters state both, and a
+        // tree drawn in the last tree's colours would be nobody's family.
+        live.renderer.set_material(family.material);
+        let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
         Ok(submitted_json(&submitted))
     }
 
