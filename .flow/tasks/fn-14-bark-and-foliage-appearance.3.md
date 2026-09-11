@@ -41,9 +41,77 @@ Add the sun as a key light and one shadow map: a depth-only pass from the sun ov
 - [ ] `cargo test --release --workspace`, fmt and clippy pass
 
 ## Done summary
-TBD
+The sun now writes one single-sample depth map from where the scene row puts
+it, over the wood and every leaf at the element's coarsest level in one
+instanced draw over the whole placement buffer, and the wood, leaf and room
+shaders compare against it through a comparison sampler beside a sun term taken
+from the row. A third timestamp pair times the pass, and the record's total is
+now the three passes a frame costs.
 
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+### What each acceptance line came to
+
+- **The pass.** Depth-only, no fragment stage, fitted to the subject's bounds
+  and the ground shadow the sun's elevation throws from them, never to the 400 m
+  floor. The crown's draw reads `placements[instance]` directly, so no second
+  selection runs; the pass is opened on every frame so a timed one always writes
+  its pair. `tests/shadow.rs` reads the map back: the bare view covers some of
+  it, the whole view covers more than the bare one, and the leaf view leaves it
+  at the clear depth, which reads as open ground.
+- **Sampling.** Wood, leaves and the room's ground disc take
+  `sun * max(dot(n, towards the sun), 0) * sunlight(world)` beside the
+  hemisphere they already had. A point outside the map stands open.
+- **Timing.** Six queries, `Session::timed()` in place of the two pair
+  accessors, `Report::with_passes` in place of `with_selection`; the record
+  gains `shadow_p50_ms` and `shadow_p95_ms` and `total_*` is now all three
+  passes added per frame and then ranked. Native and web sessions both resolve
+  it (the web half is compiled for wasm32 as part of the gates).
+- **The number, and it is over.** Oak at seed 7, 1024x1024, RTX 3080, valid
+  session: at a 2,048 map the shadow pass was **2.30 ms p50** against the 1.5 ms
+  allowed, so the map was halved as the task directs, and at 1,024 it is **1.81
+  ms p50 / 1.99 ms p95**. Both numbers are recorded, in the task's terms and in
+  `RESOLUTION`'s own doc comment. Halving bought 0.49 ms: the pass submits the
+  same 8.25 M wood triangles the vegetation pass does (1.95 ms with shading on
+  top), so the cost is geometry and not raster, and no map size reaches 1.5 ms.
+  The lever is a coarser caster - the wood has no level ladder, only the crown
+  does - which is the early proof point's re-evaluation and the owner's call,
+  not this task's. Total p50 is 3.86 ms against R12's 3.8 ms, before task 5's
+  multisampling.
+- **Gates.** `cargo test --release --workspace` green (32 targets, no GPU test
+  skipped), fmt and clippy clean, and the wasm target checks clean.
+
+### Deviations, each with its reason
+
+- **Files outside the task's Touches.** `wood.rs`, `foliage.rs` and `web.rs`
+  were edited: the buffers a depth pass draws are private to the two subjects,
+  and `web.rs` held the timestamp-pair type the third pair changed. All three
+  edits are additive and small. No other task's files were touched.
+- **The 400-line rule forced two splits**, both named in the commit: the
+  pass-and-pipeline shapes out of `lib.rs` into `src/pass.rs` (which is where
+  task 5's sample-count edit now belongs), and the sun's fit out of `shadow.rs`
+  into `shadow/fit.rs`. Every file this task wrote or grew is under 400 lines;
+  `camera.rs` at 504 is fn-24's inherited follow-up and was left alone.
+- **The shadow multiplies the sun term, not the hemisphere.** The task's
+  approach line says the hemisphere; multiplying ambient by a comparison result
+  makes every shadow pitch black, which task 4's look work would only undo. The
+  shadow reads strongly in the still as it is.
+- **The still is overexposed.** A sun of radiance 3 with no tone map blows the
+  lit ground and crown out; the tone map is task 4's, as planned. The still
+  proves the pass, not the look: `/tmp/flow-handover-fn14/fn-14.3-oak.png`,
+  with a dappled crown shadow lying away from the sun and no acne on the ground.
+
+### Evidence on disk
+
+- `/tmp/flow-handover-fn14/fn-14.3-oak.png` - the oak still, 1024x1024
+- `/tmp/flow-handover-fn14/fn-14.3-oak-timing.json` - the shipped 1,024 map
+- `/tmp/flow-handover-fn14/fn-14.3-oak-timing-2048.json` - the first measurement
+- `/tmp/flow-handover-fn14/fn-14.3-tests.log` - the suite run
+- `.git/flow-notes/.../fn-14.3-shadow.md` - what tasks 4, 5 and 6 inherit
+
+stage: wave-join - ran (fast-forward 8eb9de0..426b31d, no collision; worker edited wood.rs, foliage.rs, web.rs outside declared Touches - no sibling in flight)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 426b31d191ba837802cbf25e5a8438ff2905f0dc
+- Tests: baseline: green via handoff (green (verified at 8e001cd by fn-14-bark-and-foliage-appearance.2)); cargo fmt --all -- --check run pre-edit and green, cargo test --release --workspace (32 targets ok, suite_rc=0, no GPU test skipped), cargo fmt --all -- --check, cargo clippy --workspace --all-targets -- -D warnings, cargo check -p telperion-render --target wasm32-unknown-unknown (the web session is wasm-only), cargo run --release -p telperion-render --example headless -- --preset oregon-white-oak --seed 7 --out /tmp/flow-handover-fn14/fn-14.3-oak.png --timing /tmp/flow-handover-fn14/fn-14.3-oak-timing.json
 - PRs:
