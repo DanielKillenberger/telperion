@@ -172,15 +172,15 @@ which draws the full-resolution wood today and costs 1.813 ms of the 4.949.
 
 ### Oregon white oak, hero pose, lit
 
-> _verdict (owner, ):_
+> _verdict (owner, 2026-09-11):_ accept. "it reads the same as before coloring etc. or looks better even so i'd say it's clearly a pass. We do need to work more on accuracy though later. The oak we render doesn't have thick inner branches like the reference. But that's for another spec."
 
 ### Norway spruce, hero pose, lit
 
-> _verdict (owner, ):_
+> _verdict (owner, 2026-09-11):_ accept. "It reads fine. The brown branches comes through a bit too much behind the needles? that doesn't look quite right atm"
 
 ### The frame number, R12
 
-> _owner decision (owner, ):_
+> _owner decision (owner, 2026-09-11):_ accept the number, 4.949 ms against 3.8 ms, for this spec. The fix is fn-27, coarse shadow casters and a filtered shadow, which fn-26 now depends on and which runs before it.
 
 ## References
 
