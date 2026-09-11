@@ -37,9 +37,15 @@ Add the material row to every preset as one more family struct with wire rows, a
 - [ ] `cargo test --release --workspace`, `npm run wasm:build && npm test`, `npm run typecheck` pass
 
 ## Done summary
-TBD
+Every preset now carries a material row - bark colour and roughness, leaf front and back colour, the hue and brightness offsets one leaf may take, and the interior darkening amount - as one more numeric struct on the family, with rows in the wire table, validation by field name, and the blend walking all fifteen fields. The renderer holds a scene row beside the view - sun azimuth and elevation, sun colour, sky zenith and horizon, ground - with an outdoor midday default, set through `--scene <json>` on the headless command and `setScene` on the page session; the panel shows the material row through the family's generic mapping and the scene row through one Traits block, its dials having moved to `harness/dials.tsx` to take the file under the line rule. The values are stored and travel; task 4 makes the shaders read them.
 
+baseline: green via handoff (green (verified at 18859d1 by fn-14-bark-and-foliage-appearance.1))
+
+stage: impl-review - skipped(policy: parallel-wave - the conductor reviews after integration)
+
+stage: wave-join - ran (fast-forward 38d2506..8e001cd, no collision; worker edited outside declared Touches: render Cargo.toml, device.rs, lib.rs, tests/walk.rs, examples/headless.rs - no sibling in flight, no collision)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0d3a3f42761061f14ae0e0de90448e5b69366974, 8e001cdacae1ce654c0e9f8d2a13bcf83e7e10ab
+- Tests: cargo test --release --workspace, npm run wasm:build && npm test, npm run typecheck, cargo clippy --release --workspace --all-targets -- -D warnings, cargo fmt --all -- --check, cargo run --release -p telperion-render --example headless -- --preset oregon-white-oak --seed 7 --size 256x256 --scene '{"sunElevation":20.0,"sunAzimuth":300.0}' --out /tmp/fn14-2-scene.png
 - PRs:
