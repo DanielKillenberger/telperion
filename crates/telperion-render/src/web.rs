@@ -17,7 +17,7 @@ use web_sys::HtmlCanvasElement;
 
 use crate::{
     device::{Gpu, RenderError, Result},
-    hero_pose, Camera, FrameStats, Renderer, Submitted, View, DEPTH_FORMAT, GROUND_REACH,
+    hero_pose, Camera, FrameStats, Renderer, SceneRow, Submitted, View, DEPTH_FORMAT, GROUND_REACH,
 };
 
 /// The timing protocol as a page runs it, kept beside this file rather than in
@@ -207,6 +207,25 @@ impl WebRenderer {
             ))
         })?;
         self.borrow()?.renderer.set_view(view);
+        Ok(())
+    }
+
+    /// The sun, sky and ground the next frame is drawn under, as the row's
+    /// own JSON. The panel reads the default out of here rather than keeping a
+    /// second copy of it.
+    pub fn scene(&self) -> std::result::Result<String, JsError> {
+        Ok(self.borrow()?.renderer.scene().to_json())
+    }
+
+    /// Stands the sun somewhere else and paints the sky and the ground with
+    /// it. The text is one whole row: what it names it states, and what it
+    /// leaves out takes the default rather than whatever was set before. A row
+    /// the renderer will not have leaves the sky exactly where it was and
+    /// arrives in JavaScript as the renderer's own words.
+    #[wasm_bindgen(js_name = setScene)]
+    pub fn set_scene(&self, scene: &str) -> std::result::Result<(), JsError> {
+        let row = SceneRow::parse(scene).map_err(js_error)?;
+        self.borrow()?.renderer.set_scene(row);
         Ok(())
     }
 

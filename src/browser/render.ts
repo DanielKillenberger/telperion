@@ -77,6 +77,12 @@ export interface TimingReport {
 
 export type View = "whole" | "bare" | "leaf";
 
+/** The sun, the sky and the ground, as the renderer states them. The row is
+ *  defined in Rust and read back out of the renderer, so nothing on this side
+ *  keeps a second copy of its fields or of their default values: a field the
+ *  row grows appears in the panel with no line here. */
+export type SceneRow = Record<string, number>;
+
 /** Devices created minus devices disposed, on the window, for the soak
  *  test to read. React's development double-mount builds one renderer
  *  and disposes it before the live one, so "one canvas, one device" is
@@ -98,6 +104,12 @@ let loading: Promise<void> | undefined;
 export interface Renderer {
   setTree(family: string): Submitted;
   setView(view: View): void;
+  /** The sun, sky and ground the next frame is drawn under. */
+  scene(): SceneRow;
+  /** Stands the sun somewhere else, on top of the row already set. Throws the
+   *  renderer's own words for a value it will not have, and the sky the
+   *  renderer is drawing under stays exactly where it was. */
+  setScene(row: SceneRow): void;
   /** Puts the camera at the judging pose for what is on the canvas, and
    *  reports where that left it. Null before a tree has been submitted. */
   hero(): Pose | null;
@@ -140,6 +152,8 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
   return {
     setTree: (family) => JSON.parse(renderer.setTree(family)) as Submitted,
     setView: (view) => renderer.setView(view),
+    scene: () => JSON.parse(renderer.scene()) as SceneRow,
+    setScene: (row) => renderer.setScene(JSON.stringify(row)),
     hero: () => JSON.parse(renderer.heroCamera()) as Pose | null,
     setCamera: ({ position, target }) =>
       renderer.setCamera(position[0], position[1], position[2], target[0], target[1], target[2]),

@@ -6,6 +6,7 @@ pub mod colonization;
 pub mod envelope;
 pub mod field;
 pub mod foliage;
+pub mod material;
 pub mod math;
 pub mod mesh;
 pub mod noise;

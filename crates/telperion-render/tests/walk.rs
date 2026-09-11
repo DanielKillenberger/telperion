@@ -7,6 +7,8 @@ mod walk;
 
 use walk::{parse, Schedule, Walk, FPS};
 
+use telperion_render::SceneRow;
+
 fn frame_run(extra: &[&str]) -> Result<walk::Arguments, String> {
     let mut argv = vec![
         "--preset",
@@ -154,4 +156,27 @@ fn a_value_a_flag_cannot_mean_is_refused_by_that_flag_s_name() {
         alone.contains("--walk") && alone.contains("--to"),
         "{alone}"
     );
+}
+
+#[test]
+fn a_scene_row_off_the_command_line_moves_what_it_names_and_nothing_else() {
+    let default = SceneRow::default();
+    // No flag is the default sky, so a run that says nothing about the sun
+    // still has one to draw under.
+    assert_eq!(frame_run(&[]).unwrap().scene, default);
+    let stated = frame_run(&["--scene", r#"{"sunElevation":12.0}"#])
+        .unwrap()
+        .scene;
+    assert_eq!(stated.sun_elevation, 12.0);
+    assert_eq!(stated.sun_azimuth, default.sun_azimuth);
+    // A row the renderer will not have stops the run by the name of what was
+    // wrong with it, rather than drawing under a sky nobody asked for.
+    for (bad, named) in [
+        (r#"{"sunElevation":120.0}"#, "sun elevation"),
+        (r#"{"sunHeight":1.0}"#, "sunHeight"),
+        ("{", "not JSON"),
+    ] {
+        let error = frame_run(&["--scene", bad]).expect_err("the row was taken anyway");
+        assert!(error.contains(named), "{error} does not name {named}");
+    }
 }

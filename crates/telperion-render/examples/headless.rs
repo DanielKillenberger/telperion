@@ -44,6 +44,7 @@ fn run() -> Result<(), String> {
         .submit_at(&tree, level)
         .map_err(|error| error.to_string())?;
     renderer.set_view(arguments.view);
+    renderer.set_scene(arguments.scene);
 
     let (width, height) = arguments.size;
     // The leaf view frames the element, the others the whole tree; the
@@ -93,6 +94,7 @@ fn transition(arguments: &Arguments, from: Family, to: Family) -> Result<(), Str
     let adapter = gpu.adapter.name.clone();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.set_view(arguments.view);
+    renderer.set_scene(arguments.scene);
     // A walk needs the pose of the end it has not reached yet, so both ends are
     // built and framed before the first frame is drawn.
     let ends = match arguments.schedule {

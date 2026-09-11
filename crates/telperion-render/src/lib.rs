@@ -19,7 +19,7 @@ mod wood;
 pub use buffer::Region;
 pub use camera::{hero_pose, orbit_pose, walk_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
 pub use device::{Gpu, RenderError, Result};
-pub use scene::{DEPTH_FORMAT, GROUND_REACH};
+pub use scene::{SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
 pub use submit::{fits, Submitted};
 pub use timing::{
@@ -142,6 +142,18 @@ impl Renderer {
 
     pub fn view(&self) -> View {
         self.view
+    }
+
+    /// Puts the sun somewhere else and paints the sky and the ground with it.
+    /// A scene is not a property of a tree, so it outlives every submission
+    /// and no blend between two families touches it.
+    pub fn set_scene(&mut self, row: SceneRow) {
+        self.scene.set_row(row);
+    }
+
+    /// The sun, sky and ground the next frame is drawn under.
+    pub fn scene(&self) -> &SceneRow {
+        self.scene.row()
     }
 
     /// The bounds of what the current view draws, which is what a caller frames

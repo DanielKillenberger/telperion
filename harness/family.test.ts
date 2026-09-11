@@ -247,8 +247,10 @@ describe("toFamily", () => {
     expect(family.radii).toEqual(toRadiusParams(params));
     expect(family.surface).toEqual(toSurfaceParams(params));
     expect(family.canopy).toEqual(toCanopyParams(params));
-    // Every term the dials do not reach still travels, unchanged.
+    // Every term the dials do not reach still travels, unchanged - the leaf's
+    // outline, and the material row the panel edits as generic controls.
     expect(family.element).toEqual(params.family.element);
+    expect(family.material).toEqual(params.family.material);
   });
 
   it.each(CATALOGUE.map((preset) => [preset.id, preset] as const))(

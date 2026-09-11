@@ -7,6 +7,12 @@ use wgpu::util::DeviceExt;
 
 use crate::device::Gpu;
 
+/// The scene row - the sun, the sky and the ground as numbers - kept beside
+/// this file rather than in it so neither outgrows the project's line rule.
+mod row;
+
+pub use row::SceneRow;
+
 /// The subject stays a warm neutral clay, the room around it is cool, so the
 /// tree reads as a silhouette while keeping one flat value.
 const CLAY: u32 = 0x9d_96_8c;
@@ -145,6 +151,10 @@ fn figure_indices(base: u32) -> Vec<u32> {
 /// The room and the light every pipeline draws under. Owns the one uniform
 /// block and the static geometry; the tree is submitted separately.
 pub struct Scene {
+    /// Where the sun stands and what the sky and ground are. Stored the way
+    /// the view is stored - the frame reads it, nothing about a tree states
+    /// it - and set through the renderer's own setter.
+    row: SceneRow,
     layout: wgpu::BindGroupLayout,
     bind_group: wgpu::BindGroup,
     uniforms: wgpu::Buffer,
@@ -233,6 +243,7 @@ impl Scene {
         );
 
         Self {
+            row: SceneRow::default(),
             layout,
             bind_group,
             uniforms,
@@ -246,6 +257,17 @@ impl Scene {
 
     pub fn layout(&self) -> &wgpu::BindGroupLayout {
         &self.layout
+    }
+
+    /// The sun, sky and ground the next frame is drawn under.
+    pub fn row(&self) -> &SceneRow {
+        &self.row
+    }
+
+    /// Stands the sun somewhere else. The row is held until the next one
+    /// replaces it, exactly as the view is.
+    pub fn set_row(&mut self, row: SceneRow) {
+        self.row = row;
     }
 
     /// The background the frame is cleared to.
