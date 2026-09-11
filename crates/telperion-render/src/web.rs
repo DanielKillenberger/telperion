@@ -17,7 +17,10 @@ use web_sys::HtmlCanvasElement;
 
 use crate::{
     device::{Gpu, RenderError, Result},
-    hero_pose, Camera, FrameStats, Renderer, Submitted, View, DEPTH_FORMAT, GROUND_REACH,
+    hero_pose,
+    pass::attachment,
+    Camera, FrameStats, Renderer, SceneRow, Submitted, Target, Timed, View, DEPTH_FORMAT,
+    GROUND_REACH,
 };
 
 /// The timing protocol as a page runs it, kept beside this file rather than in
@@ -38,18 +41,15 @@ const EMPTY: Bounds = Bounds {
 struct Live {
     surface: wgpu::Surface<'static>,
     config: wgpu::SurfaceConfiguration,
+    /// The multisampled colour attachment the passes write, where the device
+    /// multisamples at all; the canvas's own texture is what it resolves into.
+    /// At one sample there is none and the canvas is drawn into directly.
+    colour: Option<wgpu::TextureView>,
     depth: wgpu::TextureView,
     renderer: Renderer,
     camera: Camera,
     stats: FrameStats,
 }
-
-/// The two timestamp pairs a timed frame writes: the vegetation render pass
-/// and the selection compute pass, in the order the record reads them.
-type Pairs<'a> = (
-    wgpu::RenderPassTimestampWrites<'a>,
-    wgpu::ComputePassTimestampWrites<'a>,
-);
 
 impl Live {
     async fn new(canvas: HtmlCanvasElement) -> Result<Self> {
@@ -58,12 +58,13 @@ impl Live {
         let surface = gpu.create_surface(wgpu::SurfaceTarget::Canvas(canvas))?;
         let config = gpu.surface_config(&surface, width, height)?;
         surface.configure(&gpu.device, &config);
-        let depth = depth_view(&gpu, width, height);
         let camera = hero_pose(EMPTY, aspect(&config), GROUND_REACH);
         let renderer = Renderer::new(gpu, config.format);
+        let (colour, depth) = attachments(&renderer, width, height);
         Ok(Self {
             surface,
             config,
+            colour,
             depth,
             renderer,
             camera,
@@ -82,28 +83,34 @@ impl Live {
         // drawn and presented inside `draw`, and never held across a call.
         self.surface
             .configure(&self.renderer.gpu().device, &self.config);
-        self.depth = depth_view(self.renderer.gpu(), width, height);
+        (self.colour, self.depth) = attachments(&self.renderer, width, height);
     }
 
     /// Draws one frame onto the canvas at the pose the camera is at. A timed
-    /// frame carries both pairs - one around the vegetation pass, one around
-    /// the selection pass - so no query the resolve reads is left unwritten.
-    fn draw(&mut self, timed: Option<Pairs<'_>>) -> Result<()> {
+    /// frame carries every pair the session resolves, so no query it reads is
+    /// left unwritten.
+    fn draw(&mut self, timed: Option<Timed<'_>>) -> Result<()> {
         let frame = self.texture()?;
-        let colour = frame.texture.create_view(&Default::default());
+        let canvas = frame.texture.create_view(&Default::default());
+        // The canvas takes one sample a pixel either way: it is what the
+        // multisampled attachment resolves into, or, where there is none, the
+        // attachment itself.
+        let target = match &self.colour {
+            Some(colour) => Target {
+                colour,
+                depth: &self.depth,
+                resolve: Some(&canvas),
+            },
+            None => Target {
+                colour: &canvas,
+                depth: &self.depth,
+                resolve: None,
+            },
+        };
         let size = (self.config.width, self.config.height);
         self.stats = match timed {
-            Some((vegetation, selection)) => self.renderer.draw_timed(
-                &self.camera,
-                size,
-                &colour,
-                &self.depth,
-                vegetation,
-                selection,
-            ),
-            None => self
-                .renderer
-                .draw(&self.camera, size, &colour, &self.depth, None),
+            Some(timed) => self.renderer.draw_timed(&self.camera, size, target, timed),
+            None => self.renderer.draw(&self.camera, size, target),
         };
         self.renderer.gpu().queue.present(frame);
         Ok(())
@@ -144,23 +151,33 @@ fn aspect(config: &wgpu::SurfaceConfiguration) -> f64 {
     f64::from(config.width) / f64::from(config.height)
 }
 
-fn depth_view(gpu: &Gpu, width: u32, height: u32) -> wgpu::TextureView {
-    gpu.device
-        .create_texture(&wgpu::TextureDescriptor {
-            label: Some("canvas depth"),
-            size: wgpu::Extent3d {
-                width,
-                height,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: DEPTH_FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        })
-        .create_view(&Default::default())
+/// What a canvas of this size is drawn through: the colour attachment where
+/// the device multisamples, and the depth beside it, both at the renderer's own
+/// sample count. The canvas texture is acquired per frame and so is not here.
+fn attachments(
+    renderer: &Renderer,
+    width: u32,
+    height: u32,
+) -> (Option<wgpu::TextureView>, wgpu::TextureView) {
+    let (gpu, samples) = (renderer.gpu(), renderer.samples());
+    let view = |texture: wgpu::Texture| texture.create_view(&Default::default());
+    let colour = (samples > 1).then(|| {
+        view(attachment(
+            gpu,
+            "canvas colour",
+            renderer.colour_format(),
+            (width, height),
+            samples,
+        ))
+    });
+    let depth = view(attachment(
+        gpu,
+        "canvas depth",
+        DEPTH_FORMAT,
+        (width, height),
+        samples,
+    ));
+    (colour, depth)
 }
 
 /// One canvas's renderer, as the page holds it. Every method that can fail
@@ -193,7 +210,11 @@ impl WebRenderer {
             .map_err(|error| JsError::new(&format!("the parameters are not JSON: {error}")))?;
         let family = params::parse(&value).map_err(|error| js_error(RenderError::from(error)))?;
         let mesh = mesh::build(&family, Detail::Full).map_err(|error| js_error(error.into()))?;
-        let submitted = self.borrow()?.renderer.submit(&mesh).map_err(js_error)?;
+        let mut live = self.borrow()?;
+        // The material rides with the tree: these parameters state both, and a
+        // tree drawn in the last tree's colours would be nobody's family.
+        live.renderer.set_material(family.material);
+        let submitted = live.renderer.submit(&mesh).map_err(js_error)?;
         Ok(submitted_json(&submitted))
     }
 
@@ -207,6 +228,25 @@ impl WebRenderer {
             ))
         })?;
         self.borrow()?.renderer.set_view(view);
+        Ok(())
+    }
+
+    /// The sun, sky and ground the next frame is drawn under, as the row's
+    /// own JSON. The panel reads the default out of here rather than keeping a
+    /// second copy of it.
+    pub fn scene(&self) -> std::result::Result<String, JsError> {
+        Ok(self.borrow()?.renderer.scene().to_json())
+    }
+
+    /// Stands the sun somewhere else and paints the sky and the ground with
+    /// it. The text is one whole row: what it names it states, and what it
+    /// leaves out takes the default rather than whatever was set before. A row
+    /// the renderer will not have leaves the sky exactly where it was and
+    /// arrives in JavaScript as the renderer's own words.
+    #[wasm_bindgen(js_name = setScene)]
+    pub fn set_scene(&self, scene: &str) -> std::result::Result<(), JsError> {
+        let row = SceneRow::parse(scene).map_err(js_error)?;
+        self.borrow()?.renderer.set_scene(row);
         Ok(())
     }
 

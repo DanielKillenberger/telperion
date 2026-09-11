@@ -3,7 +3,8 @@
 use std::path::Path;
 
 use crate::{
-    device::{Gpu, RenderError, Result},
+    device::{RenderError, Result},
+    pass::{attachment, Target},
     scene::DEPTH_FORMAT,
     Camera, FrameStats, Renderer,
 };
@@ -34,47 +35,52 @@ impl Still {
     }
 }
 
-/// An offscreen render target of this format and size. The timing session
-/// draws into the same pair of textures the still is taken from, so what is
-/// measured is the frame that was judged.
-pub fn attachment(
-    gpu: &Gpu,
-    label: &str,
-    format: wgpu::TextureFormat,
-    size: (u32, u32),
-) -> wgpu::Texture {
-    gpu.device.create_texture(&wgpu::TextureDescriptor {
-        label: Some(label),
-        size: wgpu::Extent3d {
-            width: size.0,
-            height: size.1,
-            depth_or_array_layers: 1,
-        },
-        mip_level_count: 1,
-        sample_count: 1,
-        dimension: wgpu::TextureDimension::D2,
-        format,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
-        view_formats: &[],
-    })
+/// An offscreen frame of this size: the colour and depth the passes write at
+/// the renderer's own sample count, and, where that is more than one sample,
+/// the single-sample picture they resolve into. The timing session draws into
+/// the same textures the still is taken from, so what is measured is the frame
+/// that was judged.
+pub struct Frame {
+    /// The texture a reader copies out of: the resolve where the frame is
+    /// multisampled, and the colour attachment itself where it is not.
+    picture: wgpu::Texture,
+    colour: wgpu::TextureView,
+    depth: wgpu::TextureView,
+    resolve: Option<wgpu::TextureView>,
+}
+
+impl Frame {
+    /// The textures for one frame of this renderer, at this size.
+    pub fn new(renderer: &Renderer, label: &str, size: (u32, u32)) -> Self {
+        let (gpu, samples) = (renderer.gpu(), renderer.samples());
+        let format = renderer.colour_format();
+        let colour = attachment(gpu, label, format, size, samples);
+        let depth = attachment(gpu, &format!("{label} depth"), DEPTH_FORMAT, size, samples);
+        let resolved =
+            (samples > 1).then(|| attachment(gpu, &format!("{label} resolve"), format, size, 1));
+        let view = |texture: &wgpu::Texture| texture.create_view(&Default::default());
+        Self {
+            colour: view(&colour),
+            depth: view(&depth),
+            resolve: resolved.as_ref().map(view),
+            picture: resolved.unwrap_or(colour),
+        }
+    }
+
+    /// Where a frame is drawn, as the renderer takes it.
+    pub fn target(&self) -> Target<'_> {
+        Target {
+            colour: &self.colour,
+            depth: &self.depth,
+            resolve: self.resolve.as_ref(),
+        }
+    }
 }
 
 /// Renders one frame at this size and brings it back to the host.
 pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32) -> Result<Still> {
-    let colour = attachment(
-        renderer.gpu(),
-        "still",
-        renderer.colour_format(),
-        (width, height),
-    );
-    let depth = attachment(renderer.gpu(), "still depth", DEPTH_FORMAT, (width, height));
-    let stats = renderer.draw(
-        camera,
-        (width, height),
-        &colour.create_view(&Default::default()),
-        &depth.create_view(&Default::default()),
-        None,
-    );
+    let frame = Frame::new(renderer, "still", (width, height));
+    let stats = renderer.draw(camera, (width, height), frame.target());
 
     // Rows land in the readback buffer padded to the copy alignment; the
     // padding is stripped on the way into the still.
@@ -94,7 +100,7 @@ pub fn render(renderer: &mut Renderer, camera: &Camera, width: u32, height: u32)
             label: Some("readback"),
         });
     encoder.copy_texture_to_buffer(
-        colour.as_image_copy(),
+        frame.picture.as_image_copy(),
         wgpu::TexelCopyBufferInfo {
             buffer: &readback,
             layout: wgpu::TexelCopyBufferLayout {

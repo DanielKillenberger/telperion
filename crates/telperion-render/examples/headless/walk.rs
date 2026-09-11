@@ -4,7 +4,7 @@
 //! Nothing here touches a device, so a plan can be read without one.
 use std::path::PathBuf;
 
-use telperion_render::View;
+use telperion_render::{SceneRow, View};
 
 /// The rate a frame sequence is written for, and the rate the encoder is asked
 /// for. A frame is a point on the walk, not a moment of a simulation.
@@ -12,7 +12,7 @@ pub const FPS: u32 = 24;
 
 pub const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] \
                          [--view whole|bare|leaf] [--level <n>] [--timing <json>] [--orbit] \
-                         [--to <preset>] [--frames <n>] \
+                         [--scene <json>] [--to <preset>] [--frames <n>] \
                          [--walk <seconds>] [--hold <seconds>] [--sweep <degrees>]";
 
 #[derive(Debug)]
@@ -26,6 +26,11 @@ pub struct Arguments {
     /// element once there is an element to judge it against.
     pub level: Option<u32>,
     pub timing: Option<PathBuf>,
+    /// The sun, sky and ground the stills are drawn under. Stated as the
+    /// row's own JSON, read against the default: a flag that names two fields
+    /// states two and takes the default for the rest. No flag is the default
+    /// sky, so a run that says nothing about the sun still has one.
+    pub scene: SceneRow,
     /// Whether the timing session turns the camera once around the hero pose
     /// instead of holding it still. The still beside it is always the hero
     /// pose: the orbit is what is measured, not what is judged.
@@ -135,6 +140,7 @@ fn number(flag: &str, raw: &str, wants: &str, holds: impl Fn(f64) -> bool) -> Re
 pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, String> {
     let (mut preset, mut seed, mut out, mut size) = (None, None, None, (1024u32, 1024u32));
     let (mut view, mut level, mut timing) = (View::default(), None, None);
+    let mut scene = SceneRow::default();
     let (mut orbit, mut to, mut frames) = (false, None, None);
     let (mut walk, mut hold, mut sweep) = (None, None, None);
     let mut args = arguments;
@@ -178,6 +184,10 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
             }
             "--out" => out = Some(PathBuf::from(value()?)),
             "--timing" => timing = Some(PathBuf::from(value()?)),
+            "--scene" => {
+                let raw = value()?;
+                scene = SceneRow::parse(&raw).map_err(|error| error.to_string())?;
+            }
             "--orbit" => orbit = true,
             "--size" => {
                 let raw = value()?;
@@ -240,6 +250,7 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
         view,
         level,
         timing,
+        scene,
         orbit,
         to,
         schedule,

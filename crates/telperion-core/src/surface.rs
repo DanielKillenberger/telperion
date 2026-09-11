@@ -65,6 +65,10 @@ pub struct SurfaceMesh {
     pub positions: Vec<f32>,
     pub indices: Vec<u32>,
     pub normals: Vec<f32>,
+    /// Two floats per vertex: metres along the branch from the root, and the
+    /// angle around it in radians. Bark is drawn along them; no geometry here
+    /// reads them back.
+    pub coords: Vec<f32>,
     pub bounds: Option<Bounds>,
     pub runs: usize,
 }
@@ -200,6 +204,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     let mut mesh = SurfaceMesh {
         positions: reserved(positions_len)?,
         normals: reserved(positions_len)?,
+        coords: reserved(vertices * 2)?,
         indices: reserved(indices_len)?,
         bounds: None,
         runs: paths.runs.len(),
@@ -244,6 +249,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
                     &mut mesh.positions,
                     s.p + (normal * (angle.cos()) + binormal * (angle.sin())) * (width),
                 )?;
+                mesh.coords.extend([s.d as f32, angle as f32]);
             }
         }
         for i in 0..samples.len() - 1 {
@@ -263,8 +269,12 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
         }
         let bottom = (mesh.positions.len() / 3) as u32;
         vertex(&mut mesh.positions, samples[0].p)?;
+        // A cap sits on the axis, where the angle around it is undefined.
+        mesh.coords.extend([samples[0].d as f32, 0.0]);
         let top = bottom + 1;
-        vertex(&mut mesh.positions, samples.last().unwrap().p)?;
+        let last = *samples.last().unwrap();
+        vertex(&mut mesh.positions, last.p)?;
+        mesh.coords.extend([last.d as f32, 0.0]);
         let top_ring = base + (samples.len() as u32 - 1) * seg;
         for k in 0..seg {
             let next = (k + 1) % seg;

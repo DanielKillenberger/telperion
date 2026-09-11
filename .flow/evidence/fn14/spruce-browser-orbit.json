@@ -1,0 +1,72 @@
+{
+  "species": "Norway spruce",
+  "preset": "norway-spruce",
+  "seed": 7,
+  "view": "whole",
+  "session": "orbit",
+  "submitted": {
+    "bounds": {
+      "max": [
+        4.337495164451377,
+        15,
+        3.8062214356137005
+      ],
+      "min": [
+        -3.89500647744516,
+        -0.05999999865889549,
+        -4.197530933827597
+      ]
+    },
+    "foliageInstances": 7012326,
+    "woodTriangles": 5580040,
+    "woodVertices": 2888144
+  },
+  "report": {
+    "adapter": "",
+    "driver": "",
+    "backend": "webgpu",
+    "conditioning": 8,
+    "warmup": 8,
+    "measured": 120,
+    "samples": 120,
+    "verdict": "valid",
+    "p50_ms": 14.2989,
+    "p95_ms": 14.4709,
+    "selection_p50_ms": 0.6697,
+    "selection_p95_ms": 0.6953,
+    "shadow_p50_ms": 13.5068,
+    "shadow_p95_ms": 13.5598,
+    "total_p50_ms": 28.492,
+    "total_p95_ms": 28.7357,
+    "multisample": 4,
+    "wall_frames": 349,
+    "wall_p50_ms": 30,
+    "wall_p95_ms": 30.2,
+    "wall_max_ms": 30.4
+  },
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "webgpu": {
+    "vendor": "nvidia",
+    "architecture": "ampere",
+    "device": "",
+    "description": ""
+  },
+  "canvas": {
+    "width": 1600,
+    "height": 1000
+  },
+  "browser": "153.0.8010.12",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-renderer-backgrounding"
+  ],
+  "quantization_us": 100,
+  "note": "Chrome quantizes WebGPU timestamps to 100 microseconds unless developer features or --enable-unsafe-webgpu are on. The percentiles here are finer than that step, so this session was not quantized. The animation clock the wall numbers are taken from is coarsened to that same 100 microsecond step, so they sit on the grid by construction."
+}

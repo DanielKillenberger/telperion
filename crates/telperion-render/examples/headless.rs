@@ -15,8 +15,8 @@ use telperion_core::{
     presets::{Family, Preset},
 };
 use telperion_render::{
-    attachment, hero_pose, measure, measure_orbit, render, walk_pose, write_png, Camera, Gpu,
-    Level, Renderer, DEPTH_FORMAT, GROUND_REACH, STILL_FORMAT,
+    hero_pose, measure, measure_orbit, render, walk_pose, write_png, Camera, Frame, Gpu, Level,
+    Renderer, GROUND_REACH, STILL_FORMAT,
 };
 
 use walk::{Arguments, Schedule, FPS};
@@ -43,7 +43,9 @@ fn run() -> Result<(), String> {
     let submitted = renderer
         .submit_at(&tree, level)
         .map_err(|error| error.to_string())?;
+    renderer.set_material(family.material);
     renderer.set_view(arguments.view);
+    renderer.set_scene(arguments.scene);
 
     let (width, height) = arguments.size;
     // The leaf view frames the element, the others the whole tree; the
@@ -64,11 +66,12 @@ fn run() -> Result<(), String> {
     }
 
     println!(
-        "{} {}x{} on {adapter}: {} wood vertices, {} wood triangles, \
+        "{} {}x{} on {adapter} at {} samples a pixel: {} wood vertices, {} wood triangles, \
          {} foliage instances; {} triangles and {} instances drawn in {} calls",
         arguments.out.display(),
         width,
         height,
+        renderer.samples(),
         submitted.wood_vertices,
         submitted.wood_triangles,
         submitted.foliage_instances,
@@ -93,6 +96,7 @@ fn transition(arguments: &Arguments, from: Family, to: Family) -> Result<(), Str
     let adapter = gpu.adapter.name.clone();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.set_view(arguments.view);
+    renderer.set_scene(arguments.scene);
     // A walk needs the pose of the end it has not reached yet, so both ends are
     // built and framed before the first frame is drawn.
     let ends = match arguments.schedule {
@@ -114,6 +118,7 @@ fn transition(arguments: &Arguments, from: Family, to: Family) -> Result<(), Str
         renderer
             .submit_at(&tree, level)
             .map_err(|error| format!("frame {frame}: {error}"))?;
+        renderer.set_material(family.material);
         if ends.is_none() && fixed.is_none() {
             let bounds = renderer.bounds().ok_or("nothing was submitted to frame")?;
             fixed = Some(hero_pose(bounds, aspect, GROUND_REACH));
@@ -259,14 +264,9 @@ fn time(
     size: (u32, u32),
     orbit: bool,
 ) -> Result<telperion_render::Report, String> {
-    let colour = attachment(renderer.gpu(), "timing", STILL_FORMAT, size);
-    let depth = attachment(renderer.gpu(), "timing depth", DEPTH_FORMAT, size);
-    let (colour, depth) = (
-        colour.create_view(&Default::default()),
-        depth.create_view(&Default::default()),
-    );
+    let frame = Frame::new(renderer, "timing", size);
     let session = if orbit { measure_orbit } else { measure };
-    session(renderer, camera, size, &colour, &depth).map_err(|error| error.to_string())
+    session(renderer, camera, size, frame.target()).map_err(|error| error.to_string())
 }
 
 /// The one line a run says about its session: what the passes cost, or why
@@ -279,7 +279,10 @@ fn detail(report: &telperion_render::Report) -> String {
             .unwrap_or("no reason given")
             .to_owned();
     };
-    let mut line = format!("vegetation p50 {median:.3} ms, p95 {tail:.3} ms");
+    let mut line = format!(
+        "{} samples a pixel; vegetation p50 {median:.3} ms, p95 {tail:.3} ms",
+        report.multisample()
+    );
     if let (Some(select), Some(total)) = (report.selection_p50_ms(), report.total_p50_ms()) {
         line += &format!("; selection p50 {select:.3} ms, together p50 {total:.3} ms");
     }

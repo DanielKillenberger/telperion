@@ -15,19 +15,18 @@
  * anywhere in the loop.
  * ------------------------------------------------------------------ */
 
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { PRESETS, presetById, type TreePreset } from "../src/browser/core";
-import type { FrameStats, Submitted, TimingReport, View } from "../src/browser/render";
+import type { FrameStats, SceneRow, Submitted, TimingReport, View } from "../src/browser/render";
 
-import { CANOPY_FROM_SLIDERS, familyJson, presetToParams } from "./family";
+import { Dials, Traits } from "./dials";
+import { familyJson, presetToParams } from "./family";
 import {
   DEFAULT_PARAMS,
-  SLIDERS,
   type GrowerParams,
   normalizeSeed,
   randomSeed,
-  readSlider,
 } from "./params";
 import { createStage, type Stage } from "./rust-stage";
 import "./grower-dev.css";
@@ -36,50 +35,8 @@ import "./grower-dev.css";
  *  a dearer one waits `BUILD_SETTLE_MS` after the last notch. About
  *  five frames. Branch generations down to fixed twig anatomy can
  *  take seconds, so the measured last build decides the schedule. */
-const SUPERNATURAL = new Set(["torsion", "writheAmplitude", "writheWavelength", "spiralRate"]);
-/** Canopy terms the generic controls leave alone: the ones a slider already
- *  carries, whose second control the next build would overwrite, and the
- *  instance budget, which is a resource limit rather than a trait.
- *  `family.test.ts` holds the slider half to what `toCanopyParams` overrides. */
-const CANOPY_SKIPPED: ReadonlySet<string> = new Set([...CANOPY_FROM_SLIDERS, "maxInstances"]);
 const BUILD_LIVE_MS = 80;
 const BUILD_SETTLE_MS = 250;
-
-/** A dial's value, at a precision that can tell its own steps apart -
- *  which is the STEP's business and not the value's. Keying it off the
- *  value put a single dial at two precisions on either side of 0.1. */
-function format(value: number, step: number): string {
-  const decimals = Math.max(0, Math.ceil(-Math.log10(step) - 1e-9));
-  return value.toFixed(decimals);
-}
-
-/** Every numeric trait of one family object, as a control. The panel keeps
- *  no table of its own: a trait the core adds to a family object appears
- *  under the owner's hand without a line here, and none of them is a tag
- *  with a label instead of a control. `skip` names the terms a slider
- *  already owns, whose second control `toFamily` would overwrite on the
- *  next build. */
-function Traits({ prefix, values, skip, onChange }: {
-  prefix?: string;
-  values: Record<string, unknown>;
-  skip?: ReadonlySet<string>;
-  onChange: (key: string, value: number) => void;
-}) {
-  return <>
-    {Object.entries(values)
-      .filter(([key, value]) => typeof value === "number" && skip?.has(key) !== true)
-      .map(([key, value]) => (
-        <label className="gd-row" key={key}>
-          {prefix === undefined ? "" : `${prefix} `}
-          {key.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`)}
-          <input type="number" value={value as number} step="any" onChange={event => {
-            const number = event.target.valueAsNumber;
-            if (Number.isFinite(number)) onChange(key, number);
-          }} />
-        </label>
-      ))}
-  </>;
-}
 
 /** The timing session as the panel says it, and the old sweep's honesty
  *  rule kept word for word: WITHOUT A VALID VERDICT THERE IS NO
@@ -146,6 +103,11 @@ export function GrowerDev() {
      a tree rather than a parameter of it, so it lives beside the dials
      rather than among the ones a preset would have to state. */
   const [view, setView] = useState<View>("whole");
+  /* The sun, the sky and the ground. Not a property of a tree - two
+     trees under one sun share it - so it is the renderer's row and not
+     a dial, read out of the renderer once there is one rather than
+     copied into a second default here. */
+  const [scene, setScene] = useState<SceneRow | null>(null);
   // What the last build cost and what went up. The surface is allowed
   // to cost more than the tube viewer did; it is not allowed to cost it
   // silently, so the panel says the numbers every time a dial moves.
@@ -205,6 +167,22 @@ export function GrowerDev() {
     if (!ready) return;
     stageRef.current?.setView(view);
   }, [view, ready]);
+
+  useEffect(() => {
+    if (!ready) return;
+    setScene(stageRef.current?.scene() ?? null);
+  }, [ready]);
+
+  /* A row the renderer will not have leaves the sky exactly where it
+     was, and says so in its own words beside the boxes. */
+  useEffect(() => {
+    if (!ready || scene === null) return;
+    try {
+      stageRef.current?.setScene(scene);
+    } catch (error) {
+      setBuildError(String(error));
+    }
+  }, [scene, ready]);
 
   /* The renderer's own numbers, four times a second. They belong to
      frames rather than to trees the panel asked for - the drawn
@@ -328,54 +306,12 @@ export function GrowerDev() {
           </select>
         </div>
         {view === "leaf" && <p className="gd-note">One placed foliage unit with its connector, at generated scale. Empty foliage leaves an empty canvas.</p>}
-        {[false, true].map(supernatural => (
-          <fieldset key={String(supernatural)}>
-            <legend>{supernatural ? "Supernatural" : "Botanical"}</legend>
-            {supernatural ? <label className="gd-check">
-              <input type="checkbox" checked={params.supernaturalEnabled}
-                onChange={event => setParams(prev => ({ ...prev, supernaturalEnabled: event.target.checked }))} />
-              enable supernatural effects
-            </label> : <>
-              <Traits values={params.family.skeleton.habit} onChange={(key, number) => setParams(prev => ({ ...prev, family: { ...prev.family,
-                skeleton: { ...prev.family.skeleton, habit: { ...prev.family.skeleton.habit, [key]: number } } } }))} />
-              <Traits prefix="foliage" values={params.family.element} onChange={(key, number) => setParams(prev => ({ ...prev, family: { ...prev.family,
-                element: { ...prev.family.element, [key]: number } } }))} />
-              <Traits prefix="leaf" values={params.family.canopy} skip={CANOPY_SKIPPED} onChange={(key, number) => setParams(prev => ({ ...prev, family: { ...prev.family,
-                canopy: { ...prev.family.canopy, [key]: number } } }))} />
-            </>}
-        {SLIDERS.filter(spec => SUPERNATURAL.has(spec.key) === supernatural).map((spec) => (
-          <Fragment key={spec.key}>
-            {spec.group === undefined ? null : (
-              <h3 className="gd-group">{spec.group}</h3>
-            )}
-            <div className="gd-slider">
-              <label className="gd-label" htmlFor={`gd-${spec.key}`}>
-                {spec.label}
-              </label>
-              <span className="gd-value">
-                {format(params[spec.key], spec.step)}
-                {spec.unit}
-              </span>
-              <input
-                id={`gd-${spec.key}`}
-                type="range"
-                min={spec.min}
-                max={spec.max}
-                step={spec.step}
-                value={params[spec.key]}
-                onChange={(event) =>
-                  setParams((prev) => ({
-                    ...prev,
-                    [spec.key]: readSlider(spec, event.target.value),
-                  }))
-                }
-              />
-            </div>
-          </Fragment>
-        ))}
-
-          </fieldset>
-        ))}
+        {scene !== null && <fieldset>
+          <legend>Scene</legend>
+          <Traits prefix="scene" values={scene} onChange={(key, number) =>
+            setScene(prev => (prev === null ? prev : { ...prev, [key]: number }))} />
+        </fieldset>}
+        <Dials params={params} setParams={setParams} />
 
         <div className="gd-row">
           <button className="gd-button" type="button" onClick={() => stageRef.current?.frame()}>

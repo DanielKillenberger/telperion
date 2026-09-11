@@ -133,6 +133,15 @@ fn frozen_parameters_resolve_without_default_substitution() {
             .expect("frozen parameters carry an attachment");
         let f = params::parse(&given).unwrap();
         let mut emitted = params::metadata(&f);
+        // fn-14 added the material row - bark and leaf colour - and the frozen
+        // file is a geometry protocol that predates appearance entirely: it
+        // never stated a colour, and no colour it does not state is a geometry
+        // parameter silently defaulted in.
+        emitted
+            .as_object_mut()
+            .unwrap()
+            .remove("material")
+            .expect("the family publishes its material row");
         for trait_name in ["lobeCount", "lobeDepth", "sectionRoundness"] {
             emitted["element"]
                 .as_object_mut()

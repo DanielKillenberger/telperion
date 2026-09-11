@@ -1,18 +1,24 @@
 //! What the vegetation costs the GPU, and whether that number may be believed.
 //!
-//! Two timestamp pairs are written per timed frame: one around the vegetation
+//! Three timestamp pairs are written per timed frame: one around the vegetation
 //! render pass, one around the selection compute pass that decides what it
-//! draws. Both are pass-boundary writes under the base timestamp feature -
-//! never the native-only inside-encoder ones - so the same session runs in a
-//! browser. The readback is callback-driven for the same reason: a browser's
-//! queue advances on its own and `poll` does nothing there.
+//! draws, and one around the depth pass the sun writes its map in. All three
+//! are pass-boundary writes under the base timestamp feature - never the
+//! native-only inside-encoder ones - so the same session runs in a browser. The
+//! readback is callback-driven for the same reason: a browser's queue advances
+//! on its own and `poll` does nothing there.
 mod report;
 
 pub use report::{Hardware, LevelCount, Report};
 
-use crate::device::{Gpu, RenderError, Result};
+// The targets a session draws into are the native half's: a page draws into
+// its own canvas and the browser half never sees them.
 #[cfg(not(target_arch = "wasm32"))]
-use crate::{camera, Camera, Renderer, View};
+use crate::{camera, Camera, Renderer, Target};
+use crate::{
+    device::{Gpu, RenderError, Result},
+    Timed,
+};
 
 /// Frames drawn before the timer is started at all: long enough for the driver
 /// to have finished allocating the targets and for the clocks to have settled.
@@ -28,9 +34,12 @@ pub const CONTENTION_RATIO: f64 = 2.0;
 
 /// Bytes of one timestamp pair.
 const PAIR: u64 = 2 * wgpu::QUERY_SIZE as u64;
-/// Both pairs: the vegetation pass first, so a reader of the first sixteen
-/// bytes reads what fn-22's records already meant by them.
-const PAIRS: u64 = 2 * PAIR;
+/// How many pairs a timed frame writes: vegetation, selection, shadow. The
+/// vegetation pass stays first and the shadow pass is added after the two that
+/// were already there, so a reader of the first sixteen bytes reads what
+/// fn-22's records already meant by them.
+const PASSES: u32 = 3;
+const PAIRS: u64 = PASSES as u64 * PAIR;
 
 /// Whether a session's numbers may be read as a measurement. Every variant but
 /// `Valid` says why, and a report carrying one has no percentile in it at all.
@@ -126,9 +135,9 @@ impl Session {
             return Err("the adapter does not offer timestamp queries".into());
         }
         let queries = gpu.device.create_query_set(&wgpu::QuerySetDescriptor {
-            label: Some("vegetation and selection passes"),
+            label: Some("vegetation, selection and shadow passes"),
             ty: wgpu::QueryType::Timestamp,
-            count: 4,
+            count: 2 * PASSES,
         });
         // Resolving writes at a 256-byte aligned offset, so the destination is
         // taken at that granularity rather than at the pairs' own size.
@@ -151,23 +160,27 @@ impl Session {
         })
     }
 
-    /// The pair to write around the vegetation pass.
-    pub fn writes(&self) -> wgpu::RenderPassTimestampWrites<'_> {
-        wgpu::RenderPassTimestampWrites {
-            query_set: &self.queries,
-            beginning_of_pass_write_index: Some(0),
-            end_of_pass_write_index: Some(1),
-        }
-    }
-
-    /// The pair to write around the selection pass. A timed frame opens that
-    /// pass even when it has nothing to select, so this pair is never the one
-    /// a resolve waits on and no query is left unwritten.
-    pub fn selection_writes(&self) -> wgpu::ComputePassTimestampWrites<'_> {
-        wgpu::ComputePassTimestampWrites {
-            query_set: &self.queries,
-            beginning_of_pass_write_index: Some(2),
-            end_of_pass_write_index: Some(3),
+    /// The three pairs a timed frame writes, in the order the record reads
+    /// them. A timed frame opens all three passes even when a view leaves one
+    /// of them with nothing to do, so no query a resolve waits on is left
+    /// unwritten.
+    pub fn timed(&self) -> Timed<'_> {
+        Timed {
+            vegetation: wgpu::RenderPassTimestampWrites {
+                query_set: &self.queries,
+                beginning_of_pass_write_index: Some(0),
+                end_of_pass_write_index: Some(1),
+            },
+            selection: wgpu::ComputePassTimestampWrites {
+                query_set: &self.queries,
+                beginning_of_pass_write_index: Some(2),
+                end_of_pass_write_index: Some(3),
+            },
+            shadow: wgpu::RenderPassTimestampWrites {
+                query_set: &self.queries,
+                beginning_of_pass_write_index: Some(4),
+                end_of_pass_write_index: Some(5),
+            },
         }
     }
 
@@ -179,7 +192,7 @@ impl Session {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("timestamps"),
             });
-        encoder.resolve_query_set(&self.queries, 0..4, &self.resolved, 0);
+        encoder.resolve_query_set(&self.queries, 0..2 * PASSES, &self.resolved, 0);
         encoder.copy_buffer_to_buffer(&self.resolved, 0, &self.readback, 0, PAIRS);
         gpu.queue.submit([encoder.finish()]);
     }
@@ -190,6 +203,16 @@ impl Session {
     fn duration_ms(&self, ticks: [u64; 2]) -> f64 {
         (ticks[1] as f64 - ticks[0] as f64) * f64::from(self.period) / 1e6
     }
+
+    /// One frame's resolved pairs as the three durations they stand for, in
+    /// the order the query set writes them.
+    fn durations(&self, ticks: [u64; 2 * PASSES as usize]) -> (f64, f64, f64) {
+        (
+            self.duration_ms([ticks[0], ticks[1]]),
+            self.duration_ms([ticks[2], ticks[3]]),
+            self.duration_ms([ticks[4], ticks[5]]),
+        )
+    }
 }
 
 /// The browser half of the readback. The same mapping callback the blocking
@@ -197,10 +220,10 @@ impl Session {
 /// `poll` does nothing there.
 #[cfg(target_arch = "wasm32")]
 impl Session {
-    /// What the last resolved frame's two passes cost, vegetation first and
-    /// selection second, in milliseconds - the same pair the blocking half
-    /// returns, awaited instead of polled.
-    pub async fn sample_ms(&self) -> Result<(f64, f64)> {
+    /// What the last resolved frame's three passes cost, vegetation first,
+    /// then selection, then the shadow, in milliseconds - the same three the
+    /// blocking half returns, awaited instead of polled.
+    pub async fn sample_ms(&self) -> Result<(f64, f64, f64)> {
         let lost = |reason: String| RenderError::DeviceLost { reason };
         let (sender, receiver) = futures_channel::oneshot::channel();
         self.readback
@@ -218,13 +241,11 @@ impl Session {
             .slice(..)
             .get_mapped_range()
             .map_err(|error| lost(error.to_string()))?;
-        let ticks = bytemuck::pod_read_unaligned::<[u64; 4]>(&view[..PAIRS as usize]);
+        let ticks =
+            bytemuck::pod_read_unaligned::<[u64; 2 * PASSES as usize]>(&view[..PAIRS as usize]);
         drop(view);
         self.readback.unmap();
-        Ok((
-            self.duration_ms([ticks[0], ticks[1]]),
-            self.duration_ms([ticks[2], ticks[3]]),
-        ))
+        Ok(self.durations(ticks))
     }
 }
 
@@ -233,33 +254,22 @@ impl Session {
 /// queueing above.
 #[cfg(not(target_arch = "wasm32"))]
 impl Session {
-    /// Draws one timed frame and returns what its vegetation pass and its
-    /// selection pass cost, in that order.
+    /// Draws one timed frame and returns what its vegetation pass, its
+    /// selection pass and its shadow pass cost, in that order.
     fn sample(
         &self,
         renderer: &mut Renderer,
         camera: &Camera,
         viewport: (u32, u32),
-        colour: &wgpu::TextureView,
-        depth: &wgpu::TextureView,
-    ) -> Result<(f64, f64)> {
-        renderer.draw_timed(
-            camera,
-            viewport,
-            colour,
-            depth,
-            self.writes(),
-            self.selection_writes(),
-        );
+        target: Target<'_>,
+    ) -> Result<(f64, f64, f64)> {
+        renderer.draw_timed(camera, viewport, target, self.timed());
         self.resolve(renderer.gpu());
         let ticks = self.read(renderer.gpu())?;
-        Ok((
-            self.duration_ms([ticks[0], ticks[1]]),
-            self.duration_ms([ticks[2], ticks[3]]),
-        ))
+        Ok(self.durations(ticks))
     }
 
-    fn read(&self, gpu: &Gpu) -> Result<[u64; 4]> {
+    fn read(&self, gpu: &Gpu) -> Result<[u64; 2 * PASSES as usize]> {
         let lost = |reason: String| RenderError::DeviceLost { reason };
         let (sender, receiver) = std::sync::mpsc::channel();
         self.readback
@@ -280,7 +290,8 @@ impl Session {
             .slice(..)
             .get_mapped_range()
             .map_err(|error| lost(error.to_string()))?;
-        let ticks = bytemuck::pod_read_unaligned::<[u64; 4]>(&view[..PAIRS as usize]);
+        let ticks =
+            bytemuck::pod_read_unaligned::<[u64; 2 * PASSES as usize]>(&view[..PAIRS as usize]);
         drop(view);
         self.readback.unmap();
         Ok(ticks)
@@ -296,10 +307,9 @@ pub fn run(
     renderer: &mut Renderer,
     camera: &Camera,
     viewport: (u32, u32),
-    colour: &wgpu::TextureView,
-    depth: &wgpu::TextureView,
+    target: Target<'_>,
 ) -> Result<Report> {
-    collect(renderer, viewport, colour, depth, |_| *camera, false)
+    collect(renderer, viewport, target, |_| *camera, false)
 }
 
 /// The same protocol while the camera makes one full turn around the hero
@@ -311,14 +321,12 @@ pub fn orbit(
     renderer: &mut Renderer,
     hero: &Camera,
     viewport: (u32, u32),
-    colour: &wgpu::TextureView,
-    depth: &wgpu::TextureView,
+    target: Target<'_>,
 ) -> Result<Report> {
     collect(
         renderer,
         viewport,
-        colour,
-        depth,
+        target,
         |turn| camera::orbit_pose(hero, turn),
         true,
     )
@@ -332,30 +340,33 @@ pub fn orbit(
 fn collect(
     renderer: &mut Renderer,
     viewport: (u32, u32),
-    colour: &wgpu::TextureView,
-    depth: &wgpu::TextureView,
+    target: Target<'_>,
     pose: impl Fn(f64) -> Camera,
     walls: bool,
 ) -> Result<Report> {
     let hardware = Hardware::from(&renderer.gpu().adapter);
+    // What the frame was drawn at belongs to every record, measured or not: a
+    // number is only comparable with another taken at the same count.
+    let samples = renderer.samples();
     let session = match Session::new(renderer.gpu()) {
         Ok(session) => session,
-        Err(reason) => return Ok(Report::unavailable(hardware, reason)),
+        Err(reason) => return Ok(Report::unavailable(hardware, reason).with_multisample(samples)),
     };
     let start = pose(0.0);
     for _ in 0..CONDITIONING {
-        renderer.draw(&start, viewport, colour, depth, None);
+        renderer.draw(&start, viewport, target);
     }
     for _ in 0..WARMUP {
-        session.sample(renderer, &start, viewport, colour, depth)?;
+        session.sample(renderer, &start, viewport, target)?;
     }
 
-    // Only the whole view runs selection, so only it has counters worth
-    // reading; a bare or leaf session records the passes and no levels.
-    let crown = renderer.view() == View::Whole;
+    // Only a view that draws the crown runs selection, so only it has counters
+    // worth reading; a bare or leaf session records the passes and no levels.
+    let crown = renderer.view().selects();
     let deviations = renderer.level_deviations().to_vec();
     let mut vegetation = Vec::with_capacity(MEASURED);
     let mut selection = Vec::with_capacity(MEASURED);
+    let mut shadow = Vec::with_capacity(MEASURED);
     let mut counted: Vec<Vec<u32>> = Vec::with_capacity(MEASURED);
     let mut wall = Vec::with_capacity(MEASURED);
     let mut previous: Option<std::time::Instant> = None;
@@ -365,16 +376,18 @@ fn collect(
             wall.push((now - last).as_secs_f64() * 1e3);
         }
         let camera = pose(frame as f64 / MEASURED as f64);
-        let (pass, select) = session.sample(renderer, &camera, viewport, colour, depth)?;
+        let (pass, select, sun) = session.sample(renderer, &camera, viewport, target)?;
         vegetation.push(pass);
         selection.push(select);
+        shadow.push(sun);
         if let Some(counts) = crown.then(|| renderer.level_counts()).flatten() {
             counted.push(counts);
         }
     }
 
     let report = Report::measured(hardware, &vegetation)
-        .with_selection(&vegetation, &selection)
+        .with_multisample(samples)
+        .with_passes(&vegetation, &selection, &shadow)
         .with_levels(&deviations, &counted);
     Ok(if walls {
         report.with_wall(&wall)

@@ -2,6 +2,7 @@ import {
   createRenderer,
   type FrameStats,
   type Renderer,
+  type SceneRow,
   type Submitted,
   type TimingReport,
   type View,
@@ -34,6 +35,12 @@ export interface Stage {
    *  the canvas stays where it is. */
   setTree(family: string): Submitted;
   setView(view: View): void;
+  /** The sun, sky and ground the renderer is drawing under, its own default
+   *  until something sets another. */
+  scene(): SceneRow;
+  /** Stands the sun somewhere else. Throws the renderer's own message for a
+   *  row it will not have; the sky on the canvas stays where it was. */
+  setScene(row: SceneRow): void;
   /** Frames the tree that is on the canvas now. */
   frame(): void;
   /** Frames it only while this stage is still waiting to be framed - on
@@ -131,6 +138,8 @@ export async function createStage(
 
   return {
     setTree: (family) => renderer.setTree(family),
+    scene: () => renderer.scene(),
+    setScene: (row) => { renderer.setScene(row); },
     setView: (view) => {
       renderer.setView(view);
       // A view is a different subject - one leaf at generated scale is

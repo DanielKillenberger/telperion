@@ -51,6 +51,17 @@ impl Region {
     }
 }
 
+/// A vertex attribute array as long as the vertices it belongs to. A mesh
+/// built by hand carries none, and a vertex buffer shorter than the draw would
+/// read past its own end on the device, so what is missing goes up as zeros.
+pub fn attributes(values: &[f32], floats: usize) -> std::borrow::Cow<'_, [f32]> {
+    if values.len() == floats {
+        std::borrow::Cow::Borrowed(values)
+    } else {
+        std::borrow::Cow::Owned(vec![0.0; floats])
+    }
+}
+
 /// One buffer and the region that says how much of it is live.
 pub struct Held {
     buffer: wgpu::Buffer,

@@ -32,6 +32,12 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
         let m = mesh::build(&family, Detail::Full).unwrap_or_else(|e| panic!("{id}: {e}"));
         assert_eq!(m.wood_vertices() * 3, m.wood.positions.len(), "{id}");
         assert_eq!(m.wood.normals.len(), m.wood.positions.len(), "{id}");
+        assert_eq!(m.wood.coords.len(), m.wood_vertices() * 2, "{id}");
+        assert_eq!(
+            m.foliage.element.coords.len(),
+            m.foliage.element.positions.len() * 2,
+            "{id}"
+        );
         assert_eq!(m.wood_triangles() * 3, m.wood.indices.len(), "{id}");
         assert_eq!(
             m.foliage_instances(),

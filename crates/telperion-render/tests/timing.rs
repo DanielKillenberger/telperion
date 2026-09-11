@@ -8,8 +8,8 @@ use telperion_core::{
     presets::Preset,
 };
 use telperion_render::{
-    attachment, hero_pose, judge, measure, measure_orbit, Hardware, Renderer, Report, Verdict,
-    CONTENTION_RATIO, DEPTH_FORMAT, GROUND_REACH, STILL_FORMAT,
+    hero_pose, judge, measure, measure_orbit, Frame, Hardware, Renderer, Report, Verdict,
+    CONTENTION_RATIO, GROUND_REACH, MULTISAMPLE, STILL_FORMAT,
 };
 
 fn hardware() -> Hardware {
@@ -72,6 +72,7 @@ fn a_valid_record_carries_its_numbers_and_an_invalid_one_carries_none() {
         "\"verdict\": \"valid\"",
         "\"p50_ms\"",
         "\"p95_ms\"",
+        "\"multisample\": 1",
     ] {
         assert!(
             json.contains(field),
@@ -90,9 +91,10 @@ fn a_valid_record_carries_its_numbers_and_an_invalid_one_carries_none() {
     let mut wild = steady();
     wild[0] = f64::INFINITY;
     for invalid in [
-        Report::unavailable(hardware(), "the adapter does not offer timestamp queries"),
-        Report::measured(hardware(), &wild),
-        Report::measured(hardware(), &[]),
+        Report::unavailable(hardware(), "the adapter does not offer timestamp queries")
+            .with_multisample(MULTISAMPLE),
+        Report::measured(hardware(), &wild).with_multisample(MULTISAMPLE),
+        Report::measured(hardware(), &[]).with_multisample(MULTISAMPLE),
     ] {
         assert_eq!(invalid.p50_ms(), None, "{:?}", invalid.verdict());
         assert_eq!(invalid.p95_ms(), None, "{:?}", invalid.verdict());
@@ -105,6 +107,14 @@ fn a_valid_record_carries_its_numbers_and_an_invalid_one_carries_none() {
         assert!(
             invalid.verdict().reason().is_some() && json.contains("\"reason\""),
             "a {} record does not say why:\n{json}",
+            invalid.verdict().name()
+        );
+        // The count is what the frames were drawn at rather than something
+        // they earned, so a record with no number in it still states it.
+        assert_eq!(invalid.multisample(), MULTISAMPLE);
+        assert!(
+            json.contains(&format!("\"multisample\": {MULTISAMPLE}")),
+            "a {} record does not say what it was drawn at:\n{json}",
             invalid.verdict().name()
         );
     }
@@ -125,9 +135,9 @@ fn frames() -> Vec<Vec<u32>> {
 }
 
 #[test]
-fn a_valid_record_carries_the_selection_pass_the_levels_and_the_orbit() {
+fn a_valid_record_carries_every_pass_the_levels_and_the_orbit() {
     let json = Report::measured(hardware(), &steady())
-        .with_selection(&steady(), &quick())
+        .with_passes(&steady(), &quick(), &quick())
         .with_levels(&[0.004, 0.001], &frames())
         .with_wall(&steady())
         .to_json();
@@ -135,6 +145,8 @@ fn a_valid_record_carries_the_selection_pass_the_levels_and_the_orbit() {
     for field in [
         "\"selection_p50_ms\"",
         "\"selection_p95_ms\"",
+        "\"shadow_p50_ms\"",
+        "\"shadow_p95_ms\"",
         "\"total_p50_ms\"",
         "\"total_p95_ms\"",
         "\"wall_p50_ms\"",
@@ -149,20 +161,22 @@ fn a_valid_record_carries_the_selection_pass_the_levels_and_the_orbit() {
         assert!(json.contains(field), "a full record lacks {field}:\n{json}");
     }
 
-    // The two passes are added frame by frame and then ranked, so the total is
-    // the frame's own cost and not the sum of two separately ranked tails.
-    let report = Report::measured(hardware(), &steady()).with_selection(&steady(), &quick());
-    let (Some(pass), Some(select), Some(total)) = (
+    // The three passes are added frame by frame and then ranked, so the total
+    // is the frame's own cost and not the sum of three separately ranked tails.
+    let report = Report::measured(hardware(), &steady()).with_passes(&steady(), &quick(), &quick());
+    let (Some(pass), Some(select), Some(sun), Some(total)) = (
         report.p50_ms(),
         report.selection_p50_ms(),
+        report.shadow_p50_ms(),
         report.total_p50_ms(),
     ) else {
         panic!("a valid session reported no numbers");
     };
     assert!(
-        (total - (pass + select)).abs() < 1e-9,
-        "{pass} ms and {select} ms were reported together as {total} ms"
+        (total - (pass + select + sun)).abs() < 1e-9,
+        "{pass} ms, {select} ms and {sun} ms were reported together as {total} ms"
     );
+    assert!(report.shadow_p95_ms().unwrap() >= sun);
 }
 
 #[test]
@@ -177,10 +191,10 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
     ] {
         let name = invalid.verdict().name().to_owned();
         let json = invalid
-            .with_selection(&steady(), &quick())
+            .with_passes(&steady(), &quick(), &quick())
             .with_levels(&[0.004, 0.001], &frames())
             .to_json();
-        for field in ["selection_", "total_", "levels"] {
+        for field in ["selection_", "shadow_", "total_", "levels"] {
             assert!(
                 !json.contains(field),
                 "a {name} record still reads as a {field} number:\n{json}"
@@ -189,11 +203,20 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
     }
 
     // A pass that never ran resolves to a pair of zeroes, and a zero is not a
-    // duration: a valid frame does not lend it its verdict.
-    let unrun = Report::measured(hardware(), &steady()).with_selection(&steady(), &vec![0.0; 120]);
+    // duration: a valid frame does not lend it its verdict, and a pass that did
+    // run keeps the number it earned.
+    let unrun =
+        Report::measured(hardware(), &steady()).with_passes(&steady(), &vec![0.0; 120], &quick());
     assert_eq!(unrun.selection_p50_ms(), None);
     assert_eq!(unrun.total_p50_ms(), None);
+    assert!(unrun.shadow_p50_ms().is_some(), "the sun's pass was timed");
     assert!(unrun.verdict().is_valid(), "the frame itself was measured");
+
+    let unlit =
+        Report::measured(hardware(), &steady()).with_passes(&steady(), &quick(), &vec![0.0; 120]);
+    assert_eq!(unlit.shadow_p50_ms(), None);
+    assert_eq!(unlit.total_p50_ms(), None);
+    assert!(unlit.selection_p50_ms().is_some(), "selection was timed");
 
     // A readback that disagrees with the ladder is a partial count, not a
     // count; and a session that read nothing back has no levels to report.
@@ -256,18 +279,20 @@ fn a_session_on_a_device_never_reports_a_percentile_it_did_not_earn() {
         aspect,
         GROUND_REACH,
     );
-    let colour = attachment(renderer.gpu(), "timing", STILL_FORMAT, size);
-    let depth = attachment(renderer.gpu(), "timing depth", DEPTH_FORMAT, size);
-    let report = measure(
-        &mut renderer,
-        &camera,
-        size,
-        &colour.create_view(&Default::default()),
-        &depth.create_view(&Default::default()),
-    )
-    .expect("the session ran");
+    let frame = Frame::new(&renderer, "timing", size);
+    let report = measure(&mut renderer, &camera, size, frame.target()).expect("the session ran");
 
     println!("{}", report.to_json());
+    // Whatever the verdict, the record says what the frames were drawn at, and
+    // it is what the renderer actually drew them at.
+    assert_eq!(report.multisample(), renderer.samples());
+    assert!(
+        report
+            .to_json()
+            .contains(&format!("\"multisample\": {}", renderer.samples())),
+        "the record does not state the sample count: {}",
+        report.to_json()
+    );
     assert_eq!(
         report.verdict().is_valid(),
         report.p50_ms().is_some(),
@@ -301,16 +326,10 @@ fn a_device_session_times_the_selection_pass_and_counts_what_it_chose() {
         f64::from(size.0) / f64::from(size.1),
         GROUND_REACH,
     );
-    let colour = attachment(renderer.gpu(), "timing", STILL_FORMAT, size);
-    let depth = attachment(renderer.gpu(), "timing depth", DEPTH_FORMAT, size);
-    let (colour, depth) = (
-        colour.create_view(&Default::default()),
-        depth.create_view(&Default::default()),
-    );
-
-    let still = measure(&mut renderer, &camera, size, &colour, &depth).expect("the session ran");
+    let frame = Frame::new(&renderer, "timing", size);
+    let still = measure(&mut renderer, &camera, size, frame.target()).expect("the session ran");
     let turning =
-        measure_orbit(&mut renderer, &camera, size, &colour, &depth).expect("the session ran");
+        measure_orbit(&mut renderer, &camera, size, frame.target()).expect("the session ran");
     println!("{}\n{}", still.to_json(), turning.to_json());
 
     if still.verdict().is_valid() {
@@ -318,9 +337,14 @@ fn a_device_session_times_the_selection_pass_and_counts_what_it_chose() {
             .selection_p50_ms()
             .expect("the selection pass was timed");
         assert!(select > 0.0, "the selection pass took {select} ms");
+        let sun = still.shadow_p50_ms().expect("the shadow pass was timed");
+        assert!(sun > 0.0, "the shadow pass took {sun} ms");
+        // Every frame's total is that frame's three passes added, so the ranked
+        // total stands at or above the ranked cost of any one of them.
+        let total = still.total_p50_ms().expect("every pass together");
         assert!(
-            still.total_p50_ms().expect("both passes together") >= still.p50_ms().unwrap(),
-            "the two passes together came to less than one of them"
+            total >= still.p50_ms().unwrap() && total >= sun,
+            "the three passes together came to less than one of them"
         );
         // The camera never moves, so every measured frame counted the same
         // crown and the medians account for all of it, bucket included.

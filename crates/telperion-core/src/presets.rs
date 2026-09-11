@@ -4,6 +4,7 @@ use crate::{
     branching::{HabitParams, SkeletonParams},
     envelope::Envelope,
     foliage::{CanopyParams, ElementParams},
+    material::MaterialParams,
     radius::RadiusParams,
     surface::SurfaceParams,
 };
@@ -22,6 +23,7 @@ pub struct Family {
     pub surface: SurfaceParams,
     pub canopy: CanopyParams,
     pub element: ElementParams,
+    pub material: MaterialParams,
     pub shell_depth: f64,
 }
 impl Default for Family {
@@ -36,6 +38,7 @@ impl Default for Family {
             },
             canopy: CanopyParams::default(),
             element: ElementParams::default(),
+            material: MaterialParams::default(),
             shell_depth: 0.45,
         }
     }
@@ -124,6 +127,26 @@ impl Preset {
             p.canopy.upward = 0.0;
             p.canopy.divergence = 180.0;
             p.canopy.size_variation = 0.2;
+            // Pale grey-brown furrowed bark; a dark glossy blade over a
+            // markedly paler underside. Linear, from the frozen profile's
+            // prose, and calibrated against the photographs in fn-14.6.
+            p.material = MaterialParams {
+                bark_red: 0.254,
+                bark_green: 0.220,
+                bark_blue: 0.178,
+                bark_roughness: 0.85,
+                leaf_front_red: 0.028,
+                leaf_front_green: 0.102,
+                leaf_front_blue: 0.016,
+                leaf_back_red: 0.153,
+                leaf_back_green: 0.254,
+                leaf_back_blue: 0.112,
+                hue_range_low: -0.03,
+                hue_range_high: 0.03,
+                brightness_range_low: -0.15,
+                brightness_range_high: 0.15,
+                interior_darkening: 0.55,
+            };
             return p;
         }
         if self == Self::NorwaySpruce {
@@ -183,6 +206,25 @@ impl Preset {
             p.canopy.outward = 0.0;
             p.canopy.upward = 0.0;
             p.canopy.size_variation = 0.2;
+            // Reddish-brown scaly bark; a needle darker and bluer than any
+            // blade, its underside paler where the stomatal bands run.
+            p.material = MaterialParams {
+                bark_red: 0.147,
+                bark_green: 0.078,
+                bark_blue: 0.045,
+                bark_roughness: 0.9,
+                leaf_front_red: 0.018,
+                leaf_front_green: 0.056,
+                leaf_front_blue: 0.028,
+                leaf_back_red: 0.109,
+                leaf_back_green: 0.195,
+                leaf_back_blue: 0.138,
+                hue_range_low: -0.02,
+                hue_range_high: 0.02,
+                brightness_range_low: -0.10,
+                brightness_range_high: 0.10,
+                interior_darkening: 0.7,
+            };
             return p;
         }
         if self == Self::Ordinary {

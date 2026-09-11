@@ -1120,3 +1120,49 @@ fn every_attachment_trait_moves_every_shipped_preset() {
         }
     }
 }
+
+/// Along the blade and across it, base to tip and midrib to margin. The
+/// connector has no blade of its own and takes the base's pair.
+#[test]
+fn a_blade_carries_a_coordinate_in_the_unit_square_at_every_vertex() {
+    let element = build_element(ElementParams::default()).unwrap();
+    assert_eq!(element.coords.len(), 2 * element.positions.len());
+    for c in element.coords.as_chunks::<2>().0 {
+        assert!(
+            (0. ..=1.).contains(&c[0]) && (0. ..=1.).contains(&c[1]),
+            "{c:?} is outside the unit square"
+        );
+    }
+    let anatomy = element.anatomy.as_ref().unwrap();
+    let coord = |v: usize| (element.coords[2 * v], element.coords[2 * v + 1]);
+    assert_eq!(coord(0), (0., 0.), "the base is not the foot of the midrib");
+    let tip = anatomy.sections.last().unwrap().start;
+    assert_eq!(coord(tip), (1., 0.), "the tip is not the end of the midrib");
+
+    // Every section stands at one distance along the blade, and they climb it.
+    let mut previous = -1.;
+    for section in &anatomy.sections {
+        let along = coord(section.start).0;
+        assert!(along > previous, "{along} does not climb past {previous}");
+        for v in section.clone() {
+            assert_eq!(coord(v).0, along, "vertex {v} left its own section");
+        }
+        previous = along;
+    }
+    // A row spans the blade: the midrib at nought, both margins at one.
+    let row: Vec<f32> = anatomy.sections[1].clone().map(|v| coord(v).1).collect();
+    assert_eq!(row.iter().cloned().fold(f32::INFINITY, f32::min), 0.);
+    assert_eq!(row.iter().cloned().fold(f32::NEG_INFINITY, f32::max), 1.);
+    // The peg below the blade carries the base's pair, whole vertices of it.
+    for v in anatomy.vertices.end..element.positions.len() {
+        assert_eq!(coord(v), (0., 0.), "the connector grew a blade coordinate");
+    }
+
+    // A card is the blade squashed to its extent: base and tip, margin across.
+    let card = build_element(ElementParams {
+        card: true,
+        ..ElementParams::default()
+    })
+    .unwrap();
+    assert_eq!(card.coords, vec![0., 1., 0., 1., 1., 1., 1., 1.]);
+}

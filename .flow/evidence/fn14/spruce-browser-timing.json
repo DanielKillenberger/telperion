@@ -1,0 +1,68 @@
+{
+  "species": "Norway spruce",
+  "preset": "norway-spruce",
+  "seed": 7,
+  "view": "whole",
+  "session": "still",
+  "submitted": {
+    "bounds": {
+      "max": [
+        4.337495164451377,
+        15,
+        3.8062214356137005
+      ],
+      "min": [
+        -3.89500647744516,
+        -0.05999999865889549,
+        -4.197530933827597
+      ]
+    },
+    "foliageInstances": 7012326,
+    "woodTriangles": 5580040,
+    "woodVertices": 2888144
+  },
+  "report": {
+    "adapter": "",
+    "driver": "",
+    "backend": "webgpu",
+    "conditioning": 8,
+    "warmup": 8,
+    "measured": 120,
+    "samples": 120,
+    "verdict": "valid",
+    "p50_ms": 14.2833,
+    "p95_ms": 14.3255,
+    "selection_p50_ms": 0.6687,
+    "selection_p95_ms": 0.7004,
+    "shadow_p50_ms": 13.505,
+    "shadow_p95_ms": 13.5429,
+    "total_p50_ms": 28.4797,
+    "total_p95_ms": 28.5012,
+    "multisample": 4
+  },
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "webgpu": {
+    "vendor": "nvidia",
+    "architecture": "ampere",
+    "device": "",
+    "description": ""
+  },
+  "canvas": {
+    "width": 1600,
+    "height": 1000
+  },
+  "browser": "153.0.8010.12",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-renderer-backgrounding"
+  ],
+  "quantization_us": 100,
+  "note": "Chrome quantizes WebGPU timestamps to 100 microseconds unless developer features or --enable-unsafe-webgpu are on. The percentiles here are finer than that step, so this session was not quantized."
+}

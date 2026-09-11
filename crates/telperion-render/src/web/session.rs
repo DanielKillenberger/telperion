@@ -45,6 +45,9 @@ async fn collect(
     turning: bool,
 ) -> Result<String, JsError> {
     let hardware = Hardware::from(&borrow(live)?.renderer.gpu().adapter);
+    // What the page drew at qualifies every number below, so it is read once
+    // and put on the record whether the session could be timed or not.
+    let multisample = borrow(live)?.renderer.samples();
     let session = Session::new(borrow(live)?.renderer.gpu());
     for _ in 0..CONDITIONING {
         draw(live, pose(0.0))?;
@@ -55,7 +58,8 @@ async fn collect(
         // No timestamps is not no measurement. The frames still run, and on an
         // orbit the page's own clock is the number the budget is judged on.
         Err(reason) => Report::unavailable(hardware, reason),
-    };
+    }
+    .with_multisample(multisample);
     if !turning {
         return Ok(report.to_json());
     }
@@ -78,24 +82,24 @@ async fn sampled(
 ) -> Result<Report, JsError> {
     let mut vegetation = Vec::with_capacity(MEASURED);
     let mut selection = Vec::with_capacity(MEASURED);
+    let mut shadow = Vec::with_capacity(MEASURED);
     for index in 0..WARMUP + MEASURED {
         // The borrow is put down before the await, so nothing holds the canvas
         // while the browser is carrying the readback.
         {
             let mut canvas = borrow(live)?;
             canvas.camera = pose(index.saturating_sub(WARMUP) as f64 / MEASURED as f64);
-            canvas
-                .draw(Some((session.writes(), session.selection_writes())))
-                .map_err(js_error)?;
+            canvas.draw(Some(session.timed())).map_err(js_error)?;
             session.resolve(canvas.renderer.gpu());
         }
-        let (pass, select) = session.sample_ms().await.map_err(js_error)?;
+        let (pass, select, sun) = session.sample_ms().await.map_err(js_error)?;
         if index >= WARMUP {
             vegetation.push(pass);
             selection.push(select);
+            shadow.push(sun);
         }
     }
-    Ok(Report::measured(hardware, &vegetation).with_selection(&vegetation, &selection))
+    Ok(Report::measured(hardware, &vegetation).with_passes(&vegetation, &selection, &shadow))
 }
 
 /// The wall-clock half: frames drawn the way the page draws them, for the

@@ -18,7 +18,7 @@ Build toward realistic simulations of procedurally generated trees, using one pe
 
 **Primary:** Game and real-time 3D developers — they're hiring Telperion to put trees in a scene that branch the way a real tree does, from a hero tree to a whole forest of a species, generated from a seed instead of bought as baked assets.
 
-**Secondary:** The owner, judging the Two Trees in clay — the first user, and the one whose eye every preset is held to.
+**Secondary:** The owner, judging the Two Trees as they are lit — the first user, and the one whose eye every preset is held to.
 
 ## Key metrics
 
@@ -26,7 +26,7 @@ Build toward realistic simulations of procedurally generated trees, using one pe
 - **Frame** — a shipped hero tree renders inside 2 ms of GPU time at native pixel ratio on the named machine, an RTX 3080, and the whole vegetation layer of a thousand-tree forest inside 4 ms once a forest rig exists to measure it; GPU timer queries in the harness rig, budgeting a slice of the game frame for vegetation.
 - **Build** — time from a dial move to a finished tree, held to whatever keeps dragging usable; the harness's own build timer.
 - **Attributability** — same seed and parameters give a byte-identical tree, and every change to a preset traces to a named dial; asserted in the unit tests.
-- **The owner's eye** — Telperion reads as Telperion and Laurelin as Laurelin in clay with every supernatural term at its preset value; judged in the harness, recorded in the spec.
+- **The owner's eye** — Telperion reads as Telperion and Laurelin as Laurelin, lit, with every supernatural term and every appearance row at its preset value; judged in the harness, recorded in the spec.
 
 ## Tracks
 

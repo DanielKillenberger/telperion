@@ -162,3 +162,54 @@ fn reversed_path_keeps_finite_frames() {
         .chain(&mesh.normals)
         .all(|v| v.is_finite()));
 }
+
+/// The coordinates the surface has always computed and dropped: how far along
+/// the branch a vertex sits, and where around it. Nothing else about the mesh
+/// moves for them.
+#[test]
+fn every_vertex_carries_how_far_along_and_how_far_around_it_lies() {
+    let params = SurfaceParams {
+        lobes: 0,
+        radial_segments: 8,
+        flare_radius: 1.0,
+        flare_depth: 0.0,
+        ..SurfaceParams::default()
+    };
+    let mesh = build(&straight(), 24.0, &params).unwrap();
+    assert_eq!(mesh.coords.len(), mesh.positions.len() / 3 * 2);
+    let turn = std::f64::consts::TAU as f32;
+    // Three rings up a trunk whose nodes stand four metres apart, then the two
+    // caps that close it.
+    for (ring, along) in [0.0, 4.0, 8.0].into_iter().enumerate() {
+        for k in 0..8 {
+            let c = &mesh.coords[(ring * 8 + k) * 2..];
+            assert_eq!(c[0], along, "ring {ring} is not {along} m along the trunk");
+            assert!(
+                (c[1] - k as f32 / 8.0 * turn).abs() < 1e-6,
+                "vertex {k} of ring {ring} is at {} around it",
+                c[1]
+            );
+        }
+    }
+    assert_eq!(&mesh.coords[24 * 2..], &[0.0, 0.0, 8.0, 0.0]);
+
+    // The same holds with the flare's buried ring and a twisted, lobed
+    // profile: the distance never goes backwards up a run and the angle stays
+    // inside one turn.
+    let mesh = build(&straight(), 24.0, &SurfaceParams::default()).unwrap();
+    assert_eq!(mesh.coords.len(), mesh.positions.len() / 3 * 2);
+    let p = SurfaceParams::default();
+    let segments = p.radial_segments.max(p.lobes * 4) as usize;
+    let mut previous = 0.0;
+    for ring in mesh.coords[..(mesh.coords.len() - 4)].chunks(segments * 2) {
+        for (k, c) in ring.as_chunks::<2>().0.iter().enumerate() {
+            assert!(c[0] >= previous, "{} m along is below {previous}", c[0]);
+            assert!(
+                (c[1] - k as f32 / segments as f32 * turn).abs() < 1e-6,
+                "{} is not vertex {k} of a ring of {segments}",
+                c[1]
+            );
+        }
+        previous = ring[0];
+    }
+}

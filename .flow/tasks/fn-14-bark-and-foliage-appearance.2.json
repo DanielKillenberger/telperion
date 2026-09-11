@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-10T22:26:23.360110Z",
+  "depends_on": [],
+  "id": "fn-14-bark-and-foliage-appearance.2",
+  "priority": null,
+  "spec": "fn-14-bark-and-foliage-appearance",
+  "spec_path": ".flow/tasks/fn-14-bark-and-foliage-appearance.2.md",
+  "status": "todo",
+  "title": "The material row on the family and the scene row on the renderer",
+  "updated_at": "2026-09-10T22:26:23.360110Z"
+}

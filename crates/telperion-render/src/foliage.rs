@@ -13,10 +13,11 @@ use crate::{
     Camera, FrameStats,
 };
 
-/// Positions and normals step per vertex. Nothing steps per instance any more:
-/// the placement is looked up, not fed in.
+/// Positions, normals and surface coordinates step per vertex. Nothing steps per
+/// instance any more: the placement is looked up, not fed in.
 const POSITION: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x3];
 const NORMAL: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![1 => Float32x3];
+const COORD: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![2 => Float32x2];
 
 /// The element's own vertex normals, area-weighted over the triangles that
 /// share each vertex. The core ships positions and indices only, and a leaf
@@ -73,9 +74,11 @@ fn element_bounds(element: &Element) -> Option<Bounds> {
 /// that decides which level each of its leaves is drawn at.
 pub struct Foliage {
     pipeline: wgpu::RenderPipeline,
+    shadow: wgpu::RenderPipeline,
     select: Select,
     positions: Option<Held>,
     normals: Option<Held>,
+    coords: Option<Held>,
     /// Every level's triangles in one index buffer, as the core packed them.
     indices: Option<Held>,
     bounds: Option<Bounds>,
@@ -85,14 +88,13 @@ impl Foliage {
     pub fn new(
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,
-        colour_format: wgpu::TextureFormat,
+        shadow: &crate::shadow::Shadow,
+        surface: crate::pass::Surface,
     ) -> Self {
-        let shader = gpu
-            .device
-            .create_shader_module(wgpu::include_wgsl!("shaders/foliage.wgsl"));
-        let vertex = |attributes| {
+        let shader = crate::pass::lit_shader(gpu, "foliage", include_str!("shaders/foliage.wgsl"));
+        let vertex = |attributes, floats: u64| {
             Some(wgpu::VertexBufferLayout {
-                array_stride: 3 * size_of::<f32>() as u64,
+                array_stride: floats * size_of::<f32>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes,
             })
@@ -101,15 +103,32 @@ impl Foliage {
         Self {
             pipeline: crate::pipeline(
                 gpu,
-                &[Some(layout), Some(select.draw_layout())],
+                &[
+                    Some(layout),
+                    Some(select.draw_layout()),
+                    Some(shadow.layout()),
+                ],
                 &shader,
-                colour_format,
-                &[vertex(&POSITION), vertex(&NORMAL)],
+                surface,
+                &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
+                crate::pass::Depth::Surface,
                 "foliage",
+            ),
+            // The sun sees a position and a placement. The placements are bound
+            // through the same layout the frame draws a level through; the list
+            // beside them is not read, because the sun takes every placement.
+            shadow: crate::depth_pipeline(
+                gpu,
+                &[Some(shadow.light_layout()), Some(select.draw_layout())],
+                shadow.module(),
+                "foliage",
+                &[vertex(&POSITION, 3)],
+                "foliage shadow",
             ),
             select,
             positions: None,
             normals: None,
+            coords: None,
             indices: None,
             bounds: None,
         }
@@ -141,6 +160,16 @@ impl Foliage {
         );
         buffer::write(
             gpu,
+            &mut self.coords,
+            "foliage coordinates",
+            wgpu::BufferUsages::VERTEX,
+            bytemuck::cast_slice(&buffer::attributes(
+                &element.coords,
+                element.positions.len() * 2,
+            )),
+        );
+        buffer::write(
+            gpu,
             &mut self.indices,
             "foliage level indices",
             wgpu::BufferUsages::INDEX,
@@ -162,14 +191,8 @@ impl Foliage {
         view: View,
         timestamps: Option<wgpu::ComputePassTimestampWrites<'_>>,
     ) {
-        self.select.dispatch(
-            gpu,
-            encoder,
-            camera,
-            viewport,
-            view == View::Whole,
-            timestamps,
-        );
+        self.select
+            .dispatch(gpu, encoder, camera, viewport, view.selects(), timestamps);
     }
 
     /// Draws the crown this view asks for: every placement at the level
@@ -182,8 +205,8 @@ impl Foliage {
         if view == View::Bare {
             return FrameStats::default();
         }
-        let (Some(positions), Some(normals), Some(indices)) =
-            (&self.positions, &self.normals, &self.indices)
+        let (Some(positions), Some(normals), Some(coords), Some(indices)) =
+            (&self.positions, &self.normals, &self.coords, &self.indices)
         else {
             return FrameStats::default();
         };
@@ -193,6 +216,7 @@ impl Foliage {
         pass.set_pipeline(&self.pipeline);
         pass.set_vertex_buffer(0, positions.live());
         pass.set_vertex_buffer(1, normals.live());
+        pass.set_vertex_buffer(2, coords.live());
         pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
         if view == View::Leaf {
             self.select.bind_leaf(pass);
@@ -220,6 +244,29 @@ impl Foliage {
             triangles: (finest.len() as u32 / 3).saturating_mul(instances),
             instances,
         }
+    }
+
+    /// Writes the crown into the sun's depth map: every placement the tree was
+    /// submitted with, in one instanced draw of the element's coarsest level.
+    ///
+    /// The sun's view is not the camera's, so nothing the selection pass chose
+    /// applies here and none of it is run again; and the coarsest level is a
+    /// handful of triangles a leaf, which is all a shadow the size of a leaf
+    /// can carry anyway.
+    pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>) {
+        let (Some(positions), Some(indices)) = (&self.positions, &self.indices) else {
+            return;
+        };
+        let Some(coarsest) = self.select.levels().first().cloned() else {
+            return;
+        };
+        pass.set_pipeline(&self.shadow);
+        if !self.select.bind_level(pass, 0) {
+            return;
+        }
+        pass.set_vertex_buffer(0, positions.live());
+        pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(coarsest, 0, 0..self.select.instances());
     }
 
     /// The element's bounds at the origin, which frames the leaf view.

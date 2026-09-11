@@ -26,6 +26,10 @@ pub enum RenderError {
     TooManyLevels { levels: usize, limit: usize },
     /// The generator rejected the parameters.
     Generation(telperion_core::Error),
+    /// The scene row states something the renderer will not draw under: a
+    /// value off its range, a name the row does not have, or text that is not
+    /// the row's JSON at all. Carries the words a caller shows its owner.
+    Scene(String),
     /// The still could not be written where it was asked for.
     Output { path: String, message: String },
 }
@@ -57,6 +61,7 @@ impl std::fmt::Display for RenderError {
                 "the foliage element carries {levels} levels, more than the {limit} selection can choose between"
             ),
             Self::Generation(error) => write!(f, "the generator rejected the tree: {error}"),
+            Self::Scene(detail) => write!(f, "the scene row: {detail}"),
             Self::Output { path, message } => write!(f, "cannot write {path}: {message}"),
         }
     }
@@ -206,6 +211,17 @@ impl Gpu {
             })?;
         config.alpha_mode = wgpu::CompositeAlphaMode::Opaque;
         Ok(config)
+    }
+
+    /// Whether this adapter renders this format at this many samples per
+    /// pixel. Asked of the adapter rather than assumed: multisampling is
+    /// optional per format, and a device without it draws the same picture
+    /// with harder edges.
+    pub fn supports_samples(&self, format: wgpu::TextureFormat, samples: u32) -> bool {
+        self.source
+            .get_texture_format_features(format)
+            .flags
+            .sample_count_supported(samples)
     }
 
     /// The device-lost error if the device has gone away, checked after a poll.

@@ -32,6 +32,23 @@ export interface Family {
   widestAt: number;
   width: number;
 };
+  material: {
+  barkBlue: number;
+  barkGreen: number;
+  barkRed: number;
+  barkRoughness: number;
+  brightnessRangeHigh: number;
+  brightnessRangeLow: number;
+  hueRangeHigh: number;
+  hueRangeLow: number;
+  interiorDarkening: number;
+  leafBackBlue: number;
+  leafBackGreen: number;
+  leafBackRed: number;
+  leafFrontBlue: number;
+  leafFrontGreen: number;
+  leafFrontRed: number;
+};
   radii: {
   forkExponent: number;
   lengthTaper: number;
@@ -152,6 +169,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.42,
         "width": 0.06
       },
+      "material": {
+        "barkBlue": 0.068,
+        "barkGreen": 0.105,
+        "barkRed": 0.147,
+        "barkRoughness": 0.8,
+        "brightnessRangeHigh": 0.12,
+        "brightnessRangeLow": -0.12,
+        "hueRangeHigh": 0.03,
+        "hueRangeLow": -0.03,
+        "interiorDarkening": 0.5,
+        "leafBackBlue": 0.07,
+        "leafBackGreen": 0.24,
+        "leafBackRed": 0.105,
+        "leafFrontBlue": 0.036,
+        "leafFrontGreen": 0.195,
+        "leafFrontRed": 0.068
+      },
       "radii": {
         "forkExponent": 2,
         "lengthTaper": 0.6,
@@ -269,6 +303,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "tipSharpness": 0.6,
         "widestAt": 0.55,
         "width": 0.075
+      },
+      "material": {
+        "barkBlue": 0.178,
+        "barkGreen": 0.22,
+        "barkRed": 0.254,
+        "barkRoughness": 0.85,
+        "brightnessRangeHigh": 0.15,
+        "brightnessRangeLow": -0.15,
+        "hueRangeHigh": 0.03,
+        "hueRangeLow": -0.03,
+        "interiorDarkening": 0.55,
+        "leafBackBlue": 0.112,
+        "leafBackGreen": 0.254,
+        "leafBackRed": 0.153,
+        "leafFrontBlue": 0.016,
+        "leafFrontGreen": 0.102,
+        "leafFrontRed": 0.028
       },
       "radii": {
         "forkExponent": 2,
@@ -388,6 +439,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.2,
         "width": 0.0015
       },
+      "material": {
+        "barkBlue": 0.045,
+        "barkGreen": 0.078,
+        "barkRed": 0.147,
+        "barkRoughness": 0.9,
+        "brightnessRangeHigh": 0.1,
+        "brightnessRangeLow": -0.1,
+        "hueRangeHigh": 0.02,
+        "hueRangeLow": -0.02,
+        "interiorDarkening": 0.7,
+        "leafBackBlue": 0.138,
+        "leafBackGreen": 0.195,
+        "leafBackRed": 0.109,
+        "leafFrontBlue": 0.028,
+        "leafFrontGreen": 0.056,
+        "leafFrontRed": 0.018
+      },
       "radii": {
         "forkExponent": 2,
         "lengthTaper": 0.6,
@@ -506,6 +574,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "widestAt": 0.42,
         "width": 0.06
       },
+      "material": {
+        "barkBlue": 0.068,
+        "barkGreen": 0.105,
+        "barkRed": 0.147,
+        "barkRoughness": 0.8,
+        "brightnessRangeHigh": 0.12,
+        "brightnessRangeLow": -0.12,
+        "hueRangeHigh": 0.03,
+        "hueRangeLow": -0.03,
+        "interiorDarkening": 0.5,
+        "leafBackBlue": 0.07,
+        "leafBackGreen": 0.24,
+        "leafBackRed": 0.105,
+        "leafFrontBlue": 0.036,
+        "leafFrontGreen": 0.195,
+        "leafFrontRed": 0.068
+      },
       "radii": {
         "forkExponent": 2.15,
         "lengthTaper": 0.75,
@@ -623,6 +708,23 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "tipSharpness": 1.6,
         "widestAt": 0.42,
         "width": 0.06
+      },
+      "material": {
+        "barkBlue": 0.068,
+        "barkGreen": 0.105,
+        "barkRed": 0.147,
+        "barkRoughness": 0.8,
+        "brightnessRangeHigh": 0.12,
+        "brightnessRangeLow": -0.12,
+        "hueRangeHigh": 0.03,
+        "hueRangeLow": -0.03,
+        "interiorDarkening": 0.5,
+        "leafBackBlue": 0.07,
+        "leafBackGreen": 0.24,
+        "leafBackRed": 0.105,
+        "leafFrontBlue": 0.036,
+        "leafFrontGreen": 0.195,
+        "leafFrontRed": 0.068
       },
       "radii": {
         "forkExponent": 2.7,

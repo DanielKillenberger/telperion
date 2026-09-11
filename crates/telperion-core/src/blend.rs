@@ -57,6 +57,14 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         element.connector_length, element.length, element.width,
         element.widest_at, element.base_fullness, element.tip_sharpness,
         element.cup, element.curl, element.lobe_depth, element.section_roundness,
+        material.bark_red, material.bark_green, material.bark_blue,
+        material.bark_roughness,
+        material.leaf_front_red, material.leaf_front_green,
+        material.leaf_front_blue,
+        material.leaf_back_red, material.leaf_back_green, material.leaf_back_blue,
+        material.hue_range_low, material.hue_range_high,
+        material.brightness_range_low, material.brightness_range_high,
+        material.interior_darkening,
         shell_depth,
     );
     walk!(degrees:
@@ -209,6 +217,29 @@ mod tests {
         // An override neither row states stays the envelope's to answer.
         assert_eq!(overridden(None, None, 1.0, 2.0, 0.5), None);
         assert_eq!(overridden(None, Some(2.0), 1.0, 2.0, 0.5), Some(1.5));
+    }
+
+    #[test]
+    fn a_walk_between_two_material_rows_stays_a_row_a_leaf_can_be_drawn_from() {
+        // Both ends of a range interpolate linearly, so a point between two
+        // valid rows is valid: no walk needs re-validating, and none of it has
+        // a frame where the leaves have no colour to take.
+        let mut from = crate::presets::Preset::OregonWhiteOak.parameters();
+        let mut to = crate::presets::Preset::NorwaySpruce.parameters();
+        // The two rows' ranges are deliberately unequal at both ends, which is
+        // what a walk between them has to survive.
+        (from.material.hue_range_low, from.material.hue_range_high) = (-0.4, 0.1);
+        (to.material.hue_range_low, to.material.hue_range_high) = (-0.05, 0.45);
+        for step in 0..=10 {
+            let t = f64::from(step) / 10.0;
+            let walked = families(&from, &to, t).unwrap().material;
+            assert_eq!(walked.validate(), Ok(()), "the row at {t} is not a row");
+        }
+        let half = families(&from, &to, 0.5).unwrap().material;
+        assert!(
+            (half.bark_red - (from.material.bark_red + to.material.bark_red) / 2.0).abs() < 1e-12
+        );
+        assert!((half.interior_darkening - 0.625).abs() < 1e-12);
     }
 
     #[test]

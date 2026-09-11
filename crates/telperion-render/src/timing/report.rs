@@ -46,13 +46,19 @@ pub struct Report {
     pub measured: usize,
     /// Samples actually kept, which is `measured` unless the session stopped.
     pub samples: usize,
+    /// Samples a pixel the frames were drawn at: the multisample count, or one
+    /// where the device would not multisample. Two records are comparable only
+    /// at the same count, so every record carries it, valid or not.
+    multisample: u32,
     verdict: Verdict,
     p50_ms: Option<f64>,
     p95_ms: Option<f64>,
     /// The selection compute pass, median and tail.
     selection: Option<[f64; 2]>,
-    /// Selection and vegetation together, per frame and then ranked: the pair
-    /// of numbers the frame budget is spent on.
+    /// The sun's depth pass, median and tail.
+    shadow: Option<[f64; 2]>,
+    /// The three passes the tree costs together, per frame and then ranked:
+    /// the pair of numbers the frame budget is spent on.
     total: Option<[f64; 2]>,
     levels: Vec<LevelCount>,
     /// Frame to frame on the host: median, tail, worst.
@@ -86,21 +92,35 @@ impl Report {
         }
     }
 
-    /// Adds what the selection pass cost, and what it and the vegetation pass
-    /// cost together. A pair no pass wrote reads as a zero rather than a
-    /// duration and is refused here: the frame's own verdict judges the
-    /// frame, and a series that is not durations carries no number at all.
-    pub fn with_selection(mut self, vegetation: &[f64], selection: &[f64]) -> Self {
-        if !self.verdict.is_valid() || !durations(selection) || vegetation.len() != selection.len()
-        {
+    /// States how many samples a pixel the frames were drawn at. Not a
+    /// measurement and so not judged: it is what the measurement was taken
+    /// under, and an unavailable session states it too.
+    pub fn with_multisample(mut self, multisample: u32) -> Self {
+        self.multisample = multisample;
+        self
+    }
+
+    /// Adds what the other two passes of a frame cost - the selection pass and
+    /// the sun's depth pass - and what all three came to together. Each pass
+    /// stands on its own account: a pair no pass wrote reads as a zero rather
+    /// than a duration and is refused, and a refused pass takes only itself and
+    /// the total with it. The frame's own verdict judges the frame.
+    pub fn with_passes(mut self, vegetation: &[f64], selection: &[f64], shadow: &[f64]) -> Self {
+        if !self.verdict.is_valid() {
             return self;
         }
-        let total: Vec<f64> = vegetation
-            .iter()
-            .zip(selection)
-            .map(|(pass, select)| pass + select)
+        let measured = |samples: &[f64]| {
+            (durations(samples) && samples.len() == vegetation.len())
+                .then(|| ranked(samples, [0.5, 0.95]))
+        };
+        self.selection = measured(selection);
+        self.shadow = measured(shadow);
+        if self.selection.is_none() || self.shadow.is_none() {
+            return self;
+        }
+        let total: Vec<f64> = (0..vegetation.len())
+            .map(|frame| vegetation[frame] + selection[frame] + shadow[frame])
             .collect();
-        self.selection = Some(ranked(selection, [0.5, 0.95]));
         self.total = Some(ranked(&total, [0.5, 0.95]));
         self
     }
@@ -156,10 +176,12 @@ impl Report {
             warmup: WARMUP,
             measured: MEASURED,
             samples: 0,
+            multisample: 1,
             verdict: Verdict::Valid,
             p50_ms: None,
             p95_ms: None,
             selection: None,
+            shadow: None,
             total: None,
             levels: Vec::new(),
             wall: None,
@@ -169,6 +191,11 @@ impl Report {
 
     pub fn verdict(&self) -> &Verdict {
         &self.verdict
+    }
+
+    /// How many samples a pixel the measured frames carried.
+    pub fn multisample(&self) -> u32 {
+        self.multisample
     }
 
     /// The median measured vegetation pass, milliseconds, on a valid session
@@ -187,8 +214,19 @@ impl Report {
         self.selection.map(|pair| pair[0])
     }
 
-    /// The median of selection and vegetation together, which is what the
-    /// hero budget is judged on.
+    /// The median shadow pass, milliseconds. The number the sun's own budget is
+    /// judged on.
+    pub fn shadow_p50_ms(&self) -> Option<f64> {
+        self.shadow.map(|pair| pair[0])
+    }
+
+    /// The p95 shadow pass, milliseconds.
+    pub fn shadow_p95_ms(&self) -> Option<f64> {
+        self.shadow.map(|pair| pair[1])
+    }
+
+    /// The median of the three passes together, which is what the hero budget
+    /// is judged on.
     pub fn total_p50_ms(&self) -> Option<f64> {
         self.total.map(|pair| pair[0])
     }
@@ -235,6 +273,10 @@ impl Report {
             fields.push(format!("\"selection_p50_ms\": {median:.4}"));
             fields.push(format!("\"selection_p95_ms\": {tail:.4}"));
         }
+        if let Some([median, tail]) = self.shadow {
+            fields.push(format!("\"shadow_p50_ms\": {median:.4}"));
+            fields.push(format!("\"shadow_p95_ms\": {tail:.4}"));
+        }
         if let Some([median, tail]) = self.total {
             fields.push(format!("\"total_p50_ms\": {median:.4}"));
             fields.push(format!("\"total_p95_ms\": {tail:.4}"));
@@ -242,6 +284,9 @@ impl Report {
         if !self.levels.is_empty() {
             fields.push(format!("\"levels\": [\n    {}\n  ]", self.levels_json()));
         }
+        // What the frames were drawn at, last: it qualifies every number above
+        // it, and the fields fn-22's records carry keep their own order.
+        fields.push(format!("\"multisample\": {}", self.multisample));
         if let Some([median, tail, worst]) = self.wall {
             fields.push(format!("\"wall_frames\": {}", self.wall_frames));
             fields.push(format!("\"wall_p50_ms\": {median:.4}"));
