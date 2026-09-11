@@ -9,6 +9,85 @@ use crate::{device::Gpu, scene::DEPTH_FORMAT};
 /// stages here rather than copied into each of them.
 const PRELUDE: &str = include_str!("shaders/common.wgsl");
 
+/// Samples per pixel a frame's colour and depth are drawn at where the device
+/// offers it. Four is what a WebGPU implementation that multisamples at all
+/// offers, and the count the edges were judged at.
+pub const MULTISAMPLE: u32 = 4;
+
+/// How many samples a frame is actually drawn at: the multisample count where
+/// the colour target and the depth beside it both take it, and one sample where
+/// either does not. Both have to agree, because a pass draws into the pair.
+pub fn samples(colour: bool, depth: bool) -> u32 {
+    if colour && depth {
+        MULTISAMPLE
+    } else {
+        1
+    }
+}
+
+/// What a pipeline draws into: the format of the colour target and how many
+/// samples a pixel of it carries. The two travel together because a pipeline
+/// that disagrees with its target on either one will not validate.
+#[derive(Clone, Copy)]
+pub struct Surface {
+    pub format: wgpu::TextureFormat,
+    pub samples: u32,
+}
+
+/// Where a frame is drawn: the colour and depth every pass writes, and, when
+/// those carry several samples a pixel, the single-sample texture the last pass
+/// resolves them into. The resolve is the picture anybody looks at; at one
+/// sample there is none and the colour attachment is itself the picture.
+#[derive(Clone, Copy)]
+pub struct Target<'a> {
+    pub colour: &'a wgpu::TextureView,
+    pub depth: &'a wgpu::TextureView,
+    pub resolve: Option<&'a wgpu::TextureView>,
+}
+
+impl<'a> Target<'a> {
+    /// The same targets with nothing resolved out of them, which is every pass
+    /// but the last: the samples are left where the pass after this one adds to
+    /// them.
+    pub fn kept(self) -> Self {
+        Self {
+            resolve: None,
+            ..self
+        }
+    }
+}
+
+/// A render target of this format, size and sample count. Only a single-sample
+/// texture is ever copied out of - a multisampled attachment is resolved, never
+/// read - so only it asks to be a copy source.
+pub fn attachment(
+    gpu: &Gpu,
+    label: &str,
+    format: wgpu::TextureFormat,
+    size: (u32, u32),
+    samples: u32,
+) -> wgpu::Texture {
+    let copied = if samples == 1 {
+        wgpu::TextureUsages::COPY_SRC
+    } else {
+        wgpu::TextureUsages::empty()
+    };
+    gpu.device.create_texture(&wgpu::TextureDescriptor {
+        label: Some(label),
+        size: wgpu::Extent3d {
+            width: size.0,
+            height: size.1,
+            depth_or_array_layers: 1,
+        },
+        mip_level_count: 1,
+        sample_count: samples,
+        dimension: wgpu::TextureDimension::D2,
+        format,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | copied,
+        view_formats: &[],
+    })
+}
+
 /// A lit shader: the prelude, then this module's own stages.
 pub fn lit_shader(gpu: &Gpu, label: &str, stages: &str) -> wgpu::ShaderModule {
     gpu.device
@@ -38,24 +117,29 @@ pub fn aspect_of((width, height): (u32, u32)) -> f64 {
 pub fn pass<'encoder>(
     encoder: &'encoder mut wgpu::CommandEncoder,
     label: &'static str,
-    colour: &wgpu::TextureView,
-    depth: &wgpu::TextureView,
+    target: Target<'_>,
     clear: Option<wgpu::Color>,
     timestamps: Option<wgpu::RenderPassTimestampWrites<'_>>,
 ) -> wgpu::RenderPass<'encoder> {
     encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: Some(label),
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-            view: colour,
+            view: target.colour,
             depth_slice: None,
-            resolve_target: None,
+            resolve_target: target.resolve,
             ops: wgpu::Operations {
                 load: clear.map_or(wgpu::LoadOp::Load, wgpu::LoadOp::Clear),
-                store: wgpu::StoreOp::Store,
+                // A pass that resolves is the last one over these targets and
+                // what is kept is the resolve, so the samples behind it are
+                // dropped rather than written out a second time.
+                store: match target.resolve {
+                    Some(_) => wgpu::StoreOp::Discard,
+                    None => wgpu::StoreOp::Store,
+                },
             },
         })],
         depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-            view: depth,
+            view: target.depth,
             depth_ops: Some(wgpu::Operations {
                 load: clear.map_or(wgpu::LoadOp::Load, |_| wgpu::LoadOp::Clear(1.0)),
                 store: wgpu::StoreOp::Store,
@@ -74,7 +158,7 @@ pub fn pipeline(
     gpu: &Gpu,
     bind_group_layouts: &[Option<&wgpu::BindGroupLayout>],
     shader: &wgpu::ShaderModule,
-    colour_format: wgpu::TextureFormat,
+    surface: Surface,
     buffers: &[Option<wgpu::VertexBufferLayout<'_>>],
     depth: Depth,
     label: &'static str,
@@ -100,7 +184,7 @@ pub fn pipeline(
                 module: shader,
                 entry_point: Some("fragment"),
                 compilation_options: Default::default(),
-                targets: &[Some(colour_format.into())],
+                targets: &[Some(surface.format.into())],
             }),
             primitive: wgpu::PrimitiveState {
                 cull_mode: None,
@@ -116,7 +200,10 @@ pub fn pipeline(
                 stencil: Default::default(),
                 bias: Default::default(),
             }),
-            multisample: Default::default(),
+            multisample: wgpu::MultisampleState {
+                count: surface.samples,
+                ..Default::default()
+            },
             multiview_mask: None,
             cache: None,
         })
@@ -174,8 +261,23 @@ pub fn depth_pipeline(
                 stencil: Default::default(),
                 bias: DEPTH_BIAS,
             }),
+            // The sun's map is one sample a texel: nobody looks at it, and a
+            // shadow test reads a depth rather than an edge.
             multisample: Default::default(),
             multiview_mask: None,
             cache: None,
         })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{samples, MULTISAMPLE};
+
+    #[test]
+    fn a_target_that_will_not_multisample_takes_the_whole_frame_down_to_one_sample() {
+        assert_eq!(samples(true, true), MULTISAMPLE);
+        assert_eq!(samples(false, true), 1);
+        assert_eq!(samples(true, false), 1);
+        assert_eq!(samples(false, false), 1);
+    }
 }

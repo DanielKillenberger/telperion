@@ -8,8 +8,8 @@ use telperion_core::{
     presets::Preset,
 };
 use telperion_render::{
-    attachment, hero_pose, judge, measure, measure_orbit, Hardware, Renderer, Report, Verdict,
-    CONTENTION_RATIO, DEPTH_FORMAT, GROUND_REACH, STILL_FORMAT,
+    hero_pose, judge, measure, measure_orbit, Frame, Hardware, Renderer, Report, Verdict,
+    CONTENTION_RATIO, GROUND_REACH, MULTISAMPLE, STILL_FORMAT,
 };
 
 fn hardware() -> Hardware {
@@ -72,6 +72,7 @@ fn a_valid_record_carries_its_numbers_and_an_invalid_one_carries_none() {
         "\"verdict\": \"valid\"",
         "\"p50_ms\"",
         "\"p95_ms\"",
+        "\"multisample\": 1",
     ] {
         assert!(
             json.contains(field),
@@ -90,9 +91,10 @@ fn a_valid_record_carries_its_numbers_and_an_invalid_one_carries_none() {
     let mut wild = steady();
     wild[0] = f64::INFINITY;
     for invalid in [
-        Report::unavailable(hardware(), "the adapter does not offer timestamp queries"),
-        Report::measured(hardware(), &wild),
-        Report::measured(hardware(), &[]),
+        Report::unavailable(hardware(), "the adapter does not offer timestamp queries")
+            .with_multisample(MULTISAMPLE),
+        Report::measured(hardware(), &wild).with_multisample(MULTISAMPLE),
+        Report::measured(hardware(), &[]).with_multisample(MULTISAMPLE),
     ] {
         assert_eq!(invalid.p50_ms(), None, "{:?}", invalid.verdict());
         assert_eq!(invalid.p95_ms(), None, "{:?}", invalid.verdict());
@@ -105,6 +107,14 @@ fn a_valid_record_carries_its_numbers_and_an_invalid_one_carries_none() {
         assert!(
             invalid.verdict().reason().is_some() && json.contains("\"reason\""),
             "a {} record does not say why:\n{json}",
+            invalid.verdict().name()
+        );
+        // The count is what the frames were drawn at rather than something
+        // they earned, so a record with no number in it still states it.
+        assert_eq!(invalid.multisample(), MULTISAMPLE);
+        assert!(
+            json.contains(&format!("\"multisample\": {MULTISAMPLE}")),
+            "a {} record does not say what it was drawn at:\n{json}",
             invalid.verdict().name()
         );
     }
@@ -269,18 +279,20 @@ fn a_session_on_a_device_never_reports_a_percentile_it_did_not_earn() {
         aspect,
         GROUND_REACH,
     );
-    let colour = attachment(renderer.gpu(), "timing", STILL_FORMAT, size);
-    let depth = attachment(renderer.gpu(), "timing depth", DEPTH_FORMAT, size);
-    let report = measure(
-        &mut renderer,
-        &camera,
-        size,
-        &colour.create_view(&Default::default()),
-        &depth.create_view(&Default::default()),
-    )
-    .expect("the session ran");
+    let frame = Frame::new(&renderer, "timing", size);
+    let report = measure(&mut renderer, &camera, size, frame.target()).expect("the session ran");
 
     println!("{}", report.to_json());
+    // Whatever the verdict, the record says what the frames were drawn at, and
+    // it is what the renderer actually drew them at.
+    assert_eq!(report.multisample(), renderer.samples());
+    assert!(
+        report
+            .to_json()
+            .contains(&format!("\"multisample\": {}", renderer.samples())),
+        "the record does not state the sample count: {}",
+        report.to_json()
+    );
     assert_eq!(
         report.verdict().is_valid(),
         report.p50_ms().is_some(),
@@ -314,16 +326,10 @@ fn a_device_session_times_the_selection_pass_and_counts_what_it_chose() {
         f64::from(size.0) / f64::from(size.1),
         GROUND_REACH,
     );
-    let colour = attachment(renderer.gpu(), "timing", STILL_FORMAT, size);
-    let depth = attachment(renderer.gpu(), "timing depth", DEPTH_FORMAT, size);
-    let (colour, depth) = (
-        colour.create_view(&Default::default()),
-        depth.create_view(&Default::default()),
-    );
-
-    let still = measure(&mut renderer, &camera, size, &colour, &depth).expect("the session ran");
+    let frame = Frame::new(&renderer, "timing", size);
+    let still = measure(&mut renderer, &camera, size, frame.target()).expect("the session ran");
     let turning =
-        measure_orbit(&mut renderer, &camera, size, &colour, &depth).expect("the session ran");
+        measure_orbit(&mut renderer, &camera, size, frame.target()).expect("the session ran");
     println!("{}\n{}", still.to_json(), turning.to_json());
 
     if still.verdict().is_valid() {

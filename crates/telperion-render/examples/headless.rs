@@ -15,8 +15,8 @@ use telperion_core::{
     presets::{Family, Preset},
 };
 use telperion_render::{
-    attachment, hero_pose, measure, measure_orbit, render, walk_pose, write_png, Camera, Gpu,
-    Level, Renderer, DEPTH_FORMAT, GROUND_REACH, STILL_FORMAT,
+    hero_pose, measure, measure_orbit, render, walk_pose, write_png, Camera, Frame, Gpu, Level,
+    Renderer, GROUND_REACH, STILL_FORMAT,
 };
 
 use walk::{Arguments, Schedule, FPS};
@@ -66,11 +66,12 @@ fn run() -> Result<(), String> {
     }
 
     println!(
-        "{} {}x{} on {adapter}: {} wood vertices, {} wood triangles, \
+        "{} {}x{} on {adapter} at {} samples a pixel: {} wood vertices, {} wood triangles, \
          {} foliage instances; {} triangles and {} instances drawn in {} calls",
         arguments.out.display(),
         width,
         height,
+        renderer.samples(),
         submitted.wood_vertices,
         submitted.wood_triangles,
         submitted.foliage_instances,
@@ -263,14 +264,9 @@ fn time(
     size: (u32, u32),
     orbit: bool,
 ) -> Result<telperion_render::Report, String> {
-    let colour = attachment(renderer.gpu(), "timing", STILL_FORMAT, size);
-    let depth = attachment(renderer.gpu(), "timing depth", DEPTH_FORMAT, size);
-    let (colour, depth) = (
-        colour.create_view(&Default::default()),
-        depth.create_view(&Default::default()),
-    );
+    let frame = Frame::new(renderer, "timing", size);
     let session = if orbit { measure_orbit } else { measure };
-    session(renderer, camera, size, &colour, &depth).map_err(|error| error.to_string())
+    session(renderer, camera, size, frame.target()).map_err(|error| error.to_string())
 }
 
 /// The one line a run says about its session: what the passes cost, or why
@@ -283,7 +279,10 @@ fn detail(report: &telperion_render::Report) -> String {
             .unwrap_or("no reason given")
             .to_owned();
     };
-    let mut line = format!("vegetation p50 {median:.3} ms, p95 {tail:.3} ms");
+    let mut line = format!(
+        "{} samples a pixel; vegetation p50 {median:.3} ms, p95 {tail:.3} ms",
+        report.multisample()
+    );
     if let (Some(select), Some(total)) = (report.selection_p50_ms(), report.total_p50_ms()) {
         line += &format!("; selection p50 {select:.3} ms, together p50 {total:.3} ms");
     }

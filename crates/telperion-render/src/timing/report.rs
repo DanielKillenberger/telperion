@@ -46,6 +46,10 @@ pub struct Report {
     pub measured: usize,
     /// Samples actually kept, which is `measured` unless the session stopped.
     pub samples: usize,
+    /// Samples a pixel the frames were drawn at: the multisample count, or one
+    /// where the device would not multisample. Two records are comparable only
+    /// at the same count, so every record carries it, valid or not.
+    multisample: u32,
     verdict: Verdict,
     p50_ms: Option<f64>,
     p95_ms: Option<f64>,
@@ -86,6 +90,14 @@ impl Report {
             verdict: Verdict::Unavailable(reason.into()),
             ..Self::blank(hardware)
         }
+    }
+
+    /// States how many samples a pixel the frames were drawn at. Not a
+    /// measurement and so not judged: it is what the measurement was taken
+    /// under, and an unavailable session states it too.
+    pub fn with_multisample(mut self, multisample: u32) -> Self {
+        self.multisample = multisample;
+        self
     }
 
     /// Adds what the other two passes of a frame cost - the selection pass and
@@ -164,6 +176,7 @@ impl Report {
             warmup: WARMUP,
             measured: MEASURED,
             samples: 0,
+            multisample: 1,
             verdict: Verdict::Valid,
             p50_ms: None,
             p95_ms: None,
@@ -178,6 +191,11 @@ impl Report {
 
     pub fn verdict(&self) -> &Verdict {
         &self.verdict
+    }
+
+    /// How many samples a pixel the measured frames carried.
+    pub fn multisample(&self) -> u32 {
+        self.multisample
     }
 
     /// The median measured vegetation pass, milliseconds, on a valid session
@@ -266,6 +284,9 @@ impl Report {
         if !self.levels.is_empty() {
             fields.push(format!("\"levels\": [\n    {}\n  ]", self.levels_json()));
         }
+        // What the frames were drawn at, last: it qualifies every number above
+        // it, and the fields fn-22's records carry keep their own order.
+        fields.push(format!("\"multisample\": {}", self.multisample));
         if let Some([median, tail, worst]) = self.wall {
             fields.push(format!("\"wall_frames\": {}", self.wall_frames));
             fields.push(format!("\"wall_p50_ms\": {median:.4}"));

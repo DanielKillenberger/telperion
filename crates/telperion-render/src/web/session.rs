@@ -45,6 +45,9 @@ async fn collect(
     turning: bool,
 ) -> Result<String, JsError> {
     let hardware = Hardware::from(&borrow(live)?.renderer.gpu().adapter);
+    // What the page drew at qualifies every number below, so it is read once
+    // and put on the record whether the session could be timed or not.
+    let multisample = borrow(live)?.renderer.samples();
     let session = Session::new(borrow(live)?.renderer.gpu());
     for _ in 0..CONDITIONING {
         draw(live, pose(0.0))?;
@@ -55,7 +58,8 @@ async fn collect(
         // No timestamps is not no measurement. The frames still run, and on an
         // orbit the page's own clock is the number the budget is judged on.
         Err(reason) => Report::unavailable(hardware, reason),
-    };
+    }
+    .with_multisample(multisample);
     if !turning {
         return Ok(report.to_json());
     }

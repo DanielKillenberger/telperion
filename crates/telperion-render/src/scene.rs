@@ -7,7 +7,7 @@ use wgpu::util::DeviceExt;
 
 use crate::{
     device::Gpu,
-    pass::{lit_shader, Depth},
+    pass::{lit_shader, Depth, Surface},
     shadow::Light,
     view::View,
 };
@@ -89,11 +89,7 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(
-        gpu: &Gpu,
-        colour_format: wgpu::TextureFormat,
-        shadow: &wgpu::BindGroupLayout,
-    ) -> Self {
+    pub fn new(gpu: &Gpu, surface: Surface, shadow: &wgpu::BindGroupLayout) -> Self {
         let (ground_colour, figure_colour) = (floor(GROUND), fixture(FIGURE));
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
@@ -154,7 +150,7 @@ impl Scene {
             gpu,
             &groups,
             &shader,
-            colour_format,
+            surface,
             &[Some(wgpu::VertexBufferLayout {
                 array_stride: size_of::<Vertex>() as u64,
                 step_mode: wgpu::VertexStepMode::Vertex,
@@ -169,7 +165,7 @@ impl Scene {
             gpu,
             &groups,
             &lit_shader(gpu, "sky", include_str!("shaders/sky.wgsl")),
-            colour_format,
+            surface,
             &[],
             Depth::Behind,
             "sky",

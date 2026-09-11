@@ -85,29 +85,109 @@ fn the_clay_view_draws_the_still_the_room_always_drew() {
     );
     assert_eq!(drawn.rgba.len(), pinned.len());
 
-    // A tolerance rather than an equality: the room must survive the
-    // multisampling that lands on top of it, which moves edge pixels and
-    // nothing else. What it may not survive is a material, a sun or a tone map
-    // leaking into the one view that exists to have none of them.
-    let (sum, far) = drawn
+    // A tolerance rather than an equality, and it is spent where the samples
+    // land. Multisampling resolves the silhouette of every twig and leaf and
+    // touches nothing that is not a silhouette, so the room is judged in two
+    // halves: the paint has to be the paint fn-24 drew, and the picture as a
+    // whole only has to stay near it.
+    let channels = pinned.len() as f64;
+    let sum: u64 = drawn
         .rgba
         .iter()
         .zip(&pinned)
         .map(|(a, b)| u64::from(a.abs_diff(*b)))
-        .fold((0u64, 0u64), |(sum, far), d| {
-            (sum + d, far + u64::from(d > 24))
-        });
-    let channels = pinned.len() as f64;
-    let (mean, share) = (sum as f64 / channels, far as f64 / channels);
+        .sum();
+    let moved = drawn
+        .rgba
+        .iter()
+        .zip(&pinned)
+        .filter(|(a, b)| a != b)
+        .count() as f64;
+    let flat = flat_drift(&drawn.rgba, &pinned, PINNED_SIZE);
+
+    // The flat picture: every colour channel the pinned still paints the same
+    // as its neighbours, where no sample of an edge ever lands. A material, a
+    // sun or a tone map leaking into the one view that exists to have none of
+    // them would move exactly this, and antialiasing cannot.
     assert!(
-        mean < 1.0,
-        "the clay room drifted: mean channel error {mean}"
+        flat.mean() < 0.1,
+        "the clay room's paint drifted: mean channel error {} over {} flat channels",
+        flat.mean(),
+        flat.channels
     );
     assert!(
-        share < 0.005,
-        "{:.3}% of channels are far out",
-        share * 100.0
+        flat.far_share() < 0.002,
+        "{:.4}% of the room's flat channels moved more than four",
+        flat.far_share() * 100.0
     );
+    // And the silhouette, which may move and only so far: an edge is a small
+    // part of a picture however finely a tree is drawn.
+    assert!(
+        sum as f64 / channels < 2.0,
+        "the clay room drifted: mean channel error {}",
+        sum as f64 / channels
+    );
+    assert!(
+        moved / channels < 0.08,
+        "{:.2}% of channels moved: more of the room than its edges changed",
+        moved / channels * 100.0
+    );
+}
+
+/// How far the flat paint of a pinned still moved. Flat is the pinned still's
+/// own word: a colour channel whose eight neighbours are all within two of it,
+/// which is paint rather than a silhouette.
+struct Drift {
+    channels: u64,
+    sum: u64,
+    far: u64,
+}
+
+impl Drift {
+    fn mean(&self) -> f64 {
+        self.sum as f64 / self.channels as f64
+    }
+
+    fn far_share(&self) -> f64 {
+        self.far as f64 / self.channels as f64
+    }
+}
+
+fn flat_drift(drawn: &[u8], pinned: &[u8], (width, height): (u32, u32)) -> Drift {
+    let (w, h) = (width as usize, height as usize);
+    let channel = |pixels: &[u8], x: usize, y: usize, c: usize| pixels[(y * w + x) * 4 + c];
+    let mut drift = Drift {
+        channels: 0,
+        sum: 0,
+        far: 0,
+    };
+    for y in 1..h - 1 {
+        for x in 1..w - 1 {
+            for c in 0..3 {
+                let here = i32::from(channel(pinned, x, y, c));
+                let flat = (-1..=1).all(|dy: i32| {
+                    (-1..=1).all(|dx: i32| {
+                        let (nx, ny) = ((x as i32 + dx) as usize, (y as i32 + dy) as usize);
+                        (i32::from(channel(pinned, nx, ny, c)) - here).abs() <= 2
+                    })
+                });
+                if !flat {
+                    continue;
+                }
+                let moved = u64::from(channel(drawn, x, y, c).abs_diff(channel(pinned, x, y, c)));
+                drift.channels += 1;
+                drift.sum += moved;
+                drift.far += u64::from(moved > 4);
+            }
+        }
+    }
+    assert!(
+        drift.channels > (w * h * 3) as u64 / 2,
+        "only {} of {} channels of the pinned still are flat paint: the mask is wrong",
+        drift.channels,
+        w * h * 3
+    );
+    drift
 }
 
 #[test]
@@ -130,11 +210,16 @@ fn every_leaf_takes_its_own_offset_inside_the_row_s_ranges() {
     let mut stage = Stage::new(gpu, View::Whole, (400, 300));
     let open = stage.under(varied);
     let closed = stage.under(flat);
+    // Two rather than four: a leaf of the crown is a fraction of a pixel
+    // across at this size, and multisampling resolves its own offset together
+    // with whatever it stands in front of. Both frames are drawn the same way
+    // from the same seed, so every difference left is a leaf's own and none of
+    // it is noise.
     let moved = open
         .rgba
         .iter()
         .zip(&closed.rgba)
-        .filter(|(a, b)| a.abs_diff(**b) > 4)
+        .filter(|(a, b)| a.abs_diff(**b) > 2)
         .count();
     assert!(
         moved > open.rgba.len() / 500,
@@ -143,8 +228,26 @@ fn every_leaf_takes_its_own_offset_inside_the_row_s_ranges() {
     );
 
     // The offset is the leaf's own identity and not the draw's, so one tree
-    // under one row is one picture however often it is asked for.
-    assert_eq!(closed.rgba, stage.draw().rgba, "one tree drew two crowns");
+    // under one row is one picture however often it is asked for. Near enough
+    // to identical rather than identical: the crown's placements come out of
+    // the selection pass in whatever order its atomics gave them, and where
+    // two leaves tie on depth, one sample of four may land either way. What a
+    // per-draw offset would look like is the comparison above, which moved
+    // thousands of channels; this moves a handful of edge pixels by a few.
+    let again = stage.draw();
+    let (redrawn, worst) = closed
+        .rgba
+        .iter()
+        .zip(&again.rgba)
+        .map(|(a, b)| u32::from(a.abs_diff(*b)))
+        .fold((0u64, 0u32), |(count, worst), d| {
+            (count + u64::from(d > 0), worst.max(d))
+        });
+    assert!(
+        redrawn * 10_000 < closed.rgba.len() as u64 && worst <= 16,
+        "one tree drew two crowns: {redrawn} of {} channels moved, worst {worst}",
+        closed.rgba.len()
+    );
 }
 
 #[test]

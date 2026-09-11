@@ -11,7 +11,8 @@ use telperion_core::{
     rng::Rng,
 };
 use telperion_render::{
-    hero_pose, render, FrameStats, RenderError, Renderer, Submitted, GROUND_REACH, STILL_FORMAT,
+    hero_pose, render, FrameStats, RenderError, Renderer, Submitted, DEPTH_FORMAT, GROUND_REACH,
+    MULTISAMPLE, STILL_FORMAT,
 };
 
 mod common;
@@ -182,6 +183,38 @@ fn a_set_the_generator_will_not_have_says_which_parameter() {
             "the refusal does not name {parameter}: {error}"
         );
     }
+}
+
+#[test]
+fn a_frame_is_drawn_at_the_count_the_device_offers_and_read_back_resolved() {
+    let Some(gpu) = gpu() else { return };
+    // The rule the renderer applies, restated from the outside: four samples
+    // where the device takes them on the colour target and the depth beside
+    // it, and one sample where either will not.
+    let offered = gpu.supports_samples(STILL_FORMAT, MULTISAMPLE)
+        && gpu.supports_samples(DEPTH_FORMAT, MULTISAMPLE);
+    let wanted = if offered { MULTISAMPLE } else { 1 };
+
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    assert_eq!(
+        renderer.samples(),
+        wanted,
+        "the renderer draws at a count the device did not offer"
+    );
+    let family = params::by_identity("ordinary").expect("the catalogue has a family");
+    let tree = mesh::build(&family, Detail::Full).expect("the core built the tree");
+    renderer.submit(&tree).expect("the tree fits the device");
+    renderer.set_material(family.material);
+    let camera = hero_pose(tree.bounds, 1.0, GROUND_REACH);
+
+    // What comes back is the picture, not the samples behind it: a
+    // multisampled frame that never resolved reads back as flat background,
+    // because nothing is ever drawn into the texture the readback copies.
+    let still = render(&mut renderer, &camera, 256, 256).expect("the frame was drawn");
+    assert!(
+        still.has_subject(),
+        "the still is one flat colour: the frame was not resolved into it"
+    );
 }
 
 #[test]

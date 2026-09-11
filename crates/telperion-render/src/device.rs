@@ -213,6 +213,17 @@ impl Gpu {
         Ok(config)
     }
 
+    /// Whether this adapter renders this format at this many samples per
+    /// pixel. Asked of the adapter rather than assumed: multisampling is
+    /// optional per format, and a device without it draws the same picture
+    /// with harder edges.
+    pub fn supports_samples(&self, format: wgpu::TextureFormat, samples: u32) -> bool {
+        self.source
+            .get_texture_format_features(format)
+            .flags
+            .sample_count_supported(samples)
+    }
+
     /// The device-lost error if the device has gone away, checked after a poll.
     pub fn lost(&self) -> Option<RenderError> {
         let reason = self.lost.lock().ok()?.clone()?;

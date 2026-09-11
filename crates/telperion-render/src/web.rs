@@ -17,7 +17,9 @@ use web_sys::HtmlCanvasElement;
 
 use crate::{
     device::{Gpu, RenderError, Result},
-    hero_pose, Camera, FrameStats, Renderer, SceneRow, Submitted, Timed, View, DEPTH_FORMAT,
+    hero_pose,
+    pass::attachment,
+    Camera, FrameStats, Renderer, SceneRow, Submitted, Target, Timed, View, DEPTH_FORMAT,
     GROUND_REACH,
 };
 
@@ -39,6 +41,10 @@ const EMPTY: Bounds = Bounds {
 struct Live {
     surface: wgpu::Surface<'static>,
     config: wgpu::SurfaceConfiguration,
+    /// The multisampled colour attachment the passes write, where the device
+    /// multisamples at all; the canvas's own texture is what it resolves into.
+    /// At one sample there is none and the canvas is drawn into directly.
+    colour: Option<wgpu::TextureView>,
     depth: wgpu::TextureView,
     renderer: Renderer,
     camera: Camera,
@@ -52,12 +58,13 @@ impl Live {
         let surface = gpu.create_surface(wgpu::SurfaceTarget::Canvas(canvas))?;
         let config = gpu.surface_config(&surface, width, height)?;
         surface.configure(&gpu.device, &config);
-        let depth = depth_view(&gpu, width, height);
         let camera = hero_pose(EMPTY, aspect(&config), GROUND_REACH);
         let renderer = Renderer::new(gpu, config.format);
+        let (colour, depth) = attachments(&renderer, width, height);
         Ok(Self {
             surface,
             config,
+            colour,
             depth,
             renderer,
             camera,
@@ -76,7 +83,7 @@ impl Live {
         // drawn and presented inside `draw`, and never held across a call.
         self.surface
             .configure(&self.renderer.gpu().device, &self.config);
-        self.depth = depth_view(self.renderer.gpu(), width, height);
+        (self.colour, self.depth) = attachments(&self.renderer, width, height);
     }
 
     /// Draws one frame onto the canvas at the pose the camera is at. A timed
@@ -84,14 +91,26 @@ impl Live {
     /// left unwritten.
     fn draw(&mut self, timed: Option<Timed<'_>>) -> Result<()> {
         let frame = self.texture()?;
-        let colour = frame.texture.create_view(&Default::default());
+        let canvas = frame.texture.create_view(&Default::default());
+        // The canvas takes one sample a pixel either way: it is what the
+        // multisampled attachment resolves into, or, where there is none, the
+        // attachment itself.
+        let target = match &self.colour {
+            Some(colour) => Target {
+                colour,
+                depth: &self.depth,
+                resolve: Some(&canvas),
+            },
+            None => Target {
+                colour: &canvas,
+                depth: &self.depth,
+                resolve: None,
+            },
+        };
         let size = (self.config.width, self.config.height);
         self.stats = match timed {
-            Some(timed) => {
-                self.renderer
-                    .draw_timed(&self.camera, size, &colour, &self.depth, timed)
-            }
-            None => self.renderer.draw(&self.camera, size, &colour, &self.depth),
+            Some(timed) => self.renderer.draw_timed(&self.camera, size, target, timed),
+            None => self.renderer.draw(&self.camera, size, target),
         };
         self.renderer.gpu().queue.present(frame);
         Ok(())
@@ -132,23 +151,33 @@ fn aspect(config: &wgpu::SurfaceConfiguration) -> f64 {
     f64::from(config.width) / f64::from(config.height)
 }
 
-fn depth_view(gpu: &Gpu, width: u32, height: u32) -> wgpu::TextureView {
-    gpu.device
-        .create_texture(&wgpu::TextureDescriptor {
-            label: Some("canvas depth"),
-            size: wgpu::Extent3d {
-                width,
-                height,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: DEPTH_FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        })
-        .create_view(&Default::default())
+/// What a canvas of this size is drawn through: the colour attachment where
+/// the device multisamples, and the depth beside it, both at the renderer's own
+/// sample count. The canvas texture is acquired per frame and so is not here.
+fn attachments(
+    renderer: &Renderer,
+    width: u32,
+    height: u32,
+) -> (Option<wgpu::TextureView>, wgpu::TextureView) {
+    let (gpu, samples) = (renderer.gpu(), renderer.samples());
+    let view = |texture: wgpu::Texture| texture.create_view(&Default::default());
+    let colour = (samples > 1).then(|| {
+        view(attachment(
+            gpu,
+            "canvas colour",
+            renderer.colour_format(),
+            (width, height),
+            samples,
+        ))
+    });
+    let depth = view(attachment(
+        gpu,
+        "canvas depth",
+        DEPTH_FORMAT,
+        (width, height),
+        samples,
+    ));
+    (colour, depth)
 }
 
 /// One canvas's renderer, as the page holds it. Every method that can fail

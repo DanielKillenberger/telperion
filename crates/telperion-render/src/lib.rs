@@ -35,12 +35,13 @@ pub use view::View;
 pub use web::WebRenderer;
 
 #[cfg(not(target_arch = "wasm32"))]
-pub use headless::{attachment, render, write_png, Still, STILL_FORMAT};
+pub use headless::{render, write_png, Frame, Still, STILL_FORMAT};
 #[cfg(not(target_arch = "wasm32"))]
 pub use timing::{orbit as measure_orbit, run as measure};
 
 use pass::{aspect_of, pass};
-pub(crate) use pass::{depth_pipeline, pipeline};
+pub(crate) use pass::{depth_pipeline, pipeline, Surface};
+pub use pass::{Target, MULTISAMPLE};
 use telperion_core::{material::MaterialParams, mesh::TreeMesh, surface::Bounds};
 
 /// What one frame cost, in the terms a reader of a timing record needs.
@@ -89,17 +90,29 @@ pub struct Renderer {
     /// the core built them. Kept here because a timing record names each
     /// level by the error it accepts, not by its position in the ladder.
     level_deviations: Vec<f64>,
-    colour_format: wgpu::TextureFormat,
+    /// What this renderer's pipelines were built to draw into, and so what its
+    /// caller has to make its targets as.
+    surface: Surface,
 }
 
 impl Renderer {
     /// Builds the room on an existing device. The colour format is the target's:
     /// an offscreen texture natively, the configured surface in a browser.
     pub fn new(gpu: Gpu, colour_format: wgpu::TextureFormat) -> Self {
+        // Asked of the device once, here, because every pipeline below has to
+        // be built at the count the frame will be drawn at, and the frame's
+        // targets made at the same one.
+        let surface = Surface {
+            format: colour_format,
+            samples: pass::samples(
+                gpu.supports_samples(colour_format, MULTISAMPLE),
+                gpu.supports_samples(DEPTH_FORMAT, MULTISAMPLE),
+            ),
+        };
         let shadow = shadow::Shadow::new(&gpu);
-        let scene = scene::Scene::new(&gpu, colour_format, shadow.layout());
-        let wood = wood::Wood::new(&gpu, scene.layout(), &shadow, colour_format);
-        let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, colour_format);
+        let scene = scene::Scene::new(&gpu, surface, shadow.layout());
+        let wood = wood::Wood::new(&gpu, scene.layout(), &shadow, surface);
+        let foliage = foliage::Foliage::new(&gpu, scene.layout(), &shadow, surface);
         Self {
             gpu,
             scene,
@@ -109,7 +122,7 @@ impl Renderer {
             view: View::default(),
             bounds: None,
             level_deviations: Vec::new(),
-            colour_format,
+            surface,
         }
     }
 
@@ -118,7 +131,15 @@ impl Renderer {
     }
 
     pub fn colour_format(&self) -> wgpu::TextureFormat {
-        self.colour_format
+        self.surface.format
+    }
+
+    /// How many samples a pixel of this renderer's frames carries: the
+    /// multisample count on a device that offers it, and one where it does not.
+    /// A caller makes its targets at this count, and a record says which it
+    /// was measured at.
+    pub fn samples(&self) -> u32 {
+        self.surface.samples
     }
 
     /// Uploads one tree in place from the core's arrays and stands the scale
@@ -226,18 +247,17 @@ impl Renderer {
         self.shadow.depths(&self.gpu)
     }
 
-    /// Draws one frame into the given colour and depth views, at the size in
-    /// pixels those views were taken at: the crown's levels are chosen first,
+    /// Draws one frame into the given targets, at the size in pixels they were
+    /// made at: the crown's levels are chosen first,
     /// then the sun's depth map, then the room, then the vegetation in a pass
     /// of its own.
     pub fn draw(
         &mut self,
         camera: &Camera,
         viewport: (u32, u32),
-        colour: &wgpu::TextureView,
-        depth: &wgpu::TextureView,
+        target: Target<'_>,
     ) -> FrameStats {
-        self.draw_with(camera, viewport, colour, depth, None)
+        self.draw_with(camera, viewport, target, None)
     }
 
     /// The same frame with a pair around each of the three passes the tree
@@ -248,11 +268,10 @@ impl Renderer {
         &mut self,
         camera: &Camera,
         viewport: (u32, u32),
-        colour: &wgpu::TextureView,
-        depth: &wgpu::TextureView,
+        target: Target<'_>,
         timed: Timed<'_>,
     ) -> FrameStats {
-        self.draw_with(camera, viewport, colour, depth, Some(timed))
+        self.draw_with(camera, viewport, target, Some(timed))
     }
 
     /// The statistics are the picture's: the room and the vegetation. The
@@ -262,8 +281,7 @@ impl Renderer {
         &mut self,
         camera: &Camera,
         viewport: (u32, u32),
-        colour: &wgpu::TextureView,
-        depth: &wgpu::TextureView,
+        target: Target<'_>,
         timed: Option<Timed<'_>>,
     ) -> FrameStats {
         let light = shadow::light(self.scene.row(), self.bounds());
@@ -308,11 +326,13 @@ impl Renderer {
             }
         }
         let room = {
+            // The room clears the targets and the vegetation draws into them
+            // after it, so the samples stay where they are until the last pass
+            // over them resolves.
             let mut pass = pass(
                 &mut encoder,
                 "room",
-                colour,
-                depth,
+                target.kept(),
                 Some(self.scene.background(self.view)),
                 None,
             );
@@ -326,14 +346,9 @@ impl Renderer {
             }
         };
         let vegetation = {
-            let mut pass = pass(
-                &mut encoder,
-                "vegetation",
-                colour,
-                depth,
-                None,
-                vegetation_writes,
-            );
+            // The last pass of the frame, and so the one that resolves the
+            // samples into the picture a reader gets.
+            let mut pass = pass(&mut encoder, "vegetation", target, None, vegetation_writes);
             self.scene.bind(&mut pass);
             self.shadow.bind(&mut pass);
             match self.view {

@@ -89,7 +89,7 @@ impl Foliage {
         gpu: &Gpu,
         layout: &wgpu::BindGroupLayout,
         shadow: &crate::shadow::Shadow,
-        colour_format: wgpu::TextureFormat,
+        surface: crate::pass::Surface,
     ) -> Self {
         let shader = crate::pass::lit_shader(gpu, "foliage", include_str!("shaders/foliage.wgsl"));
         let vertex = |attributes, floats: u64| {
@@ -109,7 +109,7 @@ impl Foliage {
                     Some(shadow.layout()),
                 ],
                 &shader,
-                colour_format,
+                surface,
                 &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
                 crate::pass::Depth::Surface,
                 "foliage",
