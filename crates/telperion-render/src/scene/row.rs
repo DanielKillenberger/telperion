@@ -192,9 +192,11 @@ mod tests {
 
     #[test]
     fn the_row_survives_its_own_json_in_both_directions() {
-        let mut row = SceneRow::default();
-        row.sun_azimuth = 12.5;
-        row.ground_green = 0.4;
+        let row = SceneRow {
+            sun_azimuth: 12.5,
+            ground_green: 0.4,
+            ..Default::default()
+        };
         assert_eq!(SceneRow::parse(&row.to_json()).unwrap(), row);
         // A set that names two fields moves two and leaves the rest alone.
         let partial = SceneRow::parse(r#"{"sunElevation":20.0,"skyZenithRed":0.4}"#).unwrap();

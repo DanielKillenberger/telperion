@@ -123,7 +123,9 @@ mod tests {
         // One field at a time, so the name in the refusal is the only name it
         // could have come from. Every field is covered: a row that grew a
         // field without a bound would fail the count below.
-        let refusals: [(fn(&mut MaterialParams), &str); 15] = [
+        // One field put off its range, and the name the refusal must carry.
+        type Refusal = (fn(&mut MaterialParams), &'static str);
+        let refusals: [Refusal; 15] = [
             (|m| m.bark_red = 1.5, "bark red"),
             (|m| m.bark_green = -0.1, "bark green"),
             (|m| m.bark_blue = f64::NAN, "bark blue"),
