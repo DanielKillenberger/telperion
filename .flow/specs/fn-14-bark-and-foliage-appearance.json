@@ -9,7 +9,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-14-bark-and-foliage-appearance.md",
-  "status": "open",
+  "status": "done",
   "title": "Bark and foliage appearance",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T22:26:22.925146Z"
+  "updated_at": "2026-09-11T12:24:09.702500Z"
 }
