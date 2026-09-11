@@ -1,6 +1,9 @@
-//! One tree, one clay room, one GPU. The renderer takes the core's mesh and
-//! draws it; it knows nothing about which tree it is or where the parameters
-//! came from.
+//! One tree, one sun, one GPU. The renderer takes the core's mesh, the
+//! material row that colours it and the scene row it stands under, and draws
+//! it outdoors: sky, sun, one shadow map and a tone map at the end. The clay
+//! room it used to be is one of the four views it offers, kept for judging
+//! geometry with nothing over it. It knows nothing about which tree it is or
+//! where the parameters came from.
 mod buffer;
 mod camera;
 mod device;

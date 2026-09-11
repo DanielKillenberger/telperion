@@ -1,6 +1,8 @@
-//! The clay room: neutral ground, neutral background, one hemisphere of light
-//! and a 1.8 m figure at the roots. Nothing here colours the tree; the warm and
-//! cool split is between the subject and everything that is not the subject.
+//! Everything the subject stands in: the ground it stands on, the sky behind
+//! it, the sun that lights both, and a 1.8 m figure at the roots for scale.
+//! The colours are the scene row's, not this file's - what is left here are
+//! the neutral values the clay view falls back to, the room this was before
+//! there was any weather in it.
 use bytemuck::{Pod, Zeroable};
 use telperion_core::{material::MaterialParams, math::Vec3, surface::Bounds};
 use wgpu::util::DeviceExt;

@@ -145,6 +145,43 @@ Depends on Real-species profiles and procedural templates. Geometry and foliage 
 - fn-9 froze a botanical reference manifest with six inspected OSU photographs and their retrieval command (`.flow/evidence/fn9/REFERENCES.md`); the original downloads under `.refs/fn9/` are ignored and currently absent from disk, so the judging task re-fetches them.
 - Planning found the surface builder computing distance along the axis and angle around it per vertex and discarding both (`crates/telperion-core/src/surface.rs:230-248`), the level list handing the leaf shader its placement index (`foliage.wgsl:28-32`), the foliage bounds computed at submit (`crates/telperion-core/src/foliage.rs:71-79`), one shared pipeline helper with a fixed depth format and no multisampling (`crates/telperion-render/src/lib.rs:320-366`), and a timing session with two timestamp pairs in a query set of four (`crates/telperion-render/src/timing.rs:128-172`).
 
+## Owner verdict
+
+R11 is the owner's judgment of the lit oak and the lit spruce, recorded here in
+the owner's own words. Compare `.flow/evidence/fn14/oregon-white-oak-hero.png`
+with the photograph `.refs/fn9/quga788B.jpg` (O-WHOLE, OSU Landscape Plants,
+SHA-256 `01bed8875ac98d92926404ad1dfd967a319509ad4f735731064ba2b1452407a4`), and
+`.flow/evidence/fn14/norway-spruce-hero.png` with `.refs/fn9/piab977.jpg`
+(S-WHOLE, OSU Landscape Plants, SHA-256
+`49df5c91efafdf76d356a21a0adcac6c1d1d93cb6d86ca5cc889317cb5b8ec90`). Both
+stills are seed 7, whole view, hero pose, 1600 by 1000, the default scene row,
+four samples a pixel, on the RTX 3080, which is fn-24's framing on the same two
+specimens; fn-24's own stills are the unlit sides of the pair. The question is
+whether each tree reads as its species under light, at the trunk and crown
+scales only. The close-up scales are fn-26's. `.flow/evidence/fn14/REPORT.md`
+carries the measured aids, the sources and the checksums. The spec closes only
+on two accepting verdicts, and a rejecting verdict stops the spec with the
+owner's words and a one-paragraph blocker.
+
+Separately from these two: the same report records the oak's native frame at a
+total p50 of 4.9487 ms against R12's 3.8 ms bound, valid session, with the
+browser orbit inside its bounds at a wall p95 of 10.10 ms and a worst frame of
+10.20 ms. That stop is a number, not a verdict, and neither slot below clears
+it. The lever the report names is a coarse wood caster for the sun's depth pass,
+which draws the full-resolution wood today and costs 1.813 ms of the 4.949.
+
+### Oregon white oak, hero pose, lit
+
+> _verdict (owner, ):_
+
+### Norway spruce, hero pose, lit
+
+> _verdict (owner, ):_
+
+### The frame number, R12
+
+> _owner decision (owner, ):_
+
 ## References
 
 - fn-24 spec and `.flow/evidence/fn24/`, the frame numbers this spec's R12 sits beside and the report shape it follows.
