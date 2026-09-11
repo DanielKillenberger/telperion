@@ -62,6 +62,13 @@ JPEG. Copyright is OSU's and reuse rights were not inferred from download
 access, as fn-9 required. The four close-up references, O-BARE, O-LEAF, S-BRANCH
 and S-NEEDLE, were not fetched: the close-up scales are fn-26's to judge.
 
+The two photographs, read from the ignored directory; they render only where
+`.refs/fn9/` has been fetched.
+
+![O-WHOLE, Quercus garryana](../../../.refs/fn9/quga788B.jpg)
+
+![S-WHOLE, Picea abies](../../../.refs/fn9/piab977.jpg)
+
 ## The stills
 
 `./target/release/examples/headless --preset <id> --seed 7 --size 1600x1000
@@ -80,6 +87,18 @@ lay over fn-24's
 [oak](../fn24/oregon-white-oak-hero.png) and [spruce](../fn24/norway-spruce-hero.png)
 at the same preset, seed, view, pose, size and machine, so the pair is the light
 and nothing else.
+
+![Oregon white oak, hero pose, lit](oregon-white-oak-hero.png)
+
+![Norway spruce, hero pose, lit](norway-spruce-hero.png)
+
+![Oregon white oak, clay view](oregon-white-oak-clay.png)
+
+fn-24's unlit sides of the pair:
+
+![Oregon white oak, fn-24 clay hero](../fn24/oregon-white-oak-hero.png)
+
+![Norway spruce, fn-24 clay hero](../fn24/norway-spruce-hero.png)
 
 **What the pixels say about the clay view, as an aid and not as a verdict.** The
 neutral room is the one place where this spec is supposed to have changed
