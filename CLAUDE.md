@@ -11,11 +11,11 @@ A runtime tree generator: space colonization for the crown, botanical rules belo
      model. A model this harness cannot reach falls back to the session model
      with one note. -->
 
-implementer: claude-opus-5
+implementer: gpt-6-astra at high
 reviewer-note: host session checks diffs directly; no review backend
 reviewer: claude-fable-5-1
 
-Owner routing (2026-09-08, while the Astra quota is exhausted): dispatch Claude Opus for all implementation; the host Fable session checks each diff itself and no cross-model review backend runs. Before that (2026-09-07): gpt-6-astra at low for all implementation, including core generator/renderer logic and measurement, capture, diagnostic and other technical harness work. Do not dispatch Grok. Generator parameters are primary; templates are reusable parameter presets, and supported parameter changes must require no renderer code changes.
+Owner routing (2026-09-12, Astra quota back): dispatch Codex gpt-6-astra at high effort for all implementation through a shell-out to the codex CLI from the task's workspace; the host Fable session checks each diff itself and no cross-model review backend runs. One task per spec: the owner found that splitting a spec into several tasks lowers the outcome with a strong implementer, so a spec's plan lives in its body and work mints one implicit task. Between 2026-09-08 and 2026-09-11, while the Astra quota was exhausted, Claude Opus implemented; before that (2026-09-07) gpt-6-astra at low. Do not dispatch Grok. Generator parameters are primary; templates are reusable parameter presets, and supported parameter changes must require no renderer code changes.
 
 <!-- The owner's choice (2026-09-05): Codex gpt-6-astra implements at low
      effort. Per-task code review is not wanted: run work with --review=none.
