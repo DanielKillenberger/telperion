@@ -39,10 +39,18 @@ impl Frontier {
         let divergence = t.divergence.to_radians();
         let mut frontier = Vec::new();
         for (i, n) in tree.nodes[..crossover].iter().enumerate().skip(1) {
-            if !self.seeded.insert(n.identity.birth_order())
-                || n.position.y < config.trunk_height
-                || (children[i] != 0 && n.radius >= t.limb_radius * root_radius)
-            {
+            if n.position.y < config.trunk_height {
+                continue;
+            }
+            let terminal = u16::from(children[i] == 0);
+            let laterals = if n.radius < t.limb_radius * root_radius {
+                ((1_u16 << t.laterals) - 1) << 1
+            } else {
+                0
+            };
+            let allocated = self.seeded.entry(n.identity.birth_order()).or_default();
+            let buds = (terminal | laterals) & !*allocated;
+            if buds == 0 {
                 continue;
             }
             let direction =
@@ -50,10 +58,13 @@ impl Frontier {
             if direction.length_squared() == 0.0 {
                 continue;
             }
+            // Terminal and lateral buds become eligible independently as the
+            // scaffold extends and its trunk/branch radius ratio changes.
+            *allocated |= buds;
             let pendant = pendant_floor[i].is_some();
             let length = branch_length(n.radius);
             frontier.push(Shoot {
-                flushed: 0,
+                flushed: !buds,
                 accepted: Vec::new(),
                 at: i,
                 direction,

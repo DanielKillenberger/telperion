@@ -34,7 +34,7 @@ pub(super) use planner::Planner;
 #[derive(Clone, Default)]
 pub(super) struct Frontier {
     queue: std::collections::VecDeque<Shoot>,
-    seeded: std::collections::HashSet<u64>,
+    seeded: std::collections::HashMap<u64, u16>,
 }
 impl Frontier {
     #[cfg(test)]
@@ -84,15 +84,20 @@ impl Frontier {
             .max(1e-6)
             .cos_fixed();
         let twig_radius = t.twig.diameter / 2.0;
-        let budget = if planner.growing_envelope {
-            budget.min(self.queue.len())
+        let visits = if planner.growing_envelope {
+            self.queue.len()
         } else {
             budget
         };
-        for _ in 0..budget {
+        let mut remaining = budget;
+        for _ in 0..visits {
+            if remaining == 0 {
+                break;
+            }
             let Some(mut s) = self.queue.pop_front() else {
                 break;
             };
+            let before = tree.nodes.len();
             let from = s.direction;
             let position = tree.nodes[s.at].position;
             let phase = s.phase + divergence;
@@ -354,9 +359,17 @@ impl Frontier {
                 s.accepted = accepted;
                 self.queue.push_back(s);
             }
+            // A bud waiting for crown expansion consumes no growth unit. Visit
+            // it once this month, then let younger eligible shoots use the work.
+            if !planner.growing_envelope || tree.nodes.len() > before {
+                remaining -= 1;
+            }
         }
         tree.validate_solved()
     }
 }
 mod append;
 pub use append::append;
+
+#[cfg(test)]
+mod monthly_tests;

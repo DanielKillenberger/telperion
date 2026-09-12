@@ -25,6 +25,7 @@ pub fn append(
         tree,
         Planner {
             growing_envelope: false,
+            planning: None,
             config,
             bias,
             twigs: t,

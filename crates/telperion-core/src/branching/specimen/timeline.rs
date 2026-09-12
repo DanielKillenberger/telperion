@@ -170,6 +170,10 @@ impl Specimen {
                 &mut self.tree,
                 local::Planner {
                     growing_envelope: true,
+                    planning: Some(Envelope {
+                        crown_base: self.params.envelope.crown_base * fraction,
+                        ..self.params.envelope
+                    }),
                     config: &config,
                     bias: Some(&bias),
                     twigs,

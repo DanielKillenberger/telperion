@@ -135,6 +135,7 @@ impl Specimen {
                 &mut self.tree,
                 local::Planner {
                     growing_envelope: false,
+                    planning: None,
                     config: &self.config,
                     bias: Some(&self.bias),
                     twigs: self.params.twigs.resolved()?,

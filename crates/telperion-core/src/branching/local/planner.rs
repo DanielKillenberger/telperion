@@ -8,6 +8,7 @@ pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
 }
 pub(in crate::branching) struct Planner<'a> {
     pub(in crate::branching) growing_envelope: bool,
+    pub(in crate::branching) planning: Option<Envelope>,
     pub(in crate::branching) config: &'a GrowthConfig,
     pub(in crate::branching) bias: Option<&'a GrowthBias>,
     pub(in crate::branching) twigs: TwigParams,
@@ -35,6 +36,13 @@ impl Planner<'_> {
         bearing: bool,
         key: u32,
     ) -> Option<Rc<Run>> {
+        // Plan the axis against its authored room. The live boundary is checked
+        // separately for every birth, so a juvenile crown pauses the cached run
+        // rather than permanently truncating it and flushing a terminal early.
+        let config = GrowthConfig {
+            shell: self.planning.or(self.config.shell),
+            ..*self.config
+        };
         let count = internodes.max(if bearing {
             1
         } else {
@@ -68,12 +76,12 @@ impl Planner<'_> {
             };
             heading = self.heading(at, heading, wanted, stride);
             let end = at + heading * stride;
-            if rejected(self.config, end) {
+            if rejected(&config, end) {
                 let mut low = 0.0;
                 let mut high = stride;
                 for _ in 0..40 {
                     let mid = (low + high) / 2.0;
-                    if rejected(self.config, at + heading * mid) {
+                    if rejected(&config, at + heading * mid) {
                         high = mid
                     } else {
                         low = mid

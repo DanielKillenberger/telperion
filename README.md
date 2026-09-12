@@ -75,6 +75,13 @@ and refuses the next advance. `set_node_ceiling` can raise the resource limit
 and resume the same frontier. The curve's final work quantum defines saturation;
 advancing beyond it jumps directly to the requested age.
 
+Monthly scaffold stations release their lateral buds while the parent axis is
+still extending. Boundary pauses leave the growth budget for eligible shoots;
+local terminal and lateral buds retain separate allocation state. Local runs
+plan against the authored room and wait at the current crown before each birth.
+The mature monthly populations still differ substantially from the envelope
+builds; convergence, local thickening and vigour-based shedding remain unfinished.
+
 Integration is incomplete: `branching::generate`, `Specimen::grow`, mesh builds
 and the browser still use the existing full-envelope build. The JSON wire now
 round-trips and validates `age` and `growth` (`rate`, `shape`); those fields

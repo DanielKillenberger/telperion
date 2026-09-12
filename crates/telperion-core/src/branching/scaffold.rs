@@ -298,6 +298,7 @@ impl Builder<'_> {
             let pull = self.pull(position);
             if !self.points.is_empty() && pull.is_none() && position.y >= self.config.trunk_height {
                 if self.growing_envelope {
+                    *budget += 1;
                     axis.completed = k;
                     axis.tip = at;
                     axis.current_heading = heading;
@@ -324,6 +325,7 @@ impl Builder<'_> {
             let stride = unit.min(axis.length - unit * k as f64).max(1e-9);
             let Some(id) = self.edge(at, position + next * stride, axis.order > 0)? else {
                 if self.paused {
+                    *budget += 1;
                     axis.completed = k;
                     axis.tip = at;
                     axis.current_heading = heading;

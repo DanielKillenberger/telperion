@@ -79,9 +79,12 @@ impl Frontier {
             }
             let mut axis = self.queue.pop_front().unwrap();
             b.paused = false;
-            if b.grow(&mut axis, &mut remaining)? {
-                self.queue.extend(axis.children);
-            } else {
+            let finished = b.grow(&mut axis, &mut remaining)?;
+            // Stations already reached bear buds now, even while the parent
+            // waits for the envelope to expand. Children retain their keyed
+            // streams and join the next month's identity-ordered frontier.
+            self.queue.extend(std::mem::take(&mut axis.children));
+            if !finished {
                 self.queue.push_back(axis);
             }
         }
@@ -145,4 +148,64 @@ pub(in crate::branching) fn generate(
         usize::MAX,
     )?;
     Ok(tree)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn monthly_blocked_axes_leave_the_budget_for_live_shoots() {
+        let f = crate::presets::Preset::NorwaySpruce.parameters();
+        let p = &f.skeleton;
+        let config = p.resolved_growth(0).unwrap();
+        let bias = GrowthBias::new(p.envelope, p.seed, p.bias).unwrap();
+        let mut frontier = Frontier::new(p, &config, Vec::new());
+        let mut tree = Tree {
+            nodes: vec![Node::root()],
+            crossover: 1,
+            ..Tree::default()
+        };
+        let spent = frontier
+            .month(&mut tree, p, &config, &bias, 100, 0.1)
+            .unwrap();
+        assert_eq!(
+            spent,
+            tree.nodes.len() - 1,
+            "waiting for the envelope is not growth work"
+        );
+    }
+
+    #[test]
+    fn monthly_laterals_extend_before_the_leader_finishes() {
+        let f = crate::presets::Preset::NorwaySpruce.parameters();
+        let p = &f.skeleton;
+        let config = p.resolved_growth(0).unwrap();
+        let bias = GrowthBias::new(p.envelope, p.seed, p.bias).unwrap();
+        let mut frontier = Frontier::new(p, &config, Vec::new());
+        let mut tree = Tree {
+            nodes: vec![Node::root()],
+            crossover: 1,
+            ..Tree::default()
+        };
+        let config = GrowthConfig {
+            trunk_height: config.trunk_height * 0.5,
+            ..config
+        };
+        for _ in 0..4 {
+            frontier
+                .month(&mut tree, p, &config, &bias, 10_000, 0.5)
+                .unwrap();
+        }
+        assert!(
+            frontier.queue.iter().any(|a| a.order == 0),
+            "leader must still be growing"
+        );
+        assert!(
+            tree.nodes
+                .iter()
+                .any(|n| n.position.x.abs() + n.position.z.abs() > 0.1),
+            "a reached lateral station must grow before the parent axis completes"
+        );
+    }
 }
