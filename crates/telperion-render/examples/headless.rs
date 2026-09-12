@@ -67,7 +67,7 @@ fn run() -> Result<(), String> {
 
     println!(
         "{} {}x{} on {adapter} at {} samples a pixel: {} wood vertices, {} wood triangles, \
-         {} foliage instances; {} triangles and {} instances drawn in {} calls",
+         {} foliage instances; {} triangles and {} instances drawn in {} calls; {} wood caster triangles",
         arguments.out.display(),
         width,
         height,
@@ -78,6 +78,7 @@ fn run() -> Result<(), String> {
         still.stats.triangles,
         still.stats.instances,
         still.stats.draw_calls,
+        renderer.caster_triangles(),
     );
     Ok(())
 }

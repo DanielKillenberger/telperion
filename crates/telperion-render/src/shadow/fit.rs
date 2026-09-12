@@ -24,6 +24,8 @@ pub struct Light {
     /// The direction from the scene towards the sun, unit length, with a
     /// fourth slot the uniform block's alignment wants.
     pub direction: [f32; 4],
+    /// World size of the larger map-texel axis, in metres.
+    pub texel_size: f64,
 }
 
 /// The direction from the scene towards the sun. Azimuth is degrees clockwise
@@ -97,6 +99,10 @@ pub fn light(row: &SceneRow, bounds: Option<Bounds>) -> Light {
     }
     view_projection[15] = 1.0;
     Light {
+        texel_size: (high[0] - low[0])
+            .max(high[1] - low[1])
+            .mul_add(1.0, 2.0 * MARGIN)
+            / f64::from(super::RESOLUTION),
         view_projection,
         direction: [to_sun.x as f32, to_sun.y as f32, to_sun.z as f32, 0.0],
     }

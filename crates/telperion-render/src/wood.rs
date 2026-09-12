@@ -1,6 +1,6 @@
 //! The plaited wood surface: the core's own position, normal, coordinate and
 //! index arrays uploaded as they lie in memory, drawn as one indexed mesh.
-use telperion_core::surface::SurfaceMesh;
+use telperion_core::surface::{SurfaceMesh, SurfaceRun};
 
 use crate::{
     buffer::{self, Held, Region},
@@ -25,6 +25,8 @@ pub struct Wood {
     coords: Option<Held>,
     indices: Option<Held>,
     index_count: u32,
+    runs: Vec<SurfaceRun>,
+    pub caster_index_count: u32,
 }
 
 impl Wood {
@@ -67,6 +69,8 @@ impl Wood {
             coords: None,
             indices: None,
             index_count: 0,
+            runs: Vec::new(),
+            caster_index_count: 0,
         }
     }
 
@@ -74,6 +78,8 @@ impl Wood {
     /// tree reuses the allocations it fits in.
     pub fn submit(&mut self, gpu: &Gpu, mesh: &SurfaceMesh) {
         self.index_count = mesh.indices.len() as u32;
+        self.runs.clone_from(&mesh.run_table);
+        self.caster_index_count = self.index_count;
         if self.index_count == 0 {
             return;
         }
@@ -130,9 +136,19 @@ impl Wood {
         }
     }
 
-    /// Writes the surface into the sun's depth map. The same triangles the
-    /// frame draws, with nothing but their positions bound: what casts a
-    /// shadow is where the wood is, not what it looks like.
+    /// Whole runs at or above the fitted radius threshold form one prefix.
+    /// Re-derived on submission or a row change, never from the camera pose.
+    pub fn set_casters(&mut self, threshold: f64) {
+        let kept = self
+            .runs
+            .partition_point(|run| run.largest_radius >= threshold);
+        self.caster_index_count = kept.checked_sub(1).map_or(0, |last| {
+            let run = self.runs[last];
+            run.first_index + run.index_count
+        });
+    }
+
+    /// Writes the radius-selected prefix using the frame's own index buffer.
     pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>) {
         let (Some(positions), Some(indices)) = (&self.positions, &self.indices) else {
             return;
@@ -140,7 +156,7 @@ impl Wood {
         pass.set_pipeline(&self.shadow);
         pass.set_vertex_buffer(0, positions.live());
         pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
+        pass.draw_indexed(0..self.caster_index_count, 0, 0..1);
     }
 
     /// The live ranges, for a caller that wants to see what was uploaded.

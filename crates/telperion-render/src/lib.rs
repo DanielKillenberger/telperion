@@ -163,6 +163,7 @@ impl Renderer {
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.scene.set_crown(crown_of(&mesh.foliage));
         self.bounds = Some(mesh.bounds);
+        self.set_casters();
         self.level_deviations = mesh
             .foliage
             .element
@@ -199,6 +200,21 @@ impl Renderer {
     /// and no blend between two families touches it.
     pub fn set_scene(&mut self, row: SceneRow) {
         self.scene.set_row(row);
+        self.set_casters();
+    }
+
+    fn set_casters(&mut self) {
+        let light = shadow::light(self.scene.row(), self.bounds);
+        self.wood
+            .set_casters(self.scene.row().caster_texels * light.texel_size);
+    }
+
+    /// Wood triangles submitted to the sun's pass, outside the frame statistics.
+    pub fn caster_triangles(&self) -> u32 {
+        match self.view {
+            View::Leaf => 0,
+            _ => self.wood.caster_index_count / 3,
+        }
     }
 
     /// The sun, sky and ground the next frame is drawn under.

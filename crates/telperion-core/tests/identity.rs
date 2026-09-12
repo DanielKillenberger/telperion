@@ -5,6 +5,9 @@
 //! foliage element gained its levels. The
 //! pins are a photograph, not a description: if a level ever moves a leaf,
 //! merges one or drops one, these numbers move too.
+//! fn-27 permutes wood vertices and indices into descending run radius. These
+//! pins do not hash wood order: their existing counts, bounds, placement and
+//! element identities stay unchanged, so no literal needs re-pinning.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
