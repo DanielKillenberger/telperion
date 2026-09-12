@@ -18,6 +18,8 @@ pub enum Preset {
 }
 #[derive(Debug, Clone)]
 pub struct Family {
+    pub age: f64,
+    pub growth: crate::growth::GrowthTraits,
     pub skeleton: SkeletonParams,
     pub radii: RadiusParams,
     pub surface: SurfaceParams,
@@ -29,6 +31,8 @@ pub struct Family {
 impl Default for Family {
     fn default() -> Self {
         Self {
+            age: 100.0,
+            growth: crate::growth::GrowthTraits::default(),
             skeleton: SkeletonParams::default(),
             radii: RadiusParams::default(),
             surface: SurfaceParams {

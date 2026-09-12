@@ -2,6 +2,7 @@
 use super::*;
 use crate::tree::{NodeIdentity, NodeKey};
 use slotmap::{DenseSlotMap, Key};
+mod timeline;
 
 #[derive(Clone)]
 pub struct Specimen {
@@ -14,6 +15,7 @@ pub struct Specimen {
     scaffold: scaffold::Frontier,
     local: local::Frontier,
     next_identity: u64,
+    timeline: Option<timeline::Timeline>,
     identities: DenseSlotMap<NodeKey, usize>,
 }
 impl Specimen {
@@ -49,6 +51,7 @@ impl Specimen {
             scaffold,
             local: local::Frontier::default(),
             next_identity: 0,
+            timeline: None,
             identities: DenseSlotMap::with_key(),
         })
     }
@@ -131,6 +134,7 @@ impl Specimen {
             self.local.advance(
                 &mut self.tree,
                 local::Planner {
+                    growing_envelope: false,
                     config: &self.config,
                     bias: Some(&self.bias),
                     twigs: self.params.twigs.resolved()?,
@@ -164,3 +168,6 @@ impl Specimen {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod monthly_tests;

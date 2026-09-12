@@ -137,7 +137,7 @@ fn scaffold_resume_preserves_each_axis_stream_and_spent_attractors() {
     );
 }
 
-fn bytes(tree: &Tree) -> Vec<u8> {
+pub(super) fn bytes(tree: &Tree) -> Vec<u8> {
     let mut out = Vec::new();
     out.extend((tree.crossover as u64).to_le_bytes());
     out.extend([

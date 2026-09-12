@@ -9,6 +9,8 @@ struct Run {
 }
 #[derive(Clone)]
 struct Shoot {
+    flushed: u16,
+    accepted: Vec<Vec3>,
     at: usize,
     direction: Vec3,
     normal: Vec3,
@@ -35,6 +37,15 @@ pub(super) struct Frontier {
     seeded: std::collections::HashSet<u64>,
 }
 impl Frontier {
+    #[cfg(test)]
+    pub(in crate::branching) fn reverse_for_test(&mut self) {
+        self.queue.make_contiguous().reverse();
+    }
+    pub(super) fn identity_order(&mut self, tree: &Tree) {
+        self.queue
+            .make_contiguous()
+            .sort_by_key(|s| (tree.nodes[s.at].identity.birth_order(), s.key));
+    }
     pub(super) fn finished(&self) -> bool {
         self.queue.is_empty()
     }
@@ -73,15 +84,21 @@ impl Frontier {
             .max(1e-6)
             .cos_fixed();
         let twig_radius = t.twig.diameter / 2.0;
+        let budget = if planner.growing_envelope {
+            budget.min(self.queue.len())
+        } else {
+            budget
+        };
         for _ in 0..budget {
-            let Some(s) = self.queue.pop_front() else {
+            let Some(mut s) = self.queue.pop_front() else {
                 break;
             };
             let from = s.direction;
             let position = tree.nodes[s.at].position;
             let phase = s.phase + divergence;
             let binormal = from.cross(s.normal);
-            let mut accepted: Vec<Vec3> = Vec::with_capacity(7);
+            let mut accepted = std::mem::take(&mut s.accepted);
+            let mut deferred = false;
             let origin = s.at < crossover;
             let bearing = !origin && s.radius <= t.twig.bearing_diameter / 2.0;
             let mut laterals = 0;
@@ -109,6 +126,11 @@ impl Frontier {
                 }
             }
             for c in 0..=laterals {
+                let mask = 1 << c;
+                if s.flushed & mask != 0 {
+                    continue;
+                }
+                s.flushed |= mask;
                 let lateral = c > 0;
                 if !lateral && origin && children[s.at] != 0 {
                     continue;
@@ -206,6 +228,10 @@ impl Frontier {
                     }
                     let p = position + heading * twig_length;
                     if rejected(config, p) || s.pendant_floor.is_some_and(|floor| p.y < floor) {
+                        if planner.growing_envelope {
+                            s.flushed &= !mask;
+                            deferred = true;
+                        }
                         continue;
                     }
                     (p, heading)
@@ -226,9 +252,20 @@ impl Frontier {
                             key,
                         )
                     }
-                    let Some(r) = &run else { continue };
+                    let Some(r) = &run else {
+                        if planner.growing_envelope {
+                            s.flushed &= !mask;
+                            deferred = true;
+                        }
+                        continue;
+                    };
                     internodes = r.positions.len();
                     let p = r.positions[completed];
+                    if planner.growing_envelope && rejected(config, p) {
+                        s.flushed &= !mask;
+                        deferred = true;
+                        continue;
+                    }
                     (p, (p - position).normalized())
                 };
                 if !candidate.is_finite() {
@@ -293,6 +330,8 @@ impl Frontier {
                         (binormal - heading * binormal.dot(heading)).normalized()
                     };
                     self.queue.push_back(Shoot {
+                        flushed: 0,
+                        accepted: Vec::new(),
                         at: id as usize,
                         direction: heading,
                         normal,
@@ -311,42 +350,13 @@ impl Frontier {
                     });
                 }
             }
+            if deferred {
+                s.accepted = accepted;
+                self.queue.push_back(s);
+            }
         }
         tree.validate_solved()
     }
 }
-/// Append local branches to a solved structural crown. Cap diagnostics survive shedding.
-pub fn append(
-    tree: &mut Tree,
-    config: &GrowthConfig,
-    params: TwigParams,
-    seed: u32,
-    bias: Option<&GrowthBias>,
-    habit: HabitParams,
-) -> Result<()> {
-    tree.validate_solved()?;
-    config.validate()?;
-    let t = params.resolved()?;
-    if tree.crossover != tree.nodes.len() {
-        return Err(Error::InvalidInput("branching requires a structural crown"));
-    }
-    // Standalone callers can supply a manually authored, unidentified crown.
-    let mut frontier = Frontier::default();
-    let mut identified = tree.clone();
-    for (i, n) in identified.nodes.iter_mut().enumerate() {
-        n.identity.birth = i as u64;
-    }
-    frontier.seed(&identified, config, t, habit);
-    frontier.advance(
-        tree,
-        Planner {
-            config,
-            bias,
-            twigs: t,
-            crookedness: habit.crookedness,
-            seed,
-        },
-        habit,
-        usize::MAX,
-    )
-}
+mod append;
+pub use append::append;

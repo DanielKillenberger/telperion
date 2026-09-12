@@ -1,6 +1,8 @@
 //! Structural fork solve and the separate branch-local taper contract.
+mod incremental;
 use crate::math::Transcendental;
 use crate::{envelope::Envelope, tree::Tree, Error, Result};
+pub(crate) use incremental::Pipes;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RadiusParams {
     pub trunk_radius: f64,

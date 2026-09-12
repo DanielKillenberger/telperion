@@ -15,7 +15,7 @@ engine.release(); // returned arrays are owned copies and remain usable
 engine.dispose();
 ```
 
-`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all five named templates; `TWO_TREES` contains Telperion and Laurelin. `createRenderer(canvas)` puts the Rust renderer on a canvas and draws the tree its own module generates; it is the package's only rendering path and it has no runtime dependencies. The native core has no external Rust dependencies; `serde_json` belongs to the Wasm binding only.
+`ORDINARY`, `TELPERION` and `LAURELIN` come from Rust preset metadata. Parameters define the family; the seed selects a specimen. `PRESETS` contains all five named templates; `TWO_TREES` contains Telperion and Laurelin. `createRenderer(canvas)` puts the Rust renderer on a canvas and draws the tree its own module generates; it is the package's only rendering path and it has no runtime dependencies. The native core uses pinned `libm` and `slotmap`; its optional `json` feature supplies the wire schema used by the Wasm binding.
 
 For a block-based consumer, request occupancy without constructing a wood surface or transferring render buffers:
 
@@ -50,8 +50,37 @@ carry a monotone birth order and a generational key; storage can compact while
 The core uses pinned pure-Rust `libm` for transcendental functions. Run
 `npm run wasm:build && npx vitest run harness/parity.test.ts` to compare the
 five preset node buffers byte for byte across native and wasm targets.
-The retained builder currently drains its frontiers in one whole build;
-monthly age-based growth is still pending.
+The native `Specimen::build(&family)` path starts at a seedling and grows to
+`family.age`; `advance(years)` continues its retained frontiers. Age supports
+0 through 1,000,000 years, rounded to one billionth of a month at each API call.
+Whole months run in order and the integer remainder carries between calls;
+zero pauses, and backward inspection builds a new specimen at the earlier age.
+The same quantized elapsed time produces the same monthly history. `growth.rate`
+and `growth.shape` are numeric Chapman–Richards traits and blend with age.
+Their current defaults are provisional, without species age calibration.
+
+```rust
+use telperion_core::{branching::Specimen, presets::Preset};
+let mut family = Preset::OregonWhiteOak.parameters();
+family.age = 10.0;
+let mut tree = Specimen::build(&family)?;
+tree.advance(0.25)?;
+let skeleton = tree.tree();
+# Ok::<(), telperion_core::Error>(())
+```
+
+Negative/non-finite advances and invalid ages name the field and value. A node
+cap rolls back the failed month, retains completed months, sets `node_capped`,
+and refuses the next advance. `set_node_ceiling` can raise the resource limit
+and resume the same frontier. The curve's final work quantum defines saturation;
+advancing beyond it jumps directly to the requested age.
+
+Integration is incomplete: `branching::generate`, `Specimen::grow`, mesh builds
+and the browser still use the existing full-envelope build. Age and growth traits
+are not exposed by the JSON wire yet. The monthly native
+path has no lifetime foliage, change records, snapshot, or wasm handle yet.
+Its pipe cache recomputes new-node ancestor paths; changing the trunk scale
+still writes structural radii. The full growth cost contract remains unverified.
 
 The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator and no TypeScript renderer.
 

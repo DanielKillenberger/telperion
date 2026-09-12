@@ -72,6 +72,9 @@ struct Builder<'a> {
     alive: &'a mut [bool],
     influence_sq: f64,
     kill_sq: f64,
+    point_scale: f64,
+    growing_envelope: bool,
+    paused: bool,
 }
 impl Builder<'_> {
     fn capped(&mut self) -> bool {
@@ -103,6 +106,7 @@ impl Builder<'_> {
                 || (crown && bole)
                 || (held && !bole && !self.envelope.contains(p, TOLERANCE))
         }) {
+            self.paused = self.growing_envelope;
             return Ok(None);
         }
         if self.capped() {
@@ -127,10 +131,11 @@ impl Builder<'_> {
         let mut sum = Vec3::ZERO;
         let mut found = false;
         for (a, point) in self.points.iter().enumerate() {
-            if !self.alive[a] || position.distance_squared(*point) > self.influence_sq {
+            let point = *point * self.point_scale;
+            if !self.alive[a] || position.distance_squared(point) > self.influence_sq {
                 continue;
             }
-            let delta = *point - position;
+            let delta = point - position;
             if delta.length_squared() > 0.0 {
                 sum += delta.normalized();
                 found = true;
@@ -144,7 +149,8 @@ impl Builder<'_> {
     fn consume(&mut self, position: Vec3, unit: f64) {
         let reached = self.kill_sq.min(unit * unit);
         for (a, point) in self.points.iter().enumerate() {
-            if self.alive[a] && position.distance_squared(*point) <= reached {
+            let point = *point * self.point_scale;
+            if self.alive[a] && position.distance_squared(point) <= reached {
                 self.alive[a] = false;
             }
         }
@@ -173,7 +179,12 @@ impl Builder<'_> {
     /// Straight-line room for a first-order axis, measured against the
     /// envelope the local layer is left to fill.
     fn reach(&self, position: Vec3, direction: Vec3) -> f64 {
-        let probe = (self.envelope.height / 64.0).max(1e-9);
+        let probe = (if self.growing_envelope {
+            self.planning.height
+        } else {
+            self.envelope.height
+        } / 64.0)
+            .max(1e-9);
         let mut length = 0.0;
         for _ in 0..96 {
             let next = position + direction * (length + probe);
@@ -286,6 +297,16 @@ impl Builder<'_> {
             let position = self.tree.nodes[at].position;
             let pull = self.pull(position);
             if !self.points.is_empty() && pull.is_none() && position.y >= self.config.trunk_height {
+                if self.growing_envelope {
+                    axis.completed = k;
+                    axis.tip = at;
+                    axis.current_heading = heading;
+                    axis.since = since;
+                    axis.station_index = index;
+                    axis.stationed = stationed;
+                    axis.children = children;
+                    return Ok(false);
+                }
                 break;
             }
             let t = (k + 1) as f64 / units as f64;
@@ -302,6 +323,16 @@ impl Builder<'_> {
             let next = self.heading(position, rule.normalized(), pull, heading);
             let stride = unit.min(axis.length - unit * k as f64).max(1e-9);
             let Some(id) = self.edge(at, position + next * stride, axis.order > 0)? else {
+                if self.paused {
+                    axis.completed = k;
+                    axis.tip = at;
+                    axis.current_heading = heading;
+                    axis.since = since;
+                    axis.station_index = index;
+                    axis.stationed = stationed;
+                    axis.children = children;
+                    return Ok(false);
+                }
                 break;
             };
             heading = next;

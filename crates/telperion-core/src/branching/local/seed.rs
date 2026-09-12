@@ -53,6 +53,8 @@ impl Frontier {
             let pendant = pendant_floor[i].is_some();
             let length = branch_length(n.radius);
             frontier.push(Shoot {
+                flushed: 0,
+                accepted: Vec::new(),
                 at: i,
                 direction,
                 normal: direction.perpendicular(),

@@ -38,8 +38,9 @@ fn status(e: &mut Engine, result: Result<Value>) -> u32 {
         }
         Err(err) => {
             let (code, message) = match err {
-                Error::InvalidInput(m) => (1, m),
-                Error::ResourceLimit(m) => (2, m),
+                Error::InvalidInput(m) => (1, m.to_string()),
+                Error::InvalidValue { field, value } => (1, format!("{field} = {value}")),
+                Error::ResourceLimit(m) => (2, m.to_string()),
             };
             e.metadata = json!({"error": message, "code": code})
                 .to_string()

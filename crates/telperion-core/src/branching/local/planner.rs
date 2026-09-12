@@ -7,6 +7,7 @@ pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
             .is_some_and(|s| p.y > s.height || p.x.hypot_fixed(p.z) > s.radius_at(p.y))
 }
 pub(in crate::branching) struct Planner<'a> {
+    pub(in crate::branching) growing_envelope: bool,
     pub(in crate::branching) config: &'a GrowthConfig,
     pub(in crate::branching) bias: Option<&'a GrowthBias>,
     pub(in crate::branching) twigs: TwigParams,
