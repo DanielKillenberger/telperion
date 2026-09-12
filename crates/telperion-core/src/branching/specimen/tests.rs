@@ -184,3 +184,33 @@ fn local_resume_preserves_pending_runs_across_irregular_budgets() {
         "resumed local runs differ byte-for-byte"
     );
 }
+
+#[test]
+fn retired_generation_cannot_resolve_a_reused_slot() {
+    let f = Preset::Ordinary.parameters();
+    let mut s = Specimen::new(&f.skeleton, f.radii).unwrap();
+    s.tree.nodes = vec![Node::root(), Node::root(), Node::root()];
+    s.identify();
+    let retired = s.tree.nodes[1].identity;
+    let survivor = s.tree.nodes[2].identity;
+    s.tree.nodes.remove(1);
+    s.remap_after_shedding();
+    assert!(s.identities.get(retired.key).is_none());
+    assert_eq!(s.node(survivor).unwrap().identity, survivor);
+    s.tree.nodes.push(Node::root());
+    s.identify();
+    let born = s.tree.nodes[2].identity;
+    // The allocator really reused a slot: this must exercise the ABA case.
+    assert_eq!(
+        retired.key.data().as_ffi() as u32,
+        born.key.data().as_ffi() as u32
+    );
+    assert_ne!(retired.key, born.key);
+    assert!(born.birth_order() > survivor.birth_order());
+    assert_eq!(
+        s.node(retired),
+        Err(Error::InvalidInput("stale node identity"))
+    );
+    assert_eq!(s.node(born).unwrap(), &s.tree.nodes[2]);
+    assert_eq!(s.node(survivor).unwrap(), &s.tree.nodes[1]);
+}
