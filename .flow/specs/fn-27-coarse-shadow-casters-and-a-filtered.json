@@ -17,7 +17,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-27-coarse-shadow-casters-and-a-filtered.md",
-  "status": "open",
+  "status": "done",
   "title": "Coarse shadow casters and a filtered shadow",
   "tracker": {
     "baseHashFlow": null,
@@ -30,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-12T14:16:33.745384Z"
+  "updated_at": "2026-09-12T18:49:41.289292Z"
 }
