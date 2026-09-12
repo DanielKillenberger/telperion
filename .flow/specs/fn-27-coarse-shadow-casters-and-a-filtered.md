@@ -118,11 +118,11 @@ R2 and R5 are the owner's judgment of the lit oak hero still and the orbit besid
 
 ### The crown's self-shadow, R2
 
-> _verdict (owner, ):_
+> _verdict (owner, 2026-09-12):_ accept. "looking good", on the live page at the default row beside fn-14's crown aid.
 
 ### Thinning, stepping and shimmer, R5
 
-> _verdict (owner, ):_
+> _verdict (owner, 2026-09-12):_ accept. "looking good", on the live page under orbit beside fn-14's ground aid.
 
 ## References
 
