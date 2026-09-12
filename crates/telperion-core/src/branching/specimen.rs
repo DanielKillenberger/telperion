@@ -2,7 +2,11 @@
 use super::*;
 use crate::tree::{NodeIdentity, NodeKey};
 use slotmap::{DenseSlotMap, Key};
+mod survival;
+#[cfg(test)]
+mod thickening_tests;
 mod timeline;
+mod widths;
 
 #[derive(Clone)]
 pub struct Specimen {
@@ -73,6 +77,7 @@ impl Specimen {
         self.scaffold.finished() && self.local.finished()
     }
     fn identify(&mut self) {
+        let mut born = Vec::new();
         for (i, node) in self.tree.nodes.iter_mut().enumerate() {
             if node.identity.key.is_null() {
                 node.identity = NodeIdentity {
@@ -80,8 +85,23 @@ impl Specimen {
                     key: self.identities.insert(i),
                 };
                 self.next_identity += 1;
+                if let Some(t) = &self.timeline {
+                    node.shoot.birth_year = if i == 0 {
+                        0.0
+                    } else {
+                        (t.age.month + 1) as f64 / 12.0
+                    };
+                    if i >= self.tree.crossover {
+                        born.push(i);
+                    }
+                }
             } else {
                 self.identities[node.identity.key] = i;
+            }
+        }
+        if let Some(t) = &mut self.timeline {
+            for i in born {
+                t.widths.born(&mut self.tree, i);
             }
         }
     }

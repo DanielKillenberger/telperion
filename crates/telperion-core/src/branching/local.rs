@@ -97,6 +97,15 @@ impl Frontier {
             let Some(mut s) = self.queue.pop_front() else {
                 break;
             };
+            if planner.growing_envelope {
+                if tree.nodes[s.at].shoot.vigour < habit.shedding_threshold {
+                    self.queue.push_back(s);
+                    continue;
+                }
+                s.radius = s.branch.map_or(tree.nodes[s.at].radius, |b| {
+                    tree.nodes[b as usize].base_radius
+                });
+            }
             let before = tree.nodes.len();
             let from = s.direction;
             let position = tree.nodes[s.at].position;
@@ -327,6 +336,11 @@ impl Frontier {
                     },
                     ..Node::root()
                 });
+                tree.nodes[id as usize].shoot.bud_fate = if lateral {
+                    crate::tree::BudFate::Lateral
+                } else {
+                    crate::tree::BudFate::Terminal
+                };
                 if !is_twig {
                     let projected = s.normal - heading * s.normal.dot(heading);
                     let normal = if projected.length_squared() > 1e-12 {

@@ -150,6 +150,10 @@ pub(super) fn bytes(tree: &Tree) -> Vec<u8> {
         out.extend(n.parent.unwrap_or(u32::MAX).to_le_bytes());
         out.extend(n.branch.to_le_bytes());
         out.push(n.kind as u8);
+        out.push(n.shoot.bud_fate as u8);
+        out.extend(n.shoot.birth_year.to_le_bytes());
+        out.extend(n.shoot.vigour.to_le_bytes());
+        out.extend(n.shoot.low_months.to_le_bytes());
         out.extend(
             [
                 n.position.x,

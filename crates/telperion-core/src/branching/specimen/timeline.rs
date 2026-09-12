@@ -7,10 +7,11 @@ use crate::{
 #[derive(Clone)]
 pub(super) struct Timeline {
     pub age: Age,
-    traits: GrowthTraits,
+    pub(super) traits: GrowthTraits,
     mature_month: u64,
-    envelope: Envelope,
-    pipes: radius::Pipes,
+    pub(super) envelope: Envelope,
+    pub(super) pipes: radius::Pipes,
+    pub(super) widths: widths::Widths,
 }
 impl Specimen {
     /// Build from a seedling through the exact monthly path used by `advance`.
@@ -29,6 +30,7 @@ impl Specimen {
                 ..family.skeleton.envelope
             },
             pipes: radius::Pipes::default(),
+            widths: widths::Widths::default(),
         });
         if specimen.config.max_nodes == 0 {
             specimen.tree.diagnostics.node_capped = true;
@@ -112,6 +114,7 @@ impl Specimen {
         Ok(())
     }
     fn month(&mut self, month: u64, budget: usize) -> Result<()> {
+        let shed = self.environment(month);
         let fraction = self.timeline.as_ref().unwrap().traits.fraction(month);
         let envelope = Envelope {
             height: self.params.envelope.height * fraction,
@@ -119,6 +122,12 @@ impl Specimen {
         };
         let mut params = self.params.clone();
         params.envelope = envelope;
+        params.habit.apical_dominance /=
+            1.0 + self.timeline.as_ref().unwrap().traits.apical_control_loss * month as f64 / 12.0;
+        // Lost terminal control releases a larger share to laterals, expressed
+        // through the existing lateral allocation trait rather than a species rule.
+        let released = self.params.habit.apical_dominance - params.habit.apical_dominance;
+        params.habit.lateral_length_ratio += (1.0 - params.habit.lateral_length_ratio) * released;
         let config = GrowthConfig {
             trunk_height: self.config.trunk_height * fraction,
             influence_radius: self.config.influence_radius * fraction,
@@ -135,9 +144,13 @@ impl Specimen {
         };
         let structural =
             ((budget as f64 * (0.5 + 0.5 * params.habit.apical_dominance)).round() as usize).max(1);
+        let scaffold_params = SkeletonParams {
+            envelope: self.params.envelope,
+            ..params.clone()
+        };
         let spent = self.scaffold.month(
             &mut self.tree,
-            &self.params,
+            &scaffold_params,
             &structural_config,
             &bias,
             structural,
@@ -156,12 +169,15 @@ impl Specimen {
         self.identify();
         let timeline = self.timeline.as_mut().unwrap();
         timeline.envelope = envelope;
-        timeline.pipes.update(
+        let changed = timeline.pipes.update(
             &mut self.tree,
             envelope.height,
             self.params.envelope.height,
             self.radii,
         )?;
+        timeline
+            .widths
+            .update(&mut self.tree, &self.identities, &changed);
         let twigs = params.twigs.resolved()?;
         self.local.seed(&self.tree, &config, twigs, params.habit);
         self.local.identity_order(&self.tree);
@@ -185,6 +201,17 @@ impl Specimen {
             )?;
         }
         self.identify();
+        self.retire(&shed);
+        let timeline = self.timeline.as_mut().unwrap();
+        let changed = timeline.pipes.update(
+            &mut self.tree,
+            envelope.height,
+            self.params.envelope.height,
+            self.radii,
+        )?;
+        timeline
+            .widths
+            .update(&mut self.tree, &self.identities, &changed);
         self.tree.validate_solved()
     }
 }

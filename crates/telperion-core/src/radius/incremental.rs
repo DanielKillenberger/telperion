@@ -11,6 +11,7 @@ pub(crate) struct Pipes {
     proximal: Vec<f64>,
     shed: Vec<f64>,
     scale: f64,
+    dirty: BTreeSet<usize>,
 }
 impl Pipes {
     pub fn update(
@@ -19,7 +20,7 @@ impl Pipes {
         height: f64,
         reference_height: f64,
         params: RadiusParams,
-    ) -> Result<()> {
+    ) -> Result<Vec<usize>> {
         let p = params.resolved()?;
         let first = self.children.len();
         let count = tree.crossover;
@@ -27,7 +28,7 @@ impl Pipes {
         self.distal.resize(count, 1.0);
         self.proximal.resize(count, 1.0);
         self.shed.resize(count, 0.0);
-        let mut dirty = BTreeSet::new();
+        let mut dirty = std::mem::take(&mut self.dirty);
         for i in first..count {
             dirty.insert(i);
             if let Some(parent) = tree.nodes[i].parent {
@@ -65,14 +66,19 @@ impl Pipes {
                 });
         }
         if count == 0 {
-            return Ok(());
+            return Ok(Vec::new());
         }
         let scale = p.trunk_radius * height.max(1e-6) / self.distal[0];
-        let write = |i: usize, tree: &mut Tree| {
+        let mut changed = Vec::new();
+        let mut write = |i: usize, tree: &mut Tree| {
+            let before = (tree.nodes[i].radius, tree.nodes[i].start_radius);
             tree.nodes[i].radius = (self.distal[i] * scale).max(tree.nodes[i].radius);
             tree.nodes[i].start_radius = (self.proximal[i] * scale)
                 .max(tree.nodes[i].start_radius)
                 .max(tree.nodes[i].radius);
+            if before != (tree.nodes[i].radius, tree.nodes[i].start_radius) {
+                changed.push(i);
+            }
         };
         if scale != self.scale {
             for i in 0..count {
@@ -84,6 +90,41 @@ impl Pipes {
             }
         }
         self.scale = scale;
-        Ok(())
+        Ok(changed)
+    }
+    /// Preserve unchanged fork reductions through compaction. Only ancestors of
+    /// a removed structural child are invalidated; no full pipe solve on a cut.
+    pub fn remap(&mut self, tree: &Tree, map: &[Option<u32>]) {
+        let count = self.children.len();
+        for i in 0..count {
+            if map[i].is_none() {
+                let mut at = tree.nodes[i].parent.map(|p| p as usize);
+                while let Some(j) = at {
+                    if let Some(new) = map[j] {
+                        self.dirty.insert(new as usize);
+                    }
+                    at = tree.nodes[j].parent.map(|p| p as usize);
+                }
+            }
+        }
+        let mut children = Vec::new();
+        for (i, old) in std::mem::take(&mut self.children).into_iter().enumerate() {
+            if map[i].is_some() {
+                children.push(
+                    old.into_iter()
+                        .filter_map(|j| map[j].map(|v| v as usize))
+                        .collect(),
+                );
+            }
+        }
+        self.children = children;
+        for values in [&mut self.distal, &mut self.proximal, &mut self.shed] {
+            let mut i = 0;
+            values.retain(|_| {
+                let keep = map[i].is_some();
+                i += 1;
+                keep
+            });
+        }
     }
 }

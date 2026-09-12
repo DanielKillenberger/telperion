@@ -13,6 +13,8 @@ macro_rules! fields {
         $op!($f, $v, "age"; age);
         $op!($f, $v, "growth", "rate"; growth.rate);
         $op!($f, $v, "growth", "shape"; growth.shape);
+        $op!($f, $v, "growth", "sheddingTolerance"; growth.shedding_tolerance);
+        $op!($f, $v, "growth", "apicalControlLoss"; growth.apical_control_loss);
         $op!($f, $v, "skeleton", "habit", "apicalDominance"; skeleton.habit.apical_dominance);
         $op!($f, $v, "skeleton", "habit", "whorlStrength"; skeleton.habit.whorl_strength);
         $op!($f, $v, "skeleton", "habit", "leaderInternode"; skeleton.habit.leader_internode);

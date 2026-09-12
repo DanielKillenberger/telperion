@@ -337,6 +337,9 @@ impl Builder<'_> {
                 }
                 break;
             };
+            if k == 0 && axis.order > 0 {
+                self.tree.nodes[id].shoot.bud_fate = crate::tree::BudFate::Lateral;
+            }
             heading = next;
             at = id;
             since += stride;

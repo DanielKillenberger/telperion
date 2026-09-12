@@ -34,8 +34,10 @@ export interface Family {
   width: number;
 };
   growth: {
+  apicalControlLoss: number;
   rate: number;
   shape: number;
+  sheddingTolerance: number;
 };
   material: {
   barkBlue: number;
@@ -176,8 +178,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "width": 0.06
       },
       "growth": {
+        "apicalControlLoss": 0,
         "rate": 0.08,
-        "shape": 2
+        "shape": 2,
+        "sheddingTolerance": 2
       },
       "material": {
         "barkBlue": 0.068,
@@ -316,8 +320,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "width": 0.075
       },
       "growth": {
+        "apicalControlLoss": 0,
         "rate": 0.08,
-        "shape": 2
+        "shape": 2,
+        "sheddingTolerance": 2
       },
       "material": {
         "barkBlue": 0.178,
@@ -456,8 +462,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "width": 0.0015
       },
       "growth": {
+        "apicalControlLoss": 0,
         "rate": 0.08,
-        "shape": 2
+        "shape": 2,
+        "sheddingTolerance": 2
       },
       "material": {
         "barkBlue": 0.045,
@@ -596,8 +604,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "width": 0.06
       },
       "growth": {
+        "apicalControlLoss": 0,
         "rate": 0.08,
-        "shape": 2
+        "shape": 2,
+        "sheddingTolerance": 2
       },
       "material": {
         "barkBlue": 0.068,
@@ -736,8 +746,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "width": 0.06
       },
       "growth": {
+        "apicalControlLoss": 0,
         "rate": 0.08,
-        "shape": 2
+        "shape": 2,
+        "sheddingTolerance": 2
       },
       "material": {
         "barkBlue": 0.068,

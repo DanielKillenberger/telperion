@@ -80,16 +80,33 @@ still extending. Boundary pauses leave the growth budget for eligible shoots;
 local terminal and lateral buds retain separate allocation state. Local runs
 plan against the authored room and wait at the current crown before each birth.
 The mature monthly populations still differ substantially from the envelope
-builds; convergence, local thickening and vigour-based shedding remain unfinished.
+builds; convergence and calibration remain unfinished.
+
+Monthly shoots retain birth year, terminal/lateral fate and crown-depth vigour.
+The existing habit `sheddingThreshold` is the monthly vigour threshold;
+`growth.sheddingTolerance` counts consecutive active months below it, in years.
+Equality resets the clock. The shell contributes to vigour, and a lit descendant
+supports its ancestors. Each slice snapshots decisions before growth, sheds at
+most 32 subtrees in birth order, and protects the main structural leader.
+`growth.apicalControlLoss` weakens terminal control with age and releases lateral
+allocation. Its default is zero; the tolerance defaults to two years. These are
+uncalibrated numeric traits. Oak and spruce still have threshold zero.
+
+Surviving structural and local radii never decrease. Local allocations and taper
+are re-derived from current parents without changing twig lengths. Retired shoots
+leave both frontiers; their generational keys stop resolving. Pipe compaction
+preserves unaffected reductions, and local widths propagate from changed parents.
 
 Integration is incomplete: `branching::generate`, `Specimen::grow`, mesh builds
 and the browser still use the existing full-envelope build. The JSON wire now
-round-trips and validates `age` and `growth` (`rate`, `shape`); those fields
+round-trips and validates `age` and `growth` (`rate`, `shape`, `sheddingTolerance`, `apicalControlLoss`); those fields
 currently affect only `Specimen::build`, not the full-envelope entry points.
 The monthly native path has no lifetime foliage, change records, snapshot,
 or wasm handle yet.
-Its pipe cache recomputes new-node ancestor paths; changing the trunk scale
-still writes structural radii. The full growth cost contract remains unverified.
+Its pipe cache recomputes insertion/deletion ancestor paths; changing the trunk
+scale still writes affected structural radii. Environment evaluation, frontier
+visits and storage maintenance still scan existing state. The full growth cost
+contract remains unverified.
 
 The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator and no TypeScript renderer.
 

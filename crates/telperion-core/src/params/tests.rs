@@ -195,10 +195,14 @@ fn age_and_growth_round_trip_and_refuse_invalid_values() {
     family.age = 12.25;
     family.growth.rate = 0.12;
     family.growth.shape = 3.0;
+    family.growth.shedding_tolerance = 1.25;
+    family.growth.apical_control_loss = 0.04;
     let wire = metadata(&family);
     assert_eq!(wire["age"], 12.25);
     assert_eq!(wire["growth"]["rate"], 0.12);
     assert_eq!(wire["growth"]["shape"], 3.0);
+    assert_eq!(wire["growth"]["sheddingTolerance"], 1.25);
+    assert_eq!(wire["growth"]["apicalControlLoss"], 0.04);
     let parsed = parse(&wire).unwrap();
     assert_eq!(parsed.age, family.age);
     assert_eq!(parsed.growth, family.growth);
@@ -207,6 +211,16 @@ fn age_and_growth_round_trip_and_refuse_invalid_values() {
         ("/age", "age", crate::growth::MAX_AGE + 1.0),
         ("/growth/rate", "growth.rate", 0.0),
         ("/growth/shape", "growth.shape", 9.0),
+        (
+            "/growth/sheddingTolerance",
+            "growth.sheddingTolerance",
+            -0.1,
+        ),
+        (
+            "/growth/apicalControlLoss",
+            "growth.apicalControlLoss",
+            11.0,
+        ),
     ] {
         let mut bad = wire.clone();
         *bad.pointer_mut(pointer).unwrap() = serde_json::json!(value);

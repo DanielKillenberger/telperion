@@ -31,6 +31,18 @@ impl Frontier {
             points,
         }
     }
+    pub(in crate::branching) fn remap(&mut self, map: &[Option<u32>]) {
+        fn remap_axis(a: &mut Axis, map: &[Option<u32>]) -> bool {
+            let (Some(at), Some(tip)) = (map[a.at], map[a.tip]) else {
+                return false;
+            };
+            a.at = at as usize;
+            a.tip = tip as usize;
+            a.children.retain_mut(|child| remap_axis(child, map));
+            true
+        }
+        self.queue.retain_mut(|a| remap_axis(a, map));
+    }
     pub(in crate::branching) fn finished(&self) -> bool {
         self.queue.is_empty()
     }
@@ -78,6 +90,12 @@ impl Frontier {
                 break;
             }
             let mut axis = self.queue.pop_front().unwrap();
+            if axis.order > 0
+                && b.tree.nodes[axis.tip].shoot.vigour < params.habit.shedding_threshold
+            {
+                self.queue.push_back(axis);
+                continue;
+            }
             b.paused = false;
             let finished = b.grow(&mut axis, &mut remaining)?;
             // Stations already reached bear buds now, even while the parent

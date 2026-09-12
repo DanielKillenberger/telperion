@@ -2,9 +2,12 @@
 //! A node and its origin run retain their birth identity through compaction;
 //! generational keys reject retired identities even when their slots are reused.
 mod identity;
+mod shoot;
 use crate::{math::Vec3, Error, Result};
 pub use identity::NodeIdentity;
 pub(crate) use identity::NodeKey;
+pub(crate) use shoot::LocalWidth;
+pub use shoot::{BudFate, ShootState};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum NodeKind {
@@ -17,6 +20,7 @@ pub enum NodeKind {
 pub struct Node {
     /// Stable birth identity, assigned by the owning specimen; never a storage index.
     pub identity: NodeIdentity,
+    pub shoot: ShootState,
     pub position: Vec3,
     /// None only at the root; otherwise strictly earlier than this node.
     pub parent: Option<u32>,
@@ -34,6 +38,7 @@ impl Node {
     pub fn root() -> Self {
         Self {
             identity: NodeIdentity::default(),
+            shoot: ShootState::default(),
             position: Vec3::ZERO,
             parent: None,
             radius: 0.0,
