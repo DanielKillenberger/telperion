@@ -1,4 +1,78 @@
 use super::*;
+use std::collections::BTreeSet;
+
+#[derive(Clone, Default)]
+pub(super) struct Stations {
+    parents: Vec<Option<usize>>,
+    pub children: Vec<usize>,
+    continuation: Vec<Option<usize>>,
+    pending: BTreeSet<usize>,
+}
+impl Stations {
+    pub(super) fn sync(&mut self, tree: &Tree) {
+        self.children.resize(tree.crossover, 0);
+        self.continuation.resize(tree.crossover, None);
+        for i in self.parents.len()..tree.crossover {
+            let parent = tree.nodes[i].parent.map(|p| p as usize);
+            self.parents.push(parent);
+            if let Some(p) = parent {
+                self.children[p] += 1;
+                self.continuation[p].get_or_insert(i);
+                self.pending.insert(i);
+            }
+        }
+    }
+    // Only a station allocating buds needs a pendant floor. Follow its first
+    // descending ancestor, then the retained first-child continuation to its tip.
+    fn floor(&self, tree: &Tree, mut i: usize) -> Option<f64> {
+        let mut origin = None;
+        while let Some(parent) = self.parents[i] {
+            if (tree.nodes[i].position - tree.nodes[parent].position)
+                .normalized()
+                .y
+                < -0.5
+            {
+                origin = Some(i);
+            }
+            i = parent;
+        }
+        origin.map(|mut end| {
+            while let Some(next) = self.continuation[end] {
+                end = next;
+            }
+            tree.nodes[end].position.y
+        })
+    }
+    pub fn remap(&mut self, map: &[Option<u32>]) {
+        self.pending = self
+            .pending
+            .iter()
+            .filter_map(|&i| map[i].map(|v| v as usize))
+            .collect();
+        for (i, p) in self.parents.iter().enumerate() {
+            if map[i].is_none() {
+                if let Some(p) = p.and_then(|p| map[p]) {
+                    self.pending.insert(p as usize);
+                }
+            }
+        }
+        self.parents = self
+            .parents
+            .iter()
+            .enumerate()
+            .filter_map(|(i, p)| map[i].map(|_| p.and_then(|p| map[p].map(|p| p as usize))))
+            .collect();
+        self.children = vec![0; self.parents.len()];
+        self.continuation = vec![None; self.parents.len()];
+        for (i, p) in self.parents.iter().enumerate() {
+            if let Some(p) = p {
+                self.children[*p] += 1;
+                self.continuation[*p].get_or_insert(i);
+            }
+        }
+    }
+}
+
 impl Frontier {
     pub(in crate::branching) fn seed(
         &mut self,
@@ -10,35 +84,17 @@ impl Frontier {
         if tree.nodes.len() < 2 {
             return;
         }
-        let crossover = tree.crossover;
         let root_radius = tree.nodes[0].radius;
-        let mut children = vec![0; crossover];
-        for n in tree.nodes[..crossover].iter().skip(1) {
-            children[n.parent.unwrap() as usize] += 1;
-        }
-        let mut pendant_floor = vec![None; crossover];
-        if habit.rise_secondary < 0.0 {
-            let mut continuation = vec![None; crossover];
-            for (i, n) in tree.nodes[..crossover].iter().enumerate().skip(1) {
-                continuation[n.parent.unwrap() as usize].get_or_insert(i);
-            }
-            for (i, n) in tree.nodes[..crossover].iter().enumerate().skip(1) {
-                let parent = n.parent.unwrap() as usize;
-                pendant_floor[i] = pendant_floor[parent];
-                if pendant_floor[i].is_none()
-                    && (n.position - tree.nodes[parent].position).normalized().y < -0.5
-                {
-                    let mut end = i;
-                    while let Some(next) = continuation[end] {
-                        end = next;
-                    }
-                    pendant_floor[i] = Some(tree.nodes[end].position.y);
-                }
-            }
+        self.stations.sync(tree);
+        let children = &self.stations.children;
+        if self.stations.pending.is_empty() {
+            return;
         }
         let divergence = t.divergence.to_radians();
         let mut frontier = Vec::new();
-        for (i, n) in tree.nodes[..crossover].iter().enumerate().skip(1) {
+        let mut completed = Vec::new();
+        for &i in &self.stations.pending {
+            let n = &tree.nodes[i];
             if n.position.y < config.trunk_height {
                 continue;
             }
@@ -50,6 +106,10 @@ impl Frontier {
             };
             let allocated = self.seeded.entry(n.identity.birth_order()).or_default();
             let buds = (terminal | laterals) & !*allocated;
+            let possible = terminal | (((1_u16 << t.laterals) - 1) << 1);
+            if (*allocated | buds) & possible == possible {
+                completed.push(i);
+            }
             if buds == 0 {
                 continue;
             }
@@ -61,7 +121,12 @@ impl Frontier {
             // Terminal and lateral buds become eligible independently as the
             // scaffold extends and its trunk/branch radius ratio changes.
             *allocated |= buds;
-            let pendant = pendant_floor[i].is_some();
+            let floor = if habit.rise_secondary < 0.0 {
+                self.stations.floor(tree, i)
+            } else {
+                None
+            };
+            let pendant = floor.is_some();
             let length = branch_length(n.radius);
             frontier.push(Shoot {
                 flushed: !buds,
@@ -80,8 +145,11 @@ impl Frontier {
                 run: None,
                 pendant,
                 curtain_across: Vec3::new(-n.position.z, 0.0, n.position.x).normalized(),
-                pendant_floor: pendant_floor[i],
+                pendant_floor: floor,
             });
+        }
+        for i in completed {
+            self.stations.pending.remove(&i);
         }
         self.queue.extend(frontier);
     }

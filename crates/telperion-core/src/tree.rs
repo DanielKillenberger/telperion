@@ -71,7 +71,14 @@ impl Tree {
         if self.nodes.len() > u32::MAX as usize || self.crossover > self.nodes.len() {
             return Err(Error::InvalidInput("tree length"));
         }
-        for (i, n) in self.nodes.iter().enumerate() {
+        self.validate_range(0..self.nodes.len(), false)
+    }
+    pub(crate) fn validate_range(&self, range: std::ops::Range<usize>, solved: bool) -> Result<()> {
+        for i in range {
+            let n = &self.nodes[i];
+            if solved && n.radius <= 0.0 {
+                return Err(Error::InvalidInput("unsolved radii"));
+            }
             if !n.position.is_finite()
                 || ![n.radius, n.start_radius, n.base_radius]
                     .iter()

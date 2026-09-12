@@ -5,8 +5,12 @@ pub(in crate::branching) struct Frontier {
     queue: VecDeque<Axis>,
     points: Vec<Vec3>,
     alive: Vec<bool>,
+    visited: Vec<usize>,
 }
 impl Frontier {
+    pub(in crate::branching) fn visited(&self) -> impl Iterator<Item = usize> + '_ {
+        self.visited.iter().copied()
+    }
     #[cfg(test)]
     pub(in crate::branching) fn reverse_for_test(&mut self) {
         self.queue.make_contiguous().reverse();
@@ -28,7 +32,23 @@ impl Frontier {
         Self {
             queue,
             alive: vec![true; points.len()],
+            visited: Vec::new(),
             points,
+        }
+    }
+    pub(in crate::branching) fn reindex_appended(&mut self, first: usize, previous_len: usize) {
+        fn axis(a: &mut Axis, first: usize, previous_len: usize) {
+            for i in [&mut a.at, &mut a.tip] {
+                if *i >= previous_len {
+                    *i = first + *i - previous_len;
+                }
+            }
+            for child in &mut a.children {
+                axis(child, first, previous_len);
+            }
+        }
+        for a in &mut self.queue {
+            axis(a, first, previous_len);
         }
     }
     pub(in crate::branching) fn remap(&mut self, map: &[Option<u32>]) {
@@ -57,6 +77,7 @@ impl Frontier {
         budget: usize,
         fraction: f64,
     ) -> Result<usize> {
+        self.visited.clear();
         let mut b = Builder {
             tree,
             envelope: Envelope {
@@ -90,6 +111,7 @@ impl Frontier {
                 break;
             }
             let mut axis = self.queue.pop_front().unwrap();
+            self.visited.push(axis.tip);
             if axis.order > 0
                 && b.tree.nodes[axis.tip].shoot.vigour < params.habit.shedding_threshold
             {

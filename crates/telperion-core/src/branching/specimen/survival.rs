@@ -7,24 +7,21 @@ use std::collections::BTreeSet;
 const MAX_SHEDS: usize = 32;
 impl Specimen {
     pub(super) fn environment(&mut self, month: u64) -> Vec<NodeIdentity> {
-        let t = self.timeline.as_ref().unwrap();
+        let t = self.timeline.as_mut().unwrap();
         let envelope = t.envelope;
-        let profile = envelope.profile();
-        let width = envelope.max_radius().max(1e-9);
+        t.crown.prepare(envelope);
         let year = (month - 1) as f64 / 12.0;
         let threshold = self.params.habit.shedding_threshold;
         let tolerance = (t.traits.shedding_tolerance * 12.0).ceil().max(1.0) as u64;
+        if threshold == 0.0 {
+            return Vec::new();
+        }
         let mut order: Vec<_> = (0..self.tree.nodes.len()).collect();
         order.sort_unstable_by_key(|&i| self.tree.nodes[i].identity);
+        order.dedup();
         for &i in &order {
             let n = &mut self.tree.nodes[i];
-            let radial = n.position.x.hypot_fixed(n.position.z);
-            // The old shell's radial OR profile-distance test becomes continuous
-            // exposure. Young wood has more vigour than equally shaded old wood.
-            let depth = (envelope.radius_at(n.position.y) - radial)
-                .min(distance_to_profile(&profile, radial, n.position.y))
-                .max(0.0);
-            let exposure = (1.0 - depth / width).clamp(0.0, 1.0);
+            let exposure = t.crown.exposure(n);
             let age = (year - n.shoot.birth_year).max(0.0);
             n.shoot.vigour = exposure / (1.0 + t.traits.rate * age);
         }
@@ -66,6 +63,29 @@ impl Specimen {
         roots
     }
 
+    /// With survival disabled, vigour cannot gate a bud. Sample only shoots
+    /// actually visited, against the immutable slice-start crown prepared above.
+    pub(super) fn sample_frontier(&mut self, month: u64) {
+        if self.params.habit.shedding_threshold > 0.0 {
+            return;
+        }
+        let mut visited: Vec<_> = self
+            .scaffold
+            .visited()
+            .chain(self.local.visited())
+            .collect();
+        visited.sort_unstable_by_key(|&i| self.tree.nodes[i].identity);
+        visited.dedup();
+        let t = self.timeline.as_mut().unwrap();
+        let year = (month - 1) as f64 / 12.0;
+        for i in visited {
+            let n = &mut self.tree.nodes[i];
+            let exposure = t.crown.exposure(n);
+            n.shoot.vigour =
+                exposure / (1.0 + t.traits.rate * (year - n.shoot.birth_year).max(0.0));
+        }
+    }
+
     pub(super) fn retire(&mut self, roots: &[NodeIdentity]) {
         if roots.is_empty() {
             return;
@@ -95,6 +115,7 @@ impl Specimen {
                 self.identities[n.identity.key] = map[i - 1].unwrap() as usize;
             } else {
                 self.identities.remove(n.identity.key);
+                t.crown.retire(n.identity.key);
             }
             keep
         });

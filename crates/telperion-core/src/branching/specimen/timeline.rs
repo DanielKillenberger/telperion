@@ -12,6 +12,7 @@ pub(super) struct Timeline {
     pub(super) envelope: Envelope,
     pub(super) pipes: radius::Pipes,
     pub(super) widths: widths::Widths,
+    pub(super) crown: crown::Crown,
 }
 impl Specimen {
     /// Build from a seedling through the exact monthly path used by `advance`.
@@ -31,6 +32,7 @@ impl Specimen {
             },
             pipes: radius::Pipes::default(),
             widths: widths::Widths::default(),
+            crown: crown::Crown::default(),
         });
         if specimen.config.max_nodes == 0 {
             specimen.tree.diagnostics.node_capped = true;
@@ -114,7 +116,15 @@ impl Specimen {
         Ok(())
     }
     fn month(&mut self, month: u64, budget: usize) -> Result<()> {
+        #[cfg(test)]
+        {
+            self.cost = super::measurement::Cost::default();
+        }
+        #[cfg(test)]
+        let mut clock = std::time::Instant::now();
         let shed = self.environment(month);
+        #[cfg(test)]
+        self.cost.stamp(0, &mut clock);
         let fraction = self.timeline.as_ref().unwrap().traits.fraction(month);
         let envelope = Envelope {
             height: self.params.envelope.height * fraction,
@@ -137,11 +147,7 @@ impl Specimen {
         };
         let bias = GrowthBias::new(envelope, params.seed, params.bias)?;
         let first = self.tree.crossover;
-        let mut tail = self.tree.nodes.split_off(first);
-        let structural_config = GrowthConfig {
-            max_nodes: config.max_nodes.saturating_sub(tail.len()),
-            ..config
-        };
+        let previous_len = self.tree.nodes.len();
         let structural =
             ((budget as f64 * (0.5 + 0.5 * params.habit.apical_dominance)).round() as usize).max(1);
         let scaffold_params = SkeletonParams {
@@ -151,22 +157,16 @@ impl Specimen {
         let spent = self.scaffold.month(
             &mut self.tree,
             &scaffold_params,
-            &structural_config,
+            &config,
             &bias,
             structural,
             fraction,
         )?;
-        let added = self.tree.nodes.len() - first;
-        let map: Vec<_> = (0..first + tail.len())
-            .map(|i| Some((if i < first { i } else { i + added }) as u32))
-            .collect();
-        for n in &mut tail {
-            n.parent = n.parent.map(|p| map[p as usize].unwrap());
-            n.branch = map[n.branch as usize].unwrap();
-        }
-        self.tree.nodes.extend(tail);
-        self.local.remap(&map);
-        self.identify();
+        #[cfg(test)]
+        self.cost.stamp(1, &mut clock);
+        self.insert_structural(first, previous_len);
+        #[cfg(test)]
+        self.cost.stamp(2, &mut clock);
         let timeline = self.timeline.as_mut().unwrap();
         timeline.envelope = envelope;
         let changed = timeline.pipes.update(
@@ -177,10 +177,19 @@ impl Specimen {
         )?;
         timeline
             .widths
-            .update(&mut self.tree, &self.identities, &changed);
+            .update(&mut self.tree, &self.identities, &changed)?;
+        #[cfg(test)]
+        {
+            self.cost.pipes += timeline.pipes.visited;
+            self.cost.widths += timeline.widths.visited;
+            self.cost.stamp(3, &mut clock);
+        }
         let twigs = params.twigs.resolved()?;
         self.local.seed(&self.tree, &config, twigs, params.habit);
         self.local.identity_order(&self.tree);
+        #[cfg(test)]
+        self.cost.stamp(4, &mut clock);
+        let local_first = self.tree.nodes.len();
         if !self.tree.diagnostics.node_capped {
             self.local.advance(
                 &mut self.tree,
@@ -200,8 +209,15 @@ impl Specimen {
                 budget.saturating_sub(spent),
             )?;
         }
-        self.identify();
+        #[cfg(test)]
+        self.cost.stamp(5, &mut clock);
+        self.identify_range(local_first..self.tree.nodes.len());
+        self.sample_frontier(month);
+        #[cfg(test)]
+        self.cost.stamp(6, &mut clock);
         self.retire(&shed);
+        #[cfg(test)]
+        self.cost.stamp(7, &mut clock);
         let timeline = self.timeline.as_mut().unwrap();
         let changed = timeline.pipes.update(
             &mut self.tree,
@@ -211,7 +227,13 @@ impl Specimen {
         )?;
         timeline
             .widths
-            .update(&mut self.tree, &self.identities, &changed);
-        self.tree.validate_solved()
+            .update(&mut self.tree, &self.identities, &changed)?;
+        #[cfg(test)]
+        {
+            self.cost.pipes += timeline.pipes.visited;
+            self.cost.widths += timeline.widths.visited;
+            self.cost.stamp(8, &mut clock);
+        }
+        Ok(())
     }
 }

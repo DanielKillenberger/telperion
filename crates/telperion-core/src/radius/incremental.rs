@@ -2,15 +2,38 @@
 //! A changed trunk scale still writes each affected radius; it never re-sums
 //! unchanged forks. The taper reference is the authored height in metres.
 use super::*;
-use std::collections::BTreeSet;
+use std::{cmp::Ordering, collections::BTreeSet};
+
+#[derive(Clone, Copy, Debug)]
+struct Scale(f64);
+impl PartialEq for Scale {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+impl Eq for Scale {}
+impl PartialOrd for Scale {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for Scale {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.0.total_cmp(&other.0)
+    }
+}
 
 #[derive(Clone, Default)]
 pub(crate) struct Pipes {
+    #[cfg(test)]
+    pub(crate) visited: usize,
     children: Vec<Vec<usize>>,
     distal: Vec<f64>,
     proximal: Vec<f64>,
     shed: Vec<f64>,
     scale: f64,
+    waiting: BTreeSet<(Scale, usize)>,
+    thresholds: Vec<Scale>,
     dirty: BTreeSet<usize>,
 }
 impl Pipes {
@@ -21,6 +44,10 @@ impl Pipes {
         reference_height: f64,
         params: RadiusParams,
     ) -> Result<Vec<usize>> {
+        #[cfg(test)]
+        {
+            self.visited = 0;
+        }
         let p = params.resolved()?;
         let first = self.children.len();
         let count = tree.crossover;
@@ -28,6 +55,7 @@ impl Pipes {
         self.distal.resize(count, 1.0);
         self.proximal.resize(count, 1.0);
         self.shed.resize(count, 0.0);
+        self.thresholds.resize(count, Scale(0.0));
         let mut dirty = std::mem::take(&mut self.dirty);
         for i in first..count {
             dirty.insert(i);
@@ -70,24 +98,36 @@ impl Pipes {
         }
         let scale = p.trunk_radius * height.max(1e-6) / self.distal[0];
         let mut changed = Vec::new();
-        let mut write = |i: usize, tree: &mut Tree| {
-            let before = (tree.nodes[i].radius, tree.nodes[i].start_radius);
-            tree.nodes[i].radius = (self.distal[i] * scale).max(tree.nodes[i].radius);
-            tree.nodes[i].start_radius = (self.proximal[i] * scale)
-                .max(tree.nodes[i].start_radius)
-                .max(tree.nodes[i].radius);
-            if before != (tree.nodes[i].radius, tree.nodes[i].start_radius) {
+        // A scale increase need only visit nodes whose historical maximum can
+        // be exceeded. Frozen, formerly wider branches stay in the ordered index.
+        let mut write = dirty;
+        if scale != self.scale {
+            while let Some(&(threshold, i)) = self.waiting.first() {
+                if threshold.0 > scale {
+                    break;
+                }
+                self.waiting.pop_first();
+                write.insert(i);
+            }
+        }
+        for i in write {
+            self.waiting.remove(&(self.thresholds[i], i));
+            #[cfg(test)]
+            {
+                self.visited += 1;
+            }
+            let n = &mut tree.nodes[i];
+            let distal = (self.distal[i] * scale).max(n.radius);
+            let proximal = (self.proximal[i] * scale).max(n.start_radius).max(distal);
+            if (distal, proximal) != (n.radius, n.start_radius) {
+                n.radius = distal;
+                n.start_radius = proximal;
                 changed.push(i);
             }
-        };
-        if scale != self.scale {
-            for i in 0..count {
-                write(i, tree);
-            }
-        } else {
-            for i in dirty {
-                write(i, tree);
-            }
+            self.thresholds[i] =
+                Scale((n.radius / self.distal[i]).min(n.start_radius / self.proximal[i]));
+            self.waiting.insert((self.thresholds[i], i));
+            tree.validate_range(i..i + 1, true)?;
         }
         self.scale = scale;
         Ok(changed)
@@ -118,6 +158,17 @@ impl Pipes {
             }
         }
         self.children = children;
+        self.waiting = self
+            .waiting
+            .iter()
+            .filter_map(|&(v, i)| map[i].map(|i| (v, i as usize)))
+            .collect();
+        let mut i = 0;
+        self.thresholds.retain(|_| {
+            let keep = map[i].is_some();
+            i += 1;
+            keep
+        });
         for values in [&mut self.distal, &mut self.proximal, &mut self.shed] {
             let mut i = 0;
             values.retain(|_| {
@@ -126,5 +177,47 @@ impl Pipes {
                 keep
             });
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{math::Vec3, tree::Node};
+    #[test]
+    fn rising_scale_does_not_visit_wood_below_its_previous_width() {
+        let mut tree = Tree::default();
+        for i in 0..1000 {
+            tree.nodes.push(Node {
+                parent: (i > 0).then_some(0),
+                branch: i,
+                position: Vec3::new(i as f64, 1.0, 0.0),
+                radius: 1000.0,
+                start_radius: 1000.0,
+                ..Node::root()
+            });
+        }
+        tree.crossover = tree.nodes.len();
+        let mut pipes = Pipes::default();
+        pipes
+            .update(&mut tree, 1.0, 24.0, RadiusParams::default())
+            .unwrap();
+        let old = tree.clone();
+        pipes
+            .update(&mut tree, 2.0, 24.0, RadiusParams::default())
+            .unwrap();
+        assert_eq!(tree, old);
+        assert_eq!(pipes.visited, 0, "unchanged structural wood was scanned");
+        let mut eager = tree.clone();
+        Pipes::default()
+            .update(&mut eager, 1e9, 24.0, RadiusParams::default())
+            .unwrap();
+        pipes
+            .update(&mut tree, 1e9, 24.0, RadiusParams::default())
+            .unwrap();
+        assert_eq!(
+            tree, eager,
+            "the index must wake wood when its width is exceeded"
+        );
     }
 }

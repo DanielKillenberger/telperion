@@ -103,10 +103,23 @@ round-trips and validates `age` and `growth` (`rate`, `shape`, `sheddingToleranc
 currently affect only `Specimen::build`, not the full-envelope entry points.
 The monthly native path has no lifetime foliage, change records, snapshot,
 or wasm handle yet.
-Its pipe cache recomputes insertion/deletion ancestor paths; changing the trunk
-scale still writes affected structural radii. Environment evaluation, frontier
-visits and storage maintenance still scan existing state. The full growth cost
-contract remains unverified.
+Its pipe cache recomputes insertion/deletion ancestor paths. An ordered scale
+index visits structural wood only when its historical width can be exceeded;
+local width changes propagate to descendants in birth order. Crown exposure uses
+an indexed profile and caches samples until that envelope or position changes.
+With shedding disabled, only frontier shoots sample vigour; other nodes retain
+their last sampled state. With shedding enabled, the slice-start survival pass
+refreshes the live crown and propagates descendant support.
+Structural births rotate the local storage segment and update its indices;
+months without structural births identify only newly appended local wood.
+Local seeding retains unallocated stations and structural child counts.
+Full-tree validation remains available to callers; monthly mutations validate
+new or resized nodes. Native cost measurements, including sparse and dense
+changes on large trees, run with
+`FN11_MEASURE=1 cargo test --release -p telperion-core --lib monthly_cost_report -- --nocapture --test-threads=1`.
+Structural insertion still moves the contiguous local segment, and waiting shoots
+retry as the crown expands. Those costs remain in the measurement; the full cost
+contract also awaits placement and snapshot implementation.
 
 The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator and no TypeScript renderer.
 

@@ -6,8 +6,11 @@ use std::collections::BTreeSet;
 
 #[derive(Clone, Default)]
 pub(super) struct Widths {
+    #[cfg(test)]
+    pub visited: usize,
     children: SecondaryMap<NodeKey, Vec<NodeIdentity>>,
     pending: BTreeSet<NodeIdentity>,
+    queued: SecondaryMap<NodeKey, bool>,
 }
 impl Widths {
     pub fn born(&mut self, tree: &mut Tree, i: usize) {
@@ -36,14 +39,35 @@ impl Widths {
         tree: &mut Tree,
         ids: &DenseSlotMap<NodeKey, usize>,
         changed: &[usize],
-    ) {
-        let mut pending = std::mem::take(&mut self.pending);
+    ) -> Result<()> {
+        #[cfg(test)]
+        {
+            self.visited = 0;
+        }
+        let mut pending = Pending::default();
+        let enqueue =
+            |id: NodeIdentity, pending: &mut Pending, queued: &mut SecondaryMap<_, bool>| {
+                if !queued.get(id.key).copied().unwrap_or(false) {
+                    queued.insert(id.key, true);
+                    pending.push(id);
+                }
+            };
+        for id in std::mem::take(&mut self.pending) {
+            enqueue(id, &mut pending, &mut self.queued);
+        }
         for &i in changed {
             if let Some(children) = self.children.get(tree.nodes[i].identity.key) {
-                pending.extend(children);
+                for &id in children {
+                    enqueue(id, &mut pending, &mut self.queued);
+                }
             }
         }
-        while let Some(id) = pending.pop_first() {
+        while let Some(id) = pending.pop() {
+            self.queued[id.key] = false;
+            #[cfg(test)]
+            {
+                self.visited += 1;
+            }
             let i = ids[id.key];
             let parent = tree.nodes[i].parent.unwrap() as usize;
             let support = tree.nodes[parent].radius;
@@ -56,17 +80,22 @@ impl Widths {
             n.base_radius = base;
             n.radius = distal;
             n.start_radius = proximal;
+            tree.validate_range(i..i + 1, true)?;
             if changed {
                 if let Some(children) = self.children.get(id.key) {
-                    pending.extend(children);
+                    for &id in children {
+                        enqueue(id, &mut pending, &mut self.queued);
+                    }
                 }
             }
         }
+        Ok(())
     }
     pub fn retire(&mut self, tree: &Tree, map: &[Option<u32>]) {
         for (i, n) in tree.nodes.iter().enumerate() {
             if map[i].is_none() {
                 self.children.remove(n.identity.key);
+                self.queued.remove(n.identity.key);
                 self.pending.remove(&n.identity);
                 if let Some(p) = n.parent {
                     if let Some(children) =
@@ -77,5 +106,63 @@ impl Widths {
                 }
             }
         }
+    }
+}
+
+// Children are always born after their parents. A radix queue preserves exact
+// birth order without a comparison-tree allocation for each changed internode.
+struct Pending {
+    buckets: [Vec<NodeIdentity>; 65],
+    last: u64,
+}
+impl Default for Pending {
+    fn default() -> Self {
+        Self {
+            buckets: std::array::from_fn(|_| Vec::new()),
+            last: 0,
+        }
+    }
+}
+impl Pending {
+    fn push(&mut self, id: NodeIdentity) {
+        debug_assert!(id.birth_order() >= self.last);
+        let bucket = (64 - (id.birth_order() ^ self.last).leading_zeros()) as usize;
+        self.buckets[bucket].push(id);
+    }
+    fn pop(&mut self) -> Option<NodeIdentity> {
+        if self.buckets[0].is_empty() {
+            let i = (1..65).find(|&i| !self.buckets[i].is_empty())?;
+            self.last = self.buckets[i]
+                .iter()
+                .map(|id| id.birth_order())
+                .min()
+                .unwrap();
+            while let Some(id) = self.buckets[i].pop() {
+                self.push(id);
+            }
+        }
+        self.buckets[0].pop()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn width_queue_keeps_birth_order_across_bucket_boundaries_and_new_children() {
+        let id = |birth| NodeIdentity {
+            birth,
+            ..NodeIdentity::default()
+        };
+        let mut pending = Pending::default();
+        for birth in [500, 3, 260, 128, 4] {
+            pending.push(id(birth));
+        }
+        assert_eq!(pending.pop(), Some(id(3)));
+        pending.push(id(7));
+        for birth in [4, 7, 128, 260, 500] {
+            assert_eq!(pending.pop(), Some(id(birth)));
+        }
+        assert_eq!(pending.pop(), None);
     }
 }

@@ -2,6 +2,10 @@
 use super::*;
 use crate::tree::{NodeIdentity, NodeKey};
 use slotmap::{DenseSlotMap, Key};
+mod crown;
+#[cfg(test)]
+mod measurement;
+mod storage;
 mod survival;
 #[cfg(test)]
 mod thickening_tests;
@@ -10,6 +14,8 @@ mod widths;
 
 #[derive(Clone)]
 pub struct Specimen {
+    #[cfg(test)]
+    cost: measurement::Cost,
     pub(super) tree: Tree,
     pub(super) shed: usize,
     params: SkeletonParams,
@@ -46,6 +52,8 @@ impl Specimen {
 
         let scaffold = scaffold::Frontier::new(params, &config, points);
         Ok(Self {
+            #[cfg(test)]
+            cost: measurement::Cost::default(),
             tree: Tree::default(),
             shed: 0,
             params: params.clone(),
@@ -77,8 +85,22 @@ impl Specimen {
         self.scaffold.finished() && self.local.finished()
     }
     fn identify(&mut self) {
+        self.identify_range(0..self.tree.nodes.len());
+    }
+    fn identify_range(&mut self, range: std::ops::Range<usize>) {
+        #[cfg(test)]
+        {
+            self.cost.identities += range.len();
+        }
         let mut born = Vec::new();
-        for (i, node) in self.tree.nodes.iter_mut().enumerate() {
+        for (i, node) in self
+            .tree
+            .nodes
+            .iter_mut()
+            .enumerate()
+            .take(range.end)
+            .skip(range.start)
+        {
             if node.identity.key.is_null() {
                 node.identity = NodeIdentity {
                     birth: self.next_identity,
@@ -192,3 +214,6 @@ mod tests;
 
 #[cfg(test)]
 mod monthly_tests;
+
+#[cfg(test)]
+mod cost_tests;
