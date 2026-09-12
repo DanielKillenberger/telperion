@@ -129,11 +129,12 @@ fn packing_between_advances_does_not_change_grown_and_shed_tree_bytes() {
     let mut chain = Specimen::build(&f).unwrap();
     for years in [4.0, 4.0, 4.25] {
         chain.advance(years).unwrap();
+        chain.pack_storage();
     }
     assert_eq!(chain.shed, fresh.shed);
     assert_eq!(chain.next_identity, fresh.next_identity);
     assert!(
-        super::tests::bytes(&chain.tree) == super::tests::bytes(&fresh.tree),
+        super::tests::bytes(chain.tree()) == super::tests::bytes(fresh.tree()),
         "packing boundaries changed structure, radii, shoot state or generational identities"
     );
 }
@@ -153,4 +154,14 @@ fn packing_keeps_append_headroom_for_the_next_slice() {
         s.tree.nodes.capacity() >= capacity,
         "packing discarded headroom and forces the next birth to copy the entire tree"
     );
+}
+
+#[test]
+fn an_internal_slice_does_not_finalize_existing_local_widths() {
+    let mut f = Preset::OregonWhiteOak.parameters();
+    f.age = 20.0;
+    let mut s = Specimen::build(&f).unwrap();
+    let month = s.timeline.as_ref().unwrap().age.month + 1;
+    s.month(month, f.growth.budget(month)).unwrap();
+    assert_eq!(s.cost.widths, 0, "slice finalized local output widths");
 }

@@ -7,6 +7,7 @@ use std::time::{Duration, Instant};
 pub(super) struct Cost {
     pub stages: [Duration; 9],
     pub packing: Duration,
+    pub finalizing: Duration,
     pub packed_nodes: usize,
     pub identities: usize,
     pub storage: usize,
@@ -43,9 +44,12 @@ fn monthly_cost_report() {
             family.age = mature as f64 / 12.0;
             let clock = Instant::now();
             let s = Specimen::build(&family).unwrap();
+            let build_ms = clock.elapsed().as_secs_f64() * 1000.0;
+            let clock = Instant::now();
+            s.tree();
+            let read_ms = clock.elapsed().as_secs_f64() * 1000.0;
             println!(
-                "{preset:?} sample={sample} mature_ms={:.6} month={mature} nodes={} crossover={} bounds={:?}",
-                clock.elapsed().as_secs_f64() * 1000.0,
+                "{preset:?} sample={sample} mature_ms={build_ms:.6} consumer_read_ms={read_ms:.6} month={mature} nodes={} crossover={} bounds={:?}",
                 s.tree.nodes.len(),
                 s.tree.crossover,
                 bounds(&s.tree)
@@ -74,6 +78,9 @@ fn monthly_cost_report() {
                 .iter()
                 .filter(|n| n.identity.birth_order() >= first_birth)
                 .count();
+            let read_clock = Instant::now();
+            s.tree();
+            let read_ms = read_clock.elapsed().as_secs_f64() * 1000.0;
             let changed = born
                 + before
                     .iter()
@@ -82,9 +89,10 @@ fn monthly_cost_report() {
                             .is_ok_and(|n| (n.radius, n.start_radius, n.base_radius) != *previous)
                     })
                     .count();
-            let line = format!("{preset:?} month={month} active={} nodes_before={} nodes_after={} born={born} changed_or_born={changed} advance_ms={ms:.6} internal_slice_ms={:.6} packing_ms={:.6} packed_nodes={} stages_ms={:?} identity_visits={} storage_moved={} pipe_visits={} width_visits={} crown_samples={}",
+            let line = format!("{preset:?} month={month} active={} nodes_before={} nodes_after={} born={born} changed_or_born={changed} advance_ms={ms:.6} internal_slice_ms={:.6} read_ms={read_ms:.6} finalizing_ms={:.6} packing_ms={:.6} packed_nodes={} stages_ms={:?} identity_visits={} storage_moved={} pipe_visits={} width_visits={} crown_samples={}",
                 family.growth.budget(month)>0, before.len(), s.tree.nodes.len(),
                 s.cost.stages.iter().sum::<Duration>().as_secs_f64()*1000.0,
+                s.cost.finalizing.as_secs_f64()*1000.0,
                 s.cost.packing.as_secs_f64()*1000.0, s.cost.packed_nodes,
                 s.cost.stages.map(|d| d.as_secs_f64()*1000.0), s.cost.identities,
                 s.cost.storage, s.cost.pipes, s.cost.widths,
@@ -110,7 +118,7 @@ fn monthly_cost_report() {
             clock.elapsed().as_secs_f64() * 1000.0
         );
     }
-    println!("Stages: environment, scaffold, storage/identity, pipes+local-widths, local-seed/order, local-growth, identify+visited-vigour, shedding, final-widths. Packing is separately timed at the advance boundary; storage_moved counts insertion moves inside the slice. Snapshot unavailable; no round-trip time claimed.");
+    println!("Stages: environment, scaffold, storage/identity, pipe-record, local-seed/order+width-queries, local-growth+width-queries, identify+visited-vigour, shedding, post-shed-record. Output widths finalize once per advance (finalizing_ms). Lazy consumer packing is timed separately (read_ms); storage_moved counts insertion moves inside the slice. Snapshot unavailable; no round-trip time claimed.");
 }
 
 fn bounds(tree: &Tree) -> ([f64; 3], [f64; 3]) {

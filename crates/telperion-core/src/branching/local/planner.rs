@@ -6,7 +6,9 @@ pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
             .shell
             .is_some_and(|s| p.y > s.height || p.x.hypot_fixed(p.z) > s.radius_at(p.y))
 }
+pub(in crate::branching) type WidthQuery<'a> = Option<&'a dyn Fn(&Tree, usize) -> [f64; 3]>;
 pub(in crate::branching) struct Planner<'a> {
+    pub(in crate::branching) widths: WidthQuery<'a>,
     pub(in crate::branching) growing_envelope: bool,
     pub(in crate::branching) planning: Option<Envelope>,
     pub(in crate::branching) config: &'a GrowthConfig,
@@ -16,6 +18,15 @@ pub(in crate::branching) struct Planner<'a> {
     pub(in crate::branching) seed: u32,
 }
 impl Planner<'_> {
+    pub(super) fn width(&self, tree: &Tree, i: usize) -> [f64; 3] {
+        self.widths.map_or_else(
+            || {
+                let n = &tree.nodes[i];
+                [n.radius, n.start_radius, n.base_radius]
+            },
+            |sample| sample(tree, i),
+        )
+    }
     pub(super) fn heading(&self, at: Vec3, from: Vec3, wanted: Vec3, distance: f64) -> Vec3 {
         let c = self.config;
         let wanted = self.bias.map_or(wanted.normalized(), |b| {

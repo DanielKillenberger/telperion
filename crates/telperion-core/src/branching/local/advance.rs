@@ -12,7 +12,11 @@ impl Frontier {
         let t = planner.twigs;
         let config = planner.config;
         let seed = planner.seed;
-        let root_radius = tree.nodes.first().map_or(0.0, |n| n.radius);
+        let root_radius = if tree.nodes.is_empty() {
+            0.0
+        } else {
+            planner.width(tree, 0)[0]
+        };
         self.stations.sync(tree);
         let children = &self.stations.children;
         let divergence = t.divergence.to_radians();
@@ -40,9 +44,10 @@ impl Frontier {
                     self.queue.push_back(s);
                     continue;
                 }
-                s.radius = s.branch.map_or(tree.nodes[s.at].radius, |b| {
-                    tree.nodes[b as usize].base_radius
-                });
+                s.radius = s.branch.map_or_else(
+                    || planner.width(tree, s.at)[0],
+                    |b| planner.width(tree, b as usize)[2],
+                );
             }
             let before = tree.nodes.len();
             let from = s.direction;
@@ -110,7 +115,7 @@ impl Frontier {
                 let supporting = if origin {
                     s.radius
                 } else {
-                    tree.nodes[s.at].radius
+                    planner.width(tree, s.at)[0]
                 };
                 let radius = if lateral {
                     child_radius(supporting, ratio, t.ratio_power)
@@ -263,7 +268,7 @@ impl Frontier {
                     start_radius: if starts {
                         base
                     } else {
-                        tree.nodes[s.at].radius
+                        planner.width(tree, s.at)[0]
                     },
                     base_radius: base,
                     branch,

@@ -1,7 +1,57 @@
-//! Internal slices append in birth order; consumers receive packed storage once
-//! per advance. No local node or frontier reference moves on structural birth.
+//! Internal slices append in birth order; consumers receive a cached packed view
+//! on demand. No local node or frontier reference moves on structural birth.
 use super::*;
+#[derive(Clone)]
+pub(super) struct Read {
+    pub tree: Tree,
+    pub indices: Vec<usize>,
+}
 impl Specimen {
+    pub(super) fn packed_read(&self) -> Option<&Read> {
+        if !self.timeline.as_ref().is_some_and(|t| t.unpacked) {
+            return None;
+        }
+        Some(self.read.get_or_init(|| {
+            let mut structural = 0;
+            let mut local = self.tree.crossover;
+            let indices: Vec<_> = self
+                .tree
+                .nodes
+                .iter()
+                .map(|n| {
+                    let next = if n.kind == NodeKind::Structural {
+                        &mut structural
+                    } else {
+                        &mut local
+                    };
+                    let index = *next;
+                    *next += 1;
+                    index
+                })
+                .collect();
+            let mut tree = Tree {
+                nodes: Vec::with_capacity(self.tree.nodes.len()),
+                crossover: self.tree.crossover,
+                diagnostics: self.tree.diagnostics,
+            };
+            for structural in [true, false] {
+                tree.nodes.extend(
+                    self.tree
+                        .nodes
+                        .iter()
+                        .filter(|n| (n.kind == NodeKind::Structural) == structural)
+                        .map(|n| {
+                            let mut node = n.clone();
+                            node.parent = n.parent.map(|p| indices[p as usize] as u32);
+                            node.branch = indices[n.branch as usize] as u32;
+                            node
+                        }),
+                );
+            }
+            Read { tree, indices }
+        }))
+    }
+
     pub(super) fn insert_structural(&mut self, first: usize, previous_len: usize) {
         let added = self.tree.nodes.len() - previous_len;
         self.tree.crossover = first + added;
@@ -12,7 +62,9 @@ impl Specimen {
         self.identify_range(previous_len..self.tree.nodes.len());
     }
 
+    #[cfg(test)]
     pub(super) fn pack_storage(&mut self) {
+        self.read.take();
         let t = self.timeline.as_mut().unwrap();
         if !std::mem::take(&mut t.unpacked) {
             return;

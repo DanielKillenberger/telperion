@@ -103,11 +103,13 @@ impl Frontier {
         config: &GrowthConfig,
         t: TwigParams,
         habit: HabitParams,
+        widths: planner::WidthQuery<'_>,
     ) {
         if tree.nodes.len() < 2 {
             return;
         }
-        let root_radius = tree.nodes[0].radius;
+        let radius = |i: usize| widths.map_or(tree.nodes[i].radius, |sample| sample(tree, i)[0]);
+        let root_radius = radius(0);
         self.stations.sync(tree);
         let children = &self.stations.children;
         if self.stations.pending.is_empty() {
@@ -122,7 +124,7 @@ impl Frontier {
                 continue;
             }
             let terminal = u16::from(children[i] == 0);
-            let laterals = if n.radius < t.limb_radius * root_radius {
+            let laterals = if radius(i) < t.limb_radius * root_radius {
                 ((1_u16 << t.laterals) - 1) << 1
             } else {
                 0
@@ -150,7 +152,7 @@ impl Frontier {
                 None
             };
             let pendant = floor.is_some();
-            let length = branch_length(n.radius);
+            let length = branch_length(radius(i));
             frontier.push(Shoot {
                 flushed: !buds,
                 accepted: Vec::new(),
@@ -158,12 +160,12 @@ impl Frontier {
                 direction,
                 normal: direction.perpendicular(),
                 phase: (n.identity.birth_order() as f64 * divergence) % TAU,
-                radius: n.radius,
+                radius: radius(i),
                 length,
                 branch: None,
                 completed: 0,
                 generation: 0,
-                internodes: t.internodes(n.radius, length),
+                internodes: t.internodes(radius(i), length),
                 key: n.identity.birth_order() as u32,
                 run: None,
                 pendant,

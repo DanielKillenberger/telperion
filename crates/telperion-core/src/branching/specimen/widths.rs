@@ -11,16 +11,48 @@ pub(super) struct Widths {
     children: SecondaryMap<NodeKey, Vec<NodeIdentity>>,
     pending: BTreeSet<NodeIdentity>,
     queued: SecondaryMap<NodeKey, bool>,
+    // Invalidation must not clear a slot array proportional to the whole tree.
+    generation: u64,
+    cache: std::cell::RefCell<SecondaryMap<NodeKey, (u64, [f64; 3])>>,
 }
 impl Widths {
-    pub fn born(&mut self, tree: &mut Tree, i: usize) {
+    pub fn invalidate(&mut self) {
+        self.generation += 1;
+    }
+    /// Birth geometry queries the slice record, never a previous finalization.
+    pub fn sample(&self, tree: &Tree, pipes: &radius::Pipes, i: usize) -> [f64; 3] {
+        let n = &tree.nodes[i];
+        if n.kind == NodeKind::Structural && pipes.contains(i) {
+            let (distal, proximal) = pipes.width(i);
+            return [distal, proximal, n.base_radius];
+        }
+        let Some(w) = n.shoot.width else {
+            return [n.radius, n.start_radius, n.base_radius];
+        };
+        if let Some(&(generation, value)) = self.cache.borrow().get(n.identity.key) {
+            if generation == self.generation {
+                return value;
+            }
+        }
+        let support = self.sample(tree, pipes, n.parent.unwrap() as usize)[0];
+        let base = child_radius(support, w.ratio, w.power).max(w.birth[2]);
+        let distal = (base * w.distal).max(w.birth[0]);
+        let proximal = (base * w.proximal).max(w.birth[1]).max(distal);
+        let value = [distal, proximal, base];
+        self.cache
+            .borrow_mut()
+            .insert(n.identity.key, (self.generation, value));
+        value
+    }
+    pub fn born(&mut self, tree: &mut Tree, pipes: &radius::Pipes, i: usize) {
         let parent = tree.nodes[i].parent.unwrap() as usize;
-        let support = tree.nodes[parent].radius;
+        let support = self.sample(tree, pipes, parent)[0];
         let n = &mut tree.nodes[i];
         // child_radius is homogeneous in parent radius. Cache its evaluated
         // birth allocation, including twig minimum and seeded variation, rather
         // than redraw a ratio after compaction. Taper and twig length stay in metres.
         n.shoot.width = Some(LocalWidth {
+            birth: [n.radius, n.start_radius, n.base_radius],
             ratio: n.base_radius / support.max(1e-15),
             power: 1.0,
             distal: n.radius / n.base_radius.max(1e-15),
@@ -39,6 +71,7 @@ impl Widths {
         tree: &mut Tree,
         ids: &DenseSlotMap<NodeKey, usize>,
         changed: &[usize],
+        pipes: &radius::Pipes,
     ) -> Result<()> {
         #[cfg(test)]
         {
@@ -69,13 +102,8 @@ impl Widths {
                 self.visited += 1;
             }
             let i = ids[id.key];
-            let parent = tree.nodes[i].parent.unwrap() as usize;
-            let support = tree.nodes[parent].radius;
+            let [distal, proximal, base] = self.sample(tree, pipes, i);
             let n = &mut tree.nodes[i];
-            let w = n.shoot.width.unwrap();
-            let base = child_radius(support, w.ratio, w.power).max(n.base_radius);
-            let distal = (base * w.distal).max(n.radius);
-            let proximal = (base * w.proximal).max(n.start_radius).max(distal);
             let changed = distal != n.radius;
             n.base_radius = base;
             n.radius = distal;
@@ -94,6 +122,7 @@ impl Widths {
     pub fn retire(&mut self, tree: &Tree, map: &[Option<u32>]) {
         for (i, n) in tree.nodes.iter().enumerate() {
             if map[i].is_none() {
+                self.cache.get_mut().remove(n.identity.key);
                 self.children.remove(n.identity.key);
                 self.queued.remove(n.identity.key);
                 self.pending.remove(&n.identity);

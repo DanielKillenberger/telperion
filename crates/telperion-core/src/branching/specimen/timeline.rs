@@ -88,8 +88,9 @@ impl Specimen {
                     if let Some(previous) = checkpoint {
                         *self = previous;
                     }
-                    self.pack_storage();
+                    self.finish_widths()?;
                     result?;
+                    self.read.take();
                     self.tree.diagnostics.node_capped = true;
                     return Ok(());
                 }
@@ -99,8 +100,23 @@ impl Specimen {
                 remainder: 0,
             };
         }
-        self.pack_storage();
+        self.finish_widths()?;
         self.timeline.as_mut().unwrap().age = target;
+        Ok(())
+    }
+    pub(super) fn finish_widths(&mut self) -> Result<()> {
+        #[cfg(test)]
+        let clock = std::time::Instant::now();
+        let t = self.timeline.as_mut().unwrap();
+        let changed = t.pipes.finish(&mut self.tree)?;
+        t.widths
+            .update(&mut self.tree, &self.identities, &changed, &t.pipes)?;
+        #[cfg(test)]
+        {
+            self.cost.finalizing = clock.elapsed();
+            self.cost.pipes = t.pipes.visited;
+            self.cost.widths = t.widths.visited;
+        }
         Ok(())
     }
     /// Raising a ceiling unblocks the rolled-back frontier; limits are resources,
@@ -112,6 +128,7 @@ impl Specimen {
                 value: limit.to_string(),
             });
         }
+        self.read.take();
         if limit > self.config.max_nodes {
             self.tree.diagnostics.node_capped = false;
         }
@@ -120,6 +137,7 @@ impl Specimen {
         Ok(())
     }
     pub(super) fn month(&mut self, month: u64, budget: usize) -> Result<()> {
+        self.read.take();
         #[cfg(test)]
         {
             self.cost = super::measurement::Cost::default();
@@ -173,23 +191,20 @@ impl Specimen {
         self.cost.stamp(2, &mut clock);
         let timeline = self.timeline.as_mut().unwrap();
         timeline.envelope = envelope;
-        let changed = timeline.pipes.update(
-            &mut self.tree,
+        timeline.pipes.record(
+            &self.tree,
             envelope.height,
             self.params.envelope.height,
             self.radii,
         )?;
-        timeline
-            .widths
-            .update(&mut self.tree, &self.identities, &changed)?;
+        timeline.widths.invalidate();
         #[cfg(test)]
-        {
-            self.cost.pipes += timeline.pipes.visited;
-            self.cost.widths += timeline.widths.visited;
-            self.cost.stamp(3, &mut clock);
-        }
+        self.cost.stamp(3, &mut clock);
         let twigs = params.twigs.resolved()?;
-        self.local.seed(&self.tree, &config, twigs, params.habit);
+        let timeline = self.timeline.as_ref().unwrap();
+        let widths = |tree: &Tree, i| timeline.widths.sample(tree, &timeline.pipes, i);
+        self.local
+            .seed(&self.tree, &config, twigs, params.habit, Some(&widths));
         self.local.identity_order(&self.tree);
         #[cfg(test)]
         self.cost.stamp(4, &mut clock);
@@ -198,6 +213,7 @@ impl Specimen {
             self.local.advance(
                 &mut self.tree,
                 local::Planner {
+                    widths: Some(&widths),
                     growing_envelope: true,
                     planning: Some(Envelope {
                         crown_base: self.params.envelope.crown_base * fraction,
@@ -223,21 +239,15 @@ impl Specimen {
         #[cfg(test)]
         self.cost.stamp(7, &mut clock);
         let timeline = self.timeline.as_mut().unwrap();
-        let changed = timeline.pipes.update(
-            &mut self.tree,
+        timeline.pipes.record(
+            &self.tree,
             envelope.height,
             self.params.envelope.height,
             self.radii,
         )?;
-        timeline
-            .widths
-            .update(&mut self.tree, &self.identities, &changed)?;
+        timeline.widths.invalidate();
         #[cfg(test)]
-        {
-            self.cost.pipes += timeline.pipes.visited;
-            self.cost.widths += timeline.widths.visited;
-            self.cost.stamp(8, &mut clock);
-        }
+        self.cost.stamp(8, &mut clock);
         Ok(())
     }
 }

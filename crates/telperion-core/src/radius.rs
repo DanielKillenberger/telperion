@@ -1,4 +1,5 @@
 //! Structural fork solve and the separate branch-local taper contract.
+mod history;
 mod incremental;
 use crate::math::Transcendental;
 use crate::{envelope::Envelope, tree::Tree, Error, Result};

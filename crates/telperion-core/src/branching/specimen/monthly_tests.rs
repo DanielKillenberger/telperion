@@ -20,40 +20,43 @@ fn monthly_growth_expands_the_envelope_and_retains_wood() {
     let mut height = 0.0;
     let mut after_twigs = false;
     for _ in 0..360 {
-        let crossover = s.tree.crossover;
-        let had_twigs = s.tree.nodes.iter().any(|n| n.kind == NodeKind::Twig);
+        let crossover = s.tree().crossover;
+        let had_twigs = s.tree().nodes.iter().any(|n| n.kind == NodeKind::Twig);
         s.advance(1.0 / 12.0).unwrap();
-        s.tree.validate_solved().unwrap();
+        s.tree().validate_solved().unwrap();
         assert!(s.envelope().height >= height);
-        assert!(s.tree.nodes[..s.tree.crossover]
+        assert!(s.tree().nodes[..s.tree().crossover]
             .iter()
             .all(|n| n.kind == NodeKind::Structural));
-        assert!(s.tree.nodes[s.tree.crossover..]
+        assert!(s.tree().nodes[s.tree().crossover..]
             .iter()
             .all(|n| n.kind != NodeKind::Structural));
         for (id, pos, parent, branch) in previous {
             let n = s.node(id).unwrap();
             assert_eq!(n.position, pos);
-            assert_eq!(n.parent.map(|p| s.tree.nodes[p as usize].identity), parent);
-            assert_eq!(s.tree.nodes[n.branch as usize].identity, branch);
+            assert_eq!(
+                n.parent.map(|p| s.tree().nodes[p as usize].identity),
+                parent
+            );
+            assert_eq!(s.tree().nodes[n.branch as usize].identity, branch);
         }
         previous = s
-            .tree
+            .tree()
             .nodes
             .iter()
             .map(|n| {
                 (
                     n.identity,
                     n.position,
-                    n.parent.map(|p| s.tree.nodes[p as usize].identity),
-                    s.tree.nodes[n.branch as usize].identity,
+                    n.parent.map(|p| s.tree().nodes[p as usize].identity),
+                    s.tree().nodes[n.branch as usize].identity,
                 )
             })
             .collect();
-        after_twigs |= had_twigs && s.tree.crossover > crossover;
+        after_twigs |= had_twigs && s.tree().crossover > crossover;
         height = s.envelope().height;
     }
-    assert!(s.tree.crossover > 10, "monthly budget must append wood");
+    assert!(s.tree().crossover > 10, "monthly budget must append wood");
     assert!(
         after_twigs,
         "new structure must arrive after local wood exists"
@@ -277,7 +280,7 @@ fn monthly_cached_local_runs_obey_the_current_crown_boundary() {
     for _ in 0..360 {
         let first_birth = s.next_identity;
         s.advance(1.0 / 12.0).unwrap();
-        for node in &s.tree.nodes[s.tree.crossover..] {
+        for node in &s.tree().nodes[s.tree().crossover..] {
             if node.identity.birth_order() >= first_birth {
                 assert!(
                     s.envelope().contains(node.position, 1e-9),

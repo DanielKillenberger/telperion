@@ -24,9 +24,10 @@ impl Default for ShootState {
         }
     }
 }
-/// Birth allocation and taper, evaluated against the living parent each slice.
+/// Birth allocation and taper; queries derive widths from the living parent record.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) struct LocalWidth {
+    pub birth: [f64; 3],
     pub ratio: f64,
     pub power: f64,
     pub distal: f64,

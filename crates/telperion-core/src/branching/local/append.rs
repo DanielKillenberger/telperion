@@ -20,10 +20,11 @@ pub fn append(
     for (i, n) in identified.nodes.iter_mut().enumerate() {
         n.identity.birth = i as u64;
     }
-    frontier.seed(&identified, config, t, habit);
+    frontier.seed(&identified, config, t, habit, None);
     frontier.advance(
         tree,
         Planner {
+            widths: None,
             growing_envelope: false,
             planning: None,
             config,

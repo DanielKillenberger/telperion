@@ -61,7 +61,7 @@ fn local_wood_thickens_with_its_parent_and_never_shrinks() {
     let mut f = Preset::OregonWhiteOak.parameters();
     f.age = 15.0;
     let mut s = Specimen::build(&f).unwrap();
-    let before: Vec<_> = s.tree.nodes[s.tree.crossover..]
+    let before: Vec<_> = s.tree().nodes[s.tree().crossover..]
         .iter()
         .map(|n| (n.identity, n.radius, n.start_radius, n.base_radius))
         .collect();

@@ -32,12 +32,17 @@ pub(crate) struct Pipes {
     distal: Vec<f64>,
     proximal: Vec<f64>,
     shed: Vec<f64>,
-    scale: f64,
+    history: super::history::History,
+    epochs: Vec<usize>,
+    floors: Vec<(f64, f64)>,
+    pending: BTreeSet<usize>,
+    finalized: usize,
     waiting: BTreeSet<(Scale, usize)>,
     thresholds: Vec<Scale>,
     dirty: BTreeSet<usize>,
 }
 impl Pipes {
+    #[cfg(test)]
     pub fn update(
         &mut self,
         tree: &mut Tree,
@@ -45,10 +50,17 @@ impl Pipes {
         reference_height: f64,
         params: RadiusParams,
     ) -> Result<Vec<usize>> {
-        #[cfg(test)]
-        {
-            self.visited = 0;
-        }
+        self.record(tree, height, reference_height, params)?;
+        self.finish(tree)
+    }
+    /// Update only changed structural paths; output radii are not inputs.
+    pub fn record(
+        &mut self,
+        tree: &Tree,
+        height: f64,
+        reference_height: f64,
+        params: RadiusParams,
+    ) -> Result<()> {
         let p = params.resolved()?;
         let first = self.children.len();
         let count = tree.nodes.len();
@@ -56,12 +68,15 @@ impl Pipes {
         self.distal.resize(count, 1.0);
         self.proximal.resize(count, 1.0);
         self.shed.resize(count, 0.0);
+        self.epochs.resize(count, self.history.len());
+        self.floors.resize(count, (0.0, 0.0));
         self.thresholds.resize(count, Scale(0.0));
         let mut dirty = std::mem::take(&mut self.dirty);
         for i in first..count {
             if tree.nodes[i].kind != NodeKind::Structural {
                 continue;
             }
+            self.floors[i] = (tree.nodes[i].radius, tree.nodes[i].start_radius);
             dirty.insert(i);
             if let Some(parent) = tree.nodes[i].parent {
                 let parent = parent as usize;
@@ -80,8 +95,13 @@ impl Pipes {
                 }
             }
         }
+        for &i in &dirty {
+            self.floors[i] = self.width(i);
+            self.epochs[i] = self.history.len();
+        }
+        self.pending.extend(&dirty);
         // Structural children are birth ordered even when local storage lies
-        // between them. Packing at an advance boundary preserves that order.
+        // between them. Optional packing preserves that order.
         for &i in dirty.iter().rev() {
             let carried: f64 = self.children[i]
                 .iter()
@@ -98,31 +118,46 @@ impl Pipes {
                 });
         }
         if count == 0 {
-            return Ok(Vec::new());
+            return Ok(());
         }
         let scale = p.trunk_radius * height.max(1e-6) / self.distal[0];
-        let mut changed = Vec::new();
-        // A scale increase need only visit nodes whose historical maximum can
-        // be exceeded. Frozen, formerly wider branches stay in the ordered index.
-        let mut write = dirty;
-        if scale != self.scale {
-            while let Some(&(threshold, i)) = self.waiting.first() {
-                if threshold.0 > scale {
-                    break;
-                }
-                self.waiting.pop_first();
-                write.insert(i);
-            }
+        self.history.push(scale);
+        Ok(())
+    }
+    pub fn contains(&self, i: usize) -> bool {
+        i < self.floors.len()
+    }
+    pub fn width(&self, i: usize) -> (f64, f64) {
+        let scale = self.history.maximum(self.epochs[i]);
+        let distal = (self.distal[i] * scale).max(self.floors[i].0);
+        let proximal = (self.proximal[i] * scale).max(self.floors[i].1).max(distal);
+        (distal, proximal)
+    }
+    /// Materialize only wood whose recorded maximum can have changed.
+    pub fn finish(&mut self, tree: &mut Tree) -> Result<Vec<usize>> {
+        #[cfg(test)]
+        {
+            self.visited = 0;
         }
+        let mut changed = Vec::new();
+        let mut write = std::mem::take(&mut self.pending);
+        let maximum = self.history.maximum(self.finalized);
+        while let Some(&(threshold, i)) = self.waiting.first() {
+            if threshold.0 > maximum {
+                break;
+            }
+            self.waiting.pop_first();
+            write.insert(i);
+        }
+        self.finalized = self.history.len();
         for i in write {
             self.waiting.remove(&(self.thresholds[i], i));
             #[cfg(test)]
             {
                 self.visited += 1;
             }
+            let (distal, proximal) = self.width(i);
             let n = &mut tree.nodes[i];
-            let distal = (self.distal[i] * scale).max(n.radius);
-            let proximal = (self.proximal[i] * scale).max(n.start_radius).max(distal);
             if (distal, proximal) != (n.radius, n.start_radius) {
                 n.radius = distal;
                 n.start_radius = proximal;
@@ -133,12 +168,16 @@ impl Pipes {
             self.waiting.insert((self.thresholds[i], i));
             tree.validate_range(i..i + 1, true)?;
         }
-        self.scale = scale;
         Ok(changed)
     }
     /// Preserve unchanged fork reductions through compaction. Only ancestors of
     /// a removed structural child are invalidated; no full pipe solve on a cut.
     pub fn remap(&mut self, tree: &Tree, map: &[Option<u32>]) {
+        self.pending = self
+            .pending
+            .iter()
+            .filter_map(|&i| map[i].map(|i| i as usize))
+            .collect();
         self.dirty = self
             .dirty
             .iter()
@@ -173,6 +212,8 @@ impl Pipes {
             .filter_map(|&(v, i)| map[i].map(|i| (v, i as usize)))
             .collect();
         remap_values(&mut self.thresholds, map, count, Scale(0.0));
+        remap_values(&mut self.epochs, map, count, self.history.len());
+        remap_values(&mut self.floors, map, count, (0.0, 0.0));
         for values in [&mut self.distal, &mut self.proximal, &mut self.shed] {
             remap_values(values, map, count, 0.0);
         }

@@ -17,6 +17,7 @@ pub struct Specimen {
     #[cfg(test)]
     cost: measurement::Cost,
     pub(super) tree: Tree,
+    read: std::cell::OnceCell<storage::Read>,
     pub(super) shed: usize,
     params: SkeletonParams,
     radii: RadiusParams,
@@ -55,6 +56,7 @@ impl Specimen {
             #[cfg(test)]
             cost: measurement::Cost::default(),
             tree: Tree::default(),
+            read: std::cell::OnceCell::new(),
             shed: 0,
             params: params.clone(),
             radii,
@@ -68,16 +70,19 @@ impl Specimen {
         })
     }
     pub fn tree(&self) -> &Tree {
-        &self.tree
+        self.packed_read().map_or(&self.tree, |read| &read.tree)
     }
     pub fn identities(&self) -> impl ExactSizeIterator<Item = NodeIdentity> + '_ {
-        self.tree.nodes.iter().map(|n| n.identity)
+        self.tree().nodes.iter().map(|n| n.identity)
     }
     /// Resolve an identity after storage has moved; retired generations fail.
     pub fn node(&self, identity: NodeIdentity) -> Result<&Node> {
         self.identities
             .get(identity.key)
-            .and_then(|&i| self.tree.nodes.get(i))
+            .and_then(|&i| match self.packed_read() {
+                Some(read) => read.tree.nodes.get(read.indices[i]),
+                None => self.tree.nodes.get(i),
+            })
             .filter(|node| node.identity == identity)
             .ok_or(Error::InvalidInput("stale node identity"))
     }
@@ -123,7 +128,7 @@ impl Specimen {
         }
         if let Some(t) = &mut self.timeline {
             for i in born {
-                t.widths.born(&mut self.tree, i);
+                t.widths.born(&mut self.tree, &t.pipes, i);
             }
         }
     }
@@ -171,11 +176,13 @@ impl Specimen {
             &self.config,
             self.params.twigs.resolved()?,
             self.params.habit,
+            None,
         );
         if !self.tree.diagnostics.node_capped {
             self.local.advance(
                 &mut self.tree,
                 local::Planner {
+                    widths: None,
                     growing_envelope: false,
                     planning: None,
                     config: &self.config,
@@ -217,3 +224,6 @@ mod monthly_tests;
 
 #[cfg(test)]
 mod cost_tests;
+
+#[cfg(test)]
+mod read_tests;
