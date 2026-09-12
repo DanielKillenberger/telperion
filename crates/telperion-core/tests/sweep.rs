@@ -48,11 +48,16 @@ const BANDS: [(&str, usize, usize); 5] = [
 /// the sweep cannot prove the walk carries them. Every other path in the wire is
 /// moved by some pair below and proved to walk; a parameter added to the wire is
 /// either moved by a preset or named here.
-const HELD: [&str; 24] = [
+// fn-11 publishes the timeline before species calibration: every preset still
+// shares its provisional age/rate/shape. Monthly tests independently walk them.
+const HELD: [&str; 27] = [
+    "/age",
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
     "/element/curl",
+    "/growth/rate",
+    "/growth/shape",
     "/skeleton/growth/influenceRadius",
     "/skeleton/growth/killDistance",
     "/skeleton/growth/maxNodes",

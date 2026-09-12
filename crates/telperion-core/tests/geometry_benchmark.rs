@@ -143,6 +143,16 @@ fn frozen_parameters_resolve_without_default_substitution() {
             .unwrap()
             .remove("material")
             .expect("the family publishes its material row");
+        // fn-11 added age and growth traits, and the frozen file is a geometry
+        // protocol that predates the timeline: it never stated an age or growth
+        // curve, so these are not stated geometry parameters silently defaulted in.
+        for field in ["age", "growth"] {
+            emitted
+                .as_object_mut()
+                .unwrap()
+                .remove(field)
+                .expect("the family publishes its timeline fields");
+        }
         for trait_name in ["lobeCount", "lobeDepth", "sectionRoundness"] {
             emitted["element"]
                 .as_object_mut()

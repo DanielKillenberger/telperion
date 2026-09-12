@@ -69,6 +69,7 @@ The deleted TypeScript suites remain in Git at the pre-cleanup revision. This ma
 | `skeleton/fill.test.ts` | `colonization.rs`: occupied shell voxels, clustering boundaries and unmeasurable domains |
 | `skeleton/persistence.test.ts` | `colonization.rs`: bounded turn and coincident/collision behavior; `growth.rs`: retained local attachment and resolution |
 | fn-11 retained identities | `src/branching/specimen/tests.rs`: growth after twigs, crossover, surviving parent/run identities after shedding, generational slot reuse and stale-key rejection, per-specimen replay, retained axis streams and local queues |
+| fn-11 timeline wire | `src/params/tests.rs`: age and growth trait round trips and field/value errors; `geometry_benchmark.rs` excludes timeline fields absent from the frozen fn-19 geometry protocol |
 | fn-11 monthly native growth | `src/branching/specimen/monthly_tests.rs`: fractional replay across five presets and blends, growing envelope, identity survival after twigs, pause/remainder, field/value errors, transactional node cap and recovery, frontier ordering and saturated-age timing |
 | fn-11 native/wasm parity | `harness/parity.test.ts` with `examples/node_buffer.rs`: SHA-256 of node geometry and topology for all five presets; platform-math failures recorded before the pinned-libm change |
 | `skeleton/grow.test.ts`, `presets/two-trees.test.ts` | `growth.rs`: solved deterministic presets, family/seed controls, finite constraints, empty and capped generation; `growth_reference.rs`: seven finished FN6 input classes |

@@ -188,3 +188,30 @@ fn catalogue_roundtrips_all_controls_and_identities() {
     assert!(parse(&json!({"skeleton":{"bias":{"writheAmplitude":0.1}}})).is_err());
     assert!(parse(&json!({"skeleton":{"bias":{"supernatural":{"enabled":1}}}})).is_err());
 }
+
+#[test]
+fn age_and_growth_round_trip_and_refuse_invalid_values() {
+    let mut family = preset(0).unwrap();
+    family.age = 12.25;
+    family.growth.rate = 0.12;
+    family.growth.shape = 3.0;
+    let wire = metadata(&family);
+    assert_eq!(wire["age"], 12.25);
+    assert_eq!(wire["growth"]["rate"], 0.12);
+    assert_eq!(wire["growth"]["shape"], 3.0);
+    let parsed = parse(&wire).unwrap();
+    assert_eq!(parsed.age, family.age);
+    assert_eq!(parsed.growth, family.growth);
+    for (pointer, field, value) in [
+        ("/age", "age", -1.0),
+        ("/age", "age", crate::growth::MAX_AGE + 1.0),
+        ("/growth/rate", "growth.rate", 0.0),
+        ("/growth/shape", "growth.shape", 9.0),
+    ] {
+        let mut bad = wire.clone();
+        *bad.pointer_mut(pointer).unwrap() = serde_json::json!(value);
+        let message = parse(&bad).unwrap_err().to_string();
+        assert!(message.contains(field), "{message}");
+        assert!(message.contains(&value.to_string()), "{message}");
+    }
+}

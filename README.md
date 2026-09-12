@@ -76,9 +76,11 @@ and resume the same frontier. The curve's final work quantum defines saturation;
 advancing beyond it jumps directly to the requested age.
 
 Integration is incomplete: `branching::generate`, `Specimen::grow`, mesh builds
-and the browser still use the existing full-envelope build. Age and growth traits
-are not exposed by the JSON wire yet. The monthly native
-path has no lifetime foliage, change records, snapshot, or wasm handle yet.
+and the browser still use the existing full-envelope build. The JSON wire now
+round-trips and validates `age` and `growth` (`rate`, `shape`); those fields
+currently affect only `Specimen::build`, not the full-envelope entry points.
+The monthly native path has no lifetime foliage, change records, snapshot,
+or wasm handle yet.
 Its pipe cache recomputes new-node ancestor paths; changing the trunk scale
 still writes structural radii. The full growth cost contract remains unverified.
 
