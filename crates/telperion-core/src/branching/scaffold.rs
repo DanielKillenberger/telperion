@@ -27,22 +27,48 @@ fn axis_key(parent: u32, station: usize, member: usize) -> u32 {
     .next_u32()
 }
 
+#[derive(Clone)]
 struct Axis {
     at: usize,
     heading: Vec3,
     length: f64,
     order: u32,
     key: u32,
+    tip: usize,
+    current_heading: Vec3,
+    completed: usize,
+    since: f64,
+    station_index: usize,
+    stationed: bool,
+    children: Vec<Axis>,
+}
+impl Axis {
+    fn new(at: usize, heading: Vec3, length: f64, order: u32, key: u32) -> Self {
+        Self {
+            at,
+            heading,
+            length,
+            order,
+            key,
+            tip: at,
+            current_heading: heading,
+            completed: 0,
+            since: 0.0,
+            station_index: 0,
+            stationed: false,
+            children: Vec::new(),
+        }
+    }
 }
 struct Builder<'a> {
-    tree: Tree,
+    tree: &'a mut Tree,
     envelope: Envelope,
     planning: Envelope,
     config: &'a GrowthConfig,
     bias: &'a GrowthBias,
     habit: HabitParams,
     points: &'a [Vec3],
-    alive: Vec<bool>,
+    alive: &'a mut [bool],
     influence_sq: f64,
     kill_sq: f64,
 }
@@ -213,17 +239,11 @@ impl Builder<'_> {
             if length <= unit * 0.5 {
                 continue;
             }
-            out.push(Axis {
-                at,
-                heading: direction,
-                length,
-                order: axis.order + 1,
-                key,
-            });
+            out.push(Axis::new(at, direction, length, axis.order + 1, key));
         }
         out
     }
-    fn grow(&mut self, axis: &Axis) -> Result<Vec<Axis>> {
+    fn grow(&mut self, axis: &mut Axis, budget: &mut usize) -> Result<bool> {
         let unit = self.unit(axis.order);
         let units = (axis.length / unit).ceil().clamp(1.0, MAX_UNITS as f64) as usize;
         let spacing = if axis.order == 0 {
@@ -244,13 +264,24 @@ impl Builder<'_> {
         let across = axis.heading.cross(side);
         let up = Vec3::Y - axis.heading * axis.heading.y;
         let up = (up.length_squared() > 1e-12).then(|| up.normalized());
-        let mut at = axis.at;
-        let mut heading = axis.heading;
-        let mut children = Vec::new();
-        let mut since = 0.0;
-        let mut index = 0;
-        let mut stationed = false;
-        for k in 0..units {
+        let mut at = axis.tip;
+        let mut heading = axis.current_heading;
+        let mut children = std::mem::take(&mut axis.children);
+        let mut since = axis.since;
+        let mut index = axis.station_index;
+        let mut stationed = axis.stationed;
+        for k in axis.completed..units {
+            if *budget == 0 {
+                axis.tip = at;
+                axis.current_heading = heading;
+                axis.since = since;
+                axis.station_index = index;
+                axis.stationed = stationed;
+                axis.children = children;
+                return Ok(false);
+            }
+            *budget -= 1;
+            axis.completed = k + 1;
             let position = self.tree.nodes[at].position;
             let pull = self.pull(position);
             if !self.points.is_empty() && pull.is_none() && position.y >= self.config.trunk_height {
@@ -288,52 +319,12 @@ impl Builder<'_> {
         if !stationed && at != axis.at && axis.order < self.habit.lateral_orders {
             children.append(&mut self.station(axis, at, heading, index));
         }
-        Ok(children)
+        axis.children = children;
+        Ok(true)
     }
 }
 
-pub(super) fn generate(
-    params: &SkeletonParams,
-    config: &GrowthConfig,
-    bias: &GrowthBias,
-    points: &[Vec3],
-) -> Result<Tree> {
-    let habit = params.habit;
-    let mut b = Builder {
-        tree: Tree::default(),
-        envelope: params.envelope,
-        planning: inner_envelope(params.envelope, params.twigs.reach),
-        config,
-        bias,
-        habit,
-        points,
-        alive: vec![true; points.len()],
-        influence_sq: config.influence_radius * config.influence_radius,
-        kill_sq: config.kill_distance * config.kill_distance,
-    };
-    if !b.capped() {
-        b.tree.nodes.push(Node::root());
-        let base = config
-            .trunk_height
-            .max(params.envelope.height * params.envelope.crown_base);
-        let top = base + (params.envelope.height - base) * habit.apical_dominance;
-        if params.envelope.height > 0.0 && top > 0.0 {
-            let mut queue = VecDeque::from([Axis {
-                at: 0,
-                heading: Vec3::Y,
-                length: top,
-                order: 0,
-                key: params.seed ^ 0x742b_e831,
-            }]);
-            while let Some(axis) = queue.pop_front() {
-                if b.tree.diagnostics.node_capped {
-                    break;
-                }
-                queue.extend(b.grow(&axis)?);
-            }
-        }
-    }
-    b.tree.crossover = b.tree.nodes.len();
-    b.tree.validate()?;
-    Ok(b.tree)
-}
+mod frontier;
+#[cfg(test)]
+pub(super) use frontier::generate;
+pub(super) use frontier::Frontier;

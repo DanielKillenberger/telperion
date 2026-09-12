@@ -1,6 +1,7 @@
 //! Crown, local branches, shell shedding, and final radius solve, in botanical order.
 mod local;
 mod scaffold;
+mod specimen;
 mod traits;
 use crate::{
     bias::{BiasParams, GrowthBias},
@@ -14,6 +15,7 @@ use crate::{
     Error, Result,
 };
 pub use local::append;
+pub use specimen::Specimen;
 pub use traits::HabitParams;
 pub const NODE_CEILING: usize = 250_000;
 pub const DEFAULT_STEP: f64 = 0.022;
@@ -251,48 +253,20 @@ pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usi
 }
 /// Generate solved structure only. Representations are independent borrowed-tree requests.
 pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthReport> {
-    params.envelope.validate()?;
-    params.bias.validate()?;
-    params.habit.validate()?;
-    radii.resolved()?;
+    let specimen = Specimen::grow(params, radii)?;
+    Ok(GrowthReport {
+        tree: specimen.tree,
+        shed: specimen.shed,
+    })
+}
+fn finish(tree: &mut Tree, params: &SkeletonParams, radii: RadiusParams) -> Result<usize> {
     let twigs = params.twigs.resolved()?;
-    if !params.step.is_finite() || params.step <= 0.0 {
-        return Err(Error::InvalidInput("growth step"));
-    }
-    if params.habit.attractor_weight > 0.0 && params.attractors == 0 {
-        return Err(Error::InvalidInput("attractor weight and attractor count"));
-    }
-    let inner = inner_envelope(params.envelope, twigs.reach);
-    let points = if params.habit.attractor_weight > 0.0 {
-        inner.sample(params.attractors, &mut Rng::new(params.seed))?
-    } else {
-        Vec::new()
-    };
-    let config = params.resolved_growth(points.len())?;
-    let bias = GrowthBias::new(params.envelope, params.seed, params.bias)?;
-    let mut tree = scaffold::generate(params, &config, &bias, &points)?;
-    radius::solve(&mut tree, params.envelope, radii)?;
-    let max_nodes = config
-        .max_nodes
-        .min(NODE_CEILING)
-        .min(tree.nodes.len() + headroom(&tree, &config, twigs));
-    local::append(
-        &mut tree,
-        &GrowthConfig {
-            max_nodes,
-            ..config
-        },
-        twigs,
-        params.seed,
-        Some(&bias),
-        params.habit,
-    )?;
     let removed = if params.habit.shedding_threshold > 0.0 {
-        shed(&mut tree, params.envelope, params.habit.shedding_threshold)?
+        shed(tree, params.envelope, params.habit.shedding_threshold)?
     } else {
         0
     };
-    radius::solve(&mut tree, params.envelope, radii)?;
+    radius::solve(tree, params.envelope, radii)?;
     // The distal end of a childless structural axis carries no wood the local
     // layer would have thinned; the taper trait says how far it narrows.
     let mut has_children = vec![false; tree.crossover];
@@ -313,10 +287,7 @@ pub fn generate(params: &SkeletonParams, radii: RadiusParams) -> Result<GrowthRe
             node.radius = node.radius.min(tip_radius);
         }
     }
-    Ok(GrowthReport {
-        tree,
-        shed: removed,
-    })
+    Ok(removed)
 }
 
 #[cfg(test)]

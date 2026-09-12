@@ -16,6 +16,7 @@ fn tree() -> Tree {
         base_radius: r,
         branch: 0,
         kind: NodeKind::Structural,
+        ..Node::root()
     };
     Tree {
         nodes: vec![

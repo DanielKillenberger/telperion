@@ -25,6 +25,7 @@ fn twig(length: f64) -> Tree {
                 base_radius: 0.0025,
                 branch: 1,
                 kind: NodeKind::Twig,
+                ..Node::root()
             },
         ],
         crossover: 1,

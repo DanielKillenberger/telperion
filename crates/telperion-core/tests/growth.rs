@@ -213,6 +213,7 @@ fn shedding_keeps_whole_runs_and_terminal_transition() {
             base_radius: base,
             branch,
             kind,
+            ..Node::root()
         });
     }
     assert_eq!(shed(&mut tree, Envelope::default(), 0.0).unwrap(), 1);

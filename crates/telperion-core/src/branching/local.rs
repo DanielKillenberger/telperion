@@ -6,6 +6,7 @@ struct Run {
     fractions: Vec<f64>,
     length: f64,
 }
+#[derive(Clone)]
 struct Shoot {
     at: usize,
     direction: Vec3,
@@ -23,230 +24,58 @@ struct Shoot {
     curtain_across: Vec3,
     pendant_floor: Option<f64>,
 }
-fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
-    p.y < config.trunk_height
-        || config
-            .shell
-            .is_some_and(|s| p.y > s.height || p.x.hypot(p.z) > s.radius_at(p.y))
+mod planner;
+mod seed;
+use planner::rejected;
+pub(super) use planner::Planner;
+#[derive(Clone, Default)]
+pub(super) struct Frontier {
+    queue: std::collections::VecDeque<Shoot>,
+    seeded: std::collections::HashSet<u64>,
 }
-struct Planner<'a> {
-    config: &'a GrowthConfig,
-    bias: Option<&'a GrowthBias>,
-    twigs: TwigParams,
-    crookedness: f64,
-    seed: u32,
-}
-impl Planner<'_> {
-    fn heading(&self, at: Vec3, from: Vec3, wanted: Vec3, distance: f64) -> Vec3 {
-        let c = self.config;
-        let wanted = self.bias.map_or(wanted.normalized(), |b| {
-            b.apply(at, wanted, c.step_distance)
-        });
-        colonization::limit_turn(
-            Some(from),
-            wanted,
-            c.max_turn_per_step.to_radians() * (distance / c.step_distance).min(1.0),
-        )
+impl Frontier {
+    pub(super) fn finished(&self) -> bool {
+        self.queue.is_empty()
     }
-    fn run(
-        &self,
-        start: Vec3,
-        first: Vec3,
-        length: f64,
-        internodes: usize,
-        bearing: bool,
-        key: u32,
-    ) -> Option<Rc<Run>> {
-        let count = internodes.max(if bearing {
-            1
-        } else {
-            self.twigs.laterals as usize + 1
-        });
-        let mut stations: Vec<_> = (1..=count).map(|k| k as f64 / count as f64).collect();
-        if !bearing {
-            for j in 0..self.twigs.laterals {
-                let station = ((j + 1) as f64 * count as f64 / (self.twigs.laterals + 1) as f64)
-                    .round()
-                    .max(1.0) as usize;
-                stations[station - 1] = (j + 1) as f64 / (self.twigs.laterals + 1) as f64;
+    pub(super) fn remap(&mut self, index: &[Option<u32>]) {
+        self.queue.retain_mut(|s| {
+            let Some(at) = index[s.at] else { return false };
+            s.at = at as usize;
+            if let Some(branch) = s.branch {
+                let Some(branch) = index[branch as usize] else {
+                    return false;
+                };
+                s.branch = Some(branch);
             }
+            true
+        });
+    }
+    pub(super) fn advance(
+        &mut self,
+        tree: &mut Tree,
+        planner: Planner<'_>,
+        habit: HabitParams,
+        budget: usize,
+    ) -> Result<()> {
+        let t = planner.twigs;
+        let config = planner.config;
+        let seed = planner.seed;
+        let crossover = tree.crossover;
+        let root_radius = tree.nodes.first().map_or(0.0, |n| n.radius);
+        let mut children = vec![0; crossover];
+        for n in tree.nodes[..crossover].iter().skip(1) {
+            children[n.parent.unwrap() as usize] += 1;
         }
-        let mut points = vec![start];
-        let mut along = vec![0.0];
-        let mut heading = first;
-        let phase = Rng::new(self.seed ^ key).range(0.0, TAU);
-        let normal = first.perpendicular();
-        let binormal = first.cross(normal);
-        for k in 0..count {
-            let stride = length * (stations[k] - if k == 0 { 0.0 } else { stations[k - 1] });
-            let at = *points.last().unwrap();
-            let wanted = if self.crookedness == 0.0 {
-                heading
-            } else {
-                let angle = stations[k] * TAU * 2.0 + phase;
-                first
-                    + (normal * angle.sin() + binormal * (angle * 0.7).cos())
-                        * self.crookedness.to_radians()
-            };
-            heading = self.heading(at, heading, wanted, stride);
-            let end = at + heading * stride;
-            if rejected(self.config, end) {
-                let mut low = 0.0;
-                let mut high = stride;
-                for _ in 0..40 {
-                    let mid = (low + high) / 2.0;
-                    if rejected(self.config, at + heading * mid) {
-                        high = mid
-                    } else {
-                        low = mid
-                    }
-                }
-                if low > 1e-9 {
-                    points.push(at + heading * low);
-                    along.push(along.last().unwrap() + low)
-                }
+        let divergence = t.divergence.to_radians();
+        let tilt = t.angle.to_radians();
+        let separation = (tilt.min(config.max_turn_per_step.to_radians()) / 2.0)
+            .max(1e-6)
+            .cos();
+        let twig_radius = t.twig.diameter / 2.0;
+        for _ in 0..budget {
+            let Some(s) = self.queue.pop_front() else {
                 break;
-            }
-            points.push(end);
-            along.push(along.last().unwrap() + stride);
-        }
-        let mut actual = *along.last().unwrap();
-        if actual < length - 1e-9 {
-            actual = (actual - self.twigs.twig.length).max(0.0)
-        }
-        if actual <= 1e-9 {
-            return None;
-        }
-        while along.len() > 2 && along[along.len() - 2] >= actual {
-            along.pop();
-            points.pop();
-        }
-        let last = along.len() - 1;
-        points[last] = points[last - 1].lerp(
-            points[last],
-            (actual - along[last - 1]) / (along[last] - along[last - 1]),
-        );
-        along[last] = actual;
-        if actual < length - 1e-9 && !bearing {
-            let count = ((internodes as f64 * actual / length).ceil() as usize)
-                .max(self.twigs.laterals as usize + 1);
-            let mut distances = along.clone();
-            distances.extend((1..=count).map(|k| actual * k as f64 / count as f64));
-            distances.sort_by(f64::total_cmp);
-            distances.dedup_by(|a, b| (*a - *b).abs() < 1e-12);
-            let mut resampled = Vec::with_capacity(distances.len());
-            resampled.push(start);
-            let mut edge = 1;
-            for &d in distances.iter().skip(1) {
-                while edge < along.len() - 1 && along[edge] < d {
-                    edge += 1;
-                }
-                resampled.push(points[edge - 1].lerp(
-                    points[edge],
-                    ((d - along[edge - 1]) / (along[edge] - along[edge - 1])).clamp(0.0, 1.0),
-                ));
-            }
-            points = resampled;
-            along = distances;
-        }
-        Some(Rc::new(Run {
-            positions: points.into_iter().skip(1).collect(),
-            fractions: along.into_iter().skip(1).map(|d| d / actual).collect(),
-            length: actual,
-        }))
-    }
-}
-/// Append local branches to a solved structural crown. Cap diagnostics survive shedding.
-pub fn append(
-    tree: &mut Tree,
-    config: &GrowthConfig,
-    params: TwigParams,
-    seed: u32,
-    bias: Option<&GrowthBias>,
-    habit: HabitParams,
-) -> Result<()> {
-    tree.validate_solved()?;
-    config.validate()?;
-    let t = params.resolved()?;
-    if tree.crossover != tree.nodes.len() {
-        return Err(Error::InvalidInput("branching requires a structural crown"));
-    }
-    if tree.nodes.len() < 2 {
-        return Ok(());
-    }
-    let crossover = tree.crossover;
-    let root_radius = tree.nodes[0].radius;
-    let mut children = vec![0; crossover];
-    for n in tree.nodes.iter().skip(1) {
-        children[n.parent.unwrap() as usize] += 1;
-    }
-    let mut pendant_floor = vec![None; crossover];
-    if habit.rise_secondary < 0.0 {
-        let mut continuation = vec![None; crossover];
-        for (i, n) in tree.nodes.iter().enumerate().skip(1) {
-            continuation[n.parent.unwrap() as usize].get_or_insert(i);
-        }
-        for (i, n) in tree.nodes.iter().enumerate().skip(1) {
-            let parent = n.parent.unwrap() as usize;
-            pendant_floor[i] = pendant_floor[parent];
-            if pendant_floor[i].is_none()
-                && (n.position - tree.nodes[parent].position).normalized().y < -0.5
-            {
-                let mut end = i;
-                while let Some(next) = continuation[end] {
-                    end = next;
-                }
-                pendant_floor[i] = Some(tree.nodes[end].position.y);
-            }
-        }
-    }
-    let divergence = t.divergence.to_radians();
-    let tilt = t.angle.to_radians();
-    let separation = (tilt.min(config.max_turn_per_step.to_radians()) / 2.0)
-        .max(1e-6)
-        .cos();
-    let twig_radius = t.twig.diameter / 2.0;
-    let mut frontier = Vec::new();
-    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
-        if n.position.y < config.trunk_height
-            || (children[i] != 0 && n.radius >= t.limb_radius * root_radius)
-        {
-            continue;
-        }
-        let direction = (n.position - tree.nodes[n.parent.unwrap() as usize].position).normalized();
-        if direction.length_squared() == 0.0 {
-            continue;
-        }
-        let pendant = pendant_floor[i].is_some();
-        let length = branch_length(n.radius);
-        frontier.push(Shoot {
-            at: i,
-            direction,
-            normal: direction.perpendicular(),
-            phase: (i as f64 * divergence) % TAU,
-            radius: n.radius,
-            length,
-            branch: None,
-            completed: 0,
-            generation: 0,
-            internodes: t.internodes(n.radius, length),
-            key: i as u32,
-            run: None,
-            pendant,
-            curtain_across: Vec3::new(-n.position.z, 0.0, n.position.x).normalized(),
-            pendant_floor: pendant_floor[i],
-        });
-    }
-    let planner = Planner {
-        config,
-        bias,
-        twigs: t,
-        crookedness: habit.crookedness,
-        seed,
-    };
-    while !frontier.is_empty() {
-        let mut next = Vec::new();
-        for s in frontier {
+            };
             let from = s.direction;
             let position = tree.nodes[s.at].position;
             let phase = s.phase + divergence;
@@ -453,6 +282,7 @@ pub fn append(
                     } else {
                         NodeKind::Branch
                     },
+                    ..Node::root()
                 });
                 if !is_twig {
                     let projected = s.normal - heading * s.normal.dot(heading);
@@ -461,7 +291,7 @@ pub fn append(
                     } else {
                         (binormal - heading * binormal.dot(heading)).normalized()
                     };
-                    next.push(Shoot {
+                    self.queue.push_back(Shoot {
                         at: id as usize,
                         direction: heading,
                         normal,
@@ -481,7 +311,41 @@ pub fn append(
                 }
             }
         }
-        frontier = next;
+        tree.validate_solved()
     }
-    tree.validate_solved()
+}
+/// Append local branches to a solved structural crown. Cap diagnostics survive shedding.
+pub fn append(
+    tree: &mut Tree,
+    config: &GrowthConfig,
+    params: TwigParams,
+    seed: u32,
+    bias: Option<&GrowthBias>,
+    habit: HabitParams,
+) -> Result<()> {
+    tree.validate_solved()?;
+    config.validate()?;
+    let t = params.resolved()?;
+    if tree.crossover != tree.nodes.len() {
+        return Err(Error::InvalidInput("branching requires a structural crown"));
+    }
+    // Standalone callers can supply a manually authored, unidentified crown.
+    let mut frontier = Frontier::default();
+    let mut identified = tree.clone();
+    for (i, n) in identified.nodes.iter_mut().enumerate() {
+        n.identity = i as u64;
+    }
+    frontier.seed(&identified, config, t, habit);
+    frontier.advance(
+        tree,
+        Planner {
+            config,
+            bias,
+            twigs: t,
+            crookedness: habit.crookedness,
+            seed,
+        },
+        habit,
+        usize::MAX,
+    )
 }

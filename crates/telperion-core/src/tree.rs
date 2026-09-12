@@ -9,6 +9,8 @@ pub enum NodeKind {
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct Node {
+    /// Stable birth identity, assigned by the owning specimen; never a storage index.
+    pub identity: u64,
     pub position: Vec3,
     /// None only at the root; otherwise strictly earlier than this node.
     pub parent: Option<u32>,
@@ -18,12 +20,14 @@ pub struct Node {
     /// Allocation at the origin of this entire branch run, not this edge.
     pub base_radius: f64,
     /// First node of the branch run; structural nodes use their own index.
+    /// The run's stable identity is the identity of this first node.
     pub branch: u32,
     pub kind: NodeKind,
 }
 impl Node {
     pub fn root() -> Self {
         Self {
+            identity: u64::MAX,
             position: Vec3::ZERO,
             parent: None,
             radius: 0.0,
