@@ -14,9 +14,9 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": true,
-  "plan_review_rounds": 1,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-09-12T18:21:08.375491Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-12T18:23:52.133795Z",
   "review_attempts": [
     {
       "artifact_sha256": "c7b5eab942996286b795ed5477d08fcef00a9b8f85ac699e1e712cb8852fefbc",
@@ -94,9 +94,88 @@
       "timestamp": "2026-09-12T18:21:08.369539Z",
       "tool_calls": 10,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "e737d995852ca93a4b9d938e4b61a707c3369b1c292ea932d05fb7ff0bfad4ee",
+      "backend": "codex",
+      "base_sha": "cfe40f0fa422917810e99c2ea2c10679386ee4ec",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-10b544854fe4bf83bdf187ffc9efdf69",
+            "classification": "introduced",
+            "findingId": "finding-10b544854fe4bf83bdf187ffc9efdf69",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9dd33e6114f4c1952ad4bd32b09331e3",
+            "classification": "introduced",
+            "findingId": "finding-9dd33e6114f4c1952ad4bd32b09331e3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d203f037de24667da6cd050d32602ee5",
+            "classification": "introduced",
+            "findingId": "finding-d203f037de24667da6cd050d32602ee5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ca383af8443946d8e21ce871c311f51c",
+            "classification": "introduced",
+            "findingId": "finding-ca383af8443946d8e21ce871c311f51c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f0dcad8f33052ef79639cc46354cbc52",
+            "classification": "introduced",
+            "findingId": "finding-f0dcad8f33052ef79639cc46354cbc52",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "21886a132a47597f5383ae81d3a900ad75fcea0b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1123,
+      "output_sha256": "f96dc4f74ac54bef734335fd7eb9a3e4d05a290351e24a4fc2ec8c4f02870f2c",
+      "reservation_id": "ab8306c1c6204b5d8b2579bc376f0c46",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-12T18:23:52.130928Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -116,5 +195,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-12T18:23:25.868605Z"
+  "updated_at": "2026-09-12T18:23:52.134387Z"
 }
