@@ -44,6 +44,15 @@ The giant snapshot alone is about 129 MB, so opt in only when needed.
 
 ## Architecture
 
+The retained `branching::Specimen` owns scaffold and local frontiers. Nodes
+carry a monotone birth order and a generational key; storage can compact while
+`Specimen::node(identity)` still finds survivors and rejects retired keys.
+The core uses pinned pure-Rust `libm` for transcendental functions. Run
+`npm run wasm:build && npx vitest run harness/parity.test.ts` to compare the
+five preset node buffers byte for byte across native and wasm targets.
+The retained builder currently drains its frontiers in one whole build;
+monthly age-based growth is still pending.
+
 The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator and no TypeScript renderer.
 
 | Owner in `crates/telperion-core/src` | Responsibility |

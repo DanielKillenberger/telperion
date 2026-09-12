@@ -23,17 +23,15 @@ fn retained_frontiers_grow_structure_after_twigs_without_changing_identities() {
         let ids: HashSet<_> = tree.nodes.iter().map(|n| n.identity).collect();
         assert_eq!(ids.len(), tree.nodes.len());
         for (id, position, parent, branch) in previous {
-            let n = tree
-                .nodes
-                .iter()
-                .find(|n| n.identity == id)
-                .expect("surviving identity");
+            let n = s
+                .node(id)
+                .expect("surviving identity resolves after insertion");
             assert_eq!(n.position, position, "identity moved to another node");
             assert_eq!(n.parent.map(|p| tree.nodes[p as usize].identity), parent);
             assert_eq!(tree.nodes[n.branch as usize].identity, branch);
         }
         assert_eq!(
-            s.identities(),
+            s.identities().collect::<Vec<_>>(),
             tree.nodes.iter().map(|n| n.identity).collect::<Vec<_>>()
         );
         previous = tree
@@ -68,7 +66,10 @@ fn whole_build_replays_the_retained_frontiers_exactly() {
         bytes(a.tree()) == bytes(b.tree()),
         "full builds differ byte-for-byte"
     );
-    assert_eq!(a.identities(), b.identities());
+    assert_eq!(
+        a.identities().collect::<Vec<_>>(),
+        b.identities().collect::<Vec<_>>()
+    );
 }
 
 #[test]
@@ -107,8 +108,8 @@ fn shedding_compacts_siblings_without_reusing_birth_identities() {
     let siblings: Vec<_> = s.tree.nodes[3..].iter().map(|n| n.identity).collect();
     assert_eq!(shed(&mut s.tree, Envelope::default(), 0.0).unwrap(), 1);
     s.remap_after_shedding();
-    assert_eq!(s.identities()[2..], siblings);
-    assert!(!s.identities().contains(&retired));
+    assert_eq!(s.identities().skip(2).collect::<Vec<_>>(), siblings);
+    assert!(!s.identities().any(|id| id == retired));
     s.tree.nodes.push(Node {
         parent: Some(1),
         branch: 5,

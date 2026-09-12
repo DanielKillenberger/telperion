@@ -55,8 +55,8 @@ impl Specimen {
     pub fn tree(&self) -> &Tree {
         &self.tree
     }
-    pub fn identities(&self) -> Vec<NodeIdentity> {
-        self.tree.nodes.iter().map(|n| n.identity).collect()
+    pub fn identities(&self) -> impl ExactSizeIterator<Item = NodeIdentity> + '_ {
+        self.tree.nodes.iter().map(|n| n.identity)
     }
     /// Resolve an identity after storage has moved; retired generations fail.
     pub fn node(&self, identity: NodeIdentity) -> Result<&Node> {

@@ -5,6 +5,8 @@
 //! foliage element gained its levels. The
 //! pins are a photograph, not a description: if a level ever moves a leaf,
 //! merges one or drops one, these numbers move too.
+//! fn-11 re-pins skeleton/placement bytes once for pure-Rust libm parity.
+//! Counts, bounds and element pins are unchanged.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -49,8 +51,8 @@ const PINS: [Pin; 2] = [
             -13.242490423042556,
         ],
         max: [13.217684715842124, 23.557227415847606, 13.003187181590542],
-        skeleton: 18390022991396526971,
-        placement: 14162788206097926965,
+        skeleton: 14986275773972546726,
+        placement: 15624359871475047912,
         element: 4207404028969543471,
     },
     Pin {
@@ -60,8 +62,8 @@ const PINS: [Pin; 2] = [
         instances: 7012326,
         min: [-3.89500647744516, -0.05999999865889549, -4.197530933827597],
         max: [4.337495164451377, 15.0, 3.8062214356137005],
-        skeleton: 5034244784577471711,
-        placement: 6468486710499557939,
+        skeleton: 12735573889651776723,
+        placement: 8171270653015517335,
         element: 7287062639823569932,
     },
 ];

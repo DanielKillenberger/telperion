@@ -68,6 +68,8 @@ The deleted TypeScript suites remain in Git at the pre-cleanup revision. This ma
 | `skeleton/colonize.test.ts` | `colonization.rs`: deterministic growth, parent order, envelope/trunk guards, collisions, caps and invalid/empty cases; `crown_reference.rs`: frozen ordinary/giant diagnostics |
 | `skeleton/fill.test.ts` | `colonization.rs`: occupied shell voxels, clustering boundaries and unmeasurable domains |
 | `skeleton/persistence.test.ts` | `colonization.rs`: bounded turn and coincident/collision behavior; `growth.rs`: retained local attachment and resolution |
+| fn-11 retained identities | `src/branching/specimen/tests.rs`: growth after twigs, crossover, surviving parent/run identities after shedding, generational slot reuse and stale-key rejection, per-specimen replay, retained axis streams and local queues |
+| fn-11 native/wasm parity | `harness/parity.test.ts` with `examples/node_buffer.rs`: SHA-256 of node geometry and topology for all five presets; platform-math failures recorded before the pinned-libm change |
 | `skeleton/grow.test.ts`, `presets/two-trees.test.ts` | `growth.rs`: solved deterministic presets, family/seed controls, finite constraints, empty and capped generation; `growth_reference.rs`: seven finished FN6 input classes |
 | `skeleton/law.test.ts` | `growth.rs`: branch length/radius law, generation termination, local taper, lateral attachment and resolution independence |
 | `skeleton/twigs.test.ts` | `growth.rs`: fixed terminal anatomy, topology, cap propagation; `foliage.rs`: twig stations and phyllotaxis |
