@@ -9,35 +9,39 @@ TBD
 ## Acceptance
 Every R-ID in the parent spec's ## Acceptance Criteria is satisfied; judge this task against the spec's criteria directly.
 
-## Blocker — NEEDS_HUMAN, 2026-09-12
+## Blocker — NEEDS_HUMAN, 2026-09-12 (timebox expired)
 
-The task stopped inside step 2 of the spec's seven-step order after three Codex
-gpt-6-astra invocations, the cap this dispatch set, with all five gates green and
-every landed piece committed. Identities and the retained frontier hold as
-generational keys, the native-to-wasm parity probe found that the shipped builder
-was **not** byte-identical across the two targets and is now (pinned pure-Rust
-`libm`), and the monthly clock, the Chapman-Richards unit budget, saturation and
-an age-built specimen exist natively with eleven red-then-green tests. Two things
-now need the owner rather than another attempt. First, routing production
-`branching::generate` through the monthly build moves the oak's seed-7 skeleton
-hash to `15191549139260502920` and its audit hash to `15153313695119125838`: the
-spec allows one re-pin with the mature trees judged again by the owner, and that
-allowance was already spent on the parity fix, so integration waits on the R11
-judgment of what the monthly path grows. Second, age cannot reach the JSON wire
-without a migration of the frozen fn-19 protocol, which the implementer was
-forbidden to touch, so R9's wasm handle is blocked behind that decision. Steps 3
-through 7 are unstarted; no R8 curve was sourced, no R10 number was measured and
-no still was rendered. The full account, with the before-and-after parity hashes
-and the drift figures, is in `.flow/evidence/fn11/STATUS.md`.
+Steps 1 to 3 of the spec's order landed across seven Codex gpt-6-astra
+invocations, all five gates green at every commit: identities and the retained
+frontier as generational keys, pinned pure-Rust math after the parity probe found
+the shipped builder was **not** byte-identical between native and wasm, the
+integer monthly clock with the Chapman-Richards budget and saturation, age and the
+growth traits on the JSON wire, the frontier repairs that turned a 599-node
+bare-pole spruce into a whole tree, and thickening, shoot state and vigour-based
+shedding. The 240-minute timebox then expired inside the cost work, which cut a
+mature oak build from 198.7 s to 18.9 s and a mature slice from 211 ms to 18.7 ms.
+Three things now need the owner rather than another invocation. First, a mature
+build is still 301 times the envelope build (19 s on the oak), and the spec's own
+tradeoff keeps the closed-form alternative available if the per-slice cost proves
+too high — that is a design call, with the measurements ready for it. Second, the
+monthly mature tree carries 55% more nodes than today's oak and 17% fewer than
+today's spruce, with bounds within 2% and 7%: right size and shape, wrong amount
+of wood, because both presets author a zero shedding threshold and step 6's
+calibration has not run, so production routing and the authorized re-pin are
+deliberately unspent. Third, R11's verdicts are the owner's and no still has been
+rendered. Steps 4 to 7 remain; no R8 curve was sourced and no capture was taken.
+The full account, with every number and its command, is in
+`.flow/evidence/fn11/STATUS.md`.
 
 ## Done summary
 TBD
 
 ## Evidence
-- Commits: 6b799e4, 53c5629, 2fd4b49, eb34bbb, 1545138 (the first three are host
-  flow commits that swept implementer work in progress)
+- Commits: 6b799e4, 53c5629, 2fd4b49, eb34bbb, 1545138, 794f0a7, 1647566,
+  33a7271, 36bda80, f952fb4, 91611ef (the flow-prefixed ones are host commits,
+  three of which swept implementer work in progress)
 - Tests: cargo fmt --all -- --check; cargo clippy --workspace --all-targets --
   -D warnings; cargo test --release --workspace; npm run wasm:build && npm test;
-  npm run typecheck — all green at HEAD, verified by the host after each
-  invocation
+  npm run typecheck — green at the base commit and at HEAD, verified by the host
+  after each of the seven invocations
 - PRs:
