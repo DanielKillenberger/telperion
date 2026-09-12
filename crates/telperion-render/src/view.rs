@@ -1,4 +1,4 @@
-//! What of a submitted tree the next frame draws. The same three the harness
+//! What of a submitted tree the next frame draws. The same four the harness
 //! offers, so a way of looking at a tree survives the change of renderer.
 
 /// Whole is the tree as it stands; bare strips the crown so the surface can be

@@ -8,7 +8,7 @@ use telperion_core::{
     tree::NodeKind,
 };
 use telperion_core::{tree, Error, Result};
-// Reuse the exact surface path ordering to select original mesh triangles.
+// Recover path membership; mesh spans come from the radius-ordered run table.
 #[path = "../src/surface/paths.rs"]
 mod wood_paths;
 fn reserved<T>(n: usize) -> telperion_core::Result<Vec<T>> {
@@ -151,14 +151,46 @@ fn main() {
                         .unwrap();
                 let paths = wood_paths::paths(&tree.nodes).unwrap();
                 let segments = f.surface.radial_segments.max(f.surface.lobes * 4) as usize;
-                let mut index_offset = 0;
-                let mut wood_triangles = Vec::new();
+                let key = |p: Vec3| [p.x as f32, p.y as f32, p.z as f32].map(f32::to_bits);
+                let mut by_tip = std::collections::HashMap::new();
                 for path in &paths.runs {
+                    let tip = paths.nodes[path.end - 1];
+                    assert!(
+                        by_tip.insert(key(tree.nodes[tip].position), path).is_none(),
+                        "wood paths must have distinct tips for the audit"
+                    );
+                }
+                let mut wood_triangles = Vec::new();
+                for span in &mesh.run_table {
+                    let index_offset = span.first_index as usize;
+                    let end = index_offset + span.index_count as usize;
+                    // The final cap's centre is the path's terminal node. Match
+                    // that identity, never the old path ordinal or just its length.
+                    let top = mesh.indices[end - 3] as usize * 3;
+                    let tip = mesh.positions[top..top + 3].try_into().unwrap();
+                    let path = by_tip
+                        .remove(&<[f32; 3]>::map(tip, f32::to_bits))
+                        .expect("wood run cap must identify exactly one path");
                     let ns = &paths.nodes[path.start..path.end];
                     let buried = usize::from(path.trunk && f.surface.flare_depth > 0.0);
                     let samples = ns.len() + buried;
+                    assert_eq!(
+                        span.index_count as usize,
+                        samples * segments * 6,
+                        "wood run must cover this path's rings and caps"
+                    );
+                    let base = mesh.indices[index_offset] as usize;
                     for edge in 0..samples - 1 {
                         let child = ns[(edge + 1).saturating_sub(buried)];
+                        let ring = base + (edge + 1) * segments;
+                        let centre = (ring..ring + segments).fold(Vec3::ZERO, |sum, v| {
+                            let p = &mesh.positions[v * 3..v * 3 + 3];
+                            sum + Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)
+                        }) / segments as f64;
+                        assert!(
+                            centre.distance(tree.nodes[child].position) < 2e-5,
+                            "wood run ring belongs to another path"
+                        );
                         if in_system[child] {
                             for tri in mesh.indices[index_offset + edge * segments * 6
                                 ..index_offset + (edge + 1) * segments * 6]
@@ -176,9 +208,8 @@ fn main() {
                             }
                         }
                     }
-                    index_offset += samples * segments * 6;
                 }
-                assert_eq!(index_offset, mesh.indices.len());
+                assert!(by_tip.is_empty(), "every path must have a wood run");
                 let mut offset = 0;
                 let mut runs = Vec::new();
                 for (i, &selected) in in_system.iter().enumerate().skip(1) {

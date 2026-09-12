@@ -30,6 +30,25 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
     for id in IDENTITIES {
         let family = Preset::from_id(id).expect("preset identity").parameters();
         let m = mesh::build(&family, Detail::Full).unwrap_or_else(|e| panic!("{id}: {e}"));
+        let mut end = 0;
+        let mut radius = f64::INFINITY;
+        assert_eq!(m.wood.run_table.len(), m.wood.runs);
+        for (i, run) in m.wood.run_table.iter().enumerate() {
+            assert_eq!(run.first_index, end, "{id}: run {i}");
+            assert!(
+                run.index_count > 0 && run.index_count % 3 == 0,
+                "{id}: run {i}"
+            );
+            assert!(
+                run.largest_radius.is_finite()
+                    && run.largest_radius >= 0.0
+                    && run.largest_radius <= radius,
+                "{id}: run {i}"
+            );
+            end += run.index_count;
+            radius = run.largest_radius;
+        }
+        assert_eq!(end as usize, m.wood.indices.len());
         assert_eq!(m.wood_vertices() * 3, m.wood.positions.len(), "{id}");
         assert_eq!(m.wood.normals.len(), m.wood.positions.len(), "{id}");
         assert_eq!(m.wood.coords.len(), m.wood_vertices() * 2, "{id}");

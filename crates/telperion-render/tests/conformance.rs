@@ -251,6 +251,10 @@ fn the_selection_path_names_no_family_and_no_anatomy() {
     let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let files = [
         source.join("select.rs"),
+        source.join("shadow.rs"),
+        source.join("wood.rs"),
+        source.join("shaders/common.wgsl"),
+        source.join("shaders/shadow.wgsl"),
         source.join("foliage.rs"),
         source.join("shaders/select.wgsl"),
         source.join("shaders/foliage.wgsl"),

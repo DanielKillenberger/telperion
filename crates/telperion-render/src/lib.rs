@@ -163,6 +163,7 @@ impl Renderer {
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.scene.set_crown(crown_of(&mesh.foliage));
         self.bounds = Some(mesh.bounds);
+        self.set_casters();
         self.level_deviations = mesh
             .foliage
             .element
@@ -199,6 +200,31 @@ impl Renderer {
     /// and no blend between two families touches it.
     pub fn set_scene(&mut self, row: SceneRow) {
         self.scene.set_row(row);
+        self.set_casters();
+    }
+
+    fn set_casters(&mut self) {
+        let light = shadow::light(self.scene.row(), self.bounds);
+        self.wood
+            .set_casters(self.scene.row().caster_texels * light.texel_size);
+    }
+
+    /// Wood triangles submitted to the sun's pass, outside the frame statistics.
+    pub fn caster_triangles(&self) -> u32 {
+        match self.view {
+            View::Leaf => 0,
+            _ => self.wood.caster_index_count / 3,
+        }
+    }
+
+    /// Placements submitted to the sun's pass, outside the frame statistics.
+    pub fn caster_instances(&self) -> u32 {
+        if self.view.selects() {
+            self.foliage
+                .caster_instances(self.scene.row().caster_stride as u32)
+        } else {
+            0
+        }
     }
 
     /// The sun, sky and ground the next frame is drawn under.
@@ -290,7 +316,9 @@ impl Renderer {
         let light = shadow::light(self.scene.row(), self.bounds());
         self.scene
             .set_frame(&self.gpu, camera, aspect_of(viewport), &light, self.view);
-        self.shadow.set_light(&self.gpu, &light);
+        let stride = self.scene.row().caster_stride as u32;
+        self.shadow
+            .set_light(&self.gpu, &light, stride, self.foliage.caster_shape);
         let (vegetation_writes, selection_writes, shadow_writes) = match timed {
             Some(timed) => (
                 Some(timed.vegetation),
@@ -324,7 +352,7 @@ impl Renderer {
                 View::Bare => self.wood.draw_shadow(&mut pass),
                 _ => {
                     self.wood.draw_shadow(&mut pass);
-                    self.foliage.draw_shadow(&mut pass);
+                    self.foliage.draw_shadow(&mut pass, stride);
                 }
             }
         }

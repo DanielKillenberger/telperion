@@ -224,6 +224,28 @@ impl Gpu {
             .sample_count_supported(samples)
     }
 
+    pub(crate) fn shadow_filter(&self) -> wgpu::FilterMode {
+        // WebGPU does not expose native format filtering flags. Its comparison
+        // sampler implements the requested mode, with backend fallback.
+        #[cfg(target_arch = "wasm32")]
+        {
+            wgpu::FilterMode::Linear
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            if self
+                .source
+                .get_texture_format_features(crate::scene::DEPTH_FORMAT)
+                .flags
+                .contains(wgpu::TextureFormatFeatureFlags::FILTERABLE)
+            {
+                wgpu::FilterMode::Linear
+            } else {
+                wgpu::FilterMode::Nearest
+            }
+        }
+    }
+
     /// The device-lost error if the device has gone away, checked after a poll.
     pub fn lost(&self) -> Option<RenderError> {
         let reason = self.lost.lock().ok()?.clone()?;

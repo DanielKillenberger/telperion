@@ -54,6 +54,9 @@ export interface TimingReport {
   warmup: number;
   measured: number;
   samples: number;
+  multisample: number;
+  caster_triangles: number;
+  caster_instances: number;
   verdict: "valid" | "unavailable" | "disjoint" | "contended";
   reason?: string;
   p50_ms?: number;
@@ -61,7 +64,9 @@ export interface TimingReport {
   /** The selection compute pass that decides what the vegetation pass draws. */
   selection_p50_ms?: number;
   selection_p95_ms?: number;
-  /** Both passes added frame by frame and then ranked: a frame's own cost. */
+  shadow_p50_ms?: number;
+  shadow_p95_ms?: number;
+  /** Three passes added frame by frame and then ranked: a frame's own cost. */
   total_p50_ms?: number;
   total_p95_ms?: number;
   /** What each level drew, coarsest first, and last the bucket of leaves
@@ -75,7 +80,7 @@ export interface TimingReport {
   wall_max_ms?: number;
 }
 
-export type View = "whole" | "bare" | "leaf";
+export type View = "whole" | "bare" | "leaf" | "clay";
 
 /** The sun, the sky and the ground, as the renderer states them. The row is
  *  defined in Rust and read back out of the renderer, so nothing on this side
