@@ -16,14 +16,14 @@ Retain persistent shoot/branch identity and a bounded developmental state. Reuse
 
 ## Acceptance Criteria
 
-- **R1:** Define and demonstrate a bounded shoot model with age, terminal/lateral bud identity, vigor and dominance that affects extension, branching and survival. Repeated inputs reproduce the supported development; invalid inputs or exhausted resources leave an explicit failure and usable prior state. [inferred]
+- **R1:** Extend fn-11's shoot state, birth year, bud fate and vigour proxy, with apical dominance that affects extension, branching and survival, on fn-11's deterministic timeline. Repeated inputs reproduce the supported development; invalid inputs or exhausted resources leave an explicit failure and usable prior state. [inferred; narrowed 2026-09-12: the shoot model itself moved to fn-11 at the owner's choice]
 - **R2:** Compare controlled open-grown and crowded-light scenarios with identical starting specimens, using the benchmark's species references. Differences must arise through subsequent development and remain species-plausible; missing references and unsupported conditions cannot count as validation. [inferred]
 - **R3:** Generate reusable foliage-shape variation in proportions and curvature, with context-related orientation and attachment rather than independent jitter alone. Validate connected shoots and preserve species anatomy; detached, degenerate or incorrectly grouped organs fail. [inferred]
 - **R4:** Demonstrate coherent variation across declared ages, contexts and held-out seeds while retaining oak/spruce identity. Measure branch/foliage distributions, update costs and memory; retain counterexamples and distinguish structural improvement from rendering changes. [inferred]
 
 ## Boundaries
 
-This work supplies the developmental botanical component and a fixed-scenario light-response proof. Fn11 owns whole-specimen timeline controls and replay; fn16 owns broader environmental competition, pruning, breakage and their event histories. These consumers reuse this component rather than implementing separate growth rules. [inferred]
+This work supplies dominance, within-species variation and a fixed-scenario light-response proof on top of fn-11's shoot state and timeline. fn-11 owns the growth rule, the shoot state (birth year, bud fate, vigour proxy), shedding by vigour, the age field and replay; fn-16 owns broader environmental competition, pruning, breakage and their event histories. This spec extends fn-11's state rather than implementing a separate growth rule. [paraphrase; narrowed 2026-09-12 at the owner's choice during fn-11's refine]
 
 A full ecosystem, soil simulation, broad species catalogue, materials and wind animation are outside this bounded proof. [paraphrase]
 
