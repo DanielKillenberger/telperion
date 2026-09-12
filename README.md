@@ -110,16 +110,21 @@ an indexed profile and caches samples until that envelope or position changes.
 With shedding disabled, only frontier shoots sample vigour; other nodes retain
 their last sampled state. With shedding enabled, the slice-start survival pass
 refreshes the live crown and propagates descendant support.
-Structural births rotate the local storage segment and update its indices;
-months without structural births identify only newly appended local wood.
-Local seeding retains unallocated stations and structural child counts.
+Structural births append without moving local storage inside a slice. Internal
+frontiers and pipe reductions use node kinds; once an advance finishes (or rolls
+back at a cap), storage is packed with structural nodes first for consumers.
+Generational slots retire in birth order so packing boundaries cannot change
+future handles. Local seeding retains unallocated stations and structural child
+counts.
 Full-tree validation remains available to callers; monthly mutations validate
 new or resized nodes. Native cost measurements, including sparse and dense
 changes on large trees, run with
 `FN11_MEASURE=1 cargo test --release -p telperion-core --lib monthly_cost_report -- --nocapture --test-threads=1`.
-Structural insertion still moves the contiguous local segment, and waiting shoots
-retry as the crown expands. Those costs remain in the measurement; the full cost
-contract also awaits placement and snapshot implementation.
+The measurement separates internal slice time from end-of-advance packing.
+Two width updates still run per active slice, and waiting shoots still retry as
+the crown expands. Moving geometry to a pure end-of-advance derivation with shed
+memory, then scheduling waiting shoots, remains necessary before the monthly or
+annual slice choice. The full cost contract also awaits placements and snapshots.
 
 The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator and no TypeScript renderer.
 

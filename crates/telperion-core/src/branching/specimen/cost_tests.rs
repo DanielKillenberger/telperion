@@ -78,3 +78,79 @@ fn identity_maintenance_without_structural_birth_visits_only_new_locals() {
     }
     panic!("fixture never reached an active month with no structural insertion");
 }
+
+#[test]
+fn structural_births_do_not_move_existing_local_storage_inside_a_slice() {
+    let mut f = Preset::OregonWhiteOak.parameters();
+    f.age = 12.0;
+    let mut s = Specimen::build(&f).unwrap();
+    for _ in 0..120 {
+        let month = s.timeline.as_ref().unwrap().age.month + 1;
+        let budget = f.growth.budget(month);
+        let locals: Vec<_> = s
+            .tree
+            .nodes
+            .iter()
+            .enumerate()
+            .filter(|(_, n)| n.kind != NodeKind::Structural)
+            .map(|(i, n)| (i, n.identity))
+            .collect();
+        let crossover = s.tree.crossover;
+        if budget > 0 {
+            s.month(month, budget).unwrap();
+        }
+        s.timeline.as_mut().unwrap().age = crate::growth::Age {
+            month,
+            remainder: 0,
+        };
+        if !locals.is_empty() && s.tree.crossover > crossover {
+            for (i, id) in locals {
+                assert_eq!(
+                    s.identities[id.key], i,
+                    "structural birth shifted an existing local node"
+                );
+                assert_eq!(s.tree.nodes[i].identity, id);
+            }
+            assert_eq!(s.cost.storage, 0, "slice moved existing storage");
+            return;
+        }
+    }
+    panic!("fixture never grew structure after local wood");
+}
+
+#[test]
+fn packing_between_advances_does_not_change_grown_and_shed_tree_bytes() {
+    let mut f = Preset::Ordinary.parameters();
+    f.age = 12.25;
+    let fresh = Specimen::build(&f).unwrap();
+    assert!(fresh.shed > 0, "fixture must shed as well as grow");
+    assert!(fresh.tree.nodes.len() > 100);
+    f.age = 0.0;
+    let mut chain = Specimen::build(&f).unwrap();
+    for years in [4.0, 4.0, 4.25] {
+        chain.advance(years).unwrap();
+    }
+    assert_eq!(chain.shed, fresh.shed);
+    assert_eq!(chain.next_identity, fresh.next_identity);
+    assert!(
+        super::tests::bytes(&chain.tree) == super::tests::bytes(&fresh.tree),
+        "packing boundaries changed structure, radii, shoot state or generational identities"
+    );
+}
+
+#[test]
+fn packing_keeps_append_headroom_for_the_next_slice() {
+    let mut f = Preset::OregonWhiteOak.parameters();
+    f.age = 12.0;
+    let mut s = Specimen::build(&f).unwrap();
+    let month = s.timeline.as_ref().unwrap().age.month + 1;
+    s.month(month, f.growth.budget(month)).unwrap();
+    assert!(s.timeline.as_ref().unwrap().unpacked);
+    s.tree.nodes.reserve(s.tree.nodes.len());
+    let capacity = s.tree.nodes.capacity();
+    s.pack_storage();
+    assert!(
+        s.tree.nodes.capacity() >= capacity,
+        "packing discarded headroom and forces the next birth to copy the entire tree"
+    );
+}

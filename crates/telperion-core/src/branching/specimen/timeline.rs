@@ -7,6 +7,7 @@ use crate::{
 #[derive(Clone)]
 pub(super) struct Timeline {
     pub age: Age,
+    pub(super) unpacked: bool,
     pub(super) traits: GrowthTraits,
     mature_month: u64,
     pub(super) envelope: Envelope,
@@ -24,6 +25,7 @@ impl Specimen {
         specimen.config.max_nodes = specimen.config.max_nodes.min(NODE_CEILING);
         specimen.timeline = Some(Timeline {
             age: Age::default(),
+            unpacked: false,
             traits: family.growth,
             mature_month: family.growth.mature_month(),
             envelope: Envelope {
@@ -86,6 +88,7 @@ impl Specimen {
                     if let Some(previous) = checkpoint {
                         *self = previous;
                     }
+                    self.pack_storage();
                     result?;
                     self.tree.diagnostics.node_capped = true;
                     return Ok(());
@@ -96,6 +99,7 @@ impl Specimen {
                 remainder: 0,
             };
         }
+        self.pack_storage();
         self.timeline.as_mut().unwrap().age = target;
         Ok(())
     }
@@ -115,7 +119,7 @@ impl Specimen {
         self.params.growth.max_nodes = Some(limit);
         Ok(())
     }
-    fn month(&mut self, month: u64, budget: usize) -> Result<()> {
+    pub(super) fn month(&mut self, month: u64, budget: usize) -> Result<()> {
         #[cfg(test)]
         {
             self.cost = super::measurement::Cost::default();

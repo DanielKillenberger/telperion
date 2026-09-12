@@ -12,7 +12,6 @@ impl Frontier {
         let t = planner.twigs;
         let config = planner.config;
         let seed = planner.seed;
-        let crossover = tree.crossover;
         let root_radius = tree.nodes.first().map_or(0.0, |n| n.radius);
         self.stations.sync(tree);
         let children = &self.stations.children;
@@ -52,7 +51,7 @@ impl Frontier {
             let binormal = from.cross(s.normal);
             let mut accepted = std::mem::take(&mut s.accepted);
             let mut deferred = false;
-            let origin = s.at < crossover;
+            let origin = tree.nodes[s.at].kind == NodeKind::Structural;
             let bearing = !origin && s.radius <= t.twig.bearing_diameter / 2.0;
             let mut laterals = 0;
             let mut first_lateral = 0;

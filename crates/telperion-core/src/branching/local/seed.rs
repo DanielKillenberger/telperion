@@ -7,14 +7,23 @@ pub(super) struct Stations {
     pub children: Vec<usize>,
     continuation: Vec<Option<usize>>,
     pending: BTreeSet<usize>,
+    inserted: Vec<usize>,
 }
 impl Stations {
     pub(super) fn sync(&mut self, tree: &Tree) {
-        self.children.resize(tree.crossover, 0);
-        self.continuation.resize(tree.crossover, None);
-        for i in self.parents.len()..tree.crossover {
+        self.children.resize(tree.nodes.len(), 0);
+        self.continuation.resize(tree.nodes.len(), None);
+        let first = self.parents.len();
+        self.parents.resize(tree.nodes.len(), None);
+        for i in std::mem::take(&mut self.inserted)
+            .into_iter()
+            .chain(first..tree.nodes.len())
+        {
+            if tree.nodes[i].kind != NodeKind::Structural {
+                continue;
+            }
             let parent = tree.nodes[i].parent.map(|p| p as usize);
-            self.parents.push(parent);
+            self.parents[i] = parent;
             if let Some(p) = parent {
                 self.children[p] += 1;
                 self.continuation[p].get_or_insert(i);
@@ -56,14 +65,28 @@ impl Stations {
                 }
             }
         }
-        self.parents = self
-            .parents
+        let count = map.iter().flatten().max().map_or(0, |i| *i as usize + 1);
+        let mut mapped = vec![false; count];
+        for &i in map.iter().flatten() {
+            mapped[i as usize] = true;
+        }
+        self.inserted = mapped
             .iter()
             .enumerate()
-            .filter_map(|(i, p)| map[i].map(|_| p.and_then(|p| map[p].map(|p| p as usize))))
+            .filter_map(|(i, present)| (!present).then_some(i))
             .collect();
-        self.children = vec![0; self.parents.len()];
-        self.continuation = vec![None; self.parents.len()];
+        let mut parents = Vec::with_capacity(self.parents.capacity().max(count));
+        parents.resize(count, None);
+        for (i, p) in self.parents.iter().enumerate() {
+            if let Some(new) = map[i] {
+                parents[new as usize] = p.and_then(|p| map[p].map(|p| p as usize));
+            }
+        }
+        self.parents = parents;
+        self.children.fill(0);
+        self.children.resize(count, 0);
+        self.continuation.fill(None);
+        self.continuation.resize(count, None);
         for (i, p) in self.parents.iter().enumerate() {
             if let Some(p) = p {
                 self.children[*p] += 1;

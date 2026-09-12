@@ -1,4 +1,5 @@
-//! Repair only storage that actually moved after structural insertion.
+//! Internal slices append in birth order; consumers receive packed storage once
+//! per advance. No local node or frontier reference moves on structural birth.
 use super::*;
 impl Specimen {
     pub(super) fn insert_structural(&mut self, first: usize, previous_len: usize) {
@@ -7,37 +8,53 @@ impl Specimen {
         if added == 0 {
             return;
         }
-        if first < previous_len {
-            #[cfg(test)]
-            {
-                self.cost.storage = previous_len - first;
-                self.cost.identities += previous_len - first;
-            }
-            // Repair old locals in one pass. Their identities already exist;
-            // only their dense-map location and local storage references shift.
-            for (i, n) in self.tree.nodes[first..previous_len].iter_mut().enumerate() {
-                if let Some(parent) = &mut n.parent {
-                    if *parent as usize >= first {
-                        *parent += added as u32;
-                    }
-                }
-                n.branch += added as u32;
-                self.identities[n.identity.key] = first + i + added;
-            }
-            for (i, n) in self.tree.nodes[previous_len..].iter_mut().enumerate() {
-                n.parent = n.parent.map(|p| {
-                    if p as usize >= previous_len {
-                        (first + p as usize - previous_len) as u32
-                    } else {
-                        p
-                    }
-                });
-                n.branch = (first + i) as u32;
-            }
-            self.tree.nodes[first..].rotate_right(added);
-            self.scaffold.reindex_appended(first, previous_len);
-            self.local.shift(first, added);
+        self.timeline.as_mut().unwrap().unpacked |= first < previous_len;
+        self.identify_range(previous_len..self.tree.nodes.len());
+    }
+
+    pub(super) fn pack_storage(&mut self) {
+        let t = self.timeline.as_mut().unwrap();
+        if !std::mem::take(&mut t.unpacked) {
+            return;
         }
-        self.identify_range(first..first + added);
+        #[cfg(test)]
+        let clock = std::time::Instant::now();
+        let mut structural = 0;
+        let mut local = self.tree.crossover;
+        let map: Vec<_> = self
+            .tree
+            .nodes
+            .iter()
+            .map(|n| {
+                let next = if n.kind == NodeKind::Structural {
+                    &mut structural
+                } else {
+                    &mut local
+                };
+                let i = *next;
+                *next += 1;
+                Some(i as u32)
+            })
+            .collect();
+        t.pipes.remap(&self.tree, &map);
+        self.scaffold.remap(&map);
+        self.local.remap(&map);
+        for n in &mut self.tree.nodes {
+            n.parent = n.parent.map(|p| map[p as usize].unwrap());
+            n.branch = map[n.branch as usize].unwrap();
+        }
+        // Stability preserves birth order within each kind, exactly matching
+        // the map above. Keep the allocation and its append headroom intact.
+        self.tree
+            .nodes
+            .sort_by_key(|n| n.kind != NodeKind::Structural);
+        for (i, n) in self.tree.nodes.iter().enumerate() {
+            self.identities[n.identity.key] = i;
+        }
+        #[cfg(test)]
+        {
+            self.cost.packing = clock.elapsed();
+            self.cost.packed_nodes = self.tree.nodes.len();
+        }
     }
 }

@@ -36,21 +36,6 @@ impl Frontier {
             points,
         }
     }
-    pub(in crate::branching) fn reindex_appended(&mut self, first: usize, previous_len: usize) {
-        fn axis(a: &mut Axis, first: usize, previous_len: usize) {
-            for i in [&mut a.at, &mut a.tip] {
-                if *i >= previous_len {
-                    *i = first + *i - previous_len;
-                }
-            }
-            for child in &mut a.children {
-                axis(child, first, previous_len);
-            }
-        }
-        for a in &mut self.queue {
-            axis(a, first, previous_len);
-        }
-    }
     pub(in crate::branching) fn remap(&mut self, map: &[Option<u32>]) {
         fn remap_axis(a: &mut Axis, map: &[Option<u32>]) -> bool {
             let (Some(at), Some(tip)) = (map[a.at], map[a.tip]) else {

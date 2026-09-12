@@ -113,7 +113,7 @@ impl Specimen {
                     } else {
                         (t.age.month + 1) as f64 / 12.0
                     };
-                    if i >= self.tree.crossover {
+                    if node.kind != NodeKind::Structural {
                         born.push(i);
                     }
                 }

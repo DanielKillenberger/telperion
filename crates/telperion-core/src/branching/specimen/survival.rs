@@ -45,7 +45,7 @@ impl Specimen {
                 0
             };
             let covered = n.parent.is_some_and(|p| removed[p as usize]);
-            let origin = if i < self.tree.crossover {
+            let origin = if n.kind == NodeKind::Structural {
                 n.shoot.bud_fate == BudFate::Lateral
             } else {
                 n.branch as usize == i
@@ -104,7 +104,27 @@ impl Specimen {
         t.widths.retire(&self.tree, &map);
         self.scaffold.remap(&map);
         self.local.remap(&map);
-        self.tree.crossover = map[..self.tree.crossover].iter().flatten().count();
+        self.tree.crossover = self
+            .tree
+            .nodes
+            .iter()
+            .enumerate()
+            .filter(|(i, n)| n.kind == NodeKind::Structural && map[*i].is_some())
+            .count();
+        // Slot reuse is observable in each generational identity. Retirement
+        // therefore follows birth order too, independently of packing boundaries.
+        let mut retired: Vec<_> = self
+            .tree
+            .nodes
+            .iter()
+            .enumerate()
+            .filter_map(|(i, n)| map[i].is_none().then_some(n.identity))
+            .collect();
+        retired.sort_unstable();
+        for id in retired {
+            self.identities.remove(id.key);
+            t.crown.retire(id.key);
+        }
         let mut i = 0;
         self.tree.nodes.retain_mut(|n| {
             let keep = map[i].is_some();
@@ -113,9 +133,6 @@ impl Specimen {
                 n.parent = n.parent.map(|p| map[p as usize].unwrap());
                 n.branch = map[n.branch as usize].unwrap();
                 self.identities[n.identity.key] = map[i - 1].unwrap() as usize;
-            } else {
-                self.identities.remove(n.identity.key);
-                t.crown.retire(n.identity.key);
             }
             keep
         });

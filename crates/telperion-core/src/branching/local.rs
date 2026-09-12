@@ -55,18 +55,6 @@ impl Frontier {
     pub(super) fn finished(&self) -> bool {
         self.queue.is_empty()
     }
-    pub(super) fn shift(&mut self, first: usize, added: usize) {
-        for s in &mut self.queue {
-            if s.at >= first {
-                s.at += added;
-            }
-            if let Some(branch) = &mut s.branch {
-                if *branch as usize >= first {
-                    *branch += added as u32;
-                }
-            }
-        }
-    }
     pub(super) fn remap(&mut self, index: &[Option<u32>]) {
         self.stations.remap(index);
         self.queue.retain_mut(|s| {

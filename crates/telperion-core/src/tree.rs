@@ -1,4 +1,6 @@
-//! Compact parent-before-child skeleton storage: structural nodes precede locals.
+//! Consumer skeletons are parent-before-child with structural nodes before locals.
+//! During a retained advance, slices may append structure after local nodes;
+//! the specimen restores the packed layout once at the advance boundary.
 //! A node and its origin run retain their birth identity through compaction;
 //! generational keys reject retired identities even when their slots are reused.
 mod identity;

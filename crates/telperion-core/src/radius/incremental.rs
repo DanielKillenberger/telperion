@@ -2,6 +2,7 @@
 //! A changed trunk scale still writes each affected radius; it never re-sums
 //! unchanged forks. The taper reference is the authored height in metres.
 use super::*;
+use crate::tree::NodeKind;
 use std::{cmp::Ordering, collections::BTreeSet};
 
 #[derive(Clone, Copy, Debug)]
@@ -50,7 +51,7 @@ impl Pipes {
         }
         let p = params.resolved()?;
         let first = self.children.len();
-        let count = tree.crossover;
+        let count = tree.nodes.len();
         self.children.resize_with(count, Vec::new);
         self.distal.resize(count, 1.0);
         self.proximal.resize(count, 1.0);
@@ -58,6 +59,9 @@ impl Pipes {
         self.thresholds.resize(count, Scale(0.0));
         let mut dirty = std::mem::take(&mut self.dirty);
         for i in first..count {
+            if tree.nodes[i].kind != NodeKind::Structural {
+                continue;
+            }
             dirty.insert(i);
             if let Some(parent) = tree.nodes[i].parent {
                 let parent = parent as usize;
@@ -76,8 +80,8 @@ impl Pipes {
                 }
             }
         }
-        // Structural insertion is birth ordered. Local storage indices are never
-        // part of a reduction, including after structural/local re-indexing.
+        // Structural children are birth ordered even when local storage lies
+        // between them. Packing at an advance boundary preserves that order.
         for &i in dirty.iter().rev() {
             let carried: f64 = self.children[i]
                 .iter()
@@ -135,10 +139,14 @@ impl Pipes {
     /// Preserve unchanged fork reductions through compaction. Only ancestors of
     /// a removed structural child are invalidated; no full pipe solve on a cut.
     pub fn remap(&mut self, tree: &Tree, map: &[Option<u32>]) {
-        let count = self.children.len();
-        for i in 0..count {
-            if map[i].is_none() {
-                let mut at = tree.nodes[i].parent.map(|p| p as usize);
+        self.dirty = self
+            .dirty
+            .iter()
+            .filter_map(|&i| map[i].map(|i| i as usize))
+            .collect();
+        for (i, n) in tree.nodes.iter().enumerate() {
+            if n.kind == NodeKind::Structural && map[i].is_none() {
+                let mut at = n.parent.map(|p| p as usize);
                 while let Some(j) = at {
                     if let Some(new) = map[j] {
                         self.dirty.insert(new as usize);
@@ -147,14 +155,15 @@ impl Pipes {
                 }
             }
         }
-        let mut children = Vec::new();
+        let count = map.iter().flatten().count();
+        let mut children = Vec::with_capacity(self.children.capacity().max(count));
+        children.resize_with(count, Vec::new);
         for (i, old) in std::mem::take(&mut self.children).into_iter().enumerate() {
-            if map[i].is_some() {
-                children.push(
-                    old.into_iter()
-                        .filter_map(|j| map[j].map(|v| v as usize))
-                        .collect(),
-                );
+            if let Some(new) = map[i] {
+                children[new as usize] = old
+                    .into_iter()
+                    .filter_map(|j| map[j].map(|v| v as usize))
+                    .collect();
             }
         }
         self.children = children;
@@ -163,21 +172,22 @@ impl Pipes {
             .iter()
             .filter_map(|&(v, i)| map[i].map(|i| (v, i as usize)))
             .collect();
-        let mut i = 0;
-        self.thresholds.retain(|_| {
-            let keep = map[i].is_some();
-            i += 1;
-            keep
-        });
+        remap_values(&mut self.thresholds, map, count, Scale(0.0));
         for values in [&mut self.distal, &mut self.proximal, &mut self.shed] {
-            let mut i = 0;
-            values.retain(|_| {
-                let keep = map[i].is_some();
-                i += 1;
-                keep
-            });
+            remap_values(values, map, count, 0.0);
         }
     }
+}
+
+fn remap_values<T: Copy>(values: &mut Vec<T>, map: &[Option<u32>], count: usize, default: T) {
+    let mut remapped = Vec::with_capacity(values.capacity().max(count));
+    remapped.resize(count, default);
+    for (i, value) in values.iter().enumerate() {
+        if let Some(new) = map[i] {
+            remapped[new as usize] = *value;
+        }
+    }
+    *values = remapped;
 }
 
 #[cfg(test)]
