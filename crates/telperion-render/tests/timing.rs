@@ -139,10 +139,13 @@ fn a_valid_record_carries_every_pass_the_levels_and_the_orbit() {
     let json = Report::measured(hardware(), &steady())
         .with_passes(&steady(), &quick(), &quick())
         .with_levels(&[0.004, 0.001], &frames())
+        .with_casters(123, 456)
         .with_wall(&steady())
         .to_json();
 
     for field in [
+        "\"caster_triangles\": 123",
+        "\"caster_instances\": 456",
         "\"selection_p50_ms\"",
         "\"selection_p95_ms\"",
         "\"shadow_p50_ms\"",
@@ -193,7 +196,10 @@ fn nothing_a_session_did_not_earn_reaches_a_record() {
         let json = invalid
             .with_passes(&steady(), &quick(), &quick())
             .with_levels(&[0.004, 0.001], &frames())
+            .with_casters(123, 456)
             .to_json();
+        assert!(json.contains("\"caster_triangles\": 123"));
+        assert!(json.contains("\"caster_instances\": 456"));
         for field in ["selection_", "shadow_", "total_", "levels"] {
             assert!(
                 !json.contains(field),

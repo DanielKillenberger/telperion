@@ -14,6 +14,8 @@ struct Uniforms {
     ground: vec4<f32>,
     clay: vec4<f32>,
     light_view_projection: mat4x4<f32>,
+    shadow_filter: vec4<f32>, // radius in texels, inverse map edge
+    shadow_offset: vec4<f32>, // normal displacement in metres
     sun: vec4<f32>,
     /// The direction towards the sun, unit.
     sun_direction: vec4<f32>,
@@ -54,20 +56,32 @@ fn is_clay() -> bool {
     return u.clay.w > 0.5;
 }
 
-/// How much of the sun reaches this point: one where it stands open, zero in
-/// full shadow, and the four taps of the comparison sampler in between. A point
-/// the map does not cover stands open - the map is fitted to the subject and
-/// the shadow it throws, never to the whole floor.
-fn sunlight(world: vec3<f32>) -> f32 {
-    let position = u.light_view_projection * vec4<f32>(world, 1.0);
+/// The normal-offset receiver averaged over a square of hardware comparisons.
+/// Radius zero keeps one comparison (four taps with linear filtering); an
+/// unsupported linear comparison becomes a point tap. Outside-map taps are
+/// lit, including where a kernel straddles the fitted map's edge.
+fn sunlight(world: vec3<f32>, normal: vec3<f32>) -> f32 {
+    let receiver = world + normal * u.shadow_offset.x;
+    let position = u.light_view_projection * vec4<f32>(receiver, 1.0);
     let ndc = position.xyz / position.w;
     let uv = vec2<f32>(0.5 + 0.5 * ndc.x, 0.5 - 0.5 * ndc.y);
-    let outside = any(uv < vec2<f32>(0.0)) || any(uv > vec2<f32>(1.0))
-        || ndc.z < 0.0 || ndc.z > 1.0;
-    if (outside) {
+    if (ndc.z < 0.0 || ndc.z > 1.0) {
         return 1.0;
     }
-    return textureSampleCompareLevel(shadow_map, shadow_sampler, uv, ndc.z);
+    let radius = i32(u.shadow_filter.x);
+    var sum = 0.0;
+    for (var y = -radius; y <= radius; y += 1) {
+        for (var x = -radius; x <= radius; x += 1) {
+            let tap = uv + vec2<f32>(f32(x), f32(y)) * u.shadow_filter.y;
+            if (any(tap < vec2<f32>(0.0)) || any(tap > vec2<f32>(1.0))) {
+                sum += 1.0;
+            } else {
+                sum += textureSampleCompareLevel(shadow_map, shadow_sampler, tap, ndc.z);
+            }
+        }
+    }
+    let width = f32(2 * radius + 1);
+    return sum / (width * width);
 }
 
 /// The clay room's light: one neutral hemisphere and nothing else, so form
@@ -85,7 +99,7 @@ fn ambient(n: vec3<f32>) -> vec3<f32> {
 
 /// The sun on a surface of this normal, shadowed by the map it threw.
 fn key(n: vec3<f32>, world: vec3<f32>) -> vec3<f32> {
-    return u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * sunlight(world);
+    return u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * sunlight(world, n);
 }
 
 /// Linear radiance to a value a display can hold: Narkowicz's fit of the ACES

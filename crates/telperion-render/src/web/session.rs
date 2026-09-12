@@ -44,10 +44,16 @@ async fn collect(
     pose: impl Fn(f64) -> Camera,
     turning: bool,
 ) -> Result<String, JsError> {
-    let hardware = Hardware::from(&borrow(live)?.renderer.gpu().adapter);
+    let mut hardware = Hardware::from(&borrow(live)?.renderer.gpu().adapter);
+    hardware.adapter.push_str(&format!(
+        "; comparison filtering: {:?}",
+        borrow(live)?.renderer.gpu().shadow_filter()
+    ));
     // What the page drew at qualifies every number below, so it is read once
     // and put on the record whether the session could be timed or not.
     let multisample = borrow(live)?.renderer.samples();
+    let triangles = borrow(live)?.renderer.caster_triangles();
+    let instances = borrow(live)?.renderer.caster_instances();
     let session = Session::new(borrow(live)?.renderer.gpu());
     for _ in 0..CONDITIONING {
         draw(live, pose(0.0))?;
@@ -59,7 +65,8 @@ async fn collect(
         // orbit the page's own clock is the number the budget is judged on.
         Err(reason) => Report::unavailable(hardware, reason),
     }
-    .with_multisample(multisample);
+    .with_multisample(multisample)
+    .with_casters(triangles, instances);
     if !turning {
         return Ok(report.to_json());
     }

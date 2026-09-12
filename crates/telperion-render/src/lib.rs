@@ -217,6 +217,16 @@ impl Renderer {
         }
     }
 
+    /// Placements submitted to the sun's pass, outside the frame statistics.
+    pub fn caster_instances(&self) -> u32 {
+        if self.view.selects() {
+            self.foliage
+                .caster_instances(self.scene.row().caster_stride as u32)
+        } else {
+            0
+        }
+    }
+
     /// The sun, sky and ground the next frame is drawn under.
     pub fn scene(&self) -> &SceneRow {
         self.scene.row()
@@ -306,7 +316,9 @@ impl Renderer {
         let light = shadow::light(self.scene.row(), self.bounds());
         self.scene
             .set_frame(&self.gpu, camera, aspect_of(viewport), &light, self.view);
-        self.shadow.set_light(&self.gpu, &light);
+        let stride = self.scene.row().caster_stride as u32;
+        self.shadow
+            .set_light(&self.gpu, &light, stride, self.foliage.caster_shape);
         let (vegetation_writes, selection_writes, shadow_writes) = match timed {
             Some(timed) => (
                 Some(timed.vegetation),
@@ -340,7 +352,7 @@ impl Renderer {
                 View::Bare => self.wood.draw_shadow(&mut pass),
                 _ => {
                     self.wood.draw_shadow(&mut pass);
-                    self.foliage.draw_shadow(&mut pass);
+                    self.foliage.draw_shadow(&mut pass, stride);
                 }
             }
         }

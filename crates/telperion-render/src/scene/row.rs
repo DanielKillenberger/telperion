@@ -1,5 +1,6 @@
 //! The scene row: where the sun stands, what colour it is, and what the sky
-//! and the ground are. It is not a property of a tree - two trees under one
+//! and the ground are, and how its casters and comparison are coarsened.
+//! It is not a property of a tree - two trees under one
 //! sun share it - so it lives on the renderer with a default, beside the view,
 //! rather than in a family. It never blends: a walk between two trees walks
 //! their material rows under one unchanged sky.
@@ -8,7 +9,8 @@
 //! it through the same generic numeric controls a family's traits go through,
 //! and a name nobody has is refused rather than ignored. Colours are linear:
 //! the sun and the sky are radiances and may carry intensity above one, the
-//! ground is a surface colour and may not.
+//! ground is a surface colour and may not. Caster stride and filter radius
+//! are used as whole counts; the threshold and normal offset are in texels.
 use crate::device::{RenderError, Result};
 
 /// The row's fields in one place, each with the name it takes on the wire, the

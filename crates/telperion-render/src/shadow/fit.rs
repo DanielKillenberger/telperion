@@ -7,7 +7,8 @@ use telperion_core::{math::Vec3, surface::Bounds};
 use crate::SceneRow;
 
 /// Metres of slack around the fitted volume, so a caster sitting exactly on a
-/// face of it still writes its depth.
+/// face of it still writes its depth. Both margins count toward the world
+/// texel size that sets the caster threshold and receiver normal offset.
 const MARGIN: f64 = 1.0;
 
 /// The lowest sun the map is fitted to. A sun on the horizon throws a shadow
