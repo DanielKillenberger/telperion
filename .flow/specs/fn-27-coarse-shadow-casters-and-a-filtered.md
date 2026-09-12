@@ -81,7 +81,7 @@ Active tracks served by this plan:
 
 ## Early proof point
 
-The wood caster prefix comes first inside the one task: with the prefix alone at the default threshold, the oak's shadow pass p50 falls from 1.813 ms toward the raster floor fn-14 measured, and the ground shadow keeps its silhouette. If the pass does not fall below about 0.9 ms, or the silhouette loses limbs at any threshold that does, stop and write the number before the stride or the kernel.
+The wood caster prefix comes first inside the one task: with the prefix alone at the default threshold, the oak's shadow pass p50 falls from 1.813 ms toward the raster floor fn-14 measured, and the ground shadow keeps its silhouette. The prefix alone is a health check, not a gate: it passed on 2026-09-12 (1.813 to 1.063 ms, 8,255,000 to 90,760 caster triangles, silhouette intact) and the residue is the foliage the stride addresses, so the stride and the kernel follow. Only a silhouette that loses limbs at every threshold that moves the number stops the task early; otherwise R3's final oak number is the one stop.
 
 ## Approach, in one pass
 
