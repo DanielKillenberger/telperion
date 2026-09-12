@@ -1,4 +1,5 @@
 //! Crown, local branches, shell shedding, and final radius solve, in botanical order.
+use crate::math::Transcendental;
 mod local;
 mod scaffold;
 mod specimen;
@@ -110,7 +111,7 @@ pub fn influence_radius(e: Envelope, step_distance: f64, attractors: usize) -> f
     if attractors == 0 || volume <= 0.0 {
         steps
     } else {
-        steps.max(2.0 * (volume / attractors as f64).cbrt())
+        steps.max(2.0 * (volume / attractors as f64).cbrt_fixed())
     }
 }
 pub fn default_growth(e: Envelope, attractors: usize, step: f64) -> GrowthConfig {
@@ -200,7 +201,7 @@ pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usi
     let mut keep = vec![false; count];
     keep[..first].fill(true);
     for (i, n) in tree.nodes.iter().enumerate().skip(first) {
-        let r = n.position.x.hypot(n.position.z);
+        let r = n.position.x.hypot_fixed(n.position.z);
         keep[i] = envelope.radius_at(n.position.y) - r <= shell
             || distance_to_profile(&profile, r, n.position.y) <= shell;
     }

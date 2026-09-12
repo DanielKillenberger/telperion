@@ -1,4 +1,5 @@
 //! Measurements of caller-classified fine wood against the authored crown.
+use crate::math::Transcendental;
 use crate::{
     envelope::{distance_to_profile, Envelope},
     tree::Tree,
@@ -81,7 +82,7 @@ pub fn shell_occupancy(
         if y < base || y > envelope.height {
             return false;
         }
-        let r = x.hypot(z);
+        let r = x.hypot_fixed(z);
         let slack = envelope.radius_at(y) - r;
         slack >= 0.0 && (slack <= shell || distance_to_profile(&profile, r, y) <= shell)
     };

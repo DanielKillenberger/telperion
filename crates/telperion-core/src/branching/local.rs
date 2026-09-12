@@ -1,4 +1,5 @@
 use super::*;
+use crate::math::Transcendental;
 use std::{f64::consts::TAU, rc::Rc};
 #[derive(Clone)]
 struct Run {
@@ -70,7 +71,7 @@ impl Frontier {
         let tilt = t.angle.to_radians();
         let separation = (tilt.min(config.max_turn_per_step.to_radians()) / 2.0)
             .max(1e-6)
-            .cos();
+            .cos_fixed();
         let twig_radius = t.twig.diameter / 2.0;
         for _ in 0..budget {
             let Some(s) = self.queue.pop_front() else {
@@ -184,8 +185,8 @@ impl Frontier {
                     } else {
                         phase + (first_lateral + c - 1) as f64 * divergence
                     };
-                    let across = s.normal * azimuth.cos() + binormal * azimuth.sin();
-                    from * departure.cos() + across * departure.sin()
+                    let across = s.normal * azimuth.cos_fixed() + binormal * azimuth.sin_fixed();
+                    from * departure.cos_fixed() + across * departure.sin_fixed()
                 };
                 let mut run = s.run.clone();
                 let (candidate, heading) = if is_twig {
@@ -234,7 +235,7 @@ impl Frontier {
                     return Err(Error::ResourceLimit("branch position overflow"));
                 }
                 let separation = if s.pendant {
-                    4.0_f64.to_radians().cos()
+                    4.0_f64.to_radians().cos_fixed()
                 } else {
                     separation
                 };
@@ -333,7 +334,7 @@ pub fn append(
     let mut frontier = Frontier::default();
     let mut identified = tree.clone();
     for (i, n) in identified.nodes.iter_mut().enumerate() {
-        n.identity = i as u64;
+        n.identity.birth = i as u64;
     }
     frontier.seed(&identified, config, t, habit);
     frontier.advance(

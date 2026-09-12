@@ -1,3 +1,4 @@
+use crate::math::Transcendental;
 use crate::{math::Vec3, rng::Rng, Error, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -60,7 +61,10 @@ impl Envelope {
         } else {
             (t - fullness) / (1.0 - fullness)
         };
-        self.max_radius() * (1.0 - p.powf(shoulder)).max(0.0).powf(1.0 / shoulder)
+        self.max_radius()
+            * (1.0 - p.powf_fixed(shoulder))
+                .max(0.0)
+                .powf_fixed(1.0 / shoulder)
     }
     /// Includes the bare trunk axis within the tree's vertical extent.
     pub fn contains(&self, p: Vec3, tolerance: f64) -> bool {
@@ -69,7 +73,7 @@ impl Envelope {
             && tolerance >= 0.0
             && p.y >= -tolerance
             && p.y <= self.height + tolerance
-            && p.x.hypot(p.z) <= self.radius_at(p.y) + tolerance
+            && p.x.hypot_fixed(p.z) <= self.radius_at(p.y) + tolerance
     }
     pub fn sample(&self, count: usize, rng: &mut Rng) -> Result<Vec<Vec3>> {
         self.validate()?;
@@ -136,7 +140,7 @@ pub fn distance_to_profile(profile: &[[f64; 2]], r: f64, y: f64) -> f64 {
             if squared.is_normal() || (x == 0.0 && y == 0.0) {
                 squared
             } else {
-                exceptional = exceptional.min(x.hypot(y));
+                exceptional = exceptional.min(x.hypot_fixed(y));
                 f64::INFINITY
             }
         })

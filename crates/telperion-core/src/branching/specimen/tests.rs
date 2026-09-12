@@ -115,7 +115,7 @@ fn shedding_compacts_siblings_without_reusing_birth_identities() {
         ..Node::root()
     });
     s.identify();
-    assert_eq!(s.tree.nodes.last().unwrap().identity, 6);
+    assert_eq!(s.tree.nodes.last().unwrap().identity.birth_order(), 6);
     assert_eq!(s.tree.nodes[3].branch, 2);
     assert_eq!(s.tree.nodes[4].parent, Some(3));
 }

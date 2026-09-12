@@ -1,9 +1,10 @@
 use super::*;
+use crate::math::Transcendental;
 pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
     p.y < config.trunk_height
         || config
             .shell
-            .is_some_and(|s| p.y > s.height || p.x.hypot(p.z) > s.radius_at(p.y))
+            .is_some_and(|s| p.y > s.height || p.x.hypot_fixed(p.z) > s.radius_at(p.y))
 }
 pub(in crate::branching) struct Planner<'a> {
     pub(in crate::branching) config: &'a GrowthConfig,
@@ -61,7 +62,7 @@ impl Planner<'_> {
             } else {
                 let angle = stations[k] * TAU * 2.0 + phase;
                 first
-                    + (normal * angle.sin() + binormal * (angle * 0.7).cos())
+                    + (normal * angle.sin_fixed() + binormal * (angle * 0.7).cos_fixed())
                         * self.crookedness.to_radians()
             };
             heading = self.heading(at, heading, wanted, stride);

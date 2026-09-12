@@ -3,6 +3,7 @@
 //! heading from one sum of the rule heading, the attractor pull and the bias
 //! field.
 use super::*;
+use crate::math::Transcendental;
 use std::{
     collections::VecDeque,
     f64::consts::{FRAC_PI_2, PI, TAU},
@@ -225,12 +226,12 @@ impl Builder<'_> {
             let key = axis_key(axis.key, index, member);
             let mut rng = Rng::new(key);
             let azimuth = phase + index as f64 * advance + member as f64 * TAU / members as f64;
-            let across = tangent * azimuth.cos() + normal * azimuth.sin();
+            let across = tangent * azimuth.cos_fixed() + normal * azimuth.sin_fixed();
             let pitch = (self.habit.lateral_pitch
                 + self.habit.pitch_variation * (2.0 * rng.next_f64() - 1.0))
                 .to_radians()
                 .clamp(0.0, PI);
-            let direction = (heading * pitch.cos() + across * pitch.sin()).normalized();
+            let direction = (heading * pitch.cos_fixed() + across * pitch.sin_fixed()).normalized();
             let length = if axis.order == 0 {
                 self.reach(position, direction)
             } else {
@@ -290,12 +291,13 @@ impl Builder<'_> {
             let t = (k + 1) as f64 / units as f64;
             let turn = rise * FRAC_PI_2 * t;
             let mut rule = match up {
-                Some(up) => axis.heading * turn.cos() + up * turn.sin(),
+                Some(up) => axis.heading * turn.cos_fixed() + up * turn.sin_fixed(),
                 None => axis.heading,
             };
             if crookedness > 0.0 && position.y >= self.config.trunk_height {
                 let angle = t * TAU * 2.0 + phase;
-                rule += (side * angle.sin() + across * (angle * 0.7).cos()) * crookedness;
+                rule +=
+                    (side * angle.sin_fixed() + across * (angle * 0.7).cos_fixed()) * crookedness;
             }
             let next = self.heading(position, rule.normalized(), pull, heading);
             let stride = unit.min(axis.length - unit * k as f64).max(1e-9);

@@ -1,5 +1,6 @@
 //! Exact swept polygon queries without constructing mesh indices or normals.
 use super::*;
+use crate::math::Transcendental;
 
 pub(crate) struct AttachmentSurface {
     rings: Vec<Vec3>,
@@ -59,9 +60,12 @@ impl AttachmentSurface {
                     let profile = if params.lobes == 0 {
                         1.0
                     } else {
-                        1.0 + params.lobe_depth * (params.lobes as f64 * (angle + phase)).cos()
+                        1.0 + params.lobe_depth
+                            * (params.lobes as f64 * (angle + phase)).cos_fixed()
                     };
-                    let p = s.p + (normal * angle.cos() + binormal * angle.sin()) * (s.r * profile);
+                    let p = s.p
+                        + (normal * angle.cos_fixed() + binormal * angle.sin_fixed())
+                            * (s.r * profile);
                     // Query exactly the float32 vertices submitted by build().
                     out.rings.push(Vec3::new(
                         p.x as f32 as f64,

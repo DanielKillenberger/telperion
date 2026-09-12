@@ -8,8 +8,10 @@ license = "MIT"
 json = ["dep:serde", "dep:serde_json"]
 
 [dependencies]
+libm = { version = "=0.2.16", default-features = false }
 serde = { version = "1", features = ["derive"], optional = true }
 serde_json = { version = "1", optional = true }
+slotmap = "=1.1.1"
 
 [[test]]
 name = "foundation"

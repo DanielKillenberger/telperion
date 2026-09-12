@@ -1,5 +1,7 @@
 //! Persistent generator frontiers and stable identities beside compact storage.
 use super::*;
+use crate::tree::{NodeIdentity, NodeKey};
+use slotmap::{DenseSlotMap, Key};
 
 #[derive(Clone)]
 pub struct Specimen {
@@ -12,7 +14,7 @@ pub struct Specimen {
     scaffold: scaffold::Frontier,
     local: local::Frontier,
     next_identity: u64,
-    identities: Vec<u64>,
+    identities: DenseSlotMap<NodeKey, usize>,
 }
 impl Specimen {
     pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
@@ -47,41 +49,48 @@ impl Specimen {
             scaffold,
             local: local::Frontier::default(),
             next_identity: 0,
-            identities: Vec::new(),
+            identities: DenseSlotMap::with_key(),
         })
     }
     pub fn tree(&self) -> &Tree {
         &self.tree
     }
-    pub fn identities(&self) -> &[u64] {
-        &self.identities
+    pub fn identities(&self) -> Vec<NodeIdentity> {
+        self.tree.nodes.iter().map(|n| n.identity).collect()
+    }
+    /// Resolve an identity after storage has moved; retired generations fail.
+    pub fn node(&self, identity: NodeIdentity) -> Result<&Node> {
+        self.identities
+            .get(identity.key)
+            .and_then(|&i| self.tree.nodes.get(i))
+            .filter(|node| node.identity == identity)
+            .ok_or(Error::InvalidInput("stale node identity"))
     }
     fn finished(&self) -> bool {
         self.scaffold.finished() && self.local.finished()
     }
     fn identify(&mut self) {
-        for node in &mut self.tree.nodes {
-            if node.identity == u64::MAX {
-                node.identity = self.next_identity;
+        for (i, node) in self.tree.nodes.iter_mut().enumerate() {
+            if node.identity.key.is_null() {
+                node.identity = NodeIdentity {
+                    birth: self.next_identity,
+                    key: self.identities.insert(i),
+                };
                 self.next_identity += 1;
+            } else {
+                self.identities[node.identity.key] = i;
             }
         }
-        self.identities = self.tree.nodes.iter().map(|n| n.identity).collect();
     }
     fn remap_after_shedding(&mut self) {
-        let live: std::collections::HashMap<_, _> = self
-            .tree
-            .nodes
-            .iter()
-            .enumerate()
-            .map(|(i, n)| (n.identity, i as u32))
-            .collect();
-        let map: Vec<_> = self
-            .identities
-            .iter()
-            .map(|id| live.get(id).copied())
-            .collect();
+        let mut map = vec![None; self.identities.len()];
+        for (i, node) in self.tree.nodes.iter().enumerate() {
+            let previous = self.identities[node.identity.key];
+            map[previous] = Some(i as u32);
+        }
         self.local.remap(&map);
+        self.identities
+            .retain(|_, previous| map[*previous].is_some());
         self.identify();
     }
     /// Structural insertion shifts local storage, but never its birth identities.

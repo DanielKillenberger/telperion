@@ -1,4 +1,5 @@
 //! Owned leaf elements and placements. No wood mesh is needed by this module.
+use crate::math::Transcendental;
 mod element;
 mod levels;
 mod outline;
@@ -123,7 +124,7 @@ pub fn cull(
             if !p.is_finite() || [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {
                 return Err(Error::ResourceLimit("foliage transform overflow"));
             }
-            let r = p.x.hypot(p.z);
+            let r = p.x.hypot_fixed(p.z);
             if envelope.radius_at(p.y) - r <= shell
                 || distance_to_profile(&profile, r, p.y) <= shell
             {

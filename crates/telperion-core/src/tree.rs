@@ -1,4 +1,10 @@
+//! Compact parent-before-child skeleton storage: structural nodes precede locals.
+//! A node and its origin run retain their birth identity through compaction;
+//! generational keys reject retired identities even when their slots are reused.
+mod identity;
 use crate::{math::Vec3, Error, Result};
+pub use identity::NodeIdentity;
+pub(crate) use identity::NodeKey;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum NodeKind {
@@ -10,7 +16,7 @@ pub enum NodeKind {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Node {
     /// Stable birth identity, assigned by the owning specimen; never a storage index.
-    pub identity: u64,
+    pub identity: NodeIdentity,
     pub position: Vec3,
     /// None only at the root; otherwise strictly earlier than this node.
     pub parent: Option<u32>,
@@ -27,7 +33,7 @@ pub struct Node {
 impl Node {
     pub fn root() -> Self {
         Self {
-            identity: u64::MAX,
+            identity: NodeIdentity::default(),
             position: Vec3::ZERO,
             parent: None,
             radius: 0.0,

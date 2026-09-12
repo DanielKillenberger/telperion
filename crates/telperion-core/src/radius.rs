@@ -1,4 +1,5 @@
 //! Structural fork solve and the separate branch-local taper contract.
+use crate::math::Transcendental;
 use crate::{envelope::Envelope, tree::Tree, Error, Result};
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RadiusParams {
@@ -54,14 +55,14 @@ pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Resul
     }
     for i in (0..count).rev() {
         let r = if carried[i] > 0.0 {
-            carried[i].powf(1.0 / p.fork_exponent)
+            carried[i].powf_fixed(1.0 / p.fork_exponent)
         } else {
             1.0
         };
         let start = if let Some(parent) = tree.nodes[i].parent {
             let parent = parent as usize;
-            let start = r * (shed[i] - shed[parent]).exp();
-            carried[parent] += start.powf(p.fork_exponent);
+            let start = r * (shed[i] - shed[parent]).exp_fixed();
+            carried[parent] += start.powf_fixed(p.fork_exponent);
             start
         } else {
             r

@@ -39,7 +39,7 @@ impl Frontier {
         let divergence = t.divergence.to_radians();
         let mut frontier = Vec::new();
         for (i, n) in tree.nodes[..crossover].iter().enumerate().skip(1) {
-            if !self.seeded.insert(n.identity)
+            if !self.seeded.insert(n.identity.birth_order())
                 || n.position.y < config.trunk_height
                 || (children[i] != 0 && n.radius >= t.limb_radius * root_radius)
             {
@@ -56,14 +56,14 @@ impl Frontier {
                 at: i,
                 direction,
                 normal: direction.perpendicular(),
-                phase: (n.identity as f64 * divergence) % TAU,
+                phase: (n.identity.birth_order() as f64 * divergence) % TAU,
                 radius: n.radius,
                 length,
                 branch: None,
                 completed: 0,
                 generation: 0,
                 internodes: t.internodes(n.radius, length),
-                key: n.identity as u32,
+                key: n.identity.birth_order() as u32,
                 run: None,
                 pendant,
                 curtain_across: Vec3::new(-n.position.z, 0.0, n.position.x).normalized(),

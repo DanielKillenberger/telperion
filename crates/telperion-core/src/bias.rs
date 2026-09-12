@@ -1,3 +1,4 @@
+use crate::math::Transcendental;
 use crate::{
     envelope::Envelope,
     math::{smoothstep, Vec3},
@@ -82,7 +83,7 @@ impl GrowthBias {
         Ok(Self {
             envelope,
             params,
-            lean: Vec3::new(bearing.cos(), 0.0, bearing.sin()),
+            lean: Vec3::new(bearing.cos_fixed(), 0.0, bearing.sin_fixed()),
             phase: rng.next_f64() * TAU,
             noise: Noise::new(seed ^ 0x1f83d9ab),
         })
@@ -112,7 +113,7 @@ impl GrowthBias {
         let spiral_gain = TAU * turns * effects.writhe_amplitude;
         if spiral_gain > 0.0 {
             let theta = TAU * turns * t + self.phase;
-            let helix = Vec3::new(theta.cos(), 0.0, theta.sin());
+            let helix = Vec3::new(theta.cos_fixed(), 0.0, theta.sin_fixed());
             let swirl = if strayed > 1e-9 {
                 let tangent = Vec3::new(-stray.z, 0.0, stray.x) / strayed;
                 let swirl = helix.lerp(tangent, smoothstep(0.0, 0.5 * stray_limit, strayed));
