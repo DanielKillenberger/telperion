@@ -10,6 +10,13 @@ use serde_json::{json, Value};
 // This table is the wire schema: it also emits the browser's preset metadata.
 macro_rules! fields {
     ($f:ident, $v:ident, $op:ident) => {
+        $op!($f, $v, "age"; age);
+        $op!($f, $v, "growth", "rate"; growth.rate);
+        $op!($f, $v, "growth", "shape"; growth.shape);
+        $op!($f, $v, "growth", "leafLifetime"; growth.leaf_lifetime);
+        $op!($f, $v, "growth", "resizeTolerance"; growth.resize_tolerance);
+        $op!($f, $v, "growth", "sheddingTolerance"; growth.shedding_tolerance);
+        $op!($f, $v, "growth", "apicalControlLoss"; growth.apical_control_loss);
         $op!($f, $v, "skeleton", "habit", "apicalDominance"; skeleton.habit.apical_dominance);
         $op!($f, $v, "skeleton", "habit", "whorlStrength"; skeleton.habit.whorl_strength);
         $op!($f, $v, "skeleton", "habit", "leaderInternode"; skeleton.habit.leader_internode);
@@ -211,6 +218,8 @@ pub fn parse(v: &Value) -> Result<Family> {
     // consumer, and the wire is where a value off its range or a range that
     // runs backwards is refused, by the name of the field that was wrong.
     f.material.validate()?;
+    crate::growth::Age::from_years(f.age)?;
+    f.growth.validate()?;
     Ok(f)
 }
 

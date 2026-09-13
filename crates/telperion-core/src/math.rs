@@ -1,6 +1,9 @@
+mod transcendental;
 use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
+pub(crate) use transcendental::Transcendental;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -62,7 +65,7 @@ impl Vec3 {
         reference.cross(self).normalized()
     }
     pub fn rotate(self, axis: Self, angle: f64) -> Self {
-        let (s, c) = angle.sin_cos();
+        let (s, c) = angle.sin_cos_fixed();
         self * c + axis.cross(self) * s + axis * (axis.dot(self) * (1.0 - c))
     }
 }

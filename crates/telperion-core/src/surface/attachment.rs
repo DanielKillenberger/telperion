@@ -1,5 +1,6 @@
 //! Exact swept polygon queries without constructing mesh indices or normals.
 use super::*;
+use crate::math::Transcendental;
 
 pub(crate) struct AttachmentSurface {
     rings: Vec<Vec3>,
@@ -9,6 +10,17 @@ pub(crate) struct AttachmentSurface {
 }
 impl AttachmentSurface {
     pub(crate) fn new(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Self> {
+        Self::selected(tree, height, params, None)
+    }
+
+    /// Derive only sweep paths used by the selected shoots. Topology and frames
+    /// are identical to the whole surface, including neighbouring segments.
+    pub(crate) fn selected(
+        tree: &Tree,
+        height: f64,
+        params: &SurfaceParams,
+        selected: Option<&std::collections::BTreeSet<crate::tree::NodeIdentity>>,
+    ) -> Result<Self> {
         tree.validate_solved()?;
         params.validate()?;
         if !height.is_finite() || height <= 0.0 {
@@ -40,6 +52,14 @@ impl AttachmentSurface {
         let mut scratch = Vec::new();
         for path in paths.runs {
             let nodes = &paths.nodes[path.start..path.end];
+            if selected.is_some_and(|ids| {
+                !nodes
+                    .iter()
+                    .skip(1)
+                    .any(|&i| ids.contains(&tree.nodes[i].identity))
+            }) {
+                continue;
+            }
             sample_path(
                 tree,
                 height,
@@ -59,9 +79,12 @@ impl AttachmentSurface {
                     let profile = if params.lobes == 0 {
                         1.0
                     } else {
-                        1.0 + params.lobe_depth * (params.lobes as f64 * (angle + phase)).cos()
+                        1.0 + params.lobe_depth
+                            * (params.lobes as f64 * (angle + phase)).cos_fixed()
                     };
-                    let p = s.p + (normal * angle.cos() + binormal * angle.sin()) * (s.r * profile);
+                    let p = s.p
+                        + (normal * angle.cos_fixed() + binormal * angle.sin_fixed())
+                            * (s.r * profile);
                     // Query exactly the float32 vertices submitted by build().
                     out.rings.push(Vec3::new(
                         p.x as f32 as f64,
@@ -96,6 +119,15 @@ impl AttachmentSurface {
             }
         }
         Ok(out)
+    }
+    /// Exact neighboring polygons on which a station contact can depend.
+    pub(crate) fn signature(&self, node: usize) -> Vec<Vec3> {
+        let Some((lo, hi, start, end)) = self.edges[node] else {
+            return Vec::new();
+        };
+        let first = if lo > start { lo - self.segments } else { lo };
+        let last = if hi < end { hi + self.segments } else { hi };
+        self.rings[first..last + self.segments].to_vec()
     }
     pub(crate) fn point(
         &self,

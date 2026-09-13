@@ -4,6 +4,7 @@
 //! four-sided needle are two rows of one table and every point between them is
 //! an element in its own right.
 use super::element::ElementParams;
+use crate::math::Transcendental;
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
 /// The margin at a sinus keeps this fraction of the local envelope at full
@@ -28,17 +29,19 @@ const LOBE_BROADNESS: i32 = 6;
 /// the way to the midrib.
 pub(super) fn half_width(p: &ElementParams, t: f64) -> f64 {
     let envelope = if t <= p.widest_at {
-        (FRAC_PI_2 * t / p.widest_at).sin().powf(p.base_fullness)
+        (FRAC_PI_2 * t / p.widest_at)
+            .sin_fixed()
+            .powf_fixed(p.base_fullness)
     } else {
         (FRAC_PI_2 * (t - p.widest_at) / (1. - p.widest_at))
-            .cos()
-            .powf(p.tip_sharpness)
+            .cos_fixed()
+            .powf_fixed(p.tip_sharpness)
     };
     // No lobes, no sinuses: an entire margin, whatever the depth says.
     let sinus = if p.lobe_count == 0 {
         0.
     } else {
-        (0.5 + 0.5 * (TAU * p.lobe_count as f64 * t).cos()).powi(LOBE_BROADNESS)
+        (0.5 + 0.5 * (TAU * p.lobe_count as f64 * t).cos_fixed()).powi(LOBE_BROADNESS)
     };
     p.width / 2. * envelope * (1. - sinus * p.lobe_depth * (1. - MIDRIB))
 }
@@ -56,7 +59,7 @@ pub(super) fn half_width(p: &ElementParams, t: f64) -> f64 {
 /// points outward all the way round and forward at roundness 0.
 pub(super) fn section(p: &ElementParams, half: f64, u: f64) -> (f64, f64) {
     let flat = (u * half, p.cup * half * u * u);
-    let (sin, cos) = (-FRAC_PI_2 - PI * u).sin_cos();
+    let (sin, cos) = (-FRAC_PI_2 - PI * u).sin_cos_fixed();
     // The four-sided section is the unit ball of |x| + |z|, sampled by angle.
     let reach = half / (sin.abs() + cos.abs());
     let round = (reach * cos, reach * sin);

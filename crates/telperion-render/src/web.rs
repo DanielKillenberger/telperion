@@ -23,6 +23,7 @@ use crate::{
     GROUND_REACH,
 };
 
+mod growth;
 /// The timing protocol as a page runs it, kept beside this file rather than in
 /// it so neither outgrows the project's line rule.
 mod session;
@@ -49,6 +50,8 @@ struct Live {
     renderer: Renderer,
     camera: Camera,
     stats: FrameStats,
+    growth: Option<telperion_core::specimen::SpecimenView>,
+    growth_submitted: Option<Submitted>,
 }
 
 impl Live {
@@ -69,6 +72,8 @@ impl Live {
             renderer,
             camera,
             stats: FrameStats::default(),
+            growth: None,
+            growth_submitted: None,
         })
     }
 

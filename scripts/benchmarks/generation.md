@@ -139,3 +139,148 @@ and item membership. Task 2 starts with the already constructed indexed field an
 charges extraction, packing, upload, synchronization and readback. At the recorded
 giant sizes, snapshot plus packing already exceeds either single CPU query batch;
 resident reuse may be worth testing, but cannot establish a cold end-to-end gain.
+
+## Monthly growth cost (fn-11, native, 2026-09-12)
+
+Command, from the worktree root:
+
+```sh
+FN11_MEASURE=1 cargo test --release -p telperion-core --lib monthly_cost_report -- --nocapture --test-threads=1
+```
+
+This uses the core's `Instant` timers, seed 7, no GPU, and skeletons only.
+Mature and envelope figures are medians of three builds. Slice figures are
+individual samples; identity/radius comparisons happen outside the timer.
+Both families reach the final quantum in month 2073 (172.75 years).
+The final run followed all five gates, without concurrent test/compiler work;
+the machine was shared, without CPU isolation.
+
+| Species | Slice after 20 y | Slice after 100 y | Final slice | Mature build | Envelope build |
+|---|---:|---:|---:|---:|---:|
+| Oak | 4.549 ms | 18.709 ms | 18.400 ms | 18,897.739 ms | 62.786 ms |
+| Spruce | 3.521 ms | 8.357 ms | 5.194 ms | 9,148.164 ms | 35.582 ms |
+
+The cost shape remains a problem for oak. These are the minimum and maximum
+nonzero changed-radius counts among active slices starting above 50,000 nodes,
+selected by changed count, not elapsed time. Changed includes births and exact
+changes to distal, proximal or base radius; it does not mean only new nodes.
+
+| Species / month | Starting nodes | Born | Changed or born | Slice | Width update | Storage repair |
+|---|---:|---:|---:|---:|---:|---:|
+| Oak / 587 | 211,095 | 38 | 1,698 | 13.693 ms | 0.498 ms | 8.138 ms |
+| Oak / 2073 | 215,963 | 1 | 203,775 | 18.400 ms | 14.300 ms | 0.00033 ms |
+| Spruce / 782 | 74,616 | 18 | 264 | 0.839 ms | 0.035 ms | 0.755 ms |
+| Spruce / 2073 | 74,666 | 1 | 65,989 | 5.194 ms | 4.898 ms | 0.232 ms |
+
+Spruce's dense slice costs 6.194 times its sparse slice on almost the same tree
+size. Oak changes 120 times as much wood for only 1.344 times the slice cost:
+its sparse slice still repairs 205,826 moved local nodes and spends 4.384 ms
+retrying the frontier. Thus the whole-slice proportional-cost requirement is
+**not met for oak**, despite the incremental width solve.
+
+Fixed work includes crown-profile preparation (about 0.013 ms oak / 0.002 ms
+spruce in these samples), frontier ordering and deferred-shoot retries.
+Structural insertion also moves the contiguous local segment and updates its
+storage references. Dense slices legitimately resize much of the tree: the
+age-100 oak adds one node but changes 203,664 radius tuples. These costs leave
+mature builds about 301 and 257 times the envelope build, respectively. The
+closed-form alternative remains an owner decision; this measurement does not
+justify production routing.
+
+The saturated advance to one million years took 0.00033 ms for oak and
+0.00023 ms for spruce. Snapshot round-trip and placement costs remain unmeasured:
+those implementations are still pending. Populations remain 215,964 versus
+139,040 envelope nodes for oak, and 74,667 versus 90,439 for spruce; convergence
+and calibration are unchanged. Full samples, stage counters, commands and gate
+results are in `/tmp/flow-handover-fn11/child-notes.md` and `cost-measure-final.log`.
+
+## Annual slice choice (fn-11, native, 2026-09-13)
+
+The command above retains its historical `monthly_cost_report` name, but now
+measures annual slices. Seed 7, native `Instant` timers, no GPU. Full-build
+figures are three-build medians; slice figures are individual samples. These
+measurements cover skeleton growth before foliage reads or change records.
+Both families reach the final work quantum at year 173 (previously month 2073,
+172.75 years). The API keeps the original time resolution: whole years plus an
+integer remainder in 12 billion ticks per year.
+
+| Species / slice length | Internal slice after 20 y | After 100 y | Mature slice | Mature build | Envelope build |
+|---|---:|---:|---:|---:|---:|
+| Oak / monthly | 2.767 ms | 5.419 ms | 4.826 ms | 5906.159 ms | 78.494 ms |
+| Spruce / monthly | 2.885 ms | 4.438 ms | 0.163 ms | 4535.222 ms | 35.271 ms |
+| Oak / annual | 15.918 ms | 5.343 ms | 4.729 ms | 774.870 ms | 69.925 ms |
+| Spruce / annual | 5.279 ms | 4.870 ms | 0.090 ms | 585.439 ms | 35.721 ms |
+
+**R10 chooses annual:** the mature monthly oak exceeds approximately 500 ms.
+Annual improves it substantially but still misses that target. The closed-form
+alternative remains the owner's reserve; it has not been implemented. Continue
+calibration and the remaining integration at annual length. Monthly oak slice
+traversal overlapped compilation of a clock regression; the decision's three
+mature-oak samples, spruce build samples and all annual measurements did not.
+The host is shared and CPU affinity is not isolated.
+
+The finalizer runs once per advance. Packing is paid lazily by a consumer read,
+and both are separate from the internal slice timings above. Sparse/dense means
+minimum/maximum nonzero changed-radius count among active slices starting with
+more than 50,000 nodes; it includes resized survivors as well as births.
+
+| Species / length / slice | Starting nodes | Born | Changed or born | Internal slice | Advance, excluding read | Read |
+|---|---:|---:|---:|---:|---:|---:|
+| Oak / monthly / 587 | 211095 | 38 | 1698 | 6.766 ms | 8.232 ms | 13.719 ms |
+| Oak / monthly / 2073 | 215963 | 1 | 203775 | 4.826 ms | 27.251 ms | 10.273 ms |
+| Spruce / monthly / 782 | 74616 | 18 | 264 | 0.141 ms | 0.231 ms | 1.106 ms |
+| Spruce / monthly / 2073 | 74666 | 1 | 65989 | 0.163 ms | 7.829 ms | 1.195 ms |
+| Oak / annual / 66 | 178501 | 129 | 1415 | 5.659 ms | 5.943 ms | 3.998 ms |
+| Oak / annual / 173 | 179715 | 1 | 164965 | 4.729 ms | 18.220 ms | 4.224 ms |
+| Spruce / annual / 67 | 76602 | 24 | 273 | 4.684 ms | 4.752 ms | 1.286 ms |
+| Spruce / annual / 173 | 76627 | 1 | 60396 | 0.090 ms | 6.003 ms | 1.357 ms |
+
+**Cost still does not scale solely with changed wood.** Annual sparse oak spends
+5.072 ms in local retries/order/width queries and spruce spends 3.504 ms there
+plus 1.129 ms sampling visited-shoot vigour. These are the remaining repeated
+costs; structural insertion moves zero local nodes. A zero-birth middle spruce
+slice nevertheless changes 60,395 radius tuples, so its 7.329 ms finalizer is
+real thickening work. Empty local frontiers skip width queries; unchanged queues
+keep their identity order. General radius-dependent failures still retry because
+their acceptance is not a monotone function of the scalar growth curve alone.
+Saturated annual advances cost 0.002770 ms oak and 0.001390 ms spruce.
+Snapshot round-trip timing remains unavailable.
+
+Annual growth is **not converged** with the envelope build. Oak has 179,716
+versus 139,040 nodes (+29.255%) and 5,418 versus 3,602 structural nodes
+(+50.416%). Spruce has 76,628 versus 90,439 nodes (−15.271%) and 21,442 versus
+17,573 structural nodes (+22.017%). Bounds spans differ by at most 2.249% oak
+and 5.983% spruce. Both thresholds remain zero; calibration, production routing
+and the authorized re-pin remain pending.
+
+A follow-up after lifetime foliage was added used the same command, with fresh
+foliage reads performed after each species' entire skeleton timing traversal.
+The initial slice-choice numbers above remain its decision record; these are the
+follow-up samples (no concurrent tests/compiler during timing):
+
+| Species | Internal slice after 20 y / 100 y / mature | Mature build median | Envelope median | Sparse / dense advance, excluding read |
+|---|---:|---:|---:|---:|
+| Oak | 11.455 / 5.718 / 4.836 ms | 778.624 ms | 70.232 ms | 6.533 / 18.644 ms |
+| Spruce | 4.798 / 4.641 / 0.090 ms | 560.931 ms | 36.171 ms | 4.611 / 6.268 ms |
+
+The remaining sparse local-retry/order/width-query stage is 5.547 ms oak and
+3.398 ms spruce, plus visited-vigour sampling of 0.505 and 1.102 ms. The cost
+shape and annual decision are unchanged. Snapshot timing is still unavailable.
+
+| Species / age | Placements before culling | Fresh placement read |
+|---|---:|---:|
+| Oak / 20 | 59189 | 17.347 ms |
+| Oak / 100 | 78 | 14.320 ms |
+| Oak / 173 | 13 | 10.914 ms |
+| Spruce / 20 | 1823229 | 862.152 ms |
+| Spruce / 100 | 100 | 82.651 ms |
+| Spruce / 173 | 120 | 82.986 ms |
+
+**Mature foliage has not converged.** The literal one-year oak / six-year spruce
+shoot lifetime expires leaves while the sigmoidal work budget brings new shoot
+births toward zero. The mature timeline consequently has only 13 and 120 leaf
+placements before culling. This does not establish R1 or R11's mature appearance.
+No renewal, seasonal flush, altered lifetime, production routing or re-pin has
+been added to conceal it. The placement reads include lazy skeleton packing,
+validation and, for spruce, construction of the contact surface; these costs
+are separate from internal slices and are not a change-record update benchmark.

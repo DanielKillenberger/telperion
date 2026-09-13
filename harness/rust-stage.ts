@@ -4,6 +4,7 @@ import {
   type Renderer,
   type SceneRow,
   type Submitted,
+  type GrowthSubmitted,
   type TimingReport,
   type View,
 } from "../src/browser/render";
@@ -34,6 +35,8 @@ export interface Stage {
    *  the generator's or the renderer's own message; the tree already on
    *  the canvas stays where it is. */
   setTree(family: string): Submitted;
+  buildSpecimen(family: string, age: number): GrowthSubmitted;
+  seekSpecimen(age: number): GrowthSubmitted;
   setView(view: View): void;
   /** The sun, sky and ground the renderer is drawing under, its own default
    *  until something sets another. */
@@ -138,6 +141,8 @@ export async function createStage(
 
   return {
     setTree: (family) => renderer.setTree(family),
+    buildSpecimen: (family, age) => renderer.buildSpecimen(family, age),
+    seekSpecimen: age => renderer.seekSpecimen(age),
     scene: () => renderer.scene(),
     setScene: (row) => { renderer.setScene(row); },
     setView: (view) => {

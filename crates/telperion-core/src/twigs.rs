@@ -1,7 +1,9 @@
 //! Fixed shoot anatomy and finite authoring rails for the local branch law.
+use crate::math::Transcendental;
 use crate::{Error, Result};
 pub const MAX_LEVELS: usize = 12;
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigAnatomy {
     pub diameter: f64,
     pub length: f64,
@@ -21,6 +23,7 @@ impl Default for TwigAnatomy {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigParams {
     pub twig: TwigAnatomy,
     pub length_ratio: f64,
@@ -105,8 +108,8 @@ impl TwigParams {
     }
 }
 pub fn branch_length(radius: f64) -> f64 {
-    148.0 / 7.4_f64.powf(2.0 / 3.0) * radius.max(0.0).powf(2.0 / 3.0)
+    148.0 / 7.4_f64.powf_fixed(2.0 / 3.0) * radius.max(0.0).powf_fixed(2.0 / 3.0)
 }
 pub fn child_radius(radius: f64, ratio: f64, power: f64) -> f64 {
-    radius * ratio.powf(power)
+    radius * ratio.powf_fixed(power)
 }

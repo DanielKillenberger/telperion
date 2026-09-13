@@ -50,7 +50,7 @@ impl From<foliage::Bounds> for Bounds {
         }
     }
 }
-fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
+pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
     match (a, b) {
         (Some(a), Some(b)) => Some(Bounds {
             min: Vec3::new(
