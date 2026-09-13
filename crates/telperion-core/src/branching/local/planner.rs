@@ -8,6 +8,7 @@ pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
 }
 pub(in crate::branching) type WidthQuery<'a> = Option<&'a dyn Fn(&Tree, usize) -> [f64; 3]>;
 pub(in crate::branching) struct Planner<'a> {
+    pub(in crate::branching) clock: Option<super::waiting::Clock>,
     pub(in crate::branching) widths: WidthQuery<'a>,
     pub(in crate::branching) growing_envelope: bool,
     pub(in crate::branching) planning: Option<Envelope>,

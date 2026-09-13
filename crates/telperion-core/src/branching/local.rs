@@ -30,14 +30,18 @@ struct Shoot {
 mod advance;
 mod planner;
 mod seed;
+pub(super) mod waiting;
 use planner::rejected;
 pub(super) use planner::Planner;
 #[derive(Clone, Default)]
 pub(super) struct Frontier {
     queue: std::collections::VecDeque<Shoot>,
+    sleeping: std::collections::BTreeMap<u64, Vec<Shoot>>,
     seeded: std::collections::HashMap<u64, u16>,
     stations: seed::Stations,
     visited: Vec<usize>,
+    #[cfg(test)]
+    pub(super) retries: [usize; 4],
 }
 impl Frontier {
     pub(super) fn visited(&self) -> impl Iterator<Item = usize> + '_ {
@@ -53,11 +57,11 @@ impl Frontier {
             .sort_by_key(|s| (tree.nodes[s.at].identity.birth_order(), s.key));
     }
     pub(super) fn finished(&self) -> bool {
-        self.queue.is_empty()
+        self.queue.is_empty() && self.sleeping.is_empty()
     }
     pub(super) fn remap(&mut self, index: &[Option<u32>]) {
         self.stations.remap(index);
-        self.queue.retain_mut(|s| {
+        let remap = |s: &mut Shoot| {
             let Some(at) = index[s.at] else { return false };
             s.at = at as usize;
             if let Some(branch) = s.branch {
@@ -67,6 +71,11 @@ impl Frontier {
                 s.branch = Some(branch);
             }
             true
+        };
+        self.queue.retain_mut(remap);
+        self.sleeping.retain(|_, shoots| {
+            shoots.retain_mut(remap);
+            !shoots.is_empty()
         });
     }
 }

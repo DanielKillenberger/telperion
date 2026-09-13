@@ -205,7 +205,6 @@ impl Specimen {
         let widths = |tree: &Tree, i| timeline.widths.sample(tree, &timeline.pipes, i);
         self.local
             .seed(&self.tree, &config, twigs, params.habit, Some(&widths));
-        self.local.identity_order(&self.tree);
         #[cfg(test)]
         self.cost.stamp(4, &mut clock);
         let local_first = self.tree.nodes.len();
@@ -213,6 +212,11 @@ impl Specimen {
             self.local.advance(
                 &mut self.tree,
                 local::Planner {
+                    clock: Some(local::waiting::Clock {
+                        month,
+                        traits: timeline.traits,
+                        envelope: self.params.envelope,
+                    }),
                     widths: Some(&widths),
                     growing_envelope: true,
                     planning: Some(Envelope {

@@ -8,6 +8,11 @@ impl Frontier {
         budget: usize,
     ) -> Result<()> {
         self.visited.clear();
+        self.wake(&planner, tree);
+        #[cfg(test)]
+        {
+            self.retries = [0; 4];
+        }
         let first = tree.nodes.len();
         let t = planner.twigs;
         let config = planner.config;
@@ -38,6 +43,10 @@ impl Frontier {
             let Some(mut s) = self.queue.pop_front() else {
                 break;
             };
+            if planner.clock.is_some() && waiting::below_reach(&s, tree, &planner) {
+                self.sleeping.entry(u64::MAX).or_default().push(s);
+                continue;
+            }
             if planner.growing_envelope {
                 self.visited.push(s.at);
                 if tree.nodes[s.at].shoot.vigour < habit.shedding_threshold {
@@ -49,6 +58,10 @@ impl Frontier {
                     |b| planner.width(tree, b as usize)[2],
                 );
             }
+            #[cfg(test)]
+            {
+                self.retries[0] += 1;
+            }
             let before = tree.nodes.len();
             let from = s.direction;
             let position = tree.nodes[s.at].position;
@@ -56,8 +69,13 @@ impl Frontier {
             let binormal = from.cross(s.normal);
             let mut accepted = std::mem::take(&mut s.accepted);
             let mut deferred = false;
+            let mut next_wake = u64::MAX;
             let origin = tree.nodes[s.at].kind == NodeKind::Structural;
             let bearing = !origin && s.radius <= t.twig.bearing_diameter / 2.0;
+            // A switch out of leaf-bearing wood can release different laterals.
+            // Such shoots remain awake until a radius wake condition is available.
+            let can_sleep = !origin && (t.laterals == 0 || !bearing);
+            let immediate = planner.clock.map_or(0, |clock| clock.month + 1);
             let mut laterals = 0;
             let mut first_lateral = 0;
             if origin {
@@ -185,9 +203,26 @@ impl Frontier {
                     }
                     let p = position + heading * twig_length;
                     if rejected(config, p) || s.pendant_floor.is_some_and(|floor| p.y < floor) {
+                        #[cfg(test)]
+                        {
+                            self.retries[1] += 1;
+                        }
                         if planner.growing_envelope {
                             s.flushed &= !mask;
                             deferred = true;
+                            let fixed = (terminal || length < t.twig.internode_length)
+                                && planner.bias.is_none_or(GrowthBias::height_independent);
+                            next_wake = next_wake.min(if can_sleep && fixed {
+                                planner.clock.map_or(immediate, |clock| {
+                                    if s.pendant_floor.is_some_and(|floor| p.y < floor) {
+                                        u64::MAX
+                                    } else {
+                                        clock.next(p, config.trunk_height)
+                                    }
+                                })
+                            } else {
+                                immediate
+                            });
                         }
                         continue;
                     }
@@ -210,6 +245,11 @@ impl Frontier {
                         )
                     }
                     let Some(r) = &run else {
+                        next_wake = immediate;
+                        #[cfg(test)]
+                        {
+                            self.retries[2] += 1;
+                        }
                         if planner.growing_envelope {
                             s.flushed &= !mask;
                             deferred = true;
@@ -219,8 +259,19 @@ impl Frontier {
                     internodes = r.positions.len();
                     let p = r.positions[completed];
                     if planner.growing_envelope && rejected(config, p) {
+                        #[cfg(test)]
+                        {
+                            self.retries[3] += 1;
+                        }
                         s.flushed &= !mask;
                         deferred = true;
+                        next_wake = next_wake.min(if can_sleep && !starts {
+                            planner
+                                .clock
+                                .map_or(immediate, |clock| clock.next(p, config.trunk_height))
+                        } else {
+                            immediate
+                        });
                         continue;
                     }
                     (p, (p - position).normalized())
@@ -314,10 +365,13 @@ impl Frontier {
             }
             if deferred {
                 s.accepted = accepted;
-                self.queue.push_back(s);
+                if planner.clock.is_some() && next_wake > immediate {
+                    self.sleeping.entry(next_wake).or_default().push(s);
+                } else {
+                    self.queue.push_back(s);
+                }
             }
-            // A bud waiting for crown expansion consumes no growth unit. Visit
-            // it once this month, then let younger eligible shoots use the work.
+            // Waiting consumes no growth unit; younger eligible shoots can use it.
             if !planner.growing_envelope || tree.nodes.len() > before {
                 remaining -= 1;
             }

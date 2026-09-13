@@ -88,6 +88,12 @@ impl GrowthBias {
             noise: Noise::new(seed ^ 0x1f83d9ab),
         })
     }
+    /// Whether changing crown height can change a planned direction.
+    pub(crate) fn height_independent(&self) -> bool {
+        self.params.gravitropism == 0.0
+            && (!self.params.supernatural.enabled
+                || self.params.supernatural.writhe_amplitude == 0.0)
+    }
     /// Inputs are finite; direction is unit length and step is positive (validated by growth).
     pub fn apply(&self, position: Vec3, direction: Vec3, step: f64) -> Vec3 {
         let p = self.params;

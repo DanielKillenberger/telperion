@@ -20,6 +20,7 @@ impl Bounds {
 pub(super) struct Crown {
     envelope: Option<Envelope>,
     generation: u64,
+    indexed: u64,
     profile: Vec<[f64; 2]>,
     bounds: Vec<Bounds>,
     samples: SecondaryMap<NodeKey, (u64, Vec3, f64)>,
@@ -40,7 +41,13 @@ impl Crown {
         }
         self.envelope = Some(envelope);
         self.generation += 1;
-        self.profile = envelope.profile();
+    }
+    fn index(&mut self) {
+        if self.indexed == self.generation {
+            return;
+        }
+        self.indexed = self.generation;
+        self.profile = self.envelope.unwrap().profile();
         let count = self.profile.len() - 1;
         self.bounds.resize(count * 2, Bounds::default());
         for i in 0..count {
@@ -91,6 +98,7 @@ impl Crown {
                 return value;
             }
         }
+        self.index();
         #[cfg(test)]
         {
             self.evaluated += 1;
@@ -110,5 +118,32 @@ impl Crown {
     }
     pub fn retire(&mut self, key: NodeKey) {
         self.samples.remove(key);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_unsampled_crown_does_not_rebuild_its_profile() {
+        let mut crown = Crown::default();
+        crown.prepare(Envelope::default());
+        assert!(
+            crown.profile.is_empty(),
+            "prepare rebuilt an unsampled crown"
+        );
+        crown.exposure(&Node::root());
+        let profile = crown.profile.clone();
+        crown.prepare(Envelope {
+            height: 10.0,
+            ..Envelope::default()
+        });
+        assert_eq!(
+            crown.profile, profile,
+            "prepare traversed the crown profile"
+        );
+        crown.exposure(&Node::root());
+        assert_ne!(crown.profile, profile);
     }
 }

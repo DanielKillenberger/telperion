@@ -54,6 +54,7 @@ fn monthly_deferred_shoot_does_not_starve_a_younger_live_shoot() {
         .advance(
             &mut tree,
             Planner {
+                clock: None,
                 widths: None,
                 growing_envelope: true,
                 planning: None,
@@ -139,6 +140,7 @@ fn monthly_run_keeps_stations_waiting_beyond_the_current_envelope() {
         ..GrowthConfig::default()
     };
     let planner = Planner {
+        clock: None,
         widths: None,
         growing_envelope: true,
         planning: Some(Envelope {

@@ -182,6 +182,7 @@ impl Specimen {
             self.local.advance(
                 &mut self.tree,
                 local::Planner {
+                    clock: None,
                     widths: None,
                     growing_envelope: false,
                     planning: None,
