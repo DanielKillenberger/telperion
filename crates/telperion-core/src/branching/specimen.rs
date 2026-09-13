@@ -1,8 +1,9 @@
-//! Persistent generator frontiers and stable identities beside compact storage.
+//! Retained generator frontiers with birth/death stamps and stable timeline slots.
 use super::*;
 use crate::tree::{NodeIdentity, NodeKey};
 use slotmap::{DenseSlotMap, Key};
 mod changes;
+mod chronicle;
 mod crown;
 pub use changes::{ChangeRecord, Run, RunNode, SpecimenBuffers, RADIUS_TOLERANCE};
 #[cfg(test)]
@@ -30,6 +31,7 @@ pub struct Specimen {
     next_identity: u64,
     timeline: Option<timeline::Timeline>,
     identities: DenseSlotMap<NodeKey, usize>,
+    links: slotmap::SecondaryMap<NodeKey, chronicle::Links>,
 }
 impl Specimen {
     pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
@@ -69,6 +71,7 @@ impl Specimen {
             next_identity: 0,
             timeline: None,
             identities: DenseSlotMap::with_key(),
+            links: slotmap::SecondaryMap::new(),
         })
     }
     pub fn tree(&self) -> &Tree {
@@ -77,7 +80,7 @@ impl Specimen {
     pub fn identities(&self) -> impl ExactSizeIterator<Item = NodeIdentity> + '_ {
         self.tree().nodes.iter().map(|n| n.identity)
     }
-    /// Resolve an identity after storage has moved; retired generations fail.
+    /// Resolve a living identity in the packed read; dead or stale keys fail.
     pub fn node(&self, identity: NodeIdentity) -> Result<&Node> {
         self.identities
             .get(identity.key)
@@ -85,7 +88,7 @@ impl Specimen {
                 Some(read) => read.tree.nodes.get(read.indices[i]),
                 None => self.tree.nodes.get(i),
             })
-            .filter(|node| node.identity == identity)
+            .filter(|node| node.identity == identity && node.shoot.death_year.is_none())
             .ok_or(Error::InvalidInput("stale node identity"))
     }
     fn finished(&self) -> bool {
@@ -100,6 +103,7 @@ impl Specimen {
             self.cost.identities += range.len();
         }
         let mut born = Vec::new();
+        let mut linked = Vec::new();
         for (i, node) in self
             .tree
             .nodes
@@ -115,6 +119,7 @@ impl Specimen {
                 };
                 self.next_identity += 1;
                 if let Some(t) = &self.timeline {
+                    linked.push(i);
                     node.shoot.birth_year = if i == 0 {
                         0.0
                     } else {
@@ -128,12 +133,14 @@ impl Specimen {
                 self.identities[node.identity.key] = i;
             }
         }
+        self.link_births(&linked);
         if let Some(t) = &mut self.timeline {
             for i in born {
                 t.widths.born(&mut self.tree, &t.pipes, i);
             }
         }
     }
+    // Legacy envelope path only. Annual deaths never remove or reuse a slot.
     fn remap_after_shedding(&mut self) {
         let mut map = vec![None; self.identities.len()];
         for (i, node) in self.tree.nodes.iter().enumerate() {
@@ -236,3 +243,6 @@ mod foliage_tests;
 
 #[cfg(test)]
 mod change_tests;
+
+#[cfg(test)]
+mod chronicle_tests;

@@ -4,7 +4,8 @@ use super::*;
 pub(in crate::branching) struct Frontier {
     queue: VecDeque<Axis>,
     points: Vec<Vec3>,
-    alive: Vec<bool>,
+    consumed: Vec<Option<u64>>,
+    pub(in crate::branching) year: u64,
     visited: Vec<usize>,
 }
 impl Frontier {
@@ -31,11 +32,13 @@ impl Frontier {
         };
         Self {
             queue,
-            alive: vec![true; points.len()],
+            consumed: vec![None; points.len()],
+            year: 0,
             visited: Vec::new(),
             points,
         }
     }
+    #[cfg(test)]
     pub(in crate::branching) fn remap(&mut self, map: &[Option<u32>]) {
         fn remap_axis(a: &mut Axis, map: &[Option<u32>]) -> bool {
             let (Some(at), Some(tip)) = (map[a.at], map[a.tip]) else {
@@ -47,6 +50,18 @@ impl Frontier {
             true
         }
         self.queue.retain_mut(|a| remap_axis(a, map));
+    }
+    pub(in crate::branching) fn remove_dead(&mut self, tree: &Tree) {
+        fn living(axis: &mut Axis, tree: &Tree) -> bool {
+            if tree.nodes[axis.at].shoot.death_year.is_some()
+                || tree.nodes[axis.tip].shoot.death_year.is_some()
+            {
+                return false;
+            }
+            axis.children.retain_mut(|a| living(a, tree));
+            true
+        }
+        self.queue.retain_mut(|a| living(a, tree));
     }
     pub(in crate::branching) fn finished(&self) -> bool {
         self.queue.is_empty()
@@ -80,7 +95,8 @@ impl Frontier {
             bias,
             habit: params.habit,
             points: &self.points,
-            alive: &mut self.alive,
+            consumed: &mut self.consumed,
+            year: self.year,
             influence_sq: config.influence_radius.powi(2),
             kill_sq: config.kill_distance.powi(2),
             point_scale: fraction,
@@ -98,7 +114,7 @@ impl Frontier {
             let mut axis = self.queue.pop_front().unwrap();
             self.visited.push(axis.tip);
             if axis.order > 0
-                && b.tree.nodes[axis.tip].shoot.vigour < params.habit.shedding_threshold
+                && b.tree.nodes[axis.tip].shoot.vigour() < params.habit.shedding_threshold
             {
                 self.queue.push_back(axis);
                 continue;
@@ -132,7 +148,8 @@ impl Frontier {
             bias,
             habit: params.habit,
             points: &self.points,
-            alive: &mut self.alive,
+            consumed: &mut self.consumed,
+            year: self.year,
             influence_sq: config.influence_radius.powi(2),
             kill_sq: config.kill_distance.powi(2),
             point_scale: 1.0,
@@ -178,6 +195,37 @@ pub(in crate::branching) fn generate(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn attractor_consumption_keeps_the_first_year() {
+        let f = crate::presets::Preset::Ordinary.parameters();
+        let config = f.skeleton.resolved_growth(3).unwrap();
+        let bias = GrowthBias::new(f.skeleton.envelope, f.skeleton.seed, f.skeleton.bias).unwrap();
+        let points = vec![Vec3::ZERO, Vec3::Y, Vec3::Y * 2.0];
+        let mut consumed = vec![None; points.len()];
+        let mut tree = Tree::default();
+        let mut builder = Builder {
+            tree: &mut tree,
+            envelope: f.skeleton.envelope,
+            planning: f.skeleton.envelope,
+            config: &config,
+            bias: &bias,
+            habit: f.skeleton.habit,
+            points: &points,
+            consumed: &mut consumed,
+            year: 3,
+            influence_sq: 1.0,
+            kill_sq: 0.01,
+            point_scale: 1.0,
+            growing_envelope: true,
+            paused: false,
+        };
+        builder.consume(Vec3::ZERO, 1.0);
+        builder.year = 8;
+        builder.consume(Vec3::ZERO, 1.0);
+        builder.consume(Vec3::Y, 1.0);
+        assert_eq!(consumed, vec![Some(3), Some(8), None]);
+    }
 
     #[test]
     fn annual_blocked_axes_leave_the_budget_for_live_shoots() {

@@ -1,8 +1,8 @@
 //! Consumer skeletons are parent-before-child with structural nodes before locals.
 //! During a retained advance, slices may append structure after local nodes;
 //! the specimen provides a cached packed layout when a consumer reads it.
-//! A node and its origin run retain their birth identity through compaction;
-//! generational keys reject retired identities even when their slots are reused.
+//! Timeline nodes retain their birth identity and slot after their death year;
+//! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
 mod identity;
 mod shoot;
 use crate::{math::Vec3, Error, Result};

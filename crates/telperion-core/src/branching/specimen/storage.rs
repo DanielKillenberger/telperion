@@ -8,17 +8,29 @@ pub(super) struct Read {
 }
 impl Specimen {
     pub(super) fn packed_read(&self) -> Option<&Read> {
-        if !self.timeline.as_ref().is_some_and(|t| t.unpacked) {
+        if !self
+            .timeline
+            .as_ref()
+            .is_some_and(|t| t.unpacked || self.shed > 0)
+        {
             return None;
         }
         Some(self.read.get_or_init(|| {
             let mut structural = 0;
-            let mut local = self.tree.crossover;
+            let mut local = self
+                .tree
+                .nodes
+                .iter()
+                .filter(|n| n.kind == NodeKind::Structural && n.shoot.death_year.is_none())
+                .count();
             let indices: Vec<_> = self
                 .tree
                 .nodes
                 .iter()
                 .map(|n| {
+                    if n.shoot.death_year.is_some() {
+                        return usize::MAX;
+                    }
                     let next = if n.kind == NodeKind::Structural {
                         &mut structural
                     } else {
@@ -31,7 +43,7 @@ impl Specimen {
                 .collect();
             let mut tree = Tree {
                 nodes: Vec::with_capacity(self.tree.nodes.len()),
-                crossover: self.tree.crossover,
+                crossover: structural,
                 diagnostics: self.tree.diagnostics,
             };
             for structural in [true, false] {
@@ -39,11 +51,16 @@ impl Specimen {
                     self.tree
                         .nodes
                         .iter()
-                        .filter(|n| (n.kind == NodeKind::Structural) == structural)
+                        .filter(|n| {
+                            n.shoot.death_year.is_none()
+                                && (n.kind == NodeKind::Structural) == structural
+                        })
                         .map(|n| {
                             let mut node = n.clone();
-                            node.parent = n.parent.map(|p| indices[p as usize] as u32);
-                            node.branch = indices[n.branch as usize] as u32;
+                            let links = &self.links[n.identity.key];
+                            node.parent =
+                                links.parent.map(|p| indices[self.identities[p.key]] as u32);
+                            node.branch = indices[self.identities[links.run.key]] as u32;
                             node
                         }),
                 );

@@ -102,6 +102,9 @@ impl Widths {
                 self.visited += 1;
             }
             let i = ids[id.key];
+            if tree.nodes[i].shoot.death_year.is_some() {
+                continue;
+            }
             let [distal, proximal, base] = self.sample(tree, pipes, i);
             let n = &mut tree.nodes[i];
             let changed = distal != n.radius;
@@ -118,23 +121,6 @@ impl Widths {
             }
         }
         Ok(())
-    }
-    pub fn retire(&mut self, tree: &Tree, map: &[Option<u32>]) {
-        for (i, n) in tree.nodes.iter().enumerate() {
-            if map[i].is_none() {
-                self.cache.get_mut().remove(n.identity.key);
-                self.children.remove(n.identity.key);
-                self.queued.remove(n.identity.key);
-                self.pending.remove(&n.identity);
-                if let Some(p) = n.parent {
-                    if let Some(children) =
-                        self.children.get_mut(tree.nodes[p as usize].identity.key)
-                    {
-                        children.retain(|id| *id != n.identity);
-                    }
-                }
-            }
-        }
     }
 }
 

@@ -152,8 +152,15 @@ pub(super) fn bytes(tree: &Tree) -> Vec<u8> {
         out.push(n.kind as u8);
         out.push(n.shoot.bud_fate as u8);
         out.extend(n.shoot.birth_year.to_le_bytes());
-        out.extend(n.shoot.vigour.to_le_bytes());
-        out.extend(n.shoot.low_slices.to_le_bytes());
+        out.extend(n.shoot.death_year.unwrap_or(u64::MAX).to_le_bytes());
+        out.extend((n.shoot.vigour_events.len() as u64).to_le_bytes());
+        for event in &n.shoot.vigour_events {
+            out.extend(event.year.to_le_bytes());
+            out.extend(event.vigour.to_le_bytes());
+            out.extend(event.low_slices.to_le_bytes());
+        }
+        out.extend(n.shoot.vigour().to_le_bytes());
+        out.extend(n.shoot.low_slices().to_le_bytes());
         out.extend(
             [
                 n.position.x,

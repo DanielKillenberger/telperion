@@ -71,6 +71,19 @@ impl Frontier {
     pub(super) fn finished(&self) -> bool {
         self.queue.is_empty() && self.sleeping.is_empty()
     }
+    pub(super) fn remove_dead(&mut self, tree: &Tree, dead: &[usize]) {
+        self.stations.remove_dead(tree, dead);
+        let living = |s: &Shoot| {
+            tree.nodes[s.at].shoot.death_year.is_none()
+                && s.branch
+                    .is_none_or(|b| tree.nodes[b as usize].shoot.death_year.is_none())
+        };
+        self.queue.retain(living);
+        self.sleeping.retain(|_, shoots| {
+            shoots.retain(living);
+            !shoots.is_empty()
+        });
+    }
     pub(super) fn remap(&mut self, index: &[Option<u32>]) {
         self.stations.remap(index);
         let remap = |s: &mut Shoot| {

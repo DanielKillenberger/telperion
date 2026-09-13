@@ -45,8 +45,11 @@ The giant snapshot alone is about 129 MB, so opt in only when needed.
 ## Architecture
 
 The retained `branching::Specimen` owns scaffold and local frontiers. Nodes
-carry a monotone birth order and a generational key; storage can compact while
-`Specimen::node(identity)` still finds survivors and rejects retired keys.
+carry a monotone birth order and a generational key. The annual timeline stamps
+shed nodes with their death year and keeps their slots and topology unchanged;
+`Specimen::node(identity)` finds survivors and rejects dead identities. Packed
+reads filter dead wood and order the structural segment before local nodes.
+The legacy full-envelope builder retains its existing compaction path.
 The core uses pinned pure-Rust `libm` for transcendental functions. Run
 `npm run wasm:build && npx vitest run harness/parity.test.ts` to compare the
 five preset node buffers byte for byte across native and wasm targets.
@@ -97,7 +100,10 @@ plan against the authored room and wait at the current crown before each birth.
 The mature annual populations still differ substantially from the envelope
 builds; convergence and calibration remain unfinished.
 
-Annual shoots retain birth year, terminal/lateral fate and crown-depth vigour.
+Annual shoots retain birth/death years, terminal/lateral fate and year-stamped
+crown-depth vigour observations. `shoot.vigour()` reads the latest observation;
+tolerance counters are retained in the same append-only event sequence.
+Attractor consumption likewise retains its first consumption year.
 The existing habit `sheddingThreshold` is the annual vigour threshold;
 `growth.sheddingTolerance` counts consecutive active years below it, in years.
 Equality resets the clock. The shell contributes to vigour, and a lit descendant
@@ -108,9 +114,10 @@ allocation. Its default is zero; the tolerance defaults to two years. These are
 uncalibrated numeric traits. Oak and spruce still have threshold zero.
 
 Surviving structural and local radii never decrease. Local allocations and taper
-are re-derived from current parents without changing twig lengths. Retired shoots
-leave both frontiers; their generational keys stop resolving. Pipe compaction
-preserves unaffected reductions, and local widths propagate from changed parents.
+are re-derived from current parents without changing twig lengths. Dead shoots
+leave the growth frontiers while their records remain. A cut invalidates only
+surviving pipe ancestor paths; local widths propagate from changed parents.
+Dead records keep canonical final widths independent of advance partitions.
 
 Integration is incomplete: `branching::generate`, `Specimen::grow`, mesh builds
 and the browser still use the existing full-envelope build. The JSON wire now
@@ -127,7 +134,10 @@ affected shoots. This timeline foliage path is not yet used by production. At ye
 only 13 oak and 120 spruce placements before culling: leaves expire as new shoot
 births approach zero. The mature canopy has not converged; no renewal rule has
 been introduced.
-Change records, snapshots and the wasm specimen handle remain unfinished.
+The chronicle redesign is in progress: per-year radius keyframes, persistent
+cohort foliage, historical reads, stamp-filtered change records and the history
+cap remain unfinished. Native change records still use the existing buffer diff.
+Snapshots and the wasm specimen handle also remain unfinished.
 Its pipe cache recomputes insertion/deletion ancestor paths. An ordered scale
 index visits structural wood only when its historical width can be exceeded;
 local width changes propagate to descendants in birth order. Crown exposure uses

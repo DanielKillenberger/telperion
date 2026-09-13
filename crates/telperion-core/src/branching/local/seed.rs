@@ -19,7 +19,9 @@ impl Stations {
             .into_iter()
             .chain(first..tree.nodes.len())
         {
-            if tree.nodes[i].kind != NodeKind::Structural {
+            if tree.nodes[i].kind != NodeKind::Structural
+                || tree.nodes[i].shoot.death_year.is_some()
+            {
                 continue;
             }
             let parent = tree.nodes[i].parent.map(|p| p as usize);
@@ -51,6 +53,25 @@ impl Stations {
             }
             tree.nodes[end].position.y
         })
+    }
+    pub fn remove_dead(&mut self, tree: &Tree, dead: &[usize]) {
+        for &i in dead {
+            self.pending.remove(&i);
+            if i >= self.parents.len() || tree.nodes[i].kind != NodeKind::Structural {
+                continue;
+            }
+            if let Some(parent) = self.parents[i].take() {
+                self.children[parent] -= 1;
+                if tree.nodes[parent].shoot.death_year.is_none() {
+                    self.pending.insert(parent);
+                }
+                if self.continuation[parent] == Some(i) {
+                    self.continuation[parent] = (0..self.parents.len()).find(|&j| {
+                        self.parents[j] == Some(parent) && tree.nodes[j].shoot.death_year.is_none()
+                    });
+                }
+            }
+        }
     }
     pub fn remap(&mut self, map: &[Option<u32>]) {
         self.pending = self

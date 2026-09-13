@@ -52,7 +52,7 @@ impl Frontier {
             }
             if planner.growing_envelope {
                 self.visited.push(s.at);
-                if tree.nodes[s.at].shoot.vigour < habit.shedding_threshold {
+                if tree.nodes[s.at].shoot.vigour() < habit.shedding_threshold {
                     self.queue.push_back(s);
                     continue;
                 }

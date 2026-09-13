@@ -228,6 +228,7 @@ impl Specimen {
             envelope: self.params.envelope,
             ..params.clone()
         };
+        self.scaffold.year = slice;
         let spent = self.scaffold.slice(
             &mut self.tree,
             &scaffold_params,
@@ -291,7 +292,7 @@ impl Specimen {
         self.sample_frontier(slice);
         #[cfg(test)]
         self.cost.stamp(6, &mut clock);
-        self.retire(&shed);
+        self.stamp_deaths(&shed, slice);
         #[cfg(test)]
         self.cost.stamp(7, &mut clock);
         let timeline = self.timeline.as_mut().unwrap();

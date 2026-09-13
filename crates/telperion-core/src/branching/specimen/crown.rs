@@ -116,9 +116,6 @@ impl Crown {
         );
         exposure
     }
-    pub fn retire(&mut self, key: NodeKey) {
-        self.samples.remove(key);
-    }
 }
 
 #[cfg(test)]

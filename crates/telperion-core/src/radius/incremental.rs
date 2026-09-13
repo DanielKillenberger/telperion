@@ -73,7 +73,9 @@ impl Pipes {
         self.thresholds.resize(count, Scale(0.0));
         let mut dirty = std::mem::take(&mut self.dirty);
         for i in first..count {
-            if tree.nodes[i].kind != NodeKind::Structural {
+            if tree.nodes[i].kind != NodeKind::Structural
+                || tree.nodes[i].shoot.death_year.is_some()
+            {
                 continue;
             }
             self.floors[i] = (tree.nodes[i].radius, tree.nodes[i].start_radius);
@@ -151,6 +153,9 @@ impl Pipes {
         }
         self.finalized = self.history.len();
         for i in write {
+            if tree.nodes[i].shoot.death_year.is_some() {
+                continue;
+            }
             self.waiting.remove(&(self.thresholds[i], i));
             #[cfg(test)]
             {
@@ -170,8 +175,32 @@ impl Pipes {
         }
         Ok(changed)
     }
+    /// Invalidate only surviving ancestor paths; node indices never change.
+    pub fn remove_dead(&mut self, tree: &Tree, dead: &[usize]) {
+        for &i in dead {
+            if tree.nodes[i].kind != NodeKind::Structural || i >= self.children.len() {
+                continue;
+            }
+            self.pending.remove(&i);
+            self.dirty.remove(&i);
+            self.waiting.remove(&(self.thresholds[i], i));
+            if let Some(parent) = tree.nodes[i].parent {
+                self.children[parent as usize].retain(|&child| child != i);
+            }
+            let mut at = tree.nodes[i].parent;
+            while let Some(parent) = at {
+                let n = &tree.nodes[parent as usize];
+                if n.shoot.death_year.is_none() && !self.dirty.insert(parent as usize) {
+                    break;
+                }
+                at = n.parent;
+            }
+        }
+    }
+
     /// Preserve unchanged fork reductions through compaction. Only ancestors of
     /// a removed structural child are invalidated; no full pipe solve on a cut.
+    #[cfg(test)]
     pub fn remap(&mut self, tree: &Tree, map: &[Option<u32>]) {
         self.pending = self
             .pending
@@ -220,6 +249,7 @@ impl Pipes {
     }
 }
 
+#[cfg(test)]
 fn remap_values<T: Copy>(values: &mut Vec<T>, map: &[Option<u32>], count: usize, default: T) {
     let mut remapped = Vec::with_capacity(values.capacity().max(count));
     remapped.resize(count, default);

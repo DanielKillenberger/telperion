@@ -8,9 +8,9 @@ fn inactive_wood_is_not_evaluated_when_shedding_is_disabled() {
     let mut s = Specimen::build(&f).unwrap();
     // Root is not a shoot in either frontier. An environment visit must leave
     // its last sampled state alone when no survival decision needs it.
-    s.tree.nodes[0].shoot.vigour = 0.123;
+    s.tree.nodes[0].shoot.record_vigour(2, 0.123, 0);
     s.environment(25);
-    assert_eq!(s.tree.nodes[0].shoot.vigour, 0.123);
+    assert_eq!(s.tree.nodes[0].shoot.vigour(), 0.123);
 }
 
 #[test]

@@ -69,7 +69,8 @@ struct Builder<'a> {
     bias: &'a GrowthBias,
     habit: HabitParams,
     points: &'a [Vec3],
-    alive: &'a mut [bool],
+    consumed: &'a mut [Option<u64>],
+    year: u64,
     influence_sq: f64,
     kill_sq: f64,
     point_scale: f64,
@@ -132,7 +133,7 @@ impl Builder<'_> {
         let mut found = false;
         for (a, point) in self.points.iter().enumerate() {
             let point = *point * self.point_scale;
-            if !self.alive[a] || position.distance_squared(point) > self.influence_sq {
+            if self.consumed[a].is_some() || position.distance_squared(point) > self.influence_sq {
                 continue;
             }
             let delta = point - position;
@@ -150,8 +151,8 @@ impl Builder<'_> {
         let reached = self.kill_sq.min(unit * unit);
         for (a, point) in self.points.iter().enumerate() {
             let point = *point * self.point_scale;
-            if self.alive[a] && position.distance_squared(point) <= reached {
-                self.alive[a] = false;
+            if self.consumed[a].is_none() && position.distance_squared(point) <= reached {
+                self.consumed[a] = Some(self.year);
             }
         }
     }

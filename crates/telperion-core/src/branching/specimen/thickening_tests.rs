@@ -83,11 +83,15 @@ fn local_wood_thickens_with_its_parent_and_never_shrinks() {
 fn threshold_equality_recovers_and_restarts_the_tolerance_clock() {
     let mut s = fixture();
     s.environment(1);
-    let equality = s.tree.nodes[2].shoot.vigour;
-    assert_eq!(s.tree.nodes[2].shoot.low_slices, 1);
+    let equality = s.tree.nodes[2].shoot.vigour();
+    assert_eq!(s.tree.nodes[2].shoot.low_slices(), 1);
     s.params.habit.shedding_threshold = equality;
     assert!(s.environment(1).is_empty());
-    assert_eq!(s.tree.nodes[2].shoot.low_slices, 0, "equality must recover");
+    assert_eq!(
+        s.tree.nodes[2].shoot.low_slices(),
+        0,
+        "equality must recover"
+    );
     s.params.habit.shedding_threshold = 0.5;
     assert!(s.environment(2).is_empty());
     assert!(s.environment(3).is_empty());
@@ -157,7 +161,7 @@ fn structural_forks_and_cuts_preserve_surviving_widths_and_pipe_cache() {
         .update(&mut s.tree, 13.0, 24.0, s.radii)
         .unwrap();
     assert!(s.node(survivor).unwrap().radius >= before);
-    assert_eq!(s.tree.crossover, 3);
+    assert_eq!(s.tree().crossover, 3);
     s.tree.validate_solved().unwrap();
     let mut fresh = s.tree.clone();
     radius::Pipes::default()
