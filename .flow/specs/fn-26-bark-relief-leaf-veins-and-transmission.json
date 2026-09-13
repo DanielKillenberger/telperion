@@ -13,21 +13,13 @@
   "id": "fn-26-bark-relief-leaf-veins-and-transmission",
   "impl_review_rounds": {},
   "next_task": 1,
-<<<<<<< HEAD
-  "no_plan": false,
-  "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
-  "ready": false,
-=======
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
->>>>>>> master
   "spec_path": ".flow/specs/fn-26-bark-relief-leaf-veins-and-transmission.md",
-  "status": "open",
+  "status": "done",
   "title": "Bark relief, leaf veins and transmission",
   "tracker": {
     "baseHashFlow": null,
@@ -40,9 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-<<<<<<< HEAD
-  "updated_at": "2026-09-13T08:43:47.458274Z"
-=======
-  "updated_at": "2026-09-13T08:44:08.913229Z"
->>>>>>> master
+  "updated_at": "2026-09-13T18:57:51.346200Z"
 }
