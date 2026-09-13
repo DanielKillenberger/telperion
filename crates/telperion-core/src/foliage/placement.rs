@@ -11,6 +11,7 @@ use crate::{
     Error, Result,
 };
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct CanopyParams {
     /// Wood at or below this fraction of the root radius bears foliage of its
     /// own, beside whatever the twig layer marks. Zero leaves the twigs alone
@@ -33,6 +34,7 @@ pub struct CanopyParams {
     pub size: f64,
     pub size_variation: f64,
     /// Hard total budget. Exceeding it returns an error, never partial foliage.
+    #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::index"))]
     pub max_instances: usize,
 }
 impl Default for CanopyParams {
@@ -56,6 +58,7 @@ impl Default for CanopyParams {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigPlacement {
     pub internode_length: f64,
     pub stations_per_internode: u32,

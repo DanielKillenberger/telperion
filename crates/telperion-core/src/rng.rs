@@ -1,5 +1,6 @@
 /// SplitMix32, including seed zero. Integer arithmetic is identical on native and Wasm.
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Rng {
     state: u32,
 }

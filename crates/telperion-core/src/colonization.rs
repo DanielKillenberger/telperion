@@ -1,4 +1,5 @@
 //! Deterministic space colonization. Attractors keep their nearest node as the tree grows.
+use crate::math::Transcendental;
 pub mod fill;
 mod grid;
 
@@ -12,6 +13,7 @@ use crate::{
 use grid::AttractorGrid;
 
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct GrowthConfig {
     pub influence_radius: f64,
     pub kill_distance: f64,
@@ -76,15 +78,16 @@ pub fn limit_turn(from: Option<Vec3>, wanted: Vec3, max_radians: f64) -> Vec3 {
     if max_radians >= std::f64::consts::PI {
         return wanted;
     }
-    let angle = from.dot(wanted).clamp(-1.0, 1.0).acos();
+    let angle = from.dot(wanted).clamp(-1.0, 1.0).acos_fixed();
     if angle <= max_radians {
         return wanted;
     }
-    let sine = angle.sin();
+    let sine = angle.sin_fixed();
     if sine < 1e-9 {
-        return from * max_radians.cos() + from.perpendicular() * max_radians.sin();
+        return from * max_radians.cos_fixed() + from.perpendicular() * max_radians.sin_fixed();
     }
-    (from * ((angle - max_radians).sin() / sine) + wanted * (max_radians.sin() / sine)).normalized()
+    (from * ((angle - max_radians).sin_fixed() / sine) + wanted * (max_radians.sin_fixed() / sine))
+        .normalized()
 }
 fn arrival(tree: &Tree, index: usize) -> Option<Vec3> {
     tree.nodes[index]

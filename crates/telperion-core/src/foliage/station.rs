@@ -1,6 +1,7 @@
 //! One shoot's stations: where each leaf sits along the run, how far it leans
 //! off the wood, and the frame the renderer receives.
 use super::{CanopyParams, Instances, TwigPlacement};
+use crate::math::Transcendental;
 use crate::{
     envelope::Envelope, math::Vec3, rng::Rng, surface::AttachmentSurface, tree::Tree, Error, Result,
 };
@@ -80,7 +81,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         } else {
             k as f64 * p.divergence * PI / 180.
         };
-        let (sin, cos) = turn.sin_cos();
+        let (sin, cos) = turn.sin_cos_fixed();
         let radial = normal * cos + binormal * sin;
         // The station sits on the shoot axis at contact 0 and on the wood's
         // own surface at 1; between them it walks out along the same radial.
@@ -196,7 +197,7 @@ fn matrix(
         let z = rng.range(-1., 1.);
         let phi = rng.range(0., TAU);
         let ring = (1. - z * z).max(0.).sqrt();
-        let jitter = Vec3::new(ring * phi.cos(), z, ring * phi.sin());
+        let jitter = Vec3::new(ring * phi.cos_fixed(), z, ring * phi.sin_fixed());
         let angle = p.scatter * PI / 180. * rng.next_f64();
         axis = axis.rotate(jitter, angle);
         face = face.rotate(jitter, angle);
@@ -264,7 +265,7 @@ fn frames(points: &[Vec3]) -> Vec<(Vec3, Vec3, Vec3)> {
                 };
                 normal = normal.rotate(a.normalized(), PI);
             } else if cross.length_squared() > 0. {
-                normal = normal.rotate(cross.normalized(), cross.length().atan2(dot));
+                normal = normal.rotate(cross.normalized(), cross.length().atan2_fixed(dot));
             }
         }
         normal -= t * normal.dot(t);

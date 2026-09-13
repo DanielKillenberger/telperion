@@ -1,9 +1,11 @@
 //! Owned leaf elements and placements. No wood mesh is needed by this module.
+use crate::math::Transcendental;
 mod element;
 mod levels;
 mod outline;
 mod placement;
 mod station;
+pub(crate) mod timeline;
 use crate::{
     envelope::{distance_to_profile, Envelope},
     math::Vec3,
@@ -12,6 +14,7 @@ use crate::{
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
 pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
+pub use timeline::{Placement, PlacementIdentity};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {
@@ -123,7 +126,7 @@ pub fn cull(
             if !p.is_finite() || [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {
                 return Err(Error::ResourceLimit("foliage transform overflow"));
             }
-            let r = p.x.hypot(p.z);
+            let r = p.x.hypot_fixed(p.z);
             if envelope.radius_at(p.y) - r <= shell
                 || distance_to_profile(&profile, r, p.y) <= shell
             {

@@ -1,3 +1,4 @@
+import { specimenBinding, type SpecimenExports, type SpecimenHandle, type SpecimenSnapshot } from "./specimen";
 import wasmUrl from "./telperion.wasm?url";
 import { CATALOGUE, type Family } from "./presets.generated";
 export type { Family } from "./presets.generated";
@@ -61,7 +62,7 @@ export interface TreeOutput {
   field?: { query(cells: Float64Array): Uint8Array; snapshot(): FieldSnapshot };
   diagnostics: Diagnostics;
 }
-interface Exports extends WebAssembly.Exports {
+interface Exports extends WebAssembly.Exports, SpecimenExports {
   memory: WebAssembly.Memory;
   request_alloc(n: number): number; request_ptr(): number;
   metadata_ptr(): number; metadata_len(): number; build(): number; release(): void;
@@ -96,6 +97,9 @@ export class TreeEngine {
   /** Releases native outputs and invalidates fields; JS copies remain usable.
    * Wasm linear memory retains its high-water capacity for allocator reuse. */
   release(): void { this.e.release(); }
+  private specimens = specimenBinding(() => this.e, code => this.check(code), () => this.metadata());
+  buildSpecimen(family: Family | string, historyCap = 10_000): SpecimenHandle { return this.specimens.build(family, historyCap); }
+  importSpecimen(snapshot: SpecimenSnapshot): SpecimenHandle { return this.specimens.import(snapshot); }
   get memoryBytes(): number { return this.e.memory.buffer.byteLength; }
   build(family: Family | string, outputs: Outputs): TreeOutput {
     const started = performance.now();

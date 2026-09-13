@@ -1,6 +1,18 @@
+//! Consumer skeletons are parent-before-child with structural nodes before locals.
+//! During a retained advance, slices may append structure after local nodes;
+//! the specimen provides a cached packed layout when a consumer reads it.
+//! Timeline nodes retain their birth identity and slot after their death year;
+//! the legacy envelope builder still compacts. Consumer reads exclude dead nodes.
+mod identity;
+mod shoot;
 use crate::{math::Vec3, Error, Result};
+pub use identity::NodeIdentity;
+pub(crate) use identity::NodeKey;
+pub(crate) use shoot::LocalWidth;
+pub use shoot::{BudFate, ShootState};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub enum NodeKind {
     #[default]
     Structural,
@@ -8,7 +20,11 @@ pub enum NodeKind {
     Twig,
 }
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Node {
+    /// Stable birth identity, assigned by the owning specimen; never a storage index.
+    pub identity: NodeIdentity,
+    pub shoot: ShootState,
     pub position: Vec3,
     /// None only at the root; otherwise strictly earlier than this node.
     pub parent: Option<u32>,
@@ -18,12 +34,15 @@ pub struct Node {
     /// Allocation at the origin of this entire branch run, not this edge.
     pub base_radius: f64,
     /// First node of the branch run; structural nodes use their own index.
+    /// The run's stable identity is the identity of this first node.
     pub branch: u32,
     pub kind: NodeKind,
 }
 impl Node {
     pub fn root() -> Self {
         Self {
+            identity: NodeIdentity::default(),
+            shoot: ShootState::default(),
             position: Vec3::ZERO,
             parent: None,
             radius: 0.0,
@@ -35,6 +54,7 @@ impl Node {
     }
 }
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Diagnostics {
     pub node_capped: bool,
     pub level_capped: bool,
@@ -46,6 +66,7 @@ impl Diagnostics {
     }
 }
 #[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Tree {
     pub nodes: Vec<Node>,
     pub crossover: usize,
@@ -56,7 +77,14 @@ impl Tree {
         if self.nodes.len() > u32::MAX as usize || self.crossover > self.nodes.len() {
             return Err(Error::InvalidInput("tree length"));
         }
-        for (i, n) in self.nodes.iter().enumerate() {
+        self.validate_range(0..self.nodes.len(), false)
+    }
+    pub(crate) fn validate_range(&self, range: std::ops::Range<usize>, solved: bool) -> Result<()> {
+        for i in range {
+            let n = &self.nodes[i];
+            if solved && n.radius <= 0.0 {
+                return Err(Error::InvalidInput("unsolved radii"));
+            }
             if !n.position.is_finite()
                 || ![n.radius, n.start_radius, n.base_radius]
                     .iter()

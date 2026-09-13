@@ -18,6 +18,8 @@ pub enum Preset {
 }
 #[derive(Debug, Clone)]
 pub struct Family {
+    pub age: f64,
+    pub growth: crate::growth::GrowthTraits,
     pub skeleton: SkeletonParams,
     pub radii: RadiusParams,
     pub surface: SurfaceParams,
@@ -29,6 +31,8 @@ pub struct Family {
 impl Default for Family {
     fn default() -> Self {
         Self {
+            age: 100.0,
+            growth: crate::growth::GrowthTraits::default(),
             skeleton: SkeletonParams::default(),
             radii: RadiusParams::default(),
             surface: SurfaceParams {
@@ -150,6 +154,8 @@ impl Preset {
             return p;
         }
         if self == Self::NorwaySpruce {
+            // Provisional needle retention; age calibration remains separate.
+            p.growth.leaf_lifetime = 6.0;
             // Open-grown landscape Picea abies; one needle per local station.
             p.skeleton.habit = HabitParams {
                 apical_dominance: 1.0,

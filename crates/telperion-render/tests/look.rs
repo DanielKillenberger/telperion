@@ -229,11 +229,9 @@ fn every_leaf_takes_its_own_offset_inside_the_row_s_ranges() {
 
     // The offset is the leaf's own identity and not the draw's, so one tree
     // under one row is one picture however often it is asked for. Near enough
-    // to identical rather than identical: the crown's placements come out of
-    // the selection pass in whatever order its atomics gave them, and where
-    // two leaves tie on depth, one sample of four may land either way. What a
-    // per-draw offset would look like is the comparison above, which moved
-    // thousands of channels; this moves a handful of edge pixels by a few.
+    // to identical remains the original tolerance below. Selection now compacts
+    // in placement-index order, so even equal-depth edge samples must be stable;
+    // the additional exact assertion guards that stronger guarantee.
     let again = stage.draw();
     let (redrawn, worst) = closed
         .rgba
@@ -243,11 +241,13 @@ fn every_leaf_takes_its_own_offset_inside_the_row_s_ranges() {
         .fold((0u64, 0u32), |(count, worst), d| {
             (count + u64::from(d > 0), worst.max(d))
         });
+    eprintln!("repeat draw: {redrawn} channels moved, worst {worst}");
     assert!(
         redrawn * 10_000 < closed.rgba.len() as u64 && worst <= 16,
         "one tree drew two crowns: {redrawn} of {} channels moved, worst {worst}",
         closed.rgba.len()
     );
+    assert_eq!(redrawn, 0, "stable selection changed a repeat draw");
 }
 
 #[test]

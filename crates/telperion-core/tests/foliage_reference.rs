@@ -68,6 +68,7 @@ fn frozen_solved_tree_comparison() {
                     } else {
                         NodeKind::Structural
                     },
+                    ..Node::root()
                 }
             })
             .collect();

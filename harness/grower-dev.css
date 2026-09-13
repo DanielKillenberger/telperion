@@ -172,3 +172,7 @@
 .gd-panel input[type="number"] {
   width: 72px;
 }
+
+.gd-growth { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; border: 1px solid #555; }
+.gd-growth input { min-width: 0; color: inherit; background: transparent; border: 1px solid #555; }
+.gd-growth input[type="range"], .gd-growth p { grid-column: 1 / -1; margin: 0; }
