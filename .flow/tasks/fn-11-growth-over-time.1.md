@@ -34,14 +34,8 @@ The full account, with every number and its command, is in
 `.flow/evidence/fn11/STATUS.md`.
 
 ## Done summary
-TBD
-
+Growth over time is built as the machine: a deterministic specimen with an age, the chronicle (append-only lifetime record, every reader a filter over stamps), yearly slices chosen by the number, thickening by keyframes under a resize tolerance, shedding by vigour as death stamps, foliage by living shoot and cohort (ratified amendment, R12), the wasm and native specimen handles, the snapshot, and a harness page where a tree grows live. Costs measured and recorded in .flow/evidence/fn11/REPORT.md: sparse oak advance 13.4 ms, record plus read 6.6 ms, mature oak build 1,273.5 ms, snapshot round trip 320.7 ms at 121.9 MB. Calibration, routing, the re-pin, the age strips and the mature stills moved to fn-30 (R8, R11 and R3's validation half marked moved). 36 commits on fn-11-growth-over-time; all five gates green at HEAD; native-to-wasm parity on every preset.
 ## Evidence
-- Commits: 6b799e4, 53c5629, 2fd4b49, eb34bbb, 1545138, 794f0a7, 1647566,
-  33a7271, 36bda80, f952fb4, 91611ef (the flow-prefixed ones are host commits,
-  three of which swept implementer work in progress)
-- Tests: cargo fmt --all -- --check; cargo clippy --workspace --all-targets --
-  -D warnings; cargo test --release --workspace; npm run wasm:build && npm test;
-  npm run typecheck — green at the base commit and at HEAD, verified by the host
-  after each of the seven invocations
+- Commits: 972bace, 2fd2668, d1aa548, e3e3e0d, 28b4295, bff3de7, 20fa5ec, a6e7ba2, 9b35f72
+- Tests: cargo fmt --all -- --check, cargo clippy --workspace --all-targets -- -D warnings, cargo test --release --workspace, npm run wasm:build && npm test, npm run typecheck, harness/parity.test.ts
 - PRs:
