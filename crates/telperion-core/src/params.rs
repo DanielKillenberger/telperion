@@ -117,6 +117,7 @@ macro_rules! fields {
         $op!($f, $v, "material", "interiorDarkening"; material.interior_darkening);
         $op!($f, $v, "material", "ridgeScale"; material.ridge_scale);
         $op!($f, $v, "material", "plateScale"; material.plate_scale);
+        $op!($f, $v, "material", "furrowStrength"; material.furrow_strength);
         $op!($f, $v, "material", "roughnessDetail"; material.roughness_detail);
         $op!($f, $v, "material", "veinScale"; material.vein_scale);
         $op!($f, $v, "material", "veinContrast"; material.vein_contrast);

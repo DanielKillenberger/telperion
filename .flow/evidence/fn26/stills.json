@@ -4,9 +4,9 @@
     "scale": "trunk",
     "path": "/tmp/flow-handover-fn26/stills/oak-trunk.png",
     "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
-    "session": 4,
-    "capture": 4,
-    "sha256": "cd88690714822705fcdf175f0134ad4336271afd7a332ebd066c84e9c9d11704"
+    "session": 5,
+    "capture": 3,
+    "sha256": "2d4d44fa8c7fd1832adc666d556f98c26b0dcfdf1ee98380bc5610c282b59504"
   },
   {
     "species": "Oregon white oak",
@@ -70,5 +70,23 @@
     "session": 2,
     "capture": 8,
     "sha256": "ec9ed0b1eefd53d68214d66599aded38b0a0646d0696a3019bab18b003ed2f10"
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "trunk-2x-distance",
+    "path": "/tmp/flow-handover-fn26/stills/oak-distance-2x-trunk.png",
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 5,
+    "capture": 4,
+    "sha256": "295ae971314c5f57ad780e8514b7ef50f3b6fdcaa86081bc38d76751b055cea8"
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "trunk-4x-distance",
+    "path": "/tmp/flow-handover-fn26/stills/oak-distance-4x-trunk.png",
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 5,
+    "capture": 5,
+    "sha256": "d8f0f998d836763977d212678a92032ed4705533a7c030125fcfe59363b064b9"
   }
 ]

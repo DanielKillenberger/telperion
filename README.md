@@ -108,7 +108,7 @@ cargo run --release -p telperion-render --example headless -- \
 ```
 
 The material row also controls procedural surface detail: `ridgeScale` and
-`plateScale` (0–1 metres), `roughnessDetail` (0–1),
+`plateScale` (0–1 metres), `furrowStrength` and `roughnessDetail` (0–1),
 `veinScale` (0–32 pairs per blade), `veinContrast` (0–1),
 `transmissionStrength` (0–1), linear `transmissionRed/Green/Blue` (each 0–1),
 and `thickness` (0–8 optical depth). Transmission attenuates by
@@ -117,10 +117,19 @@ vein and margin tone. Ridge scale sets circumferential ridge spacing; plate
 scale sets staggered scale height, bounded to 1.5–2 ridge widths so long
 furrows still carry short scales.
 Larger plate-to-ridge ratios deepen and lengthen the shouldered furrows.
+Furrow strength independently narrows and shallows those gaps; zero keeps
+the plates and flakes with narrow outlines. It defaults to one for older rows.
 Flat faces have lifted lower edges and finer flakes derived from those same
 two lengths. Zero ridge scale disables relief; zero plate scale leaves ridges
 without cross-fissures. The young-wood fade spans diameters of two to five
 ridge widths; relief continues strengthening with girth on mature runs.
+Both axial distance and circumferential arc length supply pixel footprints.
+Noise, plates and flakes fade to their means before becoming unresolved;
+edge support expands with the footprint to suppress sharp normal harmonics.
+The shading normal differentiates this filtered height at the fragment,
+holding the footprint fixed, so changing the filter does not create relief.
+Four subpixel shading evaluations integrate the normal's nonlinear lighting;
+the geometry coverage and existing shadow lookup are unchanged.
 These fields affect shading only.
 
 Foliage selection compacts each level in placement-index order. Equal-depth

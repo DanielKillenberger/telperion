@@ -4,7 +4,7 @@ import { presetToParams, toFamily } from "./family";
 
 it("carries every surface-detail control from the generated row through the panel", () => {
   const params = presetToParams(ORDINARY);
-  const names = ["ridgeScale", "plateScale", "roughnessDetail", "veinScale", "veinContrast",
+  const names = ["furrowStrength", "ridgeScale", "plateScale", "roughnessDetail", "veinScale", "veinContrast",
     "transmissionStrength", "transmissionRed", "transmissionGreen", "transmissionBlue", "thickness"];
   for (const name of names) {
     expect(Object.keys(params.family.material)).toContain(name);

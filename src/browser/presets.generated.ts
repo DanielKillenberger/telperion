@@ -39,6 +39,7 @@ export interface Family {
   barkRoughness: number;
   brightnessRangeHigh: number;
   brightnessRangeLow: number;
+  furrowStrength: number;
   hueRangeHigh: number;
   hueRangeLow: number;
   interiorDarkening: number;
@@ -186,6 +187,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "barkRoughness": 0.8,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "furrowStrength": 1,
         "hueRangeHigh": 0.03,
         "hueRangeLow": -0.03,
         "interiorDarkening": 0.5,
@@ -331,6 +333,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "barkRoughness": 0.85,
         "brightnessRangeHigh": 0.15,
         "brightnessRangeLow": -0.15,
+        "furrowStrength": 1,
         "hueRangeHigh": 0.03,
         "hueRangeLow": -0.03,
         "interiorDarkening": 0.55,
@@ -476,6 +479,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "barkRoughness": 0.9,
         "brightnessRangeHigh": 0.1,
         "brightnessRangeLow": -0.1,
+        "furrowStrength": 0.025,
         "hueRangeHigh": 0.02,
         "hueRangeLow": -0.02,
         "interiorDarkening": 0.7,
@@ -485,8 +489,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.028,
         "leafFrontGreen": 0.056,
         "leafFrontRed": 0.018,
-        "plateScale": 0.09,
-        "ridgeScale": 0.025,
+        "plateScale": 0.03,
+        "ridgeScale": 0.02,
         "roughnessDetail": 0.16,
         "thickness": 3.5,
         "transmissionBlue": 0.08,
@@ -621,6 +625,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "barkRoughness": 0.8,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "furrowStrength": 1,
         "hueRangeHigh": 0.03,
         "hueRangeLow": -0.03,
         "interiorDarkening": 0.5,
@@ -766,6 +771,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "barkRoughness": 0.8,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "furrowStrength": 1,
         "hueRangeHigh": 0.03,
         "hueRangeLow": -0.03,
         "interiorDarkening": 0.5,

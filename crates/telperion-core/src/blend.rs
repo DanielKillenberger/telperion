@@ -67,6 +67,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.interior_darkening,
         material.ridge_scale,
         material.plate_scale,
+        material.furrow_strength,
         material.roughness_detail,
         material.vein_scale,
         material.vein_contrast,

@@ -36,6 +36,8 @@ pub struct MaterialParams {
     /// Axial scale control in metres; spacing is bounded to 1.5–2 ridge widths.
     /// Larger ratios lengthen and deepen furrows; zero omits breaks.
     pub plate_scale: f64,
+    /// Furrow width and depth together; zero leaves tightly packed scales.
+    pub furrow_strength: f64,
     /// Roughness variation about the base value, clamped to 0..1.
     pub roughness_detail: f64,
     /// Secondary vein pairs per blade, continuously interpolated.
@@ -72,6 +74,7 @@ impl Default for MaterialParams {
             interior_darkening: 0.5,
             ridge_scale: 0.0,
             plate_scale: 0.0,
+            furrow_strength: 1.0,
             roughness_detail: 0.0,
             vein_scale: 8.0,
             vein_contrast: 0.0,
@@ -92,6 +95,7 @@ impl MaterialParams {
         for (value, low, high, name) in [
             (self.ridge_scale, 0.0, 1.0, "bark ridge scale"),
             (self.plate_scale, 0.0, 1.0, "bark plate scale"),
+            (self.furrow_strength, 0.0, 1.0, "bark furrow strength"),
             (self.roughness_detail, 0.0, 1.0, "bark roughness detail"),
             (self.vein_scale, 0.0, 32.0, "leaf vein scale"),
             (self.vein_contrast, 0.0, 1.0, "leaf vein contrast"),

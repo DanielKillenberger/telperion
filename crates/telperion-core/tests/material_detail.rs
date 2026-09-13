@@ -2,7 +2,8 @@
 use serde_json::json;
 use telperion_core::{blend, params, presets::Preset, Error};
 
-const FIELDS: [(&str, &str, f64); 10] = [
+const FIELDS: [(&str, &str, f64); 11] = [
+    ("furrowStrength", "bark furrow strength", 1.0),
     ("ridgeScale", "bark ridge scale", 1.0),
     ("plateScale", "bark plate scale", 1.0),
     ("roughnessDetail", "bark roughness detail", 1.0),
