@@ -1,9 +1,11 @@
 //! Internal slices append in birth order; consumers receive a cached packed view
 //! on demand. No local node or frontier reference moves on structural birth.
 use super::*;
+mod frontier;
 #[derive(Clone)]
 pub(super) struct Read {
     pub tree: Tree,
+    pub shed: usize,
     pub indices: Vec<usize>,
 }
 impl Specimen {
@@ -16,6 +18,10 @@ impl Specimen {
             return None;
         }
         Some(self.read.get_or_init(|| {
+            #[cfg(test)]
+            self.cost
+                .packed_rebuilds
+                .set(self.cost.packed_rebuilds.get() + 1);
             let mut structural = 0;
             let mut local = self
                 .tree
@@ -42,7 +48,9 @@ impl Specimen {
                 })
                 .collect();
             let mut tree = Tree {
-                nodes: Vec::with_capacity(self.tree.nodes.len()),
+                // Mirror the chronicle allocation so sparse births do not
+                // reallocate and copy the entire packed node payload.
+                nodes: Vec::with_capacity(self.tree.nodes.capacity()),
                 crossover: structural,
                 diagnostics: self.tree.diagnostics,
             };
@@ -65,7 +73,11 @@ impl Specimen {
                         }),
                 );
             }
-            Read { tree, indices }
+            Read {
+                tree,
+                indices,
+                shed: self.shed,
+            }
         }))
     }
 
@@ -125,5 +137,37 @@ impl Specimen {
             self.cost.packing = clock.elapsed();
             self.cost.packed_nodes = self.tree.nodes.len();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn sparse_advance_updates_the_existing_packed_tree() {
+        let mut f = crate::presets::Preset::OregonWhiteOak.parameters();
+        f.skeleton.seed = 7;
+        f.age = 65.0;
+        let mut s = Specimen::build(&f).unwrap();
+        assert!(s.tree().nodes.len() > 100_000);
+        let allocation = s.tree().nodes.as_ptr();
+        s.advance(1.0).unwrap();
+        assert_eq!(
+            s.tree().nodes.as_ptr(),
+            allocation,
+            "sparse packing reallocated every node payload"
+        );
+        f.age = 66.0;
+        let fresh = Specimen::build(&f).unwrap();
+        assert_eq!(s.tree(), fresh.tree());
+        assert_eq!(
+            s.cost.packed_rebuilds.get(),
+            0,
+            "sparse advance rebuilt the packed tree"
+        );
+        assert!(
+            s.cost.packed_nodes < s.tree.nodes.len() / 10,
+            "sparse advance cloned unrelated nodes"
+        );
     }
 }

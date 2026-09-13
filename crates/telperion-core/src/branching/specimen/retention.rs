@@ -116,9 +116,14 @@ impl Specimen {
         }
         for (_, links) in self.links.iter_mut() {
             links
+                .members
+                .retain(|id| self.identities[id.key] != usize::MAX);
+            links
                 .children
                 .retain(|id| self.identities[id.key] != usize::MAX);
         }
+        self.keyframes.events.forget(&self.identities);
+        self.births.forget(&self.identities);
         t.widths.forget(&removed, &self.identities);
         t.foliage.forget(&removed);
         self.config.max_nodes -= removed.len();

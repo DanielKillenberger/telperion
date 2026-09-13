@@ -9,14 +9,25 @@ pub(super) struct Frame {
 
 #[derive(Clone, Default)]
 pub(super) struct Keyframes {
+    #[cfg(test)]
+    queue_searches: usize,
     frames: slotmap::SecondaryMap<NodeKey, Vec<Frame>>,
-    pending: std::collections::BTreeSet<NodeIdentity>,
+    pub(super) events: super::events::Events,
+    pending: Vec<NodeIdentity>,
+    queued: slotmap::SecondaryMap<NodeKey, bool>,
 }
 
 impl Keyframes {
+    pub(super) fn finalized(&self) -> bool {
+        self.pending.is_empty()
+    }
+    #[cfg(test)]
+    pub(super) fn frame_count(&self) -> usize {
+        self.frames.values().map(Vec::len).sum()
+    }
     pub(super) fn forget(&mut self, id: NodeIdentity) {
         self.frames.remove(id.key);
-        self.pending.remove(&id);
+        self.queued.remove(id.key);
     }
 
     pub(super) fn at(&self, id: NodeIdentity, year: u64) -> Option<[f64; 3]> {
@@ -28,6 +39,7 @@ impl Keyframes {
         end.checked_sub(1).map(|index| frames[index].radii)
     }
 
+    #[cfg(test)]
     pub(super) fn changed(&self, id: NodeIdentity, lo: u64, hi: u64) -> bool {
         self.frames.get(id.key).is_some_and(|frames| {
             let Some(last) = frames.last() else {
@@ -66,17 +78,33 @@ impl Keyframes {
             assert!(last.year < year, "radius keyframe year must increase");
         }
         frames.push(Frame { year, radii });
-        self.pending.insert(id);
+        self.events.record(year, id.key);
+        if !self.queued.get(id.key).copied().unwrap_or(false) {
+            #[cfg(test)]
+            {
+                self.queue_searches += 1;
+            }
+            self.queued.insert(id.key, true);
+            self.pending.push(id);
+        }
     }
 }
 
 impl Specimen {
     pub(super) fn record_widths(&mut self, year: u64, first_birth: usize) {
         let t = self.timeline.as_mut().unwrap();
+        #[cfg(test)]
+        let clock = std::time::Instant::now();
         let changed = t.pipes.changed(&self.tree);
         let locals = t
             .widths
             .changed(&self.tree, &self.identities, &changed, &t.pipes);
+        #[cfg(test)]
+        {
+            self.cost.keyframe_solve = clock.elapsed();
+        }
+        #[cfg(test)]
+        let clock = std::time::Instant::now();
         for i in changed {
             let (distal, proximal) = t.pipes.width(i);
             let n = &self.tree.nodes[i];
@@ -110,6 +138,7 @@ impl Specimen {
         }
         #[cfg(test)]
         {
+            self.cost.keyframe_write = clock.elapsed();
             self.cost.keyframe_pipes = t.pipes.visited;
             self.cost.keyframe_widths = t.widths.visited;
         }
@@ -129,7 +158,14 @@ impl Specimen {
         #[cfg(test)]
         let clock = std::time::Instant::now();
         for id in std::mem::take(&mut self.keyframes.pending) {
+            if !self.keyframes.queued.get(id.key).copied().unwrap_or(false) {
+                continue;
+            }
+            self.keyframes.queued[id.key] = false;
             let i = self.identities[id.key];
+            if self.read_active {
+                self.read_updates.push(i);
+            }
             let n = &mut self.tree.nodes[i];
             if n.shoot.death_year.is_some() {
                 continue;

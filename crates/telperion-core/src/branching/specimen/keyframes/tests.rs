@@ -202,3 +202,20 @@ fn radius_history_is_monotone_through_extension_forks_and_shedding() {
     }
     assert!(thickened > 0);
 }
+
+#[test]
+fn unread_annual_frames_queue_each_output_only_once() {
+    let mut family = Preset::Ordinary.parameters();
+    family.age = 0.0;
+    let s = Specimen::build(&family).unwrap();
+    let id = s.tree.nodes[0].identity;
+    let mut history = Keyframes::default();
+    for year in 0..173 {
+        history.record(id, year, [year as f64 + 1.0; 3], 0.0);
+    }
+    assert_eq!(history.frames[id.key].len(), 173);
+    assert_eq!(
+        history.queue_searches, 1,
+        "unread annual frames repeatedly search the output queue"
+    );
+}

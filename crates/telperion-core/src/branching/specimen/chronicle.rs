@@ -7,6 +7,7 @@ pub(super) struct Links {
     pub parent: Option<NodeIdentity>,
     pub run: NodeIdentity,
     pub(super) children: Vec<NodeIdentity>,
+    pub(super) members: Vec<NodeIdentity>,
 }
 impl Specimen {
     pub(super) fn link_births(&mut self, born: &[usize]) {
@@ -22,8 +23,13 @@ impl Specimen {
                     parent,
                     run: self.tree.nodes[n.branch as usize].identity,
                     children: Vec::new(),
+                    members: Vec::new(),
                 },
             );
+            self.births
+                .record(n.shoot.birth_year as u64, n.identity.key);
+            let run = self.links[n.identity.key].run;
+            self.links[run.key].members.push(n.identity);
             if let Some(parent) = parent {
                 self.links[parent.key].children.push(n.identity);
             }
@@ -46,6 +52,7 @@ impl Specimen {
                 continue;
             }
             n.shoot.death_year = Some(year);
+            self.keyframes.events.record(year, id.key);
             dead.push(i);
             pending.extend(&self.links[id.key].children);
         }

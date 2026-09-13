@@ -45,6 +45,9 @@ impl Specimen {
                 0
             };
             n.shoot.record_vigour(slice, vigour[i], low_slices);
+            if self.read_active {
+                self.read_updates.push(i);
+            }
             let covered = n.parent.is_some_and(|p| removed[p as usize]);
             let origin = if n.kind == NodeKind::Structural {
                 n.shoot.bud_fate == BudFate::Lateral
@@ -81,6 +84,9 @@ impl Specimen {
             let exposure = t.crown.exposure(n);
             let vigour = exposure / (1.0 + t.traits.rate * (year - n.shoot.birth_year).max(0.0));
             n.shoot.record_vigour(slice, vigour, 0);
+            if self.read_active {
+                self.read_updates.push(i);
+            }
         }
     }
 }

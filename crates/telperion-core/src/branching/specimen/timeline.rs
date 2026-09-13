@@ -88,10 +88,13 @@ impl Specimen {
         {
             // Unchanged wood can only fill newly reached cohort offsets.
             // Saturated cohorts need no contact surface or run-buffer copy.
-            let born_placements =
+            let born_placements = if timeline.foliage.sparse_interval().is_some() {
+                self.interval(timeline.age, target)?.born_placements
+            } else {
                 timeline
                     .foliage
-                    .filled(self.tree(), self.envelope(), timeline.age, target)?;
+                    .filled(self.tree(), self.envelope(), timeline.age, target)?
+            };
             self.timeline.as_mut().unwrap().age = target;
             self.compact_history();
             return Ok(ChangeRecord {
@@ -121,6 +124,8 @@ impl Specimen {
             return Err(Error::ResourceLimit("node ceiling reached"));
         }
         let end = target.slice.min(timeline.mature_slice);
+        let cached_read = self.read.take();
+        self.read_active = cached_read.is_some();
         if self.tree.nodes.is_empty() {
             self.tree.nodes.push(Node::root());
             self.tree.crossover = 1;
@@ -147,6 +152,8 @@ impl Specimen {
                         *self = previous;
                     }
                     self.finish_widths()?;
+                    self.read_active = false;
+                    self.read_updates.clear();
                     result?;
                     self.read.take();
                     self.tree.diagnostics.node_capped = true;
@@ -160,6 +167,7 @@ impl Specimen {
         }
         self.finish_widths()?;
         self.timeline.as_mut().unwrap().age = target;
+        self.update_packed(cached_read);
         Ok(())
     }
     /// Raising a ceiling unblocks the rolled-back frontier; limits are resources,

@@ -212,3 +212,39 @@ fn interval_advance_cannot_reuse_older_cached_cohort_transforms() {
         "clock-only cohorts used transforms cached before the last wood interval"
     );
 }
+
+#[test]
+fn empty_late_interval_visits_no_unrelated_chronicle_nodes() {
+    let mut family = Preset::Ordinary.parameters();
+    family.age = 200.0;
+    let s = Specimen::build(&family).unwrap();
+    s.cost.event_visits.set(0);
+    assert_eq!(
+        s.changes_between(198.0, 199.0).unwrap(),
+        ChangeRecord::default()
+    );
+    assert_eq!(
+        s.cost.event_visits.get(),
+        0,
+        "empty interval scanned the chronicle"
+    );
+}
+
+#[test]
+fn envelope_height_alone_moves_contact_leaves_without_wood_keyframes() {
+    let (_, mut s, shoot) = super::super::foliage_tests::fixture(1.0);
+    stamp(&mut s, 1);
+    let before = buffers(&s, 1.0);
+    s.timeline.as_mut().unwrap().envelope.height *= 1.1;
+    stamp(&mut s, 2);
+    assert!(!s.keyframes.changed(shoot, 1, 2));
+    let after = buffers(&s, 2.0);
+    assert_ne!(
+        before.placements, after.placements,
+        "height did not move the contact polygons"
+    );
+    s.changes_between(1.0, 2.0)
+        .unwrap()
+        .validate(&before, &after)
+        .unwrap();
+}

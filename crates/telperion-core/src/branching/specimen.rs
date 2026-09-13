@@ -4,7 +4,9 @@ use crate::tree::{NodeIdentity, NodeKey};
 use slotmap::{DenseSlotMap, Key};
 mod changes;
 mod chronicle;
+mod contacts;
 mod crown;
+mod events;
 mod history;
 mod interval;
 mod keyframes;
@@ -26,6 +28,8 @@ pub struct Specimen {
     cost: measurement::Cost,
     pub(super) tree: Tree,
     read: std::cell::OnceCell<storage::Read>,
+    read_active: bool,
+    read_updates: Vec<usize>,
     pub(super) shed: usize,
     params: SkeletonParams,
     radii: RadiusParams,
@@ -39,6 +43,7 @@ pub struct Specimen {
     links: slotmap::SecondaryMap<NodeKey, chronicle::Links>,
     keyframes: keyframes::Keyframes,
     retention: retention::Retention,
+    births: events::Events,
 }
 impl Specimen {
     pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
@@ -68,6 +73,8 @@ impl Specimen {
             cost: measurement::Cost::default(),
             tree: Tree::default(),
             read: std::cell::OnceCell::new(),
+            read_active: false,
+            read_updates: Vec::new(),
             shed: 0,
             params: params.clone(),
             radii,
@@ -81,6 +88,7 @@ impl Specimen {
             links: slotmap::SecondaryMap::new(),
             keyframes: keyframes::Keyframes::default(),
             retention: retention::Retention::default(),
+            births: events::Events::default(),
         })
     }
     pub fn tree(&self) -> &Tree {

@@ -35,8 +35,12 @@ impl Specimen {
     }
 
     fn read_at(&self, age: Age) -> Result<SpecimenRead> {
-        let (tree, envelope) = self.wood_at(age, true)?;
         let t = self.timeline.as_ref().unwrap();
+        let (tree, envelope) = if age == t.age && self.keyframes.finalized() {
+            (self.tree().clone(), self.envelope())
+        } else {
+            self.wood_at(age, true)?
+        };
         let placements = if age == t.age {
             t.foliage.read(&tree, envelope, age)?
         } else {
@@ -76,6 +80,18 @@ impl Specimen {
         };
         let tree = self.historical_tree(age, diagnostics, shoot_history)?;
         Ok((tree, envelope))
+    }
+
+    pub(super) fn envelope_at(&self, age: Age) -> Envelope {
+        let years = &self.timeline.as_ref().unwrap().years;
+        let end = years.partition_point(|state| state.year <= age.slice);
+        end.checked_sub(1).map_or(
+            Envelope {
+                height: 0.0,
+                ..self.params.envelope
+            },
+            |i| years[i].envelope,
+        )
     }
 
     pub(super) fn read_age(&self, years: f64) -> Result<Age> {

@@ -3,6 +3,15 @@ use crate::tree::NodeKey;
 use slotmap::SecondaryMap;
 
 impl Foliage {
+    // Contact and radius-relative shoot eligibility have additional global
+    // dependencies. Finite budgets also require a complete count validation.
+    pub(crate) fn sparse_interval(&self) -> Option<u64> {
+        (self.canopy.surface_contact == 0.0
+            && self.canopy.shoot_radius == 0.0
+            && self.canopy.max_instances == usize::MAX)
+            .then_some(self.lifetime.slice + u64::from(self.lifetime.remainder > 0))
+    }
+
     /// Clock-only cohort births. Offsets are annual, so fractional ticks never
     /// touch wood or derive a contact surface. A saturated shoot adds no work.
     pub(crate) fn filled(
@@ -120,6 +129,7 @@ impl Foliage {
         before: (&Tree, Envelope, Age),
         after: (&Tree, Envelope, Age),
         changed: &BTreeSet<NodeIdentity>,
+        dependencies: Option<&BTreeSet<NodeIdentity>>,
         out: &mut crate::branching::ChangeRecord,
     ) -> Result<()> {
         let (old_tree, old_envelope, from) = before;
@@ -128,8 +138,12 @@ impl Foliage {
         let new = self.counts(tree, to)?;
         let mut candidates = changed.clone();
         if self.canopy.surface_contact > 0.0 {
-            candidates.extend(crate::surface::affected_contacts(old_tree, changed)?);
-            candidates.extend(crate::surface::affected_contacts(tree, changed)?);
+            if let Some(dependencies) = dependencies {
+                candidates.extend(dependencies);
+            } else {
+                candidates.extend(crate::surface::affected_contacts(old_tree, changed)?);
+                candidates.extend(crate::surface::affected_contacts(tree, changed)?);
+            }
             // Height enters flare, burial and twist. The stamped envelope is a
             // dependency too, even when a large radius tolerance suppressed wood.
             if old_envelope.height != envelope.height
