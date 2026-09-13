@@ -109,12 +109,12 @@ impl Frontier {
             return;
         }
         let radius = |i: usize| widths.map_or(tree.nodes[i].radius, |sample| sample(tree, i)[0]);
-        let root_radius = radius(0);
         self.stations.sync(tree);
         let children = &self.stations.children;
         if self.stations.pending.is_empty() {
             return;
         }
+        let root_radius = radius(0);
         let divergence = t.divergence.to_radians();
         let mut frontier = Vec::new();
         let mut completed = Vec::new();
@@ -176,6 +176,9 @@ impl Frontier {
         for i in completed {
             self.stations.pending.remove(&i);
         }
-        self.queue.extend(frontier);
+        if !frontier.is_empty() {
+            self.ordered = false;
+            self.queue.extend(frontier);
+        }
     }
 }

@@ -1,4 +1,4 @@
-//! State retained by a shoot across monthly growth and storage compaction.
+//! State retained by a shoot across annual growth and storage compaction.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum BudFate {
     #[default]
@@ -10,7 +10,7 @@ pub struct ShootState {
     pub birth_year: f64,
     pub bud_fate: BudFate,
     pub vigour: f64,
-    pub(crate) low_months: u64,
+    pub(crate) low_slices: u64,
     pub(crate) width: Option<LocalWidth>,
 }
 impl Default for ShootState {
@@ -19,7 +19,7 @@ impl Default for ShootState {
             birth_year: 0.0,
             bud_fate: BudFate::Terminal,
             vigour: 1.0,
-            low_months: 0,
+            low_slices: 0,
             width: None,
         }
     }

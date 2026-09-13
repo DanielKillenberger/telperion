@@ -52,10 +52,11 @@ The core uses pinned pure-Rust `libm` for transcendental functions. Run
 five preset node buffers byte for byte across native and wasm targets.
 The native `Specimen::build(&family)` path starts at a seedling and grows to
 `family.age`; `advance(years)` continues its retained frontiers. Age supports
-0 through 1,000,000 years, rounded to one billionth of a month at each API call.
-Whole months run in order and the integer remainder carries between calls;
+0 through 1,000,000 years, rounded to one twelve-billionth of a year at each API call (the original
+billionth-of-a-month resolution). Whole years run in order and the integer
+sub-year remainder carries between calls;
 zero pauses, and backward inspection builds a new specimen at the earlier age.
-The same quantized elapsed time produces the same monthly history. `growth.rate`
+The same quantized elapsed time produces the same annual history. `growth.rate`
 and `growth.shape` are numeric Chapman–Richards traits and blend with age.
 Their current defaults are provisional, without species age calibration.
 
@@ -70,21 +71,21 @@ let skeleton = tree.tree();
 ```
 
 Negative/non-finite advances and invalid ages name the field and value. A node
-cap rolls back the failed month, retains completed months, sets `node_capped`,
+cap rolls back the failed year, retains completed years, sets `node_capped`,
 and refuses the next advance. `set_node_ceiling` can raise the resource limit
 and resume the same frontier. The curve's final work quantum defines saturation;
 advancing beyond it jumps directly to the requested age.
 
-Monthly scaffold stations release their lateral buds while the parent axis is
+Annual scaffold stations release their lateral buds while the parent axis is
 still extending. Boundary pauses leave the growth budget for eligible shoots;
 local terminal and lateral buds retain separate allocation state. Local runs
 plan against the authored room and wait at the current crown before each birth.
-The mature monthly populations still differ substantially from the envelope
+The mature annual populations still differ substantially from the envelope
 builds; convergence and calibration remain unfinished.
 
-Monthly shoots retain birth year, terminal/lateral fate and crown-depth vigour.
-The existing habit `sheddingThreshold` is the monthly vigour threshold;
-`growth.sheddingTolerance` counts consecutive active months below it, in years.
+Annual shoots retain birth year, terminal/lateral fate and crown-depth vigour.
+The existing habit `sheddingThreshold` is the annual vigour threshold;
+`growth.sheddingTolerance` counts consecutive active years below it, in years.
 Equality resets the clock. The shell contributes to vigour, and a lit descendant
 supports its ancestors. Each slice snapshots decisions before growth, sheds at
 most 32 subtrees in birth order, and protects the main structural leader.
@@ -99,10 +100,20 @@ preserves unaffected reductions, and local widths propagate from changed parents
 
 Integration is incomplete: `branching::generate`, `Specimen::grow`, mesh builds
 and the browser still use the existing full-envelope build. The JSON wire now
-round-trips and validates `age` and `growth` (`rate`, `shape`, `sheddingTolerance`, `apicalControlLoss`); those fields
+round-trips and validates `age` and `growth` (`rate`, `shape`, `sheddingTolerance`, `apicalControlLoss`, `leafLifetime`); those fields
 currently affect only `Specimen::build`, not the full-envelope entry points.
-The monthly native path has no lifetime foliage, change records, snapshot,
-or wasm handle yet.
+`Specimen::placements()` returns owned leaf transforms, each identified by its
+shoot's generational identity and station ordinal, before optional canopy shell
+culling. `growth.leafLifetime` is a numeric family trait: one year by default and
+for oak, provisionally six for spruce; zero bears no leaves. Leaves expire at the
+exact lifetime boundary, including fractional years, while their wood survives.
+Station randomness is keyed by shoot identity. Unchanged wood reuses its cached
+transforms; changes to radii or neighboring contact polygons re-derive only the
+affected shoots. This timeline foliage path is not yet used by production. At year 173 it retains
+only 13 oak and 120 spruce placements before culling: leaves expire as new shoot
+births approach zero. The mature canopy has not converged; no renewal rule has
+been introduced.
+Change records, snapshots and the wasm specimen handle remain unfinished.
 Its pipe cache recomputes insertion/deletion ancestor paths. An ordered scale
 index visits structural wood only when its historical width can be exceeded;
 local width changes propagate to descendants in birth order. Crown exposure uses
@@ -111,20 +122,26 @@ With shedding disabled, only frontier shoots sample vigour; other nodes retain
 their last sampled state. With shedding enabled, the slice-start survival pass
 refreshes the live crown and propagates descendant support.
 Structural births append without moving local storage inside a slice. Internal
-frontiers and pipe reductions use node kinds; once an advance finishes (or rolls
-back at a cap), storage is packed with structural nodes first for consumers.
+frontiers and pipe reductions use node kinds. Consumer reads lazily pack a
+structural-first view without moving the retained frontiers' storage.
 Generational slots retire in birth order so packing boundaries cannot change
 future handles. Local seeding retains unallocated stations and structural child
 counts.
-Full-tree validation remains available to callers; monthly mutations validate
+Full-tree validation remains available to callers; annual mutations validate
 new or resized nodes. Native cost measurements, including sparse and dense
 changes on large trees, run with
 `FN11_MEASURE=1 cargo test --release -p telperion-core --lib monthly_cost_report -- --nocapture --test-threads=1`.
-The measurement separates internal slice time from end-of-advance packing.
-Two width updates still run per active slice, and waiting shoots still retry as
-the crown expands. Moving geometry to a pure end-of-advance derivation with shed
-memory, then scheduling waiting shoots, remains necessary before the monthly or
-annual slice choice. The full cost contract also awaits placements and snapshots.
+The command retains its historical name; it now measures annual slices. Widths
+finalize once per advance from the structure and retained shed-width memory;
+consumer packing is lazy and timed separately. Fixed-geometry shoots sleep until
+the crown can reach them. An unchanged queue keeps its identity order and an
+empty local frontier makes no width queries. Radius-dependent failures still retry.
+R10 selected annual slices after the mature monthly oak measured 5.906 seconds
+(native three-build median), above the approximately half-second target. The
+full cost protocol still awaits change records and snapshots.
+The follow-up annual medians are 779 ms oak and 561 ms spruce. The annual oak also
+misses the target; the closed-form design remains the owner's reserve. See the
+[measurement and convergence figures](scripts/benchmarks/generation.md#annual-slice-choice-fn-11-native-2026-09-13).
 
 The native entry is `branching::generate(&family.skeleton, family.radii)`. Its solved `Tree` can feed `surface::build`, foliage placement/culling, or `Field::new` independently. The Wasm binding assembles the requested stages; `src/browser` loads it and copies output arrays. There is no TypeScript generator and no TypeScript renderer.
 

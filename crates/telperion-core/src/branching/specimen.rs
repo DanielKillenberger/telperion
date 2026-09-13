@@ -116,7 +116,7 @@ impl Specimen {
                     node.shoot.birth_year = if i == 0 {
                         0.0
                     } else {
-                        (t.age.month + 1) as f64 / 12.0
+                        (t.age.slice + 1) as f64
                     };
                     if node.kind != NodeKind::Structural {
                         born.push(i);
@@ -228,3 +228,6 @@ mod cost_tests;
 
 #[cfg(test)]
 mod read_tests;
+
+#[cfg(test)]
+mod foliage_tests;

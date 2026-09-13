@@ -52,8 +52,8 @@ impl Frontier {
         self.queue.is_empty()
     }
     /// Each pending axis is visited in its origin's birth order, at most once
-    /// per month. A boundary-limited axis remains in the frontier for expansion.
-    pub(in crate::branching) fn month(
+    /// per slice. A boundary-limited axis remains in the frontier for expansion.
+    pub(in crate::branching) fn slice(
         &mut self,
         tree: &mut Tree,
         params: &SkeletonParams,
@@ -107,7 +107,7 @@ impl Frontier {
             let finished = b.grow(&mut axis, &mut remaining)?;
             // Stations already reached bear buds now, even while the parent
             // waits for the envelope to expand. Children retain their keyed
-            // streams and join the next month's identity-ordered frontier.
+            // streams and join the next slice's identity-ordered frontier.
             self.queue.extend(std::mem::take(&mut axis.children));
             if !finished {
                 self.queue.push_back(axis);
@@ -180,7 +180,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn monthly_blocked_axes_leave_the_budget_for_live_shoots() {
+    fn annual_blocked_axes_leave_the_budget_for_live_shoots() {
         let f = crate::presets::Preset::NorwaySpruce.parameters();
         let p = &f.skeleton;
         let config = p.resolved_growth(0).unwrap();
@@ -192,7 +192,7 @@ mod tests {
             ..Tree::default()
         };
         let spent = frontier
-            .month(&mut tree, p, &config, &bias, 100, 0.1)
+            .slice(&mut tree, p, &config, &bias, 100, 0.1)
             .unwrap();
         assert_eq!(
             spent,
@@ -202,7 +202,7 @@ mod tests {
     }
 
     #[test]
-    fn monthly_laterals_extend_before_the_leader_finishes() {
+    fn annual_laterals_extend_before_the_leader_finishes() {
         let f = crate::presets::Preset::NorwaySpruce.parameters();
         let p = &f.skeleton;
         let config = p.resolved_growth(0).unwrap();
@@ -219,7 +219,7 @@ mod tests {
         };
         for _ in 0..4 {
             frontier
-                .month(&mut tree, p, &config, &bias, 10_000, 0.5)
+                .slice(&mut tree, p, &config, &bias, 10_000, 0.5)
                 .unwrap();
         }
         assert!(

@@ -1,9 +1,9 @@
-//! Monthly age controls shared by every numeric family. No simulation rate lives here.
+//! Annual age controls shared by every numeric family. No simulation rate lives here.
 mod clock;
 use crate::{math::Transcendental, Error, Result};
 pub(crate) use clock::Age;
 
-/// Ages in years, quantized to one billionth of a month at the API boundary.
+/// Ages in years, quantized to one twelve-billionth of a year at the API boundary.
 pub const MAX_AGE: f64 = 1_000_000.0;
 /// Geometric growth work available over a specimen's life (not a node limit).
 const LIFETIME_UNITS: f64 = 250_000.0;
@@ -14,10 +14,12 @@ pub struct GrowthTraits {
     pub rate: f64,
     /// Chapman–Richards shape; values above one give a sigmoidal height curve.
     pub shape: f64,
-    /// Consecutive active months below the habit shedding threshold, in years.
+    /// Consecutive active slices below the habit shedding threshold, in years.
     pub shedding_tolerance: f64,
     /// Annual loss of the habit apical control (zero retains its authored value).
     pub apical_control_loss: f64,
+    /// Time a shoot bears foliage after birth, in years; zero bears none.
+    pub leaf_lifetime: f64,
 }
 impl Default for GrowthTraits {
     fn default() -> Self {
@@ -26,6 +28,7 @@ impl Default for GrowthTraits {
             shape: 2.0,
             shedding_tolerance: 2.0,
             apical_control_loss: 0.0,
+            leaf_lifetime: 1.0,
         }
     }
 }
@@ -34,6 +37,7 @@ impl GrowthTraits {
         for (field, value, lo, hi) in [
             ("growth.rate", self.rate, 0.001, 10.0),
             ("growth.shape", self.shape, 1.0, 8.0),
+            ("growth.leafLifetime", self.leaf_lifetime, 0.0, MAX_AGE),
             (
                 "growth.sheddingTolerance",
                 self.shedding_tolerance,
@@ -56,23 +60,23 @@ impl GrowthTraits {
         }
         Ok(())
     }
-    pub(crate) fn fraction(self, month: u64) -> f64 {
-        let f = (1.0 - (-self.rate * month as f64 / 12.0).exp_fixed()).powf_fixed(self.shape);
+    pub(crate) fn fraction(self, slice: u64) -> f64 {
+        let f = (1.0 - (-self.rate * slice as f64).exp_fixed()).powf_fixed(self.shape);
         if f >= 1.0 - 0.5 / LIFETIME_UNITS {
             1.0
         } else {
             f
         }
     }
-    /// Rounded cumulative work makes every quantum belong to one fixed month.
-    pub(crate) fn budget(self, month: u64) -> usize {
+    /// Rounded cumulative work makes every quantum belong to one fixed slice.
+    pub(crate) fn budget(self, slice: u64) -> usize {
         let units = |m| (self.fraction(m) * LIFETIME_UNITS).round() as usize;
-        units(month) - units(month - 1)
+        units(slice) - units(slice - 1)
     }
-    /// First month receiving the last quantum. Computed once, without stepping years.
-    pub(crate) fn mature_month(self) -> u64 {
+    /// First slice receiving the last quantum. Computed once, without stepping years.
+    pub(crate) fn mature_slice(self) -> u64 {
         let mut lo = 0;
-        let mut hi = (MAX_AGE * 12.0) as u64;
+        let mut hi = MAX_AGE as u64;
         while lo < hi {
             let mid = lo + (hi - lo) / 2;
             if self.fraction(mid) == 1.0 {

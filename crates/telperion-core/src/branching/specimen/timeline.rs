@@ -9,14 +9,15 @@ pub(super) struct Timeline {
     pub age: Age,
     pub(super) unpacked: bool,
     pub(super) traits: GrowthTraits,
-    mature_month: u64,
+    mature_slice: u64,
     pub(super) envelope: Envelope,
     pub(super) pipes: radius::Pipes,
     pub(super) widths: widths::Widths,
     pub(super) crown: crown::Crown,
+    pub(super) foliage: crate::foliage::timeline::Foliage,
 }
 impl Specimen {
-    /// Build from a seedling through the exact monthly path used by `advance`.
+    /// Build from a seedling through the exact annual path used by `advance`.
     /// The legacy envelope builder remains available through `grow`.
     pub fn build(family: &Family) -> Result<Self> {
         Age::from_years(family.age)?;
@@ -27,7 +28,7 @@ impl Specimen {
             age: Age::default(),
             unpacked: false,
             traits: family.growth,
-            mature_month: family.growth.mature_month(),
+            mature_slice: family.growth.mature_slice(),
             envelope: Envelope {
                 height: 0.0,
                 ..family.skeleton.envelope
@@ -35,6 +36,7 @@ impl Specimen {
             pipes: radius::Pipes::default(),
             widths: widths::Widths::default(),
             crown: crown::Crown::default(),
+            foliage: crate::foliage::timeline::Foliage::new(family)?,
         });
         if specimen.config.max_nodes == 0 {
             specimen.tree.diagnostics.node_capped = true;
@@ -42,6 +44,16 @@ impl Specimen {
             specimen.advance(family.age)?;
         }
         Ok(specimen)
+    }
+    /// Leaf stations in identity order, before optional canopy shell culling.
+    pub fn placements(&self) -> Result<Vec<crate::foliage::Placement>> {
+        let timeline = self
+            .timeline
+            .as_ref()
+            .ok_or(Error::InvalidInput("specimen has no age"))?;
+        timeline
+            .foliage
+            .read(self.tree(), self.envelope(), timeline.age)
     }
     pub fn age(&self) -> f64 {
         self.timeline.as_ref().map_or(0.0, |t| t.age.years())
@@ -53,7 +65,7 @@ impl Specimen {
             .map_or(self.params.envelope, |t| t.envelope)
     }
     /// Negative/non-finite requests are refused before mutating any state.
-    /// On a cap, commit only complete months and discard the failed month's time.
+    /// On a cap, commit only complete slices and discard the failed slice's time.
     pub fn advance(&mut self, years: f64) -> Result<()> {
         let timeline = self
             .timeline
@@ -63,7 +75,7 @@ impl Specimen {
         if self.tree.diagnostics.node_capped {
             return Err(Error::ResourceLimit("node ceiling reached"));
         }
-        let end = target.month.min(timeline.mature_month);
+        let end = target.slice.min(timeline.mature_slice);
         if self.tree.nodes.is_empty() {
             self.tree.nodes.push(Node::root());
             self.tree.crossover = 1;
@@ -71,10 +83,10 @@ impl Specimen {
             self.tree.nodes[0].radius = self.radii.resolved()?.trunk_radius * 1e-6;
             self.tree.nodes[0].start_radius = self.tree.nodes[0].radius;
         }
-        while self.timeline.as_ref().unwrap().age.month < end {
+        while self.timeline.as_ref().unwrap().age.slice < end {
             let t = self.timeline.as_ref().unwrap();
-            let month = t.age.month + 1;
-            let budget = t.traits.budget(month);
+            let slice = t.age.slice + 1;
+            let budget = t.traits.budget(slice);
             if budget > 0 {
                 // One structural unit adds at most one node; a local unit can
                 // flush its terminal plus all its lateral buds. Only a slice
@@ -83,7 +95,7 @@ impl Specimen {
                 let checkpoint = (worst
                     >= self.config.max_nodes.saturating_sub(self.tree.nodes.len()))
                 .then(|| self.clone());
-                let result = self.month(month, budget);
+                let result = self.slice(slice, budget);
                 if self.tree.diagnostics.node_capped || result.is_err() {
                     if let Some(previous) = checkpoint {
                         *self = previous;
@@ -96,7 +108,7 @@ impl Specimen {
                 }
             }
             self.timeline.as_mut().unwrap().age = Age {
-                month,
+                slice,
                 remainder: 0,
             };
         }
@@ -120,7 +132,7 @@ impl Specimen {
         Ok(())
     }
     /// Raising a ceiling unblocks the rolled-back frontier; limits are resources,
-    /// not growth traits, and do not change the monthly budget.
+    /// not growth traits, and do not change the annual budget.
     pub fn set_node_ceiling(&mut self, limit: usize) -> Result<()> {
         if limit > NODE_CEILING || limit < self.tree.nodes.len() {
             return Err(Error::InvalidValue {
@@ -136,7 +148,7 @@ impl Specimen {
         self.params.growth.max_nodes = Some(limit);
         Ok(())
     }
-    pub(super) fn month(&mut self, month: u64, budget: usize) -> Result<()> {
+    pub(super) fn slice(&mut self, slice: u64, budget: usize) -> Result<()> {
         self.read.take();
         #[cfg(test)]
         {
@@ -144,10 +156,10 @@ impl Specimen {
         }
         #[cfg(test)]
         let mut clock = std::time::Instant::now();
-        let shed = self.environment(month);
+        let shed = self.environment(slice);
         #[cfg(test)]
         self.cost.stamp(0, &mut clock);
-        let fraction = self.timeline.as_ref().unwrap().traits.fraction(month);
+        let fraction = self.timeline.as_ref().unwrap().traits.fraction(slice);
         let envelope = Envelope {
             height: self.params.envelope.height * fraction,
             ..self.params.envelope
@@ -155,7 +167,7 @@ impl Specimen {
         let mut params = self.params.clone();
         params.envelope = envelope;
         params.habit.apical_dominance /=
-            1.0 + self.timeline.as_ref().unwrap().traits.apical_control_loss * month as f64 / 12.0;
+            1.0 + self.timeline.as_ref().unwrap().traits.apical_control_loss * slice as f64;
         // Lost terminal control releases a larger share to laterals, expressed
         // through the existing lateral allocation trait rather than a species rule.
         let released = self.params.habit.apical_dominance - params.habit.apical_dominance;
@@ -176,7 +188,7 @@ impl Specimen {
             envelope: self.params.envelope,
             ..params.clone()
         };
-        let spent = self.scaffold.month(
+        let spent = self.scaffold.slice(
             &mut self.tree,
             &scaffold_params,
             &config,
@@ -213,7 +225,7 @@ impl Specimen {
                 &mut self.tree,
                 local::Planner {
                     clock: Some(local::waiting::Clock {
-                        month,
+                        slice,
                         traits: timeline.traits,
                         envelope: self.params.envelope,
                     }),
@@ -236,7 +248,7 @@ impl Specimen {
         #[cfg(test)]
         self.cost.stamp(5, &mut clock);
         self.identify_range(local_first..self.tree.nodes.len());
-        self.sample_frontier(month);
+        self.sample_frontier(slice);
         #[cfg(test)]
         self.cost.stamp(6, &mut clock);
         self.retire(&shed);

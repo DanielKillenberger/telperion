@@ -5,6 +5,7 @@ mod levels;
 mod outline;
 mod placement;
 mod station;
+pub(crate) mod timeline;
 use crate::{
     envelope::{distance_to_profile, Envelope},
     math::Vec3,
@@ -13,6 +14,7 @@ use crate::{
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
 pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
+pub use timeline::{Placement, PlacementIdentity};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {

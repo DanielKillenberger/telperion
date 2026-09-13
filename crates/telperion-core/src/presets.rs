@@ -154,6 +154,8 @@ impl Preset {
             return p;
         }
         if self == Self::NorwaySpruce {
+            // Provisional needle retention; age calibration remains separate.
+            p.growth.leaf_lifetime = 6.0;
             // Open-grown landscape Picea abies; one needle per local station.
             p.skeleton.habit = HabitParams {
                 apical_dominance: 1.0,

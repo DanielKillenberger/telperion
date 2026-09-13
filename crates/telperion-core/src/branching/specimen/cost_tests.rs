@@ -58,10 +58,10 @@ fn identity_maintenance_without_structural_birth_visits_only_new_locals() {
     f.age = 0.0;
     f.growth.rate = 1.0;
     let mut s = Specimen::build(&f).unwrap();
-    for month in 1..200 {
+    for slice in 1..200 {
         let old_len = s.tree.nodes.len();
-        s.advance(1.0 / 12.0).unwrap();
-        if f.growth.budget(month) > 0 && old_len > 500 && s.cost.storage == 0 {
+        s.advance(1.0).unwrap();
+        if f.growth.budget(slice) > 0 && old_len > 500 && s.cost.storage == 0 {
             assert_eq!(
                 s.cost.identities,
                 s.tree.nodes.len() - old_len,
@@ -76,7 +76,7 @@ fn identity_maintenance_without_structural_birth_visits_only_new_locals() {
             return;
         }
     }
-    panic!("fixture never reached an active month with no structural insertion");
+    panic!("fixture never reached an active slice with no structural insertion");
 }
 
 #[test]
@@ -85,8 +85,8 @@ fn structural_births_do_not_move_existing_local_storage_inside_a_slice() {
     f.age = 12.0;
     let mut s = Specimen::build(&f).unwrap();
     for _ in 0..120 {
-        let month = s.timeline.as_ref().unwrap().age.month + 1;
-        let budget = f.growth.budget(month);
+        let slice = s.timeline.as_ref().unwrap().age.slice + 1;
+        let budget = f.growth.budget(slice);
         let locals: Vec<_> = s
             .tree
             .nodes
@@ -97,10 +97,10 @@ fn structural_births_do_not_move_existing_local_storage_inside_a_slice() {
             .collect();
         let crossover = s.tree.crossover;
         if budget > 0 {
-            s.month(month, budget).unwrap();
+            s.slice(slice, budget).unwrap();
         }
         s.timeline.as_mut().unwrap().age = crate::growth::Age {
-            month,
+            slice,
             remainder: 0,
         };
         if !locals.is_empty() && s.tree.crossover > crossover {
@@ -144,8 +144,8 @@ fn packing_keeps_append_headroom_for_the_next_slice() {
     let mut f = Preset::OregonWhiteOak.parameters();
     f.age = 12.0;
     let mut s = Specimen::build(&f).unwrap();
-    let month = s.timeline.as_ref().unwrap().age.month + 1;
-    s.month(month, f.growth.budget(month)).unwrap();
+    let slice = s.timeline.as_ref().unwrap().age.slice + 1;
+    s.slice(slice, f.growth.budget(slice)).unwrap();
     assert!(s.timeline.as_ref().unwrap().unpacked);
     s.tree.nodes.reserve(s.tree.nodes.len());
     let capacity = s.tree.nodes.capacity();
@@ -161,7 +161,7 @@ fn an_internal_slice_does_not_finalize_existing_local_widths() {
     let mut f = Preset::OregonWhiteOak.parameters();
     f.age = 20.0;
     let mut s = Specimen::build(&f).unwrap();
-    let month = s.timeline.as_ref().unwrap().age.month + 1;
-    s.month(month, f.growth.budget(month)).unwrap();
+    let slice = s.timeline.as_ref().unwrap().age.slice + 1;
+    s.slice(slice, f.growth.budget(slice)).unwrap();
     assert_eq!(s.cost.widths, 0, "slice finalized local output widths");
 }

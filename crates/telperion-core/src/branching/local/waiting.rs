@@ -4,14 +4,14 @@ use crate::growth::GrowthTraits;
 
 #[derive(Clone, Copy)]
 pub(in crate::branching) struct Clock {
-    pub month: u64,
+    pub slice: u64,
     pub traits: GrowthTraits,
     pub envelope: Envelope,
 }
 impl Clock {
     pub fn next(self, point: Vec3, trunk_height: f64) -> u64 {
         let live = Envelope {
-            height: self.envelope.height * self.traits.fraction(self.month),
+            height: self.envelope.height * self.traits.fraction(self.slice),
             ..self.envelope
         };
         let radial = point.x.hypot_fixed(point.z);
@@ -27,11 +27,11 @@ impl Clock {
                 height = height.max(bound);
             }
         }
-        let mature = self.traits.mature_month();
+        let mature = self.traits.mature_slice();
         if height > self.envelope.height {
             return u64::MAX;
         }
-        let mut lo = self.month + 1;
+        let mut lo = self.slice + 1;
         let mut hi = mature;
         while lo < hi {
             let mid = lo + (hi - lo) / 2;
@@ -76,9 +76,10 @@ impl Frontier {
             while self
                 .sleeping
                 .first_key_value()
-                .is_some_and(|(&month, _)| month <= clock.month)
+                .is_some_and(|(&slice, _)| slice <= clock.slice)
             {
                 self.queue.extend(self.sleeping.pop_first().unwrap().1);
+                self.ordered = false;
             }
         }
         if planner.growing_envelope {
@@ -104,7 +105,7 @@ mod tests {
     #[test]
     fn fixed_candidate_waits_until_the_crown_can_reach_it() {
         let clock = Clock {
-            month: 120,
+            slice: 10,
             traits: GrowthTraits::default(),
             envelope: Envelope {
                 height: 2.0,
@@ -115,8 +116,8 @@ mod tests {
         let point = Vec3::new(0.0, 1.5, 0.0);
         let next = clock.next(point, 0.0);
         assert!(
-            next > 121,
-            "waiting candidate was scheduled for another monthly retry"
+            next > 11,
+            "waiting candidate was scheduled for another annual retry"
         );
         assert!(clock.envelope.height * clock.traits.fraction(next) >= point.y);
         assert!(clock.envelope.height * clock.traits.fraction(next - 1) < point.y);
@@ -169,6 +170,18 @@ mod frontier_tests {
     }
 
     #[test]
+    fn unchanged_frontier_keeps_its_identity_order_without_visiting_shoots() {
+        let (tree, mut frontier) = terminal();
+        frontier.identity_order(&tree);
+        frontier.order_visits = 0;
+        frontier.identity_order(&tree);
+        assert_eq!(
+            frontier.order_visits, 0,
+            "sorted unchanged shoots were visited"
+        );
+    }
+
+    #[test]
     fn sleeping_terminal_receives_no_visits_and_wakes_at_crown_entry() {
         let traits = GrowthTraits::default();
         let envelope = Envelope {
@@ -177,11 +190,18 @@ mod frontier_tests {
             ..Envelope::default()
         };
         let (mut tree, mut frontier) = terminal();
-        for month in 120..=400 {
+        let queries = std::cell::Cell::new(0);
+        let widths = |tree: &Tree, i: usize| {
+            queries.set(queries.get() + 1);
+            let n = &tree.nodes[i];
+            [n.radius, n.start_radius, n.base_radius]
+        };
+        for slice in 10..=34 {
+            queries.set(0);
             let config = GrowthConfig {
                 trunk_height: 0.0,
                 shell: Some(Envelope {
-                    height: envelope.height * traits.fraction(month),
+                    height: envelope.height * traits.fraction(slice),
                     ..envelope
                 }),
                 ..GrowthConfig::default()
@@ -191,11 +211,11 @@ mod frontier_tests {
                     &mut tree,
                     Planner {
                         clock: Some(Clock {
-                            month,
+                            slice,
                             traits,
                             envelope,
                         }),
-                        widths: None,
+                        widths: Some(&widths),
                         growing_envelope: true,
                         planning: Some(envelope),
                         config: &config,
@@ -220,11 +240,12 @@ mod frontier_tests {
                 return;
             }
             assert_eq!(tree.nodes.len(), 2);
-            if month > 120 {
+            if slice > 10 {
+                assert_eq!(queries.get(), 0, "sleeping frontier queried widths");
                 assert_eq!(
                     frontier.visited().count(),
                     0,
-                    "retried a sleeping terminal in month {month}"
+                    "retried a sleeping terminal in slice {slice}"
                 );
             }
         }
@@ -240,11 +261,11 @@ mod frontier_tests {
             ..Envelope::default()
         };
         let (mut tree, mut frontier) = terminal();
-        for month in 120..=122 {
+        for slice in 10..=12 {
             let config = GrowthConfig {
                 trunk_height: 2.0,
                 shell: Some(Envelope {
-                    height: envelope.height * traits.fraction(month),
+                    height: envelope.height * traits.fraction(slice),
                     ..envelope
                 }),
                 ..GrowthConfig::default()
@@ -254,7 +275,7 @@ mod frontier_tests {
                     &mut tree,
                     Planner {
                         clock: Some(Clock {
-                            month,
+                            slice,
                             traits,
                             envelope,
                         }),
@@ -294,24 +315,24 @@ mod prediction_tests {
         let mut delayed = 0;
         for shoulder in [0.5, 1.0, 2.2, 8.0] {
             for crown_base in [0.0, 0.16, 0.9] {
-                for month in [12, 120, 240] {
+                for slice in [1, 10, 20] {
                     let envelope = Envelope {
                         shoulder,
                         crown_base,
                         ..Envelope::default()
                     };
                     let clock = Clock {
-                        month,
+                        slice,
                         traits,
                         envelope,
                     };
-                    let height = envelope.height * traits.fraction(month);
+                    let height = envelope.height * traits.fraction(slice);
                     for y in [0.01, 0.2, 0.55, 0.99, 1.1] {
                         for radius in [0.01, 0.25, 0.75, 1.1] {
                             let point =
                                 Vec3::new(height * envelope.spread * radius, height * y, 0.0);
                             let wake = clock.next(point, 0.0);
-                            if let Some(first) = (month + 1..=traits.mature_month()).find(|&m| {
+                            if let Some(first) = (slice + 1..=traits.mature_slice()).find(|&m| {
                                 !rejected(
                                     &GrowthConfig {
                                         trunk_height: 0.0,
@@ -324,14 +345,14 @@ mod prediction_tests {
                                     point,
                                 )
                             }) {
-                                assert!(wake <= first, "wake {wake} missed {first}: {envelope:?}, month={month}, point={point:?}");
-                                delayed += usize::from(wake > month + 1);
+                                assert!(wake <= first, "wake {wake} missed {first}: {envelope:?}, slice={slice}, point={point:?}");
+                                delayed += usize::from(wake > slice + 1);
                             }
                         }
                     }
                 }
             }
         }
-        assert!(delayed > 0, "prediction degenerated into monthly retries");
+        assert!(delayed > 0, "prediction degenerated into annual retries");
     }
 }

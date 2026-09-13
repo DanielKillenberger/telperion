@@ -13,6 +13,9 @@ impl Frontier {
         {
             self.retries = [0; 4];
         }
+        if budget == 0 || self.queue.is_empty() {
+            return Ok(());
+        }
         let first = tree.nodes.len();
         let t = planner.twigs;
         let config = planner.config;
@@ -75,7 +78,7 @@ impl Frontier {
             // A switch out of leaf-bearing wood can release different laterals.
             // Such shoots remain awake until a radius wake condition is available.
             let can_sleep = !origin && (t.laterals == 0 || !bearing);
-            let immediate = planner.clock.map_or(0, |clock| clock.month + 1);
+            let immediate = planner.clock.map_or(0, |clock| clock.slice + 1);
             let mut laterals = 0;
             let mut first_lateral = 0;
             if origin {
@@ -312,6 +315,9 @@ impl Frontier {
                 tree.nodes
                     .try_reserve(1)
                     .map_err(|_| Error::ResourceLimit("branch allocation"))?;
+                // Births can stop a visit early or append younger shoots. A
+                // full visit without births preserves the existing identity order.
+                self.ordered = false;
                 tree.nodes.push(Node {
                     position: candidate,
                     parent: Some(s.at as u32),

@@ -14,7 +14,7 @@ fn seedling(preset: Preset) -> (Family, Specimen) {
 }
 
 #[test]
-fn monthly_growth_expands_the_envelope_and_retains_wood() {
+fn annual_growth_expands_the_envelope_and_retains_wood() {
     let (_, mut s) = seedling(Preset::OregonWhiteOak);
     let mut previous = Vec::new();
     let mut height = 0.0;
@@ -56,7 +56,7 @@ fn monthly_growth_expands_the_envelope_and_retains_wood() {
         after_twigs |= had_twigs && s.tree().crossover > crossover;
         height = s.envelope().height;
     }
-    assert!(s.tree().crossover > 10, "monthly budget must append wood");
+    assert!(s.tree().crossover > 10, "annual budget must append wood");
     assert!(
         after_twigs,
         "new structure must arrive after local wood exists"
@@ -64,7 +64,7 @@ fn monthly_growth_expands_the_envelope_and_retains_wood() {
 }
 
 #[test]
-fn monthly_build_and_irregular_fractional_replay_have_identical_bytes() {
+fn annual_build_and_irregular_fractional_replay_have_identical_bytes() {
     let presets = [
         Preset::Ordinary,
         Preset::OregonWhiteOak,
@@ -81,7 +81,7 @@ fn monthly_build_and_irregular_fractional_replay_have_identical_bytes() {
         let fresh = Specimen::build(&f).unwrap();
         f.age = 0.0;
         let mut replay = Specimen::build(&f).unwrap();
-        // Repeated decimal pieces, each smaller than a month, cross many slice
+        // Repeated decimal pieces, each smaller than a slice, cross many slice
         // boundaries. A loop that discards each call's remainder fails here.
         for _ in 0..24 {
             for part in [0.01, 0.02, 0.07, 0.1, 0.3] {
@@ -108,23 +108,23 @@ fn monthly_build_and_irregular_fractional_replay_have_identical_bytes() {
 }
 
 #[test]
-fn monthly_pause_and_submonth_remainder_do_not_grow_early() {
+fn annual_pause_and_subyear_remainder_do_not_grow_early() {
     let (_, mut s) = seedling(Preset::Ordinary);
     let before = bytes(&s.tree);
     s.advance(0.0).unwrap();
-    s.advance(0.04).unwrap();
-    assert_eq!(s.age(), 0.04);
+    s.advance(0.4).unwrap();
+    assert_eq!(s.age(), 0.4);
     assert_eq!(before, bytes(&s.tree));
-    s.advance(0.04).unwrap();
+    s.advance(0.4).unwrap();
     assert_eq!(before, bytes(&s.tree));
-    s.advance(0.01).unwrap();
+    s.advance(0.29).unwrap();
     assert!(s.envelope().height > 0.0);
-    assert_eq!(s.timeline.as_ref().unwrap().age.month, 1);
-    assert_eq!(s.timeline.as_ref().unwrap().age.remainder, 80_000_000);
+    assert_eq!(s.timeline.as_ref().unwrap().age.slice, 1);
+    assert_eq!(s.timeline.as_ref().unwrap().age.remainder, 1_080_000_000);
 }
 
 #[test]
-fn monthly_time_errors_name_values_and_preserve_the_specimen() {
+fn annual_time_errors_name_values_and_preserve_the_specimen() {
     let (mut f, mut s) = seedling(Preset::Ordinary);
     s.advance(2.0).unwrap();
     let before = bytes(&s.tree);
@@ -151,13 +151,13 @@ fn monthly_time_errors_name_values_and_preserve_the_specimen() {
 }
 
 #[test]
-fn monthly_node_cap_rolls_back_a_partial_slice_and_resumes_after_raise() {
+fn annual_node_cap_rolls_back_a_partial_slice_and_resumes_after_raise() {
     let (_, mut s) = seedling(Preset::OregonWhiteOak);
     s.advance(10.0).unwrap();
-    // Find a month with multiple births so the test actually stops mid-slice.
+    // Find a slice with multiple births so the test actually stops mid-slice.
     let mut full = s.clone();
     loop {
-        full.advance(1.0 / 12.0).unwrap();
+        full.advance(1.0).unwrap();
         if full.tree.nodes.len() > s.tree.nodes.len() + 1 {
             break;
         }
@@ -167,7 +167,7 @@ fn monthly_node_cap_rolls_back_a_partial_slice_and_resumes_after_raise() {
     let old = bytes(&s.tree);
     let old_age = s.age();
     s.set_node_ceiling(full.tree.nodes.len() - 1).unwrap();
-    s.advance(1.0 / 12.0).unwrap();
+    s.advance(1.0).unwrap();
     assert!(s.tree.diagnostics.node_capped);
     assert_eq!(s.age(), old_age);
     let mut without_diagnostic = s.tree.clone();
@@ -178,7 +178,7 @@ fn monthly_node_cap_rolls_back_a_partial_slice_and_resumes_after_raise() {
         Err(Error::ResourceLimit("node ceiling reached"))
     );
     s.set_node_ceiling(NODE_CEILING).unwrap();
-    s.advance(1.0 / 12.0).unwrap();
+    s.advance(1.0).unwrap();
     assert!(
         bytes(&s.tree) == bytes(&full.tree),
         "rollback must restore streams, identities and spent attractors"
@@ -186,7 +186,7 @@ fn monthly_node_cap_rolls_back_a_partial_slice_and_resumes_after_raise() {
 }
 
 #[test]
-fn monthly_frontier_storage_permutations_do_not_change_birth_order() {
+fn annual_frontier_storage_permutations_do_not_change_birth_order() {
     let (_, mut a) = seedling(Preset::OregonWhiteOak);
     a.advance(20.0).unwrap();
     let mut b = a.clone();
@@ -198,7 +198,7 @@ fn monthly_frontier_storage_permutations_do_not_change_birth_order() {
 }
 
 #[test]
-fn monthly_growth_traits_and_age_are_numeric_family_dimensions() {
+fn annual_growth_traits_and_age_are_numeric_family_dimensions() {
     let mut a = Preset::Ordinary.parameters();
     let mut b = a.clone();
     a.age = 5.0;
@@ -226,10 +226,10 @@ fn monthly_growth_traits_and_age_are_numeric_family_dimensions() {
 }
 
 #[test]
-fn monthly_saturated_age_jumps_without_visiting_the_intervening_months() {
+fn annual_saturated_age_jumps_without_visiting_the_intervening_slices() {
     let (mut f, _) = seedling(Preset::NorwaySpruce);
-    let mature = f.growth.mature_month();
-    f.age = mature as f64 / 12.0;
+    let mature = f.growth.mature_slice();
+    f.age = mature as f64;
     let start = std::time::Instant::now();
     let mut s = Specimen::build(&f).unwrap();
     let build = start.elapsed();
@@ -255,7 +255,7 @@ fn monthly_saturated_age_jumps_without_visiting_the_intervening_months() {
 }
 
 #[test]
-fn monthly_zero_ceiling_keeps_an_empty_seedling_and_recovers() {
+fn annual_zero_ceiling_keeps_an_empty_seedling_and_recovers() {
     let mut f = Preset::Ordinary.parameters();
     f.age = 1.0;
     f.skeleton.growth.max_nodes = Some(0);
@@ -275,7 +275,7 @@ fn monthly_zero_ceiling_keeps_an_empty_seedling_and_recovers() {
 }
 
 #[test]
-fn monthly_cached_local_runs_obey_the_current_crown_boundary() {
+fn annual_cached_local_runs_obey_the_current_crown_boundary() {
     let (_, mut s) = seedling(Preset::OregonWhiteOak);
     for _ in 0..360 {
         let first_birth = s.next_identity;
@@ -295,7 +295,7 @@ fn monthly_cached_local_runs_obey_the_current_crown_boundary() {
 }
 
 #[test]
-fn monthly_blends_preserve_valid_age_and_rate_boundaries() {
+fn annual_blends_preserve_valid_age_and_rate_boundaries() {
     for rate in [0.001, 10.0] {
         let mut a = Preset::Ordinary.parameters();
         a.age = MAX_AGE;

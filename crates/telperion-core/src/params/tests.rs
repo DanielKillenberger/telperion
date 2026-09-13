@@ -229,3 +229,25 @@ fn age_and_growth_round_trip_and_refuse_invalid_values() {
         assert!(message.contains(&value.to_string()), "{message}");
     }
 }
+
+#[test]
+fn leaf_lifetime_is_a_validated_blended_family_trait() {
+    let oak = crate::presets::Preset::OregonWhiteOak.parameters();
+    let spruce = crate::presets::Preset::NorwaySpruce.parameters();
+    assert_eq!(metadata(&oak)["growth"]["leafLifetime"], 1.0);
+    assert_eq!(metadata(&spruce)["growth"]["leafLifetime"], 6.0);
+    let mid = crate::blend::families(&oak, &spruce, 0.5).unwrap();
+    assert_eq!(metadata(&mid)["growth"]["leafLifetime"], 3.5);
+    let mut wire = metadata(&oak);
+    wire["growth"]["leafLifetime"] = serde_json::json!(1.25);
+    assert_eq!(
+        metadata(&parse(&wire).unwrap())["growth"]["leafLifetime"],
+        1.25
+    );
+    for value in [-0.1, crate::growth::MAX_AGE + 1.0] {
+        wire["growth"]["leafLifetime"] = serde_json::json!(value);
+        let message = parse(&wire).unwrap_err().to_string();
+        assert!(message.contains("growth.leafLifetime"), "{message}");
+        assert!(message.contains(&value.to_string()), "{message}");
+    }
+}

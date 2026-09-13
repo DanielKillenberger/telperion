@@ -22,6 +22,7 @@ impl Cost {
 }
 
 #[test]
+// Historical command name retained for the R10 evidence trail; slices are annual.
 fn monthly_cost_report() {
     if std::env::var_os("FN11_MEASURE").is_none() {
         return;
@@ -30,7 +31,7 @@ fn monthly_cost_report() {
     for preset in [Preset::OregonWhiteOak, Preset::NorwaySpruce] {
         let mut family = preset.parameters();
         family.skeleton.seed = 7;
-        let mature = family.growth.mature_month();
+        let mature = family.growth.mature_slice();
         for sample in 0..3 {
             let clock = Instant::now();
             let envelope = Specimen::grow(&family.skeleton, family.radii).unwrap();
@@ -41,7 +42,7 @@ fn monthly_cost_report() {
                 envelope.tree.crossover,
                 bounds(&envelope.tree)
             );
-            family.age = mature as f64 / 12.0;
+            family.age = mature as f64;
             let clock = Instant::now();
             let s = Specimen::build(&family).unwrap();
             let build_ms = clock.elapsed().as_secs_f64() * 1000.0;
@@ -49,7 +50,7 @@ fn monthly_cost_report() {
             s.tree();
             let read_ms = clock.elapsed().as_secs_f64() * 1000.0;
             println!(
-                "{preset:?} sample={sample} mature_ms={build_ms:.6} consumer_read_ms={read_ms:.6} month={mature} nodes={} crossover={} bounds={:?}",
+                "{preset:?} sample={sample} mature_ms={build_ms:.6} consumer_read_ms={read_ms:.6} slice={mature} nodes={} crossover={} bounds={:?}",
                 s.tree.nodes.len(),
                 s.tree.crossover,
                 bounds(&s.tree)
@@ -61,7 +62,7 @@ fn monthly_cost_report() {
         let mut large = None;
         // Diff identity/radius tuples outside the timed advance. Measure every
         // slice so sparse work on large trees cannot be hidden by an average.
-        for month in 1..=mature {
+        for slice in 1..=mature {
             let first_birth = s.next_identity;
             let before: Vec<_> = s
                 .tree
@@ -70,7 +71,7 @@ fn monthly_cost_report() {
                 .map(|n| (n.identity, (n.radius, n.start_radius, n.base_radius)))
                 .collect();
             let clock = Instant::now();
-            s.advance(1.0 / 12.0).unwrap();
+            s.advance(1.0).unwrap();
             let ms = clock.elapsed().as_secs_f64() * 1000.0;
             let born = s
                 .tree
@@ -89,18 +90,18 @@ fn monthly_cost_report() {
                             .is_ok_and(|n| (n.radius, n.start_radius, n.base_radius) != *previous)
                     })
                     .count();
-            let line = format!("{preset:?} month={month} active={} nodes_before={} nodes_after={} born={born} changed_or_born={changed} advance_ms={ms:.6} internal_slice_ms={:.6} read_ms={read_ms:.6} finalizing_ms={:.6} packing_ms={:.6} packed_nodes={} stages_ms={:?} identity_visits={} storage_moved={} pipe_visits={} width_visits={} crown_samples={} local_attempts={:?}",
-                family.growth.budget(month)>0, before.len(), s.tree.nodes.len(),
+            let line = format!("{preset:?} slice={slice} active={} nodes_before={} nodes_after={} born={born} changed_or_born={changed} advance_ms={ms:.6} internal_slice_ms={:.6} read_ms={read_ms:.6} finalizing_ms={:.6} packing_ms={:.6} packed_nodes={} stages_ms={:?} identity_visits={} storage_moved={} pipe_visits={} width_visits={} crown_samples={} local_attempts={:?}",
+                family.growth.budget(slice)>0, before.len(), s.tree.nodes.len(),
                 s.cost.stages.iter().sum::<Duration>().as_secs_f64()*1000.0,
                 s.cost.finalizing.as_secs_f64()*1000.0,
                 s.cost.packing.as_secs_f64()*1000.0, s.cost.packed_nodes,
                 s.cost.stages.map(|d| d.as_secs_f64()*1000.0), s.cost.identities,
                 s.cost.storage, s.cost.pipes, s.cost.widths,
                 s.timeline.as_ref().unwrap().crown.evaluated, s.local.retries);
-            if [241, 1201, mature].contains(&month) {
+            if [21, 101, mature].contains(&slice) {
                 println!("AGE {line}");
             }
-            if before.len() > 50_000 && family.growth.budget(month) > 0 && changed > 0 {
+            if before.len() > 50_000 && family.growth.budget(slice) > 0 && changed > 0 {
                 if small.as_ref().is_none_or(|(n, _)| changed < *n) {
                     small = Some((changed, line.clone()));
                 }
@@ -117,6 +118,19 @@ fn monthly_cost_report() {
             "{preset:?} saturated_advance_ms={:.6}",
             clock.elapsed().as_secs_f64() * 1000.0
         );
+        // Fresh foliage reads are separate consumer costs. Recording the count
+        // also exposes the consequence of lifetime expiry as births approach zero.
+        for age in [20.0, 100.0, mature as f64] {
+            family.age = age;
+            let specimen = Specimen::build(&family).unwrap();
+            let clock = Instant::now();
+            let leaves = specimen.placements().unwrap();
+            println!(
+                "FOLIAGE {preset:?} age={age} placements={} read_ms={:.6}",
+                leaves.len(),
+                clock.elapsed().as_secs_f64() * 1000.0
+            );
+        }
     }
     println!("Stages: environment, scaffold, storage/identity, pipe-record, local-seed+width-queries, local-growth/order+width-queries, identify+visited-vigour, shedding, post-shed-record. Output widths finalize once per advance (finalizing_ms). Lazy consumer packing is timed separately (read_ms); storage_moved counts insertion moves inside the slice. Snapshot unavailable; no round-trip time claimed.");
 }

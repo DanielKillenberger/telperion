@@ -6,13 +6,13 @@ use std::collections::BTreeSet;
 /// Limit independent subtree cuts, in identity order; descendants count once.
 const MAX_SHEDS: usize = 32;
 impl Specimen {
-    pub(super) fn environment(&mut self, month: u64) -> Vec<NodeIdentity> {
+    pub(super) fn environment(&mut self, slice: u64) -> Vec<NodeIdentity> {
         let t = self.timeline.as_mut().unwrap();
         let envelope = t.envelope;
         t.crown.prepare(envelope);
-        let year = (month - 1) as f64 / 12.0;
+        let year = (slice - 1) as f64;
         let threshold = self.params.habit.shedding_threshold;
-        let tolerance = (t.traits.shedding_tolerance * 12.0).ceil().max(1.0) as u64;
+        let tolerance = t.traits.shedding_tolerance.ceil().max(1.0) as u64;
         if threshold == 0.0 {
             return Vec::new();
         }
@@ -39,8 +39,8 @@ impl Specimen {
         for i in order {
             let n = &mut self.tree.nodes[i];
             // Equality survives; only strictly below the threshold accumulates.
-            n.shoot.low_months = if n.shoot.vigour < threshold {
-                n.shoot.low_months + 1
+            n.shoot.low_slices = if n.shoot.vigour < threshold {
+                n.shoot.low_slices + 1
             } else {
                 0
             };
@@ -54,7 +54,7 @@ impl Specimen {
                 && origin
                 && !covered
                 && roots.len() < MAX_SHEDS
-                && n.shoot.low_months >= tolerance;
+                && n.shoot.low_slices >= tolerance;
             removed[i] = covered || cut;
             if cut {
                 roots.push(n.identity);
@@ -65,7 +65,7 @@ impl Specimen {
 
     /// With survival disabled, vigour cannot gate a bud. Sample only shoots
     /// actually visited, against the immutable slice-start crown prepared above.
-    pub(super) fn sample_frontier(&mut self, month: u64) {
+    pub(super) fn sample_frontier(&mut self, slice: u64) {
         if self.params.habit.shedding_threshold > 0.0 {
             return;
         }
@@ -77,7 +77,7 @@ impl Specimen {
         visited.sort_unstable_by_key(|&i| self.tree.nodes[i].identity);
         visited.dedup();
         let t = self.timeline.as_mut().unwrap();
-        let year = (month - 1) as f64 / 12.0;
+        let year = (slice - 1) as f64;
         for i in visited {
             let n = &mut self.tree.nodes[i];
             let exposure = t.crown.exposure(n);

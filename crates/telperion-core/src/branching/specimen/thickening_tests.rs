@@ -5,7 +5,7 @@ fn fixture() -> Specimen {
     let mut f = Preset::OregonWhiteOak.parameters();
     f.age = 0.0;
     f.skeleton.habit.shedding_threshold = 0.5;
-    f.growth.shedding_tolerance = 3.0 / 12.0;
+    f.growth.shedding_tolerance = 3.0;
     let mut s = Specimen::build(&f).unwrap();
     s.tree.nodes.push(Node {
         position: Vec3::new(0.0, 12.0, 0.0),
@@ -41,9 +41,9 @@ fn shedding_waits_for_tolerance_and_retires_only_the_dark_subtree() {
     let mut s = fixture();
     let dark = s.tree.nodes[2].identity;
     let live = s.tree.nodes[3].identity;
-    for month in 1..=3 {
-        let roots = s.environment(month);
-        if month < 3 {
+    for slice in 1..=3 {
+        let roots = s.environment(slice);
+        if slice < 3 {
             assert!(roots.is_empty(), "shed before tolerance");
         }
         s.retire(&roots);
@@ -84,10 +84,10 @@ fn threshold_equality_recovers_and_restarts_the_tolerance_clock() {
     let mut s = fixture();
     s.environment(1);
     let equality = s.tree.nodes[2].shoot.vigour;
-    assert_eq!(s.tree.nodes[2].shoot.low_months, 1);
+    assert_eq!(s.tree.nodes[2].shoot.low_slices, 1);
     s.params.habit.shedding_threshold = equality;
     assert!(s.environment(1).is_empty());
-    assert_eq!(s.tree.nodes[2].shoot.low_months, 0, "equality must recover");
+    assert_eq!(s.tree.nodes[2].shoot.low_slices, 0, "equality must recover");
     s.params.habit.shedding_threshold = 0.5;
     assert!(s.environment(2).is_empty());
     assert!(s.environment(3).is_empty());

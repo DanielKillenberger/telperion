@@ -49,8 +49,9 @@ const BANDS: [(&str, usize, usize); 5] = [
 /// moved by some pair below and proved to walk; a parameter added to the wire is
 /// either moved by a preset or named here.
 // fn-11 publishes the timeline before species calibration: every preset still
-// shares its provisional age and growth traits. Monthly and thickening tests
-// independently walk them.
+// shares its provisional age, rate, shape and shedding traits. Annual and
+// thickening tests independently walk them. Leaf lifetime varies between oak
+// and spruce, so the sweep itself checks that dimension among the moved paths.
 const HELD: [&str; 29] = [
     "/age",
     "/canopy/maxInstances",

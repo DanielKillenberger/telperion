@@ -40,8 +40,11 @@ pub(super) struct Frontier {
     seeded: std::collections::HashMap<u64, u16>,
     stations: seed::Stations,
     visited: Vec<usize>,
+    ordered: bool,
     #[cfg(test)]
     pub(super) retries: [usize; 4],
+    #[cfg(test)]
+    order_visits: usize,
 }
 impl Frontier {
     pub(super) fn visited(&self) -> impl Iterator<Item = usize> + '_ {
@@ -50,8 +53,17 @@ impl Frontier {
     #[cfg(test)]
     pub(in crate::branching) fn reverse_for_test(&mut self) {
         self.queue.make_contiguous().reverse();
+        self.ordered = false;
     }
     pub(super) fn identity_order(&mut self, tree: &Tree) {
+        if self.ordered {
+            return;
+        }
+        self.ordered = true;
+        #[cfg(test)]
+        {
+            self.order_visits += self.queue.len();
+        }
         self.queue
             .make_contiguous()
             .sort_by_key(|s| (tree.nodes[s.at].identity.birth_order(), s.key));

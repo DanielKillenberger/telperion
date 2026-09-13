@@ -80,13 +80,13 @@ fn finalizing_grown_and_shed_records_ignores_stored_output_widths() {
     let mut f = Preset::Ordinary.parameters();
     f.age = 0.0;
     let mut lazy = Specimen::build(&f).unwrap();
-    for month in 1..=147 {
-        let budget = f.growth.budget(month);
+    for slice in 1..=12 {
+        let budget = f.growth.budget(slice);
         if budget > 0 {
-            lazy.month(month, budget).unwrap();
+            lazy.slice(slice, budget).unwrap();
         }
         lazy.timeline.as_mut().unwrap().age = crate::growth::Age {
-            month,
+            slice,
             remainder: 0,
         };
     }
