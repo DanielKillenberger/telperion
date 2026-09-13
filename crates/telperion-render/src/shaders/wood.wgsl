@@ -3,16 +3,20 @@
 // is the one flat value it has always been, so form can still be judged with no
 // material over it.
 
+@group(1) @binding(0) var<storage, read> radii: array<f32>;
+
 struct Varying {
     @builtin(position) clip: vec4<f32>,
     @location(0) normal: vec3<f32>,
     @location(1) world: vec3<f32>,
     // A circle survives the shared wrap triangle; a scalar angle does not.
     @location(2) surface: vec3<f32>,
+    @location(3) radius: f32,
 };
 
 @vertex
 fn vertex(
+    @builtin(vertex_index) index: u32,
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>,
     @location(2) coord: vec2<f32>,
@@ -21,27 +25,22 @@ fn vertex(
     out.clip = u.view_projection * vec4<f32>(position, 1.0);
     out.normal = normal;
     out.world = position;
+    out.radius = radii[index];
     out.surface = vec3<f32>(coord.x, cos(coord.y), sin(coord.y));
     return out;
 }
 
-// Each angular harmonic is integral, so the height agrees at both sides of
-// atan2's wrap. Pixel footprints fade unresolved bands before differentiation.
-fn bark_height(coord: vec3<f32>) -> f32 {
-    let angle = atan2(coord.z, coord.y);
-    let ridge_scale = max(u.bark_detail.x, 0.0001);
-    let plate_scale = max(u.bark_detail.y, 0.0001);
-    let ridge = 24.0 * angle + 0.55 * sin(coord.x / ridge_scale);
-    let plate = coord.x * 6.2831853 / plate_scale + 1.3 * sin(8.0 * angle);
-    let circle = coord.yz;
-    let angular_width = (length(dpdx(circle)) + length(dpdy(circle)))
-        / max(length(circle), 0.0001);
-    let ridge_filter = 1.0 - smoothstep(0.5, 3.0,
-        24.0 * angular_width + 0.55 * fwidth(coord.x) / ridge_scale);
-    let plate_filter = 1.0 - smoothstep(0.5, 3.0,
-        10.4 * angular_width + 6.2831853 * fwidth(coord.x) / plate_scale);
-    return u.bark_detail.x * 0.035 * cos(ridge) * ridge_filter
-        + u.bark_detail.y * 0.012 * cos(plate) * plate_filter;
+// Filter the physical footprint, not atan2's discontinuous derivative. Both
+// cell directions resolve at the same surface scale on a trunk and a limb.
+fn bark_height(coord: vec3<f32>, radius: f32) -> f32 {
+    let circle = coord.yz / max(length(coord.yz), 0.0001);
+    let around_width = radius * (length(dpdx(circle)) + length(dpdy(circle)));
+    let across_filter = 1.0 - smoothstep(0.25, 0.85,
+        around_width / max(u.bark_detail.x, 0.0001));
+    let along_filter = 1.0 - smoothstep(0.25, 0.85,
+        fwidth(coord.x) / max(u.bark_detail.y, u.bark_detail.x * 3.0 + 0.0001));
+    return bark_field(circle, coord.x, radius, u.bark_detail.x, u.bark_detail.y)
+        * across_filter * along_filter;
 }
 
 // Surface-gradient bump mapping needs no tangent attribute and displaces no
@@ -59,7 +58,7 @@ fn bark_normal(n: vec3<f32>, world: vec3<f32>, height: f32) -> vec3<f32> {
 @fragment
 fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let base_normal = normalize(in.normal);
-    let height = bark_height(in.surface);
+    let height = bark_height(in.surface, in.radius);
     let perturbed = bark_normal(base_normal, in.world, height);
     let n = select(base_normal, perturbed, any(u.bark_detail.xy > vec2<f32>(0.0)));
     if (is_clay()) {
@@ -71,7 +70,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // spreads it over the whole face, a smooth young bark keeps a narrow sheen
     // along the light. One lobe, no second light - the sun is the only thing
     // bright enough to glance off a trunk.
-    let detail = height / max(0.035 * u.bark_detail.x + 0.012 * u.bark_detail.y, 0.0001);
+    let detail = height / max(0.055 * u.bark_detail.x, 0.0001);
     let gloss = 1.0 - clamp(u.bark.w + u.bark_detail.z * detail, 0.0, 1.0);
     let half_way = normalize(normalize(u.eye.xyz - in.world) + u.sun_direction.xyz);
     let sheen = gloss * pow(max(dot(n, half_way), 0.0), exp2(1.0 + 10.0 * gloss));

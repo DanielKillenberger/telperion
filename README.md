@@ -108,12 +108,16 @@ cargo run --release -p telperion-render --example headless -- \
 ```
 
 The material row also controls procedural surface detail: `ridgeScale` and
-`plateScale` (0–1 metres; zero disables relief), `roughnessDetail` (0–1),
+`plateScale` (0–1 metres), `roughnessDetail` (0–1),
 `veinScale` (0–32 pairs per blade), `veinContrast` (0–1),
 `transmissionStrength` (0–1), linear `transmissionRed/Green/Blue` (each 0–1),
 and `thickness` (0–8 optical depth). Transmission attenuates by
 `exp(-thickness)` and the existing shadow comparison. Round sections suppress
-vein and margin tone. These fields affect shading only.
+vein and margin tone. Ridge scale sets the circumferential cell width;
+plate scale sets the distance between staggered cross-fissures. Zero ridge
+scale disables bark relief; zero plate scale leaves ridges without cross-fissures.
+Relief fades out on wood whose diameter spans fewer than two ridge widths,
+and reaches full strength at five widths. These fields affect shading only.
 
 `--to <preset>` renders a numbered PNG sequence instead of one still: `--frames <n>` frames, 240 by default, each the blend of the two families at the one seed, all of them at the hero pose the first frame's bounds fixed. `--out` names the sequence, so `--out /tmp/walk/frame.png` writes `/tmp/walk/frame-0001.png` onward with `transition.json` beside them, naming both presets, the seed, the size, the frame count, the rate of 24 a second and what the encoder did. When `ffmpeg` is on the path the frames are assembled into `transition.mp4` at that rate; when it is not, the run says so in one line and keeps the sequence, which is the artefact either way.
 
@@ -154,7 +158,7 @@ Chromium 151 and an RTX 3080. The snapshot API and
 [CPU reproduction tools](scripts/benchmarks/generation.md) remain in use by the
 field-generation follow-up's correctness checks and measurements.
 
-The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.md) measured a narrower and older workload. Its numbers are historical, not a full-engine migration result. Further botanical realism and species visual QA remain future work. Bark and foliage are now judged lit - colour, sun, shadow and the crown's own depth, beside the reference photographs - and the clay view remains for judging geometry alone; bark relief, leaf veins and leaf translucency are not implemented yet, so the close-up scales are still unjudged. Full lifecycle simulation is not implemented.
+The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.md) measured a narrower and older workload. Its numbers are historical, not a full-engine migration result. Further botanical realism and species visual QA remain future work. Bark and foliage are now judged lit - colour, sun, shadow and the crown's own depth, beside the reference photographs - and the clay view remains for judging geometry alone; procedural bark relief, leaf veins and two-sided leaf transmission are implemented, with owner judgments at the close-up scales still pending. Full lifecycle simulation is not implemented.
 
 ## License
 

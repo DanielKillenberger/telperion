@@ -61,3 +61,19 @@ fn relief_moves_the_light_while_every_wood_mesh_byte_holds() {
         .count();
     assert!(changed > 100, "bark terms changed only {changed} channels");
 }
+
+#[test]
+fn radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded() {
+    let mut family = Preset::Ordinary.parameters();
+    family.skeleton.growth.max_nodes = Some(20);
+    let mut tree = mesh::build(&family, Detail::Full).unwrap();
+    tree.foliage.instances.matrices.clear();
+    let limit = (tree.wood.positions.len() / 3 * size_of::<f32>() - 4) as u64;
+    let limits = wgpu::Limits {
+        max_storage_buffer_binding_size: limit,
+        ..Default::default()
+    };
+    let error = telperion_render::fits(&limits, &tree)
+        .expect_err("radius storage passed the binding limit");
+    assert!(error.to_string().contains("wood radii"), "{error}");
+}
