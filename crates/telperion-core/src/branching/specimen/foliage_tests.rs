@@ -43,7 +43,7 @@ fn ids(placed: &[Placement]) -> Vec<crate::foliage::PlacementIdentity> {
 }
 
 #[test]
-fn leaves_expire_on_the_exact_lifetime_boundary_even_without_wood_growth() {
+fn leaves_hold_across_the_exact_lifetime_boundary_without_wood_growth() {
     let (_, mut s, shoot) = fixture(0.0);
     let born = s.placements().unwrap();
     assert!(!born.is_empty(), "new shoot must bear leaves");
@@ -52,11 +52,12 @@ fn leaves_expire_on_the_exact_lifetime_boundary_even_without_wood_growth() {
         crate::growth::Age::from_years(2.0 - 1.0 / 12_000_000_000.0).unwrap();
     assert_eq!(s.placements().unwrap(), born, "leaves expired early");
     s.timeline.as_mut().unwrap().age = crate::growth::Age::from_years(2.0).unwrap();
-    assert!(
-        s.placements().unwrap().is_empty(),
-        "leaves survived lifetime boundary"
+    assert_eq!(
+        s.placements().unwrap(),
+        born,
+        "cohort replacement lost stations"
     );
-    assert!(s.node(shoot).is_ok(), "leaf expiry must leave wood alive");
+    assert!(s.node(shoot).is_ok(), "cohorts must leave wood alive");
 }
 
 #[test]
@@ -186,14 +187,17 @@ fn leaf_lifetime_zero_fractional_and_maximum_are_valid() {
                 )
                 .unwrap();
             assert!(!before.is_empty());
-            assert!(foliage
-                .read(
-                    s.tree(),
-                    s.envelope(),
-                    crate::growth::Age::from_years(2.25).unwrap()
-                )
-                .unwrap()
-                .is_empty());
+            assert_eq!(
+                foliage
+                    .read(
+                        s.tree(),
+                        s.envelope(),
+                        crate::growth::Age::from_years(2.25).unwrap()
+                    )
+                    .unwrap(),
+                before,
+                "fractional lifetime expired a cohort"
+            );
         }
         // Keep the last valid age within the clock's supported range.
         s.timeline.as_mut().unwrap().age =
@@ -203,7 +207,7 @@ fn leaf_lifetime_zero_fractional_and_maximum_are_valid() {
                 .read(s.tree(), s.envelope(), s.timeline.as_ref().unwrap().age)
                 .unwrap()
                 .is_empty(),
-            lifetime < crate::growth::MAX_AGE
+            lifetime == 0.0
         );
     }
 }
@@ -290,21 +294,23 @@ fn changed_neighboring_contact_polygons_move_an_unchanged_surviving_shoot() {
     assert_eq!(s.timeline.as_ref().unwrap().foliage.derived(), 1);
 }
 
+// The cohort redesign moves the exact-tick check from expiry to fill-in.
 #[test]
-fn leaf_expiry_preserves_integer_ticks_near_the_maximum_age() {
+fn cohort_fill_preserves_integer_ticks_near_the_maximum_age() {
     let (mut f, mut s, _) = fixture(0.0);
-    f.growth.leaf_lifetime = crate::growth::MAX_AGE - 2.0 + 2.0 / 12_000_000_000.0;
+    f.growth.leaf_lifetime = 2.0;
+    s.tree.nodes[2].shoot.birth_year = crate::growth::MAX_AGE - 2.0;
     let t = s.timeline.as_mut().unwrap();
     t.foliage = crate::foliage::timeline::Foliage::new(&f).unwrap();
     t.age = crate::growth::Age {
-        slice: 999_999,
-        remainder: 1,
+        slice: 999_998,
+        remainder: 11_999_999_999,
     };
-    assert!(
-        !s.placements().unwrap().is_empty(),
-        "float age conversion expired a leaf one tick early"
-    );
+    let before = s.placements().unwrap();
+    assert!(!before.is_empty());
     let t = s.timeline.as_mut().unwrap();
     t.age = t.age.advanced(1.0 / 12_000_000_000.0).unwrap();
-    assert!(s.placements().unwrap().is_empty());
+    let after = s.placements().unwrap();
+    assert!(after.len() > before.len(), "cohort filled one tick early");
+    assert!(before.iter().all(|p| after.contains(p)));
 }

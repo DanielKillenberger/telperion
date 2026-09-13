@@ -18,7 +18,7 @@ pub struct GrowthTraits {
     pub shedding_tolerance: f64,
     /// Annual loss of the habit apical control (zero retains its authored value).
     pub apical_control_loss: f64,
-    /// Time a shoot bears foliage after birth, in years; zero bears none.
+    /// Years of annual foliage cohorts held by a living shoot; zero bears none.
     pub leaf_lifetime: f64,
     /// Minimum thickening in metres before recording another annual radius frame.
     pub resize_tolerance: f64,

@@ -73,8 +73,15 @@ let changes = tree.advance(0.25)?;
 changes.validate(&buffers, &tree.buffers()?)?; // optional reconciliation check
 changes.apply(&mut buffers)?;
 let skeleton = tree.tree();
+let earlier = tree.read_at_age(5.0)?; // owned skeleton, envelope, placements and shed identities
 # Ok::<(), telperion_core::Error>(())
 ```
+
+`read()` returns an owned view at the frontier; `read_at_age(years)` filters the
+chronicle at an earlier age without simulation. The view contains the packed
+skeleton, envelope, placements and shed identities. Radii use the last keyframe
+at that age, and copied shoot histories omit future observations. A read beyond
+the frontier is refused with the frontier's age.
 
 Each native advance returns born, resized and shed runs and born, moved and shed
 leaf placements. `buffers()` reads those outputs in identity order. To check a
@@ -85,7 +92,8 @@ so imperceptible radius noise does not report a resize and repeated small change
 cannot drift away from a fresh read. Raw skeleton and mesh radii retain their
 precision. Placement matrices reconcile bit for bit, including movement caused
 by an adjacent branch changing a surface-contact polygon. A clock-only advance
-reports expired placement identities without rebuilding wood or contact geometry.
+returns newly reached cohorts, deriving transforms only for their shoots.
+Once those cohorts are full, clock-only advances derive no placements.
 
 Negative/non-finite advances and invalid ages name the field and value. A node
 cap rolls back the failed year, retains completed years, sets `node_capped`,
@@ -133,17 +141,18 @@ currently affect only `Specimen::build`, not the full-envelope entry points.
 `Specimen::placements()` returns owned leaf transforms, each identified by its
 shoot's generational identity and station ordinal, before optional canopy shell
 culling. `growth.leafLifetime` is a numeric family trait: one year by default and
-for oak, provisionally six for spruce; zero bears no leaves. Leaves expire at the
-exact lifetime boundary, including fractional years, while their wood survives.
-Station randomness is keyed by shoot identity. Unchanged wood reuses its cached
-transforms; changes to radii or neighboring contact polygons re-derive only the
-affected shoots. This timeline foliage path is not yet used by production. At year 173 it retains
-only 13 oak and 120 spruce placements before culling: leaves expire as new shoot
-births approach zero. The mature canopy has not converged; no renewal rule has
-been introduced.
-The chronicle redesign is in progress: persistent cohort foliage, historical
-reads, stamp-filtered change records and the history
-cap remain unfinished. Native change records still use the existing buffer diff.
+for oak, provisionally six for spruce; zero bears no leaves. Stations are spread
+across `ceil(leafLifetime)` annual cohort offsets, beginning at birth. A one-year
+lifetime fills immediately; a longer lifetime fills over its first years and
+then holds the same station identities while the shoot lives. Wood above the
+twig anatomy's bearing diameter carries no foliage. Station randomness is keyed
+by shoot identity. Unchanged wood reuses its cached transforms; changes to radii
+or neighboring contact polygons re-derive only the affected shoots. This timeline
+foliage path is not yet used by production. Cohort persistence fixes the earlier
+bare mature crowns; the structural convergence and visual judgment remain open.
+The chronicle redesign is in progress: historical reads are available;
+stamp-filtered change records and the history cap remain unfinished. Native change
+records still use the existing buffer diff for advances that grow wood.
 Snapshots and the wasm specimen handle also remain unfinished.
 Its pipe cache recomputes insertion/deletion ancestor paths. An ordered scale
 index visits structural wood only when its historical width can be exceeded;

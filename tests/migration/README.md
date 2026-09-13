@@ -73,7 +73,7 @@ The deleted TypeScript suites remain in Git at the pre-cleanup revision. This ma
 | fn-11 annual native growth | `src/branching/specimen/monthly_tests.rs`: fractional replay across five presets and blends, growing envelope, identity survival after twigs, pause/remainder, field/value errors, transactional node cap and recovery, frontier ordering and saturated-age timing |
 | fn-11 thickening and shedding | `src/branching/specimen/thickening_tests.rs`: tolerance boundary/recovery, snapshot/cap, stale identities, local thickening, structural death filtering, live shedding replay, numeric tolerance/apical loss |
 | fn-11 annual radius chronicle | `src/branching/specimen/keyframes/tests.rs`: ten-year jump versus yearly radius reads and interval frames, monotonicity through forks and shedding, accumulated resize tolerance, and annual history without output finalization; `src/params/tests.rs`: resize tolerance wire validation and blending |
-| fn-11 lifetime foliage (partial step 4) | `src/branching/specimen/foliage_tests.rs`: exact leaf-expiry boundaries, stable shoot/station identity after compaction and retirement, moved surface contacts, cached unchanged transforms and annual foliage replay; `src/params/tests.rs`: lifetime wire validation and blending |
+| fn-11 cohort foliage (partial step 4) | `src/branching/specimen/foliage_tests.rs`: exact cohort boundaries, persistent shoot/station identity after shedding, moved surface contacts, cached unchanged transforms and annual foliage replay; `src/branching/specimen/cohort_tests.rs`: mature foliage persistence, annual fill-in and bearing diameter; `src/params/tests.rs`: lifetime wire validation and blending |
 | fn-11 incremental cost | `src/branching/specimen/cost_tests.rs` and `src/radius/incremental.rs`: frontier-only vigour, cached exact crown depth, birth-range identity maintenance, structural insertion without local storage movement, grown-and-shed byte replay across packing boundaries, and no visits to structural wood below its historical width; `measurement.rs` records native full builds and annual cost by changed node count, with advance-boundary packing timed separately |
 | fn-11 slice bud release | `src/branching/scaffold/frontier.rs` and `src/branching/local/monthly_tests.rs`: lateral extension before leader completion, budget preserved on boundary pauses, local sites reconsidered on eligibility, separate terminal/lateral allocation, cached stations retained beyond the juvenile crown |
 | fn-11 native/wasm parity | `harness/parity.test.ts` with `examples/node_buffer.rs`: SHA-256 of node geometry and topology for all five presets; platform-math failures recorded before the pinned-libm change |
@@ -101,8 +101,9 @@ The annual timeline's native ownership lives in `src/branching/specimen/`:
 | Frozen dead records, unreused timeline slots, append-only vigour and attractor years | `chronicle_tests.rs`, `../scaffold/frontier.rs` |
 | Integer-clock replay, invalid ages, cap recovery, bounded saturated growth | `monthly_tests.rs` |
 | Monotone radii and shedding at the tolerance boundary | `thickening_tests.rs` |
-| Leaf lifetime, stable stations and cached neighboring surface contacts | `foliage_tests.rs` |
-| Exact run/placement change application, radius tolerance, rejected records naming runs, fractional expiry and signed-zero matrix bits | `change_tests.rs` |
+| Leaf cohorts, stable stations and cached neighboring surface contacts | `foliage_tests.rs`, `cohort_tests.rs` |
+| Historical reads against fresh growth, all presets and a blend, exact shoot histories and frontier errors | `history/tests.rs` |
+| Exact run/placement change application, radius tolerance, rejected records naming runs, exact cohort boundaries and signed-zero matrix bits | `change_tests.rs` |
 
 ## Changing a rule or an output
 

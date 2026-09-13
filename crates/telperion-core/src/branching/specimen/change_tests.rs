@@ -116,10 +116,16 @@ fn change_record_tolerance_suppresses_noise_without_drift() {
 }
 
 #[test]
-fn change_record_fractional_expiry_matches_cached_and_cold_reads() {
+fn change_record_cohort_boundary_matches_cached_and_cold_reads() {
     for cached in [false, true] {
         let (mut f, mut s, _) = super::foliage_tests::fixture(1.0);
-        f.growth.leaf_lifetime = 0.25;
+        f.growth.leaf_lifetime = 1.25;
+        // Saturated wood isolates the clock-only cohort path at an annual boundary.
+        s.tree.nodes[2].shoot.birth_year = crate::growth::MAX_AGE - 1.0;
+        s.timeline.as_mut().unwrap().age = crate::growth::Age {
+            slice: 999_999,
+            remainder: 0,
+        };
         s.timeline.as_mut().unwrap().foliage = crate::foliage::timeline::Foliage::new(&f).unwrap();
         let mut previous = s.buffers().unwrap();
         assert!(!previous.placements.is_empty());
@@ -130,15 +136,19 @@ fn change_record_fractional_expiry_matches_cached_and_cold_reads() {
         let before = super::tests::bytes(s.tree());
         let pause = s.advance(0.0).unwrap();
         assert_eq!(pause, ChangeRecord::default());
-        let early = s.advance(0.25 - 1.0 / 12_000_000_000.0).unwrap();
+        let early = s.advance(1.0 - 1.0 / 12_000_000_000.0).unwrap();
         assert_eq!(early, ChangeRecord::default());
-        let expiry = s.advance(1.0 / 12_000_000_000.0).unwrap();
-        assert_eq!(expiry.shed_placements.len(), previous.placements.len());
-        assert!(expiry.born_runs.is_empty() && expiry.resized_runs.is_empty());
+        let filled = s.advance(1.0 / 12_000_000_000.0).unwrap();
+        assert!(!filled.born_placements.is_empty());
+        assert!(filled.shed_placements.is_empty());
+        assert!(filled.born_runs.is_empty() && filled.resized_runs.is_empty());
         let fresh = s.buffers().unwrap();
-        assert!(fresh.placements.is_empty());
-        expiry.validate(&previous, &fresh).unwrap();
-        expiry.apply(&mut previous).unwrap();
+        assert_eq!(
+            fresh.placements.len(),
+            previous.placements.len() + filled.born_placements.len()
+        );
+        filled.validate(&previous, &fresh).unwrap();
+        filled.apply(&mut previous).unwrap();
         assert_eq!(previous, fresh);
         assert_eq!(super::tests::bytes(s.tree()), before);
     }

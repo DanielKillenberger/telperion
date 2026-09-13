@@ -14,6 +14,12 @@ pub(super) struct Keyframes {
 }
 
 impl Keyframes {
+    pub(super) fn at(&self, id: NodeIdentity, year: u64) -> Option<[f64; 3]> {
+        let frames = self.frames.get(id.key)?;
+        let end = frames.partition_point(|frame| frame.year <= year);
+        end.checked_sub(1).map(|index| frames[index].radii)
+    }
+
     fn record(&mut self, id: NodeIdentity, year: u64, mut radii: [f64; 3], tolerance: f64) {
         let frames = self.frames.entry(id.key).unwrap().or_default();
         if let Some(last) = frames.last() {

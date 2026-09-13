@@ -46,6 +46,7 @@ struct Wood {
 struct Cached {
     wood: Wood,
     placements: Vec<Placement>,
+    birth: Age,
 }
 #[derive(Clone, Default)]
 struct Cache {
@@ -65,6 +66,7 @@ pub(crate) struct Foliage {
     surface: SurfaceParams,
     seed: u32,
     lifetime: Age,
+    bearing_radius: f64,
     cache: RefCell<Cache>,
 }
 impl Foliage {
@@ -91,8 +93,29 @@ impl Foliage {
             surface: family.surface,
             seed: family.skeleton.seed,
             lifetime: Age::from_years(family.growth.leaf_lifetime)?,
+            bearing_radius: family.skeleton.twigs.resolved()?.twig.bearing_diameter / 2.0,
             cache: RefCell::new(Cache::default()),
         })
+    }
+
+    /// Historical reads own their cache, preserving frontier transforms for a
+    /// later clock-only fill. Copy only immutable traits, never cached foliage.
+    pub(crate) fn read_uncached(
+        &self,
+        tree: &Tree,
+        envelope: Envelope,
+        age: Age,
+    ) -> Result<Vec<Placement>> {
+        Self {
+            canopy: self.canopy,
+            twig: self.twig,
+            surface: self.surface,
+            seed: self.seed,
+            lifetime: self.lifetime,
+            bearing_radius: self.bearing_radius,
+            cache: RefCell::new(Cache::default()),
+        }
+        .read(tree, envelope, age)
     }
 
     pub fn read(&self, tree: &Tree, envelope: Envelope, age: Age) -> Result<Vec<Placement>> {
@@ -140,14 +163,22 @@ impl Foliage {
                 };
                 if cache.shoots.get(&id).is_none_or(|old| old.wood != wood) {
                     let placements = self.place_shoot(tree, i, envelope, contacts.as_ref())?;
-                    cache.shoots.insert(id, Cached { wood, placements });
+                    cache.shoots.insert(
+                        id,
+                        Cached {
+                            wood,
+                            placements,
+                            birth: Age::from_years(n.shoot.birth_year)?,
+                        },
+                    );
                     #[cfg(test)]
                     {
                         cache.derived += 1;
                     }
                 }
             }
-            count += cache.shoots[&id].placements.len();
+            let entry = &cache.shoots[&id];
+            count += self.visible(entry.birth, age, entry.placements.len());
             if count > self.canopy.max_instances {
                 return Err(Error::ResourceLimit("foliage instance budget"));
             }
@@ -159,47 +190,93 @@ impl Foliage {
         out.try_reserve(count)
             .map_err(|_| Error::ResourceLimit("foliage allocation"))?;
         for entry in cache.shoots.values() {
-            out.extend_from_slice(&entry.placements);
+            let count = self.visible(entry.birth, age, entry.placements.len());
+            out.extend_from_slice(&entry.placements[..count]);
         }
         Ok(out)
     }
-    /// Identity-set difference for a clock-only advance. Contact changes move
-    /// matrices but never add stations, so an uncached retiring shoot needs no
-    /// contact mesh just to name its stations. The cache remains read-owned.
-    pub(crate) fn expired(
+    /// Clock-only cohort births. Offsets are annual, so fractional ticks never
+    /// touch wood or derive a contact surface. A saturated shoot adds no work.
+    pub(crate) fn filled(
         &self,
         tree: &Tree,
         envelope: Envelope,
         before: Age,
         after: Age,
-    ) -> Result<Vec<PlacementIdentity>> {
-        if before == after {
+    ) -> Result<Vec<Placement>> {
+        if before.slice == after.slice {
             return Ok(Vec::new());
         }
-        let mut retired = Vec::new();
-        let cache = self.cache.borrow();
-        for i in self.living(tree, before)? {
+        let mut born = BTreeMap::new();
+        let mut total = 0;
+        for i in self.living(tree, after)? {
             let n = &tree.nodes[i];
-            let birth = Age::from_years(n.shoot.birth_year)?.ticks();
-            if after.ticks() - birth < self.lifetime.ticks() {
-                continue;
-            }
-            if let Some(entry) = cache.shoots.get(&n.identity) {
-                retired.extend(entry.placements.iter().map(|p| p.identity));
+            let birth = Age::from_years(n.shoot.birth_year)?;
+            let length = n
+                .position
+                .distance(tree.nodes[n.parent.unwrap() as usize].position);
+            let count = if length == 0.0 {
+                0
             } else {
-                retired.extend(
-                    self.place_shoot(tree, i, envelope, None)?
-                        .into_iter()
-                        .map(|p| p.identity),
-                );
+                (length / self.twig.internode_length - 1e-9).ceil().max(1.0) as usize
+                    * self.twig.stations_per_internode as usize
+            };
+            let start = self.visible(birth, before, count);
+            let end = self.visible(birth, after, count);
+            total += end;
+            if total > self.canopy.max_instances {
+                return Err(Error::ResourceLimit("foliage instance budget"));
+            }
+            if end > start {
+                born.insert(n.identity, (i, start..end));
             }
         }
-        retired.sort_unstable();
-        Ok(retired)
+        if born.is_empty() {
+            return Ok(Vec::new());
+        }
+        let cache = self.cache.borrow();
+        let contacts = if self.canopy.surface_contact > 0.0
+            && born.keys().any(|id| !cache.shoots.contains_key(id))
+        {
+            Some(AttachmentSurface::new(
+                tree,
+                envelope.height.max(1e-6),
+                &self.surface,
+            )?)
+        } else {
+            None
+        };
+        let mut out = Vec::new();
+        for (id, (i, range)) in born {
+            if let Some(entry) = cache.shoots.get(&id) {
+                out.extend_from_slice(&entry.placements[range]);
+            } else {
+                let placements = self.place_shoot(tree, i, envelope, contacts.as_ref())?;
+                out.extend_from_slice(&placements[range]);
+            }
+        }
+        Ok(out)
+    }
+
+    // Spread stations evenly over ceil(lifetime) annual cohorts. Offset zero
+    // flushes at birth; a one-year lifetime therefore fills immediately. Use
+    // integer ticks and products, even at the maximum supported lifetime.
+    fn visible(&self, birth: Age, age: Age, stations: usize) -> usize {
+        if self.lifetime.ticks() == 0 || age.ticks() < birth.ticks() {
+            return 0;
+        }
+        let cohorts = self.lifetime.slice + u64::from(self.lifetime.remainder > 0);
+        let years = (age.ticks() - birth.ticks())
+            / Age {
+                slice: 1,
+                remainder: 0,
+            }
+            .ticks();
+        ((u128::from((years + 1).min(cohorts)) * stations as u128).div_ceil(u128::from(cohorts)))
+            as usize
     }
     fn living(&self, tree: &Tree, age: Age) -> Result<Vec<usize>> {
         let now = age.ticks();
-        let lifetime = self.lifetime.ticks();
         let slender = tree
             .nodes
             .first()
@@ -208,11 +285,14 @@ impl Foliage {
         for (i, n) in tree.nodes.iter().enumerate() {
             if n.parent.is_some()
                 && self.canopy.size > 0.0
+                && self.lifetime.ticks() > 0
+                && n.radius.max(n.start_radius) <= self.bearing_radius
+                && n.shoot.death_year.is_none_or(|death| age.slice < death)
                 && (n.kind == NodeKind::Twig
                     || (slender > 0.0 && n.radius.max(n.start_radius) <= slender))
             {
                 let birth = Age::from_years(n.shoot.birth_year)?.ticks();
-                if now >= birth && now - birth < lifetime {
+                if now >= birth {
                     live.push(i);
                 }
             }
@@ -241,7 +321,12 @@ impl Foliage {
                 tree,
                 nodes: &nodes,
                 envelope,
-                params: self.canopy,
+                // The station budget still bounds this shoot. The instance
+                // budget applies to visible cohorts, checked by the reader.
+                params: CanopyParams {
+                    max_instances: usize::MAX,
+                    ..self.canopy
+                },
                 twig: Some(self.twig),
                 contacts,
             },

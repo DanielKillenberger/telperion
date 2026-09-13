@@ -7,6 +7,7 @@ use crate::{
 #[derive(Clone)]
 pub(super) struct Timeline {
     pub age: Age,
+    pub years: Vec<history::Year>,
     pub(super) unpacked: bool,
     pub(super) traits: GrowthTraits,
     mature_slice: u64,
@@ -26,6 +27,7 @@ impl Specimen {
         specimen.config.max_nodes = specimen.config.max_nodes.min(NODE_CEILING);
         specimen.timeline = Some(Timeline {
             age: Age::default(),
+            years: Vec::new(),
             unpacked: false,
             traits: family.growth,
             mature_slice: family.growth.mature_slice(),
@@ -78,15 +80,15 @@ impl Specimen {
         if !self.tree.nodes.is_empty()
             && target.slice.min(timeline.mature_slice) <= timeline.age.slice
         {
-            // Unchanged wood can only lose expired leaves. No contact surface,
-            // run-buffer copy or width solve is needed for this identity diff.
-            let shed_placements =
+            // Unchanged wood can only fill newly reached cohort offsets.
+            // Saturated cohorts need no contact surface or run-buffer copy.
+            let born_placements =
                 timeline
                     .foliage
-                    .expired(self.tree(), self.envelope(), timeline.age, target)?;
+                    .filled(self.tree(), self.envelope(), timeline.age, target)?;
             self.timeline.as_mut().unwrap().age = target;
             return Ok(ChangeRecord {
-                shed_placements,
+                born_placements,
                 ..ChangeRecord::default()
             });
         }
@@ -290,6 +292,11 @@ impl Specimen {
         )?;
         timeline.widths.invalidate();
         self.record_widths(slice, previous_len);
+        self.timeline.as_mut().unwrap().years.push(history::Year {
+            year: slice,
+            envelope,
+            diagnostics: self.tree.diagnostics,
+        });
         #[cfg(test)]
         self.cost.stamp(8, &mut clock);
         Ok(())

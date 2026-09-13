@@ -5,8 +5,10 @@ use slotmap::{DenseSlotMap, Key};
 mod changes;
 mod chronicle;
 mod crown;
+mod history;
 mod keyframes;
 pub use changes::{ChangeRecord, Run, RunNode, SpecimenBuffers, RADIUS_TOLERANCE};
+pub use history::SpecimenRead;
 #[cfg(test)]
 mod measurement;
 mod storage;
@@ -249,3 +251,6 @@ mod change_tests;
 
 #[cfg(test)]
 mod chronicle_tests;
+
+#[cfg(test)]
+mod cohort_tests;
