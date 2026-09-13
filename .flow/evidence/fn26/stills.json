@@ -4,9 +4,9 @@
     "scale": "trunk",
     "path": "/tmp/flow-handover-fn26/stills/oak-trunk.png",
     "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
-    "session": 5,
-    "capture": 3,
-    "sha256": "2d4d44fa8c7fd1832adc666d556f98c26b0dcfdf1ee98380bc5610c282b59504"
+    "session": 7,
+    "capture": 10,
+    "sha256": "d026f3e095329f8f50dcbb34d9ba0477e8107e65c5c18f7ffc1641b917aa7cc5"
   },
   {
     "species": "Oregon white oak",
@@ -39,10 +39,10 @@
     "species": "Norway spruce",
     "scale": "trunk",
     "path": "/tmp/flow-handover-fn26/stills/spruce-trunk.png",
-    "reference": "S-BRANCH",
-    "session": 4,
-    "capture": 6,
-    "sha256": "506ef140d9d939c109c26fecf6748caf892e1777e117b1b5f3d24373da3d592f"
+    "reference": "OWNER-NORWAY-SPRUCE (bark); lower trunk below first fork",
+    "session": 7,
+    "capture": 10,
+    "sha256": "aa4af859b86e1e6e3ddc6418d78c6a2588e836aa77d034c5681daceb676f52a3"
   },
   {
     "species": "Norway spruce",
@@ -76,17 +76,35 @@
     "scale": "trunk-2x-distance",
     "path": "/tmp/flow-handover-fn26/stills/oak-distance-2x-trunk.png",
     "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
-    "session": 5,
-    "capture": 4,
-    "sha256": "295ae971314c5f57ad780e8514b7ef50f3b6fdcaa86081bc38d76751b055cea8"
+    "session": 7,
+    "capture": 10,
+    "sha256": "ee9a59a49b86ccec0ccd9392c360fec65581274097cade419bb67077dc04c1ae"
   },
   {
     "species": "Oregon white oak",
     "scale": "trunk-4x-distance",
     "path": "/tmp/flow-handover-fn26/stills/oak-distance-4x-trunk.png",
     "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
-    "session": 5,
-    "capture": 5,
-    "sha256": "d8f0f998d836763977d212678a92032ed4705533a7c030125fcfe59363b064b9"
+    "session": 7,
+    "capture": 10,
+    "sha256": "e51d525caacfc834c616a694766c14eb931b618d4ccbeb6de272044cc932025c"
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "trunk-grazing",
+    "path": "/tmp/flow-handover-fn26/stills/oak-grazing-trunk.png",
+    "reference": "OWNER-WHITE-OAK; OWNER-BLACK-OAK",
+    "session": 7,
+    "capture": 10,
+    "sha256": "d663f7d5f249e1d9489fee02a54fe5745c36c4792434bcf5d4fca1a608f071f9"
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "trunk-grazing",
+    "path": "/tmp/flow-handover-fn26/stills/spruce-grazing-trunk.png",
+    "reference": "OWNER-NORWAY-SPRUCE; harness-spruce-grazing-streaks.png",
+    "session": 7,
+    "capture": 10,
+    "sha256": "96dbc0d123a355e01360384cef2d80db405911057703e2ce6facae8b28a1ac06"
   }
 ]

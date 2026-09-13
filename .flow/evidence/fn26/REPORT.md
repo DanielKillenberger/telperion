@@ -1,234 +1,266 @@
-# FN26: bark relief, leaf veins and transmission
+# FN26: grazing relief and physical footprint filtering
 
-2026-09-13, session 5. All five code gates pass, and the new resolution
-regression fails before this change and passes after it. **R5 is not cleared:**
-the valid native total p50 is **3.9276 ms**, above the 3.8 ms bound by
-**0.1276 ms**. The valid browser orbit also contains a **50 ms** worst frame.
-No filter was weakened or implementation changed after those clocks.
+2026-09-13, session 7. The four requested corrections and six final detail
+stills are implemented. Final native p50 is **3.6879 ms**, below 3.8 ms by
+**0.1121 ms**; the valid browser orbit delivers **601 frames in ten seconds**,
+wall p95 **16.7 ms**. All five final gates pass. All owner verdict
+slots remain blank; this report does not close the spec. The session-six
+blockers are absent; its report is archived as session6-REPORT.md.
 
-The final oak distance series is delivered. The final spruce row is implemented,
-but its replacement still remains outstanding: the one requested spruce capture
-was an internally rejected filtering diagnostic. Permission to replace it within
-the eight-capture limit was requested and has not arrived. Seven captures were
-used; one remains. R4 stays open. Every owner verdict slot below is blank.
+## What changed
 
-Changes remain for the host to commit. No git writes, .flow writes, agents,
-priority changes, owner-server changes or other-worktree edits were made.
+Columns and axial plate breaks now share one two-axis band rejection. Neither
+can survive alone after the other becomes unresolved. Normal slopes come from
+shared corner heights of the filtered field, with the physical footprint held
+fixed. A 3×3 grid supplies four shading cells with nine field evaluations,
+replacing twenty independent evaluations. Four outer corners supply one coarse
+box-averaged normal. The two lighting quadratures blend smoothly over three to
+two pixels per wavelength before reducing the sample count. This changes the
+integration cost without switching off the resolved height field.
 
-## Field and row
+The perturbed normal blends toward the original normal at grazing incidence:
+smoothstep(0,0.6,abs(N dot V)), weight 0.5 at cosine 0.3 and zero at tangency.
+Bounding the normal blend prevents a large slope from defeating the fade.
+The circle embedding's existing metre derivative is retained; a speculative
+facet-incidence multiplier was tested and rejected. All geometry derivatives
+are evaluated before non-uniform fragment branches, as Chromium requires.
 
-The two physical footprints are the axial distance fwidth and the sum of the
-screen derivatives' lengths of the radius-scaled circle embedding. This measures
-the coordinates read by the field in metres without an angular-wrap derivative.
-The arc footprint grows at grazing incidence. Each noise projection propagates
-those footprints through its own frequencies. Noise, ridges, plates and flakes
-fade toward constant mean levels; band amplitude falls smoothly between
-one-quarter and one-half wavelength per pixel. The fine flake uses the complete
-footprint of its warped axial coordinate and fades first.
+Completely unresolved or young/smooth bark takes one lighting evaluation,
+skipping constant-height differences. MSAA and the single original shadow
+lookup are unchanged.
 
-Every shoulder, outline and lifted edge uses smoothstep support at least as
-wide as the propagated footprint. The final filter also smooths the intrinsic
-profiles: full-strength shoulders span 0.28–0.32 ridge units, and axial edges
-have at least 0.15 interval units of half-width. This is a deliberate visible
-antialiasing tradeoff: merely widening sharp steps with the camera either
-failed resolution agreement or erased the plate faces. Adjacent axial plates
-contribute when their support overlaps a cut. Column boundaries retain zero
-height and slope; the rejected two-column seed blend is absent.
+No material row, light, shadow implementation, texture, vertex layout, radius
+upload, mesh, selection order, identity pin, leaf term or tolerance changes.
+The spruce row remains 0.020 m ridge scale, 0.030 m plate scale and 0.025 furrow
+strength; oak remains 0.032/0.055 m and strength 1.
 
-The surface-gradient normal takes symmetric physical-coordinate differences of
-the **filtered height**, holding the pixel footprint fixed. It does not
-differentiate an unfiltered height or turn camera-dependent filter changes into
-surface relief. Four explicit subpixel evaluations integrate the normal's
-nonlinear lighting. These are shading samples; geometry multisampling remains
-four, and the existing shadow lookup remains one per fragment using the
-original surface normal. No new light, texture, shadow model, displacement,
-vertex attribute, radius upload or mesh byte is introduced. Constant, unresolved
-bands and smooth young wood skip invisible calculations.
+## Distance filter and derivation
 
-| Material control | Oak | Spruce |
+The actual shader footprint F is measured in metres, separately across the
+radius-scaled circle and along the run: derivative-length sum and fwidth.
+For a wavelength L, q=F/L. Both axes share rejection
+1-smoothstep(0.5,1,max(q_across,q_along)): no whole-band fade above two pixels,
+50% retained at 1.333 pixels, and the constant mean at one pixel.
+
+Interpolated lattice noise has a shortest alternating wavelength of **two
+cells**, so its q is cell-footprint/2. Treating a cell as a wavelength was
+prematurely fading coordinate warps and moving coarse outlines between
+resolutions. Noise warps now remain intact while resolved; averaging is applied
+to their resulting height profiles and normal slopes, rather than additionally
+shrinking resolved warp amplitudes.
+
+A cubic edge of span s has derivative variance s²/20. A pixel box has variance
+F²/12. Additional box width is therefore sqrt(max(F²-0.6s²,0)), where 0.6=12/20.
+The shader integrates the cubic primitive x³-x⁴/2, with constant tails, about
+the original edge centre. The intrinsic edge is unchanged when its existing
+width covers the pixel. This retains plate faces and furrow locations instead
+of widening a shoulder only into the face until the face disappears.
+
+Removed high-frequency slope variance contributes through the existing
+roughness-detail row. Squared profile-slope estimates weight the fine flake,
+plate and furrow contributions; removed variance is 1 minus squared retained
+response. A polynomial sinc estimates the box response. This is a complement
+to retained relief, not a replacement for its low-frequency shapes.
+
+Facing-arc projection check, using the actual oak radius r=0.4109311114 m,
+stand-off d=6r and the unchanged 38-degree lens:
+F≈2(distance-r)tan(19°)/1000. The shader still uses local derivatives,
+including the larger grazing footprint; this table is a facing-arc sanity check.
+
+| Framing | F, mm/pixel | 32 mm columns, pixels | 55 mm intervals, pixels | Whole-band fade |
+|---|---:|---:|---:|---:|
+| Near | 1.414949 | 22.62 | 38.87 | 0% |
+| 2× | 3.112888 | 10.28 | 17.67 | 0% |
+| 4× | 6.508767 | 4.92 | 8.45 | 0% |
+
+The GPU distance fixture's 1.414/6.514 mm footprints match these estimates
+within 0.1%. Far height deviation is 0.000836467 m versus 0.000913929 m near
+(91.52% retained). Delivered stills show outlines at both 2× and 4×. The far
+frame no longer becomes a blank shiny trunk. The near frame retains the prior
+plate character and pose; grazing and fine filtering change some pixels, so
+**unchanged near appearance is not a claim of byte equality**. The intrinsic
+zero-footprint field and material values are retained.
+
+## Resolution and redraw evidence
+
+All comparisons use delivered sRGB RGB channels: exact 2×2 box reduction of
+1600×1000 versus native 800×500. Limits remain mean ≤3/255 and p95 ≤12/255.
+No registration, sharpening, tolerance change or comparison-image processing.
+
+The original near mask is unchanged (x=280..520, y=8..492). The new grazing
+mask is selected from a CPU perspective raster of the original wood: main-run
+pixels at view cosine 0.12..0.35, with occlusion and two-pixel coverage erosion.
+Oak has 6178 pixels; spruce 2962. The off-centre 20-degree camera targets y=2
+for oak and y=0.9 for spruce, below its first fork. Foreground twig pixels were
+caught by a detail-disabled control and excluded geometrically before fixing
+the final baseline. The 2×/4× comparisons use fixed interior trunk strips.
+
+| Test | Before: mean / p95 | Final: mean / p95 |
 |---|---:|---:|
-| Ridge scale, m | 0.032, unchanged | 0.020, previously 0.025 |
-| Plate scale, m | 0.055, unchanged | 0.030, previously 0.090 |
-| Furrow strength | 1.0 | 0.025 |
-| Bark RGB, linear | 0.225, 0.218, 0.198, unchanged | 0.147, 0.078, 0.045, unchanged |
-| Roughness detail | 0.12, unchanged | 0.16, unchanged |
+| Oak grazing | **5.013732 / 19.00 — fails** | **1.407319 / 5.25 — passes** |
+| Spruce grazing | 2.487593 / 7.75 | **0.842843 / 2.75 — passes** |
+| Original oak near | 2.655901 / 11.75 (session 5) | **1.293709 / 4.75** |
+| Oak 2× | — | **1.375550 / 4.75** |
+| Oak 4× | — | **2.992883 / 8.50** |
 
-**furrowStrength is the one added numeric term.** It controls furrow width and
-depth together, independently of plate and flake spacing. It is range-validated
-in 0–1, serialized, exposed through the generic panel and linearly blended like
-the other row values. Its default of one preserves older enabled rows. At zero
-the low scales retain narrow outlines. Presets remain value tables; no species
-branch is added. Spruce uses the upper part of the photograph's 1–3 cm range
-with very little broad furrow relief. Its colour remains fn-29's responsibility.
+Red: logs/session7-grazing-final-red.log. Spruce already passed the tolerance
+before correction; the combined regression fails on oak. Plain edge controls
+are 0.227609/0.50 (oak) and 0.335978/0.50 (spruce).
+Distance test red: logs/session7-distance-red.log (premature band rejection),
+and session7-distance-render.log (rendered 2× error). Final targeted green:
+logs/session7-uniform-derivatives.log. The 4× mean has only 0.007117/255
+margin; it is not presented as a loose pass. Intermediate failures remain in
+the notes. Browser compilation also has a retained red/green regression:
+logs/session7-browser-compile-red.log and session7-browser-compile-green.log.
+It compiles the actual renderer with Chromium and asserts no WGSL errors,
+without generating a frame or timing sample.
 
-The existing young-wood fade and girth strengthening remain. Leaf veins,
-transmission, selection ordering, leaf geometry and leaf stills are unchanged.
-The retained leaf observations remain: frontlit oak veins and margin tone,
-yellow-green backlit transmission with reduced vein contrast, and plain,
-nearly opaque backlit spruce needles.
+Identical near and grazing redraws move **zero channels, worst 0/255**.
+The original exact-equality assertions are untouched; logs/session7-final-redraw.log
+confirms all three existing look tests and zero moved channels, worst zero. Enabled/disabled wood
+hashes both remain **9238220531640137937**; original identity tests and physical
+field contracts are retained. Both unresolved-axis height deviations are zero.
 
-## Visual comparison and captures
+## Stills and reference comparison
 
-All stills are seed 7, 1600 × 1000, bare view, unchanged scene and geometry.
-The near oak uses the exact session-four camera:
-eye (1.7307636095778745, 2.2967023330704928, -1.7307636095778745),
-target (0, 2, 0), 38-degree field of view, near/far 0.01/1000.
-The other distances multiply the eye-to-target offset by two and four.
-No image is postprocessed. No capture inspected more than three images.
+All six final detail stills are 1600×1000, seed 7, bare view, with the original
+scene and geometry. No image postprocessing. The oak near camera is exactly
+the session-four/five camera; the distance series scales its eye-target offset.
 
-| Capture | Result | Path / log |
+| Final capture | Still | Judged beside / observation |
 |---|---|---|
-| 1 | Rejected spruce diagnostic: over-filtered, scales almost erased | discarded/session5-capture1-spruce-trunk.png; logs/session5-capture-1-spruce.log |
-| 2 | Rejected oak diagnostic: too smooth, isolated pinpricks | discarded/session5-capture2-oak-trunk.png; logs/session5-capture-2-oak-near.log |
-| 3 | Final oak, session-four framing | [oak-trunk.png](stills/oak-trunk.png); logs/session5-capture-3-oak-near.log |
-| 4 | Final oak, twice as far | [oak-distance-2x-trunk.png](stills/oak-distance-2x-trunk.png); logs/session5-capture-4-oak-2x.log |
-| 5 | Final oak, four times as far | [oak-distance-4x-trunk.png](stills/oak-distance-4x-trunk.png); logs/session5-capture-5-oak-4x.log |
-| 6 | Valid native clock; above budget | logs/session5-capture-6-native.log; incidental session5-native-hero.png not inspected |
-| 7 | Valid browser clock; 50 ms worst frame | logs/session5-capture-7-browser.log; no screenshot |
+| 10 | stills/oak-grazing-trunk.png | OWNER-WHITE-OAK, OWNER-BLACK-OAK; relief diminishes at the edge instead of continuing as rails |
+| 10 | stills/spruce-grazing-trunk.png | OWNER-NORWAY-SPRUCE and harness-spruce-grazing-streaks.png; shallow scales fade at tangency |
+| 10 | stills/oak-trunk.png | OWNER-WHITE-OAK, session-five near; same plate character and framing |
+| 10 | stills/oak-distance-2x-trunk.png | OWNER-WHITE-OAK; plate faces and furrows remain resolved |
+| 10 | stills/oak-distance-4x-trunk.png | OWNER-WHITE-OAK; visible outlines on trunk/root flare, without a glossier far appearance |
+| 10 | stills/spruce-trunk.png | OWNER-NORWAY-SPRUCE; target (0,0.65,0), stand-off 1.8 m, exposing scales below the first fork |
 
-At the original distance, raised scales and wandering furrows remain clearly
-visible. Compared with [session four](discarded/session4-final-oak-trunk.png),
-the edges are broader and rounder, the fine grain is quieter, and the sharp
-black/white steps have softened. It is not a claim of unchanged pixels or
-identical lifted lips. The field still looks cleaner and more regular than
-the owner's white-oak photograph. At 2x the scale pattern continues with less
-contrast toward the sides. At 4x the trunk is smooth with faint axial structure;
-no isolated sparkling grain is visible. Existing geometry and cast shadows
-remain exposed. Owner acceptance of this tradeoff is still required.
+Capture 10 refreshed every final still after the normal-sharing optimization
+and Chromium correction. Its four inspected images are both grazing views,
+the spruce trunk and the 4× oak. Final near and 2× images were compared
+numerically to the previously inspected same-pose images: mean RGB changes
+**0.619376/255** and **0.822292/255** in fixed trunk masks. Final near versus
+session five is **1.891480/255**; it is not byte-identical. Values and masks are
+in session7-still-comparison.json. No comparison image is saved or delivered
+as a still, and the source PNGs are unmodified.
 
-The initial spruce diagnostic was compared with the Norway-spruce photograph
-before the oak series. It failed the visual goal despite an intermediate numeric
-pass, so it was excluded from the verdict set. The prior session-four
-[spruce-trunk.png](stills/spruce-trunk.png) is restored unchanged and is explicitly
-**historical evidence, not a capture of the final row or shader**. A replacement
-was requested because the prompt permits one spruce capture; elapsed time is
-not permission. No second spruce capture has been taken.
+The spruce photograph has shallow, irregular 1–3 cm scales. The final row's
+2–3 cm scales and narrow outlines are visible in the replacement. Its brown
+colour, clean faces and more uniform vertical organisation still differ from
+the grey, weathered photograph. Oak likewise remains cleaner than its reference.
+These are exposed limitations, not accepting owner verdicts. Original twigs
+remain in every spruce image; no geometry was removed to obtain the view.
+The retained branch/leaf stills are historical and unchanged.
 
-The other seven original detail stills are unchanged: oak branch (session 4);
-spruce trunk (session 4); spruce branch and all four front/back leaf stills
-(session 2). Both branch stills predate this shader. The spruce foreground-twig
-obstruction and unresolved clear-socket framing request remain exposed.
-stills.json records all ten current/historical stills, their sessions and hashes.
+stills.json records twelve current/historical detail stills and their hashes.
+All five supplied reference filenames/provenance/checksums are recorded in
+session7-reference-metadata.json; reference bytes are never redistributed.
+Older O-BARE/O-LEAF/S-BRANCH/S-NEEDLE metadata remains in references.json.
+Capture 4 inspected exactly four images (three new views and the historical
+near); capture 10 inspected four. All others inspected at most two. No extra
+image views followed. **Ten of ten captures used**, with this complete ledger:
 
-## Resolution and redraw regression
+| Capture | Evidence process |
+|---|---|
+| 1 | Initial oak grazing, now archived before the shared-normal change |
+| 2 | Initial spruce grazing, likewise archived |
+| 3 | Rejected obstructed spruce camera; discarded/session7-capture3-spruce-obstructed.png |
+| 4 | Initial oak near/2×/4× series, three images in one process |
+| 5 | Initial lower spruce replacement, subsequently refreshed |
+| 6 | Valid native cost diagnostic, **4.5775 ms p50**, rejected for budget |
+| 7 | Valid shared-normal native clock, **3.6695 ms p50**, before derivative hoisting |
+| 8 | **Disjoint** browser orbit, rejected; Chromium rejected non-uniform derivative control flow |
+| 9 | Valid final browser orbit after the correction |
+| 10 | One sequential final evidence process: unchanged native timing protocol, then six detail stills |
 
-The retained test renders the actual oak at the pinned near camera at
-1600 × 1000 and 800 × 500. It compares the native smaller frame with an exact
-2 × 2 box average of the larger frame's delivered sRGB channels, with no
-registration, sharpening or image filtering beyond that box reduction.
+Initial detail stills remain in session7-before-shared-stills; the obstructed
+spruce diagnostic remains in discarded/. The incidental native hero at
+session7-native-hero.png was refreshed but never inspected or used for bark
+judgement. Compilation probes create no tree, frame, screenshot or clock and
+are tests, not evidence captures.
 
-The fixed, material-independent mask is x=280..520, y=8..492 at 800 × 500:
-116160 interior trunk pixels, including shade and the foreshortened right side,
-excluding geometric silhouettes, sky, ground and frame edges. Limits were
-chosen **before** the first measurement: mean absolute RGB error at most
-3/255 and channel p95 at most 12/255. They were never loosened.
+## R5 clocks
 
-| Shader | Mean error /255 | p95 error /255 | Outcome |
+The final native and browser measurements are valid. No contended result was
+returned or accepted. The disjoint browser result was diagnosed and replaced,
+not reported as R5 evidence. The first native result exceeded the bound and
+prompted the shared-height optimization; a final native clock follows the
+browser portability fix. All clocks ran sequentially, with no concurrent
+build, test or other timing process owned by this session. Prior CPU-only work
+on the shared machine was neither stopped nor reprioritized.
+
+| Native total | p50, ms | p95, ms | Verdict |
 |---|---:|---:|---|
-| Session four, before edits | 12.731650 | 48.25 | fails |
-| Final session five | 2.655901 | 11.75 | passes |
-| Detail-disabled diagnostic | 0.155721 | 0.50 | control only |
+| fn14 | 4.949 | 5.412 | historical valid |
+| fn27 | 3.4243 | 3.7484 | historical valid |
+| fn26 session 5 | 3.9276 | 4.4613 | valid, 0.1276 ms over 3.8 |
+| fn26 session 7 final | **3.6879** | **4.0284** | **valid, 0.1121 ms below 3.8** |
 
-Red log: logs/session5-resolution-red.log.
-Final green log: logs/session5-profile-green.log.
-The identical 800 × 500 trunk redraw moves **zero channels, worst 0/255**.
-The existing three look tests also pass with their exact-equality assertion
-unchanged: logs/session5-final-redraw.log reports zero moved channels, worst zero.
+Final native vegetation p50/p95 is **3.3085/3.6076 ms**, selection
+**0.1032/0.1055 ms**, unchanged shadow counter **0.2724/0.3113 ms**. Total p50
+improves session five by **0.2397 ms**. NVIDIA GeForce RTX 3080, NVIDIA
+610.57.04, Vulkan; 1600×1000, seed 7, whole view. The protocol remains one
+initial hero render, eight conditioning, eight warmup and 120 measured frames.
+Capture 10 invokes the same public measure function and Frame target used by
+the unmodified headless example, before rendering any detail stills.
 
-The additional production-field GPU contract failed on the saved session-four
-shader in logs/session5-axis-red.log: unresolved arc and axial variation both
-remained 0.000651567 m. The final shader gives zero variation for either
-unresolved axis. Closing furrows retains scale relief: height deviation
-0.000244849 m versus 0.000645047 m with full furrows. Existing wrap, physical
-spacing, young-wood and axial/girth assertions pass unchanged. The new row and
-panel assertions failed on the missing trait before implementation:
-logs/session5-row-red.log and logs/session5-panel-red.log; their final passes
-are in the complete gates below. Every intermediate rejection and correction
-is documented chronologically in child-notes.md.
+| Browser orbit | wall p50 / p95 / max, ms | GPU total p50 / p95, ms | Frames |
+|---|---|---|---:|
+| Session 5 | 10.00 / 10.10 / 50.00 | 3.9360 / 4.5773 | 992 |
+| Session 7 final | **16.70 / 16.70 / 16.80** | **3.7379 / 3.9265** | **601** |
 
-## R5 numbers
+The ten-second orbit meets wall p95 ≤16.7 ms and the existing 33 ms hitch guard.
+Its cadence is 60 fps rather than the prior session's approximately 100 fps;
+GPU cost is lower. The display-cadence difference is reported, not attributed
+to a confirmed cause. Chromium **153.0.8010.12**, NVIDIA/ampere WebGPU adapter,
+same launch flags, same isolated canvas on the owner's localhost:5175 server.
+Selection is **0.1085/0.1106 ms**. Browser wall values have 0.1 ms quantization.
 
-Both final clocks returned valid on their first measurement attempt. No
-contended verdict occurred or was accepted. All of this session's builds and
-tests had finished; another session's CPU-only species tests remained active.
-GPU utilization at preflight was 8–9% with existing desktop processes. Nothing
-was stopped or reprioritized. The values are shared-machine measurements;
-no causal or zero-cost claim is made from single sessions.
+Final records: oak-native-timing.json and oak-browser-orbit.json. Historical
+session-five records are preserved with the session5-final prefix. Rejected
+session-seven records are session7-first-native-timing.json and
+session7-disjoint-browser.json. The recovered pre-hoist native record is
+session7-shared-native-timing.json. Logs: session7-capture-9-browser.log and
+session7-capture-10-final.log under logs/.
 
-| Native whole view | Total p50, ms | Total p95, ms | Measurement verdict |
-|---|---:|---:|---|
-| fn14 | 4.949 | 5.412 | valid |
-| fn27 | 3.4243 | 3.7484 | valid |
-| fn26 session 3 | 3.5323 | 3.8410 | valid |
-| fn26 session 4 | 3.5656 | 3.8853 | valid |
-| fn26 session 5 | **3.9276** | **4.4613** | valid; **over budget** |
+## Gates and boundaries
 
-Native p50 rose 0.3620 ms and exceeds the 3.8 ms bound by 0.1276 ms.
-Vegetation p50/p95 is 3.5451/4.0550 ms; selection 0.1034/0.1050 ms.
-The unchanged shadow counter reports 0.2775/0.3041 ms. NVIDIA GeForce RTX 3080,
-NVIDIA 610.57.04, Vulkan. Record: oak-native-timing.json.
-The normal native protocol is unchanged: eight conditioning, eight warmup,
-120 measured frames, whole-tree hero pose.
+- Formatting: logs/session7-final-gate-fmt.log, exit 0.
+- Clippy: logs/session7-final-gate-clippy.log, exit 0; fixed the new test's chunk API without suppression.
+- Full release workspace: logs/session7-final-gate-rust-confirmed.log, exit 0 (also recorded in session7-final-gate-rust.exit).
+- Explicit wasm build and npm test: logs/session7-final-gate-npm.log, exit 0, 66 tests; full command output.
+- Typecheck: logs/session7-final-gate-typecheck.log, exit 0.
 
-| Browser oak orbit | Wall p50, ms | Wall p95, ms | Wall max, ms | Frames | Measurement verdict |
-|---|---:|---:|---:|---:|---|
-| fn14 | 10.00 | 10.10 | 10.20 | 999 | valid |
-| fn27 | 10.00 | 10.10 | 10.20 | 999 | valid |
-| fn26 session 4 | 10.00 | 10.10 | 10.10 | 999 | valid |
-| fn26 session 5 | **10.00** | **10.10** | **50.00** | **992** | valid |
+The first final Rust wrapper returned 143 after all suites reported success.
+That attempt is retained but does not count as a green gate. The exact command
+was rerun without code or flag changes and exited zero, explicitly recorded
+in session7-final-gate-rust.exit.
 
-Browser GPU total p50/p95 is **3.9360/4.5773 ms**, versus 3.6457/5.0596 ms
-previously. Selection is 0.1085/0.1116 ms. Wall p95 is below 16.7 ms, but
-the 50 ms worst frame exceeds the prior 33 ms hitch guard. Its cause is not
-established. Record: oak-browser-orbit.json, including Chromium version,
-flags, WebGPU details and 0.1 ms wall-clock quantization. The existing isolated
-canvas ten-second orbit used the owner's localhost:5175 server after the native
-process exited. The server remains running.
+render:build ran after shader changes, most recently during the npm gates.
+No production shading change follows the delivered stills. Temporary capture
+source was copied into the handover and removed from the worktree. Changes
+remain uncommitted for the host. No .flow writes, agents, other-worktree edits,
+priority changes, or changes to the owner's port-5175 server.
 
-Previous final records are preserved as session4-final-native-timing.json and
-session4-final-browser-orbit.json. **No implementation change or weaker filter
-follows these failed R5 limits.**
+Additional browser regression: `BROWSER_URL=http://localhost:5175 node
+tests/browser/bark-shader.mjs`, red before derivative hoisting, then green.
+Chromium compilation info caught an error accepted by native validation.
 
-## Gates, references and deviations
-
-All five required gates exit zero for the final code:
-
-- logs/session5-final-gate-fmt.log
-- logs/session5-final-gate-clippy.log
-- logs/session5-final-gate-rust.log
-- logs/session5-verified-gate-npm.log: explicit wasm build and npm test; 66 tests pass
-- logs/session5-final-gate-typecheck.log
-
-npm run render:build was run after shader changes; the final explicit rebuild
-is logs/session5-profile-render-build.log, also repeated by the final npm gates.
-The temporary Rust capture example was removed before final gates. No code
-in production changed after final capture 3. No test, assertion, identity pin or lint was
-weakened. Authored changed Rust/shader/test files remain under 400 lines.
-The pre-existing generated preset catalogue remains a value-data exception:
-878 lines, formerly 872; splitting its generator would broaden this correction.
-
-The extra intrinsic edge smoothing and four subpixel lighting evaluations are
-departures from a minimal amplitude-only filter, required here to meet the
-unchanged resolution tolerance while retaining visible relief. Their visual
-rounding and measured R5 failure are reported, not hidden. Native performance
-and the final spruce still remain unresolved; this report does not close the spec.
-
-References are owner-supplied local files, never redistributed:
-OWNER-WHITE-OAK, OWNER-BLACK-OAK and OWNER-NORWAY-SPRUCE under .refs/fn26/.
-Their filenames, provenance and SHA-256 values are in
-session5-reference-metadata.json. The Norway-spruce SHA-256 is
-e5b82a73eb7094d68f8ab407358b11de6780f7eb95165c528245960dc77d9691.
-The earlier O-BARE/O-LEAF/S-BRANCH/S-NEEDLE sources and checksums remain in
-references.json and the archived session4-REPORT.md. S-BRANCH is not a bark
-close-up; the owner photograph is the appropriate spruce-scale reference.
+Validation scheduling differs from the requested item order: final clocks
+follow the distance correction so that R5 measures the final shader. Spruce
+framing was lowered after rejecting the inherited obstructed camera. The final evidence
+process combines the native clock and six stills, with only four images viewed,
+within the ten-capture limit. Earlier distance-series processes also produced
+multiple images, consistent with the earlier multi-view evidence protocol.
 
 ## Owner verdict
 
 | Species | Scale | Reference | Owner verdict |
 |---|---|---|---|
-| Oregon white oak | trunk | OWNER-WHITE-OAK; O-BARE | |
+| Oregon white oak | trunk, distance, grazing | OWNER-WHITE-OAK; OWNER-BLACK-OAK; O-BARE | |
 | Oregon white oak | branch/socket | OWNER-WHITE-OAK; O-BARE | |
 | Oregon white oak | leaf | O-LEAF | |
-| Norway spruce | trunk | OWNER-NORWAY-SPRUCE; S-BRANCH | |
+| Norway spruce | trunk, grazing | OWNER-NORWAY-SPRUCE | |
 | Norway spruce | branch/socket | S-BRANCH | |
 | Norway spruce | needle | S-NEEDLE | |

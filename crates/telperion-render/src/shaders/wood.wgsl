@@ -39,38 +39,27 @@ fn bark_height(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>)
 
 // Surface-gradient bump mapping needs no tangent attribute and displaces no
 // vertex. The determinant handles either orientation of the screen axes.
-fn bark_normal(n: vec3<f32>, world: vec3<f32>, circle: vec2<f32>, along: f32,
-    radius: f32, footprint: vec2<f32>) -> vec3<f32> {
-    // The hardware's 2x2 difference puts both pixels' slope halfway between
-    // them, which crawls even for a band-limited height. Differentiate the
-    // SAME filtered field symmetrically at the fragment instead. Hold the
-    // footprint fixed: changing the camera's filter is not surface relief.
-    let step = max(u.bark_detail.x * 0.002, 0.000001);
-    let tangent = vec2(-circle.y, circle.x);
-    let offset = tangent * (step / max(radius, 0.0001));
-    let across = (bark_height(normalize(circle + offset), along, radius, footprint)
-        - bark_height(normalize(circle - offset), along, radius, footprint)) / (2.0 * step);
-    let axial = (bark_height(circle, along + step, radius, footprint)
-        - bark_height(circle, along - step, radius, footprint)) / (2.0 * step);
-    let hx = across * radius * dot(dpdx(circle), tangent) + axial * dpdx(along);
-    let hy = across * radius * dot(dpdy(circle), tangent) + axial * dpdy(along);
-    let dx = dpdx(world);
-    let dy = dpdy(world);
+fn bark_normal(n: vec3<f32>, world: vec3<f32>, dx: vec3<f32>, dy: vec3<f32>,
+    height_x: f32, height_y: f32) -> vec3<f32> {
     let rx = cross(dy, n);
     let ry = cross(n, dx);
     let det = dot(dx, rx);
-    let gradient = hx * rx + hy * ry;
-    return normalize(n - gradient * sign(det) / max(abs(det), 1e-10));
+    // Relief cannot keep its full shading slope at a grazing silhouette.
+    // Blend the resulting normal so large slopes cannot defeat visibility.
+    let facing = abs(dot(n, normalize(u.eye.xyz - world)));
+    let gradient = height_x * rx + height_y * ry;
+    let perturbed = normalize(n - gradient * sign(det) / max(abs(det), 1e-10));
+    return normalize(mix(n, perturbed, smoothstep(0.0, 0.6, facing)));
 }
 
-fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32) -> vec3<f32> {
+fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32, variance: f32) -> vec3<f32> {
     let sun = u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * shadow;
     // Roughness is what a surface does with the sun it does not scatter: chalk
     // spreads it over the whole face, a smooth young bark keeps a narrow sheen
     // along the light. One lobe, no second light - the sun is the only thing
     // bright enough to glance off a trunk.
     let detail = height / max(0.055 * u.bark_detail.x, 0.0001);
-    let gloss = 1.0 - clamp(u.bark.w + u.bark_detail.z * detail, 0.0, 1.0);
+    let gloss = 1.0 - clamp(u.bark.w + u.bark_detail.z * (detail + variance), 0.0, 1.0);
     let half_way = normalize(normalize(u.eye.xyz - world) + u.sun_direction.xyz);
     let sheen = gloss * pow(max(dot(n, half_way), 0.0), exp2(1.0 + 10.0 * gloss));
     return u.bark.rgb * (ambient(n) + sun) + sun * sheen;
@@ -85,22 +74,63 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let circle = normalize(in.surface.yz);
     let arc = circle * in.radius;
     let footprint = vec2(length(dpdx(arc)) + length(dpdy(arc)), fwidth(in.surface.x));
+    // Evaluate geometry derivatives before any per-fragment shortcut. WGSL
+    // derivatives require uniform control flow, including in Chromium.
+    let dx = dpdx(in.world);
+    let dy = dpdy(in.world);
     let sx = dpdx(in.surface);
     let sy = dpdy(in.surface);
     let shadow = sunlight(in.world, base_normal);
-    var lit = vec3(0.0);
-    // Integrate shading, whose clamped cosine and sheen are nonlinear in the
-    // normal. Each subpixel still differentiates a footprint-filtered height.
-    // Geometry coverage and the existing single shadow lookup stay unchanged.
-    for (var y = 0; y < 2; y++) {
-        for (var x = 0; x < 2; x++) {
-            let coord = in.surface + (f32(x) * 0.5 - 0.25) * sx + (f32(y) * 0.5 - 0.25) * sy;
-            let unit = normalize(coord.yz);
-            let height = bark_height(unit, coord.x, in.radius, footprint);
-            let perturbed = bark_normal(base_normal, in.world, unit, coord.x, in.radius, footprint);
-            let n = select(base_normal, perturbed, any(u.bark_detail.xy > vec2<f32>(0.0)));
-            lit += bark_light(n, height, in.world, shadow);
+    let spacing = clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0);
+    let pixel = footprint / max(vec2(u.bark_detail.x, spacing), vec2(0.000001));
+    let band = max(pixel.x, pixel.y);
+    // Lost high-frequency slope variance remains a roughness contribution.
+    // The same numeric row controls it; fully resolved and young wood add none.
+    let fine = max(pixel.x / 0.19, pixel.y / 0.19 + pixel.x * 5.64);
+    let retained = bark_box(fine) * bark_pass(fine);
+    let fine_slope = 0.012 / (0.19 * 0.3);
+    let broad_slope = 0.095 * u.bark_detail.w / mix(0.04, 0.28, u.bark_detail.w);
+    let coarse = bark_pass(band);
+    let variance = (fine_slope * fine_slope * (1.0 - retained * retained)
+        + (broad_slope * broad_slope + 0.05 * 0.05 / (0.3 * 0.3)) * (1.0 - coarse * coarse))
+        * smoothstep(2.0, 5.0, 2.0 * in.radius / max(u.bark_detail.x, 0.000001))
+        * select(0.0, 1.0, u.bark_detail.x > 0.0);
+    // Constant height has zero gradient. Shade it once, avoiding twenty
+    // redundant field evaluations and four identical lighting evaluations.
+    if (u.bark_detail.x <= 0.0 || in.radius <= u.bark_detail.x || band >= 1.0) {
+        let height = bark_height(circle, in.surface.x, in.radius, footprint);
+        return vec4<f32>(tone(bark_light(base_normal, height, in.world, shadow, variance)), 1.0);
+    }
+    // Adjacent shading cells share their corner heights. Nine evaluations
+    // integrate four normals; the coarse cell needs only its four corners.
+    // The coarse rule is blended in over three-to-two pixels per wavelength,
+    // before reducing sample count, so the cost boundary cannot pop the light.
+    let coarse_weight = smoothstep(1.0 / 3.0, 0.5, band);
+    let cells = select(2, 1, coarse_weight >= 1.0);
+    var heights: array<f32, 9>;
+    for (var y = 0; y <= cells; y++) {
+        for (var x = 0; x <= cells; x++) {
+            let coord = in.surface + (f32(x) / f32(cells) - 0.5) * sx
+                + (f32(y) / f32(cells) - 0.5) * sy;
+            heights[y * 3 + x] = bark_height(normalize(coord.yz), coord.x, in.radius, footprint);
         }
     }
-    return vec4<f32>(tone(lit * 0.25), 1.0);
+    let corners = vec4(heights[0], heights[cells], heights[cells * 3], heights[cells * 4]);
+    let coarse_normal = bark_normal(base_normal, in.world, dx, dy,
+        0.5 * (corners.y + corners.w - corners.x - corners.z),
+        0.5 * (corners.z + corners.w - corners.x - corners.y));
+    let coarse_light = bark_light(coarse_normal, dot(corners, vec4(0.25)), in.world, shadow, variance);
+    if (cells == 1) { return vec4<f32>(tone(coarse_light), 1.0); }
+    var lit = vec3(0.0);
+    for (var y = 0; y < 2; y++) {
+        for (var x = 0; x < 2; x++) {
+            let h = vec4(heights[y * 3 + x], heights[y * 3 + x + 1],
+                heights[(y + 1) * 3 + x], heights[(y + 1) * 3 + x + 1]);
+            // Average the two differences, divided by a half-pixel cell.
+            let n = bark_normal(base_normal, in.world, dx, dy,
+                h.y + h.w - h.x - h.z, h.z + h.w - h.x - h.y);
+            lit += bark_light(n, dot(h, vec4(0.25)), in.world, shadow, variance);
+        }
+    }
+    return vec4<f32>(tone(mix(lit * 0.25, coarse_light, coarse_weight)), 1.0);
 }
