@@ -209,7 +209,6 @@ impl Pipes {
 
     /// Preserve unchanged fork reductions through compaction. Only ancestors of
     /// a removed structural child are invalidated; no full pipe solve on a cut.
-    #[cfg(test)]
     pub fn remap(&mut self, tree: &Tree, map: &[Option<u32>]) {
         self.pending = self
             .pending
@@ -222,7 +221,7 @@ impl Pipes {
             .filter_map(|&i| map[i].map(|i| i as usize))
             .collect();
         for (i, n) in tree.nodes.iter().enumerate() {
-            if n.kind == NodeKind::Structural && map[i].is_none() {
+            if n.kind == NodeKind::Structural && n.shoot.death_year.is_none() && map[i].is_none() {
                 let mut at = n.parent.map(|p| p as usize);
                 while let Some(j) = at {
                     if let Some(new) = map[j] {
@@ -258,7 +257,6 @@ impl Pipes {
     }
 }
 
-#[cfg(test)]
 fn remap_values<T: Copy>(values: &mut Vec<T>, map: &[Option<u32>], count: usize, default: T) {
     let mut remapped = Vec::with_capacity(values.capacity().max(count));
     remapped.resize(count, default);

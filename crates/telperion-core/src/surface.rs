@@ -2,9 +2,11 @@
 use crate::math::Transcendental;
 use crate::{math::Vec3, tree::Tree, Error, Result};
 mod attachment;
+mod dependencies;
 mod frames;
 mod paths;
 pub(crate) use attachment::AttachmentSurface;
+pub(crate) use dependencies::affected as affected_contacts;
 use frames::frames;
 use paths::paths;
 /// One complete surface run, in descending order of its largest sample radius.

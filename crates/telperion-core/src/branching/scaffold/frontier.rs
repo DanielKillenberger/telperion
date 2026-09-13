@@ -38,7 +38,6 @@ impl Frontier {
             points,
         }
     }
-    #[cfg(test)]
     pub(in crate::branching) fn remap(&mut self, map: &[Option<u32>]) {
         fn remap_axis(a: &mut Axis, map: &[Option<u32>]) -> bool {
             let (Some(at), Some(tip)) = (map[a.at], map[a.tip]) else {

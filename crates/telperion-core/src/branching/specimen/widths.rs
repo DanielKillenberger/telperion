@@ -17,6 +17,19 @@ pub(super) struct Widths {
     cache: std::cell::RefCell<SecondaryMap<NodeKey, (u64, [f64; 3])>>,
 }
 impl Widths {
+    pub(super) fn forget(&mut self, removed: &[NodeIdentity], ids: &DenseSlotMap<NodeKey, usize>) {
+        for &id in removed {
+            self.children.remove(id.key);
+            self.pending.remove(&id);
+            self.queued.remove(id.key);
+            self.recorded.remove(id.key);
+            self.cache.borrow_mut().remove(id.key);
+        }
+        for (_, children) in self.children.iter_mut() {
+            children.retain(|id| ids[id.key] != usize::MAX);
+        }
+    }
+
     pub fn invalidate(&mut self) {
         self.generation += 1;
     }

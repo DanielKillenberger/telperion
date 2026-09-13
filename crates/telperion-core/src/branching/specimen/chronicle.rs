@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 pub(super) struct Links {
     pub parent: Option<NodeIdentity>,
     pub run: NodeIdentity,
-    children: Vec<NodeIdentity>,
+    pub(super) children: Vec<NodeIdentity>,
 }
 impl Specimen {
     pub(super) fn link_births(&mut self, born: &[usize]) {

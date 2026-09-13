@@ -21,9 +21,14 @@ impl Specimen {
     /// Build from a seedling through the exact annual path used by `advance`.
     /// The legacy envelope builder remains available through `grow`.
     pub fn build(family: &Family) -> Result<Self> {
+        Self::build_with_history_cap(family, retention::DEFAULT_HISTORY_CAP)
+    }
+    pub fn build_with_history_cap(family: &Family, cap: f64) -> Result<Self> {
+        let cap = retention::checked_cap(cap)?;
         Age::from_years(family.age)?;
         family.growth.validate()?;
         let mut specimen = Self::new(&family.skeleton, family.radii)?;
+        specimen.retention.cap = cap;
         specimen.config.max_nodes = specimen.config.max_nodes.min(NODE_CEILING);
         specimen.timeline = Some(Timeline {
             age: Age::default(),
@@ -45,6 +50,7 @@ impl Specimen {
         } else {
             specimen.advance_growth(family.age)?;
         }
+        specimen.compact_history();
         Ok(specimen)
     }
     /// Leaf stations in identity order, before optional canopy shell culling.
@@ -87,25 +93,22 @@ impl Specimen {
                     .foliage
                     .filled(self.tree(), self.envelope(), timeline.age, target)?;
             self.timeline.as_mut().unwrap().age = target;
+            self.compact_history();
             return Ok(ChangeRecord {
                 born_placements,
                 ..ChangeRecord::default()
             });
         }
-        #[cfg(test)]
-        let clock = std::time::Instant::now();
-        let previous = self.buffers()?;
-        #[cfg(test)]
-        let reading = clock.elapsed();
+        let from = timeline.age;
         self.advance_growth(years)?;
         #[cfg(test)]
         let clock = std::time::Instant::now();
-        let changes = ChangeRecord::between(&previous, &self.buffers()?);
-        drop(previous);
+        let changes = self.interval(from, self.timeline.as_ref().unwrap().age)?;
         #[cfg(test)]
         {
-            self.cost.changes = reading + clock.elapsed();
+            self.cost.changes = clock.elapsed();
         }
+        self.compact_history();
         Ok(changes)
     }
     pub(super) fn advance_growth(&mut self, years: f64) -> Result<()> {
@@ -162,17 +165,18 @@ impl Specimen {
     /// Raising a ceiling unblocks the rolled-back frontier; limits are resources,
     /// not growth traits, and do not change the annual budget.
     pub fn set_node_ceiling(&mut self, limit: usize) -> Result<()> {
-        if limit > NODE_CEILING || limit < self.tree.nodes.len() {
+        if limit > NODE_CEILING || limit < self.tree.nodes.len() + self.retention.dead.len() {
             return Err(Error::InvalidValue {
                 field: "node ceiling",
                 value: limit.to_string(),
             });
         }
+        let retained_limit = limit - self.retention.dead.len();
         self.read.take();
-        if limit > self.config.max_nodes {
+        if retained_limit > self.config.max_nodes {
             self.tree.diagnostics.node_capped = false;
         }
-        self.config.max_nodes = limit;
+        self.config.max_nodes = retained_limit;
         self.params.growth.max_nodes = Some(limit);
         Ok(())
     }

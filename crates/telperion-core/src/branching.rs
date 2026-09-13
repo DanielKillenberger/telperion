@@ -16,9 +16,7 @@ use crate::{
     Error, Result,
 };
 pub use local::append;
-pub use specimen::{
-    ChangeRecord, Run, RunNode, Specimen, SpecimenBuffers, SpecimenRead, RADIUS_TOLERANCE,
-};
+pub use specimen::{ChangeRecord, Run, RunNode, Specimen, SpecimenBuffers, SpecimenRead};
 pub use traits::HabitParams;
 pub const NODE_CEILING: usize = 250_000;
 pub const DEFAULT_STEP: f64 = 0.022;

@@ -14,13 +14,43 @@ pub(super) struct Keyframes {
 }
 
 impl Keyframes {
+    pub(super) fn forget(&mut self, id: NodeIdentity) {
+        self.frames.remove(id.key);
+        self.pending.remove(&id);
+    }
+
     pub(super) fn at(&self, id: NodeIdentity, year: u64) -> Option<[f64; 3]> {
         let frames = self.frames.get(id.key)?;
+        if let Some(last) = frames.last().filter(|frame| frame.year <= year) {
+            return Some(last.radii);
+        }
         let end = frames.partition_point(|frame| frame.year <= year);
         end.checked_sub(1).map(|index| frames[index].radii)
     }
 
-    fn record(&mut self, id: NodeIdentity, year: u64, mut radii: [f64; 3], tolerance: f64) {
+    pub(super) fn changed(&self, id: NodeIdentity, lo: u64, hi: u64) -> bool {
+        self.frames.get(id.key).is_some_and(|frames| {
+            let Some(last) = frames.last() else {
+                return false;
+            };
+            if last.year <= lo {
+                return false;
+            }
+            if last.year <= hi {
+                return true;
+            }
+            let first = frames.partition_point(|frame| frame.year <= lo);
+            frames.get(first).is_some_and(|frame| frame.year <= hi)
+        })
+    }
+
+    pub(super) fn record(
+        &mut self,
+        id: NodeIdentity,
+        year: u64,
+        mut radii: [f64; 3],
+        tolerance: f64,
+    ) {
         let frames = self.frames.entry(id.key).unwrap().or_default();
         if let Some(last) = frames.last() {
             for (radius, old) in radii.iter_mut().zip(last.radii) {

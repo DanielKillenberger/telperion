@@ -87,10 +87,9 @@ Each native advance returns born, resized and shed runs and born, moved and shed
 leaf placements. `buffers()` reads those outputs in identity order. To check a
 record, call `changes.validate(&previous_buffers, &tree.buffers()?)` before applying
 it; a mismatch names the run's birth identity. Application needs no fresh read.
-Run-buffer radii use a fixed one-nanometre grid, recorded as `radius_tolerance`,
-so imperceptible radius noise does not report a resize and repeated small changes
-cannot drift away from a fresh read. Raw skeleton and mesh radii retain their
-precision. Placement matrices reconcile bit for bit, including movement caused
+Run-buffer radii are exact canonical keyframe values; the family's resize
+tolerance controls frame creation without a separate consumer rounding grid.
+Placement matrices reconcile bit for bit, including movement caused
 by an adjacent branch changing a surface-contact polygon. A clock-only advance
 returns newly reached cohorts, deriving transforms only for their shoots.
 Once those cohorts are full, clock-only advances derive no placements.
@@ -150,10 +149,18 @@ by shoot identity. Unchanged wood reuses its cached transforms; changes to radii
 or neighboring contact polygons re-derive only the affected shoots. This timeline
 foliage path is not yet used by production. Cohort persistence fixes the earlier
 bare mature crowns; the structural convergence and visual judgment remain open.
-The chronicle redesign is in progress: historical reads are available;
-stamp-filtered change records and the history cap remain unfinished. Native change
-records still use the existing buffer diff for advances that grow wood.
-Snapshots and the wasm specimen handle also remain unfinished.
+`Specimen::changes_between(from, to)` filters birth/death years, radius frames
+and cohort offsets in either direction. Growing advances use the same filter.
+Records carry exact keyframe radii and selected station transforms, including
+motion caused by neighboring contact paths; no whole-buffer diff is computed.
+`ChangeRecord::apply` updates identity-keyed consumer buffers atomically.
+`build_with_history_cap(family, years)` and `set_history_cap(years)` set retention;
+the default is 10,000 years. Reads older than the retained window refuse with the
+cap and earliest available age. Increasing the cap cannot restore discarded data.
+Compaction drops old dead geometry, shoot histories, radius frames and placements,
+retaining a compact death index for the cumulative shed set and reserving identity
+slots. It preserves frontier bytes, later growth and node-ceiling behavior.
+Snapshots, the wasm specimen handle and browser timeline controls remain unfinished.
 Its pipe cache recomputes insertion/deletion ancestor paths. An ordered scale
 index visits structural wood only when its historical width can be exceeded;
 local width changes propagate to descendants in birth order. Crown exposure uses
@@ -164,13 +171,13 @@ refreshes the live crown and propagates descendant support.
 Structural births append without moving local storage inside a slice. Internal
 frontiers and pipe reductions use node kinds. Consumer reads lazily pack a
 structural-first view without moving the retained frontiers' storage.
-Generational slots retire in birth order so packing boundaries cannot change
+Chronicle slots are never reused, so retention boundaries cannot change
 future handles. Local seeding retains unallocated stations and structural child
 counts.
 Full-tree validation remains available to callers; annual mutations validate
 new or resized nodes. Native cost measurements, including sparse and dense
 changes on large trees, run with
-`FN11_MEASURE=1 cargo test --release -p telperion-core --lib monthly_cost_report -- --nocapture --test-threads=1`.
+`FN11_MEASURE=1 cargo test --release -p telperion-core --lib monthly_cost_report -- --nocapture`.
 The command retains its historical name; it now measures annual slices. Widths
 finalize once per advance from the annual radius keyframes;
 consumer packing is lazy and timed separately. Fixed-geometry shoots sleep until

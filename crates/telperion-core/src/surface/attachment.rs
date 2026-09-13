@@ -10,6 +10,17 @@ pub(crate) struct AttachmentSurface {
 }
 impl AttachmentSurface {
     pub(crate) fn new(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Self> {
+        Self::selected(tree, height, params, None)
+    }
+
+    /// Derive only sweep paths used by the selected shoots. Topology and frames
+    /// are identical to the whole surface, including neighbouring segments.
+    pub(crate) fn selected(
+        tree: &Tree,
+        height: f64,
+        params: &SurfaceParams,
+        selected: Option<&std::collections::BTreeSet<crate::tree::NodeIdentity>>,
+    ) -> Result<Self> {
         tree.validate_solved()?;
         params.validate()?;
         if !height.is_finite() || height <= 0.0 {
@@ -41,6 +52,14 @@ impl AttachmentSurface {
         let mut scratch = Vec::new();
         for path in paths.runs {
             let nodes = &paths.nodes[path.start..path.end];
+            if selected.is_some_and(|ids| {
+                !nodes
+                    .iter()
+                    .skip(1)
+                    .any(|&i| ids.contains(&tree.nodes[i].identity))
+            }) {
+                continue;
+            }
             sample_path(
                 tree,
                 height,

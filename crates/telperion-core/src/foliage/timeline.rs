@@ -70,6 +70,14 @@ pub(crate) struct Foliage {
     cache: RefCell<Cache>,
 }
 impl Foliage {
+    pub(crate) fn forget(&self, removed: &[NodeIdentity]) {
+        let mut cache = self.cache.borrow_mut();
+        for id in removed {
+            cache.shoots.remove(id);
+        }
+        cache.geometry = None;
+    }
+
     pub fn new(family: &Family) -> Result<Self> {
         let twig = family.skeleton.twigs.resolved()?.twig;
         let twig = TwigPlacement {
@@ -195,69 +203,6 @@ impl Foliage {
         }
         Ok(out)
     }
-    /// Clock-only cohort births. Offsets are annual, so fractional ticks never
-    /// touch wood or derive a contact surface. A saturated shoot adds no work.
-    pub(crate) fn filled(
-        &self,
-        tree: &Tree,
-        envelope: Envelope,
-        before: Age,
-        after: Age,
-    ) -> Result<Vec<Placement>> {
-        if before.slice == after.slice {
-            return Ok(Vec::new());
-        }
-        let mut born = BTreeMap::new();
-        let mut total = 0;
-        for i in self.living(tree, after)? {
-            let n = &tree.nodes[i];
-            let birth = Age::from_years(n.shoot.birth_year)?;
-            let length = n
-                .position
-                .distance(tree.nodes[n.parent.unwrap() as usize].position);
-            let count = if length == 0.0 {
-                0
-            } else {
-                (length / self.twig.internode_length - 1e-9).ceil().max(1.0) as usize
-                    * self.twig.stations_per_internode as usize
-            };
-            let start = self.visible(birth, before, count);
-            let end = self.visible(birth, after, count);
-            total += end;
-            if total > self.canopy.max_instances {
-                return Err(Error::ResourceLimit("foliage instance budget"));
-            }
-            if end > start {
-                born.insert(n.identity, (i, start..end));
-            }
-        }
-        if born.is_empty() {
-            return Ok(Vec::new());
-        }
-        let cache = self.cache.borrow();
-        let contacts = if self.canopy.surface_contact > 0.0
-            && born.keys().any(|id| !cache.shoots.contains_key(id))
-        {
-            Some(AttachmentSurface::new(
-                tree,
-                envelope.height.max(1e-6),
-                &self.surface,
-            )?)
-        } else {
-            None
-        };
-        let mut out = Vec::new();
-        for (id, (i, range)) in born {
-            if let Some(entry) = cache.shoots.get(&id) {
-                out.extend_from_slice(&entry.placements[range]);
-            } else {
-                let placements = self.place_shoot(tree, i, envelope, contacts.as_ref())?;
-                out.extend_from_slice(&placements[range]);
-            }
-        }
-        Ok(out)
-    }
-
     // Spread stations evenly over ceil(lifetime) annual cohorts. Offset zero
     // flushes at birth; a one-year lifetime therefore fills immediately. Use
     // integer ticks and products, even at the maximum supported lifetime.
@@ -385,3 +330,5 @@ fn contact_geometry(tree: &Tree, height: f64) -> (u64, Vec<[u64; 9]>) {
         .collect();
     (height.to_bits(), wood)
 }
+
+mod interval;

@@ -93,26 +93,35 @@ fn change_record_rejects_missing_and_wrong_runs_naming_identity_without_mutation
     }
 }
 
+// The chronicle redesign replaces consumer rounding with the family's canonical
+// radius frames. Preserve the noise/accumulation contract at its sole writer.
 #[test]
 fn change_record_tolerance_suppresses_noise_without_drift() {
     let (_, mut s, _) = super::foliage_tests::fixture(0.0);
-    let previous = s.buffers().unwrap();
-    s.tree.nodes[1].start_radius += RADIUS_TOLERANCE * 0.1;
-    let mut after = s.buffers().unwrap();
-    let record = ChangeRecord::between(&previous, &after);
-    assert_eq!(record.radius_tolerance, RADIUS_TOLERANCE);
+    super::interval::tests::stamp(&mut s, 1);
+    let tolerance = s.timeline.as_ref().unwrap().traits.resize_tolerance;
+    let previous = super::interval::tests::buffers(&s, 1.0);
+    let id = s.tree.nodes[1].identity;
+    let mut radii = s.keyframes.at(id, 1).unwrap();
+    radii[1] += tolerance * 0.1;
+    s.keyframes.record(id, 2, radii, tolerance);
+    s.timeline.as_mut().unwrap().age.slice = 2;
+    let after = super::interval::tests::buffers(&s, 2.0);
+    let record = s.changes_between(1.0, 2.0).unwrap();
     assert!(record.resized_runs.is_empty());
     assert_eq!(previous.runs, after.runs);
     for _ in 0..10 {
-        s.tree.nodes[1].start_radius += RADIUS_TOLERANCE * 0.1;
+        radii[1] += tolerance * 0.1;
     }
-    after = s.buffers().unwrap();
+    s.keyframes.record(id, 3, radii, tolerance);
+    s.timeline.as_mut().unwrap().age.slice = 3;
+    let after = super::interval::tests::buffers(&s, 3.0);
+    let record = s.changes_between(1.0, 3.0).unwrap();
     assert!(
-        !ChangeRecord::between(&previous, &after)
-            .resized_runs
-            .is_empty(),
+        !record.resized_runs.is_empty(),
         "small increments accumulated without a measurable resize"
     );
+    record.validate(&previous, &after).unwrap();
 }
 
 #[test]

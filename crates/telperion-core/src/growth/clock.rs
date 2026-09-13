@@ -24,7 +24,7 @@ impl Age {
         }
         Ok(Self::from_ticks(total))
     }
-    fn from_ticks(ticks: u64) -> Self {
+    pub(crate) fn from_ticks(ticks: u64) -> Self {
         Self {
             slice: ticks / DENOMINATOR,
             remainder: ticks % DENOMINATOR,

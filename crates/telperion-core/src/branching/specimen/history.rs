@@ -35,6 +35,31 @@ impl Specimen {
     }
 
     fn read_at(&self, age: Age) -> Result<SpecimenRead> {
+        let (tree, envelope) = self.wood_at(age, true)?;
+        let t = self.timeline.as_ref().unwrap();
+        let placements = if age == t.age {
+            t.foliage.read(&tree, envelope, age)?
+        } else {
+            t.foliage.read_uncached(&tree, envelope, age)?
+        };
+        let mut shed: Vec<_> = self
+            .tree
+            .nodes
+            .iter()
+            .filter(|n| n.shoot.death_year.is_some_and(|death| death <= age.slice))
+            .map(|n| n.identity)
+            .collect();
+        shed.extend(&self.retention.dead);
+        shed.sort_unstable();
+        Ok(SpecimenRead {
+            tree,
+            envelope,
+            placements,
+            shed,
+        })
+    }
+
+    pub(super) fn wood_at(&self, age: Age, shoot_history: bool) -> Result<(Tree, Envelope)> {
         let t = self.timeline.as_ref().unwrap();
         let state = t.years.iter().rev().find(|state| state.year <= age.slice);
         let envelope = state.map_or(
@@ -49,26 +74,8 @@ impl Specimen {
         } else {
             state.map_or_else(Diagnostics::default, |state| state.diagnostics)
         };
-        let tree = self.historical_tree(age, diagnostics)?;
-        let placements = if age == t.age {
-            t.foliage.read(&tree, envelope, age)?
-        } else {
-            t.foliage.read_uncached(&tree, envelope, age)?
-        };
-        let mut shed: Vec<_> = self
-            .tree
-            .nodes
-            .iter()
-            .filter(|n| n.shoot.death_year.is_some_and(|death| death <= age.slice))
-            .map(|n| n.identity)
-            .collect();
-        shed.sort_unstable();
-        Ok(SpecimenRead {
-            tree,
-            envelope,
-            placements,
-            shed,
-        })
+        let tree = self.historical_tree(age, diagnostics, shoot_history)?;
+        Ok((tree, envelope))
     }
 
     pub(super) fn read_age(&self, years: f64) -> Result<Age> {
@@ -83,10 +90,16 @@ impl Specimen {
                 value: format!("{years}; frontier {}", t.age.years()),
             });
         }
+        self.check_retained(age)?;
         Ok(age)
     }
 
-    fn historical_tree(&self, age: Age, diagnostics: Diagnostics) -> Result<Tree> {
+    fn historical_tree(
+        &self,
+        age: Age,
+        diagnostics: Diagnostics,
+        shoot_history: bool,
+    ) -> Result<Tree> {
         let alive = |n: &&Node| {
             n.shoot.birth_year <= age.slice as f64
                 && n.shoot.death_year.is_none_or(|death| age.slice < death)
@@ -103,7 +116,22 @@ impl Specimen {
                 .filter(|n| (n.kind == NodeKind::Structural) == structural)
             {
                 indices[self.identities[n.identity.key]] = nodes.len();
-                let mut node = n.clone();
+                // Interval records need geometry and cohort birth, not copies
+                // of every vigour observation and local growth allocation.
+                let mut node = Node {
+                    identity: n.identity,
+                    position: n.position,
+                    kind: n.kind,
+                    shoot: if shoot_history {
+                        n.shoot.clone()
+                    } else {
+                        crate::tree::ShootState {
+                            birth_year: n.shoot.birth_year,
+                            ..Default::default()
+                        }
+                    },
+                    ..Node::root()
+                };
                 node.shoot.death_year = None;
                 node.shoot
                     .vigour_events

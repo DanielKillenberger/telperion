@@ -6,8 +6,10 @@ mod changes;
 mod chronicle;
 mod crown;
 mod history;
+mod interval;
 mod keyframes;
-pub use changes::{ChangeRecord, Run, RunNode, SpecimenBuffers, RADIUS_TOLERANCE};
+mod retention;
+pub use changes::{ChangeRecord, Run, RunNode, SpecimenBuffers};
 pub use history::SpecimenRead;
 #[cfg(test)]
 mod measurement;
@@ -36,6 +38,7 @@ pub struct Specimen {
     identities: DenseSlotMap<NodeKey, usize>,
     links: slotmap::SecondaryMap<NodeKey, chronicle::Links>,
     keyframes: keyframes::Keyframes,
+    retention: retention::Retention,
 }
 impl Specimen {
     pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
@@ -77,6 +80,7 @@ impl Specimen {
             identities: DenseSlotMap::with_key(),
             links: slotmap::SecondaryMap::new(),
             keyframes: keyframes::Keyframes::default(),
+            retention: retention::Retention::default(),
         })
     }
     pub fn tree(&self) -> &Tree {
@@ -89,6 +93,7 @@ impl Specimen {
     pub fn node(&self, identity: NodeIdentity) -> Result<&Node> {
         self.identities
             .get(identity.key)
+            .filter(|&&i| i != usize::MAX)
             .and_then(|&i| match self.packed_read() {
                 Some(read) => read.tree.nodes.get(read.indices[i]),
                 None => self.tree.nodes.get(i),

@@ -31,139 +31,72 @@ fn monthly_cost_report() {
         return;
     }
     use crate::presets::Preset;
-    for preset in [Preset::OregonWhiteOak, Preset::NorwaySpruce] {
+    // The sparse years are the recorded session-12 comparison points. The final
+    // envelope quantum is the dense case. These are evidence inputs, not rules.
+    for (preset, sparse) in [(Preset::OregonWhiteOak, 66), (Preset::NorwaySpruce, 67)] {
         let mut family = preset.parameters();
         family.skeleton.seed = 7;
         let mature = family.growth.mature_slice();
         for sample in 0..3 {
             let clock = Instant::now();
             let envelope = Specimen::grow(&family.skeleton, family.radii).unwrap();
-            println!(
-                "{preset:?} sample={sample} envelope_ms={:.6} nodes={} crossover={} bounds={:?}",
-                clock.elapsed().as_secs_f64() * 1000.0,
-                envelope.tree.nodes.len(),
-                envelope.tree.crossover,
-                bounds(&envelope.tree)
-            );
+            let ms = clock.elapsed().as_secs_f64() * 1000.0;
+            println!("R10 preset={preset:?} sample={sample} kind=envelope ms={ms:.6} nodes={} crossover={} bounds={:?}",
+                envelope.tree().nodes.len(), envelope.tree().crossover, bounds(envelope.tree()));
+            drop(envelope);
             family.age = mature as f64;
             let clock = Instant::now();
             let s = Specimen::build(&family).unwrap();
-            let build_ms = clock.elapsed().as_secs_f64() * 1000.0;
-            let clock = Instant::now();
-            s.tree();
-            let read_ms = clock.elapsed().as_secs_f64() * 1000.0;
-            println!(
-                "{preset:?} sample={sample} mature_ms={build_ms:.6} consumer_read_ms={read_ms:.6} slice={mature} nodes={} crossover={} bounds={:?}",
-                s.tree.nodes.len(),
-                s.tree.crossover,
-                bounds(&s.tree)
-            );
-        }
-        family.age = 0.0;
-        let mut s = Specimen::build(&family).unwrap();
-        let mut small = None;
-        let mut large = None;
-        // Diff identity/radius tuples outside the timed advance. Measure every
-        // slice so sparse work on large trees cannot be hidden by an average.
-        for slice in 1..=mature {
-            let first_birth = s.next_identity;
-            let before: Vec<_> = s
-                .tree
-                .nodes
-                .iter()
-                .map(|n| (n.identity, (n.radius, n.start_radius, n.base_radius)))
-                .collect();
-            let clock = Instant::now();
-            s.advance(1.0).unwrap();
             let ms = clock.elapsed().as_secs_f64() * 1000.0;
-            let born = s
-                .tree
-                .nodes
-                .iter()
-                .filter(|n| n.identity.birth_order() >= first_birth)
-                .count();
-            let read_clock = Instant::now();
-            s.tree();
-            let read_ms = read_clock.elapsed().as_secs_f64() * 1000.0;
-            let changed = born
-                + before
-                    .iter()
-                    .filter(|(id, previous)| {
-                        s.node(*id)
-                            .is_ok_and(|n| (n.radius, n.start_radius, n.base_radius) != *previous)
-                    })
-                    .count();
-            let line = format!(
-                "{preset:?} slice={slice} active={} nodes_before={} nodes_after={} \
-                 born={born} changed_or_born={changed} advance_ms={ms:.6} \
-                 internal_slice_ms={:.6} read_ms={read_ms:.6} finalizing_ms={:.6} \
-                 changes_ms={:.6} packing_ms={:.6} packed_nodes={} stages_ms={:?} \
-                 identity_visits={} storage_moved={} pipe_outputs={} width_outputs={} \
-                 keyframe_pipe_visits={} keyframe_width_visits={} crown_samples={} \
-                 local_attempts={:?}",
-                family.growth.budget(slice) > 0,
-                before.len(),
-                s.tree.nodes.len(),
-                s.cost.stages.iter().sum::<Duration>().as_secs_f64() * 1000.0,
-                s.cost.finalizing.as_secs_f64() * 1000.0,
-                s.cost.changes.as_secs_f64() * 1000.0,
-                s.cost.packing.as_secs_f64() * 1000.0,
-                s.cost.packed_nodes,
-                s.cost.stages.map(|d| d.as_secs_f64() * 1000.0),
-                s.cost.identities,
-                s.cost.storage,
-                s.cost.pipes,
-                s.cost.widths,
-                s.cost.keyframe_pipes,
-                s.cost.keyframe_widths,
-                s.timeline.as_ref().unwrap().crown.evaluated,
-                s.local.retries,
-            );
-            if [21, 101, mature].contains(&slice) {
-                println!("AGE {line}");
-            }
-            if before.len() > 50_000 && family.growth.budget(slice) > 0 && changed > 0 {
-                if small.as_ref().is_none_or(|(n, _)| changed < *n) {
-                    small = Some((changed, line.clone()));
+            println!("R10 preset={preset:?} sample={sample} kind=mature ms={ms:.6} age={mature} nodes={} crossover={} bounds={:?}",
+                s.tree().nodes.len(), s.tree().crossover, bounds(s.tree()));
+            if preset == Preset::OregonWhiteOak {
+                for (kind, age) in [("read_past", sparse), ("read_frontier", mature)] {
+                    let clock = Instant::now();
+                    let read = s.read_at_age(age as f64).unwrap();
+                    let ms = clock.elapsed().as_secs_f64() * 1000.0;
+                    println!("R10 preset={preset:?} sample={sample} kind={kind} ms={ms:.6} age={age} nodes={} placements={}",
+                        read.tree.nodes.len(), read.placements.len());
+                    drop(read);
                 }
-                if large.as_ref().is_none_or(|(n, _)| changed > *n) {
-                    large = Some((changed, line));
-                }
+                let clock = Instant::now();
+                let record = s
+                    .changes_between((sparse - 1) as f64, sparse as f64)
+                    .unwrap();
+                let ms = clock.elapsed().as_secs_f64() * 1000.0;
+                println!("R10 preset={preset:?} sample={sample} kind=record_past ms={ms:.6} from={} to={sparse} runs={} placements={}",
+                    sparse - 1, record.born_runs.len() + record.resized_runs.len(),
+                    record.born_placements.len() + record.moved_placements.len());
             }
         }
-        println!("SPARSE {}", small.unwrap().1);
-        println!("DENSE {}", large.unwrap().1);
-        let clock = Instant::now();
-        s.advance(crate::growth::MAX_AGE - s.age()).unwrap();
-        println!(
-            "{preset:?} saturated_advance_ms={:.6}",
-            clock.elapsed().as_secs_f64() * 1000.0
-        );
-        // Fresh foliage reads are separate consumer costs. Recording the count
-        // also exposes the consequence of lifetime expiry as births approach zero.
-        for age in [20.0, 100.0, mature as f64] {
-            family.age = age;
-            let specimen = Specimen::build(&family).unwrap();
-            let clock = Instant::now();
-            let leaves = specimen.placements().unwrap();
-            println!(
-                "FOLIAGE {preset:?} age={age} placements={} read_ms={:.6}",
-                leaves.len(),
-                clock.elapsed().as_secs_f64() * 1000.0
-            );
+        for (kind, year) in [("sparse", sparse), ("dense", mature)] {
+            for sample in 0..3 {
+                family.age = (year - 1) as f64;
+                let mut s = Specimen::build(&family).unwrap();
+                let before = s.tree().nodes.len();
+                let clock = Instant::now();
+                let record = s.advance(1.0).unwrap();
+                let ms = clock.elapsed().as_secs_f64() * 1000.0;
+                let clock = Instant::now();
+                let after = s.tree().nodes.len();
+                let packed_ms = clock.elapsed().as_secs_f64() * 1000.0;
+                let changed = s
+                    .tree
+                    .nodes
+                    .iter()
+                    .filter(|n| s.keyframes.changed(n.identity, year - 1, year))
+                    .count();
+                let internal = s.cost.stages.iter().sum::<Duration>().as_secs_f64() * 1000.0;
+                println!("R10 preset={preset:?} sample={sample} kind={kind} ms={ms:.6} year={year} nodes_before={before} nodes_after={after} packed_read_ms={packed_ms:.6} changed={changed} internal_ms={internal:.6} finalizing_ms={:.6} record_ms={:.6} keyframe_pipes={} keyframe_widths={} runs={} placements={} stages_ms={:?}",
+                    s.cost.finalizing.as_secs_f64() * 1000.0,
+                    s.cost.changes.as_secs_f64() * 1000.0, s.cost.keyframe_pipes, s.cost.keyframe_widths,
+                    record.born_runs.len() + record.resized_runs.len(),
+                    record.born_placements.len() + record.moved_placements.len(),
+                    s.cost.stages.map(|d| d.as_secs_f64() * 1000.0));
+            }
         }
     }
-    println!(
-        "Stages: environment, scaffold, storage/identity, pipe-record, \
-         local-seed+width-queries, local-growth/order+width-queries, \
-         identify+visited-vigour, shedding, post-shed-record+annual-keyframes. \
-         Keyframe pipe/width visits are per slice; pipe/width outputs materialize \
-         once per advance (finalizing_ms). changes_ms measures identity-buffer \
-         reads/diff and their cleanup, which are whole-output costs per advance, \
-         not per internal slice. Lazy consumer packing is timed separately \
-         (read_ms); storage_moved counts insertion moves inside the slice. \
-         Snapshot unavailable; no round-trip time claimed."
-    );
+    println!("Build timings are chronicle/wood generation, matching the historical envelope comparison; full foliage output is reported separately. Advance timing includes record construction, excludes caller record destruction. Stages: environment, scaffold, storage/identity, pipe-record, local-seed, local-growth, visited-vigour, shedding, annual-keyframes. record_ms is the stamp filter plus selected transforms. No snapshots exist; no round-trip timing claimed.");
 }
 
 fn bounds(tree: &Tree) -> ([f64; 3], [f64; 3]) {

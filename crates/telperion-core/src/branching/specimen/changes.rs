@@ -1,12 +1,7 @@
-//! Consumer wood and foliage diffs, computed at advance boundaries, never births.
+//! Consumer buffers and atomic application of chronicle interval records.
 use super::*;
 use crate::foliage::{Placement, PlacementIdentity};
 use std::collections::BTreeMap;
-
-/// Metres. Only the consumer run buffer rounds radii to this fixed precision;
-/// simulation radii and the wood mesh retain their original precision. Rounding
-/// both fresh reads and diffs avoids cumulative drift from pairwise epsilon tests.
-pub const RADIUS_TOLERANCE: f64 = 1e-9;
 
 #[derive(Debug, Clone)]
 pub struct RunNode {
@@ -42,9 +37,8 @@ pub struct SpecimenBuffers {
     pub placements: BTreeMap<PlacementIdentity, Placement>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct ChangeRecord {
-    pub radius_tolerance: f64,
     pub born_runs: Vec<Run>,
     /// Full replacement runs, including extension and changed node positions.
     pub resized_runs: Vec<Run>,
@@ -53,50 +47,49 @@ pub struct ChangeRecord {
     pub moved_placements: Vec<Placement>,
     pub shed_placements: Vec<PlacementIdentity>,
 }
-impl Default for ChangeRecord {
-    fn default() -> Self {
-        Self {
-            radius_tolerance: RADIUS_TOLERANCE,
-            born_runs: Vec::new(),
-            resized_runs: Vec::new(),
-            shed_runs: Vec::new(),
-            born_placements: Vec::new(),
-            moved_placements: Vec::new(),
-            shed_placements: Vec::new(),
-        }
-    }
-}
 impl Specimen {
     pub fn buffers(&self) -> Result<SpecimenBuffers> {
-        let tree = self.tree();
-        let mut out = SpecimenBuffers::default();
-        for n in &tree.nodes {
-            let id = tree.nodes[n.branch as usize].identity;
-            let run = out.runs.entry(id).or_insert_with(|| Run {
-                identity: id,
-                nodes: Vec::new(),
-            });
-            run.nodes.push(RunNode {
-                identity: n.identity,
-                parent: n.parent.map(|p| tree.nodes[p as usize].identity),
-                position: n.position,
-                radii: [n.radius, n.start_radius, n.base_radius]
-                    .map(|r| (r / RADIUS_TOLERANCE).round() * RADIUS_TOLERANCE),
-                kind: n.kind,
-            });
-        }
-        for run in out.runs.values_mut() {
-            run.nodes.sort_by_key(|n| n.identity);
-        }
-        out.placements = self
-            .placements()?
-            .into_iter()
-            .map(|p| (p.identity, p))
-            .collect();
-        Ok(out)
+        Ok(SpecimenBuffers {
+            runs: runs(self.tree(), |_| true),
+            placements: self
+                .placements()?
+                .into_iter()
+                .map(|p| (p.identity, p))
+                .collect(),
+        })
     }
 }
+
+pub(super) fn runs(
+    tree: &Tree,
+    selected: impl Fn(NodeIdentity) -> bool,
+) -> BTreeMap<NodeIdentity, Run> {
+    let mut out = BTreeMap::new();
+    for n in &tree.nodes {
+        let id = tree.nodes[n.branch as usize].identity;
+        if !selected(id) {
+            continue;
+        }
+        let run = out.entry(id).or_insert_with(|| Run {
+            identity: id,
+            nodes: Vec::new(),
+        });
+        run.nodes.push(RunNode {
+            identity: n.identity,
+            parent: n.parent.map(|p| tree.nodes[p as usize].identity),
+            position: n.position,
+            radii: [n.radius, n.start_radius, n.base_radius],
+            kind: n.kind,
+        });
+    }
+    for run in out.values_mut() {
+        run.nodes.sort_by_key(|n| n.identity);
+    }
+    out
+}
+
 impl ChangeRecord {
+    #[cfg(test)]
     pub(super) fn between(before: &SpecimenBuffers, after: &SpecimenBuffers) -> Self {
         let mut out = Self::default();
         for (&id, run) in &after.runs {
@@ -130,14 +123,8 @@ impl ChangeRecord {
 
     /// Apply without a fresh read. Check all category memberships first, so an
     /// invalid record leaves the caller's buffers intact. Placements are exact
-    /// f32 matrices; run radii use the same fixed tolerance as `buffers()`.
+    /// f32 matrices; run radii are the exact canonical keyframe values.
     pub fn apply(&self, previous: &mut SpecimenBuffers) -> Result<()> {
-        if self.radius_tolerance != RADIUS_TOLERANCE {
-            return Err(Error::InvalidValue {
-                field: "change record radius tolerance",
-                value: self.radius_tolerance.to_string(),
-            });
-        }
         check_keys(
             &previous.runs,
             self.born_runs.iter().map(|r| r.identity),

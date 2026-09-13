@@ -104,6 +104,8 @@ The annual timeline's native ownership lives in `src/branching/specimen/`:
 | Leaf cohorts, stable stations and cached neighboring surface contacts | `foliage_tests.rs`, `cohort_tests.rs` |
 | Historical reads against fresh growth, all presets and a blend, exact shoot histories and frontier errors | `history/tests.rs` |
 | Exact run/placement change application, radius tolerance, rejected records naming runs, exact cohort boundaries and signed-zero matrix bits | `change_tests.rs` |
+| Stamp-filtered intervals in both directions, all presets/blend, every intermediate yearly record, sibling growth/removal and stale cohort-cache protection | `interval/tests.rs` |
+| History-cap compaction, retained read/record equality, cap errors, future identities and node-ceiling recovery | `retention/tests.rs` |
 
 ## Changing a rule or an output
 
