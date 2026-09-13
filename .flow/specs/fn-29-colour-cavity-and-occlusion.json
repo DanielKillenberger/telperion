@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-29-colour-cavity-and-occlusion",
+  "created_at": "2026-09-13T10:49:25.603770Z",
+  "depends_on_epics": [
+    "fn-26-bark-relief-leaf-veins-and-transmission",
+    "fn-14-bark-and-foliage-appearance"
+  ],
+  "id": "fn-29-colour-cavity-and-occlusion",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-29-colour-cavity-and-occlusion.md",
+  "status": "open",
+  "title": "Colour, cavity and occlusion",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-13T10:49:49.837557Z"
+}

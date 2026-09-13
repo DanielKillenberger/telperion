@@ -1,26 +1,24 @@
 {
-  "branch_name": "fn-26-bark-relief-leaf-veins-and-transmission",
+  "branch_name": "fn-30-calibrated-growth-the-oak-and-the",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-09-10T22:11:21.608229Z",
+  "created_at": "2026-09-13T17:25:24.142107Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-14-bark-and-foliage-appearance",
-    "fn-27-coarse-shadow-casters-and-a-filtered"
+    "fn-11-growth-over-time"
   ],
-  "id": "fn-26-bark-relief-leaf-veins-and-transmission",
+  "id": "fn-30-calibrated-growth-the-oak-and-the",
   "impl_review_rounds": {},
   "next_task": 1,
-  "no_plan": false,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": false,
-  "spec_path": ".flow/specs/fn-26-bark-relief-leaf-veins-and-transmission.md",
+  "spec_path": ".flow/specs/fn-30-calibrated-growth-the-oak-and-the.md",
   "status": "open",
-  "title": "Bark relief, leaf veins and transmission",
+  "title": "Calibrated growth: the oak and the spruce through time",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -32,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T08:43:47.458274Z"
+  "updated_at": "2026-09-13T17:25:25.063767Z"
 }
