@@ -58,3 +58,8 @@ Give the lit tree the surface detail a close view needs: bark ridges and plates,
 | Requirement | Task |
 |---|---|
 | R1–R5 | TBD during planning |
+
+## Owner verdict (R4, 2026-09-13)
+
+Judged on the run-six stills and the live harness at `f1bdd8c`, after the owner's own references (white oak, black oak, Norway spruce) reshaped the field. In the owner's words: on the session-four oak, "that's actually much better though we have issues with aliasing"; on the spruce, "the oak was good but i think the spruce isn't quite right. Gaps seem too big?"; both addressed in runs five and six with the grazing-angle and distance filtering; final verdict: "ok i'll accept". Colour, cavity and occlusion are fn-29's; the sapling look and the growth lag observed on the fn-11 harness belong to fn-30 and fn-28.
+
