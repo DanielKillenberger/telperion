@@ -131,9 +131,9 @@ impl Preset {
             // markedly paler underside. Linear, from the frozen profile's
             // prose, and calibrated against the photographs in fn-14.6.
             p.material = MaterialParams {
-                bark_red: 0.254,
-                bark_green: 0.220,
-                bark_blue: 0.178,
+                bark_red: 0.225,
+                bark_green: 0.218,
+                bark_blue: 0.198,
                 bark_roughness: 0.85,
                 leaf_front_red: 0.028,
                 leaf_front_green: 0.102,
@@ -146,8 +146,8 @@ impl Preset {
                 brightness_range_low: -0.15,
                 brightness_range_high: 0.15,
                 interior_darkening: 0.55,
-                ridge_scale: 0.04,
-                plate_scale: 0.18,
+                ridge_scale: 0.032,
+                plate_scale: 0.055,
                 roughness_detail: 0.12,
                 vein_scale: 7.0,
                 vein_contrast: 0.45,

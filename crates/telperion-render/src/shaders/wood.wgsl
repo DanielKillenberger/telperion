@@ -31,15 +31,16 @@ fn vertex(
 }
 
 // Filter the physical footprint, not atan2's discontinuous derivative. Both
-// cell directions resolve at the same surface scale on a trunk and a limb.
+// grain directions resolve at the same surface scale on a trunk and a limb.
 fn bark_height(coord: vec3<f32>, radius: f32) -> f32 {
     let circle = coord.yz / max(length(coord.yz), 0.0001);
     let around_width = radius * (length(dpdx(circle)) + length(dpdy(circle)));
     let across_filter = 1.0 - smoothstep(0.25, 0.85,
         around_width / max(u.bark_detail.x, 0.0001));
     let along_filter = 1.0 - smoothstep(0.25, 0.85,
-        fwidth(coord.x) / max(u.bark_detail.y, u.bark_detail.x * 3.0 + 0.0001));
-    return bark_field(circle, coord.x, radius, u.bark_detail.x, u.bark_detail.y)
+        fwidth(coord.x) / max(clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0), 0.0001));
+    return bark_field_filtered(circle, coord.x, radius, u.bark_detail.x, u.bark_detail.y,
+        max(around_width, fwidth(coord.x)))
         * across_filter * along_filter;
 }
 

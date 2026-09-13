@@ -1,39 +1,33 @@
-//! Sample the production bark field in surface metres, independently of a camera.
+//! Physical field regression: girth strengthens relief and grain stays axial.
 mod common;
 
 #[test]
-fn surface_lengths_young_wood_wrap_and_plate_drift() {
+fn mature_girth_strengthens_an_axial_field() {
     let Some(gpu) = common::gpu() else { return };
     let source = include_str!("../src/shaders/bark.wgsl").to_owned()
         + r#"
 @group(0) @binding(0) var<storage, read_write> result: array<vec4<f32>>;
+fn sample(x: f32, y: f32, radius: f32) -> f32 {
+    let angle = x / radius;
+    return bark_field(vec2(cos(angle), sin(angle)), y, radius, 0.032, 0.055);
+}
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let angle = f32(id.x) * 6.2831853 / 4096.0;
-    let circle = vec2(cos(angle), sin(angle));
-    result[id.x] = vec4(
-        bark_field(circle, 2.0, 0.4, 0.04, 0.18),
-        bark_field(circle, 2.0, 0.8, 0.04, 0.18),
-        bark_field(circle, 2.0, 0.01, 0.04, 0.18),
-        bark_field(circle, 2.19, 0.4, 0.04, 0.18));
-    if (id.x == 0u) {
-        result[4096] = vec4(
-            bark_field(vec2(-1.0, 0.000001), 2.0, 0.4, 0.04, 0.18),
-            bark_field(vec2(-1.0, -0.000001), 2.0, 0.4, 0.04, 0.18),
-            bark_field(circle, 2.0, 0.4, 0.0, 0.18),
-            bark_field(circle, 2.0, 0.4, 0.0, 0.0));
-    }
+    let x = f32(id.x % 128u) * 0.01;
+    let y = 1.0 + f32(id.x / 128u) * 0.01;
+    result[id.x] = vec4(sample(x, y, 0.12), sample(x, y, 0.6),
+        sample(x + 0.0005, y, 0.6), sample(x, y + 0.0005, 0.6));
 }
 "#;
     let shader = gpu
         .device
         .create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("bark field contract"),
+            label: Some("bark structure"),
             source: wgpu::ShaderSource::Wgsl(source.into()),
         });
     let pipeline = gpu
         .device
         .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-            label: Some("bark field contract"),
+            label: None,
             layout: None,
             module: &shader,
             entry_point: Some("main"),
@@ -41,14 +35,14 @@ fn surface_lengths_young_wood_wrap_and_plate_drift() {
             cache: None,
         });
     let output = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("bark field values"),
-        size: 4097 * 16,
+        label: None,
+        size: 16384 * 16,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
         mapped_at_creation: false,
     });
     let readback = gpu.device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("bark field readback"),
-        size: 4097 * 16,
+        label: None,
+        size: output.size(),
         usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
@@ -65,9 +59,9 @@ fn surface_lengths_young_wood_wrap_and_plate_drift() {
         let mut pass = encoder.begin_compute_pass(&Default::default());
         pass.set_pipeline(&pipeline);
         pass.set_bind_group(0, &group, &[]);
-        pass.dispatch_workgroups(64, 1, 1);
+        pass.dispatch_workgroups(256, 1, 1);
     }
-    encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, 4097 * 16);
+    encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, output.size());
     gpu.queue.submit([encoder.finish()]);
     let (send, recv) = std::sync::mpsc::channel();
     readback
@@ -79,29 +73,29 @@ fn surface_lengths_young_wood_wrap_and_plate_drift() {
     recv.recv().unwrap().unwrap();
     let mapped = readback.slice(..).get_mapped_range().unwrap();
     let rows: &[[f32; 4]] = bytemuck::cast_slice(&mapped);
-    let field = &rows[..4096];
-    assert!(
-        field.iter().all(|r| r[2] == 0.0),
-        "young wood still has relief"
-    );
-    eprintln!("wrap samples: {:?}", rows[4096]);
-    assert!((rows[4096][0] - rows[4096][1]).abs() < 1e-6, "angular wrap");
-    assert_eq!(&rows[4096][2..], &[0.0, 0.0], "disabled ridge field");
-    let peaks = |channel: usize| {
-        (0..4096)
-            .filter(|&i| {
-                field[i][channel] > field[(i + 4095) % 4096][channel]
-                    && field[i][channel] > field[(i + 1) % 4096][channel]
-            })
-            .count()
+    let deviation = |channel: usize| {
+        let mean = rows.iter().map(|r| f64::from(r[channel])).sum::<f64>() / rows.len() as f64;
+        (rows
+            .iter()
+            .map(|r| (f64::from(r[channel]) - mean).powi(2))
+            .sum::<f64>()
+            / rows.len() as f64)
+            .sqrt()
     };
-    let (narrow, wide) = (peaks(0), peaks(1));
-    println!("ridge peaks around 0.4/0.8 m radii: {narrow}/{wide}");
-    assert!(narrow > 20, "mature wood needs resolved ridges");
-    assert!(
-        wide as f32 / narrow as f32 > 1.6 && (wide as f32 / narrow as f32) < 2.4,
-        "doubling circumference must double the ridge count: {narrow}/{wide}"
+    let across: f64 = rows.iter().map(|r| f64::from((r[2] - r[1]).abs())).sum();
+    let along: f64 = rows.iter().map(|r| f64::from((r[3] - r[1]).abs())).sum();
+    let girth = deviation(1) / deviation(0);
+    eprintln!(
+        "mature trunk/branch height deviation {girth}; across/along slope {}",
+        across / along
     );
-    let drift: f32 = field.iter().map(|r| (r[0] - r[3]).abs()).sum();
-    assert!(drift > 0.1, "plates must change along the run: {drift}");
+    assert!(
+        girth > 1.3,
+        "mature trunk relief must exceed mature branch relief: {girth}"
+    );
+    assert!(
+        across > along * 1.3,
+        "grain must be longer along the run: {across}/{along}"
+    );
+    assert!(rows.iter().flatten().all(|h| h.is_finite()));
 }

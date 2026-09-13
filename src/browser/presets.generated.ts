@@ -325,9 +325,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "width": 0.075
       },
       "material": {
-        "barkBlue": 0.178,
-        "barkGreen": 0.22,
-        "barkRed": 0.254,
+        "barkBlue": 0.198,
+        "barkGreen": 0.218,
+        "barkRed": 0.225,
         "barkRoughness": 0.85,
         "brightnessRangeHigh": 0.15,
         "brightnessRangeLow": -0.15,
@@ -340,8 +340,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.016,
         "leafFrontGreen": 0.102,
         "leafFrontRed": 0.028,
-        "plateScale": 0.18,
-        "ridgeScale": 0.04,
+        "plateScale": 0.055,
+        "ridgeScale": 0.032,
         "roughnessDetail": 0.12,
         "thickness": 0.65,
         "transmissionBlue": 0.07,

@@ -31,8 +31,10 @@ pub struct MaterialParams {
     pub brightness_range_high: f64,
     /// How far a leaf deep inside the crown is darkened towards a shaded mass.
     pub interior_darkening: f64,
-    /// Relief size in metres; zero disables the corresponding bark pattern.
+    /// Circumferential ridge spacing in metres; zero disables relief.
     pub ridge_scale: f64,
+    /// Axial scale control in metres; spacing is bounded to 1.5–2 ridge widths.
+    /// Larger ratios lengthen and deepen furrows; zero omits breaks.
     pub plate_scale: f64,
     /// Roughness variation about the base value, clamped to 0..1.
     pub roughness_detail: f64,

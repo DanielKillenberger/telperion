@@ -3,19 +3,19 @@
     "species": "Oregon white oak",
     "scale": "trunk",
     "path": "/tmp/flow-handover-fn26/stills/oak-trunk.png",
-    "reference": "O-BARE",
-    "session": 2,
-    "capture": 7,
-    "sha256": "61ffb21b0cfbb48b6b294ee9ef656f4ed538e20acb56d9e536580a76b4df5355"
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 4,
+    "capture": 4,
+    "sha256": "cd88690714822705fcdf175f0134ad4336271afd7a332ebd066c84e9c9d11704"
   },
   {
     "species": "Oregon white oak",
     "scale": "branch",
     "path": "/tmp/flow-handover-fn26/stills/oak-branch.png",
-    "reference": "O-BARE",
-    "session": 2,
-    "capture": 7,
-    "sha256": "d28f1b15e1587485251aca78532aef61883c5beef7f52d98534f4e617527899d"
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 4,
+    "capture": 5,
+    "sha256": "2c6f55a0a416bc35f03eb994321b3a3d0196a3b30b7b680d192a99ed37377164"
   },
   {
     "species": "Oregon white oak",
@@ -40,9 +40,9 @@
     "scale": "trunk",
     "path": "/tmp/flow-handover-fn26/stills/spruce-trunk.png",
     "reference": "S-BRANCH",
-    "session": 2,
-    "capture": 8,
-    "sha256": "cc8726a26e9aaf19e4efbb4f9f720fde2fe4179ecbd93688b5fc5300e6a5629f"
+    "session": 4,
+    "capture": 6,
+    "sha256": "506ef140d9d939c109c26fecf6748caf892e1777e117b1b5f3d24373da3d592f"
   },
   {
     "species": "Norway spruce",

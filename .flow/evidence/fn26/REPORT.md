@@ -1,41 +1,47 @@
 # FN26: bark relief, leaf veins and transmission
 
-2026-09-13. Implementation and evidence for host review. R4 awaits the owner;
-no accepting visual verdict is inferred from tests. No git writes or .flow
-writes were made by this implementer. The corrective shader work, lit leaf
-pairs, deterministic selection, final clocks and all five gates are delivered.
-Session 3 also passed twenty parallel look iterations and the full Rust gate
-twice. Clear spruce socket framing remains incomplete from session 2. Species-level visual
-calibration is not established; the task/spec must remain open for R4.
+2026-09-13, session 4. The owner rejected the previous bark as crackle. This
+revision replaces it with a field of vertical ridges, shouldered furrows and
+flat scales with lifted lower edges, guided by the supplied white-oak photo.
+The final still remains cleaner and more regular than the photograph; no
+visual acceptance is inferred. R4 stays open and all owner verdict slots are blank.
+No git writes, .flow writes, agents or other worktree edits were made.
 
 ## Protocol
 
-Seed 7, 1600 × 1000, four samples where the adapter offers them. Timing and
-wood stills use the default scene; leaf pairs use the sun directions below.
-Native timing uses the unchanged whole-tree hero pose, eight conditioning,
-eight warmup and 120 measured frames. Browser timing uses one isolated canvas
-and the same ten-second orbit as fn14/fn27, on port 5175. Invalid sessions
-carry no accepted number. GPU totals rank each frame's sum, not sums of
-independently ranked percentiles.
+Seed 7, 1600 × 1000, four samples. The existing bare view, scene and cameras
+are unchanged across all four oak trunk iterations. The fourth trunk is the
+final image, followed by one oak branch capture and one spruce trunk capture.
+Every capture inspects one new image and at most two references, never more
+than three images. No other detail still is rendered. Exact cameras and scene
+rows are in logs/session4-capture-*.log. The temporary Rust driver is preserved
+as session4-evidence.rs and removed from the worktree before final gates.
 
-The corrected branch/trunk stills use an evidence-only Rust driver with the
-existing Camera and bare view. The trunk is framed from the sun-facing side;
-the fork pose selects a side view of the thickest fork above 1.5 m, closer
-than the original stills, using skeleton obstruction checks. All geometry
-stays present. Exact cameras and scene rows are printed in the capture logs.
-Leaf pairs use the same front-facing camera with the existing sun at azimuth
-0° (frontlit) or 180° (backlit), elevation 10°. Its intensity, colour, shadow
-rules and every material value stay unchanged between those two views.
-The driver is preserved as session2-evidence.rs in this handover and removed
-from the worktree before final gates. No public view or camera command is added.
+The native clock uses the unchanged headless whole-tree pose, eight conditioning,
+eight warmup and 120 measured frames. Its incidental hero is outside the detail
+set and is not inspected. The browser uses the existing isolated-canvas ten-second
+orbit protocol on the owner's server at port 5175. That server is neither stopped
+nor replaced. Timing runs are sequential, at the inherited lowered CPU priority,
+after this session’s builds and tests. A contended record is not accepted.
 
-## The references
+## References
 
-All four assets were absent from the permitted fn9 reference directory and
-were fetched from the manifest URLs. Each SHA-256 matches the frozen fn19
-manifest. Local reference only, copyright Oregon State University Landscape
-Plants; Patrick Breen page contact, individual photographer unspecified.
-No reference image is included in this handover or committed.
+The owner-supplied references are local, ignored, never committed and never
+redistributed. OWNER-WHITE-OAK is the primary bark target; OWNER-BLACK-OAK
+shows the deeper, longer-furrow end that the same numeric row should reach.
+The rejected harness still records the starting defect. Source: owner supplied;
+no external attribution or redistribution rights are inferred.
+
+| ID | Local path | SHA-256 |
+|---|---|---|
+| OWNER-WHITE-OAK | .refs/fn26/owner-white-oak-bark.png | 7dc7bab59113d8db7922dd83630efd070e850af5f42c45b52790f0611584153b |
+| OWNER-BLACK-OAK | .refs/fn26/owner-black-oak-bark.png | 211845d998fda31359fec5032ddc7206a23c992e4e4512a86d260d1b0001d069 |
+| REJECTED | .refs/fn26/harness-trunk-as-judged.png | feab46aff84c51da810713e7cdfad73364813658bb183eb05bf3f8633168509b |
+
+The earlier catalogued references remain local. Copyright Oregon State
+University Landscape Plants; Patrick Breen page contact, individual photographer
+unspecified. Their hashes match the frozen fn19 manifest; no reference image is
+included in the handover.
 
 | ID | Local path | Source | SHA-256 |
 |---|---|---|---|
@@ -44,69 +50,46 @@ No reference image is included in this handover or committed.
 | S-BRANCH | .refs/fn26/piab428B.jpg | https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab428B.jpg | d3792f4dade2389e47a6f6be326bfbedd3e33a518493e4c719893cc3d1cdf800 |
 | S-NEEDLE | .refs/fn26/piab347A_0.jpg | https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab347A_0.jpg | 47e6c9dd3175e6a5deb0fad36da9b034a627f1ab1cb50f411fa1feee7ebd37e6 |
 
-O-BARE is a winter whole-tree photograph, not calibrated bark microscopy.
-S-BRANCH is an attached needled branch, not a bare fork close-up. These limits
-remain exposed when judging trunk/branch detail. O-LEAF shows midrib and
-secondary veins; S-NEEDLE shows plain needles and woody pegs.
 
-## The stills
+O-BARE is a whole-tree reference, not a bark close-up. S-BRANCH shows an
+attached needled branch, not trunk bark or a bare fork; it cannot establish
+spruce bark calibration. The new owner photographs supply oak bark detail.
 
-| Species | Scale | Still | Reference |
-|---|---|---|---|
-| Oregon white oak | trunk | [stills/oak-trunk.png](stills/oak-trunk.png) | O-BARE |
-| Oregon white oak | branch/socket | [stills/oak-branch.png](stills/oak-branch.png) | O-BARE |
-| Oregon white oak | leaf, frontlit | [stills/oak-leaf-frontlit.png](stills/oak-leaf-frontlit.png) | O-LEAF |
-| Oregon white oak | leaf, backlit | [stills/oak-leaf-backlit.png](stills/oak-leaf-backlit.png) | O-LEAF |
-| Norway spruce | trunk | [stills/spruce-trunk.png](stills/spruce-trunk.png) | S-BRANCH |
-| Norway spruce | branch/socket | [stills/spruce-branch.png](stills/spruce-branch.png) | S-BRANCH |
-| Norway spruce | needle, frontlit | [stills/spruce-needle-frontlit.png](stills/spruce-needle-frontlit.png) | S-NEEDLE |
-| Norway spruce | needle, backlit | [stills/spruce-needle-backlit.png](stills/spruce-needle-backlit.png) | S-NEEDLE |
+## Stills
 
-Second-session capture ledger and observations are recorded in child-notes.md.
-The original dark oak-leaf.png and spruce-needle.png are superseded by these
-pairs. The timing hero is a timing artifact, not an owner verdict slot.
+| Species | Scale | Still | Reference | Evidence session |
+|---|---|---|---|---|
+| Oregon white oak | trunk | [oak-trunk.png](stills/oak-trunk.png) | OWNER-WHITE-OAK; O-BARE for form | 4, capture 4 |
+| Oregon white oak | branch/socket | [oak-branch.png](stills/oak-branch.png) | OWNER-WHITE-OAK; O-BARE for form | 4, capture 5 |
+| Oregon white oak | leaf, frontlit | [oak-leaf-frontlit.png](stills/oak-leaf-frontlit.png) | O-LEAF | 2, unchanged |
+| Oregon white oak | leaf, backlit | [oak-leaf-backlit.png](stills/oak-leaf-backlit.png) | O-LEAF | 2, unchanged |
+| Norway spruce | trunk | [spruce-trunk.png](stills/spruce-trunk.png) | S-BRANCH, with the limitation above | 4, capture 6 |
+| Norway spruce | branch/socket | [spruce-branch.png](stills/spruce-branch.png) | S-BRANCH | 2, unchanged |
+| Norway spruce | needle, frontlit | [spruce-needle-frontlit.png](stills/spruce-needle-frontlit.png) | S-NEEDLE | 2, unchanged |
+| Norway spruce | needle, backlit | [spruce-needle-backlit.png](stills/spruce-needle-backlit.png) | S-NEEDLE | 2, unchanged |
 
-Final observations: oak ridges now wander and break into curved plates at
-comparable widths on the trunk and mature branches. The field still has broad,
-smooth plate interiors and is visibly stylized at this magnification. Mature
-collars expose changes in plate phase and direction. Frontlit oak shows veins
-and margin tone; its shaded-side backlit view is yellow-green, with vein
-contrast largely washed out by the simple additive transmission term. The
-existing faceted outline and vein bends remain unchanged.
+The three superseded trunk diagnostics are under discarded/session4-capture{1,2,3}-oak-trunk.png.
+The final oak has pale flat faces, varied dark lower edges and irregular vertical
+columns. Its surface still looks more orderly and its faces smoother than the
+white-oak photo. The branch exposes the phase/direction mismatch at independent
+fork axes, and weaker relief on smaller runs. No geometry is hidden.
 
-Spruce has plain needles, green when frontlit and near-black when backlit.
-Its young wood is smooth. **The clear spruce socket framing request remains
-incomplete:** foreground twigs still cross the closer collar view and the trunk.
-The obstruction search found no clear candidate in its sampled poses. No
-geometry was removed. A clearer socket still needs a later authorized capture
-session; the eight-capture limit is exhausted here.
+The spruce trunk has vertical ridges broken into scales, but foreground twigs
+heavily obstruct it. Its row is unchanged. The earlier spruce socket framing
+request remains unresolved. The retained spruce branch is prior-shader evidence;
+this session authorized only its trunk recapture, so that branch does not verify
+the revised bark. All five retained still hashes are checked unchanged in stills.json.
+Leaf lighting observations remain: oak frontlit veins and margin tone, yellow-green
+backlit transmission that washes out some vein contrast; plain spruce needles,
+green frontlit and nearly opaque backlit. Existing leaf geometry is unchanged.
 
-Eight captures were used in this session: two initial clocks, two diagnostic
-oak wood pairs, two final clocks, then four final views per species. Captures
-5 and 6 are the final timing records; 7 and 8 supply the eight judged stills.
-Four images were inspected per final species capture, two per diagnostic
-capture, and none from the clock sessions. Discarded images and superseded
-clock records are retained outside the final still set. No session was
-contended. The [native hero](stills/oak-timing-hero.png) is uninspected timing
-evidence, without an R4 verdict slot.
+## Material and field
 
-## The materials
-
-Eight concepts add ten scalar fields because tint has three channels.
-Defaults disable relief, roughness variation, vein contrast and transmission.
-Ridge/plate size: 0–1 m; roughness detail, vein contrast, strength and each tint
-channel: 0–1; vein scale: 0–32 pairs; thickness: 0–8 optical depth.
-Each field has named endpoint refusal tests and wire/blend coverage. The panel
-renders the generated numeric row generically. The frozen geometry protocol
-already excludes the material object and was left unchanged; an added-row
-compatibility test checks that stripping the ten additions recovers the older
-material document exactly. The sweep's exact inventory includes the additions
-as moved preset fields, so its HELD set stays unchanged in the final diff.
-
-| Field | Oak | Spruce | Other three defaults |
+| Field | Oak | Spruce | Other three presets |
 |---|---:|---:|---:|
-| Ridge scale, m | 0.04 | 0.025 | 0 |
-| Plate scale, m | 0.18 | 0.09 | 0 |
+| Ridge scale, m | 0.032 (was 0.04) | 0.025 | 0 |
+| Plate scale, m | 0.055 (was 0.18) | 0.09 | 0 |
+| Bark RGB, linear | 0.225, 0.218, 0.198 | 0.147, 0.078, 0.045 | unchanged |
 | Roughness detail | 0.12 | 0.16 | 0 |
 | Vein pairs | 7 | 8 | 8 |
 | Vein contrast | 0.45 | 0 | 0 |
@@ -114,162 +97,128 @@ as moved preset fields, so its HELD set stays unchanged in the final diff.
 | Transmission tint | 0.24, 0.52, 0.07 | 0.12, 0.24, 0.08 | 0.3, 0.6, 0.1 |
 | Optical thickness | 0.65 | 3.5 | 1 |
 
-Bark uses ring radii reconstructed from the existing vertex positions and
-fn14's coordinate ring boundaries. A read-only float storage buffer and one
-radius interpolant carry those values; the existing vertex layout and all
-mesh arrays stay identical. Cap centres remain smooth. Storage size is
-checked before upload, including the device's binding limit.
+The circle embedding keeps a radius × angle metric in metres without integer
+ridge counts or an angular seam. Jittered sites partition the circumference into
+columns; independent two-coordinate noise drifts their outlines along the run.
+A distance-based shoulder gives each furrow finite width and each ridge a flat
+face. Uneven, independently staggered axial intervals split the columns into
+scales. Their asymmetric height profile rises at the lower edge and settles
+onto a face; amplitude varies per scale. Fine flakes occur only on faces and
+fade separately when the pixel footprint cannot resolve them.
 
-The procedural field embeds the circle with the arc metric radius × angle,
-so metre-sized cells continue across the angular wrap without integer ridge
-counts. Smooth longitudinal noise drifts phase and amplitude; jittered
-nearest-site cross-fissures cut the ridges into plates. Relief vanishes below
-a diameter of two ridge widths and reaches full strength at five. Pixel
-footprints filter unresolved detail. The original normal still serves the
-shadow receiver; no light, shadow map or caster rule changed.
+Scale spacing is derived from the row, bounded to 1.5–2 ridge widths. The
+plate/ridge ratio also controls furrow depth, shoulder width and axial persistence.
+At the shallow oak setting, furrow strength varies along the run, leaving mostly
+short grooves and occasional longer fissures. At larger ratios, columns persist
+longer, their shoulders broaden, and high-frequency wandering decreases. For
+example, 0.035/0.21 m gives nominal 7 cm scales, 56 cm column persistence and
+about 1 cm furrow floors before noise variation. This end is structurally derived,
+not a separately photographed or visually accepted black-oak preset.
 
-Veins restore the across-coordinate's sign before interpolation, preserving
-the midrib on coarse triangles. Both vein and margin tone vanish at roundness
-1. The same coordinates, phase and footprint rule apply at every level.
-Transmission is tint × strength × exp(-thickness) × shadow visibility ×
-backface sunlight × squared alignment toward the eye. It shares the existing
-shadow lookup with reflection. This is a thin-blade model, not multi-bounce
-subsurface scattering. Spruce's strength and thickness keep it near zero.
+The existing diameter fade from two to five ridge widths remains. An additional
+smooth girth factor grows from 0.3 to 1 as radius spans 2.5–20 ridge widths, so
+mature stems have stronger relief than mature branches. The original radius
+storage buffer, interpolant and upload limits remain unchanged. The new field
+only perturbs shading normals; shadow receivers still use the original normal.
+All darkening comes from those normals under the existing sun and sky, without
+new micro-shadowing or geometric overhangs.
 
-## The oak on the clock
+Veins and transmission are unchanged: roundness 1 suppresses veins and margin
+tone; transmission is tint × strength × exp(-thickness) × shadow visibility ×
+backface sunlight × squared alignment toward the eye. Every level shares the
+same coordinates and filtering. No subsurface-scattering model is introduced.
+
+## R5 numbers
 
 | Native whole view | Total p50, ms | Total p95, ms | Verdict |
 |---|---:|---:|---|
 | fn14 | 4.949 | 5.412 | valid |
 | fn27 | 3.4243 | 3.7484 | valid |
 | fn26 session 2 | 3.5113 | 3.8223 | valid |
-| fn26 session 3 | **3.5323** | **3.8410** | valid |
+| fn26 session 3 | 3.5323 | 3.8410 | valid |
+| fn26 session 4 | **3.5656** | **3.8853** | valid |
 
-The fn26 session-3 native clock is valid and passes the 3.8 ms total-p50
-bound with 0.2677 ms remaining. It is 0.0210 ms (0.60%) above session 2 and
-0.1080 ms above fn27. Vegetation p50/p95 is 3.1508/3.4314 ms; selection
-0.1032/0.1052 ms; the unchanged shadow pass reports 0.2724/0.3011 ms.
-Stable compaction adds a measured 0.0164 ms to selection p50. This is a small
-cost within R5, not evidence of literally zero overhead. Record:
-oak-native-timing.json; previous record: session2-final-native-timing.json.
-NVIDIA GeForce RTX 3080, NVIDIA 610.57.04, Vulkan. No look reduction or shader
-tuning follows this measurement. The native command's incidental hero is
-session3-native-hero.png outside the detail-still set; existing stills stay intact.
-
-## The orbit, on the clock
+Native total p50 is 0.0333 ms (0.94%) above session 3, leaving **0.2344 ms**
+inside the 3.8 ms bound. Vegetation p50/p95 3.1928/3.4847 ms;
+selection 0.1029/0.1044 ms. The unchanged shadow counter reports
+0.2703/0.2970 ms. Record: oak-native-timing.json;
+log: logs/session4-native-timing.log. Valid first attempt. NVIDIA GeForce RTX 3080,
+NVIDIA 610.57.04, Vulkan. The incidental session4-native-hero.png is not inspected.
 
 | Browser oak orbit | Wall p50, ms | Wall p95, ms | Wall max, ms | Frames | Verdict |
 |---|---:|---:|---:|---:|---|
 | fn14 | 10.00 | 10.10 | 10.20 | 999 | valid |
 | fn27 | 10.00 | 10.10 | 10.20 | 999 | valid |
 | fn26 session 2 | 10.00 | 10.10 | 10.20 | 999 | valid |
-| fn26 session 3 | **10.00** | **10.10** | **10.40** | 999 | valid |
+| fn26 session 3 | 10.00 | 10.10 | 10.40 | 999 | valid |
+| fn26 session 4 | **10.00** | **10.10** | **10.10** | 999 | valid |
 
-The browser session is valid: 999 frames over ten seconds on the 100 Hz
-display, comfortably above 60 fps; p95 10.10 ms is below 16.7 ms, and worst
-10.40 ms below 33 ms. Browser GPU total p50/p95: 3.5955/3.9598 ms, versus
-3.6198/3.9841 ms in session 2. Selection p50/p95: 0.1085/0.1116 ms,
-versus 0.0922/0.0932 ms. Record:
-oak-browser-orbit.json; the exact Chromium version and hardware flags are in
-that record. Wall times use the page's 0.1 ms clock resolution. Native and
-browser measurements ran one at a time, after tests and builds stopped.
-The first browser attempt closed before returning a report and is not counted;
-the unchanged protocol succeeded on retry. No contended verdict was accepted.
-Previous browser record: session2-final-browser-orbit.json.
+Browser GPU total p50/p95 **3.6457/5.0596 ms**, versus
+3.5955/3.9598 ms previously. The GPU p95 increased by 1.0998 ms in this run;
+no zero-cost or causal claim is made from these single sessions. Wall p95 stays
+10.10 ms, below 16.7 ms, and max 10.10 ms is below 33 ms. Selection p50/p95
+0.1085/0.1966 ms. Record: oak-browser-orbit.json;
+log: logs/session4-browser-orbit-retry.log. Chromium 153.0.8010.12; exact flags
+and WebGPU information are in the record. Wall clock resolution is 0.1 ms.
+
+The first browser invocation failed before measurement because it targeted
+127.0.0.1 while the owner's server listened on IPv6 localhost. The unchanged
+protocol then ran at http://localhost:5175 and returned valid. No contended
+verdict occurred or was accepted. Native and browser ran sequentially after
+this session's tests and builds; GPU utilization was 0% at preflight. Another
+session's CPU-only species tests were active. No process or priority was changed.
+Previous records: session3-final-native-timing.json and session3-final-browser-orbit.json.
+No visual tuning or implementation change follows the final clocks.
 
 ## Gates and pins
 
-All five required gates pass: formatting, clippy with warnings denied, the
-release workspace tests, Wasm build plus npm tests (66), and TypeScript.
-The original anatomy-neutrality scan caught the initial `blade_detail` name;
-it was renamed to `leaf_detail` without changing the gate. Session 3 ran the complete Rust
-gate twice consecutively, both successfully, after the twenty-iteration parallel
-look loop (60 passing test executions, worst repeat-draw move 0/255).
-The five final gate logs carry the session3-gate prefix; the Rust logs are
-session3-gate-rust-1.log and session3-gate-rust-2.log. Red/green commands and logs are listed in
-child-notes.md. Original fn24 identity literals and frozen .flow evidence are
-unchanged. The wood test hashes positions, normals, coordinates and indices
-before/after material detail, then requires a visible shading change.
+All five required gates pass: cargo fmt --all -- --check; cargo clippy
+--workspace --all-targets -- -D warnings; cargo test --release --workspace;
+npm run wasm:build && npm test (66 tests); npm run typecheck. Final logs are
+logs/session4-gate-{fmt,clippy,rust,npm,typecheck}.log. The generated browser
+preset table contains only the matching oak value changes.
+
+Twenty release look iterations with --test-threads=3 --nocapture pass: 60 test
+executions, **zero changed channels in every repeat draw, worst 0/255**, equal
+to session 3. Evidence: logs/session4-look-loop.log. The new physical
+field test failed against the rejected implementation in logs/session4-structure-red.log
+(trunk/branch deviation ratio 0.9884). It passes the final shader in
+logs/session4-field-refinement.log (3.1962, across/along slope ratio 1.6332).
+The unchanged wrap test passes with a height difference of 8.8316e-8 m.
+Intermediate failed wrap checks and their correction are recorded in child-notes.md.
+The existing wood-byte test retains equality: both hashes 9238220531640137937.
+The identity literals, vertex layout and exact-equality redraw assertion are untouched.
 
 ## Deviations
 
-The host found that the previously reported green Rust gate was intermittent:
-atomic reservations assigned both within-workgroup slots and between-workgroup
-ranges in arrival order. Equal-depth leaf edge samples could select different
-leaves on a repeated draw, and the new shading amplified the existing difference
-to 18/255. Session 3 reproduced that failure immediately, then took route 1:
-GPU selection now compacts each level in ascending placement-index order.
-Membership bitsets determine local ranks, a prefix dispatch determines group
-offsets, and a scatter dispatch writes the ordered lists. A checked scratch
-buffer holds ranks and offsets. The leaf terms, depth values, original placement
-array and shadow pass are unchanged. There is no route-2 shading compromise.
-The requested zero-cost check found about 16 microseconds of extra selection
-time: native total p50 rose by 21 microseconds, while browser wall p50/p95
-were unchanged and browser GPU total p50 fell by 24.3 microseconds. Both R5
-bounds pass, but literal zero overhead is not claimed.
+The rejected rounded cellular relief is replaced by anisotropic columns with
+finite-width shouldered furrows, flat scales, lifted lower edges and finer flakes
+on faces. Three scales derive from the two row lengths; girth continues to
+strengthen relief beyond the existing young-wood fade. Circumferential character,
+outline, phase and individual scale amplitude vary. The oak row is shorter-scaled
+and less brown to follow the owner's white-oak photograph; spruce and the other
+three preset rows are unchanged.
 
-All twenty parallel runs of the release look binary passed, with exactly zero
-changed channels and worst move **0/255** over the loop. The original tolerance
-and assertion remain unchanged; an additional exact-equality assertion now
-protects determinism. A direct GPU regression checks all sixteen levels,
-culling, forced levels, workgroup/prefix boundaries, repeated dispatches and
-smaller submissions reusing the same buffers. Logs: session3-look-before.log,
-session3-selection-green.log and session3-look-loop.log under logs/.
+There is no departure from the spec's boundaries: no image textures, new light,
+shadow change, vertex layout change or mesh displacement. Normal perturbation
+cannot reproduce actual lifted silhouettes or micro-occlusion. The final white-oak
+field remains cleaner and more regular than the photo. The deep-furrow end has
+not received a separate visual capture or owner acceptance. Independent fork axes
+still change pattern phase/direction; the spruce trunk is obstructed, and its
+older branch still is retained under this session's capture limits. These limits
+remain exposed for R4; no acceptance or spec closure is claimed.
 
-The eight detail stills are unaffected: bare views do not select foliage, and
-single-leaf views bind their fixed identity list. Their shader and geometry
-are unchanged, so no detail still is recaptured in session 3.
-
-The fixed 24-ridge angular pattern was replaced by a metre-scale cellular
-field. Ridge widths now stay comparable across girths, phase and amplitude
-wander along each run, curved cross-fissures split the ridges into plates,
-and the scale-derived maturity fade removes relief from young wood. The
-initial corrected still showed overly rectangular plates; local phase wander
-and rounded ridge tops address that remaining regularity in the final field.
-
-The original unlit single-leaf evidence is superseded by frontlit and backlit
-pairs, using the existing sun and camera. The branch driver now frames a
-closer side view of the collar, but spruce foreground twigs still obscure it.
-One diagnostic capture omitted the
-material upload in that temporary driver and was discarded; the omission
-never affected the production renderer or its timing sessions.
-
-The field is continuous along each run and around its angular wrap, but it
-still does not stitch cells between independent fork axes. Plate phase and
-direction can change at mature collars of comparable girth; the child's lower
-radius reduces relief where it falls inside the maturity ramp. Existing
-socket geometry remains exposed. No mesh, placement or caster is removed to
-hide a join. The spruce collar is still crossed by foreground twigs, so that
-specific framing request remains incomplete. The session-2 capture limit prevented a
-further attempt then; session 3 authorizes recaptures only for a changed look,
-so this selection-only correction does not authorize a new framing attempt. Final observations are recorded above and in
-the capture ledger.
-
-There is no departure from the spec's boundaries: no new light, shadow
-change, vertex layout change, image texture or subsurface-scattering model.
-The additional radius storage buffer and single interpolant leave the original
-mesh bytes and fn24 pins intact. The temporary evidence driver is removed
-from the worktree, with its source and exact poses preserved in the handover.
-
-## Verdicts
-
-R1–R3: implementation and tests described above; visual acceptance remains R4.
-R4: awaiting the owner's six scale judgments below; leaf/needle judgments
-have frontlit and backlit views. No owner's verdict is supplied or inferred.
-R5: final native and browser records are listed above.
-
-The reference limitations, stylized plate interiors and independent-axis
-socket mismatch remain for the owner to judge. The spruce needs a clearer
-socket still before its framing requirement can be considered delivered. The
-spec must remain open until the owner fills accepting verdicts in the six
-slots below.
+The generated preset catalogue retains its pre-existing 872-line format; only
+five oak values change there. Authored Rust/shader files changed here remain
+below 400 lines. Reformatting or splitting the catalogue generator would broaden
+this bark correction, so this existing generated-data size exception is retained.
 
 ## Owner verdict
 
 | Species | Scale | Reference | Owner verdict |
 |---|---|---|---|
-| Oregon white oak | trunk | O-BARE | |
-| Oregon white oak | branch/socket | O-BARE | |
+| Oregon white oak | trunk | OWNER-WHITE-OAK; O-BARE | |
+| Oregon white oak | branch/socket | OWNER-WHITE-OAK; O-BARE | |
 | Oregon white oak | leaf | O-LEAF | |
 | Norway spruce | trunk | S-BRANCH | |
 | Norway spruce | branch/socket | S-BRANCH | |

@@ -113,11 +113,15 @@ The material row also controls procedural surface detail: `ridgeScale` and
 `transmissionStrength` (0–1), linear `transmissionRed/Green/Blue` (each 0–1),
 and `thickness` (0–8 optical depth). Transmission attenuates by
 `exp(-thickness)` and the existing shadow comparison. Round sections suppress
-vein and margin tone. Ridge scale sets the circumferential cell width;
-plate scale sets the distance between staggered cross-fissures. Zero ridge
-scale disables bark relief; zero plate scale leaves ridges without cross-fissures.
-Relief fades out on wood whose diameter spans fewer than two ridge widths,
-and reaches full strength at five widths. These fields affect shading only.
+vein and margin tone. Ridge scale sets circumferential ridge spacing; plate
+scale sets staggered scale height, bounded to 1.5–2 ridge widths so long
+furrows still carry short scales.
+Larger plate-to-ridge ratios deepen and lengthen the shouldered furrows.
+Flat faces have lifted lower edges and finer flakes derived from those same
+two lengths. Zero ridge scale disables relief; zero plate scale leaves ridges
+without cross-fissures. The young-wood fade spans diameters of two to five
+ridge widths; relief continues strengthening with girth on mature runs.
+These fields affect shading only.
 
 Foliage selection compacts each level in placement-index order. Equal-depth
 leaf samples therefore resolve consistently when the same frame is redrawn.
