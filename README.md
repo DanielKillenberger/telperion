@@ -119,6 +119,9 @@ scale disables bark relief; zero plate scale leaves ridges without cross-fissure
 Relief fades out on wood whose diameter spans fewer than two ridge widths,
 and reaches full strength at five widths. These fields affect shading only.
 
+Foliage selection compacts each level in placement-index order. Equal-depth
+leaf samples therefore resolve consistently when the same frame is redrawn.
+
 `--to <preset>` renders a numbered PNG sequence instead of one still: `--frames <n>` frames, 240 by default, each the blend of the two families at the one seed, all of them at the hero pose the first frame's bounds fixed. `--out` names the sequence, so `--out /tmp/walk/frame.png` writes `/tmp/walk/frame-0001.png` onward with `transition.json` beside them, naming both presets, the seed, the size, the frame count, the rate of 24 a second and what the encoder did. When `ffmpeg` is on the path the frames are assembled into `transition.mp4` at that rate; when it is not, the run says so in one line and keeps the sequence, which is the artefact either way.
 
 The same walk stated in seconds, eased, with the camera between the two trees:

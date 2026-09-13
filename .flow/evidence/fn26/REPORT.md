@@ -3,8 +3,9 @@
 2026-09-13. Implementation and evidence for host review. R4 awaits the owner;
 no accepting visual verdict is inferred from tests. No git writes or .flow
 writes were made by this implementer. The corrective shader work, lit leaf
-pairs, final clocks and all five gates are delivered. Clear spruce socket
-framing remains incomplete at the eight-capture limit. Species-level visual
+pairs, deterministic selection, final clocks and all five gates are delivered.
+Session 3 also passed twenty parallel look iterations and the full Rust gate
+twice. Clear spruce socket framing remains incomplete from session 2. Species-level visual
 calibration is not established; the task/spec must remain open for R4.
 
 ## Protocol
@@ -141,15 +142,19 @@ subsurface scattering. Spruce's strength and thickness keep it near zero.
 |---|---:|---:|---|
 | fn14 | 4.949 | 5.412 | valid |
 | fn27 | 3.4243 | 3.7484 | valid |
-| fn26 | **3.5113** | **3.8223** | valid |
+| fn26 session 2 | 3.5113 | 3.8223 | valid |
+| fn26 session 3 | **3.5323** | **3.8410** | valid |
 
-The fn26 native session is valid and passes the 3.8 ms total-p50 bound with
-0.2887 ms remaining. It is 0.0870 ms above fn27. Vegetation p50/p95 is
-3.1498/3.4335 ms; selection 0.0868/0.0876 ms; the unchanged shadow pass reports
-0.2734/0.3021 ms. Record: oak-native-timing.json. NVIDIA GeForce RTX 3080,
-NVIDIA 610.57.04, Vulkan. The final shader is measured after the plate
-refinement; earlier valid sessions are retained as superseded records. No
-look reduction follows the final measurement.
+The fn26 session-3 native clock is valid and passes the 3.8 ms total-p50
+bound with 0.2677 ms remaining. It is 0.0210 ms (0.60%) above session 2 and
+0.1080 ms above fn27. Vegetation p50/p95 is 3.1508/3.4314 ms; selection
+0.1032/0.1052 ms; the unchanged shadow pass reports 0.2724/0.3011 ms.
+Stable compaction adds a measured 0.0164 ms to selection p50. This is a small
+cost within R5, not evidence of literally zero overhead. Record:
+oak-native-timing.json; previous record: session2-final-native-timing.json.
+NVIDIA GeForce RTX 3080, NVIDIA 610.57.04, Vulkan. No look reduction or shader
+tuning follows this measurement. The native command's incidental hero is
+session3-native-hero.png outside the detail-still set; existing stills stay intact.
 
 ## The orbit, on the clock
 
@@ -157,27 +162,63 @@ look reduction follows the final measurement.
 |---|---:|---:|---:|---:|---|
 | fn14 | 10.00 | 10.10 | 10.20 | 999 | valid |
 | fn27 | 10.00 | 10.10 | 10.20 | 999 | valid |
-| fn26 | **10.00** | **10.10** | **10.20** | 999 | valid |
+| fn26 session 2 | 10.00 | 10.10 | 10.20 | 999 | valid |
+| fn26 session 3 | **10.00** | **10.10** | **10.40** | 999 | valid |
 
 The browser session is valid: 999 frames over ten seconds on the 100 Hz
 display, comfortably above 60 fps; p95 10.10 ms is below 16.7 ms, and worst
-10.20 ms below 33 ms. Browser GPU total p50/p95: 3.6198/3.9841 ms. Record:
+10.40 ms below 33 ms. Browser GPU total p50/p95: 3.5955/3.9598 ms, versus
+3.6198/3.9841 ms in session 2. Selection p50/p95: 0.1085/0.1116 ms,
+versus 0.0922/0.0932 ms. Record:
 oak-browser-orbit.json; the exact Chromium version and hardware flags are in
 that record. Wall times use the page's 0.1 ms clock resolution. Native and
 browser measurements ran one at a time, after tests and builds stopped.
+The first browser attempt closed before returning a report and is not counted;
+the unchanged protocol succeeded on retry. No contended verdict was accepted.
+Previous browser record: session2-final-browser-orbit.json.
 
 ## Gates and pins
 
 All five required gates pass: formatting, clippy with warnings denied, the
 release workspace tests, Wasm build plus npm tests (66), and TypeScript.
 The original anatomy-neutrality scan caught the initial `blade_detail` name;
-it was renamed to `leaf_detail` without changing the gate. The complete Rust
-gate was rerun successfully. Red/green commands and logs are listed in
+it was renamed to `leaf_detail` without changing the gate. Session 3 ran the complete Rust
+gate twice consecutively, both successfully, after the twenty-iteration parallel
+look loop (60 passing test executions, worst repeat-draw move 0/255).
+The five final gate logs carry the session3-gate prefix; the Rust logs are
+session3-gate-rust-1.log and session3-gate-rust-2.log. Red/green commands and logs are listed in
 child-notes.md. Original fn24 identity literals and frozen .flow evidence are
 unchanged. The wood test hashes positions, normals, coordinates and indices
 before/after material detail, then requires a visible shading change.
 
 ## Deviations
+
+The host found that the previously reported green Rust gate was intermittent:
+atomic reservations assigned both within-workgroup slots and between-workgroup
+ranges in arrival order. Equal-depth leaf edge samples could select different
+leaves on a repeated draw, and the new shading amplified the existing difference
+to 18/255. Session 3 reproduced that failure immediately, then took route 1:
+GPU selection now compacts each level in ascending placement-index order.
+Membership bitsets determine local ranks, a prefix dispatch determines group
+offsets, and a scatter dispatch writes the ordered lists. A checked scratch
+buffer holds ranks and offsets. The leaf terms, depth values, original placement
+array and shadow pass are unchanged. There is no route-2 shading compromise.
+The requested zero-cost check found about 16 microseconds of extra selection
+time: native total p50 rose by 21 microseconds, while browser wall p50/p95
+were unchanged and browser GPU total p50 fell by 24.3 microseconds. Both R5
+bounds pass, but literal zero overhead is not claimed.
+
+All twenty parallel runs of the release look binary passed, with exactly zero
+changed channels and worst move **0/255** over the loop. The original tolerance
+and assertion remain unchanged; an additional exact-equality assertion now
+protects determinism. A direct GPU regression checks all sixteen levels,
+culling, forced levels, workgroup/prefix boundaries, repeated dispatches and
+smaller submissions reusing the same buffers. Logs: session3-look-before.log,
+session3-selection-green.log and session3-look-loop.log under logs/.
+
+The eight detail stills are unaffected: bare views do not select foliage, and
+single-leaf views bind their fixed identity list. Their shader and geometry
+are unchanged, so no detail still is recaptured in session 3.
 
 The fixed 24-ridge angular pattern was replaced by a metre-scale cellular
 field. Ridge widths now stay comparable across girths, phase and amplitude
@@ -199,8 +240,9 @@ direction can change at mature collars of comparable girth; the child's lower
 radius reduces relief where it falls inside the maturity ramp. Existing
 socket geometry remains exposed. No mesh, placement or caster is removed to
 hide a join. The spruce collar is still crossed by foreground twigs, so that
-specific framing request remains incomplete. The capture limit prevents a
-further attempt in this session. Final observations are recorded above and in
+specific framing request remains incomplete. The session-2 capture limit prevented a
+further attempt then; session 3 authorizes recaptures only for a changed look,
+so this selection-only correction does not authorize a new framing attempt. Final observations are recorded above and in
 the capture ledger.
 
 There is no departure from the spec's boundaries: no new light, shadow

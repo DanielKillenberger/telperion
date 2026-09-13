@@ -102,6 +102,7 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
         ("foliage level lists", selection.lists, stored),
         ("foliage level counters", selection.counts, stored),
         ("foliage indirect arguments", selection.arguments, stored),
+        ("foliage selection scratch", selection.scratch, stored),
     ];
     for (buffer, payload, limit) in payloads {
         // The allocation is judged, not the payload: buffers are taken with
