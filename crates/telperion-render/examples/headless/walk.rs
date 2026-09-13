@@ -11,7 +11,7 @@ use telperion_render::{SceneRow, View};
 pub const FPS: u32 = 24;
 
 pub const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] \
-                         [--view whole|bare|leaf] [--level <n>] [--timing <json>] [--orbit] \
+                         [--view whole|bare|leaf|clay] [--level <n>] [--timing <json>] [--orbit] \
                          [--scene <json>] [--to <preset>] [--frames <n>] \
                          [--walk <seconds>] [--hold <seconds>] [--sweep <degrees>]";
 

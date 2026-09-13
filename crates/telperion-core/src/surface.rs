@@ -7,6 +7,14 @@ mod paths;
 pub(crate) use attachment::AttachmentSurface;
 use frames::frames;
 use paths::paths;
+/// One complete surface run, in descending order of its largest sample radius.
+/// The spans tile the wood index buffer; a caster can draw a single prefix.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SurfaceRun {
+    pub first_index: u32,
+    pub index_count: u32,
+    pub largest_radius: f64,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SurfaceParams {
@@ -72,6 +80,7 @@ pub struct SurfaceMesh {
     pub coords: Vec<f32>,
     pub bounds: Option<Bounds>,
     pub runs: usize,
+    pub run_table: Vec<SurfaceRun>,
 }
 #[derive(Clone, Copy)]
 struct Sample {
@@ -210,6 +219,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
         indices: reserved(indices_len)?,
         bounds: None,
         runs: paths.runs.len(),
+        run_table: reserved(paths.runs.len())?,
     };
     let longest = paths
         .runs
@@ -222,7 +232,26 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     let mut samples = reserved(longest)?;
     let mut frame = reserved(longest)?;
     let mut segments_scratch = reserved(longest)?;
+    // Sample once to rank the runs, then reuse the same scratch for emission.
+    // Ties retain path order, so the permutation is deterministic.
+    let mut ordered = reserved(paths.runs.len())?;
     for path in &paths.runs {
+        sample_path(
+            tree,
+            height,
+            params,
+            &paths.nodes[path.start..path.end],
+            path.trunk,
+            &distance,
+            &mut samples,
+        );
+        let radius = samples.iter().map(|s| s.r).fold(0.0, f64::max);
+        ordered.push((path, radius));
+    }
+    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
+    for (path, largest_radius) in ordered {
+        let first_index = u32::try_from(mesh.indices.len())
+            .map_err(|_| Error::ResourceLimit("surface indices"))?;
         let path_nodes = &paths.nodes[path.start..path.end];
         sample_path(
             tree,
@@ -289,6 +318,13 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
                 top_ring + next,
             ]);
         }
+        let end = u32::try_from(mesh.indices.len())
+            .map_err(|_| Error::ResourceLimit("surface indices"))?;
+        mesh.run_table.push(SurfaceRun {
+            first_index,
+            index_count: end - first_index,
+            largest_radius,
+        });
     }
     finish(mesh)
 }

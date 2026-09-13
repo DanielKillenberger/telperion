@@ -6,7 +6,7 @@ use telperion_core::{
     math::Vec3,
     mesh::{self, Detail, Foliage, TreeMesh},
     params,
-    surface::{Bounds, SurfaceMesh},
+    surface::{Bounds, SurfaceMesh, SurfaceRun},
 };
 use telperion_render::{
     fits, hero_pose, render, Level, Region, Renderer, View, GROUND_REACH, MAX_LEVELS, STILL_FORMAT,
@@ -26,6 +26,11 @@ fn small() -> TreeMesh {
             indices: vec![0; 6],
             bounds: None,
             runs: 1,
+            run_table: vec![SurfaceRun {
+                first_index: 0,
+                index_count: 6,
+                largest_radius: 1.0,
+            }],
         },
         foliage: Foliage {
             element: Element::default(),
@@ -52,6 +57,7 @@ fn crown(levels: usize, indices: usize, instances: usize) -> TreeMesh {
         indices: Vec::new(),
         bounds: None,
         runs: 0,
+        run_table: Vec::new(),
     };
     mesh.foliage.element = Element {
         level_indices: vec![0; indices],
@@ -373,4 +379,32 @@ fn each_view_draws_what_its_name_promises() {
         leaf.max.y - leaf.min.y < (tree.bounds.max.y - tree.bounds.min.y) / 10.0,
         "the leaf view frames the whole tree"
     );
+}
+
+#[test]
+fn wood_runs_must_tile_the_index_buffer_in_radius_order() {
+    fits(&limit(4096), &small()).unwrap();
+    for mutation in 0..6 {
+        let mut mesh = small();
+        match mutation {
+            0 => mesh.wood.run_table[0].first_index = 3,
+            1 => mesh.wood.run_table[0].index_count = 3,
+            2 => mesh.wood.run_table[0].index_count = 9,
+            3 => mesh.wood.run_table[0].largest_radius = f64::NAN,
+            4 => mesh.wood.run_table.clear(),
+            _ => {
+                mesh.wood.run_table[0].index_count = 3;
+                mesh.wood.run_table.push(SurfaceRun {
+                    first_index: 3,
+                    index_count: 3,
+                    largest_radius: 2.0,
+                });
+                mesh.wood.runs = 2;
+            }
+        }
+        assert!(fits(&limit(4096), &mesh)
+            .unwrap_err()
+            .to_string()
+            .contains("wood run"));
+    }
 }

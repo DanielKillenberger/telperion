@@ -119,6 +119,35 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
             limit: MAX_LEVELS,
         });
     }
+    // Runs remain host-side. Reject malformed spans before any GPU upload.
+    let mut end = 0u32;
+    let mut radius = f64::INFINITY;
+    for run in &mesh.wood.run_table {
+        if run.first_index != end
+            || run.index_count == 0
+            || run.index_count % 3 != 0
+            || !run.largest_radius.is_finite()
+            || run.largest_radius < 0.0
+            || run.largest_radius > radius
+        {
+            return Err(telperion_core::Error::InvalidInput(
+                "wood run: non-contiguous span or unordered radius",
+            )
+            .into());
+        }
+        end = end
+            .checked_add(run.index_count)
+            .ok_or(telperion_core::Error::InvalidInput(
+                "wood run: index span overflow",
+            ))?;
+        radius = run.largest_radius;
+    }
+    if end as usize != mesh.wood.indices.len() || mesh.wood.run_table.len() != mesh.wood.runs {
+        return Err(telperion_core::Error::InvalidInput(
+            "wood run: spans must cover the index buffer exactly",
+        )
+        .into());
+    }
     Ok(())
 }
 

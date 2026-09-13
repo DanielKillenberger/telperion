@@ -1,4 +1,4 @@
-//! What a session reports, and the rule that an invalid one reports no number.
+//! Session counts and clocks: an invalid GPU session reports no GPU percentile.
 //!
 //! Split out of the protocol beside it so neither file outgrows the project's
 //! line rule. Every name here is the one the browser module and the headless
@@ -37,7 +37,8 @@ pub struct LevelCount {
 /// One measured session, in the terms a reader of the evidence needs. Every
 /// GPU percentile exists only on a valid verdict, so nothing in an invalid
 /// record can be mistaken for a number that passed. The wall clock is the one
-/// number that is not the GPU's, and it is judged on its own series.
+/// clock that is not the GPU's, and it is judged on its own series. Multisample
+/// and caster counts describe the draw and survive every timing verdict.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Report {
     pub hardware: Hardware,
@@ -50,6 +51,8 @@ pub struct Report {
     /// where the device would not multisample. Two records are comparable only
     /// at the same count, so every record carries it, valid or not.
     multisample: u32,
+    /// Wood triangles and foliage instances submitted to the sun.
+    casters: [u32; 2],
     verdict: Verdict,
     p50_ms: Option<f64>,
     p95_ms: Option<f64>,
@@ -125,6 +128,12 @@ impl Report {
         self
     }
 
+    /// Geometry submitted to the sun, even when no clock was available.
+    pub fn with_casters(mut self, triangles: u32, instances: u32) -> Self {
+        self.casters = [triangles, instances];
+        self
+    }
+
     /// Adds what each level drew, as the median over the measured frames. One
     /// entry per level, coarsest first, and last the bucket of leaves no level
     /// drew. A frame whose readback disagrees with the ladder adds nothing:
@@ -177,6 +186,7 @@ impl Report {
             measured: MEASURED,
             samples: 0,
             multisample: 1,
+            casters: [0; 2],
             verdict: Verdict::Valid,
             p50_ms: None,
             p95_ms: None,
@@ -215,7 +225,7 @@ impl Report {
     }
 
     /// The median shadow pass, milliseconds. The number the sun's own budget is
-    /// judged on.
+    /// read against its baseline.
     pub fn shadow_p50_ms(&self) -> Option<f64> {
         self.shadow.map(|pair| pair[0])
     }
@@ -293,6 +303,8 @@ impl Report {
             fields.push(format!("\"wall_p95_ms\": {tail:.4}"));
             fields.push(format!("\"wall_max_ms\": {worst:.4}"));
         }
+        fields.push(format!("\"caster_triangles\": {}", self.casters[0]));
+        fields.push(format!("\"caster_instances\": {}", self.casters[1]));
         format!("{{\n  {}\n}}\n", fields.join(",\n  "))
     }
 

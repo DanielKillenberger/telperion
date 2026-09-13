@@ -57,17 +57,14 @@ fn positions(element: &Element) -> Vec<f32> {
 }
 
 /// The element as it stands at the origin, which is what the leaf view frames.
-fn element_bounds(element: &Element) -> Option<Bounds> {
-    element
-        .positions
-        .iter()
-        .fold(None, |bounds, &p| match bounds {
-            None => Some(Bounds { min: p, max: p }),
-            Some(b) => Some(Bounds {
-                min: Vec3::new(b.min.x.min(p.x), b.min.y.min(p.y), b.min.z.min(p.z)),
-                max: Vec3::new(b.max.x.max(p.x), b.max.y.max(p.y), b.max.z.max(p.z)),
-            }),
-        })
+fn element_bounds(positions: &[Vec3]) -> Option<Bounds> {
+    positions.iter().fold(None, |bounds, &p| match bounds {
+        None => Some(Bounds { min: p, max: p }),
+        Some(b) => Some(Bounds {
+            min: Vec3::new(b.min.x.min(p.x), b.min.y.min(p.y), b.min.z.min(p.z)),
+            max: Vec3::new(b.max.x.max(p.x), b.max.y.max(p.y), b.max.z.max(p.z)),
+        }),
+    })
 }
 
 /// The foliage pipeline, the buffers one tree's crown lives in, and the pass
@@ -82,6 +79,7 @@ pub struct Foliage {
     /// Every level's triangles in one index buffer, as the core packed them.
     indices: Option<Held>,
     bounds: Option<Bounds>,
+    pub(crate) caster_shape: [f32; 4],
 }
 
 impl Foliage {
@@ -116,7 +114,7 @@ impl Foliage {
             ),
             // The sun sees a position and a placement. The placements are bound
             // through the same layout the frame draws a level through; the list
-            // beside them is not read, because the sun takes every placement.
+            // beside them is not read: the sun uses a fixed placement stride.
             shadow: crate::depth_pipeline(
                 gpu,
                 &[Some(shadow.light_layout()), Some(select.draw_layout())],
@@ -131,6 +129,7 @@ impl Foliage {
             coords: None,
             indices: None,
             bounds: None,
+            caster_shape: [0.0; 4],
         }
     }
 
@@ -139,7 +138,20 @@ impl Foliage {
     /// instance draws and nothing about how many there are.
     pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
         let element = &foliage.element;
-        self.bounds = element_bounds(element);
+        self.bounds = element_bounds(&element.positions);
+        // The trailing vertices with no surface coordinate form the connector.
+        // Keep it fixed while expanding the surface about its own centre.
+        let end = element
+            .coords
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .rposition(|uv| *uv != [0.0; 2])
+            .map_or(element.positions.len(), |i| i + 1);
+        self.caster_shape = element_bounds(&element.positions[..end]).map_or([0.0; 4], |b| {
+            let c = (b.min + b.max) * 0.5;
+            [c.x as f32, c.y as f32, c.z as f32, end as f32]
+        });
         self.select.submit(gpu, foliage, level);
         if element.level_indices.is_empty() {
             return;
@@ -246,14 +258,10 @@ impl Foliage {
         }
     }
 
-    /// Writes the crown into the sun's depth map: every placement the tree was
-    /// submitted with, in one instanced draw of the element's coarsest level.
-    ///
-    /// The sun's view is not the camera's, so nothing the selection pass chose
-    /// applies here and none of it is run again; and the coarsest level is a
-    /// handful of triangles a leaf, which is all a shadow the size of a leaf
-    /// can carry anyway.
-    pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>) {
+    /// Writes a fixed stride of the placement buffer at the coarsest level.
+    /// The light uniform gives the shader the same stride and its square-root
+    /// scale, so the sun needs neither a compacted list nor camera selection.
+    pub fn draw_shadow(&self, pass: &mut wgpu::RenderPass<'_>, stride: u32) {
         let (Some(positions), Some(indices)) = (&self.positions, &self.indices) else {
             return;
         };
@@ -266,7 +274,16 @@ impl Foliage {
         }
         pass.set_vertex_buffer(0, positions.live());
         pass.set_index_buffer(indices.live(), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(coarsest, 0, 0..self.select.instances());
+        pass.draw_indexed(coarsest, 0, 0..self.caster_instances(stride));
+    }
+
+    pub(crate) fn caster_instances(&self, stride: u32) -> u32 {
+        let count = self.select.instances();
+        if stride > count {
+            0
+        } else {
+            count.div_ceil(stride)
+        }
     }
 
     /// The element's bounds at the origin, which frames the leaf view.
@@ -319,9 +336,9 @@ mod tests {
     #[test]
     fn an_element_at_the_origin_bounds_itself() {
         let element = build_element(ElementParams::default()).expect("the core built a leaf");
-        let bounds = element_bounds(&element).expect("a leaf has vertices");
+        let bounds = element_bounds(&element.positions).expect("a leaf has vertices");
         assert!(bounds.max.y > bounds.min.y, "the leaf has no length");
         assert!(bounds.max.x > bounds.min.x, "the leaf has no width");
-        assert!(element_bounds(&Element::default()).is_none());
+        assert!(element_bounds(&[]).is_none());
     }
 }

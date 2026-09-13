@@ -72,7 +72,7 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     // Deep in the crown there is no sky to see: thousands of leaves stand
     // between this one and it, and what is left reads as a shaded mass rather
     // than as speckle. The sun is not attenuated - what reaches through is
-    // the dapple the shadow map already draws.
+    // the dapple the shared normal-offset comparison kernel reads.
     let shaded = ambient(n) * (1.0 - u.leaf_front.w * in.leaf.z);
     return vec4<f32>(tone(colour * (shaded + key(n, in.world))), 1.0);
 }

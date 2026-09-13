@@ -3,10 +3,11 @@
 //!
 //! The map is depth and nothing else - no colour target, no fragment stage -
 //! and it is fitted to what is on stage plus the shadow the sun's elevation
-//! throws from it, never to the 400 m floor the subject stands on. The crown is
-//! drawn at the element's coarsest level over the whole placement buffer: the
-//! sun's view is not the camera's, so nothing the camera selected applies here
-//! and no second selection is run for it.
+//! throws from it, never to the floor's full extent. Wood writes a radius
+//! prefix; the crown writes a fixed stride at its coarsest level, scaled about
+//! each surface's centre to preserve area. Neither caster set reads camera
+//! selection. Placement reordering changes the subset; future vertex motion
+//! must move the caster by the same rule as the visible surface.
 use crate::{device::Gpu, scene::DEPTH_FORMAT};
 
 /// Where the sun stands and what its map covers, kept beside this file
@@ -15,15 +16,8 @@ mod fit;
 
 pub use fit::{light, Light};
 
-/// The map's edge in texels. One 4 MB depth texture, sized once with the
-/// device: an oak and its ground shadow come to some 35 m across, which is
-/// three centimetres a texel.
-///
-/// Measured at 2,048 first, as the task asked: the pass cost 2.30 ms p50 on
-/// the RTX 3080 against the 1.5 ms the owner allowed, so the map was halved.
-/// The pass draws 8.2 M wood triangles and 869 k placements, so what is left
-/// is the geometry and not the raster; the number is recorded, not gated, and
-/// what to do about it is the spec's to decide.
+/// The map's edge in texels: one 4 MB depth texture. Coarsening removes
+/// geometry submission cost; the shared comparison kernel softens its read.
 pub const RESOLUTION: u32 = 1_024;
 
 /// The map, the sampler every lit shader compares through, and the light the
@@ -53,7 +47,7 @@ impl Shadow {
             },
             mip_level_count: 1,
             // The map stays single-sample whatever the frame is drawn at: a
-            // depth comparison averages nothing.
+            // comparison kernel samples this one depth field.
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: DEPTH_FORMAT,
@@ -70,8 +64,8 @@ impl Shadow {
             address_mode_u: wgpu::AddressMode::ClampToEdge,
             address_mode_v: wgpu::AddressMode::ClampToEdge,
             address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Linear,
+            mag_filter: gpu.shadow_filter(),
+            min_filter: gpu.shadow_filter(),
             compare: Some(wgpu::CompareFunction::LessEqual),
             ..Default::default()
         });
@@ -115,7 +109,7 @@ impl Shadow {
 
         let light = gpu.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("light"),
-            size: size_of::<[f32; 16]>() as u64,
+            size: size_of::<[f32; 24]>() as u64,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -175,9 +169,14 @@ impl Shadow {
 
     /// Stands the sun where the scene row puts it, for the frame about to be
     /// drawn.
-    pub fn set_light(&self, gpu: &Gpu, light: &Light) {
+    pub fn set_light(&self, gpu: &Gpu, light: &Light, stride: u32, shape: [f32; 4]) {
+        let mut uniform = [0.0f32; 24];
+        uniform[..16].copy_from_slice(&light.view_projection);
+        uniform[16] = stride as f32;
+        uniform[17] = (stride as f32).sqrt();
+        uniform[20..].copy_from_slice(&shape);
         gpu.queue
-            .write_buffer(&self.light, 0, bytemuck::cast_slice(&light.view_projection));
+            .write_buffer(&self.light, 0, bytemuck::cast_slice(&uniform));
     }
 
     /// Opens the depth-only pass over the whole map, cleared. It is opened on
@@ -214,7 +213,7 @@ impl Shadow {
     }
 
     /// The map as the device holds it, a depth per texel, row by row. The
-    /// device is waited on and 16 MB come back, so this belongs to a check or a
+    /// device is waited on and 4 MB come back, so this belongs to a check or a
     /// record and never to a frame.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn depths(&self, gpu: &Gpu) -> Option<Vec<f32>> {
@@ -275,3 +274,6 @@ impl Shadow {
         Some(depths)
     }
 }
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod kernel_test;

@@ -1,15 +1,23 @@
 {
   "branch_name": "fn-27-coarse-shadow-casters-and-a-filtered",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-11T11:56:39.656647Z",
+  "default_impl": "codex:gpt-6-astra:high",
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-14-bark-and-foliage-appearance"
   ],
   "id": "fn-27-coarse-shadow-casters-and-a-filtered",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-27-coarse-shadow-casters-and-a-filtered.md",
-  "status": "open",
+  "status": "done",
   "title": "Coarse shadow casters and a filtered shadow",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T11:56:40.561623Z"
+  "updated_at": "2026-09-12T18:49:41.289292Z"
 }
