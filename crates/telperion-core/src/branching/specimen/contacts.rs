@@ -3,6 +3,47 @@ use super::*;
 use crate::growth::Age;
 use std::collections::BTreeSet;
 impl Specimen {
+    /// Complete queried sweep paths plus their ancestor and junction context.
+    /// Sibling stubs preserve leader choice without projecting their subtrees.
+    pub(super) fn contact_wood(
+        &self,
+        selected: &BTreeSet<NodeIdentity>,
+        age: Age,
+    ) -> BTreeSet<NodeIdentity> {
+        let mut query = Query {
+            s: self,
+            age,
+            stands: Default::default(),
+            outgoing: Default::default(),
+            leaders: Default::default(),
+        };
+        let mut ids = selected.clone();
+        for &id in selected {
+            if query.alive(id) && self.links[id.key].parent.is_some() && query.stand(id) == id {
+                ids.extend(query.path(id));
+            }
+        }
+        for id in ids.clone() {
+            let mut at = self.links[id.key].parent;
+            while let Some(parent) = at {
+                if !ids.insert(parent) {
+                    break;
+                }
+                at = self.links[parent.key].parent;
+            }
+        }
+        let mut context = Vec::new();
+        for &id in &ids {
+            context.extend(&self.links[id.key].children);
+        }
+        while let Some(id) = context.pop() {
+            if query.alive(id) && ids.insert(id) && query.stand(id) != id {
+                context.extend(&self.links[id.key].children);
+            }
+        }
+        ids
+    }
+
     pub(super) fn contact_candidates(
         &self,
         changed: &BTreeSet<NodeIdentity>,

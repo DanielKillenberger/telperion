@@ -123,6 +123,7 @@ impl Specimen {
                 .retain(|id| self.identities[id.key] != usize::MAX);
         }
         self.keyframes.events.forget(&self.identities);
+        self.keyframes.prune_eligibility();
         self.births.forget(&self.identities);
         t.widths.forget(&removed, &self.identities);
         t.foliage.forget(&removed);

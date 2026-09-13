@@ -65,37 +65,68 @@ impl Specimen {
             }
         }
         let foliage = &self.timeline.as_ref().unwrap().foliage;
-        let (before, old_envelope, after, envelope) =
-            if let Some(lifetime) = foliage.sparse_interval() {
-                let mut candidates = changed.clone();
-                // Only shoots still filling at some point in the interval can gain
-                // cohort stations. Births are indexed independently of width frames.
-                for key in self.births.between(lo.saturating_sub(lifetime), hi) {
-                    if let Some(&i) = self.identities.get(key).filter(|&&i| i != usize::MAX) {
-                        candidates.insert(self.tree.nodes[i].identity);
-                    }
+        let sparse = foliage
+            .sparse_interval()
+            .filter(|_| changed.len() * 8 < self.tree.nodes.len());
+        let dependencies = (foliage.contact_enabled() && changed.len() * 8 < self.tree.nodes.len())
+            .then(|| {
+                let mut ids = self.contact_candidates(&changed, from);
+                ids.extend(self.contact_candidates(&changed, to));
+                ids
+            });
+        let (before, old_envelope, after, envelope) = if let Some(lifetime) = sparse {
+            let mut candidates = changed.clone();
+            let root = self.tree.nodes[0].identity;
+            let old_limit = foliage.slender(self.keyframes.at(root, lo).unwrap()[0]);
+            let new_limit = foliage.slender(self.keyframes.at(root, hi).unwrap()[0]);
+            if old_limit < new_limit {
+                candidates.extend(
+                    self.keyframes
+                        .eligibility_between(old_limit, new_limit)
+                        .filter(|id| {
+                            self.identities
+                                .get(id.key)
+                                .is_some_and(|&i| i != usize::MAX)
+                        }),
+                );
+            }
+            if let Some(dependencies) = &dependencies {
+                candidates.extend(dependencies);
+            }
+            for key in self.births.between(lo.saturating_sub(lifetime), hi) {
+                if let Some(&i) = self.identities.get(key).filter(|&&i| i != usize::MAX) {
+                    candidates.insert(self.tree.nodes[i].identity);
                 }
-                if candidates.is_empty() {
-                    return Ok(record);
-                }
-                (
-                    self.selected_wood(from, &candidates)?,
-                    self.envelope_at(from),
-                    self.selected_wood(to, &candidates)?,
-                    self.envelope_at(to),
-                )
+            }
+            if candidates.is_empty() {
+                return Ok(record);
+            }
+            let mut old_ids = if foliage.contact_enabled() {
+                self.contact_wood(&candidates, from)
             } else {
-                let (before, old_envelope) = self.wood_at(from, false)?;
-                let (after, envelope) = self.wood_at(to, false)?;
-                (before, old_envelope, after, envelope)
+                candidates.clone()
             };
-        let dependencies = (foliage.sparse_interval().is_none()
-            && changed.len() * 8 < self.tree.nodes.len())
-        .then(|| {
-            let mut ids = self.contact_candidates(&changed, from);
-            ids.extend(self.contact_candidates(&changed, to));
-            ids
-        });
+            let new_ids = if foliage.contact_enabled() {
+                self.contact_wood(&candidates, to)
+            } else {
+                candidates
+            };
+            old_ids.extend(new_ids);
+            (
+                self.selected_wood(from, &old_ids)?,
+                self.envelope_at(from),
+                self.selected_wood(to, &old_ids)?,
+                self.envelope_at(to),
+            )
+        } else {
+            let (before, old_envelope) = self.wood_at(from, false)?;
+            let (after, envelope) = self.wood_at(to, false)?;
+            (before, old_envelope, after, envelope)
+        };
+        #[cfg(test)]
+        self.cost
+            .interval_nodes
+            .set(before.nodes.len() + after.nodes.len());
         self.timeline.as_ref().unwrap().foliage.changes(
             (&before, old_envelope, from),
             (&after, envelope, to),

@@ -131,6 +131,11 @@ fn change_record_cohort_boundary_matches_cached_and_cold_reads() {
         f.growth.leaf_lifetime = 1.25;
         // Saturated wood isolates the clock-only cohort path at an annual boundary.
         s.tree.nodes[2].shoot.birth_year = crate::growth::MAX_AGE - 1.0;
+        // Mirror this synthetic birth relocation in the chronicle index.
+        s.births.record(
+            s.tree.nodes[2].shoot.birth_year as u64,
+            s.tree.nodes[2].identity.key,
+        );
         s.timeline.as_mut().unwrap().age = crate::growth::Age {
             slice: 999_999,
             remainder: 0,

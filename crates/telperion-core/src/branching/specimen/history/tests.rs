@@ -11,6 +11,7 @@ fn fresh_read(s: &Specimen) -> SpecimenRead {
         .collect();
     shed.sort_unstable();
     SpecimenRead {
+        surface_height: s.surface_height(),
         tree: s.tree().clone(),
         envelope: s.envelope(),
         placements: s.placements().unwrap(),

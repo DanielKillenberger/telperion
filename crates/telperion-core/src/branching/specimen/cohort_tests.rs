@@ -96,6 +96,11 @@ fn cohort_budget_counts_visible_stations_and_failed_fill_keeps_age() {
     f.growth.leaf_lifetime = 6.0;
     f.canopy.max_instances = 3;
     s.tree.nodes[2].shoot.birth_year = 999_998.0;
+    // Mirror this synthetic birth relocation in the chronicle index.
+    s.births.record(
+        s.tree.nodes[2].shoot.birth_year as u64,
+        s.tree.nodes[2].identity.key,
+    );
     let t = s.timeline.as_mut().unwrap();
     t.foliage = Foliage::new(&f).unwrap();
     t.age = Age::from_years(999_998.0).unwrap();

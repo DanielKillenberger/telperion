@@ -64,6 +64,9 @@ pub(crate) struct Foliage {
     canopy: CanopyParams,
     twig: TwigPlacement,
     surface: SurfaceParams,
+    // Authored surface units stay fixed for this specimen. Annual crown
+    // height is a growth budget, never a station-transform dependency.
+    contact_height: f64,
     seed: u32,
     lifetime: Age,
     bearing_radius: f64,
@@ -99,6 +102,7 @@ impl Foliage {
             canopy: family.canopy,
             twig,
             surface: family.surface,
+            contact_height: family.skeleton.envelope.height.max(1e-6),
             seed: family.skeleton.seed,
             lifetime: Age::from_years(family.growth.leaf_lifetime)?,
             bearing_radius: family.skeleton.twigs.resolved()?.twig.bearing_diameter / 2.0,
@@ -118,6 +122,7 @@ impl Foliage {
             canopy: self.canopy,
             twig: self.twig,
             surface: self.surface,
+            contact_height: self.contact_height,
             seed: self.seed,
             lifetime: self.lifetime,
             bearing_radius: self.bearing_radius,
@@ -131,7 +136,7 @@ impl Foliage {
         let live = self.living(tree, age)?;
         let mut cache = self.cache.borrow_mut();
         let geometry = (!live.is_empty() && self.canopy.surface_contact > 0.0)
-            .then(|| contact_geometry(tree, envelope.height));
+            .then(|| contact_geometry(tree, self.contact_height));
         let reuse = geometry.is_some()
             && cache.geometry == geometry
             && live
@@ -146,7 +151,7 @@ impl Foliage {
             }
             Some(AttachmentSurface::new(
                 tree,
-                envelope.height.max(1e-6),
+                self.contact_height,
                 &self.surface,
             )?)
         } else {

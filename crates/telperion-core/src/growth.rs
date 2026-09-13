@@ -31,7 +31,9 @@ impl Default for GrowthTraits {
             shedding_tolerance: 2.0,
             apical_control_loss: 0.0,
             leaf_lifetime: 1.0,
-            resize_tolerance: 1e-9,
+            // 0.1 mm keeps twig-scale detail while suppressing sub-visible
+            // annual frames; 1 mm saved little build time in the native study.
+            resize_tolerance: 0.0001,
         }
     }
 }

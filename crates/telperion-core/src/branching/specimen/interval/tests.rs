@@ -93,6 +93,8 @@ fn interval_records_are_canonical_for_every_intermediate_year() {
 /// Bring the small contact fixture into the chronicle without running growth.
 pub(in crate::branching::specimen) fn stamp(s: &mut Specimen, year: u64) {
     for n in &s.tree.nodes {
+        // Synthetic clock fixtures relocate births; keep the event index in sync.
+        s.births.record(n.shoot.birth_year as u64, n.identity.key);
         s.keyframes.record(
             n.identity,
             year,
@@ -231,7 +233,7 @@ fn empty_late_interval_visits_no_unrelated_chronicle_nodes() {
 }
 
 #[test]
-fn envelope_height_alone_moves_contact_leaves_without_wood_keyframes() {
+fn envelope_growth_without_wood_keyframes_moves_no_placement() {
     let (_, mut s, shoot) = super::super::foliage_tests::fixture(1.0);
     stamp(&mut s, 1);
     let before = buffers(&s, 1.0);
@@ -239,12 +241,35 @@ fn envelope_height_alone_moves_contact_leaves_without_wood_keyframes() {
     stamp(&mut s, 2);
     assert!(!s.keyframes.changed(shoot, 1, 2));
     let after = buffers(&s, 2.0);
-    assert_ne!(
+    assert_eq!(
         before.placements, after.placements,
-        "height did not move the contact polygons"
+        "envelope growth moved unchanged wood contacts"
     );
+    assert!(s
+        .changes_between(1.0, 2.0)
+        .unwrap()
+        .moved_placements
+        .is_empty());
     s.changes_between(1.0, 2.0)
         .unwrap()
         .validate(&before, &after)
+        .unwrap();
+}
+
+#[test]
+fn sparse_spruce_projects_only_changed_contact_paths() {
+    let mut f = Preset::NorwaySpruce.parameters();
+    f.skeleton.seed = 7;
+    f.age = 66.0;
+    let mut s = Specimen::build(&f).unwrap();
+    let record = s.advance(1.0).unwrap();
+    assert!(record.moved_placements.len() < 20_000);
+    assert!(
+        s.cost.interval_nodes.get() < s.tree.nodes.len() / 4,
+        "sparse contact interval projected {} nodes",
+        s.cost.interval_nodes.get()
+    );
+    record
+        .validate(&buffers(&s, 66.0), &buffers(&s, 67.0))
         .unwrap();
 }

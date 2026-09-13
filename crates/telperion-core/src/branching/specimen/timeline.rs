@@ -88,19 +88,16 @@ impl Specimen {
         {
             // Unchanged wood can only fill newly reached cohort offsets.
             // Saturated cohorts need no contact surface or run-buffer copy.
-            let born_placements = if timeline.foliage.sparse_interval().is_some() {
-                self.interval(timeline.age, target)?.born_placements
-            } else {
-                timeline
-                    .foliage
-                    .filled(self.tree(), self.envelope(), timeline.age, target)?
-            };
+            let born_placements = self.interval(timeline.age, target)?.born_placements;
+            let from = timeline.age;
             self.timeline.as_mut().unwrap().age = target;
-            self.compact_history();
-            return Ok(ChangeRecord {
+            let record = ChangeRecord {
                 born_placements,
                 ..ChangeRecord::default()
-            });
+            };
+            self.update_shared(from, &record);
+            self.compact_history();
+            return Ok(record);
         }
         let from = timeline.age;
         self.advance_growth(years)?;
@@ -111,6 +108,7 @@ impl Specimen {
         {
             self.cost.changes = clock.elapsed();
         }
+        self.update_shared(from, &changes);
         self.compact_history();
         Ok(changes)
     }

@@ -11,8 +11,10 @@ mod history;
 mod interval;
 mod keyframes;
 mod retention;
+mod shared;
 pub use changes::{ChangeRecord, Run, RunNode, SpecimenBuffers};
 pub use history::SpecimenRead;
+pub use shared::{PackedNode, PackedRead};
 #[cfg(test)]
 mod measurement;
 mod storage;
@@ -28,6 +30,7 @@ pub struct Specimen {
     cost: measurement::Cost,
     pub(super) tree: Tree,
     read: std::cell::OnceCell<storage::Read>,
+    shared: std::cell::RefCell<Option<(crate::growth::Age, PackedRead)>>,
     read_active: bool,
     read_updates: Vec<usize>,
     pub(super) shed: usize,
@@ -73,6 +76,7 @@ impl Specimen {
             cost: measurement::Cost::default(),
             tree: Tree::default(),
             read: std::cell::OnceCell::new(),
+            shared: Default::default(),
             read_active: false,
             read_updates: Vec::new(),
             shed: 0,
@@ -137,6 +141,9 @@ impl Specimen {
                 };
                 self.next_identity += 1;
                 if let Some(t) = &self.timeline {
+                    if t.foliage.slender(1.0) > 0.0 {
+                        self.keyframes.track_eligibility(node.identity, node.kind);
+                    }
                     linked.push(i);
                     node.shoot.birth_year = if i == 0 {
                         0.0

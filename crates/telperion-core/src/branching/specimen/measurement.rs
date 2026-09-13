@@ -6,6 +6,8 @@ use std::time::{Duration, Instant};
 #[derive(Clone, Default)]
 pub(super) struct Cost {
     pub packed_rebuilds: std::cell::Cell<usize>,
+    pub shared_update: std::cell::Cell<Duration>,
+    pub interval_nodes: std::cell::Cell<usize>,
     pub event_visits: std::cell::Cell<usize>,
     pub stages: [Duration; 9],
     pub packing: Duration,
@@ -53,9 +55,9 @@ fn monthly_cost_report() {
             let clock = Instant::now();
             let s = Specimen::build(&family).unwrap();
             let ms = clock.elapsed().as_secs_f64() * 1000.0;
-            println!("R10 preset={preset:?} sample={sample} kind=mature ms={ms:.6} age={mature} nodes={} crossover={} bounds={:?}",
-                s.tree().nodes.len(), s.tree().crossover, bounds(s.tree()));
-            if preset == Preset::OregonWhiteOak {
+            println!("R10 preset={preset:?} sample={sample} kind=mature ms={ms:.6} age={mature} nodes={} crossover={} bounds={:?} frames={}",
+                s.tree().nodes.len(), s.tree().crossover, bounds(s.tree()), s.keyframes.frame_count());
+            {
                 for (kind, age) in [("read_past", sparse), ("read_frontier", mature)] {
                     let clock = Instant::now();
                     let read = s.read_at_age(age as f64).unwrap();
@@ -64,6 +66,11 @@ fn monthly_cost_report() {
                         read.tree.nodes.len(), read.placements.len());
                     drop(read);
                 }
+                let clock = Instant::now();
+                let read = s.read_packed_at_age(sparse as f64).unwrap();
+                let ms = clock.elapsed().as_secs_f64() * 1000.0;
+                println!("R10 preset={preset:?} sample={sample} kind=read_past_shared ms={ms:.6} age={sparse} nodes={} placements={}", read.node_count(), read.placement_count());
+                drop(read);
                 let clock = Instant::now();
                 let record = s
                     .changes_between((sparse - 1) as f64, sparse as f64)
@@ -78,13 +85,16 @@ fn monthly_cost_report() {
             for sample in 0..3 {
                 family.age = (year - 1) as f64;
                 let mut s = Specimen::build(&family).unwrap();
-                let before = s.tree().nodes.len();
+                let previous = s.read_packed().unwrap();
+                let before = previous.node_count();
                 let clock = Instant::now();
                 let record = s.advance(1.0).unwrap();
                 let ms = clock.elapsed().as_secs_f64() * 1000.0;
                 let clock = Instant::now();
-                let after = s.tree().nodes.len();
-                let packed_ms = (clock.elapsed() + s.cost.packing).as_secs_f64() * 1000.0;
+                let read = s.read_packed().unwrap();
+                let after = read.node_count();
+                let packed_ms =
+                    (clock.elapsed() + s.cost.shared_update.get()).as_secs_f64() * 1000.0;
                 let changed = s
                     .tree
                     .nodes
@@ -92,16 +102,17 @@ fn monthly_cost_report() {
                     .filter(|n| s.keyframes.changed(n.identity, year - 1, year))
                     .count();
                 let internal = s.cost.stages.iter().sum::<Duration>().as_secs_f64() * 1000.0;
-                println!("R10 preset={preset:?} sample={sample} kind={kind} ms={ms:.6} year={year} nodes_before={before} nodes_after={after} packed_read_ms={packed_ms:.6} changed={changed} internal_ms={internal:.6} finalizing_ms={:.6} record_ms={:.6} keyframe_pipes={} keyframe_widths={} packed_nodes={} remapped_nodes={} runs={} placements={} stages_ms={:?}",
+                println!("R10 preset={preset:?} sample={sample} kind={kind} ms={ms:.6} year={year} nodes_before={before} nodes_after={after} packed_read_ms={packed_ms:.6} changed={changed} internal_ms={internal:.6} finalizing_ms={:.6} record_ms={:.6} keyframe_pipes={} keyframe_widths={} packed_nodes={} remapped_nodes={} runs={} placements={} stages_ms={:?} interval_nodes={} shared_nodes={}",
                     s.cost.finalizing.as_secs_f64() * 1000.0,
                     s.cost.changes.as_secs_f64() * 1000.0, s.cost.keyframe_pipes, s.cost.keyframe_widths, s.cost.packed_nodes, s.cost.remapped_nodes,
                     record.born_runs.len() + record.resized_runs.len(),
                     record.born_placements.len() + record.moved_placements.len(),
-                    s.cost.stages.map(|d| d.as_secs_f64() * 1000.0));
+                    s.cost.stages.map(|d| d.as_secs_f64() * 1000.0), s.cost.interval_nodes.get(),
+                    record.born_runs.iter().chain(&record.resized_runs).map(|r| r.nodes.len()).sum::<usize>());
             }
         }
     }
-    println!("Build timings are chronicle/wood generation, matching the historical envelope comparison; full foliage output is reported separately. Advance timing includes record construction and cached packed-tree updates, excludes caller record destruction. packed_read_ms includes cached update time inside advance plus the subsequent borrowed read; do not add it to advance time. Stages: environment, scaffold, storage/identity, pipe-record, local-seed, local-growth, visited-vigour, shedding, annual-keyframes. record_ms is the stamp filter plus selected transforms. No snapshots exist; no round-trip timing claimed.");
+    println!("Build timings are chronicle/wood generation, matching the historical envelope comparison; full foliage output is reported separately. Advance timing includes record construction and shared packed-read updates, excludes caller record destruction. Prior owned read remains alive. packed_read_ms includes shared update time inside advance plus the subsequent owned shared read; do not add it to advance time. Stages: environment, scaffold, storage/identity, pipe-record, local-seed, local-growth, visited-vigour, shedding, annual-keyframes. record_ms is the stamp filter plus selected transforms. No snapshots exist; no round-trip timing claimed.");
 }
 
 fn bounds(tree: &Tree) -> ([f64; 3], [f64; 3]) {
@@ -193,4 +204,27 @@ fn spruce_contact_motion_report() {
         }
     }
     println!("CONTACT_AUDIT spruce year=67 moved={} born={} different_bits={different} identical_bits={identical} different_without_own_keyframe={without_frame}", record.moved_placements.len(), record.born_placements.len());
+}
+
+#[test]
+fn tolerance_cost_report() {
+    let Ok(value) = std::env::var("FN11_TOLERANCE") else {
+        return;
+    };
+    let tolerance: f64 = value.parse().unwrap();
+    for preset in [
+        crate::presets::Preset::OregonWhiteOak,
+        crate::presets::Preset::NorwaySpruce,
+    ] {
+        let mut f = preset.parameters();
+        f.skeleton.seed = 7;
+        f.age = f.growth.mature_slice() as f64;
+        f.growth.resize_tolerance = tolerance;
+        for sample in 0..3 {
+            let clock = Instant::now();
+            let s = Specimen::build(&f).unwrap();
+            let ms = clock.elapsed().as_secs_f64() * 1000.0;
+            println!("TOLERANCE preset={preset:?} tolerance={tolerance} sample={sample} ms={ms:.6} nodes={} frames={}", s.tree.nodes.len(), s.keyframes.frame_count());
+        }
+    }
 }

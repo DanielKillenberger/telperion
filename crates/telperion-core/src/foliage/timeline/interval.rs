@@ -3,91 +3,16 @@ use crate::tree::NodeKey;
 use slotmap::SecondaryMap;
 
 impl Foliage {
-    // Contact and radius-relative shoot eligibility have additional global
-    // dependencies. Finite budgets also require a complete count validation.
+    // Finite budgets require a complete endpoint count validation.
     pub(crate) fn sparse_interval(&self) -> Option<u64> {
-        (self.canopy.surface_contact == 0.0
-            && self.canopy.shoot_radius == 0.0
-            && self.canopy.max_instances == usize::MAX)
+        (self.canopy.max_instances == usize::MAX)
             .then_some(self.lifetime.slice + u64::from(self.lifetime.remainder > 0))
     }
-
-    /// Clock-only cohort births. Offsets are annual, so fractional ticks never
-    /// touch wood or derive a contact surface. A saturated shoot adds no work.
-    pub(crate) fn filled(
-        &self,
-        tree: &Tree,
-        envelope: Envelope,
-        before: Age,
-        after: Age,
-    ) -> Result<Vec<Placement>> {
-        if before.slice == after.slice {
-            return Ok(Vec::new());
-        }
-        let mut born = BTreeMap::new();
-        let mut total = 0;
-        for i in self.living(tree, after)? {
-            let n = &tree.nodes[i];
-            let birth = Age::from_years(n.shoot.birth_year)?;
-            let length = n
-                .position
-                .distance(tree.nodes[n.parent.unwrap() as usize].position);
-            let count = if length == 0.0 {
-                0
-            } else {
-                (length / self.twig.internode_length - 1e-9).ceil().max(1.0) as usize
-                    * self.twig.stations_per_internode as usize
-            };
-            let start = self.visible(birth, before, count);
-            let end = self.visible(birth, after, count);
-            total += end;
-            if total > self.canopy.max_instances {
-                return Err(Error::ResourceLimit("foliage instance budget"));
-            }
-            if end > start {
-                born.insert(n.identity, (i, start..end));
-            }
-        }
-        if born.is_empty() {
-            return Ok(Vec::new());
-        }
-        let cache = self.cache.borrow();
-        let geometry_matches = self.canopy.surface_contact == 0.0
-            || cache.geometry.as_ref() == Some(&contact_geometry(tree, envelope.height));
-        let reusable = |id, i: usize| {
-            cache.shoots.get(&id).filter(|entry| {
-                let n = &tree.nodes[i];
-                geometry_matches
-                    && entry.wood.from == tree.nodes[n.parent.unwrap() as usize].position
-                    && entry.wood.to == n.position
-                    && entry.wood.radii == [n.start_radius, n.radius]
-            })
-        };
-        let missing: BTreeSet<_> = born
-            .iter()
-            .filter(|(id, (i, _))| reusable(**id, *i).is_none())
-            .map(|(&id, _)| id)
-            .collect();
-        let contacts = if self.canopy.surface_contact > 0.0 && !missing.is_empty() {
-            Some(AttachmentSurface::selected(
-                tree,
-                envelope.height.max(1e-6),
-                &self.surface,
-                Some(&missing),
-            )?)
-        } else {
-            None
-        };
-        let mut out = Vec::new();
-        for (id, (i, range)) in born {
-            if let Some(entry) = reusable(id, i) {
-                out.extend_from_slice(&entry.placements[range]);
-            } else {
-                let placements = self.place_shoot(tree, i, envelope, contacts.as_ref())?;
-                out.extend_from_slice(&placements[range]);
-            }
-        }
-        Ok(out)
+    pub(crate) fn contact_enabled(&self) -> bool {
+        self.canopy.surface_contact > 0.0
+    }
+    pub(crate) fn slender(&self, radius: f64) -> f64 {
+        (radius * self.canopy.shoot_radius).min(self.bearing_radius)
     }
 }
 
@@ -132,7 +57,7 @@ impl Foliage {
         dependencies: Option<&BTreeSet<NodeIdentity>>,
         out: &mut crate::branching::ChangeRecord,
     ) -> Result<()> {
-        let (old_tree, old_envelope, from) = before;
+        let (old_tree, _old_envelope, from) = before;
         let (tree, envelope, to) = after;
         let old = self.counts(old_tree, from)?;
         let new = self.counts(tree, to)?;
@@ -143,15 +68,6 @@ impl Foliage {
             } else {
                 candidates.extend(crate::surface::affected_contacts(old_tree, changed)?);
                 candidates.extend(crate::surface::affected_contacts(tree, changed)?);
-            }
-            // Height enters flare, burial and twist. The stamped envelope is a
-            // dependency too, even when a large radius tolerance suppressed wood.
-            if old_envelope.height != envelope.height
-                && (self.surface.flare_radius != 1.0
-                    || self.surface.flare_depth > 0.0
-                    || (self.surface.lobes > 0 && self.surface.twist_rate != 0.0))
-            {
-                candidates.extend(new.values().map(|&(i, _)| tree.nodes[i].identity));
             }
         }
         let mut mask = SecondaryMap::new();
@@ -166,9 +82,9 @@ impl Foliage {
                 selected.insert(id);
             }
         }
-        let contacts = |tree, height, ids: &BTreeSet<_>| {
+        let contacts = |tree, ids: &BTreeSet<_>| {
             if self.canopy.surface_contact > 0.0 && !ids.is_empty() {
-                AttachmentSurface::selected(tree, f64::max(height, 1e-6), &self.surface, Some(ids))
+                AttachmentSurface::selected(tree, self.contact_height, &self.surface, Some(ids))
                     .map(Some)
             } else {
                 Ok(None)
@@ -179,8 +95,8 @@ impl Foliage {
             .filter(|id| old.contains_key(id.key))
             .copied()
             .collect();
-        let old_contacts = contacts(old_tree, old_envelope.height, &common)?;
-        let new_contacts = contacts(tree, envelope.height, &selected)?;
+        let old_contacts = contacts(old_tree, &common)?;
+        let new_contacts = contacts(tree, &selected)?;
         for (key, &(i, count)) in &old {
             let id = old_tree.nodes[i].identity;
             let remaining = new.get(key).map_or(0, |&(_, count)| count);

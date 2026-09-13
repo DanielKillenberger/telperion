@@ -11,7 +11,6 @@ pub(super) struct Widths {
     children: SecondaryMap<NodeKey, Vec<NodeIdentity>>,
     pending: BTreeSet<NodeIdentity>,
     queued: SecondaryMap<NodeKey, bool>,
-    recorded: SecondaryMap<NodeKey, [f64; 3]>,
     // Invalidation must not clear a slot array proportional to the whole tree.
     generation: u64,
     cache: std::cell::RefCell<SecondaryMap<NodeKey, (u64, [f64; 3])>>,
@@ -22,7 +21,6 @@ impl Widths {
             self.children.remove(id.key);
             self.pending.remove(&id);
             self.queued.remove(id.key);
-            self.recorded.remove(id.key);
             self.cache.borrow_mut().remove(id.key);
         }
         for (_, children) in self.children.iter_mut() {
@@ -85,14 +83,15 @@ impl Widths {
         tree: &Tree,
         ids: &DenseSlotMap<NodeKey, usize>,
         changed: &[usize],
-        pipes: &radius::Pipes,
-    ) -> Vec<(usize, [f64; 3])> {
+        keyframes: &mut keyframes::Keyframes,
+        year: u64,
+        tolerance: f64,
+    ) {
         #[cfg(test)]
         {
             self.visited = 0;
         }
         let mut pending = Pending::default();
-        let mut changes = Vec::new();
         let enqueue =
             |id: NodeIdentity, pending: &mut Pending, queued: &mut SecondaryMap<_, bool>| {
                 if !queued.get(id.key).copied().unwrap_or(false) {
@@ -120,10 +119,16 @@ impl Widths {
             if tree.nodes[i].shoot.death_year.is_some() {
                 continue;
             }
-            let radii = self.sample(tree, pipes, i);
-            if self.recorded.get(id.key) != Some(&radii) {
-                self.recorded.insert(id.key, radii);
-                changes.push((i, radii));
+            let n = &tree.nodes[i];
+            let w = n.shoot.width.unwrap();
+            let parent = tree.nodes[n.parent.unwrap() as usize].identity;
+            // Birth planning uses the raw solve; retained thickening reads the
+            // parent's canonical radius, independently of output finalization.
+            let support = keyframes.at(parent, year).unwrap()[0];
+            let base = child_radius(support, w.ratio, w.power).max(w.birth[2]);
+            let distal = (base * w.distal).max(w.birth[0]);
+            let proximal = (base * w.proximal).max(w.birth[1]).max(distal);
+            if keyframes.record(id, year, [distal, proximal, base], tolerance) {
                 if let Some(children) = self.children.get(id.key) {
                     for &id in children {
                         enqueue(id, &mut pending, &mut self.queued);
@@ -131,7 +136,6 @@ impl Widths {
                 }
             }
         }
-        changes
     }
 }
 

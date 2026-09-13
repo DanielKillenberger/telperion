@@ -6,6 +6,8 @@ use crate::{foliage::Placement, growth::Age, tree::Diagnostics};
 pub struct SpecimenRead {
     pub tree: Tree,
     pub envelope: Envelope,
+    /// Fixed metre scale for sweeping wood, matching the foliage contact surface.
+    pub surface_height: f64,
     pub placements: Vec<Placement>,
     /// Identities whose death stamp has been reached, in birth order.
     pub shed: Vec<NodeIdentity>,
@@ -19,6 +21,12 @@ pub(super) struct Year {
 }
 
 impl Specimen {
+    /// Surface traits keep their authored metre scale throughout growth. Use
+    /// this height when sweeping wood so it agrees with station contacts.
+    pub fn surface_height(&self) -> f64 {
+        self.params.envelope.height.max(1e-6)
+    }
+
     /// Read all native outputs at the frontier, without advancing the specimen.
     pub fn read(&self) -> Result<SpecimenRead> {
         let t = self
@@ -58,6 +66,7 @@ impl Specimen {
         Ok(SpecimenRead {
             tree,
             envelope,
+            surface_height: self.surface_height(),
             placements,
             shed,
         })

@@ -11,6 +11,8 @@ pub(super) struct Frame {
 pub(super) struct Keyframes {
     #[cfg(test)]
     queue_searches: usize,
+    eligible: slotmap::SecondaryMap<NodeKey, bool>,
+    eligibility: std::collections::BTreeMap<u64, Vec<NodeIdentity>>,
     frames: slotmap::SecondaryMap<NodeKey, Vec<Frame>>,
     pub(super) events: super::events::Events,
     pending: Vec<NodeIdentity>,
@@ -18,6 +20,19 @@ pub(super) struct Keyframes {
 }
 
 impl Keyframes {
+    pub(super) fn track_eligibility(&mut self, id: NodeIdentity, kind: NodeKind) {
+        self.eligible.insert(id.key, kind != NodeKind::Twig);
+    }
+    pub(super) fn eligibility_between(
+        &self,
+        lo: f64,
+        hi: f64,
+    ) -> impl Iterator<Item = NodeIdentity> + '_ {
+        use std::ops::Bound::{Excluded, Included};
+        self.eligibility
+            .range((Excluded(lo.to_bits()), Included(hi.to_bits())))
+            .flat_map(|(_, ids)| ids.iter().copied())
+    }
     pub(super) fn finalized(&self) -> bool {
         self.pending.is_empty()
     }
@@ -25,8 +40,15 @@ impl Keyframes {
     pub(super) fn frame_count(&self) -> usize {
         self.frames.values().map(Vec::len).sum()
     }
+    pub(super) fn prune_eligibility(&mut self) {
+        self.eligibility.retain(|_, ids| {
+            ids.retain(|id| self.eligible.contains_key(id.key));
+            !ids.is_empty()
+        });
+    }
     pub(super) fn forget(&mut self, id: NodeIdentity) {
         self.frames.remove(id.key);
+        self.eligible.remove(id.key);
         self.queued.remove(id.key);
     }
 
@@ -62,7 +84,7 @@ impl Keyframes {
         year: u64,
         mut radii: [f64; 3],
         tolerance: f64,
-    ) {
+    ) -> bool {
         let frames = self.frames.entry(id.key).unwrap().or_default();
         if let Some(last) = frames.last() {
             for (radius, old) in radii.iter_mut().zip(last.radii) {
@@ -73,11 +95,17 @@ impl Keyframes {
                 .zip(last.radii)
                 .any(|(new, old)| new - old > tolerance)
             {
-                return;
+                return false;
             }
             assert!(last.year < year, "radius keyframe year must increase");
         }
         frames.push(Frame { year, radii });
+        if self.eligible.get(id.key).copied().unwrap_or(false) {
+            self.eligibility
+                .entry(radii[0].max(radii[1]).to_bits())
+                .or_default()
+                .push(id);
+        }
         self.events.record(year, id.key);
         if !self.queued.get(id.key).copied().unwrap_or(false) {
             #[cfg(test)]
@@ -87,6 +115,7 @@ impl Keyframes {
             self.queued.insert(id.key, true);
             self.pending.push(id);
         }
+        true
     }
 }
 
@@ -96,33 +125,33 @@ impl Specimen {
         #[cfg(test)]
         let clock = std::time::Instant::now();
         let changed = t.pipes.changed(&self.tree);
-        let locals = t
-            .widths
-            .changed(&self.tree, &self.identities, &changed, &t.pipes);
+        let mut accepted = Vec::new();
+        for i in changed {
+            let (distal, proximal) = t.pipes.width(i);
+            let n = &self.tree.nodes[i];
+            if self.keyframes.record(
+                n.identity,
+                year,
+                [distal, proximal, n.base_radius],
+                t.traits.resize_tolerance,
+            ) {
+                accepted.push(i);
+            }
+        }
+        t.widths.changed(
+            &self.tree,
+            &self.identities,
+            &accepted,
+            &mut self.keyframes,
+            year,
+            t.traits.resize_tolerance,
+        );
         #[cfg(test)]
         {
             self.cost.keyframe_solve = clock.elapsed();
         }
         #[cfg(test)]
         let clock = std::time::Instant::now();
-        for i in changed {
-            let (distal, proximal) = t.pipes.width(i);
-            let n = &self.tree.nodes[i];
-            self.keyframes.record(
-                n.identity,
-                year,
-                [distal, proximal, n.base_radius],
-                t.traits.resize_tolerance,
-            );
-        }
-        for (i, radii) in locals {
-            self.keyframes.record(
-                self.tree.nodes[i].identity,
-                year,
-                radii,
-                t.traits.resize_tolerance,
-            );
-        }
         // A shoot can be born and shed in the same slice. It still has a birth
         // frame, but never appears in a living read.
         for i in first_birth..self.tree.nodes.len() {

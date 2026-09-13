@@ -35,6 +35,8 @@ pub(super) fn fixture(contact: f64) -> (Family, Specimen, NodeIdentity) {
     t.envelope = f.skeleton.envelope;
     t.age = crate::growth::Age::from_years(1.0).unwrap();
     let id = s.tree.nodes[2].identity;
+    // This fixture is a chronicle too: its hand-built wood needs birth frames.
+    super::interval::tests::stamp(&mut s, 1);
     (f, s, id)
 }
 

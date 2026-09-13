@@ -26,7 +26,7 @@ fn radii(s: &Specimen, year: u64) -> Vec<(NodeIdentity, [u64; 3])> {
 
 #[test]
 fn ten_year_jump_retains_every_annual_radius_read_and_interval() {
-    for tolerance in [0.0, 1e-9, 0.001, 1.0] {
+    for tolerance in [0.0, 1e-9, 0.0001, 0.001, 1.0] {
         compare_history(tolerance);
     }
 }
@@ -218,4 +218,29 @@ fn unread_annual_frames_queue_each_output_only_once() {
         history.queue_searches, 1,
         "unread annual frames repeatedly search the output queue"
     );
+}
+
+#[test]
+fn unchanged_canonical_parents_do_not_walk_local_descendants() {
+    let mut f = Preset::Ordinary.parameters();
+    f.growth.resize_tolerance = 1.0;
+    f.age = 0.0;
+    let mut s = Specimen::build(&f).unwrap();
+    for year in 1..=12 {
+        let first = s.tree.nodes.len();
+        s.slice(year, f.growth.budget(year)).unwrap();
+        let born = s.tree.nodes[first..]
+            .iter()
+            .filter(|n| n.kind != NodeKind::Structural)
+            .count();
+        assert!(
+            s.cost.keyframe_widths <= born,
+            "year {year}: {} local solves for {born} births despite unchanged canonical parents",
+            s.cost.keyframe_widths
+        );
+        s.timeline.as_mut().unwrap().age = crate::growth::Age {
+            slice: year,
+            remainder: 0,
+        };
+    }
 }
