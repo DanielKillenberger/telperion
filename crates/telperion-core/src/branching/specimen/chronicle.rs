@@ -3,6 +3,7 @@ use super::*;
 use std::collections::BTreeSet;
 
 #[derive(Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Links {
     pub parent: Option<NodeIdentity>,
     pub run: NodeIdentity,

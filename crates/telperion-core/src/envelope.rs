@@ -2,6 +2,7 @@ use crate::math::Transcendental;
 use crate::{math::Vec3, rng::Rng, Error, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Envelope {
     pub height: f64,
     pub crown_base: f64,

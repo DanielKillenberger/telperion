@@ -4,6 +4,7 @@ use crate::foliage::{Placement, PlacementIdentity};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct RunNode {
     pub identity: NodeIdentity,
     pub parent: Option<NodeIdentity>,
@@ -25,6 +26,7 @@ impl PartialEq for RunNode {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Run {
     pub identity: NodeIdentity,
     pub nodes: Vec<RunNode>,
@@ -38,6 +40,7 @@ pub struct SpecimenBuffers {
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct ChangeRecord {
     pub born_runs: Vec<Run>,
     /// Full replacement runs, including extension and changed node positions.

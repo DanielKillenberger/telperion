@@ -29,6 +29,7 @@ fn axis_key(parent: u32, station: usize, member: usize) -> u32 {
 }
 
 #[derive(Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 struct Axis {
     at: usize,
     heading: Vec3,

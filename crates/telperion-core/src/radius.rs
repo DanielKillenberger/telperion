@@ -5,6 +5,7 @@ use crate::math::Transcendental;
 use crate::{envelope::Envelope, tree::Tree, Error, Result};
 pub(crate) use incremental::Pipes;
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct RadiusParams {
     pub trunk_radius: f64,
     pub fork_exponent: f64,

@@ -58,7 +58,7 @@ The native `Specimen::build(&family)` path starts at a seedling and grows to
 0 through 1,000,000 years, rounded to one twelve-billionth of a year at each API call (the original
 billionth-of-a-month resolution). Whole years run in order and the integer
 sub-year remainder carries between calls;
-zero pauses, and backward inspection builds a new specimen at the earlier age.
+zero pauses, and backward inspection filters the retained chronicle at the earlier age.
 The same quantized elapsed time produces the same annual history. `growth.rate`
 and `growth.shape` are numeric Chapman–Richards traits and blend with age.
 Their current defaults are provisional, without species age calibration.
@@ -160,7 +160,47 @@ cap and earliest available age. Increasing the cap cannot restore discarded data
 Compaction drops old dead geometry, shoot histories, radius frames and placements,
 retaining a compact death index for the cumulative shed set and reserving identity
 slots. It preserves frontier bytes, later growth and node-ceiling behavior.
-Snapshots, the wasm specimen handle and browser timeline controls remain unfinished.
+`TreeEngine.buildSpecimen(family, historyCap?)` returns a retained handle.
+`read()` defaults to its frontier; `read(age)` and `changes(from, to)` inspect
+retained ages. `advance(years)` returns the new frontier and its change record.
+Reads, records and snapshots are owned JavaScript copies. Successful specimen
+rebuild/import, handle release, engine release and disposal invalidate the old
+handle. Failed rebuilds/imports preserve it. `setNodeCeiling(limit)` resumes a
+capped specimen, and `setHistoryCap(years)` changes retention. Native consumers
+have the same operations through `specimen::SpecimenStore` (snapshot operations
+require the `json` feature), or use `branching::Specimen` directly.
+
+```ts
+const specimen = engine.buildSpecimen({ ...OREGON_WHITE_OAK, age: 10 }, 100);
+const before = specimen.read();
+const { changes } = specimen.advance(0.25);
+const earlier = specimen.read(5);
+const snapshot = specimen.snapshot(); // optional, never a mesh
+const restored = engine.importSpecimen(snapshot); // invalidates specimen
+restored.advance(1);
+```
+
+The schema-1 specimen snapshot carries the chronicle, retained frontiers,
+integer clock, cap/floor, identity slots and writer state. It omits packed reads,
+foliage contact caches, crown caches and meshes. The owned `Uint8Array` is the
+same byte format as native `Specimen::snapshot()` / `from_snapshot(bytes)`:
+`TLPS`, a little-endian u32 schema (1), fixed-integer little-endian bincode 1.3.3
+state in the declared `Specimen` field order, then an eight-byte FNV-1a checksum
+of the preceding bytes. Lengths and native indices encode as u64; unlimited
+canopy counts encode as UINT64_MAX, compacted identity indices as UINT32_MAX.
+The adapters restore native sentinels on import. Invalid size, schema, checksum
+or payload refuses before replacement. The current staging limit is 512 MiB.
+`harness/parity.test.ts` exchanges snapshots in both directions between native
+and wasm, advances them, and compares earlier and frontier node/placement bytes
+for every preset.
+
+The harness's age number and slider inspect the one retained specimen; beyond
+its frontier they advance it. Rebuild starts a new specimen at the chosen age.
+Play uses the page's years-per-second setting and carries fractional years.
+`SpecimenView` applies interval records to its identity buffers, sweeps wood
+again when a year changes and submits the updated placement transforms. Camera
+framing remains explicit. The ordinary production `mesh::build` and
+`branching::generate` routes retain the envelope build until calibration.
 Its pipe cache recomputes insertion/deletion ancestor paths. An ordered scale
 index visits structural wood only when its historical width can be exceeded;
 local width changes propagate to descendants in birth order. Crown exposure uses
@@ -185,8 +225,11 @@ the crown can reach them. An unchanged queue keeps its identity order and an
 empty local frontier makes no width queries. Radius-dependent failures still retry.
 R10 selected annual slices after the mature monthly oak measured 5.906 seconds
 (native three-build median), above the approximately half-second target. The
-full cost protocol still awaits change records and snapshots.
-The follow-up annual medians are 779 ms oak and 561 ms spruce. The annual oak also
+change-record timings are included in that command. For the mature oak's
+optional snapshot export/import and fresh-build equivalence checks, run
+`FN11_SNAPSHOT=1 cargo test --release -p telperion-core --lib monthly_cost_report -- --nocapture`.
+The final cost report and calibration remain later work.
+The early annual medians were 779 ms oak and 561 ms spruce. The annual oak also
 misses the target; the closed-form design remains the owner's reserve. See the
 [measurement and convergence figures](scripts/benchmarks/generation.md#annual-slice-choice-fn-11-native-2026-09-13).
 

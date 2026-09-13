@@ -23,6 +23,7 @@ pub use traits::HabitParams;
 pub const NODE_CEILING: usize = 250_000;
 pub const DEFAULT_STEP: f64 = 0.022;
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct SkeletonParams {
     pub seed: u32,
     pub habit: HabitParams,
@@ -49,6 +50,7 @@ impl Default for SkeletonParams {
 }
 /// Metre-valued overrides applied after envelope-derived distances.
 #[derive(Debug, Clone, Copy, Default)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct GrowthOverrides {
     pub influence_radius: Option<f64>,
     pub kill_distance: Option<f64>,

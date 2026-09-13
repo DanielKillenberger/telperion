@@ -4,6 +4,7 @@ const DENOMINATOR: u64 = 12_000_000_000;
 const TICKS_PER_YEAR: f64 = DENOMINATOR as f64;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(crate) struct Age {
     pub slice: u64,
     pub remainder: u64,

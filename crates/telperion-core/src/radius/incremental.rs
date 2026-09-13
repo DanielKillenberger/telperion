@@ -6,6 +6,7 @@ use crate::tree::NodeKind;
 use std::{cmp::Ordering, collections::BTreeSet};
 
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 struct Scale(f64);
 impl PartialEq for Scale {
     fn eq(&self, other: &Self) -> bool {
@@ -25,8 +26,10 @@ impl Ord for Scale {
 }
 
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(crate) struct Pipes {
     #[cfg(test)]
+    #[cfg_attr(feature = "json", serde(skip))]
     pub(crate) visited: usize,
     children: Vec<Vec<usize>>,
     distal: Vec<f64>,

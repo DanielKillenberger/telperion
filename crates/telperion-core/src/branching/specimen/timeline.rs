@@ -5,6 +5,7 @@ use crate::{
 };
 
 #[derive(Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Timeline {
     pub age: Age,
     pub years: Vec<history::Year>,
@@ -14,6 +15,7 @@ pub(super) struct Timeline {
     pub(super) envelope: Envelope,
     pub(super) pipes: radius::Pipes,
     pub(super) widths: widths::Widths,
+    #[cfg_attr(feature = "json", serde(skip))]
     pub(super) crown: crown::Crown,
     pub(super) foliage: crate::foliage::timeline::Foliage,
 }

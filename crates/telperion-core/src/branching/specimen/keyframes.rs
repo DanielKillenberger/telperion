@@ -2,14 +2,17 @@
 use super::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Frame {
     pub year: u64,
     pub radii: [f64; 3],
 }
 
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Keyframes {
     #[cfg(test)]
+    #[cfg_attr(feature = "json", serde(skip))]
     queue_searches: usize,
     eligible: slotmap::SecondaryMap<NodeKey, bool>,
     eligibility: std::collections::BTreeMap<u64, Vec<NodeIdentity>>,

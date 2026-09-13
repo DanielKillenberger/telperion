@@ -2,6 +2,7 @@
 //! forks or shedding without touching every living node. A rising scale replaces
 //! obsolete maxima; equal samples consume no additional storage.
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct History {
     count: usize,
     maxima: Vec<(usize, f64)>,

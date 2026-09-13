@@ -12,6 +12,8 @@ mod interval;
 mod keyframes;
 mod retention;
 mod shared;
+#[cfg(feature = "json")]
+mod snapshot;
 pub use changes::{ChangeRecord, Run, RunNode, SpecimenBuffers};
 pub use history::SpecimenRead;
 pub use shared::{PackedNode, PackedRead};
@@ -25,23 +27,31 @@ mod timeline;
 mod widths;
 
 #[derive(Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Specimen {
     #[cfg(test)]
+    #[cfg_attr(feature = "json", serde(skip))]
     cost: measurement::Cost,
     pub(super) tree: Tree,
+    #[cfg_attr(feature = "json", serde(skip))]
     read: std::cell::OnceCell<storage::Read>,
+    #[cfg_attr(feature = "json", serde(skip))]
     shared: std::cell::RefCell<Option<(crate::growth::Age, PackedRead)>>,
+    #[cfg_attr(feature = "json", serde(skip))]
     read_active: bool,
+    #[cfg_attr(feature = "json", serde(skip))]
     read_updates: Vec<usize>,
     pub(super) shed: usize,
     params: SkeletonParams,
     radii: RadiusParams,
     config: GrowthConfig,
+    #[cfg_attr(feature = "json", serde(skip, default = "snapshot::empty_bias"))]
     bias: GrowthBias,
     scaffold: scaffold::Frontier,
     local: local::Frontier,
     next_identity: u64,
     timeline: Option<timeline::Timeline>,
+    #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::indices"))]
     identities: DenseSlotMap<NodeKey, usize>,
     links: slotmap::SecondaryMap<NodeKey, chronicle::Links>,
     keyframes: keyframes::Keyframes,

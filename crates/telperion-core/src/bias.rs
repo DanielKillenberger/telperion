@@ -10,6 +10,7 @@ use std::f64::consts::TAU;
 
 pub const MIN_STEPS_PER_BEND: f64 = 8.0;
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct SupernaturalParams {
     pub enabled: bool,
     pub writhe_amplitude: f64,
@@ -30,6 +31,7 @@ impl SupernaturalParams {
     };
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct BiasParams {
     pub gravitropism: f64,
     pub lean: f64,

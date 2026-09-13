@@ -5,6 +5,7 @@ use crate::{Error, Result};
 /// Architectural traits, all numeric and present on every family. Named models
 /// are regions of this space, never variants of it.
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct HabitParams {
     /// How far the leader persists into the crown, 0 to 1.
     pub apical_dominance: f64,

@@ -34,3 +34,25 @@ for (const id of ['ordinary', 'oregon-white-oak', 'norway-spruce', 'telperion', 
     expect(hash(wasm)).toBe(hash(native));
   }, 120_000);
 }
+
+for (const id of ['ordinary', 'oregon-white-oak', 'norway-spruce', 'telperion', 'laurelin']) {
+  test(`native/wasm retained specimen bytes: ${id}`, async () => {
+    const { TreeEngine, presetById } = await import('../src/browser/core');
+    const engine = await TreeEngine.create(readFileSync('src/browser/telperion.wasm'));
+    const family = { ...presetById(id), age: 20.25 };
+    const specimen = engine.buildSpecimen(family);
+    specimen.advance(5.5);
+    const snapshot = specimen.snapshot();
+    const nativeSnapshot = execFileSync('target/release/examples/node_buffer', [id, '25.75', '--export'], { maxBuffer: 512 * 1024 * 1024 });
+    const imported = engine.importSpecimen({ schema: 1, data: nativeSnapshot });
+    imported.advance(0.25);
+    for (const age of [10.5, 20.25, 26]) {
+      const read = imported.read(age);
+      const wasm = Buffer.concat([read.structure.values, read.structure.topology, read.matrices]
+        .map(a => Buffer.from(a.buffer, a.byteOffset, a.byteLength)));
+      const native = execFileSync('target/release/examples/node_buffer', [id, String(age), '--import'], { input: snapshot.data, maxBuffer: 512 * 1024 * 1024 });
+      expect(wasm.equals(native), `${id} at ${age}: ${wasm.length}/${native.length} bytes`).toBe(true);
+    }
+    engine.dispose();
+  }, 120_000);
+}

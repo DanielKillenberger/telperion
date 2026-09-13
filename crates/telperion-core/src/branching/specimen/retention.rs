@@ -5,6 +5,7 @@ use crate::growth::Age;
 pub(super) const DEFAULT_HISTORY_CAP: f64 = 10_000.0;
 
 #[derive(Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Retention {
     pub cap: Age,
     floor: Age,

@@ -14,6 +14,7 @@ pub struct SpecimenRead {
 }
 
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Year {
     pub year: u64,
     pub envelope: Envelope,
@@ -89,6 +90,10 @@ impl Specimen {
         };
         let tree = self.historical_tree(age, diagnostics, shoot_history)?;
         Ok((tree, envelope))
+    }
+
+    pub(crate) fn envelope_at_age(&self, years: f64) -> Result<Envelope> {
+        Ok(self.envelope_at(self.read_age(years)?))
     }
 
     pub(super) fn envelope_at(&self, age: Age) -> Envelope {

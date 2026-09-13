@@ -3,6 +3,7 @@ use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 pub(crate) use transcendental::Transcendental;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,

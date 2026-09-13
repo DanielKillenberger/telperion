@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PRESETS, presetById, type TreePreset } from "../src/browser/core";
 import type { FrameStats, SceneRow, Submitted, TimingReport, View } from "../src/browser/render";
 
+import { GrowthControls, type GrowthSubmitted } from "./GrowthControls";
 import { Dials, Traits } from "./dials";
 import { familyJson, presetToParams } from "./family";
 import {
@@ -95,6 +96,10 @@ export function GrowerDev() {
     }
   });
   const [params, setParams] = useState<GrowerParams>(initialLink.params);
+  const [age, setAge] = useState(initialLink.params.family.age);
+  const chosenAge = useRef(age);
+  const [frontier, setFrontier] = useState<number | null>(null);
+  const [rebuild, setRebuild] = useState(0);
   const [linkError, setLinkError] = useState(initialLink.error);
   // The seed box is free text so a half-typed number is not thrown
   // away mid-keystroke; `params.seed` only moves when it parses.
@@ -128,10 +133,13 @@ export function GrowerDev() {
     const build = (): void => {
       try {
         const started = performance.now();
-        const submitted = stageRef.current?.setTree(familyJson(params));
+        const submitted = stageRef.current?.buildSpecimen(familyJson(params), chosenAge.current);
         if (submitted === undefined) return;
         const buildMs = performance.now() - started;
         setBuildError(null);
+        setFrontier(submitted.frontier);
+        setAge(submitted.age);
+        chosenAge.current = submitted.age;
         setStats({ ...submitted, buildMs });
         lastBuildMs.current = buildMs;
         stageRef.current?.frameIfWaiting();
@@ -161,7 +169,7 @@ export function GrowerDev() {
        it is being dragged, which reads as the room moving rather than
        the tree growing. "Once" belongs to the stage and is latched
        there: this component outlives its own stage. */
-  }, [params, ready]);
+  }, [params, ready, rebuild]);
 
   useEffect(() => {
     if (!ready) return;
@@ -243,6 +251,18 @@ export function GrowerDev() {
     }
   }, []);
 
+  const seekAge = (years: number): void => {
+    try {
+      const started = performance.now();
+      const submitted: GrowthSubmitted | undefined = stageRef.current?.seekSpecimen(years);
+      if (!submitted) return;
+      setStats({ ...submitted, buildMs: performance.now() - started });
+      setAge(submitted.age);
+      chosenAge.current = submitted.age;
+      setFrontier(submitted.frontier);
+      setBuildError(null);
+    } catch (error) { setBuildError(String(error)); }
+  };
   const seedValid = normalizeSeed(seedText) !== null;
 
   return (
@@ -251,6 +271,8 @@ export function GrowerDev() {
 
       <aside className="gd-panel">
         <h1 className="gd-title">grower</h1>
+        <GrowthControls age={age} frontier={frontier} disabled={!ready || measuring || frontier === null} failed={buildError !== null}
+          seek={seekAge} rebuild={() => setRebuild(n => n + 1)} />
         {linkError && <div role="alert" className="gd-note gd-warn">
           {linkError}. Showing the default tree; choose a preset below.
           <button className="gd-button" onClick={() => setLinkError(null)}>dismiss link error</button>

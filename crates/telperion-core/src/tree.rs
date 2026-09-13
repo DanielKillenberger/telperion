@@ -12,6 +12,7 @@ pub(crate) use shoot::LocalWidth;
 pub use shoot::{BudFate, ShootState};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub enum NodeKind {
     #[default]
     Structural,
@@ -19,6 +20,7 @@ pub enum NodeKind {
     Twig,
 }
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Node {
     /// Stable birth identity, assigned by the owning specimen; never a storage index.
     pub identity: NodeIdentity,
@@ -52,6 +54,7 @@ impl Node {
     }
 }
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Diagnostics {
     pub node_capped: bool,
     pub level_capped: bool,
@@ -63,6 +66,7 @@ impl Diagnostics {
     }
 }
 #[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Tree {
     pub nodes: Vec<Node>,
     pub crossover: usize,

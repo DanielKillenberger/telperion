@@ -2,12 +2,14 @@ use super::*;
 use crate::math::Transcendental;
 use std::{f64::consts::TAU, rc::Rc};
 #[derive(Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 struct Run {
     positions: Vec<Vec3>,
     fractions: Vec<f64>,
     length: f64,
 }
 #[derive(Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 struct Shoot {
     flushed: u16,
     accepted: Vec<Vec3>,
@@ -34,6 +36,7 @@ pub(super) mod waiting;
 use planner::rejected;
 pub(super) use planner::Planner;
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Frontier {
     queue: std::collections::VecDeque<Shoot>,
     sleeping: std::collections::BTreeMap<u64, Vec<Shoot>>,
@@ -42,8 +45,10 @@ pub(super) struct Frontier {
     visited: Vec<usize>,
     ordered: bool,
     #[cfg(test)]
+    #[cfg_attr(feature = "json", serde(skip))]
     pub(super) retries: [usize; 4],
     #[cfg(test)]
+    #[cfg_attr(feature = "json", serde(skip))]
     order_visits: usize,
 }
 impl Frontier {

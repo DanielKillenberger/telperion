@@ -4,6 +4,7 @@ use slotmap::{new_key_type, Key};
 new_key_type! { pub(crate) struct NodeKey; }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct NodeIdentity {
     pub(crate) birth: u64,
     pub(crate) key: NodeKey,

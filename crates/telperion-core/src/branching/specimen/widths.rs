@@ -5,14 +5,17 @@ use slotmap::SecondaryMap;
 use std::collections::BTreeSet;
 
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Widths {
     #[cfg(test)]
+    #[cfg_attr(feature = "json", serde(skip))]
     pub visited: usize,
     children: SecondaryMap<NodeKey, Vec<NodeIdentity>>,
     pending: BTreeSet<NodeIdentity>,
     queued: SecondaryMap<NodeKey, bool>,
     // Invalidation must not clear a slot array proportional to the whole tree.
     generation: u64,
+    #[cfg_attr(feature = "json", serde(skip))]
     cache: std::cell::RefCell<SecondaryMap<NodeKey, (u64, [f64; 3])>>,
 }
 impl Widths {

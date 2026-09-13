@@ -3,6 +3,7 @@
 use super::*;
 
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Events(Vec<(u64, Vec<NodeKey>)>);
 impl Events {
     pub fn record(&mut self, year: u64, key: NodeKey) {

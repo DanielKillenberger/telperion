@@ -3,6 +3,7 @@ use crate::math::Transcendental;
 use crate::{Error, Result};
 pub const MAX_LEVELS: usize = 12;
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigAnatomy {
     pub diameter: f64,
     pub length: f64,
@@ -22,6 +23,7 @@ impl Default for TwigAnatomy {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigParams {
     pub twig: TwigAnatomy,
     pub length_ratio: f64,

@@ -1,6 +1,7 @@
 use super::*;
 
 #[derive(Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(in crate::branching) struct Frontier {
     queue: VecDeque<Axis>,
     points: Vec<Vec3>,

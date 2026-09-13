@@ -16,11 +16,13 @@ use std::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct PlacementIdentity {
     pub shoot: NodeIdentity,
     pub station: u32,
 }
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Placement {
     pub identity: PlacementIdentity,
     pub transform: [f32; 16],
@@ -60,6 +62,7 @@ struct Cache {
     surfaces: usize,
 }
 #[derive(Clone)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(crate) struct Foliage {
     canopy: CanopyParams,
     twig: TwigPlacement,
@@ -70,6 +73,7 @@ pub(crate) struct Foliage {
     seed: u32,
     lifetime: Age,
     bearing_radius: f64,
+    #[cfg_attr(feature = "json", serde(skip))]
     cache: RefCell<Cache>,
 }
 impl Foliage {

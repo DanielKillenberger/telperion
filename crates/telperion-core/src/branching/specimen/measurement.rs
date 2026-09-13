@@ -34,6 +34,11 @@ impl Cost {
 #[test]
 // Historical command name retained for the R10 evidence trail; slices are annual.
 fn monthly_cost_report() {
+    #[cfg(feature = "json")]
+    if std::env::var_os("FN11_SNAPSHOT").is_some() {
+        snapshot_report();
+        return;
+    }
     if std::env::var_os("FN11_MEASURE").is_none() {
         return;
     }
@@ -226,5 +231,48 @@ fn tolerance_cost_report() {
             let ms = clock.elapsed().as_secs_f64() * 1000.0;
             println!("TOLERANCE preset={preset:?} tolerance={tolerance} sample={sample} ms={ms:.6} nodes={} frames={}", s.tree.nodes.len(), s.keyframes.frame_count());
         }
+    }
+}
+
+#[cfg(feature = "json")]
+fn snapshot_report() {
+    use crate::presets::Preset;
+    let mut family = Preset::OregonWhiteOak.parameters();
+    family.skeleton.seed = 7;
+    family.age = family.growth.mature_slice() as f64;
+    for sample in 0..3 {
+        let start = Instant::now();
+        let s = Specimen::build(&family).unwrap();
+        let build_ms = start.elapsed().as_secs_f64() * 1000.0;
+        let start = Instant::now();
+        let bytes = s.snapshot().unwrap();
+        let export_ms = start.elapsed().as_secs_f64() * 1000.0;
+        let start = Instant::now();
+        let mut imported = Specimen::from_snapshot(&bytes).unwrap();
+        let import_ms = start.elapsed().as_secs_f64() * 1000.0;
+        println!("R10 snapshot sample={sample} age={} build_ms={build_ms:.3} export_ms={export_ms:.3} import_ms={import_ms:.3} round_trip_ms={:.3} bytes={}", family.age, export_ms + import_ms, bytes.len());
+        for age in [0.0, 66.0, family.age] {
+            let mut fresh = family.clone();
+            fresh.age = age;
+            assert!(
+                imported.read_at_age(age).unwrap()
+                    == Specimen::build(&fresh).unwrap().read().unwrap(),
+                "snapshot read at {age}"
+            );
+        }
+        imported.advance(0.5).unwrap();
+        let mut fresh = family.clone();
+        fresh.age += 0.5;
+        assert!(
+            imported.read().unwrap() == Specimen::build(&fresh).unwrap().read().unwrap(),
+            "snapshot advance at maturity"
+        );
+        let before = bytes.len();
+        s.read().unwrap();
+        assert_eq!(
+            s.snapshot().unwrap().len(),
+            before,
+            "read cache entered snapshot"
+        );
     }
 }

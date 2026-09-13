@@ -13,6 +13,7 @@ use crate::{
 use grid::AttractorGrid;
 
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct GrowthConfig {
     pub influence_radius: f64,
     pub kill_distance: f64,

@@ -1,11 +1,13 @@
 //! Birth, death and append-only vigour observations for a retained shoot.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub enum BudFate {
     #[default]
     Terminal,
     Lateral,
 }
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct ShootState {
     pub birth_year: f64,
     /// Absent while alive; a shed shoot keeps its original slot forever.
@@ -26,6 +28,7 @@ impl Default for ShootState {
     }
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(crate) struct VigourEvent {
     pub year: u64,
     pub vigour: f64,
@@ -52,6 +55,7 @@ impl ShootState {
 }
 /// Birth allocation and taper; queries derive widths from the living parent record.
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(crate) struct LocalWidth {
     pub birth: [f64; 3],
     pub ratio: f64,

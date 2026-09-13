@@ -2,6 +2,7 @@ use super::*;
 use std::collections::BTreeSet;
 
 #[derive(Clone, Default)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Stations {
     parents: Vec<Option<usize>>,
     pub children: Vec<usize>,

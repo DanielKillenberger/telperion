@@ -19,6 +19,7 @@ pub struct SurfaceRun {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct SurfaceParams {
     pub radial_segments: u32,
     pub lobes: u32,

@@ -9,6 +9,7 @@ pub const MAX_AGE: f64 = 1_000_000.0;
 const LIFETIME_UNITS: f64 = 250_000.0;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct GrowthTraits {
     /// Chapman–Richards rate, in inverse years.
     pub rate: f64,
