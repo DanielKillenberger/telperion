@@ -48,6 +48,16 @@ export interface Family {
   leafFrontBlue: number;
   leafFrontGreen: number;
   leafFrontRed: number;
+  plateScale: number;
+  ridgeScale: number;
+  roughnessDetail: number;
+  thickness: number;
+  transmissionBlue: number;
+  transmissionGreen: number;
+  transmissionRed: number;
+  transmissionStrength: number;
+  veinContrast: number;
+  veinScale: number;
 };
   radii: {
   forkExponent: number;
@@ -184,7 +194,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackRed": 0.105,
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
-        "leafFrontRed": 0.068
+        "leafFrontRed": 0.068,
+        "plateScale": 0,
+        "ridgeScale": 0,
+        "roughnessDetail": 0,
+        "thickness": 1,
+        "transmissionBlue": 0.1,
+        "transmissionGreen": 0.6,
+        "transmissionRed": 0.3,
+        "transmissionStrength": 0,
+        "veinContrast": 0,
+        "veinScale": 8
       },
       "radii": {
         "forkExponent": 2,
@@ -319,7 +339,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackRed": 0.153,
         "leafFrontBlue": 0.016,
         "leafFrontGreen": 0.102,
-        "leafFrontRed": 0.028
+        "leafFrontRed": 0.028,
+        "plateScale": 0.28,
+        "ridgeScale": 0.16,
+        "roughnessDetail": 0.12,
+        "thickness": 0.65,
+        "transmissionBlue": 0.07,
+        "transmissionGreen": 0.52,
+        "transmissionRed": 0.24,
+        "transmissionStrength": 0.55,
+        "veinContrast": 0.45,
+        "veinScale": 7
       },
       "radii": {
         "forkExponent": 2,
@@ -454,7 +484,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackRed": 0.109,
         "leafFrontBlue": 0.028,
         "leafFrontGreen": 0.056,
-        "leafFrontRed": 0.018
+        "leafFrontRed": 0.018,
+        "plateScale": 0.09,
+        "ridgeScale": 0.025,
+        "roughnessDetail": 0.16,
+        "thickness": 3.5,
+        "transmissionBlue": 0.08,
+        "transmissionGreen": 0.24,
+        "transmissionRed": 0.12,
+        "transmissionStrength": 0.01,
+        "veinContrast": 0,
+        "veinScale": 8
       },
       "radii": {
         "forkExponent": 2,
@@ -589,7 +629,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackRed": 0.105,
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
-        "leafFrontRed": 0.068
+        "leafFrontRed": 0.068,
+        "plateScale": 0,
+        "ridgeScale": 0,
+        "roughnessDetail": 0,
+        "thickness": 1,
+        "transmissionBlue": 0.1,
+        "transmissionGreen": 0.6,
+        "transmissionRed": 0.3,
+        "transmissionStrength": 0,
+        "veinContrast": 0,
+        "veinScale": 8
       },
       "radii": {
         "forkExponent": 2.15,
@@ -724,7 +774,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafBackRed": 0.105,
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
-        "leafFrontRed": 0.068
+        "leafFrontRed": 0.068,
+        "plateScale": 0,
+        "ridgeScale": 0,
+        "roughnessDetail": 0,
+        "thickness": 1,
+        "transmissionBlue": 0.1,
+        "transmissionGreen": 0.6,
+        "transmissionRed": 0.3,
+        "transmissionStrength": 0,
+        "veinContrast": 0,
+        "veinScale": 8
       },
       "radii": {
         "forkExponent": 2.7,

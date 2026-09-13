@@ -31,6 +31,21 @@ pub struct MaterialParams {
     pub brightness_range_high: f64,
     /// How far a leaf deep inside the crown is darkened towards a shaded mass.
     pub interior_darkening: f64,
+    /// Relief size in metres; zero disables the corresponding bark pattern.
+    pub ridge_scale: f64,
+    pub plate_scale: f64,
+    /// Roughness variation about the base value, clamped to 0..1.
+    pub roughness_detail: f64,
+    /// Secondary vein pairs per blade, continuously interpolated.
+    pub vein_scale: f64,
+    pub vein_contrast: f64,
+    pub transmission_strength: f64,
+    /// Linear transmission tint, in 0..1 per channel.
+    pub transmission_red: f64,
+    pub transmission_green: f64,
+    pub transmission_blue: f64,
+    /// Optical thickness: attenuation is exp(-thickness).
+    pub thickness: f64,
 }
 
 impl Default for MaterialParams {
@@ -53,6 +68,16 @@ impl Default for MaterialParams {
             brightness_range_low: -0.12,
             brightness_range_high: 0.12,
             interior_darkening: 0.5,
+            ridge_scale: 0.0,
+            plate_scale: 0.0,
+            roughness_detail: 0.0,
+            vein_scale: 8.0,
+            vein_contrast: 0.0,
+            transmission_strength: 0.0,
+            transmission_red: 0.3,
+            transmission_green: 0.6,
+            transmission_blue: 0.1,
+            thickness: 1.0,
         }
     }
 }
@@ -63,6 +88,21 @@ impl MaterialParams {
     /// refused by the pair's name: no leaf could be drawn from it.
     pub fn validate(&self) -> Result<()> {
         for (value, low, high, name) in [
+            (self.ridge_scale, 0.0, 1.0, "bark ridge scale"),
+            (self.plate_scale, 0.0, 1.0, "bark plate scale"),
+            (self.roughness_detail, 0.0, 1.0, "bark roughness detail"),
+            (self.vein_scale, 0.0, 32.0, "leaf vein scale"),
+            (self.vein_contrast, 0.0, 1.0, "leaf vein contrast"),
+            (
+                self.transmission_strength,
+                0.0,
+                1.0,
+                "leaf transmission strength",
+            ),
+            (self.transmission_red, 0.0, 1.0, "leaf transmission red"),
+            (self.transmission_green, 0.0, 1.0, "leaf transmission green"),
+            (self.transmission_blue, 0.0, 1.0, "leaf transmission blue"),
+            (self.thickness, 0.0, 8.0, "leaf thickness"),
             (self.bark_red, 0.0, 1.0, "bark red"),
             (self.bark_green, 0.0, 1.0, "bark green"),
             (self.bark_blue, 0.0, 1.0, "bark blue"),

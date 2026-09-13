@@ -107,6 +107,14 @@ cargo run --release -p telperion-render --example headless -- \
   --out /tmp/walk/frame.png
 ```
 
+The material row also controls procedural surface detail: `ridgeScale` and
+`plateScale` (0–1 metres; zero disables relief), `roughnessDetail` (0–1),
+`veinScale` (0–32 pairs per blade), `veinContrast` (0–1),
+`transmissionStrength` (0–1), linear `transmissionRed/Green/Blue` (each 0–1),
+and `thickness` (0–8 optical depth). Transmission attenuates by
+`exp(-thickness)` and the existing shadow comparison. Round sections suppress
+vein and margin tone. These fields affect shading only.
+
 `--to <preset>` renders a numbered PNG sequence instead of one still: `--frames <n>` frames, 240 by default, each the blend of the two families at the one seed, all of them at the hero pose the first frame's bounds fixed. `--out` names the sequence, so `--out /tmp/walk/frame.png` writes `/tmp/walk/frame-0001.png` onward with `transition.json` beside them, naming both presets, the seed, the size, the frame count, the rate of 24 a second and what the encoder did. When `ffmpeg` is on the path the frames are assembled into `transition.mp4` at that rate; when it is not, the run says so in one line and keeps the sequence, which is the artefact either way.
 
 The same walk stated in seconds, eased, with the camera between the two trees:

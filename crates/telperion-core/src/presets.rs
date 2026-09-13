@@ -146,6 +146,16 @@ impl Preset {
                 brightness_range_low: -0.15,
                 brightness_range_high: 0.15,
                 interior_darkening: 0.55,
+                ridge_scale: 0.16,
+                plate_scale: 0.28,
+                roughness_detail: 0.12,
+                vein_scale: 7.0,
+                vein_contrast: 0.45,
+                transmission_strength: 0.55,
+                transmission_red: 0.24,
+                transmission_green: 0.52,
+                transmission_blue: 0.07,
+                thickness: 0.65,
             };
             return p;
         }
@@ -224,6 +234,16 @@ impl Preset {
                 brightness_range_low: -0.10,
                 brightness_range_high: 0.10,
                 interior_darkening: 0.7,
+                ridge_scale: 0.025,
+                plate_scale: 0.09,
+                roughness_detail: 0.16,
+                vein_scale: 8.0,
+                vein_contrast: 0.0,
+                transmission_strength: 0.01,
+                transmission_red: 0.12,
+                transmission_green: 0.24,
+                transmission_blue: 0.08,
+                thickness: 3.5,
             };
             return p;
         }
