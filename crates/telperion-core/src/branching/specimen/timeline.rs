@@ -41,7 +41,7 @@ impl Specimen {
         if specimen.config.max_nodes == 0 {
             specimen.tree.diagnostics.node_capped = true;
         } else {
-            specimen.advance(family.age)?;
+            specimen.advance_growth(family.age)?;
         }
         Ok(specimen)
     }
@@ -66,7 +66,47 @@ impl Specimen {
     }
     /// Negative/non-finite requests are refused before mutating any state.
     /// On a cap, commit only complete slices and discard the failed slice's time.
-    pub fn advance(&mut self, years: f64) -> Result<()> {
+    pub fn advance(&mut self, years: f64) -> Result<ChangeRecord> {
+        let timeline = self
+            .timeline
+            .as_ref()
+            .ok_or(Error::InvalidInput("specimen has no age"))?;
+        let target = timeline.age.advanced(years)?;
+        if self.tree.diagnostics.node_capped {
+            return Err(Error::ResourceLimit("node ceiling reached"));
+        }
+        if !self.tree.nodes.is_empty()
+            && target.slice.min(timeline.mature_slice) <= timeline.age.slice
+        {
+            // Unchanged wood can only lose expired leaves. No contact surface,
+            // run-buffer copy or width solve is needed for this identity diff.
+            let shed_placements =
+                timeline
+                    .foliage
+                    .expired(self.tree(), self.envelope(), timeline.age, target)?;
+            self.timeline.as_mut().unwrap().age = target;
+            return Ok(ChangeRecord {
+                shed_placements,
+                ..ChangeRecord::default()
+            });
+        }
+        #[cfg(test)]
+        let clock = std::time::Instant::now();
+        let previous = self.buffers()?;
+        #[cfg(test)]
+        let reading = clock.elapsed();
+        self.advance_growth(years)?;
+        #[cfg(test)]
+        let clock = std::time::Instant::now();
+        let changes = ChangeRecord::between(&previous, &self.buffers()?);
+        drop(previous);
+        #[cfg(test)]
+        {
+            self.cost.changes = reading + clock.elapsed();
+        }
+        Ok(changes)
+    }
+    pub(super) fn advance_growth(&mut self, years: f64) -> Result<()> {
         let timeline = self
             .timeline
             .as_ref()

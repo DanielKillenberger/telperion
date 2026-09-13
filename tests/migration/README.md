@@ -92,6 +92,16 @@ The deleted TypeScript suites remain in Git at the pre-cleanup revision. This ma
 
 Intentional retirements under the approved no-compatibility capture: tests asserting Three.js output-vector mutation or old wrapper return shapes (including wrong-length parallel radius arrays, now represented by validated native nodes); permissive nonfinite/negative fallback behavior now replaced by explicit invalid-input errors; and historical FN5 fixed-depth/threshold expectations superseded by the radius-driven branch law. Archived FN6 counts/hashes diagnose drift; they do not require reproducing structural defects. Shared mathematical/geometric properties remain native tests, rather than running a second production generator as an oracle.
 
+The annual timeline's native ownership lives in `src/branching/specimen/`:
+
+| Contract | Retained test owner |
+|---|---|
+| Identity survival across insertion and compaction | `tests.rs`, `monthly_tests.rs`, `read_tests.rs` |
+| Integer-clock replay, invalid ages, cap recovery, bounded saturated growth | `monthly_tests.rs` |
+| Monotone radii and shedding at the tolerance boundary | `thickening_tests.rs` |
+| Leaf lifetime, stable stations and cached neighboring surface contacts | `foliage_tests.rs` |
+| Exact run/placement change application, radius tolerance, rejected records naming runs, fractional expiry and signed-zero matrix bits | `change_tests.rs` |
+
 ## Changing a rule or an output
 
 These bounded development exercises identify the owner and the observable assertion; they do not introduce speculative production options.

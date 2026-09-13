@@ -2,7 +2,9 @@
 use super::*;
 use crate::tree::{NodeIdentity, NodeKey};
 use slotmap::{DenseSlotMap, Key};
+mod changes;
 mod crown;
+pub use changes::{ChangeRecord, Run, RunNode, SpecimenBuffers, RADIUS_TOLERANCE};
 #[cfg(test)]
 mod measurement;
 mod storage;
@@ -231,3 +233,6 @@ mod read_tests;
 
 #[cfg(test)]
 mod foliage_tests;
+
+#[cfg(test)]
+mod change_tests;

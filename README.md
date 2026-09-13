@@ -65,10 +65,24 @@ use telperion_core::{branching::Specimen, presets::Preset};
 let mut family = Preset::OregonWhiteOak.parameters();
 family.age = 10.0;
 let mut tree = Specimen::build(&family)?;
-tree.advance(0.25)?;
+let mut buffers = tree.buffers()?;
+let changes = tree.advance(0.25)?;
+changes.validate(&buffers, &tree.buffers()?)?; // optional reconciliation check
+changes.apply(&mut buffers)?;
 let skeleton = tree.tree();
 # Ok::<(), telperion_core::Error>(())
 ```
+
+Each native advance returns born, resized and shed runs and born, moved and shed
+leaf placements. `buffers()` reads those outputs in identity order. To check a
+record, call `changes.validate(&previous_buffers, &tree.buffers()?)` before applying
+it; a mismatch names the run's birth identity. Application needs no fresh read.
+Run-buffer radii use a fixed one-nanometre grid, recorded as `radius_tolerance`,
+so imperceptible radius noise does not report a resize and repeated small changes
+cannot drift away from a fresh read. Raw skeleton and mesh radii retain their
+precision. Placement matrices reconcile bit for bit, including movement caused
+by an adjacent branch changing a surface-contact polygon. A clock-only advance
+reports expired placement identities without rebuilding wood or contact geometry.
 
 Negative/non-finite advances and invalid ages name the field and value. A node
 cap rolls back the failed year, retains completed years, sets `node_capped`,

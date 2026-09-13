@@ -8,6 +8,7 @@ pub(super) struct Cost {
     pub stages: [Duration; 9],
     pub packing: Duration,
     pub finalizing: Duration,
+    pub changes: Duration,
     pub packed_nodes: usize,
     pub identities: usize,
     pub storage: usize,
@@ -90,10 +91,11 @@ fn monthly_cost_report() {
                             .is_ok_and(|n| (n.radius, n.start_radius, n.base_radius) != *previous)
                     })
                     .count();
-            let line = format!("{preset:?} slice={slice} active={} nodes_before={} nodes_after={} born={born} changed_or_born={changed} advance_ms={ms:.6} internal_slice_ms={:.6} read_ms={read_ms:.6} finalizing_ms={:.6} packing_ms={:.6} packed_nodes={} stages_ms={:?} identity_visits={} storage_moved={} pipe_visits={} width_visits={} crown_samples={} local_attempts={:?}",
+            let line = format!("{preset:?} slice={slice} active={} nodes_before={} nodes_after={} born={born} changed_or_born={changed} advance_ms={ms:.6} internal_slice_ms={:.6} read_ms={read_ms:.6} finalizing_ms={:.6} changes_ms={:.6} packing_ms={:.6} packed_nodes={} stages_ms={:?} identity_visits={} storage_moved={} pipe_visits={} width_visits={} crown_samples={} local_attempts={:?}",
                 family.growth.budget(slice)>0, before.len(), s.tree.nodes.len(),
                 s.cost.stages.iter().sum::<Duration>().as_secs_f64()*1000.0,
                 s.cost.finalizing.as_secs_f64()*1000.0,
+                s.cost.changes.as_secs_f64()*1000.0,
                 s.cost.packing.as_secs_f64()*1000.0, s.cost.packed_nodes,
                 s.cost.stages.map(|d| d.as_secs_f64()*1000.0), s.cost.identities,
                 s.cost.storage, s.cost.pipes, s.cost.widths,
@@ -132,7 +134,7 @@ fn monthly_cost_report() {
             );
         }
     }
-    println!("Stages: environment, scaffold, storage/identity, pipe-record, local-seed+width-queries, local-growth/order+width-queries, identify+visited-vigour, shedding, post-shed-record. Output widths finalize once per advance (finalizing_ms). Lazy consumer packing is timed separately (read_ms); storage_moved counts insertion moves inside the slice. Snapshot unavailable; no round-trip time claimed.");
+    println!("Stages: environment, scaffold, storage/identity, pipe-record, local-seed+width-queries, local-growth/order+width-queries, identify+visited-vigour, shedding, post-shed-record. Output widths finalize once per advance (finalizing_ms). changes_ms measures identity-buffer reads/diff and their cleanup, which are whole-output costs per advance, not per internal slice. Lazy consumer packing is timed separately (read_ms); storage_moved counts insertion moves inside the slice. Snapshot unavailable; no round-trip time claimed.");
 }
 
 fn bounds(tree: &Tree) -> ([f64; 3], [f64; 3]) {

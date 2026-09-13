@@ -20,10 +20,17 @@ pub struct PlacementIdentity {
     pub shoot: NodeIdentity,
     pub station: u32,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Placement {
     pub identity: PlacementIdentity,
     pub transform: [f32; 16],
+}
+
+impl PartialEq for Placement {
+    fn eq(&self, other: &Self) -> bool {
+        self.identity == other.identity
+            && self.transform.map(f32::to_bits) == other.transform.map(f32::to_bits)
+    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -43,8 +50,13 @@ struct Cached {
 #[derive(Clone, Default)]
 struct Cache {
     shoots: BTreeMap<NodeIdentity, Cached>,
+    // Exact geometry, not a hash: no collision may hide a neighboring socket
+    // change. Read reuse stores no mesh and does not alter per-shoot derivation.
+    geometry: Option<(u64, Vec<[u64; 9]>)>,
     #[cfg(test)]
     derived: usize,
+    #[cfg(test)]
+    surfaces: usize,
 }
 #[derive(Clone)]
 pub(crate) struct Foliage {
@@ -86,9 +98,21 @@ impl Foliage {
     pub fn read(&self, tree: &Tree, envelope: Envelope, age: Age) -> Result<Vec<Placement>> {
         tree.validate_solved()?;
         let live = self.living(tree, age)?;
-        // A read may rebuild the contact surface just as wood submission does;
-        // only changed contact polygons trigger station matrix re-derivation.
-        let contacts = if !live.is_empty() && self.canopy.surface_contact > 0.0 {
+        let mut cache = self.cache.borrow_mut();
+        let geometry = (!live.is_empty() && self.canopy.surface_contact > 0.0)
+            .then(|| contact_geometry(tree, envelope.height));
+        let reuse = geometry.is_some()
+            && cache.geometry == geometry
+            && live
+                .iter()
+                .all(|&i| cache.shoots.contains_key(&tree.nodes[i].identity));
+        // Rebuild contact polygons only after wood changes or an uncached shoot
+        // becomes visible. Their exact signatures still select changed matrices.
+        let contacts = if geometry.is_some() && !reuse {
+            #[cfg(test)]
+            {
+                cache.surfaces += 1;
+            }
             Some(AttachmentSurface::new(
                 tree,
                 envelope.height.max(1e-6),
@@ -97,7 +121,6 @@ impl Foliage {
         } else {
             None
         };
-        let mut cache = self.cache.borrow_mut();
         #[cfg(test)]
         {
             cache.derived = 0;
@@ -106,20 +129,22 @@ impl Foliage {
         let mut count = 0;
         for i in live {
             let n = &tree.nodes[i];
-            let parent = n.parent.unwrap() as usize;
-            let wood = Wood {
-                from: tree.nodes[parent].position,
-                to: n.position,
-                radii: [n.start_radius, n.radius],
-                contact: contacts.as_ref().map_or_else(Vec::new, |s| s.signature(i)),
-            };
             let id = n.identity;
-            if cache.shoots.get(&id).is_none_or(|old| old.wood != wood) {
-                let placements = self.place_shoot(tree, i, envelope, contacts.as_ref())?;
-                cache.shoots.insert(id, Cached { wood, placements });
-                #[cfg(test)]
-                {
-                    cache.derived += 1;
+            if !reuse {
+                let parent = n.parent.unwrap() as usize;
+                let wood = Wood {
+                    from: tree.nodes[parent].position,
+                    to: n.position,
+                    radii: [n.start_radius, n.radius],
+                    contact: contacts.as_ref().map_or_else(Vec::new, |s| s.signature(i)),
+                };
+                if cache.shoots.get(&id).is_none_or(|old| old.wood != wood) {
+                    let placements = self.place_shoot(tree, i, envelope, contacts.as_ref())?;
+                    cache.shoots.insert(id, Cached { wood, placements });
+                    #[cfg(test)]
+                    {
+                        cache.derived += 1;
+                    }
                 }
             }
             count += cache.shoots[&id].placements.len();
@@ -129,6 +154,7 @@ impl Foliage {
             kept.insert(id);
         }
         cache.shoots.retain(|id, _| kept.contains(id));
+        cache.geometry = geometry;
         let mut out = Vec::new();
         out.try_reserve(count)
             .map_err(|_| Error::ResourceLimit("foliage allocation"))?;
@@ -136,6 +162,40 @@ impl Foliage {
             out.extend_from_slice(&entry.placements);
         }
         Ok(out)
+    }
+    /// Identity-set difference for a clock-only advance. Contact changes move
+    /// matrices but never add stations, so an uncached retiring shoot needs no
+    /// contact mesh just to name its stations. The cache remains read-owned.
+    pub(crate) fn expired(
+        &self,
+        tree: &Tree,
+        envelope: Envelope,
+        before: Age,
+        after: Age,
+    ) -> Result<Vec<PlacementIdentity>> {
+        if before == after {
+            return Ok(Vec::new());
+        }
+        let mut retired = Vec::new();
+        let cache = self.cache.borrow();
+        for i in self.living(tree, before)? {
+            let n = &tree.nodes[i];
+            let birth = Age::from_years(n.shoot.birth_year)?.ticks();
+            if after.ticks() - birth < self.lifetime.ticks() {
+                continue;
+            }
+            if let Some(entry) = cache.shoots.get(&n.identity) {
+                retired.extend(entry.placements.iter().map(|p| p.identity));
+            } else {
+                retired.extend(
+                    self.place_shoot(tree, i, envelope, None)?
+                        .into_iter()
+                        .map(|p| p.identity),
+                );
+            }
+        }
+        retired.sort_unstable();
+        Ok(retired)
     }
     fn living(&self, tree: &Tree, age: Age) -> Result<Vec<usize>> {
         let now = age.ticks();
@@ -204,7 +264,39 @@ impl Foliage {
     }
 
     #[cfg(test)]
+    pub(crate) fn surfaces(&self) -> usize {
+        self.cache.borrow().surfaces
+    }
+
+    #[cfg(test)]
     pub(crate) fn derived(&self) -> usize {
         self.cache.borrow().derived
     }
+}
+
+/// xyz and distal/proximal/base radii, packed topology, kind, birth identity.
+/// Family surface traits are immutable throughout this Foliage object's life.
+fn contact_geometry(tree: &Tree, height: f64) -> (u64, Vec<[u64; 9]>) {
+    let wood = tree
+        .nodes
+        .iter()
+        .map(|n| {
+            [
+                n.position.x.to_bits(),
+                n.position.y.to_bits(),
+                n.position.z.to_bits(),
+                n.radius.to_bits(),
+                n.start_radius.to_bits(),
+                n.base_radius.to_bits(),
+                u64::from(n.parent.unwrap_or(u32::MAX)) << 32 | u64::from(n.branch),
+                match n.kind {
+                    NodeKind::Structural => 0,
+                    NodeKind::Branch => 1,
+                    NodeKind::Twig => 2,
+                },
+                n.identity.birth_order(),
+            ]
+        })
+        .collect();
+    (height.to_bits(), wood)
 }

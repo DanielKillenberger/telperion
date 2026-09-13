@@ -4,7 +4,7 @@ use crate::{
     presets::{Family, Preset},
 };
 
-fn fixture(contact: f64) -> (Family, Specimen, NodeIdentity) {
+pub(super) fn fixture(contact: f64) -> (Family, Specimen, NodeIdentity) {
     let mut f = Preset::OregonWhiteOak.parameters();
     f.age = 0.0;
     f.canopy.surface_contact = contact;
@@ -88,7 +88,7 @@ fn placement_identities_survive_thickening_and_match_fresh_surface_contacts() {
     }
 }
 
-fn sibling(s: &mut Specimen) -> NodeIdentity {
+pub(super) fn sibling(s: &mut Specimen) -> NodeIdentity {
     let mut node = s.tree.nodes[2].clone();
     node.identity = NodeIdentity::default();
     node.branch = s.tree.nodes.len() as u32;
