@@ -319,7 +319,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-11-growth-over-time.md",
-  "status": "open",
+  "status": "done",
   "title": "Growth over time",
   "tracker": {
     "baseHashFlow": null,
@@ -332,5 +332,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T09:52:48.618905Z"
+  "updated_at": "2026-09-13T18:44:10.789116Z"
 }
