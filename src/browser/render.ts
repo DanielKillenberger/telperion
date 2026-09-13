@@ -106,8 +106,12 @@ let loading: Promise<void> | undefined;
 
 /** One canvas drawn by the Rust renderer, sized to the display and
  *  disposed with the page element it belongs to. */
+export interface GrowthSubmitted extends Submitted { age: number; frontier: number }
+
 export interface Renderer {
   setTree(family: string): Submitted;
+  buildSpecimen(family: string, age: number): GrowthSubmitted;
+  seekSpecimen(age: number): GrowthSubmitted;
   setView(view: View): void;
   /** The sun, sky and ground the next frame is drawn under. */
   scene(): SceneRow;
@@ -156,6 +160,8 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
 
   return {
     setTree: (family) => JSON.parse(renderer.setTree(family)) as Submitted,
+    buildSpecimen: (family, age) => JSON.parse(renderer.buildSpecimen(family, age)) as GrowthSubmitted,
+    seekSpecimen: age => JSON.parse(renderer.seekSpecimen(age)) as GrowthSubmitted,
     setView: (view) => renderer.setView(view),
     scene: () => JSON.parse(renderer.scene()) as SceneRow,
     setScene: (row) => renderer.setScene(JSON.stringify(row)),

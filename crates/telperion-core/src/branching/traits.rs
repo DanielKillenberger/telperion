@@ -5,6 +5,7 @@ use crate::{Error, Result};
 /// Architectural traits, all numeric and present on every family. Named models
 /// are regions of this space, never variants of it.
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct HabitParams {
     /// How far the leader persists into the crown, 0 to 1.
     pub apical_dominance: f64,
@@ -35,7 +36,8 @@ pub struct HabitParams {
     pub attractor_weight: f64,
     /// Distal twig radius against the nominal twig radius.
     pub twig_tip_taper: f64,
-    /// Interior shedding after the scaffold; 0 skips the pass.
+    /// Monthly vigour threshold; zero disables shedding. The legacy envelope
+    /// builder interprets it as shell depth.
     pub shedding_threshold: f64,
 }
 impl Default for HabitParams {

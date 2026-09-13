@@ -31,6 +31,7 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
             } else {
                 NodeKind::Structural
             },
+            ..Node::root()
         });
     }
     tree.crossover = 3;

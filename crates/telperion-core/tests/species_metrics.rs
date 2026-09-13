@@ -16,6 +16,7 @@ fn fixture() -> (Tree, Element, Instances) {
         base_radius: radius,
         branch,
         kind,
+        ..Node::root()
     };
     let tree = Tree {
         nodes: vec![

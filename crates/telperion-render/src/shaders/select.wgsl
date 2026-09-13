@@ -4,9 +4,9 @@
 // one; nothing is remembered between frames, so nothing has to be forgotten
 // when the camera cuts or the tree is submitted again.
 //
-// Each thread appends its own index to the chosen level's list. The place in
-// that list is reserved per workgroup, not per leaf: the workgroup tallies its
-// own threads first and takes one range per level from the shared counter.
+// Three dispatches compact each level in placement-index order: classify and
+// rank within each workgroup, prefix the group counts, then scatter. Equal
+// depth samples therefore resolve in the same order on every draw.
 
 struct Selection {
     planes: array<vec4<f32>, 6>,
@@ -35,6 +35,8 @@ struct Selection {
 @group(0) @binding(4) var<storage, read_write> counts: array<atomic<u32>>;
 /// One indexed indirect draw per level, five words each.
 @group(0) @binding(5) var<storage, read_write> arguments: array<atomic<u32>>;
+/// Packed local ranks, then one count/offset per level (including unseen) and group.
+@group(0) @binding(6) var<storage, read_write> scratch: array<u32>;
 
 const WORKGROUP: u32 = 256u;
 /// The tally lives in workgroup memory, which is sized when the shader is
@@ -46,10 +48,18 @@ const ARGUMENT_WORDS: u32 = 5u;
 /// Below half a pixel of deviation there is nothing on screen to see.
 const THRESHOLD: f32 = 0.5;
 
-/// This workgroup's own leaves per level, and where its run of each level's
-/// list begins. The unseen bucket is counted like a level and written nowhere.
-var<workgroup> tally: array<atomic<u32>, MAX_LEVELS + 1u>;
-var<workgroup> base: array<u32, MAX_LEVELS + 1u>;
+/// Eight membership words per level; atomic OR is independent of arrival order.
+const WORDS: u32 = WORKGROUP / 32u;
+var<workgroup> members: array<atomic<u32>, (MAX_LEVELS + 1u) * WORDS>;
+var<workgroup> sums: array<u32, WORKGROUP>;
+
+fn group_count() -> u32 {
+    return (u.instances + WORKGROUP - 1u) / WORKGROUP;
+}
+
+fn group_slot(level: u32, group: u32) -> u32 {
+    return u.instances + level * group_count() + group;
+}
 
 /// The coarsest level whose deviation stays under half a pixel at this leaf's
 /// depth, or the unseen bucket for a leaf whose sphere is outside the frame.
@@ -89,37 +99,92 @@ fn level_of(instance: u32) -> u32 {
 fn select(
     @builtin(global_invocation_id) global: vec3<u32>,
     @builtin(local_invocation_index) local: u32,
+    @builtin(workgroup_id) group: vec3<u32>,
 ) {
-    if local <= u.levels {
-        atomicStore(&tally[local], 0u);
+    for (var word = local; word < (u.levels + 1u) * WORDS; word += WORKGROUP) {
+        atomicStore(&members[word], 0u);
     }
     workgroupBarrier();
 
-    // The last workgroup runs past the end of the crown: those threads choose
-    // nothing and write nothing, but they reach every barrier the others do.
+    // Tail threads participate in every barrier but claim no membership.
     let instance = global.x;
-    let leaf = instance < u.instances;
     var chosen = u.levels;
-    var slot = 0u;
-    if leaf {
+    if instance < u.instances {
         chosen = level_of(instance);
-        slot = atomicAdd(&tally[chosen], 1u);
+        atomicOr(&members[chosen * WORDS + local / 32u], 1u << (local % 32u));
     }
     workgroupBarrier();
 
+    if instance < u.instances {
+        let word = local / 32u;
+        var rank = countOneBits(atomicLoad(&members[chosen * WORDS + word])
+            & ((1u << (local % 32u)) - 1u));
+        for (var before = 0u; before < word; before += 1u) {
+            rank += countOneBits(atomicLoad(&members[chosen * WORDS + before]));
+        }
+        scratch[instance] = (chosen << 8u) | rank;
+    }
     if local <= u.levels {
-        let counted = atomicLoad(&tally[local]);
-        base[local] = 0u;
-        if counted > 0u {
-            base[local] = atomicAdd(&counts[local], counted);
-            if local < u.levels {
-                atomicAdd(&arguments[local * ARGUMENT_WORDS + 1u], counted);
-            }
+        var count = 0u;
+        for (var word = 0u; word < WORDS; word += 1u) {
+            count += countOneBits(atomicLoad(&members[local * WORDS + word]));
+        }
+        scratch[group_slot(local, group.x)] = count;
+    }
+}
+
+/// One workgroup per level scans contiguous chunks of its group counts. The
+/// scan has a bounded shared-memory cost even for crowns of millions of leaves.
+@compute @workgroup_size(256)
+fn prefix(
+    @builtin(local_invocation_index) local: u32,
+    @builtin(workgroup_id) group: vec3<u32>,
+) {
+    let level = group.x;
+    let groups = group_count();
+    let chunk = (groups + WORKGROUP - 1u) / WORKGROUP;
+    let start = min(local * chunk, groups);
+    let end = min(start + chunk, groups);
+    var total = 0u;
+    for (var i = start; i < end; i += 1u) {
+        total += scratch[group_slot(level, i)];
+    }
+    sums[local] = total;
+    workgroupBarrier();
+    for (var step = 1u; step < WORKGROUP; step *= 2u) {
+        var previous = 0u;
+        if local >= step {
+            previous = sums[local - step];
+        }
+        workgroupBarrier();
+        sums[local] += previous;
+        workgroupBarrier();
+    }
+    var offset = sums[local] - total;
+    for (var i = start; i < end; i += 1u) {
+        let slot = group_slot(level, i);
+        let count = scratch[slot];
+        scratch[slot] = offset;
+        offset += count;
+    }
+    if local == WORKGROUP - 1u {
+        atomicStore(&counts[level], sums[local]);
+        if level < u.levels {
+            atomicStore(&arguments[level * ARGUMENT_WORDS + 1u], sums[local]);
         }
     }
-    workgroupBarrier();
+}
 
-    if leaf && chosen < u.levels {
-        lists[chosen * u.stride + base[chosen] + slot] = instance;
+@compute @workgroup_size(256)
+fn scatter(@builtin(global_invocation_id) global: vec3<u32>) {
+    let instance = global.x;
+    if instance >= u.instances {
+        return;
+    }
+    let packed = scratch[instance];
+    let level = packed >> 8u;
+    if level < u.levels {
+        let offset = scratch[group_slot(level, instance / WORKGROUP)];
+        lists[level * u.stride + offset + (packed & 255u)] = instance;
     }
 }

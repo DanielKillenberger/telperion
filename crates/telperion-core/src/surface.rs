@@ -1,9 +1,12 @@
 //! Independent, closed swept shells over solved tree paths. Buffers are caller-owned.
+use crate::math::Transcendental;
 use crate::{math::Vec3, tree::Tree, Error, Result};
 mod attachment;
+mod dependencies;
 mod frames;
 mod paths;
 pub(crate) use attachment::AttachmentSurface;
+pub(crate) use dependencies::affected as affected_contacts;
 use frames::frames;
 use paths::paths;
 /// One complete surface run, in descending order of its largest sample radius.
@@ -16,6 +19,7 @@ pub struct SurfaceRun {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct SurfaceParams {
     pub radial_segments: u32,
     pub lobes: u32,
@@ -123,7 +127,8 @@ fn sample_path(
     let socket = params.fork_socket;
     let swell = params.fork_swell;
     let flare = |y: f64| {
-        1.0 + (params.flare_radius - 1.0) * (-y.max(0.0) / (params.flare_falloff * height)).exp()
+        1.0 + (params.flare_radius - 1.0)
+            * (-y.max(0.0) / (params.flare_falloff * height)).exp_fixed()
     };
     samples.clear();
     if trunk {
@@ -147,7 +152,7 @@ fn sample_path(
         let first = path_nodes[1];
         let pr = nodes[attach].radius;
         let away = (nodes[first].position - nodes[attach].position).normalized();
-        let inscribed = pr * (1.0 - depth) * (std::f64::consts::PI / segments as f64).cos();
+        let inscribed = pr * (1.0 - depth) * (std::f64::consts::PI / segments as f64).cos_fixed();
         let sink = (socket * pr).min(0.9 * inscribed);
         let contained = (inscribed * inscribed - sink * sink).max(0.0).sqrt() / (1.0 + depth);
         samples.push(Sample {
@@ -156,8 +161,8 @@ fn sample_path(
             d: distance[attach],
         });
         for &i in &path_nodes[1..] {
-            let swelling =
-                1.0 + (swell - 1.0) * (-(distance[i] - distance[attach]) / pr.max(1e-9)).exp();
+            let swelling = 1.0
+                + (swell - 1.0) * (-(distance[i] - distance[attach]) / pr.max(1e-9)).exp_fixed();
             samples.push(Sample {
                 p: nodes[i].position,
                 r: nodes[i].radius * swelling * flare(nodes[i].position.y),
@@ -271,12 +276,12 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
                 let profile = if lobes == 0.0 {
                     1.0
                 } else {
-                    1.0 + depth * (lobes * (angle + phase)).cos()
+                    1.0 + depth * (lobes * (angle + phase)).cos_fixed()
                 };
                 let width = s.r * profile;
                 vertex(
                     &mut mesh.positions,
-                    s.p + (normal * (angle.cos()) + binormal * (angle.sin())) * (width),
+                    s.p + (normal * (angle.cos_fixed()) + binormal * (angle.sin_fixed())) * (width),
                 )?;
                 mesh.coords.extend([s.d as f32, angle as f32]);
             }

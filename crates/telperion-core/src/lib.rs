@@ -6,6 +6,7 @@ pub mod colonization;
 pub mod envelope;
 pub mod field;
 pub mod foliage;
+pub mod growth;
 pub mod material;
 pub mod math;
 pub mod mesh;
@@ -22,11 +23,13 @@ pub mod twigs;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     InvalidInput(&'static str),
+    InvalidValue { field: &'static str, value: String },
     ResourceLimit(&'static str),
 }
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::InvalidValue { field, value } => write!(f, "invalid input: {field} = {value}"),
             Self::InvalidInput(message) => write!(f, "invalid input: {message}"),
             Self::ResourceLimit(message) => write!(f, "resource limit: {message}"),
         }
@@ -34,3 +37,5 @@ impl std::fmt::Display for Error {
 }
 impl std::error::Error for Error {}
 pub type Result<T> = std::result::Result<T, Error>;
+
+pub mod specimen;

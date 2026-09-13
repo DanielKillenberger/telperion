@@ -188,3 +188,79 @@ fn catalogue_roundtrips_all_controls_and_identities() {
     assert!(parse(&json!({"skeleton":{"bias":{"writheAmplitude":0.1}}})).is_err());
     assert!(parse(&json!({"skeleton":{"bias":{"supernatural":{"enabled":1}}}})).is_err());
 }
+
+#[test]
+fn age_and_growth_round_trip_and_refuse_invalid_values() {
+    let mut family = preset(0).unwrap();
+    family.age = 12.25;
+    family.growth.rate = 0.12;
+    family.growth.shape = 3.0;
+    family.growth.shedding_tolerance = 1.25;
+    family.growth.apical_control_loss = 0.04;
+    let wire = metadata(&family);
+    assert_eq!(wire["age"], 12.25);
+    assert_eq!(wire["growth"]["rate"], 0.12);
+    assert_eq!(wire["growth"]["shape"], 3.0);
+    assert_eq!(wire["growth"]["sheddingTolerance"], 1.25);
+    assert_eq!(wire["growth"]["apicalControlLoss"], 0.04);
+    let parsed = parse(&wire).unwrap();
+    assert_eq!(parsed.age, family.age);
+    assert_eq!(parsed.growth, family.growth);
+    for (pointer, field, value) in [
+        ("/age", "age", -1.0),
+        ("/age", "age", crate::growth::MAX_AGE + 1.0),
+        ("/growth/rate", "growth.rate", 0.0),
+        ("/growth/shape", "growth.shape", 9.0),
+        (
+            "/growth/sheddingTolerance",
+            "growth.sheddingTolerance",
+            -0.1,
+        ),
+        (
+            "/growth/apicalControlLoss",
+            "growth.apicalControlLoss",
+            11.0,
+        ),
+    ] {
+        let mut bad = wire.clone();
+        *bad.pointer_mut(pointer).unwrap() = serde_json::json!(value);
+        let message = parse(&bad).unwrap_err().to_string();
+        assert!(message.contains(field), "{message}");
+        assert!(message.contains(&value.to_string()), "{message}");
+    }
+}
+
+#[test]
+fn leaf_lifetime_is_a_validated_blended_family_trait() {
+    let oak = crate::presets::Preset::OregonWhiteOak.parameters();
+    let spruce = crate::presets::Preset::NorwaySpruce.parameters();
+    assert_eq!(metadata(&oak)["growth"]["leafLifetime"], 1.0);
+    assert_eq!(metadata(&spruce)["growth"]["leafLifetime"], 6.0);
+    let mid = crate::blend::families(&oak, &spruce, 0.5).unwrap();
+    assert_eq!(metadata(&mid)["growth"]["leafLifetime"], 3.5);
+    let mut wire = metadata(&oak);
+    wire["growth"]["leafLifetime"] = serde_json::json!(1.25);
+    assert_eq!(
+        metadata(&parse(&wire).unwrap())["growth"]["leafLifetime"],
+        1.25
+    );
+    for value in [-0.1, crate::growth::MAX_AGE + 1.0] {
+        wire["growth"]["leafLifetime"] = serde_json::json!(value);
+        let message = parse(&wire).unwrap_err().to_string();
+        assert!(message.contains("growth.leafLifetime"), "{message}");
+        assert!(message.contains(&value.to_string()), "{message}");
+    }
+}
+
+#[test]
+fn resize_tolerance_is_a_validated_blended_wire_trait() {
+    let a = parse(&json!({"growth":{"resizeTolerance":0.001}})).unwrap();
+    let b = parse(&json!({"growth":{"resizeTolerance":0.003}})).unwrap();
+    let mid = crate::blend::families(&a, &b, 0.5).unwrap();
+    assert_eq!(metadata(&mid)["growth"]["resizeTolerance"], 0.002);
+    assert_eq!(metadata(&parse(&metadata(&mid)).unwrap()), metadata(&mid));
+    for value in [-0.001, 1.001] {
+        let error = parse(&json!({"growth":{"resizeTolerance":value}})).unwrap_err();
+        assert!(error.to_string().contains("growth.resizeTolerance"));
+    }
+}

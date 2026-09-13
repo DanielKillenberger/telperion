@@ -122,12 +122,12 @@ fn scaffold_directions() {
 
 #[test]
 fn shipped_scaffolds_are_reproducible() {
-    // Re-recorded for the one builder; the seed and the rows, not the code
-    // path, are what a tree is made of.
+    // fn-11: one re-pin for pinned pure-Rust libm on native and wasm.
+    // Counts/topology are unchanged; maximum position drift is below 1e-11 m.
     for (preset, expected) in [
-        (Preset::OregonWhiteOak, 14874354835152613499_u64),
-        (Preset::NorwaySpruce, 11730507885382185461),
-        (Preset::Ordinary, 12781088285770051220),
+        (Preset::OregonWhiteOak, 11389017044164293456_u64),
+        (Preset::NorwaySpruce, 17659250574543300401),
+        (Preset::Ordinary, 9848876633805652422),
     ] {
         let family = preset.parameters();
         let hash = hashed(&family);

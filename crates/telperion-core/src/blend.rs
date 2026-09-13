@@ -67,6 +67,9 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.interior_darkening,
         shell_depth,
     );
+    walk!(weighted: age, growth.rate, growth.shape,
+        growth.shedding_tolerance, growth.apical_control_loss, growth.leaf_lifetime,
+        growth.resize_tolerance);
     walk!(degrees:
         skeleton.habit.lateral_pitch, skeleton.habit.pitch_variation,
         skeleton.habit.crookedness,
@@ -135,6 +138,16 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     g.max_nodes = (oa.max_nodes.is_some() || ob.max_nodes.is_some())
         .then(|| many(ga.max_nodes, gb.max_nodes, t));
     Ok(f)
+}
+
+fn weighted(a: f64, b: f64, t: f64) -> f64 {
+    let value = (1.0 - t) * a + t * b;
+    // Rounding cannot push valid age/rate endpoints outside their range.
+    if a.is_finite() && b.is_finite() {
+        value.clamp(a.min(b), a.max(b))
+    } else {
+        value
+    }
 }
 
 fn linear(a: f64, b: f64, t: f64) -> f64 {

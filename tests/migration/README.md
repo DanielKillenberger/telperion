@@ -68,6 +68,15 @@ The deleted TypeScript suites remain in Git at the pre-cleanup revision. This ma
 | `skeleton/colonize.test.ts` | `colonization.rs`: deterministic growth, parent order, envelope/trunk guards, collisions, caps and invalid/empty cases; `crown_reference.rs`: frozen ordinary/giant diagnostics |
 | `skeleton/fill.test.ts` | `colonization.rs`: occupied shell voxels, clustering boundaries and unmeasurable domains |
 | `skeleton/persistence.test.ts` | `colonization.rs`: bounded turn and coincident/collision behavior; `growth.rs`: retained local attachment and resolution |
+| fn-11 retained identities | `src/branching/specimen/tests.rs`: growth after twigs, crossover, surviving parent/run identities after shedding, generational slot reuse and stale-key rejection, per-specimen replay, retained axis streams and local queues |
+| fn-11 timeline wire | `src/params/tests.rs`: age and growth trait round trips and field/value errors; `geometry_benchmark.rs` excludes timeline fields absent from the frozen fn-19 geometry protocol |
+| fn-11 annual native growth | `src/branching/specimen/monthly_tests.rs`: fractional replay across five presets and blends, growing envelope, identity survival after twigs, pause/remainder, field/value errors, transactional node cap and recovery, frontier ordering and saturated-age timing |
+| fn-11 thickening and shedding | `src/branching/specimen/thickening_tests.rs`: tolerance boundary/recovery, snapshot/cap, stale identities, local thickening, structural death filtering, live shedding replay, numeric tolerance/apical loss |
+| fn-11 annual radius chronicle | `src/branching/specimen/keyframes/tests.rs`: ten-year jump versus yearly radius reads and interval frames, monotonicity through forks and shedding, accumulated resize tolerance, and annual history without output finalization; `src/params/tests.rs`: resize tolerance wire validation and blending |
+| fn-11 cohort foliage (partial step 4) | `src/branching/specimen/foliage_tests.rs`: exact cohort boundaries, persistent shoot/station identity after shedding, moved surface contacts, cached unchanged transforms and annual foliage replay; `src/branching/specimen/cohort_tests.rs`: mature foliage persistence, annual fill-in and bearing diameter; `src/params/tests.rs`: lifetime wire validation and blending |
+| fn-11 incremental cost | `src/branching/specimen/cost_tests.rs` and `src/radius/incremental.rs`: frontier-only vigour, cached exact crown depth, birth-range identity maintenance, structural insertion without local storage movement, grown-and-shed byte replay across packing boundaries, and no visits to structural wood below its historical width; `measurement.rs` records native full builds and annual cost by changed node count, with advance-boundary packing timed separately |
+| fn-11 slice bud release | `src/branching/scaffold/frontier.rs` and `src/branching/local/monthly_tests.rs`: lateral extension before leader completion, budget preserved on boundary pauses, local sites reconsidered on eligibility, separate terminal/lateral allocation, cached stations retained beyond the juvenile crown |
+| fn-11 native/wasm parity | `harness/parity.test.ts` with `examples/node_buffer.rs`: SHA-256 of node geometry and topology for all five presets; platform-math failures recorded before the pinned-libm change |
 | `skeleton/grow.test.ts`, `presets/two-trees.test.ts` | `growth.rs`: solved deterministic presets, family/seed controls, finite constraints, empty and capped generation; `growth_reference.rs`: seven finished FN6 input classes |
 | `skeleton/law.test.ts` | `growth.rs`: branch length/radius law, generation termination, local taper, lateral attachment and resolution independence |
 | `skeleton/twigs.test.ts` | `growth.rs`: fixed terminal anatomy, topology, cap propagation; `foliage.rs`: twig stations and phyllotaxis |
@@ -83,6 +92,20 @@ The deleted TypeScript suites remain in Git at the pre-cleanup revision. This ma
 `harness/family.test.ts` retains parameter translation and preset round trips, `harness/params.test.ts` the dials and their ranges, and `harness/orbit.test.ts` the camera the pointer drives; the geometry they used to assert in JavaScript is asserted natively, where it is now built. `tests/browser/bindings.mjs` owns actual Wasm loading, field-only consumers and buffer ownership; `tests/browser/render.mjs` owns the page on a real GPU - every preset non-blank and distinct, the dials, the three views, the timing sessions and the idle soak; `crates/telperion-render/tests` own the mesh contract, submission limits and the timing verdicts. New field behavior is independently covered by `field.rs`.
 
 Intentional retirements under the approved no-compatibility capture: tests asserting Three.js output-vector mutation or old wrapper return shapes (including wrong-length parallel radius arrays, now represented by validated native nodes); permissive nonfinite/negative fallback behavior now replaced by explicit invalid-input errors; and historical FN5 fixed-depth/threshold expectations superseded by the radius-driven branch law. Archived FN6 counts/hashes diagnose drift; they do not require reproducing structural defects. Shared mathematical/geometric properties remain native tests, rather than running a second production generator as an oracle.
+
+The annual timeline's native ownership lives in `src/branching/specimen/`:
+
+| Contract | Retained test owner |
+|---|---|
+| Identity survival across insertion, death and legacy compaction | `tests.rs`, `monthly_tests.rs`, `read_tests.rs`, `chronicle_tests.rs` |
+| Frozen dead records, unreused timeline slots, append-only vigour and attractor years | `chronicle_tests.rs`, `../scaffold/frontier.rs` |
+| Integer-clock replay, invalid ages, cap recovery, bounded saturated growth | `monthly_tests.rs` |
+| Monotone radii and shedding at the tolerance boundary | `thickening_tests.rs` |
+| Leaf cohorts, stable stations and cached neighboring surface contacts | `foliage_tests.rs`, `cohort_tests.rs` |
+| Historical reads against fresh growth, all presets and a blend, exact shoot histories and frontier errors | `history/tests.rs` |
+| Exact run/placement change application, radius tolerance, rejected records naming runs, exact cohort boundaries and signed-zero matrix bits | `change_tests.rs` |
+| Stamp-filtered intervals in both directions, all presets/blend, every intermediate yearly record, sibling growth/removal and stale cohort-cache protection | `interval/tests.rs` |
+| History-cap compaction, retained read/record equality, cap errors, future identities and node-ceiling recovery | `retention/tests.rs` |
 
 ## Changing a rule or an output
 
