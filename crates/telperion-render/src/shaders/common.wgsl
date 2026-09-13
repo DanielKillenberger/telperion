@@ -34,6 +34,9 @@ struct Uniforms {
     /// faces with the interior darkening amount in the front's `w`, and the
     /// hue and brightness offsets one leaf may take (low, high, low, high).
     bark: vec4<f32>,
+    bark_detail: vec4<f32>,
+    leaf_detail: vec4<f32>, // vein scale, contrast, roundness, thickness
+    transmission: vec4<f32>, // tint, strength
     leaf_front: vec4<f32>,
     leaf_back: vec4<f32>,
     leaf_variation: vec4<f32>,

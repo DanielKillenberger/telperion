@@ -296,6 +296,34 @@ cargo run --release -p telperion-render --example headless -- \
   --out /tmp/walk/frame.png
 ```
 
+The material row also controls procedural surface detail: `ridgeScale` and
+`plateScale` (0–1 metres), `furrowStrength` and `roughnessDetail` (0–1),
+`veinScale` (0–32 pairs per blade), `veinContrast` (0–1),
+`transmissionStrength` (0–1), linear `transmissionRed/Green/Blue` (each 0–1),
+and `thickness` (0–8 optical depth). Transmission attenuates by
+`exp(-thickness)` and the existing shadow comparison. Round sections suppress
+vein and margin tone. Ridge scale sets circumferential ridge spacing; plate
+scale sets staggered scale height, bounded to 1.5–2 ridge widths so long
+furrows still carry short scales.
+Larger plate-to-ridge ratios deepen and lengthen the shouldered furrows.
+Furrow strength independently narrows and shallows those gaps; zero keeps
+the plates and flakes with narrow outlines. It defaults to one for older rows.
+Flat faces have lifted lower edges and finer flakes derived from those same
+two lengths. Zero ridge scale disables relief; zero plate scale leaves ridges
+without cross-fissures. The young-wood fade spans diameters of two to five
+ridge widths; relief continues strengthening with girth on mature runs.
+Both axial distance and circumferential arc length supply pixel footprints.
+Noise, plates and flakes fade to their means before becoming unresolved;
+edge support expands with the footprint to suppress sharp normal harmonics.
+The shading normal differentiates this filtered height at the fragment,
+holding the footprint fixed, so changing the filter does not create relief.
+Four subpixel shading evaluations integrate the normal's nonlinear lighting;
+the geometry coverage and existing shadow lookup are unchanged.
+These fields affect shading only.
+
+Foliage selection compacts each level in placement-index order. Equal-depth
+leaf samples therefore resolve consistently when the same frame is redrawn.
+
 `--to <preset>` renders a numbered PNG sequence instead of one still: `--frames <n>` frames, 240 by default, each the blend of the two families at the one seed, all of them at the hero pose the first frame's bounds fixed. `--out` names the sequence, so `--out /tmp/walk/frame.png` writes `/tmp/walk/frame-0001.png` onward with `transition.json` beside them, naming both presets, the seed, the size, the frame count, the rate of 24 a second and what the encoder did. When `ffmpeg` is on the path the frames are assembled into `transition.mp4` at that rate; when it is not, the run says so in one line and keeps the sequence, which is the artefact either way.
 
 The same walk stated in seconds, eased, with the camera between the two trees:
@@ -335,7 +363,7 @@ Chromium 151 and an RTX 3080. The snapshot API and
 [CPU reproduction tools](scripts/benchmarks/generation.md) remain in use by the
 field-generation follow-up's correctness checks and measurements.
 
-The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.md) measured a narrower and older workload. Its numbers are historical, not a full-engine migration result. Further botanical realism and species visual QA remain future work. Bark and foliage are now judged lit - colour, sun, shadow and the crown's own depth, beside the reference photographs - and the clay view remains for judging geometry alone; bark relief, leaf veins and leaf translucency are not implemented yet, so the close-up scales are still unjudged. Full lifecycle simulation is not implemented.
+The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.md) measured a narrower and older workload. Its numbers are historical, not a full-engine migration result. Further botanical realism and species visual QA remain future work. Bark and foliage are now judged lit - colour, sun, shadow and the crown's own depth, beside the reference photographs - and the clay view remains for judging geometry alone; procedural bark relief, leaf veins and two-sided leaf transmission are implemented, with owner judgments at the close-up scales still pending. Full lifecycle simulation is not implemented.
 
 ## License
 

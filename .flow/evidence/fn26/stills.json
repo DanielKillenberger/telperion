@@ -1,0 +1,110 @@
+[
+  {
+    "species": "Oregon white oak",
+    "scale": "trunk",
+    "path": "/tmp/flow-handover-fn26/stills/oak-trunk.png",
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 7,
+    "capture": 10,
+    "sha256": "d026f3e095329f8f50dcbb34d9ba0477e8107e65c5c18f7ffc1641b917aa7cc5"
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "branch",
+    "path": "/tmp/flow-handover-fn26/stills/oak-branch.png",
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 4,
+    "capture": 5,
+    "sha256": "2c6f55a0a416bc35f03eb994321b3a3d0196a3b30b7b680d192a99ed37377164"
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "leaf-frontlit",
+    "path": "/tmp/flow-handover-fn26/stills/oak-leaf-frontlit.png",
+    "reference": "O-LEAF",
+    "session": 2,
+    "capture": 7,
+    "sha256": "475a943fc3b59483897ee7d991c0b6e5e8a089fa28a1fa235ff6fac441697ff3"
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "leaf-backlit",
+    "path": "/tmp/flow-handover-fn26/stills/oak-leaf-backlit.png",
+    "reference": "O-LEAF",
+    "session": 2,
+    "capture": 7,
+    "sha256": "5f6332610de273a5bd42bf27255f10ab001ceed551c4f391d05876e57d95ed55"
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "trunk",
+    "path": "/tmp/flow-handover-fn26/stills/spruce-trunk.png",
+    "reference": "OWNER-NORWAY-SPRUCE (bark); lower trunk below first fork",
+    "session": 7,
+    "capture": 10,
+    "sha256": "aa4af859b86e1e6e3ddc6418d78c6a2588e836aa77d034c5681daceb676f52a3"
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "branch",
+    "path": "/tmp/flow-handover-fn26/stills/spruce-branch.png",
+    "reference": "S-BRANCH",
+    "session": 2,
+    "capture": 8,
+    "sha256": "322ff49874f0b16fd9bf68147890c5c620687910017c61df9839e6a626e2a94b"
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "needle-frontlit",
+    "path": "/tmp/flow-handover-fn26/stills/spruce-needle-frontlit.png",
+    "reference": "S-NEEDLE",
+    "session": 2,
+    "capture": 8,
+    "sha256": "42259549267dc88933714dfef9f7e833f1edde722e26816049758c1f7346600b"
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "needle-backlit",
+    "path": "/tmp/flow-handover-fn26/stills/spruce-needle-backlit.png",
+    "reference": "S-NEEDLE",
+    "session": 2,
+    "capture": 8,
+    "sha256": "ec9ed0b1eefd53d68214d66599aded38b0a0646d0696a3019bab18b003ed2f10"
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "trunk-2x-distance",
+    "path": "/tmp/flow-handover-fn26/stills/oak-distance-2x-trunk.png",
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 7,
+    "capture": 10,
+    "sha256": "ee9a59a49b86ccec0ccd9392c360fec65581274097cade419bb67077dc04c1ae"
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "trunk-4x-distance",
+    "path": "/tmp/flow-handover-fn26/stills/oak-distance-4x-trunk.png",
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 7,
+    "capture": 10,
+    "sha256": "e51d525caacfc834c616a694766c14eb931b618d4ccbeb6de272044cc932025c"
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "trunk-grazing",
+    "path": "/tmp/flow-handover-fn26/stills/oak-grazing-trunk.png",
+    "reference": "OWNER-WHITE-OAK; OWNER-BLACK-OAK",
+    "session": 7,
+    "capture": 10,
+    "sha256": "d663f7d5f249e1d9489fee02a54fe5745c36c4792434bcf5d4fca1a608f071f9"
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "trunk-grazing",
+    "path": "/tmp/flow-handover-fn26/stills/spruce-grazing-trunk.png",
+    "reference": "OWNER-NORWAY-SPRUCE; harness-spruce-grazing-streaks.png",
+    "session": 7,
+    "capture": 10,
+    "sha256": "96dbc0d123a355e01360384cef2d80db405911057703e2ce6facae8b28a1ac06"
+  }
+]

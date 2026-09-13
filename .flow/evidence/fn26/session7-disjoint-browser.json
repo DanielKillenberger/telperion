@@ -1,0 +1,66 @@
+{
+  "species": "Oregon white oak",
+  "preset": "oregon-white-oak",
+  "seed": 7,
+  "view": "whole",
+  "session": "orbit",
+  "submitted": {
+    "bounds": {
+      "max": [
+        13.217684715842124,
+        23.557227415847606,
+        13.003187181590542
+      ],
+      "min": [
+        -13.163122928115051,
+        -0.09600000083446503,
+        -13.242490423042556
+      ]
+    },
+    "foliageInstances": 869310,
+    "woodTriangles": 8255000,
+    "woodVertices": 4262170
+  },
+  "report": {
+    "adapter": "; comparison filtering: Linear",
+    "driver": "",
+    "backend": "webgpu",
+    "conditioning": 8,
+    "warmup": 8,
+    "measured": 120,
+    "samples": 120,
+    "verdict": "disjoint",
+    "reason": "sample 0 read 0, which is not a duration",
+    "multisample": 4,
+    "wall_frames": 601,
+    "wall_p50_ms": 16.7,
+    "wall_p95_ms": 16.8,
+    "wall_max_ms": 16.8,
+    "caster_triangles": 90760,
+    "caster_instances": 217328
+  },
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "webgpu": {
+    "vendor": "nvidia",
+    "architecture": "ampere",
+    "device": "",
+    "description": ""
+  },
+  "canvas": {
+    "width": 1600,
+    "height": 1000
+  },
+  "browser": "153.0.8010.12",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-renderer-backgrounding"
+  ],
+  "quantization_us": 100
+}

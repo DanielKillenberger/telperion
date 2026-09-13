@@ -1,0 +1,20 @@
+[
+  {
+    "still": "oak-trunk.png",
+    "reference": "session7-before-shared-stills",
+    "mask": "480x968+560+16",
+    "mean_rgb_error_255": 0.619376
+  },
+  {
+    "still": "oak-distance-2x-trunk.png",
+    "reference": "session7-before-shared-stills",
+    "mask": "200x200+700+400",
+    "mean_rgb_error_255": 0.822292
+  },
+  {
+    "still": "oak-trunk.png",
+    "reference": "session5-stills",
+    "mask": "480x968+560+16",
+    "mean_rgb_error_255": 1.89148
+  }
+]

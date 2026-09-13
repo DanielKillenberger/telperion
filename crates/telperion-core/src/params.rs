@@ -122,6 +122,18 @@ macro_rules! fields {
         $op!($f, $v, "material", "brightnessRangeLow"; material.brightness_range_low);
         $op!($f, $v, "material", "brightnessRangeHigh"; material.brightness_range_high);
         $op!($f, $v, "material", "interiorDarkening"; material.interior_darkening);
+        $op!($f, $v, "material", "ridgeScale"; material.ridge_scale);
+        $op!($f, $v, "material", "plateScale"; material.plate_scale);
+        $op!($f, $v, "material", "furrowStrength"; material.furrow_strength);
+        $op!($f, $v, "material", "roughnessDetail"; material.roughness_detail);
+        $op!($f, $v, "material", "veinScale"; material.vein_scale);
+        $op!($f, $v, "material", "veinContrast"; material.vein_contrast);
+        $op!($f, $v, "material", "transmissionStrength"; material.transmission_strength);
+        $op!($f, $v, "material", "transmissionRed"; material.transmission_red);
+        $op!($f, $v, "material", "transmissionGreen"; material.transmission_green);
+        $op!($f, $v, "material", "transmissionBlue"; material.transmission_blue);
+        $op!($f, $v, "material", "thickness"; material.thickness);
+
         $op!($f, $v, "shellDepth"; shell_depth);
     };
 }

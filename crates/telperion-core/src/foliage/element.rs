@@ -63,6 +63,8 @@ impl Default for ElementParams {
 }
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Element {
+    /// Section trait retained for shading; no vertex or level changes with it.
+    pub section_roundness: f64,
     /// Metres, attachment at origin, axis +Y, blade face +Z. One unit per instance.
     pub positions: Vec<Vec3>,
     /// Blade triangles face +Z; a rounded section and the connector face outward.
@@ -173,6 +175,7 @@ pub fn build_element(p: ElementParams) -> Result<Element> {
     let columns = p.cross_segments + p.cross_segments % 2;
     let rows = p.axial_segments - 1;
     let mut e = Element {
+        section_roundness: p.section_roundness,
         positions: Vec::with_capacity((2 + rows * (columns + 1)) as usize),
         coords: Vec::with_capacity((2 * (2 + rows * (columns + 1))) as usize),
         indices: Vec::with_capacity((6 * columns * rows) as usize),
