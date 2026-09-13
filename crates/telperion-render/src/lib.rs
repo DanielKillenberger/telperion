@@ -162,6 +162,7 @@ impl Renderer {
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.scene.set_crown(crown_of(&mesh.foliage));
+        self.scene.section_roundness = mesh.foliage.element.section_roundness;
         self.bounds = Some(mesh.bounds);
         self.set_casters();
         self.level_deviations = mesh

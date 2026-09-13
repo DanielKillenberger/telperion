@@ -61,6 +61,9 @@ struct Uniforms {
     /// The material row: bark with its roughness, the leaf's two faces with
     /// the interior darkening amount, and the offsets one leaf may take.
     bark: [f32; 4],
+    bark_detail: [f32; 4],
+    leaf_detail: [f32; 4],
+    transmission: [f32; 4],
     leaf_front: [f32; 4],
     leaf_back: [f32; 4],
     leaf_variation: [f32; 4],
@@ -79,6 +82,7 @@ pub struct Scene {
     /// What the subject is made of, as the family stated it. It arrives with
     /// the tree and outlives nothing: a second tree brings its own row.
     material: MaterialParams,
+    pub(crate) section_roundness: f64,
     /// The ellipsoid the submitted crown's placements fill, which a leaf's
     /// depth into the crown is measured against. None before a tree is up.
     crown: Option<Bounds>,
@@ -179,6 +183,7 @@ impl Scene {
         Self {
             row: SceneRow::default(),
             material: MaterialParams::default(),
+            section_roundness: 0.0,
             crown: None,
             layout,
             bind_group,

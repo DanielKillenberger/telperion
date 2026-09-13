@@ -1,0 +1,30 @@
+[
+  {
+    "id": "O-BARE",
+    "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga999A.jpg",
+    "path": ".refs/fn26/quga999A.jpg",
+    "sha256": "18c79a6dac6d848ec707397d2a87109d60a3200f11424fbd663fd9f81665805c",
+    "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified"
+  },
+  {
+    "id": "O-LEAF",
+    "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga28.jpg",
+    "path": ".refs/fn26/quga28.jpg",
+    "sha256": "9354b9a366ca129d069331f887ba844460fdebe9e5931c3f576862fc11be83fe",
+    "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified"
+  },
+  {
+    "id": "S-BRANCH",
+    "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab428B.jpg",
+    "path": ".refs/fn26/piab428B.jpg",
+    "sha256": "d3792f4dade2389e47a6f6be326bfbedd3e33a518493e4c719893cc3d1cdf800",
+    "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified"
+  },
+  {
+    "id": "S-NEEDLE",
+    "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab347A_0.jpg",
+    "path": ".refs/fn26/piab347A_0.jpg",
+    "sha256": "47e6c9dd3175e6a5deb0fad36da9b034a627f1ab1cb50f411fa1feee7ebd37e6",
+    "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified"
+  }
+]

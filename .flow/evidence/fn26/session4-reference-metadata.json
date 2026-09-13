@@ -1,0 +1,17 @@
+[
+  {
+    "path": ".refs/fn26/owner-white-oak-bark.png",
+    "source": "Owner supplied; local ignored reference only",
+    "sha256": "7dc7bab59113d8db7922dd83630efd070e850af5f42c45b52790f0611584153b"
+  },
+  {
+    "path": ".refs/fn26/owner-black-oak-bark.png",
+    "source": "Owner supplied; local ignored reference only",
+    "sha256": "211845d998fda31359fec5032ddc7206a23c992e4e4512a86d260d1b0001d069"
+  },
+  {
+    "path": ".refs/fn26/harness-trunk-as-judged.png",
+    "source": "Owner supplied; local ignored reference only",
+    "sha256": "feab46aff84c51da810713e7cdfad73364813658bb183eb05bf3f8633168509b"
+  }
+]

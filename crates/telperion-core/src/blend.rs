@@ -65,6 +65,18 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.hue_range_low, material.hue_range_high,
         material.brightness_range_low, material.brightness_range_high,
         material.interior_darkening,
+        material.ridge_scale,
+        material.plate_scale,
+        material.furrow_strength,
+        material.roughness_detail,
+        material.vein_scale,
+        material.vein_contrast,
+        material.transmission_strength,
+        material.transmission_red,
+        material.transmission_green,
+        material.transmission_blue,
+        material.thickness,
+
         shell_depth,
     );
     walk!(weighted: age, growth.rate, growth.shape,

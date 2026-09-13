@@ -1,0 +1,20 @@
+[
+  {
+    "id": "OWNER-WHITE-OAK",
+    "filename": "owner-white-oak-bark.png",
+    "provenance": "owner supplied",
+    "sha256": "7dc7bab59113d8db7922dd83630efd070e850af5f42c45b52790f0611584153b"
+  },
+  {
+    "id": "OWNER-BLACK-OAK",
+    "filename": "owner-black-oak-bark.png",
+    "provenance": "owner supplied",
+    "sha256": "211845d998fda31359fec5032ddc7206a23c992e4e4512a86d260d1b0001d069"
+  },
+  {
+    "id": "OWNER-NORWAY-SPRUCE",
+    "filename": "owner-norway-spruce-bark.png",
+    "provenance": "owner supplied",
+    "sha256": "e5b82a73eb7094d68f8ab407358b11de6780f7eb95165c528245960dc77d9691"
+  }
+]

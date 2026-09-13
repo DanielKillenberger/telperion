@@ -81,6 +81,24 @@ impl Scene {
                     1.0,
                 ),
                 bark: colour(m.bark_red, m.bark_green, m.bark_blue, m.bark_roughness),
+                bark_detail: colour(
+                    m.ridge_scale,
+                    m.plate_scale,
+                    m.roughness_detail,
+                    m.furrow_strength,
+                ),
+                leaf_detail: colour(
+                    m.vein_scale,
+                    m.vein_contrast,
+                    self.section_roundness,
+                    m.thickness,
+                ),
+                transmission: colour(
+                    m.transmission_red,
+                    m.transmission_green,
+                    m.transmission_blue,
+                    m.transmission_strength,
+                ),
                 leaf_front: colour(
                     m.leaf_front_red,
                     m.leaf_front_green,

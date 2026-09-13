@@ -8,6 +8,7 @@ use crate::{device::Gpu, scene::DEPTH_FORMAT};
 /// no include of its own, so one prelude is put in front of each shader's own
 /// stages here rather than copied into each of them.
 const PRELUDE: &str = include_str!("shaders/common.wgsl");
+const TRANSMISSION: &str = include_str!("shaders/transmission.wgsl");
 
 /// Samples per pixel a frame's colour and depth are drawn at where the device
 /// offers it. Four is what a WebGPU implementation that multisamples at all
@@ -93,7 +94,7 @@ pub fn lit_shader(gpu: &Gpu, label: &str, stages: &str) -> wgpu::ShaderModule {
     gpu.device
         .create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some(label),
-            source: wgpu::ShaderSource::Wgsl(format!("{PRELUDE}\n{stages}").into()),
+            source: wgpu::ShaderSource::Wgsl(format!("{PRELUDE}\n{TRANSMISSION}\n{stages}").into()),
         })
 }
 

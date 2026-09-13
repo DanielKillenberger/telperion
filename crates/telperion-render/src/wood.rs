@@ -1,5 +1,7 @@
 //! The plaited wood surface: the core's own position, normal, coordinate and
 //! index arrays uploaded as they lie in memory, drawn as one indexed mesh.
+mod radius;
+
 use telperion_core::surface::{SurfaceMesh, SurfaceRun};
 
 use crate::{
@@ -24,6 +26,9 @@ pub struct Wood {
     normals: Option<Held>,
     coords: Option<Held>,
     indices: Option<Held>,
+    radii: Option<Held>,
+    radius_layout: wgpu::BindGroupLayout,
+    radius_group: Option<wgpu::BindGroup>,
     index_count: u32,
     runs: Vec<SurfaceRun>,
     pub caster_index_count: u32,
@@ -36,7 +41,27 @@ impl Wood {
         shadow: &crate::shadow::Shadow,
         surface: crate::pass::Surface,
     ) -> Self {
-        let shader = crate::pass::lit_shader(gpu, "wood", include_str!("shaders/wood.wgsl"));
+        let stages = format!(
+            "{}\n{}",
+            include_str!("shaders/bark.wgsl"),
+            include_str!("shaders/wood.wgsl")
+        );
+        let shader = crate::pass::lit_shader(gpu, "wood", &stages);
+        let radius_layout = gpu
+            .device
+            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("wood radii"),
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                }],
+            });
         let vertex = |attributes, floats: u64| {
             Some(wgpu::VertexBufferLayout {
                 array_stride: floats * size_of::<f32>() as u64,
@@ -47,7 +72,7 @@ impl Wood {
         Self {
             pipeline: crate::pipeline(
                 gpu,
-                &[Some(layout), None, Some(shadow.layout())],
+                &[Some(layout), Some(&radius_layout), Some(shadow.layout())],
                 &shader,
                 surface,
                 &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
@@ -68,6 +93,9 @@ impl Wood {
             normals: None,
             coords: None,
             indices: None,
+            radii: None,
+            radius_layout,
+            radius_group: None,
             index_count: 0,
             runs: Vec::new(),
             caster_index_count: 0,
@@ -83,6 +111,26 @@ impl Wood {
         if self.index_count == 0 {
             return;
         }
+        buffer::write(
+            gpu,
+            &mut self.radii,
+            "wood radii",
+            wgpu::BufferUsages::STORAGE,
+            bytemuck::cast_slice(&radius::radii(mesh)),
+        );
+        let radii = self.radii.as_ref().expect("submitted radii");
+        self.radius_group = Some(gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("wood radii"),
+            layout: &self.radius_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                    buffer: radii.buffer(),
+                    offset: 0,
+                    size: std::num::NonZeroU64::new(radii.region().used()),
+                }),
+            }],
+        }));
         buffer::write(
             gpu,
             &mut self.positions,
@@ -124,6 +172,7 @@ impl Wood {
             return FrameStats::default();
         };
         pass.set_pipeline(&self.pipeline);
+        pass.set_bind_group(1, self.radius_group.as_ref().expect("submitted radii"), &[]);
         pass.set_vertex_buffer(0, positions.live());
         pass.set_vertex_buffer(1, normals.live());
         pass.set_vertex_buffer(2, coords.live());
