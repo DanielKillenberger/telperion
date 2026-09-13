@@ -3,8 +3,8 @@
 //! One compute thread per placement projects the element's deviation at that
 //! leaf's depth and takes the coarsest level that stays under half a pixel; a
 //! leaf whose sphere is outside the frustum takes the unseen bucket instead.
-//! Each thread appends its index to the chosen level's list, and the levels'
-//! counters are also the instance counts of one indexed indirect draw each.
+//! Each level's list is compacted in placement-index order, so ties in depth
+//! resolve identically on every draw. Its count drives one indexed indirect draw.
 //!
 //! Nothing survives the frame. There is no hysteresis and no previous-frame
 //! state: the switch is below a pixel by construction, so there is nothing to
@@ -22,8 +22,7 @@ use crate::{
     Camera,
 };
 
-/// Threads per workgroup, matching `select.wgsl`. The tally that reserves each
-/// level's run of its list is taken once per workgroup, not once per leaf.
+/// Threads per workgroup, matching `select.wgsl`'s membership bitset.
 const WORKGROUP: u32 = 256;
 
 /// The most levels one element may be selected from. The per-workgroup tally
@@ -57,6 +56,7 @@ pub struct Sizes {
     pub lists: u64,
     pub counts: u64,
     pub arguments: u64,
+    pub scratch: u64,
 }
 
 /// The bytes each selection buffer needs for this many placements at this many
@@ -69,13 +69,15 @@ pub fn sizes(instances: usize, levels: usize, alignment: u64) -> Sizes {
         lists: stride * levels as u64,
         counts: ((levels + 1) * size_of::<u32>()) as u64,
         arguments: (levels * ARGUMENT_WORDS * size_of::<u32>()) as u64,
+        scratch: ((instances + (levels + 1) * instances.div_ceil(WORKGROUP as usize))
+            * size_of::<u32>()) as u64,
     }
 }
 
 /// The compute pipeline, the buffers it fills, and the bind groups the foliage
 /// pass reads them back through.
 pub struct Select {
-    pipeline: wgpu::ComputePipeline,
+    pipelines: [wgpu::ComputePipeline; 3],
     compute_layout: wgpu::BindGroupLayout,
     draw_layout: wgpu::BindGroupLayout,
     uniforms: wgpu::Buffer,
@@ -87,6 +89,7 @@ pub struct Select {
     lists: Option<Held>,
     counts: Option<Held>,
     arguments: Option<Held>,
+    scratch: Option<Held>,
     compute: Option<wgpu::BindGroup>,
     draw: Option<wgpu::BindGroup>,
     /// The indirect blocks as each frame starts them: the level's own index
@@ -103,29 +106,10 @@ pub struct Select {
 
 impl Select {
     pub fn new(gpu: &Gpu) -> Self {
-        let shader = gpu
-            .device
-            .create_shader_module(wgpu::include_wgsl!("shaders/select.wgsl"));
         let compute_layout = bind::compute_layout(gpu);
         let draw_layout = bind::draw_layout(gpu);
-        let layout = gpu
-            .device
-            .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("select"),
-                bind_group_layouts: &[Some(&compute_layout)],
-                immediate_size: 0,
-            });
         Self {
-            pipeline: gpu
-                .device
-                .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                    label: Some("select"),
-                    layout: Some(&layout),
-                    module: &shader,
-                    entry_point: Some("select"),
-                    compilation_options: Default::default(),
-                    cache: None,
-                }),
+            pipelines: bind::pipelines(gpu, &compute_layout),
             uniforms: gpu.device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("selection"),
                 size: size_of::<frame::Uniforms>() as u64,
@@ -140,6 +124,7 @@ impl Select {
             lists: None,
             counts: None,
             arguments: None,
+            scratch: None,
             compute: None,
             draw: None,
             reset: Vec::new(),
@@ -202,7 +187,7 @@ impl Select {
             gpu,
             &mut self.lists,
             "foliage level lists",
-            storage,
+            storage | wgpu::BufferUsages::COPY_SRC,
             sizes.lists,
         );
         buffer::reserve(
@@ -219,6 +204,13 @@ impl Select {
             storage | wgpu::BufferUsages::INDIRECT,
             sizes.arguments,
         );
+        buffer::reserve(
+            gpu,
+            &mut self.scratch,
+            "foliage selection scratch",
+            storage,
+            sizes.scratch,
+        );
         self.rebind(gpu, sizes.stride);
     }
 
@@ -226,13 +218,22 @@ impl Select {
     /// builds them again: a buffer that outgrew its headroom is a new buffer,
     /// and a group holding the old one would bind what is no longer there.
     fn rebind(&mut self, gpu: &Gpu, stride: u64) {
-        let (Some(placements), Some(deviations), Some(lists), Some(counts), Some(arguments)) = (
+        let (
+            Some(placements),
+            Some(deviations),
+            Some(lists),
+            Some(counts),
+            Some(arguments),
+            Some(scratch),
+        ) = (
             &self.placements,
             &self.deviations,
             &self.lists,
             &self.counts,
             &self.arguments,
-        ) else {
+            &self.scratch,
+        )
+        else {
             (self.compute, self.draw) = (None, None);
             return;
         };
@@ -240,7 +241,7 @@ impl Select {
             gpu,
             &self.compute_layout,
             &self.uniforms,
-            [placements, deviations, lists, counts, arguments],
+            [placements, deviations, lists, counts, arguments, scratch],
         ));
         self.draw = Some(bind::draw_group(
             gpu,
@@ -287,9 +288,16 @@ impl Select {
             timestamp_writes: timestamps,
         });
         if let Some((compute, _, _)) = ready {
-            pass.set_pipeline(&self.pipeline);
             pass.set_bind_group(0, compute, &[]);
-            pass.dispatch_workgroups(self.instances.div_ceil(WORKGROUP), 1, 1);
+            let groups = self.instances.div_ceil(WORKGROUP);
+            for (pipeline, count) in
+                self.pipelines
+                    .iter()
+                    .zip([groups, self.levels.len() as u32 + 1, groups])
+            {
+                pass.set_pipeline(pipeline);
+                pass.dispatch_workgroups(count, 1, 1);
+            }
         }
     }
 
@@ -373,25 +381,4 @@ impl Select {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn every_level_is_given_a_list_the_whole_crown_could_fill() {
-        let four = sizes(1_000, 4, 256);
-        assert_eq!(four.stride % 256, 0, "a list cannot be bound at an offset");
-        assert!(
-            four.stride >= 4_000,
-            "a list too small for the crown: {}",
-            four.stride
-        );
-        assert_eq!(four.lists, four.stride * 4);
-        // One counter per level and one for the leaves no level drew.
-        assert_eq!(four.counts, 5 * 4);
-        assert_eq!(four.arguments, 4 * 5 * 4);
-
-        // A crown of nothing asks for nothing, at any number of levels.
-        assert_eq!(sizes(0, 4, 256).lists, 0);
-        assert_eq!(sizes(1_000, 0, 256).lists, 0);
-    }
-}
+mod tests;

@@ -21,6 +21,7 @@ pub fn compute_layout(gpu: &Gpu) -> wgpu::BindGroupLayout {
                 storage(3, compute, false, false),
                 storage(4, compute, false, false),
                 storage(5, compute, false, false),
+                storage(6, compute, false, false),
             ],
         })
 }
@@ -45,7 +46,7 @@ pub fn compute_group(
     gpu: &Gpu,
     layout: &wgpu::BindGroupLayout,
     uniforms: &wgpu::Buffer,
-    buffers: [&Held; 5],
+    buffers: [&Held; 6],
 ) -> wgpu::BindGroup {
     let mut entries = vec![wgpu::BindGroupEntry {
         binding: 0,
@@ -156,4 +157,30 @@ fn storage(
         },
         count: None,
     }
+}
+
+/// Dispatch boundaries make classification, prefixing and scattering visible
+/// to one another without a device-wide spin barrier.
+pub fn pipelines(gpu: &Gpu, bind: &wgpu::BindGroupLayout) -> [wgpu::ComputePipeline; 3] {
+    let shader = gpu
+        .device
+        .create_shader_module(wgpu::include_wgsl!("../shaders/select.wgsl"));
+    let layout = gpu
+        .device
+        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("select"),
+            bind_group_layouts: &[Some(bind)],
+            immediate_size: 0,
+        });
+    ["select", "prefix", "scatter"].map(|entry| {
+        gpu.device
+            .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+                label: Some(entry),
+                layout: Some(&layout),
+                module: &shader,
+                entry_point: Some(entry),
+                compilation_options: Default::default(),
+                cache: None,
+            })
+    })
 }
