@@ -11,6 +11,7 @@ pub(super) struct Widths {
     children: SecondaryMap<NodeKey, Vec<NodeIdentity>>,
     pending: BTreeSet<NodeIdentity>,
     queued: SecondaryMap<NodeKey, bool>,
+    recorded: SecondaryMap<NodeKey, [f64; 3]>,
     // Invalidation must not clear a slot array proportional to the whole tree.
     generation: u64,
     cache: std::cell::RefCell<SecondaryMap<NodeKey, (u64, [f64; 3])>>,
@@ -66,18 +67,19 @@ impl Widths {
             .push(id);
         self.pending.insert(id);
     }
-    pub fn update(
+    pub fn changed(
         &mut self,
-        tree: &mut Tree,
+        tree: &Tree,
         ids: &DenseSlotMap<NodeKey, usize>,
         changed: &[usize],
         pipes: &radius::Pipes,
-    ) -> Result<()> {
+    ) -> Vec<(usize, [f64; 3])> {
         #[cfg(test)]
         {
             self.visited = 0;
         }
         let mut pending = Pending::default();
+        let mut changes = Vec::new();
         let enqueue =
             |id: NodeIdentity, pending: &mut Pending, queued: &mut SecondaryMap<_, bool>| {
                 if !queued.get(id.key).copied().unwrap_or(false) {
@@ -105,14 +107,10 @@ impl Widths {
             if tree.nodes[i].shoot.death_year.is_some() {
                 continue;
             }
-            let [distal, proximal, base] = self.sample(tree, pipes, i);
-            let n = &mut tree.nodes[i];
-            let changed = distal != n.radius;
-            n.base_radius = base;
-            n.radius = distal;
-            n.start_radius = proximal;
-            tree.validate_range(i..i + 1, true)?;
-            if changed {
+            let radii = self.sample(tree, pipes, i);
+            if self.recorded.get(id.key) != Some(&radii) {
+                self.recorded.insert(id.key, radii);
+                changes.push((i, radii));
                 if let Some(children) = self.children.get(id.key) {
                     for &id in children {
                         enqueue(id, &mut pending, &mut self.queued);
@@ -120,7 +118,7 @@ impl Widths {
                 }
             }
         }
-        Ok(())
+        changes
     }
 }
 

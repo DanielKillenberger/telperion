@@ -14,6 +14,7 @@ macro_rules! fields {
         $op!($f, $v, "growth", "rate"; growth.rate);
         $op!($f, $v, "growth", "shape"; growth.shape);
         $op!($f, $v, "growth", "leafLifetime"; growth.leaf_lifetime);
+        $op!($f, $v, "growth", "resizeTolerance"; growth.resize_tolerance);
         $op!($f, $v, "growth", "sheddingTolerance"; growth.shedding_tolerance);
         $op!($f, $v, "growth", "apicalControlLoss"; growth.apical_control_loss);
         $op!($f, $v, "skeleton", "habit", "apicalDominance"; skeleton.habit.apical_dominance);

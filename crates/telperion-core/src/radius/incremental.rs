@@ -135,8 +135,9 @@ impl Pipes {
         let proximal = (self.proximal[i] * scale).max(self.floors[i].1).max(distal);
         (distal, proximal)
     }
-    /// Materialize only wood whose recorded maximum can have changed.
-    pub fn finish(&mut self, tree: &mut Tree) -> Result<Vec<usize>> {
+    /// Select only wood whose recorded maximum can have changed. Reading the
+    /// annual solve must not materialize the advance's output radii.
+    pub fn changed(&mut self, tree: &Tree) -> Vec<usize> {
         #[cfg(test)]
         {
             self.visited = 0;
@@ -162,15 +163,23 @@ impl Pipes {
                 self.visited += 1;
             }
             let (distal, proximal) = self.width(i);
+            changed.push(i);
+            self.thresholds[i] = Scale((distal / self.distal[i]).min(proximal / self.proximal[i]));
+            self.waiting.insert((self.thresholds[i], i));
+        }
+        changed
+    }
+    #[cfg(test)]
+    pub fn finish(&mut self, tree: &mut Tree) -> Result<Vec<usize>> {
+        let mut changed = Vec::new();
+        for i in self.changed(tree) {
+            let (distal, proximal) = self.width(i);
             let n = &mut tree.nodes[i];
             if (distal, proximal) != (n.radius, n.start_radius) {
                 n.radius = distal;
                 n.start_radius = proximal;
                 changed.push(i);
             }
-            self.thresholds[i] =
-                Scale((n.radius / self.distal[i]).min(n.start_radius / self.proximal[i]));
-            self.waiting.insert((self.thresholds[i], i));
             tree.validate_range(i..i + 1, true)?;
         }
         Ok(changed)

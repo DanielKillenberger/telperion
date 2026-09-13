@@ -118,10 +118,17 @@ are re-derived from current parents without changing twig lengths. Dead shoots
 leave the growth frontiers while their records remain. A cut invalidates only
 surviving pipe ancestor paths; local widths propagate from changed parents.
 Dead records keep canonical final widths independent of advance partitions.
+The annual solve records radius keyframes only along changed paths. A frame is
+appended when any radius exceeds the last frame by more than
+`growth.resizeTolerance` (metres, range 0–1, default `1e-9`); births always get a
+frame. Radii never decrease. One ten-year advance retains the same frames as ten
+yearly advances. Output radii still materialize once per advance, from the latest
+frames, and packing remains lazy.
 
 Integration is incomplete: `branching::generate`, `Specimen::grow`, mesh builds
 and the browser still use the existing full-envelope build. The JSON wire now
-round-trips and validates `age` and `growth` (`rate`, `shape`, `sheddingTolerance`, `apicalControlLoss`, `leafLifetime`); those fields
+round-trips and validates `age` and `growth` (`rate`, `shape`, `sheddingTolerance`,
+`apicalControlLoss`, `leafLifetime`, `resizeTolerance`); those fields
 currently affect only `Specimen::build`, not the full-envelope entry points.
 `Specimen::placements()` returns owned leaf transforms, each identified by its
 shoot's generational identity and station ordinal, before optional canopy shell
@@ -134,8 +141,8 @@ affected shoots. This timeline foliage path is not yet used by production. At ye
 only 13 oak and 120 spruce placements before culling: leaves expire as new shoot
 births approach zero. The mature canopy has not converged; no renewal rule has
 been introduced.
-The chronicle redesign is in progress: per-year radius keyframes, persistent
-cohort foliage, historical reads, stamp-filtered change records and the history
+The chronicle redesign is in progress: persistent cohort foliage, historical
+reads, stamp-filtered change records and the history
 cap remain unfinished. Native change records still use the existing buffer diff.
 Snapshots and the wasm specimen handle also remain unfinished.
 Its pipe cache recomputes insertion/deletion ancestor paths. An ordered scale
@@ -156,7 +163,7 @@ new or resized nodes. Native cost measurements, including sparse and dense
 changes on large trees, run with
 `FN11_MEASURE=1 cargo test --release -p telperion-core --lib monthly_cost_report -- --nocapture --test-threads=1`.
 The command retains its historical name; it now measures annual slices. Widths
-finalize once per advance from the structure and retained shed-width memory;
+finalize once per advance from the annual radius keyframes;
 consumer packing is lazy and timed separately. Fixed-geometry shoots sleep until
 the crown can reach them. An unchanged queue keeps its identity order and an
 empty local frontier makes no width queries. Radius-dependent failures still retry.

@@ -122,6 +122,7 @@ impl Specimen {
             self.identify();
             self.tree.nodes[0].radius = self.radii.resolved()?.trunk_radius * 1e-6;
             self.tree.nodes[0].start_radius = self.tree.nodes[0].radius;
+            self.seed_widths();
         }
         while self.timeline.as_ref().unwrap().age.slice < end {
             let t = self.timeline.as_ref().unwrap();
@@ -154,21 +155,6 @@ impl Specimen {
         }
         self.finish_widths()?;
         self.timeline.as_mut().unwrap().age = target;
-        Ok(())
-    }
-    pub(super) fn finish_widths(&mut self) -> Result<()> {
-        #[cfg(test)]
-        let clock = std::time::Instant::now();
-        let t = self.timeline.as_mut().unwrap();
-        let changed = t.pipes.finish(&mut self.tree)?;
-        t.widths
-            .update(&mut self.tree, &self.identities, &changed, &t.pipes)?;
-        #[cfg(test)]
-        {
-            self.cost.finalizing = clock.elapsed();
-            self.cost.pipes = t.pipes.visited;
-            self.cost.widths = t.widths.visited;
-        }
         Ok(())
     }
     /// Raising a ceiling unblocks the rolled-back frontier; limits are resources,
@@ -303,6 +289,7 @@ impl Specimen {
             self.radii,
         )?;
         timeline.widths.invalidate();
+        self.record_widths(slice, previous_len);
         #[cfg(test)]
         self.cost.stamp(8, &mut clock);
         Ok(())

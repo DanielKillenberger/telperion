@@ -52,7 +52,10 @@ const BANDS: [(&str, usize, usize); 5] = [
 // shares its provisional age, rate, shape and shedding traits. Annual and
 // thickening tests independently walk them. Leaf lifetime varies between oak
 // and spruce, so the sweep itself checks that dimension among the moved paths.
-const HELD: [&str; 29] = [
+// The chronicle adds resizeTolerance at the same 1e-9 metre default in every
+// preset. params::tests::resize_tolerance_is_a_validated_blended_wire_trait
+// checks its non-default walk; no preset geometry or identity pin changes.
+const HELD: [&str; 30] = [
     "/age",
     "/canopy/maxInstances",
     "/element/card",
@@ -61,6 +64,7 @@ const HELD: [&str; 29] = [
     "/growth/apicalControlLoss",
     "/growth/sheddingTolerance",
     "/growth/rate",
+    "/growth/resizeTolerance",
     "/growth/shape",
     "/skeleton/growth/influenceRadius",
     "/skeleton/growth/killDistance",

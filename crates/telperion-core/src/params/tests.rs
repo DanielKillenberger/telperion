@@ -251,3 +251,16 @@ fn leaf_lifetime_is_a_validated_blended_family_trait() {
         assert!(message.contains(&value.to_string()), "{message}");
     }
 }
+
+#[test]
+fn resize_tolerance_is_a_validated_blended_wire_trait() {
+    let a = parse(&json!({"growth":{"resizeTolerance":0.001}})).unwrap();
+    let b = parse(&json!({"growth":{"resizeTolerance":0.003}})).unwrap();
+    let mid = crate::blend::families(&a, &b, 0.5).unwrap();
+    assert_eq!(metadata(&mid)["growth"]["resizeTolerance"], 0.002);
+    assert_eq!(metadata(&parse(&metadata(&mid)).unwrap()), metadata(&mid));
+    for value in [-0.001, 1.001] {
+        let error = parse(&json!({"growth":{"resizeTolerance":value}})).unwrap_err();
+        assert!(error.to_string().contains("growth.resizeTolerance"));
+    }
+}

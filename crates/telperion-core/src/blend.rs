@@ -68,7 +68,8 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         shell_depth,
     );
     walk!(weighted: age, growth.rate, growth.shape,
-        growth.shedding_tolerance, growth.apical_control_loss, growth.leaf_lifetime);
+        growth.shedding_tolerance, growth.apical_control_loss, growth.leaf_lifetime,
+        growth.resize_tolerance);
     walk!(degrees:
         skeleton.habit.lateral_pitch, skeleton.habit.pitch_variation,
         skeleton.habit.crookedness,

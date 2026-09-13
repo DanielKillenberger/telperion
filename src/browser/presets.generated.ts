@@ -37,6 +37,7 @@ export interface Family {
   apicalControlLoss: number;
   leafLifetime: number;
   rate: number;
+  resizeTolerance: number;
   shape: number;
   sheddingTolerance: number;
 };
@@ -182,6 +183,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "apicalControlLoss": 0,
         "leafLifetime": 1,
         "rate": 0.08,
+        "resizeTolerance": 1e-9,
         "shape": 2,
         "sheddingTolerance": 2
       },
@@ -325,6 +327,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "apicalControlLoss": 0,
         "leafLifetime": 1,
         "rate": 0.08,
+        "resizeTolerance": 1e-9,
         "shape": 2,
         "sheddingTolerance": 2
       },
@@ -468,6 +471,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "apicalControlLoss": 0,
         "leafLifetime": 6,
         "rate": 0.08,
+        "resizeTolerance": 1e-9,
         "shape": 2,
         "sheddingTolerance": 2
       },
@@ -611,6 +615,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "apicalControlLoss": 0,
         "leafLifetime": 1,
         "rate": 0.08,
+        "resizeTolerance": 1e-9,
         "shape": 2,
         "sheddingTolerance": 2
       },
@@ -754,6 +759,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "apicalControlLoss": 0,
         "leafLifetime": 1,
         "rate": 0.08,
+        "resizeTolerance": 1e-9,
         "shape": 2,
         "sheddingTolerance": 2
       },

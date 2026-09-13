@@ -20,6 +20,8 @@ pub struct GrowthTraits {
     pub apical_control_loss: f64,
     /// Time a shoot bears foliage after birth, in years; zero bears none.
     pub leaf_lifetime: f64,
+    /// Minimum thickening in metres before recording another annual radius frame.
+    pub resize_tolerance: f64,
 }
 impl Default for GrowthTraits {
     fn default() -> Self {
@@ -29,6 +31,7 @@ impl Default for GrowthTraits {
             shedding_tolerance: 2.0,
             apical_control_loss: 0.0,
             leaf_lifetime: 1.0,
+            resize_tolerance: 1e-9,
         }
     }
 }
@@ -38,6 +41,7 @@ impl GrowthTraits {
             ("growth.rate", self.rate, 0.001, 10.0),
             ("growth.shape", self.shape, 1.0, 8.0),
             ("growth.leafLifetime", self.leaf_lifetime, 0.0, MAX_AGE),
+            ("growth.resizeTolerance", self.resize_tolerance, 0.0, 1.0),
             (
                 "growth.sheddingTolerance",
                 self.shedding_tolerance,

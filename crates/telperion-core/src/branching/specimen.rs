@@ -5,6 +5,7 @@ use slotmap::{DenseSlotMap, Key};
 mod changes;
 mod chronicle;
 mod crown;
+mod keyframes;
 pub use changes::{ChangeRecord, Run, RunNode, SpecimenBuffers, RADIUS_TOLERANCE};
 #[cfg(test)]
 mod measurement;
@@ -32,6 +33,7 @@ pub struct Specimen {
     timeline: Option<timeline::Timeline>,
     identities: DenseSlotMap<NodeKey, usize>,
     links: slotmap::SecondaryMap<NodeKey, chronicle::Links>,
+    keyframes: keyframes::Keyframes,
 }
 impl Specimen {
     pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
@@ -72,6 +74,7 @@ impl Specimen {
             timeline: None,
             identities: DenseSlotMap::with_key(),
             links: slotmap::SecondaryMap::new(),
+            keyframes: keyframes::Keyframes::default(),
         })
     }
     pub fn tree(&self) -> &Tree {
