@@ -14,7 +14,7 @@ frontier tier, and the species is compared again once that spec lands.
 | Difference | Species | Rows can close it | Owner |
 |---|---|---|---|
 | Two stems from the base, one leaning | birch | no; one root node, one leader | gap: multi-stem trees |
-| Long unbranched shoots hanging in a curtain to the ground | birch | no; secondary rise bends orders, it does not grow pendulous shoots | gap: pendulous shoots |
+| Long unbranched shoots hanging in a curtain to the ground | birch | no; the curtain mode exists but its droop is a constant and its shoot length is borrowed from the twig anatomy | gap: pendulous shoots |
 | Crown outline lumpy and asymmetric, not a smooth oval | beech, birch | no; the envelope is a smooth shell every seed fills the same way | gap: crown outline irregularity |
 | Foliage reads as one continuous mass with sky showing through in holes | beech | partly; density is at the node cap, the rest is how a leaf mass is lit | appearance (fn-29 follow-on, fn-32 method) |
 | Bark and foliage bluer and darker than the photograph under overcast | beech | partly; rows moved it, the sky term does the rest | appearance |
