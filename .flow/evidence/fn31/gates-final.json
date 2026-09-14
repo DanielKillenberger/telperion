@@ -1,0 +1,7 @@
+[
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit": 0,
+    "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/fmt-final.log"
+  }
+]

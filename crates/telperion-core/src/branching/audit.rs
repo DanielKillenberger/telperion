@@ -126,6 +126,9 @@ fn scaffold_directions() {
 /// Oak and spruce already disabled shedding and keep their hashes. The measured
 /// convergence precedes the pin move in .flow/evidence/fn30/REPORT.md; production
 /// growth identity is pinned separately by tests/identity.rs.
+/// fn-31 restores the authored 0.45 threshold and its original Ordinary hash.
+/// CONVERGENCE.md records the return before this single pin move; the legacy
+/// species hashes and every exact assertion remain unchanged.
 #[test]
 fn shipped_scaffolds_are_reproducible() {
     // fn-11: one re-pin for pinned pure-Rust libm on native and wasm.
@@ -133,7 +136,7 @@ fn shipped_scaffolds_are_reproducible() {
     for (preset, expected) in [
         (Preset::OregonWhiteOak, 11389017044164293456_u64),
         (Preset::NorwaySpruce, 17659250574543300401),
-        (Preset::Ordinary, 4584312898131064280),
+        (Preset::Ordinary, 9848876633805652422),
     ] {
         let family = preset.parameters();
         let hash = hashed(&family);

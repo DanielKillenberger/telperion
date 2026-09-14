@@ -20,6 +20,9 @@ use common::gpu;
 /// (173 years) with a zero shedding threshold, so the clay room draws a
 /// different skeleton (49,262 nodes against 9,240); the drift tolerances are
 /// unchanged (.flow/evidence/fn30/REPORT.md).
+/// fn-31 re-records once after its CONVERGENCE.md: seed-7 Ordinary retains
+/// 16,066 nodes at 173 years with the authored 0.45 threshold and sapling rule.
+/// The capture command, camera, shaders and drift limits stay unchanged.
 const PINNED: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../.flow/evidence/fn24/ordinary-hero.png"

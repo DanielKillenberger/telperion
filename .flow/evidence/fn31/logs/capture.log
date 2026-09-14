@@ -1,0 +1,63 @@
+target/release/examples/headless --preset oregon-white-oak --seed 7 --age 1 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-1.png --frame-min-y 0
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-1.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 142 wood vertices, 280 wood triangles, 15 foliage instances; 3501 triangles and 15 instances drawn in 9 calls; 0 wood caster triangles; 4 foliage caster instances
+exit=0
+target/release/examples/headless --preset oregon-white-oak --seed 7 --age 10 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-10.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-10.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 2002 wood vertices, 3840 wood triangles, 438 foliage instances; 79817 triangles and 438 instances drawn in 9 calls; 3600 wood caster triangles; 110 foliage caster instances
+exit=0
+target/release/examples/headless --preset oregon-white-oak --seed 7 --age 26.7 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-26.7.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-26.7.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 53802 wood vertices, 103240 wood triangles, 18367 foliage instances; 3263005 triangles and 18367 instances drawn in 9 calls; 4840 wood caster triangles; 4592 foliage caster instances
+exit=0
+target/release/examples/headless --preset oregon-white-oak --seed 7 --age 56.1 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-56.1.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-56.1.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 435290 wood vertices, 834400 wood triangles, 157112 foliage instances; 27858305 triangles and 157112 instances drawn in 9 calls; 5840 wood caster triangles; 39278 foliage caster instances
+exit=0
+target/release/examples/headless --preset oregon-white-oak --seed 7 --age 112 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-112.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-112.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 690394 wood vertices, 1323520 wood triangles, 232003 foliage instances; 41228677 triangles and 232003 instances drawn in 9 calls; 13760 wood caster triangles; 58001 foliage caster instances
+exit=0
+target/release/examples/headless --preset oregon-white-oak --seed 7 --age 200 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-200.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-200.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 716178 wood vertices, 1372960 wood triangles, 183380 foliage instances; 32914961 triangles and 183380 instances drawn in 9 calls; 24040 wood caster triangles; 45845 foliage caster instances
+exit=0
+target/release/examples/headless --preset oregon-white-oak --seed 7 --age 432 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-432.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-432.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 717466 wood vertices, 1375440 wood triangles, 132875 foliage instances; 24230581 triangles and 132875 instances drawn in 9 calls; 120680 wood caster triangles; 33219 foliage caster instances
+exit=0
+montage /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-1.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-10.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-26.7.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-56.1.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-112.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-200.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-age-432.png -tile 7x1 -geometry +4+0 /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-strip.png
+exit=0
+target/release/examples/headless --preset oregon-white-oak --seed 7 --size 1600x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/oregon-white-oak-hero.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/oregon-white-oak-hero.png 1600x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 717466 wood vertices, 1375440 wood triangles, 132875 foliage instances; 24230581 triangles and 132875 instances drawn in 9 calls; 120680 wood caster triangles; 33219 foliage caster instances
+exit=0
+montage /home/daniel/Projects/telperion/.flow/evidence/fn30/oregon-white-oak-hero.png /home/daniel/Projects/telperion/.flow/evidence/fn31/oregon-white-oak-hero.png -tile 2x1 -geometry +4+0 /home/daniel/Projects/telperion/.flow/evidence/fn31/oregon-white-oak-beside-fn30.png
+exit=0
+montage /home/daniel/Projects/telperion/.flow/evidence/fn30/strips/oregon-white-oak-strip.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/oregon-white-oak-strip.png -tile 1x2 -geometry +0+4 /home/daniel/Projects/telperion/.flow/evidence/fn31/oregon-white-oak-strips-beside-fn30.png
+exit=0
+target/release/examples/headless --preset norway-spruce --seed 7 --age 1 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-1.png --frame-min-y 0
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-1.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 142 wood vertices, 280 wood triangles, 5 foliage instances; 1161 triangles and 5 instances drawn in 6 calls; 0 wood caster triangles; 2 foliage caster instances
+exit=0
+target/release/examples/headless --preset norway-spruce --seed 7 --age 5 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-5.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-5.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 1202 wood vertices, 2320 wood triangles, 190 foliage instances; 12081 triangles and 190 instances drawn in 6 calls; 2320 wood caster triangles; 48 foliage caster instances
+exit=0
+target/release/examples/headless --preset norway-spruce --seed 7 --age 14.1 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-14.1.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-14.1.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 112970 wood vertices, 218160 wood triangles, 80861 foliage instances; 4100129 triangles and 80861 instances drawn in 6 calls; 24600 wood caster triangles; 20216 foliage caster instances
+exit=0
+target/release/examples/headless --preset norway-spruce --seed 7 --age 26.6 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-26.6.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-26.6.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 1549856 wood vertices, 2986240 wood triangles, 2830031 foliage instances; 138828369 triangles and 2830031 instances drawn in 6 calls; 32600 wood caster triangles; 707508 foliage caster instances
+exit=0
+target/release/examples/headless --preset norway-spruce --seed 7 --age 36.9 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-36.9.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-36.9.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 2180746 wood vertices, 4202760 wood triangles, 4666280 foliage instances; 228184841 triangles and 4666280 instances drawn in 6 calls; 37840 wood caster triangles; 1166570 foliage caster instances
+exit=0
+target/release/examples/headless --preset norway-spruce --seed 7 --age 60 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-60.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-60.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 2186498 wood vertices, 4214000 wood triangles, 4833721 foliage instances; 236233249 triangles and 4833721 instances drawn in 6 calls; 45000 wood caster triangles; 1208431 foliage caster instances
+exit=0
+target/release/examples/headless --preset norway-spruce --seed 7 --age 158 --size 700x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-158.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-158.png 700x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 2186602 wood vertices, 4214200 wood triangles, 4810878 foliage instances; 235136985 triangles and 4810878 instances drawn in 6 calls; 59040 wood caster triangles; 1202720 foliage caster instances
+exit=0
+montage /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-1.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-5.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-14.1.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-26.6.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-36.9.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-60.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-age-158.png -tile 7x1 -geometry +4+0 /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-strip.png
+exit=0
+target/release/examples/headless --preset norway-spruce --seed 7 --size 1600x1000 --out /home/daniel/Projects/telperion/.flow/evidence/fn31/norway-spruce-hero.png
+/home/daniel/Projects/telperion/.flow/evidence/fn31/norway-spruce-hero.png 1600x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 2186602 wood vertices, 4214200 wood triangles, 4810878 foliage instances; 235136985 triangles and 4810878 instances drawn in 6 calls; 59040 wood caster triangles; 1202720 foliage caster instances
+exit=0
+montage /home/daniel/Projects/telperion/.flow/evidence/fn30/norway-spruce-hero.png /home/daniel/Projects/telperion/.flow/evidence/fn31/norway-spruce-hero.png -tile 2x1 -geometry +4+0 /home/daniel/Projects/telperion/.flow/evidence/fn31/norway-spruce-beside-fn30.png
+exit=0
+montage /home/daniel/Projects/telperion/.flow/evidence/fn30/strips/norway-spruce-strip.png /home/daniel/Projects/telperion/.flow/evidence/fn31/strips/norway-spruce-strip.png -tile 1x2 -geometry +0+4 /home/daniel/Projects/telperion/.flow/evidence/fn31/norway-spruce-strips-beside-fn30.png
+exit=0
+target/release/examples/headless --preset ordinary --seed 7 --size 1600x1000 --view clay --out /home/daniel/Projects/telperion/.flow/evidence/fn24/ordinary-hero.png
+/home/daniel/Projects/telperion/.flow/evidence/fn24/ordinary-hero.png 1600x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 489840 wood vertices, 949040 wood triangles, 110293 foliage instances; 4479056 triangles and 110293 instances drawn in 5 calls; 186120 wood caster triangles; 27574 foliage caster instances
+exit=0

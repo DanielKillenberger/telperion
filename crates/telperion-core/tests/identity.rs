@@ -16,6 +16,10 @@
 //! Annual frontier visits change wood and living-shoot placements; element
 //! hashes stay fixed. This test now hashes the production grown skeleton too.
 //! Node bounds and the resulting mesh bounds/counts are in .flow/evidence/fn30/REPORT.md.
+//! fn-31 re-pins once after CONVERGENCE.md records the final growth populations:
+//! oak 196901 -> 19513 nodes, spruce 76386 -> 65604. Establishment, retained
+//! structural buds and age-dependent pipe scale change the wood and contacts;
+//! both element hashes remain unchanged. The report records mesh bounds/counts.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching::Specimen,
@@ -51,32 +55,28 @@ const SEED: u32 = 7;
 const PINS: [Pin; 2] = [
     Pin {
         id: "oregon-white-oak",
-        wood_vertices: 5966860,
-        wood_triangles: 11564840,
-        instances: 1175265,
+        wood_vertices: 717466,
+        wood_triangles: 1375440,
+        instances: 132875,
         min: [
-            -12.660554941030515,
-            -0.09600000083446503,
-            -13.064155719625399,
+            -12.141538173961731,
+            -0.32723867893218994,
+            -12.581686986441456,
         ],
-        max: [13.276412718982542, 23.817030705282615, 13.087342970966304],
-        skeleton: 2069374647478841013,
-        placement: 15826952556907210550,
+        max: [13.143301523266894, 24.020887122881813, 13.116854407483443],
+        skeleton: 17147586106779270108,
+        placement: 3545768933671885177,
         element: 4207404028969543471,
     },
     Pin {
         id: "norway-spruce",
-        wood_vertices: 2515982,
-        wood_triangles: 4852280,
-        instances: 5463221,
-        min: [
-            -3.8689955989331346,
-            -0.05999999865889549,
-            -4.169345860968122,
-        ],
-        max: [3.8295214987058834, 15.0, 4.083653705781007],
-        skeleton: 9830532764016443315,
-        placement: 10177991485176080717,
+        wood_vertices: 2186602,
+        wood_triangles: 4214200,
+        instances: 4810878,
+        min: [-4.065886488186079, -0.2574246823787689, -3.9355183191281506],
+        max: [3.846896851279939, 15.0, 3.757709161827148],
+        skeleton: 16388404269218903040,
+        placement: 11831058783261786492,
         element: 7287062639823569932,
     },
 ];
