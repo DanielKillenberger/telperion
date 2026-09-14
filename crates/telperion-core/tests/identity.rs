@@ -11,7 +11,8 @@
 //! pins do not hash wood order: their existing counts, bounds, placement and
 //! element identities stay unchanged, so no literal needs re-pinning.
 //! fn-34 adds european-beech and silver-birch pins from the first seed-7
-//! photograph of those value tables.
+//! photograph of those value tables; re-pinned once on 2026-09-14 after the
+//! round-3 tuning against the matched reference pairs (fn-36).
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -73,28 +74,32 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 4775350,
-        wood_triangles: 9249200,
-        instances: 972751,
+        wood_vertices: 7554738,
+        wood_triangles: 14625360,
+        instances: 1564628,
         min: [
-            -16.01387505749022,
+            -16.589685106740983,
             -0.12800000607967377,
-            -15.420336478159417,
+            -16.51757298502084,
         ],
-        max: [15.535281785539059, 31.023732076749628, 15.668639743659089],
-        skeleton: 3336516034053069968,
-        placement: 7582299780539641375,
-        element: 7756720324596677174,
+        max: [16.114613537412385, 31.160921166631667, 16.685418242036942],
+        skeleton: 7394357267497415501,
+        placement: 8371063440134723480,
+        element: 15097586524950800877,
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 1157464,
-        wood_triangles: 2242040,
-        instances: 231313,
-        min: [-6.598827454365292, -0.07199999690055847, -6.755796597863824],
-        max: [6.773808535485696, 14.663928671668822, 6.671959113924278],
-        skeleton: 16408405353328404568,
-        placement: 3525528955408769121,
+        wood_vertices: 853604,
+        wood_triangles: 1653480,
+        instances: 480820,
+        min: [
+            -7.0355496042690575,
+            -0.07199999690055847,
+            -7.119164620028774,
+        ],
+        max: [6.79188643280427, 13.9565244653892, 6.729225835715777],
+        skeleton: 4915989862543369344,
+        placement: 34916007685997205,
         element: 1872173242819532549,
     },
 ];
@@ -154,6 +159,49 @@ fn shipped_species_meshes_are_the_tree_recorded_before_the_levels() {
                 .chain(e.indices.iter().flat_map(|i| i.to_le_bytes()))),
             pin.element,
             "{id}: the element itself moved"
+        );
+    }
+}
+
+/// Prints every pin field for the two fn-34 species, to re-pin after a
+/// value change: `cargo test --release --test identity -- --ignored --nocapture print_pins`.
+#[test]
+#[ignore]
+fn print_pins() {
+    for id in ["european-beech", "silver-birch"] {
+        let mut family = Preset::from_id(id).unwrap().parameters();
+        family.skeleton.seed = SEED;
+        let tree = branching::generate(&family.skeleton, family.radii)
+            .unwrap()
+            .tree;
+        let skeleton = fnv(tree.nodes.iter().skip(1).flat_map(|n| {
+            [n.position.x, n.position.y, n.position.z]
+                .into_iter()
+                .flat_map(f64::to_le_bytes)
+                .chain(n.parent.expect("non-root parent").to_le_bytes())
+        }));
+        let m = mesh::build(&family, Detail::Full).unwrap();
+        let placement = fnv(m
+            .foliage
+            .instances
+            .matrices
+            .iter()
+            .flatten()
+            .flat_map(|v| v.to_le_bytes()));
+        let e = &m.foliage.element;
+        let element = fnv(e
+            .positions
+            .iter()
+            .flat_map(|p| [p.x, p.y, p.z])
+            .flat_map(f64::to_le_bytes)
+            .chain(e.indices.iter().flat_map(|i| i.to_le_bytes())));
+        println!(
+            "PIN {id} {} {} {} {:?} {:?} {skeleton} {placement} {element}",
+            m.wood_vertices(),
+            m.wood_triangles(),
+            m.foliage_instances(),
+            [m.bounds.min.x, m.bounds.min.y, m.bounds.min.z],
+            [m.bounds.max.x, m.bounds.max.y, m.bounds.max.z]
         );
     }
 }

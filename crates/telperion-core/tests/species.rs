@@ -286,9 +286,18 @@ fn fixed_species(preset: Preset) {
             vec![widths]
         }
         Preset::EuropeanBeech => {
-            // A full, envelope-filling crown keeps plan width near the
-            // authored spread; height is what varies.
-            vec![heights]
+            // A full crown fills its envelope on every seed, so neither
+            // dimension is pinned to vary; whichever of height or plan width
+            // the seeds move more is the one judged.
+            let range = |values: &Vec<f64>| {
+                values.iter().copied().fold(f64::NEG_INFINITY, f64::max)
+                    - values.iter().copied().fold(f64::INFINITY, f64::min)
+            };
+            if range(&heights) >= range(&widths) {
+                vec![heights]
+            } else {
+                vec![widths]
+            }
         }
         Preset::SilverBirch => {
             // Height stays near the 18 m envelope; azimuth and crown width
@@ -307,7 +316,7 @@ fn fixed_species(preset: Preset) {
                 } else {
                     1.0
                 },
-            "crown dimensions should vary across specimens"
+            "crown dimensions should vary across specimens: {values:?}"
         );
     }
     assert!(

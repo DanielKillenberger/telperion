@@ -14,6 +14,7 @@ pub(super) fn european_beech(p: &mut Family) {
     // Mature open-grown Fagus sylvatica. Envelope height is the 32 m
     // reference at 120 yr; oak growth traits, not a beech calibration.
     oak_growth(p, 120.0);
+    // beech's crown is dense and the cap is a value like any other.
     p.skeleton.habit = HabitParams {
         apical_dominance: 0.2,
         whorl_strength: 0.15,
@@ -23,9 +24,9 @@ pub(super) fn european_beech(p: &mut Family) {
         pitch_variation: 12.0,
         rise_primary: 0.08,
         rise_secondary: 0.0,
-        crookedness: 8.0,
-        lateral_spacing: 1.8,
-        lateral_length_ratio: 0.42,
+        crookedness: 14.0,
+        lateral_spacing: 1.4,
+        lateral_length_ratio: 0.46,
         lateral_orders: 3,
         attractor_weight: 0.0,
         twig_tip_taper: 0.25,
@@ -34,18 +35,20 @@ pub(super) fn european_beech(p: &mut Family) {
     p.skeleton.envelope = Envelope {
         height: 32.0,
         crown_base: 0.12,
-        spread: 0.5,
-        fullness: 0.7,
+        spread: 0.52,
+        fullness: 0.62,
         shoulder: 1.8,
     };
     p.skeleton.bias = BiasParams::NONE;
-    p.skeleton.twigs.laterals = 4;
+    p.skeleton.twigs.laterals = 5;
     p.skeleton.twigs.length_ratio = 0.42;
     p.skeleton.twigs.twig.bearing_diameter = 0.03;
     p.radii.trunk_radius = 0.014;
+    // A beech stands on a modest flare, not the oak's buttress.
+    p.surface.flare_radius = 1.5;
     p.element = ElementParams {
-        length: 0.07,
-        width: 0.045,
+        length: 0.08,
+        width: 0.05,
         connector_length: 0.008,
         widest_at: 0.45,
         base_fullness: 0.75,
@@ -74,10 +77,10 @@ pub(super) fn silver_birch(p: &mut Family) {
         whorl_strength: 0.2,
         leader_internode: 1.6,
         laterals_per_station: 4,
-        lateral_pitch: 55.0,
+        lateral_pitch: 62.0,
         pitch_variation: 14.0,
-        rise_primary: 0.05,
-        rise_secondary: -0.4,
+        rise_primary: 0.02,
+        rise_secondary: -0.85,
         crookedness: 10.0,
         lateral_spacing: 1.2,
         lateral_length_ratio: 0.4,
@@ -88,15 +91,17 @@ pub(super) fn silver_birch(p: &mut Family) {
     };
     p.skeleton.envelope = Envelope {
         height: 18.0,
-        crown_base: 0.16,
-        spread: 0.38,
-        fullness: 0.35,
+        crown_base: 0.1,
+        spread: 0.4,
+        fullness: 0.45,
         shoulder: 1.3,
     };
     p.skeleton.bias = BiasParams::NONE;
-    p.skeleton.twigs.laterals = 5;
-    p.skeleton.twigs.length_ratio = 0.4;
+    p.skeleton.twigs.laterals = 8;
+    p.skeleton.twigs.length_ratio = 0.6;
     p.skeleton.twigs.twig.diameter = 0.003;
+    p.skeleton.twigs.twig.length = 0.45;
+    p.skeleton.twigs.twig.internode_length = 0.012;
     p.skeleton.twigs.twig.bearing_diameter = 0.02;
     p.radii.trunk_radius = 0.01;
     p.element = ElementParams {
@@ -113,7 +118,10 @@ pub(super) fn silver_birch(p: &mut Family) {
         ..Default::default()
     };
     p.shell_depth = 1.0;
-    p.canopy.forward_lean = 0.15;
+    p.canopy.forward_lean = 0.6;
+    p.canopy.lean_rise = 0.3;
+    p.canopy.clump = 8;
+    p.canopy.clump_span = 0.5;
     p.canopy.outward = 0.0;
     p.canopy.upward = 0.0;
     p.canopy.divergence = 180.0;

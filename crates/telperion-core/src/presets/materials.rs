@@ -103,9 +103,9 @@ pub(super) fn spruce() -> MaterialParams {
 
 pub(super) fn beech() -> MaterialParams {
     MaterialParams {
-        bark_red: 0.42,
-        bark_green: 0.41,
-        bark_blue: 0.39,
+        bark_red: 0.36,
+        bark_green: 0.335,
+        bark_blue: 0.295,
         bark_roughness: 0.4,
         leaf_front_red: 0.022,
         leaf_front_green: 0.105,
@@ -117,7 +117,7 @@ pub(super) fn beech() -> MaterialParams {
         hue_range_high: 0.02,
         brightness_range_low: -0.1,
         brightness_range_high: 0.1,
-        interior_darkening: 0.6,
+        interior_darkening: 0.35,
         ridge_scale: 0.018,
         plate_scale: 0.04,
         furrow_strength: 0.12,
@@ -147,7 +147,7 @@ pub(super) fn beech() -> MaterialParams {
         margin_green: 0.04,
         margin_blue: 0.008,
         cuticle_gloss: 0.48,
-        sky_occlusion_strength: 0.55,
+        sky_occlusion_strength: 0.35,
     }
 }
 

@@ -122,3 +122,40 @@ shoots reaching almost to the ground; the crown base measures 0.21 against
 the photograph's 0.08 for that reason. Neither species has the density or
 the habit of its photograph yet. No visual pass is awarded here; the owner
 judges the pairs.
+
+## Round 3: value tables tuned against the pairs (2026-09-14)
+
+The owner asked for the easy flaws fixed before judging again. The host tuned
+the two value tables in two passes, reading one whole pair per species per
+pass, and left the engine alone. Beech: laterals at 1.4 m instead of 1.8, a
+longer lateral ratio, five twig laterals, a fuller and slightly wider
+envelope (fullness 0.62, spread 0.52) with crookedness 14, an 8 by 5 cm blade,
+a smaller root flare, a warmer bark row and less interior darkening. Birch:
+secondary rise at -0.85 with a 62 degree lateral pitch, the crown base at a
+tenth of the height, eight twig laterals with longer thinner twigs, and
+foliage leaning forward and down in clumps of eight. Two overshoots were
+walked back: a beech dense enough to hit the node cap, and blades on both
+species that left their profile's length gate. The variation regression for
+the beech now judges whichever crown dimension the seeds move more, because a
+crown that fills its envelope pins both.
+
+Photograph / round 2 → round 3, per reference:
+
+| Reference | Foliage | Width over height | Crown base | Occupied | Centre mean |
+|---|---|---|---|---|---|
+| B-BARE | hidden | 0.74 / 0.69 → 0.70 | 0.25 / 0.26 → 0.25 | 0.28 / 0.31 → 0.39 | 100 / 156 → 147 |
+| B-BASE | hidden | 0.60 / 0.67 → 0.67 | 1.00 / 0.04 → 0.16 | 0.05 / 0.10 → 0.10 | 130 / 94 → 83 |
+| B-WHOLE | leaf-on | 0.70 / 0.69 → 0.69 | 0.12 / 0.09 → 0.08 | 0.46 / 0.55 → 0.64 | 80 / 83 → 50 |
+| S-BARE | hidden | 0.70 / 0.72 → 0.68 | 0.15 / 0.25 → 0.22 | 0.46 / 0.22 → 0.31 | 91 / 170 → 160 |
+| S-BARK | hidden | 1.07 / 0.90 → 0.58 | 1.00 / 0.00 → 0.00 | 0.47 / 0.43 → 0.52 | 92 / 182 → 183 |
+| S-WHOLE | leaf-on | 0.85 / 0.88 → 0.92 | 0.08 / 0.21 → 0.20 | 0.44 / 0.40 → 0.47 | 83 / 111 → 72 |
+
+What the host read on the two whole pairs, within the four-image rule: the
+beech now branches low, fills its outline and reads as one mass; it is still
+darker and bluer than the photograph and its outline is smoother than a
+beech's. The birch is denser and its shoots hang at the edge, but the crown
+is a rounded mop where the photograph is an irregular weeping silhouette on
+two leaning stems; the hanging curtain and the second stem are not value
+changes and are recorded as gaps. Identity pins re-recorded once for both
+species with the reason stated. No visual pass is awarded; the owner judges
+the round-3 pairs.

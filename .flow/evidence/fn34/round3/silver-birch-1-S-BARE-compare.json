@@ -1,0 +1,55 @@
+{
+  "reference": "S-BARE",
+  "foliage": "hidden",
+  "photograph": {
+    "box_px": [
+      0,
+      0,
+      600,
+      855
+    ],
+    "width_over_height": 0.7018,
+    "fill": 0.95,
+    "crown_base": 0.15,
+    "occupied": 0.4587,
+    "centre": {
+      "rgb": [
+        104.7,
+        90.6,
+        78.5
+      ],
+      "order": "RGB",
+      "mean": 91.3
+    }
+  },
+  "still": {
+    "box_px": [
+      0,
+      0,
+      480,
+      711
+    ],
+    "width_over_height": 0.6751,
+    "fill": 0.9875,
+    "crown_base": 0.2239,
+    "occupied": 0.3112,
+    "centre": {
+      "rgb": [
+        148.4,
+        159.6,
+        172.0
+      ],
+      "order": "BGR",
+      "mean": 160.0
+    }
+  },
+  "method": {
+    "photograph": "tree box and crown base from the record, read by eye; occupied is the dark-pixel fraction of the box",
+    "still": "tree mask is what stands out of the row background under both suns; occupied is the mask's share of its box"
+  },
+  "pair": {
+    "path": ".flow/evidence/fn34/measure/pairs/silver-birch-1-S-BARE-pair.png",
+    "sha256": "000ccaa9d668536009e38f58edc25c26c1657d85fa41727706b1761603eb0157"
+  },
+  "still_sha256": "516027a76aae43fd7695c6a4e762dce4aedb0f2c54a4feb9c87b1ccd26175e14"
+}

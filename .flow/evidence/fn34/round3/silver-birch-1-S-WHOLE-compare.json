@@ -1,0 +1,55 @@
+{
+  "reference": "S-WHOLE",
+  "foliage": "leaf-on",
+  "photograph": {
+    "box_px": [
+      0,
+      0,
+      731,
+      864
+    ],
+    "width_over_height": 0.8461,
+    "fill": 0.96,
+    "crown_base": 0.08,
+    "occupied": 0.4426,
+    "centre": {
+      "rgb": [
+        82.3,
+        91.3,
+        75.4
+      ],
+      "order": "GRB",
+      "mean": 83.0
+    }
+  },
+  "still": {
+    "box_px": [
+      0,
+      0,
+      665,
+      720
+    ],
+    "width_over_height": 0.9236,
+    "fill": 1.0,
+    "crown_base": 0.1989,
+    "occupied": 0.4675,
+    "centre": {
+      "rgb": [
+        62.5,
+        78.3,
+        74.8
+      ],
+      "order": "GBR",
+      "mean": 71.9
+    }
+  },
+  "method": {
+    "photograph": "tree box and crown base from the record, read by eye; occupied is the dark-pixel fraction of the box",
+    "still": "tree mask is what stands out of the row background under both suns; occupied is the mask's share of its box"
+  },
+  "pair": {
+    "path": ".flow/evidence/fn34/measure/pairs/silver-birch-1-S-WHOLE-pair.png",
+    "sha256": "9f1108f0d545b25729035643ffdfc964bfbe0889e908e5325a500b3f595332cf"
+  },
+  "still_sha256": "03c45bf15685cbc42a03c6670885a3b19d814970d309b2567abbfe9d8e4ff8fa"
+}
