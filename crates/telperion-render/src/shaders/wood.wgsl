@@ -59,13 +59,19 @@ fn bark_shade(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     // Pixels to step for one metre across the surface towards the sun.
     let steps = vec2(dot(toward, rx), dot(toward, ry)) * inverse;
     let slope = rise / span;
-    // How far a crest can stand from the floor it shades: the ridge's own
-    // shoulder, or a plate's wall where the plates are the coarser structure.
-    // A walk longer than that leaves the furrow and measures another one.
-    let reach = max(0.6 * u.bark_detail.x, 1.5 * BARK_PLATE_WALL * u.plate.x);
+    // How far a crest can stand from the floor it shades: a third of the
+    // ridge's own shoulder, or a plate's wall where the plates are the
+    // coarser structure. A walk longer than that leaves the furrow and
+    // measures another one - which is what the first walk did once the
+    // network became a cellular partition of the surface, whose cells are
+    // smaller than the lattice they are drawn from.
+    let reach = max(0.35 * u.bark_detail.x, BARK_PLATE_WALL * u.plate.x);
+    // Three steps rather than two: a partition of the surface puts the crest
+    // that shades this floor anywhere between here and a wall away, at any
+    // bearing, and two steps over that reach can stride across it.
     var blocked = 0.0;
-    for (var i = 1; i <= 2; i++) {
-        let ground = reach * 0.5 * f32(i);
+    for (var i = 1; i <= 3; i++) {
+        let ground = reach * f32(i) / 3.0;
         let walked = steps * ground;
         let coord = surface + walked.x * sx + walked.y * sy;
         let there = bark_height(normalize(coord.yz), coord.x, radius, footprint);

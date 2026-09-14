@@ -144,6 +144,31 @@ pub fn centroid(of: &[Structure]) -> Structure {
     }
 }
 
+/// The crop's mean colour, in code values, so a climb steered by a greyscale
+/// statistic cannot pay for structure with the colour fn-29 was judged on.
+/// A plain arithmetic mean of the same centre crop: it is a drift guard, not
+/// a photometric measurement, and the stills' recorded means stay the ones
+/// round one took with ImageMagick.
+pub fn crop_mean(rgba: &[u8], width: usize, height: usize) -> Result<[f64; 3]> {
+    if width < CROP || height < CROP {
+        return Err(RenderError::Output {
+            path: String::new(),
+            message: format!("{width}x{height} is smaller than the {CROP}x{CROP} crop"),
+        });
+    }
+    let (x0, y0) = ((width - CROP) / 2, (height - CROP) / 2);
+    let mut sums = [0u64; 3];
+    for y in 0..CROP {
+        for x in 0..CROP {
+            let at = ((y0 + y) * width + x0 + x) * 4;
+            for (sum, channel) in sums.iter_mut().zip(0..3) {
+                *sum += u64::from(rgba[at + channel]);
+            }
+        }
+    }
+    Ok(sums.map(|sum| sum as f64 / (CROP * CROP) as f64))
+}
+
 /// Measure an RGBA frame as it stands, without writing it out first: the
 /// hill climb measures thousands of frames and none of them is a file.
 pub fn measure_frame(rgba: &[u8], width: usize, height: usize) -> Result<Structure> {

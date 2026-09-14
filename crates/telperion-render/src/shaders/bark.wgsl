@@ -97,33 +97,62 @@ fn bark_flakes(arc: vec2<f32>, along: f32, spacing: f32, pixel: vec2<f32>,
 
 // The plate network, the field's second primitive. Ridges are parallel: they
 // cannot branch, cannot merge, and cannot give one plate an identity of its
-// own. A cellular partition does all three. The circumference is partitioned
-// by the same circle embedding the columns use, so the network crosses the
-// angular wrap without a seam; each column is then cut along its run into
-// plates at heights of its own, so no two neighbours break together.
+// own. A cellular partition does all three.
 //
-// Uneven intervals along one column, staggered by the column's own seed. The
-// two nearest sites give the distance to the boundary between them, in the
-// same linear cell units the circumferential edge distance carries.
-fn bark_run(along: f32, seed: f32) -> vec3<f32> {
-    let base = floor(along);
-    var first = 16.0;
-    var second = 16.0;
-    var nearest = 0.0;
-    for (var i = -1; i <= 2; i++) {
-        let index = base + f32(i);
-        let site = index + 0.15 + 0.7 * bark_hash(vec2(index, seed));
-        let distance = abs(along - site);
-        if (distance < first) {
-            second = first;
-            first = distance;
-            nearest = site;
-        } else if (distance < second) {
-            second = distance;
+// Round one partitioned the circumference into columns and then cut each
+// column along its run. That is a wall: the columns run the whole height of
+// the trunk, every cut meets one square, and every cell is one size. The
+// owner saw it and called it armour plating. This is the partition the
+// surface actually wants - sites scattered in the space the bark passes
+// through, so a boundary is where two of them are equally near. Three
+// boundaries meet at a point because three sites do; a cell is the size its
+// own site says it is; and going round the trunk returns to the same sites,
+// so the angular wrap has no seam to hide.
+//
+// The lattice is the circle embedding in plate widths and the run along the
+// trunk, so an elongated plate is one whose sites stand further apart
+// axially - and the axial offset is scaled back by the same elongation
+// before any distance is taken, which keeps a wall the same width in metres
+// whichever way it runs.
+fn bark_network(p: vec3<f32>, elongated: f32) -> vec3<f32> {
+    let base = floor(p);
+    var first = 64.0;
+    var second = 64.0;
+    var nearest = vec3(0.0);
+    var next = vec3(0.0);
+    var seed = 0.0;
+    for (var z = -1; z <= 1; z++) {
+        for (var y = -1; y <= 1; y++) {
+            for (var x = -1; x <= 1; x++) {
+                let id = base + vec3(f32(x), f32(y), f32(z));
+                // Two hashes carry the site: where it stands in its own cell,
+                // how big a cell it keeps, and what the plate around it is.
+                let a = bark_hash(id.xy + vec2(37.0, 17.0) * id.z);
+                let b = bark_hash(id.xy + vec2(11.0, 29.0) * id.z + vec2(53.1, 91.7));
+                let jitter = vec3(a, b, fract(a * 43.7 + b * 71.3));
+                // Cells of one size are a wall. A weight per site is what
+                // makes one plate broad and its neighbour narrow off one row.
+                let weight = mix(0.72, 1.28, fract(a * 17.3 + b * 31.1));
+                let offset = (id + 0.15 + 0.7 * jitter - p) * vec3(1.0, 1.0, elongated);
+                let distance = length(offset) / weight;
+                if (distance < first) {
+                    second = first;
+                    next = nearest;
+                    first = distance;
+                    nearest = offset;
+                    seed = fract(a * 91.7 + b * 13.9);
+                } else if (distance < second) {
+                    second = distance;
+                    next = offset;
+                }
+            }
         }
     }
-    return vec3(0.5 * (second - first), bark_hash(vec2(nearest, seed + 7.0)),
-        along - nearest);
+    // Dividing the difference by how fast it grows gives a boundary of
+    // physical width, rather than a hairline whose width depends on how far
+    // apart the two sites happened to fall.
+    return vec3(0.5 * (second - first) / max(length(next - nearest), 0.001), seed,
+        nearest.z / max(elongated, 0.001));
 }
 
 // Where the network's profile stands on average over a whole plate, measured
@@ -133,9 +162,9 @@ fn bark_run(along: f32, seed: f32) -> vec3<f32> {
 // carries slightly more face than a round one, so one constant cannot be
 // exact for every row: these are the midpoint of the shipped two, and the
 // test holds both inside two hundredths of it.
-const BARK_PLATE_FACE = 0.5715;
-const BARK_PLATE_DOME = 0.3054;
-const BARK_PLATE_RIM = 0.4387;
+const BARK_PLATE_FACE = 0.5033;
+const BARK_PLATE_DOME = 0.2626;
+const BARK_PLATE_RIM = 0.3927;
 // How proud a plate stands of its furrow, as a fraction of its own width,
 // and how much of that width the wall between the two takes.
 const BARK_PLATE_DEPTH = 0.045;
@@ -178,21 +207,27 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     // between them, however exactly its mean is preserved.
     let retained = bark_pass(band);
     if (retained <= 0.0) { return vec2(mean, 0.5); }
-    let lattice = arc * ridge_scale / size;
-    let ring = bark_column(lattice + 0.5 * (wander - vec2(0.5)));
-    // One cut across a whole column is a straight course, and a wall of them
-    // is brickwork. Ragging the axial coordinate at the plate's own scale
-    // bends each cut as it crosses its column, which is how a plate comes to
-    // merge with the one beside it rather than sit in a row with it.
-    let ragged = bark_noise2_filtered(vec2(dot(lattice, vec2(0.9, -0.7)),
-        along * 1.3 / run), vec2(footprint.x * 1.14 / size, footprint.y * 1.3 / run));
-    let cut = bark_run(along / run + 0.8 * (ragged - 0.5), ring.y * 137.0);
-    // A furrow runs wherever either boundary is near; a face is the interior
-    // both leave alone. That is what makes the network branch and merge. The
-    // axial distance is measured in runs and the circumferential one in
-    // widths, so the elongation brings the cross-cut back to the same metre:
-    // a plate three times as long is not a plate with walls three times wide.
-    let edge = min(ring.x, cut.x * (1.0 + max(plate.y, 0.0)));
+    let elongated = 1.0 + max(plate.y, 0.0);
+    // Where the surface stands in the network's own space: the circle
+    // embedding in plate widths, and the trunk's run in cells of one plate.
+    let lattice = vec3(arc * ridge_scale / size, along / run);
+    // Two warps, both filtered. The long one carries a whole furrow off the
+    // vertical; the one at the plate's own scale keeps a boundary between two
+    // sites from running straight, which is what a boundary between two sites
+    // would otherwise do.
+    let ragged = vec2(
+        bark_noise2_filtered(vec2(dot(lattice.xy, vec2(0.9, -0.7)), lattice.z * 1.3),
+            vec2(footprint.x * 1.14 / size, footprint.y * 1.3 / run)),
+        bark_noise2_filtered(vec2(dot(lattice.xy, vec2(-0.6, 1.1)), lattice.z * 1.1),
+            vec2(footprint.x * 1.30 / size, footprint.y * 1.1 / run)));
+    let warped = lattice
+        + vec3(0.9 * (wander - vec2(0.5)), 0.45 * (wander.x + wander.y - 1.0))
+        + 0.55 * vec3(ragged.x - 0.5, ragged.y - 0.5, 0.5 * (ragged.x - ragged.y));
+    // A furrow runs wherever two sites are equally near; a face is the
+    // interior one site keeps to itself. That is what makes the network
+    // branch and merge, and why three of its boundaries meet at a point.
+    let network = bark_network(warped, elongated);
+    let edge = network.x;
     // The walls are as wide as the ridges' own shoulders. A furrow cut in a
     // third of that distance is a feature no footprint can integrate, and it
     // aliases on a trunk at four times the hero distance.
@@ -202,9 +237,9 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
         0.012 + 2.2 * BARK_PLATE_WALL, edge, pixel));
     // What this plate keeps of its own: how proud it stands, and how far it
     // leans across its own run. A scale lifted at one edge is a plate leaning.
-    let own = bark_hash(vec2(ring.y * 53.0, cut.y));
+    let own = bark_hash(vec2(network.y * 53.0, network.y * 131.0 + 11.0));
     let jitter = 2.0 * own - 1.0;
-    let lean = (2.0 * fract(own * 71.7) - 1.0) * clamp(cut.z, -1.0, 1.0);
+    let lean = (2.0 * fract(own * 71.7) - 1.0) * clamp(network.z, -1.0, 1.0);
     let proud = 1.0 + identity * (0.40 * jitter + 0.75 * lean);
     let relief = face * proud + dome * ramp * face + edge_lift * rim * proud;
     // The identity is one value over a whole plate and nothing between two:

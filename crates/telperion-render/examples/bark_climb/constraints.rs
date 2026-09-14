@@ -10,7 +10,9 @@
 //! reach it; the shipped test binaries are still run on the values that are
 //! kept, which is where that guard is actually honoured.
 use telperion_core::{material::MaterialParams, math::Vec3, mesh::TreeMesh, surface::SurfaceMesh};
-use telperion_render::{measure_frame, render, Camera, Renderer, Still, Structure, View};
+use telperion_render::{
+    crop_mean, measure_frame, render, Camera, Renderer, Still, Structure, View,
+};
 
 /// One pose, and what is asked of it. An empty mask asks only that the draw
 /// repeat itself; the scoring pose is the one the still is taken at.
@@ -30,10 +32,31 @@ pub struct Check {
 
 pub struct Reading {
     pub structure: Structure,
+    /// The scoring crop's mean colour, in code values.
+    pub colour: [f64; 3],
     pub checks: Vec<Check>,
 }
 
 impl Reading {
+    /// fn-29's colour is not this spec's to redo, and a structure score taken
+    /// on the grey of the crop would happily buy a darker furrow with a
+    /// bluer trunk. A candidate may not move any channel of the crop's mean
+    /// by more than six code values from where the shipped rows stand, and
+    /// may not reorder the channels.
+    pub fn keeps_colour(&self, start: [f64; 3]) -> bool {
+        let order = |c: [f64; 3]| {
+            let mut index = [0, 1, 2];
+            index.sort_by(|&a, &b| c[b].total_cmp(&c[a]));
+            index
+        };
+        order(self.colour) == order(start)
+            && self
+                .colour
+                .iter()
+                .zip(&start)
+                .all(|(now, then)| (now - then).abs() <= 6.0)
+    }
+
     /// The bounds the shipped tests assert, unchanged: three code values of
     /// mean error against an exact box reduction, twelve at the 95th, and a
     /// redraw that is byte for byte the frame before it.
@@ -61,6 +84,7 @@ impl Guard {
         self.renderer.set_material(material);
         self.renderer.set_view(View::Bare);
         let mut structure = None;
+        let mut colour = [0.0; 3];
         let mut checks = Vec::new();
         for case in &self.cases {
             if !guarded && !case.scores {
@@ -71,6 +95,7 @@ impl Guard {
                 structure = Some(
                     measure_frame(&high.rgba, 1600, 1000).expect("the frame carries the crop"),
                 );
+                colour = crop_mean(&high.rgba, 1600, 1000).expect("the frame carries the crop");
             }
             if !guarded {
                 continue;
@@ -91,6 +116,7 @@ impl Guard {
         }
         Reading {
             structure: structure.expect("one case scores"),
+            colour,
             checks,
         }
     }

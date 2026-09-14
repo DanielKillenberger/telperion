@@ -205,6 +205,7 @@ fn run() -> Result<(), String> {
         ));
     }
     let start = first.structure;
+    let colour = first.colour;
     let mut score = start.distance(&target);
     eprintln!("{species} start {score:.4} {:?}", start);
     let mut trials: Vec<Value> = Vec::new();
@@ -234,13 +235,17 @@ fn run() -> Result<(), String> {
                     // The guards cost twelve draws; only a candidate that is
                     // worth keeping is asked to pay for them.
                     let full = better.then(|| guard.read(candidate, true));
-                    let holds = full.as_ref().is_some_and(Reading::holds);
+                    let holds = full
+                        .as_ref()
+                        .is_some_and(|full| full.holds() && full.keeps_colour(colour));
                     let mut entry = json!({
                         "sweep": sweep, "row": row.name, "from": round(from), "to": round(to),
                         "score": round(next), "accepted": better && holds,
                     });
                     if let Some(full) = &full {
                         entry["checks"] = checks(full);
+                        entry["colour"] = json!(full.colour.map(round));
+                        entry["keeps_colour"] = json!(full.keeps_colour(colour));
                         entry["vector"] = vector(&full.structure);
                     }
                     trials.push(entry);
@@ -292,9 +297,10 @@ fn run() -> Result<(), String> {
         "target": vector(&target),
         "references": references.iter().map(vector).collect::<Vec<_>>(),
         "start": {"values": values(&family.material, &table), "vector": vector(&start),
-            "score": round(start.distance(&target))},
+            "score": round(start.distance(&target)), "colour": colour.map(round)},
         "final": {"values": values(&material, &table), "vector": vector(&last.structure),
-            "score": round(last.structure.distance(&target)), "checks": checks(&last)},
+            "score": round(last.structure.distance(&target)), "checks": checks(&last),
+            "colour": last.colour.map(round)},
         "sweeps": sweeps, "stopped": stop, "trials": trials,
     });
     std::fs::write(&log, serde_json::to_string_pretty(&json).unwrap())

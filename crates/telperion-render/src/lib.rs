@@ -42,7 +42,7 @@ pub use web::WebRenderer;
 #[cfg(not(target_arch = "wasm32"))]
 pub use headless::{render, write_png, Frame, Still, STILL_FORMAT};
 #[cfg(not(target_arch = "wasm32"))]
-pub use structure::{centroid, measure_frame, measure_png, Structure, CROP};
+pub use structure::{centroid, crop_mean, measure_frame, measure_png, Structure, CROP};
 #[cfg(not(target_arch = "wasm32"))]
 pub use timing::{orbit as measure_orbit, run as measure};
 
