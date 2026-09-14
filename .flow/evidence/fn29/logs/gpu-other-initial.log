@@ -1,0 +1,50 @@
+    Finished `release` profile [optimized] target(s) in 0.05s
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+trunk redraw worst 0/255
+trunk resolution agreement: mean 1.685466/255, p95 4.25/255
+plain trunk diagnostic (mean, p95): (0.1571209251606979, 0.5)
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+OregonWhiteOak grazing: 6178 pixels, mean 2.172993/255, p95 5.25/255, redraw worst 0/255
+OregonWhiteOak plain grazing: (0.22259091399589942, 0.5)
+NorwaySpruce grazing: 2962 pixels, mean 0.691003/255, p95 2.00/255, redraw worst 0/255
+NorwaySpruce plain grazing: (0.3302104433941031, 0.5)
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.82s
+
+     Running tests/blade_colour.rs (target/release/deps/blade_colour-d8abb2fd22e997d6)
+
+running 2 tests
+test a_matte_needle_row_is_inert_even_with_scales_and_tints_set ... ok
+test blade_colour_rows_survive_levels_and_the_back_has_no_cuticle ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.87s
+
+     Running tests/colour_cavity.rs (target/release/deps/colour_cavity-9a40443f0f50b640)
+
+running 3 tests
+Whole full luminance: plain=20294859.968771517, dark=19473157.122772835
+Whole leaves=false: pixels=56405, plain=1747566.411800592, dark=1254977.8573997058
+Whole leaves=true: pixels=27490, plain=944863.1065999983, dark=774029.772599992
+Bare full luminance: plain=24952185.207965784, dark=24279061.0985664
+Bare leaves=false: pixels=64931, plain=2167263.24640103, dark=1595254.629799136
+Leaf full luminance: plain=48471873.2670581, dark=48471873.2670581
+test cavity_cuts_sun_and_sky_and_ground_contact_needs_no_relief ... ok
+Clay full luminance: plain=46549873.29687044, dark=46549873.29687044
+test fissures_crests_and_mottle_change_colour_without_changing_wood ... ok
+test crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.92s
+
+     Running tests/look.rs (target/release/deps/look-7d8f1cd15e070e0c)
+
+running 3 tests
+repeat draw: 0 channels moved, worst 0
+test the_lit_frame_has_a_sky_that_deepens_with_height_and_is_not_blown_out ... ok
+test the_clay_view_draws_the_still_the_room_always_drew ... ok
+test every_leaf_takes_its_own_offset_inside_the_row_s_ranges ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s
+

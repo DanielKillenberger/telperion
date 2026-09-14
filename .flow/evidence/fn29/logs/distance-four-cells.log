@@ -1,0 +1,22 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-29-colour-cavity-and-occlusion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 31.02s
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285740086648/0.0008364669686153772
+distance 2x resolution: mean 1.531050/255, p95 4.75/255
+distance 4x resolution: mean 4.270750/255, p95 10.50/255
+
+thread 'resolved_scales_survive_until_the_two_pixel_boundary' (491355) panicked at crates/telperion-render/tests/bark_distance.rs:151:5:
+distance series aliases: [(1.53105, 4.75), (4.27075, 10.5)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test resolved_scales_survive_until_the_two_pixel_boundary ... FAILED
+
+failures:
+
+failures:
+    resolved_scales_survive_until_the_two_pixel_boundary
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.71s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_distance`

@@ -52,7 +52,22 @@ fn bark_normal(n: vec3<f32>, world: vec3<f32>, dx: vec3<f32>, dy: vec3<f32>,
     return normalize(mix(n, perturbed, smoothstep(0.0, 0.6, facing)));
 }
 
-// Appearance carries mottle, ground contact, crown depth and relief maturity.
+// Minimum principal curvature of the existing smooth surface. A convex tube
+// has no contact cavity; the concave direction at a joined neck does. This
+// cannot shade two disconnected surfaces merely because they are nearby.
+fn socket_contact(n: vec3<f32>, dx: vec3<f32>, dy: vec3<f32>,
+    nx: vec3<f32>, ny: vec3<f32>, radius: f32) -> f32 {
+    let rx = cross(dy, n);
+    let ry = cross(n, dx);
+    let det = dot(dx, rx);
+    let inverse = sign(det) / max(abs(det), 1e-10);
+    let trace = (dot(nx, rx) + dot(ny, ry)) * inverse;
+    let gaussian = dot(cross(nx, ny), n) * inverse;
+    let minimum = 0.5 * (trace - sqrt(max(trace * trace - 4.0 * gaussian, 0.0)));
+    return clamp(-radius * minimum, 0.0, 1.0);
+}
+
+// Appearance carries mottle, geometric contact, crown depth and relief maturity.
 fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
     variance: f32, appearance: vec4<f32>) -> vec3<f32> {
     let sun = u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * shadow;
@@ -93,6 +108,8 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // derivatives require uniform control flow, including in Chromium.
     let dx = dpdx(in.world);
     let dy = dpdy(in.world);
+    let nx = dpdx(base_normal);
+    let ny = dpdy(base_normal);
     let sx = dpdx(in.surface);
     let sy = dpdy(in.surface);
     // One low-frequency noise sample per fragment, shared by all shading cells.
@@ -103,12 +120,16 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
             / mottle_scale, footprint / mottle_scale);
         mottle += u.bark_colour_detail.y * (2.0 * noise - 1.0);
     }
-    // Along is root distance, so it cannot identify a branch's socket. Ground
-    // contact is known without extra geometry or a per-run attachment buffer.
+    // Ground contact and concave joined necks use geometry, independently
+    // of relief height. Derivatives above stay outside material branches.
     let base = 1.0 - smoothstep(0.0, max(in.radius, 0.0001), max(in.world.y, 0.0));
     let maturity = smoothstep(2.0, 5.0, 2.0 * in.radius / max(u.bark_detail.x, 0.000001))
         * select(0.0, 1.0, u.bark_detail.x > 0.0);
-    let appearance = vec4<f32>(mottle, base, depth_in_crown(in.world), maturity);
+    var contact = base;
+    if (u.bark_colour_detail.z > 0.0) {
+        contact = max(contact, socket_contact(base_normal, dx, dy, nx, ny, in.radius));
+    }
+    let appearance = vec4<f32>(mottle, contact, depth_in_crown(in.world), maturity);
     let shadow = sunlight(in.world, base_normal);
     let spacing = clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0);
     let pixel = footprint / max(vec2(u.bark_detail.x, spacing), vec2(0.000001));
@@ -130,27 +151,19 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
         let height = bark_height(circle, in.surface.x, in.radius, footprint);
         return vec4<f32>(tone(bark_light(base_normal, height, in.world, shadow, variance, appearance)), 1.0);
     }
-    // Adjacent shading cells share their corner heights. Nine evaluations
-    // integrate four normals; the coarse cell needs only its four corners.
-    // The coarse rule is blended in over three-to-two pixels per wavelength,
-    // before reducing sample count, so the cost boundary cannot pop the light.
-    let coarse_weight = smoothstep(1.0 / 3.0, 0.5, band);
-    let cells = select(2, 1, coarse_weight >= 1.0);
+    // Four half-pixel shading cells share nine heights. Each height uses the
+    // cell's footprint: filtering over a full pixel here and integrating the
+    // cells again overfiltered the low-resolution albedo. Only wavelengths
+    // below 1.33 pixels widen back to the full-pixel mean before the shortcut.
+    let cell_footprint = footprint * mix(0.5, 1.0, smoothstep(0.75, 1.0, band));
     var heights: array<f32, 9>;
-    for (var y = 0; y <= cells; y++) {
-        for (var x = 0; x <= cells; x++) {
-            let coord = in.surface + (f32(x) / f32(cells) - 0.5) * sx
-                + (f32(y) / f32(cells) - 0.5) * sy;
-            heights[y * 3 + x] = bark_height(normalize(coord.yz), coord.x, in.radius, footprint);
+    for (var y = 0; y <= 2; y++) {
+        for (var x = 0; x <= 2; x++) {
+            let coord = in.surface + (0.5 * f32(x) - 0.5) * sx
+                + (0.5 * f32(y) - 0.5) * sy;
+            heights[y * 3 + x] = bark_height(normalize(coord.yz), coord.x, in.radius, cell_footprint);
         }
     }
-    let corners = vec4(heights[0], heights[cells], heights[cells * 3], heights[cells * 4]);
-    let coarse_normal = bark_normal(base_normal, in.world, dx, dy,
-        0.5 * (corners.y + corners.w - corners.x - corners.z),
-        0.5 * (corners.z + corners.w - corners.x - corners.y));
-    let coarse_light = bark_light(coarse_normal, dot(corners, vec4(0.25)),
-        in.world, shadow, variance, appearance);
-    if (cells == 1) { return vec4<f32>(tone(coarse_light), 1.0); }
     var lit = vec3(0.0);
     for (var y = 0; y < 2; y++) {
         for (var x = 0; x < 2; x++) {
@@ -162,5 +175,5 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
             lit += bark_light(n, dot(h, vec4(0.25)), in.world, shadow, variance, appearance);
         }
     }
-    return vec4<f32>(tone(mix(lit * 0.25, coarse_light, coarse_weight)), 1.0);
+    return vec4<f32>(tone(lit * 0.25), 1.0);
 }

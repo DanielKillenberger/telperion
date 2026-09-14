@@ -327,7 +327,8 @@ weighted by `fissureStrength` and `crestStrength` (0–1).
 `barkMottleScale` (0–8 metres) and `barkMottleStrength` (0–1) vary colour
 along the wood; the noise fades with its pixel footprint. `cavityStrength`
 (0–1) cuts sun and ambient light in low relief and within one radius of the
-ground. `bladeMottleScale` (0–32 noise cells per blade length) and
+ground, and in concave fork necks derived from the existing surface normals.
+Disconnected crossing limbs do not gain a contact term. `bladeMottleScale` (0–32 noise cells per blade length) and
 `bladeMottleStrength` (0–1) vary each blade with its placement's stable seed.
 `marginWidth` (0–0.5 of the half-blade) adds `marginRed/Green/Blue`
 (linear offsets, −1–1) at the sides and tip; `cuticleGloss` (0–1) shapes a
