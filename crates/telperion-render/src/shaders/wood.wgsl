@@ -34,7 +34,7 @@ fn vertex(
 // grain directions resolve at the same surface scale on a trunk and a limb.
 fn bark_height(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>) -> f32 {
     return bark_field_filtered(circle, along, radius, u.bark_detail.x, u.bark_detail.y,
-        footprint, u.bark_detail.w, u.plate, u.bark_structure.x);
+        footprint, u.bark_detail.w, u.plate, u.bark_structure.xw);
 }
 
 // A furrow floor is dark because its own crest stands between it and the sun.
@@ -65,7 +65,8 @@ fn bark_shade(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     // measures another one - which is what the first walk did once the
     // network became a cellular partition of the surface, whose cells are
     // smaller than the lattice they are drawn from.
-    let reach = max(0.35 * u.bark_detail.x, BARK_PLATE_WALL * u.plate.x);
+    let reach = max(0.35 * u.bark_detail.x,
+        (BARK_PLATE_WALL + BARK_PLATE_FURROW * u.bark_structure.w) * u.plate.x);
     // Three steps rather than two: a partition of the surface puts the crest
     // that shades this floor anywhere between here and a wall away, at any
     // bearing, and two steps over that reach can stride across it.
@@ -228,7 +229,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let orientation = away * mix(0.55, 1.0, 1.0 - smoothstep(0.0, 2.5, in.world.y));
     let appearance = vec4<f32>(mottle, contact, depth_in_crown(in.world), maturity);
     let colour_range = bark_colour_range(in.radius, u.bark_detail.x, u.bark_detail.y,
-        u.bark_detail.w, u.plate);
+        u.bark_detail.w, u.plate, u.bark_structure.w);
     let shadow = sunlight(in.world, base_normal);
     // Where the eye is actually looking on the surface, once the relief has
     // depth. Every field read below starts from here; the world position,
@@ -244,7 +245,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // One plate identity per fragment, shared by every shading cell the way
     // the mottle above is: a plate keeps one colour across its whole face.
     let own = bark_plate_identity(seen, surface.x, in.radius, u.bark_detail.x,
-        footprint, u.plate, u.bark_structure.x);
+        footprint, u.plate, u.bark_structure.xw);
     let spacing = clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0);
     let pixel = footprint / max(vec2(u.bark_detail.x, spacing), vec2(0.000001));
     let band = max(pixel.x, pixel.y);

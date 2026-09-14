@@ -55,8 +55,9 @@ const BANDS: [(&str, usize, usize); 5] = [
 // The chronicle adds resizeTolerance at the same 1e-9 metre default in every
 // preset. params::tests::resize_tolerance_is_a_validated_blended_wire_trait
 // checks its non-default walk; no preset geometry or identity pin changes.
-const HELD: [&str; 30] = [
+const HELD: [&str; 31] = [
     "/age",
+    "/material/plateFurrowWidth",
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",

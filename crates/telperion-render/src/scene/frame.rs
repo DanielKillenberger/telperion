@@ -144,7 +144,7 @@ impl Scene {
                     m.plate_identity,
                     m.directional_occlusion,
                     m.depth_strength,
-                    0.0,
+                    m.plate_furrow_width,
                 ),
                 weathering: colour(
                     m.weathering_red,

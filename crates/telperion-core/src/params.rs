@@ -156,6 +156,7 @@ macro_rules! fields {
         $op!($f, $v, "material", "plateElongation"; material.plate_elongation);
         $op!($f, $v, "material", "plateDome"; material.plate_dome);
         $op!($f, $v, "material", "plateEdgeLift"; material.plate_edge_lift);
+        $op!($f, $v, "material", "plateFurrowWidth"; material.plate_furrow_width);
         $op!($f, $v, "material", "plateIdentity"; material.plate_identity);
         $op!($f, $v, "material", "weatheringStrength"; material.weathering_strength);
         $op!($f, $v, "material", "weatheringRed"; material.weathering_red);

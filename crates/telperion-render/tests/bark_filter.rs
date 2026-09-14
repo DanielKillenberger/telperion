@@ -15,10 +15,10 @@ fn either_unresolved_axis_removes_relief_and_furrows_can_close() {
     let along = 1.0 + f32(id.x / 64u) * 0.0027;
     let circle = vec2(cos(angle), sin(angle));
     result[id.x] = vec4(
-        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0), 1.0, vec4(0.0), 0.0),
-        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.5, 0.0), 1.0, vec4(0.0), 0.0),
-        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0, 0.5), 1.0, vec4(0.0), 0.0),
-        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0), 0.0, vec4(0.0), 0.0));
+        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0), 1.0, vec4(0.0), vec2(0.0)),
+        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.5, 0.0), 1.0, vec4(0.0), vec2(0.0)),
+        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0, 0.5), 1.0, vec4(0.0), vec2(0.0)),
+        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0), 0.0, vec4(0.0), vec2(0.0)));
 }
 "#;
     let module = wgpu::naga::front::wgsl::parse_str(&source)

@@ -80,6 +80,10 @@ pub struct MaterialParams {
     /// How far a plate's rim stands off the furrow it borders: the scale that
     /// lifts rather than the plate that sits flat.
     pub plate_edge_lift: f64,
+    /// How wide the flat floor of a furrow is cut, as a fraction of a plate's
+    /// own width, so a bigger plate carries a wider furrow off one row. Zero
+    /// leaves the hairline the network has always cut between two faces.
+    pub plate_furrow_width: f64,
     /// How much of its own a plate keeps: how proud it stands, how it leans,
     /// and the value and cast it holds against its neighbours.
     pub plate_identity: f64,
@@ -155,6 +159,7 @@ impl Default for MaterialParams {
             plate_elongation: 0.0,
             plate_dome: 0.0,
             plate_edge_lift: 0.0,
+            plate_furrow_width: 0.0,
             plate_identity: 0.0,
             weathering_strength: 0.0,
             weathering_red: 0.0,
@@ -214,6 +219,7 @@ impl MaterialParams {
             (self.plate_elongation, 0.0, 16.0, "bark plate elongation"),
             (self.plate_dome, 0.0, 1.0, "bark plate dome"),
             (self.plate_edge_lift, 0.0, 1.0, "bark plate edge lift"),
+            (self.plate_furrow_width, 0.0, 1.0, "bark plate furrow width"),
             (self.plate_identity, 0.0, 1.0, "bark plate identity"),
             (
                 self.weathering_strength,
@@ -318,8 +324,9 @@ mod tests {
         // field without a bound would fail the count below.
         // One field put off its range, and the name the refusal must carry.
         type Refusal = (fn(&mut MaterialParams), &'static str);
-        let refusals: [Refusal; 49] = [
+        let refusals: [Refusal; 50] = [
             (|m| m.plate_cell_scale = 2.0, "bark plate cell scale"),
+            (|m| m.plate_furrow_width = 1.5, "bark plate furrow width"),
             (|m| m.plate_elongation = 17.0, "bark plate elongation"),
             (|m| m.plate_dome = 2.0, "bark plate dome"),
             (|m| m.plate_edge_lift = 2.0, "bark plate edge lift"),

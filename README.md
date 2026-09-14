@@ -342,9 +342,13 @@ Plates are the field's second primitive, and structure rather than tint.
 `plateCellScale` (0-1 metres) is one plate's width across the run before girth
 scales it; zero leaves the field the parallel ridges it was. `plateElongation`
 (0-16) is how much longer a plate runs than it is wide, so an oak wears long
-blocks and a spruce round scales off one row. A furrow is the distance to a
-cell's edge in either direction, walled at a seventh of a plate's width and
-cut a twentieth of it deep. `plateDome` (0-1) raises a face from its own edge
+blocks and a spruce round scales off one row. A furrow is where two
+sites stand equally near, walled at a seventh of a plate's width and cut a
+twentieth of it deep. `plateFurrowWidth` (0-1) widens the flat floor of that
+furrow, up to a fifth of a plate's width, so a bigger plate carries a wider
+furrow off the same row; zero leaves the hairline the network cuts between
+two faces. The floor is integrated against the footprint like every other
+band, and the mean the far path returns falls away with it. `plateDome` (0-1) raises a face from its own edge
 towards its middle and `plateEdgeLift` (0-1) stands its rim off the furrow
 beside it. `plateIdentity` (0-1) is how much of its own a plate keeps: how
 proud it stands, how far it leans across its run, and the value and cast it

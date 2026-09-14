@@ -162,16 +162,31 @@ fn bark_network(p: vec3<f32>, elongated: f32) -> vec3<f32> {
 // carries slightly more face than a round one, so one constant cannot be
 // exact for every row: these are the midpoint of the shipped two, and the
 // test holds both inside two hundredths of it.
-const BARK_PLATE_FACE = 0.5033;
-const BARK_PLATE_DOME = 0.2626;
-const BARK_PLATE_RIM = 0.3927;
+const BARK_PLATE_FACE = 0.5208;
+const BARK_PLATE_DOME = 0.2839;
+const BARK_PLATE_RIM = 0.3891;
 // How proud a plate stands of its furrow, as a fraction of its own width,
 // and how much of that width the wall between the two takes.
+// How far the furrow row opens the floor, as a fraction of a plate's width at
+// the top of its range, and how fast each of the three levels falls per unit
+// of the row. Measured over the same sweep, pinned by the same test.
+const BARK_PLATE_FURROW = 0.2;
+const BARK_PLATE_FURROW_FACE = 1.744;
+const BARK_PLATE_FURROW_DOME = 2.376;
+const BARK_PLATE_FURROW_RIM = 1.619;
 const BARK_PLATE_DEPTH = 0.045;
 const BARK_PLATE_WALL = 0.14;
 
-fn bark_plate_mean(dome: f32, edge_lift: f32) -> f32 {
-    return BARK_PLATE_FACE + dome * BARK_PLATE_DOME + edge_lift * BARK_PLATE_RIM;
+// A wider furrow floor leaves less face, less dome and less rim, and each of
+// the three falls off exponentially in the row: the share of a cell further
+// than a given distance from its own boundary falls that way. The three rates
+// are measured over the same sweep as the three levels and pinned beside them;
+// the plate test holds the shipped rows and a wide furrow against the curve.
+fn bark_plate_mean(dome: f32, edge_lift: f32, furrow_width: f32) -> f32 {
+    let w = max(furrow_width, 0.0);
+    return BARK_PLATE_FACE * exp(-BARK_PLATE_FURROW_FACE * w)
+        + dome * BARK_PLATE_DOME * exp(-BARK_PLATE_FURROW_DOME * w)
+        + edge_lift * BARK_PLATE_RIM * exp(-BARK_PLATE_FURROW_RIM * w);
 }
 
 // One plate's width across the run, in metres. Girth carries it, so an old
@@ -185,10 +200,11 @@ fn bark_plate_size(cell_scale: f32, girth: f32) -> f32 {
 // resolve costs no hash, carries no aliasing, and leaves the mean exactly.
 fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     footprint: vec2<f32>, wander: vec2<f32>, plate: vec4<f32>,
-    identity: f32) -> vec2<f32> {
+    structure: vec2<f32>) -> vec2<f32> {
+    let identity = structure.x;
     let dome = plate.z;
     let edge_lift = plate.w;
-    let mean = bark_plate_mean(dome, edge_lift);
+    let mean = bark_plate_mean(dome, edge_lift, structure.y);
     let size = bark_plate_size(plate.x, girth);
     if (size <= 0.0) { return vec2(mean, 0.5); }
     let run = size * (1.0 + max(plate.y, 0.0));
@@ -228,13 +244,18 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     // branch and merge, and why three of its boundaries meet at a point.
     let network = bark_network(warped, elongated);
     let edge = network.x;
-    // The walls are as wide as the ridges' own shoulders. A furrow cut in a
-    // third of that distance is a feature no footprint can integrate, and it
-    // aliases on a trunk at four times the hero distance.
-    let face = bark_edge(0.012, 0.012 + BARK_PLATE_WALL, edge, pixel);
-    let ramp = clamp((edge - 0.012) / (0.012 + 2.0 * BARK_PLATE_WALL), 0.0, 1.0);
-    let rim = face * (1.0 - bark_edge(0.012 + BARK_PLATE_WALL,
-        0.012 + 2.2 * BARK_PLATE_WALL, edge, pixel));
+    // The floor of the furrow: the hairline the network cuts between two
+    // faces, widened by the row. It is a fraction of a plate's own width, so
+    // a bigger plate carries a wider furrow off one row and nothing about the
+    // structure changes with girth. The walls that climb out of it are as wide
+    // as the ridges' own shoulders - a furrow cut in a third of that distance
+    // is a feature no footprint can integrate - and both edges are integrated
+    // against the footprint, so the floor fades with everything else.
+    let floor = 0.012 + BARK_PLATE_FURROW * max(structure.y, 0.0);
+    let face = bark_edge(floor, floor + BARK_PLATE_WALL, edge, pixel);
+    let ramp = clamp((edge - floor) / (floor + 2.0 * BARK_PLATE_WALL), 0.0, 1.0);
+    let rim = face * (1.0 - bark_edge(floor + BARK_PLATE_WALL,
+        floor + 2.2 * BARK_PLATE_WALL, edge, pixel));
     // What this plate keeps of its own: how proud it stands, and how far it
     // leans across its own run. A scale lifted at one edge is a plate leaning.
     let own = bark_hash(vec2(network.y * 53.0, network.y * 131.0 + 11.0));
@@ -255,12 +276,12 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
 // low-frequency mottle does; at distance it is the mean and costs no hash.
 fn bark_plate_identity(circle: vec2<f32>, along: f32, radius: f32,
     ridge_scale: f32, footprint: vec2<f32>, plate: vec4<f32>,
-    identity: f32) -> f32 {
+    structure: vec2<f32>) -> f32 {
     if (plate.x <= 0.0 || ridge_scale <= 0.0 || radius <= ridge_scale) { return 0.5; }
     let girth = 0.3 + 0.7 * smoothstep(2.5, 20.0, radius / ridge_scale);
     let arc = circle * radius / ridge_scale;
     return bark_plate_field(arc, along, ridge_scale, girth, footprint, vec2(0.5),
-        plate, identity).y;
+        plate, structure).y;
 }
 
 // How deep the network cuts, in the units the rest of the field is written in:
@@ -283,7 +304,7 @@ fn bark_ridge_mean(elongated: f32, furrow: f32) -> f32 {
 }
 
 fn bark_colour_range(radius: f32, ridge_scale: f32, plate_scale: f32,
-    furrow: f32, plate: vec4<f32>) -> vec2<f32> {
+    furrow: f32, plate: vec4<f32>, furrow_width: f32) -> vec2<f32> {
     if (ridge_scale <= 0.0 || radius <= ridge_scale) { return vec2(0.0); }
     let maturity = smoothstep(2.0, 5.0, 2.0 * radius / ridge_scale);
     let girth = 0.3 + 0.7 * smoothstep(2.5, 20.0, radius / ridge_scale);
@@ -295,15 +316,16 @@ fn bark_colour_range(radius: f32, ridge_scale: f32, plate_scale: f32,
     // which is what makes the existing crest and fissure tints follow the
     // structure rather than the ridge alone.
     let cut = bark_plate_depth(plate, ridge_scale, girth);
-    let mean = ridge_mean + face_bands + cut * bark_plate_mean(plate.z, plate.w);
+    let profile = bark_plate_mean(plate.z, plate.w, furrow_width);
+    let mean = ridge_mean + face_bands + cut * profile;
     let amplitude = bark_depth(elongated) * BARK_DEPTH_RANGE.y * furrow + face_bands
-        + cut * bark_plate_mean(plate.z, plate.w);
+        + cut * profile;
     return ridge_scale * maturity * girth * vec2(mean, amplitude);
 }
 
 fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
     ridge_scale: f32, plate_scale: f32, footprint: vec2<f32>, furrow: f32,
-    plate: vec4<f32>, identity: f32) -> f32 {
+    plate: vec4<f32>, structure: vec2<f32>) -> f32 {
     if (ridge_scale <= 0.0 || radius <= ridge_scale) { return 0.0; }
     let maturity = smoothstep(2.0, 5.0, 2.0 * radius / ridge_scale);
     // Girth continues to strengthen mature wood after the young-run fade.
@@ -329,7 +351,7 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
     // so the network is evaluated before the fine-scale shortcut below and
     // survives it. The same wander drifts both, because it is one bark.
     let network = bark_plate_field(arc, along, ridge_scale, girth, footprint,
-        wander, plate, identity).x;
+        wander, plate, structure).x;
     let plates = bark_plate_depth(plate, ridge_scale, girth) * network;
     let face_bands = 0.05 * 0.7 * 0.89 + 0.012 * 0.89 * 0.75 * 0.5;
     // Every shorter band has also vanished here. Avoid evaluating invisible
@@ -374,5 +396,5 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
 fn bark_field(circle: vec2<f32>, along: f32, radius: f32,
     ridge_scale: f32, plate_scale: f32) -> f32 {
     return bark_field_filtered(circle, along, radius, ridge_scale, plate_scale,
-        vec2(0.0), 1.0, vec4(0.0), 0.0);
+        vec2(0.0), 1.0, vec4(0.0), vec2(0.0));
 }

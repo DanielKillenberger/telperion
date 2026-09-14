@@ -1,35 +1,69 @@
 //! The plate network's own contracts: the mean the far path returns is the
 //! mean the near path averages to, and one plate keeps one identity.
 mod common;
+use telperion_core::presets::Preset;
 
-/// The two shipped plate rows, as `(name, cell scale, elongation)`. The mean
-/// the far path returns is one constant for every row, so both are measured
-/// against it: a long oak plate and a nearly round spruce scale.
-const ROWS: [(&str, f32, f32); 2] = [("oak", 0.09, 1.8), ("spruce", 0.022, 0.2)];
+/// The plate rows measured, as `(name, cell scale, elongation, furrow width)`.
+/// The two shipped ones are read from the presets rather than copied, so a row
+/// the climb moves cannot leave this test asserting last round's field; the
+/// third states a wide furrow outright, so the slopes the mean falls by are
+/// exercised whatever the shipped rows happen to be.
+/// Two widths beyond whatever the presets carry, so the curve the far path
+/// rides is held at both ends of the row whether or not a shipped row uses it.
+const SWEEP: [f32; 2] = [0.25, 0.6];
+
+fn rows() -> Vec<(String, f32, f32, f32)> {
+    let mut out = Vec::new();
+    for (name, preset) in [
+        ("oak", Preset::OregonWhiteOak),
+        ("spruce", Preset::NorwaySpruce),
+    ] {
+        let m = preset.parameters().material;
+        out.push((
+            name.to_string(),
+            m.plate_cell_scale as f32,
+            m.plate_elongation as f32,
+            m.plate_furrow_width as f32,
+        ));
+    }
+    let (_, size, long, _) = out[0];
+    for width in SWEEP {
+        out.push((format!("a furrow of {width}"), size, long, width));
+    }
+    out
+}
 
 /// A wide sweep of the field at zero footprint, three profiles at a time:
 /// the bare face, the face with its dome, and the face with its rim lifted.
 /// `w` carries the plate's identity so the same pass can be read for it.
+///
+/// Sixteen slices of the network rather than one: a single slice estimates
+/// the field's mean to about three hundredths, which is more than the
+/// tolerance below, and it moves whenever a row moves the slice. The slice
+/// changes with the axial index only, so neighbouring samples across a row
+/// still sit on one plate, which is what the identity test reads.
 const PROBE: &str = r#"
 @group(0) @binding(0) var<storage, read_write> result: array<vec4<f32>>;
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     let across = f32(id.x % 128u) * (SIZE * 0.31);
     let along = f32(id.x / 128u) * (SIZE * (1.0 + LONG) * 0.30);
-    let arc = vec2(across, 0.37) / 0.032;
+    let slice = 0.37 + f32((id.x / 128u) % 16u) * (SIZE * 1.7);
+    let arc = vec2(across, slice) / 0.032;
     let bare = bark_plate_field(arc, along, 0.032, 1.0, vec2(0.0), vec2(0.5),
-        vec4(SIZE, LONG, 0.0, 0.0), 0.0);
+        vec4(SIZE, LONG, 0.0, 0.0), vec2(0.0, FURROW));
     let domed = bark_plate_field(arc, along, 0.032, 1.0, vec2(0.0), vec2(0.5),
-        vec4(SIZE, LONG, 1.0, 0.0), 0.0);
+        vec4(SIZE, LONG, 1.0, 0.0), vec2(0.0, FURROW));
     let lifted = bark_plate_field(arc, along, 0.032, 1.0, vec2(0.0), vec2(0.5),
-        vec4(SIZE, LONG, 0.0, 1.0), 0.0);
+        vec4(SIZE, LONG, 0.0, 1.0), vec2(0.0, FURROW));
     result[id.x] = vec4(bare.x, domed.x, lifted.x, bare.y);
 }
 "#;
 
-fn sample(size: f32, long: f32) -> Vec<[f32; 4]> {
+fn sample(size: f32, long: f32, furrow: f32) -> Vec<[f32; 4]> {
     let probe = PROBE
         .replace("SIZE", &format!("{size:?}"))
-        .replace("LONG", &format!("{long:?}"));
+        .replace("LONG", &format!("{long:?}"))
+        .replace("FURROW", &format!("{furrow:?}"));
     let source = include_str!("../src/shaders/common.wgsl").replace(
         "@group(0) @binding(0) var<uniform> u: Uniforms;",
         "var<private> u: Uniforms;",
@@ -123,8 +157,16 @@ fn the_pinned_plate_mean_is_the_mean_the_field_averages_to() {
             .map(|(value, _)| value.trim().parse::<f64>().unwrap())
             .unwrap_or_else(|| panic!("{name} is not pinned in bark.wgsl"))
     };
-    for (row, size, long) in ROWS {
-        let values = sample(size, long);
+    // What the far path returns, from the six pinned numbers: a level and a
+    // rate for each of face, dome and rim, the rate being how fast that level
+    // falls away as the furrow floor widens.
+    let model = |dome: f64, lift: f64, width: f64| {
+        pinned("BARK_PLATE_FACE") * (-pinned("BARK_PLATE_FURROW_FACE") * width).exp()
+            + dome * pinned("BARK_PLATE_DOME") * (-pinned("BARK_PLATE_FURROW_DOME") * width).exp()
+            + lift * pinned("BARK_PLATE_RIM") * (-pinned("BARK_PLATE_FURROW_RIM") * width).exp()
+    };
+    for (row, size, long, furrow) in rows() {
+        let values = sample(size, long, furrow);
         if values.is_empty() {
             return;
         }
@@ -132,29 +174,33 @@ fn the_pinned_plate_mean_is_the_mean_the_field_averages_to() {
             values.iter().map(|v| f64::from(v[channel])).sum::<f64>() / values.len() as f64
         };
         let (face, domed, lifted) = (mean(0), mean(1), mean(2));
+        let width = f64::from(furrow);
         eprintln!(
-            "{row}: BARK_PLATE_FACE {face:.4}, BARK_PLATE_DOME {:.4}, BARK_PLATE_RIM {:.4}",
+            "{row} (furrow {furrow}): face {face:.4} model {:.4}, dome {:.4} model {:.4}, rim {:.4} model {:.4}",
+            model(0.0, 0.0, width),
             domed - face,
-            lifted - face
+            model(1.0, 0.0, width) - model(0.0, 0.0, width),
+            lifted - face,
+            model(0.0, 1.0, width) - model(0.0, 0.0, width)
         );
-        for (name, measured) in [
-            ("BARK_PLATE_FACE", face),
-            ("BARK_PLATE_DOME", domed - face),
-            ("BARK_PLATE_RIM", lifted - face),
+        let mut worst = Vec::new();
+        for (name, measured, pin) in [
+            ("a bare face", face, model(0.0, 0.0, width)),
+            ("a domed face", domed, model(1.0, 0.0, width)),
+            ("a lifted rim", lifted, model(0.0, 1.0, width)),
         ] {
-            let pin = pinned(name);
-            assert!(
-                (pin - measured).abs() <= 0.02,
-                "{name} is pinned at {pin} and the {row} field averages {measured}"
-            );
+            if (pin - measured).abs() > 0.02 {
+                worst.push(format!("{name}: far {pin:.4} against {measured:.4}"));
+            }
         }
+        assert!(worst.is_empty(), "{row}: {}", worst.join("; "));
     }
 }
 
 #[test]
 fn every_plate_carries_an_identity_of_its_own() {
-    let (_, size, long) = ROWS[0];
-    let values = sample(size, long);
+    let (_, size, long, furrow) = rows()[0].clone();
+    let values = sample(size, long, furrow);
     if values.is_empty() {
         return;
     }

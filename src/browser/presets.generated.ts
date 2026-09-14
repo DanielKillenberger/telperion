@@ -86,6 +86,7 @@ export interface Family {
   plateDome: number;
   plateEdgeLift: number;
   plateElongation: number;
+  plateFurrowWidth: number;
   plateIdentity: number;
   plateScale: number;
   ridgeScale: number;
@@ -277,6 +278,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateDome": 0,
         "plateEdgeLift": 0,
         "plateElongation": 0,
+        "plateFurrowWidth": 0,
         "plateIdentity": 0,
         "plateScale": 0,
         "ridgeScale": 0,
@@ -466,6 +468,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateDome": 0.39375,
         "plateEdgeLift": 0.27,
         "plateElongation": 1.8,
+        "plateFurrowWidth": 0,
         "plateIdentity": 0.45,
         "plateScale": 0.055,
         "ridgeScale": 0.032,
@@ -655,6 +658,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateDome": 0.39375,
         "plateEdgeLift": 0.5,
         "plateElongation": 0.2,
+        "plateFurrowWidth": 0,
         "plateIdentity": 0.375,
         "plateScale": 0.03,
         "ridgeScale": 0.02,
@@ -844,6 +848,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateDome": 0,
         "plateEdgeLift": 0,
         "plateElongation": 0,
+        "plateFurrowWidth": 0,
         "plateIdentity": 0,
         "plateScale": 0,
         "ridgeScale": 0,
@@ -1033,6 +1038,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateDome": 0,
         "plateEdgeLift": 0,
         "plateElongation": 0,
+        "plateFurrowWidth": 0,
         "plateIdentity": 0,
         "plateScale": 0,
         "ridgeScale": 0,
