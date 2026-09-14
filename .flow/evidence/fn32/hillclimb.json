@@ -1,0 +1,4515 @@
+{
+ "session": "fn-32 task 2, 2026-09-14",
+ "method": "Coordinate descent over the bark rows against the structure score, no model in the loop and no image inspected. A trial renders the species' trunk still headless at the pinned pose and measures it; a trial that improves the score then pays for the guards - the distance, resolution and redraw numbers the shipped tests assert, computed in the same process at the same poses against the same masks and bounds - and is kept only if they all hold. A row that stops paying has its step halved; the climb stops when nothing moves at the finest step, or when five accepted steps at the finest step together buy under one per cent, or at sixty sweeps.",
+ "score": "The normalised weighted distance from the still's structure vector to the centroid of its catalogued references' vectors. Weights and scales are stated in crates/telperion-render/src/structure.rs.",
+ "rounds": [
+  {
+   "round": 1,
+   "primitive": "the column-and-cut network as task one shipped it",
+   "species": {
+    "oak": {
+     "final": {
+      "checks": [
+       {
+        "case": "trunk",
+        "mean": 1.47867,
+        "p95": 5.75,
+        "redrew": true
+       },
+       {
+        "case": "distance-2x",
+        "mean": 2.16987,
+        "p95": 7.25,
+        "redrew": true
+       },
+       {
+        "case": "distance-4x",
+        "mean": 2.65613,
+        "p95": 8.25,
+        "redrew": true
+       },
+       {
+        "case": "grazing",
+        "mean": 2.62464,
+        "p95": 8.5,
+        "redrew": true
+       }
+      ],
+      "score": 1.24668,
+      "values": {
+       "depthStrength": 0.6,
+       "directionalOcclusion": 0.55,
+       "orientationBlue": -0.00475,
+       "orientationGreen": 0.0265,
+       "orientationRed": -0.0245,
+       "orientationStrength": 0.4,
+       "plateCellScale": 0.108,
+       "plateDome": 0.4875,
+       "plateEdgeLift": 0.32,
+       "plateElongation": 2.025,
+       "plateIdentity": 0.5625,
+       "weatheringBlue": 0.032,
+       "weatheringGreen": 0.05,
+       "weatheringRed": 0.0475,
+       "weatheringStrength": 0.55625
+      },
+      "vector": {
+       "area_variation": 0.7632,
+       "dark_fraction": 0.16965,
+       "furrow_curvature": 2.41215,
+       "furrow_period": 56.25879,
+       "junction_arms": 3.42105,
+       "orientation_entropy": 0.97946
+      }
+     },
+     "references": [
+      {
+       "area_variation": 1.9191,
+       "dark_fraction": 0.32226,
+       "furrow_curvature": 2.50885,
+       "furrow_period": 17.70107,
+       "junction_arms": 4.13957,
+       "orientation_entropy": 0.9985
+      },
+      {
+       "area_variation": 1.34172,
+       "dark_fraction": 0.35737,
+       "furrow_curvature": 2.358,
+       "furrow_period": 7.79879,
+       "junction_arms": 3.94889,
+       "orientation_entropy": 0.9357
+      },
+      {
+       "area_variation": 2.60543,
+       "dark_fraction": 0.38938,
+       "furrow_curvature": 2.78976,
+       "furrow_period": 10.57013,
+       "junction_arms": 4.48503,
+       "orientation_entropy": 0.9598
+      }
+     ],
+     "species": "oak",
+     "start": {
+      "score": 1.93461,
+      "values": {
+       "depthStrength": 0.6,
+       "directionalOcclusion": 0.55,
+       "orientationBlue": -0.016,
+       "orientationGreen": 0.024,
+       "orientationRed": -0.022,
+       "orientationStrength": 0.4,
+       "plateCellScale": 0.09,
+       "plateDome": 0.5,
+       "plateEdgeLift": 0.22,
+       "plateElongation": 1.8,
+       "plateIdentity": 0.55,
+       "weatheringBlue": 0.042,
+       "weatheringGreen": 0.05,
+       "weatheringRed": 0.055,
+       "weatheringStrength": 0.5
+      },
+      "vector": {
+       "area_variation": 0.0,
+       "dark_fraction": 0.14167,
+       "furrow_curvature": 1.93208,
+       "furrow_period": 61.60955,
+       "junction_arms": 3.24138,
+       "orientation_entropy": 0.98498
+      }
+     },
+     "stopped": "plateau",
+     "sweeps": 7,
+     "target": {
+      "area_variation": 1.95541,
+      "dark_fraction": 0.35634,
+      "furrow_curvature": 2.5522,
+      "furrow_period": 11.34233,
+      "junction_arms": 4.19116,
+      "orientation_entropy": 0.96467
+     },
+     "trials": [
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.42883,
+         "p95": 5.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.22808,
+         "p95": 7.0,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.72082,
+         "p95": 8.5,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.20059,
+         "p95": 7.75,
+         "redrew": true
+        }
+       ],
+       "from": 0.09,
+       "row": "plateCellScale",
+       "score": 1.91524,
+       "sweep": 0,
+       "to": 0.096,
+       "vector": {
+        "area_variation": 0.0,
+        "dark_fraction": 0.13099,
+        "furrow_curvature": 3.02562,
+        "furrow_period": 69.53498,
+        "junction_arms": 3.15909,
+        "orientation_entropy": 0.98153
+       }
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.50487,
+         "p95": 5.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.36376,
+         "p95": 7.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.69487,
+         "p95": 8.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.34256,
+         "p95": 8.25,
+         "redrew": true
+        }
+       ],
+       "from": 0.096,
+       "row": "plateCellScale",
+       "score": 1.85408,
+       "sweep": 0,
+       "to": 0.102,
+       "vector": {
+        "area_variation": 0.0,
+        "dark_fraction": 0.14922,
+        "furrow_curvature": 2.19374,
+        "furrow_period": 64.75111,
+        "junction_arms": 3.22,
+        "orientation_entropy": 0.98252
+       }
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.45674,
+         "p95": 5.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.13524,
+         "p95": 7.0,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.56907,
+         "p95": 8.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.59766,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.102,
+       "row": "plateCellScale",
+       "score": 1.76155,
+       "sweep": 0,
+       "to": 0.108,
+       "vector": {
+        "area_variation": 0.0,
+        "dark_fraction": 0.16054,
+        "furrow_curvature": 2.61508,
+        "furrow_period": 61.39678,
+        "junction_arms": 3.37288,
+        "orientation_entropy": 0.98067
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.47357,
+       "sweep": 0,
+       "to": 0.114
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.45163,
+         "p95": 5.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.14631,
+         "p95": 7.0,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.58135,
+         "p95": 8.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.56639,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 1.8,
+       "row": "plateElongation",
+       "score": 1.50105,
+       "sweep": 0,
+       "to": 1.95,
+       "vector": {
+        "area_variation": 0.45615,
+        "dark_fraction": 0.16328,
+        "furrow_curvature": 2.50579,
+        "furrow_period": 58.9753,
+        "junction_arms": 3.21622,
+        "orientation_entropy": 0.98044
+       }
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.4505,
+         "p95": 5.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16947,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.5575,
+         "p95": 8.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.5606,
+         "p95": 8.25,
+         "redrew": true
+        }
+       ],
+       "from": 1.95,
+       "row": "plateElongation",
+       "score": 1.34407,
+       "sweep": 0,
+       "to": 2.1,
+       "vector": {
+        "area_variation": 0.61638,
+        "dark_fraction": 0.17059,
+        "furrow_curvature": 2.46934,
+        "furrow_period": 56.73759,
+        "junction_arms": 3.37975,
+        "orientation_entropy": 0.98158
+       }
+      },
+      {
+       "accepted": false,
+       "from": 2.1,
+       "row": "plateElongation",
+       "score": 1.49627,
+       "sweep": 0,
+       "to": 2.25
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateDome",
+       "score": 1.36895,
+       "sweep": 0,
+       "to": 0.55
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateDome",
+       "score": 1.37748,
+       "sweep": 0,
+       "to": 0.45
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.45837,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.1905,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.58687,
+         "p95": 8.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.57044,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.22,
+       "row": "plateEdgeLift",
+       "score": 1.33327,
+       "sweep": 0,
+       "to": 0.27,
+       "vector": {
+        "area_variation": 0.64831,
+        "dark_fraction": 0.17179,
+        "furrow_curvature": 2.51133,
+        "furrow_period": 55.90496,
+        "junction_arms": 3.3375,
+        "orientation_entropy": 0.98078
+       }
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47473,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.21023,
+         "p95": 7.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.62905,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.58348,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.27,
+       "row": "plateEdgeLift",
+       "score": 1.29631,
+       "sweep": 0,
+       "to": 0.32,
+       "vector": {
+        "area_variation": 0.69384,
+        "dark_fraction": 0.17191,
+        "furrow_curvature": 2.45763,
+        "furrow_period": 55.34417,
+        "junction_arms": 3.37209,
+        "orientation_entropy": 0.98014
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.34217,
+       "sweep": 0,
+       "to": 0.37
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "plateIdentity",
+       "score": 1.32335,
+       "sweep": 0,
+       "to": 0.6
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "plateIdentity",
+       "score": 1.32913,
+       "sweep": 0,
+       "to": 0.5
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47453,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.21428,
+         "p95": 7.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.62695,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.5889,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.5,
+       "row": "weatheringStrength",
+       "score": 1.29392,
+       "sweep": 0,
+       "to": 0.55,
+       "vector": {
+        "area_variation": 0.69513,
+        "dark_fraction": 0.1718,
+        "furrow_curvature": 2.45849,
+        "furrow_period": 55.2868,
+        "junction_arms": 3.37647,
+        "orientation_entropy": 0.9801
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.34023,
+       "sweep": 0,
+       "to": 0.6
+      },
+      {
+       "accepted": false,
+       "from": 0.055,
+       "row": "weatheringRed",
+       "score": 1.294,
+       "sweep": 0,
+       "to": 0.065
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47483,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.21238,
+         "p95": 7.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.6295,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.58741,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.055,
+       "row": "weatheringRed",
+       "score": 1.28838,
+       "sweep": 0,
+       "to": 0.045,
+       "vector": {
+        "area_variation": 0.69773,
+        "dark_fraction": 0.17161,
+        "furrow_curvature": 2.52637,
+        "furrow_period": 55.2868,
+        "junction_arms": 3.37647,
+        "orientation_entropy": 0.98011
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.045,
+       "row": "weatheringRed",
+       "score": 1.28839,
+       "sweep": 0,
+       "to": 0.035
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.33122,
+       "sweep": 0,
+       "to": 0.06
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.28886,
+       "sweep": 0,
+       "to": 0.04
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47491,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.21467,
+         "p95": 7.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.62993,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.59126,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.042,
+       "row": "weatheringBlue",
+       "score": 1.28837,
+       "sweep": 0,
+       "to": 0.052,
+       "vector": {
+        "area_variation": 0.69773,
+        "dark_fraction": 0.1716,
+        "furrow_curvature": 2.52637,
+        "furrow_period": 55.2868,
+        "junction_arms": 3.37647,
+        "orientation_entropy": 0.98009
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.052,
+       "row": "weatheringBlue",
+       "score": 1.29235,
+       "sweep": 0,
+       "to": 0.062
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.29198,
+       "sweep": 0,
+       "to": 0.45
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.31542,
+       "sweep": 0,
+       "to": 0.35
+      },
+      {
+       "accepted": false,
+       "from": -0.022,
+       "row": "orientationRed",
+       "score": 1.34584,
+       "sweep": 0,
+       "to": -0.012
+      },
+      {
+       "accepted": false,
+       "from": -0.022,
+       "row": "orientationRed",
+       "score": 1.29617,
+       "sweep": 0,
+       "to": -0.032
+      },
+      {
+       "accepted": false,
+       "from": 0.024,
+       "row": "orientationGreen",
+       "score": 1.32431,
+       "sweep": 0,
+       "to": 0.034
+      },
+      {
+       "accepted": false,
+       "from": 0.024,
+       "row": "orientationGreen",
+       "score": 1.30856,
+       "sweep": 0,
+       "to": 0.014
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47553,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.21555,
+         "p95": 7.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.6268,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.58876,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": -0.016,
+       "row": "orientationBlue",
+       "score": 1.28363,
+       "sweep": 0,
+       "to": -0.006,
+       "vector": {
+        "area_variation": 0.69773,
+        "dark_fraction": 0.17155,
+        "furrow_curvature": 2.52637,
+        "furrow_period": 55.24862,
+        "junction_arms": 3.3908,
+        "orientation_entropy": 0.98011
+       }
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47598,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.21443,
+         "p95": 7.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.62575,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.58766,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": -0.006,
+       "row": "orientationBlue",
+       "score": 1.27069,
+       "sweep": 0,
+       "to": 0.004,
+       "vector": {
+        "area_variation": 0.69583,
+        "dark_fraction": 0.17149,
+        "furrow_curvature": 2.52637,
+        "furrow_period": 55.24862,
+        "junction_arms": 3.43529,
+        "orientation_entropy": 0.98014
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.004,
+       "row": "orientationBlue",
+       "score": 1.2855,
+       "sweep": 0,
+       "to": 0.014
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.27069,
+       "sweep": 0,
+       "to": 0.6
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.27069,
+       "sweep": 0,
+       "to": 0.5
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.35222,
+       "sweep": 0,
+       "to": 0.65
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.442,
+       "sweep": 0,
+       "to": 0.55
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 1.3322,
+       "sweep": 1,
+       "to": 0.114
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.50745,
+       "sweep": 1,
+       "to": 0.102
+      },
+      {
+       "accepted": false,
+       "from": 2.1,
+       "row": "plateElongation",
+       "score": 1.41181,
+       "sweep": 1,
+       "to": 2.25
+      },
+      {
+       "accepted": false,
+       "from": 2.1,
+       "row": "plateElongation",
+       "score": 1.46157,
+       "sweep": 1,
+       "to": 1.95
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateDome",
+       "score": 1.31123,
+       "sweep": 1,
+       "to": 0.525
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateDome",
+       "score": 1.30157,
+       "sweep": 1,
+       "to": 0.475
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.35425,
+       "sweep": 1,
+       "to": 0.37
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.37638,
+       "sweep": 1,
+       "to": 0.27
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "plateIdentity",
+       "score": 1.3127,
+       "sweep": 1,
+       "to": 0.575
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "plateIdentity",
+       "score": 1.3351,
+       "sweep": 1,
+       "to": 0.525
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.31606,
+       "sweep": 1,
+       "to": 0.6
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.27315,
+       "sweep": 1,
+       "to": 0.5
+      },
+      {
+       "accepted": false,
+       "from": 0.045,
+       "row": "weatheringRed",
+       "score": 1.28964,
+       "sweep": 1,
+       "to": 0.055
+      },
+      {
+       "accepted": false,
+       "from": 0.045,
+       "row": "weatheringRed",
+       "score": 1.27069,
+       "sweep": 1,
+       "to": 0.035
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.31848,
+       "sweep": 1,
+       "to": 0.055
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.27313,
+       "sweep": 1,
+       "to": 0.045
+      },
+      {
+       "accepted": false,
+       "from": 0.052,
+       "row": "weatheringBlue",
+       "score": 1.27638,
+       "sweep": 1,
+       "to": 0.062
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.4753,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.21481,
+         "p95": 7.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.633,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.58582,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.052,
+       "row": "weatheringBlue",
+       "score": 1.27068,
+       "sweep": 1,
+       "to": 0.042,
+       "vector": {
+        "area_variation": 0.69583,
+        "dark_fraction": 0.17149,
+        "furrow_curvature": 2.52637,
+        "furrow_period": 55.24862,
+        "junction_arms": 3.43529,
+        "orientation_entropy": 0.98013
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.042,
+       "row": "weatheringBlue",
+       "score": 1.36178,
+       "sweep": 1,
+       "to": 0.032
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.2833,
+       "sweep": 1,
+       "to": 0.425
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.30228,
+       "sweep": 1,
+       "to": 0.375
+      },
+      {
+       "accepted": false,
+       "from": -0.022,
+       "row": "orientationRed",
+       "score": 1.3004,
+       "sweep": 1,
+       "to": -0.017
+      },
+      {
+       "accepted": false,
+       "from": -0.022,
+       "row": "orientationRed",
+       "score": 1.29666,
+       "sweep": 1,
+       "to": -0.027
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47506,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.21442,
+         "p95": 7.5,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.63363,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.58826,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.024,
+       "row": "orientationGreen",
+       "score": 1.26966,
+       "sweep": 1,
+       "to": 0.029,
+       "vector": {
+        "area_variation": 0.69662,
+        "dark_fraction": 0.17108,
+        "furrow_curvature": 2.50461,
+        "furrow_period": 55.30591,
+        "junction_arms": 3.44048,
+        "orientation_entropy": 0.98007
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.029,
+       "row": "orientationGreen",
+       "score": 1.30891,
+       "sweep": 1,
+       "to": 0.034
+      },
+      {
+       "accepted": false,
+       "from": 0.004,
+       "row": "orientationBlue",
+       "score": 1.28073,
+       "sweep": 1,
+       "to": 0.014
+      },
+      {
+       "accepted": false,
+       "from": 0.004,
+       "row": "orientationBlue",
+       "score": 1.28271,
+       "sweep": 1,
+       "to": -0.006
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.26966,
+       "sweep": 1,
+       "to": 0.575
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.26966,
+       "sweep": 1,
+       "to": 0.525
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.35389,
+       "sweep": 1,
+       "to": 0.625
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.39681,
+       "sweep": 1,
+       "to": 0.575
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.5291,
+       "sweep": 2,
+       "to": 0.111
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 1.83905,
+       "sweep": 2,
+       "to": 0.105
+      },
+      {
+       "accepted": false,
+       "from": 2.1,
+       "row": "plateElongation",
+       "score": 1.4806,
+       "sweep": 2,
+       "to": 2.175
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.4753,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16028,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.6468,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62571,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 2.1,
+       "row": "plateElongation",
+       "score": 1.26717,
+       "sweep": 2,
+       "to": 2.025,
+       "vector": {
+        "area_variation": 0.74879,
+        "dark_fraction": 0.16966,
+        "furrow_curvature": 2.41943,
+        "furrow_period": 56.43739,
+        "junction_arms": 3.38272,
+        "orientation_entropy": 0.97958
+       }
+      },
+      {
+       "accepted": false,
+       "from": 2.025,
+       "row": "plateElongation",
+       "score": 1.44311,
+       "sweep": 2,
+       "to": 1.95
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateDome",
+       "score": 1.30093,
+       "sweep": 2,
+       "to": 0.5125
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47439,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16435,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.64333,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.60432,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.5,
+       "row": "plateDome",
+       "score": 1.26373,
+       "sweep": 2,
+       "to": 0.4875,
+       "vector": {
+        "area_variation": 0.75472,
+        "dark_fraction": 0.16944,
+        "furrow_curvature": 2.41943,
+        "furrow_period": 56.41749,
+        "junction_arms": 3.38272,
+        "orientation_entropy": 0.9796
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.4875,
+       "row": "plateDome",
+       "score": 1.27399,
+       "sweep": 2,
+       "to": 0.475
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.3114,
+       "sweep": 2,
+       "to": 0.345
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.30383,
+       "sweep": 2,
+       "to": 0.295
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47922,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16987,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65157,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62499,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.55,
+       "row": "plateIdentity",
+       "score": 1.26303,
+       "sweep": 2,
+       "to": 0.5625,
+       "vector": {
+        "area_variation": 0.7612,
+        "dark_fraction": 0.16953,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.47723,
+        "junction_arms": 3.37662,
+        "orientation_entropy": 0.97955
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.5625,
+       "row": "plateIdentity",
+       "score": 1.26697,
+       "sweep": 2,
+       "to": 0.575
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.26313,
+       "sweep": 2,
+       "to": 0.575
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.26452,
+       "sweep": 2,
+       "to": 0.525
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47917,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.17014,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65223,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62358,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.045,
+       "row": "weatheringRed",
+       "score": 1.26303,
+       "sweep": 2,
+       "to": 0.05,
+       "vector": {
+        "area_variation": 0.7612,
+        "dark_fraction": 0.16951,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.47723,
+        "junction_arms": 3.37662,
+        "orientation_entropy": 0.97952
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringRed",
+       "score": 1.26379,
+       "sweep": 2,
+       "to": 0.055
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.26314,
+       "sweep": 2,
+       "to": 0.0525
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.26452,
+       "sweep": 2,
+       "to": 0.0475
+      },
+      {
+       "accepted": false,
+       "from": 0.042,
+       "row": "weatheringBlue",
+       "score": 1.26483,
+       "sweep": 2,
+       "to": 0.052
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47926,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16981,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65723,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62102,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.042,
+       "row": "weatheringBlue",
+       "score": 1.25095,
+       "sweep": 2,
+       "to": 0.032,
+       "vector": {
+        "area_variation": 0.7612,
+        "dark_fraction": 0.16939,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.47723,
+        "junction_arms": 3.41333,
+        "orientation_entropy": 0.97953
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.032,
+       "row": "weatheringBlue",
+       "score": 1.25262,
+       "sweep": 2,
+       "to": 0.022
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.26472,
+       "sweep": 2,
+       "to": 0.4125
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.25162,
+       "sweep": 2,
+       "to": 0.3875
+      },
+      {
+       "accepted": false,
+       "from": -0.022,
+       "row": "orientationRed",
+       "score": 1.25714,
+       "sweep": 2,
+       "to": -0.0195
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47916,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16902,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65652,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62302,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": -0.022,
+       "row": "orientationRed",
+       "score": 1.25076,
+       "sweep": 2,
+       "to": -0.0245,
+       "vector": {
+        "area_variation": 0.7612,
+        "dark_fraction": 0.16946,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.3976,
+        "junction_arms": 3.41333,
+        "orientation_entropy": 0.97955
+       }
+      },
+      {
+       "accepted": false,
+       "from": -0.0245,
+       "row": "orientationRed",
+       "score": 1.25408,
+       "sweep": 2,
+       "to": -0.027
+      },
+      {
+       "accepted": false,
+       "from": 0.029,
+       "row": "orientationGreen",
+       "score": 1.26257,
+       "sweep": 2,
+       "to": 0.034
+      },
+      {
+       "accepted": false,
+       "from": 0.029,
+       "row": "orientationGreen",
+       "score": 1.25113,
+       "sweep": 2,
+       "to": 0.024
+      },
+      {
+       "accepted": false,
+       "from": 0.004,
+       "row": "orientationBlue",
+       "score": 1.25251,
+       "sweep": 2,
+       "to": 0.009
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47896,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16831,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65538,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62334,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.004,
+       "row": "orientationBlue",
+       "score": 1.25067,
+       "sweep": 2,
+       "to": -0.001,
+       "vector": {
+        "area_variation": 0.7612,
+        "dark_fraction": 0.16949,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.35787,
+        "junction_arms": 3.41333,
+        "orientation_entropy": 0.97955
+       }
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47854,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16763,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65582,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62381,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": -0.001,
+       "row": "orientationBlue",
+       "score": 1.24696,
+       "sweep": 2,
+       "to": -0.006,
+       "vector": {
+        "area_variation": 0.7632,
+        "dark_fraction": 0.16955,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.35787,
+        "junction_arms": 3.42105,
+        "orientation_entropy": 0.97955
+       }
+      },
+      {
+       "accepted": false,
+       "from": -0.006,
+       "row": "orientationBlue",
+       "score": 1.25467,
+       "sweep": 2,
+       "to": -0.011
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.24696,
+       "sweep": 2,
+       "to": 0.5625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.24696,
+       "sweep": 2,
+       "to": 0.5375
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.29198,
+       "sweep": 2,
+       "to": 0.6125
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.2908,
+       "sweep": 2,
+       "to": 0.5875
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 1.4068,
+       "sweep": 3,
+       "to": 0.1095
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.03856,
+       "sweep": 3,
+       "to": 0.1065
+      },
+      {
+       "accepted": false,
+       "from": 2.025,
+       "row": "plateElongation",
+       "score": 1.32811,
+       "sweep": 3,
+       "to": 2.1
+      },
+      {
+       "accepted": false,
+       "from": 2.025,
+       "row": "plateElongation",
+       "score": 1.44449,
+       "sweep": 3,
+       "to": 1.95
+      },
+      {
+       "accepted": false,
+       "from": 0.4875,
+       "row": "plateDome",
+       "score": 1.25699,
+       "sweep": 3,
+       "to": 0.5
+      },
+      {
+       "accepted": false,
+       "from": 0.4875,
+       "row": "plateDome",
+       "score": 1.26707,
+       "sweep": 3,
+       "to": 0.475
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.28288,
+       "sweep": 3,
+       "to": 0.3325
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.28294,
+       "sweep": 3,
+       "to": 0.3075
+      },
+      {
+       "accepted": false,
+       "from": 0.5625,
+       "row": "plateIdentity",
+       "score": 1.26564,
+       "sweep": 3,
+       "to": 0.575
+      },
+      {
+       "accepted": false,
+       "from": 0.5625,
+       "row": "plateIdentity",
+       "score": 1.26266,
+       "sweep": 3,
+       "to": 0.55
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.24697,
+       "sweep": 3,
+       "to": 0.5625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.24866,
+       "sweep": 3,
+       "to": 0.5375
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringRed",
+       "score": 1.24769,
+       "sweep": 3,
+       "to": 0.055
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47889,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16681,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65713,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.6223,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.05,
+       "row": "weatheringRed",
+       "score": 1.24692,
+       "sweep": 3,
+       "to": 0.045,
+       "vector": {
+        "area_variation": 0.7632,
+        "dark_fraction": 0.16958,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.33803,
+        "junction_arms": 3.42105,
+        "orientation_entropy": 0.97958
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.045,
+       "row": "weatheringRed",
+       "score": 1.25031,
+       "sweep": 3,
+       "to": 0.04
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.24692,
+       "sweep": 3,
+       "to": 0.05125
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.24863,
+       "sweep": 3,
+       "to": 0.04875
+      },
+      {
+       "accepted": false,
+       "from": 0.032,
+       "row": "weatheringBlue",
+       "score": 1.25457,
+       "sweep": 3,
+       "to": 0.042
+      },
+      {
+       "accepted": false,
+       "from": 0.032,
+       "row": "weatheringBlue",
+       "score": 1.24859,
+       "sweep": 3,
+       "to": 0.022
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.26361,
+       "sweep": 3,
+       "to": 0.40625
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.24696,
+       "sweep": 3,
+       "to": 0.39375
+      },
+      {
+       "accepted": false,
+       "from": -0.0245,
+       "row": "orientationRed",
+       "score": 1.24834,
+       "sweep": 3,
+       "to": -0.022
+      },
+      {
+       "accepted": false,
+       "from": -0.0245,
+       "row": "orientationRed",
+       "score": 1.2502,
+       "sweep": 3,
+       "to": -0.027
+      },
+      {
+       "accepted": false,
+       "from": 0.029,
+       "row": "orientationGreen",
+       "score": 1.25639,
+       "sweep": 3,
+       "to": 0.0315
+      },
+      {
+       "accepted": false,
+       "from": 0.029,
+       "row": "orientationGreen",
+       "score": 1.24849,
+       "sweep": 3,
+       "to": 0.0265
+      },
+      {
+       "accepted": false,
+       "from": -0.006,
+       "row": "orientationBlue",
+       "score": 1.25063,
+       "sweep": 3,
+       "to": -0.001
+      },
+      {
+       "accepted": false,
+       "from": -0.006,
+       "row": "orientationBlue",
+       "score": 1.25463,
+       "sweep": 3,
+       "to": -0.011
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.24692,
+       "sweep": 3,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.24692,
+       "sweep": 3,
+       "to": 0.54375
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.25992,
+       "sweep": 3,
+       "to": 0.60625
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.28218,
+       "sweep": 3,
+       "to": 0.59375
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.4211,
+       "sweep": 4,
+       "to": 0.10875
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.40638,
+       "sweep": 4,
+       "to": 0.10725
+      },
+      {
+       "accepted": false,
+       "from": 2.025,
+       "row": "plateElongation",
+       "score": 1.26463,
+       "sweep": 4,
+       "to": 2.0625
+      },
+      {
+       "accepted": false,
+       "from": 2.025,
+       "row": "plateElongation",
+       "score": 1.37221,
+       "sweep": 4,
+       "to": 1.9875
+      },
+      {
+       "accepted": false,
+       "from": 0.4875,
+       "row": "plateDome",
+       "score": 1.25322,
+       "sweep": 4,
+       "to": 0.49375
+      },
+      {
+       "accepted": false,
+       "from": 0.4875,
+       "row": "plateDome",
+       "score": 1.2904,
+       "sweep": 4,
+       "to": 0.48125
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.27691,
+       "sweep": 4,
+       "to": 0.32625
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.29027,
+       "sweep": 4,
+       "to": 0.31375
+      },
+      {
+       "accepted": false,
+       "from": 0.5625,
+       "row": "plateIdentity",
+       "score": 1.25189,
+       "sweep": 4,
+       "to": 0.56875
+      },
+      {
+       "accepted": false,
+       "from": 0.5625,
+       "row": "plateIdentity",
+       "score": 1.2633,
+       "sweep": 4,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.24693,
+       "sweep": 4,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.24864,
+       "sweep": 4,
+       "to": 0.54375
+      },
+      {
+       "accepted": false,
+       "from": 0.045,
+       "row": "weatheringRed",
+       "score": 1.24696,
+       "sweep": 4,
+       "to": 0.05
+      },
+      {
+       "accepted": false,
+       "from": 0.045,
+       "row": "weatheringRed",
+       "score": 1.25031,
+       "sweep": 4,
+       "to": 0.04
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.24692,
+       "sweep": 4,
+       "to": 0.05125
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.24863,
+       "sweep": 4,
+       "to": 0.04875
+      },
+      {
+       "accepted": false,
+       "from": 0.032,
+       "row": "weatheringBlue",
+       "score": 1.25453,
+       "sweep": 4,
+       "to": 0.037
+      },
+      {
+       "accepted": false,
+       "from": 0.032,
+       "row": "weatheringBlue",
+       "score": 1.24863,
+       "sweep": 4,
+       "to": 0.027
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.26361,
+       "sweep": 4,
+       "to": 0.40625
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.24696,
+       "sweep": 4,
+       "to": 0.39375
+      },
+      {
+       "accepted": false,
+       "from": -0.0245,
+       "row": "orientationRed",
+       "score": 1.24709,
+       "sweep": 4,
+       "to": -0.02325
+      },
+      {
+       "accepted": false,
+       "from": -0.0245,
+       "row": "orientationRed",
+       "score": 1.2502,
+       "sweep": 4,
+       "to": -0.02575
+      },
+      {
+       "accepted": false,
+       "from": 0.029,
+       "row": "orientationGreen",
+       "score": 1.2649,
+       "sweep": 4,
+       "to": 0.03025
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.479,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16718,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65723,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62385,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.029,
+       "row": "orientationGreen",
+       "score": 1.24676,
+       "sweep": 4,
+       "to": 0.02775,
+       "vector": {
+        "area_variation": 0.7632,
+        "dark_fraction": 0.16963,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.27858,
+        "junction_arms": 3.42105,
+        "orientation_entropy": 0.97954
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.02775,
+       "row": "orientationGreen",
+       "score": 1.24849,
+       "sweep": 4,
+       "to": 0.0265
+      },
+      {
+       "accepted": false,
+       "from": -0.006,
+       "row": "orientationBlue",
+       "score": 1.24791,
+       "sweep": 4,
+       "to": -0.0035
+      },
+      {
+       "accepted": false,
+       "from": -0.006,
+       "row": "orientationBlue",
+       "score": 1.24852,
+       "sweep": 4,
+       "to": -0.0085
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.24676,
+       "sweep": 4,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.24676,
+       "sweep": 4,
+       "to": 0.54375
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.26655,
+       "sweep": 4,
+       "to": 0.60625
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.28347,
+       "sweep": 4,
+       "to": 0.59375
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.42104,
+       "sweep": 5,
+       "to": 0.10875
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.40054,
+       "sweep": 5,
+       "to": 0.10725
+      },
+      {
+       "accepted": false,
+       "from": 2.025,
+       "row": "plateElongation",
+       "score": 1.31673,
+       "sweep": 5,
+       "to": 2.04375
+      },
+      {
+       "accepted": false,
+       "from": 2.025,
+       "row": "plateElongation",
+       "score": 1.33369,
+       "sweep": 5,
+       "to": 2.00625
+      },
+      {
+       "accepted": false,
+       "from": 0.4875,
+       "row": "plateDome",
+       "score": 1.25485,
+       "sweep": 5,
+       "to": 0.49375
+      },
+      {
+       "accepted": false,
+       "from": 0.4875,
+       "row": "plateDome",
+       "score": 1.2887,
+       "sweep": 5,
+       "to": 0.48125
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.27831,
+       "sweep": 5,
+       "to": 0.32625
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.29168,
+       "sweep": 5,
+       "to": 0.31375
+      },
+      {
+       "accepted": false,
+       "from": 0.5625,
+       "row": "plateIdentity",
+       "score": 1.25183,
+       "sweep": 5,
+       "to": 0.56875
+      },
+      {
+       "accepted": false,
+       "from": 0.5625,
+       "row": "plateIdentity",
+       "score": 1.2558,
+       "sweep": 5,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.24677,
+       "sweep": 5,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.24852,
+       "sweep": 5,
+       "to": 0.54375
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47857,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16818,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65545,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62404,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.045,
+       "row": "weatheringRed",
+       "score": 1.24676,
+       "sweep": 5,
+       "to": 0.0475,
+       "vector": {
+        "area_variation": 0.7632,
+        "dark_fraction": 0.16961,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.27858,
+        "junction_arms": 3.42105,
+        "orientation_entropy": 0.97951
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.0475,
+       "row": "weatheringRed",
+       "score": 1.2468,
+       "sweep": 5,
+       "to": 0.05
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.24681,
+       "sweep": 5,
+       "to": 0.05125
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.24852,
+       "sweep": 5,
+       "to": 0.04875
+      },
+      {
+       "accepted": false,
+       "from": 0.032,
+       "row": "weatheringBlue",
+       "score": 1.24676,
+       "sweep": 5,
+       "to": 0.0345
+      },
+      {
+       "accepted": false,
+       "from": 0.032,
+       "row": "weatheringBlue",
+       "score": 1.24852,
+       "sweep": 5,
+       "to": 0.0295
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.25023,
+       "sweep": 5,
+       "to": 0.40625
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.24856,
+       "sweep": 5,
+       "to": 0.39375
+      },
+      {
+       "accepted": false,
+       "from": -0.0245,
+       "row": "orientationRed",
+       "score": 1.24693,
+       "sweep": 5,
+       "to": -0.02325
+      },
+      {
+       "accepted": false,
+       "from": -0.0245,
+       "row": "orientationRed",
+       "score": 1.25009,
+       "sweep": 5,
+       "to": -0.02575
+      },
+      {
+       "accepted": false,
+       "from": 0.02775,
+       "row": "orientationGreen",
+       "score": 1.24692,
+       "sweep": 5,
+       "to": 0.029
+      },
+      {
+       "accepted": false,
+       "from": 0.02775,
+       "row": "orientationGreen",
+       "score": 1.24848,
+       "sweep": 5,
+       "to": 0.0265
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.4788,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16941,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65653,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62329,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": -0.006,
+       "row": "orientationBlue",
+       "score": 1.24673,
+       "sweep": 5,
+       "to": -0.00475,
+       "vector": {
+        "area_variation": 0.7632,
+        "dark_fraction": 0.1696,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.25879,
+        "junction_arms": 3.42105,
+        "orientation_entropy": 0.97952
+       }
+      },
+      {
+       "accepted": false,
+       "from": -0.00475,
+       "row": "orientationBlue",
+       "score": 1.24792,
+       "sweep": 5,
+       "to": -0.0035
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.24673,
+       "sweep": 5,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 1.24673,
+       "sweep": 5,
+       "to": 0.54375
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.26503,
+       "sweep": 5,
+       "to": 0.60625
+      },
+      {
+       "accepted": false,
+       "from": 0.6,
+       "row": "depthStrength",
+       "score": 1.28766,
+       "sweep": 5,
+       "to": 0.59375
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.4211,
+       "sweep": 6,
+       "to": 0.10875
+      },
+      {
+       "accepted": false,
+       "from": 0.108,
+       "row": "plateCellScale",
+       "score": 2.39935,
+       "sweep": 6,
+       "to": 0.10725
+      },
+      {
+       "accepted": false,
+       "from": 2.025,
+       "row": "plateElongation",
+       "score": 1.30741,
+       "sweep": 6,
+       "to": 2.04375
+      },
+      {
+       "accepted": false,
+       "from": 2.025,
+       "row": "plateElongation",
+       "score": 1.33369,
+       "sweep": 6,
+       "to": 2.00625
+      },
+      {
+       "accepted": false,
+       "from": 0.4875,
+       "row": "plateDome",
+       "score": 1.25485,
+       "sweep": 6,
+       "to": 0.49375
+      },
+      {
+       "accepted": false,
+       "from": 0.4875,
+       "row": "plateDome",
+       "score": 1.26076,
+       "sweep": 6,
+       "to": 0.48125
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.2783,
+       "sweep": 6,
+       "to": 0.32625
+      },
+      {
+       "accepted": false,
+       "from": 0.32,
+       "row": "plateEdgeLift",
+       "score": 1.26388,
+       "sweep": 6,
+       "to": 0.31375
+      },
+      {
+       "accepted": false,
+       "from": 0.5625,
+       "row": "plateIdentity",
+       "score": 1.25009,
+       "sweep": 6,
+       "to": 0.56875
+      },
+      {
+       "accepted": false,
+       "from": 0.5625,
+       "row": "plateIdentity",
+       "score": 1.25697,
+       "sweep": 6,
+       "to": 0.55625
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47856,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16915,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65602,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62407,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.55,
+       "row": "weatheringStrength",
+       "score": 1.24671,
+       "sweep": 6,
+       "to": 0.55625,
+       "vector": {
+        "area_variation": 0.7632,
+        "dark_fraction": 0.16959,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.25879,
+        "junction_arms": 3.42105,
+        "orientation_entropy": 0.97949
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.55625,
+       "row": "weatheringStrength",
+       "score": 1.24677,
+       "sweep": 6,
+       "to": 0.5625
+      },
+      {
+       "accepted": false,
+       "from": 0.0475,
+       "row": "weatheringRed",
+       "score": 1.24676,
+       "sweep": 6,
+       "to": 0.05
+      },
+      {
+       "accepted": false,
+       "from": 0.0475,
+       "row": "weatheringRed",
+       "score": 1.24673,
+       "sweep": 6,
+       "to": 0.045
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.24677,
+       "sweep": 6,
+       "to": 0.05125
+      },
+      {
+       "accepted": false,
+       "from": 0.05,
+       "row": "weatheringGreen",
+       "score": 1.24847,
+       "sweep": 6,
+       "to": 0.04875
+      },
+      {
+       "accepted": false,
+       "from": 0.032,
+       "row": "weatheringBlue",
+       "score": 1.24672,
+       "sweep": 6,
+       "to": 0.03325
+      },
+      {
+       "accepted": false,
+       "from": 0.032,
+       "row": "weatheringBlue",
+       "score": 1.24671,
+       "sweep": 6,
+       "to": 0.03075
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.25023,
+       "sweep": 6,
+       "to": 0.40625
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "orientationStrength",
+       "score": 1.24675,
+       "sweep": 6,
+       "to": 0.39375
+      },
+      {
+       "accepted": false,
+       "from": -0.0245,
+       "row": "orientationRed",
+       "score": 1.2469,
+       "sweep": 6,
+       "to": -0.02325
+      },
+      {
+       "accepted": false,
+       "from": -0.0245,
+       "row": "orientationRed",
+       "score": 1.25004,
+       "sweep": 6,
+       "to": -0.02575
+      },
+      {
+       "accepted": false,
+       "from": 0.02775,
+       "row": "orientationGreen",
+       "score": 1.24687,
+       "sweep": 6,
+       "to": 0.029
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 1.47867,
+         "p95": 5.75,
+         "redrew": true
+        },
+        {
+         "case": "distance-2x",
+         "mean": 2.16987,
+         "p95": 7.25,
+         "redrew": true
+        },
+        {
+         "case": "distance-4x",
+         "mean": 2.65613,
+         "p95": 8.25,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.62464,
+         "p95": 8.5,
+         "redrew": true
+        }
+       ],
+       "from": 0.02775,
+       "row": "orientationGreen",
+       "score": 1.24668,
+       "sweep": 6,
+       "to": 0.0265,
+       "vector": {
+        "area_variation": 0.7632,
+        "dark_fraction": 0.16965,
+        "furrow_curvature": 2.41215,
+        "furrow_period": 56.25879,
+        "junction_arms": 3.42105,
+        "orientation_entropy": 0.97946
+       }
+      }
+     ]
+    },
+    "spruce": {
+     "final": {
+      "checks": [
+       {
+        "case": "trunk",
+        "mean": 0.0,
+        "p95": 0.0,
+        "redrew": true
+       },
+       {
+        "case": "grazing",
+        "mean": 2.49975,
+        "p95": 7.0,
+        "redrew": true
+       }
+      ],
+      "score": 0.22131,
+      "values": {
+       "depthStrength": 0.45,
+       "directionalOcclusion": 0.55,
+       "orientationBlue": -0.00925,
+       "orientationGreen": 0.0285,
+       "orientationRed": -0.014,
+       "orientationStrength": 0.45,
+       "plateCellScale": 0.028,
+       "plateDome": 0.35,
+       "plateEdgeLift": 0.5,
+       "plateElongation": 0.35,
+       "plateIdentity": 0.40625,
+       "weatheringBlue": 0.016,
+       "weatheringGreen": 0.025,
+       "weatheringRed": 0.035,
+       "weatheringStrength": 0.7
+      },
+      "vector": {
+       "area_variation": 1.49972,
+       "dark_fraction": 0.26431,
+       "furrow_curvature": 2.62057,
+       "furrow_period": 13.33556,
+       "junction_arms": 3.70638,
+       "orientation_entropy": 0.96269
+      }
+     },
+     "references": [
+      {
+       "area_variation": 1.48374,
+       "dark_fraction": 0.21302,
+       "furrow_curvature": 2.73079,
+       "furrow_period": 13.13413,
+       "junction_arms": 3.91437,
+       "orientation_entropy": 0.97238
+      }
+     ],
+     "species": "spruce",
+     "start": {
+      "score": 0.7764,
+      "values": {
+       "depthStrength": 0.45,
+       "directionalOcclusion": 0.55,
+       "orientationBlue": -0.008,
+       "orientationGreen": 0.026,
+       "orientationRed": -0.014,
+       "orientationStrength": 0.45,
+       "plateCellScale": 0.022,
+       "plateDome": 0.35,
+       "plateEdgeLift": 0.5,
+       "plateElongation": 0.2,
+       "plateIdentity": 0.4,
+       "weatheringBlue": 0.016,
+       "weatheringGreen": 0.025,
+       "weatheringRed": 0.035,
+       "weatheringStrength": 0.7
+      },
+      "vector": {
+       "area_variation": 0.68475,
+       "dark_fraction": 0.24388,
+       "furrow_curvature": 3.09185,
+       "furrow_period": 12.65122,
+       "junction_arms": 3.66387,
+       "orientation_entropy": 0.96338
+      }
+     },
+     "stopped": "plateau",
+     "sweeps": 6,
+     "target": {
+      "area_variation": 1.48374,
+      "dark_fraction": 0.21302,
+      "furrow_curvature": 2.73079,
+      "furrow_period": 13.13413,
+      "junction_arms": 3.91437,
+      "orientation_entropy": 0.97238
+     },
+     "trials": [
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 0.0,
+         "p95": 0.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.49916,
+         "p95": 7.0,
+         "redrew": true
+        }
+       ],
+       "from": 0.022,
+       "row": "plateCellScale",
+       "score": 0.27599,
+       "sweep": 0,
+       "to": 0.028,
+       "vector": {
+        "area_variation": 1.58513,
+        "dark_fraction": 0.26699,
+        "furrow_curvature": 2.64021,
+        "furrow_period": 13.43071,
+        "junction_arms": 3.62448,
+        "orientation_entropy": 0.95797
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.31349,
+       "sweep": 0,
+       "to": 0.034
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 0.0,
+         "p95": 0.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.49792,
+         "p95": 7.0,
+         "redrew": true
+        }
+       ],
+       "from": 0.2,
+       "row": "plateElongation",
+       "score": 0.2435,
+       "sweep": 0,
+       "to": 0.35,
+       "vector": {
+        "area_variation": 1.46197,
+        "dark_fraction": 0.26534,
+        "furrow_curvature": 2.58741,
+        "furrow_period": 13.33111,
+        "junction_arms": 3.71064,
+        "orientation_entropy": 0.96275
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.62372,
+       "sweep": 0,
+       "to": 0.5
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.43971,
+       "sweep": 0,
+       "to": 0.4
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.30099,
+       "sweep": 0,
+       "to": 0.3
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.44216,
+       "sweep": 0,
+       "to": 0.55
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.29154,
+       "sweep": 0,
+       "to": 0.45
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "plateIdentity",
+       "score": 0.36629,
+       "sweep": 0,
+       "to": 0.45
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "plateIdentity",
+       "score": 0.30742,
+       "sweep": 0,
+       "to": 0.35
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.30023,
+       "sweep": 0,
+       "to": 0.75
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.31492,
+       "sweep": 0,
+       "to": 0.65
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.28041,
+       "sweep": 0,
+       "to": 0.045
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.29275,
+       "sweep": 0,
+       "to": 0.025
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.3062,
+       "sweep": 0,
+       "to": 0.035
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.34506,
+       "sweep": 0,
+       "to": 0.015
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.25996,
+       "sweep": 0,
+       "to": 0.026
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.3005,
+       "sweep": 0,
+       "to": 0.006
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.26659,
+       "sweep": 0,
+       "to": 0.5
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.43277,
+       "sweep": 0,
+       "to": 0.4
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.32338,
+       "sweep": 0,
+       "to": -0.004
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.2765,
+       "sweep": 0,
+       "to": -0.024
+      },
+      {
+       "accepted": false,
+       "from": 0.026,
+       "row": "orientationGreen",
+       "score": 0.31693,
+       "sweep": 0,
+       "to": 0.036
+      },
+      {
+       "accepted": false,
+       "from": 0.026,
+       "row": "orientationGreen",
+       "score": 0.4679,
+       "sweep": 0,
+       "to": 0.016
+      },
+      {
+       "accepted": false,
+       "from": -0.008,
+       "row": "orientationBlue",
+       "score": 0.25687,
+       "sweep": 0,
+       "to": 0.002
+      },
+      {
+       "accepted": false,
+       "from": -0.008,
+       "row": "orientationBlue",
+       "score": 0.30436,
+       "sweep": 0,
+       "to": -0.018
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.2435,
+       "sweep": 0,
+       "to": 0.6
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.2435,
+       "sweep": 0,
+       "to": 0.5
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.57109,
+       "sweep": 0,
+       "to": 0.5
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.4692,
+       "sweep": 0,
+       "to": 0.4
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.58765,
+       "sweep": 1,
+       "to": 0.034
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.91318,
+       "sweep": 1,
+       "to": 0.022
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.62372,
+       "sweep": 1,
+       "to": 0.5
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.27599,
+       "sweep": 1,
+       "to": 0.2
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.44739,
+       "sweep": 1,
+       "to": 0.375
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.2804,
+       "sweep": 1,
+       "to": 0.325
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.42602,
+       "sweep": 1,
+       "to": 0.525
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.34082,
+       "sweep": 1,
+       "to": 0.475
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "plateIdentity",
+       "score": 0.2838,
+       "sweep": 1,
+       "to": 0.425
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "plateIdentity",
+       "score": 0.40007,
+       "sweep": 1,
+       "to": 0.375
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.25386,
+       "sweep": 1,
+       "to": 0.725
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.30511,
+       "sweep": 1,
+       "to": 0.675
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.2792,
+       "sweep": 1,
+       "to": 0.04
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.30023,
+       "sweep": 1,
+       "to": 0.03
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.27477,
+       "sweep": 1,
+       "to": 0.03
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.30852,
+       "sweep": 1,
+       "to": 0.02
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.25546,
+       "sweep": 1,
+       "to": 0.021
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.2764,
+       "sweep": 1,
+       "to": 0.011
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.24956,
+       "sweep": 1,
+       "to": 0.475
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.41151,
+       "sweep": 1,
+       "to": 0.425
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.32094,
+       "sweep": 1,
+       "to": -0.009
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.28087,
+       "sweep": 1,
+       "to": -0.019
+      },
+      {
+       "accepted": false,
+       "from": 0.026,
+       "row": "orientationGreen",
+       "score": 0.26614,
+       "sweep": 1,
+       "to": 0.031
+      },
+      {
+       "accepted": false,
+       "from": 0.026,
+       "row": "orientationGreen",
+       "score": 0.44077,
+       "sweep": 1,
+       "to": 0.021
+      },
+      {
+       "accepted": false,
+       "from": -0.008,
+       "row": "orientationBlue",
+       "score": 0.2454,
+       "sweep": 1,
+       "to": -0.003
+      },
+      {
+       "accepted": false,
+       "from": -0.008,
+       "row": "orientationBlue",
+       "score": 0.27362,
+       "sweep": 1,
+       "to": -0.013
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.2435,
+       "sweep": 1,
+       "to": 0.575
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.2435,
+       "sweep": 1,
+       "to": 0.525
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.28558,
+       "sweep": 1,
+       "to": 0.475
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.37351,
+       "sweep": 1,
+       "to": 0.425
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.50675,
+       "sweep": 2,
+       "to": 0.031
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.63037,
+       "sweep": 2,
+       "to": 0.025
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.69113,
+       "sweep": 2,
+       "to": 0.425
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.6297,
+       "sweep": 2,
+       "to": 0.275
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.27766,
+       "sweep": 2,
+       "to": 0.3625
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.30157,
+       "sweep": 2,
+       "to": 0.3375
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.41412,
+       "sweep": 2,
+       "to": 0.5125
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.34974,
+       "sweep": 2,
+       "to": 0.4875
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "plateIdentity",
+       "score": 0.27891,
+       "sweep": 2,
+       "to": 0.4125
+      },
+      {
+       "accepted": false,
+       "from": 0.4,
+       "row": "plateIdentity",
+       "score": 0.42493,
+       "sweep": 2,
+       "to": 0.3875
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.24931,
+       "sweep": 2,
+       "to": 0.7125
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.27413,
+       "sweep": 2,
+       "to": 0.6875
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.27827,
+       "sweep": 2,
+       "to": 0.0375
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.27967,
+       "sweep": 2,
+       "to": 0.0325
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.25651,
+       "sweep": 2,
+       "to": 0.0275
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.30162,
+       "sweep": 2,
+       "to": 0.0225
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.25217,
+       "sweep": 2,
+       "to": 0.0185
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.27109,
+       "sweep": 2,
+       "to": 0.0135
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.24741,
+       "sweep": 2,
+       "to": 0.4625
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.28565,
+       "sweep": 2,
+       "to": 0.4375
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.3247,
+       "sweep": 2,
+       "to": -0.0115
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.27698,
+       "sweep": 2,
+       "to": -0.0165
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 0.0,
+         "p95": 0.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.49541,
+         "p95": 7.0,
+         "redrew": true
+        }
+       ],
+       "from": 0.026,
+       "row": "orientationGreen",
+       "score": 0.23721,
+       "sweep": 2,
+       "to": 0.0285,
+       "vector": {
+        "area_variation": 1.49034,
+        "dark_fraction": 0.2642,
+        "furrow_curvature": 2.60079,
+        "furrow_period": 13.34445,
+        "junction_arms": 3.70042,
+        "orientation_entropy": 0.96267
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.0285,
+       "row": "orientationGreen",
+       "score": 0.26614,
+       "sweep": 2,
+       "to": 0.031
+      },
+      {
+       "accepted": false,
+       "from": -0.008,
+       "row": "orientationBlue",
+       "score": 0.23806,
+       "sweep": 2,
+       "to": -0.0055
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 0.0,
+         "p95": 0.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.49443,
+         "p95": 7.0,
+         "redrew": true
+        }
+       ],
+       "from": -0.008,
+       "row": "orientationBlue",
+       "score": 0.23675,
+       "sweep": 2,
+       "to": -0.0105,
+       "vector": {
+        "area_variation": 1.49098,
+        "dark_fraction": 0.26426,
+        "furrow_curvature": 2.6015,
+        "furrow_period": 13.34334,
+        "junction_arms": 3.70042,
+        "orientation_entropy": 0.96268
+       }
+      },
+      {
+       "accepted": false,
+       "from": -0.0105,
+       "row": "orientationBlue",
+       "score": 0.25244,
+       "sweep": 2,
+       "to": -0.013
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.23675,
+       "sweep": 2,
+       "to": 0.5625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.23675,
+       "sweep": 2,
+       "to": 0.5375
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.28952,
+       "sweep": 2,
+       "to": 0.4625
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.28091,
+       "sweep": 2,
+       "to": 0.4375
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.55666,
+       "sweep": 3,
+       "to": 0.0295
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.58483,
+       "sweep": 3,
+       "to": 0.0265
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.4939,
+       "sweep": 3,
+       "to": 0.3875
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.51938,
+       "sweep": 3,
+       "to": 0.3125
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.26827,
+       "sweep": 3,
+       "to": 0.35625
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.27151,
+       "sweep": 3,
+       "to": 0.34375
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.27539,
+       "sweep": 3,
+       "to": 0.50625
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.32235,
+       "sweep": 3,
+       "to": 0.49375
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 0.0,
+         "p95": 0.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.49921,
+         "p95": 7.0,
+         "redrew": true
+        }
+       ],
+       "from": 0.4,
+       "row": "plateIdentity",
+       "score": 0.22168,
+       "sweep": 3,
+       "to": 0.40625,
+       "vector": {
+        "area_variation": 1.50002,
+        "dark_fraction": 0.26435,
+        "furrow_curvature": 2.62007,
+        "furrow_period": 13.33556,
+        "junction_arms": 3.70638,
+        "orientation_entropy": 0.96269
+       }
+      },
+      {
+       "accepted": false,
+       "from": 0.40625,
+       "row": "plateIdentity",
+       "score": 0.26452,
+       "sweep": 3,
+       "to": 0.4125
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.24538,
+       "sweep": 3,
+       "to": 0.70625
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.25775,
+       "sweep": 3,
+       "to": 0.69375
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.26447,
+       "sweep": 3,
+       "to": 0.03625
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.24124,
+       "sweep": 3,
+       "to": 0.03375
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.24342,
+       "sweep": 3,
+       "to": 0.02625
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.23488,
+       "sweep": 3,
+       "to": 0.02375
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.22278,
+       "sweep": 3,
+       "to": 0.01725
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.24148,
+       "sweep": 3,
+       "to": 0.01475
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.24589,
+       "sweep": 3,
+       "to": 0.45625
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.23023,
+       "sweep": 3,
+       "to": 0.44375
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.26293,
+       "sweep": 3,
+       "to": -0.01275
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.24237,
+       "sweep": 3,
+       "to": -0.01525
+      },
+      {
+       "accepted": false,
+       "from": 0.0285,
+       "row": "orientationGreen",
+       "score": 0.25656,
+       "sweep": 3,
+       "to": 0.031
+      },
+      {
+       "accepted": false,
+       "from": 0.0285,
+       "row": "orientationGreen",
+       "score": 0.24876,
+       "sweep": 3,
+       "to": 0.026
+      },
+      {
+       "accepted": false,
+       "from": -0.0105,
+       "row": "orientationBlue",
+       "score": 0.22275,
+       "sweep": 3,
+       "to": -0.008
+      },
+      {
+       "accepted": false,
+       "from": -0.0105,
+       "row": "orientationBlue",
+       "score": 0.23843,
+       "sweep": 3,
+       "to": -0.013
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.22168,
+       "sweep": 3,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.22168,
+       "sweep": 3,
+       "to": 0.54375
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.28365,
+       "sweep": 3,
+       "to": 0.45625
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.24389,
+       "sweep": 3,
+       "to": 0.44375
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.23805,
+       "sweep": 4,
+       "to": 0.02875
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.44341,
+       "sweep": 4,
+       "to": 0.02725
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.39062,
+       "sweep": 4,
+       "to": 0.36875
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.618,
+       "sweep": 4,
+       "to": 0.33125
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.25746,
+       "sweep": 4,
+       "to": 0.35625
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.25831,
+       "sweep": 4,
+       "to": 0.34375
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.25023,
+       "sweep": 4,
+       "to": 0.50625
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.27227,
+       "sweep": 4,
+       "to": 0.49375
+      },
+      {
+       "accepted": false,
+       "from": 0.40625,
+       "row": "plateIdentity",
+       "score": 0.26452,
+       "sweep": 4,
+       "to": 0.4125
+      },
+      {
+       "accepted": false,
+       "from": 0.40625,
+       "row": "plateIdentity",
+       "score": 0.23675,
+       "sweep": 4,
+       "to": 0.4
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.24538,
+       "sweep": 4,
+       "to": 0.70625
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.25775,
+       "sweep": 4,
+       "to": 0.69375
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.26447,
+       "sweep": 4,
+       "to": 0.03625
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.24124,
+       "sweep": 4,
+       "to": 0.03375
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.24342,
+       "sweep": 4,
+       "to": 0.02625
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.23488,
+       "sweep": 4,
+       "to": 0.02375
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.22278,
+       "sweep": 4,
+       "to": 0.01725
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.24148,
+       "sweep": 4,
+       "to": 0.01475
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.24589,
+       "sweep": 4,
+       "to": 0.45625
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.23023,
+       "sweep": 4,
+       "to": 0.44375
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.26293,
+       "sweep": 4,
+       "to": -0.01275
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.24237,
+       "sweep": 4,
+       "to": -0.01525
+      },
+      {
+       "accepted": false,
+       "from": 0.0285,
+       "row": "orientationGreen",
+       "score": 0.2476,
+       "sweep": 4,
+       "to": 0.02975
+      },
+      {
+       "accepted": false,
+       "from": 0.0285,
+       "row": "orientationGreen",
+       "score": 0.25323,
+       "sweep": 4,
+       "to": 0.02725
+      },
+      {
+       "accepted": true,
+       "checks": [
+        {
+         "case": "trunk",
+         "mean": 0.0,
+         "p95": 0.0,
+         "redrew": true
+        },
+        {
+         "case": "grazing",
+         "mean": 2.49975,
+         "p95": 7.0,
+         "redrew": true
+        }
+       ],
+       "from": -0.0105,
+       "row": "orientationBlue",
+       "score": 0.22131,
+       "sweep": 4,
+       "to": -0.00925,
+       "vector": {
+        "area_variation": 1.49972,
+        "dark_fraction": 0.26431,
+        "furrow_curvature": 2.62057,
+        "furrow_period": 13.33556,
+        "junction_arms": 3.70638,
+        "orientation_entropy": 0.96269
+       }
+      },
+      {
+       "accepted": false,
+       "from": -0.00925,
+       "row": "orientationBlue",
+       "score": 0.22275,
+       "sweep": 4,
+       "to": -0.008
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.22131,
+       "sweep": 4,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.22131,
+       "sweep": 4,
+       "to": 0.54375
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.28424,
+       "sweep": 4,
+       "to": 0.45625
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.24906,
+       "sweep": 4,
+       "to": 0.44375
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.23608,
+       "sweep": 5,
+       "to": 0.02875
+      },
+      {
+       "accepted": false,
+       "from": 0.028,
+       "row": "plateCellScale",
+       "score": 0.44458,
+       "sweep": 5,
+       "to": 0.02725
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.39157,
+       "sweep": 5,
+       "to": 0.36875
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateElongation",
+       "score": 0.61868,
+       "sweep": 5,
+       "to": 0.33125
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.25646,
+       "sweep": 5,
+       "to": 0.35625
+      },
+      {
+       "accepted": false,
+       "from": 0.35,
+       "row": "plateDome",
+       "score": 0.25951,
+       "sweep": 5,
+       "to": 0.34375
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.25031,
+       "sweep": 5,
+       "to": 0.50625
+      },
+      {
+       "accepted": false,
+       "from": 0.5,
+       "row": "plateEdgeLift",
+       "score": 0.27263,
+       "sweep": 5,
+       "to": 0.49375
+      },
+      {
+       "accepted": false,
+       "from": 0.40625,
+       "row": "plateIdentity",
+       "score": 0.26414,
+       "sweep": 5,
+       "to": 0.4125
+      },
+      {
+       "accepted": false,
+       "from": 0.40625,
+       "row": "plateIdentity",
+       "score": 0.23724,
+       "sweep": 5,
+       "to": 0.4
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.24685,
+       "sweep": 5,
+       "to": 0.70625
+      },
+      {
+       "accepted": false,
+       "from": 0.7,
+       "row": "weatheringStrength",
+       "score": 0.2337,
+       "sweep": 5,
+       "to": 0.69375
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.26495,
+       "sweep": 5,
+       "to": 0.03625
+      },
+      {
+       "accepted": false,
+       "from": 0.035,
+       "row": "weatheringRed",
+       "score": 0.24088,
+       "sweep": 5,
+       "to": 0.03375
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.24477,
+       "sweep": 5,
+       "to": 0.02625
+      },
+      {
+       "accepted": false,
+       "from": 0.025,
+       "row": "weatheringGreen",
+       "score": 0.23344,
+       "sweep": 5,
+       "to": 0.02375
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.22279,
+       "sweep": 5,
+       "to": 0.01725
+      },
+      {
+       "accepted": false,
+       "from": 0.016,
+       "row": "weatheringBlue",
+       "score": 0.23757,
+       "sweep": 5,
+       "to": 0.01475
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.24556,
+       "sweep": 5,
+       "to": 0.45625
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "orientationStrength",
+       "score": 0.23115,
+       "sweep": 5,
+       "to": 0.44375
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.2689,
+       "sweep": 5,
+       "to": -0.01275
+      },
+      {
+       "accepted": false,
+       "from": -0.014,
+       "row": "orientationRed",
+       "score": 0.242,
+       "sweep": 5,
+       "to": -0.01525
+      },
+      {
+       "accepted": false,
+       "from": 0.0285,
+       "row": "orientationGreen",
+       "score": 0.24908,
+       "sweep": 5,
+       "to": 0.02975
+      },
+      {
+       "accepted": false,
+       "from": 0.0285,
+       "row": "orientationGreen",
+       "score": 0.25162,
+       "sweep": 5,
+       "to": 0.02725
+      },
+      {
+       "accepted": false,
+       "from": -0.00925,
+       "row": "orientationBlue",
+       "score": 0.22275,
+       "sweep": 5,
+       "to": -0.008
+      },
+      {
+       "accepted": false,
+       "from": -0.00925,
+       "row": "orientationBlue",
+       "score": 0.22168,
+       "sweep": 5,
+       "to": -0.0105
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.22131,
+       "sweep": 5,
+       "to": 0.55625
+      },
+      {
+       "accepted": false,
+       "from": 0.55,
+       "row": "directionalOcclusion",
+       "score": 0.22131,
+       "sweep": 5,
+       "to": 0.54375
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.28424,
+       "sweep": 5,
+       "to": 0.45625
+      },
+      {
+       "accepted": false,
+       "from": 0.45,
+       "row": "depthStrength",
+       "score": 0.24906,
+       "sweep": 5,
+       "to": 0.44375
+      }
+     ]
+    }
+   }
+  }
+ ]
+}
