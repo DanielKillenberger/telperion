@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-32-bark-as-plates-and-scales.md",
-  "status": "open",
+  "status": "done",
   "title": "Bark as plates and scales",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-14T12:41:42.150464Z"
+  "updated_at": "2026-09-14T22:25:22.608728Z"
 }
