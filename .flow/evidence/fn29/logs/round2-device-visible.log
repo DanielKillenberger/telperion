@@ -1,0 +1,334 @@
+    Finished `release` profile [optimized] target(s) in 0.05s
+     Running unittests src/lib.rs (target/release/deps/telperion_render-6c49c0670d23552d)
+
+running 40 tests
+test buffer::tests::an_allocation_carries_headroom_above_what_it_holds ... ok
+test buffer::tests::a_second_smaller_submit_reuses_the_allocation ... ok
+test buffer::tests::a_submit_that_outgrows_the_headroom_allocates_again ... ok
+test camera::tests::a_walk_keeps_the_subject_and_the_stand_off_between_its_ends ... ok
+test buffer::tests::an_empty_tree_asks_for_nothing ... ok
+test camera::tests::a_walk_stands_at_a_hero_pose_at_each_of_its_ends ... ok
+test camera::tests::a_whole_sweep_comes_back_to_the_pose_it_left ... ok
+test camera::tests::a_sweep_turns_the_eye_about_the_subject_and_keeps_its_height ... ok
+test camera::tests::an_orbit_keeps_the_hero_height_and_the_hero_distance ... ok
+test camera::tests::the_camera_never_stands_underground ... ok
+test camera::tests::the_far_plane_clears_the_ground_disc ... ok
+test device::tests::a_generator_rejection_keeps_its_own_words ... ok
+test camera::tests::a_subject_smaller_than_a_person_still_fills_its_frame ... ok
+test device::tests::every_condition_names_itself ... ok
+test foliage::tests::a_leaf_carries_a_normal_off_its_own_face ... ok
+test foliage::tests::an_element_at_the_origin_bounds_itself ... ok
+test headless::tests::a_still_of_one_colour_has_no_subject ... ok
+test camera::tests::the_margin_is_the_only_air_around_the_crown ... ok
+test headless::tests::an_unwritable_path_names_itself ... ok
+test camera::tests::the_whole_crown_sits_inside_the_frame ... ok
+test scene::room::tests::the_disc_is_wound_one_way_and_covers_its_whole_circle ... ok
+test pass::tests::a_target_that_will_not_multisample_takes_the_whole_frame_down_to_one_sample ... ok
+test scene::room::tests::the_figure_stands_one_point_eight_metres_tall_on_the_ground ... ok
+test scene::row::tests::the_default_is_a_row_the_renderer_will_have ... ok
+test scene::row::tests::a_row_the_renderer_will_not_have_says_what_was_wrong_with_it ... ok
+test scene::tests::sky_and_ground_light_bracket_the_hemisphere_term ... ok
+test scene::row::tests::the_row_survives_its_own_json_in_both_directions ... ok
+test select::frame::tests::a_leaf_stands_in_a_sphere_that_holds_all_of_it ... ok
+test select::frame::tests::a_metre_spans_the_frame_it_fills ... ok
+test select::frame::tests::the_frustum_holds_what_the_camera_frames_and_nothing_behind_it ... ok
+test select::frame::tests::the_planes_measure_in_metres ... ok
+test select::tests::every_level_is_given_a_list_the_whole_crown_could_fill ... ok
+test shadow::fit::tests::a_lower_sun_is_given_a_longer_map_and_a_sun_on_the_horizon_is_not ... ok
+test shadow::fit::tests::the_map_holds_the_subject_and_the_shadow_it_throws ... ok
+test shadow::fit::tests::the_sun_stands_where_its_two_angles_put_it ... ok
+test submit::tests::the_crown_is_the_box_the_placements_fill_and_nothing_when_there_are_none ... ok
+test view::tests::every_name_the_usage_line_offers_resolves_and_nothing_else_does ... ok
+test wood::radius::tests::translated_tapered_rings_keep_their_metric_radius_and_caps_are_smooth ... ok
+test shadow::kernel_test::kernel_averages_comparisons_and_offsets_the_receiver ... ok
+test select::tests::compaction_preserves_placement_order_at_every_level ... ok
+
+test result: ok. 40 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+     Running tests/bark_detail.rs (target/release/deps/bark_detail-d8efdb6a4777ed50)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+R1 wood hash: off=16822752187927960657, on=16822752187927960657
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285940846004/0.0008364669686153772
+distance 2x resolution: mean 1.958775/255, p95 4.75/255
+distance 4x resolution: mean 1.908467/255, p95 5.25/255
+test resolved_scales_survive_until_the_two_pixel_boundary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.53s
+
+     Running tests/bark_field.rs (target/release/deps/bark_field-59a9e4e17f1f1664)
+
+running 1 test
+wrap samples: [2.802042e-6, 2.8308161e-6, 0.0, 0.0]
+ridge peaks around 0.4/0.8 m radii: 84/146
+test surface_lengths_young_wood_wrap_and_plate_drift ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/bark_filter.rs (target/release/deps/bark_filter-99fd5e4d26068f61)
+
+running 1 test
+height deviations: resolved / unresolved arc / unresolved axial / closed furrows [0.0006450471648108468, 0.0, 0.0, 0.00024484945713205324]
+test either_unresolved_axis_removes_relief_and_furrows_can_close ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+trunk redraw worst 0/255
+trunk resolution agreement: mean 0.925530/255, p95 3.00/255
+plain trunk diagnostic (mean, p95): (0.15787850091827366, 0.5)
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+OregonWhiteOak grazing: 6178 pixels, mean 1.367392/255, p95 4.25/255, redraw worst 0/255
+OregonWhiteOak plain grazing: (0.2231979065501241, 0.5)
+NorwaySpruce grazing: 2962 pixels, mean 0.670043/255, p95 1.75/255, redraw worst 0/255
+NorwaySpruce plain grazing: (0.3295633580913797, 0.5)
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.10s
+
+     Running tests/bark_structure.rs (target/release/deps/bark_structure-a3125f3245e88bfc)
+
+running 1 test
+mature trunk/branch height deviation 3.08200297230448; across/along slope 2.0687936265924693
+test mature_girth_strengthens_an_axial_field ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+     Running tests/blade_colour.rs (target/release/deps/blade_colour-d8abb2fd22e997d6)
+
+running 2 tests
+test a_matte_needle_row_is_inert_even_with_scales_and_tints_set ... ok
+test blade_colour_rows_survive_levels_and_the_back_has_no_cuticle ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+
+     Running tests/colour_cavity.rs (target/release/deps/colour_cavity-9a40443f0f50b640)
+
+running 3 tests
+Whole full luminance: plain=20294859.968771517, dark=19473157.122772835
+Whole leaves=false: pixels=56405, plain=1747566.411800592, dark=1254977.8573997058
+Whole leaves=true: pixels=27490, plain=944863.1065999983, dark=774029.772599992
+Bare full luminance: plain=24952185.207965784, dark=24279061.0985664
+Bare leaves=false: pixels=64931, plain=2167263.24640103, dark=1595254.629799136
+test cavity_cuts_sun_and_sky_and_ground_contact_needs_no_relief ... ok
+Leaf full luminance: plain=48471873.2670581, dark=48471873.2670581
+Clay full luminance: plain=46549873.29687044, dark=46549873.29687044
+test fissures_crests_and_mottle_change_colour_without_changing_wood ... ok
+test crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s
+
+     Running tests/conformance.rs (target/release/deps/conformance-c4e72980d0cbc983)
+
+running 6 tests
+test the_renderer_library_never_names_a_family ... ok
+test the_selection_path_names_no_family_and_no_anatomy ... ok
+test a_set_the_generator_will_not_have_says_which_parameter ... ok
+test a_frame_is_drawn_at_the_count_the_device_offers_and_read_back_resolved ... ok
+20 sets rendered, 21 refused, 41 tried
+test parameter_sets_nobody_wrote_by_hand_render_the_same_way ... ok
+test every_shipped_family_renders_through_the_one_path ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.87s
+
+     Running tests/headless.rs (target/release/deps/headless-90f8a1aebaffd50d)
+
+running 2 tests
+test a_tree_reaches_the_pixels ... ok
+test a_second_smaller_tree_reuses_the_wood_buffers ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+
+     Running tests/leaf_detail.rs (target/release/deps/leaf_detail-1f50ce10a96af61d)
+
+running 2 tests
+test transmission_reaches_the_drawn_leaf_through_the_material_uniform ... ok
+test veins_draw_at_every_blade_level_and_never_on_a_round_section ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
+
+     Running tests/look.rs (target/release/deps/look-7d8f1cd15e070e0c)
+
+running 3 tests
+repeat draw: 0 channels moved, worst 0
+test the_lit_frame_has_a_sky_that_deepens_with_height_and_is_not_blown_out ... ok
+test the_clay_view_draws_the_still_the_room_always_drew ... ok
+test every_leaf_takes_its_own_offset_inside_the_row_s_ranges ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.72s
+
+     Running tests/material_shaders.rs (target/release/deps/material_shaders-8d1f19557a6df046)
+
+running 1 test
+test production_material_stages_validate_with_uniform_derivatives ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/shadow.rs (target/release/deps/shadow-36ab345be605b229)
+
+running 3 tests
+test the_sun_sees_the_wood_and_the_whole_crown_and_the_leaf_view_is_not_in_its_way ... ok
+test full_casters_cover_at_least_the_default_on_separated_surfaces ... ok
+test every_preset_has_default_casters_fixed_under_orbit_and_row_changes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.32s
+
+     Running tests/socket_cavity.rs (target/release/deps/socket_cavity-720f72d22f7e328b)
+
+running 1 test
+socket sun=false: plain=1404259.7027978287, dark=1393880.1897981681
+socket sun=true: plain=2534895.46759922, dark=2523882.6767994445
+test a_fork_socket_occludes_sun_and_sky_without_relief ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+
+     Running tests/submit.rs (target/release/deps/submit-3e204abc544b9b7e)
+
+running 8 tests
+test a_ladder_longer_than_selection_can_tally_is_refused_by_its_length ... ok
+test a_tree_is_judged_on_the_allocation_it_needs_not_the_bytes_it_holds ... ok
+test every_buffer_selection_needs_is_judged_and_named_before_the_upload ... ok
+test every_buffer_that_will_not_fit_is_refused_by_name_and_by_size ... ok
+test wood_runs_must_tile_the_index_buffer_in_radius_order ... ok
+test a_crown_with_no_leaves_submits_draws_and_frames ... ok
+test each_view_draws_what_its_name_promises ... ok
+test a_submitted_tree_is_the_tree_the_core_counted ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.84s
+
+     Running tests/timing.rs (target/release/deps/timing-f668909205916d92)
+
+running 7 tests
+test every_verdict_is_reached_by_the_samples_that_define_it ... ok
+test a_valid_record_carries_its_numbers_and_an_invalid_one_carries_none ... ok
+test a_valid_record_carries_every_pass_the_levels_and_the_orbit ... ok
+test nothing_a_session_did_not_earn_reaches_a_record ... ok
+test the_wall_clock_is_the_one_number_the_gpu_verdict_does_not_govern ... ok
+{
+  "adapter": "NVIDIA GeForce RTX 3080; comparison filtering: Linear",
+  "driver": "NVIDIA 610.57.04",
+  "backend": "vulkan",
+  "conditioning": 8,
+  "warmup": 8,
+  "measured": 120,
+  "samples": 120,
+  "verdict": "valid",
+  "p50_ms": 0.1444,
+  "p95_ms": 0.1454,
+  "selection_p50_ms": 0.0102,
+  "selection_p95_ms": 0.0108,
+  "shadow_p50_ms": 0.0328,
+  "shadow_p95_ms": 0.0328,
+  "total_p50_ms": 0.1874,
+  "total_p95_ms": 0.1892,
+  "levels": [
+    { "deviation_m": 0.005649, "instances_p50": 28626 },
+    { "deviation_m": 0.002825, "instances_p50": 0 },
+    { "deviation_m": 0.000000, "instances_p50": 0 },
+    { "deviation_m": null, "instances_p50": 0 }
+  ],
+  "multisample": 4,
+  "caster_triangles": 89080,
+  "caster_instances": 7157
+}
+
+test a_session_on_a_device_never_reports_a_percentile_it_did_not_earn ... ok
+{
+  "adapter": "NVIDIA GeForce RTX 3080; comparison filtering: Linear",
+  "driver": "NVIDIA 610.57.04",
+  "backend": "vulkan",
+  "conditioning": 8,
+  "warmup": 8,
+  "measured": 120,
+  "samples": 120,
+  "verdict": "valid",
+  "p50_ms": 0.1444,
+  "p95_ms": 0.1464,
+  "selection_p50_ms": 0.0102,
+  "selection_p95_ms": 0.0108,
+  "shadow_p50_ms": 0.0328,
+  "shadow_p95_ms": 0.0328,
+  "total_p50_ms": 0.1871,
+  "total_p95_ms": 0.1907,
+  "levels": [
+    { "deviation_m": 0.005649, "instances_p50": 28626 },
+    { "deviation_m": 0.002825, "instances_p50": 0 },
+    { "deviation_m": 0.000000, "instances_p50": 0 },
+    { "deviation_m": null, "instances_p50": 0 }
+  ],
+  "multisample": 4,
+  "caster_triangles": 89080,
+  "caster_instances": 7157
+}
+
+{
+  "adapter": "NVIDIA GeForce RTX 3080; comparison filtering: Linear",
+  "driver": "NVIDIA 610.57.04",
+  "backend": "vulkan",
+  "conditioning": 8,
+  "warmup": 8,
+  "measured": 120,
+  "samples": 120,
+  "verdict": "valid",
+  "p50_ms": 0.1485,
+  "p95_ms": 0.1546,
+  "selection_p50_ms": 0.0084,
+  "selection_p95_ms": 0.0100,
+  "shadow_p50_ms": 0.0317,
+  "shadow_p95_ms": 0.0328,
+  "total_p50_ms": 0.1894,
+  "total_p95_ms": 0.1956,
+  "levels": [
+    { "deviation_m": 0.005649, "instances_p50": 28626 },
+    { "deviation_m": 0.002825, "instances_p50": 0 },
+    { "deviation_m": 0.000000, "instances_p50": 0 },
+    { "deviation_m": null, "instances_p50": 0 }
+  ],
+  "multisample": 4,
+  "wall_frames": 119,
+  "wall_p50_ms": 0.3847,
+  "wall_p95_ms": 0.6102,
+  "wall_max_ms": 2.1019,
+  "caster_triangles": 89080,
+  "caster_instances": 7157
+}
+
+test a_device_session_times_the_selection_pass_and_counts_what_it_chose ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.71s
+
+     Running tests/transmission.rs (target/release/deps/transmission-b12ab854e3f075e9)
+
+running 1 test
+test shadow_blocks_transmission_and_a_lit_backface_obeys_the_row ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/walk.rs (target/release/deps/walk-63876939d687ffa6)
+
+running 6 tests
+test a_frame_count_schedules_exactly_what_it_always_did ... ok
+test a_scene_row_off_the_command_line_moves_what_it_names_and_nothing_else ... ok
+test a_walk_holds_at_each_end_and_eases_between_them ... ok
+test a_value_a_flag_cannot_mean_is_refused_by_that_flag_s_name ... ok
+test a_walk_leaves_and_arrives_at_rest ... ok
+test the_parser_reads_a_frame_run_the_way_it_always_read_one ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests telperion_render
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

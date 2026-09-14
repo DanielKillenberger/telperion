@@ -64,5 +64,82 @@
     "exit_code": 0,
     "log": "logs/native-optimized-timing.log",
     "scope": "valid measurement; R6 numerical bound fails"
+  },
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "formatting passed"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "clippy passed"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "exit_code": 101,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "one conformance failure: shared-noise comment named forbidden anatomy"
+  },
+  {
+    "command": "cargo test --release --workspace --no-fail-fast",
+    "exit_code": 101,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "45 binaries; exactly one conformance failure; final shader focused device tests green; zero adapter skips; no SIGSEGV"
+  },
+  {
+    "command": "npm run wasm:build && npm test",
+    "exit_code": 0,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "77 passed"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit_code": 0,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "typecheck passed"
+  },
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": "logs/round2-fmt.log",
+    "scope": "round 2 checkpoint; comment-only shader correction"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "logs/round2-clippy.log",
+    "scope": "round 2 checkpoint; comment-only shader correction"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "exit_code": 0,
+    "log": "logs/round2-workspace.log",
+    "scope": "round 2 checkpoint; comment-only shader correction",
+    "binaries": 45,
+    "skipped_messages": 0,
+    "crashes": 0
+  },
+  {
+    "command": "RUST_TEST_NOCAPTURE=1 cargo test --release -p telperion-render",
+    "exit_code": 0,
+    "log": "logs/round2-device-visible.log",
+    "scope": "round 2 checkpoint; uncaptured adapter-skip diagnostics",
+    "adapter_skips": 0,
+    "crashes": 0
   }
 ]

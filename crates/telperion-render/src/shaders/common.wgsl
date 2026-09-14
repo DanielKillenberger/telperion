@@ -203,8 +203,8 @@ fn bark_noise_filtered(t: f32, footprint: f32) -> f32 {
 
 fn bark_noise2_filtered(p: vec2<f32>, footprint: vec2<f32>) -> f32 {
     let retained = bark_pass(max(footprint.x, footprint.y) * 0.5);
-    // Most whole-crown blades are smaller than a noise cell. Their exact
-    // filtered value is already the mean; avoid four hashes for that value.
+    // A fully rejected band returns its exact mean; avoid four hashes
+    // when the filtered value is already known.
     if (retained <= 0.0) { return 0.5; }
     return 0.5 + (bark_noise2(p) - 0.5) * retained;
 }

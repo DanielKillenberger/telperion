@@ -9,8 +9,9 @@ implementation, not completion or an owner verdict.
 
 The distance and socket regressions have recorded GPU red/green results.
 Thirteen distinct device tests ran in the focused suites, with 27 executions
-including the red diagnostics and **zero adapter skips**. The complete workspace
-and npm gates were not run in this full-access session before the R6 stop.
+including the red diagnostics and **zero adapter skips**. The host subsequently
+ran all gates at 08ece33; only the anatomy-name conformance test failed. Round 2
+rewords the shared-noise comment and records the complete workspace pass below.
 The prior sandbox run's adapter skips do not count as GPU validation.
 
 ## What changed
@@ -278,11 +279,13 @@ viewed each once and did not modify or redistribute any reference.
 
 | Required command | Exit code | Scope |
 |---|---:|---|
-| cargo fmt --all -- --check | 0 | final sources before example archive |
-| cargo clippy --workspace --all-targets -- -D warnings | 0 | final sources before example archive |
-| cargo test --release --workspace | not run | R6 stop; no full GPU gate claim |
-| npm run wasm:build && npm test | not run | R6 stop |
-| npm run typecheck | not run | R6 stop |
+| cargo fmt --all -- --check | 0 | local round 2 checkpoint; host also passed at 08ece33 |
+| cargo clippy --workspace --all-targets -- -D warnings | 0 | local round 2 checkpoint; host also passed at 08ece33 |
+| cargo test --release --workspace | 0 | local round 2 checkpoint; 45 binaries |
+| cargo test --release --workspace | 101 | host at 08ece33; anatomy word in shared-noise comment |
+| cargo test --release --workspace --no-fail-fast | 101 | host at 08ece33; 45 binaries, one failure, zero adapter skips, no SIGSEGV; final shader focused device tests green |
+| npm run wasm:build && npm test | 0 | host at 08ece33; 77 passed |
+| npm run typecheck | 0 | host at 08ece33 |
 
 The focused distance, resolution, socket and material shader command exited 0
 at 4c5bf29. The packed-varying blade/crown/look/material-shader command exited 0.
@@ -293,13 +296,18 @@ commands, exit codes, logs and the shader state each check covered.
 
 The last specular shortcuts were compiled and exercised by the final native
 measurement, whose process exited 0 while the numerical R6 bound failed.
-Chromium compilation, distance/resolution regressions and the five complete
-gates still require a final run if work resumes. The browser orbit and eight
-stills also remain pending. No image was inspected from either native clock.
+The host's full-workspace run at 08ece33 observed the final shader's focused
+device tests green with zero adapter skips. Round 2 changes only the rejected-band
+comment in common.wgsl; no test, shader expression or timing evidence changed.
+The local workspace log contains no skipped messages or crashes. A second run,
+RUST_TEST_NOCAPTURE=1 cargo test --release -p telperion-render, exited 0 with
+**zero adapter skips** and no crashes; uncaptured output verifies the skip count.
+Chromium compilation after the final cost changes, the browser orbit and eight stills
+remain pending under the R6 stop. No image was inspected from either native clock.
 
-Four checkpoints include the host's initial Flow scaffolding, implementation,
-GPU fixes, measured cost attempt and this blocked evidence. No spec/task content
-was edited by this session, no owner verdict was issued, no agent was spawned,
+Five checkpoints include the host's initial Flow scaffolding, implementation,
+GPU fixes, measured cost attempt, blocked evidence and comment conformance fix.
+No spec/task content was edited by this session, no owner verdict was issued, no agent was spawned,
 no history was rewritten and nothing was pushed. The temporary build target was
 removed; its source remains reproducible evidence rather than a public command.
 
