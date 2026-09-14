@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-32-bark-as-plates-and-scales",
+  "created_at": "2026-09-14T12:35:15.670783Z",
+  "depends_on_epics": [
+    "fn-29-colour-cavity-and-occlusion"
+  ],
+  "id": "fn-32-bark-as-plates-and-scales",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-32-bark-as-plates-and-scales.md",
+  "status": "open",
+  "title": "Bark as plates and scales",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-14T12:35:35.014987Z"
+}
