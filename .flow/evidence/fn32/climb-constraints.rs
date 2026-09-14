@@ -37,24 +37,43 @@ pub struct Reading {
     pub checks: Vec<Check>,
 }
 
+/// The level a species is judged against: the reference photograph's own crop
+/// mean, and how far a candidate may stand from it.
+#[derive(Clone, Copy)]
+pub struct Level {
+    pub reference: [f64; 3],
+    pub band: f64,
+    pub start: [f64; 3],
+}
+
 impl Reading {
-    /// fn-29's colour is not this spec's to redo, and a structure score taken
-    /// on the grey of the crop would happily buy a darker furrow with a
-    /// bluer trunk. A candidate may not move any channel of the crop's mean
-    /// by more than six code values from where the shipped rows stand, and
-    /// may not reorder the channels.
-    pub fn keeps_colour(&self, start: [f64; 3]) -> bool {
+    /// Round two let the climb hold its colour where it found it. Round three
+    /// asks it to walk towards the photograph: a candidate must keep every
+    /// channel of the crop's mean inside a band around the reference's own
+    /// crop mean, may not move any channel further from that reference than
+    /// the round started, and may not reorder the channels. fn-29's base
+    /// colour rows are untouched by any of it - only this spec's weathering
+    /// and orientation tints move.
+    pub fn keeps_colour(&self, level: Level) -> bool {
         let order = |c: [f64; 3]| {
             let mut index = [0, 1, 2];
             index.sort_by(|&a, &b| c[b].total_cmp(&c[a]));
             index
         };
-        order(self.colour) == order(start)
-            && self
-                .colour
-                .iter()
-                .zip(&start)
-                .all(|(now, then)| (now - then).abs() <= 6.0)
+        order(self.colour) == order(level.start)
+            && (0..3).all(|c| {
+                let (now, then) = (self.colour[c], level.start[c]);
+                let reference = level.reference[c];
+                (now - reference).abs() <= level.band
+                    && (now - reference).abs() <= (then - reference).abs() + 1e-9
+            })
+    }
+
+    /// The furrows may not give back the dark they hold: the largest gap the
+    /// round-two numbers name is the oak's dark fraction, and a step that
+    /// lowers it is a step in the wrong direction whatever else it buys.
+    pub fn keeps_dark(&self, start: f64) -> bool {
+        self.structure.dark_fraction >= start - 1e-9
     }
 
     /// The bounds the shipped tests assert, unchanged: three code values of

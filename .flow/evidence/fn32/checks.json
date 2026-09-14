@@ -99,5 +99,64 @@
   "adapter_skips": 0,
   "images_viewed": 3,
   "full_forest_captures": 0
+ },
+ "round_three": {
+  "session": "fn-32 task 2, round three, 2026-09-14",
+  "commands": [
+   {
+    "command": "cargo fmt --all -- --check",
+    "exit": 0,
+    "scope": "every checkpoint"
+   },
+   {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit": 0,
+    "scope": "every checkpoint"
+   },
+   {
+    "command": "cargo test --release --workspace",
+    "exit": 0,
+    "scope": "every checkpoint; zero adapter skips"
+   },
+   {
+    "command": "npm run wasm:build",
+    "exit": 0,
+    "scope": "every checkpoint; regenerated the preset mirror"
+   },
+   {
+    "command": "npm test",
+    "exit": 0,
+    "scope": "every checkpoint"
+   },
+   {
+    "command": "npm run typecheck",
+    "exit": 0,
+    "scope": "every checkpoint"
+   },
+   {
+    "command": "./target/release/examples/headless --preset oregon-white-oak --seed 7 --size 1600x1000 --out <scratch>/hero.png --timing .flow/evidence/fn32/oak-native-timing.json",
+    "exit": 0,
+    "scope": "R7, GPU at 0% immediately before"
+   },
+   {
+    "command": "./target/release/examples/fn32_stills <scratch>/stills",
+    "exit": 0,
+    "scope": "capture five, and once more with plateFurrowWidth at 0.35 for the extra still"
+   },
+   {
+    "command": "./target/release/examples/bark_climb <species> <log.json> <references>",
+    "exit": 0,
+    "scope": "the round-three descent and level pass, 863 further trials"
+   },
+   {
+    "command": "./target/release/examples/bark_climb <species> probe:<row>=<value>,... <references>",
+    "exit": 0,
+    "scope": "the furrow-width sweep, the darkest-rows bound and the all-terms-off dark fraction"
+   }
+  ],
+  "browser_orbit": "not run; the wasm mirror was regenerated and checked.",
+  "adapter_skips": 0,
+  "images_viewed": 2,
+  "full_forest_captures": 0
  }
 }

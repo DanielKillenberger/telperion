@@ -1,6 +1,6 @@
 # FN32: bark as plates and scales
 
-**Round two (task 2) is the second half of this file**: the structure score, the hill climb, the primitive that replaced the column-and-cut network, and 5.2129 ms. What follows immediately is round one, as it was written.
+**Rounds two and three (task 2) are the second half of this file**: the structure score, the hill climb, the primitive that replaced the column-and-cut network, the furrow row, and 5.2142 ms. What follows immediately is round one, as it was written.
 
 2026-09-14, one session. **NEEDS_HUMAN: R6 is the owner's judgment and R7's
 bound is the owner's to set.** R1 through R5 are implemented, green and
@@ -663,3 +663,204 @@ this report as `stills-driver.rs`, `climb-driver.rs` and
 3. **The oak's furrows.** The numbers say the remaining gap is darkness in the
    furrow, and the rows that hold it are fn-29's, which this spec may not
    touch. Does a further spec open them?
+
+---
+
+# Round three: the furrow, the level, and what this spec cannot reach
+
+2026-09-14, same session, after the owner's round-two verdict: "it's much much
+better. but still has much room for improvement." The host's reading of the
+round-two oak, which the numbers agreed with: the furrows read as crackle
+between flat plates rather than the wide dark valleys white oak has, and the
+trunk is too light and too cool - crop 147,148,143 against the owner white
+oak's 118,119,114. **NEEDS_HUMAN: R6 is still the owner's judgment and R7's
+bound is still the owner's to set.** The oak's native frame measures
+**5.2142 ms total p50**, 5.2859 p95, against round two's 5.2129 / 5.6993:
+unchanged, because nothing this round added costs anything at run time.
+
+## What shipped
+
+- **`plateFurrowWidth` (0-1, default zero, inert)**, the flat floor of a
+  furrow, up to a fifth of a plate's own width. A fraction of a plate rather
+  than a length in metres, so a bigger plate carries a wider furrow off one
+  row and the structure does not change with girth; integrated against the
+  footprint like every other band; the sun walk's reach grows with it. Named
+  in the family, validated by name, blended, wire-mirrored and in the README.
+- **Two constraints on the climb rather than two more terms.** An accepted
+  step must keep every channel of the crop's mean inside a band around the
+  reference's own crop mean and may never move further from it than the round
+  started, and it may not lower the dark fraction. The bands: the oak thirty
+  code values of 118,119,114, which its crop already sits at the edge of, so
+  in practice it may not get lighter; the spruce eighty of 154,144,140, wide
+  enough to contain the colour fn-29 was accepted at, because which of those
+  two is right is a question the owner has not answered and not one a machine
+  should answer for him.
+- **A level pass after the descent.** The score is taken on the grey of a crop
+  after an auto-level, so it cannot see how light a trunk stands. With the
+  descent at its plateau, every row is walked in whichever direction carries
+  the crop's mean towards the reference, for as long as the score stays within
+  two per cent of the plateau and every guard holds. It spent 1.9% of that
+  slack on the oak in 85 steps.
+- **The plate means, re-measured.** The probe that pins them sampled one slice
+  of the network; a single slice estimates the field's mean to about three
+  hundredths, which is more than the tolerance the pins are asserted against,
+  and it moves whenever a row moves the slice. It now averages sixteen and
+  reads the shipped rows from the presets instead of keeping its own copy,
+  which had already drifted a round behind. The mean also had to become a
+  function of the new row: a wider floor leaves less face, and the fall is
+  exponential, so three rates are pinned beside the three levels and held at
+  0.25 and 0.6 as well as at whatever the presets carry.
+
+## Scores
+
+| Still | round two | round three |
+|---|---:|---:|
+| oak-trunk | 1.2284 | **1.3293** |
+| spruce-trunk | 0.1658 | **0.1870** |
+| oak-branch | 1.4856 | 1.4510 |
+| spruce-branch | 0.6595 | 0.6786 |
+| the four leaf and needle stills | unchanged | byte-identical |
+
+**The two trunk scores went backwards and the reason is the re-measured
+pins, stated rather than buried.** The corrected means move where the 45%
+threshold lands on the crop, and the oak's round-three starting point - the
+same rows round two ended at, under the corrected constants - measures 1.5231.
+The descent and the level pass bought 0.194 of that 0.295 back. The old pins
+were a biased estimate taken on a slice the shipped row no longer used;
+keeping them to protect a number would have been the one thing this task may
+not do.
+
+The oak trunk's crop moved 147,148,143 to 145,147,140, and its channel order
+held.
+
+## What this spec cannot reach, measured
+
+**The trunk cannot be darkened by any row this spec owns.** With every one of
+them at its darkest - weathering off, orientation at one, occlusion at one,
+identity and depth at one - the oak's crop mean falls from 142,145,138 to
+140,144,133. The reference is 118,119,114, twenty-four to twenty-seven code
+values below. The level belongs to fn-29's bark colour rows, which this spec's
+boundary forbids redoing. **A further spec that opens them is the only way to
+answer "too light and too cool".**
+
+**The dark fraction is the cylinder, not the bark.** With every plate,
+weathering, orientation, occlusion and depth term of this spec set to zero,
+the oak trunk still measures a dark fraction of 0.127 against the 0.147 it
+measures with them all on. On a lit cylinder the auto-level and the threshold
+cut the trunk's own shading; the references are photographs of flat bark. The
+gap of 0.15 to 0.36 is a difference of framing, not of bark, and no bark row
+can close it.
+
+A flat field was built to fix exactly that - remove a least-squares quadratic
+surface from the crop before the threshold, which is the shading of a cylinder
+to within a few code values and far too smooth to touch a bark band - and it
+was **rejected on its numbers**: it left two of the three oak references with
+no measurable light regions at all, and under a minimum-to-maximum stretch the
+oak still had none either. It is recorded here so the next round does not
+spend the hour again. The honest instrument for this question is a crop of
+bark that fills the frame at a known scale, which is a change to how the
+stills are taken rather than to how they are measured.
+
+## The furrow row: shipped inert, and why
+
+Every width tested costs score on both species, and the cost is mostly area
+variation: a wider floor turns plates into smaller islands, and islands below
+the statistic's own area floor stop counting.
+
+| Oak, at the round-three rows | score | area CV | curvature | dark | guards |
+|---|---:|---:|---:|---:|---|
+| plateFurrowWidth 0 (shipped) | **1.3293** | 0.879 | 2.098 | 0.153 | hold |
+| 0.05 | 1.4877 | 0.416 | 2.379 | 0.155 | **alias at 3.002** |
+| 0.10 | 1.5824 | 0.282 | 2.544 | 0.153 | hold |
+| 0.15 | 1.6298 | 0.222 | 2.693 | 0.152 | hold |
+| 0.25 | 1.7726 | 0.266 | 3.201 | 0.157 | **alias at 3.005** |
+| 0.35 | 1.6377 | 0.340 | 2.884 | 0.154 | hold |
+| 0.50 | 2.4779 | 0.033 | 1.000 | 0.155 | hold |
+
+The spruce says the same: 0.1870 at zero, 0.2248 at 0.05, 0.2477 at 0.10.
+
+**The eye agrees with the number.** Two images were spent on this question,
+which is what the budget is for: the oak trunk as it ships, and the oak trunk
+at 0.35, the widest floor that holds every guard. A wide flat floor over a
+relief the anti-aliasing contract caps at four millimetres does not read as a
+valley between plates - it reads as flakes with gaps between them, and the
+blocky plate structure the owner liked in round two is what it eats. That
+still is kept beside the eight as `stills/oak-trunk-wide-furrow.png` with its
+own measurement, so the owner can see the row rather than take this on trust.
+
+The row ships at zero. What a furrow needs to read as deep is contrast, not
+width: the shading it is given (the occlusion row, now at its maximum of 1.0
+on the oak) and the colour of its floor (fn-29's fissure rows, which this spec
+may not touch). That is the same finding as the level, from the other end.
+
+## Rows that moved
+
+| Row | Oak, round two -> three | Spruce |
+|---|---|---|
+| plateDome | .39375 -> .41875 | .39375 |
+| plateIdentity | .45 -> .5 | .375 |
+| weatheringStrength | .575 -> .425 | .6 |
+| weatheringRed/Green/Blue | .06,.05,.02325 -> .0225,.035,.00575 | .015,.03,.02975 |
+| orientationStrength | .325 -> .40625 | .44375 |
+| orientationRed/Green/Blue | -.0495,.02275,-.086 -> -.062,.009,-.1535 | -.014,.026,-.0155 |
+| directionalOcclusion | .85 -> 1.0 | .49375 -> .30625 |
+| depthStrength | .6 -> .5375 | .45625 |
+| plateFurrowWidth | 0 | 0 |
+| plateCellScale, plateElongation, plateEdgeLift | unchanged | unchanged |
+
+## Guards and gates
+
+Every accepted step held the distance, resolution and redraw numbers the
+shipped tests assert, plus the level band and the dark ratchet. The shipped
+values measure trunk 1.826, distance 2.385 and 2.904, oak grazing 2.946,
+spruce grazing 2.754, every redraw byte-identical - the oak grazing pose again
+inside one and a half per cent of its bound, which is where this field now
+lives. R3's own test holds with the occlusion row at one: the term takes
+0.079 from the shaded side and 0.069 with the sun crossed, against 0.05.
+
+Two tests were repaired rather than worked around, both broken by the new row
+rather than by anything it does. `conformance.rs` drew its jitter from a
+running stream, so one row added to the schema redrew every field's factor
+after it and the sample's health was luck - 47 of 60 sets refused. The factor
+now comes from the field's own path and the attempt's number by a stable hash,
+so a new row changes its own factor and no other: 20 rendered of 26 tried. The
+one material trait that sits on its own upper bound in four shipped families
+is moved off it inside that test's `compact`, exactly as it already does for
+the habit and element traits. `sweep.rs` holds the new row in its
+no-preset-moves inventory while it is inert.
+
+| Required command | Exit |
+|---|---:|
+| cargo fmt --all -- --check | 0 |
+| cargo clippy --workspace --all-targets -- -D warnings | 0 |
+| cargo test --release --workspace | 0, zero adapter skips |
+| npm run wasm:build | 0 |
+| npm test | 0 |
+| npm run typecheck | 0 |
+
+## Native timing
+
+| Native total | p50 ms | p95 ms |
+|---|---:|---:|
+| fn-29 round 5, accepted | 3.9823 | 4.5814 |
+| fn-32 round one | 4.5192 | 4.9339 |
+| fn-32 round two | 5.2129 | 5.6993 |
+| fn-32 round three | **5.2142** | **5.2859** |
+
+Unchanged: the furrow row is inert, the sun walk is the same three steps, and
+a row value costs nothing. Same protocol, same device, GPU at 0% before.
+
+## What the owner is asked, round three
+
+1. **R6.** The eight stills in `stills/` are capture five. Beside them,
+   `stills/oak-trunk-wide-furrow.png` shows what the new row does at the
+   widest setting that holds every guard - not what shipped.
+2. **R7's bound.** 5.2142 ms, unchanged from round two.
+3. **The level, and the furrow's colour.** Both answers point at fn-29's bark
+   and fissure colour rows, which this spec's boundary forbids redoing. The
+   measurement above bounds what this spec can do without them at five code
+   values of twenty-five. **Does a further spec open them?**
+4. **The instrument.** The dark fraction the references are judged by is, on a
+   lit cylinder, mostly the cylinder. A still that fills the frame with bark
+   at a known scale would measure bark; that is a change to the capture, and
+   the owner's call on whether the next round spends its budget there.

@@ -1,6 +1,6 @@
 {
- "session": "fn-32 task 2, 2026-09-14",
- "capture": 4,
+ "session": "fn-32 task 2, round three, 2026-09-14",
+ "capture": 5,
  "seed": 7,
  "size": [
   1600,
@@ -11,8 +11,9 @@
  "method": {
   "crop_rgb": "magick <png> -gravity center -crop 400x400+0+0 +repage -resize 1x1! -format '%[fx:int(255*r)] %[fx:int(255*g)] %[fx:int(255*b)]' info: - round one's command, unchanged, so the colour numbers carry over",
   "structure": "target/release/examples/bark_score <png> [reference.png ...]. The same centre 400x400 crop, turned grey by Rec.709 luminance in linear light, auto-levelled and thresholded at 45%; the six components and the weights are documented in crates/telperion-render/src/structure.rs.",
-  "score": "the normalised weighted distance from the still's vector to the centroid of its catalogued references' vectors. Bark stills only: a leaf mass is not bark and its score says nothing about whether the leaf is right.",
-  "note": "the tool's dark fraction and furrow period are taken on a perceptual grey and are NOT the numbers round one recorded with ImageMagick, which were taken on a linear grey. Round one's stills were re-measured with this tool for the before-and-after below; no number here is compared across the two methods."
+  "score": "the normalised weighted distance from the still's vector to the centroid of its catalogued references' vectors. Bark stills only: a leaf mass is not bark and its score says nothing about whether the leaf is right. Round three adds two constraints on an accepted step rather than two more terms: the crop's mean must stay inside a stated band around the reference's own crop mean and may not walk away from it, and the dark fraction may not fall. The six components, their scales and their weights are unchanged, and the references measure exactly what they measured in round two - the definition of the vector did not move.",
+  "note": "the tool's dark fraction and furrow period are taken on a perceptual grey and are NOT the numbers round one recorded with ImageMagick, which were taken on a linear grey. Round one's stills were re-measured with this tool for the before-and-after below; no number here is compared across the two methods.",
+  "dark_fraction_limit": "Measured, not assumed: with every plate, weathering, orientation, occlusion and depth term of this spec set to zero, the oak trunk still measures a dark fraction of 0.127 against the 0.147 it measures with them all on. On a lit cylinder the auto-level and the 45% threshold cut the trunk's own shading, not its furrows, so no bark row can move this component far. A flat field - removing a least-squares quadratic surface before the threshold - was implemented and rejected on its numbers: it left two of the three oak references with no measurable light regions at all, and the oak still with none. The component keeps its weight and its ratchet, and its gap against the references is recorded as a difference of framing rather than of bark."
  },
  "stills": [
   {
@@ -56,7 +57,7 @@
    },
    "fork": null,
    "png": "stills/oak-trunk.png",
-   "sha256": "75925ffee638ce3ae4585c0922a000e88763e3283f228bb3984dd46dd4bf771c",
+   "sha256": "c21686ffd79b340b2ba3a7ac83d15038a15fa28813947d54fcd2b1fde8fcbd23",
    "round_one": {
     "crop_rgb": [
      145,
@@ -73,23 +74,6 @@
      "orientation_entropy": 0.985
     },
     "score": 1.9346
-   },
-   "measurement": {
-    "crop_rgb": [
-     147,
-     148,
-     143
-    ],
-    "channel_order": "GRB",
-    "structure": {
-     "area_variation": 0.8498,
-     "dark_fraction": 0.1463,
-     "furrow_curvature": 2.4848,
-     "furrow_period": 61.9435,
-     "junction_arms": 3.4043,
-     "orientation_entropy": 0.9974
-    },
-    "score": 1.2284
    },
    "target": {
     "orientation_entropy": 0.9647,
@@ -110,7 +94,7 @@
       "junction_arms": 4.1396,
       "orientation_entropy": 0.9985
      },
-     "distance": 1.1051
+     "distance": 1.1997
     },
     {
      "id": "OWNER-WHITE-OAK",
@@ -122,7 +106,7 @@
       "junction_arms": 3.9489,
       "orientation_entropy": 0.9357
      },
-     "distance": 0.9853
+     "distance": 1.0176
     },
     {
      "id": "OWNER-BLACK-OAK",
@@ -134,9 +118,43 @@
       "junction_arms": 4.485,
       "orientation_entropy": 0.9598
      },
-     "distance": 1.772
+     "distance": 1.9057
     }
-   ]
+   ],
+   "round_two": {
+    "crop_rgb": [
+     147,
+     148,
+     143
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.8498,
+     "dark_fraction": 0.1463,
+     "furrow_curvature": 2.4848,
+     "furrow_period": 61.9435,
+     "junction_arms": 3.4043,
+     "orientation_entropy": 0.9974
+    },
+    "score": 1.2284
+   },
+   "measurement": {
+    "crop_rgb": [
+     145,
+     147,
+     140
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.8786,
+     "dark_fraction": 0.1532,
+     "furrow_curvature": 2.0976,
+     "furrow_period": 58.7156,
+     "junction_arms": 3.3333,
+     "orientation_entropy": 0.9974
+    },
+    "score": 1.3293
+   }
   },
   {
    "name": "oak-branch",
@@ -183,7 +201,7 @@
     "radius": 0.39088976459153435
    },
    "png": "stills/oak-branch.png",
-   "sha256": "3455aa4ae3a50320497478e6cd15f2849c78e3498307a2053245f27d4c214688",
+   "sha256": "777db8a7eae8bc17768611f9b7709884a2cdff5e615e76955966cea4487ca880",
    "round_one": {
     "crop_rgb": [
      34,
@@ -200,23 +218,6 @@
      "orientation_entropy": 0.9819
     },
     "score": 1.4954
-   },
-   "measurement": {
-    "crop_rgb": [
-     33,
-     42,
-     47
-    ],
-    "channel_order": "BGR",
-    "structure": {
-     "area_variation": 0.8919,
-     "dark_fraction": 0.9456,
-     "furrow_curvature": 2.4719,
-     "furrow_period": 160.804,
-     "junction_arms": 3.4318,
-     "orientation_entropy": 0.9965
-    },
-    "score": 1.4856
    },
    "target": {
     "orientation_entropy": 0.9671,
@@ -237,7 +238,7 @@
       "junction_arms": 4.1396,
       "orientation_entropy": 0.9985
      },
-     "distance": 1.5621
+     "distance": 1.5242
     },
     {
      "id": "OWNER-WHITE-OAK",
@@ -249,9 +250,43 @@
       "junction_arms": 3.9489,
       "orientation_entropy": 0.9357
      },
-     "distance": 1.4839
+     "distance": 1.4546
     }
-   ]
+   ],
+   "round_two": {
+    "crop_rgb": [
+     33,
+     42,
+     47
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.8919,
+     "dark_fraction": 0.9456,
+     "furrow_curvature": 2.4719,
+     "furrow_period": 160.804,
+     "junction_arms": 3.4318,
+     "orientation_entropy": 0.9965
+    },
+    "score": 1.4856
+   },
+   "measurement": {
+    "crop_rgb": [
+     32,
+     41,
+     45
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.997,
+     "dark_fraction": 0.9451,
+     "furrow_curvature": 2.3538,
+     "furrow_period": 159.0457,
+     "junction_arms": 3.4496,
+     "orientation_entropy": 0.9964
+    },
+    "score": 1.451
+   }
   },
   {
    "name": "oak-leaf-frontlit",
@@ -312,23 +347,6 @@
     },
     "score": 1.8891
    },
-   "measurement": {
-    "crop_rgb": [
-     125,
-     167,
-     90
-    ],
-    "channel_order": "GRB",
-    "structure": {
-     "area_variation": 0.5203,
-     "dark_fraction": 0.8007,
-     "furrow_curvature": 1.7031,
-     "furrow_period": 186.0465,
-     "junction_arms": 3.0,
-     "orientation_entropy": 0.8363
-    },
-    "score": 1.8891
-   },
    "target": {
     "orientation_entropy": 0.9985,
     "area_variation": 1.0034,
@@ -350,7 +368,41 @@
      },
      "distance": 1.8891
     }
-   ]
+   ],
+   "round_two": {
+    "crop_rgb": [
+     125,
+     167,
+     90
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.5203,
+     "dark_fraction": 0.8007,
+     "furrow_curvature": 1.7031,
+     "furrow_period": 186.0465,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.8363
+    },
+    "score": 1.8891
+   },
+   "measurement": {
+    "crop_rgb": [
+     125,
+     167,
+     90
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.5203,
+     "dark_fraction": 0.8007,
+     "furrow_curvature": 1.7031,
+     "furrow_period": 186.0465,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.8363
+    },
+    "score": 1.8891
+   }
   },
   {
    "name": "oak-leaf-backlit",
@@ -411,23 +463,6 @@
     },
     "score": 2.7642
    },
-   "measurement": {
-    "crop_rgb": [
-     96,
-     144,
-     49
-    ],
-    "channel_order": "GRB",
-    "structure": {
-     "area_variation": 0.0,
-     "dark_fraction": 0.8603,
-     "furrow_curvature": 1.0,
-     "furrow_period": 597.0149,
-     "junction_arms": 3.0,
-     "orientation_entropy": 0.7907
-    },
-    "score": 2.7642
-   },
    "target": {
     "orientation_entropy": 0.9985,
     "area_variation": 1.0034,
@@ -449,7 +484,41 @@
      },
      "distance": 2.7642
     }
-   ]
+   ],
+   "round_two": {
+    "crop_rgb": [
+     96,
+     144,
+     49
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.8603,
+     "furrow_curvature": 1.0,
+     "furrow_period": 597.0149,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.7907
+    },
+    "score": 2.7642
+   },
+   "measurement": {
+    "crop_rgb": [
+     96,
+     144,
+     49
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.8603,
+     "furrow_curvature": 1.0,
+     "furrow_period": 597.0149,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.7907
+    },
+    "score": 2.7642
+   }
   },
   {
    "name": "spruce-trunk",
@@ -492,7 +561,7 @@
    },
    "fork": null,
    "png": "stills/spruce-trunk.png",
-   "sha256": "bc35d4254782d545cda8e2fcde87268f03cf98eec37077cac72c67c00bbec214",
+   "sha256": "1465ff301d7d08c0e047ac8f36ae832aa95146b0c97c5a7b7cd196872116fb84",
    "round_one": {
     "crop_rgb": [
      132,
@@ -509,23 +578,6 @@
      "orientation_entropy": 0.9634
     },
     "score": 0.7764
-   },
-   "measurement": {
-    "crop_rgb": [
-     128,
-     97,
-     71
-    ],
-    "channel_order": "RGB",
-    "structure": {
-     "area_variation": 1.5103,
-     "dark_fraction": 0.2806,
-     "furrow_curvature": 2.7359,
-     "furrow_period": 12.6034,
-     "junction_arms": 3.8796,
-     "orientation_entropy": 0.9921
-    },
-    "score": 0.1658
    },
    "target": {
     "orientation_entropy": 0.9724,
@@ -546,9 +598,43 @@
       "junction_arms": 3.9144,
       "orientation_entropy": 0.9724
      },
-     "distance": 0.1658
+     "distance": 0.187
     }
-   ]
+   ],
+   "round_two": {
+    "crop_rgb": [
+     128,
+     97,
+     71
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 1.5103,
+     "dark_fraction": 0.2806,
+     "furrow_curvature": 2.7359,
+     "furrow_period": 12.6034,
+     "junction_arms": 3.8796,
+     "orientation_entropy": 0.9921
+    },
+    "score": 0.1658
+   },
+   "measurement": {
+    "crop_rgb": [
+     128,
+     97,
+     70
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 1.52,
+     "dark_fraction": 0.2854,
+     "furrow_curvature": 2.7094,
+     "furrow_period": 12.5431,
+     "junction_arms": 3.8124,
+     "orientation_entropy": 0.992
+    },
+    "score": 0.187
+   }
   },
   {
    "name": "spruce-branch",
@@ -595,7 +681,7 @@
     "radius": 0.2091256108761402
    },
    "png": "stills/spruce-branch.png",
-   "sha256": "3f76c5bfa5978e44022c71f2fd51b5c62a66436d33a363b01252e539991f87fd",
+   "sha256": "631ba7d39392fa07cb8bb6c21f7ecdc9589479977c7dbbacee7060ade1e97442",
    "round_one": {
     "crop_rgb": [
      91,
@@ -612,23 +698,6 @@
      "orientation_entropy": 0.8998
     },
     "score": 0.6118
-   },
-   "measurement": {
-    "crop_rgb": [
-     90,
-     69,
-     52
-    ],
-    "channel_order": "RGB",
-    "structure": {
-     "area_variation": 1.3559,
-     "dark_fraction": 0.5712,
-     "furrow_curvature": 2.6946,
-     "furrow_period": 28.7615,
-     "junction_arms": 3.4108,
-     "orientation_entropy": 0.8969
-    },
-    "score": 0.6595
    },
    "target": {
     "orientation_entropy": 0.9815,
@@ -649,7 +718,7 @@
       "junction_arms": 3.9052,
       "orientation_entropy": 0.9906
      },
-     "distance": 0.7358
+     "distance": 0.7648
     },
     {
      "id": "OWNER-NORWAY-SPRUCE",
@@ -661,9 +730,43 @@
       "junction_arms": 3.9144,
       "orientation_entropy": 0.9724
      },
-     "distance": 0.8689
+     "distance": 0.8733
     }
-   ]
+   ],
+   "round_two": {
+    "crop_rgb": [
+     90,
+     69,
+     52
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 1.3559,
+     "dark_fraction": 0.5712,
+     "furrow_curvature": 2.6946,
+     "furrow_period": 28.7615,
+     "junction_arms": 3.4108,
+     "orientation_entropy": 0.8969
+    },
+    "score": 0.6595
+   },
+   "measurement": {
+    "crop_rgb": [
+     90,
+     69,
+     52
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 1.3557,
+     "dark_fraction": 0.5729,
+     "furrow_curvature": 2.8082,
+     "furrow_period": 28.6687,
+     "junction_arms": 3.4156,
+     "orientation_entropy": 0.8967
+    },
+    "score": 0.6786
+   }
   },
   {
    "name": "spruce-needle-frontlit",
@@ -724,23 +827,6 @@
     },
     "score": 5.0632
    },
-   "measurement": {
-    "crop_rgb": [
-     169,
-     188,
-     199
-    ],
-    "channel_order": "BGR",
-    "structure": {
-     "area_variation": 0.0,
-     "dark_fraction": 0.1302,
-     "furrow_curvature": 1.0,
-     "furrow_period": 400.0,
-     "junction_arms": 0.0,
-     "orientation_entropy": 0.339
-    },
-    "score": 5.0632
-   },
    "target": {
     "orientation_entropy": 0.994,
     "area_variation": 1.2203,
@@ -762,7 +848,41 @@
      },
      "distance": 5.0632
     }
-   ]
+   ],
+   "round_two": {
+    "crop_rgb": [
+     169,
+     188,
+     199
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.339
+    },
+    "score": 5.0632
+   },
+   "measurement": {
+    "crop_rgb": [
+     169,
+     188,
+     199
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.339
+    },
+    "score": 5.0632
+   }
   },
   {
    "name": "spruce-needle-backlit",
@@ -823,23 +943,6 @@
     },
     "score": 5.0134
    },
-   "measurement": {
-    "crop_rgb": [
-     166,
-     181,
-     196
-    ],
-    "channel_order": "BGR",
-    "structure": {
-     "area_variation": 0.0,
-     "dark_fraction": 0.1302,
-     "furrow_curvature": 1.0,
-     "furrow_period": 400.0,
-     "junction_arms": 0.0,
-     "orientation_entropy": 0.3501
-    },
-    "score": 5.0134
-   },
    "target": {
     "orientation_entropy": 0.994,
     "area_variation": 1.2203,
@@ -861,7 +964,66 @@
      },
      "distance": 5.0134
     }
-   ]
+   ],
+   "round_two": {
+    "crop_rgb": [
+     166,
+     181,
+     196
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.3501
+    },
+    "score": 5.0134
+   },
+   "measurement": {
+    "crop_rgb": [
+     166,
+     181,
+     196
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.3501
+    },
+    "score": 5.0134
+   }
+  }
+ ],
+ "extra": [
+  {
+   "name": "oak-trunk-wide-furrow",
+   "png": "stills/oak-trunk-wide-furrow.png",
+   "sha256": "cc26c336127640b7e2ecfaa956bcfb7a585fb95c404834054bbd2b7ea8388af3",
+   "note": "Not one of the eight. The oak trunk at the same pose and the same rows with plateFurrowWidth at 0.35, the widest floor that holds every guard, so the owner can see what the row does. It is not what shipped: it scores 1.638 against 1.329 and the eye agrees with the number - a wide floor over a relief the anti-aliasing contract caps at four millimetres reads as flakes with gaps between them, not as valleys between plates.",
+   "measurement": {
+    "crop_rgb": [
+     145,
+     148,
+     141
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.3398,
+     "dark_fraction": 0.1543,
+     "furrow_curvature": 2.8843,
+     "furrow_period": 60.6061,
+     "junction_arms": 3.1948,
+     "orientation_entropy": 0.9955
+    },
+    "score": 1.6377
+   }
   }
  ]
 }

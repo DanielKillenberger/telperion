@@ -13,7 +13,7 @@ mod constraints;
 
 use std::path::PathBuf;
 
-use constraints::{Guard, Reading};
+use constraints::{Guard, Level, Reading};
 use serde_json::{json, Value};
 use telperion_core::{
     material::MaterialParams,
@@ -60,6 +60,13 @@ fn rows(start: &MaterialParams) -> Vec<Row> {
         ),
         row("plateDome", |m| &mut m.plate_dome, 0.0, 1.0, 0.05),
         row("plateEdgeLift", |m| &mut m.plate_edge_lift, 0.0, 1.0, 0.05),
+        row(
+            "plateFurrowWidth",
+            |m| &mut m.plate_furrow_width,
+            0.0,
+            1.0,
+            0.05,
+        ),
         row("plateIdentity", |m| &mut m.plate_identity, 0.0, 1.0, 0.05),
         row(
             "weatheringStrength",
@@ -165,10 +172,15 @@ const SWEEPS: usize = 60;
 /// refined to its finest step, because a coarse step that stops paying is a
 /// step to shorten, not a hill to stop climbing.
 const PLATEAU: f64 = 0.01;
+/// How much of the plateau score the level pass may spend: two per cent.
+const LEVEL_SLACK: f64 = 1.02;
 
 fn run() -> Result<(), String> {
     let mut arguments = std::env::args().skip(1);
     let species = arguments.next().ok_or("usage: bark_climb <species> ...")?;
+    // `bark_climb <species> probe:<row>=<value>[,...] <references>` reads one
+    // material and prints what it measures, without climbing anything: a
+    // question about a row, answered in one render.
     let log = PathBuf::from(arguments.next().ok_or("no log path")?);
     let references: Vec<Structure> = arguments
         .map(|path| measure_png(&PathBuf::from(path)).map_err(|e| e.to_string()))
@@ -177,9 +189,17 @@ fn run() -> Result<(), String> {
         return Err("no references".into());
     }
     let target = centroid(&references);
-    let preset = match species.as_str() {
-        "oak" => Preset::OregonWhiteOak,
-        "spruce" => Preset::NorwaySpruce,
+    // The reference crop mean each species' level is held against, and how far
+    // from it a candidate may stand. The oak is held to thirty code values of
+    // the owner's white oak, which its round-two crop already sits at the edge
+    // of, so in practice the band forbids it getting any lighter. The spruce
+    // is held to seventy of the owner's spruce, wide enough to contain the
+    // colour fn-29 was accepted at: those two disagree by more than any band,
+    // and which of them is right is a question the owner has not answered.
+    // Neither band may be left, and neither may be walked away from.
+    let (preset, reference, band) = match species.as_str() {
+        "oak" => (Preset::OregonWhiteOak, [118.0, 119.0, 114.0], 30.0),
+        "spruce" => (Preset::NorwaySpruce, [154.0, 144.0, 140.0], 80.0),
         other => return Err(format!("unknown species {other}")),
     };
     let mut family = preset.parameters();
@@ -197,6 +217,24 @@ fn run() -> Result<(), String> {
     let table = rows(&family.material);
 
     let mut material = family.material;
+    if let Some(list) = log.to_string_lossy().strip_prefix("probe:") {
+        for pair in list.split(',').filter(|p| !p.is_empty()) {
+            let (name, value) = pair.split_once('=').ok_or("probe wants row=value")?;
+            let row = table
+                .iter()
+                .find(|row| row.name == name)
+                .ok_or(format!("unknown row {name}"))?;
+            *(row.at)(&mut material) = value.parse::<f64>().map_err(|e| e.to_string())?;
+        }
+        let read = guard.read(material, true);
+        println!(
+            "{}",
+            json!({"values": values(&material, &table), "vector": vector(&read.structure),
+                "score": round(read.structure.distance(&target)), "checks": checks(&read),
+                "colour": read.colour.map(round), "holds": read.holds()})
+        );
+        return Ok(());
+    }
     let first = guard.read(material, true);
     if !first.holds() {
         return Err(format!(
@@ -205,7 +243,18 @@ fn run() -> Result<(), String> {
         ));
     }
     let start = first.structure;
-    let colour = first.colour;
+    let level = Level {
+        reference,
+        band,
+        start: first.colour,
+    };
+    if !first.holds() || !first.keeps_colour(level) {
+        return Err(format!(
+            "the shipped rows already break a guard: {} at {:?}",
+            checks(&first),
+            first.colour
+        ));
+    }
     let mut score = start.distance(&target);
     eprintln!("{species} start {score:.4} {:?}", start);
     let mut trials: Vec<Value> = Vec::new();
@@ -235,9 +284,11 @@ fn run() -> Result<(), String> {
                     // The guards cost twelve draws; only a candidate that is
                     // worth keeping is asked to pay for them.
                     let full = better.then(|| guard.read(candidate, true));
-                    let holds = full
-                        .as_ref()
-                        .is_some_and(|full| full.holds() && full.keeps_colour(colour));
+                    let holds = full.as_ref().is_some_and(|full| {
+                        full.holds()
+                            && full.keeps_colour(level)
+                            && full.keeps_dark(start.dark_fraction)
+                    });
                     let mut entry = json!({
                         "sweep": sweep, "row": row.name, "from": round(from), "to": round(to),
                         "score": round(next), "accepted": better && holds,
@@ -245,7 +296,8 @@ fn run() -> Result<(), String> {
                     if let Some(full) = &full {
                         entry["checks"] = checks(full);
                         entry["colour"] = json!(full.colour.map(round));
-                        entry["keeps_colour"] = json!(full.keeps_colour(colour));
+                        entry["keeps_colour"] = json!(full.keeps_colour(level));
+                        entry["keeps_dark"] = json!(full.keeps_dark(start.dark_fraction));
                         entry["vector"] = vector(&full.structure);
                     }
                     trials.push(entry);
@@ -291,17 +343,81 @@ fn run() -> Result<(), String> {
         }
         touched = false;
     }
+    // The level pass. The score is taken on the grey of a crop after an
+    // auto-level, so it cannot see how light the trunk stands; the owner's eye
+    // can, and the round-two verdict named it. With the descent at its
+    // plateau, each row is walked in whichever direction carries the crop's
+    // mean towards the reference, for as long as the score stays within
+    // LEVEL_SLACK of the plateau and every guard still holds. The score is
+    // never traded for level beyond that slack, and the structure the descent
+    // bought is what the slack is measured against.
+    let plateau = score;
+    let away = |colour: [f64; 3]| {
+        (0..3)
+            .map(|c| (colour[c] - reference[c]).abs())
+            .sum::<f64>()
+    };
+    let mut level_away = away(level.start);
+    let mut levelled = 0;
+    for _ in 0..12 {
+        let mut moved = false;
+        for (index, row) in table.iter().enumerate() {
+            for direction in [1.0, -1.0] {
+                let from = *(row.at)(&mut material);
+                let to =
+                    (from + direction * steps[index].max(row.step / 4.0)).clamp(row.low, row.high);
+                if (to - from).abs() < 1e-9 {
+                    continue;
+                }
+                let mut candidate = material;
+                *(row.at)(&mut candidate) = to;
+                let read = guard.read(candidate, true);
+                let next = read.structure.distance(&target);
+                let nearer = away(read.colour) < level_away - 1e-6;
+                let cheap = next <= plateau * LEVEL_SLACK;
+                let holds = read.holds()
+                    && read.keeps_colour(level)
+                    && read.keeps_dark(start.dark_fraction);
+                trials.push(json!({
+                    "pass": "level", "row": row.name, "from": round(from), "to": round(to),
+                    "score": round(next), "colour": read.colour.map(round),
+                    "accepted": nearer && cheap && holds,
+                }));
+                if !(nearer && cheap && holds) {
+                    continue;
+                }
+                material = candidate;
+                score = next;
+                level_away = away(read.colour);
+                levelled += 1;
+                moved = true;
+                eprintln!(
+                    "{species} level {} {from:.4}->{to:.4} colour {:?} score {score:.4}",
+                    row.name,
+                    read.colour.map(|c| c.round())
+                );
+                break;
+            }
+        }
+        if !moved {
+            break;
+        }
+    }
     let last = guard.read(material, true);
     let json = json!({
         "species": species,
+        "level": {"reference": reference, "band": band,
+            "rule": "every channel of the crop mean inside the band around the reference, never further from it than the round started, and the channel order unchanged",
+            "dark_floor": round(start.dark_fraction)},
         "target": vector(&target),
         "references": references.iter().map(vector).collect::<Vec<_>>(),
         "start": {"values": values(&family.material, &table), "vector": vector(&start),
-            "score": round(start.distance(&target)), "colour": colour.map(round)},
+            "score": round(start.distance(&target)), "colour": level.start.map(round)},
         "final": {"values": values(&material, &table), "vector": vector(&last.structure),
             "score": round(last.structure.distance(&target)), "checks": checks(&last),
             "colour": last.colour.map(round)},
-        "sweeps": sweeps, "stopped": stop, "trials": trials,
+        "sweeps": sweeps, "stopped": stop, "levelled": levelled,
+        "plateau_score": round(plateau), "trials": trials,
     });
     std::fs::write(&log, serde_json::to_string_pretty(&json).unwrap())
         .map_err(|e| e.to_string())?;
