@@ -74,6 +74,34 @@ fn bark_shade(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     return 1.0 - u.bark_structure.y * clamp(blocked, 0.0, 1.0);
 }
 
+// Parallax: an eye looking across a furrow sees the near wall, not the floor
+// behind it. The surface coordinate is walked towards the eye in proportion
+// to how far below the crest this fragment stands, so the relief gains the
+// depth a tilted normal alone cannot show. The mesh is untouched, so the
+// silhouette stays the smooth cylinder it has always been.
+fn bark_parallax(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
+    dx: vec3<f32>, dy: vec3<f32>, world: vec3<f32>, here: f32,
+    colour_range: vec2<f32>) -> vec3<f32> {
+    let view = normalize(u.eye.xyz - world);
+    let facing = dot(n, view);
+    let across = view - n * facing;
+    let span = length(across);
+    if (span < 1e-4 || facing <= 0.0) { return surface; }
+    let rx = cross(dy, n);
+    let ry = cross(n, dx);
+    let det = dot(dx, rx);
+    let inverse = sign(det) / max(abs(det), 1e-10);
+    let toward = across / span;
+    let steps = vec2(dot(toward, rx), dot(toward, ry)) * inverse;
+    // How far below the field's crest this fragment stands, and how far the
+    // eye travels across the surface to look down that far. The floor of a
+    // grazing furrow would walk without bound, so the slope is held.
+    let below = max(colour_range.x + colour_range.y - here, 0.0);
+    let walk = u.bark_structure.z * below * span / max(facing, 0.3);
+    let offset = steps * walk;
+    return surface + offset.x * sx + offset.y * sy;
+}
+
 // Surface-gradient bump mapping needs no tangent attribute and displaces no
 // vertex. The determinant handles either orientation of the screen axes.
 fn bark_normal(n: vec3<f32>, world: vec3<f32>, dx: vec3<f32>, dy: vec3<f32>,
@@ -192,14 +220,25 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // damp things settle. One weight; the row's tint says what it looks like.
     let away = clamp(0.5 - 0.5 * dot(base_normal, u.sun_direction.xyz), 0.0, 1.0);
     let orientation = away * mix(0.55, 1.0, 1.0 - smoothstep(0.0, 2.5, in.world.y));
-    // One plate identity per fragment, shared by every shading cell the way
-    // the mottle above is: a plate keeps one colour across its whole face.
-    let own = bark_plate_identity(circle, in.surface.x, in.radius, u.bark_detail.x,
-        footprint, u.plate, u.bark_structure.x);
     let appearance = vec4<f32>(mottle, contact, depth_in_crown(in.world), maturity);
     let colour_range = bark_colour_range(in.radius, u.bark_detail.x, u.bark_detail.y,
         u.bark_detail.w, u.plate);
     let shadow = sunlight(in.world, base_normal);
+    // Where the eye is actually looking on the surface, once the relief has
+    // depth. Every field read below starts from here; the world position,
+    // the geometric contact and the crown depth remain the fragment's own.
+    var surface = in.surface;
+    // The one field read the walk costs is paid only where there is a walk.
+    if (u.bark_structure.z > 0.0 && colour_range.y > 0.0) {
+        let flat = bark_height(circle, in.surface.x, in.radius, footprint);
+        surface = bark_parallax(in.surface, sx, sy, base_normal, dx, dy, in.world,
+            flat, colour_range);
+    }
+    let seen = normalize(surface.yz);
+    // One plate identity per fragment, shared by every shading cell the way
+    // the mottle above is: a plate keeps one colour across its whole face.
+    let own = bark_plate_identity(seen, surface.x, in.radius, u.bark_detail.x,
+        footprint, u.plate, u.bark_structure.x);
     let spacing = clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0);
     let pixel = footprint / max(vec2(u.bark_detail.x, spacing), vec2(0.000001));
     let band = max(pixel.x, pixel.y);
@@ -217,8 +256,10 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // Constant height has zero gradient. Shade it once, avoiding twenty
     // redundant field evaluations and four identical lighting evaluations.
     if (u.bark_detail.x <= 0.0 || in.radius <= u.bark_detail.x || band >= 1.0) {
-        let height = bark_height(circle, in.surface.x, in.radius, footprint);
-        let direct = bark_shade(in.surface, sx, sy, base_normal, dx, dy, in.radius,
+        // A constant field has nowhere to look down into, so the walk above
+        // returned the fragment's own coordinate and this is the same height.
+        let height = bark_height(seen, surface.x, in.radius, footprint);
+        let direct = bark_shade(surface, sx, sy, base_normal, dx, dy, in.radius,
             footprint, height, colour_range.y);
         return vec4<f32>(tone(bark_light(base_normal, height, in.world, shadow,
             variance, appearance, colour_range, vec3<f32>(orientation, own, direct))), 1.0);
@@ -231,14 +272,14 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     var heights: array<f32, 9>;
     for (var y = 0; y <= 2; y++) {
         for (var x = 0; x <= 2; x++) {
-            let coord = in.surface + (0.5 * f32(x) - 0.5) * sx
+            let coord = surface + (0.5 * f32(x) - 0.5) * sx
                 + (0.5 * f32(y) - 0.5) * sy;
             heights[y * 3 + x] = bark_height(normalize(coord.yz), coord.x, in.radius, cell_footprint);
         }
     }
     // The walk towards the sun starts from the fragment's own centre height,
     // which the nine above already carry: two more field samples, not eleven.
-    let direct = bark_shade(in.surface, sx, sy, base_normal, dx, dy, in.radius,
+    let direct = bark_shade(surface, sx, sy, base_normal, dx, dy, in.radius,
         cell_footprint, heights[4], colour_range.y);
     let structure = vec3<f32>(orientation, own, direct);
     var lit = vec3(0.0);
