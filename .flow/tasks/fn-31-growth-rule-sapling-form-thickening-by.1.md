@@ -105,3 +105,7 @@ the fixture stays red until then.
 ## Owner verdict on round 4 — R1 not yet accepted, 2026-09-14
 
 The owner judged the round-4 strips on the served page: "It's a big improvement but not 100% happy." The finding is stem form: "the spruce sapling is just a straight stick with needles. Also the second picture. is just a straight pole. having some bend in them or something also for the oak. Saplings are thin and bend in gravity no?" Next round, in the rule: sapling stems carry curvature, a lean off vertical along the stem, a leader tip that nods under its own foliage, and thin laterals that droop, as numeric traits on every family; round 3 scales crookedness down with the growth step, which removes bend at seedling scale and is the first place to look. Judged on the same strips at 1, 5 and 14.1 years for the spruce and 1, 10 and 26.7 for the oak. R2 and the twig-anatomy fork remain open beside it.
+
+## Owner decision — production maturity, 2026-09-14
+
+The derived mature age is the year the last growth quantum lands on an asymptotic curve, 432 years for the oak against an envelope reached at 112. The owner agreed ("that seems very reasonable") to redefine production maturity as the first year the height fraction reaches 99 percent of the envelope, documented and never authored, so the default oak builds near 150 years, looks the same, and pays roughly a third of the slices. Goes into the next round with the stem-form findings, with one re-pin after convergence is recorded.
