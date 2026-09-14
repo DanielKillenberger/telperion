@@ -1,0 +1,6 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 49.78s
+     Running `target/release/examples/fn31_fixture_case`
+original set 6 vigour_floor=0 triangles=1440 foliage=0
+original set 6 vigour_floor=0.75 triangles=14280 foliage=576

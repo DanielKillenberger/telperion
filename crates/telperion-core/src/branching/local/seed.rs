@@ -9,6 +9,8 @@ pub(super) struct Stations {
     continuation: Vec<Option<usize>>,
     pending: BTreeSet<usize>,
     inserted: Vec<usize>,
+    #[cfg_attr(feature = "json", serde(skip))]
+    growing: BTreeSet<usize>,
 }
 impl Stations {
     pub(super) fn sync(&mut self, tree: &Tree) {
@@ -119,6 +121,12 @@ impl Stations {
 }
 
 impl Frontier {
+    /// A paused structural axis owns its terminal bud until it finishes.
+    pub(in crate::branching) fn reserve_tips(&mut self, tips: impl Iterator<Item = usize>) {
+        self.stations.growing.clear();
+        self.stations.growing.extend(tips);
+    }
+
     pub(in crate::branching) fn seed(
         &mut self,
         tree: &Tree,
@@ -145,7 +153,7 @@ impl Frontier {
             if n.position.y < config.trunk_height {
                 continue;
             }
-            let terminal = u16::from(children[i] == 0);
+            let terminal = u16::from(children[i] == 0 && !self.stations.growing.contains(&i));
             let laterals = if radius(i) < t.limb_radius * root_radius {
                 ((1_u16 << t.laterals) - 1) << 1
             } else {
@@ -153,7 +161,7 @@ impl Frontier {
             };
             let allocated = self.seeded.entry(n.identity.birth_order()).or_default();
             let buds = (terminal | laterals) & !*allocated;
-            let possible = terminal | (((1_u16 << t.laterals) - 1) << 1);
+            let possible = 1 | (((1_u16 << t.laterals) - 1) << 1);
             if (*allocated | buds) & possible == possible {
                 completed.push(i);
             }

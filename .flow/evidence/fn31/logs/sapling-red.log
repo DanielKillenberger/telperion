@@ -1,0 +1,37 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 8.13s
+     Running tests/growth_form.rs (target/release/deps/growth_form-eaa716f73ca1dd35)
+
+running 6 tests
+
+thread 'oak_starts_as_a_leafed_seedling' (535959) panicked at crates/telperion-core/tests/growth_form.rs:9:5:
+OregonWhiteOak year-one height 0 m
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'spruce_starts_as_a_needled_seedling' (535960) panicked at crates/telperion-core/tests/growth_form.rs:9:5:
+NorwaySpruce year-one height 0 m
+test oak_starts_as_a_leafed_seedling ... FAILED
+test spruce_starts_as_a_needled_seedling ... 
+thread 'young_spruce_branches_and_carries_foliage' (535962) panicked at crates/telperion-core/tests/growth_form.rs:26:5:
+NorwaySpruce age 5: only 0 lateral shoots
+FAILED
+test young_spruce_branches_and_carries_foliage ... FAILED
+
+thread 'young_oak_branches_and_carries_foliage' (535961) panicked at crates/telperion-core/tests/growth_form.rs:26:5:
+OregonWhiteOak age 10: only 0 lateral shoots
+test young_oak_branches_and_carries_foliage ... FAILED
+test height_to_trunk_diameter_falls_with_age ... ok
+test mature_bole_does_not_end_at_a_temporary_local_apex ... ok
+
+failures:
+
+failures:
+    oak_starts_as_a_leafed_seedling
+    spruce_starts_as_a_needled_seedling
+    young_oak_branches_and_carries_foliage
+    young_spruce_branches_and_carries_foliage
+
+test result: FAILED. 2 passed; 4 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.48s
+
+error: test failed, to rerun pass `-p telperion-core --test growth_form`

@@ -36,6 +36,13 @@ fn compact(family: &mut Value) {
     habit["attractorWeight"] = json!(0.5);
     habit["twigTipTaper"] = json!(0.5);
     habit["sheddingThreshold"] = json!(0.4);
+    // These appearance rows were added after this fixture was authored.
+    // Keep the whole-tree inputs inside their domains under the same jitter.
+    family["shellDepth"] = json!(0.5);
+    family["canopy"]["surfaceContact"] = json!(0.5);
+    family["material"]["barkRoughness"] = json!(0.5);
+    family["material"]["furrowStrength"] = json!(0.5);
+    family["growth"]["crownBaseRetention"] = json!(0.0);
     // The element traits that sit on their own bound in a shipped row are
     // moved off it for the same reason: a needle's section is rolled all the
     // way shut and tapers as slowly as the schema allows.

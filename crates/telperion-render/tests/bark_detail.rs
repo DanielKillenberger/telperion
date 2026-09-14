@@ -25,7 +25,9 @@ fn hash(mesh: &SurfaceMesh) -> u64 {
 fn relief_moves_the_light_while_every_wood_mesh_byte_holds() {
     let Some(gpu) = common::gpu() else { return };
     let mut family = Preset::Ordinary.parameters();
-    family.skeleton.growth.max_nodes = Some(400);
+    // The cap bounds the fixture's work; enough annual growth must remain
+    // for the trunk to carry the 0.16 m relief scale tested below.
+    family.skeleton.growth.max_nodes = Some(40_000);
     let off = mesh::build(&family, Detail::Full).unwrap();
     family.material = MaterialParams {
         ridge_scale: 0.16,

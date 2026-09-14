@@ -1,0 +1,26 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 37.88s
+     Running tests/conformance.rs (target/release/deps/conformance-c4e72980d0cbc983)
+
+running 6 tests
+test the_selection_path_names_no_family_and_no_anatomy ... ok
+test the_renderer_library_never_names_a_family ... ok
+test a_set_the_generator_will_not_have_says_which_parameter ... ok
+test a_frame_is_drawn_at_the_count_the_device_offers_and_read_back_resolved ... ok
+19 sets rendered, 41 refused, 60 tried
+
+thread 'parameter_sets_nobody_wrote_by_hand_render_the_same_way' (531110) panicked at crates/telperion-render/tests/conformance.rs:154:5:
+only 19 of 60 sets rendered (41 refused by the generator)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test parameter_sets_nobody_wrote_by_hand_render_the_same_way ... FAILED
+test every_shipped_family_renders_through_the_one_path ... ok
+
+failures:
+
+failures:
+    parameter_sets_nobody_wrote_by_hand_render_the_same_way
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 34.52s
+
+error: test failed, to rerun pass `-p telperion-render --test conformance`

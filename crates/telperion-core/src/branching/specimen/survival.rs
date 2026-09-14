@@ -25,7 +25,7 @@ impl Specimen {
             let n = &self.tree.nodes[i];
             let exposure = t.crown.exposure(n);
             let age = (year - n.shoot.birth_year).max(0.0);
-            vigour[i] = exposure / (1.0 + t.traits.rate * age);
+            vigour[i] = t.traits.vigour(exposure, age);
         }
         // An illuminated descendant supports its path to the root. The maximum
         // avoids making a large old branch dark merely because it stopped extending.
@@ -82,7 +82,9 @@ impl Specimen {
         for i in visited {
             let n = &mut self.tree.nodes[i];
             let exposure = t.crown.exposure(n);
-            let vigour = exposure / (1.0 + t.traits.rate * (year - n.shoot.birth_year).max(0.0));
+            let vigour = t
+                .traits
+                .vigour(exposure, (year - n.shoot.birth_year).max(0.0));
             n.shoot.record_vigour(slice, vigour, 0);
             if self.read_active {
                 self.read_updates.push(i);

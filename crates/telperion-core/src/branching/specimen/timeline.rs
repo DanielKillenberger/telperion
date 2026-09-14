@@ -229,6 +229,8 @@ impl Specimen {
             ..params.clone()
         };
         self.scaffold.year = slice;
+        self.scaffold.crown_base_retention =
+            self.timeline.as_ref().unwrap().traits.crown_base_retention;
         let spent = self.scaffold.slice(
             &mut self.tree,
             &scaffold_params,
@@ -244,9 +246,13 @@ impl Specimen {
         self.cost.stamp(2, &mut clock);
         let timeline = self.timeline.as_mut().unwrap();
         timeline.envelope = envelope;
+        let radial_height = envelope.height
+            * timeline
+                .traits
+                .radius_fraction(slice, timeline.mature_slice);
         timeline.pipes.record(
             &self.tree,
-            envelope.height,
+            radial_height,
             self.params.envelope.height,
             self.radii,
         )?;
@@ -256,6 +262,7 @@ impl Specimen {
         let twigs = params.twigs.resolved()?;
         let timeline = self.timeline.as_ref().unwrap();
         let widths = |tree: &Tree, i| timeline.widths.sample(tree, &timeline.pipes, i);
+        self.local.reserve_tips(self.scaffold.growing_tips());
         self.local
             .seed(&self.tree, &config, twigs, params.habit, Some(&widths));
         #[cfg(test)]
@@ -273,7 +280,8 @@ impl Specimen {
                     widths: Some(&widths),
                     growing_envelope: true,
                     planning: Some(Envelope {
-                        crown_base: self.params.envelope.crown_base * fraction,
+                        crown_base: self.params.envelope.crown_base
+                            * (fraction + (1.0 - fraction) * timeline.traits.crown_base_retention),
                         ..self.params.envelope
                     }),
                     config: &config,
@@ -298,7 +306,7 @@ impl Specimen {
         let timeline = self.timeline.as_mut().unwrap();
         timeline.pipes.record(
             &self.tree,
-            envelope.height,
+            radial_height,
             self.params.envelope.height,
             self.radii,
         )?;

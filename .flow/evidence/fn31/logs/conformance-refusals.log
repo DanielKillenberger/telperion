@@ -1,0 +1,64 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 15.02s
+     Running `target/release/examples/fn31_fixture_case`
+1 ordinary: invalid input: bark furrow strength
+2 oregon-white-oak: invalid input: bark furrow strength
+3 norway-spruce: wood=11960 foliage=1298
+4 telperion: wood=144072 foliage=8720
+5 laurelin: invalid input: bark furrow strength
+6 ordinary: invalid input: bark furrow strength
+7 oregon-white-oak: invalid input: bark furrow strength
+8 norway-spruce: invalid input: surface contact
+9 telperion: invalid input: bark furrow strength
+10 laurelin: invalid input: bark furrow strength
+11 ordinary: wood=218480 foliage=15395
+12 oregon-white-oak: invalid input: bark furrow strength
+13 norway-spruce: wood=8400 foliage=670
+14 telperion: invalid input: bark furrow strength
+15 laurelin: invalid input: bark furrow strength
+16 ordinary: wood=45280 foliage=1248
+17 oregon-white-oak: invalid input: shell depth
+18 norway-spruce: invalid input: surface contact
+19 telperion: invalid input: bark furrow strength
+20 laurelin: wood=37880 foliage=1387
+21 ordinary: invalid input: bark furrow strength
+22 oregon-white-oak: invalid input: bark furrow strength
+23 norway-spruce: invalid input: shell depth
+24 telperion: wood=224960 foliage=12804
+25 laurelin: invalid input: bark furrow strength
+26 ordinary: invalid input: bark furrow strength
+27 oregon-white-oak: invalid input: bark furrow strength
+28 norway-spruce: invalid input: surface contact
+29 telperion: invalid input: bark furrow strength
+30 laurelin: wood=65120 foliage=2806
+31 ordinary: wood=13800 foliage=469
+32 oregon-white-oak: invalid input: bark furrow strength
+33 norway-spruce: invalid input: surface contact
+34 telperion: wood=49336 foliage=3893
+35 laurelin: wood=57960 foliage=2134
+36 ordinary: invalid input: bark furrow strength
+37 oregon-white-oak: invalid input: bark furrow strength
+38 norway-spruce: invalid input: surface contact
+39 telperion: invalid input: bark furrow strength
+40 laurelin: invalid input: bark furrow strength
+41 ordinary: invalid input: bark furrow strength
+42 oregon-white-oak: invalid input: bark furrow strength
+43 norway-spruce: invalid input: bark roughness
+44 telperion: invalid input: bark furrow strength
+45 laurelin: wood=52000 foliage=2317
+46 ordinary: invalid input: bark furrow strength
+47 oregon-white-oak: invalid input: shell depth
+48 norway-spruce: invalid input: shell depth
+49 telperion: wood=210144 foliage=28597
+50 laurelin: wood=45680 foliage=2694
+51 ordinary: invalid input: bark furrow strength
+52 oregon-white-oak: invalid input: bark furrow strength
+53 norway-spruce: invalid input: surface contact
+54 telperion: invalid input: bark furrow strength
+55 laurelin: wood=48736 foliage=3502
+56 ordinary: invalid input: bark furrow strength
+57 oregon-white-oak: invalid input: bark roughness
+58 norway-spruce: invalid input: surface contact
+59 telperion: invalid input: bark furrow strength
+60 laurelin: invalid input: bark furrow strength
+success=15

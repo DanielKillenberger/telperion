@@ -1,0 +1,59 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 1m 06s
+     Running tests/bark_detail.rs (target/release/deps/bark_detail-d8efdb6a4777ed50)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+R1 wood hash: off=13135829398388581789, on=13135829398388581789
+
+thread 'relief_moves_the_light_while_every_wood_mesh_byte_holds' (534941) panicked at crates/telperion-render/tests/bark_detail.rs:64:5:
+bark terms changed only 6 channels
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... FAILED
+
+failures:
+
+failures:
+    relief_moves_the_light_while_every_wood_mesh_byte_holds
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_detail`
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285740086648/0.0008364669686153772
+distance 2x resolution: mean 1.350725/255, p95 5.75/255
+distance 4x resolution: mean 2.208500/255, p95 8.25/255
+test resolved_scales_survive_until_the_two_pixel_boundary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.93s
+
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+trunk redraw worst 0/255
+trunk resolution agreement: mean 0.821051/255, p95 3.50/255
+plain trunk diagnostic (mean, p95): (0.229968003902663, 0.5)
+OregonWhiteOak grazing: 6556 pixels, mean 0.630466/255, p95 2.25/255, redraw worst 0/255
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+OregonWhiteOak plain grazing: (0.1861653447223917, 0.5)
+
+thread 'grazing_trunks_agree_with_a_box_reduction_at_half_resolution' (534986) panicked at crates/telperion-render/tests/bark_resolution.rs:94:9:
+grazing fixture has too little wood: 331
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... FAILED
+
+failures:
+
+failures:
+    grazing_trunks_agree_with_a_box_reduction_at_half_resolution
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.95s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_resolution`
+error: 2 targets failed:
+    `-p telperion-render --test bark_detail`
+    `-p telperion-render --test bark_resolution`

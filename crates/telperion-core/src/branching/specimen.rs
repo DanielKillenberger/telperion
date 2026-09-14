@@ -22,6 +22,8 @@ mod measurement;
 mod storage;
 mod survival;
 #[cfg(test)]
+mod survival_tests;
+#[cfg(test)]
 mod thickening_tests;
 mod timeline;
 mod widths;

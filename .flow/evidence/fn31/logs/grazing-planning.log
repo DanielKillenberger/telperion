@@ -1,0 +1,18 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 45.11s
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+trunk redraw worst 0/255
+trunk resolution agreement: mean 0.818068/255, p95 3.50/255
+OregonWhiteOak grazing: 8637 pixels, mean 0.603556/255, p95 2.25/255, redraw worst 0/255
+plain trunk diagnostic (mean, p95): (0.1927987258953168, 0.5)
+OregonWhiteOak plain grazing: (0.20144919146308518, 0.5)
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+NorwaySpruce grazing: 1975 pixels, mean 0.832278/255, p95 2.75/255, redraw worst 0/255
+NorwaySpruce plain grazing: (0.3129957805907173, 0.5)
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.21s
+

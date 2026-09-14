@@ -1,0 +1,11 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 5.59s
+     Running `target/release/examples/fn31_grazing_probe`
+CPU raster: visible=116593 grazing=7082
+OregonWhiteOak growth mask=6556 root_radius=0.43193349417363086
+CPU raster: visible=225309 grazing=6380
+OregonWhiteOak envelope mask=6178 root_radius=0.43199999999999994
+CPU raster: visible=330512 grazing=2206
+NorwaySpruce growth mask=251 root_radius=0.22492879810667546
+CPU raster: visible=181300 grazing=5364
+NorwaySpruce envelope mask=2962 root_radius=0.22499999999999995

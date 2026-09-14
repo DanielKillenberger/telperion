@@ -35,11 +35,16 @@ export interface Family {
 };
   growth: {
   apicalControlLoss: number;
+  crownBaseRetention: number;
+  juvenileRadius: number;
   leafLifetime: number;
   rate: number;
   resizeTolerance: number;
   shape: number;
   sheddingTolerance: number;
+  thickeningDelay: number;
+  thickeningShape: number;
+  vigourFloor: number;
 };
   material: {
   barkBlue: number;
@@ -192,11 +197,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "growth": {
         "apicalControlLoss": 0,
+        "crownBaseRetention": 0,
+        "juvenileRadius": 0.7,
         "leafLifetime": 1,
         "rate": 0.08,
         "resizeTolerance": 0.0001,
         "shape": 2,
-        "sheddingTolerance": 2
+        "sheddingTolerance": 2,
+        "thickeningDelay": 0.1,
+        "thickeningShape": 1.4,
+        "vigourFloor": 0.75
       },
       "material": {
         "barkBlue": 0.068,
@@ -267,7 +277,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pitchVariation": 15,
           "risePrimary": 0.05,
           "riseSecondary": 0,
-          "sheddingThreshold": 0,
+          "sheddingThreshold": 0.45,
           "twigTipTaper": 1,
           "whorlStrength": 0.3
         },
@@ -347,11 +357,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "growth": {
         "apicalControlLoss": 0,
+        "crownBaseRetention": 1,
+        "juvenileRadius": 0.21,
         "leafLifetime": 1,
         "rate": 0.032,
         "resizeTolerance": 0.0001,
         "shape": 2,
-        "sheddingTolerance": 2
+        "sheddingTolerance": 2,
+        "thickeningDelay": 0.1,
+        "thickeningShape": 1.4,
+        "vigourFloor": 0.75
       },
       "material": {
         "barkBlue": 0.198,
@@ -502,11 +517,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "growth": {
         "apicalControlLoss": 0,
+        "crownBaseRetention": 1,
+        "juvenileRadius": 0.76,
         "leafLifetime": 6,
         "rate": 0.091,
         "resizeTolerance": 0.0001,
         "shape": 3.4,
-        "sheddingTolerance": 2
+        "sheddingTolerance": 2,
+        "thickeningDelay": 0.1,
+        "thickeningShape": 1.4,
+        "vigourFloor": 0.75
       },
       "material": {
         "barkBlue": 0.045,
@@ -657,11 +677,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "growth": {
         "apicalControlLoss": 0,
+        "crownBaseRetention": 0,
+        "juvenileRadius": 0.7,
         "leafLifetime": 1,
         "rate": 0.08,
         "resizeTolerance": 0.0001,
         "shape": 2,
-        "sheddingTolerance": 2
+        "sheddingTolerance": 2,
+        "thickeningDelay": 0.1,
+        "thickeningShape": 1.4,
+        "vigourFloor": 0.75
       },
       "material": {
         "barkBlue": 0.068,
@@ -732,7 +757,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pitchVariation": 15,
           "risePrimary": 0.05,
           "riseSecondary": 0,
-          "sheddingThreshold": 0,
+          "sheddingThreshold": 0.45,
           "twigTipTaper": 1,
           "whorlStrength": 0.2
         },
@@ -812,11 +837,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "growth": {
         "apicalControlLoss": 0,
+        "crownBaseRetention": 0,
+        "juvenileRadius": 0.7,
         "leafLifetime": 1,
         "rate": 0.08,
         "resizeTolerance": 0.0001,
         "shape": 2,
-        "sheddingTolerance": 2
+        "sheddingTolerance": 2,
+        "thickeningDelay": 0.1,
+        "thickeningShape": 1.4,
+        "vigourFloor": 0.75
       },
       "material": {
         "barkBlue": 0.068,
@@ -887,7 +917,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pitchVariation": 15,
           "risePrimary": 0.05,
           "riseSecondary": 0,
-          "sheddingThreshold": 0,
+          "sheddingThreshold": 0.45,
           "twigTipTaper": 1,
           "whorlStrength": 0.2
         },

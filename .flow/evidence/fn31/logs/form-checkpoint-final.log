@@ -1,0 +1,11 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 1m 30s
+     Running tests/growth_form.rs (target/release/deps/growth_form-eaa716f73ca1dd35)
+
+running 2 tests
+test height_to_trunk_diameter_falls_with_age ... ok
+test mature_bole_does_not_end_at_a_temporary_local_apex ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+

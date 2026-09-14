@@ -1,0 +1,23 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 8.21s
+     Running tests/growth_form.rs (target/release/deps/growth_form-eaa716f73ca1dd35)
+
+running 1 test
+test height_to_trunk_diameter_falls_with_age ... FAILED
+
+failures:
+
+---- height_to_trunk_diameter_falls_with_age stdout ----
+
+thread 'height_to_trunk_diameter_falls_with_age' (531572) panicked at crates/telperion-core/tests/growth_form.rs:35:13:
+OregonWhiteOak age 56.1: H/root diameter 27.77777777777778 did not fall from 27.777777777777782
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    height_to_trunk_diameter_falls_with_age
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.25s
+
+error: test failed, to rerun pass `-p telperion-core --test growth_form`

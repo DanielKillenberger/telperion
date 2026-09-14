@@ -1,0 +1,154 @@
+{
+  "age": 155.21454659835436,
+  "canopy": {
+    "clump": 6,
+    "clumpSpan": 0.3740259676775895,
+    "divergence": 114.69236576758522,
+    "forwardLean": 0.0,
+    "leanRise": 0.0,
+    "maxInstances": 18446744073709551615,
+    "outward": 0.5180678047961556,
+    "scatter": 18.25914663341828,
+    "shootRadius": 0.0,
+    "size": 1.1612425119732506,
+    "sizeVariation": 0.3644442287576385,
+    "spacing": 0.0068005747590679675,
+    "surfaceContact": 0.0,
+    "upward": 0.3847795846930239
+  },
+  "element": {
+    "axialSegments": 6,
+    "baseFullness": 0.4641726257978007,
+    "card": false,
+    "connectorLength": 0.010671833597589284,
+    "crossSegments": 2,
+    "cup": 0.1544956414718181,
+    "curl": 0.11320032084407286,
+    "length": 0.14548794088885186,
+    "lobeCount": 0,
+    "lobeDepth": 0.0,
+    "sectionRoundness": 0.4325475880992599,
+    "tipSharpness": 0.5218134113121777,
+    "widestAt": 0.49551775761111644,
+    "width": 0.04896430638316088
+  },
+  "growth": {
+    "apicalControlLoss": 0.0,
+    "leafLifetime": 0.825657008017879,
+    "rate": 0.0708591002766043,
+    "resizeTolerance": 0.00010570009574643336,
+    "shape": 2.348497818293981,
+    "sheddingTolerance": 2.326825948106125
+  },
+  "material": {
+    "barkBlue": 0.05939465943765827,
+    "barkGreen": 0.1166171797105344,
+    "barkRed": 0.14581596488349605,
+    "barkRoughness": 0.8407301873806864,
+    "brightnessRangeHigh": 0.12055274533247576,
+    "brightnessRangeLow": -0.11168354141525924,
+    "furrowStrength": 0.9906944865593688,
+    "hueRangeHigh": 0.028793301767553205,
+    "hueRangeLow": -0.02629757477506064,
+    "interiorDarkening": 0.4080122077022679,
+    "leafBackBlue": 0.07483848307083826,
+    "leafBackGreen": 0.19272325837332754,
+    "leafBackRed": 0.12366744583955731,
+    "leafFrontBlue": 0.03145510698133148,
+    "leafFrontGreen": 0.2391058898486663,
+    "leafFrontRed": 0.08058773774788716,
+    "plateScale": 0.0,
+    "ridgeScale": 0.0,
+    "roughnessDetail": 0.0,
+    "thickness": 0.8692445830907674,
+    "transmissionBlue": 0.12034401100710966,
+    "transmissionGreen": 0.6009404218266717,
+    "transmissionRed": 0.27746532230288723,
+    "transmissionStrength": 0.0,
+    "veinContrast": 0.0,
+    "veinScale": 8.153372500278056
+  },
+  "radii": {
+    "forkExponent": 2.285296767181717,
+    "lengthTaper": 0.6738526439666749,
+    "trunkRadius": 0.01776170147256926
+  },
+  "shellDepth": 0.5518020288320259,
+  "skeleton": {
+    "attractors": 47,
+    "bias": {
+      "gravitropism": 0.7645425435714422,
+      "lean": 0.05252853837271687,
+      "supernatural": {
+        "enabled": false,
+        "spiralRate": 0.0,
+        "writheAmplitude": 0.0,
+        "writheWavelength": 0.4045101675402839
+      }
+    },
+    "envelope": {
+      "crownBase": 0.34757519266451703,
+      "fullness": 0.5286644335353048,
+      "height": 4.079040726320818,
+      "shoulder": 2.0517053535231393,
+      "spread": 0.34395543807651846
+    },
+    "growth": {
+      "influenceRadius": null,
+      "killDistance": null,
+      "maxNodes": null,
+      "maxTurnPerStep": 35.59599637257634,
+      "stepDistance": null,
+      "trunkHeight": null
+    },
+    "habit": {
+      "apicalDominance": 0.5697423870558851,
+      "attractorWeight": 0.47076028457959185,
+      "crookedness": 12.441827430529521,
+      "lateralLengthRatio": 0.43255851318594074,
+      "lateralOrders": 2,
+      "lateralPitch": 73.5787198645994,
+      "lateralSpacing": 0.6060634167050012,
+      "lateralsPerStation": 3,
+      "leaderInternode": 0.6948348070518114,
+      "pitchVariation": 17.959172977251,
+      "risePrimary": 0.0548487234080676,
+      "riseSecondary": 0.0,
+      "sheddingThreshold": 0.363873810088262,
+      "twigTipTaper": 0.4103347315976862,
+      "whorlStrength": 0.4821202803775668
+    },
+    "seed": 39,
+    "step": 0.023222974169650114,
+    "twigs": {
+      "angle": 42.3442730717361,
+      "angleVariation": 8.770391240832396,
+      "divergence": 126.68499877424745,
+      "internodeFactor": 2.352982677286491,
+      "laterals": 2,
+      "lengthRatio": 0.3320471163094044,
+      "limbRadius": 0.08726192253176124,
+      "ratioPower": 1.2417367107572501,
+      "reach": 0.1910129892220721,
+      "twig": {
+        "bearingDiameter": 0.04246996694710106,
+        "diameter": 0.005822616474528332,
+        "internodeLength": 0.016842307331971826,
+        "length": 0.2946811851667007,
+        "stationsPerInternode": 1
+      },
+      "vigourVariation": 0.12098601874778979
+    }
+  },
+  "surface": {
+    "flareDepth": 0.004013275293959305,
+    "flareFalloff": 0.0235821994560305,
+    "flareRadius": 2.4636899463180453,
+    "forkSocket": 0.5898516618879512,
+    "forkSwell": 1.130901400554576,
+    "lobeDepth": 0.0,
+    "lobes": 5,
+    "radialSegments": 13,
+    "twistRate": 0.0
+  }
+}

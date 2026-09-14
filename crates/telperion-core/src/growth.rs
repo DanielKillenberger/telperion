@@ -23,6 +23,16 @@ pub struct GrowthTraits {
     pub leaf_lifetime: f64,
     /// Minimum thickening in metres before recording another annual radius frame.
     pub resize_tolerance: f64,
+    /// Minimum retained share of exposure as an illuminated shoot ages.
+    pub vigour_floor: f64,
+    /// Juvenile trunk radius as a share of the mature height-scaled radius.
+    pub juvenile_radius: f64,
+    /// Share of the derived lifetime before rapid secondary thickening.
+    pub thickening_delay: f64,
+    /// Shape of secondary thickening after its onset.
+    pub thickening_shape: f64,
+    /// Retained crown-base share when planning permanent axes (0 follows growth).
+    pub crown_base_retention: f64,
 }
 impl Default for GrowthTraits {
     fn default() -> Self {
@@ -35,6 +45,11 @@ impl Default for GrowthTraits {
             // 0.1 mm keeps twig-scale detail while suppressing sub-visible
             // annual frames; 1 mm saved little build time in the native study.
             resize_tolerance: 0.0001,
+            vigour_floor: 0.75,
+            juvenile_radius: 0.7,
+            thickening_delay: 0.1,
+            thickening_shape: 1.4,
+            crown_base_retention: 0.0,
         }
     }
 }
@@ -50,6 +65,16 @@ impl GrowthTraits {
             ("growth.shape", self.shape, 1.0, 8.0),
             ("growth.leafLifetime", self.leaf_lifetime, 0.0, MAX_AGE),
             ("growth.resizeTolerance", self.resize_tolerance, 0.0, 1.0),
+            ("growth.vigourFloor", self.vigour_floor, 0.0, 1.0),
+            ("growth.juvenileRadius", self.juvenile_radius, 0.001, 1.0),
+            ("growth.thickeningDelay", self.thickening_delay, 0.0, 0.95),
+            ("growth.thickeningShape", self.thickening_shape, 0.1, 8.0),
+            (
+                "growth.crownBaseRetention",
+                self.crown_base_retention,
+                0.0,
+                1.0,
+            ),
             (
                 "growth.sheddingTolerance",
                 self.shedding_tolerance,
@@ -72,6 +97,18 @@ impl GrowthTraits {
         }
         Ok(())
     }
+    pub(crate) fn vigour(self, exposure: f64, age: f64) -> f64 {
+        exposure * (1.0 / (1.0 + self.rate * age)).max(self.vigour_floor)
+    }
+
+    pub(crate) fn radius_fraction(self, slice: u64, mature: u64) -> f64 {
+        let progress = ((slice as f64 / mature.max(1) as f64 - self.thickening_delay)
+            / (1.0 - self.thickening_delay))
+            .clamp(0.0, 1.0);
+        self.juvenile_radius
+            + (1.0 - self.juvenile_radius) * progress.powf_fixed(self.thickening_shape)
+    }
+
     pub(crate) fn fraction(self, slice: u64) -> f64 {
         let f = (1.0 - (-self.rate * slice as f64).exp_fixed()).powf_fixed(self.shape);
         if f >= 1.0 - 0.5 / LIFETIME_UNITS {

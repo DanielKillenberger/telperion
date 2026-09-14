@@ -88,6 +88,8 @@ impl Preset {
             // Height curve fitted by fn-30 (.flow/evidence/fn30/REPORT.md).
             p.growth.rate = 0.032;
             p.growth.shape = 2.0;
+            p.growth.juvenile_radius = 0.21;
+            p.growth.crown_base_retention = 1.0;
             p.skeleton.habit = HabitParams {
                 apical_dominance: 0.1,
                 whorl_strength: 0.1,
@@ -182,6 +184,8 @@ impl Preset {
             // Height curve fitted by fn-30 (.flow/evidence/fn30/REPORT.md).
             p.growth.rate = 0.091;
             p.growth.shape = 3.4;
+            p.growth.juvenile_radius = 0.76;
+            p.growth.crown_base_retention = 1.0;
             p.growth.leaf_lifetime = 6.0;
             // Open-grown landscape Picea abies; one needle per local station.
             p.skeleton.habit = HabitParams {
@@ -272,9 +276,6 @@ impl Preset {
             return p;
         }
         if self == Self::Ordinary {
-            // fn-30: the vigour proxy decays with node age without a floor, so
-            // any nonzero threshold sheds the whole crown once extension stops.
-            p.skeleton.habit.shedding_threshold = 0.0;
             return p;
         }
         let silver = self == Self::Telperion;
@@ -296,7 +297,7 @@ impl Preset {
             lateral_orders: 3,
             attractor_weight: 1.0,
             twig_tip_taper: 1.0,
-            shedding_threshold: 0.0,
+            shedding_threshold: 0.45,
         };
         p.skeleton.envelope = if silver {
             Envelope {

@@ -7,9 +7,14 @@ pub(in crate::branching) struct Frontier {
     points: Vec<Vec3>,
     consumed: Vec<Option<u64>>,
     pub(in crate::branching) year: u64,
+    #[cfg_attr(feature = "json", serde(skip))]
+    pub(in crate::branching) crown_base_retention: f64,
     visited: Vec<usize>,
 }
 impl Frontier {
+    pub(in crate::branching) fn growing_tips(&self) -> impl Iterator<Item = usize> + '_ {
+        self.queue.iter().map(|axis| axis.tip)
+    }
     pub(in crate::branching) fn visited(&self) -> impl Iterator<Item = usize> + '_ {
         self.visited.iter().copied()
     }
@@ -35,6 +40,7 @@ impl Frontier {
             queue,
             consumed: vec![None; points.len()],
             year: 0,
+            crown_base_retention: 0.0,
             visited: Vec::new(),
             points,
         }
@@ -84,9 +90,12 @@ impl Frontier {
                 height: params.envelope.height * fraction,
                 ..params.envelope
             },
+            // The live envelope admits births, but an axis's retained length
+            // must fit the authored crown after its base has finished rising.
             planning: inner_envelope(
                 Envelope {
-                    crown_base: params.envelope.crown_base * fraction,
+                    crown_base: params.envelope.crown_base
+                        * (fraction + (1.0 - fraction) * self.crown_base_retention),
                     ..params.envelope
                 },
                 params.twigs.reach,

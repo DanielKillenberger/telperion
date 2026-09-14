@@ -1,0 +1,19 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 1m 23s
+     Running unittests src/lib.rs (target/release/deps/telperion_core-667d8e26891ed866)
+
+running 4 tests
+DEATH Ordinary dark=NodeIdentity { birth: 1, key: NodeKey(2v1) } stamp=Some(174) lit=NodeIdentity { birth: 2, key: NodeKey(3v1) } survives=true
+DEATH Telperion dark=NodeIdentity { birth: 1, key: NodeKey(2v1) } stamp=Some(174) lit=NodeIdentity { birth: 2, key: NodeKey(3v1) } survives=true
+DEATH Laurelin dark=NodeIdentity { birth: 1, key: NodeKey(2v1) } stamp=Some(174) lit=NodeIdentity { birth: 2, key: NodeKey(3v1) } survives=true
+test branching::specimen::survival_tests::mature_light_survives_while_interior_shoots_die_as_stamps ... ok
+SURVIVAL Ordinary age=173 threshold=0.45 nodes=18030 shed=3703
+test branching::specimen::survival_tests::ordinary_retains_its_mature_crown_with_authored_shedding ... ok
+SURVIVAL Telperion age=173 threshold=0.45 nodes=122729 shed=1979
+test branching::specimen::survival_tests::telperion_retains_its_mature_crown_with_authored_shedding ... ok
+SURVIVAL Laurelin age=173 threshold=0.45 nodes=151166 shed=29675
+test branching::specimen::survival_tests::laurelin_retains_its_mature_crown_with_authored_shedding ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 130 filtered out; finished in 12.84s
+

@@ -1,0 +1,37 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 36.13s
+     Running unittests src/lib.rs (target/release/deps/telperion_core-667d8e26891ed866)
+
+running 4 tests
+
+thread 'branching::specimen::survival_tests::mature_light_survives_while_interior_shoots_die_as_stamps' (523471) panicked at crates/telperion-core/src/branching/specimen/survival_tests.rs:60:9:
+Ordinary: lit shoot died by age alone
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test branching::specimen::survival_tests::mature_light_survives_while_interior_shoots_die_as_stamps ... FAILED
+SURVIVAL Ordinary age=173 threshold=0.45 nodes=33 shed=29746
+
+thread 'branching::specimen::survival_tests::ordinary_retains_its_mature_crown_with_authored_shedding' (523472) panicked at crates/telperion-core/src/branching/specimen/survival_tests.rs:14:5:
+Ordinary mature crown collapsed to 33 nodes
+test branching::specimen::survival_tests::ordinary_retains_its_mature_crown_with_authored_shedding ... FAILED
+SURVIVAL Telperion age=173 threshold=0.45 nodes=30 shed=152368
+
+thread 'branching::specimen::survival_tests::telperion_retains_its_mature_crown_with_authored_shedding' (523473) panicked at crates/telperion-core/src/branching/specimen/survival_tests.rs:14:5:
+Telperion mature crown collapsed to 30 nodes
+test branching::specimen::survival_tests::telperion_retains_its_mature_crown_with_authored_shedding ... FAILED
+SURVIVAL Laurelin age=173 threshold=0.45 nodes=175 shed=188171
+
+thread 'branching::specimen::survival_tests::laurelin_retains_its_mature_crown_with_authored_shedding' (523470) panicked at crates/telperion-core/src/branching/specimen/survival_tests.rs:14:5:
+Laurelin mature crown collapsed to 175 nodes
+test branching::specimen::survival_tests::laurelin_retains_its_mature_crown_with_authored_shedding ... FAILED
+
+failures:
+
+failures:
+    branching::specimen::survival_tests::laurelin_retains_its_mature_crown_with_authored_shedding
+    branching::specimen::survival_tests::mature_light_survives_while_interior_shoots_die_as_stamps
+    branching::specimen::survival_tests::ordinary_retains_its_mature_crown_with_authored_shedding
+    branching::specimen::survival_tests::telperion_retains_its_mature_crown_with_authored_shedding
+
+test result: FAILED. 0 passed; 4 failed; 0 ignored; 0 measured; 130 filtered out; finished in 6.48s
+
+error: test failed, to rerun pass `-p telperion-core --lib`

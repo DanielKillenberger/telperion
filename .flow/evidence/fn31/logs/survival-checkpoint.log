@@ -1,0 +1,33 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 1m 25s
+     Running unittests src/lib.rs (target/release/deps/telperion_core-667d8e26891ed866)
+
+running 4 tests
+DEATH Ordinary dark=NodeIdentity { birth: 1, key: NodeKey(2v1) } stamp=Some(174) lit=NodeIdentity { birth: 2, key: NodeKey(3v1) } survives=true
+DEATH Telperion dark=NodeIdentity { birth: 1, key: NodeKey(2v1) } stamp=Some(174) lit=NodeIdentity { birth: 2, key: NodeKey(3v1) } survives=true
+DEATH Laurelin dark=NodeIdentity { birth: 1, key: NodeKey(2v1) } stamp=Some(174) lit=NodeIdentity { birth: 2, key: NodeKey(3v1) } survives=true
+test branching::specimen::survival_tests::mature_light_survives_while_interior_shoots_die_as_stamps ... ok
+SURVIVAL Laurelin age=173 threshold=0.45 nodes=72 shed=67
+
+thread 'branching::specimen::survival_tests::laurelin_retains_its_mature_crown_with_authored_shedding' (541107) panicked at crates/telperion-core/src/branching/specimen/survival_tests.rs:12:5:
+Laurelin mature crown collapsed to 72 nodes
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test branching::specimen::survival_tests::laurelin_retains_its_mature_crown_with_authored_shedding ... FAILED
+SURVIVAL Telperion age=173 threshold=0.45 nodes=619 shed=0
+
+thread 'branching::specimen::survival_tests::telperion_retains_its_mature_crown_with_authored_shedding' (541110) panicked at crates/telperion-core/src/branching/specimen/survival_tests.rs:12:5:
+Telperion mature crown collapsed to 619 nodes
+test branching::specimen::survival_tests::telperion_retains_its_mature_crown_with_authored_shedding ... FAILED
+SURVIVAL Ordinary age=173 threshold=0.45 nodes=11785 shed=14586
+test branching::specimen::survival_tests::ordinary_retains_its_mature_crown_with_authored_shedding ... ok
+
+failures:
+
+failures:
+    branching::specimen::survival_tests::laurelin_retains_its_mature_crown_with_authored_shedding
+    branching::specimen::survival_tests::telperion_retains_its_mature_crown_with_authored_shedding
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 130 filtered out; finished in 1.26s
+
+error: test failed, to rerun pass `-p telperion-core --lib`

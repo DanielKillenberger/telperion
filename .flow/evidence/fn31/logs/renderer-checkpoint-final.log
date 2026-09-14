@@ -1,0 +1,61 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 46.97s
+     Running tests/bark_detail.rs (target/release/deps/bark_detail-d8efdb6a4777ed50)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+R1 wood hash: off=17519700856905604252, on=17519700856905604252
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.25s
+
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285740086648/0.0008364669686153772
+distance 2x resolution: mean 1.509692/255, p95 6.75/255
+distance 4x resolution: mean 2.153633/255, p95 8.25/255
+test resolved_scales_survive_until_the_two_pixel_boundary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.10s
+
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+trunk redraw worst 0/255
+trunk resolution agreement: mean 0.986811/255, p95 4.50/255
+plain trunk diagnostic (mean, p95): (0.1695527720385675, 0.5)
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+OregonWhiteOak grazing: 8637 pixels, mean 0.900023/255, p95 3.50/255, redraw worst 0/255
+OregonWhiteOak plain grazing: (0.2264096329744124, 0.5)
+NorwaySpruce grazing: 1975 pixels, mean 0.832278/255, p95 2.75/255, redraw worst 0/255
+NorwaySpruce plain grazing: (0.3129957805907173, 0.5)
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.34s
+
+     Running tests/conformance.rs (target/release/deps/conformance-c4e72980d0cbc983)
+
+running 6 tests
+test the_selection_path_names_no_family_and_no_anatomy ... ok
+test the_renderer_library_never_names_a_family ... ok
+
+thread 'parameter_sets_nobody_wrote_by_hand_render_the_same_way' (544015) panicked at crates/telperion-render/tests/conformance.rs:104:5:
+set 2 from oregon-white-oak generated 24720 wood triangles and 0 placements: there is no tree to draw
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test parameter_sets_nobody_wrote_by_hand_render_the_same_way ... FAILED
+test a_set_the_generator_will_not_have_says_which_parameter ... ok
+test a_frame_is_drawn_at_the_count_the_device_offers_and_read_back_resolved ... ok
+test every_shipped_family_renders_through_the_one_path ... ok
+
+failures:
+
+failures:
+    parameter_sets_nobody_wrote_by_hand_render_the_same_way
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.72s
+
+error: test failed, to rerun pass `-p telperion-render --test conformance`
+error: 1 target failed:
+    `-p telperion-render --test conformance`

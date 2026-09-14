@@ -1,0 +1,60 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 52.02s
+     Running tests/bark_detail.rs (target/release/deps/bark_detail-d8efdb6a4777ed50)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+R1 wood hash: off=8602070773032809149, on=8602070773032809149
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.88s
+
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285740086648/0.0008364669686153772
+distance 2x resolution: mean 1.033642/255, p95 4.75/255
+distance 4x resolution: mean 1.674167/255, p95 7.00/255
+test resolved_scales_survive_until_the_two_pixel_boundary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.78s
+
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+OregonWhiteOak grazing: 8637 pixels, mean 0.487669/255, p95 1.75/255, redraw worst 0/255
+OregonWhiteOak plain grazing: (0.14915479912006482, 0.5)
+trunk redraw worst 0/255
+trunk resolution agreement: mean 0.624280/255, p95 2.75/255
+plain trunk diagnostic (mean, p95): (0.1611591769972452, 0.5)
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+
+thread 'grazing_trunks_agree_with_a_box_reduction_at_half_resolution' (539671) panicked at crates/telperion-render/tests/bark_resolution.rs:94:9:
+grazing fixture has too little wood: 302
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... FAILED
+
+failures:
+
+failures:
+    grazing_trunks_agree_with_a_box_reduction_at_half_resolution
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.43s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_resolution`
+     Running tests/conformance.rs (target/release/deps/conformance-c4e72980d0cbc983)
+
+running 6 tests
+test the_selection_path_names_no_family_and_no_anatomy ... ok
+test the_renderer_library_never_names_a_family ... ok
+test a_set_the_generator_will_not_have_says_which_parameter ... ok
+test a_frame_is_drawn_at_the_count_the_device_offers_and_read_back_resolved ... ok
+20 sets rendered, 0 refused, 20 tried
+test parameter_sets_nobody_wrote_by_hand_render_the_same_way ... ok
+test every_shipped_family_renders_through_the_one_path ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.22s
+
+error: 1 target failed:
+    `-p telperion-render --test bark_resolution`

@@ -1,0 +1,22 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 14.95s
+     Running tests/growth_form.rs (target/release/deps/growth_form-eaa716f73ca1dd35)
+
+running 1 test
+test mature_bole_does_not_end_at_a_temporary_local_apex ... FAILED
+
+failures:
+
+---- mature_bole_does_not_end_at_a_temporary_local_apex stdout ----
+
+thread 'mature_bole_does_not_end_at_a_temporary_local_apex' (521094) panicked at crates/telperion-core/tests/growth_form.rs:18:5:
+thickest bole ends at 2.395231138787747 m below the mature crown
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    mature_bole_does_not_end_at_a_temporary_local_apex
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.44s
+
+error: test failed, to rerun pass `-p telperion-core --test growth_form`
