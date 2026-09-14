@@ -10,6 +10,8 @@
 //! fn-27 permutes wood vertices and indices into descending run radius. These
 //! pins do not hash wood order: their existing counts, bounds, placement and
 //! element identities stay unchanged, so no literal needs re-pinning.
+//! fn-34 adds european-beech and silver-birch pins from the first seed-7
+//! photograph of those value tables.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -42,7 +44,7 @@ struct Pin {
 }
 
 const SEED: u32 = 7;
-const PINS: [Pin; 2] = [
+const PINS: [Pin; 4] = [
     Pin {
         id: "oregon-white-oak",
         wood_vertices: 4262170,
@@ -69,10 +71,36 @@ const PINS: [Pin; 2] = [
         placement: 8171270653015517335,
         element: 7287062639823569932,
     },
+    Pin {
+        id: "european-beech",
+        wood_vertices: 4775350,
+        wood_triangles: 9249200,
+        instances: 972751,
+        min: [
+            -16.01387505749022,
+            -0.12800000607967377,
+            -15.420336478159417,
+        ],
+        max: [15.535281785539059, 31.023732076749628, 15.668639743659089],
+        skeleton: 3336516034053069968,
+        placement: 7582299780539641375,
+        element: 7756720324596677174,
+    },
+    Pin {
+        id: "silver-birch",
+        wood_vertices: 1157464,
+        wood_triangles: 2242040,
+        instances: 231313,
+        min: [-6.598827454365292, -0.07199999690055847, -6.755796597863824],
+        max: [6.773808535485696, 14.663928671668822, 6.671959113924278],
+        skeleton: 16408405353328404568,
+        placement: 3525528955408769121,
+        element: 1872173242819532549,
+    },
 ];
 
 #[test]
-fn oak_and_spruce_meshes_are_the_tree_recorded_before_the_levels() {
+fn shipped_species_meshes_are_the_tree_recorded_before_the_levels() {
     for pin in &PINS {
         let id = pin.id;
         let mut family = Preset::from_id(id).expect("preset identity").parameters();

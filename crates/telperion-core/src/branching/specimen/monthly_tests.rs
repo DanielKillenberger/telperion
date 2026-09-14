@@ -69,6 +69,8 @@ fn annual_build_and_irregular_fractional_replay_have_identical_bytes() {
         Preset::Ordinary,
         Preset::OregonWhiteOak,
         Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
         Preset::Telperion,
         Preset::Laurelin,
     ];

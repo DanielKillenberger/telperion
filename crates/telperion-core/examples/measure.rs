@@ -12,11 +12,10 @@ fn ms(t: Instant) -> f64 {
 }
 fn main() {
     let name = std::env::args().nth(1).unwrap_or("ordinary".into());
-    let preset = match name.as_str() {
-        "telperion" => Preset::Telperion,
-        "laurelin" => Preset::Laurelin,
-        _ => Preset::Ordinary,
-    };
+    let preset = Preset::from_id(&name).unwrap_or_else(|| {
+        eprintln!("unknown preset: {name}");
+        std::process::exit(2);
+    });
     let field_only = std::env::args().any(|a| a == "--field");
     for sample in -1..5 {
         let f = preset.parameters();

@@ -6,6 +6,9 @@ dist
 # art-direct against. Never committed, never published.
 .refs/
 
+# Raw species-measure receipts stay on disk; summaries are committed.
+.flow/evidence/fn34/measure/
+
 # Rust outputs and reproducible migration artifacts.
 /target/
 /tests/migration/generated/

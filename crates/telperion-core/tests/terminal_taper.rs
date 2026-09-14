@@ -10,6 +10,8 @@ fn only_childless_species_structure_gets_terminal_taper() {
     for preset in [
         Preset::NorwaySpruce,
         Preset::OregonWhiteOak,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
         Preset::Ordinary,
         Preset::Telperion,
         Preset::Laurelin,

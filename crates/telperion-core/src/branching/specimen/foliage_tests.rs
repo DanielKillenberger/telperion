@@ -220,6 +220,8 @@ fn annual_leaf_buffers_replay_exactly_across_reads_for_all_presets_and_a_blend()
         Preset::Ordinary,
         Preset::OregonWhiteOak,
         Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
         Preset::Telperion,
         Preset::Laurelin,
     ]

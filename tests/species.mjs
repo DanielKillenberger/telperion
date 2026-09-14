@@ -39,10 +39,10 @@ Exit 1 for failed/missing required evidence or unassessed visual results.
 Human inspection goes in REPORT.md; this runner never awards visual approval.`);
   process.exit(0);
 }
-const known = new Set(['--draw-seeds', '--seeds', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms']);
+const known = new Set(['--draw-seeds', '--seeds', '--profiles', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms']);
 for (let i = 0; i < args.length; i++) {
   if (!known.has(args[i])) throw Error(`Unknown option ${args[i]}`);
-  if (['--seeds', '--output', '--case', '--timeout-ms'].includes(args[i])) {
+  if (['--seeds', '--profiles', '--output', '--case', '--timeout-ms'].includes(args[i])) {
     if (!args[++i] || args[i].startsWith('--')) throw Error('Missing option value');
   }
 }
@@ -93,7 +93,8 @@ async function capture(job) {
 }
 
 const seedPath = resolve(option('--seeds') ?? '.flow/evidence/fn9/seeds.json');
-const profiles = await json('.flow/evidence/fn9/profiles.json');
+const profilesPath = resolve(option('--profiles') ?? '.flow/evidence/fn9/profiles.json');
+const profiles = await json(profilesPath);
 if (args.includes('--draw-seeds')) {
   const manifest = { drawn_at: new Date().toISOString(), calibration_commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), method: 'OS cryptographic random u32; reject only fixed/duplicate seeds', fixed: profiles.protocol.fixed_seeds, fresh: {} };
   for (const profile of profiles.profiles) {
@@ -127,7 +128,7 @@ for (const c of cases) {
   const path = join(out, `${c.id}.jsonl`);
   if (!args.includes('--capture-only')) {
     // Native output refuses overwrite; explicit replay uses a new output dir.
-    const run = await command(MEASURE, ['--case', `${c.id}:${c.preset}:${c.preset}:${c.seed}`, '--output', path]);
+    const run = await command(MEASURE, ['--case', `${c.id}:${c.preset}:${c.preset}:${c.seed}`, '--output', path, '--profiles', profilesPath]);
     await save(join(out, `${c.id}-process.json`), run);
   }
   try {
@@ -150,7 +151,7 @@ if (option('--case') && !subjects.some(c => c.id === option('--case'))) throw Er
    from them, and the profiles the cases came out of. */
 const sourceFiles = (await command('git', ['ls-files', 'crates/telperion-render', 'crates/telperion-core/src'])).stdout.trim().split('\n');
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async path => [path, sha(await readFile(path))])));
-const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), binarySha256: sha(await readFile(HEADLESS)), profilesSha256: sha(await readFile('.flow/evidence/fn9/profiles.json')), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))), size: SIZE };
+const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), binarySha256: sha(await readFile(HEADLESS)), profilesSha256: sha(await readFile(profilesPath)), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))), size: SIZE };
 await save(join(out, 'provenance.json'), provenance);
 const jobs = subjects.flatMap(c => VIEWS.map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
 const suffix = option('--case') ? `-${option('--case')}` : '';

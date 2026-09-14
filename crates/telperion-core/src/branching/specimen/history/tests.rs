@@ -113,6 +113,8 @@ fn historical_reads_cover_every_preset_blends_and_do_not_change_future_growth() 
         Preset::Ordinary,
         Preset::OregonWhiteOak,
         Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
         Preset::Telperion,
         Preset::Laurelin,
     ]
