@@ -9,7 +9,10 @@ fn complete_presets_are_deterministic_and_solved() {
         assert!(a.tree.nodes.len() > a.tree.crossover);
         assert!(a.tree.diagnostics.complete());
         for n in a.tree.nodes.iter().skip(a.tree.crossover) {
-            assert!(p.skeleton.envelope.contains(n.position, 1e-8));
+            assert!(p
+                .skeleton
+                .envelope
+                .contains(n.position, 1e-8, p.skeleton.seed));
             assert!(
                 n.position
                     .distance(a.tree.nodes[n.parent.unwrap() as usize].position)

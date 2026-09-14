@@ -88,6 +88,43 @@ impl Noise {
         )
     }
 }
+/// The same gradient noise without a permutation table: every lattice corner's
+/// gradient is hashed from the corner and the seed, so a caller that holds a
+/// seed and no state of its own samples it. `Noise` keeps its table for the
+/// bias field, which samples one instance millions of times; the envelope's
+/// outline is queried from plain values and cannot carry one.
+pub fn seeded(seed: u32, p: Vec3) -> f64 {
+    let (xi, yi, zi) = (p.x.floor(), p.y.floor(), p.z.floor());
+    let (x, y, z) = (p.x - xi, p.y - yi, p.z - zi);
+    let corner = |dx: i64, dy: i64, dz: i64| {
+        let hash = corner_hash(seed, xi as i64 + dx, yi as i64 + dy, zi as i64 + dz);
+        gradient(hash, x - dx as f64, y - dy as f64, z - dz as f64)
+    };
+    let (u, v, w) = (fade(x), fade(y), fade(z));
+    lerp(
+        lerp(
+            lerp(corner(0, 0, 0), corner(1, 0, 0), u),
+            lerp(corner(0, 1, 0), corner(1, 1, 0), u),
+            v,
+        ),
+        lerp(
+            lerp(corner(0, 0, 1), corner(1, 0, 1), u),
+            lerp(corner(0, 1, 1), corner(1, 1, 1), u),
+            v,
+        ),
+        w,
+    )
+}
+/// One gradient index per lattice corner: integer mixing only, so the same
+/// seed and the same corner give the same gradient on every target.
+fn corner_hash(seed: u32, x: i64, y: i64, z: i64) -> u8 {
+    let mut h = seed ^ 0x9e37_79b9;
+    for v in [x, y, z] {
+        h = (h ^ v as u32).wrapping_mul(0x85eb_ca6b);
+        h ^= h >> 13;
+    }
+    (h ^ (h >> 16)) as u8
+}
 fn fade(t: f64) -> f64 {
     t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
 }

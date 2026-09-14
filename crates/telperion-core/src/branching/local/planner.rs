@@ -2,9 +2,9 @@ use super::*;
 use crate::math::Transcendental;
 pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
     p.y < config.trunk_height
-        || config
-            .shell
-            .is_some_and(|s| p.y > s.height || p.x.hypot_fixed(p.z) > s.radius_at(p.y))
+        || config.shell.is_some_and(|s| {
+            p.y > s.height || p.x.hypot_fixed(p.z) > s.radius_toward(p, config.seed)
+        })
 }
 pub(in crate::branching) type WidthQuery<'a> = Option<&'a dyn Fn(&Tree, usize) -> [f64; 3]>;
 pub(in crate::branching) struct Planner<'a> {

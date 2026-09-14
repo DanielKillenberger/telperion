@@ -183,6 +183,16 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the twig layer publishes its curtain rows");
         }
+        // fn-39 gave the envelope its outline rows. The frozen file predates
+        // them and states neither; the amplitude is zero there, which is the
+        // smooth shell the frozen protocol was measured on.
+        for row in ["irregularity", "lobeScale"] {
+            emitted["skeleton"]["envelope"]
+                .as_object_mut()
+                .unwrap()
+                .remove(row)
+                .expect("the envelope publishes its outline rows");
+        }
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);
         }

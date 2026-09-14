@@ -158,6 +158,16 @@ export interface GrowerParams {
   /** The envelope's profile exponent: 1 is a straight-sided cone, 2 an
    *  ellipse, and above that the shoulders square off into a dome. */
   shoulder: number;
+  /** How far the outline departs from that smooth shell, as a fraction
+   *  of the radius there. 0 is the oval of revolution every seed used
+   *  to fill the same way; above it the crown grows lobes and hollows
+   *  the seed alone decides, so two seeds of one tree read as two
+   *  trees from across a field. */
+  irregularity: number;
+  /** The lobes' wavelength over the shell's surface, as a fraction of
+   *  the height: low is a rough coat of small lumps, 1 is a handful of
+   *  lobes as long as the tree is tall. */
+  lobeScale: number;
   /** Lobes on the swept cross section: how many strands a limb reads
    *  as. 0 is the circle everyone else extrudes. */
   lobes: number;
@@ -336,6 +346,12 @@ export const SLIDERS: readonly SliderSpec[] = [
      the profile is degenerate rather than extreme. */
   { key: "fullness", label: "fullness", min: 0.05, max: 0.95, step: 0.01, unit: "" },
   { key: "shoulder", label: "shoulder", min: 1, max: 4, step: 0.05, unit: "n" },
+  /* The outline's two rows. Everything above says what shape the
+     smooth shell is; these say how far the tree is allowed to depart
+     from it and at what size, which is the difference between a
+     silhouette and an oval. Neutral at 0, where every tree was. */
+  { key: "irregularity", label: "irregularity", min: 0, max: 0.5, step: 0.01, unit: "" },
+  { key: "lobeScale", label: "lobe scale", min: 0.05, max: 1, step: 0.01, unit: "h" },
   // The surface dials. `lobes` is a count and steps by one; the other
   // three run from the circular, straight, unflared surface every other
   // procedural tree has out to well past what looks good, on the same

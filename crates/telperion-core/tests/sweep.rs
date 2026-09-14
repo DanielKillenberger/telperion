@@ -64,7 +64,7 @@ const BANDS: [(&str, usize, usize); 7] = [
 // the curtain's shoot separation differ between the oak, the spruce and the
 // birch, so the sweep walks all three. The radius threshold is 1 on every
 // shipped row - every shoot under a descending limb hangs - and is held here.
-const HELD: [&str; 30] = [
+const HELD: [&str; 32] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
@@ -74,6 +74,8 @@ const HELD: [&str; 30] = [
     "/growth/rate",
     "/growth/resizeTolerance",
     "/growth/shape",
+    "/skeleton/envelope/irregularity",
+    "/skeleton/envelope/lobeScale",
     "/skeleton/growth/influenceRadius",
     "/skeleton/growth/killDistance",
     "/skeleton/growth/maxNodes",

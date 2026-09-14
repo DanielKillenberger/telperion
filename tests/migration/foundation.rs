@@ -27,20 +27,20 @@ fn envelope_boundaries_and_invalid_values() {
     let e = Envelope::default();
     assert_eq!(e.radius_at(0.0), 0.0);
     assert_eq!(e.radius_at(e.height), 0.0);
-    assert!(e.contains(Vec3::ZERO, 0.0));
-    assert!(!e.contains(Vec3::new(0.0, -1.0, 0.0), 0.0));
-    assert!(!e.contains(Vec3::new(0.0, e.height + 1.0, 0.0), 0.0));
-    assert!(!e.contains(Vec3::new(0.01, 1.0, 0.0), 0.0));
+    assert!(e.contains(Vec3::ZERO, 0.0, 1));
+    assert!(!e.contains(Vec3::new(0.0, -1.0, 0.0), 0.0, 1));
+    assert!(!e.contains(Vec3::new(0.0, e.height + 1.0, 0.0), 0.0, 1));
+    assert!(!e.contains(Vec3::new(0.01, 1.0, 0.0), 0.0, 1));
     for bad in [f64::NAN, f64::INFINITY, -1.0] {
         assert!(Envelope { height: bad, ..e }.validate().is_err());
     }
     assert!(Envelope { spread: 0.0, ..e }
-        .sample(10, &mut Rng::new(1))
+        .sample(10, &mut Rng::new(1), 1)
         .unwrap()
         .is_empty());
-    let points = e.sample(100, &mut Rng::new(1)).unwrap();
+    let points = e.sample(100, &mut Rng::new(1), 1).unwrap();
     assert_eq!(points.len(), 100);
-    assert!(points.iter().all(|&p| e.contains(p, 1e-12)));
+    assert!(points.iter().all(|&p| e.contains(p, 1e-12, 1)));
     let y = e.height * (e.crown_base + (1.0 - e.crown_base) * e.fullness);
     assert!(e.distance_to_profile(e.radius_at(y), y) < 0.01);
 }
@@ -78,7 +78,7 @@ fn bias_and_sampling_limits_are_explicit() {
     };
     let e = Envelope::default();
     assert!(matches!(
-        e.sample(1_000_001, &mut Rng::new(0)),
+        e.sample(1_000_001, &mut Rng::new(0), 0),
         Err(Error::ResourceLimit(_))
     ));
     assert!(GrowthBias::new(

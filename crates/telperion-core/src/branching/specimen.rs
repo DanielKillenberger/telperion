@@ -73,7 +73,7 @@ impl Specimen {
         }
         let inner = inner_envelope(params.envelope, twigs.reach);
         let points = if params.habit.attractor_weight > 0.0 {
-            inner.sample(params.attractors, &mut Rng::new(params.seed))?
+            inner.sample(params.attractors, &mut Rng::new(params.seed), params.seed)?
         } else {
             Vec::new()
         };

@@ -110,6 +110,8 @@ export interface Family {
   crownBase: number;
   fullness: number;
   height: number;
+  irregularity: number;
+  lobeScale: number;
   shoulder: number;
   spread: number;
 };
@@ -290,6 +292,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.3,
           "fullness": 0.45,
           "height": 24,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 2.2,
           "spread": 0.3
         },
@@ -468,6 +472,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.16,
           "fullness": 0.55,
           "height": 24,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 2.2,
           "spread": 0.55
         },
@@ -646,6 +652,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.04,
           "fullness": 0.15,
           "height": 15,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 1,
           "spread": 0.31
         },
@@ -824,6 +832,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.12,
           "fullness": 0.62,
           "height": 32,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 1.8,
           "spread": 0.52
         },
@@ -1002,6 +1012,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.015,
           "fullness": 0.6,
           "height": 18,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 1.6,
           "spread": 0.36
         },
@@ -1032,7 +1044,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angleVariation": 10,
           "curtainSeparation": 9,
           "divergence": 137.508,
-          "hang": 1,
+          "hang": 2.4,
           "internodeFactor": 2.5,
           "laterals": 8,
           "lengthRatio": 0.6,
@@ -1180,6 +1192,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.38,
           "fullness": 0.58,
           "height": 148,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 1.5,
           "spread": 0.24
         },
@@ -1358,6 +1372,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.24,
           "fullness": 0.38,
           "height": 132,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 3.2,
           "spread": 0.58
         },

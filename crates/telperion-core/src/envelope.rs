@@ -1,5 +1,5 @@
 use crate::math::Transcendental;
-use crate::{math::Vec3, rng::Rng, Error, Result};
+use crate::{math::Vec3, noise, rng::Rng, Error, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
@@ -9,6 +9,14 @@ pub struct Envelope {
     pub spread: f64,
     pub fullness: f64,
     pub shoulder: f64,
+    /// How far the outline departs from the smooth shell, as a fraction of the
+    /// radius there. 0 is the axisymmetric superellipse every tree was before,
+    /// and every shipped table that leaves it there is untouched.
+    pub irregularity: f64,
+    /// The wavelength of that departure over the shell's own surface, as a
+    /// fraction of the tree's height: small is many small lumps, 1 is a lobe
+    /// as long as the tree is tall.
+    pub lobe_scale: f64,
 }
 impl Default for Envelope {
     fn default() -> Self {
@@ -18,6 +26,8 @@ impl Default for Envelope {
             spread: 0.3,
             fullness: 0.45,
             shoulder: 2.2,
+            irregularity: 0.0,
+            lobe_scale: 0.5,
         }
     }
 }
@@ -39,6 +49,17 @@ impl Envelope {
             || !(self.height * self.spread).is_finite()
         {
             return Err(Error::InvalidInput("envelope"));
+        }
+        // The outline's two rows are refused rather than clamped, and by name:
+        // a table that asks for an amplitude or a wavelength off its rail is a
+        // table with a mistake in it.
+        for (value, low, high, row) in [
+            (self.irregularity, 0.0, 0.5, "envelope irregularity"),
+            (self.lobe_scale, 0.05, 1.0, "envelope lobe scale"),
+        ] {
+            if !value.is_finite() || !(low..=high).contains(&value) {
+                return Err(Error::InvalidInput(row));
+            }
         }
         Ok(())
     }
@@ -67,16 +88,50 @@ impl Envelope {
                 .max(0.0)
                 .powf_fixed(1.0 / shoulder)
     }
-    /// Includes the bare trunk axis within the tree's vertical extent.
-    pub fn contains(&self, p: Vec3, tolerance: f64) -> bool {
+    /// The shell's radius at a height and a bearing: the smooth radius shaped
+    /// by the seed's own lobes. The perturbation is multiplicative, so the
+    /// crown base and the bole are as authored and the radius stays within
+    /// `radius_at` times one plus or minus the amplitude. At amplitude zero
+    /// this is `radius_at` to the byte, whatever the seed.
+    pub fn radius_at_bearing(&self, y: f64, azimuth: f64, seed: u32) -> f64 {
+        self.lobed(y, azimuth.cos_fixed(), azimuth.sin_fixed(), seed)
+    }
+    /// `radius_at_bearing` for a point that already knows its own bearing, as
+    /// every containment query does: the horizontal direction is the cosine
+    /// and sine, and no angle is formed to take them back apart.
+    pub fn radius_toward(&self, p: Vec3, seed: u32) -> f64 {
+        let radial = p.x.hypot_fixed(p.z);
+        if radial <= 0.0 {
+            return self.lobed(p.y, 1.0, 0.0, seed);
+        }
+        self.lobed(p.y, p.x / radial, p.z / radial, seed)
+    }
+    /// One wavelength of the noise spans `lobe_scale` of the height, up the
+    /// shell and around it alike, so the outline is the same shape whatever
+    /// size the tree is and the lobes close exactly on themselves at every
+    /// full turn.
+    fn lobed(&self, y: f64, cos: f64, sin: f64, seed: u32) -> f64 {
+        let radius = self.radius_at(y);
+        if self.irregularity == 0.0 || radius <= 0.0 {
+            return radius;
+        }
+        let wavelength = (self.lobe_scale * self.height).max(1e-6);
+        let around = self.max_radius() / wavelength;
+        let at = Vec3::new(cos * around, y / wavelength, sin * around);
+        radius * (1.0 + self.irregularity * noise::seeded(seed, at).clamp(-1.0, 1.0))
+    }
+    /// Includes the bare trunk axis within the tree's vertical extent. The
+    /// seed is the family's: it is what the outline's lobes are keyed by, so
+    /// two seeds of one family fill two different shells.
+    pub fn contains(&self, p: Vec3, tolerance: f64, seed: u32) -> bool {
         p.is_finite()
             && tolerance.is_finite()
             && tolerance >= 0.0
             && p.y >= -tolerance
             && p.y <= self.height + tolerance
-            && p.x.hypot_fixed(p.z) <= self.radius_at(p.y) + tolerance
+            && p.x.hypot_fixed(p.z) <= self.radius_toward(p, seed) + tolerance
     }
-    pub fn sample(&self, count: usize, rng: &mut Rng) -> Result<Vec<Vec3>> {
+    pub fn sample(&self, count: usize, rng: &mut Rng, seed: u32) -> Result<Vec<Vec3>> {
         self.validate()?;
         if count > 1_000_000 {
             return Err(Error::ResourceLimit("attractors"));
@@ -96,7 +151,7 @@ impl Envelope {
                 rng.range(base, self.height),
                 rng.range(-r, r),
             );
-            if self.contains(p, 0.0) {
+            if self.contains(p, 0.0, seed) {
                 out.push(p);
             }
         }
@@ -106,6 +161,10 @@ impl Envelope {
             Err(Error::ResourceLimit("envelope sampling attempts"))
         }
     }
+    /// The smooth two-dimensional outline, and deliberately smooth: shedding
+    /// and the crown index read one polyline for depth and exposure, and the
+    /// irregularity says where growth may go, not how retention is judged. A
+    /// bearing-aware retention is a spec of its own if the pairs ask for one.
     pub fn profile(&self) -> Vec<[f64; 2]> {
         let base = self.height * self.crown_base;
         (0..=128)

@@ -41,6 +41,8 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "envelope", "spread"; skeleton.envelope.spread);
         $op!($f, $v, "skeleton", "envelope", "fullness"; skeleton.envelope.fullness);
         $op!($f, $v, "skeleton", "envelope", "shoulder"; skeleton.envelope.shoulder);
+        $op!($f, $v, "skeleton", "envelope", "irregularity"; skeleton.envelope.irregularity);
+        $op!($f, $v, "skeleton", "envelope", "lobeScale"; skeleton.envelope.lobe_scale);
         $op!($f, $v, "skeleton", "bias", "gravitropism"; skeleton.bias.gravitropism);
         $op!($f, $v, "skeleton", "bias", "lean"; skeleton.bias.lean);
         $op!($f, $v, "skeleton", "bias", "supernatural", "enabled"; skeleton.bias.supernatural.enabled);

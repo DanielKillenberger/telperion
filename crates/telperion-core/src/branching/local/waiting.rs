@@ -232,7 +232,7 @@ mod frontier_tests {
             if config
                 .shell
                 .unwrap()
-                .contains(Vec3::new(0.0, 1.5, 0.0), 0.0)
+                .contains(Vec3::new(0.0, 1.5, 0.0), 0.0, config.seed)
             {
                 assert_eq!(tree.nodes.len(), 3, "missed the first eligible birth");
                 return;

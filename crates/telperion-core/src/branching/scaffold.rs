@@ -99,14 +99,14 @@ impl Builder<'_> {
         // bole's height and nothing else there; a crown axis never enters that
         // region at all. An axis that already stands outside the silhouette,
         // as a leaning bole does where it meets the crown, may close on it.
-        let held = self.envelope.contains(start, TOLERANCE);
+        let held = self.envelope.contains(start, TOLERANCE, self.config.seed);
         if (1..=8).any(|k| {
             let p = start.lerp(position, k as f64 / 8.0);
             let bole = p.y < self.config.trunk_height;
             p.y < -TOLERANCE
                 || p.y > self.envelope.height + TOLERANCE
                 || (crown && bole)
-                || (held && !bole && !self.envelope.contains(p, TOLERANCE))
+                || (held && !bole && !self.envelope.contains(p, TOLERANCE, self.config.seed))
         }) {
             self.paused = self.growing_envelope;
             return Ok(None);
@@ -190,7 +190,9 @@ impl Builder<'_> {
         let mut length = 0.0;
         for _ in 0..96 {
             let next = position + direction * (length + probe);
-            if !self.planning.contains(next, 0.0) || next.y < self.config.trunk_height {
+            if !self.planning.contains(next, 0.0, self.config.seed)
+                || next.y < self.config.trunk_height
+            {
                 break;
             }
             length += probe;

@@ -200,7 +200,7 @@ fn fixed_species(preset: Preset) {
         assert!(a.tree.diagnostics.complete(), "seed {seed}: truncation");
         assert!(a.tree.nodes.len() > a.tree.crossover);
         for node in a.tree.nodes.iter().skip(a.tree.crossover) {
-            assert!(family.skeleton.envelope.contains(node.position, 1e-8));
+            assert!(family.skeleton.envelope.contains(node.position, 1e-8, seed));
         }
         let wood =
             surface::build(&a.tree, family.skeleton.envelope.height, &family.surface).unwrap();

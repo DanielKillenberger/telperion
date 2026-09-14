@@ -83,6 +83,8 @@ fn frozen_solved_tree_comparison() {
             spread: number(&json, "spread"),
             fullness: number(&json, "fullness"),
             shoulder: number(&json, "shoulder"),
+            irregularity: 0.0,
+            lobe_scale: 0.5,
         };
         let c = json.split("\"canopy\":").nth(1).unwrap();
         let params = CanopyParams {

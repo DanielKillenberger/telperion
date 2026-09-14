@@ -62,6 +62,7 @@ pub struct GrowthOverrides {
 impl SkeletonParams {
     pub fn resolved_growth(&self, scattered: usize) -> Result<GrowthConfig> {
         let mut c = default_growth(self.envelope, scattered, self.step);
+        c.seed = self.seed;
         let o = self.growth;
         if let Some(v) = o.influence_radius {
             c.influence_radius = v

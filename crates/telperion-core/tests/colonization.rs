@@ -87,11 +87,11 @@ fn crown_edges_and_outside_approach() {
         assert!(tree
             .nodes
             .iter()
-            .any(|n| n.position.y >= 6.0 && shell.contains(n.position, 0.0)));
+            .any(|n| n.position.y >= 6.0 && shell.contains(n.position, 0.0, cfg.seed)));
         for n in tree.nodes.iter().skip(1) {
             let p = &tree.nodes[n.parent.unwrap() as usize];
-            if p.position.y >= 6.0 && shell.contains(p.position, 0.0) {
-                assert!(shell.contains(n.position, 0.0));
+            if p.position.y >= 6.0 && shell.contains(p.position, 0.0, cfg.seed) {
+                assert!(shell.contains(n.position, 0.0, cfg.seed));
             }
         }
     }

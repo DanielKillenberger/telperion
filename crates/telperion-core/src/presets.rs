@@ -105,6 +105,8 @@ impl Preset {
                 spread: 0.55,
                 fullness: 0.55,
                 shoulder: 2.2,
+                irregularity: 0.0,
+                lobe_scale: 0.5,
             };
             p.skeleton.bias = BiasParams::NONE;
             p.skeleton.twigs.laterals = 4;
@@ -172,6 +174,8 @@ impl Preset {
                 spread: 0.31,
                 fullness: 0.15,
                 shoulder: 1.0,
+                irregularity: 0.0,
+                lobe_scale: 0.5,
             };
             p.skeleton.bias = BiasParams::NONE;
             p.skeleton.twigs.twig.diameter = 0.002;
@@ -257,6 +261,8 @@ impl Preset {
                 spread: 0.24,
                 fullness: 0.58,
                 shoulder: 1.5,
+                irregularity: 0.0,
+                lobe_scale: 0.5,
             }
         } else {
             Envelope {
@@ -265,6 +271,8 @@ impl Preset {
                 spread: 0.58,
                 fullness: 0.38,
                 shoulder: 3.2,
+                irregularity: 0.0,
+                lobe_scale: 0.5,
             }
         };
         p.skeleton.attractors = if silver { 1600 } else { 1060 };

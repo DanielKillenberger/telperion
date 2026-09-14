@@ -38,6 +38,8 @@ pub(super) fn european_beech(p: &mut Family) {
         spread: 0.52,
         fullness: 0.62,
         shoulder: 1.8,
+        irregularity: 0.0,
+        lobe_scale: 0.5,
     };
     p.skeleton.bias = BiasParams::NONE;
     p.skeleton.twigs.laterals = 5;
@@ -98,6 +100,8 @@ pub(super) fn silver_birch(p: &mut Family) {
         spread: 0.36,
         fullness: 0.6,
         shoulder: 1.6,
+        irregularity: 0.0,
+        lobe_scale: 0.5,
     };
     p.skeleton.bias = BiasParams::NONE;
     p.skeleton.twigs.laterals = 8;

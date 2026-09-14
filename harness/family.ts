@@ -54,6 +54,8 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
       crownBase: params.crownBase,
       fullness: params.fullness,
       shoulder: params.shoulder,
+      irregularity: params.irregularity,
+      lobeScale: params.lobeScale,
     },
     attractors: Math.round(
       ATTRACTORS_MIN + params.density * (ATTRACTORS_MAX - ATTRACTORS_MIN),
@@ -205,6 +207,8 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     crownBase: envelope.crownBase,
     fullness: envelope.fullness,
     shoulder: envelope.shoulder,
+    irregularity: envelope.irregularity,
+    lobeScale: envelope.lobeScale,
     torsion: 1,
     gravitropism: bias.gravitropism,
     lean: bias.lean,

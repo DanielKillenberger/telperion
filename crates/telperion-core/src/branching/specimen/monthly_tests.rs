@@ -285,7 +285,7 @@ fn annual_cached_local_runs_obey_the_current_crown_boundary() {
         for node in &s.tree().nodes[s.tree().crossover..] {
             if node.identity.birth_order() >= first_birth {
                 assert!(
-                    s.envelope().contains(node.position, 1e-9),
+                    s.envelope().contains(node.position, 1e-9, s.params.seed),
                     "local birth {} outside current crown at age {}: {:?}",
                     node.identity.birth_order(),
                     s.age(),
