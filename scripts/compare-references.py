@@ -7,8 +7,8 @@
 
 For every reference record that carries a shot block, the species runner has
 rendered `<case>-<id>.png` and a twin `<case>-<id>-twin.png` under the same
-camera with the sun turned half a circle, so the tree stands in both and its
-shadow lies on opposite sides. This script writes `<case>-<id>-pair.png`,
+camera with the sun on the horizon behind the tree, so the tree stands in
+both and its shadow lies in the frame of only one. This script writes `<case>-<id>-pair.png`,
 the photograph and the still at one height, and `<case>-<id>-compare.json`,
 the same numbers read off both images: the crown's width over its height,
 its base as a fraction of its height, how much of the frame it fills, the

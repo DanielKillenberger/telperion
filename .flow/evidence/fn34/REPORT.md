@@ -78,3 +78,47 @@ catalogue species and was not measured or rendered as a passing tree.
   by age is recorded on each ready profile.
 - `tests/crown_reference.rs` is an ignored FN6 pin list and does not
   include oak or spruce; it was not extended.
+
+## Round 2: matched stills (2026-09-14, fn-36)
+
+The owner rejected round 1 because the fixed views made the comparison unfair
+before it was made. Round 2 renders the first fixed seed of each species
+through the camera, sun, foliage state and aspect recorded on every whole,
+bare and base reference (the `shot` block in `references.json`), without the
+scale figure, and pairs each still with its photograph at one height. The
+compare script measures both images the same way. Pairs and stills stay on
+disk under the ignored `measure/pairs/` directory; `round2/stills.json` records
+each by sha256 and `round2/*-compare.json` carries the numbers.
+
+Photograph / still, per reference:
+
+| Reference | Foliage | Width over height | Crown base | Fill | Occupied | Centre order |
+|---|---|---|---|---|---|---|
+| B-BARE | hidden | 0.74 / 0.69 | 0.25 / 0.26 | 0.90 / 0.96 | 0.28 / 0.31 | RGB / BGR |
+| B-BASE | hidden | 0.60 / 0.67 | 1.00 / 0.04 | 1.00 / 1.00 | 0.05 / 0.10 | BRG / BGR |
+| B-WHOLE | leaf-on | 0.70 / 0.69 | 0.12 / 0.09 | 0.91 / 0.96 | 0.46 / 0.55 | GBR / GBR |
+| S-BARE | hidden | 0.70 / 0.72 | 0.15 / 0.25 | 0.95 / 0.93 | 0.46 / 0.22 | RGB / BGR |
+| S-BARK | hidden | 1.07 / 0.90 | 1.00 / 0.00 | 1.00 / 1.00 | 0.47 / 0.43 | GRB / GRB |
+| S-WHOLE | leaf-on | 0.85 / 0.88 | 0.08 / 0.21 | 0.96 / 0.94 | 0.44 / 0.40 | GRB / BGR |
+
+How to read the columns: width over height and crown base come from the
+photograph's tree box and crown base read by eye, and from the still's tree
+mask (what stands out of the row background under the shot's sun and under
+the twin's horizon sun). Fill is the tree's height over the frame's; the
+still overfills by a few percent because the camera frames the crown's
+inscribed ellipsoid, not its silhouette. Occupied is the dark-pixel share of
+the photograph's box against the mask's share of the still's, so it is a
+density proxy that the photograph's background contaminates on the bare and
+base shots. Centre order is the fn-29 channel order of the tree's middle.
+
+What the pairs show, read by the host on the two whole pairs (the four-image
+rule): the framing now agrees to within a few percent on proportion, so what
+is left is the tree. The beech's crown reads as a scatter of small leaves on
+visible straight branches where the photograph is one dense continuous mass;
+its trunk is thicker and shorter than the beech's and reads blue-grey under
+the overcast sky. The birch is a single upright stem with a rounded crown
+where the photograph is two leaning stems with a weeping curtain of long
+shoots reaching almost to the ground; the crown base measures 0.21 against
+the photograph's 0.08 for that reason. Neither species has the density or
+the habit of its photograph yet. No visual pass is awarded here; the owner
+judges the pairs.

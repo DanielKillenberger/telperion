@@ -36,7 +36,7 @@ Every required specimen is captured whole, bare and as a single leaf, at the
 renderer's own hero pose. A reference record that carries a shot block is
 also imitated: the first fixed seed is posed by that camera, under that sun,
 in that foliage state, at the photograph's aspect, without the scale figure,
-twice (the second with the sun turned half a circle, for the tree mask). JSON records the command, the adapter line it printed,
+twice (the twin with the sun on the horizon behind the tree, for the mask). JSON records the command, the adapter line it printed,
 parameters and hashes, with numeric/visual/owner fields kept separate.
 Exit 1 for failed/missing required evidence or unassessed visual results.
 Human inspection goes in REPORT.md; this runner never awards visual approval.`);
@@ -84,17 +84,18 @@ async function command(program, argv, limit = timeout) {
  *  process exited. */
 /** The scene a shot's light states: the sun where the photograph's was, and
  *  an overcast fraction that dims the sun and flattens the sky toward the
- *  horizon colour, through the scene row's own fields. A twin turns the sun
- *  half a circle so the shadow falls the other way and the tree does not. */
-function sceneOf(light, twin) {
+ *  horizon colour, through the scene row's own fields. A twin drops the sun
+ *  to the horizon behind the tree, so its shadow leaves the frame and what
+ *  stands out of the background in both stills is the tree alone. */
+function sceneOf(light, camera, twin) {
   const o = light.overcast, dim = 1 - 0.8 * o, mix = (a, b) => a + (b - a) * o;
-  return { sunAzimuth: (light.sunAzimuth + (twin ? 180 : 0)) % 360, sunElevation: light.sunElevation,
+  return { sunAzimuth: twin ? (camera.azimuth + 180) % 360 : light.sunAzimuth, sunElevation: twin ? 5 : light.sunElevation,
     sunRed: 3.0 * dim, sunGreen: 2.85 * dim, sunBlue: 2.6 * dim,
     skyZenithRed: mix(0.18, 0.55), skyZenithGreen: mix(0.30, 0.66), skyZenithBlue: mix(0.62, 0.80) };
 }
 async function capture(job) {
   const argv = ['--preset', job.preset, '--seed', String(job.seed), '--view', job.view, '--size', job.size ?? SIZE, '--out', job.png];
-  if (job.shot) argv.push('--camera', JSON.stringify(job.shot.camera), '--scene', JSON.stringify(sceneOf(job.shot.light, job.twin)), '--no-figure');
+  if (job.shot) argv.push('--camera', JSON.stringify(job.shot.camera), '--scene', JSON.stringify(sceneOf(job.shot.light, job.shot.camera, job.twin)), '--no-figure');
   const run = await command(HEADLESS, argv);
   const report = run.stdout.trim().split('\n').at(-1) ?? '';
   const drawn = /(\d+) triangles and (\d+) instances drawn in (\d+) calls/.exec(report);
