@@ -1,11 +1,16 @@
 {
   "status": "NEEDS_HUMAN",
-  "reason": "R6 valid native total p50 remains above 3.8 ms after cost changes",
+  "reason": "R5 stills captured for owner judgment; native R6 decision awaits the look",
   "native_total_p50_ms": 4.0005,
   "native_bound_ms": 3.8,
-  "still_rounds_used": 0,
+  "still_rounds_used": 1,
   "still_round_limit": 2,
-  "judgment_images_inspected": [],
+  "judgment_images_inspected": [
+    "oak-trunk.png",
+    "spruce-trunk.png",
+    "oak-branch.png",
+    "oak-leaf-frontlit.png"
+  ],
   "references_inspected_once": [
     "O-BARE",
     "O-LEAF",
@@ -16,17 +21,18 @@
     "OWNER-NORWAY-SPRUCE"
   ],
   "incidental_native_hero_inspected": false,
-  "browser_orbit": "not run; R6 stop",
-  "pending_stills": [
-    ".flow/evidence/fn29/stills/oak-trunk.png",
-    ".flow/evidence/fn29/stills/oak-branch.png",
-    ".flow/evidence/fn29/stills/oak-leaf-frontlit.png",
-    ".flow/evidence/fn29/stills/oak-leaf-backlit.png",
-    ".flow/evidence/fn29/stills/spruce-trunk.png",
-    ".flow/evidence/fn29/stills/spruce-branch.png",
-    ".flow/evidence/fn29/stills/spruce-needle-frontlit.png",
-    ".flow/evidence/fn29/stills/spruce-needle-backlit.png"
-  ],
+  "browser_orbit": {
+    "path": ".flow/evidence/fn29/oak-browser-orbit.json",
+    "verdict": "valid",
+    "fps_bound_pass": true,
+    "wall_p50_ms": 10.0,
+    "wall_p95_ms": 10.1,
+    "wall_max_ms": 10.1,
+    "gpu_total_p50_ms": 4.1009,
+    "gpu_total_p95_ms": 4.4567,
+    "frames": 999
+  },
+  "pending_stills": [],
   "branch_cameras": {
     "oak": {
       "node": 8,
@@ -64,5 +70,18 @@
       "near": 0.01,
       "far": 1000
     }
-  }
+  },
+  "inspection_scope": "capture faults only: blank frame, black frame or wrong camera; no owner verdict",
+  "captured_stills": [
+    ".flow/evidence/fn29/stills/oak-trunk.png",
+    ".flow/evidence/fn29/stills/oak-branch.png",
+    ".flow/evidence/fn29/stills/oak-leaf-frontlit.png",
+    ".flow/evidence/fn29/stills/oak-leaf-backlit.png",
+    ".flow/evidence/fn29/stills/spruce-trunk.png",
+    ".flow/evidence/fn29/stills/spruce-branch.png",
+    ".flow/evidence/fn29/stills/spruce-needle-frontlit.png",
+    ".flow/evidence/fn29/stills/spruce-needle-backlit.png"
+  ],
+  "capture_source_commit": "6d9b325",
+  "stills_status": "captured; owner verdict pending"
 }

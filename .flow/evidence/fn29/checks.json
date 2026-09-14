@@ -141,5 +141,35 @@
     "scope": "round 2 checkpoint; uncaptured adapter-skip diagnostics",
     "adapter_skips": 0,
     "crashes": 0
+  },
+  {
+    "command": "cargo build --release -p telperion-render --example fn29_stills",
+    "exit_code": 0,
+    "log": "logs/round3-stills-build.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "./target/release/examples/fn29_stills .flow/evidence/fn29/stills",
+    "exit_code": 0,
+    "log": "logs/round3-stills.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "npm run render:build",
+    "exit_code": 0,
+    "log": "logs/round3-render-build.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "DISPLAY=:0 BROWSER_URL=http://localhost:5179 node /tmp/fn29-orbit.mjs",
+    "exit_code": 1,
+    "log": "logs/round3-browser-orbit.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "DISPLAY=:0 BROWSER_URL=http://localhost:5179 node /tmp/fn29-orbit.mjs",
+    "exit_code": 0,
+    "log": "logs/round3-browser-orbit-retry.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
   }
 ]

@@ -5,7 +5,8 @@ native retry is **4.0005 ms total p50**, **0.2005 ms above 3.8 ms**. The first
 valid measurement was 3.9549 ms. Sharing the foliage seed varying and skipping
 zero highlights did not recover the budget. The requested R6 stop rule applies.
 No bound, protocol or oak relief row was changed. This report records a blocked
-implementation, not completion or an owner verdict.
+implementation, not completion or an owner verdict. In host round 3 the owner
+authorized stills and a browser orbit before deciding R6; native evidence holds.
 
 The distance and socket regressions have recorded GPU red/green results.
 Thirteen distinct device tests ran in the focused suites, with 27 executions
@@ -208,35 +209,49 @@ GeForce RTX 3080, NVIDIA 610.57.04, Vulkan, four samples per pixel. Counts remai
 | fn-14 | 10 / 10.1 / 10.2 | 5.0109 / 5.4561 | 999 | historical valid |
 | fn-27 | 10 / 10.1 / 10.2 | 3.5205 / 4.2045 | 999 | historical valid |
 | fn-26 final | 16.7 / 16.7 / 16.8 | 3.7379 / 3.9265 | 601 | historical valid |
-| fn-29 | not measured | not measured | 0 | stopped at native R6 failure |
+| fn-29 round 3 | 10 / 10.1 / 10.1 | 4.1009 / 4.4567 | 999 | valid; wall bounds pass |
 
 The browser bounds remain wall p95 <=16.7 ms and max <=33 ms with a valid
-session. No fn-29 orbit record exists. The supplied script was saved only to
-/tmp/fn29-orbit.mjs and never run. Chromium shader compilation did run on this
-worktree's port 5179 with zero errors at 4c5bf29, before the final cost changes.
-The browser closed and the owned Vite server stopped. Port 5175 was not used.
+session. Round 3 passes both wall limits with a valid record in
+oak-browser-orbit.json. The ten-second run produced 999 wall frames, compared
+with fn-26's 601; display settings and owner processes were untouched. The
+GPU totals cover 120 measured frames after eight conditioning and eight warmup.
+The supplied /tmp/fn29-orbit.mjs ran one isolated 1600x1000 canvas against this
+worktree's Vite server on port 5179 after npm run render:build (exit 0). The first
+launch failed before Chromium because the hard-coded Playwright path was absent;
+only that scratch import was changed to the repository-resolved parent install.
+The retry exited 0. No other GPU work owned by this session overlapped it.
+Chromium closed and the owned Vite server stopped; port 5175 was not used.
+The earlier explicit shader compilation check passed at 4c5bf29.
 
-## Stills and reference comparison
+## Stills
 
-**Zero of two still-capture rounds used.** No judgment still exists. The
-stills.json manifest is empty, deliberately carrying no invented captures or
-checksums. The temporary example is archived as stills-driver.rs and removed
-from the crate. capture-status.json lists the intended paths and fork cameras.
+**One of two still-capture rounds used.** All eight PNGs were captured from
+6d9b325 with the unchanged archived driver. Build and capture both exited 0.
+stills.json records fn-26's species/scale/reference/session/capture fields,
+repo-relative paths, SHA-256, exact cameras and complete scene rows. Session 3,
+capture 1 identifies this first fn-29 still round. The temporary example was
+removed again; stills-driver.rs remains the reproduction source.
 
-All intended captures use seed 7, 1600x1000, Level::Chosen. Wood uses the default
-scene. Leaf frontlit/backlit uses sun azimuth 0/180 and elevation 10, with every
-other scene value default. Paths below are relative to this evidence directory.
+Only oak-trunk, spruce-trunk, oak-branch and oak-leaf-frontlit were inspected,
+for blank frames, black frames or wrong cameras. No second round was used,
+no row or camera was adjusted, and no reference was viewed again. Owner verdicts
+remain blank. capture-status.json records the inspection scope and paths.
 
-| Pending path | View / camera recipe | References | Capture |
-|---|---|---|---|
-| stills/oak-trunk.png | Bare, pinned oak near-trunk | O-BARE, OWNER-WHITE-OAK, OWNER-BLACK-OAK | not captured |
-| stills/oak-branch.png | Bare, oak fork below | O-BARE, OWNER-WHITE-OAK | not captured |
-| stills/oak-leaf-frontlit.png | Leaf, current-element hero; sun 0/10 | O-LEAF | not captured |
-| stills/oak-leaf-backlit.png | Leaf, current-element hero; sun 180/10 | O-LEAF | not captured |
-| stills/spruce-trunk.png | Bare, target (0,.65,0), 1.8 m stand-off | OWNER-NORWAY-SPRUCE | not captured |
-| stills/spruce-branch.png | Bare, spruce fork below | S-BRANCH, OWNER-NORWAY-SPRUCE | not captured |
-| stills/spruce-needle-frontlit.png | Leaf, current-element hero; sun 0/10 | S-NEEDLE | not captured |
-| stills/spruce-needle-backlit.png | Leaf, current-element hero; sun 180/10 | S-NEEDLE | not captured |
+All captures use seed 7, 1600x1000, Level::Chosen. Wood uses the default scene.
+Leaf frontlit/backlit uses sun azimuth 0/180 and elevation 10, with every other
+scene value default. Each capture is paired below with its fn-26 counterpart.
+
+| fn-29 still | fn-26 counterpart | Catalogued references |
+|---|---|---|
+| [oak-trunk.png](stills/oak-trunk.png) | [fn-26](../fn26/stills/oak-trunk.png) | O-BARE, OWNER-WHITE-OAK, OWNER-BLACK-OAK |
+| [oak-branch.png](stills/oak-branch.png) | [fn-26](../fn26/stills/oak-branch.png) | O-BARE, OWNER-WHITE-OAK |
+| [oak-leaf-frontlit.png](stills/oak-leaf-frontlit.png) | [fn-26](../fn26/stills/oak-leaf-frontlit.png) | O-LEAF |
+| [oak-leaf-backlit.png](stills/oak-leaf-backlit.png) | [fn-26](../fn26/stills/oak-leaf-backlit.png) | O-LEAF |
+| [spruce-trunk.png](stills/spruce-trunk.png) | [fn-26](../fn26/stills/spruce-trunk.png) | OWNER-NORWAY-SPRUCE |
+| [spruce-branch.png](stills/spruce-branch.png) | [fn-26](../fn26/stills/spruce-branch.png) | S-BRANCH, OWNER-NORWAY-SPRUCE |
+| [spruce-needle-frontlit.png](stills/spruce-needle-frontlit.png) | [fn-26](../fn26/stills/spruce-needle-frontlit.png) | S-NEEDLE |
+| [spruce-needle-backlit.png](stills/spruce-needle-backlit.png) | [fn-26](../fn26/stills/spruce-needle-backlit.png) | S-NEEDLE |
 
 The pinned oak eye is (1.7307636095778745,2.2967023330704928,-1.7307636095778745),
 target (0,2,0), FOV 38, near .01, far 1000. Spruce scales that eye-target unit
@@ -302,11 +317,13 @@ comment in common.wgsl; no test, shader expression or timing evidence changed.
 The local workspace log contains no skipped messages or crashes. A second run,
 RUST_TEST_NOCAPTURE=1 cargo test --release -p telperion-render, exited 0 with
 **zero adapter skips** and no crashes; uncaptured output verifies the skip count.
-Chromium compilation after the final cost changes, the browser orbit and eight stills
-remain pending under the R6 stop. No image was inspected from either native clock.
+The round 3 browser orbit and eight stills are now captured by owner direction;
+the separate Chromium compilation check was not rerun. R6 remains over the
+native bound and awaits the owner. No image was inspected from either native clock.
 
-Five checkpoints include the host's initial Flow scaffolding, implementation,
-GPU fixes, measured cost attempt, blocked evidence and comment conformance fix.
+Seven checkpoints include the initial Flow scaffolding, implementation, GPU
+fixes, cost attempt, blocked evidence, comment fix, host lifecycle and round 3
+captures. This round uses one evidence checkpoint.
 No spec/task content was edited by this session, no owner verdict was issued, no agent was spawned,
 no history was rewritten and nothing was pushed. The temporary build target was
 removed; its source remains reproducible evidence rather than a public command.

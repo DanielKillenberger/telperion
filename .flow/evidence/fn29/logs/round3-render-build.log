@@ -1,0 +1,6 @@
+
+> telperion@0.1.0 render:build
+> node scripts/build-render.mjs
+
+    Finished `release` profile [optimized] target(s) in 0.06s
+Built the renderer module and its glue into src/browser/render/.
