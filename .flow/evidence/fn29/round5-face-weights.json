@@ -1,0 +1,23 @@
+{
+  "region": "centre 400x400 of oak-trunk at 1600x1000, pinned camera",
+  "method": "temporary probe emits per-cell (fissure, 1-fissure-crest, crest), bypasses tone, shares production four-cell integration; decode sRGB before averaging",
+  "mean_weights": {
+    "fissure": 0.22606192655779597,
+    "face": 0.7129257219541818,
+    "crest": 0.06175098637402334
+  },
+  "pixel_classes": {
+    "fissure_only": 107932,
+    "face_only": 0,
+    "crest_only": 43253,
+    "mixed_shading_cells": 8815
+  },
+  "pixels": 160000,
+  "note": "8-bit sRGB probe quantization; mixed pixels contain both signs among the four shading cells; face weight is the untinted remainder, not a dead band",
+  "scale": "peak depth multiplier 1.35 plus integrated face bands",
+  "normalized_mean_weights": {
+    "fissure": 0.22589507257661515,
+    "face": 0.7123995188168134,
+    "crest": 0.06170540860657158
+  }
+}

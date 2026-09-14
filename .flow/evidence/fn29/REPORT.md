@@ -1,6 +1,6 @@
 # FN29: colour, cavity and crown occlusion
 
-2026-09-14, session 3. **NEEDS_HUMAN: R6 remains over budget.** The valid
+2026-09-14, session 3. **Round 5 native measurement pending.** The prior valid
 native retry is **4.0005 ms total p50**, **0.2005 ms above 3.8 ms**. The first
 valid measurement was 3.9549 ms. Sharing the foliage seed varying and skipping
 zero highlights did not recover the budget. The requested R6 stop rule applies.
@@ -24,29 +24,32 @@ material independently of that default. The Two Trees start from the same
 default and retain their base colours with explicit detail overrides. Oak and
 spruce keep the fn-26 base colours and relief parameters.
 
-Bark fissure and crest weights read the filtered relief height. At maturity m,
-crest t is clamp(height / max(0.35 * ridgeScale, 0.0001), 0, m), and fissure f is
-m - t. With cavity strength k, base B and strength-weighted tint offsets F and C,
-the albedo before mottle and clamping is
+Round 5 centres colour on the field's constant-height mean h0. Let e be the
+field's existing elongated factor, D=mix(.095,.20,e), M its maturity, G its girth,
+and k its cavity strength. The shared range is derived from the field constants:
 
 ```
-A = B * (1 - k*f) + F*f + C*t
-  = B * (1 - k*m) + F*m + (B*k - F + C)*t
+ridge_mean = .7 * D * .95 * mix(.575, 1, e) * furrow
+face_bands = .05 * .7 * .89 + .012 * .89 * .75 * .5
+h0 = ridgeScale * M * G * (ridge_mean + face_bands)
+s  = ridgeScale * M * G * (D * 1.35 * furrow + face_bands)
+t = clamp((height - h0) / max(s, 1e-10), -1, 1)
+crest = max(t, 0) * M; fissure = max(-t, 0) * M
+A = base * (1 - k*fissure) + fissureOffset * fissureStrength * fissure
+    + crestOffset * crestStrength * crest
 ```
 
-This is one affine height-to-albedo map. Multiplying a separately tinted colour
-by cavity introduced a quadratic term. Oak's red quadratic coefficient was
-0.069. Before round 4, the mature red albedo was 0.025 + 0.25*t, with an
-11:1 endpoint ratio; removing the quadratic term alone did not solve the
-image comparison. The owner-approved round 4 offset gives 0.064 + 0.211*t. Both ambient and sun multiply this albedo. Sheen takes the
-same 1 - k*f cavity weight. Independent geometric contact multiplies the sum.
-
-The crest clamp remains bounded to [0, maturity]. The 0.35-ridgeScale bound
-covers the authored oak relief. The final colour clamp remains [0,1]; oak's
-albedo endpoints including its 0.8-1.2 mottle multiplier stay inside that range.
-The mottle product is not globally affine across pixels, but its 0.8 m scale
-is much larger than the roughly 6.5 mm facing footprint at distance 4x.
-Lighting normals, roughness, sheen and tone mapping remain nonlinear.
+The face remainder is 1-fissure-crest. At h0 both detail weights vanish and
+albedo equals the base. The field's far shortcut returns this same h0 exactly.
+The 1.35 scale is the field's peak character-depth multiplier.
+This is piecewise affine, not globally affine: splitting at zero introduces a
+kink. It removes the old tint-times-cavity quadratic but cannot claim exact
+box-average commutation across zero. The unchanged GPU bounds check that limit.
+The signed clamp is [-1,1], each weight is [0,M], and final colour is [0,1].
+Low-frequency filtered mottle still multiplies albedo; geometric contact and
+sky occlusion remain unchanged. Sheen takes the same relief cavity weight.
+The 0.8 m oak mottle scale exceeds the roughly 6.5 mm facing footprint at 4x.
+Normals, roughness, sheen and tone mapping remain nonlinear.
 
 The GPU exposed double filtering in the previous integration. Each of four
 shading cells sampled a height already filtered over the entire pixel, then
@@ -128,7 +131,7 @@ README.md documents these rows. Range refusals name the offending material field
 
 | Wire names | Range | Ordinary | Oak | Spruce | Telperion | Laurelin |
 |---|---|---|---|---|---|---|
-| fissureRed/Green/Blue | each -1..1 | 0,0,0 | -.04,-.03,.002 | -.035,-.03,-.02 | 0,0,0 | 0,0,0 |
+| fissureRed/Green/Blue | each -1..1 | 0,0,0 | -.1,-.05,.005 | -.035,-.03,-.02 | 0,0,0 | 0,0,0 |
 | fissureStrength | 0..1 | 0 | .65 | .4 | .12 | .12 |
 | crestRed/Green/Blue | each -1..1 | 0,0,0 | .1,.085,.055 | .05,.025,.01 | 0,0,0 | 0,0,0 |
 | crestStrength | 0..1 | 0 | .5 | .3 | .1 | .1 |
@@ -168,6 +171,9 @@ that affine change, the host measured 1.320017/4.25 at 2x and 3.826100/9.00 at
 4x. Four full-footprint cells alone reduced 4x mean to 4.270750, still failing;
 cell-sized footprints reduced it to 1.919700 before the contact/fade cleanup.
 The corrected column above is commit 4c5bf29, preceding the final cost attempt.
+Round 5 final means/p95 are 2.247425/6.00 at 2x, 2.443950/6.50 at 4x,
+1.123815/4.00 near, 1.788092/5.75 oak grazing and 1.279400/4.25 spruce grazing.
+All pass mean <=3 and p95 <=12; redraws remain exact. No pin was moved.
 
 Near and both grazing redraws are byte-identical, worst 0/255. Look's repeat
 check moves zero channels. The GPU bark-detail fixture's wood hash is
@@ -226,27 +232,48 @@ The earlier explicit shader compilation check passed at 4c5bf29.
 
 ## Stills
 
-**Two of two still-capture rounds used.** The first round used 6d9b325. The
-second, final round uses baca4a6 plus the owner-approved oak fissure offset
-(-0.04,-0.03,0.002), replacing (-0.1,-0.075,0.005). Strength remains 0.65.
-The host traced its slate-colour finding to cavity 0.6 cutting the base
-(0.225,0.218,0.198) to 40% before adding the offset. The old endpoint was
-(0.025,0.03845,0.08245), with blue over three times red. The host reported
-round-3 trunk centre-crop means of (79,89,115), against fn-26's (169,167,160).
-The approved row gives (0.064,0.0677,0.0805); no other material value changed.
-This is the owner's reason for the change, not an image verdict from this run.
+**Capture 3 completed under the owner's round-5 extension.** The host traced
+the full-face darkening to height/(.35*ridgeScale), which kept fissure weights
+around .6–1 over the trunk. The centred map above addresses that cause. The
+oak offset is (-.1,-.05,.005), strength .65: original red/blue, with green
+adjusted from -.075 after measurement. No spruce row changed. README quotes no changed number and remains unchanged.
 
-All eight PNGs were overwritten using the unchanged archived driver. Build and
-capture exited 0. Every camera and scene row matches the first capture exactly.
-Only the oak trunk and branch hashes changed. stills.json records session 3,
-capture 2, SHA-256, repo-relative paths, exact cameras, complete scene rows and
-fn-26's species/scale/reference fields. The temporary example was removed again;
-stills-driver.rs remains the reproduction source. Neither clock was rerun.
+The exact ImageMagick centre-400x400, resize-to-one-pixel integer RGB protocol
+gives the following. Reference RGB is host-supplied; other rows were measured
+here. Round 4 is read from e9c4b7d, without recapturing or viewing it.
 
-In each round only oak-trunk, spruce-trunk, oak-branch and oak-leaf-frontlit were
-inspected for blank frames, black frames or wrong cameras. No reference was
-viewed again. Owner verdicts remain blank. capture-status.json records both
-inspection rounds; the two-round capture budget is now exhausted.
+| Crop | Oak RGB | Spruce RGB | Spruce R/B |
+|---|---|---|---:|
+| Reference | 120,122,117 | not supplied | not supplied |
+| fn-26 | 158,156,150 | 138,96,66 | 2.0909 |
+| Round 4 | 98,99,104 | 80,44,26 | 3.0769 |
+| Centred map, round-4 offset | 147,146,142 | 139,97,65 | 2.1385 |
+| Nominal scale, original offset | 142,142,142 | 139,97,65 | 2.1385 |
+| Peak scale, original offset | 149,148,146 | 139,97,66 | 2.1061 |
+| Round 5 final | 149,149,146 | 139,97,66 | 2.1061 |
+
+Round 5 meets G>=R>=B and mean 148 in [120,158]; spruce is red-top with R/B
+in [2.1,2.6]. These are numerical acceptance results, not an owner verdict.
+round5-crops.json retains all map/offset measurements. The nominal scale failed
+the 4x mean bound at 3.166967/255; the field's peak depth scale fixes that
+without changing the field itself or the 3.0/255 bound. Only four images from the first original-offset candidate were inspected:
+oak-trunk, spruce-trunk, oak-branch and oak-leaf-frontlit,
+for blank/black frames or wrong cameras; no reference was viewed again.
+
+In the same resolved oak crop, averaged blend weights are face 71.2400%,
+fissure 22.5895%, crest 6.1705%. Pixel classes differ: 67.4575% have fissure-side
+samples only, 27.0331% crest-side only, 5.5094% mixed cells, and 0% exact face.
+There is no finite dead band; face means the untinted remainder.
+A temporary shader probe emitted the three weights before tone mapping, using
+the production four-cell integration. Its sRGB output was decoded before
+averaging and normalizing the sum (8-bit quantization). round5-face-weights.json
+and the archived probe
+patch make the measurement explicit. The probe was removed before GPU tests.
+
+All eight stills were overwritten with the archived driver, then the temporary
+example was deleted. Cameras and scene rows match capture 2 exactly. stills.json
+records session 3, capture 3, exact cameras/scene rows and refreshed SHA-256s.
+The owner-verdict cells remain blank; capture-status.json records the extension.
 
 All captures use seed 7, 1600x1000, Level::Chosen. Wood uses the default scene.
 Leaf frontlit/backlit uses sun azimuth 0/180 and elevation 10, with every other
@@ -341,9 +368,8 @@ The round 3 browser orbit and eight stills are now captured by owner direction;
 the separate Chromium compilation check was not rerun. R6 remains over the
 native bound and awaits the owner. No image was inspected from either native clock.
 
-Nine checkpoints include the implementation, evidence and host lifecycle
-records through round 4. This round uses one checkpoint; the host's final
-lifecycle commit reaches the ten-commit cap.
+The owner extended the commit budget for round 5 on 2026-09-14. This round
+records the centred map and captures, then native timing and the final gates.
 No spec/task content was edited by this session, no owner verdict was issued, no agent was spawned,
 no history was rewritten and nothing was pushed. The temporary build target was
 removed; its source remains reproducible evidence rather than a public command.

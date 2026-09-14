@@ -1,0 +1,28 @@
+--- production wood.wgsl
++++ temporary weight probe
+@@ -97,8 +97,7 @@
+         + u.crest.rgb * u.crest.w * crest;
+     let colour = clamp(albedo * appearance.x, vec3<f32>(0.0), vec3<f32>(1.0));
+     let contact = 1.0 - u.bark_colour_detail.z * appearance.y;
+-    return (colour * (occluded_ambient(n, appearance.z) + sun)
+-        + sun * sheen * cavity_weight) * contact;
++    return vec3(fissure, 1.0 - fissure - crest, crest);
+ }
+ 
+ @fragment
+@@ -156,7 +155,7 @@
+     // redundant field evaluations and four identical lighting evaluations.
+     if (u.bark_detail.x <= 0.0 || in.radius <= u.bark_detail.x || band >= 1.0) {
+         let height = bark_height(circle, in.surface.x, in.radius, footprint);
+-        return vec4<f32>(tone(bark_light(base_normal, height, in.world, shadow, variance, appearance, colour_range)), 1.0);
++        return vec4<f32>(bark_light(base_normal, height, in.world, shadow, variance, appearance, colour_range), 1.0);
+     }
+     // Four half-pixel shading cells share nine heights. Each height uses the
+     // cell's footprint: filtering over a full pixel here and integrating the
+@@ -182,5 +181,5 @@
+             lit += bark_light(n, dot(h, vec4(0.25)), in.world, shadow, variance, appearance, colour_range);
+         }
+     }
+-    return vec4<f32>(tone(lit * 0.25), 1.0);
++    return vec4<f32>(lit * 0.25, 1.0);
+ }

@@ -3,8 +3,8 @@
   "reason": "R5 stills captured for owner judgment; native R6 decision awaits the look",
   "native_total_p50_ms": 4.0005,
   "native_bound_ms": 3.8,
-  "still_rounds_used": 2,
-  "still_round_limit": 2,
+  "still_rounds_used": 3,
+  "still_round_limit": 3,
   "judgment_images_inspected": [
     "oak-trunk.png",
     "spruce-trunk.png",
@@ -82,9 +82,9 @@
     ".flow/evidence/fn29/stills/spruce-needle-frontlit.png",
     ".flow/evidence/fn29/stills/spruce-needle-backlit.png"
   ],
-  "capture_source_commit": "baca4a6",
-  "stills_status": "second and final round captured; owner verdict pending",
-  "capture_source_changes": "owner-approved oak fissure offset (-0.04, -0.03, 0.002); strength 0.65 unchanged",
+  "capture_source_commit": "e9c4b7d",
+  "stills_status": "capture 3 complete; crop acceptance passes; owner verdict pending",
+  "capture_source_changes": "field-mean centred map, peak-depth scale; oak fissure offset (-0.1, -0.05, 0.005), strength 0.65",
   "inspection_rounds": [
     {
       "capture": 1,
@@ -103,6 +103,27 @@
         "oak-branch.png",
         "oak-leaf-frontlit.png"
       ]
+    },
+    {
+      "capture": 3,
+      "images": [
+        "oak-trunk.png",
+        "spruce-trunk.png",
+        "oak-branch.png",
+        "oak-leaf-frontlit.png"
+      ],
+      "candidate": "nominal scale with original offset; no further images inspected"
     }
-  ]
+  ],
+  "round5_authorization": "Owner authorised round 5 and extended commit/capture budget, 2026-09-14; numeric iterations permitted, at most four image inspections",
+  "round5_numeric_renders": [
+    "nominal scale with round-4 offset",
+    "nominal-scale weight probe",
+    "nominal scale with original offset",
+    "peak scale with original offset",
+    "peak-scale weight probe",
+    "peak scale with final green offset"
+  ],
+  "face_weights": "round5-face-weights.json",
+  "crop_measurements": "round5-crops.json"
 }

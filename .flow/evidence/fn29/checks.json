@@ -219,5 +219,41 @@
     "exit_code": 0,
     "log": "logs/round4-typecheck.log",
     "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test bark_distance --test bark_resolution --test bark_field --test bark_filter --test bark_structure --test colour_cavity --test blade_colour --test material_shaders --test socket_cavity",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 101,
+    "log": "logs/round5-focused.log",
+    "scope": "nominal-depth scale; 4x mean failed",
+    "adapter_skips": 0
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test bark_distance --test bark_resolution --test bark_field --test bark_filter --test bark_structure --test colour_cavity --test blade_colour --test material_shaders --test socket_cavity",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 0,
+    "log": "logs/round5-peak-focused.log",
+    "scope": "peak-depth scale; original offset",
+    "adapter_skips": 0
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test bark_distance --test bark_resolution --test bark_field --test bark_filter --test bark_structure --test colour_cavity --test blade_colour --test material_shaders --test socket_cavity",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 0,
+    "log": "logs/round5-final-focused.log",
+    "scope": "peak-depth scale; final oak green offset",
+    "adapter_skips": 0
+  },
+  {
+    "command": "npm run wasm:build",
+    "exit_code": 0,
+    "log": "logs/round5-mirror.log",
+    "scope": "round 5 map checkpoint; regenerate preset mirror"
   }
 ]

@@ -1,0 +1,8 @@
+
+> telperion@0.1.0 wasm:build
+> node scripts/build-wasm.mjs
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-29-colour-cavity-and-occlusion/crates/telperion-core)
+   Compiling telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-29-colour-cavity-and-occlusion/crates/telperion-wasm)
+    Finished `release` profile [optimized] target(s) in 12.78s
+Built Wasm and regenerated Rust family metadata.
