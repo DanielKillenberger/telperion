@@ -15,7 +15,12 @@ pub(super) struct Keyframes {
     #[cfg_attr(feature = "json", serde(skip))]
     queue_searches: usize,
     eligible: slotmap::SecondaryMap<NodeKey, bool>,
-    eligibility: std::collections::BTreeMap<u64, Vec<NodeIdentity>>,
+    // One entry per recorded width, appended as the slice records it and
+    // sorted by width only when a reader asks. A map keyed on the width pays
+    // a tree insert and a fresh allocation for every annual frame of every
+    // shoot, which is most of the cost of growing a mature crown.
+    eligibility: std::cell::RefCell<Vec<(u64, NodeIdentity)>>,
+    sorted: std::cell::Cell<usize>,
     frames: slotmap::SecondaryMap<NodeKey, Vec<Frame>>,
     pub(super) events: super::events::Events,
     pending: Vec<NodeIdentity>,
@@ -26,15 +31,22 @@ impl Keyframes {
     pub(super) fn track_eligibility(&mut self, id: NodeIdentity, kind: NodeKind) {
         self.eligible.insert(id.key, kind != NodeKind::Twig);
     }
-    pub(super) fn eligibility_between(
-        &self,
-        lo: f64,
-        hi: f64,
-    ) -> impl Iterator<Item = NodeIdentity> + '_ {
-        use std::ops::Bound::{Excluded, Included};
-        self.eligibility
-            .range((Excluded(lo.to_bits()), Included(hi.to_bits())))
-            .flat_map(|(_, ids)| ids.iter().copied())
+    /// Widths recorded inside `(lo, hi]`, in width order and, within one
+    /// width, in the order they were recorded. The sort is deferred to the
+    /// first reader after a run of appends and is stable, so the order a
+    /// caller sees never depends on when the sort happened.
+    pub(super) fn eligibility_between(&self, lo: f64, hi: f64) -> Vec<NodeIdentity> {
+        let mut widths = self.eligibility.borrow_mut();
+        if self.sorted.get() < widths.len() {
+            widths.sort_by_key(|&(width, _)| width);
+            self.sorted.set(widths.len());
+        }
+        let first = widths.partition_point(|&(width, _)| width <= lo.to_bits());
+        widths[first..]
+            .iter()
+            .take_while(|&&(width, _)| width <= hi.to_bits())
+            .map(|&(_, id)| id)
+            .collect()
     }
     pub(super) fn finalized(&self) -> bool {
         self.pending.is_empty()
@@ -44,10 +56,11 @@ impl Keyframes {
         self.frames.values().map(Vec::len).sum()
     }
     pub(super) fn prune_eligibility(&mut self) {
-        self.eligibility.retain(|_, ids| {
-            ids.retain(|id| self.eligible.contains_key(id.key));
-            !ids.is_empty()
-        });
+        let eligible = &self.eligible;
+        self.eligibility
+            .get_mut()
+            .retain(|(_, id)| eligible.contains_key(id.key));
+        self.sorted.set(0);
     }
     pub(super) fn forget(&mut self, id: NodeIdentity) {
         self.frames.remove(id.key);
@@ -105,9 +118,8 @@ impl Keyframes {
         frames.push(Frame { year, radii });
         if self.eligible.get(id.key).copied().unwrap_or(false) {
             self.eligibility
-                .entry(radii[0].max(radii[1]).to_bits())
-                .or_default()
-                .push(id);
+                .get_mut()
+                .push((radii[0].max(radii[1]).to_bits(), id));
         }
         self.events.record(year, id.key);
         if !self.queued.get(id.key).copied().unwrap_or(false) {

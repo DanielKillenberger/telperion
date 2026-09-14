@@ -83,6 +83,7 @@ impl Specimen {
                 candidates.extend(
                     self.keyframes
                         .eligibility_between(old_limit, new_limit)
+                        .into_iter()
                         .filter(|id| {
                             self.identities
                                 .get(id.key)

@@ -235,8 +235,13 @@ fn leaf_lifetime_is_a_validated_blended_family_trait() {
     let oak = crate::presets::Preset::OregonWhiteOak.parameters();
     let spruce = crate::presets::Preset::NorwaySpruce.parameters();
     assert_eq!(metadata(&oak)["growth"]["leafLifetime"], 1.0);
-    assert_eq!(metadata(&spruce)["growth"]["leafLifetime"], 6.0);
-    let mid = crate::blend::families(&oak, &spruce, 0.5).unwrap();
+    assert_eq!(metadata(&spruce)["growth"]["leafLifetime"], 1.0);
+    // Every preset flushes a shoot's foliage in its own first season, so the
+    // blend is checked against an authored multi-cohort row instead of two
+    // equal presets, and still walks the trait.
+    let mut long = metadata(&spruce);
+    long["growth"]["leafLifetime"] = serde_json::json!(6.0);
+    let mid = crate::blend::families(&oak, &parse(&long).unwrap(), 0.5).unwrap();
     assert_eq!(metadata(&mid)["growth"]["leafLifetime"], 3.5);
     let mut wire = metadata(&oak);
     wire["growth"]["leafLifetime"] = serde_json::json!(1.25);

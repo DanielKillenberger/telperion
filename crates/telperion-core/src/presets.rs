@@ -189,7 +189,8 @@ impl Preset {
             p.growth.seedling_height = 0.04;
             p.growth.seedling_radius = 0.01;
             p.growth.crown_base_retention = 1.0;
-            p.growth.leaf_lifetime = 6.0;
+            p.growth.shoot_step = 0.08;
+            p.growth.leaf_lifetime = 1.0;
             // Open-grown landscape Picea abies; one needle per local station.
             p.skeleton.habit = HabitParams {
                 apical_dominance: 1.0,

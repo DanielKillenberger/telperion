@@ -39,3 +39,47 @@ Secondary thickening had shortened primary shoots permanently at birth. Primary 
 The structural leader retains its terminal bud. Other axis tips retain the local terminal recruitment that filled fn30's crown. One existing lateral bud can form a short leafy shoot on an eligible new extension; it is never allocated twice. Annual twigs fit available room. Needle cohorts interleave their sites along the shoot, including its distal part, while stable station prefixes preserve cohort identities. The annual scheduling and the numeric preset values remain unchanged from Round 2.
 
 These changes explain production skeleton, placements, mesh counts and bounds moving. The legacy envelope generator must retain its audit hashes; element meshes and material parameters remain unchanged. No renderer camera, shader, assertion or tolerance is part of the re-pin. The Ordinary clay look reference moves with its grown geometry. The exact HELD trait inventory remains unchanged in this round.
+
+# Round 4 convergence before the authorized re-pin
+
+Round 4 changed two numeric rows of the Norway spruce preset and nothing else in
+the generator, so only the spruce's geometry moves. This document is written
+before that move. Seed 7, production growth at the derived mature age.
+
+| Preset / state | Age | Nodes | Crossover | Placements | Min / max bounds |
+|---|---:|---:|---:|---:|---|
+| oregon-white-oak / round3 | 432 | 187,331 | 5,411 | 1,720,137 | (-12.28045, 0.00000, -12.86138) / (13.05756, 23.89302, 13.01549) |
+| oregon-white-oak / round4 | 432 | 187,331 | 5,411 | 1,720,137 | unchanged |
+| norway-spruce / round3 | 158 | 73,369 | 18,669 | 5,213,939 | (-4.03840, 0.00000, -3.80508) / (3.83221, 15.00000, 3.75679) |
+| norway-spruce / round4 | 158 | 70,114 | 17,592 | 4,957,627 | (-4.03833, 0.00000, -3.80503) / (3.83214, 15.00000, 3.75671) |
+| ordinary / round4 | 173 | 25,455 | 1,830 | 207,714 | unchanged |
+| telperion / round4 | 173 | 142,591 | 1,474 | 1,094,995 | unchanged |
+| laurelin / round4 | 173 | 165,285 | 4,414 | 1,199,211 | unchanged |
+
+## Population bounds
+
+| Preset | Node change from round3 | Node change from fn30 | Placement change from round3 |
+|---|---:|---:|---:|
+| oregon-white-oak | 0 | -4.86% | 0 |
+| norway-spruce | -3,255 (-4.44%) | -8.21% | -256,312 (-4.92%) |
+| ordinary / telperion / laurelin | 0 | as round3 | 0 |
+
+The oak's identity pin (skeleton, mesh counts, bounds, placement and element
+hashes) is byte-identical on round 4 and was not re-pinned; the whole workspace
+suite passes unchanged apart from the spruce row of that one test. The three
+fixture presets measure identically to round 3 at their derived mature age.
+
+## Cause of the geometry change
+
+`growth.shootStep` on the spruce falls from the 0.2 default to 0.08, so a
+juvenile's internode and twig length are 8 percent of its current height rather
+than 20. `growth.leafLifetime` falls from 6.0 to 1.0, so a shoot's foliage
+stations fill in the shoot's own first season instead of over six annual
+cohorts. The mature spruce is unaffected by the second row - at 158 years every
+shoot is older than six years and already carried its full complement - and the
+first row only reaches mid-life structure, which is where the 4.4 percent of
+nodes and 4.9 percent of placements go. Trunk diameter at the three fit ages
+moves from (-5.86, +13.64, +0.61) percent against the composed references to
+(-3.77, +13.76, +0.68) percent, all inside R2's 15 percent. No renderer camera,
+shader, assertion or drift threshold is part of this re-pin, and no other
+preset's pins move.
