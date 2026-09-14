@@ -69,6 +69,36 @@ pub struct MaterialParams {
     pub margin_blue: f64,
     pub cuticle_gloss: f64,
     pub sky_occlusion_strength: f64,
+    /// Circumferential size of one bark plate in metres, before girth scales
+    /// it. Zero leaves the field the ridges it has always been.
+    pub plate_cell_scale: f64,
+    /// How much longer a plate runs than it is wide: nought is as long as it
+    /// is wide, one is twice as long.
+    pub plate_elongation: f64,
+    /// How far a plate's face rises from its own edge towards its middle.
+    pub plate_dome: f64,
+    /// How far a plate's rim stands off the furrow it borders: the scale that
+    /// lifts rather than the plate that sits flat.
+    pub plate_edge_lift: f64,
+    /// How much of its own a plate keeps: how proud it stands, how it leans,
+    /// and the value and cast it holds against its neighbours.
+    pub plate_identity: f64,
+    /// How far a weathered face is greyed and tinted against a fresh furrow.
+    pub weathering_strength: f64,
+    pub weathering_red: f64,
+    pub weathering_green: f64,
+    pub weathering_blue: f64,
+    /// How far the side away from the sun and the foot of the trunk take a
+    /// colour of their own - what damp growth would look like, not what it is.
+    pub orientation_strength: f64,
+    pub orientation_red: f64,
+    pub orientation_green: f64,
+    pub orientation_blue: f64,
+    /// How far a furrow floor is darkened by its own crest standing between it
+    /// and the sun. Zero leaves the sun on both sides of every furrow alike.
+    pub directional_occlusion: f64,
+    /// How far the relief is given depth beyond the shaded normal.
+    pub depth_strength: f64,
 }
 
 impl Default for MaterialParams {
@@ -121,6 +151,21 @@ impl Default for MaterialParams {
             margin_blue: 0.0,
             cuticle_gloss: 0.0,
             sky_occlusion_strength: 0.0,
+            plate_cell_scale: 0.0,
+            plate_elongation: 0.0,
+            plate_dome: 0.0,
+            plate_edge_lift: 0.0,
+            plate_identity: 0.0,
+            weathering_strength: 0.0,
+            weathering_red: 0.0,
+            weathering_green: 0.0,
+            weathering_blue: 0.0,
+            orientation_strength: 0.0,
+            orientation_red: 0.0,
+            orientation_green: 0.0,
+            orientation_blue: 0.0,
+            directional_occlusion: 0.0,
+            depth_strength: 0.0,
         }
     }
 }
@@ -165,6 +210,36 @@ impl MaterialParams {
                 1.0,
                 "sky occlusion strength",
             ),
+            (self.plate_cell_scale, 0.0, 1.0, "bark plate cell scale"),
+            (self.plate_elongation, 0.0, 16.0, "bark plate elongation"),
+            (self.plate_dome, 0.0, 1.0, "bark plate dome"),
+            (self.plate_edge_lift, 0.0, 1.0, "bark plate edge lift"),
+            (self.plate_identity, 0.0, 1.0, "bark plate identity"),
+            (
+                self.weathering_strength,
+                0.0,
+                1.0,
+                "bark weathering strength",
+            ),
+            (self.weathering_red, -1.0, 1.0, "bark weathering red"),
+            (self.weathering_green, -1.0, 1.0, "bark weathering green"),
+            (self.weathering_blue, -1.0, 1.0, "bark weathering blue"),
+            (
+                self.orientation_strength,
+                0.0,
+                1.0,
+                "bark orientation strength",
+            ),
+            (self.orientation_red, -1.0, 1.0, "bark orientation red"),
+            (self.orientation_green, -1.0, 1.0, "bark orientation green"),
+            (self.orientation_blue, -1.0, 1.0, "bark orientation blue"),
+            (
+                self.directional_occlusion,
+                0.0,
+                1.0,
+                "bark directional occlusion",
+            ),
+            (self.depth_strength, 0.0, 1.0, "bark depth strength"),
             (self.ridge_scale, 0.0, 1.0, "bark ridge scale"),
             (self.plate_scale, 0.0, 1.0, "bark plate scale"),
             (self.furrow_strength, 0.0, 1.0, "bark furrow strength"),
@@ -243,7 +318,28 @@ mod tests {
         // field without a bound would fail the count below.
         // One field put off its range, and the name the refusal must carry.
         type Refusal = (fn(&mut MaterialParams), &'static str);
-        let refusals: [Refusal; 34] = [
+        let refusals: [Refusal; 49] = [
+            (|m| m.plate_cell_scale = 2.0, "bark plate cell scale"),
+            (|m| m.plate_elongation = 17.0, "bark plate elongation"),
+            (|m| m.plate_dome = 2.0, "bark plate dome"),
+            (|m| m.plate_edge_lift = 2.0, "bark plate edge lift"),
+            (|m| m.plate_identity = 2.0, "bark plate identity"),
+            (|m| m.weathering_strength = 2.0, "bark weathering strength"),
+            (|m| m.weathering_red = 2.0, "bark weathering red"),
+            (|m| m.weathering_green = -2.0, "bark weathering green"),
+            (|m| m.weathering_blue = 2.0, "bark weathering blue"),
+            (
+                |m| m.orientation_strength = 2.0,
+                "bark orientation strength",
+            ),
+            (|m| m.orientation_red = 2.0, "bark orientation red"),
+            (|m| m.orientation_green = 2.0, "bark orientation green"),
+            (|m| m.orientation_blue = -2.0, "bark orientation blue"),
+            (
+                |m| m.directional_occlusion = 2.0,
+                "bark directional occlusion",
+            ),
+            (|m| m.depth_strength = 2.0, "bark depth strength"),
             (|m| m.fissure_red = 2.0, "bark fissure red"),
             (|m| m.fissure_green = 2.0, "bark fissure green"),
             (|m| m.fissure_blue = 2.0, "bark fissure blue"),

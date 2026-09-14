@@ -48,6 +48,21 @@ pub(super) fn oak() -> MaterialParams {
         margin_blue: 0.006,
         cuticle_gloss: 0.35,
         sky_occlusion_strength: 0.5,
+        plate_cell_scale: 0.09,
+        plate_elongation: 1.8,
+        plate_dome: 0.5,
+        plate_edge_lift: 0.22,
+        plate_identity: 0.55,
+        weathering_strength: 0.35,
+        weathering_red: 0.02,
+        weathering_green: 0.02,
+        weathering_blue: 0.018,
+        orientation_strength: 0.3,
+        orientation_red: -0.012,
+        orientation_green: 0.012,
+        orientation_blue: -0.008,
+        directional_occlusion: 0.55,
+        depth_strength: 0.6,
     }
 }
 
@@ -98,6 +113,21 @@ pub(super) fn spruce() -> MaterialParams {
         margin_blue: 0.002,
         cuticle_gloss: 0.05,
         sky_occlusion_strength: 0.6,
+        plate_cell_scale: 0.022,
+        plate_elongation: 0.2,
+        plate_dome: 0.35,
+        plate_edge_lift: 0.7,
+        plate_identity: 0.6,
+        weathering_strength: 0.25,
+        weathering_red: 0.012,
+        weathering_green: 0.008,
+        weathering_blue: 0.004,
+        orientation_strength: 0.35,
+        orientation_red: -0.008,
+        orientation_green: 0.014,
+        orientation_blue: -0.004,
+        directional_occlusion: 0.45,
+        depth_strength: 0.45,
     }
 }
 

@@ -50,6 +50,15 @@ struct Uniforms {
     bark_colour_detail: vec4<f32>, // mottle scale, mottle strength, cavity strength, sky occlusion strength
     leaf_colour_detail: vec4<f32>, // mottle scale, mottle strength, cuticle gloss, reserved
     margin: vec4<f32>, // RGB offsets, width
+    /// The plate network: how wide one plate is across the run in metres
+    /// before girth stretches it, how far it runs along, how far its face
+    /// domes and how far its rim lifts off the furrow beside it.
+    plate: vec4<f32>,
+    /// What a plate keeps of its own, how far a furrow floor is darkened by
+    /// its own crest against the sun, and how far the relief is given depth.
+    bark_structure: vec4<f32>, // identity, directional occlusion, depth, reserved
+    weathering: vec4<f32>, // RGB offsets, strength
+    orientation: vec4<f32>, // RGB offsets, strength
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

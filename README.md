@@ -335,8 +335,33 @@ Disconnected crossing limbs do not gain a contact term. `bladeMottleScale` (0–
 shadowed sun highlight on the front face. `skyOcclusionStrength` (0–1)
 cuts the sky hemisphere by crown depth on wood and leaves, preserving ground
 bounce; leaf interior darkening still multiplies the remaining ambient light.
-All nineteen additions default to zero. Zero scale disables mottling; zero
-width disables the margin. A needle stays matte and uniform through its row.
+All nineteen of those additions default to zero. Zero scale disables mottling;
+zero width disables the margin. A needle stays matte and uniform through its row.
+
+Plates are the field's second primitive, and structure rather than tint.
+`plateCellScale` (0-1 metres) is one plate's width across the run before girth
+scales it; zero leaves the field the parallel ridges it was. `plateElongation`
+(0-16) is how much longer a plate runs than it is wide, so an oak wears long
+blocks and a spruce round scales off one row. A furrow is the distance to a
+cell's edge in either direction, walled at a seventh of a plate's width and
+cut a twentieth of it deep. `plateDome` (0-1) raises a face from its own edge
+towards its middle and `plateEdgeLift` (0-1) stands its rim off the furrow
+beside it. `plateIdentity` (0-1) is how much of its own a plate keeps: how
+proud it stands, how far it leans across its run, and the value and cast it
+holds against its neighbours. The network is footprint-faded on both axes,
+converging to a mean the colour range carries, so a distant trunk neither
+aliases nor steps.
+
+`weatheringStrength` (0-1) greys and lightens a plate face against the fresher
+wood a furrow keeps, tinted by `weatheringRed/Green/Blue` (linear offsets,
+-1-1). `orientationStrength` (0-1) with `orientationRed/Green/Blue` colours
+the side turned away from the sun and the foot of the trunk - what damp growth
+would look like, not damp growth itself. `directionalOcclusion` (0-1) walks
+the height field towards the sun and darkens a furrow floor its own crest
+stands over, which leaves the sun side of the same furrow lit; it adds no
+light and changes no shadow map. `depthStrength` (0-1) gives the relief depth
+beyond the shaded normal. All fifteen default to zero, and with them at zero a
+document renders exactly as it did before they existed.
 
 Foliage selection compacts each level in placement-index order. Equal-depth
 leaf samples therefore resolve consistently when the same frame is redrawn.

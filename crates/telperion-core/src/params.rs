@@ -152,6 +152,21 @@ macro_rules! fields {
         $op!($f, $v, "material", "marginBlue"; material.margin_blue);
         $op!($f, $v, "material", "cuticleGloss"; material.cuticle_gloss);
         $op!($f, $v, "material", "skyOcclusionStrength"; material.sky_occlusion_strength);
+        $op!($f, $v, "material", "plateCellScale"; material.plate_cell_scale);
+        $op!($f, $v, "material", "plateElongation"; material.plate_elongation);
+        $op!($f, $v, "material", "plateDome"; material.plate_dome);
+        $op!($f, $v, "material", "plateEdgeLift"; material.plate_edge_lift);
+        $op!($f, $v, "material", "plateIdentity"; material.plate_identity);
+        $op!($f, $v, "material", "weatheringStrength"; material.weathering_strength);
+        $op!($f, $v, "material", "weatheringRed"; material.weathering_red);
+        $op!($f, $v, "material", "weatheringGreen"; material.weathering_green);
+        $op!($f, $v, "material", "weatheringBlue"; material.weathering_blue);
+        $op!($f, $v, "material", "orientationStrength"; material.orientation_strength);
+        $op!($f, $v, "material", "orientationRed"; material.orientation_red);
+        $op!($f, $v, "material", "orientationGreen"; material.orientation_green);
+        $op!($f, $v, "material", "orientationBlue"; material.orientation_blue);
+        $op!($f, $v, "material", "directionalOcclusion"; material.directional_occlusion);
+        $op!($f, $v, "material", "depthStrength"; material.depth_strength);
 
         $op!($f, $v, "shellDepth"; shell_depth);
     };

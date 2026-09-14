@@ -23,8 +23,8 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
     let along = 1.0 + f32(id.x / 64u) * 0.0027;
     let circle = vec2(cos(angle), sin(angle));
     result[id.x] = vec4(
-        bark_field_filtered(circle, along, 0.4, 0.032, 0.055, vec2(0.001414), 1.0),
-        bark_field_filtered(circle, along, 0.4, 0.032, 0.055, vec2(0.006514), 1.0),
+        bark_field_filtered(circle, along, 0.4, 0.032, 0.055, vec2(0.001414), 1.0, vec4(0.0), 0.0),
+        bark_field_filtered(circle, along, 0.4, 0.032, 0.055, vec2(0.006514), 1.0, vec4(0.0), 0.0),
         bark_pass(0.5), bark_pass(1.0));
 }
 "#;

@@ -75,6 +75,10 @@ struct Uniforms {
     bark_colour_detail: [f32; 4], // mottle scale, mottle strength, cavity strength, sky occlusion strength
     leaf_colour_detail: [f32; 4], // mottle scale, mottle strength, cuticle gloss, reserved
     margin: [f32; 4],             // RGB offsets, width
+    plate: [f32; 4],              // cell scale in metres, elongation, dome, edge lift
+    bark_structure: [f32; 4],     // plate identity, directional occlusion, depth strength, reserved
+    weathering: [f32; 4],         // RGB offsets, strength
+    orientation: [f32; 4],        // RGB offsets, strength
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform
