@@ -4,7 +4,7 @@
 //! Nothing here touches a device, so a plan can be read without one.
 use std::path::PathBuf;
 
-use telperion_render::{SceneRow, View};
+use telperion_render::{SceneRow, Shot, View};
 
 /// The rate a frame sequence is written for, and the rate the encoder is asked
 /// for. A frame is a point on the walk, not a moment of a simulation.
@@ -12,8 +12,8 @@ pub const FPS: u32 = 24;
 
 pub const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] \
                          [--view whole|bare|leaf|clay] [--level <n>] [--timing <json>] [--orbit] \
-                         [--scene <json>] [--to <preset>] [--frames <n>] \
-                         [--walk <seconds>] [--hold <seconds>] [--sweep <degrees>]";
+                         [--scene <json>] [--camera <json>] [--no-figure] [--to <preset>] \
+                         [--frames <n>] [--walk <seconds>] [--hold <seconds>] [--sweep <degrees>]";
 
 #[derive(Debug)]
 pub struct Arguments {
@@ -31,6 +31,13 @@ pub struct Arguments {
     /// states two and takes the default for the rest. No flag is the default
     /// sky, so a run that says nothing about the sun still has one.
     pub scene: SceneRow,
+    /// An authored shot in place of the hero pose: the direction, the fill,
+    /// the aim and the lens, read against the hero pose's own values so a
+    /// flag that names one field moves one. None is the hero pose.
+    pub shot: Option<Shot>,
+    /// Whether the room keeps its scale figure. A still that imitates a
+    /// photograph leaves it out.
+    pub figure: bool,
     /// Whether the timing session turns the camera once around the hero pose
     /// instead of holding it still. The still beside it is always the hero
     /// pose: the orbit is what is measured, not what is judged.
@@ -141,6 +148,7 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
     let (mut preset, mut seed, mut out, mut size) = (None, None, None, (1024u32, 1024u32));
     let (mut view, mut level, mut timing) = (View::default(), None, None);
     let mut scene = SceneRow::default();
+    let (mut shot, mut figure) = (None, true);
     let (mut orbit, mut to, mut frames) = (false, None, None);
     let (mut walk, mut hold, mut sweep) = (None, None, None);
     let mut args = arguments;
@@ -188,6 +196,11 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
                 let raw = value()?;
                 scene = SceneRow::parse(&raw).map_err(|error| error.to_string())?;
             }
+            "--camera" => {
+                let raw = value()?;
+                shot = Some(Shot::parse(&raw).map_err(|error| error.to_string())?);
+            }
+            "--no-figure" => figure = false,
             "--orbit" => orbit = true,
             "--size" => {
                 let raw = value()?;
@@ -230,6 +243,9 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
     if to.is_some() && timing.is_some() {
         return Err("--timing measures one still; a transition is many".into());
     }
+    if to.is_some() && shot.is_some() {
+        return Err("--camera poses one still; a walk frames its own ends".into());
+    }
     let count = frames.unwrap_or(240);
     let schedule = match walk {
         Some(seconds) => Schedule::Walk(Walk {
@@ -251,6 +267,8 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
         level,
         timing,
         scene,
+        shot,
+        figure,
         orbit,
         to,
         schedule,

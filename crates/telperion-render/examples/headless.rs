@@ -15,8 +15,8 @@ use telperion_core::{
     presets::{Family, Preset},
 };
 use telperion_render::{
-    hero_pose, measure, measure_orbit, render, walk_pose, write_png, Camera, Frame, Gpu, Level,
-    Renderer, GROUND_REACH, STILL_FORMAT,
+    hero_pose, measure, measure_orbit, render, shot_pose, walk_pose, write_png, Camera, Frame, Gpu,
+    Level, Renderer, GROUND_REACH, STILL_FORMAT,
 };
 
 use walk::{Arguments, Schedule, FPS};
@@ -46,12 +46,18 @@ fn run() -> Result<(), String> {
     renderer.set_material(family.material);
     renderer.set_view(arguments.view);
     renderer.set_scene(arguments.scene);
+    renderer.set_figure(arguments.figure);
 
     let (width, height) = arguments.size;
     // The leaf view frames the element, the others the whole tree; the
     // renderer knows which, so the pose is solved on whatever is on stage.
+    // An authored shot poses the same bounds its own way.
     let bounds = renderer.bounds().ok_or("nothing was submitted to frame")?;
-    let camera = hero_pose(bounds, f64::from(width) / f64::from(height), GROUND_REACH);
+    let aspect = f64::from(width) / f64::from(height);
+    let camera = match &arguments.shot {
+        Some(shot) => shot_pose(bounds, aspect, GROUND_REACH, shot),
+        None => hero_pose(bounds, aspect, GROUND_REACH),
+    };
     let still = render(&mut renderer, &camera, width, height).map_err(|error| error.to_string())?;
     write_png(&arguments.out, &still).map_err(|error| error.to_string())?;
     if let Some(path) = &arguments.timing {
