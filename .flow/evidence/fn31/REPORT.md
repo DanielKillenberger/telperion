@@ -337,7 +337,7 @@ Each command runs in full. Logs are unedited and paths absolute.
 
 R1 requires the owner's accepting words for both strips and the continuation
 into maturity. R2's reference composition and fit deviations remain for the
-owner to judge. Empty slots below are not acceptance. 
+owner to judge. Empty slots below are not acceptance.
 All six fit diameters are within 15 percent of the inherited references.
 No additional numeric or gate blocker remains after the recorded idle retry
 and final full gates.

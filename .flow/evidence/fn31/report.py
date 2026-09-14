@@ -331,4 +331,4 @@ if retry.exists():
 report=report.replace('Any numeric or gate\nblocker from the final run is stated here before handoff.',
     '\n\n'+'\n\n'.join(problems) if problems else
     '\nAll six fit diameters are within 15 percent of the inherited references.\nNo additional numeric or gate blocker remains after the recorded idle retry\nand final full gates.')
-(P/'REPORT.md').write_text(report)
+(P/'REPORT.md').write_text('\n'.join(line.rstrip() for line in report.splitlines())+'\n')
