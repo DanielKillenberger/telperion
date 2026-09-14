@@ -31,31 +31,30 @@ A birch, a hazel, a coppiced oak and Yggdrasil's three roots all start from
 more than one stem at the base. The generator grows one leader from the
 origin and every downstream stage assumes one root node: the radius solve,
 the flare, the profile's DBH rule that already flags "multiple structural
-stems" as ambiguous, the identity pins. A `stems` row on the habit (count,
-divergence angle, lean, and the fraction of the base radius each stem takes)
-is the shape of the term; where the second stem is born and what the radius
-solve does with a forked base are the design questions for the spec.
+stems" as ambiguous, the identity pins. Stems as order-zero axes born at the root, with count, divergence and lean
+as habit rows, each stem a trunk run to the surface and the base shared by
+the pipe model: fn-38-multi-stem-trees.
 
 ### Pendulous shoots
 
-A weeping habit is a class of shoot, not a bend: long, thin, unbranched
-shoots that hang under their own weight from the ends of laterals, with the
-leaves strung along them. Birch, willow, weeping beech and the White Tree's
-sources all need it. Today the closest terms are `rise_secondary` (a bend on
-deeper orders) and the canopy's forward lean; neither grows a shoot that hangs
-two metres. The term is a twig-layer row (pendulous shoot length, hang
-strength, the radius below which a shoot hangs) or a bias-field row (a
-gravity term on shoots below a radius); the spec decides after reading where
-twig direction is chosen.
+Reading the code corrected the first draft of this entry: the generator
+already has a curtain. A negative secondary rise flips a pendant mode in the
+twig layer that the spruce and the birch use today. What it lacks is rows:
+the droop is a constant (a 0.35 cap and a 0.5 slope), the mode is a switch
+across zero rather than a continuous row, a pendulous shoot's length is
+borrowed from the twig anatomy, and no leaf may point downward because the
+canopy's orientation rails stop at zero. The spec makes the curtain rows the
+blend can walk: fn-37-pendulous-shoots-as-rows.
 
 ### Crown outline irregularity
 
 Every seed fills the envelope's smooth shell to the same outline, so a tree's
 silhouette is an oval however the branches inside it vary. A photograph's
 crown is lumpy: lobes where scaffold limbs end, gaps where they do not. A
-per-seed, low-frequency perturbation of the envelope radius (an amplitude and
-a wavelength row, seeded like everything else) is the smallest term; the
-containment tests then hold against the perturbed shell. Growth-related
+per-seed, low-frequency perturbation of the envelope radius by height and
+bearing (an amplitude and a wavelength row, keyed by the seed) is the
+smallest term; the containment tests then hold against the perturbed shell
+while the two-dimensional profile keeps driving retention: fn-39-crown-outline-irregularity. Growth-related
 irregularity, limbs that die or are shaded out, belongs to fn-16 and fn-21
 and is not this term.
 
@@ -71,7 +70,7 @@ and is not this term.
 
 ## Order
 
-Pendulous shoots first (it closes three of the birch's rows and serves the
-most species), then multi-stem, then crown irregularity. fn-34's next round
+fn-37-pendulous-shoots-as-rows first (it closes three of the birch's rows and serves the most
+species), then fn-38-multi-stem-trees, then fn-39-crown-outline-irregularity. fn-34 depends on all three. fn-34's next round
 renders the pairs again when each lands; fn-34 closes on the owner's verdict
 at that round.
