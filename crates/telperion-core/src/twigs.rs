@@ -36,6 +36,16 @@ pub struct TwigParams {
     pub angle_variation: f64,
     pub vigour_variation: f64,
     pub divergence: f64,
+    /// How strongly a shoot hangs, 0 to 1. At 0 nothing hangs and the local
+    /// law is the ordinary one; at 1 a curtain takes its full droop.
+    pub hang: f64,
+    /// Metres a pendulous shoot grows before it stops, and the length its
+    /// droop reaches the cap over.
+    pub pendulous_length: f64,
+    /// Fraction of the root radius at or below which a station's shoots hang.
+    pub pendulous_radius: f64,
+    /// Degrees between neighbouring shoots in a curtain.
+    pub curtain_separation: f64,
 }
 impl Default for TwigParams {
     fn default() -> Self {
@@ -51,6 +61,13 @@ impl Default for TwigParams {
             angle_variation: 10.0,
             vigour_variation: 0.15,
             divergence: 137.508,
+            // Neutral: no tree hangs until a table says so. The other three
+            // state the magnitudes the curtain had while it was a constant,
+            // so a table that turns hang on reproduces them.
+            hang: 0.0,
+            pendulous_length: 0.25,
+            pendulous_radius: 1.0,
+            curtain_separation: 4.0,
         }
     }
 }
@@ -91,6 +108,19 @@ impl TwigParams {
         self.angle = self.angle.clamp(0.0, 90.0);
         self.angle_variation = self.angle_variation.clamp(0.0, 90.0);
         self.vigour_variation = self.vigour_variation.clamp(0.0, 0.95);
+        // The curtain's four rows are refused rather than clamped: a table
+        // that asks for a droop or a separation outside the rail is a table
+        // with a mistake in it, and the mistake is named.
+        for (v, low, high, row) in [
+            (self.hang, 0.0, 1.0, "hang"),
+            (self.pendulous_length, 0.05, 5.0, "pendulous length"),
+            (self.pendulous_radius, 0.0, 1.0, "pendulous radius"),
+            (self.curtain_separation, 1.0, 45.0, "curtain separation"),
+        ] {
+            if !v.is_finite() || !(low..=high).contains(&v) {
+                return Err(Error::InvalidInput(row));
+            }
+        }
         Ok(self)
     }
     pub(crate) fn internodes(self, radius: f64, length: f64) -> usize {

@@ -219,7 +219,6 @@ impl Specimen {
             &self.tree,
             &self.config,
             self.params.twigs.resolved()?,
-            self.params.habit,
             None,
         );
         if !self.tree.diagnostics.node_capped {

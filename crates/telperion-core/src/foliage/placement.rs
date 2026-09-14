@@ -116,10 +116,13 @@ fn place_impl(
         (p.spacing, 0.001, 1e6, "foliage spacing"),
         (p.divergence, -1e9, 1e9, "divergence"),
         (p.clump_span, 0., 1., "clump span"),
-        (p.outward, 0., 1., "outward"),
-        (p.upward, 0., 1., "upward"),
-        (p.forward_lean, 0., 1., "forward lean"),
-        (p.lean_rise, 0., 2., "lean rise"),
+        // Signed: a leaf may lean back down its shoot and turn toward the
+        // ground as readily as toward the tip and the sky. Zero is still zero,
+        // so every row authored before the rails widened is the row it was.
+        (p.outward, -1., 1., "outward"),
+        (p.upward, -1., 1., "upward"),
+        (p.forward_lean, -1., 1., "forward lean"),
+        (p.lean_rise, -2., 2., "lean rise"),
         (p.surface_contact, 0., 1., "surface contact"),
         (p.scatter, 0., 90., "scatter"),
         (p.size, 0., 1000., "foliage size"),

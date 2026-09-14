@@ -25,13 +25,13 @@ struct Shoot {
     internodes: usize,
     key: u32,
     run: Option<Rc<Run>>,
-    pendant: bool,
-    curtain_across: Vec3,
-    pendant_floor: Option<f64>,
+    curtain: pendant::Curtain,
 }
 mod advance;
+mod pendant;
 mod planner;
 mod seed;
+use pendant::Curtain;
 pub(super) mod waiting;
 use planner::rejected;
 pub(super) use planner::Planner;

@@ -162,9 +162,7 @@ mod frontier_tests {
             internodes: 1,
             key: 1,
             run: None,
-            pendant: false,
-            curtain_across: Vec3::X,
-            pendant_floor: None,
+            curtain: Curtain::default(),
         });
         (tree, frontier)
     }

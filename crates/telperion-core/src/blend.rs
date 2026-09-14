@@ -47,6 +47,8 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         skeleton.twigs.length_ratio, skeleton.twigs.ratio_power,
         skeleton.twigs.internode_factor, skeleton.twigs.limb_radius,
         skeleton.twigs.reach, skeleton.twigs.vigour_variation,
+        skeleton.twigs.hang, skeleton.twigs.pendulous_length,
+        skeleton.twigs.pendulous_radius,
         radii.trunk_radius, radii.fork_exponent, radii.length_taper,
         surface.lobe_depth, surface.twist_rate, surface.flare_radius,
         surface.flare_falloff, surface.flare_depth, surface.fork_socket,
@@ -105,7 +107,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         skeleton.habit.lateral_pitch, skeleton.habit.pitch_variation,
         skeleton.habit.crookedness,
         skeleton.twigs.angle, skeleton.twigs.angle_variation,
-        skeleton.twigs.divergence,
+        skeleton.twigs.divergence, skeleton.twigs.curtain_separation,
         canopy.divergence, canopy.scatter,
     );
     walk!(count:

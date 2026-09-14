@@ -144,11 +144,7 @@ impl Frontier {
                     s.radius
                 };
                 let length = if lateral { s.length * ratio } else { s.length };
-                let length = if s.pendant {
-                    length.min(t.twig.length)
-                } else {
-                    length
-                };
+                let length = s.curtain.length(length, t);
                 let generation = s.generation + usize::from(lateral);
                 let terminal = !lateral && s.completed == s.internodes;
                 let is_twig = terminal
@@ -166,18 +162,7 @@ impl Frontier {
                     tree.diagnostics.level_capped = true;
                     continue;
                 }
-                let wanted = if lateral && s.pendant {
-                    let across = s.curtain_across;
-                    let side = if (first_lateral + c) % 2 == 0 {
-                        -1.0
-                    } else {
-                        1.0
-                    };
-                    let downward = s.pendant_floor.map_or(0.35, |floor| {
-                        ((position.y - floor) / t.twig.length * 0.5).clamp(0.0, 0.35)
-                    });
-                    (across * side - Vec3::Y * downward).normalized()
-                } else if !lateral {
+                let wanted = if !lateral {
                     from
                 } else {
                     let azimuth = if origin {
@@ -186,7 +171,17 @@ impl Frontier {
                         phase + (first_lateral + c - 1) as f64 * divergence
                     };
                     let across = s.normal * azimuth.cos_fixed() + binormal * azimuth.sin_fixed();
-                    from * departure.cos_fixed() + across * departure.sin_fixed()
+                    let upright = from * departure.cos_fixed() + across * departure.sin_fixed();
+                    if s.curtain.hangs() {
+                        let side = if (first_lateral + c) % 2 == 0 {
+                            -1.0
+                        } else {
+                            1.0
+                        };
+                        s.curtain.direction(upright, position.y, side, t)
+                    } else {
+                        upright
+                    }
                 };
                 let mut run = s.run.clone();
                 let (candidate, heading) = if is_twig {
@@ -196,16 +191,12 @@ impl Frontier {
                         wanted,
                         t.twig.length,
                     );
-                    let twig_length = s.pendant_floor.map_or(t.twig.length, |floor| {
-                        t.twig
-                            .length
-                            .min((position.y - floor).max(0.0) / (-heading.y).max(1e-9) * 0.8)
-                    });
+                    let twig_length = s.curtain.clear(position.y, -heading.y, t.twig.length);
                     if twig_length <= 1e-9 {
                         continue;
                     }
                     let p = position + heading * twig_length;
-                    if rejected(config, p) || s.pendant_floor.is_some_and(|floor| p.y < floor) {
+                    if rejected(config, p) || s.curtain.below(p.y) {
                         #[cfg(test)]
                         {
                             self.retries[1] += 1;
@@ -217,7 +208,7 @@ impl Frontier {
                                 && planner.bias.is_none_or(GrowthBias::height_independent);
                             next_wake = next_wake.min(if can_sleep && fixed {
                                 planner.clock.map_or(immediate, |clock| {
-                                    if s.pendant_floor.is_some_and(|floor| p.y < floor) {
+                                    if s.curtain.below(p.y) {
                                         u64::MAX
                                     } else {
                                         clock.next(p, config.trunk_height)
@@ -232,12 +223,7 @@ impl Frontier {
                     (p, heading)
                 } else {
                     if starts {
-                        let length = s.pendant_floor.map_or(length, |floor| {
-                            length.min(
-                                (position.y - floor).max(0.0) / (-wanted.normalized().y).max(1e-9)
-                                    * 0.8,
-                            )
-                        });
+                        let length = s.curtain.clear(position.y, -wanted.normalized().y, length);
                         run = planner.run(
                             position,
                             if lateral { wanted } else { from },
@@ -282,11 +268,7 @@ impl Frontier {
                 if !candidate.is_finite() {
                     return Err(Error::ResourceLimit("branch position overflow"));
                 }
-                let separation = if s.pendant {
-                    4.0_f64.to_radians().cos_fixed()
-                } else {
-                    separation
-                };
+                let separation = s.curtain.separation(separation, t);
                 if lateral
                     && (from.dot(heading) >= separation
                         || accepted.iter().any(|a| a.dot(heading) >= separation))
@@ -363,9 +345,7 @@ impl Frontier {
                         internodes,
                         key,
                         run,
-                        pendant: s.pendant,
-                        curtain_across: s.curtain_across,
-                        pendant_floor: s.pendant_floor,
+                        curtain: s.curtain,
                     });
                 }
             }

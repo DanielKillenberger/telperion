@@ -103,6 +103,10 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.skeleton.twigs.twig.length = 0.45;
     p.skeleton.twigs.twig.internode_length = 0.012;
     p.skeleton.twigs.twig.bearing_diameter = 0.02;
+    p.skeleton.twigs.hang = 1.0;
+    p.skeleton.twigs.pendulous_length = 0.45;
+    p.skeleton.twigs.pendulous_radius = 1.0;
+    p.skeleton.twigs.curtain_separation = 4.0;
     p.radii.trunk_radius = 0.01;
     p.element = ElementParams {
         length: 0.055,

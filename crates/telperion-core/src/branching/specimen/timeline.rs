@@ -256,8 +256,7 @@ impl Specimen {
         let twigs = params.twigs.resolved()?;
         let timeline = self.timeline.as_ref().unwrap();
         let widths = |tree: &Tree, i| timeline.widths.sample(tree, &timeline.pipes, i);
-        self.local
-            .seed(&self.tree, &config, twigs, params.habit, Some(&widths));
+        self.local.seed(&self.tree, &config, twigs, Some(&widths));
         #[cfg(test)]
         self.cost.stamp(4, &mut clock);
         let local_first = self.tree.nodes.len();

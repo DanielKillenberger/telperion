@@ -119,6 +119,12 @@ fn catalogue_roundtrips_all_controls_and_identities() {
             ("forwardLean", json!(0.3)),
             ("leanRise", json!(0.8)),
             ("surfaceContact", json!(0.5)),
+            // Signed, so a leaf can lean back down its shoot and toward the
+            // ground; the wire carries the sign as readily as the magnitude.
+            ("forwardLean", json!(-0.45)),
+            ("leanRise", json!(-1.5)),
+            ("outward", json!(-0.2)),
+            ("upward", json!(-0.6)),
         ] {
             value["canopy"][trait_name] = set;
             assert_eq!(value, metadata(&parse(&value).unwrap()));
@@ -137,7 +143,10 @@ fn catalogue_roundtrips_all_controls_and_identities() {
     }
     for (trait_name, bad, message) in [
         ("forwardLean", json!(1.5), "forward lean"),
-        ("leanRise", json!(-0.1), "lean rise"),
+        ("forwardLean", json!(-1.5), "forward lean"),
+        ("leanRise", json!(-2.5), "lean rise"),
+        ("outward", json!(-1.5), "outward"),
+        ("upward", json!(-1.5), "upward"),
         ("surfaceContact", json!(2.0), "surface contact"),
     ] {
         let mut value = metadata(&preset(0).unwrap());

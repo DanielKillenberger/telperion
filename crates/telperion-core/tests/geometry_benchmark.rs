@@ -167,6 +167,22 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(trait_name)
                 .expect("the canopy publishes its lean and contact traits");
         }
+        // fn-37 turned the curtain from a hidden mode into four twig rows. The
+        // frozen file predates them and states none; each is neutral or the
+        // magnitude the mode already used, so none is a geometry parameter the
+        // frozen protocol left unsaid.
+        for row in [
+            "hang",
+            "pendulousLength",
+            "pendulousRadius",
+            "curtainSeparation",
+        ] {
+            emitted["skeleton"]["twigs"]
+                .as_object_mut()
+                .unwrap()
+                .remove(row)
+                .expect("the twig layer publishes its curtain rows");
+        }
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);
         }

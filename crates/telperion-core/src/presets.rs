@@ -177,6 +177,14 @@ impl Preset {
             p.skeleton.twigs.twig.diameter = 0.002;
             p.skeleton.twigs.twig.internode_length = 0.0025;
             p.skeleton.twigs.twig.bearing_diameter = 0.02;
+            // The spruce's curtain, as rows. These four are the values the
+            // twig layer used while the curtain was a hidden mode: full hang,
+            // every shoot under a descending limb, the default twig length as
+            // the pendulous run, four degrees between neighbours.
+            p.skeleton.twigs.hang = 1.0;
+            p.skeleton.twigs.pendulous_length = 0.25;
+            p.skeleton.twigs.pendulous_radius = 1.0;
+            p.skeleton.twigs.curtain_separation = 4.0;
             p.radii.trunk_radius = 0.015;
             // A shaft that holds its width to the distal point, rolled all
             // the way round: four sides, four cross segments, no seam vertex

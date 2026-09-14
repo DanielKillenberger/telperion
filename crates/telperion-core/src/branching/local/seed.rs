@@ -124,7 +124,6 @@ impl Frontier {
         tree: &Tree,
         config: &GrowthConfig,
         t: TwigParams,
-        habit: HabitParams,
         widths: planner::WidthQuery<'_>,
     ) {
         if tree.nodes.len() < 2 {
@@ -168,12 +167,9 @@ impl Frontier {
             // Terminal and lateral buds become eligible independently as the
             // scaffold extends and its trunk/branch radius ratio changes.
             *allocated |= buds;
-            let floor = if habit.rise_secondary < 0.0 {
-                self.stations.floor(tree, i)
-            } else {
-                None
-            };
-            let pendant = floor.is_some();
+            let floor = Curtain::hangs_at(t, radius(i), root_radius)
+                .then(|| self.stations.floor(tree, i))
+                .flatten();
             let length = branch_length(radius(i));
             frontier.push(Shoot {
                 flushed: !buds,
@@ -190,9 +186,7 @@ impl Frontier {
                 internodes: t.internodes(radius(i), length),
                 key: n.identity.birth_order() as u32,
                 run: None,
-                pendant,
-                curtain_across: Vec3::new(-n.position.z, 0.0, n.position.x).normalized(),
-                pendant_floor: floor,
+                curtain: Curtain::new(t, n.position, floor),
             });
         }
         for i in completed {

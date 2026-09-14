@@ -101,10 +101,24 @@ fn species_empty_degenerate_and_invalid_controls_are_explicit() {
         ),
         (
             CanopyParams {
-                lean_rise: -0.1,
+                lean_rise: -2.5,
                 ..bare()
             },
             "lean rise",
+        ),
+        (
+            CanopyParams {
+                forward_lean: -1.5,
+                ..bare()
+            },
+            "forward lean",
+        ),
+        (
+            CanopyParams {
+                outward: -1.5,
+                ..bare()
+            },
+            "outward",
         ),
         (
             CanopyParams {
