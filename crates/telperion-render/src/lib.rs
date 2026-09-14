@@ -14,6 +14,8 @@ mod pass;
 mod scene;
 mod select;
 mod shadow;
+#[cfg(not(target_arch = "wasm32"))]
+mod structure;
 mod submit;
 mod timing;
 mod view;
@@ -39,6 +41,8 @@ pub use web::WebRenderer;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use headless::{render, write_png, Frame, Still, STILL_FORMAT};
+#[cfg(not(target_arch = "wasm32"))]
+pub use structure::{centroid, measure_frame, measure_png, Structure, CROP};
 #[cfg(not(target_arch = "wasm32"))]
 pub use timing::{orbit as measure_orbit, run as measure};
 
