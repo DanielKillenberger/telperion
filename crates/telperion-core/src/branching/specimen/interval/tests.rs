@@ -260,6 +260,9 @@ fn envelope_growth_without_wood_keyframes_moves_no_placement() {
 fn sparse_spruce_projects_only_changed_contact_paths() {
     let mut f = Preset::NorwaySpruce.parameters();
     f.skeleton.seed = 7;
+    // Retain fn-11's schedule for this mechanism fixture, independent of calibration.
+    f.growth.rate = 0.08;
+    f.growth.shape = 2.0;
     f.age = 66.0;
     let mut s = Specimen::build(&f).unwrap();
     let record = s.advance(1.0).unwrap();

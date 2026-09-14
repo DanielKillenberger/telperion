@@ -72,6 +72,8 @@ fn shedding_keeps_storage_and_keys_but_packs_only_living_wood() {
 #[test]
 fn dead_records_stay_frozen_and_slots_are_never_reused_by_later_growth() {
     let mut family = Preset::Ordinary.parameters();
+    // Exercise shedding explicitly; production presets retain mature wood (fn-30).
+    family.skeleton.habit.shedding_threshold = 0.45;
     family.age = 12.0;
     let mut specimen = Specimen::build(&family).unwrap();
     let dead: Vec<_> = specimen

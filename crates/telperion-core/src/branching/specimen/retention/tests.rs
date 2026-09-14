@@ -4,6 +4,8 @@ use crate::presets::Preset;
 #[test]
 fn history_cap_compacts_dead_wood_and_preserves_every_retained_read() {
     let mut f = Preset::Ordinary.parameters();
+    // Exercise shedding explicitly; production presets retain mature wood (fn-30).
+    f.skeleton.habit.shedding_threshold = 0.45;
     f.age = 12.25;
     let original = Specimen::build(&f).unwrap();
     assert!(original.shed > 0);
@@ -98,6 +100,8 @@ fn history_cap_preserves_future_growth_identities_and_records() {
 #[test]
 fn history_cap_build_and_node_ceiling_keep_the_same_complete_slice() {
     let mut f = Preset::Ordinary.parameters();
+    // Exercise shedding explicitly; production presets retain mature wood (fn-30).
+    f.skeleton.habit.shedding_threshold = 0.45;
     f.age = 12.25;
     let mut capped = Specimen::build_with_history_cap(&f, 0.0).unwrap();
     let mut full = Specimen::build(&f).unwrap();

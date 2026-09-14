@@ -2,7 +2,7 @@
 use crate::clock;
 use serde_json::{json, Value};
 use telperion_core::{
-    branching,
+    branching::Specimen,
     field::{Field, FieldSnapshot},
     foliage,
     math::Vec3,
@@ -76,20 +76,16 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
     }
     let wants = |key: &str| flags.get(key).and_then(Value::as_bool).unwrap_or(false);
     let started = clock();
-    let report = branching::generate(&f.skeleton, f.radii)?;
-    let tree = report.tree;
+    let specimen = Specimen::build(&f)?;
     let growth_ms = clock() - started;
+    let read = specimen.read_at_age(f.age)?;
+    let tree = read.tree;
     let mut out = Output::default();
     let (counts, handoffs, capped_handoffs, twig_count) =
         branch_diagnostics(&tree, f.skeleton.twigs)?;
-    let t = f.skeleton.twigs.resolved()?;
     let start = clock();
     if wants("surface") {
-        out.surface = Some(surface::build(
-            &tree,
-            f.skeleton.envelope.height,
-            &f.surface,
-        )?);
+        out.surface = Some(surface::build(&tree, read.surface_height, &f.surface)?);
     }
     let surface_ms = if wants("surface") {
         clock() - start
@@ -104,19 +100,11 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
     let mut anatomy = Value::Null;
     if needs_foliage {
         let blade = foliage::build_element(f.element)?;
-        let placed = foliage::place_on_surface(
-            &tree,
-            f.skeleton.envelope,
-            f.skeleton.seed,
-            f.canopy,
-            Some(foliage::TwigPlacement {
-                internode_length: t.twig.internode_length,
-                stations_per_internode: t.twig.stations_per_internode,
-            }),
-            &f.surface,
-        )?;
+        let placed = foliage::Instances {
+            matrices: read.placements.iter().map(|p| p.transform).collect(),
+        };
         placed_count = placed.matrices.len();
-        out.instances = foliage::cull(&placed, &blade, f.skeleton.envelope, f.shell_depth)?;
+        out.instances = foliage::cull(&placed, &blade, read.envelope, f.shell_depth)?;
         if wants("foliage") {
             anatomy = blade.anatomy.as_ref().map_or(Value::Null, |a| json!({
                 "unit": match a.unit { foliage::FoliageUnit::Leaf => "leaf", foliage::FoliageUnit::Needle => "needle" },
@@ -179,7 +167,7 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         }
     }
     let meta = json!({
-        "nodes":tree.nodes.len(),"crossover":tree.crossover,"shed":report.shed,
+        "nodes":tree.nodes.len(),"crossover":tree.crossover,"shed":read.shed.len(),
         "capped":tree.diagnostics.node_capped,"levelCapped":tree.diagnostics.level_capped,
         "attractionCapped":tree.diagnostics.attraction_capped,"complete":tree.diagnostics.complete(),
         "handoffs":handoffs,"generationCounts":counts,"levelCappedHandoffs":capped_handoffs,"twigs":twig_count,

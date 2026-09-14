@@ -36,6 +36,8 @@ fn equal(a: &SpecimenRead, b: &SpecimenRead) {
 fn every_prior_read_matches_fresh_growth_including_shedding_and_contacts() {
     for contact in [0.0, 1.0] {
         let mut f = Preset::Ordinary.parameters();
+        // Exercise shedding explicitly; production presets retain mature wood (fn-30).
+        f.skeleton.habit.shedding_threshold = 0.45;
         f.age = 12.25;
         f.growth.leaf_lifetime = 6.0;
         f.canopy.surface_contact = contact;

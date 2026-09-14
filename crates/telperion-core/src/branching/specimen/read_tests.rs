@@ -39,6 +39,8 @@ fn unread_advances_do_not_pack_and_reads_preserve_internal_indices() {
 #[test]
 fn reads_between_advances_reconcile_after_growth_shedding_and_cap_recovery() {
     let mut f = Preset::Ordinary.parameters();
+    // Exercise shedding explicitly; production presets retain mature wood (fn-30).
+    f.skeleton.habit.shedding_threshold = 0.45;
     f.age = 12.25;
     let fresh = Specimen::build(&f).unwrap();
     assert!(fresh.shed > 0);
@@ -78,6 +80,8 @@ fn reads_between_advances_reconcile_after_growth_shedding_and_cap_recovery() {
 #[test]
 fn finalizing_grown_and_shed_records_ignores_stored_output_widths() {
     let mut f = Preset::Ordinary.parameters();
+    // Exercise shedding explicitly; production presets retain mature wood (fn-30).
+    f.skeleton.habit.shedding_threshold = 0.45;
     f.age = 0.0;
     let mut lazy = Specimen::build(&f).unwrap();
     for slice in 1..=12 {

@@ -19,6 +19,24 @@ The [frozen fn19 contract](../.flow/evidence/fn19/PROTOCOL.md) defines species, 
 
 Appearance is part of the research a profile owes: the reference has to supply the bark's colour and roughness, the leaf's front and back colours, and the hue and brightness ranges a leaf of that species varies inside, because those are numeric fields of the family's material row and the renderer has nothing else to colour a tree by. Both ranges are symmetric offsets about no change, so a species whose foliage reads uniform states a zero-width range rather than leaving the field unsourced.
 
+Growth is also part of the evidence a profile owes. Supply open-grown
+height-at-age and trunk-DBH-at-age curves with source IDs, URLs, SHA-256 and byte
+counts. If no age-recorded open-grown source covers the taxon, name the
+stand-grown fallback and every allometric conversion, anchor, interpolation
+and extrapolation. State provenance and height-to-diameter ratio at each age;
+keep a missing curve explicit. [FN30](../.flow/evidence/fn30/REPORT.md) records
+the oak and spruce composition and its unresolved diameter misses.
+
+The implementation packet gives numeric `growth.rate`, `growth.shape`, shedding
+threshold and tolerance, and leaf lifetime, with the fitting rationale. Check
+measured height and trunk DBH at young, middle and mature reference ages against
+a 15 percent tolerance. Record the operational DBH plane and every miss. An
+out-of-tolerance miss stops calibration until the owner's recorded judgment
+accepts it. Document `growth.mature_age()` after fitting as a derived result;
+never author a preset's maturity age. Production builds at `family.age`, whose
+preset default is derived from the final traits. Distinguish that numerical
+saturation age from the reference's biological maturity and envelope age.
+
 Research and profile ownership can be assigned to different agents or explicitly combined. Neither implies implementation ownership. Parallel species agents use separate worktrees, species directories and run outputs. They may research and author parameters together; they cannot promise independent simultaneous edits to `Preset`, `profile_id`, `from_id`, central bindings or catalogue registration.
 
 Before dispatch, record a single integration owner for shared paths in each Flow task. If two species need the same missing organ primitive, create one core task and make both species tasks depend on it. Species workers provide requirements and tests to that owner; they do not implement competing copies. Merge capability work first, reconcile each template with that commit, then integrate registry/bindings serially. Re-run existing species support, parameter and relevant regression checks after shared integration. This handoff convention uses Flow, not another task database or scheduler.
@@ -44,6 +62,8 @@ For implemented future species, numeric runs use `target/release/examples/geomet
 |---|---|
 | Two packets claim one ID, or the same normalized scientific name/rank/cultivar | `duplicate-identity`; reconcile with catalogue owner before allocating cases. Do not rename the taxon to bypass uniqueness. |
 | Reference ID absent | `invalid-manifest`; restore an attributed resolvable record. Missing/unreadable/hash-mismatched profile or no usable real evidence is `missing-evidence`. Explicit missing anatomical scales stay unassessed. |
+| Open-grown age curve missing | Record the missing curve, named stand-grown fallback and any composition with source IDs and checksums. An unsupported age or conversion stays unavailable; no invented curve. |
+| Height or trunk DBH misses 15 percent at any of the three ages | Record age, measured value, reference and percent error. Stop calibration pending a trait fit or the owner's recorded acceptance; keep numerical saturation distinct from reference maturity. |
 | Pine requires paired needles in a fascicle | `unsupported-anatomy`; core capability task required. Single spruce needles do not satisfy it. The illustrative profile also lacks sufficient dimensions and per-scale anatomy evidence. |
 | Fixed seed reused as holdout | `invalid-manifest`; freeze a new version with audited seeds. Previously inspected holdouts retain their historical role but are regressions for future tuning. Never redraw only failures. |
 | Two agents claim one core file | `ownership-conflict`; assign one shared owner and dependent Flow tasks. Native admission does not enforce this; coordinator must gate dispatch. |

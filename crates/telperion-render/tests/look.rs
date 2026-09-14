@@ -15,7 +15,11 @@ mod common;
 use common::gpu;
 
 /// The still fn-24 judged the clay room by, and the pose and size it was drawn
-/// at: `headless --preset ordinary --seed 7 --size 1600x1000`.
+/// at: `headless --preset ordinary --seed 7 --size 1600x1000`. Re-recorded once
+/// by fn-30: production now grows the ordinary tree to its derived mature age
+/// (173 years) with a zero shedding threshold, so the clay room draws a
+/// different skeleton (49,262 nodes against 9,240); the drift tolerances are
+/// unchanged (.flow/evidence/fn30/REPORT.md).
 const PINNED: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../../.flow/evidence/fn24/ordinary-hero.png"

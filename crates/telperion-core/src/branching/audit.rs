@@ -120,6 +120,12 @@ fn scaffold_directions() {
     }
 }
 
+/// fn-30 re-pins Ordinary once when its shedding threshold becomes zero to
+/// retain mature wood through growth. This legacy stage audit at seed 42 gains
+/// 40022 local nodes (9240 -> 49262); crossover 2484 and bounds are unchanged.
+/// Oak and spruce already disabled shedding and keep their hashes. The measured
+/// convergence precedes the pin move in .flow/evidence/fn30/REPORT.md; production
+/// growth identity is pinned separately by tests/identity.rs.
 #[test]
 fn shipped_scaffolds_are_reproducible() {
     // fn-11: one re-pin for pinned pure-Rust libm on native and wasm.
@@ -127,7 +133,7 @@ fn shipped_scaffolds_are_reproducible() {
     for (preset, expected) in [
         (Preset::OregonWhiteOak, 11389017044164293456_u64),
         (Preset::NorwaySpruce, 17659250574543300401),
-        (Preset::Ordinary, 9848876633805652422),
+        (Preset::Ordinary, 4584312898131064280),
     ] {
         let family = preset.parameters();
         let hash = hashed(&family);

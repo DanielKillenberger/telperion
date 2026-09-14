@@ -48,29 +48,24 @@ const BANDS: [(&str, usize, usize); 5] = [
 /// the sweep cannot prove the walk carries them. Every other path in the wire is
 /// moved by some pair below and proved to walk; a parameter added to the wire is
 /// either moved by a preset or named here.
-// fn-11 publishes the timeline before species calibration: every preset still
-// shares its provisional age, rate, shape and shedding traits. Annual and
-// thickening tests independently walk them. Leaf lifetime varies between oak
-// and spruce, so the sweep itself checks that dimension among the moved paths.
-// The chronicle adds resizeTolerance at the same 1e-9 metre default in every
-// preset. params::tests::resize_tolerance_is_a_validated_blended_wire_trait
-// checks its non-default walk; no preset geometry or identity pin changes.
-const HELD: [&str; 30] = [
-    "/age",
+// fn-30 calibrates rate and shape, and derives each preset's age from them.
+// Those paths now move in this sweep. All presets disable the ageing vigour
+// proxy's shedding to retain mature wood; shedding tests set their own threshold.
+// Annual and thickening tests walk the remaining held growth traits explicitly.
+const HELD: [&str; 28] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
     "/element/curl",
     "/growth/apicalControlLoss",
     "/growth/sheddingTolerance",
-    "/growth/rate",
     "/growth/resizeTolerance",
-    "/growth/shape",
     "/skeleton/growth/influenceRadius",
     "/skeleton/growth/killDistance",
     "/skeleton/growth/maxNodes",
     "/skeleton/growth/stepDistance",
     "/skeleton/growth/trunkHeight",
+    "/skeleton/habit/sheddingThreshold",
     "/skeleton/seed",
     "/skeleton/step",
     "/skeleton/twigs/angle",

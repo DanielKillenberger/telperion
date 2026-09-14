@@ -25,6 +25,44 @@ fn frame_run(extra: &[&str]) -> Result<walk::Arguments, String> {
 }
 
 #[test]
+fn age_selects_a_finite_nonnegative_still_and_refuses_sequences() {
+    let still = |extra: &[&str]| {
+        parse(
+            [
+                "--preset",
+                "ordinary",
+                "--seed",
+                "7",
+                "--out",
+                "/tmp/tree.png",
+            ]
+            .into_iter()
+            .chain(extra.iter().copied())
+            .map(str::to_owned),
+        )
+    };
+    assert_eq!(still(&[]).unwrap().age, None);
+    for age in ["0", "10.5", "1000001"] {
+        assert_eq!(
+            still(&["--age", age]).unwrap().age,
+            Some(age.parse().unwrap())
+        );
+    }
+    for age in ["-1", "NaN", "inf", "young"] {
+        assert!(still(&["--age", age]).unwrap_err().contains("--age"));
+    }
+    for extra in [
+        vec!["--to", "ordinary"],
+        vec!["--frames", "2"],
+        vec!["--walk", "1"],
+    ] {
+        let mut flags = vec!["--age", "10"];
+        flags.extend(extra);
+        assert!(still(&flags).is_err());
+    }
+}
+
+#[test]
 fn a_frame_count_schedules_exactly_what_it_always_did() {
     // The pre-walk rule, written out: the blend spread evenly from end to end
     // and a camera that never moves. A walk must not have disturbed it.

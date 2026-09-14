@@ -157,7 +157,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 0,
     "family": {
-      "age": 100,
+      "age": 173,
       "canopy": {
         "clump": 5,
         "clumpSpan": 0.3,
@@ -267,7 +267,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pitchVariation": 15,
           "risePrimary": 0.05,
           "riseSecondary": 0,
-          "sheddingThreshold": 0.45,
+          "sheddingThreshold": 0,
           "twigTipTaper": 1,
           "whorlStrength": 0.3
         },
@@ -312,7 +312,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 3,
     "family": {
-      "age": 100,
+      "age": 432,
       "canopy": {
         "clump": 5,
         "clumpSpan": 0.3,
@@ -348,7 +348,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "growth": {
         "apicalControlLoss": 0,
         "leafLifetime": 1,
-        "rate": 0.08,
+        "rate": 0.032,
         "resizeTolerance": 0.0001,
         "shape": 2,
         "sheddingTolerance": 2
@@ -467,7 +467,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 4,
     "family": {
-      "age": 100,
+      "age": 158,
       "canopy": {
         "clump": 5,
         "clumpSpan": 0.3,
@@ -503,9 +503,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "growth": {
         "apicalControlLoss": 0,
         "leafLifetime": 6,
-        "rate": 0.08,
+        "rate": 0.091,
         "resizeTolerance": 0.0001,
-        "shape": 2,
+        "shape": 3.4,
         "sheddingTolerance": 2
       },
       "material": {
@@ -622,7 +622,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 1,
     "family": {
-      "age": 100,
+      "age": 173,
       "canopy": {
         "clump": 6,
         "clumpSpan": 0.28,
@@ -732,7 +732,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pitchVariation": 15,
           "risePrimary": 0.05,
           "riseSecondary": 0,
-          "sheddingThreshold": 0.45,
+          "sheddingThreshold": 0,
           "twigTipTaper": 1,
           "whorlStrength": 0.2
         },
@@ -777,7 +777,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
   {
     "abiId": 2,
     "family": {
-      "age": 100,
+      "age": 173,
       "canopy": {
         "clump": 9,
         "clumpSpan": 0.36,
@@ -887,7 +887,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pitchVariation": 15,
           "risePrimary": 0.05,
           "riseSecondary": 0,
-          "sheddingThreshold": 0.45,
+          "sheddingThreshold": 0,
           "twigTipTaper": 1,
           "whorlStrength": 0.2
         },

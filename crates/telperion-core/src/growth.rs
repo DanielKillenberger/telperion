@@ -39,6 +39,11 @@ impl Default for GrowthTraits {
     }
 }
 impl GrowthTraits {
+    /// Derived age in years at which the last quantum of growth lands; never authored.
+    pub fn mature_age(self) -> f64 {
+        self.mature_slice() as f64
+    }
+
     pub fn validate(self) -> Result<()> {
         for (field, value, lo, hi) in [
             ("growth.rate", self.rate, 0.001, 10.0),
@@ -93,5 +98,17 @@ impl GrowthTraits {
             }
         }
         lo
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn maturity_is_derived_from_growth() {
+        let growth = GrowthTraits::default();
+        assert_eq!(growth.mature_age(), growth.mature_slice() as f64);
+        assert_eq!(crate::presets::Family::default().age, growth.mature_age());
     }
 }

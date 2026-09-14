@@ -4,6 +4,7 @@ use telperion_core::{
     math::Vec3,
     mesh::{self, Detail},
     presets::Preset,
+    specimen::SpecimenView,
     surface::Bounds,
     Error,
 };
@@ -15,6 +16,25 @@ const IDENTITIES: [&str; 5] = [
     "telperion",
     "laurelin",
 ];
+
+#[test]
+fn production_mesh_matches_the_specimen_view() {
+    let family = Preset::Ordinary.parameters();
+    let actual = mesh::build(&family, Detail::Full).unwrap();
+    let expected = SpecimenView::build(&family).unwrap().mesh().unwrap();
+    assert_eq!(actual.wood_vertices(), expected.wood_vertices());
+    assert_eq!(actual.wood.indices.len(), expected.wood.indices.len());
+    assert_eq!(
+        actual.foliage.element.positions.len(),
+        expected.foliage.element.positions.len()
+    );
+    assert_eq!(
+        actual.foliage.element.indices.len(),
+        expected.foliage.element.indices.len()
+    );
+    assert_eq!(actual.foliage_instances(), expected.foliage_instances());
+    assert_eq!(actual.bounds, expected.bounds);
+}
 
 fn contains(b: Bounds, p: Vec3) -> bool {
     p.x >= b.min.x

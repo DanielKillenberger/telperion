@@ -10,9 +10,15 @@
 //! fn-27 permutes wood vertices and indices into descending run radius. These
 //! pins do not hash wood order: their existing counts, bounds, placement and
 //! element identities stay unchanged, so no literal needs re-pinning.
+//! fn-30 re-pins once for calibrated growth at derived maturity (seed 7).
+//! REPORT.md records convergence before this move: oak nodes 139040 -> 196901,
+//! crossover 3602 -> 5394; spruce 90439 -> 76386, crossover 17573 -> 21442.
+//! Annual frontier visits change wood and living-shoot placements; element
+//! hashes stay fixed. This test now hashes the production grown skeleton too.
+//! Node bounds and the resulting mesh bounds/counts are in .flow/evidence/fn30/REPORT.md.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
-    branching,
+    branching::Specimen,
     mesh::{self, Detail},
     presets::Preset,
 };
@@ -45,39 +51,45 @@ const SEED: u32 = 7;
 const PINS: [Pin; 2] = [
     Pin {
         id: "oregon-white-oak",
-        wood_vertices: 4262170,
-        wood_triangles: 8255000,
-        instances: 869310,
+        wood_vertices: 5966860,
+        wood_triangles: 11564840,
+        instances: 1175265,
         min: [
-            -13.163122928115051,
+            -12.660554941030515,
             -0.09600000083446503,
-            -13.242490423042556,
+            -13.064155719625399,
         ],
-        max: [13.217684715842124, 23.557227415847606, 13.003187181590542],
-        skeleton: 14986275773972546726,
-        placement: 15624359871475047912,
+        max: [13.276412718982542, 23.817030705282615, 13.087342970966304],
+        skeleton: 2069374647478841013,
+        placement: 15826952556907210550,
         element: 4207404028969543471,
     },
     Pin {
         id: "norway-spruce",
-        wood_vertices: 2888144,
-        wood_triangles: 5580040,
-        instances: 7012326,
-        min: [-3.89500647744516, -0.05999999865889549, -4.197530933827597],
-        max: [4.337495164451377, 15.0, 3.8062214356137005],
-        skeleton: 12735573889651776723,
-        placement: 8171270653015517335,
+        wood_vertices: 2515982,
+        wood_triangles: 4852280,
+        instances: 5463221,
+        min: [
+            -3.8689955989331346,
+            -0.05999999865889549,
+            -4.169345860968122,
+        ],
+        max: [3.8295214987058834, 15.0, 4.083653705781007],
+        skeleton: 9830532764016443315,
+        placement: 10177991485176080717,
         element: 7287062639823569932,
     },
 ];
 
 #[test]
-fn oak_and_spruce_meshes_are_the_tree_recorded_before_the_levels() {
+fn oak_and_spruce_meshes_pin_the_production_tree_at_derived_maturity() {
     for pin in &PINS {
         let id = pin.id;
         let mut family = Preset::from_id(id).expect("preset identity").parameters();
         family.skeleton.seed = SEED;
-        let tree = branching::generate(&family.skeleton, family.radii)
+        let tree = Specimen::build(&family)
+            .unwrap_or_else(|e| panic!("{id}: {e}"))
+            .read()
             .unwrap_or_else(|e| panic!("{id}: {e}"))
             .tree;
         assert_eq!(

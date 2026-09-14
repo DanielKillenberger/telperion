@@ -4,6 +4,8 @@ use crate::presets::Preset;
 #[test]
 fn change_record_reconciles_birth_extension_shedding_and_expiry() {
     let mut f = Preset::Ordinary.parameters();
+    // Exercise shedding explicitly; production presets retain mature wood (fn-30).
+    f.skeleton.habit.shedding_threshold = 0.45;
     f.age = 0.0;
     f.growth.leaf_lifetime = 6.0;
     let mut s = Specimen::build(&f).unwrap();

@@ -35,6 +35,9 @@ fn run() -> Result<(), String> {
         return transition(&arguments, family, far);
     }
 
+    if let Some(age) = arguments.age {
+        family.age = age;
+    }
     let tree = mesh::build(&family, Detail::Full).map_err(|error| error.to_string())?;
     let level = level_of(arguments.level, tree.foliage.element.levels.len())?;
     let gpu = pollster::block_on(Gpu::request(None)).map_err(|error| error.to_string())?;

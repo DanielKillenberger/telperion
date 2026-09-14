@@ -27,6 +27,12 @@ Owner routing (2026-09-12, Astra quota back): dispatch Codex gpt-6-astra at high
      (pipeline.qa) is off; run /flow-next:qa by hand when a spec is ready. -->
 <!-- flow-next:model-routing:end -->
 
+### Bridged worker recipe (owner, 2026-09-14)
+
+One codex session does the whole task in one persistent context window; the worker never splits the task into phases and never implements, investigates, fetches sources or calibrates itself. After `flowctl anchor <task-id> --md` and `git rev-parse HEAD` for the base, the worker composes a pointer prompt: the task id, the spec path, the spec's `## Resolved via Research` section or the research section of the spec it was split from, `CLAUDE.md`, the instruction to re-anchor on the repo, investigate, source and checksum references, implement, test and render, and the long-task brief from `flowctl usage` (flow-next PR #436, closes the owner's issue #431): commit each completed scope unit as a checkpoint on the named branch; never push, rebase, amend, change scope, issue a verdict or spawn an agent; return only when the scope is done or blocked, with the commit list. No timebox and no "stop if you run out of room" line in the brief. It runs that prompt once, in the foreground, from the asserted repo root, with the model and effort inline, stdin from `/dev/null`, `-o` for the digest, network access on, and no sandbox so codex can commit and reach the GPU (the checkout on its own branch is the boundary; `workspace-write` keeps `.git` read-only and segfaults the renderer). Every follow-up round, gate output, review findings, an owner answer, goes back into the same session with `codex exec resume <session-id> "<prompt>"`, never a fresh `codex exec`.
+
+The worker then reviews the range from the recorded base, runs the gates on it, and completes the task; a spec rule that needs the owner (a tolerance miss, a verdict slot) is recorded in the task file as `NEEDS_HUMAN` instead of `flowctl done`.
+
 ## Token and evidence budget (owner, 2026-09-08)
 
 fn-13 task 5 consumed a full weekly quota on 22 full-forest GPU captures and image inspection. These rules bind every agent and the pilot loop:

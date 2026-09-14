@@ -121,6 +121,8 @@ fn structural_births_do_not_move_existing_local_storage_inside_a_slice() {
 #[test]
 fn packing_between_advances_does_not_change_grown_and_shed_tree_bytes() {
     let mut f = Preset::Ordinary.parameters();
+    // Exercise shedding explicitly; production presets retain mature wood (fn-30).
+    f.skeleton.habit.shedding_threshold = 0.45;
     f.age = 12.25;
     let fresh = Specimen::build(&f).unwrap();
     assert!(fresh.shed > 0, "fixture must shed as well as grow");

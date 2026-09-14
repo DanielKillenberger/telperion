@@ -162,6 +162,8 @@ fn annual_keyframes_do_not_finalize_stored_output_radii() {
 #[test]
 fn radius_history_is_monotone_through_extension_forks_and_shedding() {
     let mut family = Preset::Ordinary.parameters();
+    // Exercise shedding explicitly; production presets retain mature wood (fn-30).
+    family.skeleton.habit.shedding_threshold = 0.45;
     family.age = 12.0;
     let s = Specimen::build(&family).unwrap();
     assert!(s.shed > 0);

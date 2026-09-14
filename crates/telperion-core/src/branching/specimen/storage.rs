@@ -147,6 +147,9 @@ mod tests {
     fn sparse_advance_updates_the_existing_packed_tree() {
         let mut f = crate::presets::Preset::OregonWhiteOak.parameters();
         f.skeleton.seed = 7;
+        // Retain fn-11's schedule for this mechanism fixture, independent of calibration.
+        f.growth.rate = 0.08;
+        f.growth.shape = 2.0;
         f.age = 65.0;
         let mut s = Specimen::build(&f).unwrap();
         assert!(s.tree().nodes.len() > 100_000);

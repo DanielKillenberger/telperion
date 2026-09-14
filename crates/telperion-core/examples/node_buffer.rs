@@ -32,7 +32,11 @@ fn main() {
         placements = read.placements;
         read.tree
     } else {
-        branching::generate(&f.skeleton, f.radii).unwrap().tree
+        branching::Specimen::build(&f)
+            .unwrap()
+            .read_at_age(f.age)
+            .unwrap()
+            .tree
     };
     let mut out = io::BufWriter::new(io::stdout().lock());
     for n in &tree.nodes {

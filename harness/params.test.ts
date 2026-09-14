@@ -123,7 +123,9 @@ describe("carried native controls", () => {
       lateralOrders: 3,
       attractorWeight: 1,
       twigTipTaper: 1,
-      sheddingThreshold: 0.45,
+      // fn-30 retains mature wood while the ageing vigour proxy has no floor.
+      // REPORT.md records Ordinary's 9240 -> 49262 legacy nodes at seed 42.
+      sheddingThreshold: 0,
     });
     // The leaf and the way it sits on its shoot are rows as well.
     expect(DEFAULT_PARAMS.family.element).toMatchObject({ lobeCount: 0, lobeDepth: 0, sectionRoundness: 0 });

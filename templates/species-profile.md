@@ -25,6 +25,8 @@ Use `profile.json` with `{"schema_version":1,"definitions":{...},"profiles":[{"i
 | Dimension or distribution | Unit + operational definition | Target or null | Source IDs | Confidence | Gating / contextual / unavailable |
 |---|---|---|---|---|---|
 | Height, DBH and its plane | <m; actual bounds / model proxy> | <range> | <IDs> | <level> | <classification> |
+| Height at young / middle / mature reference age | <years; m above root, actual wood height> | <three age/value pairs or unavailable> | <IDs, URLs, SHA-256, bytes per source; composition per age> | <level> | <15% tolerance / missing curve> |
+| Trunk DBH at young / middle / mature reference age | <years; m diameter at 1.3 m on main trunk; H/DBH per age> | <three age/value pairs or unavailable> | <IDs, URLs, SHA-256, bytes; stand fallback and open-grown conversion> | <level> | <15% tolerance / missing curve> |
 | Crown width/base | <m; retained foliage bounds> | <range/null> | <IDs> | <level> | <classification> |
 | Organ length/width and count | <single blade/needle; exclude connector> | <range/null> | <IDs> | <level> | <classification> |
 | Axis/order/taper/angle and foliage bins | <frozen definition IDs> | <range/null> | <IDs> | <level> | <classification> |
@@ -41,6 +43,13 @@ For each reference record, fill the frozen `reference` schema: ID, species ID, s
 ## Template implementation — implementation owner
 
 `species.json` follows `protocol.schema.$defs.species`: `id`, `scientific_name`, `taxon_rank`, `cultivar`, `context`, `profile_id`, `profile_path`, `profile_sha256`, `preset`, `required_capabilities`, **complete** `parameters`, `fixed_seeds`, `holdout_seeds`, `reference_ids`. Do not add workflow keys to that closed schema.
+
+| Growth field | Value / documentation |
+|---|---|
+| Growth rate / shape | <growth.rate / growth.shape; fit ages, objective and source IDs> |
+| Shedding threshold / tolerance / leaf lifetime | <numeric traits; source or engineering rationale> |
+| Derived mature age | <growth.mature_age() in years after fitting; documentation only, never an authored preset age> |
+| Three-age measured errors | <height and trunk DBH errors per age; every miss above 15%; owner judgment or unresolved> |
 
 - Parameter snapshot path/hash: <full family, no implicit current defaults>.
 - Parameter choices and source/engineering rationale: <trait → field → reason>.

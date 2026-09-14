@@ -264,3 +264,16 @@ fn resize_tolerance_is_a_validated_blended_wire_trait() {
         assert!(error.to_string().contains("growth.resizeTolerance"));
     }
 }
+#[test]
+fn every_preset_age_is_derived_from_its_growth() {
+    for preset in [
+        Preset::Ordinary,
+        Preset::OregonWhiteOak,
+        Preset::NorwaySpruce,
+        Preset::Telperion,
+        Preset::Laurelin,
+    ] {
+        let family = preset.parameters();
+        assert_eq!(family.age, family.growth.mature_age(), "{preset:?}");
+    }
+}

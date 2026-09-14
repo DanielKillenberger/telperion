@@ -61,7 +61,16 @@ sub-year remainder carries between calls;
 zero pauses, and backward inspection filters the retained chronicle at the earlier age.
 The same quantized elapsed time produces the same annual history. `growth.rate`
 and `growth.shape` are numeric Chapman–Richards traits and blend with age.
-Their current defaults are provisional, without species age calibration.
+Production `mesh::build`, the Wasm generator and the measurement runners build
+through growth at `family.age`. Each preset derives its default age from its
+final growth traits with `GrowthTraits::mature_age()` (oak 432 years, spruce
+158, Ordinary and the Two Trees 173); callers may override the requested age.
+The oak and spruce rates and shapes fit composed reference heights at three
+ages. Their DBH misses remain outside 15 percent and await owner judgment in
+the [FN30 report](.flow/evidence/fn30/REPORT.md). Ordinary and the Two Trees keep
+provisional growth traits without species age calibration. Preset shedding
+thresholds are zero because the current ageing vigour proxy strips mature
+wood at nonzero thresholds; FN30 records that defect and workaround.
 
 ```rust
 use telperion_core::{branching::Specimen, presets::Preset};
@@ -397,7 +406,7 @@ it explicitly. Botanical lean and gravitropism remain independent.
 Native needle placement can use `foliage::place_on_surface` with the family’s
 `SurfaceParams` to attach to the rendered polygonal sweep and fork sockets without
 building mesh indices or normals. The browser engine and species measurement
-runner use this path. `foliage::place` retains the circular-radius placement API.
+runner read the growth chronicle's surface-attached placements and living cohorts. `foliage::place` retains the circular-radius placement API.
 
 The [frozen botanical profiles](.flow/evidence/fn9/profiles.json) define mature
 open-grown contexts, source-backed dimensional gates, contextual estimates and

@@ -8,12 +8,7 @@ use std::{
     process::Command,
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
-use telperion_core::{
-    branching,
-    foliage::{self, TwigPlacement},
-    presets::Preset,
-    surface,
-};
+use telperion_core::{branching::Specimen, foliage, presets::Preset, surface};
 const HELP:&str="species_measure --case ID:PROFILE:PRESET:SEED [--case ...] --output FILE [--profiles FILE]
 Profiles default to .flow/evidence/fn9/profiles.json relative to the repository.
 Presets: ordinary, oregon-white-oak, norway-spruce, telperion, laurelin. Unknown IDs fail; cases continue independently.
@@ -48,33 +43,21 @@ fn specimen(preset: &str, seed: u32) -> Result<Value, String> {
     f.skeleton.seed = seed;
     let total = Instant::now();
     let start = Instant::now();
-    let report =
-        branching::generate(&f.skeleton, f.radii).map_err(|e| format!("generation: {e:?}"))?;
+    let specimen = Specimen::build(&f).map_err(|e| format!("generation: {e:?}"))?;
     let growth_ms = start.elapsed().as_secs_f64() * 1000.;
+    let report = specimen
+        .read_at_age(f.age)
+        .map_err(|e| format!("read: {e:?}"))?;
     let start = Instant::now();
-    let wood = surface::build(&report.tree, f.skeleton.envelope.height, &f.surface)
+    let wood = surface::build(&report.tree, report.surface_height, &f.surface)
         .map_err(|e| format!("surface: {e:?}"))?;
     let surface_ms = start.elapsed().as_secs_f64() * 1000.;
     let start = Instant::now();
     let element = foliage::build_element(f.element).map_err(|e| format!("element: {e:?}"))?;
-    let twigs = f
-        .skeleton
-        .twigs
-        .resolved()
-        .map_err(|e| format!("twigs: {e:?}"))?;
-    let placed = foliage::place_on_surface(
-        &report.tree,
-        f.skeleton.envelope,
-        seed,
-        f.canopy,
-        Some(TwigPlacement {
-            internode_length: twigs.twig.internode_length,
-            stations_per_internode: twigs.twig.stations_per_internode,
-        }),
-        &f.surface,
-    )
-    .map_err(|e| format!("placement: {e:?}"))?;
-    let kept = foliage::cull(&placed, &element, f.skeleton.envelope, f.shell_depth)
+    let placed = foliage::Instances {
+        matrices: report.placements.iter().map(|p| p.transform).collect(),
+    };
+    let kept = foliage::cull(&placed, &element, report.envelope, f.shell_depth)
         .map_err(|e| format!("culling: {e:?}"))?;
     let foliage_ms = start.elapsed().as_secs_f64() * 1000.;
     let start = Instant::now();
@@ -86,7 +69,7 @@ fn specimen(preset: &str, seed: u32) -> Result<Value, String> {
         &kept,
     )?;
     Ok(
-        json!({"metrics":metrics,"timing_ms":{"growth":growth_ms,"surface":surface_ms,"foliage":foliage_ms,"measurement":start.elapsed().as_secs_f64()*1000.,"total":total.elapsed().as_secs_f64()*1000.},"counts":{"wood_vertices":wood.positions.len()/3,"wood_triangles":wood.indices.len()/3,"prototype_vertices":element.positions.len(),"prototype_triangles":element.indices.len()/3,"shed_nodes":report.shed},"output_bytes":{"wood_positions":wood.positions.len()*4,"wood_indices":wood.indices.len()*4,"retained_matrices":kept.matrices.len()*64}}),
+        json!({"metrics":metrics,"timing_ms":{"growth":growth_ms,"surface":surface_ms,"foliage":foliage_ms,"measurement":start.elapsed().as_secs_f64()*1000.,"total":total.elapsed().as_secs_f64()*1000.},"counts":{"wood_vertices":wood.positions.len()/3,"wood_triangles":wood.indices.len()/3,"prototype_vertices":element.positions.len(),"prototype_triangles":element.indices.len()/3,"shed_nodes":report.shed.len()},"output_bytes":{"wood_positions":wood.positions.len()*4,"wood_indices":wood.indices.len()*4,"retained_matrices":kept.matrices.len()*64}}),
     )
 }
 fn run() -> Result<bool, String> {

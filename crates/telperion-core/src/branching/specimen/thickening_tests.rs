@@ -242,6 +242,9 @@ fn tolerance_and_apical_loss_are_validated_blended_numeric_traits() {
         b.growth.apical_control_loss = 0.2;
     }
     let mut f = Preset::NorwaySpruce.parameters();
+    // Retain fn-11's schedule for this mechanism fixture, independent of calibration.
+    f.growth.rate = 0.08;
+    f.growth.shape = 2.0;
     f.age = 8.0;
     let young_control = Specimen::build(&f).unwrap();
     f.growth.apical_control_loss = 0.2;
