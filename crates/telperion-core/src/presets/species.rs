@@ -89,12 +89,15 @@ pub(super) fn silver_birch(p: &mut Family) {
         twig_tip_taper: 0.35,
         shedding_threshold: 0.0,
     };
+    // The curtain is what reaches the ground, so the envelope has to leave it
+    // somewhere to reach: almost no bare trunk, a narrower crown carrying its
+    // mass up top, and squarer shoulders than the round-3 oval.
     p.skeleton.envelope = Envelope {
         height: 18.0,
-        crown_base: 0.1,
-        spread: 0.4,
-        fullness: 0.45,
-        shoulder: 1.3,
+        crown_base: 0.015,
+        spread: 0.33,
+        fullness: 0.6,
+        shoulder: 1.6,
     };
     p.skeleton.bias = BiasParams::NONE;
     p.skeleton.twigs.laterals = 8;
@@ -103,10 +106,14 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.skeleton.twigs.twig.length = 0.45;
     p.skeleton.twigs.twig.internode_length = 0.012;
     p.skeleton.twigs.twig.bearing_diameter = 0.02;
+    // The weeping birch's own curtain: a full hang, shoots running three and a
+    // half metres unbranched instead of the twig's own quarter, every shoot
+    // under a descending limb hanging, and two and a half degrees between
+    // neighbours where the spruce stands them four apart.
     p.skeleton.twigs.hang = 1.0;
-    p.skeleton.twigs.pendulous_length = 0.45;
+    p.skeleton.twigs.pendulous_length = 3.5;
     p.skeleton.twigs.pendulous_radius = 1.0;
-    p.skeleton.twigs.curtain_separation = 4.0;
+    p.skeleton.twigs.curtain_separation = 2.5;
     p.radii.trunk_radius = 0.01;
     p.element = ElementParams {
         length: 0.055,
@@ -127,7 +134,9 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.canopy.clump = 8;
     p.canopy.clump_span = 0.5;
     p.canopy.outward = 0.0;
-    p.canopy.upward = 0.0;
+    // Leaves hang under the shoots they are strung along, which is the signed
+    // half of the row a leaf could not reach before.
+    p.canopy.upward = -0.35;
     p.canopy.divergence = 180.0;
     p.canopy.size_variation = 0.2;
     p.material = materials::birch();

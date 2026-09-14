@@ -13,6 +13,13 @@
 //! fn-34 adds european-beech and silver-birch pins from the first seed-7
 //! photograph of those value tables; re-pinned once on 2026-09-14 after the
 //! round-3 tuning against the matched reference pairs (fn-36).
+//! fn-37 re-pins the silver birch once more, and only the silver birch: its
+//! table is the first to state the curtain as rows - a full hang, a three and
+//! a half metre pendulous run, two and a half degrees between neighbouring
+//! shoots - over an envelope with almost no bare trunk under it. The oak, the
+//! spruce, the beech and the Two Trees are byte-identical: the spruce states
+//! the values that reproduce the constants the curtain used to carry, and
+//! every other table leaves hang at zero, which reaches nothing.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -89,17 +96,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 853604,
-        wood_triangles: 1653480,
-        instances: 480820,
-        min: [
-            -7.0355496042690575,
-            -0.07199999690055847,
-            -7.119164620028774,
-        ],
-        max: [6.79188643280427, 13.9565244653892, 6.729225835715777],
-        skeleton: 4915989862543369344,
-        placement: 34916007685997205,
+        wood_vertices: 1209564,
+        wood_triangles: 2343840,
+        instances: 683065,
+        min: [-5.895435520843167, -0.07199999690055847, -5.977345690142345],
+        max: [5.920931809111189, 14.199216082556106, 5.895086147882952],
+        skeleton: 798678146334118838,
+        placement: 15991100209399384620,
         element: 1872173242819532549,
     },
 ];

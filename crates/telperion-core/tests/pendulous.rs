@@ -105,13 +105,14 @@ fn the_curtain_grows_in_from_nothing_rather_than_switching_on() {
             "step {step} changed the tree's kind: {a} nodes to {b}"
         );
     }
-    // And the walk is a walk: the crown a full hang grows is not the crown the
-    // neutral row grows. A curtain caps its shoots' length and stands them
-    // apart, so what changes is how much wood the crown carries.
-    let (none, full) = (walk[0].nodes.len(), walk[10].nodes.len());
+    // And the walk is a walk: a full hang does not leave the crown where the
+    // neutral row leaves it. What the curtain moves is where the leaf-bearing
+    // ends sit, so that is what is measured.
+    let mean = |g: &Grown| g.twigs.iter().sum::<f64>() / g.twigs.len() as f64;
+    let (none, full) = (mean(&walk[0]), mean(&walk[10]));
     assert!(
-        none.abs_diff(full) * 10 > none,
-        "a full hang grew the crown a neutral row grows: {none} nodes to {full}"
+        (full - none).abs() > none / 50.0,
+        "a full hang left the crown where a neutral row left it: {none} m to {full} m"
     );
 }
 

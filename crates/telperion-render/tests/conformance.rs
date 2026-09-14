@@ -134,8 +134,15 @@ fn parameter_sets_nobody_wrote_by_hand_render_the_same_way() {
     let Some(gpu) = gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let mut rng = Rng::new(20_260_908);
+    // The jitter multiplies every number by up to 1.25, which carries any row
+    // whose shipped value sits at the top of its own rail straight out of it.
+    // fn-37's pendulous radius is 1 on every shipped table - every shoot under
+    // a descending limb hangs - and its hang row is 1 on the two that weep, so
+    // better than half of every set drawn is now a set the generator refuses
+    // by name. The budget is what absorbs that: twenty sets still have to
+    // render, and at 96 pixels the whole loop is under a second.
     let (mut rendered, mut refused, mut attempts) = (0, 0, 0);
-    while rendered < 20 && attempts < 60 {
+    while rendered < 20 && attempts < 400 {
         let &(_, id, _, _) = &params::CATALOGUE[attempts % params::CATALOGUE.len()];
         let mut value = params::metadata(&params::by_identity(id).expect("a shipped family"));
         compact(&mut value);

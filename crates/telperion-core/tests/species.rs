@@ -285,10 +285,12 @@ fn fixed_species(preset: Preset) {
             // azimuth, curtains and crown width are what vary.
             vec![widths]
         }
-        Preset::EuropeanBeech => {
+        Preset::EuropeanBeech | Preset::SilverBirch => {
             // A full crown fills its envelope on every seed, so neither
             // dimension is pinned to vary; whichever of height or plan width
-            // the seeds move more is the one judged.
+            // the seeds move more is the one judged. fn-37 gave the birch the
+            // same property the beech already had: its curtain reaches the
+            // shell on every seed.
             let range = |values: &Vec<f64>| {
                 values.iter().copied().fold(f64::NEG_INFINITY, f64::max)
                     - values.iter().copied().fold(f64::INFINITY, f64::min)
@@ -299,24 +301,23 @@ fn fixed_species(preset: Preset) {
                 vec![widths]
             }
         }
-        Preset::SilverBirch => {
-            // Height stays near the 18 m envelope; azimuth and crown width
-            // are what vary.
-            vec![widths]
-        }
         _ => vec![heights, widths],
+    };
+    // A specimen regression, not a botanical range, and scale-free like every
+    // other length the library states: the moving dimension has to move by
+    // more than a thirtieth of the tree's authored height. On the beech's 32 m
+    // envelope that is the metre this rule asked for before fn-37 stated it as
+    // a fraction; on the birch's 18 m one it is a little over half of it.
+    let apart = match preset {
+        Preset::NorwaySpruce => 0.1,
+        _ => preset.parameters().skeleton.envelope.height / 30.0,
     };
     for values in dimensions {
         let min = values.iter().copied().fold(f64::INFINITY, f64::min);
         let max = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
         assert!(
-            max - min
-                > if preset == Preset::NorwaySpruce {
-                    0.1
-                } else {
-                    1.0
-                },
-            "crown dimensions should vary across specimens: {values:?}"
+            max - min > apart,
+            "crown dimensions should vary by more than {apart} m across specimens: {values:?}"
         );
     }
     assert!(

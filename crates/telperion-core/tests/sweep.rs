@@ -60,11 +60,11 @@ const BANDS: [(&str, usize, usize); 7] = [
 // The chronicle adds resizeTolerance at the same 1e-9 metre default in every
 // preset. params::tests::resize_tolerance_is_a_validated_blended_wire_trait
 // checks its non-default walk; no preset geometry or identity pin changes.
-// fn-37 turns the curtain into four twig rows. Hang and the pendulous length
-// differ between the oak, the spruce and the birch, so the sweep walks both;
-// the radius threshold and the curtain's shoot separation are the values that
-// reproduce the constants on every shipped row and are held here.
-const HELD: [&str; 31] = [
+// fn-37 turns the curtain into four twig rows. Hang, the pendulous length and
+// the curtain's shoot separation differ between the oak, the spruce and the
+// birch, so the sweep walks all three. The radius threshold is 1 on every
+// shipped row - every shoot under a descending limb hangs - and is held here.
+const HELD: [&str; 30] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
@@ -83,7 +83,6 @@ const HELD: [&str; 31] = [
     "/skeleton/step",
     "/skeleton/twigs/angle",
     "/skeleton/twigs/angleVariation",
-    "/skeleton/twigs/curtainSeparation",
     "/skeleton/twigs/divergence",
     "/skeleton/twigs/limbRadius",
     "/skeleton/twigs/pendulousRadius",
