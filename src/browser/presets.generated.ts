@@ -907,7 +907,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "sizeVariation": 0.2,
         "spacing": 0.006,
         "surfaceContact": 0,
-        "upward": 0
+        "upward": -0.35
       },
       "element": {
         "axialSegments": 8,
@@ -985,7 +985,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lengthTaper": 0.6,
         "trunkRadius": 0.01
       },
-      "shellDepth": 1,
+      "shellDepth": 0.45,
       "skeleton": {
         "attractors": 500,
         "bias": {
@@ -999,11 +999,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "envelope": {
-          "crownBase": 0.1,
-          "fullness": 0.45,
+          "crownBase": 0.015,
+          "fullness": 0.6,
           "height": 18,
-          "shoulder": 1.3,
-          "spread": 0.4
+          "shoulder": 1.6,
+          "spread": 0.36
         },
         "growth": {
           "maxTurnPerStep": 35
@@ -1030,14 +1030,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
-          "curtainSeparation": 4,
+          "curtainSeparation": 9,
           "divergence": 137.508,
           "hang": 1,
           "internodeFactor": 2.5,
           "laterals": 8,
           "lengthRatio": 0.6,
           "limbRadius": 0.1,
-          "pendulousLength": 0.45,
+          "pendulousLength": 3.5,
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,

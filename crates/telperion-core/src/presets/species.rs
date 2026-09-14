@@ -95,7 +95,7 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.skeleton.envelope = Envelope {
         height: 18.0,
         crown_base: 0.015,
-        spread: 0.33,
+        spread: 0.36,
         fullness: 0.6,
         shoulder: 1.6,
     };
@@ -108,12 +108,13 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.skeleton.twigs.twig.bearing_diameter = 0.02;
     // The weeping birch's own curtain: a full hang, shoots running three and a
     // half metres unbranched instead of the twig's own quarter, every shoot
-    // under a descending limb hanging, and two and a half degrees between
-    // neighbours where the spruce stands them four apart.
+    // under a descending limb hanging, and nine degrees between neighbours
+    // where the spruce stands them four apart - a birch's curtain is long and
+    // open, not the spruce's dense fringe.
     p.skeleton.twigs.hang = 1.0;
     p.skeleton.twigs.pendulous_length = 3.5;
     p.skeleton.twigs.pendulous_radius = 1.0;
-    p.skeleton.twigs.curtain_separation = 2.5;
+    p.skeleton.twigs.curtain_separation = 9.0;
     p.radii.trunk_radius = 0.01;
     p.element = ElementParams {
         length: 0.055,
@@ -128,7 +129,10 @@ pub(super) fn silver_birch(p: &mut Family) {
         axial_segments: 8,
         ..Default::default()
     };
-    p.shell_depth = 1.0;
+    // Sky through the crown: a curtain three and a half metres long fills the
+    // shell twice over, and the photograph's birch is a light tree. Retaining
+    // less than half the shell's depth is what lets the light back in.
+    p.shell_depth = 0.45;
     p.canopy.forward_lean = 0.6;
     p.canopy.lean_rise = 0.3;
     p.canopy.clump = 8;

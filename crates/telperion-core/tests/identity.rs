@@ -15,8 +15,9 @@
 //! round-3 tuning against the matched reference pairs (fn-36).
 //! fn-37 re-pins the silver birch once more, and only the silver birch: its
 //! table is the first to state the curtain as rows - a full hang, a three and
-//! a half metre pendulous run, two and a half degrees between neighbouring
-//! shoots - over an envelope with almost no bare trunk under it. The oak, the
+//! a half metre pendulous run, nine degrees between neighbouring shoots - over
+//! an envelope with almost no bare trunk under it and a shell that keeps less
+//! than half its depth. The oak, the
 //! spruce, the beech and the Two Trees are byte-identical: the spruce states
 //! the values that reproduce the constants the curtain used to carry, and
 //! every other table leaves hang at zero, which reaches nothing.
@@ -96,13 +97,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 1209564,
-        wood_triangles: 2343840,
-        instances: 683065,
-        min: [-5.895435520843167, -0.07199999690055847, -5.977345690142345],
-        max: [5.920931809111189, 14.199216082556106, 5.895086147882952],
-        skeleton: 798678146334118838,
-        placement: 15991100209399384620,
+        wood_vertices: 1242310,
+        wood_triangles: 2409080,
+        instances: 569141,
+        min: [-6.445977140025999, -0.07199999690055847, -6.496401771387236],
+        max: [6.4680187026102045, 14.457560663974053, 6.315785530156133],
+        skeleton: 12247876455237898404,
+        placement: 15606499477561708064,
         element: 1872173242819532549,
     },
 ];
