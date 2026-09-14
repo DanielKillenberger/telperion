@@ -1,0 +1,37 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 16.64s
+     Running tests/growth_form.rs (target/release/deps/growth_form-eaa716f73ca1dd35)
+
+running 10 tests
+test oak_starts_as_a_leafed_seedling ... ok
+test spruce_starts_as_a_needled_seedling ... ok
+test young_spruce_branches_and_carries_foliage ... ok
+test sapling_laterals_carry_foliage_in_the_upper_crown ... FAILED
+test young_oak_branches_and_carries_foliage ... ok
+test expanding_oak_crown_keeps_leafed_shoots ... ok
+test every_preset_carries_foliage_each_year_from_one_through_ten ... FAILED
+test height_to_trunk_diameter_falls_with_age ... ok
+test mature_bole_does_not_end_at_a_temporary_local_apex ... ok
+test mature_species_hold_fn30_crown_population ... ok
+
+failures:
+
+---- sapling_laterals_carry_foliage_in_the_upper_crown stdout ----
+
+thread 'sapling_laterals_carry_foliage_in_the_upper_crown' (677375) panicked at crates/telperion-core/tests/growth_form.rs:156:9:
+OregonWhiteOak 10: foliage confined to the base: 631/2579 above half height
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- every_preset_carries_foliage_each_year_from_one_through_ten stdout ----
+
+thread 'every_preset_carries_foliage_each_year_from_one_through_ten' (677369) panicked at crates/telperion-core/tests/growth_form.rs:137:5:
+bare annual specimens: [(Telperion, 1)]
+
+
+failures:
+    every_preset_carries_foliage_each_year_from_one_through_ten
+    sapling_laterals_carry_foliage_in_the_upper_crown
+
+test result: FAILED. 8 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.51s
+
+error: test failed, to rerun pass `-p telperion-core --test growth_form`

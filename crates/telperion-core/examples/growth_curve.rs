@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use telperion_core::{
     branching::{self, Specimen},
     presets::Preset,
-    tree::{NodeKind, Tree},
+    tree::{BudFate, NodeKind, Tree},
 };
 
 const USAGE: &str = "growth_curve --preset <id> --seed <n> --ages a,b,c[,...] [--envelope]";
@@ -98,6 +98,8 @@ fn measure(tree: &Tree, args: &Arguments, kind: &str) -> Result<Value, String> {
     Ok(json!({"kind":kind,"preset":args.preset,"seed":args.seed,
         "height_m":max.y-root.position.y,"trunk_dbh_m":trunk_dbh(tree),
         "nodes":tree.nodes.len(),"crossover":tree.crossover,
+        "laterals":tree.nodes.iter().filter(|n|n.shoot.bud_fate == BudFate::Lateral).count(),
+        "structural_laterals":tree.nodes.iter().filter(|n|n.kind == NodeKind::Structural && n.shoot.bud_fate == BudFate::Lateral).count(),
         "bounds":{"min":[min.x,min.y,min.z],"max":[max.x,max.y,max.z]}}))
 }
 

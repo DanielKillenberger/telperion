@@ -1,0 +1,13 @@
+oregon-white-oak 0
+norway-spruce 0
+ordinary 0
+telperion 0
+laurelin 1
+Traceback (most recent call last):
+  File "/home/daniel/Projects/telperion/.flow/evidence/fn31/measure.py", line 17, in <module>
+    result.check_returncode()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/subprocess.py", line 509, in check_returncode
+    raise CalledProcessError(self.returncode, self.args, self.stdout,
+                             self.stderr)
+subprocess.CalledProcessError: Command '['cargo', 'run', '--release', '-p', 'telperion-core', '--example', 'growth_curve', '--', '--preset', 'laurelin', '--seed', '7', '--ages', '173', '--envelope']' returned non-zero exit status 1.

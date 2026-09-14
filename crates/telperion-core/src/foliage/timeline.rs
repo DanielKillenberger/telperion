@@ -287,9 +287,16 @@ impl Foliage {
             &mut Rng::new(seed ^ 0x2c9e1a7f),
             &mut instances,
         )?;
-        let placements = instances
-            .matrices
+        // Cohort offsets interleave spatial sites. A young cohort covers the
+        // whole shoot, including its distal sites, while identity order stays
+        // a stable prefix as later cohorts fill.
+        let cohorts = (self.lifetime.slice + u64::from(self.lifetime.remainder > 0)).max(1);
+        let count = instances.matrices.len();
+        let mut sites: Vec<_> = instances.matrices.into_iter().enumerate().collect();
+        sites.sort_by_key(|(i, _)| (((count - 1 - i) as u64 % cohorts), *i));
+        let placements = sites
             .into_iter()
+            .map(|(_, matrix)| matrix)
             .enumerate()
             .map(|(k, transform)| Placement {
                 identity: PlacementIdentity {

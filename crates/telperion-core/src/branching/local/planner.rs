@@ -8,6 +8,7 @@ pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
 }
 pub(in crate::branching) type WidthQuery<'a> = Option<&'a dyn Fn(&Tree, usize) -> [f64; 3]>;
 pub(in crate::branching) struct Planner<'a> {
+    pub(in crate::branching) radius_scale: f64,
     pub(in crate::branching) clock: Option<super::waiting::Clock>,
     pub(in crate::branching) widths: WidthQuery<'a>,
     pub(in crate::branching) growing_envelope: bool,
@@ -38,6 +39,24 @@ impl Planner<'_> {
             wanted,
             c.max_turn_per_step.to_radians() * (distance / c.step_distance).min(1.0),
         )
+    }
+    pub(super) fn leaf_length(&self, at: Vec3, heading: Vec3, length: f64) -> f64 {
+        if !rejected(self.config, at + heading * length) {
+            return length;
+        }
+        if rejected(self.config, at) {
+            return length;
+        }
+        let (mut low, mut high) = (0.0, length);
+        for _ in 0..40 {
+            let mid = (low + high) / 2.0;
+            if rejected(self.config, at + heading * mid) {
+                high = mid;
+            } else {
+                low = mid;
+            }
+        }
+        low
     }
     pub(super) fn run(
         &self,

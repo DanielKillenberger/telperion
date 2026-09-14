@@ -119,3 +119,112 @@ fn height_to_trunk_diameter_falls_with_age() {
         }
     }
 }
+
+#[test]
+fn every_preset_carries_foliage_each_year_from_one_through_ten() {
+    let mut missing = Vec::new();
+    for preset in [
+        Preset::Ordinary,
+        Preset::Telperion,
+        Preset::Laurelin,
+        Preset::OregonWhiteOak,
+        Preset::NorwaySpruce,
+    ] {
+        for age in 1..=10 {
+            let mut family = preset.parameters();
+            family.skeleton.seed = 7;
+            family.age = f64::from(age);
+            if Specimen::build(&family)
+                .unwrap()
+                .placements()
+                .unwrap()
+                .is_empty()
+                || telperion_core::mesh::build(&family, telperion_core::mesh::Detail::Full)
+                    .unwrap()
+                    .foliage_instances()
+                    == 0
+            {
+                missing.push((preset, age));
+            }
+        }
+    }
+    assert!(missing.is_empty(), "bare annual specimens: {missing:?}");
+}
+
+#[test]
+fn sapling_laterals_carry_foliage_in_the_upper_crown() {
+    use telperion_core::tree::{BudFate, NodeKind};
+    for (preset, age) in [
+        (Preset::OregonWhiteOak, 10.0),
+        (Preset::NorwaySpruce, 5.0),
+        (Preset::NorwaySpruce, 14.1),
+    ] {
+        let mut family = preset.parameters();
+        family.skeleton.seed = 7;
+        family.age = age;
+        let s = Specimen::build(&family).unwrap();
+        let tree = s.tree();
+        let height = tree.nodes.iter().map(|n| n.position.y).fold(0.0, f64::max);
+        let branches = tree
+            .nodes
+            .iter()
+            .filter(|n| n.kind != NodeKind::Twig && n.shoot.bud_fate == BudFate::Lateral)
+            .count();
+        assert!(
+            branches >= 2,
+            "{preset:?} {age}: no woody sapling laterals ({branches})"
+        );
+        let leaves = s.placements().unwrap();
+        let mut covered = vec![false; tree.nodes.len()];
+        let identities: std::collections::BTreeMap<_, _> = tree
+            .nodes
+            .iter()
+            .enumerate()
+            .map(|(i, n)| (n.identity, i))
+            .collect();
+        for leaf in &leaves {
+            let mut at = Some(identities[&leaf.identity.shoot]);
+            while let Some(i) = at {
+                if covered[i] {
+                    break;
+                }
+                covered[i] = true;
+                at = tree.nodes[i].parent.map(|p| p as usize);
+            }
+        }
+        let upper: Vec<_> = tree
+            .nodes
+            .iter()
+            .enumerate()
+            .filter(|(_, n)| n.position.y > height * 0.5 && n.shoot.bud_fate == BudFate::Lateral)
+            .collect();
+        let leafed = upper.iter().filter(|(i, _)| covered[*i]).count();
+        assert!(
+            !upper.is_empty() && leafed * 2 >= upper.len(),
+            "{preset:?} {age}: only {leafed}/{} upper lateral shoots carry foliage",
+            upper.len()
+        );
+    }
+}
+
+#[test]
+fn mature_species_hold_fn30_crown_population() {
+    for (preset, nodes, leaves) in [
+        (Preset::OregonWhiteOak, 196_901, 1_175_265),
+        (Preset::NorwaySpruce, 76_386, 5_463_221),
+    ] {
+        let mut f = preset.parameters();
+        f.skeleton.seed = 7;
+        let s = Specimen::build(&f).unwrap();
+        let n = s.tree().nodes.len();
+        assert!(
+            (n as f64 / nodes as f64 - 1.0).abs() <= 0.15,
+            "{preset:?}: {n} nodes outside fn30 {nodes} ±15%"
+        );
+        let count = s.placements().unwrap().len();
+        assert!(
+            count >= leaves / 2 && count <= leaves * 2,
+            "{preset:?}: {count} leaves lost fn30 crown order {leaves}"
+        );
+    }
+}

@@ -24,6 +24,7 @@ pub fn append(
     frontier.advance(
         tree,
         Planner {
+            radius_scale: 1.0,
             clock: None,
             widths: None,
             growing_envelope: false,

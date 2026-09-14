@@ -1,0 +1,44 @@
+{
+  "workspace": {
+    "passed": 322,
+    "failed": 0,
+    "ignored": 7
+  },
+  "npm": {
+    "passed": 77,
+    "failed": 0
+  },
+  "gates": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "exit": 0,
+      "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/fmt-final.log"
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets -- -D warnings",
+      "exit": 0,
+      "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/clippy-final.log"
+    },
+    {
+      "command": "cargo test --release --workspace",
+      "exit": 0,
+      "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/workspace-final.log"
+    },
+    {
+      "command": "npm test",
+      "exit": 0,
+      "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/npm-final.log"
+    },
+    {
+      "command": "npm run typecheck",
+      "exit": 0,
+      "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/typecheck-final.log"
+    }
+  ],
+  "owner_verdicts": {
+    "R1_oak": null,
+    "R1_spruce": null,
+    "R2": null
+  },
+  "report": "/home/daniel/Projects/telperion/.flow/evidence/fn31/REPORT.md"
+}

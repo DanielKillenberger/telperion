@@ -156,6 +156,7 @@ mod frontier_tests {
         };
         let mut frontier = Frontier::default();
         frontier.queue.push_back(Shoot {
+            foliage: false,
             flushed: 0,
             accepted: Vec::new(),
             at: 1,
@@ -222,6 +223,7 @@ mod frontier_tests {
                 .advance(
                     &mut tree,
                     Planner {
+                        radius_scale: 1.0,
                         clock: Some(Clock {
                             slice,
                             traits,
@@ -286,6 +288,7 @@ mod frontier_tests {
                 .advance(
                     &mut tree,
                     Planner {
+                        radius_scale: 1.0,
                         clock: Some(Clock {
                             slice,
                             traits,

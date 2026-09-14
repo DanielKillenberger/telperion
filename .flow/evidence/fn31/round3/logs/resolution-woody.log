@@ -1,0 +1,26 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 46.21s
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+trunk redraw worst 0/255
+OregonWhiteOak grazing: 7249 pixels, mean 0.832770/255, p95 3.00/255, redraw worst 0/255
+trunk resolution agreement: mean 1.284414/255, p95 5.25/255
+OregonWhiteOak plain grazing: (0.22641053938474273, 0.5)
+plain trunk diagnostic (mean, p95): (0.5058346246556474, 0.75)
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+
+thread 'grazing_trunks_agree_with_a_box_reduction_at_half_resolution' (699710) panicked at crates/telperion-render/tests/bark_resolution.rs:94:9:
+grazing fixture has too little wood: 347
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... FAILED
+
+failures:
+
+failures:
+    grazing_trunks_agree_with_a_box_reduction_at_half_resolution
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 19.72s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_resolution`

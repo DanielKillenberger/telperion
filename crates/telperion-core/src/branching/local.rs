@@ -11,6 +11,7 @@ struct Run {
 #[derive(Clone)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 struct Shoot {
+    foliage: bool,
     flushed: u16,
     accepted: Vec<Vec3>,
     at: usize,
@@ -71,7 +72,7 @@ impl Frontier {
         }
         self.queue
             .make_contiguous()
-            .sort_by_key(|s| (tree.nodes[s.at].identity.birth_order(), s.key));
+            .sort_by_key(|s| (tree.nodes[s.at].identity.birth_order(), s.key, s.foliage));
     }
     pub(super) fn finished(&self) -> bool {
         self.queue.is_empty() && self.sleeping.is_empty()

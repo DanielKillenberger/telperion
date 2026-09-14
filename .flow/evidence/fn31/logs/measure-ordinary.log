@@ -1,5 +1,5 @@
-cargo run --release -p telperion-core --example growth_curve -- --preset ordinary --seed 7 --ages 173 --envelope
+cargo run --release -p telperion-core --example growth_curve -- --preset ordinary --seed 7 --ages 1,2,3,4,5,6,7,8,9,10,173 --envelope
     Finished `release` profile [optimized] target(s) in 0.03s
-     Running `target/release/examples/growth_curve --preset ordinary --seed 7 --ages 173 --envelope`
+     Running `target/release/examples/growth_curve --preset ordinary --seed 7 --ages 1,2,3,4,5,6,7,8,9,10,173 --envelope`
 
 exit=0

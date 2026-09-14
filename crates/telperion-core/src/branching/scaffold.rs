@@ -183,8 +183,15 @@ impl Builder<'_> {
     /// Straight-line room for a first-order axis, measured against the
     /// envelope the local layer is left to fill.
     fn reach(&self, position: Vec3, direction: Vec3) -> f64 {
+        let planning = Envelope {
+            crown_base: self
+                .planning
+                .crown_base
+                .min(position.y / self.planning.height),
+            ..self.planning
+        };
         let probe = (if self.growing_envelope {
-            self.planning.height
+            planning.height
         } else {
             self.envelope.height
         } / 64.0)
@@ -192,7 +199,7 @@ impl Builder<'_> {
         let mut length = 0.0;
         for _ in 0..96 {
             let next = position + direction * (length + probe);
-            if !self.planning.contains(next, 0.0) || next.y < self.config.trunk_height {
+            if !planning.contains(next, 0.0) || next.y < self.config.trunk_height {
                 break;
             }
             length += probe;

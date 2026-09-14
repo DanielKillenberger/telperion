@@ -1,0 +1,27 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 52.11s
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+test resolved_scales_survive_until_the_two_pixel_boundary ... FAILED
+
+failures:
+
+---- resolved_scales_survive_until_the_two_pixel_boundary stdout ----
+distance-series height deviation near/far: 0.0009139285740086648/0.0008364669686153772
+distance 2x resolution: mean 3.601358/255, p95 14.25/255
+distance 4x resolution: mean 5.857267/255, p95 22.75/255
+
+thread 'resolved_scales_survive_until_the_two_pixel_boundary' (693433) panicked at crates/telperion-render/tests/bark_distance.rs:139:5:
+distance series aliases: [(3.601358333333333, 14.25), (5.857266666666667, 22.75)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    resolved_scales_survive_until_the_two_pixel_boundary
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.13s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_distance`

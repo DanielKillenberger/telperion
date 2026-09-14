@@ -276,8 +276,22 @@ impl Specimen {
             .diameter
             .min(2.0 * timeline.pipes.width(0).0 * twigs.length_ratio);
         let timeline = self.timeline.as_ref().unwrap();
-        let widths = |tree: &Tree, i| timeline.widths.sample(tree, &timeline.pipes, i);
-        self.local.reserve_tips(self.scaffold.growing_tips());
+        // Primary extension uses the pipe allocation before secondary thickening.
+        // The planner writes physical radii with the annual scale at each birth.
+        let radius_scale = traits.radius_fraction(slice, timeline.mature_slice);
+        let widths = |tree: &Tree, i| {
+            timeline
+                .widths
+                .sample(tree, &timeline.pipes, i)
+                .map(|r| r / radius_scale)
+        };
+        // Internal storage appends births after local wood; crossover is a count.
+        let leaf_stations = (previous_len..self.tree.nodes.len())
+            .filter(|_| traits.recruitment(slice, envelope.height) > 0.0);
+        self.local.reserve_tips(
+            self.scaffold.leader_tips(),
+            self.scaffold.leafy_tips().chain(leaf_stations),
+        );
         self.local
             .seed(&self.tree, &config, twigs, params.habit, Some(&widths));
         #[cfg(test)]
@@ -296,6 +310,7 @@ impl Specimen {
             self.local.advance(
                 &mut self.tree,
                 local::Planner {
+                    radius_scale,
                     clock: Some(local::waiting::Clock {
                         slice,
                         traits: timeline.traits,

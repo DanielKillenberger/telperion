@@ -1,0 +1,22 @@
+   Compiling telperion-core v0.1.0 (/tmp/fn31-round3-red/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 7.68s
+     Running tests/growth_form.rs (/tmp/fn31-round3-red/target/release/deps/growth_form-eaa716f73ca1dd35)
+
+running 1 test
+test sapling_laterals_carry_foliage_in_the_upper_crown ... FAILED
+
+failures:
+
+---- sapling_laterals_carry_foliage_in_the_upper_crown stdout ----
+
+thread 'sapling_laterals_carry_foliage_in_the_upper_crown' (697488) panicked at crates/telperion-core/tests/growth_form.rs:169:9:
+OregonWhiteOak 10: no woody sapling laterals (0)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    sapling_laterals_carry_foliage_in_the_upper_crown
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p telperion-core --test growth_form`

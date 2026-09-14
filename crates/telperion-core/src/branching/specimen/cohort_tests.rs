@@ -113,3 +113,27 @@ fn cohort_budget_counts_visible_stations_and_failed_fill_keeps_age() {
     assert_eq!(s.age(), 999_998.0);
     assert_eq!(s.placements().unwrap(), before);
 }
+
+#[test]
+fn first_cohort_reaches_the_distal_half_of_its_shoot() {
+    let (mut f, s, _) = super::foliage_tests::fixture(0.0);
+    f.growth.leaf_lifetime = 6.0;
+    let foliage = Foliage::new(&f).unwrap();
+    let placements = foliage
+        .read(s.tree(), s.envelope(), Age::from_years(1.0).unwrap())
+        .unwrap();
+    let n = &s.tree().nodes[2];
+    let base = s.tree().nodes[n.parent.unwrap() as usize].position;
+    let axis = n.position - base;
+    assert!(
+        placements.iter().any(|p| {
+            let at = Vec3::new(
+                f64::from(p.transform[12]),
+                f64::from(p.transform[13]),
+                f64::from(p.transform[14]),
+            );
+            (at - base).dot(axis) > axis.length_squared() * 0.5
+        }),
+        "first needle cohort is confined to the proximal shoot base"
+    );
+}

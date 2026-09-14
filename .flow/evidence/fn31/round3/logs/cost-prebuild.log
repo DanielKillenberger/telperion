@@ -1,0 +1,4 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 55.53s
+  Executable unittests src/lib.rs (target/release/deps/telperion_core-667d8e26891ed866)

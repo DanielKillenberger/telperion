@@ -1,5 +1,6 @@
-cargo run --release -p telperion-core --example growth_curve -- --preset norway-spruce --seed 7 --ages 1,5,14.1,26.6,36.9,60 --envelope
-    Finished `release` profile [optimized] target(s) in 0.03s
-     Running `target/release/examples/growth_curve --preset norway-spruce --seed 7 --ages 1,5,14.1,26.6,36.9,60 --envelope`
+cargo run --release -p telperion-core --example growth_curve -- --preset norway-spruce --seed 7 --ages 1,2,5,14.1,26.6,36.9,60 --envelope
+    Blocking waiting for file lock on build directory
+    Finished `release` profile [optimized] target(s) in 40.69s
+     Running `target/release/examples/growth_curve --preset norway-spruce --seed 7 --ages 1,2,5,14.1,26.6,36.9,60 --envelope`
 
 exit=0

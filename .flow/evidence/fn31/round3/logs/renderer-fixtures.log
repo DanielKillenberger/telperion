@@ -1,0 +1,34 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 47.98s
+     Running tests/bark_detail.rs (target/release/deps/bark_detail-d8efdb6a4777ed50)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.99s
+
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+test resolved_scales_survive_until_the_two_pixel_boundary ... FAILED
+
+failures:
+
+---- resolved_scales_survive_until_the_two_pixel_boundary stdout ----
+distance-series height deviation near/far: 0.0009139285740086648/0.0008364669686153772
+distance 2x resolution: mean 4.598750/255, p95 18.50/255
+distance 4x resolution: mean 6.504500/255, p95 24.50/255
+
+thread 'resolved_scales_survive_until_the_two_pixel_boundary' (688395) panicked at crates/telperion-render/tests/bark_distance.rs:139:5:
+distance series aliases: [(4.59875, 18.5), (6.5045, 24.5)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    resolved_scales_survive_until_the_two_pixel_boundary
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.18s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_distance`

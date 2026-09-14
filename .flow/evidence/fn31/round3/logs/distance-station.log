@@ -1,0 +1,23 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 42.33s
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285740086648/0.0008364669686153772
+distance 2x resolution: mean 2.019375/255, p95 7.75/255
+distance 4x resolution: mean 3.976417/255, p95 14.50/255
+
+thread 'resolved_scales_survive_until_the_two_pixel_boundary' (701908) panicked at crates/telperion-render/tests/bark_distance.rs:139:5:
+distance series aliases: [(2.019375, 7.75), (3.9764166666666667, 14.5)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test resolved_scales_survive_until_the_two_pixel_boundary ... FAILED
+
+failures:
+
+failures:
+    resolved_scales_survive_until_the_two_pixel_boundary
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.30s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_distance`

@@ -115,12 +115,20 @@ advancing beyond it jumps directly to the requested age.
 
 Annual scaffold stations release their lateral buds while the parent axis is
 still extending. Boundary pauses leave the growth budget for eligible shoots;
-local terminal and lateral buds retain separate allocation state. Paused structural
-axes keep their terminal buds until extension finishes. Seedling height is
+local terminal and lateral buds retain separate allocation state. The paused
+leader keeps its structural terminal; other axes can fill their local tips.
+An eligible extension station assigns one lateral bud to a short leafy shoot,
+so foliage persists while longer branches develop. Juvenile woody laterals use
+the same local rule as the mature crown. Scaffold stations retain the habit's
+authored spacing. Seedling height is
 introduced in year one; shoot steps and twig lengths are bounded by live height.
 Juvenile lateral recruitment fills the small crown. Local planning transitions
 from current room to authored room between one and two juvenile heights.
-Permanent axes retain the crown base according to `growth.crownBaseRetention`.
+Permanent axes plan with `growth.crownBaseRetention`, capped at the branch's
+birth station so a future crown base cannot exclude a current sapling branch
+or grant it permanent crown room below its attachment.
+Annual twigs fit the available crown room instead of waiting for a mature twig
+length to fit.
 The FN31 report compares mature populations and bounds with the previous build.
 
 Annual shoots retain birth/death years, terminal/lateral fate and year-stamped
@@ -140,7 +148,10 @@ uncalibrated numeric traits. Oak and spruce still have threshold zero.
 
 Trunk scale multiplies live height by an age-dependent fraction from
 `juvenileRadius` to one. `thickeningDelay` and `thickeningShape` control that
-secondary thickening over the derived lifetime; the pipe-model fork split is
+secondary thickening over the derived lifetime. Primary shoot-length planning
+uses the pipe allocation before this scale, so thin juvenile wood does not
+permanently truncate the mature crown; births record the scaled physical radii.
+The pipe-model fork split is
 unchanged. Surviving structural and local radii never decrease. Local allocations and taper
 are re-derived from current parents without changing twig lengths. Dead shoots
 leave the growth frontiers while their records remain. A cut invalidates only
@@ -148,7 +159,7 @@ surviving pipe ancestor paths; local widths propagate from changed parents.
 Dead records keep canonical final widths independent of advance partitions.
 The annual solve records radius keyframes only along changed paths. A frame is
 appended when any radius exceeds the last frame by more than
-`growth.resizeTolerance` (metres, range 0–1, default `1e-9`); births always get a
+`growth.resizeTolerance` (metres, range 0–1, default `0.0001`); births always get a
 frame. Radii never decrease. One ten-year advance retains the same frames as ten
 yearly advances. Output radii still materialize once per advance, from the latest
 frames, and packing remains lazy.
@@ -163,7 +174,9 @@ round-trips and validates age and all numeric growth traits, including
 shoot's generational identity and station ordinal, before optional canopy shell
 culling. `growth.leafLifetime` is a numeric family trait: one year by default and
 for oak, provisionally six for spruce; zero bears no leaves. Stations are spread
-across `ceil(leafLifetime)` annual cohort offsets, beginning at birth. A one-year
+across `ceil(leafLifetime)` annual cohort offsets, beginning at birth. Cohort
+sites interleave along each shoot and include distal sites from the first cohort,
+rather than filling a contiguous patch from the shoot base. A one-year
 lifetime fills immediately; a longer lifetime fills over its first years and
 then holds the same station identities while the shoot lives. Wood above the
 twig anatomy's bearing diameter carries no foliage. Station randomness is keyed

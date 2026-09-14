@@ -1,0 +1,72 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 5.16s
+     Running `target/release/examples/fn31_young`
+Ordinary 1 nodes=6 laterals=0 structural=0 leaves=20 upper=10 height=0.31354002310891754 spread=0.03660413815134052
+Ordinary 2 nodes=9 laterals=0 structural=0 leaves=0 upper=0 height=0.7045821725946915 spread=0.07065670154094773
+NODE Structural Terminal radius=0.01008423818587058 start=0.01008423818587058 pos=Vec3 { x: 0.0, y: 0.0, z: 0.0 }
+NODE Structural Terminal radius=0.01006780988944848 start=0.01008423818587058 pos=Vec3 { x: -0.0003488379361346529, y: 0.06518920137810998, z: -0.0018853287042211449 }
+NODE Structural Terminal radius=0.010051408356468335 start=0.01006780988944848 pos=Vec3 { x: -0.002695537352503125, y: 0.13035374855157256, z: -0.003061305775089096 }
+NODE Structural Terminal radius=0.01003503354332965 start=0.010051408356468335 pos=Vec3 { x: -0.004498803674141144, y: 0.19554543266781452, z: -0.0027440027562009067 }
+NODE Structural Terminal radius=0.010018685406502963 start=0.01003503354332965 pos=Vec3 { x: -0.00853737442219913, y: 0.2486948447277359, z: 0.03483442286997507 }
+NODE Structural Terminal radius=0.010002363902529723 start=0.010018685406502963 pos=Vec3 { x: -0.0017969487362380476, y: 0.31354002310891754, z: 0.03656000417179619 }
+NODE Structural Terminal radius=0.009968322991927958 start=0.010002363902529723 pos=Vec3 { x: -0.011006652183030383, y: 0.4479024751728321, z: 0.015183518022092952 }
+NODE Structural Terminal radius=0.009934397932299614 start=0.009968322991927958 pos=Vec3 { x: 0.007306031782638162, y: 0.5712892233202854, z: 0.0702779579401511 }
+NODE Structural Terminal radius=0.009900588329370628 start=0.009934397932299614 pos=Vec3 { x: 0.01946062755124814, y: 0.7045821725946915, z: 0.04419545810316522 }
+Ordinary 3 nodes=11 laterals=0 structural=0 leaves=0 upper=0 height=1.1744794834730272 spread=0.12442408999513205
+Ordinary 4 nodes=13 laterals=0 structural=0 leaves=0 upper=0 height=1.888729507884141 spread=0.18272541847160162
+Ordinary 5 nodes=31 laterals=14 structural=3 leaves=68 upper=68 height=2.525560584511667 spread=0.8149076881865308
+Ordinary 6 nodes=57 laterals=20 structural=5 leaves=149 upper=127 height=3.272160252230038 spread=1.0762004589857364
+Ordinary 7 nodes=95 laterals=28 structural=12 leaves=183 upper=78 height=4.2477817647771525 spread=1.2498869943547173
+Ordinary 8 nodes=159 laterals=41 structural=25 leaves=196 upper=13 height=5.326751273701412 spread=1.5803084016779028
+Ordinary 9 nodes=290 laterals=71 structural=52 leaves=234 upper=52 height=6.114603778835851 spread=1.8928229860185508
+Ordinary 10 nodes=712 laterals=352 structural=85 leaves=3394 upper=2694 height=7.296134504310817 spread=2.2023065355754756
+Ordinary 14.1 nodes=7130 laterals=3917 structural=277 leaves=67450 upper=49729 height=9.71611203912823 spread=3.2966897330575398
+Ordinary 26.7 nodes=16505 laterals=8310 structural=445 leaves=157694 upper=44019 height=15.686359044166107 spread=5.38106428839319
+Telperion 1 nodes=6 laterals=0 structural=0 leaves=0 upper=0 height=0.9996815006498223 spread=0.0849515290345857
+Telperion 2 nodes=9 laterals=0 structural=0 leaves=0 upper=0 height=2.884396468470018 spread=0.21861186380649683
+Telperion 3 nodes=12 laterals=0 structural=0 leaves=0 upper=0 height=6.458145129234167 spread=0.5032637919230399
+Telperion 4 nodes=14 laterals=0 structural=0 leaves=0 upper=0 height=10.122444795942595 spread=0.894023267112517
+Telperion 5 nodes=22 laterals=4 structural=4 leaves=0 upper=0 height=14.93401530842889 spread=3.306526756069726
+Telperion 6 nodes=31 laterals=4 structural=4 leaves=0 upper=0 height=19.572962488151433 spread=5.609397249426962
+Telperion 7 nodes=53 laterals=10 structural=10 leaves=0 upper=0 height=25.77408209478754 spread=8.05923547963587
+Telperion 8 nodes=69 laterals=13 structural=13 leaves=0 upper=0 height=29.619733244934356 spread=8.05923547963587
+Telperion 9 nodes=137 laterals=21 structural=21 leaves=0 upper=0 height=37.938833860054366 spread=10.124722300643905
+Telperion 10 nodes=252 laterals=41 structural=41 leaves=0 upper=0 height=43.09117722672578 spread=10.446530936836405
+Telperion 14.1 nodes=6676 laterals=3051 structural=206 leaves=0 upper=0 height=62.191366154898525 spread=20.59993049415935
+Telperion 26.7 nodes=77745 laterals=28440 structural=253 leaves=515458 upper=441664 height=90.09173770282013 spread=26.747093319488
+Laurelin 1 nodes=6 laterals=0 structural=0 leaves=0 upper=0 height=0.8463356509127044 spread=0.223847174129221
+Laurelin 2 nodes=10 laterals=0 structural=0 leaves=0 upper=0 height=2.989177683614737 spread=0.3694325410375519
+Laurelin 3 nodes=13 laterals=0 structural=0 leaves=0 upper=0 height=5.964270490432021 spread=1.1600455866950325
+Laurelin 4 nodes=15 laterals=0 structural=0 leaves=0 upper=0 height=9.18458931335407 spread=2.686459980950199
+Laurelin 5 nodes=29 laterals=4 structural=4 leaves=0 upper=0 height=13.697537390079555 spread=7.6345380783864165
+Laurelin 6 nodes=55 laterals=5 structural=5 leaves=0 upper=0 height=18.53689078475677 spread=10.115332888774319
+Laurelin 7 nodes=154 laterals=16 structural=16 leaves=0 upper=0 height=22.54884305970474 spread=12.980442734321331
+Laurelin 8 nodes=335 laterals=35 structural=35 leaves=0 upper=0 height=29.04182478573865 spread=17.132143111223336
+Laurelin 9 nodes=705 laterals=75 structural=72 leaves=0 upper=0 height=33.6894376167849 spread=19.22702330252394
+Laurelin 10 nodes=1291 laterals=148 structural=141 leaves=0 upper=0 height=39.88025548222316 spread=23.181272633303255
+Laurelin 14.1 nodes=5580 laterals=2088 structural=341 leaves=600 upper=124 height=58.11276158725095 spread=34.71470359246367
+Laurelin 26.7 nodes=102402 laterals=37304 structural=515 leaves=701369 upper=77931 height=99.73729477441731 spread=58.44928207386296
+OregonWhiteOak 1 nodes=6 laterals=0 structural=0 leaves=15 upper=7 height=0.22200278277758495 spread=0.008830026533059641
+OregonWhiteOak 2 nodes=7 laterals=0 structural=0 leaves=18 upper=8 height=0.27903284543513573 spread=0.01241850591434457
+OregonWhiteOak 3 nodes=8 laterals=0 structural=0 leaves=22 upper=9 height=0.35569818844891754 spread=0.018710141686607732
+OregonWhiteOak 4 nodes=9 laterals=0 structural=0 leaves=28 upper=12 height=0.46043588422144643 spread=0.02921387736986304
+OregonWhiteOak 5 nodes=10 laterals=0 structural=0 leaves=36 upper=16 height=0.6025148238167305 spread=0.04407955025190223
+OregonWhiteOak 6 nodes=38 laterals=27 structural=0 leaves=316 upper=141 height=0.9072479004364874 spread=0.20186425120357507
+OregonWhiteOak 7 nodes=40 laterals=28 structural=0 leaves=340 upper=136 height=1.0057191330400443 spread=0.20186425120357507
+OregonWhiteOak 8 nodes=45 laterals=32 structural=0 leaves=405 upper=158 height=1.2525101261099671 spread=0.2241717605880762
+OregonWhiteOak 9 nodes=51 laterals=37 structural=0 leaves=399 upper=144 height=1.6595662700063107 spread=0.3264455732538394
+OregonWhiteOak 10 nodes=55 laterals=40 structural=0 leaves=438 upper=158 height=1.880392303551576 spread=0.3264455732538394
+OregonWhiteOak 14.1 nodes=89 laterals=56 structural=0 leaves=746 upper=350 height=3.1869549955851464 spread=0.7278293154172263
+OregonWhiteOak 26.7 nodes=1490 laterals=1122 structural=43 leaves=18367 upper=16781 height=7.710740527463651 spread=4.257959872271031
+NorwaySpruce 1 nodes=6 laterals=0 structural=0 leaves=5 upper=2 height=0.043689320388349516 spread=0
+NorwaySpruce 2 nodes=15 laterals=7 structural=0 leaves=19 upper=3 height=0.07272157845286564 spread=0.011460140807845439
+NorwaySpruce 3 nodes=24 laterals=14 structural=0 leaves=53 upper=10 height=0.13272157845286564 spread=0.023896804571535066
+NorwaySpruce 4 nodes=30 laterals=18 structural=0 leaves=101 upper=10 height=0.25272157845286564 spread=0.043081765150906934
+NorwaySpruce 5 nodes=37 laterals=20 structural=0 leaves=190 upper=14 height=0.45272157845286565 spread=0.09681821752537983
+NorwaySpruce 6 nodes=45 laterals=24 structural=0 leaves=324 upper=24 height=0.7527215784528657 spread=0.14877572440820283
+NorwaySpruce 7 nodes=53 laterals=27 structural=0 leaves=361 upper=1 height=0.9777215784528657 spread=0.23244928973657603
+NorwaySpruce 8 nodes=67 laterals=36 structural=5 leaves=675 upper=91 height=1.5777215784528658 spread=0.23244928973657603
+NorwaySpruce 9 nodes=110 laterals=64 structural=10 leaves=1457 upper=413 height=1.8777215784528658 spread=0.32469120284289527
+NorwaySpruce 10 nodes=200 laterals=111 structural=22 leaves=2803 upper=174 height=2.4777215784528654 spread=0.5976741916554481
+NorwaySpruce 14.1 nodes=3509 laterals=2101 structural=411 leaves=80861 upper=9557 height=4.8777215784528645 spread=1.2833715298898076
+NorwaySpruce 26.7 nodes=46288 laterals=30599 structural=7086 leaves=2830031 upper=278393 height=10.577721578452868 spread=3.2154662475848648

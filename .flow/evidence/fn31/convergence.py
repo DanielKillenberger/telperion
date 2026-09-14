@@ -1,28 +1,34 @@
-"""Summarize measurements before changing any identity/audit/look pin."""
+"""State Round 3 convergence before the owner's additionally authorized re-pin."""
 import json
 from pathlib import Path
-p = Path(__file__).resolve().parent
-names = ['oregon-white-oak','norway-spruce','ordinary','telperion','laurelin']
+P = Path(__file__).resolve().parent
+names = ['oregon-white-oak', 'norway-spruce', 'ordinary', 'telperion', 'laurelin']
 def mature(path):
-    return max((json.loads(x) for x in path.read_text().splitlines() if json.loads(x)['kind']=='growth'),key=lambda x:x['age'])
-def coords(a):
-    return '('+', '.join(f'{v:.6f}' for v in a)+')'
-s = ['# Convergence before the single re-pin\n',
-     "The wire audit's HELD inventory is also recorded before its first move: 28\npaths become 32. Add growth.juvenileBranching, shootStep, thickeningDelay,\nthickeningShape and vigourFloor, whose numeric values are shared by every row;\nremove skeleton.habit.sheddingThreshold, now varied (0 versus the restored\n0.45). The exact set equality and the assertions proving all varying paths\nblend are unchanged. The first full gate exposed this stale schema inventory\nafter the geometry pins moved; no geometry, identity or look pin moves again.\n",
-     'Pre-change measurements are from base ccb44eaf609c15e4df7170385f81b372b0d5f532, seed 7. Both columns use production growth at derived maturity. Bounds are node bounds in metres, excluding bark and leaves.\n',
-     '| Preset / state | Age | Nodes | Crossover | Min bounds | Max bounds |',
-     '|---|---:|---:|---:|---|---|']
-deltas=[]
+    return max((json.loads(x) for x in path.read_text().splitlines() if json.loads(x)['kind']=='growth'), key=lambda x:x['age'])
+def bounds(row):
+    return ' / '.join('(' + ', '.join(f'{x:.5f}' for x in row['bounds'][side]) + ')' for side in ['min','max'])
+s = ['# Round 3 convergence before the authorized re-pin\n',
+     'The owner authorized one additional identity, audit and look re-pin in Round 3, only after geometry convergence was recorded. This document is written before that move. The preceding comparison is preserved in `round3/CONVERGENCE-round2.md`.\n',
+     'All rows use seed 7 and production growth at the derived mature age. Bounds are node bounds in metres. The fn30 column is the task-base measurement at ccb44eaf. Round 2 is the rejected state at bf92380.\n',
+     '| Preset / state | Age | Nodes | Crossover | Placements | Min / max bounds |',
+     '|---|---:|---:|---:|---:|---|']
 for name in names:
-    old=mature(p/'prechange'/f'{name}.jsonl'); new=mature(p/'measurements'/f'{name}.jsonl')
-    for label,row in [('before',old),('after',new)]:
-        s.append(f'| {name} / {label} | {row["age"]:g} | {row["nodes"]:,} | {row["crossover"]:,} | {coords(row["bounds"]["min"])} | {coords(row["bounds"]["max"])} |')
-    d=new['nodes']-old['nodes']; c=new['crossover']-old['crossover']
-    deltas.append(f'\n{name}: nodes {d:+,} ({d/old["nodes"]*100:+.2f}%), crossover {c:+,} ({c/old["crossover"]*100:+.2f}%).\n')
-s.extend(deltas)
-s.append('''
-Permanent structural buds no longer flush prematurely as local terminals. Variable juvenile steps retain actual axis length; seedling shoots fill current space before planning adult extensions. The age-dependent pipe scale changes when local stations become eligible. Those mechanisms change the number and position of wood segments and their leaf contacts. Restoration of the 0.45 threshold also removes shaded shoots on Ordinary and the Two Trees. The three mature crowns remain far above tens of nodes; their exact populations are reported rather than assumed equal to the zero-threshold build.
+    for label, folder in [('fn30','prechange'), ('round2','round3/before'), ('round3','measurements')]:
+        row = mature(P/folder/f'{name}.jsonl')
+        s.append(f'| {name} / {label} | {row["age"]:g} | {row["nodes"]:,} | {row["crossover"]:,} | {row["placements"]:,} | {bounds(row)} |')
+s += ['\n## Population bounds\n', '| Preset | Node change from fn30 | Crossover change | Leaf ratio to fn30 | Node band |', '|---|---:|---:|---:|---|']
+for name in names:
+    a=mature(P/'prechange'/f'{name}.jsonl'); b=mature(P/'measurements'/f'{name}.jsonl')
+    delta=(b['nodes']/a['nodes']-1)*100
+    band=('inside' if abs(delta)<=15 else 'OUTSIDE') if name in names[:2] else 'reported; authored shedding restored'
+    s.append(f'| {name} | {b["nodes"]-a["nodes"]:+,} ({delta:+.2f}%) | {b["crossover"]-a["crossover"]:+,} | {b["placements"]/a["placements"]:.3f}× | {band} |')
+s += ['''
+## Cause of the geometry change
 
-The legacy envelope rows remain in each JSONL file as a separate comparison. Ordinary’s seed-42 legacy audit returns to hash 9848876633805652422 from 4584312898131064280 because its authored 0.45 threshold returns. The species legacy audit hashes and both element hashes must remain unchanged. Production skeleton/placement pins and mesh bounds/counts will move once to these measured populations. The Ordinary clay look pin will move once for the restored threshold and new grown form; its shaders, camera and drift limits remain unchanged.
-''')
-(p/'CONVERGENCE.md').write_text('\n'.join(s))
+Secondary thickening had shortened primary shoots permanently at birth. Primary planning now uses the pipe allocation before the annual secondary scale; new wood records physical radii with that scale. The fork split and monotone radius history are unchanged. A future crown base is capped at the branch's birth station, admitting current growth without granting permanent room below the attachment. Juvenile woody laterals develop through the existing local rule; scaffold stations retain their authored spacing.
+
+The structural leader retains its terminal bud. Other axis tips retain the local terminal recruitment that filled fn30's crown. One existing lateral bud can form a short leafy shoot on an eligible new extension; it is never allocated twice. Annual twigs fit available room. Needle cohorts interleave their sites along the shoot, including its distal part, while stable station prefixes preserve cohort identities. The annual scheduling and the numeric preset values remain unchanged from Round 2.
+
+These changes explain production skeleton, placements, mesh counts and bounds moving. The legacy envelope generator must retain its audit hashes; element meshes and material parameters remain unchanged. No renderer camera, shader, assertion or tolerance is part of the re-pin. The Ordinary clay look reference moves with its grown geometry. The exact HELD trait inventory remains unchanged in this round.
+''']
+(P/'CONVERGENCE.md').write_text('\n'.join(s))

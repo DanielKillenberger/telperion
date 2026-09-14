@@ -11,6 +11,8 @@ pub(super) struct Stations {
     inserted: Vec<usize>,
     #[cfg_attr(feature = "json", serde(skip))]
     growing: BTreeSet<usize>,
+    #[cfg_attr(feature = "json", serde(skip))]
+    leafy: BTreeSet<usize>,
 }
 impl Stations {
     pub(super) fn sync(&mut self, tree: &Tree) {
@@ -121,10 +123,17 @@ impl Stations {
 }
 
 impl Frontier {
-    /// A paused structural axis owns its terminal bud until it finishes.
-    pub(in crate::branching) fn reserve_tips(&mut self, tips: impl Iterator<Item = usize>) {
+    /// Keep the leader terminal structural; assign one existing lateral bud
+    /// to a short leaf-bearing shoot at each eligible extension station.
+    pub(in crate::branching) fn reserve_tips(
+        &mut self,
+        tips: impl Iterator<Item = usize>,
+        leafy: impl Iterator<Item = usize>,
+    ) {
         self.stations.growing.clear();
         self.stations.growing.extend(tips);
+        self.stations.leafy.clear();
+        self.stations.leafy.extend(leafy);
     }
 
     pub(in crate::branching) fn seed(
@@ -160,12 +169,21 @@ impl Frontier {
                 0
             };
             let allocated = self.seeded.entry(n.identity.birth_order()).or_default();
-            let buds = (terminal | laterals) & !*allocated;
+            let mut buds = (terminal | laterals) & !*allocated;
+            // Bit 1 is one of the existing lateral buds. It cannot also flush
+            // as a long branch at the same station.
+            let leaf_buds = terminal == 0
+                && self.stations.leafy.contains(&i)
+                && *allocated & 2 == 0
+                && t.laterals > 0;
+            if leaf_buds {
+                buds &= !2;
+            }
             let possible = 1 | (((1_u16 << t.laterals) - 1) << 1);
-            if (*allocated | buds) & possible == possible {
+            if (*allocated | buds | if leaf_buds { 2 } else { 0 }) & possible == possible {
                 completed.push(i);
             }
-            if buds == 0 {
+            if buds == 0 && !leaf_buds {
                 continue;
             }
             let direction =
@@ -175,7 +193,7 @@ impl Frontier {
             }
             // Terminal and lateral buds become eligible independently as the
             // scaffold extends and its trunk/branch radius ratio changes.
-            *allocated |= buds;
+            *allocated |= buds | if leaf_buds { 2 } else { 0 };
             let floor = if habit.rise_secondary < 0.0 {
                 self.stations.floor(tree, i)
             } else {
@@ -183,7 +201,8 @@ impl Frontier {
             };
             let pendant = floor.is_some();
             let length = branch_length(radius(i));
-            frontier.push(Shoot {
+            let shoot = Shoot {
+                foliage: false,
                 flushed: !buds,
                 accepted: Vec::new(),
                 at: i,
@@ -201,7 +220,17 @@ impl Frontier {
                 pendant,
                 curtain_across: Vec3::new(-n.position.z, 0.0, n.position.x).normalized(),
                 pendant_floor: floor,
-            });
+            };
+            if leaf_buds {
+                frontier.push(Shoot {
+                    foliage: true,
+                    flushed: !2,
+                    ..shoot.clone()
+                });
+            }
+            if buds != 0 {
+                frontier.push(shoot);
+            }
         }
         for i in completed {
             self.stations.pending.remove(&i);

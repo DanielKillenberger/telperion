@@ -76,7 +76,10 @@ Resume a failed task from its last committed profile/template in its own worktre
 
 FN31 adds year-one seedling frames at their own scale. Use the headless parameter
 `--frame-min-y 0` to exclude buried wood from that framing; later frames retain
-the standard pose. Record sapling foliage, falling height/DBH ratios, monotone
+the standard pose. Check foliage at every whole year 1–10, lateral shoots at the named sapling ages,
+and first-cohort coverage along each shoot. Compare mature node counts with the
+preceding accepted population (fn31 uses fn30 ±15% for oak and spruce). Record
+falling height/DBH ratios, monotone
 radius history, and shaded death stamps alongside mature crown counts. Numeric
 maturity still derives from the final Chapman–Richards work quantum (oak 432,
 spruce 158, Ordinary and the Two Trees 173 years for the current rows); it is not

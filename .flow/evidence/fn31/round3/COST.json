@@ -1,0 +1,32 @@
+{
+  "command": "FN11_TOLERANCE=0.0001 cargo test --release -p telperion-core --lib tolerance_cost_report -- --nocapture",
+  "exit": 0,
+  "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/cost-idle.log",
+  "gpu_util_percent": 0,
+  "cpu_idle_percent": [
+    98.6,
+    99.4
+  ],
+  "measurements": {
+    "OregonWhiteOak": {
+      "samples_ms": [
+        7398.895553,
+        6885.526922,
+        6777.062014
+      ],
+      "median_ms": 6885.526922,
+      "ceiling_ms": 2463,
+      "excess_ms": 4422.526922
+    },
+    "NorwaySpruce": {
+      "samples_ms": [
+        717.50553,
+        724.199277,
+        718.208615
+      ],
+      "median_ms": 718.208615,
+      "ceiling_ms": 867,
+      "excess_ms": -148.791385
+    }
+  }
+}

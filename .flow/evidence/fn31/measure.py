@@ -4,9 +4,9 @@ import subprocess
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / '.flow/evidence/fn31'
-for preset, ages in [('oregon-white-oak','1,10,26.7,56.1,112,200'),
-                     ('norway-spruce','1,5,14.1,26.6,36.9,60'),
-                     ('ordinary','173'),('telperion','173'),('laurelin','173')]:
+for preset, ages in [('oregon-white-oak','1,2,10,26.7,56.1,112,200'),
+                     ('norway-spruce','1,2,5,14.1,26.6,36.9,60'),
+                     ('ordinary','1,2,3,4,5,6,7,8,9,10,173'),('telperion','173'),('laurelin','173')]:
     cmd = ['cargo','run','--release','-p','telperion-core','--example','growth_curve',
            '--','--preset',preset,'--seed','7','--ages',ages,'--envelope']
     with (OUT/'measurements'/f'{preset}.jsonl').open('w') as out, (OUT/'logs'/f'measure-{preset}.log').open('w') as log:

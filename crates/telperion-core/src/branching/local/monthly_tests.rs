@@ -22,6 +22,7 @@ fn monthly_deferred_shoot_does_not_starve_a_younger_live_shoot() {
     let mut frontier = Frontier::default();
     for at in [1, 2] {
         frontier.queue.push_back(Shoot {
+            foliage: false,
             flushed: 0,
             accepted: Vec::new(),
             at,
@@ -54,6 +55,7 @@ fn monthly_deferred_shoot_does_not_starve_a_younger_live_shoot() {
         .advance(
             &mut tree,
             Planner {
+                radius_scale: 1.0,
                 clock: None,
                 widths: None,
                 growing_envelope: true,
@@ -140,6 +142,7 @@ fn monthly_run_keeps_stations_waiting_beyond_the_current_envelope() {
         ..GrowthConfig::default()
     };
     let planner = Planner {
+        radius_scale: 1.0,
         clock: None,
         widths: None,
         growing_envelope: true,

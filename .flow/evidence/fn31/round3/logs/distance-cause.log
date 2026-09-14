@@ -1,0 +1,7 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 26.49s
+     Running `target/release/examples/fn31_distance_probe`
+plain=false distance=2 mean,p95=(3.601358333333333, 14.25)
+plain=false distance=4 mean,p95=(5.857266666666667, 22.75)
+plain=true distance=2 mean,p95=(2.2847, 13.5)
+plain=true distance=4 mean,p95=(3.8137166666666666, 22.0)

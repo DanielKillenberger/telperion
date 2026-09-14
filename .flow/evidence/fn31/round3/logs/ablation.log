@@ -1,0 +1,8 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 4.62s
+     Running `target/release/examples/fn31_ablation`
+0 nodes=26939 cross=3614
+1 nodes=154313 cross=3614
+2 nodes=31804 cross=5338
+3 nodes=27404 cross=3614
+4 nodes=198097 cross=5338

@@ -1,5 +1,5 @@
 cargo run --release -p telperion-core --example growth_curve -- --preset laurelin --seed 7 --ages 173 --envelope
-    Finished `release` profile [optimized] target(s) in 0.03s
+    Finished `release` profile [optimized] target(s) in 0.02s
      Running `target/release/examples/growth_curve --preset laurelin --seed 7 --ages 173 --envelope`
 
 exit=0

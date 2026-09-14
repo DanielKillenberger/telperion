@@ -12,8 +12,14 @@ pub(in crate::branching) struct Frontier {
     visited: Vec<usize>,
 }
 impl Frontier {
-    pub(in crate::branching) fn growing_tips(&self) -> impl Iterator<Item = usize> + '_ {
+    pub(in crate::branching) fn leafy_tips(&self) -> impl Iterator<Item = usize> + '_ {
         self.queue.iter().map(|axis| axis.tip)
+    }
+    pub(in crate::branching) fn leader_tips(&self) -> impl Iterator<Item = usize> + '_ {
+        self.queue
+            .iter()
+            .filter(|axis| axis.order == 0)
+            .map(|axis| axis.tip)
     }
     pub(in crate::branching) fn visited(&self) -> impl Iterator<Item = usize> + '_ {
         self.visited.iter().copied()

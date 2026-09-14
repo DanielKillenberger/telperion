@@ -82,7 +82,7 @@ impl Frontier {
             let mut laterals = 0;
             let mut first_lateral = 0;
             if origin {
-                if s.radius < t.limb_radius * root_radius {
+                if s.foliage || s.radius < t.limb_radius * root_radius {
                     laterals = t.laterals as usize
                 }
             } else if bearing {
@@ -151,7 +151,8 @@ impl Frontier {
                 };
                 let generation = s.generation + usize::from(lateral);
                 let terminal = !lateral && s.completed == s.internodes;
-                let is_twig = terminal
+                let is_twig = s.foliage
+                    || terminal
                     || (lateral && bearing)
                     || radius <= twig_radius
                     || length < t.twig.internode_length;
@@ -201,6 +202,11 @@ impl Frontier {
                             .length
                             .min((position.y - floor).max(0.0) / (-heading.y).max(1e-9) * 0.8)
                     });
+                    let twig_length = if planner.clock.is_some() {
+                        planner.leaf_length(position, heading, twig_length)
+                    } else {
+                        twig_length
+                    };
                     if twig_length <= 1e-9 {
                         continue;
                     }
@@ -321,13 +327,13 @@ impl Frontier {
                 tree.nodes.push(Node {
                     position: candidate,
                     parent: Some(s.at as u32),
-                    radius: distal,
-                    start_radius: if starts {
+                    radius: distal * planner.radius_scale,
+                    start_radius: (if starts {
                         base
                     } else {
                         planner.width(tree, s.at)[0]
-                    },
-                    base_radius: base,
+                    }) * planner.radius_scale,
+                    base_radius: base * planner.radius_scale,
                     branch,
                     kind: if is_twig {
                         NodeKind::Twig
@@ -349,6 +355,7 @@ impl Frontier {
                         (binormal - heading * binormal.dot(heading)).normalized()
                     };
                     self.queue.push_back(Shoot {
+                        foliage: false,
                         flushed: 0,
                         accepted: Vec::new(),
                         at: id as usize,

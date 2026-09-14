@@ -1,0 +1,22 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 25.35s
+     Running unittests src/lib.rs (target/release/deps/telperion_core-667d8e26891ed866)
+
+running 1 test
+test branching::specimen::cohort_tests::first_cohort_reaches_the_distal_half_of_its_shoot ... FAILED
+
+failures:
+
+---- branching::specimen::cohort_tests::first_cohort_reaches_the_distal_half_of_its_shoot stdout ----
+
+thread 'branching::specimen::cohort_tests::first_cohort_reaches_the_distal_half_of_its_shoot' (681924) panicked at crates/telperion-core/src/branching/specimen/cohort_tests.rs:126:5:
+first needle cohort is confined to the proximal shoot base
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    branching::specimen::cohort_tests::first_cohort_reaches_the_distal_half_of_its_shoot
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 134 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p telperion-core --lib`
