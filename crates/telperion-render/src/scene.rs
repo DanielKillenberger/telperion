@@ -70,6 +70,11 @@ struct Uniforms {
     /// The ellipsoid the crown's placements fill, and whether there is one.
     crown_centre: [f32; 4],
     crown_radii: [f32; 4],
+    fissure: [f32; 4],            // fissure RGB offsets, strength
+    crest: [f32; 4],              // crest RGB offsets, strength
+    bark_colour_detail: [f32; 4], // mottle scale, mottle strength, cavity strength, sky occlusion strength
+    leaf_colour_detail: [f32; 4], // mottle scale, mottle strength, cuticle gloss, reserved
+    margin: [f32; 4],             // RGB offsets, width
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform

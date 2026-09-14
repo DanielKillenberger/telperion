@@ -1,0 +1,30 @@
+    Finished `release` profile [optimized] target(s) in 0.08s
+     Running tests/bark_detail.rs (target/release/deps/bark_detail-d8efdb6a4777ed50)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+R1 wood hash: off=16822752187927960657, on=16822752187927960657
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285740086648/0.0008364669686153772
+distance 2x resolution: mean 1.544733/255, p95 4.75/255
+distance 4x resolution: mean 5.562083/255, p95 13.75/255
+
+thread 'resolved_scales_survive_until_the_two_pixel_boundary' (487817) panicked at crates/telperion-render/tests/bark_distance.rs:151:5:
+distance series aliases: [(1.5447333333333333, 4.75), (5.562083333333334, 13.75)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test resolved_scales_survive_until_the_two_pixel_boundary ... FAILED
+
+failures:
+
+failures:
+    resolved_scales_survive_until_the_two_pixel_boundary
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.70s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_distance`

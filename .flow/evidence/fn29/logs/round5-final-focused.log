@@ -1,0 +1,92 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-29-colour-cavity-and-occlusion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 33.71s
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285940846004/0.0008364669686153772
+distance 2x resolution: mean 2.247425/255, p95 6.00/255
+distance 4x resolution: mean 2.443950/255, p95 6.50/255
+test resolved_scales_survive_until_the_two_pixel_boundary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.49s
+
+     Running tests/bark_field.rs (target/release/deps/bark_field-59a9e4e17f1f1664)
+
+running 1 test
+wrap samples: [2.802042e-6, 2.8308161e-6, 0.0, 0.0]
+ridge peaks around 0.4/0.8 m radii: 84/146
+test surface_lengths_young_wood_wrap_and_plate_drift ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/bark_filter.rs (target/release/deps/bark_filter-99fd5e4d26068f61)
+
+running 1 test
+height deviations: resolved / unresolved arc / unresolved axial / closed furrows [0.0006450471648108468, 0.0, 0.0, 0.00024484945713205324]
+test either_unresolved_axis_removes_relief_and_furrows_can_close ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+trunk redraw worst 0/255
+trunk resolution agreement: mean 1.123815/255, p95 4.00/255
+plain trunk diagnostic (mean, p95): (0.15787850091827366, 0.5)
+OregonWhiteOak grazing: 6178 pixels, mean 1.788092/255, p95 5.75/255, redraw worst 0/255
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+OregonWhiteOak plain grazing: (0.2231979065501241, 0.5)
+NorwaySpruce grazing: 2962 pixels, mean 1.279400/255, p95 4.25/255, redraw worst 0/255
+NorwaySpruce plain grazing: (0.3295633580913797, 0.5)
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.84s
+
+     Running tests/bark_structure.rs (target/release/deps/bark_structure-a3125f3245e88bfc)
+
+running 1 test
+mature trunk/branch height deviation 3.08200297230448; across/along slope 2.0687936265924693
+test mature_girth_strengthens_an_axial_field ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+     Running tests/blade_colour.rs (target/release/deps/blade_colour-d8abb2fd22e997d6)
+
+running 2 tests
+test a_matte_needle_row_is_inert_even_with_scales_and_tints_set ... ok
+test blade_colour_rows_survive_levels_and_the_back_has_no_cuticle ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.42s
+
+     Running tests/colour_cavity.rs (target/release/deps/colour_cavity-9a40443f0f50b640)
+
+running 3 tests
+Whole full luminance: plain=20294859.968771517, dark=19473157.122772835
+Whole leaves=false: pixels=56405, plain=1747566.411800592, dark=1254977.8573997058
+Whole leaves=true: pixels=27490, plain=944863.1065999983, dark=774029.772599992
+Bare full luminance: plain=24952185.207965784, dark=24279061.0985664
+Bare leaves=false: pixels=64931, plain=2167263.24640103, dark=1595254.629799136
+Leaf full luminance: plain=48471873.2670581, dark=48471873.2670581
+test cavity_cuts_sun_and_sky_and_ground_contact_needs_no_relief ... ok
+Clay full luminance: plain=46549873.29687044, dark=46549873.29687044
+test fissures_crests_and_mottle_change_colour_without_changing_wood ... ok
+test crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s
+
+     Running tests/material_shaders.rs (target/release/deps/material_shaders-8d1f19557a6df046)
+
+running 1 test
+test production_material_stages_validate_with_uniform_derivatives ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/socket_cavity.rs (target/release/deps/socket_cavity-720f72d22f7e328b)
+
+running 1 test
+socket sun=false: plain=1404259.7027978287, dark=1393880.1897981681
+socket sun=true: plain=2534895.46759922, dark=2523882.6767994445
+test a_fork_socket_occludes_sun_and_sky_without_relief ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.39s
+

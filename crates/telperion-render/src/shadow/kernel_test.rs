@@ -5,19 +5,6 @@ use crate::pass::{attachment, pass, pipeline, Depth, Surface, Target};
 
 #[test]
 fn kernel_averages_comparisons_and_offsets_the_receiver() {
-    let gpu = match pollster::block_on(Gpu::request(None)) {
-        Ok(gpu) => gpu,
-        Err(crate::RenderError::WebGpuUnavailable(reason)) => {
-            eprintln!("skipped: {reason}");
-            return;
-        }
-        Err(crate::RenderError::FallbackOnly { adapter }) => {
-            eprintln!("skipped: {adapter}");
-            return;
-        }
-        Err(error) => panic!("{error}"),
-    };
-    let shadow = Shadow::new(&gpu);
     let source = include_str!("../shaders/common.wgsl").replace(
         "@group(0) @binding(0) var<uniform> u: Uniforms;",
         "var<private> u: Uniforms;",
@@ -42,11 +29,33 @@ fn kernel_averages_comparisons_and_offsets_the_receiver() {
     return vec4(raw, filtered, offset, 1.0);
 }
 "#;
+    let source = source + stages;
+    let parsed = wgpu::naga::front::wgsl::parse_str(&source)
+        .unwrap_or_else(|e| panic!("{}", e.emit_to_string(&source)));
+    wgpu::naga::valid::Validator::new(
+        wgpu::naga::valid::ValidationFlags::all(),
+        wgpu::naga::valid::Capabilities::all(),
+    )
+    .validate(&parsed)
+    .unwrap_or_else(|e| panic!("{}", e.emit_to_string(&source)));
+    let gpu = match pollster::block_on(Gpu::request(None)) {
+        Ok(gpu) => gpu,
+        Err(crate::RenderError::WebGpuUnavailable(reason)) => {
+            eprintln!("skipped: {reason}");
+            return;
+        }
+        Err(crate::RenderError::FallbackOnly { adapter }) => {
+            eprintln!("skipped: {adapter}");
+            return;
+        }
+        Err(error) => panic!("{error}"),
+    };
+    let shadow = Shadow::new(&gpu);
     let module = gpu
         .device
         .create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("kernel probe"),
-            source: wgpu::ShaderSource::Wgsl((source + stages).into()),
+            source: wgpu::ShaderSource::Wgsl(source.into()),
         });
     let surface = Surface {
         format: wgpu::TextureFormat::Rgba8Unorm,

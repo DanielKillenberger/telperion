@@ -4,8 +4,15 @@ import { presetToParams, toFamily } from "./family";
 
 it("carries every surface-detail control from the generated row through the panel", () => {
   const params = presetToParams(ORDINARY);
-  const names = ["furrowStrength", "ridgeScale", "plateScale", "roughnessDetail", "veinScale", "veinContrast",
-    "transmissionStrength", "transmissionRed", "transmissionGreen", "transmissionBlue", "thickness"];
+  const names = [
+    "furrowStrength", "ridgeScale", "plateScale", "roughnessDetail", "veinScale", "veinContrast",
+    "transmissionStrength", "transmissionRed", "transmissionGreen", "transmissionBlue", "thickness",
+    "fissureRed", "fissureGreen", "fissureBlue", "fissureStrength",
+    "crestRed", "crestGreen", "crestBlue", "crestStrength",
+    "barkMottleScale", "barkMottleStrength", "cavityStrength",
+    "bladeMottleScale", "bladeMottleStrength", "marginWidth",
+    "marginRed", "marginGreen", "marginBlue", "cuticleGloss", "skyOcclusionStrength",
+  ];
   for (const name of names) {
     expect(Object.keys(params.family.material)).toContain(name);
     Object.assign(params.family.material, { [name]: 0.25 });

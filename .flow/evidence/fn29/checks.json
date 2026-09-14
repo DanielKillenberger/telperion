@@ -1,0 +1,307 @@
+[
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": "logs/blocked-fmt.log",
+    "scope": "final Rust sources"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "logs/blocked-clippy.log",
+    "scope": "before archiving the example; source removed afterwards"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "exit_code": null,
+    "log": null,
+    "scope": "not run in this GPU session; R6 stop"
+  },
+  {
+    "command": "npm run wasm:build && npm test",
+    "exit_code": null,
+    "log": null,
+    "scope": "not run in this GPU session; R6 stop"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit_code": null,
+    "log": null,
+    "scope": "not run in this GPU session; R6 stop"
+  },
+  {
+    "command": "npm run render:build",
+    "exit_code": 0,
+    "log": "logs/browser-build.log",
+    "scope": "4c5bf29; before final varying/specular cost changes"
+  },
+  {
+    "command": "BROWSER_URL=http://localhost:5179 node tests/browser/bark-shader.mjs",
+    "exit_code": 0,
+    "log": "logs/browser-shader.log",
+    "scope": "4c5bf29; before final varying/specular cost changes"
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test bark_distance --test bark_resolution --test socket_cavity --test material_shaders -- --nocapture",
+    "exit_code": 0,
+    "log": "logs/gpu-cell-and-contact.log",
+    "scope": "4c5bf29"
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test blade_colour --test colour_cavity --test look --test material_shaders -- --nocapture",
+    "exit_code": 0,
+    "log": "logs/packed-varying-tests.log",
+    "scope": "packed varying; before zero-highlight shortcuts"
+  },
+  {
+    "command": "cargo build --release -p telperion-render --example headless",
+    "exit_code": 0,
+    "log": "logs/optimized-headless-build.log",
+    "scope": "47b1af8 measured shader"
+  },
+  {
+    "command": "./target/release/examples/headless --preset oregon-white-oak --seed 7 --size 1600x1000 --out .flow/evidence/fn29/stills/oak-timing-hero.png --timing .flow/evidence/fn29/oak-native-timing.json",
+    "exit_code": 0,
+    "log": "logs/native-optimized-timing.log",
+    "scope": "valid measurement; R6 numerical bound fails"
+  },
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "formatting passed"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "clippy passed"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "exit_code": 101,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "one conformance failure: shared-noise comment named forbidden anatomy"
+  },
+  {
+    "command": "cargo test --release --workspace --no-fail-fast",
+    "exit_code": 101,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "45 binaries; exactly one conformance failure; final shader focused device tests green; zero adapter skips; no SIGSEGV"
+  },
+  {
+    "command": "npm run wasm:build && npm test",
+    "exit_code": 0,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "77 passed"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit_code": 0,
+    "log": null,
+    "scope": "08ece33; host round 2",
+    "source": "host-supplied gate results",
+    "observation": "typecheck passed"
+  },
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": "logs/round2-fmt.log",
+    "scope": "round 2 checkpoint; comment-only shader correction"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "logs/round2-clippy.log",
+    "scope": "round 2 checkpoint; comment-only shader correction"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "exit_code": 0,
+    "log": "logs/round2-workspace.log",
+    "scope": "round 2 checkpoint; comment-only shader correction",
+    "binaries": 45,
+    "skipped_messages": 0,
+    "crashes": 0
+  },
+  {
+    "command": "RUST_TEST_NOCAPTURE=1 cargo test --release -p telperion-render",
+    "exit_code": 0,
+    "log": "logs/round2-device-visible.log",
+    "scope": "round 2 checkpoint; uncaptured adapter-skip diagnostics",
+    "adapter_skips": 0,
+    "crashes": 0
+  },
+  {
+    "command": "cargo build --release -p telperion-render --example fn29_stills",
+    "exit_code": 0,
+    "log": "logs/round3-stills-build.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "./target/release/examples/fn29_stills .flow/evidence/fn29/stills",
+    "exit_code": 0,
+    "log": "logs/round3-stills.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "npm run render:build",
+    "exit_code": 0,
+    "log": "logs/round3-render-build.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "DISPLAY=:0 BROWSER_URL=http://localhost:5179 node /tmp/fn29-orbit.mjs",
+    "exit_code": 1,
+    "log": "logs/round3-browser-orbit.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "DISPLAY=:0 BROWSER_URL=http://localhost:5179 node /tmp/fn29-orbit.mjs",
+    "exit_code": 0,
+    "log": "logs/round3-browser-orbit-retry.log",
+    "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "cargo build --release -p telperion-render --example fn29_stills",
+    "exit_code": 0,
+    "log": "logs/round4-stills-build.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "./target/release/examples/fn29_stills .flow/evidence/fn29/stills",
+    "exit_code": 0,
+    "log": "logs/round4-stills.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": "logs/round4-fmt.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "logs/round4-clippy.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 0,
+    "log": "logs/round4-workspace.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset",
+    "binaries": 45,
+    "adapter_skips": 0,
+    "crashes": 0
+  },
+  {
+    "command": "npm run wasm:build && npm test",
+    "exit_code": 0,
+    "log": "logs/round4-npm.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit_code": 0,
+    "log": "logs/round4-typecheck.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test bark_distance --test bark_resolution --test bark_field --test bark_filter --test bark_structure --test colour_cavity --test blade_colour --test material_shaders --test socket_cavity",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 101,
+    "log": "logs/round5-focused.log",
+    "scope": "nominal-depth scale; 4x mean failed",
+    "adapter_skips": 0
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test bark_distance --test bark_resolution --test bark_field --test bark_filter --test bark_structure --test colour_cavity --test blade_colour --test material_shaders --test socket_cavity",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 0,
+    "log": "logs/round5-peak-focused.log",
+    "scope": "peak-depth scale; original offset",
+    "adapter_skips": 0
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test bark_distance --test bark_resolution --test bark_field --test bark_filter --test bark_structure --test colour_cavity --test blade_colour --test material_shaders --test socket_cavity",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 0,
+    "log": "logs/round5-final-focused.log",
+    "scope": "peak-depth scale; final oak green offset",
+    "adapter_skips": 0
+  },
+  {
+    "command": "npm run wasm:build",
+    "exit_code": 0,
+    "log": "logs/round5-mirror.log",
+    "scope": "round 5 map checkpoint; regenerate preset mirror"
+  },
+  {
+    "command": "cargo build --release -p telperion-render --example headless",
+    "exit_code": 0,
+    "log": "logs/round5-headless-build.log",
+    "scope": "round 5 final map"
+  },
+  {
+    "command": "./target/release/examples/headless --preset oregon-white-oak --seed 7 --size 1600x1000 --out .flow/evidence/fn29/stills/oak-timing-hero.png --timing .flow/evidence/fn29/oak-native-timing.json",
+    "exit_code": 0,
+    "log": "logs/round5-native-timing.log",
+    "scope": "round 5; valid native measurement, numerical R6 bound fails"
+  },
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": "logs/round5-fmt.log",
+    "scope": "round 5 final sources"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "logs/round5-clippy.log",
+    "scope": "round 5 final sources"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 0,
+    "log": "logs/round5-workspace.log",
+    "scope": "round 5 final map and offset",
+    "binaries": 45,
+    "adapter_skips": 0,
+    "crashes": 0
+  },
+  {
+    "command": "npm run wasm:build && npm test",
+    "exit_code": 0,
+    "log": "logs/round5-npm.log",
+    "scope": "round 5 final map and offset"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit_code": 0,
+    "log": "logs/round5-typecheck.log",
+    "scope": "round 5 final map and offset"
+  }
+]

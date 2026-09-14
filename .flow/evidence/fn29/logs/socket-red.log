@@ -1,0 +1,20 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-29-colour-cavity-and-occlusion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 26.12s
+     Running tests/socket_cavity.rs (target/release/deps/socket_cavity-720f72d22f7e328b)
+
+running 1 test
+socket sun=false: plain=1404259.7027978287, dark=1404259.7027978287
+
+thread 'a_fork_socket_occludes_sun_and_sky_without_relief' (493091) panicked at crates/telperion-render/tests/socket_cavity.rs:52:9:
+socket sun=false: plain=1404259.7027978287, dark=1404259.7027978287
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test a_fork_socket_occludes_sun_and_sky_without_relief ... FAILED
+
+failures:
+
+failures:
+    a_fork_socket_occludes_sun_and_sky_without_relief
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.81s
+
+error: test failed, to rerun pass `-p telperion-render --test socket_cavity`

@@ -133,6 +133,25 @@ macro_rules! fields {
         $op!($f, $v, "material", "transmissionGreen"; material.transmission_green);
         $op!($f, $v, "material", "transmissionBlue"; material.transmission_blue);
         $op!($f, $v, "material", "thickness"; material.thickness);
+        $op!($f, $v, "material", "fissureRed"; material.fissure_red);
+        $op!($f, $v, "material", "fissureGreen"; material.fissure_green);
+        $op!($f, $v, "material", "fissureBlue"; material.fissure_blue);
+        $op!($f, $v, "material", "fissureStrength"; material.fissure_strength);
+        $op!($f, $v, "material", "crestRed"; material.crest_red);
+        $op!($f, $v, "material", "crestGreen"; material.crest_green);
+        $op!($f, $v, "material", "crestBlue"; material.crest_blue);
+        $op!($f, $v, "material", "crestStrength"; material.crest_strength);
+        $op!($f, $v, "material", "barkMottleScale"; material.bark_mottle_scale);
+        $op!($f, $v, "material", "barkMottleStrength"; material.bark_mottle_strength);
+        $op!($f, $v, "material", "cavityStrength"; material.cavity_strength);
+        $op!($f, $v, "material", "bladeMottleScale"; material.blade_mottle_scale);
+        $op!($f, $v, "material", "bladeMottleStrength"; material.blade_mottle_strength);
+        $op!($f, $v, "material", "marginWidth"; material.margin_width);
+        $op!($f, $v, "material", "marginRed"; material.margin_red);
+        $op!($f, $v, "material", "marginGreen"; material.margin_green);
+        $op!($f, $v, "material", "marginBlue"; material.margin_blue);
+        $op!($f, $v, "material", "cuticleGloss"; material.cuticle_gloss);
+        $op!($f, $v, "material", "skyOcclusionStrength"; material.sky_occlusion_strength);
 
         $op!($f, $v, "shellDepth"; shell_depth);
     };

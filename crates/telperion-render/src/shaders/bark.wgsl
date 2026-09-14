@@ -1,28 +1,6 @@
 // A circle embedding preserves the metre arc metric and crosses the angular
 // wrap continuously. Sites partition only the circumference, into columns;
 // their slow axial drift is independent of the shorter scale breaks.
-fn bark_hash(p: vec2<f32>) -> f32 {
-    var q = fract(vec3<f32>(p.x, p.y, p.x) * 0.1031);
-    q += dot(q, q.yzx + 33.33);
-    return fract((q.x + q.y) * q.z);
-}
-
-fn bark_noise(t: f32) -> f32 {
-    let cell = floor(t);
-    let f = fract(t);
-    return mix(bark_hash(vec2(cell, 7.0)), bark_hash(vec2(cell + 1.0, 7.0)),
-        f * f * (3.0 - 2.0 * f));
-}
-
-// Independent axial/circumferential noise avoids diagonal waves in the cuts.
-fn bark_noise2(p: vec2<f32>) -> f32 {
-    let c = floor(p);
-    let f = fract(p);
-    let w = f * f * (3.0 - 2.0 * f);
-    return mix(mix(bark_hash(c), bark_hash(c + vec2(1.0, 0.0)), w.x),
-        mix(bark_hash(c + vec2(0.0, 1.0)), bark_hash(c + vec2(1.0)), w.x), w.y);
-}
-
 // Integral of smoothstep, including its constant tails.
 fn bark_step_integral(t: f32) -> f32 {
     let x = clamp(t, 0.0, 1.0);
@@ -105,23 +83,6 @@ fn bark_scale(along: f32, seed: f32, footprint: f32) -> vec2<f32> {
     return result;
 }
 
-// A whole wavelength starts fading only below two pixels, reaching its mean
-// at one. Profiles are averaged independently of this final band rejection.
-fn bark_pass(footprint: f32) -> f32 {
-    return 1.0 - smoothstep(0.5, 1.0, footprint);
-}
-
-fn bark_noise_filtered(t: f32, footprint: f32) -> f32 {
-    // Alternating lattice values have a two-cell wavelength. Filtering the
-    // final warped field averages the profile; fading the warp itself before
-    // that wavelength is unresolved would move the coarse outlines.
-    return 0.5 + (bark_noise(t) - 0.5) * bark_pass(footprint * 0.5);
-}
-
-fn bark_noise2_filtered(p: vec2<f32>, footprint: vec2<f32>) -> f32 {
-    return 0.5 + (bark_noise2(p) - 0.5) * bark_pass(max(footprint.x, footprint.y) * 0.5);
-}
-
 fn bark_flakes(arc: vec2<f32>, along: f32, spacing: f32, pixel: vec2<f32>,
     seed: f32, face: f32, shoulder: f32) -> f32 {
     let mean = 0.89 * 0.75 * 0.5;
@@ -132,6 +93,31 @@ fn bark_flakes(arc: vec2<f32>, along: f32, spacing: f32, pixel: vec2<f32>,
         + bark_noise_filtered(dot(arc, vec2(4.7, -3.1)), pixel.x * 5.64);
     let fine = bark_scale(at, seed * 173.0, width);
     return 0.012 * mix(mean, fine.x * face * shoulder * shoulder, band);
+}
+
+// The same nominal depth and integrated face bands anchor colour and the
+// constant-height shortcut. Their units become metres only at the end.
+const BARK_DEPTH_RANGE = vec2(0.55, 1.35);
+
+fn bark_depth(elongated: f32) -> f32 {
+    return mix(0.095, 0.20, elongated);
+}
+
+fn bark_ridge_mean(elongated: f32, furrow: f32) -> f32 {
+    return 0.7 * bark_depth(elongated) * 0.95 * mix(0.575, 1.0, elongated) * furrow;
+}
+
+fn bark_colour_range(radius: f32, ridge_scale: f32, plate_scale: f32,
+    furrow: f32) -> vec2<f32> {
+    if (ridge_scale <= 0.0 || radius <= ridge_scale) { return vec2(0.0); }
+    let maturity = smoothstep(2.0, 5.0, 2.0 * radius / ridge_scale);
+    let girth = 0.3 + 0.7 * smoothstep(2.5, 20.0, radius / ridge_scale);
+    let elongated = smoothstep(2.0, 6.0, plate_scale / ridge_scale);
+    let ridge_mean = bark_ridge_mean(elongated, furrow);
+    let face_bands = 0.05 * 0.7 * 0.89 + 0.012 * 0.89 * 0.75 * 0.5;
+    let mean = ridge_mean + 0.05 * 0.7 * 0.89 + 0.012 * 0.89 * 0.75 * 0.5;
+    let amplitude = bark_depth(elongated) * BARK_DEPTH_RANGE.y * furrow + face_bands;
+    return ridge_scale * maturity * girth * vec2(mean, amplitude);
 }
 
 fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
@@ -151,11 +137,11 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
     // One scale must leave both directions together, including its furrow.
     let plate_pixel = max(pixel.y, pixel.x * mix(1.5, 0.45, elongated));
     let scale_pixel = max(pixel.x, pixel.y);
-    let ridge_mean = 0.7 * mix(0.095, 0.20, elongated) * 0.95 * mix(0.575, 1.0, elongated) * furrow;
+    let ridge_mean = bark_ridge_mean(elongated, furrow);
     // Every shorter band has also vanished here. Avoid evaluating invisible
     // sites, especially when differentiating the height on distant runs.
     if (scale_pixel >= 1.0) {
-        return ridge_scale * maturity * girth * (ridge_mean + 0.05 * 0.7 * 0.89 + 0.012 * 0.89 * 0.75 * 0.5);
+        return bark_colour_range(radius, ridge_scale, plate_scale, furrow).x;
     }
     let character = bark_noise_filtered(dot(arc, vec2(0.13, -0.17)) + along / (spacing * 9.0),
         pixel.x * 0.22 + pixel.y / 9.0);
@@ -183,7 +169,7 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
     let plate = select(vec2(1.0), scale, plate_scale > 0.0);
     // Broad furrows survive successive plates; some shallow columns almost
     // close between breaks. Longer plate ratios reach deep persistent furrows.
-    let depth = mix(0.095, 0.20, elongated) * mix(0.55, 1.35, character) * furrow;
+    let depth = bark_depth(elongated) * mix(BARK_DEPTH_RANGE.x, BARK_DEPTH_RANGE.y, character) * furrow;
     let broken = mix(0.15, 1.0,
         bark_noise_filtered(along / (spacing * 2.1) + column.y * 73.0, max(pixel.y / 2.1, pixel.x)));
     let ridge = mix(ridge_mean, shoulder * depth * mix(broken, 1.0, elongated),

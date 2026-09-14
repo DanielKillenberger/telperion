@@ -78,3 +78,7 @@ This spec is the next appearance step after fn-26: colour that varies with the s
 ## Strategy Alignment
 
 - Follows "Surface and rendering at scale": continuous surfaces, foliage and bark that make the structure legible from close views, without species-specific paths or hand-modelled assets, judged with measured runtime cost.
+
+## Owner verdict (R5 and R6, 2026-09-14)
+
+Judged on the round-five stills at `aa17e5e`, served beside fn-26's stills and the catalogued references, and on the live orbit at `dc109e4`. In the owner's words: "oak looks much better, spruce looks better but not much. Both lack significant details to make realistic bark textures. Textured leaf is nice." and "i think we can accept this spec." R5 accepting. R6: the owner accepted the spec with the measured native total p50 of 3.9823 ms recorded, 0.1823 ms over the 3.8 ms bound; the browser orbit holds 60 fps. The missing bark detail (plates that break and lift, per-plate identity, weathering) is the next surface spec, not a round here.

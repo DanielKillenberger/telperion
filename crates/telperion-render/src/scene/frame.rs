@@ -114,6 +114,26 @@ impl Scene {
                 ],
                 crown_centre: centre,
                 crown_radii: radii,
+                fissure: colour(
+                    m.fissure_red,
+                    m.fissure_green,
+                    m.fissure_blue,
+                    m.fissure_strength,
+                ),
+                crest: colour(m.crest_red, m.crest_green, m.crest_blue, m.crest_strength),
+                bark_colour_detail: colour(
+                    m.bark_mottle_scale,
+                    m.bark_mottle_strength,
+                    m.cavity_strength,
+                    m.sky_occlusion_strength,
+                ),
+                leaf_colour_detail: colour(
+                    m.blade_mottle_scale,
+                    m.blade_mottle_strength,
+                    m.cuticle_gloss,
+                    0.0,
+                ),
+                margin: colour(m.margin_red, m.margin_green, m.margin_blue, m.margin_width),
             }),
         );
     }

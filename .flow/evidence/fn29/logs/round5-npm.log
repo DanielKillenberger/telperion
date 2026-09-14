@@ -1,0 +1,39 @@
+
+> telperion@0.1.0 wasm:build
+> node scripts/build-wasm.mjs
+
+    Finished `release` profile [optimized] target(s) in 0.06s
+Built Wasm and regenerated Rust family metadata.
+
+> telperion@0.1.0 pretest
+> npm run wasm:build && npm run render:build
+
+
+> telperion@0.1.0 wasm:build
+> node scripts/build-wasm.mjs
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+Built Wasm and regenerated Rust family metadata.
+
+> telperion@0.1.0 render:build
+> node scripts/build-render.mjs
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-29-colour-cavity-and-occlusion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-29-colour-cavity-and-occlusion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 13.50s
+Built the renderer module and its glue into src/browser/render/.
+
+> telperion@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/daniel/Projects/telperion/.worktrees/fn-29-colour-cavity-and-occlusion
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-29-colour-cavity-and-occlusion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 15.00s
+
+ Test Files  6 passed (6)
+      Tests  77 passed (77)
+   Start at  12:57:24
+   Duration  45.79s (transform 380ms, setup 0ms, import 483ms, tests 45.71s, environment 1ms)
+

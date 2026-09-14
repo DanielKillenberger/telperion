@@ -1,0 +1,129 @@
+{
+  "status": "NEEDS_HUMAN",
+  "reason": "Round 5 crop acceptance passes; R6 valid native p50 3.9823 ms exceeds 3.8 ms; owner verdict pending",
+  "native_total_p50_ms": 3.9823,
+  "native_bound_ms": 3.8,
+  "still_rounds_used": 3,
+  "still_round_limit": 3,
+  "judgment_images_inspected": [
+    "oak-trunk.png",
+    "spruce-trunk.png",
+    "oak-branch.png",
+    "oak-leaf-frontlit.png"
+  ],
+  "references_inspected_once": [
+    "O-BARE",
+    "O-LEAF",
+    "S-BRANCH",
+    "S-NEEDLE",
+    "OWNER-WHITE-OAK",
+    "OWNER-BLACK-OAK",
+    "OWNER-NORWAY-SPRUCE"
+  ],
+  "incidental_native_hero_inspected": false,
+  "browser_orbit": {
+    "path": ".flow/evidence/fn29/oak-browser-orbit.json",
+    "verdict": "valid",
+    "fps_bound_pass": true,
+    "wall_p50_ms": 10.0,
+    "wall_p95_ms": 10.1,
+    "wall_max_ms": 10.1,
+    "gpu_total_p50_ms": 4.1009,
+    "gpu_total_p95_ms": 4.4567,
+    "frames": 999
+  },
+  "pending_stills": [],
+  "branch_cameras": {
+    "oak": {
+      "node": 8,
+      "radius": 0.39088976459153435,
+      "height": 4.0,
+      "position": [
+        -1.335209229402595,
+        4.351800788132381,
+        -1.9281673692824055
+      ],
+      "target": [
+        0,
+        4,
+        0
+      ],
+      "field_of_view": 38,
+      "near": 0.01,
+      "far": 1000
+    },
+    "spruce": {
+      "node": 6,
+      "radius": 0.2091256108761402,
+      "height": 1.8,
+      "position": [
+        1.2547536652568412,
+        1.9882130497885262,
+        0
+      ],
+      "target": [
+        0,
+        1.8,
+        0
+      ],
+      "field_of_view": 38,
+      "near": 0.01,
+      "far": 1000
+    }
+  },
+  "inspection_scope": "capture faults only: blank frame, black frame or wrong camera; no owner verdict",
+  "captured_stills": [
+    ".flow/evidence/fn29/stills/oak-trunk.png",
+    ".flow/evidence/fn29/stills/oak-branch.png",
+    ".flow/evidence/fn29/stills/oak-leaf-frontlit.png",
+    ".flow/evidence/fn29/stills/oak-leaf-backlit.png",
+    ".flow/evidence/fn29/stills/spruce-trunk.png",
+    ".flow/evidence/fn29/stills/spruce-branch.png",
+    ".flow/evidence/fn29/stills/spruce-needle-frontlit.png",
+    ".flow/evidence/fn29/stills/spruce-needle-backlit.png"
+  ],
+  "capture_source_commit": "209cc53",
+  "stills_status": "capture 3 complete; crop acceptance passes; owner verdict pending",
+  "capture_source_changes": "field-mean centred map, peak-depth scale; oak fissure offset (-0.1, -0.05, 0.005), strength 0.65",
+  "inspection_rounds": [
+    {
+      "capture": 1,
+      "images": [
+        "oak-trunk.png",
+        "spruce-trunk.png",
+        "oak-branch.png",
+        "oak-leaf-frontlit.png"
+      ]
+    },
+    {
+      "capture": 2,
+      "images": [
+        "oak-trunk.png",
+        "spruce-trunk.png",
+        "oak-branch.png",
+        "oak-leaf-frontlit.png"
+      ]
+    },
+    {
+      "capture": 3,
+      "images": [
+        "oak-trunk.png",
+        "spruce-trunk.png",
+        "oak-branch.png",
+        "oak-leaf-frontlit.png"
+      ],
+      "candidate": "nominal scale with original offset; no further images inspected"
+    }
+  ],
+  "round5_authorization": "Owner authorised round 5 and extended commit/capture budget, 2026-09-14; numeric iterations permitted, at most four image inspections",
+  "round5_numeric_renders": [
+    "nominal scale with round-4 offset",
+    "nominal-scale weight probe",
+    "nominal scale with original offset",
+    "peak scale with original offset",
+    "peak-scale weight probe",
+    "peak scale with final green offset"
+  ],
+  "face_weights": "round5-face-weights.json",
+  "crop_measurements": "round5-crops.json"
+}

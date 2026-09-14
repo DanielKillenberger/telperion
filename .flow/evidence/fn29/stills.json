@@ -1,0 +1,394 @@
+[
+  {
+    "species": "Oregon white oak",
+    "scale": "trunk",
+    "path": ".flow/evidence/fn29/stills/oak-trunk.png",
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 3,
+    "capture": 3,
+    "sha256": "6c30e265f120cc14828cb8fd06702016ec1602f4ca0816014c26336419cfda29",
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "view": "Bare",
+    "camera": {
+      "far": 1000.0,
+      "field_of_view": 38.0,
+      "near": 0.01,
+      "position": {
+        "x": 1.7307636095778745,
+        "y": 2.2967023330704928,
+        "z": -1.7307636095778745
+      },
+      "target": {
+        "x": 0.0,
+        "y": 2.0,
+        "z": 0.0
+      }
+    },
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 135.0,
+      "sunBlue": 2.6,
+      "sunElevation": 55.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "fork": null
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "branch",
+    "path": ".flow/evidence/fn29/stills/oak-branch.png",
+    "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+    "session": 3,
+    "capture": 3,
+    "sha256": "e670649ff49db48555715eea8acad5a1976ece743e60ab859f8e9182bac5b804",
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "view": "Bare",
+    "camera": {
+      "far": 1000.0,
+      "field_of_view": 38.0,
+      "near": 0.01,
+      "position": {
+        "x": -1.335209229402595,
+        "y": 4.351800788132381,
+        "z": -1.9281673692824055
+      },
+      "target": {
+        "x": 0.0,
+        "y": 4.0,
+        "z": 0.0
+      }
+    },
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 135.0,
+      "sunBlue": 2.6,
+      "sunElevation": 55.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "fork": {
+      "height": 4.0,
+      "index": 8,
+      "radius": 0.39088976459153435
+    }
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "leaf-frontlit",
+    "path": ".flow/evidence/fn29/stills/oak-leaf-frontlit.png",
+    "reference": "O-LEAF",
+    "session": 3,
+    "capture": 3,
+    "sha256": "4db221ab4e1d1ecb4e3a036532866c058475732ebe897f0d7208b792f9d69783",
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "view": "Leaf",
+    "camera": {
+      "far": 800.194958291769,
+      "field_of_view": 38.0,
+      "near": 0.0974791458845074,
+      "position": {
+        "x": 0.09994036346412577,
+        "y": 0.10113435942201085,
+        "z": 0.1671528079309551
+      },
+      "target": {
+        "x": 0.0,
+        "y": 0.0560000017285347,
+        "z": 0.005958673311397433
+      }
+    },
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 0.0,
+      "sunBlue": 2.6,
+      "sunElevation": 10.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "fork": null
+  },
+  {
+    "species": "Oregon white oak",
+    "scale": "leaf-backlit",
+    "path": ".flow/evidence/fn29/stills/oak-leaf-backlit.png",
+    "reference": "O-LEAF",
+    "session": 3,
+    "capture": 3,
+    "sha256": "35529eb9ae475b88c98514cd01e1421297884bff58316b185dc2a802a5ed8fdc",
+    "preset": "oregon-white-oak",
+    "seed": 7,
+    "view": "Leaf",
+    "camera": {
+      "far": 800.194958291769,
+      "field_of_view": 38.0,
+      "near": 0.0974791458845074,
+      "position": {
+        "x": 0.09994036346412577,
+        "y": 0.10113435942201085,
+        "z": 0.1671528079309551
+      },
+      "target": {
+        "x": 0.0,
+        "y": 0.0560000017285347,
+        "z": 0.005958673311397433
+      }
+    },
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 180.0,
+      "sunBlue": 2.6,
+      "sunElevation": 10.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "fork": null
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "trunk",
+    "path": ".flow/evidence/fn29/stills/spruce-trunk.png",
+    "reference": "OWNER-NORWAY-SPRUCE (bark); lower trunk below first fork",
+    "session": 3,
+    "capture": 3,
+    "sha256": "4d76cc4be48b0dba5a1cdf9135713df90417e731c58c1d7c9e68b68cd9348e5a",
+    "preset": "norway-spruce",
+    "seed": 7,
+    "view": "Bare",
+    "camera": {
+      "far": 1000.0,
+      "field_of_view": 38.0,
+      "near": 0.01,
+      "position": {
+        "x": 1.2635428870893457,
+        "y": 0.8666073520724593,
+        "z": -1.2635428870893457
+      },
+      "target": {
+        "x": 0.0,
+        "y": 0.65,
+        "z": 0.0
+      }
+    },
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 135.0,
+      "sunBlue": 2.6,
+      "sunElevation": 55.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "fork": null
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "branch",
+    "path": ".flow/evidence/fn29/stills/spruce-branch.png",
+    "reference": "S-BRANCH",
+    "session": 3,
+    "capture": 3,
+    "sha256": "55cf3fe252e02aacd7706a29d5da163d3e87b32dd4d5bd6c8fbc84550f53fbab",
+    "preset": "norway-spruce",
+    "seed": 7,
+    "view": "Bare",
+    "camera": {
+      "far": 1000.0,
+      "field_of_view": 38.0,
+      "near": 0.01,
+      "position": {
+        "x": 1.2547536652568412,
+        "y": 1.9882130497885262,
+        "z": 0.0
+      },
+      "target": {
+        "x": 0.0,
+        "y": 1.8,
+        "z": 0.0
+      }
+    },
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 135.0,
+      "sunBlue": 2.6,
+      "sunElevation": 55.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "fork": {
+      "height": 1.8,
+      "index": 6,
+      "radius": 0.2091256108761402
+    }
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "needle-frontlit",
+    "path": ".flow/evidence/fn29/stills/spruce-needle-frontlit.png",
+    "reference": "S-NEEDLE",
+    "session": 3,
+    "capture": 3,
+    "sha256": "481b664de48658046905a5ae39673b701067c1ee6f43c6be4cbdf182c8282923",
+    "preset": "norway-spruce",
+    "seed": 7,
+    "view": "Leaf",
+    "camera": {
+      "far": 800.0330668218027,
+      "field_of_view": 38.0,
+      "near": 0.016533410901357883,
+      "position": {
+        "x": 0.01695085733251238,
+        "y": 0.01715522558662856,
+        "z": 0.028088292435503495
+      },
+      "target": {
+        "x": 0.0,
+        "y": 0.009499999694526196,
+        "z": 0.0007481999637093395
+      }
+    },
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 0.0,
+      "sunBlue": 2.6,
+      "sunElevation": 10.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "fork": null
+  },
+  {
+    "species": "Norway spruce",
+    "scale": "needle-backlit",
+    "path": ".flow/evidence/fn29/stills/spruce-needle-backlit.png",
+    "reference": "S-NEEDLE",
+    "session": 3,
+    "capture": 3,
+    "sha256": "42c4e4c8a60750fce6125d45679f768b22e64f2fcb87126493c6b979a9364eae",
+    "preset": "norway-spruce",
+    "seed": 7,
+    "view": "Leaf",
+    "camera": {
+      "far": 800.0330668218027,
+      "field_of_view": 38.0,
+      "near": 0.016533410901357883,
+      "position": {
+        "x": 0.01695085733251238,
+        "y": 0.01715522558662856,
+        "z": 0.028088292435503495
+      },
+      "target": {
+        "x": 0.0,
+        "y": 0.009499999694526196,
+        "z": 0.0007481999637093395
+      }
+    },
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 180.0,
+      "sunBlue": 2.6,
+      "sunElevation": 10.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "fork": null
+  }
+]
