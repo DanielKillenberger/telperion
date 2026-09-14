@@ -143,11 +143,15 @@ export interface Family {
   twigs: {
   angle: number;
   angleVariation: number;
+  curtainSeparation: number;
   divergence: number;
+  hang: number;
   internodeFactor: number;
   laterals: number;
   lengthRatio: number;
   limbRadius: number;
+  pendulousLength: number;
+  pendulousRadius: number;
   ratioPower: number;
   reach: number;
   twig: {
@@ -314,11 +318,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "hang": 0,
           "internodeFactor": 2.5,
           "laterals": 2,
           "lengthRatio": 0.4,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
           "twig": {
@@ -488,11 +496,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "hang": 0,
           "internodeFactor": 2.5,
           "laterals": 4,
           "lengthRatio": 0.45,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
           "twig": {
@@ -662,11 +674,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "hang": 1,
           "internodeFactor": 2.5,
           "laterals": 2,
           "lengthRatio": 0.4,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
           "twig": {
@@ -836,11 +852,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "hang": 0,
           "internodeFactor": 2.5,
           "laterals": 5,
           "lengthRatio": 0.42,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
           "twig": {
@@ -1010,11 +1030,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "hang": 1,
           "internodeFactor": 2.5,
           "laterals": 8,
           "lengthRatio": 0.6,
           "limbRadius": 0.1,
+          "pendulousLength": 0.45,
+          "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
           "twig": {
@@ -1184,11 +1208,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "hang": 0,
           "internodeFactor": 3.5,
           "laterals": 4,
           "lengthRatio": 0.4,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
           "twig": {
@@ -1358,11 +1386,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "hang": 0,
           "internodeFactor": 6,
           "laterals": 2,
           "lengthRatio": 0.4,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
           "twig": {
