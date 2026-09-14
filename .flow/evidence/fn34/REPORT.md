@@ -29,6 +29,8 @@ at commit `3468ef710a6f67009c912ffd8c6f7076c5f3771b`, before the full
 
 `npm run species:measure -- --profiles .flow/evidence/fn34/profiles.json --seeds .flow/evidence/fn34/seeds.json --output .flow/evidence/fn34/measure`
 
+Capture half (`npm run species:qa -- --capture-only` on the same profiles, seeds and output): every required still wrote a PNG. The runner exited 1 with every `visual_status` unassessed, which is the designed exit. Extra protocol stills (leaf views, first three fresh seeds, ordinary/telperion/laurelin at seed 1) stay under ignored `measure/` and are not the judging set.
+
 | Species | Cases | Numeric | Height m | DBH m (proxy) | Crown width m | Retained failures |
 |---|---|---|---|---|---|---|
 | european-beech | 24 | 24 pass | 29.98–31.85 | 0.874 | 31.23–32.03 | none |
