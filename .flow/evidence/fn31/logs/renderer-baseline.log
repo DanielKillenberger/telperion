@@ -1,0 +1,88 @@
+    Finished `release` profile [optimized] target(s) in 0.05s
+     Running tests/bark_detail.rs (target/release/deps/bark_detail-d8efdb6a4777ed50)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+R1 wood hash: off=1595396500252774789, on=1595396500252774789
+
+thread 'relief_moves_the_light_while_every_wood_mesh_byte_holds' (501028) panicked at crates/telperion-render/tests/bark_detail.rs:62:5:
+bark terms changed only 2 channels
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... FAILED
+
+failures:
+
+failures:
+    relief_moves_the_light_while_every_wood_mesh_byte_holds
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_detail`
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-b4addc819c880458)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285740086648/0.0008364669686153772
+distance 2x resolution: mean 1.097725/255, p95 3.50/255
+distance 4x resolution: mean 3.139683/255, p95 9.25/255
+
+thread 'resolved_scales_survive_until_the_two_pixel_boundary' (501051) panicked at crates/telperion-render/tests/bark_distance.rs:139:5:
+distance series aliases: [(1.097725, 3.5), (3.139683333333333, 9.25)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test resolved_scales_survive_until_the_two_pixel_boundary ... FAILED
+
+failures:
+
+failures:
+    resolved_scales_survive_until_the_two_pixel_boundary
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.77s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_distance`
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+
+thread 'grazing_trunks_agree_with_a_box_reduction_at_half_resolution' (501134) panicked at crates/telperion-render/tests/bark_resolution.rs:94:9:
+grazing fixture has too little wood: 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+trunk redraw worst 0/255
+trunk resolution agreement: mean 0.946909/255, p95 3.25/255
+plain trunk diagnostic (mean, p95): (0.2740666609274564, 0.5)
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... FAILED
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+
+failures:
+
+failures:
+    grazing_trunks_agree_with_a_box_reduction_at_half_resolution
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.72s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_resolution`
+     Running tests/conformance.rs (target/release/deps/conformance-c4e72980d0cbc983)
+
+running 6 tests
+test the_renderer_library_never_names_a_family ... ok
+test the_selection_path_names_no_family_and_no_anatomy ... ok
+test a_set_the_generator_will_not_have_says_which_parameter ... ok
+
+thread 'parameter_sets_nobody_wrote_by_hand_render_the_same_way' (501267) panicked at crates/telperion-render/tests/conformance.rs:97:5:
+set 6 from ordinary generated 1440 wood triangles and 0 placements: there is no tree to draw
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test parameter_sets_nobody_wrote_by_hand_render_the_same_way ... FAILED
+test a_frame_is_drawn_at_the_count_the_device_offers_and_read_back_resolved ... ok
+test every_shipped_family_renders_through_the_one_path ... ok
+
+failures:
+
+failures:
+    parameter_sets_nobody_wrote_by_hand_render_the_same_way
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.63s
+
+error: test failed, to rerun pass `-p telperion-render --test conformance`
+error: 4 targets failed:
+    `-p telperion-render --test bark_detail`
+    `-p telperion-render --test bark_distance`
+    `-p telperion-render --test bark_resolution`
+    `-p telperion-render --test conformance`
