@@ -279,12 +279,23 @@ fn fixed_species(preset: Preset) {
         leaf_counts.insert(kept.matrices.len());
     }
     // Engineering regression thresholds for specimen variation, not botanical ranges.
-    let dimensions = if preset == Preset::NorwaySpruce {
-        // A persistent leader reaches the authored height on every seed;
-        // azimuth, curtains and crown width are what vary.
-        vec![widths]
-    } else {
-        vec![heights, widths]
+    let dimensions = match preset {
+        Preset::NorwaySpruce => {
+            // A persistent leader reaches the authored height on every seed;
+            // azimuth, curtains and crown width are what vary.
+            vec![widths]
+        }
+        Preset::EuropeanBeech => {
+            // A full, envelope-filling crown keeps plan width near the
+            // authored spread; height is what varies.
+            vec![heights]
+        }
+        Preset::SilverBirch => {
+            // Height stays near the 18 m envelope; azimuth and crown width
+            // are what vary.
+            vec![widths]
+        }
+        _ => vec![heights, widths],
     };
     for values in dimensions {
         let min = values.iter().copied().fold(f64::INFINITY, f64::min);
