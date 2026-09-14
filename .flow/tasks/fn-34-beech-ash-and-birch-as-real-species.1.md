@@ -22,6 +22,8 @@ Onboard European beech, silver birch and European ash as fn-9-style packets and 
 
 ## NEEDS_HUMAN
 
+Round 1 verdict (2026-09-14): rejecting, "To me it's clear that it's not there yet." The owner asked for a shot that closely imitates each reference image, then a QA pass. Recorded in the spec under Owner verdicts; the matched-shot rig is its own spec and this task waits for it.
+
 The host reviewed the worker's range from 3468ef7, ran the core, render, typecheck, clippy and browser gates (all pass), removed the dead ash fixture and rebased the branch onto master. R3 closes only on the owner's visual verdicts: twelve stills under `.flow/evidence/fn34/stills/`, three fixed seeds per species in whole and bare views, judged beside the references in `.refs/fn34/`. The owner records a verdict per species in the spec; on accepting verdicts the host runs `flowctl done`. Ash's template and the growth-trait rewrite wait for fn-33 and fn-30 and are outside this task.
 
 ## Done summary
