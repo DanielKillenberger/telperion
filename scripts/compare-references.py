@@ -37,6 +37,7 @@ RULE = 12
 CAPTION = 28
 DARK = 0.35
 EDGE = 0.06
+BINS = 180
 
 
 def load(path: Path) -> np.ndarray:
@@ -88,20 +89,52 @@ def centre_colour(image: np.ndarray, box: tuple[int, int, int, int]) -> dict:
     return {"rgb": rgb, "order": order, "mean": round(sum(rgb) / 3, 1)}
 
 
+def boundary(region: np.ndarray) -> np.ndarray | None:
+    """The outline as one radius per bin of bearing about the region's own
+    centroid: the furthest tree pixel in that direction. None where a bin holds
+    nothing, which is a boundary that does not close all the way round."""
+    rows, columns = np.nonzero(region)
+    if rows.size < BINS:
+        return None
+    dy, dx = rows - rows.mean(), columns - columns.mean()
+    bins = ((np.arctan2(dy, dx) + np.pi) / (2 * np.pi) * BINS).astype(int) % BINS
+    radii = np.zeros(BINS)
+    np.maximum.at(radii, bins, np.hypot(dx, dy))
+    return None if (radii <= 0).any() else radii
+
+
+def outline_deviation(region: np.ndarray) -> float | None:
+    """How lumpy the silhouette is: the standard deviation of its boundary
+    radius about the best-fit ellipse, over the boundary angle, as a fraction
+    of that ellipse's mean radius. A smooth oval of revolution sits near zero
+    whatever its proportions; a crown with lobes and hollows sits well above.
+    None when the mask has no closed boundary to measure."""
+    radii = boundary(region)
+    if radii is None:
+        return None
+    angle = (np.arange(BINS) + 0.5) * 2 * np.pi / BINS - np.pi
+    # An ellipse about its own centre is linear in 1/r^2, so the best fit over
+    # the whole boundary is one least-squares solve in three coefficients.
+    design = np.stack([np.cos(angle) ** 2, np.sin(angle) ** 2, np.sin(angle) * np.cos(angle)], axis=1)
+    model = design @ np.linalg.lstsq(design, 1 / radii**2, rcond=None)[0]
+    if (model <= 0).any():
+        return None
+    fitted = 1 / np.sqrt(model)
+    return round(float(np.sqrt(np.mean((radii - fitted) ** 2)) / fitted.mean()), 4)
+
+
 def measure(image: np.ndarray, box: tuple[int, int, int, int], mask: np.ndarray | None, base: float | None) -> dict:
     x, y, w, h = box
     inside = image[y : y + h, x : x + w]
     luminance = inside @ np.array([0.2126, 0.7152, 0.0722], dtype=np.float32)
-    if mask is not None:
-        occupied = float(mask[y : y + h, x : x + w].mean())
-    else:
-        occupied = float((luminance < DARK).mean())
+    region = mask[y : y + h, x : x + w] if mask is not None else luminance < DARK
     return {
         "box_px": [x, y, w, h],
         "width_over_height": round(w / max(h, 1), 4),
         "fill": round(h / image.shape[0], 4),
         "crown_base": base,
-        "occupied": round(occupied, 4),
+        "occupied": round(float(region.mean()), 4),
+        "outline_deviation": outline_deviation(region),
         "centre": centre_colour(image, box),
     }
 
@@ -151,6 +184,7 @@ def compare(record: dict, photo: np.ndarray, still: np.ndarray, twin: np.ndarray
         "method": {
             "photograph": "tree box and crown base from the record, read by eye; occupied is the dark-pixel fraction of the box",
             "still": "tree mask is what stands out of the row background under both suns; occupied is the mask's share of its box",
+            "outline_deviation": "root mean square of the mask's boundary radius about its best-fit ellipse, over 180 bins of bearing, as a fraction of the fitted radius; null when a bin is empty",
         },
     }
 
@@ -206,6 +240,15 @@ def synthetic(shadow_side: int) -> np.ndarray:
     return np.asarray(pil, dtype=np.float32) / 255.0
 
 
+def disc(lobes: float) -> np.ndarray:
+    """A filled ellipse whose radius is modulated by five lobes of the given
+    depth: the shape the outline statistic is meant to tell apart."""
+    rows, columns = np.mgrid[0:240, 0:200]
+    dy, dx = rows - 120.0, columns - 100.0
+    angle = np.arctan2(dy, dx)
+    return np.hypot(dx / 80.0, dy / 100.0) <= 1 + lobes * np.cos(5 * angle)
+
+
 def self_test() -> int:
     still, twin = synthetic(1), synthetic(-1)
     mask = tree_mask(still, twin)
@@ -218,6 +261,13 @@ def self_test() -> int:
     assert abs(stats["width_over_height"] - 121 / 221) < 0.02, stats
     assert 0.25 < stats["crown_base"] < 0.32, stats
     assert stats["centre"]["order"][0] == "G", stats
+    # The outline statistic reads an oval as an oval, a lobed crown as lumpy,
+    # and refuses a mask whose boundary does not close all the way round.
+    oval, lobed = disc(0), disc(0.18)
+    assert outline_deviation(oval) < 0.02, outline_deviation(oval)
+    assert outline_deviation(lobed) > 0.06, outline_deviation(lobed)
+    assert outline_deviation(lobed) > 3 * outline_deviation(oval), "the lobes did not read"
+    assert outline_deviation(oval[:60]) is None, "an open boundary was measured anyway"
     photo = np.full((300, 240, 3), 0.7, dtype=np.float32)
     record = {"id": "T", "shot": {"foliage": "leaf-on", "tree": {"box": [0.25, 0.13, 0.5, 0.74], "crownBase": 0.28}}}
     result = compare(record, photo, still, twin)
