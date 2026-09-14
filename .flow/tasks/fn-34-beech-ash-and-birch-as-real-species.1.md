@@ -20,8 +20,12 @@ Onboard European beech, silver birch and European ash as fn-9-style packets and 
 - Judging stills: `.flow/evidence/fn34/stills/`, hashes in `stills.json`. Visual unassessed.
 - Gaps: owner visual verdicts (R3). Ash template after fn-33. Growth-trait calibration after fn-30. `crown_reference.rs` FN6 list not extended (oak/spruce are not on it either).
 
+## NEEDS_HUMAN
+
+The host reviewed the worker's range from 3468ef7, ran the core, render, typecheck, clippy and browser gates (all pass), removed the dead ash fixture and rebased the branch onto master. R3 closes only on the owner's visual verdicts: twelve stills under `.flow/evidence/fn34/stills/`, three fixed seeds per species in whole and bare views, judged beside the references in `.refs/fn34/`. The owner records a verdict per species in the spec; on accepting verdicts the host runs `flowctl done`. Ash's template and the growth-trait rewrite wait for fn-33 and fn-30 and are outside this task.
+
 ## Done summary
-TBD — host completes the task.
+TBD — host completes the task after the owner's verdicts.
 
 ## Evidence
 - Commits:
