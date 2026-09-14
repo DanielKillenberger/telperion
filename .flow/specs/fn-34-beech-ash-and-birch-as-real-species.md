@@ -42,7 +42,7 @@ This is fn-9's method applied three times with no new engine work of its own. Th
 - **Stills.** Whole, bare and leaf views at the protocol size; the owner judges three fixed seeds per species in the whole and bare views beside the references, and every numeric failure, within the four-images-per-capture reading rule for agents. [paraphrase]
 - **Determinism and pins.** Same seed and parameters give a byte-identical tree; each species gets identity pins (wood counts, bounds, skeleton, placement and element hashes) and leaf-count bands in the sweep. [paraphrase]
 - **Budget.** A species task gets the per-task budget from CLAUDE.md; a species that cannot pass its gates inside it stops with `NEEDS_HUMAN` and the profile marked unready. [paraphrase]
-- **Growth specs in flight.** This spec waits for fn-30 and fn-31 so that presets carry the final growth rule and the tables are written once. [user]
+- **Growth specs in flight.** fn-30 and fn-31 are changing the growth rule and the presets file while this spec runs. The owner chose to start now rather than wait: each species copies the oak's growth traits as they stand, and after fn-30 lands one follow-up pass rewrites those rows against fn-30's method. A conflict in the presets tables at rebase is mechanical. [user]
 
 ## Acceptance Criteria
 <!-- scope: both -->
