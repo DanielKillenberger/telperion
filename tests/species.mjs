@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
 import { createHash, randomInt } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /* ------------------------------------------------------------------ *
@@ -33,7 +33,10 @@ Build both examples first: npm run species:qa does it. Stills come from
 target/release/examples/headless, which needs a GPU that is not a software
 fallback; it names the condition on stderr and exits non-zero otherwise.
 Every required specimen is captured whole, bare and as a single leaf, at the
-renderer's own hero pose. JSON records the command, the adapter line it printed,
+renderer's own hero pose. A reference record that carries a shot block is
+also imitated: the first fixed seed is posed by that camera, under that sun,
+in that foliage state, at the photograph's aspect, without the scale figure,
+twice (the second with the sun turned half a circle, for the tree mask). JSON records the command, the adapter line it printed,
 parameters and hashes, with numeric/visual/owner fields kept separate.
 Exit 1 for failed/missing required evidence or unassessed visual results.
 Human inspection goes in REPORT.md; this runner never awards visual approval.`);
@@ -79,8 +82,19 @@ async function command(program, argv, limit = timeout) {
 /** One still. The renderer reports what it drew on its own last line, and
  *  a still with no triangles in it is a failure however cleanly the
  *  process exited. */
+/** The scene a shot's light states: the sun where the photograph's was, and
+ *  an overcast fraction that dims the sun and flattens the sky toward the
+ *  horizon colour, through the scene row's own fields. A twin turns the sun
+ *  half a circle so the shadow falls the other way and the tree does not. */
+function sceneOf(light, twin) {
+  const o = light.overcast, dim = 1 - 0.8 * o, mix = (a, b) => a + (b - a) * o;
+  return { sunAzimuth: (light.sunAzimuth + (twin ? 180 : 0)) % 360, sunElevation: light.sunElevation,
+    sunRed: 3.0 * dim, sunGreen: 2.85 * dim, sunBlue: 2.6 * dim,
+    skyZenithRed: mix(0.18, 0.55), skyZenithGreen: mix(0.30, 0.66), skyZenithBlue: mix(0.62, 0.80) };
+}
 async function capture(job) {
-  const argv = ['--preset', job.preset, '--seed', String(job.seed), '--view', job.view, '--size', SIZE, '--out', job.png];
+  const argv = ['--preset', job.preset, '--seed', String(job.seed), '--view', job.view, '--size', job.size ?? SIZE, '--out', job.png];
+  if (job.shot) argv.push('--camera', JSON.stringify(job.shot.camera), '--scene', JSON.stringify(sceneOf(job.shot.light, job.twin)), '--no-figure');
   const run = await command(HEADLESS, argv);
   const report = run.stdout.trim().split('\n').at(-1) ?? '';
   const drawn = /(\d+) triangles and (\d+) instances drawn in (\d+) calls/.exec(report);
@@ -95,6 +109,12 @@ async function capture(job) {
 const seedPath = resolve(option('--seeds') ?? '.flow/evidence/fn9/seeds.json');
 const profilesPath = resolve(option('--profiles') ?? '.flow/evidence/fn9/profiles.json');
 const profiles = await json(profilesPath);
+/* A species' reference records sit beside its profile; a record with a shot
+   block asks for a matched still. Species without records have none. */
+const referencesOf = {};
+for (const p of profiles.profiles) {
+  try { referencesOf[p.id] = (await json(join(dirname(profilesPath), p.id, 'references.json'))).references.filter(r => r.shot); } catch { referencesOf[p.id] = []; }
+}
 if (args.includes('--draw-seeds')) {
   const manifest = { drawn_at: new Date().toISOString(), calibration_commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), method: 'OS cryptographic random u32; reject only fixed/duplicate seeds', fixed: profiles.protocol.fixed_seeds, fresh: {} };
   for (const profile of profiles.profiles) {
@@ -154,6 +174,16 @@ const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async 
 const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), binarySha256: sha(await readFile(HEADLESS)), profilesSha256: sha(await readFile(profilesPath)), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))), size: SIZE };
 await save(join(out, 'provenance.json'), provenance);
 const jobs = subjects.flatMap(c => VIEWS.map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
+/* Matched stills: the first fixed seed of each species, once per reference
+   record with a shot block, and its twin. The size is the photograph's aspect
+   at the protocol height; the name is the reference's, not a view's. */
+for (const c of subjects.filter(c => c.seed === seeds.fixed[0] && referencesOf[c.preset]?.length)) {
+  for (const record of referencesOf[c.preset]) for (const twin of [false, true]) {
+    const name = `${c.id}-${record.id}${twin ? '-twin' : ''}`;
+    const size = `${Math.round(720 * record.shot.aspect[0] / record.shot.aspect[1])}x720`;
+    jobs.push({ id: c.id, preset: c.preset, seed: c.seed, view: record.shot.foliage === 'hidden' ? 'bare' : 'whole', reference: record.id, twin, shot: record.shot, size, provenance, png: join(out, `${name}.png`), result: join(out, `${name}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null });
+  }
+}
 const suffix = option('--case') ? `-${option('--case')}` : '';
 const capturesPath = join(out, `captures${suffix}.json`);
 await save(join(out, `capture-plan${suffix}.json`), jobs);
@@ -162,7 +192,7 @@ for (const [index, job] of jobs.entries()) {
   try {
     // Reuse only a matching successful receipt with its PNG still beside it.
     const old = await json(job.result);
-    if (old.id === job.id && old.view === job.view && old.seed === job.seed && old.capture_status === 'pass'
+    if (old.id === job.id && old.view === job.view && old.seed === job.seed && old.reference === job.reference && old.twin === job.twin && old.capture_status === 'pass'
       && old.provenance?.sourceSha256 === provenance.sourceSha256 && old.provenance?.binarySha256 === provenance.binarySha256
       && old.provenance?.runnerSha256 === provenance.runnerSha256 && old.pngSha256 === sha(await readFile(job.png))) {
       jobs[index] = old; await save(capturesPath, jobs); continue;
@@ -173,7 +203,7 @@ for (const [index, job] of jobs.entries()) {
   jobs[index] = done;
   await save(job.result, done);
   await save(capturesPath, jobs);
-  console.log(done.id, done.view, done.capture_status, done.report);
+  console.log(done.id, done.reference ? `${done.reference}${done.twin ? ' twin' : ''}` : done.view, done.capture_status, done.report);
 }
-await save(join(out, `summary${suffix}.json`), { protocol_status: 'unassessed', reason: 'Human trait inspection required; see REPORT.md. Missing/failed images never pass.', partial: !!option('--case'), numeric: cases.map(c => ({ id: c.id, status: c.numeric.numeric_status ?? 'unassessed' })), captures: jobs.map(j => ({ id: j.id, view: j.view, status: j.capture_status, path: j.png })), owner_feedback: null });
+await save(join(out, `summary${suffix}.json`), { protocol_status: 'unassessed', reason: 'Human trait inspection required; see REPORT.md. Missing/failed images never pass.', partial: !!option('--case'), numeric: cases.map(c => ({ id: c.id, status: c.numeric.numeric_status ?? 'unassessed' })), captures: jobs.map(j => ({ id: j.id, view: j.view, reference: j.reference ?? null, twin: j.twin ?? false, status: j.capture_status, path: j.png })), owner_feedback: null });
 process.exitCode = 1;
