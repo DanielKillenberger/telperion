@@ -1,0 +1,38 @@
+{
+  "round": 4,
+  "spec": "fn-37-pendulous-shoots-as-rows",
+  "rendered_at": "2026-09-14",
+  "commit_note": "fn-37 round 4: the birch's table states the curtain as rows - hang 1, a 3.5 m pendulous run, 9 degrees between neighbouring shoots - over an envelope with almost no bare trunk and a shell retained to 0.45. The matched stills are re-rendered at the first fixed seed; the beech is untouched and its round-3 pairs still stand. Pairs stay on disk under the ignored measure/ directory and are recorded here by sha256. No visual verdict is awarded here; the owner judges.",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn37/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "87b4a0d479164d1f68e9a74b7cc8377c07680f5e1d787c1316aae265b5aaef53",
+      "still_sha256": "dd266a3d9d16e624db2579c03055b0dfbba7b6d7156b45d218b2666fb0714f55",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn37/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "077f5d475500905a03881c7a90a5e447e1c31d950c72ced2e90558432997d6a9",
+      "still_sha256": "6551a80641633d78087c0dab6aadf91a7ee41aaac94546fb579034cc3117d74c",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn37/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "5c018d8d28d52ac7037d68d784e9f9416f4931f9e0a7dc16826b697540a084ce",
+      "still_sha256": "3342c799848978401b0872c6123fffa021aee1a3ef8344d7250374cfcb38eb13",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

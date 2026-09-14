@@ -159,3 +159,57 @@ two leaning stems; the hanging curtain and the second stem are not value
 changes and are recorded as gaps. Identity pins re-recorded once for both
 species with the reason stated. No visual pass is awarded; the owner judges
 the round-3 pairs.
+
+## Round 4, fn-37: the curtain as rows (2026-09-14)
+
+The gap analysis after round 3 named the birch's hanging curtain as the first
+thing a value table could not reach. fn-37 turned that curtain into four twig
+rows — how strongly a shoot hangs, how far it runs before it stops, below what
+fraction of the trunk's radius it hangs at all, and how many degrees apart
+neighbouring shoots stand — and widened the canopy's four orientation rails to
+their signed ranges so a leaf may hang under the shoot it is strung along.
+
+The birch's table is the first to state them: a full hang, shoots running three
+and a half metres unbranched where the twig's own anatomy gave them a quarter
+of one, nine degrees between neighbours, leaves hung under their shoots, over
+an envelope with almost no bare trunk beneath it and a shell retained to less
+than half its depth. The beech is untouched and its round-3 pairs still stand.
+
+Photograph / round 3 → round 4, per reference:
+
+| Reference | Foliage | Width over height | Crown base | Occupied | Centre mean |
+|---|---|---|---|---|---|
+| S-BARE | hidden | 0.70 / 0.68 → 0.67 | 0.15 / 0.22 → 0.15 | 0.46 / 0.31 → 0.41 | 91 / 160 → 161 |
+| S-BARK | hidden | 1.07 / 0.58 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.52 → 0.27 | 92 / 183 → 168 |
+| S-WHOLE | leaf-on | 0.85 / 0.92 → 0.88 | 0.08 / 0.20 → 0.15 | 0.44 / 0.47 → 0.57 | 83 / 72 → 86 |
+
+Five of the eight numbers that compare moved toward the photograph. The crown
+base closed on both references — S-BARE is now within 0.004 of the photograph
+and S-WHOLE halved its distance — and the whole tree's colour under the
+matched sun moved from 72 to 86 against the photograph's 83. The leaf-on
+crown is denser than the photograph's (occupied 0.57 against 0.44), which is
+where the curtain costs what it buys: three and a half metres of unbranched
+shoot is a great deal of leaf-bearing wood, and the retained shell is already
+carrying less than half its depth.
+
+What the host read on the whole pair, within the four-image rule: the crown now
+reaches nearly to the ground, sky shows through it, and the pale trunk reads
+against it, where round 3 was a rounded mop on a bare stem. What it is not yet
+is a weeping silhouette. The shoots read as bristles standing out of the crown
+rather than as strands hanging from it, and the reason is in the spec: the
+curtain's droop is capped at the value the constant already carried — about
+nineteen degrees below horizontal — and the hang row only scales that cap down,
+never up. A shoot can now be long and it can be set, but it cannot point
+further down than it ever could. Closing the rest of that gap needs the cap
+itself to become reachable, which is a row this spec did not open.
+
+The cost, at the first fixed seed: 32,752 nodes and 448,981 retained leaves
+against round 3's 25,091 and 415,879 — a third more wood for eight per cent
+more leaf, which is what a curtain of long unbranched shoots is. The measured
+crown base fell from 2.43 m to 1.20 m on a tree of the same height. No growth
+hit the node cap, and the fixed and fresh numeric protocol passes all
+forty-eight cases.
+
+No visual pass is awarded. The round-4 pairs are recorded by sha256 in
+`round4-fn37/stills.json` with `visual_status: unassessed`; the owner judges
+them and records the verdict here.
