@@ -14,12 +14,10 @@ struct Varying {
     @builtin(position) clip: vec4<f32>,
     @location(0) normal: vec3<f32>,
     @location(1) world: vec3<f32>,
-    /// This leaf's own colour offsets and its depth into the crown. Every
-    /// vertex of one instance carries the same three, so nothing here varies
-    /// across a leaf: it is per leaf, worked out once where the leaf stands.
-    @location(2) leaf: vec3<f32>,
+    // One seed and crown depth per placement. Carry the seed once for both
+    // colour variation and mottle, instead of adding another vertex varying.
+    @location(2) @interpolate(flat) leaf: vec3<f32>,
     @location(3) coord: vec2<f32>,
-    @location(4) @interpolate(flat) seed: vec2<f32>,
 };
 
 @vertex
@@ -34,18 +32,13 @@ fn vertex(
     let world = placement * vec4<f32>(position, 1.0);
     let offsets = vary(id);
     var out: Varying;
-    out.seed = offsets;
     out.clip = u.view_projection * world;
     out.normal = (placement * vec4<f32>(normal, 0.0)).xyz;
     out.world = world.xyz;
     // Restore the side before interpolation, then fold in the fragment.
     // Shared coarse triangles can cross the midrib without erasing it.
     out.coord = vec2<f32>(coord.x, coord.y * sign(position.x));
-    out.leaf = vec3<f32>(
-        mix(u.leaf_variation.x, u.leaf_variation.y, offsets.x),
-        1.0 + mix(u.leaf_variation.z, u.leaf_variation.w, offsets.y),
-        depth_in_crown(placement[3].xyz),
-    );
+    out.leaf = vec3<f32>(offsets, depth_in_crown(placement[3].xyz));
     return out;
 }
 
@@ -83,14 +76,16 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     let veins = vein_tone(in.coord);
     var modulation = 1.0;
     if (scale > 0.0 && u.leaf_colour_detail.y > 0.0) {
-        let mottle = bark_noise2_filtered(in.coord * scale + in.seed * 37.0, pixel * scale);
+        let mottle = bark_noise2_filtered(in.coord * scale + in.leaf.xy * 37.0, pixel * scale);
         modulation += u.leaf_colour_detail.y * (2.0 * mottle - 1.0);
     }
     let edge = max(abs(in.coord.y), in.coord.x);
     let width = max(pixel.x, pixel.y);
     let margin = smoothstep(1.0 - u.margin.w - width, 1.0 + width, edge)
         * select(0.0, 1.0, u.margin.w > 0.0);
-    let colour = clamp(hue_shift(face, in.leaf.x) * in.leaf.y
+    let hue = mix(u.leaf_variation.x, u.leaf_variation.y, in.leaf.x);
+    let brightness = 1.0 + mix(u.leaf_variation.z, u.leaf_variation.w, in.leaf.y);
+    let colour = clamp(hue_shift(face, hue) * brightness
         * veins * modulation + margin * u.margin.rgb,
         vec3<f32>(0.0), vec3<f32>(1.0));
     // Deep in the crown there is no sky to see: thousands of leaves stand
@@ -107,7 +102,8 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
         u.leaf_detail.w, visibility);
     let gloss = u.leaf_colour_detail.z;
     var cuticle = 0.0;
-    if (front && gloss > 0.0) {
+    // A fully shadowed or backlit face has no reflected sun to glint.
+    if (front && gloss > 0.0 && any(direct > vec3<f32>(0.0))) {
         let half_way = normalize(normalize(u.eye.xyz - in.world) + u.sun_direction.xyz);
         cuticle = gloss * pow(max(dot(n, half_way), 0.0), exp2(3.0 + 5.0 * gloss));
     }

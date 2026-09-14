@@ -77,8 +77,13 @@ fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
     // bright enough to glance off a trunk.
     let detail = height / max(0.055 * u.bark_detail.x, 0.0001);
     let gloss = 1.0 - clamp(u.bark.w + u.bark_detail.z * (detail + variance), 0.0, 1.0);
-    let half_way = normalize(normalize(u.eye.xyz - world) + u.sun_direction.xyz);
-    let sheen = gloss * pow(max(dot(n, half_way), 0.0), exp2(1.0 + 10.0 * gloss));
+    var sheen = 0.0;
+    // The result is exactly zero without gloss or reflected sun. Rough bark
+    // and shadowed sockets need no eye vector or specular exponentiation.
+    if (gloss > 0.0 && any(sun > vec3<f32>(0.0))) {
+        let half_way = normalize(normalize(u.eye.xyz - world) + u.sun_direction.xyz);
+        sheen = gloss * pow(max(dot(n, half_way), 0.0), exp2(1.0 + 10.0 * gloss));
+    }
     // Complementary affine weights preserve the mean of filtered heights.
     // The crest is bounded to [0, maturity]; 0.35 ridge widths covers
     // the ridge plus plates and flakes, keeping resolved oak below the cap.

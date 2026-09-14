@@ -1,0 +1,2 @@
+.flow/evidence/fn29/oak-native-timing.json: valid - 4 samples a pixel; vegetation p50 3.579 ms, p95 4.095 ms; selection p50 0.103 ms, together p50 3.955 ms
+.flow/evidence/fn29/stills/oak-timing-hero.png 1600x1000 on NVIDIA GeForce RTX 3080 at 4 samples a pixel: 4262170 wood vertices, 8255000 wood triangles, 869310 foliage instances; 157776961 triangles and 869310 instances drawn in 9 calls; 90760 wood caster triangles; 217328 foliage caster instances
