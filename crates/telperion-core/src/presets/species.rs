@@ -1,10 +1,7 @@
 //! Botanical species value tables. Legendary and ordinary families stay above.
 use super::materials;
 use crate::{
-    bias::BiasParams,
-    branching::HabitParams,
-    envelope::Envelope,
-    foliage::ElementParams,
+    bias::BiasParams, branching::HabitParams, envelope::Envelope, foliage::ElementParams,
     presets::Family,
 };
 
