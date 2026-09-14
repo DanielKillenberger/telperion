@@ -1,0 +1,20 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 17.21s
+     Running tests/identity.rs (target/release/deps/identity-2442043c36a103db)
+
+running 1 test
+test oak_and_spruce_meshes_pin_the_production_tree_at_derived_maturity ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.39s
+
+     Running tests/sweep.rs (target/release/deps/sweep-f8c712e8690178e3)
+
+running 5 tests
+test every_wire_parameter_a_preset_moves_is_walked ... ok
+test the_ends_of_a_walk_are_the_rows_themselves_and_a_row_walked_with_itself_holds ... ok
+test the_oak_to_spruce_walk_has_no_switch_frame ... ok
+test every_pair_of_presets_grows_a_tree_at_every_step ... ok
+test every_shipped_preset_carries_a_leaf_count_inside_the_fidelity_band ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 50.38s
+

@@ -22,6 +22,8 @@ use common::gpu;
 /// unchanged (.flow/evidence/fn30/REPORT.md).
 /// fn-31 re-records once after its CONVERGENCE.md: seed-7 Ordinary retains
 /// 16,066 nodes at 173 years with the authored 0.45 threshold and sapling rule.
+/// The owner authorized a Round 3 re-record after convergence at 8ff0b8c;
+/// Ordinary now has 25,455 nodes with the same authored threshold.
 /// The capture command, camera, shaders and drift limits stay unchanged.
 const PINNED: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),

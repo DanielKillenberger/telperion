@@ -1,0 +1,3 @@
+RUN cargo test --release -p telperion-render --test bark_field --test bark_filter --test bark_resolution --test bark_structure --test conformance --test headless --test leaf_detail --test look --test shadow --test submit --test timing --test transmission --test walk --no-fail-fast
+EXIT 0 /home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/renderer-remaining.log
+RUN cargo test --release -p telperion-wasm

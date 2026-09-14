@@ -1,4 +1,201 @@
 {
   "round": 3,
-  "status": "pending"
+  "status": "complete",
+  "code_commit": "8ff0b8c5ca890d094940f397e8143b8ab341943e",
+  "renderer": "native NVIDIA GeForce RTX 3080",
+  "seed": 7,
+  "samples": 4,
+  "full_captures": 1,
+  "full_images_viewed": 0,
+  "small_images_viewed": 4,
+  "render_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "montage_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "images": [
+    {
+      "path": ".flow/evidence/fn31/strips/oregon-white-oak-age-1.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 134074,
+      "sha256": "18c0e0ad8b207ee8d0ef14a7cbcd176c6f03c1634fcf0f937b6b2c2dd793cacc"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/oregon-white-oak-age-10.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 301472,
+      "sha256": "f736af531e8eb8421e4208d53fee44ac4cabaee0b6c2e13ea88a0a45a4c7703c"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/oregon-white-oak-age-26.7.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 543940,
+      "sha256": "c48c12e9406dd4693eb98e5784e3cd2d8e5548030de40110f78ac030a549396b"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/oregon-white-oak-age-56.1.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 625717,
+      "sha256": "78dcbbf5d3b499806ec243bf2b6b2410854759da61481bb0737f63dcdcd0a210"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/oregon-white-oak-age-112.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 661670,
+      "sha256": "69e740ea1ed969c39b55eeaaa926bb52a3566e7998e88f531bd91d4d3de2fea2"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/oregon-white-oak-age-200.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 670821,
+      "sha256": "52147bea9168c0bfb90b5c8b8020f2cbd862c5f08b54e87f83ab146744d243f6"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/oregon-white-oak-age-432.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 693057,
+      "sha256": "7c0a2c542b9f81c51fa0659fc56f6572127f530ab18116d8a6111c7b990194c1"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/oregon-white-oak-strip.png",
+      "width": 4956,
+      "height": 1000,
+      "bytes": 3188680,
+      "sha256": "5018d9aa030d4fa1e716e71d8c10a1127ac2e5ab39404ce12fe53a82b1fb5213"
+    },
+    {
+      "path": ".flow/evidence/fn31/oregon-white-oak-hero.png",
+      "width": 1600,
+      "height": 1000,
+      "bytes": 1478950,
+      "sha256": "968d075f779ebd7be2a2fb3ba410a8226027a82130314d06c5d525707fcc2d75"
+    },
+    {
+      "path": ".flow/evidence/fn31/oregon-white-oak-beside-fn30.png",
+      "width": 3216,
+      "height": 1000,
+      "bytes": 2618615,
+      "sha256": "05dabc02b3dd72a4ed2fe61e45ff3dc337d89bcc570b58e3f19278668a7e5e18"
+    },
+    {
+      "path": ".flow/evidence/fn31/oregon-white-oak-strips-beside-fn30.png",
+      "width": 4956,
+      "height": 2016,
+      "bytes": 6098404,
+      "sha256": "632c5fb90378372edf010519966a5570f0f1def0aac9c0f05122be9c96c7197d"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/norway-spruce-age-1.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 36908,
+      "sha256": "0fb5775c74517c1c4a1223e75f925bbc76295ea3a02db5bafb0fff907cfce5a1"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/norway-spruce-age-5.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 49891,
+      "sha256": "a721e70e67f14d7c02eb1a6132f399d880cfc13389bfd74d3e05bdc09917324e"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/norway-spruce-age-14.1.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 369943,
+      "sha256": "92376eb015478ace9aeb04a35065eee726f972f2a1b80f7d195e6c7ed49ef7fc"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/norway-spruce-age-26.6.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 565080,
+      "sha256": "2be148f98d2754f7c6ff0db8149cfc99346077a58149f901049c53443cf2258a"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/norway-spruce-age-36.9.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 569693,
+      "sha256": "88034be49285af22765278d6038ec4b8963f75f02f8311cd287c78942df0682d"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/norway-spruce-age-60.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 461946,
+      "sha256": "8500ce4b71f94b17ce11d19ab4c109745ed6292c9e8cfd097a5a501214560c17"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/norway-spruce-age-158.png",
+      "width": 700,
+      "height": 1000,
+      "bytes": 450895,
+      "sha256": "ecbfc69f1146bbfbb091722ac814f8c00405dfb94d7990cb270912d4f6dc7896"
+    },
+    {
+      "path": ".flow/evidence/fn31/strips/norway-spruce-strip.png",
+      "width": 4956,
+      "height": 1000,
+      "bytes": 2325446,
+      "sha256": "a3287430eb771df9294a4196429d3dc369b4ab29acd75d29e050ec12f445a38b"
+    },
+    {
+      "path": ".flow/evidence/fn31/norway-spruce-hero.png",
+      "width": 1600,
+      "height": 1000,
+      "bytes": 476519,
+      "sha256": "a5f794bbae6205e36b9ae1455e51a5a2c04baae69597cb2ac1e8c27468c02077"
+    },
+    {
+      "path": ".flow/evidence/fn31/norway-spruce-beside-fn30.png",
+      "width": 3216,
+      "height": 1000,
+      "bytes": 885283,
+      "sha256": "8d49997610b0089bb0804234d2aad8601a7c10732bcfa2168d55977440dc079b"
+    },
+    {
+      "path": ".flow/evidence/fn31/norway-spruce-strips-beside-fn30.png",
+      "width": 4956,
+      "height": 2016,
+      "bytes": 4773106,
+      "sha256": "4285b312e11c527cc37034d68de41cb1f4dada1d118cb779a0d4e376e971e616"
+    },
+    {
+      "path": ".flow/evidence/fn24/ordinary-hero.png",
+      "width": 1600,
+      "height": 1000,
+      "bytes": 417994,
+      "sha256": "c46cfe516e7bd407b533a37e7a55352d98b36d894c230101528882a7ae5401cf"
+    }
+  ]
 }

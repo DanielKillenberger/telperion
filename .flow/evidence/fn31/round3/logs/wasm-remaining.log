@@ -1,0 +1,7 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-wasm)
+    Finished `release` profile [optimized] target(s) in 22.39s
+     Running unittests src/lib.rs (target/release/deps/telperion_wasm-89197a7c649f3848)
+
+running 2 tests
+test generate::tests::surviving_diagnostics_match_radius_law_and_empty_state ... ok

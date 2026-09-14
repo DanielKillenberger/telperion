@@ -1,0 +1,20 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 17.14s
+     Running tests/sweep.rs (target/release/deps/sweep-f8c712e8690178e3)
+
+running 1 test
+INVALID NODE 3114: Node { identity: NodeIdentity { birth: 18446744073709551615, key: NodeKey(null) }, shoot: ShootState { birth_year: 0.0, death_year: None, bud_fate: Terminal, vigour_events: [], width: None }, position: Vec3 { x: 1.051961255969879, y: 20.253991961286125, z: -8.818784847808834 }, parent: Some(1974), radius: 0.018873865152209034, start_radius: 0.01887386394081941, base_radius: 0.02028879679026814, branch: 705, kind: Branch }
+
+thread 'every_pair_of_presets_grows_a_tree_at_every_step' (718025) panicked at crates/telperion-core/tests/sweep.rs:222:37:
+norway-spruce->telperion at 0.4444444444444444: invalid input: node position or radius
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test every_pair_of_presets_grows_a_tree_at_every_step ... FAILED
+
+failures:
+
+failures:
+    every_pair_of_presets_grows_a_tree_at_every_step
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 11.71s
+
+error: test failed, to rerun pass `-p telperion-core --test sweep`

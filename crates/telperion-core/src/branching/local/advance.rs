@@ -318,6 +318,14 @@ impl Frontier {
                                 .sqrt()
                 };
                 let base = if is_twig { twig_radius } else { radius };
+                let proximal = if starts {
+                    base
+                } else {
+                    planner.width(tree, s.at)[0]
+                };
+                // A resumed run's base can thicken ahead of its attachment.
+                // New extension must still taper from that live attachment.
+                let distal = distal.min(proximal);
                 tree.nodes
                     .try_reserve(1)
                     .map_err(|_| Error::ResourceLimit("branch allocation"))?;
@@ -328,11 +336,7 @@ impl Frontier {
                     position: candidate,
                     parent: Some(s.at as u32),
                     radius: distal * planner.radius_scale,
-                    start_radius: (if starts {
-                        base
-                    } else {
-                        planner.width(tree, s.at)[0]
-                    }) * planner.radius_scale,
+                    start_radius: proximal * planner.radius_scale,
                     base_radius: base * planner.radius_scale,
                     branch,
                     kind: if is_twig {

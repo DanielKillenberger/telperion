@@ -20,6 +20,10 @@
 //! oak 196901 -> 19513 nodes, spruce 76386 -> 65604. Establishment, retained
 //! structural buds and age-dependent pipe scale change the wood and contacts;
 //! both element hashes remain unchanged. The report records mesh bounds/counts.
+//! Round 3 authorizes one further move after convergence was committed at
+//! 8ff0b8c: oak 187331 nodes and spruce 73369, both within fn30 ±15%.
+//! Primary extension, short leaf shoots and cohort-site order explain this move.
+//! Legacy audit and element hashes remain unchanged.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching::Specimen,
@@ -55,28 +59,32 @@ const SEED: u32 = 7;
 const PINS: [Pin; 2] = [
     Pin {
         id: "oregon-white-oak",
-        wood_vertices: 717466,
-        wood_triangles: 1375440,
-        instances: 132875,
+        wood_vertices: 5715598,
+        wood_triangles: 11073200,
+        instances: 1720137,
         min: [
-            -12.141538173961731,
-            -0.32723867893218994,
-            -12.581686986441456,
+            -12.353412076851681,
+            -0.29078197479248047,
+            -12.958205702276263,
         ],
-        max: [13.143301523266894, 24.020887122881813, 13.116854407483443],
-        skeleton: 17147586106779270108,
-        placement: 3545768933671885177,
+        max: [13.142602704831214, 24.00475979634153, 13.065332040395452],
+        skeleton: 17131883322534923376,
+        placement: 3731251303214561755,
         element: 4207404028969543471,
     },
     Pin {
         id: "norway-spruce",
-        wood_vertices: 2186602,
-        wood_triangles: 4214200,
-        instances: 4810878,
-        min: [-4.065886488186079, -0.2574246823787689, -3.9355183191281506],
-        max: [3.846896851279939, 15.0, 3.757709161827148],
-        skeleton: 16388404269218903040,
-        placement: 11831058783261786492,
+        wood_vertices: 2427592,
+        wood_triangles: 4680600,
+        instances: 5213939,
+        min: [
+            -4.049844911441106,
+            -0.21473614871501923,
+            -3.8137187899673215,
+        ],
+        max: [3.8533377713281762, 15.003872429692956, 3.769877268654803],
+        skeleton: 2066814234180180370,
+        placement: 15894830765246697280,
         element: 7287062639823569932,
     },
 ];

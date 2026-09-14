@@ -1,0 +1,10 @@
+RUN cargo fmt --all -- --check
+EXIT 0 /home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/fmt-final.log
+RUN cargo clippy --workspace --all-targets -- -D warnings
+EXIT 0 /home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/clippy-final.log
+RUN cargo test --release --workspace
+EXIT 101 /home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/workspace-final.log
+RUN npm test
+EXIT 0 /home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/npm-final.log
+RUN npm run typecheck
+EXIT 0 /home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/typecheck-final.log

@@ -64,7 +64,7 @@ for n, ref in fits.items():
         d=a['trunk_dbh_m']; q=a['height_m']/d; dev=(d/dbh-1)*100
         s.append(f'| {n} | {age:g} | {a["height_m"]:.6f} | {d:.9f} | {dbh:.3f} | {dev:+.2f}% | {q:.3f} | {ratio:.1f} | {(q/ratio-1)*100:+.2f}% |')
         if abs(dev)>15: misses.append(f'{n} at {age:g} y, DBH deviation {dev:+.2f}%')
-s += ['\nR2 tolerance misses: '+('; '.join(misses) if misses else 'none against the inherited composed references.')+' The owner chooses the accepted reference in the empty R2 slot.\n',
+s += ['\nR2 tolerance misses: '+('; '.join(misses) if misses else 'none against the inherited composed references.')+' The owner chooses the accepted reference in the empty R2 slot.\n\nThe inherited extrapolated maturity references are oak H 39.48 m / DBH 0.902 m and spruce H 40.08 m / DBH 1.144 m. They extend beyond the published height tables, while the authored envelopes remain 24 m and 15 m. The mature measured dimensions below remain explicit; those extrapolations are not observed mature trees.\n',
       '## Derived mature ages\n', '| Preset | Rate | Shape | Derived years |', '|---|---:|---:|---:|']
 for n in names:
     rate, shape = (.032,2) if n==names[0] else ((.091,3.4) if n==names[1] else (.08,2))
@@ -109,15 +109,15 @@ assertion, camera, shader or tolerance was weakened.
 ## Shedding evidence
 
 Ordinary and the Two Trees retain the authored 0.45 threshold. Oak and spruce
-retain their authored zero threshold. The common floor remains 0.75, applied to
-exposure before the threshold test. Slice-start snapshots, identity order,
+retain their authored zero threshold. Vigour remains exposure multiplied by
+`max(1 / (1 + rate * nodeAge), 0.75)`, so shade still lowers it. Slice-start snapshots, identity order,
 monotone radius records and the pipe-model fork split remain intact.
 
-| Preset | Threshold | Mature age | Nodes | Placements |
-|---|---:|---:|---:|---:|''']
+| Preset | Threshold | Mature age | Nodes | Placements | Height m | DBH m | H/DBH |
+|---|---:|---:|---:|---:|---:|---:|---:|''']
 for n in names:
     a=mature(n)
-    s.append(f'| {n} | {0 if n in names[:2] else .45:g} | {a["age"]:g} | {a["nodes"]:,} | {a["placements"]:,} |')
+    s.append(f'| {n} | {0 if n in names[:2] else .45:g} | {a["age"]:g} | {a["nodes"]:,} | {a["placements"]:,} | {a["height_m"]:.6f} | {a["trunk_dbh_m"]:.9f} | {a["height_m"]/a["trunk_dbh_m"]:.3f} |')
 s += ['''
 The fixture-presets survival tests assert retained mature crowns and a shaded
 interior death stamp while a lit sibling survives. With the frozen synthetic
@@ -193,12 +193,47 @@ images viewed by the implementer. Commands and exits are in `round3/logs/capture
 |---|---|---|---|''']
 for n in names[:2]:
     s.append(f'| {n} | [strip](strips/{n}-strip.png) | [strips beside fn30]({n}-strips-beside-fn30.png) | [mature beside fn30]({n}-beside-fn30.png) |')
+s += ['\n'.join([
+    '',
+    'The first Round 3 gate attempt caught a taper inversion in the spruce–Telperion',
+    '4/9 blend: a resumed run computed its next tip from a base that had thickened',
+    'ahead of its attachment. New extension now bounds its tip by that attachment.',
+    'The unchanged sweep passes, and the recorded oak/spruce identity pins pass',
+    'without another move (`round3/logs/sweep-identity-final.log`). This correction',
+    'does not alter valid captured preset geometry. The first five gate results',
+    'remain in `round3/gates-attempt1/gates.json`.',
+    ''
+])]
 s += ['\n## Gates\n','| Command | Exit code | Absolute log path |','|---|---:|---|']
 gates=R/'gates-final.json'
 if gates.exists():
     for g in json.loads(gates.read_text()): s.append(f'| `{g["command"]}` | {g["exit"]} | `{g["log"]}` |')
 else: s.append('| Full final gates | pending | pending |')
+remaining = R/'remaining-gates.json'
+if remaining.exists():
+    s += ['\nThe exact workspace gate stops at `bark_distance`. Supplemental runs cover',
+          'the later renderer targets and the wasm crate without changing that gate exit.',
+          '', '| Supplemental command | Exit code | Absolute log path |', '|---|---:|---|']
+    for g in json.loads(remaining.read_text()):
+        s.append(f'| `{g["command"]}` | {g["exit"]} | `{g["log"]}` |')
 s += ['''
+## Blocked
+
+The owner has not recorded a current R1 or R2 judgment. Both slots below remain
+empty. All six fit diameters are within 15 percent of fn30's composed references.
+
+R5 is blocked by the clean idle oak median of 6,885.527 ms, exceeding 2,463 ms
+by 4,422.527 ms. Spruce is 718.209 ms against 867 ms. The oak records 7,153,119
+radius frames for its restored 187,331-node crown; the cost is recorded at the
+unchanged 0.0001 m radius tolerance. No second idle run was made.
+
+The fixed oak distance fixture remains red at 4x. Its mean is 3.976417/255
+against 3.0 and p95 is 14.5/255 against 12.0. The 2x result passes at
+2.019375/255 mean and 7.75/255 p95. This remains a gate blocker, not an accepted
+change to its camera, mask, shader or tolerance. Both grazing masks and their
+resolution comparisons pass on the final rule. The final full gate exits above
+are authoritative for the remaining checks.
+
 ## Owner verdict
 
 ### R1: sapling form and continuity

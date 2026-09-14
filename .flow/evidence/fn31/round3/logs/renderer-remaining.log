@@ -1,0 +1,123 @@
+    Finished `release` profile [optimized] target(s) in 0.05s
+     Running tests/bark_field.rs (target/release/deps/bark_field-59a9e4e17f1f1664)
+
+running 1 test
+test surface_lengths_young_wood_wrap_and_plate_drift ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/bark_filter.rs (target/release/deps/bark_filter-99fd5e4d26068f61)
+
+running 1 test
+test either_unresolved_axis_removes_relief_and_furrows_can_close ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/bark_resolution.rs (target/release/deps/bark_resolution-e418faf839a35ecf)
+
+running 2 tests
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... ok
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 18.05s
+
+     Running tests/bark_structure.rs (target/release/deps/bark_structure-a3125f3245e88bfc)
+
+running 1 test
+test mature_girth_strengthens_an_axial_field ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests/conformance.rs (target/release/deps/conformance-c4e72980d0cbc983)
+
+running 6 tests
+test the_selection_path_names_no_family_and_no_anatomy ... ok
+test the_renderer_library_never_names_a_family ... ok
+test a_set_the_generator_will_not_have_says_which_parameter ... ok
+test a_frame_is_drawn_at_the_count_the_device_offers_and_read_back_resolved ... ok
+test parameter_sets_nobody_wrote_by_hand_render_the_same_way ... ok
+test every_shipped_family_renders_through_the_one_path ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 52.86s
+
+     Running tests/headless.rs (target/release/deps/headless-90f8a1aebaffd50d)
+
+running 2 tests
+test a_tree_reaches_the_pixels ... ok
+test a_second_smaller_tree_reuses_the_wood_buffers ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.13s
+
+     Running tests/leaf_detail.rs (target/release/deps/leaf_detail-1f50ce10a96af61d)
+
+running 2 tests
+test transmission_reaches_the_drawn_leaf_through_the_material_uniform ... ok
+test veins_draw_at_every_blade_level_and_never_on_a_round_section ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+     Running tests/look.rs (target/release/deps/look-7d8f1cd15e070e0c)
+
+running 3 tests
+test every_leaf_takes_its_own_offset_inside_the_row_s_ranges ... ok
+test the_lit_frame_has_a_sky_that_deepens_with_height_and_is_not_blown_out ... ok
+test the_clay_view_draws_the_still_the_room_always_drew ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.39s
+
+     Running tests/shadow.rs (target/release/deps/shadow-36ab345be605b229)
+
+running 3 tests
+test the_sun_sees_the_wood_and_the_whole_crown_and_the_leaf_view_is_not_in_its_way ... ok
+test full_casters_cover_at_least_the_default_on_separated_surfaces ... ok
+test every_preset_has_default_casters_fixed_under_orbit_and_row_changes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 54.09s
+
+     Running tests/submit.rs (target/release/deps/submit-3e204abc544b9b7e)
+
+running 8 tests
+test a_ladder_longer_than_selection_can_tally_is_refused_by_its_length ... ok
+test a_tree_is_judged_on_the_allocation_it_needs_not_the_bytes_it_holds ... ok
+test every_buffer_selection_needs_is_judged_and_named_before_the_upload ... ok
+test every_buffer_that_will_not_fit_is_refused_by_name_and_by_size ... ok
+test wood_runs_must_tile_the_index_buffer_in_radius_order ... ok
+test a_crown_with_no_leaves_submits_draws_and_frames ... ok
+test each_view_draws_what_its_name_promises ... ok
+test a_submitted_tree_is_the_tree_the_core_counted ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.61s
+
+     Running tests/timing.rs (target/release/deps/timing-f668909205916d92)
+
+running 7 tests
+test every_verdict_is_reached_by_the_samples_that_define_it ... ok
+test a_valid_record_carries_its_numbers_and_an_invalid_one_carries_none ... ok
+test a_valid_record_carries_every_pass_the_levels_and_the_orbit ... ok
+test the_wall_clock_is_the_one_number_the_gpu_verdict_does_not_govern ... ok
+test nothing_a_session_did_not_earn_reaches_a_record ... ok
+test a_session_on_a_device_never_reports_a_percentile_it_did_not_earn ... ok
+test a_device_session_times_the_selection_pass_and_counts_what_it_chose ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.26s
+
+     Running tests/transmission.rs (target/release/deps/transmission-b12ab854e3f075e9)
+
+running 1 test
+test shadow_blocks_transmission_and_a_lit_backface_obeys_the_row ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+     Running tests/walk.rs (target/release/deps/walk-63876939d687ffa6)
+
+running 7 tests
+test a_frame_count_schedules_exactly_what_it_always_did ... ok
+test a_walk_holds_at_each_end_and_eases_between_them ... ok
+test a_value_a_flag_cannot_mean_is_refused_by_that_flag_s_name ... ok
+test a_scene_row_off_the_command_line_moves_what_it_names_and_nothing_else ... ok
+test age_selects_a_finite_nonnegative_still_and_refuses_sequences ... ok
+test the_parser_reads_a_frame_run_the_way_it_always_read_one ... ok
+test a_walk_leaves_and_arrives_at_rest ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

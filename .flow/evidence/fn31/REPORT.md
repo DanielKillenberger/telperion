@@ -26,9 +26,6 @@ These are fn30's URLs and SHA-256 values, reused without re-sourcing or addition
 The seedling heights remain implementation values for the spec's centimetre-scale
 form, rather than new sourced observations.
 
-
-Code-checkpoint report. The full capture, re-pin and final gates are pending; linked images still show Round 2.
-
 | ID | File | Source | SHA-256 | Bytes |
 |---|---|---|---|---:|
 | E1 | `ertragstafeln.pdf` | [Bavarian yield-table extracts, Jüttner 1955 oak and Wiedemann 1936/42 spruce](https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf) | `c6c7d6558fe6f8157c2fea3a67e8aaed133902b18446eb32275972fc2a5f9885` | 351,827 |
@@ -63,6 +60,8 @@ the separate radius-history test uses live-envelope height and root diameter.
 | norway-spruce | 36.9 | 12.984213 | 0.286738899 | 0.285 | +0.61% | 45.282 | 52.6 | -13.91% |
 
 R2 tolerance misses: none against the inherited composed references. The owner chooses the accepted reference in the empty R2 slot.
+
+The inherited extrapolated maturity references are oak H 39.48 m / DBH 0.902 m and spruce H 40.08 m / DBH 1.144 m. They extend beyond the published height tables, while the authored envelopes remain 24 m and 15 m. The mature measured dimensions below remain explicit; those extrapolations are not observed mature trees.
 
 ## Derived mature ages
 
@@ -131,13 +130,13 @@ retain their authored zero threshold. The common floor remains 0.75, applied to
 exposure before the threshold test. Slice-start snapshots, identity order,
 monotone radius records and the pipe-model fork split remain intact.
 
-| Preset | Threshold | Mature age | Nodes | Placements |
-|---|---:|---:|---:|---:|
-| oregon-white-oak | 0 | 432 | 187,331 | 1,720,137 |
-| norway-spruce | 0 | 158 | 73,369 | 5,213,939 |
-| ordinary | 0.45 | 173 | 25,455 | 207,714 |
-| telperion | 0.45 | 173 | 142,591 | 1,094,995 |
-| laurelin | 0.45 | 173 | 165,285 | 1,199,211 |
+| Preset | Threshold | Mature age | Nodes | Placements | Height m | DBH m | H/DBH |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| oregon-white-oak | 0 | 432 | 187,331 | 1,720,137 | 23.893020 | 0.836201333 | 28.573 |
+| norway-spruce | 0 | 158 | 73,369 | 5,213,939 | 15.000000 | 0.426393152 | 35.179 |
+| ordinary | 0.45 | 173 | 25,455 | 207,714 | 16.529927 | 0.927728835 | 17.818 |
+| telperion | 0.45 | 173 | 142,591 | 1,094,995 | 98.845711 | 14.697044177 | 6.726 |
+| laurelin | 0.45 | 173 | 165,285 | 1,199,211 | 111.998631 | 14.465549676 | 7.742 |
 
 The fixture-presets survival tests assert retained mature crowns and a shaded
 interior death stamp while a lit sibling survives. With the frozen synthetic
@@ -211,11 +210,41 @@ images viewed by the implementer. Commands and exits are in `round3/logs/capture
 | oregon-white-oak | [strip](strips/oregon-white-oak-strip.png) | [strips beside fn30](oregon-white-oak-strips-beside-fn30.png) | [mature beside fn30](oregon-white-oak-beside-fn30.png) |
 | norway-spruce | [strip](strips/norway-spruce-strip.png) | [strips beside fn30](norway-spruce-strips-beside-fn30.png) | [mature beside fn30](norway-spruce-beside-fn30.png) |
 
+The first Round 3 gate attempt caught a taper inversion in the spruce–Telperion
+4/9 blend: a resumed run computed its next tip from a base that had thickened
+ahead of its attachment. New extension now bounds its tip by that attachment.
+The unchanged sweep passes, and the recorded oak/spruce identity pins pass
+without another move (`round3/logs/sweep-identity-final.log`). This correction
+does not alter valid captured preset geometry. The first five gate results
+remain in `round3/gates-attempt1/gates.json`.
+
+
 ## Gates
 
 | Command | Exit code | Absolute log path |
 |---|---:|---|
-| Full final gates | pending | pending |
+| `cargo fmt --all -- --check` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/fmt-final.log` |
+| `cargo clippy --workspace --all-targets -- -D warnings` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/clippy-final.log` |
+| `cargo test --release --workspace` | 101 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/workspace-final.log` |
+| `npm test` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/npm-final.log` |
+| `npm run typecheck` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/typecheck-final.log` |
+
+## Blocked
+
+The owner has not recorded a current R1 or R2 judgment. Both slots below remain
+empty. All six fit diameters are within 15 percent of fn30's composed references.
+
+R5 is blocked by the clean idle oak median of 6,885.527 ms, exceeding 2,463 ms
+by 4,422.527 ms. Spruce is 718.209 ms against 867 ms. The oak records 7,153,119
+radius frames for its restored 187,331-node crown; the cost is recorded at the
+unchanged 0.0001 m radius tolerance. No second idle run was made.
+
+The fixed oak distance fixture remains red at 4x. Its mean is 3.976417/255
+against 3.0 and p95 is 14.5/255 against 12.0. The 2x result passes at
+2.019375/255 mean and 7.75/255 p95. This remains a gate blocker, not an accepted
+change to its camera, mask, shader or tolerance. Both grazing masks and their
+resolution comparisons pass on the final rule. The final full gate exits above
+are authoritative for the remaining checks.
 
 ## Owner verdict
 

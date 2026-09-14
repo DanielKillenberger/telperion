@@ -1,0 +1,4 @@
+    Checking telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Checking telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Checking telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-wasm)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.51s

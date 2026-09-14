@@ -53,3 +53,22 @@ The earlier plain-material diagnostic also failed at 4x (3.8137 mean, 22 p95),
 showing geometry coverage contributed to the error; it is not a pure bark-field
 failure. The final crown-room correction restored both grazing fixtures. The
 final distance error and full gate exits are reported without changing the gate.
+
+The first complete gate attempt passed fmt, clippy, npm (77 tests including
+unchanged native/wasm parity), and typecheck. The workspace stopped at the
+unchanged preset sweep: spruce-to-Telperion at 4/9 emitted node 3114 with distal
+radius 0.018873865152209034 m and proximal radius 0.018873863940819410 m.
+`sweep-diagnostic.log` and `sweep-width-diagnostic.log` preserve the diagnosis.
+A resumed run recalculates its taper from its live base allocation, which can
+thicken ahead of the attachment left by a previous slice. Its new distal radius
+is now bounded by that attachment's current radius before physical scaling.
+This enforces taper when emitting new wood; it does not change the pipe split,
+old keyframes, validation rule, or any tolerance. Temporary diagnostic printing
+was removed. The unchanged sweep is the red-first regression test. The first
+five gate exits and unedited logs are archived in `gates-attempt1/`.
+
+After the taper correction, all five sweep tests and the production identity test
+pass in `logs/sweep-identity-final.log`. The two recorded species pins were not
+moved again. The correction bounds only an inverted new taper; the captured
+presets already satisfied that invariant. Their counts and cost measurement
+remain representative of the final rule.
