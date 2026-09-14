@@ -68,6 +68,70 @@ fn species_attachment_uses_local_twig_and_connected_origins() {
 }
 
 #[test]
+fn a_signed_lean_turns_the_leaf_back_down_its_shoot_and_toward_the_ground() {
+    // The four orientation rows are signed: the same numbers that lean a blade
+    // toward the tip of its shoot and toward the sky lean it, negative, back
+    // along the shoot and toward the ground. A weeping shoot needs both.
+    let mut t = twig(0.08);
+    t.nodes[1].position = t.nodes[0].position + Vec3::new(0.08, 0., 0.);
+    let stations = TwigPlacement {
+        internode_length: 0.01,
+        stations_per_internode: 1,
+    };
+    let axes = |p| {
+        place(&t, Envelope::default(), 4, p, Some(stations))
+            .unwrap()
+            .matrices
+            .iter()
+            .map(|m| Vec3::new(m[4] as f64, m[5] as f64, m[6] as f64))
+            .collect::<Vec<_>>()
+    };
+    // The shoot runs along +X, so forward lean is the axis's own x.
+    let forward = axes(CanopyParams {
+        forward_lean: 0.6,
+        ..bare()
+    });
+    let back = axes(CanopyParams {
+        forward_lean: -0.6,
+        ..bare()
+    });
+    for (ahead, behind) in forward.iter().zip(&back) {
+        assert!(ahead.x > 0.4, "a positive lean did not reach the tip");
+        assert!(behind.x < -0.4, "a negative lean did not reach back");
+    }
+    // Upward is the axis's own y, and downward is the same row signed: every
+    // station turns toward the ground where it turned toward the sky.
+    let sky = axes(CanopyParams {
+        upward: 0.8,
+        ..bare()
+    });
+    let down = axes(CanopyParams {
+        upward: -0.8,
+        ..bare()
+    });
+    let mean = |axes: &[Vec3]| axes.iter().map(|a| a.y).sum::<f64>() / axes.len() as f64;
+    assert!(
+        mean(&down) < mean(&sky) - 0.4,
+        "a negative upward left the crown where a positive one put it"
+    );
+    assert!(
+        down.iter().any(|a| a.y < -0.5),
+        "no leaf turned toward the ground"
+    );
+    let outward = axes(CanopyParams {
+        outward: -0.9,
+        ..bare()
+    });
+    assert!(
+        outward
+            .iter()
+            .zip(&down)
+            .any(|(inward, other)| inward != other),
+        "a negative outward moved nothing"
+    );
+}
+
+#[test]
 fn species_empty_degenerate_and_invalid_controls_are_explicit() {
     for shape in [lobed_blade(), four_sided_needle()] {
         for bad in [0., -1., f64::NAN, f64::INFINITY, shape.length * 1.01] {

@@ -120,6 +120,18 @@ export interface GrowerParams {
   twigDivergence: number;
   internodeFactor: number;
   lengthRatio: number;
+  /** How far a shoot gives in to its own weight: 0 is a shoot held out
+   *  along the direction it was born with, 1 a curtain at full droop. */
+  hang: number;
+  /** Metres a hanging shoot runs before it stops, and the clearance
+   *  over which its droop deepens to the cap. */
+  pendulousLength: number;
+  /** Fraction of the trunk's own radius at or below which a station's
+   *  shoots hang rather than stand out: the wood fine enough to weep. */
+  pendulousRadius: number;
+  /** Degrees between neighbouring shoots in a curtain: how tightly the
+   *  fall is combed about the wood that bears it. */
+  curtainSeparation: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
@@ -181,9 +193,11 @@ export interface GrowerParams {
   /** The stretch at the tip the clump gathers into, as a fraction of
    *  the shoot's length. */
   clumpSpan: number;
-  /** How far an element turns away from the tree's axis, 0 to 1. */
+  /** How far an element turns away from the tree's axis, -1 to 1:
+   *  negative turns it back in toward the trunk. */
   outward: number;
-  /** How far an element turns toward the sky, 0 to 1. */
+  /** How far an element turns toward the sky, -1 to 1: negative hangs
+   *  it under its shoot instead. */
   upward: number;
   /** Random spread about the direction those two ask for, in degrees.
    *  Zero is a diagram. */
@@ -278,6 +292,18 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "reach", label: "reach", min: 0, max: 0.9, step: 0.01, unit: "" },
   { key: "twigAngle", label: "branch angle", min: 0, max: 90, step: 1, unit: "deg" },
   { key: "twigDivergence", label: "branch divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
+  /* The weeping law. Wood finer than `pendulousRadius` of the trunk
+     sends its shoots across the crown and down rather than out along
+     the branch law's own departure, and they hang side by side as a
+     curtain, `curtainSeparation` degrees between neighbours. A shoot
+     droops harder the further it stands above the floor its own limb's
+     tip set, deepening to the cap over `pendulousLength` - which is
+     also where the shoot stops. `hang` is the master over all of it: at
+     0 there is no weeping in the tree whatever the rest say. */
+  { key: "hang", label: "hang", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "pendulousLength", label: "pendulous length", min: 0.05, max: 5, step: 0.05, unit: "m" },
+  { key: "pendulousRadius", label: "pendulous radius", min: 0, max: 1, step: 0.01, unit: "r" },
+  { key: "curtainSeparation", label: "curtain separation", min: 1, max: 45, step: 0.5, unit: "deg" },
   // The fork exponent, under the name the owner already turns. Below
   // 2 a fork sheds more than area and the tree runs from a heavy
   // trunk to threads; above 3 the limbs stop thinning enough to read
@@ -329,8 +355,8 @@ export const SLIDERS: readonly SliderSpec[] = [
      Divergence steps in thousandths to retain the authored phyllotaxis;
      the other leaf controls keep the placement stage's existing rails. */
   { group: "canopy", key: "divergence", label: "divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
-  { key: "outward", label: "leaf outward", min: 0, max: 1, step: 0.01, unit: "" },
-  { key: "upward", label: "leaf upward", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "outward", label: "leaf outward", min: -1, max: 1, step: 0.01, unit: "" },
+  { key: "upward", label: "leaf upward", min: -1, max: 1, step: 0.01, unit: "" },
   { key: "scatter", label: "leaf scatter", min: 0, max: 90, step: 1, unit: "deg" },
   { key: "size", label: "leaf size", min: 0.2, max: 4, step: 0.05, unit: "x" },
   { key: "sizeVariation", label: "leaf size spread", min: 0, max: 0.9, step: 0.01, unit: "" },

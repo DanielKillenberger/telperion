@@ -261,6 +261,46 @@ fn every_shipped_preset_carries_a_leaf_count_inside_the_fidelity_band() {
 }
 
 #[test]
+fn the_oak_to_birch_walk_ramps_the_curtain_up_from_nothing() {
+    // The oak never hangs and the birch does, so this is the walk that crosses
+    // the curtain. Hang is a row and not a switch: it rises through the walk,
+    // every step grows a tree the step before it did not, and no step is the
+    // frame where the curtain arrives.
+    let (mut hangs, mut skeletons) = (Vec::new(), Vec::new());
+    for step in 0..STEPS {
+        let mut family = walk("oregon-white-oak", "silver-birch", step);
+        family.skeleton.growth.max_nodes = Some(SWEEP_NODES);
+        hangs.push(family.skeleton.twigs.hang);
+        let tree = branching::generate(&family.skeleton, family.radii)
+            .unwrap_or_else(|e| panic!("step {step}: {e}"))
+            .tree;
+        skeletons.push(fnv(tree.nodes.iter().skip(1).flat_map(|n| {
+            [n.position.x, n.position.y, n.position.z]
+                .into_iter()
+                .flat_map(f64::to_le_bytes)
+        })));
+    }
+    assert_eq!(hangs[0], family("oregon-white-oak").skeleton.twigs.hang);
+    assert_eq!(hangs[0], 0.0, "the oak hangs");
+    assert_eq!(
+        hangs[STEPS - 1],
+        family("silver-birch").skeleton.twigs.hang,
+        "the walk did not reach the birch's own row"
+    );
+    for step in 1..STEPS {
+        assert!(
+            hangs[step] > hangs[step - 1],
+            "step {step} did not raise the hang row"
+        );
+        assert_ne!(
+            skeletons[step - 1],
+            skeletons[step],
+            "step {step} grew the tree the step before it did"
+        );
+    }
+}
+
+#[test]
 fn the_oak_to_spruce_walk_has_no_switch_frame() {
     let (mut skeletons, mut elements, mut sections) = (Vec::new(), Vec::new(), Vec::new());
     for step in 0..STEPS {
