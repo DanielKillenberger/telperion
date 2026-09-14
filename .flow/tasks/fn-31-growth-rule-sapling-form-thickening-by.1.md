@@ -101,3 +101,7 @@ with the five-year spruce's missing whorl named above; R2, which young-age
 diameter reference is accepted; and the new fork, whether the oak's twig anatomy
 is fixed at the cost of R5, or R5 is pursued through the derived-width spec and
 the fixture stays red until then.
+
+## Owner verdict on round 4 — R1 not yet accepted, 2026-09-14
+
+The owner judged the round-4 strips on the served page: "It's a big improvement but not 100% happy." The finding is stem form: "the spruce sapling is just a straight stick with needles. Also the second picture. is just a straight pole. having some bend in them or something also for the oak. Saplings are thin and bend in gravity no?" Next round, in the rule: sapling stems carry curvature, a lean off vertical along the stem, a leader tip that nods under its own foliage, and thin laterals that droop, as numeric traits on every family; round 3 scales crookedness down with the growth step, which removes bend at seedling scale and is the first place to look. Judged on the same strips at 1, 5 and 14.1 years for the spruce and 1, 10 and 26.7 for the oak. R2 and the twig-anatomy fork remain open beside it.

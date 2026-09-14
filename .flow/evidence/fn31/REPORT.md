@@ -415,6 +415,8 @@ their resolution comparisons included, passes.
 
 ### R1: sapling form and continuity
 
+Round 4, 2026-09-14, not yet accepted. Owner: "It's a big improvement but not 100% happy." Spruce: "the spruce sapling is just a straight stick with needles. Also the second picture. is just a straight pole." Oak: "having some bend in them or something also for the oak. Saplings are thin and bend in gravity no?" The next round owns stem form: lean, a nodding leader and drooping thin laterals as numeric traits.
+
 
 ### R2: accepted diameter references and deviations
 
