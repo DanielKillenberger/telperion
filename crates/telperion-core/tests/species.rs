@@ -11,7 +11,15 @@ use telperion_core::{
 };
 
 fn profiles() -> Value {
-    serde_json::from_str(include_str!("../../../.flow/evidence/fn9/profiles.json")).unwrap()
+    let mut root: Value =
+        serde_json::from_str(include_str!("../../../.flow/evidence/fn9/profiles.json")).unwrap();
+    let extra: Value =
+        serde_json::from_str(include_str!("../../../.flow/evidence/fn34/profiles.json")).unwrap();
+    let profiles = root["profiles"].as_array_mut().unwrap();
+    for profile in extra["profiles"].as_array().unwrap() {
+        profiles.push(profile.clone());
+    }
+    root
 }
 
 #[test]
@@ -62,6 +70,70 @@ fn fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens()
 #[test]
 fn fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species(Preset::NorwaySpruce);
+}
+
+#[test]
+fn beech_identity_resolves_to_frozen_profile_and_native_anatomy() {
+    let preset = Preset::from_id("european-beech").unwrap();
+    assert_eq!(preset, Preset::EuropeanBeech);
+    assert_eq!(preset.profile_id(), Some("european-beech"));
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    assert_eq!(profile["scientific_name"], "Fagus sylvatica");
+    assert_eq!(profile["readiness"], "ready");
+    let family = preset.parameters();
+    assert_eq!(family.age, 120.0);
+    assert!((family.skeleton.envelope.height - 32.0).abs() < 1e-9);
+    assert!(family.skeleton.habit.apical_dominance < 0.35);
+    assert!(family.skeleton.habit.crookedness < 16.0);
+    assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
+    assert!(!family.skeleton.bias.supernatural.enabled);
+    assert_eq!(family.element.lobe_count, 0);
+    assert_eq!(family.element.section_roundness, 0.0);
+    assert_eq!(family.canopy.divergence, 180.0);
+    assert!(Preset::from_id("Fagus sylvatica").is_none());
+    assert!(Preset::from_id("european-ash").is_none());
+}
+
+#[test]
+fn birch_identity_resolves_to_frozen_profile_and_native_anatomy() {
+    let preset = Preset::from_id("silver-birch").unwrap();
+    assert_eq!(preset, Preset::SilverBirch);
+    assert_eq!(preset.profile_id(), Some("silver-birch"));
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    assert_eq!(profile["scientific_name"], "Betula pendula");
+    assert_eq!(profile["readiness"], "ready");
+    let family = preset.parameters();
+    assert_eq!(family.age, 70.0);
+    assert!((family.skeleton.envelope.height - 18.0).abs() < 1e-9);
+    assert!(family.skeleton.habit.rise_secondary < 0.0);
+    assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
+    assert!(!family.skeleton.bias.supernatural.enabled);
+    assert_eq!(family.element.lobe_count, 0);
+    assert!(family.element.tip_sharpness > 1.0);
+    assert_eq!(family.canopy.divergence, 180.0);
+    assert!(Preset::from_id("Betula pendula").is_none());
+}
+
+#[test]
+fn fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::EuropeanBeech);
+}
+
+#[test]
+fn fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::SilverBirch);
 }
 
 fn fixed_species(preset: Preset) {
@@ -268,7 +340,12 @@ fn spruce_identity_resolves_to_frozen_profile_and_native_anatomy() {
 
 #[test]
 fn scaffold_reaches_and_hanging_secondaries_subdivide_before_their_tips() {
-    for preset in [Preset::OregonWhiteOak, Preset::NorwaySpruce] {
+    for preset in [
+        Preset::OregonWhiteOak,
+        Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
+    ] {
         let family = preset.parameters();
         let report = branching::generate(&family.skeleton, family.radii).unwrap();
         let twigs: Vec<_> = report

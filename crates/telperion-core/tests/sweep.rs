@@ -13,10 +13,12 @@ use telperion_core::{
     presets::{Family, Preset},
 };
 
-const IDS: [&str; 5] = [
+const IDS: [&str; 7] = [
     "ordinary",
     "oregon-white-oak",
     "norway-spruce",
+    "european-beech",
+    "silver-birch",
     "telperion",
     "laurelin",
 ];
@@ -36,10 +38,12 @@ const SWEEP_NODES: usize = 8_000;
 /// it lowered Telperion's retained rail from a million to four hundred thousand.
 /// This band is where Ordinary's count stands, not where the owner has said a
 /// twenty-four metre crown should stand.
-const BANDS: [(&str, usize, usize); 5] = [
+const BANDS: [(&str, usize, usize); 7] = [
     ("ordinary", 10_000, 1_000_000),
     ("oregon-white-oak", 100_000, 10_000_000),
     ("norway-spruce", 100_000, 10_000_000),
+    ("european-beech", 100_000, 10_000_000),
+    ("silver-birch", 100_000, 10_000_000),
     ("telperion", 100_000, 10_000_000),
     ("laurelin", 100_000, 10_000_000),
 ];
@@ -48,15 +52,15 @@ const BANDS: [(&str, usize, usize); 5] = [
 /// the sweep cannot prove the walk carries them. Every other path in the wire is
 /// moved by some pair below and proved to walk; a parameter added to the wire is
 /// either moved by a preset or named here.
-// fn-11 publishes the timeline before species calibration: every preset still
-// shares its provisional age, rate, shape and shedding traits. Annual and
-// thickening tests independently walk them. Leaf lifetime varies between oak
-// and spruce, so the sweep itself checks that dimension among the moved paths.
+// fn-11 publishes the timeline before species calibration: rate, shape and
+// shedding traits are still shared. Age now differs on the new species so the
+// sweep walks it. Annual and thickening tests independently walk the rest.
+// Leaf lifetime varies between oak and spruce, so the sweep itself checks
+// that dimension among the moved paths.
 // The chronicle adds resizeTolerance at the same 1e-9 metre default in every
 // preset. params::tests::resize_tolerance_is_a_validated_blended_wire_trait
 // checks its non-default walk; no preset geometry or identity pin changes.
-const HELD: [&str; 30] = [
-    "/age",
+const HELD: [&str; 29] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",

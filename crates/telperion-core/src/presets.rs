@@ -1,5 +1,6 @@
 //! Named families. Change the seed separately to draw another specimen.
 mod materials;
+mod species;
 use crate::{
     bias::{BiasParams, SupernaturalParams},
     branching::{HabitParams, SkeletonParams},
@@ -14,6 +15,8 @@ pub enum Preset {
     Ordinary,
     OregonWhiteOak,
     NorwaySpruce,
+    EuropeanBeech,
+    SilverBirch,
     Telperion,
     Laurelin,
 }
@@ -54,6 +57,8 @@ impl Preset {
         match self {
             Self::OregonWhiteOak => Some("oregon-white-oak"),
             Self::NorwaySpruce => Some("norway-spruce"),
+            Self::EuropeanBeech => Some("european-beech"),
+            Self::SilverBirch => Some("silver-birch"),
             _ => None,
         }
     }
@@ -64,6 +69,8 @@ impl Preset {
             "ordinary" => Some(Self::Ordinary),
             "oregon-white-oak" => Some(Self::OregonWhiteOak),
             "norway-spruce" => Some(Self::NorwaySpruce),
+            "european-beech" => Some(Self::EuropeanBeech),
+            "silver-birch" => Some(Self::SilverBirch),
             "telperion" => Some(Self::Telperion),
             "laurelin" => Some(Self::Laurelin),
             _ => None,
@@ -200,6 +207,14 @@ impl Preset {
             // Reddish-brown scaly bark; a needle darker and bluer than any
             // blade, its underside paler where the stomatal bands run.
             p.material = materials::spruce();
+            return p;
+        }
+        if self == Self::EuropeanBeech {
+            species::european_beech(&mut p);
+            return p;
+        }
+        if self == Self::SilverBirch {
+            species::silver_birch(&mut p);
             return p;
         }
         if self == Self::Ordinary {

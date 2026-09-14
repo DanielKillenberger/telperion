@@ -103,6 +103,8 @@ fn every_element_trait_moves_every_shipped_preset() {
         Preset::Ordinary,
         Preset::OregonWhiteOak,
         Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
         Preset::Telperion,
         Preset::Laurelin,
     ] {

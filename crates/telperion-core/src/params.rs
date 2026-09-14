@@ -166,6 +166,13 @@ pub const CATALOGUE: &[(u32, &str, &str, &str)] = &[
         "Quercus garryana",
     ),
     (4, "norway-spruce", "Norway spruce", "Picea abies"),
+    (
+        5,
+        "european-beech",
+        "European beech",
+        "Fagus sylvatica",
+    ),
+    (6, "silver-birch", "Silver birch", "Betula pendula"),
     (1, "telperion", "Telperion", "The silver tree"),
     (2, "laurelin", "Laurelin", "The golden tree"),
 ];

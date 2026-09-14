@@ -38,6 +38,8 @@ fn interval_records_reconcile_all_age_pairs_presets_and_blend() {
         Preset::Ordinary,
         Preset::OregonWhiteOak,
         Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
         Preset::Telperion,
         Preset::Laurelin,
     ]

@@ -126,10 +126,10 @@ try {
     const empty = structuredClone(family); empty.skeleton.growth.maxNodes = 0;
     const result = engine.build(empty, { surface: true, foliage: true });
     check(result.surface.positions.length === 0 && result.surface.bounds === null && result.foliage.matrices.length === 0, 'valid empty outputs');
-    check(PRESETS.length === 5 && new Set(PRESETS.map(p => p.id)).size === 5, 'complete identity catalogue');
+    check(PRESETS.length === 7 && new Set(PRESETS.map(p => p.id)).size === 7, 'complete identity catalogue');
     await rejects(() => presetById('missing'), 'unknown browser identity');
     await rejects(() => engine.build('missing', {}), 'unknown native identity');
-    for (const [id, unit] of [['oregon-white-oak', 'leaf'], ['norway-spruce', 'needle']]) {
+    for (const [id, unit] of [['oregon-white-oak', 'leaf'], ['norway-spruce', 'needle'], ['european-beech', 'leaf'], ['silver-birch', 'leaf']]) {
       const specimen = window.compactSpeciesFixture(presetById(id));
       // Small valid fixtures retain the authored habit and element rows.
       specimen.skeleton.growth.maxNodes = 12000;
