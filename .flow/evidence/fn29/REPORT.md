@@ -387,3 +387,5 @@ removed; its source remains reproducible evidence rather than a public command.
 | Norway spruce | branch/socket | S-BRANCH, OWNER-NORWAY-SPRUCE | |
 | Norway spruce | needle frontlit | S-NEEDLE | |
 | Norway spruce | needle backlit | S-NEEDLE | |
+
+Owner, 2026-09-14, on the round-five stills and the live orbit: "oak looks much better, spruce looks better but not much. Both lack significant details to make realistic bark textures. Textured leaf is nice." "i think we can accept this spec." R5 accepting; R6 accepted at the measured 3.9823 ms. Recorded in the spec.
