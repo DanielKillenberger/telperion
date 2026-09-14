@@ -39,6 +39,7 @@ struct Axis {
     tip: usize,
     current_heading: Vec3,
     completed: usize,
+    grown: f64,
     since: f64,
     station_index: usize,
     stationed: bool,
@@ -55,6 +56,7 @@ impl Axis {
             tip: at,
             current_heading: heading,
             completed: 0,
+            grown: 0.0,
             since: 0.0,
             station_index: 0,
             stationed: false,
@@ -259,7 +261,12 @@ impl Builder<'_> {
     }
     fn grow(&mut self, axis: &mut Axis, budget: &mut usize) -> Result<bool> {
         let unit = self.unit(axis.order);
-        let units = (axis.length / unit).ceil().clamp(1.0, MAX_UNITS as f64) as usize;
+        let units = if self.growing_envelope {
+            (axis.completed + ((axis.length - axis.grown).max(0.0) / unit).ceil() as usize)
+                .min(MAX_UNITS)
+        } else {
+            (axis.length / unit).ceil().clamp(1.0, MAX_UNITS as f64) as usize
+        };
         let spacing = if axis.order == 0 {
             self.habit.leader_internode
         } else {
@@ -312,7 +319,11 @@ impl Builder<'_> {
                 }
                 break;
             }
-            let t = (k + 1) as f64 / units as f64;
+            let t = if self.growing_envelope {
+                ((axis.grown + unit) / axis.length).min(1.0)
+            } else {
+                (k + 1) as f64 / units as f64
+            };
             let turn = rise * FRAC_PI_2 * t;
             let mut rule = match up {
                 Some(up) => axis.heading * turn.cos_fixed() + up * turn.sin_fixed(),
@@ -324,7 +335,12 @@ impl Builder<'_> {
                     (side * angle.sin_fixed() + across * (angle * 0.7).cos_fixed()) * crookedness;
             }
             let next = self.heading(position, rule.normalized(), pull, heading);
-            let stride = unit.min(axis.length - unit * k as f64).max(1e-9);
+            let used = if self.growing_envelope {
+                axis.grown
+            } else {
+                unit * k as f64
+            };
+            let stride = unit.min(axis.length - used).max(1e-9);
             let Some(id) = self.edge(at, position + next * stride, axis.order > 0)? else {
                 if self.paused {
                     *budget += 1;
@@ -344,6 +360,7 @@ impl Builder<'_> {
             }
             heading = next;
             at = id;
+            axis.grown += stride;
             since += stride;
             self.consume(self.tree.nodes[at].position, stride);
             stationed = false;

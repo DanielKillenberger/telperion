@@ -89,6 +89,7 @@ impl Preset {
             p.growth.rate = 0.032;
             p.growth.shape = 2.0;
             p.growth.juvenile_radius = 0.21;
+            p.growth.juvenile_height = 8.0;
             p.growth.crown_base_retention = 1.0;
             p.skeleton.habit = HabitParams {
                 apical_dominance: 0.1,
@@ -184,7 +185,9 @@ impl Preset {
             // Height curve fitted by fn-30 (.flow/evidence/fn30/REPORT.md).
             p.growth.rate = 0.091;
             p.growth.shape = 3.4;
-            p.growth.juvenile_radius = 0.76;
+            p.growth.juvenile_radius = 0.75;
+            p.growth.seedling_height = 0.04;
+            p.growth.seedling_radius = 0.01;
             p.growth.crown_base_retention = 1.0;
             p.growth.leaf_lifetime = 6.0;
             // Open-grown landscape Picea abies; one needle per local station.

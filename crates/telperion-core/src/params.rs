@@ -20,6 +20,11 @@ macro_rules! fields {
         $op!($f, $v, "growth", "thickeningDelay"; growth.thickening_delay);
         $op!($f, $v, "growth", "thickeningShape"; growth.thickening_shape);
         $op!($f, $v, "growth", "crownBaseRetention"; growth.crown_base_retention);
+        $op!($f, $v, "growth", "seedlingHeight"; growth.seedling_height);
+        $op!($f, $v, "growth", "shootStep"; growth.shoot_step);
+        $op!($f, $v, "growth", "juvenileBranching"; growth.juvenile_branching);
+        $op!($f, $v, "growth", "juvenileHeight"; growth.juvenile_height);
+        $op!($f, $v, "growth", "seedlingRadius"; growth.seedling_radius);
         $op!($f, $v, "growth", "sheddingTolerance"; growth.shedding_tolerance);
         $op!($f, $v, "growth", "apicalControlLoss"; growth.apical_control_loss);
         $op!($f, $v, "skeleton", "habit", "apicalDominance"; skeleton.habit.apical_dominance);

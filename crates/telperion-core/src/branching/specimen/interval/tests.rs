@@ -260,9 +260,15 @@ fn envelope_growth_without_wood_keyframes_moves_no_placement() {
 fn sparse_spruce_projects_only_changed_contact_paths() {
     let mut f = Preset::NorwaySpruce.parameters();
     f.skeleton.seed = 7;
-    // Retain fn-11's schedule for this mechanism fixture, independent of calibration.
-    f.growth.rate = 0.08;
+    // Place year 66 in the sparse phase of the retained-bud growth rule.
+    f.growth.rate = 0.12;
     f.growth.shape = 2.0;
+    // Mature-radius fixture: secondary thickening would deliberately move contacts.
+    f.growth.juvenile_radius = 1.0;
+    f.growth.seedling_height = 0.0;
+    f.growth.juvenile_height = 0.0;
+    f.growth.seedling_radius = 0.0;
+    f.growth.crown_base_retention = 0.0;
     f.age = 66.0;
     let mut s = Specimen::build(&f).unwrap();
     let record = s.advance(1.0).unwrap();

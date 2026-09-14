@@ -1,0 +1,15 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 15.97s
+     Running tests/growth_form.rs (target/release/deps/growth_form-eaa716f73ca1dd35)
+
+running 7 tests
+test oak_starts_as_a_leafed_seedling ... ok
+test spruce_starts_as_a_needled_seedling ... ok
+test young_oak_branches_and_carries_foliage ... ok
+test young_spruce_branches_and_carries_foliage ... ok
+test expanding_oak_crown_keeps_leafed_shoots ... ok
+test height_to_trunk_diameter_falls_with_age ... ok
+test mature_bole_does_not_end_at_a_temporary_local_apex ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+

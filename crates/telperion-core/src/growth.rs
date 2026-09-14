@@ -33,6 +33,16 @@ pub struct GrowthTraits {
     pub thickening_shape: f64,
     /// Retained crown-base share when planning permanent axes (0 follows growth).
     pub crown_base_retention: f64,
+    /// Establishment height in metres, added from the first annual slice.
+    pub seedling_height: f64,
+    /// Maximum juvenile internode/twig length as a share of current height.
+    pub shoot_step: f64,
+    /// Extra local lateral recruitment while the specimen is a sapling.
+    pub juvenile_branching: f64,
+    /// Height in metres at which juvenile recruitment has tapered to zero.
+    pub juvenile_height: f64,
+    /// Absolute leaf-bearing radius for seedling stems, bounded by twig anatomy.
+    pub seedling_radius: f64,
 }
 impl Default for GrowthTraits {
     fn default() -> Self {
@@ -50,6 +60,11 @@ impl Default for GrowthTraits {
             thickening_delay: 0.1,
             thickening_shape: 1.4,
             crown_base_retention: 0.0,
+            seedling_height: 0.2,
+            shoot_step: 0.2,
+            juvenile_branching: 4.0,
+            juvenile_height: 4.0,
+            seedling_radius: 0.006,
         }
     }
 }
@@ -63,6 +78,16 @@ impl GrowthTraits {
         for (field, value, lo, hi) in [
             ("growth.rate", self.rate, 0.001, 10.0),
             ("growth.shape", self.shape, 1.0, 8.0),
+            ("growth.seedlingHeight", self.seedling_height, 0.0, 10.0),
+            ("growth.shootStep", self.shoot_step, 0.01, 1.0),
+            (
+                "growth.juvenileBranching",
+                self.juvenile_branching,
+                0.0,
+                8.0,
+            ),
+            ("growth.juvenileHeight", self.juvenile_height, 0.0, 1000.0),
+            ("growth.seedlingRadius", self.seedling_radius, 0.0, 0.1),
             ("growth.leafLifetime", self.leaf_lifetime, 0.0, MAX_AGE),
             ("growth.resizeTolerance", self.resize_tolerance, 0.0, 1.0),
             ("growth.vigourFloor", self.vigour_floor, 0.0, 1.0),
@@ -117,6 +142,20 @@ impl GrowthTraits {
             f
         }
     }
+    pub(crate) fn height_fraction(self, slice: u64, height: f64) -> f64 {
+        let fraction = self.fraction(slice);
+        let establishment =
+            (self.seedling_height / height.max(1e-6)).min(1.0) * slice.min(1) as f64;
+        fraction + establishment * (1.0 - fraction)
+    }
+
+    pub(crate) fn recruitment(self, slice: u64, height: f64) -> f64 {
+        let small = (1.0 - height / self.juvenile_height.max(1e-6)).clamp(0.0, 1.0);
+        let established =
+            1.0 - (-self.rate * self.shape * slice.saturating_sub(1) as f64).exp_fixed();
+        self.juvenile_branching * small * established
+    }
+
     /// Rounded cumulative work makes every quantum belong to one fixed slice.
     pub(crate) fn budget(self, slice: u64) -> usize {
         let units = |m| (self.fraction(m) * LIFETIME_UNITS).round() as usize;

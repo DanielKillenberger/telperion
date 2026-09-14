@@ -53,7 +53,10 @@ fn run() -> Result<(), String> {
     let (width, height) = arguments.size;
     // The leaf view frames the element, the others the whole tree; the
     // renderer knows which, so the pose is solved on whatever is on stage.
-    let bounds = renderer.bounds().ok_or("nothing was submitted to frame")?;
+    let mut bounds = renderer.bounds().ok_or("nothing was submitted to frame")?;
+    if let Some(min_y) = arguments.frame_min_y {
+        bounds.min.y = bounds.min.y.max(min_y).min(bounds.max.y);
+    }
     let camera = hero_pose(bounds, f64::from(width) / f64::from(height), GROUND_REACH);
     let still = render(&mut renderer, &camera, width, height).map_err(|error| error.to_string())?;
     write_png(&arguments.out, &still).map_err(|error| error.to_string())?;

@@ -1,0 +1,11 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 43.99s
+     Running unittests src/lib.rs (target/release/deps/telperion_core-667d8e26891ed866)
+
+running 2 tests
+test branching::specimen::storage::tests::sparse_advance_updates_the_existing_packed_tree ... ok
+test branching::specimen::interval::tests::sparse_spruce_projects_only_changed_contact_paths ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 132 filtered out; finished in 7.75s
+

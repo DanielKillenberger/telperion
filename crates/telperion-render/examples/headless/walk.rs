@@ -12,7 +12,7 @@ pub const FPS: u32 = 24;
 
 pub const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] \
                          [--view whole|bare|leaf|clay] [--level <n>] [--timing <json>] [--orbit] \
-                         [--age <years>] [--scene <json>] [--to <preset>] [--frames <n>] \
+                         [--age <years>] [--frame-min-y <metres>] [--scene <json>] [--to <preset>] [--frames <n>] \
                          [--walk <seconds>] [--hold <seconds>] [--sweep <degrees>]";
 
 #[derive(Debug)]
@@ -20,6 +20,8 @@ pub struct Arguments {
     pub preset: String,
     pub seed: u32,
     pub age: Option<f64>,
+    /// Lower framing bound, useful for subjects with buried wood.
+    pub frame_min_y: Option<f64>,
     pub out: PathBuf,
     pub size: (u32, u32),
     pub view: View,
@@ -142,6 +144,7 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
     let (mut preset, mut seed, mut out, mut size) = (None, None, None, (1024u32, 1024u32));
     let (mut view, mut level, mut timing) = (View::default(), None, None);
     let mut age = None;
+    let mut frame_min_y = None;
     let mut scene = SceneRow::default();
     let (mut orbit, mut to, mut frames) = (false, None, None);
     let (mut walk, mut hold, mut sweep) = (None, None, None);
@@ -150,6 +153,11 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
         let mut value = || args.next().ok_or(format!("{flag} needs a value\n{USAGE}"));
         match flag.as_str() {
             "--preset" => preset = Some(value()?),
+            "--frame-min-y" => {
+                frame_min_y = Some(number("--frame-min-y", &value()?, "finite metres", |_| {
+                    true
+                })?);
+            }
             "--age" => {
                 age = Some(number("--age", &value()?, "years, never negative", |v| {
                     v >= 0.0
@@ -256,6 +264,7 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
         preset: preset.ok_or(format!("--preset is required\n{USAGE}"))?,
         seed: seed.ok_or(format!("--seed is required\n{USAGE}"))?,
         age,
+        frame_min_y,
         out: out.ok_or(format!("--out is required\n{USAGE}"))?,
         size,
         view,

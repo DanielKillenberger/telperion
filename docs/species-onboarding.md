@@ -27,7 +27,9 @@ and extrapolation. State provenance and height-to-diameter ratio at each age;
 keep a missing curve explicit. [FN30](../.flow/evidence/fn30/REPORT.md) records
 the oak and spruce composition and its unresolved diameter misses.
 
-The implementation packet gives numeric `growth.rate`, `growth.shape`, shedding
+The implementation packet gives numeric `growth.rate`, `growth.shape`, seedling
+height, juvenile recruitment and shoot step, age-dependent radius fraction, vigour
+floor, and shedding
 threshold and tolerance, and leaf lifetime, with the fitting rationale. Check
 measured height and trunk DBH at young, middle and mature reference ages against
 a 15 percent tolerance. Record the operational DBH plane and every miss. An
@@ -71,3 +73,11 @@ For implemented future species, numeric runs use `target/release/examples/geomet
 | Qualified independent feedback unavailable | `expert_status=unassessed`; engineering packet may ship with that limit, independent biological approval remains unresolved. No automatic external contact. |
 
 Resume a failed task from its last committed profile/template in its own worktree. Preserve old failed/interrupted run directories and seeds. Record the cause and next dependency in its Flow task, use a new output directory for retry, and reuse only identity-verified complete artifacts. A seed conflict or changed protocol/reference/camera rules requires a new version. Another species' evidence and frozen cohort are read-only throughout recovery.
+
+FN31 adds year-one seedling frames at their own scale. Use the headless parameter
+`--frame-min-y 0` to exclude buried wood from that framing; later frames retain
+the standard pose. Record sapling foliage, falling height/DBH ratios, monotone
+radius history, and shaded death stamps alongside mature crown counts. Numeric
+maturity still derives from the final Chapman–Richards work quantum (oak 432,
+spruce 158, Ordinary and the Two Trees 173 years for the current rows); it is not
+a biological age claim. See `.flow/evidence/fn31/REPORT.md` for the comparison.

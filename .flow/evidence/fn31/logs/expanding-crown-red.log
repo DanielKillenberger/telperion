@@ -1,0 +1,22 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 7.06s
+     Running tests/growth_form.rs (target/release/deps/growth_form-eaa716f73ca1dd35)
+
+running 1 test
+test expanding_oak_crown_keeps_leafed_shoots ... FAILED
+
+failures:
+
+---- expanding_oak_crown_keeps_leafed_shoots stdout ----
+
+thread 'expanding_oak_crown_keeps_leafed_shoots' (580247) panicked at crates/telperion-core/tests/growth_form.rs:71:5:
+expanding oak crown lost its juvenile foliage
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    expanding_oak_crown_keeps_leafed_shoots
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p telperion-core --test growth_form`

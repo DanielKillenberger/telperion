@@ -66,11 +66,11 @@ through growth at `family.age`. Each preset derives its default age from its
 final growth traits with `GrowthTraits::mature_age()` (oak 432 years, spruce
 158, Ordinary and the Two Trees 173); callers may override the requested age.
 The oak and spruce rates and shapes fit composed reference heights at three
-ages. Their DBH misses remain outside 15 percent and await owner judgment in
-the [FN30 report](.flow/evidence/fn30/REPORT.md). Ordinary and the Two Trees keep
-provisional growth traits without species age calibration. Preset shedding
-thresholds are zero because the current ageing vigour proxy strips mature
-wood at nonzero thresholds; FN30 records that defect and workaround.
+ages. The [FN31 report](.flow/evidence/fn31/REPORT.md) records the measured diameters,
+reference deviations and owner judgment slots. Ordinary and the Two Trees keep
+provisional growth traits without species age calibration. Their authored
+shedding threshold is restored to 0.45; oak and spruce retain zero by choice.
+A light-dependent vigour floor prevents exposed branches dying from age alone.
 
 ```rust
 use telperion_core::{branching::Specimen, presets::Preset};
@@ -111,10 +111,13 @@ advancing beyond it jumps directly to the requested age.
 
 Annual scaffold stations release their lateral buds while the parent axis is
 still extending. Boundary pauses leave the growth budget for eligible shoots;
-local terminal and lateral buds retain separate allocation state. Local runs
-plan against the authored room and wait at the current crown before each birth.
-The mature annual populations still differ substantially from the envelope
-builds; convergence and calibration remain unfinished.
+local terminal and lateral buds retain separate allocation state. Paused structural
+axes keep their terminal buds until extension finishes. Seedling height is
+introduced in year one; shoot steps and twig lengths are bounded by live height.
+Juvenile lateral recruitment fills the small crown. Local planning transitions
+from current room to authored room between one and two juvenile heights.
+Permanent axes retain the crown base according to `growth.crownBaseRetention`.
+The FN31 report compares mature populations and bounds with the previous build.
 
 Annual shoots retain birth/death years, terminal/lateral fate and year-stamped
 crown-depth vigour observations. `shoot.vigour()` reads the latest observation;
@@ -122,14 +125,19 @@ tolerance counters are retained in the same append-only event sequence.
 Attractor consumption likewise retains its first consumption year.
 The existing habit `sheddingThreshold` is the annual vigour threshold;
 `growth.sheddingTolerance` counts consecutive active years below it, in years.
-Equality resets the clock. The shell contributes to vigour, and a lit descendant
+Equality resets the clock. Vigour is exposure multiplied by
+`max(1 / (1 + rate * nodeAge), vigourFloor)`, with a default floor of 0.75.
+Shade still reduces exposure below the threshold. A lit descendant
 supports its ancestors. Each slice snapshots decisions before growth, sheds at
 most 32 subtrees in birth order, and protects the main structural leader.
 `growth.apicalControlLoss` weakens terminal control with age and releases lateral
 allocation. Its default is zero; the tolerance defaults to two years. These are
 uncalibrated numeric traits. Oak and spruce still have threshold zero.
 
-Surviving structural and local radii never decrease. Local allocations and taper
+Trunk scale multiplies live height by an age-dependent fraction from
+`juvenileRadius` to one. `thickeningDelay` and `thickeningShape` control that
+secondary thickening over the derived lifetime; the pipe-model fork split is
+unchanged. Surviving structural and local radii never decrease. Local allocations and taper
 are re-derived from current parents without changing twig lengths. Dead shoots
 leave the growth frontiers while their records remain. A cut invalidates only
 surviving pipe ancestor paths; local widths propagate from changed parents.
@@ -141,11 +149,12 @@ frame. Radii never decrease. One ten-year advance retains the same frames as ten
 yearly advances. Output radii still materialize once per advance, from the latest
 frames, and packing remains lazy.
 
-Integration is incomplete: `branching::generate`, `Specimen::grow`, mesh builds
-and the browser still use the existing full-envelope build. The JSON wire now
-round-trips and validates `age` and `growth` (`rate`, `shape`, `sheddingTolerance`,
-`apicalControlLoss`, `leafLifetime`, `resizeTolerance`); those fields
-currently affect only `Specimen::build`, not the full-envelope entry points.
+`branching::generate` and `Specimen::grow` retain the legacy full-envelope API.
+Production mesh builds and the browser use the annual growth path. The JSON wire
+round-trips and validates age and all numeric growth traits, including
+`seedlingHeight`, `shootStep`, `juvenileBranching`, `juvenileHeight`,
+`seedlingRadius`, `juvenileRadius`, `thickeningDelay`, `thickeningShape`,
+`crownBaseRetention` and `vigourFloor`; the blend walks every row.
 `Specimen::placements()` returns owned leaf transforms, each identified by its
 shoot's generational identity and station ordinal, before optional canopy shell
 culling. `growth.leafLifetime` is a numeric family trait: one year by default and
@@ -155,9 +164,11 @@ lifetime fills immediately; a longer lifetime fills over its first years and
 then holds the same station identities while the shoot lives. Wood above the
 twig anatomy's bearing diameter carries no foliage. Station randomness is keyed
 by shoot identity. Unchanged wood reuses its cached transforms; changes to radii
-or neighboring contact polygons re-derive only the affected shoots. This timeline
-foliage path is not yet used by production. Cohort persistence fixes the earlier
-bare mature crowns; the structural convergence and visual judgment remain open.
+or neighboring contact polygons re-derive only the affected shoots. Production uses this timeline
+foliage path. `seedlingRadius` also admits foliage on slender seedling stems,
+bounded by the same anatomy bearing diameter; shoots stop bearing as they thicken
+beyond the threshold.
+Visual judgment remains the owner’s.
 `Specimen::changes_between(from, to)` filters birth/death years, radius frames
 and cohort offsets in either direction. Growing advances use the same filter.
 Records carry exact keyframe radii and selected station transforms, including

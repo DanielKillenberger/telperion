@@ -82,7 +82,9 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     walk!(weighted: age, growth.rate, growth.shape,
         growth.shedding_tolerance, growth.apical_control_loss, growth.leaf_lifetime,
         growth.resize_tolerance, growth.vigour_floor, growth.juvenile_radius,
-        growth.thickening_delay, growth.thickening_shape, growth.crown_base_retention);
+        growth.thickening_delay, growth.thickening_shape, growth.crown_base_retention,
+        growth.seedling_height, growth.shoot_step, growth.juvenile_branching,
+        growth.juvenile_height, growth.seedling_radius);
     walk!(degrees:
         skeleton.habit.lateral_pitch, skeleton.habit.pitch_variation,
         skeleton.habit.crookedness,

@@ -1,0 +1,8 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 24.24s
+     Running `target/release/examples/fn31_sparse`
+rate=0.08 nodes=72466 moved=101509 born=36 resized=409
+rate=0.09 nodes=69218 moved=219442 born=105 resized=2264
+rate=0.1 nodes=70437 moved=21836 born=243 resized=169
+rate=0.12 nodes=69365 moved=880 born=17 resized=11

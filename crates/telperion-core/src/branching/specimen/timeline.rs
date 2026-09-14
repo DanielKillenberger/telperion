@@ -199,7 +199,8 @@ impl Specimen {
         let shed = self.environment(slice);
         #[cfg(test)]
         self.cost.stamp(0, &mut clock);
-        let fraction = self.timeline.as_ref().unwrap().traits.fraction(slice);
+        let traits = self.timeline.as_ref().unwrap().traits;
+        let fraction = traits.height_fraction(slice, self.params.envelope.height);
         let envelope = Envelope {
             height: self.params.envelope.height * fraction,
             ..self.params.envelope
@@ -213,12 +214,19 @@ impl Specimen {
         let released = self.params.habit.apical_dominance - params.habit.apical_dominance;
         params.habit.lateral_length_ratio += (1.0 - params.habit.lateral_length_ratio) * released;
         let config = GrowthConfig {
+            step_distance: self
+                .config
+                .step_distance
+                .min(envelope.height * traits.shoot_step),
             trunk_height: self.config.trunk_height * fraction,
             influence_radius: self.config.influence_radius * fraction,
             kill_distance: self.config.kill_distance * fraction,
             shell: Some(envelope),
             ..self.config
         };
+        // Crookedness is an angular change over the authored growth step.
+        // Centimetre seedling steps must not retain a mature step's bend.
+        params.habit.crookedness *= config.step_distance / self.config.step_distance;
         let bias = GrowthBias::new(envelope, params.seed, params.bias)?;
         let first = self.tree.crossover;
         let previous_len = self.tree.nodes.len();
@@ -259,7 +267,14 @@ impl Specimen {
         timeline.widths.invalidate();
         #[cfg(test)]
         self.cost.stamp(3, &mut clock);
-        let twigs = params.twigs.resolved()?;
+        let mut twigs = params.twigs.resolved()?;
+        twigs.limb_radius =
+            (twigs.limb_radius + traits.recruitment(slice, envelope.height)).min(1.0);
+        twigs.twig.length = twigs.twig.length.min(envelope.height * traits.shoot_step);
+        twigs.twig.diameter = twigs
+            .twig
+            .diameter
+            .min(2.0 * timeline.pipes.width(0).0 * twigs.length_ratio);
         let timeline = self.timeline.as_ref().unwrap();
         let widths = |tree: &Tree, i| timeline.widths.sample(tree, &timeline.pipes, i);
         self.local.reserve_tips(self.scaffold.growing_tips());
@@ -268,6 +283,15 @@ impl Specimen {
         #[cfg(test)]
         self.cost.stamp(4, &mut clock);
         let local_first = self.tree.nodes.len();
+        // Seedling shoots fill today's crown; larger crowns reserve room for
+        // continued extension. The transition is a height trait, not a species.
+        let future = (envelope.height / traits.juvenile_height.max(1e-6) - 1.0).clamp(0.0, 1.0);
+        let planning = Envelope {
+            height: envelope.height + (self.params.envelope.height - envelope.height) * future,
+            crown_base: self.params.envelope.crown_base
+                * (1.0 - future * (1.0 - fraction) * (1.0 - traits.crown_base_retention)),
+            ..envelope
+        };
         if !self.tree.diagnostics.node_capped {
             self.local.advance(
                 &mut self.tree,
@@ -279,11 +303,7 @@ impl Specimen {
                     }),
                     widths: Some(&widths),
                     growing_envelope: true,
-                    planning: Some(Envelope {
-                        crown_base: self.params.envelope.crown_base
-                            * (fraction + (1.0 - fraction) * timeline.traits.crown_base_retention),
-                        ..self.params.envelope
-                    }),
+                    planning: Some(planning),
                     config: &config,
                     bias: Some(&bias),
                     twigs,

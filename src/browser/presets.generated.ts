@@ -36,12 +36,17 @@ export interface Family {
   growth: {
   apicalControlLoss: number;
   crownBaseRetention: number;
+  juvenileBranching: number;
+  juvenileHeight: number;
   juvenileRadius: number;
   leafLifetime: number;
   rate: number;
   resizeTolerance: number;
+  seedlingHeight: number;
+  seedlingRadius: number;
   shape: number;
   sheddingTolerance: number;
+  shootStep: number;
   thickeningDelay: number;
   thickeningShape: number;
   vigourFloor: number;
@@ -198,12 +203,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "growth": {
         "apicalControlLoss": 0,
         "crownBaseRetention": 0,
+        "juvenileBranching": 4,
+        "juvenileHeight": 4,
         "juvenileRadius": 0.7,
         "leafLifetime": 1,
         "rate": 0.08,
         "resizeTolerance": 0.0001,
+        "seedlingHeight": 0.2,
+        "seedlingRadius": 0.006,
         "shape": 2,
         "sheddingTolerance": 2,
+        "shootStep": 0.2,
         "thickeningDelay": 0.1,
         "thickeningShape": 1.4,
         "vigourFloor": 0.75
@@ -358,12 +368,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "growth": {
         "apicalControlLoss": 0,
         "crownBaseRetention": 1,
+        "juvenileBranching": 4,
+        "juvenileHeight": 8,
         "juvenileRadius": 0.21,
         "leafLifetime": 1,
         "rate": 0.032,
         "resizeTolerance": 0.0001,
+        "seedlingHeight": 0.2,
+        "seedlingRadius": 0.006,
         "shape": 2,
         "sheddingTolerance": 2,
+        "shootStep": 0.2,
         "thickeningDelay": 0.1,
         "thickeningShape": 1.4,
         "vigourFloor": 0.75
@@ -518,12 +533,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "growth": {
         "apicalControlLoss": 0,
         "crownBaseRetention": 1,
-        "juvenileRadius": 0.76,
+        "juvenileBranching": 4,
+        "juvenileHeight": 4,
+        "juvenileRadius": 0.75,
         "leafLifetime": 6,
         "rate": 0.091,
         "resizeTolerance": 0.0001,
+        "seedlingHeight": 0.04,
+        "seedlingRadius": 0.01,
         "shape": 3.4,
         "sheddingTolerance": 2,
+        "shootStep": 0.2,
         "thickeningDelay": 0.1,
         "thickeningShape": 1.4,
         "vigourFloor": 0.75
@@ -678,12 +698,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "growth": {
         "apicalControlLoss": 0,
         "crownBaseRetention": 0,
+        "juvenileBranching": 4,
+        "juvenileHeight": 4,
         "juvenileRadius": 0.7,
         "leafLifetime": 1,
         "rate": 0.08,
         "resizeTolerance": 0.0001,
+        "seedlingHeight": 0.2,
+        "seedlingRadius": 0.006,
         "shape": 2,
         "sheddingTolerance": 2,
+        "shootStep": 0.2,
         "thickeningDelay": 0.1,
         "thickeningShape": 1.4,
         "vigourFloor": 0.75
@@ -838,12 +863,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "growth": {
         "apicalControlLoss": 0,
         "crownBaseRetention": 0,
+        "juvenileBranching": 4,
+        "juvenileHeight": 4,
         "juvenileRadius": 0.7,
         "leafLifetime": 1,
         "rate": 0.08,
         "resizeTolerance": 0.0001,
+        "seedlingHeight": 0.2,
+        "seedlingRadius": 0.006,
         "shape": 2,
         "sheddingTolerance": 2,
+        "shootStep": 0.2,
         "thickeningDelay": 0.1,
         "thickeningShape": 1.4,
         "vigourFloor": 0.75

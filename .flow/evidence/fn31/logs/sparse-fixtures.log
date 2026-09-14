@@ -1,0 +1,23 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 33.91s
+     Running unittests src/lib.rs (target/release/deps/telperion_core-667d8e26891ed866)
+
+running 2 tests
+test branching::specimen::interval::tests::sparse_spruce_projects_only_changed_contact_paths ... FAILED
+test branching::specimen::storage::tests::sparse_advance_updates_the_existing_packed_tree ... ok
+
+failures:
+
+---- branching::specimen::interval::tests::sparse_spruce_projects_only_changed_contact_paths stdout ----
+
+thread 'branching::specimen::interval::tests::sparse_spruce_projects_only_changed_contact_paths' (564091) panicked at crates/telperion-core/src/branching/specimen/interval/tests.rs:275:5:
+assertion failed: record.moved_placements.len() < 20_000
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    branching::specimen::interval::tests::sparse_spruce_projects_only_changed_contact_paths
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 132 filtered out; finished in 2.00s
+
+error: test failed, to rerun pass `-p telperion-core --lib`

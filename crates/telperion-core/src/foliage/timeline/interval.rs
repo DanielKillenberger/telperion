@@ -12,7 +12,9 @@ impl Foliage {
         self.canopy.surface_contact > 0.0
     }
     pub(crate) fn slender(&self, radius: f64) -> f64 {
-        (radius * self.canopy.shoot_radius).min(self.bearing_radius)
+        (radius * self.canopy.shoot_radius)
+            .max(self.seedling_radius)
+            .min(self.bearing_radius)
     }
 }
 

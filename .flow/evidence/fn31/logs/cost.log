@@ -1,0 +1,15 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 51.47s
+     Running unittests src/lib.rs (target/release/deps/telperion_core-667d8e26891ed866)
+
+running 1 test
+TOLERANCE preset=OregonWhiteOak tolerance=0.0001 sample=0 ms=2221.123899 nodes=19513 frames=1689773
+TOLERANCE preset=OregonWhiteOak tolerance=0.0001 sample=1 ms=2022.168415 nodes=19513 frames=1689773
+TOLERANCE preset=OregonWhiteOak tolerance=0.0001 sample=2 ms=2132.316304 nodes=19513 frames=1689773
+TOLERANCE preset=NorwaySpruce tolerance=0.0001 sample=0 ms=2552.432104 nodes=65604 frames=479756
+TOLERANCE preset=NorwaySpruce tolerance=0.0001 sample=1 ms=2483.965985 nodes=65604 frames=479756
+TOLERANCE preset=NorwaySpruce tolerance=0.0001 sample=2 ms=2399.395348 nodes=65604 frames=479756
+test branching::specimen::measurement::tolerance_cost_report ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 133 filtered out; finished in 14.23s
+

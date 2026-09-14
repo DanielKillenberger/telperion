@@ -73,6 +73,7 @@ pub(crate) struct Foliage {
     seed: u32,
     lifetime: Age,
     bearing_radius: f64,
+    seedling_radius: f64,
     #[cfg_attr(feature = "json", serde(skip))]
     cache: RefCell<Cache>,
 }
@@ -110,6 +111,7 @@ impl Foliage {
             seed: family.skeleton.seed,
             lifetime: Age::from_years(family.growth.leaf_lifetime)?,
             bearing_radius: family.skeleton.twigs.resolved()?.twig.bearing_diameter / 2.0,
+            seedling_radius: family.growth.seedling_radius,
             cache: RefCell::new(Cache::default()),
         })
     }
@@ -130,6 +132,7 @@ impl Foliage {
             seed: self.seed,
             lifetime: self.lifetime,
             bearing_radius: self.bearing_radius,
+            seedling_radius: self.seedling_radius,
             cache: RefCell::new(Cache::default()),
         }
         .read(tree, envelope, age)
@@ -231,10 +234,7 @@ impl Foliage {
     }
     fn living(&self, tree: &Tree, age: Age) -> Result<Vec<usize>> {
         let now = age.ticks();
-        let slender = tree
-            .nodes
-            .first()
-            .map_or(0.0, |n| n.radius * self.canopy.shoot_radius);
+        let slender = tree.nodes.first().map_or(0.0, |n| self.slender(n.radius));
         let mut live = Vec::new();
         for (i, n) in tree.nodes.iter().enumerate() {
             if n.parent.is_some()

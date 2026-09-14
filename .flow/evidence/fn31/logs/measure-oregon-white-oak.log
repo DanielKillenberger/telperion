@@ -1,0 +1,7 @@
+cargo run --release -p telperion-core --example growth_curve -- --preset oregon-white-oak --seed 7 --ages 1,10,26.7,56.1,112,200 --envelope
+    Blocking waiting for file lock on build directory
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 19.04s
+     Running `target/release/examples/growth_curve --preset oregon-white-oak --seed 7 --ages 1,10,26.7,56.1,112,200 --envelope`
+
+exit=0

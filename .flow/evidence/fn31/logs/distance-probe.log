@@ -1,0 +1,16 @@
+    Blocking waiting for file lock on build directory
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 47.44s
+     Running `target/release/examples/fn31_distance`
+VARIANT 0
+distance 2x resolution: mean 1.880608/255, p95 7.25/255
+distance 4x resolution: mean 3.523567/255, p95 11.00/255
+VARIANT 1
+distance 2x resolution: mean 1.844850/255, p95 7.00/255
+distance 4x resolution: mean 3.436033/255, p95 10.75/255
+VARIANT 2
+distance 2x resolution: mean 1.996917/255, p95 7.25/255
+distance 4x resolution: mean 3.656333/255, p95 11.00/255
+VARIANT 3
+distance 2x resolution: mean 1.572092/255, p95 5.50/255
+distance 4x resolution: mean 3.221017/255, p95 9.00/255

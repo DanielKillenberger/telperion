@@ -11,7 +11,10 @@ pub(in crate::branching) struct Clock {
 impl Clock {
     pub fn next(self, point: Vec3, trunk_height: f64) -> u64 {
         let live = Envelope {
-            height: self.envelope.height * self.traits.fraction(self.slice),
+            height: self.envelope.height
+                * self
+                    .traits
+                    .height_fraction(self.slice, self.envelope.height),
             ..self.envelope
         };
         let radial = point.x.hypot_fixed(point.z);
@@ -35,7 +38,9 @@ impl Clock {
         let mut hi = mature;
         while lo < hi {
             let mid = lo + (hi - lo) / 2;
-            if self.envelope.height * self.traits.fraction(mid) >= height {
+            if self.envelope.height * self.traits.height_fraction(mid, self.envelope.height)
+                >= height
+            {
                 hi = mid;
             } else {
                 lo = mid + 1;
@@ -106,7 +111,10 @@ mod tests {
     fn fixed_candidate_waits_until_the_crown_can_reach_it() {
         let clock = Clock {
             slice: 10,
-            traits: GrowthTraits::default(),
+            traits: GrowthTraits {
+                seedling_height: 0.0,
+                ..GrowthTraits::default()
+            },
             envelope: Envelope {
                 height: 2.0,
                 crown_base: 0.0,
@@ -183,7 +191,11 @@ mod frontier_tests {
 
     #[test]
     fn sleeping_terminal_receives_no_visits_and_wakes_at_crown_entry() {
-        let traits = GrowthTraits::default();
+        // This scheduler fixture explicitly uses the unshifted fraction below.
+        let traits = GrowthTraits {
+            seedling_height: 0.0,
+            ..GrowthTraits::default()
+        };
         let envelope = Envelope {
             height: 2.0,
             crown_base: 0.0,

@@ -150,6 +150,10 @@ mod tests {
         // Retain fn-11's schedule for this mechanism fixture, independent of calibration.
         f.growth.rate = 0.08;
         f.growth.shape = 2.0;
+        f.growth.juvenile_radius = 1.0;
+        f.growth.seedling_height = 0.0;
+        f.growth.juvenile_height = 0.0;
+        f.growth.crown_base_retention = 0.0;
         f.age = 65.0;
         let mut s = Specimen::build(&f).unwrap();
         assert!(s.tree().nodes.len() > 100_000);
