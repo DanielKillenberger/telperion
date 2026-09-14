@@ -52,7 +52,10 @@ const BANDS: [(&str, usize, usize); 5] = [
 // Those paths now move in this sweep. fn-31 restores nonzero shedding on
 // Ordinary and the Two Trees, so sheddingThreshold now moves too. Its shared
 // numeric growth traits enter this inventory once, recorded before the change
-// in fn31/CONVERGENCE.md. All blend and exact-set assertions remain intact.
+// in fn31/CONVERGENCE.md. Round 4 trades one entry for another: the spruce
+// authors its own juvenile shootStep, and every preset now flushes a shoot's
+// foliage in one season, so leafLifetime is the row no pair moves. All blend
+// and exact-set assertions remain intact.
 const HELD: [&str; 32] = [
     "/canopy/maxInstances",
     "/element/card",
@@ -60,9 +63,9 @@ const HELD: [&str; 32] = [
     "/element/curl",
     "/growth/apicalControlLoss",
     "/growth/juvenileBranching",
+    "/growth/leafLifetime",
     "/growth/sheddingTolerance",
     "/growth/resizeTolerance",
-    "/growth/shootStep",
     "/growth/thickeningDelay",
     "/growth/thickeningShape",
     "/growth/vigourFloor",

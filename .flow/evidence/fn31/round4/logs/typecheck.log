@@ -1,0 +1,14 @@
+
+> telperion@0.1.0 pretypecheck
+> npm run render:build
+
+
+> telperion@0.1.0 render:build
+> node scripts/build-render.mjs
+
+    Finished `release` profile [optimized] target(s) in 0.05s
+Built the renderer module and its glue into src/browser/render/.
+
+> telperion@0.1.0 typecheck
+> tsc --noEmit
+

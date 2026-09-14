@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]
 OUT=ROOT/'.flow/evidence/fn31'
 (OUT/'strips').mkdir(exist_ok=True)
-with (OUT/'round3/logs/capture.log').open('w') as log:
+with (OUT/'round4/logs/capture.log').open('w') as log:
  def run(cmd):
   log.write(' '.join(map(str,cmd))+'\n'); log.flush()
   r=subprocess.run(list(map(str,cmd)),cwd=ROOT,stdout=log,stderr=log)

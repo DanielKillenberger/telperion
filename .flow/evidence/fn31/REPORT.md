@@ -229,22 +229,187 @@ remain in `round3/gates-attempt1/gates.json`.
 | `npm test` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/npm-final.log` |
 | `npm run typecheck` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round3/logs/typecheck-final.log` |
 
+## Round 4: the young spruce, the distance fixture and the build cost
+
+Round 4 is a host round; the Codex bridge is out until its quota resets on
+2026-09-19, so Claude Opus implemented in this checkout. It took the three items
+the Round 3 note left open and nothing else. Round 3's evidence above stands as
+written; the numbers below supersede it where they overlap.
+
+### The young spruce reads as a needled sapling (R1)
+
+The five-year spruce was a bare stem and the fourteen-year one a bare whorled
+scaffold. Neither was short of shoots to hang needles on: the cause was the
+cohort schedule. `visible()` fills a shoot's stations over `leafLifetime` annual
+cohorts, so with the spruce's authored 6.0 a shoot showed one sixth of its
+needles in its first year and reached its full complement only in its sixth.
+Every shoot on a young spruce is younger than that, so the whole tree was
+starved while the mature tree - where every shoot is long past six years -
+looked right. The trait is the fill schedule, not a retention window: nothing in
+the rule expires a cohort. A spruce shoot flushes its needles in one season, so
+the spruce joins every other preset at `leafLifetime` 1.0.
+
+The second row is `shootStep`, the juvenile internode and twig length as a share
+of current height. At the 0.2 default a half-metre seedling takes 10 cm steps,
+so it holds about five internodes at any age and reads as a whip. Eight percent
+is the juvenile shoot of a Picea abies seedling and gives the same tree 172
+nodes instead of 44.
+
+| Preset | Age | Nodes | Laterals | Structural laterals | Placements |
+|---|---:|---:|---:|---:|---:|
+| norway-spruce | 1 | 14 | 1 | 0 | 25 |
+| norway-spruce | 2 | 49 | 31 | 0 | 125 |
+| norway-spruce | 3 | 98 | 59 | 0 | 320 |
+| norway-spruce | 5 | 172 | 92 | 0 | 1,095 |
+| norway-spruce | 8 | 266 | 145 | 5 | 3,622 |
+| norway-spruce | 10 | 416 | 229 | 20 | 11,546 |
+| norway-spruce | 14.1 | 3,555 | 2,152 | 377 | 252,407 |
+
+Against Round 3 that is 1,095 needle placements at year five where there were
+184, and 252,407 at year 14.1 where there were 78,487. The oak is untouched by
+both rows and its identity pin is byte-identical, so the ages the owner accepted
+at 1, 10 and 26.7 years are the same tree.
+
+One named deviation stands for the owner's judgment. At five years the spruce is
+a needled leader with short lateral shoots, not yet a whorled cone. A whorl is
+borne when the leader has grown `leaderInternode` (0.9 m), which a five-year
+seedling has not, and a lateral born below the authored crown base finds no room
+in the planning envelope, which is measured against the mature envelope while
+`crownBaseRetention` is 1.0. Dropping the spruce's retention to 0 does raise
+whorls from year four and lifts year 14.1 to 436k placements, but it also pulls
+the 14.1-year trunk diameter from -3.77 to -13.0 percent against the composed
+reference, and bounding the station spacing by the juvenile shoot as well takes
+it to -21.3 percent, outside R2. Round 4 kept the diameters.
+
+### Ratio and diameter at the fit ages, round 4
+
+Oak rows are unchanged from Round 3; only the spruce moved.
+
+| Preset | Age | Height m | DBH m | Reference DBH m | DBH deviation | H/DBH | Reference H/DBH | Ratio deviation |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| oregon-white-oak | 26.7 | 7.736033 | 0.057017819 | 0.064 | -10.91% | 135.677 | 125.0 | +8.54% |
+| oregon-white-oak | 56.1 | 16.692183 | 0.126274552 | 0.112 | +12.75% | 132.190 | 142.8 | -7.43% |
+| oregon-white-oak | 112 | 22.440165 | 0.221363284 | 0.236 | -6.20% | 101.373 | 101.8 | -0.42% |
+| norway-spruce | 14.1 | 4.837733 | 0.102006861 | 0.106 | -3.77% | 47.426 | 47.3 | +0.27% |
+| norway-spruce | 26.6 | 10.573251 | 0.230936299 | 0.203 | +13.76% | 45.784 | 49.3 | -7.13% |
+| norway-spruce | 36.9 | 12.934402 | 0.286952263 | 0.285 | +0.69% | 45.075 | 52.6 | -14.31% |
+
+R2 tolerance misses: none. The spruce ratio still falls with age - 47.4, 45.8,
+45.1, and 35.2 at the derived mature age.
+
+### The oak bark-distance fixture (diagnosed, not closed)
+
+The fixture's mask is a fixed 50x100 pixel strip at the image centre, described
+by its own comment as a trunk strip that excludes the silhouette. Rendering the
+4x pair at fn30's task base and at Round 3's rule and dumping the masked crop
+shows what changed: at fn30 the strip is solid trunk, and on Round 3's rule it
+holds the trunk's right silhouette edge, open background beyond it, and several
+branches crossing in front. The trunk is the same thickness in both - the
+maximum node radius between 1 and 2 m is 0.42124 m in each - but its path
+differs, so the fixed strip no longer sits inside it.
+
+Two measurements separate the contributions. With the bark relief zeroed and the
+same geometry the 4x mean is 2.078/255 of the 3.074 the measured fix below
+reaches; the rest is the bark field the test exists to measure. And the wood in
+the strip is far thinner than fn30's: the median node radius between 1 and 2 m
+is 0.0058 m on Round 3's rule against 0.0188 m at fn30, and between 2 and 3 m
+0.0035 m against 0.0106 m.
+
+That thinness is a unit defect, and it is the cause the item asked for. The
+planner reads the pipe allocation divided by the year's secondary scale and
+writes every radius multiplied by it again, which cancels for a pipe-derived
+width but not for `twig.diameter`, an anatomical width in metres. Every shoot
+born while the oak's `juvenileRadius` holds the scale at 0.21 is therefore
+written at 21 percent of its own twig anatomy, and the ratio frozen at birth
+carries that fifth all the way to maturity. Flooring new wood at its twig
+anatomy takes the fixture from 3.976417 mean / 14.50 p95 to 3.074167 / 11.75 at
+4x, and from 2.019375 / 7.75 to 1.317708 / 4.75 at 2x - the p95 inside its limit
+and the mean 2.5 percent over it.
+
+Round 4 did not ship that floor, because it collides with R5. Wood born five
+times thicker grows five times thicker, and the mature oak's radius keyframes
+rise from 7,153,119 to 18,616,203 with the idle build at 9.46 s. The owner has
+the choice: the anatomy fix and a much worse R5, or the present thin juvenile
+wood and a red fixture. A third path, clearing the bole so the strip is trunk
+again, was measured too - restoring a 0.45 shedding threshold on the oak sheds
+its bole shoots but costs 35 percent of the mature crown, 187,331 nodes to
+121,779, which is the density the owner asked to keep.
+
+### Mature build cost (R5)
+
+The keyframe eligibility index recorded one B-tree insert and a fresh allocation
+for every annual radius frame of every shoot - 5.2 million of them on the mature
+oak. It is an append-only vector now, sorted by width on the first read after a
+run of appends, which is stable and therefore hands a reader the same order the
+map did. Geometry is untouched: the same 7,153,119 frames, the same node counts,
+the oak's identity pin byte-identical.
+
+| Preset | Round 3 idle median ms | Round 4 idle median ms | fn30 ceiling ms | Difference ms |
+|---|---:|---:|---:|---:|
+| oregon-white-oak | 6885.527 | 4883.112 | 2463 | +2420.112 |
+| norway-spruce | 718.209 | 653.491 | 867 | -213.509 |
+
+Samples: oak 5024.022 / 4883.112 / 4402.334, spruce 677.191 / 653.491 / 649.403,
+one clean window, the GPU at 0 percent and the CPU 95.7 percent idle before the
+run. The spruce is inside its ceiling; the oak is not.
+
+The stage profile says where the rest is. Of 4,669 ms, the annual keyframe stage
+is 3,266 ms and local growth 1,186 ms; every other stage together is under 210
+ms. The keyframe stage is 7.15 million frames and 10.26 million width visits,
+each a handful of scattered slot-map and per-shoot-vector loads. The frame count
+is not an implementation choice: it is total radial growth divided by the
+0.0001 m resize tolerance, and R2's secondary thickening multiplies the growth
+fn30 never had. fn30's own oak records 1,996,669 frames for a larger crown of
+196,901 nodes, and its whole build profiles at 2,778 ms.
+
+Three levers exist and none is this round's to pull. Raising the resize
+tolerance is editing a tolerance to pass a gate. Thickening less fails R2. The
+third is structural and is the recommendation: a local shoot's width is already
+a pure function of its supporting structural width, its birth ratio and its
+birth floors - `Widths::sample` computes exactly that - so 6.6 million of the
+7.15 million frames are derivable and need never be materialized. Deriving them
+at read time would leave only the 528,525 structural frames to record, but it
+moves the change-record contract, where `resized_runs` is selected from recorded
+frames, onto the read path. That is a spec of its own rather than a fix inside
+this one.
+
+### Round 4 captures
+
+One full capture after the code checkpoint, one image viewed. Three 350x500
+previews preceded it. `CAPTURE.json` records round 4's hashes and dimensions for
+all 23 images; `round4/logs/capture.log` records the commands and exits, all 0.
+
+### Round 4 gates
+
+| Command | Exit code | Absolute log path |
+|---|---:|---|
+| `cargo fmt --all -- --check` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/fmt.log` |
+| `cargo clippy --workspace --all-targets -- -D warnings` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/clippy.log` |
+| `cargo test --release --workspace` | 101 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/workspace.log` |
+| `npm test` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/npm.log` |
+| `npm run typecheck` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/typecheck.log` |
+
+The workspace suite stops on one test, the oak bark-distance fixture diagnosed above.
+Every other test in the workspace passes, including the unchanged preset sweep, the
+survival and crown-retention fixtures and the moved spruce identity pin. `npm test`
+is 77 of 77 with native-to-wasm parity unchanged.
+
 ## Blocked
 
-The owner has not recorded a current R1 or R2 judgment. Both slots below remain
-empty. All six fit diameters are within 15 percent of fn30's composed references.
+The owner has not recorded a current R1 or R2 judgment; both slots below remain
+empty. All six fit diameters are within 15 percent of fn30's composed
+references.
 
-R5 is blocked by the clean idle oak median of 6,885.527 ms, exceeding 2,463 ms
-by 4,422.527 ms. Spruce is 718.209 ms against 867 ms. The oak records 7,153,119
-radius frames for its restored 187,331-node crown; the cost is recorded at the
-unchanged 0.0001 m radius tolerance. No second idle run was made.
+R5 is blocked by the clean idle oak median of 4,883.112 ms against 2,463 ms, cut
+from Round 3's 6,885.527 ms without moving geometry. The spruce is inside at
+653.491 ms against 867 ms. The Round 4 analysis above names the three levers and
+why none of them belongs to this round.
 
-The fixed oak distance fixture remains red at 4x. Its mean is 3.976417/255
-against 3.0 and p95 is 14.5/255 against 12.0. The 2x result passes at
-2.019375/255 mean and 7.75/255 p95. This remains a gate blocker, not an accepted
-change to its camera, mask, shader or tolerance. Both grazing masks and their
-resolution comparisons pass on the final rule. The final full gate exits above
-are authoritative for the remaining checks.
+The oak distance fixture is still red at 4x: 3.976417/255 mean against 3.0 and
+14.50/255 p95 against 12.0, unchanged, because the measured fix for it collides
+with R5. The 2x result passes at 2.019375 mean and 7.75 p95. No camera, mask,
+shader or tolerance moved. Every other renderer gate, both grazing masks and
+their resolution comparisons included, passes.
 
 ## Owner verdict
 

@@ -24,3 +24,80 @@ R1 and R2 stop on their own rules: both need the owner's recorded judgment, so `
 ## Round 3 — codex quota exhausted mid-round, 2026-09-14 12:07Z
 
 The owner reviewed round 2's strips and the live harness and did not accept R1: the ordinary tree was a leafed seedling at one year and a bare stick at two, the ten-year oak a stem coated in leaves with no laterals, the young spruce unchanged in kind, and the mature oak had lost ninety percent of its wood. Round 3 went into the same codex session with those four findings and a mature-density bound. Codex landed one checkpoint (8ff0b8c: yearly foliage retained on every preset, woody sapling laterals, primary extension planned before secondary thickening, crown room anchored at the supporting station, a taper inversion in the spruce-to-Telperion blend fixed) and was writing the second, the re-render, the re-pins and the report, when its usage limit hit; the limit resets 2026-09-19 16:27. The host committed that partial unit as it stood. On the new strips the oak reads as a leafed sapling at ten and twenty-six years and its mature crown is back to fn-30's density; the spruce at five and fourteen years is still a bare stem and a bare scaffold. Two blockers stand beside the owner's R1 and R2 verdicts: the oak bark-distance fixture still misses at 4x (mean 3.9764/255 against 3.0), so the workspace test gate is red, and the clean idle mature oak build costs 6,886 ms against fn-30's 2,463 ms ceiling, an R5 miss the rule change caused; the spruce builds in 718 ms. The next codex round, when quota returns, owns the spruce young ages, the distance fixture cause, and the oak build cost. Session id in .flow/tmp/fn-31.1-codex-session.
+
+## Round 4 — NEEDS_HUMAN, 2026-09-14
+
+Claude Opus implemented this round in the conductor's checkout; the Codex bridge
+is out until its quota resets on 2026-09-19. Three items were open and all three
+were taken to a measured end; one is fixed, one is diagnosed with its fix
+measured and withheld, one is cut by 29 percent and still misses. `flowctl done`
+was not run: R1 and R2 still need the owner's recorded judgment, R5 still misses
+its ceiling and the oak distance fixture is still red, so the workspace test gate
+is red. Commits `5556f8f..HEAD` on branch
+`fn-31-growth-rule-sapling-form-thickening-by`; the round's evidence is in
+`.flow/evidence/fn31/REPORT.md` under `## Round 4`, with the convergence record
+in `CONVERGENCE.md`, the gates in `round4/gates.json` and the capture hashes in
+`CAPTURE.json`.
+
+**The young spruce is fixed, as two numeric rows.** The five-year spruce was
+bare because `visible()` fills a shoot's needle stations over `leafLifetime`
+annual cohorts and the spruce authored 6.0, so every shoot on a young tree
+showed a fraction of its needles while the mature tree, whose shoots are all
+past six years, looked right. Nothing in the rule expires a cohort, so the trait
+is a fill schedule and not a retention window; a spruce shoot flushes in one
+season and the spruce joins every other preset at 1.0. `shootStep` falls from
+the 0.2 default to 0.08 so a juvenile's internode is its own shoot rather than a
+fifth of its height. Year five carries 1,095 needle placements against 184 and
+172 nodes against 44; year 14.1 carries 252,407 against 78,487. The oak is
+untouched by both rows and its identity pin is byte-identical, so 1, 10 and 26.7
+years are the same tree the owner has already seen. One deviation is named for
+the owner: at five years the spruce is a needled leader with short laterals, not
+a whorled cone, because a whorl waits on 0.9 m of leader growth and a lateral
+below the authored crown base finds no planning room. Both measured ways to
+raise those whorls pull the 14.1-year trunk diameter to -13.0 and -21.3 percent
+against the composed reference, the second outside R2, so the diameters were
+kept.
+
+**The oak distance fixture has its cause and a measured fix the owner must
+weigh.** The planner reads the pipe allocation divided by the year's secondary
+scale and writes each radius multiplied by it again. That cancels for a
+pipe-derived width but not for `twig.diameter`, an anatomical width in metres,
+so every shoot born while the oak's `juvenileRadius` holds the scale at 0.21 is
+written at a fifth of its own twig anatomy and the birth ratio carries that fifth
+to maturity — the wood in the fixture's mask has a median radius of 0.0035 m
+where fn30's is 0.0106 m, which is sub-pixel at 4x. Flooring new wood at its twig
+anatomy takes the fixture from 3.976417 mean / 14.50 p95 to 3.074167 / 11.75 at
+4x and from 2.019375 / 7.75 to 1.317708 / 4.75 at 2x, p95 inside and mean 2.5
+percent over. It was not shipped: wood born five times thicker grows five times
+thicker, and the mature oak's radius keyframes go from 7.15 to 18.6 million with
+the idle build at 9.46 s, which is R5 three times worse. Two further findings
+belong with that choice. The fixture's mask, its own comment says, is a trunk
+strip that excludes the silhouette; on fn30's geometry it is solid trunk and on
+this rule it holds the trunk's right silhouette edge, open background and
+branches crossing in front — the trunk is the same thickness, its path differs.
+And with the bark relief zeroed the 4x mean is 2.078 of the 3.074, so two thirds
+of what is left after the fix is geometry edges, not the bark field the test
+exists to measure.
+
+**R5 is cut but not met.** The keyframe eligibility index paid a B-tree insert
+and a fresh allocation for every annual radius frame of every shoot, 5.2 million
+of them on the mature oak; it is an append-only vector sorted on the first read
+after a run of appends, stable, so a reader sees the order the map gave. The
+idle oak median falls from 6,885.527 ms to 4,883.112 ms against the 2,463 ms
+ceiling with byte-identical geometry, and the spruce to 653.491 ms inside its
+867 ms. The remaining cost is not an implementation choice: the annual keyframe
+stage is 3,266 ms of 4,669 and its frame count is total radial growth divided by
+the 0.0001 m resize tolerance, which R2's secondary thickening multiplies over
+the growth fn30 never had. Raising the tolerance is editing a tolerance to pass a
+gate; thickening less fails R2. The third lever is the recommendation and is a
+spec of its own: a local shoot's width is already a pure function of its
+supporting structural width and its birth ratio and floors, so 6.6 of the 7.15
+million frames are derivable and need never be materialized — but moving them to
+the read path moves the change-record contract with them.
+
+Decisions for the owner, all in `REPORT.md` under `## Owner verdict`: R1, whether
+the two strips beside fn30's read as saplings that continue into the same tree,
+with the five-year spruce's missing whorl named above; R2, which young-age
+diameter reference is accepted; and the new fork, whether the oak's twig anatomy
+is fixed at the cost of R5, or R5 is pursued through the derived-width spec and
+the fixture stays red until then.

@@ -1,0 +1,27 @@
+[
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit": 0,
+    "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/fmt.log"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit": 0,
+    "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/clippy.log"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "exit": 101,
+    "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/workspace.log"
+  },
+  {
+    "command": "npm test",
+    "exit": 0,
+    "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/npm.log"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit": 0,
+    "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/round4/logs/typecheck.log"
+  }
+]

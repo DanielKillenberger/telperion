@@ -1,13 +1,13 @@
 {
-  "round": 3,
+  "round": 4,
   "status": "complete",
-  "code_commit": "8ff0b8c5ca890d094940f397e8143b8ab341943e",
+  "code_commit": "1d59ba5471239f353876cb453736f6ca6ec4f1f9",
   "renderer": "native NVIDIA GeForce RTX 3080",
   "seed": 7,
-  "samples": 4,
+  "samples": 3,
   "full_captures": 1,
   "full_images_viewed": 0,
-  "small_images_viewed": 4,
+  "small_images_viewed": 3,
   "render_exit_codes": [
     0,
     0,
@@ -25,9 +25,7 @@
     0,
     0,
     0,
-    0
-  ],
-  "montage_exit_codes": [
+    0,
     0,
     0,
     0,
@@ -117,78 +115,78 @@
       "path": ".flow/evidence/fn31/strips/norway-spruce-age-1.png",
       "width": 700,
       "height": 1000,
-      "bytes": 36908,
-      "sha256": "0fb5775c74517c1c4a1223e75f925bbc76295ea3a02db5bafb0fff907cfce5a1"
+      "bytes": 128007,
+      "sha256": "454b15994866b66908ef52bc28bc498f6f043cb8fa1f14bf33afe97e975603a6"
     },
     {
       "path": ".flow/evidence/fn31/strips/norway-spruce-age-5.png",
       "width": 700,
       "height": 1000,
-      "bytes": 49891,
-      "sha256": "a721e70e67f14d7c02eb1a6132f399d880cfc13389bfd74d3e05bdc09917324e"
+      "bytes": 121448,
+      "sha256": "3f2b3eb68f03e2e71aaf61e020f117a53b69603068ee215f6f3d2c11aeb5e966"
     },
     {
       "path": ".flow/evidence/fn31/strips/norway-spruce-age-14.1.png",
       "width": 700,
       "height": 1000,
-      "bytes": 369943,
-      "sha256": "92376eb015478ace9aeb04a35065eee726f972f2a1b80f7d195e6c7ed49ef7fc"
+      "bytes": 410607,
+      "sha256": "dd3f4e077f037c5567cfa0c5f74ea2ffd5cc06b178a03c12cce8868a324a9eeb"
     },
     {
       "path": ".flow/evidence/fn31/strips/norway-spruce-age-26.6.png",
       "width": 700,
       "height": 1000,
-      "bytes": 565080,
-      "sha256": "2be148f98d2754f7c6ff0db8149cfc99346077a58149f901049c53443cf2258a"
+      "bytes": 590910,
+      "sha256": "e652d998b27800aba3a3745baaaa9ba047fc36d98fe8dba0478708e86a452e23"
     },
     {
       "path": ".flow/evidence/fn31/strips/norway-spruce-age-36.9.png",
       "width": 700,
       "height": 1000,
-      "bytes": 569693,
-      "sha256": "88034be49285af22765278d6038ec4b8963f75f02f8311cd287c78942df0682d"
+      "bytes": 575721,
+      "sha256": "d5cd343f39a5215435126067e33127c87fc4fc464ec8b7255ad937d924256e92"
     },
     {
       "path": ".flow/evidence/fn31/strips/norway-spruce-age-60.png",
       "width": 700,
       "height": 1000,
-      "bytes": 461946,
-      "sha256": "8500ce4b71f94b17ce11d19ab4c109745ed6292c9e8cfd097a5a501214560c17"
+      "bytes": 463115,
+      "sha256": "ddc050984a83250e8a0a82c03c5f1bc281693c036aaeab52df3826b61c4fbd24"
     },
     {
       "path": ".flow/evidence/fn31/strips/norway-spruce-age-158.png",
       "width": 700,
       "height": 1000,
-      "bytes": 450895,
-      "sha256": "ecbfc69f1146bbfbb091722ac814f8c00405dfb94d7990cb270912d4f6dc7896"
+      "bytes": 446976,
+      "sha256": "714ad04d7aa8f3d5a64f07ba202cc146cab94dd512c91b91ad7edbeb21533b0d"
     },
     {
       "path": ".flow/evidence/fn31/strips/norway-spruce-strip.png",
       "width": 4956,
       "height": 1000,
-      "bytes": 2325446,
-      "sha256": "a3287430eb771df9294a4196429d3dc369b4ab29acd75d29e050ec12f445a38b"
+      "bytes": 2569925,
+      "sha256": "8c0b0aa492b01ab6ddc685f4cc44314a1e194955b195aba29e8d0754a264b651"
     },
     {
       "path": ".flow/evidence/fn31/norway-spruce-hero.png",
       "width": 1600,
       "height": 1000,
-      "bytes": 476519,
-      "sha256": "a5f794bbae6205e36b9ae1455e51a5a2c04baae69597cb2ac1e8c27468c02077"
+      "bytes": 472314,
+      "sha256": "8a2df42e4cabf8d333d6fee5da8fe357a7207e8b97989583d7e599e60bbc6d6a"
     },
     {
       "path": ".flow/evidence/fn31/norway-spruce-beside-fn30.png",
       "width": 3216,
       "height": 1000,
-      "bytes": 885283,
-      "sha256": "8d49997610b0089bb0804234d2aad8601a7c10732bcfa2168d55977440dc079b"
+      "bytes": 882517,
+      "sha256": "70f0a956877dee490bc3cfebecbc77594b35f70c4c4e414d0d6ab86e9747a26c"
     },
     {
       "path": ".flow/evidence/fn31/norway-spruce-strips-beside-fn30.png",
       "width": 4956,
       "height": 2016,
-      "bytes": 4773106,
-      "sha256": "4285b312e11c527cc37034d68de41cb1f4dada1d118cb779a0d4e376e971e616"
+      "bytes": 5017833,
+      "sha256": "c4fae40fbaed36fdaac9d10302ea4d48e78d41b44a5c65fed4bba0f6d8c20f48"
     },
     {
       "path": ".flow/evidence/fn24/ordinary-hero.png",
