@@ -1,0 +1,55 @@
+{
+  "reference": "B-BARE",
+  "foliage": "hidden",
+  "photograph": {
+    "box_px": [
+      0,
+      0,
+      267,
+      360
+    ],
+    "width_over_height": 0.7417,
+    "fill": 0.9,
+    "crown_base": 0.25,
+    "occupied": 0.2813,
+    "centre": {
+      "rgb": [
+        104.2,
+        103.2,
+        92.4
+      ],
+      "order": "RGB",
+      "mean": 99.9
+    }
+  },
+  "still": {
+    "box_px": [
+      0,
+      0,
+      481,
+      694
+    ],
+    "width_over_height": 0.6931,
+    "fill": 0.9639,
+    "crown_base": 0.2569,
+    "occupied": 0.3125,
+    "centre": {
+      "rgb": [
+        145.2,
+        155.1,
+        166.7
+      ],
+      "order": "BGR",
+      "mean": 155.7
+    }
+  },
+  "method": {
+    "photograph": "tree box and crown base from the record, read by eye; occupied is the dark-pixel fraction of the box",
+    "still": "tree mask is what stands out of the row background under both suns; occupied is the mask's share of its box"
+  },
+  "pair": {
+    "path": ".flow/evidence/fn34/measure/pairs/european-beech-1-B-BARE-pair.png",
+    "sha256": "668d55d5669bf986277945570a2df91d9c7f225e9be01fee9c6c66df5e880f0f"
+  },
+  "still_sha256": "ebecc9742821fb848e5096135fe207b3883e3b4531654e765264451788175b7c"
+}

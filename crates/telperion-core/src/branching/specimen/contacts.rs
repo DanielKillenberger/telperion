@@ -198,6 +198,8 @@ mod tests {
             crate::presets::Preset::Ordinary,
             crate::presets::Preset::OregonWhiteOak,
             crate::presets::Preset::NorwaySpruce,
+            crate::presets::Preset::EuropeanBeech,
+            crate::presets::Preset::SilverBirch,
             crate::presets::Preset::Telperion,
             crate::presets::Preset::Laurelin,
         ] {

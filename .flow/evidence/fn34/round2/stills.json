@@ -1,0 +1,67 @@
+{
+  "round": 2,
+  "rendered_at": "2026-09-14",
+  "commit_note": "fn-36 matched stills at the first fixed seed; pairs and stills stay on disk under the ignored measure/ directory, recorded here by sha256",
+  "pairs": [
+    {
+      "case": "european-beech-1-B",
+      "reference": "B-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs/european-beech-1-B-BARE-pair.png",
+      "pair_sha256": "668d55d5669bf986277945570a2df91d9c7f225e9be01fee9c6c66df5e880f0f",
+      "still_sha256": "ebecc9742821fb848e5096135fe207b3883e3b4531654e765264451788175b7c",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "european-beech-1-B",
+      "reference": "B-BASE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs/european-beech-1-B-BASE-pair.png",
+      "pair_sha256": "291fe68abf2fcd9ce3ae708df6c3d39369494fde709b62cc9e82d67efe81e427",
+      "still_sha256": "dbb49351843b5e83959f6415799409e88951acb777209a9c67ad0f75b7658eb3",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "european-beech-1-B",
+      "reference": "B-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs/european-beech-1-B-WHOLE-pair.png",
+      "pair_sha256": "584902b31ffcc6c0ed166942f8ddf0aac988fcad662bc302c68a1742a2d0b9c1",
+      "still_sha256": "c33f0f92fe9f41571348f50677dd3c706b3f6303aaecc2c3b4ffaf4e7bd09db3",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "c13a7c46d7b7d0acf2f7162ee08812a2197e1a645b1e723ef10038ecd8a1a3f0",
+      "still_sha256": "027324c7356b2f4bf0aa697262d71a4b23abbd9c9b1593765f52e5729b4a49ae",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "c5ecf065f878f8290b001fc1a25c3e084da57153c97303aadd7de43c0073fcb2",
+      "still_sha256": "481ce6e1ed4d7df489f6355d5b6afaf6a125039140fe2f7ea24fadccaab1b60a",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "4841f3d00792bc1fda5d4431618a41dcd07cbeffbc145372bd2d6eaceb18eb0f",
+      "still_sha256": "217df38498c23cb37c52a35e5e68c5c098bbbbedecaffd07049d3dd696dd55c8",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

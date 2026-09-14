@@ -1,0 +1,962 @@
+[
+  {
+    "id": "european-beech-1",
+    "preset": "european-beech",
+    "seed": 1,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 31.160338844053456,
+    "dbh_m": 0.87443477489938,
+    "crown_width_m": 31.602150135537673,
+    "foliage_length_m": {
+      "min": 0.056000003444387825,
+      "max": 0.08399999722685578,
+      "median": 0.07003123089452323
+    },
+    "foliage_width_m": {
+      "min": 0.03574311018203876,
+      "max": 0.053614656674058035,
+      "median": 0.04469881768655183
+    }
+  },
+  {
+    "id": "european-beech-2",
+    "preset": "european-beech",
+    "seed": 2,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 30.571760655551977,
+    "dbh_m": 0.87443477489938,
+    "crown_width_m": 31.977364409396543,
+    "foliage_length_m": {
+      "min": 0.05600001908946168,
+      "max": 0.08399991853855868,
+      "median": 0.06999062884641884
+    },
+    "foliage_width_m": {
+      "min": 0.035743118786518556,
+      "max": 0.053614608845193534,
+      "median": 0.04467290359776355
+    }
+  },
+  {
+    "id": "european-beech-3",
+    "preset": "european-beech",
+    "seed": 3,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 30.539858342673785,
+    "dbh_m": 0.8744347748993802,
+    "crown_width_m": 31.5890822174472,
+    "foliage_length_m": {
+      "min": 0.05600004972244351,
+      "max": 0.08399999685913105,
+      "median": 0.0700252973542026
+    },
+    "foliage_width_m": {
+      "min": 0.03574313837254083,
+      "max": 0.05361465875261693,
+      "median": 0.04469503241716222
+    }
+  },
+  {
+    "id": "european-beech-5",
+    "preset": "european-beech",
+    "seed": 5,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 30.60545887088441,
+    "dbh_m": 0.87443477489938,
+    "crown_width_m": 31.9807856815777,
+    "foliage_length_m": {
+      "min": 0.05600004569140656,
+      "max": 0.08399999639837502,
+      "median": 0.06999142695216459
+    },
+    "foliage_width_m": {
+      "min": 0.0357431360963793,
+      "max": 0.053614658658407956,
+      "median": 0.04467341450977508
+    }
+  },
+  {
+    "id": "european-beech-8",
+    "preset": "european-beech",
+    "seed": 8,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 31.40516165154363,
+    "dbh_m": 0.87443477489938,
+    "crown_width_m": 31.740759006571622,
+    "foliage_length_m": {
+      "min": 0.05600000953876985,
+      "max": 0.08399999935132235,
+      "median": 0.06997911945498483
+    },
+    "foliage_width_m": {
+      "min": 0.03574311537398361,
+      "max": 0.0536146594927622,
+      "median": 0.044665556506695805
+    }
+  },
+  {
+    "id": "european-beech-13",
+    "preset": "european-beech",
+    "seed": 13,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 31.230079665728983,
+    "dbh_m": 0.8744347748993802,
+    "crown_width_m": 31.48787266340669,
+    "foliage_length_m": {
+      "min": 0.056000008565015275,
+      "max": 0.08399999969972222,
+      "median": 0.07000361407886616
+    },
+    "foliage_width_m": {
+      "min": 0.03574311200217793,
+      "max": 0.05361465819216045,
+      "median": 0.04468119211861014
+    }
+  },
+  {
+    "id": "european-beech-21",
+    "preset": "european-beech",
+    "seed": 21,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 31.848902938383276,
+    "dbh_m": 0.8744347748993803,
+    "crown_width_m": 31.725902790653443,
+    "foliage_length_m": {
+      "min": 0.0560000104238029,
+      "max": 0.08399999999853713,
+      "median": 0.07000687782924725
+    },
+    "foliage_width_m": {
+      "min": 0.03574311430450069,
+      "max": 0.05361466056781582,
+      "median": 0.044683273338617616
+    }
+  },
+  {
+    "id": "european-beech-34",
+    "preset": "european-beech",
+    "seed": 34,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 31.779951589375507,
+    "dbh_m": 0.8744347748993799,
+    "crown_width_m": 31.902447595544952,
+    "foliage_length_m": {
+      "min": 0.05600005561433939,
+      "max": 0.08399994960372775,
+      "median": 0.07001547688413554
+    },
+    "foliage_width_m": {
+      "min": 0.035743143012037945,
+      "max": 0.05361462917577771,
+      "median": 0.04468876321283413
+    }
+  },
+  {
+    "id": "european-beech-55",
+    "preset": "european-beech",
+    "seed": 55,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 31.371179506171174,
+    "dbh_m": 0.87443477489938,
+    "crown_width_m": 31.64446945187266,
+    "foliage_length_m": {
+      "min": 0.05600000566173355,
+      "max": 0.08399997209164127,
+      "median": 0.07001600068992483
+    },
+    "foliage_width_m": {
+      "min": 0.035743112487243316,
+      "max": 0.05361464644270384,
+      "median": 0.04468909621596153
+    }
+  },
+  {
+    "id": "european-beech-89",
+    "preset": "european-beech",
+    "seed": 89,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 30.315389367621666,
+    "dbh_m": 0.8744347748993802,
+    "crown_width_m": 32.02606903016218,
+    "foliage_length_m": {
+      "min": 0.05600008959388005,
+      "max": 0.08399996634705768,
+      "median": 0.0699969484992411
+    },
+    "foliage_width_m": {
+      "min": 0.0357431673724635,
+      "max": 0.05361463785083536,
+      "median": 0.044676936263915126
+    }
+  },
+  {
+    "id": "european-beech-144",
+    "preset": "european-beech",
+    "seed": 144,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 31.41669692978066,
+    "dbh_m": 0.8744347748993799,
+    "crown_width_m": 31.744373008138282,
+    "foliage_length_m": {
+      "min": 0.056000062464355016,
+      "max": 0.08399999178169085,
+      "median": 0.07000700836423024
+    },
+    "foliage_width_m": {
+      "min": 0.03574314892331057,
+      "max": 0.05361465609013604,
+      "median": 0.0446833590210481
+    }
+  },
+  {
+    "id": "european-beech-233",
+    "preset": "european-beech",
+    "seed": 233,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 31.397713958108803,
+    "dbh_m": 0.8744347748993802,
+    "crown_width_m": 32.017353714603345,
+    "foliage_length_m": {
+      "min": 0.056000012949406264,
+      "max": 0.08399994387323373,
+      "median": 0.07001072979565122
+    },
+    "foliage_width_m": {
+      "min": 0.03574311588754951,
+      "max": 0.05361462916282067,
+      "median": 0.04468573321973859
+    }
+  },
+  {
+    "id": "european-beech-2073704155",
+    "preset": "european-beech",
+    "seed": 2073704155,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 31.48187701060579,
+    "dbh_m": 0.8744347748993803,
+    "crown_width_m": 31.866096276642992,
+    "foliage_length_m": {
+      "min": 0.05600000634297262,
+      "max": 0.08399999853627256,
+      "median": 0.07000295258518044
+    },
+    "foliage_width_m": {
+      "min": 0.03574311375340186,
+      "max": 0.053614659714907524,
+      "median": 0.0446807689437365
+    }
+  },
+  {
+    "id": "european-beech-2669371334",
+    "preset": "european-beech",
+    "seed": 2669371334,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 30.10733364449195,
+    "dbh_m": 0.87443477489938,
+    "crown_width_m": 31.863043497649425,
+    "foliage_length_m": {
+      "min": 0.05600003435373068,
+      "max": 0.08399998798731853,
+      "median": 0.06999162719118192
+    },
+    "foliage_width_m": {
+      "min": 0.03574312968707158,
+      "max": 0.05361465201502479,
+      "median": 0.04467354009006992
+    }
+  },
+  {
+    "id": "european-beech-2043853165",
+    "preset": "european-beech",
+    "seed": 2043853165,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 30.880141835975216,
+    "dbh_m": 0.8744347748993802,
+    "crown_width_m": 31.655451172752255,
+    "foliage_length_m": {
+      "min": 0.05600000524343226,
+      "max": 0.08399999684226922,
+      "median": 0.06996760375599194
+    },
+    "foliage_width_m": {
+      "min": 0.03574311137157115,
+      "max": 0.05361465922253563,
+      "median": 0.04465820595023289
+    }
+  },
+  {
+    "id": "european-beech-4113210537",
+    "preset": "european-beech",
+    "seed": 4113210537,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 29.976361430200235,
+    "dbh_m": 0.8744347748993802,
+    "crown_width_m": 31.234074236719778,
+    "foliage_length_m": {
+      "min": 0.05600009301019116,
+      "max": 0.08399999377473165,
+      "median": 0.06999488397123643
+    },
+    "foliage_width_m": {
+      "min": 0.03574316718822436,
+      "max": 0.05361465785405733,
+      "median": 0.044675619472679576
+    }
+  },
+  {
+    "id": "european-beech-2181184680",
+    "preset": "european-beech",
+    "seed": 2181184680,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 31.231013352023915,
+    "dbh_m": 0.87443477489938,
+    "crown_width_m": 31.719911034485627,
+    "foliage_length_m": {
+      "min": 0.056000091832032764,
+      "max": 0.0839998725704403,
+      "median": 0.06999439741863088
+    },
+    "foliage_width_m": {
+      "min": 0.03574316586527473,
+      "max": 0.05361458049931264,
+      "median": 0.04467530937969581
+    }
+  },
+  {
+    "id": "european-beech-3477649418",
+    "preset": "european-beech",
+    "seed": 3477649418,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 31.347265811838273,
+    "dbh_m": 0.87443477489938,
+    "crown_width_m": 31.85005726277903,
+    "foliage_length_m": {
+      "min": 0.05600005786392123,
+      "max": 0.08399997424303937,
+      "median": 0.07001046481128406
+    },
+    "foliage_width_m": {
+      "min": 0.03574314596432422,
+      "max": 0.05361464457956038,
+      "median": 0.04468556441676966
+    }
+  },
+  {
+    "id": "european-beech-3250336436",
+    "preset": "european-beech",
+    "seed": 3250336436,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 31.7237466645858,
+    "dbh_m": 0.8744347748993803,
+    "crown_width_m": 31.817147182293,
+    "foliage_length_m": {
+      "min": 0.056000002682976946,
+      "max": 0.08399989900045818,
+      "median": 0.06999800337482161
+    },
+    "foliage_width_m": {
+      "min": 0.035743108826227186,
+      "max": 0.05361459658723457,
+      "median": 0.04467760916705665
+    }
+  },
+  {
+    "id": "european-beech-2779011501",
+    "preset": "european-beech",
+    "seed": 2779011501,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 30.982545433006493,
+    "dbh_m": 0.8744347748993799,
+    "crown_width_m": 31.843632487901147,
+    "foliage_length_m": {
+      "min": 0.05600001588856764,
+      "max": 0.08400000275223482,
+      "median": 0.06998230414489025
+    },
+    "foliage_width_m": {
+      "min": 0.03574311704471351,
+      "max": 0.0536146635601385,
+      "median": 0.044667591156738594
+    }
+  },
+  {
+    "id": "european-beech-427532497",
+    "preset": "european-beech",
+    "seed": 427532497,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 30.492308660529922,
+    "dbh_m": 0.8744347748993802,
+    "crown_width_m": 31.710952346875807,
+    "foliage_length_m": {
+      "min": 0.056000035357400134,
+      "max": 0.08399998676650297,
+      "median": 0.0699947139028754
+    },
+    "foliage_width_m": {
+      "min": 0.035743131590420744,
+      "max": 0.053614654733262324,
+      "median": 0.04467551100989924
+    }
+  },
+  {
+    "id": "european-beech-177247415",
+    "preset": "european-beech",
+    "seed": 177247415,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 31.49702262878418,
+    "dbh_m": 0.8744347748993802,
+    "crown_width_m": 31.740696343791882,
+    "foliage_length_m": {
+      "min": 0.056000007235582114,
+      "max": 0.08399989423396252,
+      "median": 0.07000893516561109
+    },
+    "foliage_width_m": {
+      "min": 0.03574311249133084,
+      "max": 0.05361459078986644,
+      "median": 0.04468458647682961
+    }
+  },
+  {
+    "id": "european-beech-3691504844",
+    "preset": "european-beech",
+    "seed": 3691504844,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 31.318363949301023,
+    "dbh_m": 0.87443477489938,
+    "crown_width_m": 31.428432363160525,
+    "foliage_length_m": {
+      "min": 0.056000087784839586,
+      "max": 0.0839999794664737,
+      "median": 0.07002320433645444
+    },
+    "foliage_width_m": {
+      "min": 0.035743164712011985,
+      "max": 0.053614652074702375,
+      "median": 0.04469369575107475
+    }
+  },
+  {
+    "id": "european-beech-2918170231",
+    "preset": "european-beech",
+    "seed": 2918170231,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 30.958552104691343,
+    "dbh_m": 0.8744347748993802,
+    "crown_width_m": 32.03210872199203,
+    "foliage_length_m": {
+      "min": 0.05600002112498567,
+      "max": 0.08399998895478471,
+      "median": 0.0700300416900006
+    },
+    "foliage_width_m": {
+      "min": 0.03574312157085871,
+      "max": 0.05361465601771852,
+      "median": 0.04469805901202228
+    }
+  },
+  {
+    "id": "silver-birch-1",
+    "preset": "silver-birch",
+    "seed": 1,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 14.923147634948037,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 13.719377807626746,
+    "foliage_length_m": {
+      "min": 0.04400018991060704,
+      "max": 0.06599994371141746,
+      "median": 0.05503971003832772
+    },
+    "foliage_width_m": {
+      "min": 0.03571950558157837,
+      "max": 0.053578981610042015,
+      "median": 0.04468142321178102
+    }
+  },
+  {
+    "id": "silver-birch-2",
+    "preset": "silver-birch",
+    "seed": 2,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 14.620555207908993,
+    "dbh_m": 0.3447343157579411,
+    "crown_width_m": 13.274302022004111,
+    "foliage_length_m": {
+      "min": 0.0440000121812927,
+      "max": 0.06599993092039055,
+      "median": 0.055007352963009355
+    },
+    "foliage_width_m": {
+      "min": 0.03571936085232896,
+      "max": 0.05357897300882239,
+      "median": 0.044655157322277816
+    }
+  },
+  {
+    "id": "silver-birch-3",
+    "preset": "silver-birch",
+    "seed": 3,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 14.77923831604256,
+    "dbh_m": 0.34473431575794117,
+    "crown_width_m": 13.044088904648474,
+    "foliage_length_m": {
+      "min": 0.044000071825238914,
+      "max": 0.06599998177129571,
+      "median": 0.05499187330282469
+    },
+    "foliage_width_m": {
+      "min": 0.035719409672637835,
+      "max": 0.05357901323960707,
+      "median": 0.04464258967550537
+    }
+  },
+  {
+    "id": "silver-birch-5",
+    "preset": "silver-birch",
+    "seed": 5,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 14.626188240257731,
+    "dbh_m": 0.3447343157579411,
+    "crown_width_m": 13.307956330416715,
+    "foliage_length_m": {
+      "min": 0.04400009884576278,
+      "max": 0.06599999328223678,
+      "median": 0.05498044959680194
+    },
+    "foliage_width_m": {
+      "min": 0.035719430309163705,
+      "max": 0.05357901947953142,
+      "median": 0.04463331636193718
+    }
+  },
+  {
+    "id": "silver-birch-8",
+    "preset": "silver-birch",
+    "seed": 8,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 15.053111218205151,
+    "dbh_m": 0.34473431575794117,
+    "crown_width_m": 12.65716987692889,
+    "foliage_length_m": {
+      "min": 0.04400000591831322,
+      "max": 0.06599982159900114,
+      "median": 0.055006477799488224
+    },
+    "foliage_width_m": {
+      "min": 0.03571935657589092,
+      "max": 0.053578880203366035,
+      "median": 0.04465444578451423
+    }
+  },
+  {
+    "id": "silver-birch-13",
+    "preset": "silver-birch",
+    "seed": 13,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 14.680964460982295,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 13.09412627232759,
+    "foliage_length_m": {
+      "min": 0.04400007528454168,
+      "max": 0.06599999697537559,
+      "median": 0.055043102433344857
+    },
+    "foliage_width_m": {
+      "min": 0.03571941170914957,
+      "max": 0.05357902369284446,
+      "median": 0.04468417833171466
+    }
+  },
+  {
+    "id": "silver-birch-21",
+    "preset": "silver-birch",
+    "seed": 21,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 15.047773361206055,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 12.90821125642951,
+    "foliage_length_m": {
+      "min": 0.04400000723902971,
+      "max": 0.06599995796837761,
+      "median": 0.05502754812652036
+    },
+    "foliage_width_m": {
+      "min": 0.0357193561534542,
+      "max": 0.05357899195031131,
+      "median": 0.04467155055395612
+    }
+  },
+  {
+    "id": "silver-birch-34",
+    "preset": "silver-birch",
+    "seed": 34,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 14.45023863931015,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 12.754436806518665,
+    "foliage_length_m": {
+      "min": 0.044000119049440595,
+      "max": 0.06599984210110878,
+      "median": 0.055049606776182015
+    },
+    "foliage_width_m": {
+      "min": 0.03571944907532112,
+      "max": 0.05357889622865724,
+      "median": 0.04468945893744257
+    }
+  },
+  {
+    "id": "silver-birch-55",
+    "preset": "silver-birch",
+    "seed": 55,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 15.449090633003502,
+    "dbh_m": 0.3447343157579411,
+    "crown_width_m": 12.923959100235434,
+    "foliage_length_m": {
+      "min": 0.04400000393697207,
+      "max": 0.0659999755561946,
+      "median": 0.05501442513994969
+    },
+    "foliage_width_m": {
+      "min": 0.035719352534550296,
+      "max": 0.05357900506174772,
+      "median": 0.04466089626397482
+    }
+  },
+  {
+    "id": "silver-birch-89",
+    "preset": "silver-birch",
+    "seed": 89,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 14.945294462213106,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 13.018352905375597,
+    "foliage_length_m": {
+      "min": 0.04400007137430294,
+      "max": 0.06599988154017103,
+      "median": 0.05499168329721951
+    },
+    "foliage_width_m": {
+      "min": 0.03571940697586097,
+      "max": 0.05357892887662295,
+      "median": 0.044642436195198705
+    }
+  },
+  {
+    "id": "silver-birch-144",
+    "preset": "silver-birch",
+    "seed": 144,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 14.63089309124327,
+    "dbh_m": 0.3447343157579411,
+    "crown_width_m": 13.385022893711012,
+    "foliage_length_m": {
+      "min": 0.0440000543580947,
+      "max": 0.06599997830307842,
+      "median": 0.05500170416926926
+    },
+    "foliage_width_m": {
+      "min": 0.0357193950150795,
+      "max": 0.05357900701460338,
+      "median": 0.04465057306150343
+    }
+  },
+  {
+    "id": "silver-birch-233",
+    "preset": "silver-birch",
+    "seed": 233,
+    "group": "fixed",
+    "numeric_status": "pass",
+    "height_m": 14.463234813662266,
+    "dbh_m": 0.34473431575794117,
+    "crown_width_m": 13.19970242741964,
+    "foliage_length_m": {
+      "min": 0.04400007165873231,
+      "max": 0.06599991925241079,
+      "median": 0.054997014049289916
+    },
+    "foliage_width_m": {
+      "min": 0.035719410826123794,
+      "max": 0.05357896201592589,
+      "median": 0.04464676402944914
+    }
+  },
+  {
+    "id": "silver-birch-1877235147",
+    "preset": "silver-birch",
+    "seed": 1877235147,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 14.936946662237512,
+    "dbh_m": 0.3447343157579411,
+    "crown_width_m": 12.866557327590908,
+    "foliage_length_m": {
+      "min": 0.044000101147916505,
+      "max": 0.06599971825721967,
+      "median": 0.055016972383001655
+    },
+    "foliage_width_m": {
+      "min": 0.03571943190234432,
+      "max": 0.05357879882584043,
+      "median": 0.044662967189851265
+    }
+  },
+  {
+    "id": "silver-birch-661928304",
+    "preset": "silver-birch",
+    "seed": 661928304,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 14.261049192036225,
+    "dbh_m": 0.34473431575794117,
+    "crown_width_m": 13.542081215832365,
+    "foliage_length_m": {
+      "min": 0.04400009713343289,
+      "max": 0.065999865512177,
+      "median": 0.05501278258605062
+    },
+    "foliage_width_m": {
+      "min": 0.035719428919387564,
+      "max": 0.053578913910906745,
+      "median": 0.044659564546325956
+    }
+  },
+  {
+    "id": "silver-birch-2665347455",
+    "preset": "silver-birch",
+    "seed": 2665347455,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 14.827751852492788,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 12.675255720399527,
+    "foliage_length_m": {
+      "min": 0.04400002984554641,
+      "max": 0.06599990200949117,
+      "median": 0.05502001756236301
+    },
+    "foliage_width_m": {
+      "min": 0.03571937535238813,
+      "max": 0.0535789455716647,
+      "median": 0.04466543695523223
+    }
+  },
+  {
+    "id": "silver-birch-1867568442",
+    "preset": "silver-birch",
+    "seed": 1867568442,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 15.009817123413086,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 12.982262918513538,
+    "foliage_length_m": {
+      "min": 0.04400000562265297,
+      "max": 0.06599982978754572,
+      "median": 0.05498127418741694
+    },
+    "foliage_width_m": {
+      "min": 0.03571935576194094,
+      "max": 0.053578887162696154,
+      "median": 0.044633983682401505
+    }
+  },
+  {
+    "id": "silver-birch-3826542104",
+    "preset": "silver-birch",
+    "seed": 3826542104,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 14.506448874227058,
+    "dbh_m": 0.3447343157579411,
+    "crown_width_m": 12.731947442423426,
+    "foliage_length_m": {
+      "min": 0.04400006263627404,
+      "max": 0.06599995068095652,
+      "median": 0.054996910200857424
+    },
+    "foliage_width_m": {
+      "min": 0.03571940062317159,
+      "max": 0.05357898682176085,
+      "median": 0.044646679677146923
+    }
+  },
+  {
+    "id": "silver-birch-756556086",
+    "preset": "silver-birch",
+    "seed": 756556086,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 14.313738470494433,
+    "dbh_m": 0.3447343157579411,
+    "crown_width_m": 13.26140542314485,
+    "foliage_length_m": {
+      "min": 0.044000245481656416,
+      "max": 0.06599993961039624,
+      "median": 0.055048917456800184
+    },
+    "foliage_width_m": {
+      "min": 0.035719549696811216,
+      "max": 0.05357897464505165,
+      "median": 0.04468889792261292
+    }
+  },
+  {
+    "id": "silver-birch-3668752719",
+    "preset": "silver-birch",
+    "seed": 3668752719,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 15.01709801208684,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 13.30682307469997,
+    "foliage_length_m": {
+      "min": 0.04400004964099797,
+      "max": 0.06599989192973689,
+      "median": 0.05503997580879696
+    },
+    "foliage_width_m": {
+      "min": 0.03571938967393331,
+      "max": 0.053578936605593985,
+      "median": 0.044681640885847966
+    }
+  },
+  {
+    "id": "silver-birch-475559157",
+    "preset": "silver-birch",
+    "seed": 475559157,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 14.653908372686642,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 13.194781289635674,
+    "foliage_length_m": {
+      "min": 0.04400004007874942,
+      "max": 0.06599992491925342,
+      "median": 0.05500928077692066
+    },
+    "foliage_width_m": {
+      "min": 0.03571938223031107,
+      "max": 0.05357896611933121,
+      "median": 0.044656721807634615
+    }
+  },
+  {
+    "id": "silver-birch-973142638",
+    "preset": "silver-birch",
+    "seed": 973142638,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 14.57959525850903,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 13.347288791747193,
+    "foliage_length_m": {
+      "min": 0.04400002506206088,
+      "max": 0.06599994100637772,
+      "median": 0.055013930546298155
+    },
+    "foliage_width_m": {
+      "min": 0.035719370497244565,
+      "max": 0.05357897729456894,
+      "median": 0.04466049693599344
+    }
+  },
+  {
+    "id": "silver-birch-1362073212",
+    "preset": "silver-birch",
+    "seed": 1362073212,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 14.090985570200488,
+    "dbh_m": 0.34473431575794117,
+    "crown_width_m": 12.731169760046612,
+    "foliage_length_m": {
+      "min": 0.04400005674952782,
+      "max": 0.06599999491060908,
+      "median": 0.05503877425229865
+    },
+    "foliage_width_m": {
+      "min": 0.03571939631675022,
+      "max": 0.05357902106451417,
+      "median": 0.044680665135519715
+    }
+  },
+  {
+    "id": "silver-birch-2647376317",
+    "preset": "silver-birch",
+    "seed": 2647376317,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 14.771683406417312,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 13.118201999832756,
+    "foliage_length_m": {
+      "min": 0.044000091518375264,
+      "max": 0.06599990772998725,
+      "median": 0.05501079780978648
+    },
+    "foliage_width_m": {
+      "min": 0.035719423646018045,
+      "max": 0.053578949130061615,
+      "median": 0.04465795396856492
+    }
+  },
+  {
+    "id": "silver-birch-1301817720",
+    "preset": "silver-birch",
+    "seed": 1301817720,
+    "group": "fresh",
+    "numeric_status": "pass",
+    "height_m": 15.444161279258683,
+    "dbh_m": 0.34473431575794106,
+    "crown_width_m": 12.48416630051793,
+    "foliage_length_m": {
+      "min": 0.04400005423369443,
+      "max": 0.06599996408059801,
+      "median": 0.05504093856564863
+    },
+    "foliage_width_m": {
+      "min": 0.0357193937283749,
+      "max": 0.05357899494055578,
+      "median": 0.04468242151006089
+    }
+  }
+]

@@ -1,0 +1,55 @@
+{
+  "reference": "B-WHOLE",
+  "foliage": "leaf-on",
+  "photograph": {
+    "box_px": [
+      11,
+      17,
+      569,
+      817
+    ],
+    "width_over_height": 0.6965,
+    "fill": 0.9098,
+    "crown_base": 0.12,
+    "occupied": 0.4566,
+    "centre": {
+      "rgb": [
+        71.4,
+        94.2,
+        73.6
+      ],
+      "order": "GBR",
+      "mean": 79.7
+    }
+  },
+  "still": {
+    "box_px": [
+      0,
+      0,
+      475,
+      692
+    ],
+    "width_over_height": 0.6864,
+    "fill": 0.9611,
+    "crown_base": 0.0868,
+    "occupied": 0.5523,
+    "centre": {
+      "rgb": [
+        75.9,
+        87.5,
+        85.4
+      ],
+      "order": "GBR",
+      "mean": 82.9
+    }
+  },
+  "method": {
+    "photograph": "tree box and crown base from the record, read by eye; occupied is the dark-pixel fraction of the box",
+    "still": "tree mask is what stands out of the row background under both suns; occupied is the mask's share of its box"
+  },
+  "pair": {
+    "path": ".flow/evidence/fn34/measure/pairs/european-beech-1-B-WHOLE-pair.png",
+    "sha256": "584902b31ffcc6c0ed166942f8ddf0aac988fcad662bc302c68a1742a2d0b9c1"
+  },
+  "still_sha256": "c33f0f92fe9f41571348f50677dd3c706b3f6303aaecc2c3b4ffaf4e7bd09db3"
+}

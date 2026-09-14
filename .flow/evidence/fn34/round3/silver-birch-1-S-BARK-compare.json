@@ -1,0 +1,55 @@
+{
+  "reference": "S-BARK",
+  "foliage": "hidden",
+  "photograph": {
+    "box_px": [
+      53,
+      0,
+      427,
+      400
+    ],
+    "width_over_height": 1.0675,
+    "fill": 1.0,
+    "crown_base": 1.0,
+    "occupied": 0.4708,
+    "centre": {
+      "rgb": [
+        94.1,
+        97.9,
+        85.1
+      ],
+      "order": "GRB",
+      "mean": 92.4
+    }
+  },
+  "still": {
+    "box_px": [
+      332,
+      0,
+      419,
+      720
+    ],
+    "width_over_height": 0.5819,
+    "fill": 1.0,
+    "crown_base": 0.0,
+    "occupied": 0.5168,
+    "centre": {
+      "rgb": [
+        178.5,
+        183.9,
+        186.8
+      ],
+      "order": "BGR",
+      "mean": 183.1
+    }
+  },
+  "method": {
+    "photograph": "tree box and crown base from the record, read by eye; occupied is the dark-pixel fraction of the box",
+    "still": "tree mask is what stands out of the row background under both suns; occupied is the mask's share of its box"
+  },
+  "pair": {
+    "path": ".flow/evidence/fn34/measure/pairs/silver-birch-1-S-BARK-pair.png",
+    "sha256": "cdfcb7b2cdac1a5442582f8eee5f3c75836e3aaad5a71e0e006f035b6d975ddb"
+  },
+  "still_sha256": "c38ad42b39a2e0a0e9ef4e945bb87cc261815c59f9290aa305aae67ad25f03ac"
+}

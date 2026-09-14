@@ -1,0 +1,142 @@
+{
+  "reference_version": "fn19-references-v1",
+  "sources": [
+    {
+      "id": "THOMAS-ASH",
+      "url": "https://doi.org/10.1111/1365-2745.12566",
+      "attribution": "Thomas, P.A. 2016. Biological Flora of the British Isles: Fraxinus excelsior. Journal of Ecology 104: 1158-1209.",
+      "verified": "2026-09-14",
+      "use": "Primary flora. British typical 12-18 m, exceptionally 43 m; opposite pinnate leaves to 30 cm; up to 13 leaflets usually c. 7 cm; grey bark."
+    },
+    {
+      "id": "OSU-ASH",
+      "url": "https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "verified": "2026-09-14",
+      "use": "Landscape to 25(30+) m, equal or greater width; leaf 25-30 cm, 7-11 leaflets each 5-10 cm. Uncalibrated imagery."
+    },
+    {
+      "id": "KEW-ASH",
+      "url": "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:609009-1",
+      "attribution": "Plants of the World Online, Royal Botanic Gardens, Kew. Fraxinus excelsior L.",
+      "verified": "2026-09-14",
+      "use": "Deciduous tree up to 40 m; leaves 20-25 cm, 9-13 toothed leaflets, opposite pairs."
+    },
+    {
+      "id": "BALTIC-ASH",
+      "url": "https://balticforestry.lammc.lt/bf/PDF_Articles/2020-26%5B1%5D/Baltic%20Forestry%202020.1_73-78.pdf",
+      "attribution": "Dobrowolska, D. related / Baltic Forestry 26(1): 73-78, 2020. Characteristic of chosen biometric features of European ash (Fraxinus excelsior L.) due to the age of trees and the forest site type.",
+      "verified": "2026-09-14",
+      "use": "Forest dominant/codominant height about 22-30 m and DBH about 0.22-0.50 m at 48-120 years, by site type."
+    }
+  ],
+  "references": [
+    {
+      "id": "A-WHOLE",
+      "species_id": "european-ash",
+      "kind": "real",
+      "source_id": "OSU-ASH",
+      "scale": ["whole"],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex911B.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: plant habit. Tree-form leaf-on; exact age and dimensions unknown.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-ash/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "be0af8508159e3bce575d5b56184daf231bdddda1d353c6dda2fe7ed8b2937da",
+      "observation": "Caption: plant habit. Literature: round-headed, broad-spreading.",
+      "limitations": [
+        "Uncalibrated landscape photograph.",
+        "Agent did not open the raster (four-images reading rule).",
+        "Qualitative evidence only."
+      ]
+    },
+    {
+      "id": "A-LEAF",
+      "species_id": "european-ash",
+      "kind": "real",
+      "source_id": "OSU-ASH",
+      "scale": ["attached-shoot"],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex6719.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: leaf. Pinnate compound identity.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-ash/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "efe117e4a1249b61a426f00956a53682a98f753de69a2c6a84df14a713e5d070",
+      "observation": "Caption: leaf. Literature: pinnate, 7-13 leaflets. This is the organ fn-33 must express.",
+      "limitations": [
+        "Single leaf.",
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ]
+    },
+    {
+      "id": "A-SHOOT",
+      "species_id": "european-ash",
+      "kind": "real",
+      "source_id": "OSU-ASH",
+      "scale": ["attached-shoot"],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex6612.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: leafy shoots.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-ash/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "dabe0a11aadbed79d2abb4e915e1e2a2d58aae9c31f221ef7bc5d370af369e35",
+      "observation": "Caption: leafy shoots. Literature: opposite compound leaves.",
+      "limitations": [
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ]
+    },
+    {
+      "id": "A-UNDER",
+      "species_id": "european-ash",
+      "kind": "real",
+      "source_id": "OSU-ASH",
+      "scale": ["attached-shoot"],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex6614.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: leaflets, underside.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-ash/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "0c664d444d9771aab7cc0ce0b64bcf8c60e8e3286e1fb4fc421e3ad6ad94b882",
+      "observation": "Caption: leaflet underside. Literature: lighter green below, villous midrib.",
+      "limitations": [
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ]
+    },
+    {
+      "id": "A-BARK",
+      "species_id": "european-ash",
+      "kind": "real",
+      "source_id": "OSU-ASH",
+      "scale": ["base"],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex656.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: trunk, bark.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-ash/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "8fa7e901780113497c3da393b4162d52737731754e9ef31d664ead2afd99700d",
+      "observation": "Caption: trunk bark. Literature: grey, furrowed when mature.",
+      "limitations": [
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ]
+    }
+  ]
+}
