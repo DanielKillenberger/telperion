@@ -1,0 +1,68 @@
+{
+  "status": "NEEDS_HUMAN",
+  "reason": "R6 valid native total p50 remains above 3.8 ms after cost changes",
+  "native_total_p50_ms": 4.0005,
+  "native_bound_ms": 3.8,
+  "still_rounds_used": 0,
+  "still_round_limit": 2,
+  "judgment_images_inspected": [],
+  "references_inspected_once": [
+    "O-BARE",
+    "O-LEAF",
+    "S-BRANCH",
+    "S-NEEDLE",
+    "OWNER-WHITE-OAK",
+    "OWNER-BLACK-OAK",
+    "OWNER-NORWAY-SPRUCE"
+  ],
+  "incidental_native_hero_inspected": false,
+  "browser_orbit": "not run; R6 stop",
+  "pending_stills": [
+    ".flow/evidence/fn29/stills/oak-trunk.png",
+    ".flow/evidence/fn29/stills/oak-branch.png",
+    ".flow/evidence/fn29/stills/oak-leaf-frontlit.png",
+    ".flow/evidence/fn29/stills/oak-leaf-backlit.png",
+    ".flow/evidence/fn29/stills/spruce-trunk.png",
+    ".flow/evidence/fn29/stills/spruce-branch.png",
+    ".flow/evidence/fn29/stills/spruce-needle-frontlit.png",
+    ".flow/evidence/fn29/stills/spruce-needle-backlit.png"
+  ],
+  "branch_cameras": {
+    "oak": {
+      "node": 8,
+      "radius": 0.39088976459153435,
+      "height": 4.0,
+      "position": [
+        -1.335209229402595,
+        4.351800788132381,
+        -1.9281673692824055
+      ],
+      "target": [
+        0,
+        4,
+        0
+      ],
+      "field_of_view": 38,
+      "near": 0.01,
+      "far": 1000
+    },
+    "spruce": {
+      "node": 6,
+      "radius": 0.2091256108761402,
+      "height": 1.8,
+      "position": [
+        1.2547536652568412,
+        1.9882130497885262,
+        0
+      ],
+      "target": [
+        0,
+        1.8,
+        0
+      ],
+      "field_of_view": 38,
+      "near": 0.01,
+      "far": 1000
+    }
+  }
+}

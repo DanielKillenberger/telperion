@@ -1,0 +1,68 @@
+[
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": "logs/blocked-fmt.log",
+    "scope": "final Rust sources"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "logs/blocked-clippy.log",
+    "scope": "before archiving the example; source removed afterwards"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "exit_code": null,
+    "log": null,
+    "scope": "not run in this GPU session; R6 stop"
+  },
+  {
+    "command": "npm run wasm:build && npm test",
+    "exit_code": null,
+    "log": null,
+    "scope": "not run in this GPU session; R6 stop"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit_code": null,
+    "log": null,
+    "scope": "not run in this GPU session; R6 stop"
+  },
+  {
+    "command": "npm run render:build",
+    "exit_code": 0,
+    "log": "logs/browser-build.log",
+    "scope": "4c5bf29; before final varying/specular cost changes"
+  },
+  {
+    "command": "BROWSER_URL=http://localhost:5179 node tests/browser/bark-shader.mjs",
+    "exit_code": 0,
+    "log": "logs/browser-shader.log",
+    "scope": "4c5bf29; before final varying/specular cost changes"
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test bark_distance --test bark_resolution --test socket_cavity --test material_shaders -- --nocapture",
+    "exit_code": 0,
+    "log": "logs/gpu-cell-and-contact.log",
+    "scope": "4c5bf29"
+  },
+  {
+    "command": "cargo test --release -p telperion-render --test blade_colour --test colour_cavity --test look --test material_shaders -- --nocapture",
+    "exit_code": 0,
+    "log": "logs/packed-varying-tests.log",
+    "scope": "packed varying; before zero-highlight shortcuts"
+  },
+  {
+    "command": "cargo build --release -p telperion-render --example headless",
+    "exit_code": 0,
+    "log": "logs/optimized-headless-build.log",
+    "scope": "47b1af8 measured shader"
+  },
+  {
+    "command": "./target/release/examples/headless --preset oregon-white-oak --seed 7 --size 1600x1000 --out .flow/evidence/fn29/stills/oak-timing-hero.png --timing .flow/evidence/fn29/oak-native-timing.json",
+    "exit_code": 0,
+    "log": "logs/native-optimized-timing.log",
+    "scope": "valid measurement; R6 numerical bound fails"
+  }
+]

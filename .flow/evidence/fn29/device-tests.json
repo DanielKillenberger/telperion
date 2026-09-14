@@ -1,0 +1,143 @@
+{
+  "scope": "focused GPU suites in this full-access session; full workspace gate not run",
+  "unique_device_tests": 13,
+  "device_test_executions": 27,
+  "skipped": 0,
+  "executions": [
+    {
+      "log": "logs/gpu-initial.log",
+      "test": "relief_moves_the_light_while_every_wood_mesh_byte_holds",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-initial.log",
+      "test": "resolved_scales_survive_until_the_two_pixel_boundary",
+      "result": "FAILED"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "trunk_agrees_with_a_box_reduction_at_half_resolution",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "grazing_trunks_agree_with_a_box_reduction_at_half_resolution",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "a_matte_needle_row_is_inert_even_with_scales_and_tints_set",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "blade_colour_rows_survive_levels_and_the_back_has_no_cuticle",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "cavity_cuts_sun_and_sky_and_ground_contact_needs_no_relief",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "fissures_crests_and_mottle_change_colour_without_changing_wood",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "the_lit_frame_has_a_sky_that_deepens_with_height_and_is_not_blown_out",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "the_clay_view_draws_the_still_the_room_always_drew",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-other-initial.log",
+      "test": "every_leaf_takes_its_own_offset_inside_the_row_s_ranges",
+      "result": "ok"
+    },
+    {
+      "log": "logs/distance-four-cells.log",
+      "test": "resolved_scales_survive_until_the_two_pixel_boundary",
+      "result": "FAILED"
+    },
+    {
+      "log": "logs/distance-cell-footprint.log",
+      "test": "resolved_scales_survive_until_the_two_pixel_boundary",
+      "result": "ok"
+    },
+    {
+      "log": "logs/socket-red.log",
+      "test": "a_fork_socket_occludes_sun_and_sky_without_relief",
+      "result": "FAILED"
+    },
+    {
+      "log": "logs/gpu-cell-and-contact.log",
+      "test": "resolved_scales_survive_until_the_two_pixel_boundary",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-cell-and-contact.log",
+      "test": "trunk_agrees_with_a_box_reduction_at_half_resolution",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-cell-and-contact.log",
+      "test": "grazing_trunks_agree_with_a_box_reduction_at_half_resolution",
+      "result": "ok"
+    },
+    {
+      "log": "logs/gpu-cell-and-contact.log",
+      "test": "a_fork_socket_occludes_sun_and_sky_without_relief",
+      "result": "ok"
+    },
+    {
+      "log": "logs/packed-varying-tests.log",
+      "test": "a_matte_needle_row_is_inert_even_with_scales_and_tints_set",
+      "result": "ok"
+    },
+    {
+      "log": "logs/packed-varying-tests.log",
+      "test": "blade_colour_rows_survive_levels_and_the_back_has_no_cuticle",
+      "result": "ok"
+    },
+    {
+      "log": "logs/packed-varying-tests.log",
+      "test": "cavity_cuts_sun_and_sky_and_ground_contact_needs_no_relief",
+      "result": "ok"
+    },
+    {
+      "log": "logs/packed-varying-tests.log",
+      "test": "fissures_crests_and_mottle_change_colour_without_changing_wood",
+      "result": "ok"
+    },
+    {
+      "log": "logs/packed-varying-tests.log",
+      "test": "crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay",
+      "result": "ok"
+    },
+    {
+      "log": "logs/packed-varying-tests.log",
+      "test": "every_leaf_takes_its_own_offset_inside_the_row_s_ranges",
+      "result": "ok"
+    },
+    {
+      "log": "logs/packed-varying-tests.log",
+      "test": "the_lit_frame_has_a_sky_that_deepens_with_height_and_is_not_blown_out",
+      "result": "ok"
+    },
+    {
+      "log": "logs/packed-varying-tests.log",
+      "test": "the_clay_view_draws_the_still_the_room_always_drew",
+      "result": "ok"
+    }
+  ]
+}
