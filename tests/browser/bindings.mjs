@@ -132,6 +132,9 @@ try {
     for (const [id, unit] of [['oregon-white-oak', 'leaf'], ['norway-spruce', 'needle'], ['european-beech', 'leaf'], ['silver-birch', 'leaf']]) {
       const specimen = window.compactSpeciesFixture(presetById(id));
       // Small valid fixtures retain the authored habit and element rows.
+      // Beech's leader internode is 2.2 m; a 4 m envelope is shorter than
+      // two internodes and grows no twigs. Six metres keeps the habit.
+      if (id === 'european-beech') specimen.skeleton.envelope.height = 6;
       specimen.skeleton.growth.maxNodes = 12000;
       specimen.canopy.maxInstances = 12000;
       specimen.skeleton.twigs.twig.internodeLength = 0.04;
@@ -175,7 +178,7 @@ try {
         ['unknown habit trait', p => p.skeleton.habit = { kind: 'missing' }],
         ['crookedness', p => p.skeleton.habit.crookedness = 90],
         ['foliage connector length', p => p.element.connectorLength = -1],
-        ['leaf card carries no lobes and no section roundness', p => p.element.card = true],
+        ['leaf card carries no lobes and no section roundness', p => { p.element.card = true; p.element.lobeCount = 1; }],
         ['parameter type or range', p => p.skeleton.bias.supernatural.enabled = 1],
       ]) {
         const bad = structuredClone(specimen); mutate(bad);
