@@ -116,9 +116,9 @@ pub(super) fn spruce() -> MaterialParams {
         plate_cell_scale: 0.022,
         plate_elongation: 0.2,
         plate_dome: 0.35,
-        plate_edge_lift: 0.7,
-        plate_identity: 0.6,
-        weathering_strength: 0.4,
+        plate_edge_lift: 0.5,
+        plate_identity: 0.4,
+        weathering_strength: 0.7,
         weathering_red: 0.035,
         weathering_green: 0.025,
         weathering_blue: 0.016,
@@ -126,7 +126,7 @@ pub(super) fn spruce() -> MaterialParams {
         orientation_red: -0.014,
         orientation_green: 0.026,
         orientation_blue: -0.008,
-        directional_occlusion: 0.45,
+        directional_occlusion: 0.55,
         depth_strength: 0.45,
     }
 }

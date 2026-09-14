@@ -1,0 +1,14 @@
+{
+  "session": "fn-32, 2026-09-14",
+  "commands": [
+    {"command": "cargo fmt --all -- --check", "exit": 0, "scope": "final checkpoint"},
+    {"command": "cargo clippy --workspace --all-targets -- -D warnings", "exit": 0, "scope": "final checkpoint"},
+    {"command": "cargo test --release --workspace", "exit": 0, "scope": "final checkpoint; 52 binaries reported ok, zero adapter skips"},
+    {"command": "npm run wasm:build", "exit": 0, "scope": "final checkpoint; regenerated the preset mirror"},
+    {"command": "npm test", "exit": 0, "scope": "final checkpoint; 6 files, 77 passed"},
+    {"command": "npm run typecheck", "exit": 0, "scope": "final checkpoint"},
+    {"command": "./target/release/examples/headless --preset oregon-white-oak --seed 7 --size 1600x1000 --timing .flow/evidence/fn32/oak-native-timing.json", "exit": 0, "scope": "R7, after cargo build --release --examples"}
+  ],
+  "browser_orbit": "not run. The browser reaches this work only through the wasm mirror, which npm run wasm:build regenerated and npm test checked; no code path the browser takes changed beyond it.",
+  "adapter_skips": 0
+}

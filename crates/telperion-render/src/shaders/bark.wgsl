@@ -133,12 +133,12 @@ fn bark_run(along: f32, seed: f32) -> vec3<f32> {
 // carries slightly more face than a round one, so one constant cannot be
 // exact for every row: these are the midpoint of the shipped two, and the
 // test holds both inside two hundredths of it.
-const BARK_PLATE_FACE = 0.5695;
-const BARK_PLATE_DOME = 0.3051;
-const BARK_PLATE_RIM = 0.4358;
+const BARK_PLATE_FACE = 0.5715;
+const BARK_PLATE_DOME = 0.3054;
+const BARK_PLATE_RIM = 0.4387;
 // How proud a plate stands of its furrow, as a fraction of its own width,
 // and how much of that width the wall between the two takes.
-const BARK_PLATE_DEPTH = 0.048;
+const BARK_PLATE_DEPTH = 0.045;
 const BARK_PLATE_WALL = 0.14;
 
 fn bark_plate_mean(dome: f32, edge_lift: f32) -> f32 {
@@ -178,8 +178,15 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     // between them, however exactly its mean is preserved.
     let retained = bark_pass(band);
     if (retained <= 0.0) { return vec2(mean, 0.5); }
-    let ring = bark_column(arc * ridge_scale / size + 0.5 * (wander - vec2(0.5)));
-    let cut = bark_run(along / run, ring.y * 137.0);
+    let lattice = arc * ridge_scale / size;
+    let ring = bark_column(lattice + 0.5 * (wander - vec2(0.5)));
+    // One cut across a whole column is a straight course, and a wall of them
+    // is brickwork. Ragging the axial coordinate at the plate's own scale
+    // bends each cut as it crosses its column, which is how a plate comes to
+    // merge with the one beside it rather than sit in a row with it.
+    let ragged = bark_noise2_filtered(vec2(dot(lattice, vec2(0.9, -0.7)),
+        along * 1.3 / run), vec2(footprint.x * 1.14 / size, footprint.y * 1.3 / run));
+    let cut = bark_run(along / run + 0.8 * (ragged - 0.5), ring.y * 137.0);
     // A furrow runs wherever either boundary is near; a face is the interior
     // both leave alone. That is what makes the network branch and merge. The
     // axial distance is measured in runs and the circumferential one in

@@ -1,0 +1,142 @@
+[
+  {
+    "id": "O-BARE",
+    "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga999A.jpg",
+    "path": ".refs/fn32/quga999A.jpg",
+    "sha256": "18c79a6dac6d848ec707397d2a87109d60a3200f11424fbd663fd9f81665805c",
+    "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+    "fetched": "2026-09-14",
+    "verified_against": "fn-29 references.json and REPORT.md checksums",
+    "measurement": {
+      "rgb": [
+        108,
+        141,
+        175
+      ],
+      "channel_order": "BGR",
+      "dark_fraction": 0.3324,
+      "furrow_period_px": 17.41,
+      "dark_bands_per_row": 22.975
+    }
+  },
+  {
+    "id": "O-LEAF",
+    "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga28.jpg",
+    "path": ".refs/fn32/quga28.jpg",
+    "sha256": "9354b9a366ca129d069331f887ba844460fdebe9e5931c3f576862fc11be83fe",
+    "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+    "fetched": "2026-09-14",
+    "verified_against": "fn-29 references.json and REPORT.md checksums",
+    "measurement": {
+      "rgb": [
+        123,
+        142,
+        85
+      ],
+      "channel_order": "GRB",
+      "dark_fraction": 0.5433,
+      "furrow_period_px": 37.02,
+      "dark_bands_per_row": 10.805
+    }
+  },
+  {
+    "id": "S-BRANCH",
+    "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab428B.jpg",
+    "path": ".refs/fn32/piab428B.jpg",
+    "sha256": "d3792f4dade2389e47a6f6be326bfbedd3e33a518493e4c719893cc3d1cdf800",
+    "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+    "fetched": "2026-09-14",
+    "verified_against": "fn-29 references.json and REPORT.md checksums",
+    "measurement": {
+      "rgb": [
+        92,
+        94,
+        82
+      ],
+      "channel_order": "GRB",
+      "dark_fraction": 0.716,
+      "furrow_period_px": 24.56,
+      "dark_bands_per_row": 16.285
+    }
+  },
+  {
+    "id": "S-NEEDLE",
+    "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab347A_0.jpg",
+    "path": ".refs/fn32/piab347A_0.jpg",
+    "sha256": "47e6c9dd3175e6a5deb0fad36da9b034a627f1ab1cb50f411fa1feee7ebd37e6",
+    "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+    "fetched": "2026-09-14",
+    "verified_against": "fn-29 references.json and REPORT.md checksums",
+    "measurement": {
+      "rgb": [
+        90,
+        79,
+        50
+      ],
+      "channel_order": "RGB",
+      "dark_fraction": 0.6519,
+      "furrow_period_px": 18.11,
+      "dark_bands_per_row": 22.082
+    }
+  },
+  {
+    "id": "OWNER-WHITE-OAK",
+    "url": null,
+    "path": ".refs/fn32/owner-white-oak-bark.png",
+    "sha256": "7dc7bab59113d8db7922dd83630efd070e850af5f42c45b52790f0611584153b",
+    "attribution": "supplied by the owner; copied from the fn-26 worktree, never redistributed",
+    "fetched": "2026-09-14",
+    "verified_against": "fn-29 references.json and REPORT.md checksums",
+    "measurement": {
+      "rgb": [
+        118,
+        119,
+        114
+      ],
+      "channel_order": "GRB",
+      "dark_fraction": 0.3575,
+      "furrow_period_px": 7.8,
+      "dark_bands_per_row": 51.292
+    }
+  },
+  {
+    "id": "OWNER-BLACK-OAK",
+    "url": null,
+    "path": ".refs/fn32/owner-black-oak-bark.png",
+    "sha256": "211845d998fda31359fec5032ddc7206a23c992e4e4512a86d260d1b0001d069",
+    "attribution": "supplied by the owner; copied from the fn-26 worktree, never redistributed",
+    "fetched": "2026-09-14",
+    "verified_against": "fn-29 references.json and REPORT.md checksums",
+    "measurement": {
+      "rgb": [
+        141,
+        132,
+        118
+      ],
+      "channel_order": "RGB",
+      "dark_fraction": 0.3906,
+      "furrow_period_px": 10.55,
+      "dark_bands_per_row": 37.903
+    }
+  },
+  {
+    "id": "OWNER-NORWAY-SPRUCE",
+    "url": null,
+    "path": ".refs/fn32/owner-norway-spruce-bark.png",
+    "sha256": "e5b82a73eb7094d68f8ab407358b11de6780f7eb95165c528245960dc77d9691",
+    "attribution": "supplied by the owner; copied from the fn-26 worktree, never redistributed",
+    "fetched": "2026-09-14",
+    "verified_against": "fn-29 references.json and REPORT.md checksums",
+    "measurement": {
+      "rgb": [
+        154,
+        144,
+        140
+      ],
+      "channel_order": "RGB",
+      "dark_fraction": 0.2112,
+      "furrow_period_px": 13.21,
+      "dark_bands_per_row": 30.285
+    }
+  }
+]

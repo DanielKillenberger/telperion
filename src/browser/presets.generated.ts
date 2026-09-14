@@ -628,7 +628,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestStrength": 0.3,
         "cuticleGloss": 0.05,
         "depthStrength": 0.45,
-        "directionalOcclusion": 0.45,
+        "directionalOcclusion": 0.55,
         "fissureBlue": -0.02,
         "fissureGreen": -0.03,
         "fissureRed": -0.035,
@@ -653,9 +653,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "orientationStrength": 0.45,
         "plateCellScale": 0.022,
         "plateDome": 0.35,
-        "plateEdgeLift": 0.7,
+        "plateEdgeLift": 0.5,
         "plateElongation": 0.2,
-        "plateIdentity": 0.6,
+        "plateIdentity": 0.4,
         "plateScale": 0.03,
         "ridgeScale": 0.02,
         "roughnessDetail": 0.16,
@@ -670,7 +670,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "weatheringBlue": 0.016,
         "weatheringGreen": 0.025,
         "weatheringRed": 0.035,
-        "weatheringStrength": 0.4
+        "weatheringStrength": 0.7
       },
       "radii": {
         "forkExponent": 2,
