@@ -134,6 +134,30 @@ impl Scene {
                     0.0,
                 ),
                 margin: colour(m.margin_red, m.margin_green, m.margin_blue, m.margin_width),
+                plate: colour(
+                    m.plate_cell_scale,
+                    m.plate_elongation,
+                    m.plate_dome,
+                    m.plate_edge_lift,
+                ),
+                bark_structure: colour(
+                    m.plate_identity,
+                    m.directional_occlusion,
+                    m.depth_strength,
+                    m.plate_furrow_width,
+                ),
+                weathering: colour(
+                    m.weathering_red,
+                    m.weathering_green,
+                    m.weathering_blue,
+                    m.weathering_strength,
+                ),
+                orientation: colour(
+                    m.orientation_red,
+                    m.orientation_green,
+                    m.orientation_blue,
+                    m.orientation_strength,
+                ),
             }),
         );
     }

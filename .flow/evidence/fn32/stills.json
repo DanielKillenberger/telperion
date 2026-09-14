@@ -1,0 +1,1029 @@
+{
+ "session": "fn-32 task 2, round three, 2026-09-14",
+ "capture": 5,
+ "seed": 7,
+ "size": [
+  1600,
+  1000
+ ],
+ "level": "Chosen",
+ "driver": "stills-driver.rs, archived beside this file",
+ "method": {
+  "crop_rgb": "magick <png> -gravity center -crop 400x400+0+0 +repage -resize 1x1! -format '%[fx:int(255*r)] %[fx:int(255*g)] %[fx:int(255*b)]' info: - round one's command, unchanged, so the colour numbers carry over",
+  "structure": "target/release/examples/bark_score <png> [reference.png ...]. The same centre 400x400 crop, turned grey by Rec.709 luminance in linear light, auto-levelled and thresholded at 45%; the six components and the weights are documented in crates/telperion-render/src/structure.rs.",
+  "score": "the normalised weighted distance from the still's vector to the centroid of its catalogued references' vectors. Bark stills only: a leaf mass is not bark and its score says nothing about whether the leaf is right. Round three adds two constraints on an accepted step rather than two more terms: the crop's mean must stay inside a stated band around the reference's own crop mean and may not walk away from it, and the dark fraction may not fall. The six components, their scales and their weights are unchanged, and the references measure exactly what they measured in round two - the definition of the vector did not move.",
+  "note": "the tool's dark fraction and furrow period are taken on a perceptual grey and are NOT the numbers round one recorded with ImageMagick, which were taken on a linear grey. Round one's stills were re-measured with this tool for the before-and-after below; no number here is compared across the two methods.",
+  "dark_fraction_limit": "Measured, not assumed: with every plate, weathering, orientation, occlusion and depth term of this spec set to zero, the oak trunk still measures a dark fraction of 0.127 against the 0.147 it measures with them all on. On a lit cylinder the auto-level and the 45% threshold cut the trunk's own shading, not its furrows, so no bark row can move this component far. A flat field - removing a least-squares quadratic surface before the threshold - was implemented and rejected on its numbers: it left two of the three oak references with no measurable light regions at all, and the oak still with none. The component keeps its weight and its ratchet, and its gap against the references is recorded as a difference of framing rather than of bark."
+ },
+ "stills": [
+  {
+   "name": "oak-trunk",
+   "preset": "oregon-white-oak",
+   "view": "Bare",
+   "camera": {
+    "far": 1000.0,
+    "field_of_view": 38.0,
+    "near": 0.01,
+    "position": {
+     "x": 1.7307636095778745,
+     "y": 2.2967023330704928,
+     "z": -1.7307636095778745
+    },
+    "target": {
+     "x": 0.0,
+     "y": 2.0,
+     "z": 0.0
+    }
+   },
+   "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 135.0,
+    "sunBlue": 2.6,
+    "sunElevation": 55.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+   },
+   "fork": null,
+   "png": "stills/oak-trunk.png",
+   "sha256": "c21686ffd79b340b2ba3a7ac83d15038a15fa28813947d54fcd2b1fde8fcbd23",
+   "round_one": {
+    "crop_rgb": [
+     145,
+     147,
+     143
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1417,
+     "furrow_curvature": 1.9321,
+     "furrow_period": 61.6095,
+     "junction_arms": 3.2414,
+     "orientation_entropy": 0.985
+    },
+    "score": 1.9346
+   },
+   "target": {
+    "orientation_entropy": 0.9647,
+    "area_variation": 1.9554,
+    "furrow_curvature": 2.5522,
+    "junction_arms": 4.1912,
+    "dark_fraction": 0.3564,
+    "furrow_period": 11.3423
+   },
+   "references": [
+    {
+     "id": "O-BARE",
+     "measurement": {
+      "area_variation": 1.9191,
+      "dark_fraction": 0.3223,
+      "furrow_curvature": 2.5089,
+      "furrow_period": 17.7011,
+      "junction_arms": 4.1396,
+      "orientation_entropy": 0.9985
+     },
+     "distance": 1.1997
+    },
+    {
+     "id": "OWNER-WHITE-OAK",
+     "measurement": {
+      "area_variation": 1.3417,
+      "dark_fraction": 0.3574,
+      "furrow_curvature": 2.358,
+      "furrow_period": 7.7988,
+      "junction_arms": 3.9489,
+      "orientation_entropy": 0.9357
+     },
+     "distance": 1.0176
+    },
+    {
+     "id": "OWNER-BLACK-OAK",
+     "measurement": {
+      "area_variation": 2.6054,
+      "dark_fraction": 0.3894,
+      "furrow_curvature": 2.7898,
+      "furrow_period": 10.5701,
+      "junction_arms": 4.485,
+      "orientation_entropy": 0.9598
+     },
+     "distance": 1.9057
+    }
+   ],
+   "round_two": {
+    "crop_rgb": [
+     147,
+     148,
+     143
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.8498,
+     "dark_fraction": 0.1463,
+     "furrow_curvature": 2.4848,
+     "furrow_period": 61.9435,
+     "junction_arms": 3.4043,
+     "orientation_entropy": 0.9974
+    },
+    "score": 1.2284
+   },
+   "measurement": {
+    "crop_rgb": [
+     145,
+     147,
+     140
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.8786,
+     "dark_fraction": 0.1532,
+     "furrow_curvature": 2.0976,
+     "furrow_period": 58.7156,
+     "junction_arms": 3.3333,
+     "orientation_entropy": 0.9974
+    },
+    "score": 1.3293
+   }
+  },
+  {
+   "name": "oak-branch",
+   "preset": "oregon-white-oak",
+   "view": "Bare",
+   "camera": {
+    "far": 1000.0,
+    "field_of_view": 38.0,
+    "near": 0.01,
+    "position": {
+     "x": -1.335209229402595,
+     "y": 4.351800788132381,
+     "z": -1.9281673692824055
+    },
+    "target": {
+     "x": 0.0,
+     "y": 4.0,
+     "z": 0.0
+    }
+   },
+   "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 135.0,
+    "sunBlue": 2.6,
+    "sunElevation": 55.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+   },
+   "fork": {
+    "height": 4.0,
+    "index": 8,
+    "radius": 0.39088976459153435
+   },
+   "png": "stills/oak-branch.png",
+   "sha256": "777db8a7eae8bc17768611f9b7709884a2cdff5e615e76955966cea4487ca880",
+   "round_one": {
+    "crop_rgb": [
+     34,
+     42,
+     49
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.9296,
+     "dark_fraction": 0.9467,
+     "furrow_curvature": 2.4939,
+     "furrow_period": 153.2567,
+     "junction_arms": 3.2897,
+     "orientation_entropy": 0.9819
+    },
+    "score": 1.4954
+   },
+   "target": {
+    "orientation_entropy": 0.9671,
+    "area_variation": 1.6304,
+    "furrow_curvature": 2.4335,
+    "junction_arms": 4.0442,
+    "dark_fraction": 0.3398,
+    "furrow_period": 11.7494
+   },
+   "references": [
+    {
+     "id": "O-BARE",
+     "measurement": {
+      "area_variation": 1.9191,
+      "dark_fraction": 0.3223,
+      "furrow_curvature": 2.5089,
+      "furrow_period": 17.7011,
+      "junction_arms": 4.1396,
+      "orientation_entropy": 0.9985
+     },
+     "distance": 1.5242
+    },
+    {
+     "id": "OWNER-WHITE-OAK",
+     "measurement": {
+      "area_variation": 1.3417,
+      "dark_fraction": 0.3574,
+      "furrow_curvature": 2.358,
+      "furrow_period": 7.7988,
+      "junction_arms": 3.9489,
+      "orientation_entropy": 0.9357
+     },
+     "distance": 1.4546
+    }
+   ],
+   "round_two": {
+    "crop_rgb": [
+     33,
+     42,
+     47
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.8919,
+     "dark_fraction": 0.9456,
+     "furrow_curvature": 2.4719,
+     "furrow_period": 160.804,
+     "junction_arms": 3.4318,
+     "orientation_entropy": 0.9965
+    },
+    "score": 1.4856
+   },
+   "measurement": {
+    "crop_rgb": [
+     32,
+     41,
+     45
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.997,
+     "dark_fraction": 0.9451,
+     "furrow_curvature": 2.3538,
+     "furrow_period": 159.0457,
+     "junction_arms": 3.4496,
+     "orientation_entropy": 0.9964
+    },
+    "score": 1.451
+   }
+  },
+  {
+   "name": "oak-leaf-frontlit",
+   "preset": "oregon-white-oak",
+   "view": "Leaf",
+   "camera": {
+    "far": 800.194958291769,
+    "field_of_view": 38.0,
+    "near": 0.0974791458845074,
+    "position": {
+     "x": 0.09994036346412577,
+     "y": 0.10113435942201085,
+     "z": 0.1671528079309551
+    },
+    "target": {
+     "x": 0.0,
+     "y": 0.0560000017285347,
+     "z": 0.005958673311397433
+    }
+   },
+   "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 0.0,
+    "sunBlue": 2.6,
+    "sunElevation": 10.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+   },
+   "fork": null,
+   "png": "stills/oak-leaf-frontlit.png",
+   "sha256": "4db221ab4e1d1ecb4e3a036532866c058475732ebe897f0d7208b792f9d69783",
+   "round_one": {
+    "crop_rgb": [
+     125,
+     167,
+     90
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.5203,
+     "dark_fraction": 0.8007,
+     "furrow_curvature": 1.7031,
+     "furrow_period": 186.0465,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.8363
+    },
+    "score": 1.8891
+   },
+   "target": {
+    "orientation_entropy": 0.9985,
+    "area_variation": 1.0034,
+    "furrow_curvature": 2.6957,
+    "junction_arms": 4.2353,
+    "dark_fraction": 0.5362,
+    "furrow_period": 35.4846
+   },
+   "references": [
+    {
+     "id": "O-LEAF",
+     "measurement": {
+      "area_variation": 1.0034,
+      "dark_fraction": 0.5362,
+      "furrow_curvature": 2.6957,
+      "furrow_period": 35.4846,
+      "junction_arms": 4.2353,
+      "orientation_entropy": 0.9985
+     },
+     "distance": 1.8891
+    }
+   ],
+   "round_two": {
+    "crop_rgb": [
+     125,
+     167,
+     90
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.5203,
+     "dark_fraction": 0.8007,
+     "furrow_curvature": 1.7031,
+     "furrow_period": 186.0465,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.8363
+    },
+    "score": 1.8891
+   },
+   "measurement": {
+    "crop_rgb": [
+     125,
+     167,
+     90
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.5203,
+     "dark_fraction": 0.8007,
+     "furrow_curvature": 1.7031,
+     "furrow_period": 186.0465,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.8363
+    },
+    "score": 1.8891
+   }
+  },
+  {
+   "name": "oak-leaf-backlit",
+   "preset": "oregon-white-oak",
+   "view": "Leaf",
+   "camera": {
+    "far": 800.194958291769,
+    "field_of_view": 38.0,
+    "near": 0.0974791458845074,
+    "position": {
+     "x": 0.09994036346412577,
+     "y": 0.10113435942201085,
+     "z": 0.1671528079309551
+    },
+    "target": {
+     "x": 0.0,
+     "y": 0.0560000017285347,
+     "z": 0.005958673311397433
+    }
+   },
+   "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 180.0,
+    "sunBlue": 2.6,
+    "sunElevation": 10.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+   },
+   "fork": null,
+   "png": "stills/oak-leaf-backlit.png",
+   "sha256": "35529eb9ae475b88c98514cd01e1421297884bff58316b185dc2a802a5ed8fdc",
+   "round_one": {
+    "crop_rgb": [
+     96,
+     144,
+     49
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.8603,
+     "furrow_curvature": 1.0,
+     "furrow_period": 597.0149,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.7907
+    },
+    "score": 2.7642
+   },
+   "target": {
+    "orientation_entropy": 0.9985,
+    "area_variation": 1.0034,
+    "furrow_curvature": 2.6957,
+    "junction_arms": 4.2353,
+    "dark_fraction": 0.5362,
+    "furrow_period": 35.4846
+   },
+   "references": [
+    {
+     "id": "O-LEAF",
+     "measurement": {
+      "area_variation": 1.0034,
+      "dark_fraction": 0.5362,
+      "furrow_curvature": 2.6957,
+      "furrow_period": 35.4846,
+      "junction_arms": 4.2353,
+      "orientation_entropy": 0.9985
+     },
+     "distance": 2.7642
+    }
+   ],
+   "round_two": {
+    "crop_rgb": [
+     96,
+     144,
+     49
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.8603,
+     "furrow_curvature": 1.0,
+     "furrow_period": 597.0149,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.7907
+    },
+    "score": 2.7642
+   },
+   "measurement": {
+    "crop_rgb": [
+     96,
+     144,
+     49
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.8603,
+     "furrow_curvature": 1.0,
+     "furrow_period": 597.0149,
+     "junction_arms": 3.0,
+     "orientation_entropy": 0.7907
+    },
+    "score": 2.7642
+   }
+  },
+  {
+   "name": "spruce-trunk",
+   "preset": "norway-spruce",
+   "view": "Bare",
+   "camera": {
+    "far": 1000.0,
+    "field_of_view": 38.0,
+    "near": 0.01,
+    "position": {
+     "x": 1.2635428870893457,
+     "y": 0.8666073520724593,
+     "z": -1.2635428870893457
+    },
+    "target": {
+     "x": 0.0,
+     "y": 0.65,
+     "z": 0.0
+    }
+   },
+   "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 135.0,
+    "sunBlue": 2.6,
+    "sunElevation": 55.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+   },
+   "fork": null,
+   "png": "stills/spruce-trunk.png",
+   "sha256": "1465ff301d7d08c0e047ac8f36ae832aa95146b0c97c5a7b7cd196872116fb84",
+   "round_one": {
+    "crop_rgb": [
+     132,
+     99,
+     73
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 0.6847,
+     "dark_fraction": 0.2439,
+     "furrow_curvature": 3.0919,
+     "furrow_period": 12.6512,
+     "junction_arms": 3.6639,
+     "orientation_entropy": 0.9634
+    },
+    "score": 0.7764
+   },
+   "target": {
+    "orientation_entropy": 0.9724,
+    "area_variation": 1.4837,
+    "furrow_curvature": 2.7308,
+    "junction_arms": 3.9144,
+    "dark_fraction": 0.213,
+    "furrow_period": 13.1341
+   },
+   "references": [
+    {
+     "id": "OWNER-NORWAY-SPRUCE",
+     "measurement": {
+      "area_variation": 1.4837,
+      "dark_fraction": 0.213,
+      "furrow_curvature": 2.7308,
+      "furrow_period": 13.1341,
+      "junction_arms": 3.9144,
+      "orientation_entropy": 0.9724
+     },
+     "distance": 0.187
+    }
+   ],
+   "round_two": {
+    "crop_rgb": [
+     128,
+     97,
+     71
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 1.5103,
+     "dark_fraction": 0.2806,
+     "furrow_curvature": 2.7359,
+     "furrow_period": 12.6034,
+     "junction_arms": 3.8796,
+     "orientation_entropy": 0.9921
+    },
+    "score": 0.1658
+   },
+   "measurement": {
+    "crop_rgb": [
+     128,
+     97,
+     70
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 1.52,
+     "dark_fraction": 0.2854,
+     "furrow_curvature": 2.7094,
+     "furrow_period": 12.5431,
+     "junction_arms": 3.8124,
+     "orientation_entropy": 0.992
+    },
+    "score": 0.187
+   }
+  },
+  {
+   "name": "spruce-branch",
+   "preset": "norway-spruce",
+   "view": "Bare",
+   "camera": {
+    "far": 1000.0,
+    "field_of_view": 38.0,
+    "near": 0.01,
+    "position": {
+     "x": 1.2547536652568412,
+     "y": 1.9882130497885262,
+     "z": 0.0
+    },
+    "target": {
+     "x": 0.0,
+     "y": 1.8,
+     "z": 0.0
+    }
+   },
+   "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 135.0,
+    "sunBlue": 2.6,
+    "sunElevation": 55.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+   },
+   "fork": {
+    "height": 1.8,
+    "index": 6,
+    "radius": 0.2091256108761402
+   },
+   "png": "stills/spruce-branch.png",
+   "sha256": "631ba7d39392fa07cb8bb6c21f7ecdc9589479977c7dbbacee7060ade1e97442",
+   "round_one": {
+    "crop_rgb": [
+     91,
+     69,
+     53
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 1.2922,
+     "dark_fraction": 0.5616,
+     "furrow_curvature": 2.6396,
+     "furrow_period": 28.3738,
+     "junction_arms": 3.4824,
+     "orientation_entropy": 0.8998
+    },
+    "score": 0.6118
+   },
+   "target": {
+    "orientation_entropy": 0.9815,
+    "area_variation": 1.2997,
+    "furrow_curvature": 2.6623,
+    "junction_arms": 3.9098,
+    "dark_fraction": 0.4636,
+    "furrow_period": 17.8587
+   },
+   "references": [
+    {
+     "id": "S-BRANCH",
+     "measurement": {
+      "area_variation": 1.1157,
+      "dark_fraction": 0.7142,
+      "furrow_curvature": 2.5937,
+      "furrow_period": 24.2829,
+      "junction_arms": 3.9052,
+      "orientation_entropy": 0.9906
+     },
+     "distance": 0.7648
+    },
+    {
+     "id": "OWNER-NORWAY-SPRUCE",
+     "measurement": {
+      "area_variation": 1.4837,
+      "dark_fraction": 0.213,
+      "furrow_curvature": 2.7308,
+      "furrow_period": 13.1341,
+      "junction_arms": 3.9144,
+      "orientation_entropy": 0.9724
+     },
+     "distance": 0.8733
+    }
+   ],
+   "round_two": {
+    "crop_rgb": [
+     90,
+     69,
+     52
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 1.3559,
+     "dark_fraction": 0.5712,
+     "furrow_curvature": 2.6946,
+     "furrow_period": 28.7615,
+     "junction_arms": 3.4108,
+     "orientation_entropy": 0.8969
+    },
+    "score": 0.6595
+   },
+   "measurement": {
+    "crop_rgb": [
+     90,
+     69,
+     52
+    ],
+    "channel_order": "RGB",
+    "structure": {
+     "area_variation": 1.3557,
+     "dark_fraction": 0.5729,
+     "furrow_curvature": 2.8082,
+     "furrow_period": 28.6687,
+     "junction_arms": 3.4156,
+     "orientation_entropy": 0.8967
+    },
+    "score": 0.6786
+   }
+  },
+  {
+   "name": "spruce-needle-frontlit",
+   "preset": "norway-spruce",
+   "view": "Leaf",
+   "camera": {
+    "far": 800.0330668218027,
+    "field_of_view": 38.0,
+    "near": 0.016533410901357883,
+    "position": {
+     "x": 0.01695085733251238,
+     "y": 0.01715522558662856,
+     "z": 0.028088292435503495
+    },
+    "target": {
+     "x": 0.0,
+     "y": 0.009499999694526196,
+     "z": 0.0007481999637093395
+    }
+   },
+   "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 0.0,
+    "sunBlue": 2.6,
+    "sunElevation": 10.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+   },
+   "fork": null,
+   "png": "stills/spruce-needle-frontlit.png",
+   "sha256": "481b664de48658046905a5ae39673b701067c1ee6f43c6be4cbdf182c8282923",
+   "round_one": {
+    "crop_rgb": [
+     169,
+     188,
+     199
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.339
+    },
+    "score": 5.0632
+   },
+   "target": {
+    "orientation_entropy": 0.994,
+    "area_variation": 1.2203,
+    "furrow_curvature": 2.2259,
+    "junction_arms": 3.4627,
+    "dark_fraction": 0.6448,
+    "furrow_period": 18.3423
+   },
+   "references": [
+    {
+     "id": "S-NEEDLE",
+     "measurement": {
+      "area_variation": 1.2203,
+      "dark_fraction": 0.6448,
+      "furrow_curvature": 2.2259,
+      "furrow_period": 18.3423,
+      "junction_arms": 3.4627,
+      "orientation_entropy": 0.994
+     },
+     "distance": 5.0632
+    }
+   ],
+   "round_two": {
+    "crop_rgb": [
+     169,
+     188,
+     199
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.339
+    },
+    "score": 5.0632
+   },
+   "measurement": {
+    "crop_rgb": [
+     169,
+     188,
+     199
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.339
+    },
+    "score": 5.0632
+   }
+  },
+  {
+   "name": "spruce-needle-backlit",
+   "preset": "norway-spruce",
+   "view": "Leaf",
+   "camera": {
+    "far": 800.0330668218027,
+    "field_of_view": 38.0,
+    "near": 0.016533410901357883,
+    "position": {
+     "x": 0.01695085733251238,
+     "y": 0.01715522558662856,
+     "z": 0.028088292435503495
+    },
+    "target": {
+     "x": 0.0,
+     "y": 0.009499999694526196,
+     "z": 0.0007481999637093395
+    }
+   },
+   "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 180.0,
+    "sunBlue": 2.6,
+    "sunElevation": 10.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+   },
+   "fork": null,
+   "png": "stills/spruce-needle-backlit.png",
+   "sha256": "42c4e4c8a60750fce6125d45679f768b22e64f2fcb87126493c6b979a9364eae",
+   "round_one": {
+    "crop_rgb": [
+     166,
+     181,
+     196
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.3501
+    },
+    "score": 5.0134
+   },
+   "target": {
+    "orientation_entropy": 0.994,
+    "area_variation": 1.2203,
+    "furrow_curvature": 2.2259,
+    "junction_arms": 3.4627,
+    "dark_fraction": 0.6448,
+    "furrow_period": 18.3423
+   },
+   "references": [
+    {
+     "id": "S-NEEDLE",
+     "measurement": {
+      "area_variation": 1.2203,
+      "dark_fraction": 0.6448,
+      "furrow_curvature": 2.2259,
+      "furrow_period": 18.3423,
+      "junction_arms": 3.4627,
+      "orientation_entropy": 0.994
+     },
+     "distance": 5.0134
+    }
+   ],
+   "round_two": {
+    "crop_rgb": [
+     166,
+     181,
+     196
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.3501
+    },
+    "score": 5.0134
+   },
+   "measurement": {
+    "crop_rgb": [
+     166,
+     181,
+     196
+    ],
+    "channel_order": "BGR",
+    "structure": {
+     "area_variation": 0.0,
+     "dark_fraction": 0.1302,
+     "furrow_curvature": 1.0,
+     "furrow_period": 400.0,
+     "junction_arms": 0.0,
+     "orientation_entropy": 0.3501
+    },
+    "score": 5.0134
+   }
+  }
+ ],
+ "extra": [
+  {
+   "name": "oak-trunk-wide-furrow",
+   "png": "stills/oak-trunk-wide-furrow.png",
+   "sha256": "cc26c336127640b7e2ecfaa956bcfb7a585fb95c404834054bbd2b7ea8388af3",
+   "note": "Not one of the eight. The oak trunk at the same pose and the same rows with plateFurrowWidth at 0.35, the widest floor that holds every guard, so the owner can see what the row does. It is not what shipped: it scores 1.638 against 1.329 and the eye agrees with the number - a wide floor over a relief the anti-aliasing contract caps at four millimetres reads as flakes with gaps between them, not as valleys between plates.",
+   "measurement": {
+    "crop_rgb": [
+     145,
+     148,
+     141
+    ],
+    "channel_order": "GRB",
+    "structure": {
+     "area_variation": 0.3398,
+     "dark_fraction": 0.1543,
+     "furrow_curvature": 2.8843,
+     "furrow_period": 60.6061,
+     "junction_arms": 3.1948,
+     "orientation_entropy": 0.9955
+    },
+    "score": 1.6377
+   }
+  }
+ ]
+}
