@@ -1,5 +1,15 @@
 use std::{fs, path::Path};
 use telperion_core::{branching::generate, presets::Preset, tree::NodeKind};
+
+#[test]
+fn beech_and_birch_record_mature_height_by_age() {
+    let beech = Preset::EuropeanBeech.parameters();
+    assert_eq!(beech.age, 120.0);
+    assert_eq!(beech.skeleton.envelope.height, 32.0);
+    let birch = Preset::SilverBirch.parameters();
+    assert_eq!(birch.age, 70.0);
+    assert_eq!(birch.skeleton.envelope.height, 18.0);
+}
 fn floats(dir: &Path, id: &str, suffix: &str) -> Vec<f64> {
     let b = fs::read(dir.join(format!("{id}-{suffix}.bin"))).unwrap();
     assert_eq!(b.len() % 8, 0);

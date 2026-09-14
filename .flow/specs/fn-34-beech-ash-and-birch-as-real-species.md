@@ -89,6 +89,11 @@ This is fn-9's method applied three times with no new engine work of its own. Th
 - Reference images are gitignored under `.refs/` per spec id (`.gitignore`; `.flow/evidence/fn9/REFERENCES.md:36-39` has the retrieval commands).
 - `presets.rs` is 313 lines; the oak block is about 80 and the spruce about 65.
 
+## Owner verdicts
+
+- **Round 1 (2026-09-14), beech and birch, twelve stills at the fixed whole and bare views beside the Oregon State references.** Rejecting. The owner's words: "To me it's clear that it's not there yet." The owner's direction for the next round: "now i think we should make a shot that closely imitates the reference image to be able to compare. And after that do a QA pass."
+- **Blocker.** R3 closes only on an accepting verdict. The round-one stills use the renderer's fixed whole and bare cameras, which share neither viewpoint, framing, light nor foliage state with the photographs they are judged beside, so the comparison cannot be fair before it is made. A reference-matched still per photograph is renderer rig work, captured as its own spec on 2026-09-14; fn-34's second round renders the beech and the birch through that rig and runs the measured comparison before the owner judges again. The presets, packets and numeric protocol on this branch stand as delivered.
+
 ## Requirement coverage
 
 | Requirement | Task |
