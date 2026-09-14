@@ -10,7 +10,7 @@ Onboard European beech, silver birch and European ash as fn-9-style packets and 
 - [x] R1 packets under `.flow/evidence/fn34/<id>/` with gating/contextual ranges and labelled estimates
 - [x] R2 beech and birch presets as value tables; every listed identity site updated; no generator/renderer change
 - [x] R3 numeric protocol passed (48/48); visual verdicts left unassessed for the owner
-- [x] R4 ash profile/references complete; simple-blade fixture not in the catalogue
+- [x] R4 ash profile/references complete; no ash preset until fn-33 (the worker's simple-blade fixture was removed at host review as dead code)
 - [x] R5 identity pins, sweep bands, mature height-by-age on the ready profiles
 
 ## Progress

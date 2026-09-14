@@ -201,57 +201,6 @@ pub(super) fn birch() -> MaterialParams {
     }
 }
 
-#[allow(dead_code)]
-pub(super) fn ash_fixture() -> MaterialParams {
-    MaterialParams {
-        bark_red: 0.32,
-        bark_green: 0.32,
-        bark_blue: 0.3,
-        bark_roughness: 0.75,
-        leaf_front_red: 0.03,
-        leaf_front_green: 0.12,
-        leaf_front_blue: 0.025,
-        leaf_back_red: 0.13,
-        leaf_back_green: 0.22,
-        leaf_back_blue: 0.1,
-        hue_range_low: -0.02,
-        hue_range_high: 0.02,
-        brightness_range_low: -0.1,
-        brightness_range_high: 0.1,
-        interior_darkening: 0.45,
-        ridge_scale: 0.03,
-        plate_scale: 0.05,
-        furrow_strength: 0.7,
-        roughness_detail: 0.14,
-        vein_scale: 6.0,
-        vein_contrast: 0.4,
-        transmission_strength: 0.5,
-        transmission_red: 0.22,
-        transmission_green: 0.5,
-        transmission_blue: 0.08,
-        thickness: 0.55,
-        fissure_red: -0.08,
-        fissure_green: -0.06,
-        fissure_blue: -0.04,
-        fissure_strength: 0.5,
-        crest_red: 0.08,
-        crest_green: 0.07,
-        crest_blue: 0.05,
-        crest_strength: 0.35,
-        bark_mottle_scale: 0.7,
-        bark_mottle_strength: 0.16,
-        cavity_strength: 0.5,
-        blade_mottle_scale: 5.0,
-        blade_mottle_strength: 0.1,
-        margin_width: 0.04,
-        margin_red: 0.02,
-        margin_green: 0.04,
-        margin_blue: 0.008,
-        cuticle_gloss: 0.3,
-        sky_occlusion_strength: 0.45,
-    }
-}
-
 pub(super) fn radiant(silver: bool) -> MaterialParams {
     MaterialParams {
         fissure_strength: 0.12,

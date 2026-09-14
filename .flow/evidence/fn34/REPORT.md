@@ -17,9 +17,9 @@ oak and spruce rows. Growth traits are the oak's; age is 120 yr (beech,
 32 m envelope) and 70 yr (birch, 18 m envelope) so the profile's mature
 reference height is the envelope. No generator or renderer code changed.
 
-Ash is gathered in `.flow/evidence/fn34/european-ash/`. A simple-blade
-fixture exists as `european_ash_fixture` and is not in `Preset`, `from_id`
-or `CATALOGUE`. A simple-blade ash is not a pass (R4).
+Ash is gathered in `.flow/evidence/fn34/european-ash/`. No ash preset
+exists in the source; the template is written once fn-33 ships compound
+leaves. A simple-blade ash is not a pass (R4).
 
 ## Numeric protocol
 
