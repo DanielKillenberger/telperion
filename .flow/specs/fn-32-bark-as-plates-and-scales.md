@@ -94,3 +94,7 @@ It does, and it is mostly one missing primitive. The bark field today is paralle
 ## Owner verdict (R6, round one, 2026-09-14)
 
 Judged on the capture-three stills at `bc38f63` beside fn-29's. In the owner's words: "i see some issues in how organic it looks. Looks like armor plating in some cases. Spruce is much better. But also doesn't look too organic." Not yet accepting. The owner directed that acceptance be reached within this spec by a measured hill climb rather than a rejecting stop: "wouldn't we want to achieve acceptance within this spec?" R7's bound stays the owner's call; the measured 4.5192 ms p50 stands as the number to beat or accept.
+
+## Owner verdict (R6 and R7, 2026-09-15)
+
+Judged on the round-three stills at `07665bc`, beside fn-29's stills and the catalogued references, after two scripted hill-climb rounds with no model in the loop. In the owner's words on round two: "it's much much better. but still has much room for improvement." On the host's recommendation to accept the spec for plates and scales and carry the remaining gaps to a new spec: "ok do it". R6 accepting for this spec's scope. R7: accepted at the measured 5.2142 ms native total p50 (p95 5.6993); the bound moves with the cost work in the follow-on spec. Deferred, measured and outside this spec's boundary: the bark base colour and level (fn-29's row), fissure depth against the anti-aliasing contract with the near-only path as the cost lever, and a bark-only capture at a known scale so the reference comparison is fair.
