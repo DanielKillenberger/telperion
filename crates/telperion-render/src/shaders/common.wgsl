@@ -45,6 +45,11 @@ struct Uniforms {
     /// crown to be deep in - one leaf on its own is not an interior.
     crown_centre: vec4<f32>,
     crown_radii: vec4<f32>,
+    fissure: vec4<f32>, // fissure RGB offsets, strength
+    crest: vec4<f32>, // crest RGB offsets, strength
+    bark_colour_detail: vec4<f32>, // mottle scale, mottle strength, cavity strength, sky occlusion strength
+    leaf_colour_detail: vec4<f32>, // mottle scale, mottle strength, cuticle gloss, reserved
+    margin: vec4<f32>, // RGB offsets, width
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -100,6 +105,24 @@ fn ambient(n: vec3<f32>) -> vec3<f32> {
     return mix(u.ground_colour.rgb * sky, sky, 0.5 + 0.5 * n.y);
 }
 
+/// How deep a point stands inside the crown: one at the centre of the
+/// ellipsoid the placements fill, nought at its shell and outside it. The
+/// leaf's placement supplies one depth at every level; wood uses its fragment.
+fn depth_in_crown(position: vec3<f32>) -> f32 {
+    if (u.crown_centre.w < 0.5) {
+        return 0.0;
+    }
+    let offset = (position - u.crown_centre.xyz) / max(u.crown_radii.xyz, vec3<f32>(1e-6));
+    return 1.0 - clamp(length(offset), 0.0, 1.0);
+}
+
+// Only the sky hemisphere is hidden by the crown. Keeping ambient() intact
+// preserves the original arithmetic exactly for rows with zero occlusion.
+fn occluded_ambient(n: vec3<f32>, depth: f32) -> vec3<f32> {
+    let sky = 0.5 * (u.sky_zenith.rgb + u.sky_horizon.rgb);
+    return ambient(n) - sky * (0.5 + 0.5 * n.y) * u.bark_colour_detail.w * depth;
+}
+
 /// The sun on a surface of this normal, shadowed by the map it threw.
 fn key(n: vec3<f32>, world: vec3<f32>) -> vec3<f32> {
     return u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * sunlight(world, n);
@@ -141,3 +164,44 @@ fn hue_shift(colour: vec3<f32>, turns: f32) -> vec3<f32> {
         + cross(axis, colour) * sin(angle)
         + axis * dot(axis, colour) * (1.0 - cos(angle));
 }
+
+// Filtered value noise shared by wood relief and leaf/wood colour.
+fn bark_hash(p: vec2<f32>) -> f32 {
+    var q = fract(vec3<f32>(p.x, p.y, p.x) * 0.1031);
+    q += dot(q, q.yzx + 33.33);
+    return fract((q.x + q.y) * q.z);
+}
+
+fn bark_noise(t: f32) -> f32 {
+    let cell = floor(t);
+    let f = fract(t);
+    return mix(bark_hash(vec2(cell, 7.0)), bark_hash(vec2(cell + 1.0, 7.0)),
+        f * f * (3.0 - 2.0 * f));
+}
+
+// Independent axial/circumferential noise avoids diagonal waves in the cuts.
+fn bark_noise2(p: vec2<f32>) -> f32 {
+    let c = floor(p);
+    let f = fract(p);
+    let w = f * f * (3.0 - 2.0 * f);
+    return mix(mix(bark_hash(c), bark_hash(c + vec2(1.0, 0.0)), w.x),
+        mix(bark_hash(c + vec2(0.0, 1.0)), bark_hash(c + vec2(1.0)), w.x), w.y);
+}
+
+// A whole wavelength starts fading only below two pixels, reaching its mean
+// at one. Profiles are averaged independently of this final band rejection.
+fn bark_pass(footprint: f32) -> f32 {
+    return 1.0 - smoothstep(0.5, 1.0, footprint);
+}
+
+fn bark_noise_filtered(t: f32, footprint: f32) -> f32 {
+    // Alternating lattice values have a two-cell wavelength. Filtering the
+    // final warped field averages the profile; fading the warp itself before
+    // that wavelength is unresolved would move the coarse outlines.
+    return 0.5 + (bark_noise(t) - 0.5) * bark_pass(footprint * 0.5);
+}
+
+fn bark_noise2_filtered(p: vec2<f32>, footprint: vec2<f32>) -> f32 {
+    return 0.5 + (bark_noise2(p) - 0.5) * bark_pass(max(footprint.x, footprint.y) * 0.5);
+}
+

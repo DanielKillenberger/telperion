@@ -1,28 +1,6 @@
 // A circle embedding preserves the metre arc metric and crosses the angular
 // wrap continuously. Sites partition only the circumference, into columns;
 // their slow axial drift is independent of the shorter scale breaks.
-fn bark_hash(p: vec2<f32>) -> f32 {
-    var q = fract(vec3<f32>(p.x, p.y, p.x) * 0.1031);
-    q += dot(q, q.yzx + 33.33);
-    return fract((q.x + q.y) * q.z);
-}
-
-fn bark_noise(t: f32) -> f32 {
-    let cell = floor(t);
-    let f = fract(t);
-    return mix(bark_hash(vec2(cell, 7.0)), bark_hash(vec2(cell + 1.0, 7.0)),
-        f * f * (3.0 - 2.0 * f));
-}
-
-// Independent axial/circumferential noise avoids diagonal waves in the cuts.
-fn bark_noise2(p: vec2<f32>) -> f32 {
-    let c = floor(p);
-    let f = fract(p);
-    let w = f * f * (3.0 - 2.0 * f);
-    return mix(mix(bark_hash(c), bark_hash(c + vec2(1.0, 0.0)), w.x),
-        mix(bark_hash(c + vec2(0.0, 1.0)), bark_hash(c + vec2(1.0)), w.x), w.y);
-}
-
 // Integral of smoothstep, including its constant tails.
 fn bark_step_integral(t: f32) -> f32 {
     let x = clamp(t, 0.0, 1.0);
@@ -103,23 +81,6 @@ fn bark_scale(along: f32, seed: f32, footprint: f32) -> vec2<f32> {
         result += vec2(strength * (face + 0.18 * lip), face * (1.0 - lip));
     }
     return result;
-}
-
-// A whole wavelength starts fading only below two pixels, reaching its mean
-// at one. Profiles are averaged independently of this final band rejection.
-fn bark_pass(footprint: f32) -> f32 {
-    return 1.0 - smoothstep(0.5, 1.0, footprint);
-}
-
-fn bark_noise_filtered(t: f32, footprint: f32) -> f32 {
-    // Alternating lattice values have a two-cell wavelength. Filtering the
-    // final warped field averages the profile; fading the warp itself before
-    // that wavelength is unresolved would move the coarse outlines.
-    return 0.5 + (bark_noise(t) - 0.5) * bark_pass(footprint * 0.5);
-}
-
-fn bark_noise2_filtered(p: vec2<f32>, footprint: vec2<f32>) -> f32 {
-    return 0.5 + (bark_noise2(p) - 0.5) * bark_pass(max(footprint.x, footprint.y) * 0.5);
 }
 
 fn bark_flakes(arc: vec2<f32>, along: f32, spacing: f32, pixel: vec2<f32>,

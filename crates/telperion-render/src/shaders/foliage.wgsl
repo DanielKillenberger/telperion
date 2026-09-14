@@ -19,19 +19,8 @@ struct Varying {
     /// across a leaf: it is per leaf, worked out once where the leaf stands.
     @location(2) leaf: vec3<f32>,
     @location(3) coord: vec2<f32>,
+    @location(4) @interpolate(flat) seed: vec2<f32>,
 };
-
-/// How deep this leaf stands inside the crown: one at the centre of the
-/// ellipsoid the placements fill, nought at its shell and outside it. The
-/// placement's own position is what is measured, so a leaf reads one depth all
-/// over and does not change it when its level changes.
-fn depth_in_crown(position: vec3<f32>) -> f32 {
-    if (u.crown_centre.w < 0.5) {
-        return 0.0;
-    }
-    let offset = (position - u.crown_centre.xyz) / max(u.crown_radii.xyz, vec3<f32>(1e-6));
-    return 1.0 - clamp(length(offset), 0.0, 1.0);
-}
 
 @vertex
 fn vertex(
@@ -45,6 +34,7 @@ fn vertex(
     let world = placement * vec4<f32>(position, 1.0);
     let offsets = vary(id);
     var out: Varying;
+    out.seed = offsets;
     out.clip = u.view_projection * world;
     out.normal = (placement * vec4<f32>(normal, 0.0)).xyz;
     out.world = world.xyz;
@@ -88,13 +78,26 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     // A leaf is paler underneath, and the eye is shown whichever face it is
     // looking at; the seeded offset is the leaf's own and applies to both.
     let face = select(u.leaf_back.rgb, u.leaf_front.rgb, front);
+    let scale = u.leaf_colour_detail.x;
+    let pixel = fwidth(in.coord);
+    let veins = vein_tone(in.coord);
+    var modulation = 1.0;
+    if (scale > 0.0 && u.leaf_colour_detail.y > 0.0) {
+        let mottle = bark_noise2_filtered(in.coord * scale + in.seed * 37.0, pixel * scale);
+        modulation += u.leaf_colour_detail.y * (2.0 * mottle - 1.0);
+    }
+    let edge = max(abs(in.coord.y), in.coord.x);
+    let width = max(pixel.x, pixel.y);
+    let margin = smoothstep(1.0 - u.margin.w - width, 1.0 + width, edge)
+        * select(0.0, 1.0, u.margin.w > 0.0);
     let colour = clamp(hue_shift(face, in.leaf.x) * in.leaf.y
-        * vein_tone(in.coord), vec3<f32>(0.0), vec3<f32>(1.0));
+        * veins * modulation + margin * u.margin.rgb,
+        vec3<f32>(0.0), vec3<f32>(1.0));
     // Deep in the crown there is no sky to see: thousands of leaves stand
     // between this one and it, and what is left reads as a shaded mass rather
     // than as speckle. The sun is not attenuated - what reaches through is
     // the dapple the shared normal-offset comparison kernel reads.
-    let shaded = ambient(n) * (1.0 - u.leaf_front.w * in.leaf.z);
+    let shaded = occluded_ambient(n, in.leaf.z) * (1.0 - u.leaf_front.w * in.leaf.z);
     // One comparison result gates reflection and transmission alike. The
     // original face normal still offsets the receiver, as before this term.
     let visibility = sunlight(in.world, n);
@@ -102,5 +105,11 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     let through = u.sun.rgb * transmitted(n, normalize(u.eye.xyz - in.world),
         u.sun_direction.xyz, u.transmission.rgb, u.transmission.w,
         u.leaf_detail.w, visibility);
-    return vec4<f32>(tone(colour * (shaded + direct) + through), 1.0);
+    let gloss = u.leaf_colour_detail.z;
+    var cuticle = 0.0;
+    if (front && gloss > 0.0) {
+        let half_way = normalize(normalize(u.eye.xyz - in.world) + u.sun_direction.xyz);
+        cuticle = gloss * pow(max(dot(n, half_way), 0.0), exp2(3.0 + 5.0 * gloss));
+    }
+    return vec4<f32>(tone(colour * (shaded + direct) + through + direct * cuticle), 1.0);
 }

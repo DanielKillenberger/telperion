@@ -3,8 +3,11 @@ mod common;
 
 #[test]
 fn mature_girth_strengthens_an_axial_field() {
-    let Some(gpu) = common::gpu() else { return };
-    let source = include_str!("../src/shaders/bark.wgsl").to_owned()
+    // The field now takes its noise from the same prelude as lit stages.
+    let source = include_str!("../src/shaders/common.wgsl").replace(
+        "@group(0) @binding(0) var<uniform> u: Uniforms;",
+        "var<private> u: Uniforms;",
+    ) + include_str!("../src/shaders/bark.wgsl")
         + r#"
 @group(0) @binding(0) var<storage, read_write> result: array<vec4<f32>>;
 fn sample(x: f32, y: f32, radius: f32) -> f32 {
@@ -18,6 +21,15 @@ fn sample(x: f32, y: f32, radius: f32) -> f32 {
         sample(x + 0.0005, y, 0.6), sample(x, y + 0.0005, 0.6));
 }
 "#;
+    let module = wgpu::naga::front::wgsl::parse_str(&source)
+        .unwrap_or_else(|e| panic!("{}", e.emit_to_string(&source)));
+    wgpu::naga::valid::Validator::new(
+        wgpu::naga::valid::ValidationFlags::all(),
+        wgpu::naga::valid::Capabilities::all(),
+    )
+    .validate(&module)
+    .unwrap_or_else(|e| panic!("{}", e.emit_to_string(&source)));
+    let Some(gpu) = common::gpu() else { return };
     let shader = gpu
         .device
         .create_shader_module(wgpu::ShaderModuleDescriptor {

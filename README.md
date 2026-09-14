@@ -321,6 +321,22 @@ Four subpixel shading evaluations integrate the normal's nonlinear lighting;
 the geometry coverage and existing shadow lookup are unchanged.
 These fields affect shading only.
 
+Colour and cavity are numeric rows too. `fissureRed/Green/Blue` and
+`crestRed/Green/Blue` (linear offsets, −1–1) tint the relief's lows and highs,
+weighted by `fissureStrength` and `crestStrength` (0–1).
+`barkMottleScale` (0–8 metres) and `barkMottleStrength` (0–1) vary colour
+along the wood; the noise fades with its pixel footprint. `cavityStrength`
+(0–1) cuts sun and ambient light in low relief and within one radius of the
+ground. `bladeMottleScale` (0–32 noise cells per blade length) and
+`bladeMottleStrength` (0–1) vary each blade with its placement's stable seed.
+`marginWidth` (0–0.5 of the half-blade) adds `marginRed/Green/Blue`
+(linear offsets, −1–1) at the sides and tip; `cuticleGloss` (0–1) shapes a
+shadowed sun highlight on the front face. `skyOcclusionStrength` (0–1)
+cuts the sky hemisphere by crown depth on wood and leaves, preserving ground
+bounce; leaf interior darkening still multiplies the remaining ambient light.
+All nineteen additions default to zero. Zero scale disables mottling; zero
+width disables the margin. A needle stays matte and uniform through its row.
+
 Foliage selection compacts each level in placement-index order. Equal-depth
 leaf samples therefore resolve consistently when the same frame is redrawn.
 

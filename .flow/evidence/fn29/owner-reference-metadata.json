@@ -1,0 +1,17 @@
+[
+  {
+    "path": ".refs/fn29/owner-white-oak-bark.png",
+    "source": "owner-supplied local reference (copied from the fn-26 worktree)",
+    "sha256": "7dc7bab59113d8db7922dd83630efd070e850af5f42c45b52790f0611584153b"
+  },
+  {
+    "path": ".refs/fn29/owner-black-oak-bark.png",
+    "source": "owner-supplied local reference (copied from the fn-26 worktree)",
+    "sha256": "211845d998fda31359fec5032ddc7206a23c992e4e4512a86d260d1b0001d069"
+  },
+  {
+    "path": ".refs/fn29/owner-norway-spruce-bark.png",
+    "source": "owner-supplied local reference (copied from the fn-26 worktree)",
+    "sha256": "e5b82a73eb7094d68f8ab407358b11de6780f7eb95165c528245960dc77d9691"
+  }
+]

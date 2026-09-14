@@ -11,8 +11,11 @@ use telperion_render::{render, Camera, Renderer, View, STILL_FORMAT};
 
 #[test]
 fn resolved_scales_survive_until_the_two_pixel_boundary() {
-    let Some(gpu) = common::gpu() else { return };
-    let source = include_str!("../src/shaders/bark.wgsl").to_owned()
+    // The field now takes its noise from the same prelude as lit stages.
+    let source = include_str!("../src/shaders/common.wgsl").replace(
+        "@group(0) @binding(0) var<uniform> u: Uniforms;",
+        "var<private> u: Uniforms;",
+    ) + include_str!("../src/shaders/bark.wgsl")
         + r#"
 @group(0) @binding(0) var<storage, read_write> result: array<vec4<f32>>;
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -25,6 +28,15 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
         bark_pass(0.5), bark_pass(1.0));
 }
 "#;
+    let module = wgpu::naga::front::wgsl::parse_str(&source)
+        .unwrap_or_else(|e| panic!("{}", e.emit_to_string(&source)));
+    wgpu::naga::valid::Validator::new(
+        wgpu::naga::valid::ValidationFlags::all(),
+        wgpu::naga::valid::Capabilities::all(),
+    )
+    .validate(&module)
+    .unwrap_or_else(|e| panic!("{}", e.emit_to_string(&source)));
+    let Some(gpu) = common::gpu() else { return };
     let shader = gpu
         .device
         .create_shader_module(wgpu::ShaderModuleDescriptor {
