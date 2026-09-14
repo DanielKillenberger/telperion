@@ -1,12 +1,11 @@
 # FN29: colour, cavity and crown occlusion
 
-2026-09-14, session 3. **Round 5 native measurement pending.** The prior valid
-native retry is **4.0005 ms total p50**, **0.2005 ms above 3.8 ms**. The first
-valid measurement was 3.9549 ms. Sharing the foliage seed varying and skipping
-zero highlights did not recover the budget. The requested R6 stop rule applies.
-No bound, protocol or oak relief row was changed. This report records a blocked
-implementation, not completion or an owner verdict. In host round 3 the owner
-authorized stills and a browser orbit before deciding R6; native evidence holds.
+2026-09-14, session 3. **NEEDS_HUMAN: R6 remains over budget.** Round 5's
+valid native run is **3.9823 ms total p50**, **0.1823 ms above 3.8 ms**.
+The centred map and measured offset meet both crop targets. Owner judgments
+remain blank. The previous 4.0005 ms record is preserved as native-round4.json;
+no bound or timing protocol changed. The owner authorised this round and
+extended the commit/capture budget before work began.
 
 The distance and socket regressions have recorded GPU red/green results.
 Thirteen distinct device tests ran in the focused suites, with 27 executions
@@ -183,12 +182,13 @@ measurement; device-tests.json enumerates executions and the zero skip count.
 
 ## Native and browser clocks
 
-Both native runs use the exact headless command in checks.json. Each has one
+The earlier and round-5 native runs use the exact command in checks.json. Each has one
 initial hero render, eight conditioning frames, eight warmup and 120 measured
 frames at 1600x1000, seed 7, Whole view and the oak row fully enabled. The hero
 PNG is incidental and was never inspected. No test, browser or GPU work owned
-by this session overlapped either run. The pre-run GPU query reported 0%
-utilization. Owner processes, display settings and priority were untouched.
+by this session overlapped these runs. Earlier pre-run utilization was 0%;
+round 5 queries were 9% then 5% immediately before measurement. No owner
+process, display setting or priority was changed.
 
 | Native total | p50 ms | p95 ms | Status |
 |---|---:|---:|---|
@@ -196,17 +196,18 @@ utilization. Owner processes, display settings and priority were untouched.
 | fn-27 | 3.4243 | 3.7484 | historical valid |
 | fn-26 final | 3.6879 | 4.0284 | historical valid |
 | fn-29 before varying packing | 3.9549 | 4.4964 | valid; over 3.8 |
-| fn-29 measured final shader | 4.0005 | 4.3791 | valid; over 3.8 by .2005 |
+| fn-29 through round 4 | 4.0005 | 4.3791 | valid; preserved in native-round4.json |
+| fn-29 round 5 | 3.9823 | 4.5814 | valid; over 3.8 by .1823 |
 
 | Final native pass | p50 ms | p95 ms |
 |---|---:|---:|
-| Vegetation | 3.6045 | 3.9629 |
-| Selection | .1032 | .1050 |
-| Shadow | .2724 | .3092 |
-| Total, ranked per-frame sums | 4.0005 | 4.3791 |
+| Vegetation | 3.6024 | 4.1810 |
+| Selection | .1032 | .1044 |
+| Shadow | .2724 | .3011 |
+| Total, ranked per-frame sums | 3.9823 | 4.5814 |
 
-The final total is .3126 ms above fn-26 and .0456 ms above the first fn-29 run.
-There is no measured performance improvement to claim. Hardware is NVIDIA
+Round 5 p50 is .2944 ms above fn-26 and .0182 ms below round 4; R6 still fails.
+This single comparison does not establish a speed improvement. Hardware is NVIDIA
 GeForce RTX 3080, NVIDIA 610.57.04, Vulkan, four samples per pixel. Counts remain
 90,760 wood caster triangles and 217,328 foliage caster instances.
 
@@ -331,15 +332,15 @@ viewed each once and did not modify or redistribute any reference.
 
 | Required command | Exit code | Scope |
 |---|---:|---|
-| cargo fmt --all -- --check | 0 | local round 4 checkpoint |
-| cargo clippy --workspace --all-targets -- -D warnings | 0 | local round 4 checkpoint |
-| cargo test --release --workspace | 0 | local round 4 checkpoint; 45 binaries, zero adapter skips |
+| cargo fmt --all -- --check | 0 | local round 5 checkpoint |
+| cargo clippy --workspace --all-targets -- -D warnings | 0 | local round 5 checkpoint |
+| cargo test --release --workspace | 0 | local round 5 checkpoint; 45 binaries, zero adapter skips |
 | cargo test --release --workspace | 101 | host at 08ece33; anatomy word in shared-noise comment |
 | cargo test --release --workspace --no-fail-fast | 101 | host at 08ece33; 45 binaries, one failure, zero adapter skips, no SIGSEGV; final shader focused device tests green |
-| npm run wasm:build && npm test | 0 | local round 4 checkpoint; 77 passed; regenerated preset mirror |
-| npm run typecheck | 0 | local round 4 checkpoint |
+| npm run wasm:build && npm test | 0 | local round 5 checkpoint; 77 passed; regenerated preset mirror |
+| npm run typecheck | 0 | local round 5 checkpoint |
 
-Round 4 ran all five gates serially. RUST_TEST_NOCAPTURE=1 exposed adapter
+Round 5 ran all five gates serially. RUST_TEST_NOCAPTURE=1 exposed adapter
 skip messages in the workspace log; there were zero, with no crashes. Core and
 sweep passed without changing any pin. No test or tolerance was edited. README
 does not quote the offset values and needed no update. checks.json retains the
@@ -364,9 +365,9 @@ comment in common.wgsl; no test, shader expression or timing evidence changed.
 The local workspace log contains no skipped messages or crashes. A second run,
 RUST_TEST_NOCAPTURE=1 cargo test --release -p telperion-render, exited 0 with
 **zero adapter skips** and no crashes; uncaptured output verifies the skip count.
-The round 3 browser orbit and eight stills are now captured by owner direction;
-the separate Chromium compilation check was not rerun. R6 remains over the
-native bound and awaits the owner. No image was inspected from either native clock.
+The browser orbit remains the round-3 record and was not rerun. Capture 3
+replaces the eight stills. The separate Chromium compilation check was not
+rerun. R6 remains over the native bound. No native timing hero was inspected.
 
 The owner extended the commit budget for round 5 on 2026-09-14. This round
 records the centred map and captures, then native timing and the final gates.

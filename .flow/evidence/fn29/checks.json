@@ -255,5 +255,53 @@
     "exit_code": 0,
     "log": "logs/round5-mirror.log",
     "scope": "round 5 map checkpoint; regenerate preset mirror"
+  },
+  {
+    "command": "cargo build --release -p telperion-render --example headless",
+    "exit_code": 0,
+    "log": "logs/round5-headless-build.log",
+    "scope": "round 5 final map"
+  },
+  {
+    "command": "./target/release/examples/headless --preset oregon-white-oak --seed 7 --size 1600x1000 --out .flow/evidence/fn29/stills/oak-timing-hero.png --timing .flow/evidence/fn29/oak-native-timing.json",
+    "exit_code": 0,
+    "log": "logs/round5-native-timing.log",
+    "scope": "round 5; valid native measurement, numerical R6 bound fails"
+  },
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": "logs/round5-fmt.log",
+    "scope": "round 5 final sources"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "logs/round5-clippy.log",
+    "scope": "round 5 final sources"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 0,
+    "log": "logs/round5-workspace.log",
+    "scope": "round 5 final map and offset",
+    "binaries": 45,
+    "adapter_skips": 0,
+    "crashes": 0
+  },
+  {
+    "command": "npm run wasm:build && npm test",
+    "exit_code": 0,
+    "log": "logs/round5-npm.log",
+    "scope": "round 5 final map and offset"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit_code": 0,
+    "log": "logs/round5-typecheck.log",
+    "scope": "round 5 final map and offset"
   }
 ]

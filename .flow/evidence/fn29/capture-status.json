@@ -1,7 +1,7 @@
 {
   "status": "NEEDS_HUMAN",
-  "reason": "R5 stills captured for owner judgment; native R6 decision awaits the look",
-  "native_total_p50_ms": 4.0005,
+  "reason": "Round 5 crop acceptance passes; R6 valid native p50 3.9823 ms exceeds 3.8 ms; owner verdict pending",
+  "native_total_p50_ms": 3.9823,
   "native_bound_ms": 3.8,
   "still_rounds_used": 3,
   "still_round_limit": 3,
@@ -82,7 +82,7 @@
     ".flow/evidence/fn29/stills/spruce-needle-frontlit.png",
     ".flow/evidence/fn29/stills/spruce-needle-backlit.png"
   ],
-  "capture_source_commit": "e9c4b7d",
+  "capture_source_commit": "209cc53",
   "stills_status": "capture 3 complete; crop acceptance passes; owner verdict pending",
   "capture_source_changes": "field-mean centred map, peak-depth scale; oak fissure offset (-0.1, -0.05, 0.005), strength 0.65",
   "inspection_rounds": [
