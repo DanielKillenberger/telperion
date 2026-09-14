@@ -19,7 +19,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-29-colour-cavity-and-occlusion.md",
-  "status": "open",
+  "status": "done",
   "title": "Colour, cavity and occlusion",
   "tracker": {
     "baseHashFlow": null,
@@ -32,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-14T07:41:21.231912Z"
+  "updated_at": "2026-09-14T12:40:33.293524Z"
 }
