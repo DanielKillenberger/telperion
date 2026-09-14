@@ -328,8 +328,12 @@ No empty owner slot is an acceptance.
 
 ## Owner verdict
 
-- Reference composition and R1 diameter deviations:
-- Derived-maturity interpretation and convergence:
-- Oak age strip and mature still beside fn-14:
-- Spruce age strip and mature still beside fn-14:
-- Zero-threshold workaround and production build cost:
+Recorded 2026-09-14 from the owner's words in the host session, judged on the age strips served as a page (https://claude.ai/code/artifact/b45a1d55-4995-47f5-acdd-5356c549b568).
+
+- Reference composition and R1 diameter deviations: deferred. The owner judged the diameter miss a growth-rule defect (fixed slenderness), not a reference question, and moved it to the growth-rule spec that follows fn-30.
+- Derived-maturity interpretation and convergence: deferred to the same spec, which owns the rule that sets the derived ages.
+- Oak age strip and mature still beside fn-14: **rejecting.** Owner: "the 10yo one is way too low quality and i'm not convinced that the 26yo looks like that either? This calibration task seems to have missed the mark by not being able to touch the generator." Earlier, on the young frames: "a bare pole doesn't sound very appealing?"
+- Spruce age strip and mature still beside fn-14: **rejecting**, the same words; the five-year bare stem is the same defect.
+- Zero-threshold workaround and production build cost: deferred. The owner did not accept the workaround as a fix; the vigour proxy's missing floor goes to the growth-rule spec.
+
+R3 stops on the rejecting verdict. fn-30 stays open until the strips, re-rendered after the growth-rule spec, earn an accepting verdict.
