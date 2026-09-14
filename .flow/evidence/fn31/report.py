@@ -83,6 +83,12 @@ treated as observed biological maturity or silently used to grade the fits.
 
 ## The rule and derived mature ages
 
+The [fn-11 research](../../specs/fn-11-growth-over-time.md) remains the
+methodological basis: Palubicki's vigour, shedding and pipe-model allocation,
+with identity-order iteration, pinned transcendentals and decisions sampled
+at slice start. The new numeric floor is a proxy guard, not a fitted
+physiological constant.
+
 Year-one establishment adds `seedlingHeight * (1 - fraction)` to live height.
 `shootStep` bounds internodes and twig length by that height. Structural axes
 retain actual grown distance when the annual step changes. Crookedness scales
@@ -90,7 +96,8 @@ with the juvenile step, avoiding a mature angular bend over centimetres of stem.
 `juvenileBranching` recruits existing lateral buds, tapering to zero at
 `juvenileHeight`. Local planning transitions from the current crown to authored
 room between one and two juvenile heights. `seedlingRadius` admits first leaves
-on slender stems within the anatomy bearing diameter, shoots stop bearing as their girth exceeds that threshold.
+on slender stems within the anatomy bearing diameter. Shoots stop bearing as
+their girth exceeds that threshold.
 No species branch enters the generator or renderer; every field is numeric,
 validated, serialized and included in the blend walk.
 
@@ -131,6 +138,12 @@ death stamp 174 after two below-threshold slices; the lit siblings survive.
 The mature populations are reported in the preceding table, not hidden behind
 the regression's minimum counts. Logs: `survival-red.log`,
 `survival-checkpoint-final.log`, and `core-final-before-pin.log` under `logs/`.
+
+| Fixture | Shaded identity | Death year | Lit sibling | Result |
+|---|---|---:|---|---|
+| Ordinary | birth 1, NodeKey(2v1) | 174 | birth 2, NodeKey(3v1) | survives |
+| Telperion | birth 1, NodeKey(2v1) | 174 | birth 2, NodeKey(3v1) | survives |
+| Laurelin | birth 1, NodeKey(2v1) | 174 | birth 2, NodeKey(3v1) | survives |
 
 All four seedling/sapling tests failed first: year-one wood height was zero
 and the first young ages had zero lateral shoots. `logs/sapling-red.log`
@@ -249,6 +262,8 @@ stay on disk; composed strips and comparisons are retained as evidence.
 
 The implementer viewed one four-frame small-preview montage before the final
 correction, and no full-capture images. The host and owner judge the captures.
+These strips are the replacement instrument for fn-30's rejected R3 slots;
+the previously recorded owner words remain in fn-30's report.
 
 | Artifact | Oak | Spruce |
 |---|---|---|
@@ -299,4 +314,21 @@ for name,ages in [('oregon-white-oak',[1,10,26.7]),('norway-spruce',[1,5,14.1])]
 report='\n'.join(s).replace('## The strips and stills','\n'.join(young)+'\n\n## The strips and stills')
 report=report.replace('The fixed-camera\ndistance and grazing tests are rerun in `logs/renderer-final.log`.',
     'The final fixed-camera 4x distance mean is 2.725967/255 (p95 8.75),\nagainst limits 3.0 and 12.0. The oak grazing mask holds 7,513 pixels and\nspruce 2,079. All four targets pass in `logs/renderer-final.log`.')
+problems=[]
+if gates.exists():
+    problems.extend(f'Gate exit {g["exit"]}: {g["command"]}; see {g["log"]}.'
+                    for g in json.loads(gates.read_text()) if g['exit'] != 0)
+if retry.exists():
+    targets=[]
+    for name,ceiling in [('OregonWhiteOak',2463),('NorwaySpruce',867)]:
+        values=[float(x) for x in re.findall(r'preset='+name+r'.*?ms=([\d.]+)',retry.read_text())]
+        if values:
+            median=statistics.median(values)
+            targets.append(f'{name}: {median-500:+.3f} ms against the 500 ms wood-build target')
+            if median>ceiling:
+                problems.append(f'R5: {name} idle median {median:.6f} ms exceeds {ceiling} ms.')
+    report=report.replace('The half-second target is assessed', '; '.join(targets)+'.\n\nThe half-second target is assessed')
+report=report.replace('Any numeric or gate\nblocker from the final run is stated here before handoff.',
+    '\n\n'+'\n\n'.join(problems) if problems else
+    '\nAll six fit diameters are within 15 percent of the inherited references.\nNo additional numeric or gate blocker remains after the recorded idle retry\nand final full gates.')
 (P/'REPORT.md').write_text(report)

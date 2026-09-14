@@ -1,0 +1,9 @@
+First final-cost pass, console observation (not a reserved benchmark window):
+While tolerance_cost_report was running, ps showed release rustc processes
+for the other worktree, .worktrees/fn-29-colour-cavity-and-occlusion.
+The displayed look-test compiler was at 96.7% CPU and bark_distance compiler
+at 96.2% CPU, both elapsed 00:32; the cost-test process was at 99.4% CPU,
+elapsed 00:08. These observations were copied from the tool output.
+The GPU snapshot for that run is cost-device.log.
+The first medians, including the spruce ceiling miss, remain in cost.log.
+The authorized idle retry is recorded separately after the full gate run.

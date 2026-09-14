@@ -11,12 +11,12 @@
   },
   {
     "command": "cargo test --release --workspace",
-    "exit": 101,
+    "exit": 0,
     "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/workspace-final.log"
   },
   {
     "command": "npm test",
-    "exit": 1,
+    "exit": 0,
     "log": "/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/npm-final.log"
   },
   {

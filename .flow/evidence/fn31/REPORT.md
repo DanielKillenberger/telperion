@@ -1,8 +1,5 @@
 # FN31: sapling form, age-dependent thickening and retained mature crowns
 
-Checkpoint status: growth code and pre-pin convergence are recorded. The full
-capture, pin update, final cost and workspace gates follow this checkpoint.
-
 Production still builds through annual growth at the derived age. The rule now
 establishes a leafed seedling, recruits juvenile laterals, increases the trunk's
 radius share with age, and preserves lit branches under nonzero shedding.
@@ -81,6 +78,12 @@ treated as observed biological maturity or silently used to grade the fits.
 
 ## The rule and derived mature ages
 
+The [fn-11 research](../../specs/fn-11-growth-over-time.md) remains the
+methodological basis: Palubicki's vigour, shedding and pipe-model allocation,
+with identity-order iteration, pinned transcendentals and decisions sampled
+at slice start. The new numeric floor is a proxy guard, not a fitted
+physiological constant.
+
 Year-one establishment adds `seedlingHeight * (1 - fraction)` to live height.
 `shootStep` bounds internodes and twig length by that height. Structural axes
 retain actual grown distance when the annual step changes. Crookedness scales
@@ -88,7 +91,8 @@ with the juvenile step, avoiding a mature angular bend over centimetres of stem.
 `juvenileBranching` recruits existing lateral buds, tapering to zero at
 `juvenileHeight`. Local planning transitions from the current crown to authored
 room between one and two juvenile heights. `seedlingRadius` admits first leaves
-on slender stems within the anatomy bearing diameter, shoots stop bearing as their girth exceeds that threshold.
+on slender stems within the anatomy bearing diameter. Shoots stop bearing as
+their girth exceeds that threshold.
 No species branch enters the generator or renderer; every field is numeric,
 validated, serialized and included in the blend walk.
 
@@ -130,6 +134,12 @@ The mature populations are reported in the preceding table, not hidden behind
 the regression's minimum counts. Logs: `survival-red.log`,
 `survival-checkpoint-final.log`, and `core-final-before-pin.log` under `logs/`.
 
+| Fixture | Shaded identity | Death year | Lit sibling | Result |
+|---|---|---:|---|---|
+| Ordinary | birth 1, NodeKey(2v1) | 174 | birth 2, NodeKey(3v1) | survives |
+| Telperion | birth 1, NodeKey(2v1) | 174 | birth 2, NodeKey(3v1) | survives |
+| Laurelin | birth 1, NodeKey(2v1) | 174 | birth 2, NodeKey(3v1) | survives |
+
 All four seedling/sapling tests failed first: year-one wood height was zero
 and the first young ages had zero lateral shoots. `logs/sapling-red.log`
 and `logs/form-final.log` retain red and green evidence. The seven form
@@ -148,6 +158,18 @@ the new rule: 11 resized runs and 880 moved placements, against its unchanged
 `logs/sparse-phase-probe.log` and `logs/sparse-final.log`. No assertion or
 tolerance was weakened to preserve the fixture's mechanism.
 
+The first full npm gate reached valid Two Trees builds but failed to index
+transfer buffers at signed offsets -2104202656 (Telperion) and -1517937848
+(Laurelin). The one-shot binding built foliage/contact surfaces even for a
+structure-only selection and retained the annual history during transfer.
+It now selects the canonical finalized frontier wood directly when foliage
+and field outputs are absent, and releases the owned specimen before allocating
+transfer buffers. The cumulative death count comes from the same frontier
+counter. Full historical reads, retained specimens and the pointer ABI remain
+unchanged. The original parity tests remain unchanged; the red logs are in
+`gates-attempt1/npm-final.log` and the intermediate lifetime-only probe in
+`logs/npm-release-history.log`.
+
 ## Renderer prerequisite and geometry
 
 Checkpoint 135c956 fixed all four inherited renderer targets. A paused
@@ -162,13 +184,22 @@ placements). The checkpoint body and `CHECKPOINT1.md` record those values.
 Sapling subdivision initially regressed the distance test to 3.523567/255.
 Removing juvenile laterals alone left 3.436033/255, and disabling crookedness
 left 3.221017/255. Scaling crookedness by juvenile step length corrects the
-centimetre-segment bend while retaining mature variation. The fixed-camera
-distance and grazing tests are rerun in `logs/renderer-final.log`.
+centimetre-segment bend while retaining mature variation. The final fixed-camera 4x distance mean is 2.725967/255 (p95 8.75),
+against limits 3.0 and 12.0. The oak grazing mask holds 7,513 pixels and
+spruce 2,079. All four targets pass in `logs/renderer-final.log`.
 Assertions, tolerances, test cameras and shaders remain unchanged.
 
 ## Convergence and the single re-pin
 
 
+
+The wire audit's HELD inventory is also recorded before its first move: 28
+paths become 32. Add growth.juvenileBranching, shootStep, thickeningDelay,
+thickeningShape and vigourFloor, whose numeric values are shared by every row;
+remove skeleton.habit.sheddingThreshold, now varied (0 versus the restored
+0.45). The exact set equality and the assertions proving all varying paths
+blend are unchanged. The first full gate exposed this stale schema inventory
+after the geometry pins moved; no geometry, identity or look pin moves again.
 
 Pre-change measurements are from base ccb44eaf609c15e4df7170385f81b372b0d5f532, seed 7. Both columns use production growth at derived maturity. Bounds are node bounds in metres, excluding bark and leaves.
 
@@ -227,9 +258,38 @@ window. GPU state is recorded in `logs/cost-device.log`.
 
 | Species | Samples ms | Median ms | Ceiling ms | Margin ms | Frames |
 |---|---|---:|---:|---:|---:|
+| OregonWhiteOak | 2221.123899, 2022.168415, 2132.316304 | 2132.316304 | 2463 | +330.683696 | 1689773 |
+| NorwaySpruce | 2552.432104, 2483.965985, 2399.395348 | 2483.965985 | 867 | -1616.965985 | 479756 |
+
+The first run overlapped heavy release compilation in the other worktree.
+The authorized retry ran after the gates, with GPU and CPU process state
+recorded in `logs/cost-idle-device.log`. Both observations are retained;
+the retry supplies the comparison below. It is still a shared-host observation.
+
+| Species / idle retry | Samples ms | Median ms | Ceiling ms | Margin ms |
+|---|---|---:|---:|---:|
+| OregonWhiteOak | 692.965719, 604.873798, 611.681577 | 611.681577 | 2463 | +1851.318423 |
+| NorwaySpruce | 700.060003, 716.807856, 718.509411 | 716.807856 | 867 | +150.192144 |
+
+OregonWhiteOak: +111.682 ms against the 500 ms wood-build target; NorwaySpruce: +216.808 ms against the 500 ms wood-build target.
 
 The half-second target is assessed against these CPU-only medians; even a
 sub-500 ms wood build does not establish a sub-500 ms rendered dial response.
+
+## Seedling and sapling measurements
+
+These counts precede canopy shell culling. The centimetre-scale establishment
+values are implementation choices under R1, not observations added to the
+reference set. The images, not these counts alone, are the owner's instrument.
+
+| Species | Age y | Wood height m | Nodes | Placements |
+|---|---:|---:|---:|---:|
+| oregon-white-oak | 1 | 0.222003 | 6 | 15 |
+| oregon-white-oak | 10 | 1.880392 | 55 | 438 |
+| oregon-white-oak | 26.7 | 7.710741 | 1,490 | 18,367 |
+| norway-spruce | 1 | 0.043689 | 6 | 5 |
+| norway-spruce | 5 | 0.452722 | 37 | 190 |
+| norway-spruce | 14.1 | 4.877722 | 3,509 | 80,861 |
 
 ## The strips and stills
 
@@ -248,6 +308,8 @@ stay on disk; composed strips and comparisons are retained as evidence.
 
 The implementer viewed one four-frame small-preview montage before the final
 correction, and no full-capture images. The host and owner judge the captures.
+These strips are the replacement instrument for fn-30's rejected R3 slots;
+the previously recorded owner words remain in fn-30's report.
 
 | Artifact | Oak | Spruce |
 |---|---|---|
@@ -265,13 +327,20 @@ Each command runs in full. Logs are unedited and paths absolute.
 
 | Command | Exit code | Log path |
 |---|---:|---|
+| `cargo fmt --all -- --check` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/fmt-final.log` |
+| `cargo clippy --workspace --all-targets -- -D warnings` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/clippy-final.log` |
+| `cargo test --release --workspace` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/workspace-final.log` |
+| `npm test` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/npm-final.log` |
+| `npm run typecheck` | 0 | `/home/daniel/Projects/telperion/.flow/evidence/fn31/logs/typecheck-final.log` |
 
 ## Blocked
 
 R1 requires the owner's accepting words for both strips and the continuation
 into maturity. R2's reference composition and fit deviations remain for the
-owner to judge. Empty slots below are not acceptance. Any numeric or gate
-blocker from the final run is stated here before handoff.
+owner to judge. Empty slots below are not acceptance. 
+All six fit diameters are within 15 percent of the inherited references.
+No additional numeric or gate blocker remains after the recorded idle retry
+and final full gates.
 
 ## Owner verdict
 
