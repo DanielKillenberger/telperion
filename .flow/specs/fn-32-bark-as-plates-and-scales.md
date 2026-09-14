@@ -90,3 +90,7 @@ It does, and it is mostly one missing primitive. The bark field today is paralle
 
 - Follows "Surface and rendering at scale": continuous surfaces, foliage and bark that make the structure legible from close views, without species-specific paths or hand-modelled assets, judged with measured runtime cost.
 - Follows the approach's measured-evidence rule: judge each advance through measured runtime costs and visual evidence.
+
+## Owner verdict (R6, round one, 2026-09-14)
+
+Judged on the capture-three stills at `bc38f63` beside fn-29's. In the owner's words: "i see some issues in how organic it looks. Looks like armor plating in some cases. Spruce is much better. But also doesn't look too organic." Not yet accepting. The owner directed that acceptance be reached within this spec by a measured hill climb rather than a rejecting stop: "wouldn't we want to achieve acceptance within this spec?" R7's bound stays the owner's call; the measured 4.5192 ms p50 stands as the number to beat or accept.
