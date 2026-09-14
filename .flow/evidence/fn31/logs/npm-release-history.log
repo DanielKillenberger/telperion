@@ -1,0 +1,49 @@
+
+> telperion@0.1.0 pretest
+> npm run wasm:build && npm run render:build
+
+
+> telperion@0.1.0 wasm:build
+> node scripts/build-wasm.mjs
+
+   Compiling telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-wasm)
+    Finished `release` profile [optimized] target(s) in 1.15s
+Built Wasm and regenerated Rust family metadata.
+
+> telperion@0.1.0 render:build
+> node scripts/build-render.mjs
+
+    Finished `release` profile [optimized] target(s) in 0.06s
+Built the renderer module and its glue into src/browser/render/.
+
+> telperion@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/daniel/Projects/telperion
+
+    Finished `release` profile [optimized] target(s) in 0.03s
+ ❯ harness/parity.test.ts (10 tests | 1 failed) 84740ms
+   × native/wasm node bytes: laurelin 18145ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  harness/parity.test.ts > native/wasm node bytes: laurelin
+RangeError: Start offset -1722777216 is outside the bounds of the buffer
+ ❯ harness/parity.test.ts:29:63
+     27|     new Uint8Array(core.memory.buffer, core.request_ptr(), request.len…
+     28|     expect(core.build()).toBe(0);
+     29|     const wasm = Buffer.concat([6, 7].map(slot => Buffer.from(new Uint…
+       |                                                               ^
+     30|       core.memory.buffer, core.buffer_ptr(slot), core.buffer_len(slot)…
+     31|     const native = execFileSync('target/release/examples/node_buffer',…
+ ❯ harness/parity.test.ts:29:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  1 failed | 76 passed (77)
+   Start at  12:08:27
+   Duration  84.90s (transform 379ms, setup 0ms, import 494ms, tests 84.84s, environment 0ms)
+

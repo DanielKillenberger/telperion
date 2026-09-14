@@ -150,6 +150,18 @@ the new rule: 11 resized runs and 880 moved placements, against its unchanged
 `logs/sparse-phase-probe.log` and `logs/sparse-final.log`. No assertion or
 tolerance was weakened to preserve the fixture's mechanism.
 
+The first full npm gate reached valid Two Trees builds but failed to index
+transfer buffers at signed offsets -2104202656 (Telperion) and -1517937848
+(Laurelin). The one-shot binding built foliage/contact surfaces even for a
+structure-only selection and retained the annual history during transfer.
+It now selects the canonical finalized frontier wood directly when foliage
+and field outputs are absent, and releases the owned specimen before allocating
+transfer buffers. The cumulative death count comes from the same frontier
+counter. Full historical reads, retained specimens and the pointer ABI remain
+unchanged. The original parity tests remain unchanged; the red logs are in
+`gates-attempt1/npm-final.log` and the intermediate lifetime-only probe in
+`logs/npm-release-history.log`.
+
 ## Renderer prerequisite and geometry
 
 Checkpoint 135c956 fixed all four inherited renderer targets. A paused
@@ -201,6 +213,21 @@ for name,ceiling in [('OregonWhiteOak',2463),('NorwaySpruce',867)]:
     if samples:
         values=[float(x[0]) for x in samples]; median=statistics.median(values)
         s.append(f'| {name} | '+', '.join(f'{v:.6f}' for v in values)+f' | {median:.6f} | {ceiling} | {ceiling-median:+.6f} | {samples[0][1]} |')
+retry=P/'logs/cost-idle.log'
+if retry.exists():
+    s.append('''
+The first run overlapped heavy release compilation in the other worktree.
+The authorized retry ran after the gates, with GPU and CPU process state
+recorded in `logs/cost-idle-device.log`. Both observations are retained;
+the retry supplies the comparison below. It is still a shared-host observation.
+
+| Species / idle retry | Samples ms | Median ms | Ceiling ms | Margin ms |
+|---|---|---:|---:|---:|''')
+    for name,ceiling in [('OregonWhiteOak',2463),('NorwaySpruce',867)]:
+        values=[float(x) for x in re.findall(r'preset='+name+r'.*?ms=([\d.]+)',retry.read_text())]
+        if values:
+            median=statistics.median(values)
+            s.append(f'| {name} | '+', '.join(f'{v:.6f}' for v in values)+f' | {median:.6f} | {ceiling} | {ceiling-median:+.6f} |')
 s.append('''
 The half-second target is assessed against these CPU-only medians; even a
 sub-500 ms wood build does not establish a sub-500 ms rendered dial response.
@@ -257,4 +284,19 @@ blocker from the final run is stated here before handoff.
 - R1, spruce strip and mature comparison:
 - R2, reference composition and diameter deviations by age:
 ''')
-(P/'REPORT.md').write_text('\n'.join(s))
+young=['''## Seedling and sapling measurements
+
+These counts precede canopy shell culling. The centimetre-scale establishment
+values are implementation choices under R1, not observations added to the
+reference set. The images, not these counts alone, are the owner's instrument.
+
+| Species | Age y | Wood height m | Nodes | Placements |
+|---|---:|---:|---:|---:|''']
+for name,ages in [('oregon-white-oak',[1,10,26.7]),('norway-spruce',[1,5,14.1])]:
+    for age in ages:
+        r=next(r for r in rows[name] if r.get('age')==age)
+        young.append(f'| {name} | {age:g} | {r["height_m"]:.6f} | {r["nodes"]:,} | {r["placements"]:,} |')
+report='\n'.join(s).replace('## The strips and stills','\n'.join(young)+'\n\n## The strips and stills')
+report=report.replace('The fixed-camera\ndistance and grazing tests are rerun in `logs/renderer-final.log`.',
+    'The final fixed-camera 4x distance mean is 2.725967/255 (p95 8.75),\nagainst limits 3.0 and 12.0. The oak grazing mask holds 7,513 pixels and\nspruce 2,079. All four targets pass in `logs/renderer-final.log`.')
+(P/'REPORT.md').write_text(report)

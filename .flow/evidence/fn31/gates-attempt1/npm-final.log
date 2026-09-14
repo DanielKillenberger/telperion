@@ -1,0 +1,65 @@
+
+> telperion@0.1.0 pretest
+> npm run wasm:build && npm run render:build
+
+
+> telperion@0.1.0 wasm:build
+> node scripts/build-wasm.mjs
+
+    Finished `release` profile [optimized] target(s) in 0.04s
+Built Wasm and regenerated Rust family metadata.
+
+> telperion@0.1.0 render:build
+> node scripts/build-render.mjs
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 14.04s
+Built the renderer module and its glue into src/browser/render/.
+
+> telperion@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/daniel/Projects/telperion
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 5.91s
+ ❯ harness/parity.test.ts (10 tests | 2 failed) 79338ms
+   × native/wasm node bytes: telperion 19013ms
+   × native/wasm node bytes: laurelin 17102ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  harness/parity.test.ts > native/wasm node bytes: telperion
+RangeError: Start offset -2104202656 is outside the bounds of the buffer
+ ❯ harness/parity.test.ts:29:63
+     27|     new Uint8Array(core.memory.buffer, core.request_ptr(), request.len…
+     28|     expect(core.build()).toBe(0);
+     29|     const wasm = Buffer.concat([6, 7].map(slot => Buffer.from(new Uint…
+       |                                                               ^
+     30|       core.memory.buffer, core.buffer_ptr(slot), core.buffer_len(slot)…
+     31|     const native = execFileSync('target/release/examples/node_buffer',…
+ ❯ harness/parity.test.ts:29:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  harness/parity.test.ts > native/wasm node bytes: laurelin
+RangeError: Start offset -1517937848 is outside the bounds of the buffer
+ ❯ harness/parity.test.ts:29:63
+     27|     new Uint8Array(core.memory.buffer, core.request_ptr(), request.len…
+     28|     expect(core.build()).toBe(0);
+     29|     const wasm = Buffer.concat([6, 7].map(slot => Buffer.from(new Uint…
+       |                                                               ^
+     30|       core.memory.buffer, core.buffer_ptr(slot), core.buffer_len(slot)…
+     31|     const native = execFileSync('target/release/examples/node_buffer',…
+ ❯ harness/parity.test.ts:29:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  2 failed | 75 passed (77)
+   Start at  12:05:32
+   Duration  79.49s (transform 369ms, setup 0ms, import 466ms, tests 79.43s, environment 1ms)
+

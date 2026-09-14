@@ -110,6 +110,10 @@ impl Specimen {
     pub fn tree(&self) -> &Tree {
         self.packed_read().map_or(&self.tree, |read| &read.tree)
     }
+    /// Cumulative death stamps at the current frontier, including archived shoots.
+    pub fn shed_count(&self) -> usize {
+        self.shed
+    }
     pub fn identities(&self) -> impl ExactSizeIterator<Item = NodeIdentity> + '_ {
         self.tree().nodes.iter().map(|n| n.identity)
     }

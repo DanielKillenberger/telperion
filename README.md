@@ -31,6 +31,10 @@ engine.dispose();
 
 Field handles expire on the next native build or release; copied query results remain owned. Field construction places retained foliage internally. `{ structure: true }` returns six f64 values per node (xyz, distal/proximal/base radius) and three u32 values (parent, branch, kind). The root parent is `0xffffffff`; kinds are structural 0, branch 1 and twig 2. An empty output selection still generates structure for diagnostics. Invalid inputs throw, and cap diagnostics distinguish incomplete growth from a finished tree.
 
+Structure-only output uses the canonical grown wood without constructing foliage
+contacts. One-shot builds release the annual history before allocating transfer
+buffers; retained specimens continue to own their history for later reads.
+
 The optional `tree.field!.snapshot()` exports an owned schema-1 CPU field snapshot
 for experiments and other consumers. It contains f64 wood segments and BVH bounds,
 u32 topology, revision, union bounds and extraction timings; the

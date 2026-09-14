@@ -8,6 +8,7 @@ def mature(path):
 def coords(a):
     return '('+', '.join(f'{v:.6f}' for v in a)+')'
 s = ['# Convergence before the single re-pin\n',
+     "The wire audit's HELD inventory is also recorded before its first move: 28\npaths become 32. Add growth.juvenileBranching, shootStep, thickeningDelay,\nthickeningShape and vigourFloor, whose numeric values are shared by every row;\nremove skeleton.habit.sheddingThreshold, now varied (0 versus the restored\n0.45). The exact set equality and the assertions proving all varying paths\nblend are unchanged. The first full gate exposed this stale schema inventory\nafter the geometry pins moved; no geometry, identity or look pin moves again.\n",
      'Pre-change measurements are from base ccb44eaf609c15e4df7170385f81b372b0d5f532, seed 7. Both columns use production growth at derived maturity. Bounds are node bounds in metres, excluding bark and leaves.\n',
      '| Preset / state | Age | Nodes | Crossover | Min bounds | Max bounds |',
      '|---|---:|---:|---:|---|---|']

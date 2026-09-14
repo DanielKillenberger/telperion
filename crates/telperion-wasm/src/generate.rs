@@ -75,17 +75,41 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         return Err(Error::InvalidInput("output selection"));
     }
     let wants = |key: &str| flags.get(key).and_then(Value::as_bool).unwrap_or(false);
+    let needs_foliage = wants("foliage") || wants("field");
     let started = clock();
     let specimen = Specimen::build(&f)?;
     let growth_ms = clock() - started;
-    let read = specimen.read_at_age(f.age)?;
-    let tree = read.tree;
+    let (tree, envelope, surface_height, placements, shed) =
+        if needs_foliage || specimen.age() != f.age {
+            // Preserve the historical read's refusal beyond a capped frontier.
+            let read = specimen.read_at_age(f.age)?;
+            (
+                read.tree,
+                read.envelope,
+                read.surface_height,
+                read.placements,
+                read.shed.len(),
+            )
+        } else {
+            // An output selection without foliage needs no contact surfaces or
+            // leaf cohorts. These are the same finalized wood values read() clones.
+            (
+                specimen.tree().clone(),
+                specimen.envelope(),
+                specimen.surface_height(),
+                Vec::new(),
+                specimen.shed_count(),
+            )
+        };
+    // The owned read contains every output used below. Release the annual
+    // history and contact caches before allocating the ABI transfer buffers.
+    drop(specimen);
     let mut out = Output::default();
     let (counts, handoffs, capped_handoffs, twig_count) =
         branch_diagnostics(&tree, f.skeleton.twigs)?;
     let start = clock();
     if wants("surface") {
-        out.surface = Some(surface::build(&tree, read.surface_height, &f.surface)?);
+        out.surface = Some(surface::build(&tree, surface_height, &f.surface)?);
     }
     let surface_ms = if wants("surface") {
         clock() - start
@@ -95,16 +119,15 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
     let start = clock();
     let mut placed_count = 0;
     let mut leaf_bounds = Value::Null;
-    let needs_foliage = wants("foliage") || wants("field");
     let mut element = None;
     let mut anatomy = Value::Null;
     if needs_foliage {
         let blade = foliage::build_element(f.element)?;
         let placed = foliage::Instances {
-            matrices: read.placements.iter().map(|p| p.transform).collect(),
+            matrices: placements.iter().map(|p| p.transform).collect(),
         };
         placed_count = placed.matrices.len();
-        out.instances = foliage::cull(&placed, &blade, read.envelope, f.shell_depth)?;
+        out.instances = foliage::cull(&placed, &blade, envelope, f.shell_depth)?;
         if wants("foliage") {
             anatomy = blade.anatomy.as_ref().map_or(Value::Null, |a| json!({
                 "unit": match a.unit { foliage::FoliageUnit::Leaf => "leaf", foliage::FoliageUnit::Needle => "needle" },
@@ -167,7 +190,7 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         }
     }
     let meta = json!({
-        "nodes":tree.nodes.len(),"crossover":tree.crossover,"shed":read.shed.len(),
+        "nodes":tree.nodes.len(),"crossover":tree.crossover,"shed":shed,
         "capped":tree.diagnostics.node_capped,"levelCapped":tree.diagnostics.level_capped,
         "attractionCapped":tree.diagnostics.attraction_capped,"complete":tree.diagnostics.complete(),
         "handoffs":handoffs,"generationCounts":counts,"levelCappedHandoffs":capped_handoffs,"twigs":twig_count,

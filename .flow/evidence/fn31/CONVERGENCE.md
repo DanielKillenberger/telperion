@@ -1,5 +1,13 @@
 # Convergence before the single re-pin
 
+The wire audit's HELD inventory is also recorded before its first move: 28
+paths become 32. Add growth.juvenileBranching, shootStep, thickeningDelay,
+thickeningShape and vigourFloor, whose numeric values are shared by every row;
+remove skeleton.habit.sheddingThreshold, now varied (0 versus the restored
+0.45). The exact set equality and the assertions proving all varying paths
+blend are unchanged. The first full gate exposed this stale schema inventory
+after the geometry pins moved; no geometry, identity or look pin moves again.
+
 Pre-change measurements are from base ccb44eaf609c15e4df7170385f81b372b0d5f532, seed 7. Both columns use production growth at derived maturity. Bounds are node bounds in metres, excluding bark and leaves.
 
 | Preset / state | Age | Nodes | Crossover | Min bounds | Max bounds |

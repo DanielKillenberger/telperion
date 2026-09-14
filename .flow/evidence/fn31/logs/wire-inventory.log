@@ -1,0 +1,9 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 9.15s
+     Running tests/sweep.rs (target/release/deps/sweep-f8c712e8690178e3)
+
+running 1 test
+test every_wire_parameter_a_preset_moves_is_walked ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+

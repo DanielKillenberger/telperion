@@ -155,6 +155,12 @@
       "width": 4956,
       "height": 1000,
       "sha256": "f1001dde95bb535bcc91c75decdcffb939a39504e726b269156f225c272bb420"
+    },
+    {
+      "path": ".flow/evidence/fn24/ordinary-hero.png",
+      "width": 1600,
+      "height": 1000,
+      "sha256": "3571d7731bdc2262d4a5b53fb2ddfe20fd0e931f10fad4028a5f3f690c8d04d7"
     }
   ]
 }

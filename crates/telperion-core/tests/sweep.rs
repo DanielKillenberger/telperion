@@ -49,23 +49,28 @@ const BANDS: [(&str, usize, usize); 5] = [
 /// moved by some pair below and proved to walk; a parameter added to the wire is
 /// either moved by a preset or named here.
 // fn-30 calibrates rate and shape, and derives each preset's age from them.
-// Those paths now move in this sweep. All presets disable the ageing vigour
-// proxy's shedding to retain mature wood; shedding tests set their own threshold.
-// Annual and thickening tests walk the remaining held growth traits explicitly.
-const HELD: [&str; 28] = [
+// Those paths now move in this sweep. fn-31 restores nonzero shedding on
+// Ordinary and the Two Trees, so sheddingThreshold now moves too. Its shared
+// numeric growth traits enter this inventory once, recorded before the change
+// in fn31/CONVERGENCE.md. All blend and exact-set assertions remain intact.
+const HELD: [&str; 32] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
     "/element/curl",
     "/growth/apicalControlLoss",
+    "/growth/juvenileBranching",
     "/growth/sheddingTolerance",
     "/growth/resizeTolerance",
+    "/growth/shootStep",
+    "/growth/thickeningDelay",
+    "/growth/thickeningShape",
+    "/growth/vigourFloor",
     "/skeleton/growth/influenceRadius",
     "/skeleton/growth/killDistance",
     "/skeleton/growth/maxNodes",
     "/skeleton/growth/stepDistance",
     "/skeleton/growth/trunkHeight",
-    "/skeleton/habit/sheddingThreshold",
     "/skeleton/seed",
     "/skeleton/step",
     "/skeleton/twigs/angle",

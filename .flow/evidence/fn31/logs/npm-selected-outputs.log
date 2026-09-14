@@ -1,0 +1,35 @@
+
+> telperion@0.1.0 pretest
+> npm run wasm:build && npm run render:build
+
+
+> telperion@0.1.0 wasm:build
+> node scripts/build-wasm.mjs
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-wasm)
+    Finished `release` profile [optimized] target(s) in 12.54s
+Built Wasm and regenerated Rust family metadata.
+
+> telperion@0.1.0 render:build
+> node scripts/build-render.mjs
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 13.65s
+Built the renderer module and its glue into src/browser/render/.
+
+> telperion@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.11 /home/daniel/Projects/telperion
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
+    Finished `release` profile [optimized] target(s) in 15.08s
+
+ Test Files  6 passed (6)
+      Tests  77 passed (77)
+   Start at  12:12:27
+   Duration  108.26s (transform 365ms, setup 0ms, import 469ms, tests 108.19s, environment 1ms)
+
