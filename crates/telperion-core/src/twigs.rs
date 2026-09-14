@@ -36,7 +36,7 @@ pub struct TwigParams {
     pub angle_variation: f64,
     pub vigour_variation: f64,
     pub divergence: f64,
-    /// How strongly a shoot hangs, 0 to 1. At 0 nothing hangs and the local
+    /// How strongly a shoot hangs, 0 to 3. At 0 nothing hangs and the local
     /// law is the ordinary one; at 1 a curtain takes its full droop.
     pub hang: f64,
     /// Metres a pendulous shoot grows before it stops, and the length its
@@ -112,7 +112,7 @@ impl TwigParams {
         // that asks for a droop or a separation outside the rail is a table
         // with a mistake in it, and the mistake is named.
         for (v, low, high, row) in [
-            (self.hang, 0.0, 1.0, "hang"),
+            (self.hang, 0.0, 3.0, "hang"),
             (self.pendulous_length, 0.05, 5.0, "pendulous length"),
             (self.pendulous_radius, 0.0, 1.0, "pendulous radius"),
             (self.curtain_separation, 1.0, 45.0, "curtain separation"),

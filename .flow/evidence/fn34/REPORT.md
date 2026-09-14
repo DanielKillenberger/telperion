@@ -213,3 +213,22 @@ forty-eight cases.
 No visual pass is awarded. The round-4 pairs are recorded by sha256 in
 `round4-fn37/stills.json` with `visual_status: unassessed`; the owner judges
 them and records the verdict here.
+
+### Round 4b: the droop may exceed the hidden mode's constant (2026-09-15, host QA on fn-37)
+
+fn-37 as specified scaled today's droop cap down with `hang` and never up, so
+the birch's shoots were long and settable but could not point further down
+than the hidden mode allowed, and the crown read as bristles on a dome. The
+host widened the hang rail to 3, so that above 1 a shoot droops past the old
+constant, set the birch at 2.4, and re-rendered its pairs. The one image read
+(S-WHOLE) shows curtains all around the crown. The fine hanging shoots take
+the bark row's white, so the curtain reads frosted where the photograph's
+twigs are dark; young-shoot colour by radius is a bark row for fn-40.
+
+Photograph / round 4 → round 4b:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean |
+|---|---|---|---|---|
+| S-BARE | 0.70 / 0.67 → 0.67 | 0.15 / 0.15 → 0.14 | 0.46 / 0.41 → 0.44 | 91 / 161 → 160 |
+| S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.27 → 0.28 | 92 / 168 → 168 |
+| S-WHOLE | 0.85 / 0.88 → 0.88 | 0.08 / 0.15 → 0.13 | 0.44 / 0.57 → 0.58 | 83 / 86 → 77 |

@@ -120,7 +120,7 @@ fn the_curtain_grows_in_from_nothing_rather_than_switching_on() {
 fn each_curtain_row_is_refused_by_its_own_name() {
     for (row, bad, name) in [
         ("hang", -0.001, "hang"),
-        ("hang", 1.001, "hang"),
+        ("hang", 3.001, "hang"),
         ("hang", f64::NAN, "hang"),
         ("length", 0.049, "pendulous length"),
         ("length", 5.001, "pendulous length"),
@@ -152,7 +152,7 @@ fn each_curtain_row_is_refused_by_its_own_name() {
             ..TwigParams::default()
         },
         TwigParams {
-            hang: 1.0,
+            hang: 3.0,
             pendulous_length: 5.0,
             pendulous_radius: 1.0,
             curtain_separation: 45.0,

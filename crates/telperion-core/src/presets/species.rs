@@ -111,7 +111,7 @@ pub(super) fn silver_birch(p: &mut Family) {
     // under a descending limb hanging, and nine degrees between neighbours
     // where the spruce stands them four apart - a birch's curtain is long and
     // open, not the spruce's dense fringe.
-    p.skeleton.twigs.hang = 1.0;
+    p.skeleton.twigs.hang = 2.4;
     p.skeleton.twigs.pendulous_length = 3.5;
     p.skeleton.twigs.pendulous_radius = 1.0;
     p.skeleton.twigs.curtain_separation = 9.0;

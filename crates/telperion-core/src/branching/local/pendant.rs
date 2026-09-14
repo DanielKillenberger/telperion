@@ -4,6 +4,8 @@
 //!
 //! Every magnitude here is a twig row scaled by `hang`. At hang 0 a shoot
 //! carries no curtain at all and the local law reaches none of this; at hang 1
+//! the droop is the constant the hidden mode had, and above 1 a shoot hangs
+//! steeper than that mode ever allowed, to three times its droop;
 //! the droop is the one the curtain had while it was a constant, so a table
 //! that states the rows reproduces the tree the constants grew.
 use super::*;

@@ -300,7 +300,7 @@ export const SLIDERS: readonly SliderSpec[] = [
      tip set, deepening to the cap over `pendulousLength` - which is
      also where the shoot stops. `hang` is the master over all of it: at
      0 there is no weeping in the tree whatever the rest say. */
-  { key: "hang", label: "hang", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "hang", label: "hang", min: 0, max: 3, step: 0.01, unit: "" },
   { key: "pendulousLength", label: "pendulous length", min: 0.05, max: 5, step: 0.05, unit: "m" },
   { key: "pendulousRadius", label: "pendulous radius", min: 0, max: 1, step: 0.01, unit: "r" },
   { key: "curtainSeparation", label: "curtain separation", min: 1, max: 45, step: 0.5, unit: "deg" },

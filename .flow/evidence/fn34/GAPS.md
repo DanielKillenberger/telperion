@@ -58,6 +58,10 @@ while the two-dimensional profile keeps driving retention: fn-39-crown-outline-i
 irregularity, limbs that die or are shaded out, belongs to fn-16 and fn-21
 and is not this term.
 
+- Fine hanging shoots take the trunk's bark colour, so the birch's curtain
+  reads white where its twigs are dark brown: a young-shoot colour by radius
+  is a row for fn-40, not a form gap.
+
 ## What is not a gap
 
 - Foliage mass lighting and the blue cast under overcast: fn-29's rows moved
