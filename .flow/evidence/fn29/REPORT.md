@@ -36,9 +36,9 @@ A = B * (1 - k*f) + F*f + C*t
 
 This is one affine height-to-albedo map. Multiplying a separately tinted colour
 by cavity introduced a quadratic term. Oak's red quadratic coefficient was
-0.069; its new mature red albedo is 0.025 + 0.25*t. The red endpoints have an
-11:1 ratio, so removing the quadratic term alone did not solve the delivered
-image comparison. Both ambient and sun multiply this albedo. Sheen takes the
+0.069. Before round 4, the mature red albedo was 0.025 + 0.25*t, with an
+11:1 endpoint ratio; removing the quadratic term alone did not solve the
+image comparison. The owner-approved round 4 offset gives 0.064 + 0.211*t. Both ambient and sun multiply this albedo. Sheen takes the
 same 1 - k*f cavity weight. Independent geometric contact multiplies the sum.
 
 The crest clamp remains bounded to [0, maturity]. The 0.35-ridgeScale bound
@@ -128,7 +128,7 @@ README.md documents these rows. Range refusals name the offending material field
 
 | Wire names | Range | Ordinary | Oak | Spruce | Telperion | Laurelin |
 |---|---|---|---|---|---|---|
-| fissureRed/Green/Blue | each -1..1 | 0,0,0 | -.1,-.075,.005 | -.035,-.03,-.02 | 0,0,0 | 0,0,0 |
+| fissureRed/Green/Blue | each -1..1 | 0,0,0 | -.04,-.03,.002 | -.035,-.03,-.02 | 0,0,0 | 0,0,0 |
 | fissureStrength | 0..1 | 0 | .65 | .4 | .12 | .12 |
 | crestRed/Green/Blue | each -1..1 | 0,0,0 | .1,.085,.055 | .05,.025,.01 | 0,0,0 | 0,0,0 |
 | crestStrength | 0..1 | 0 | .5 | .3 | .1 | .1 |
@@ -142,7 +142,7 @@ README.md documents these rows. Range refusals name the offending material field
 | cuticleGloss | 0..1 | 0 | .35 | .05 | .25 | .3 |
 | skyOcclusionStrength | 0..1 | 0 | .5 | .6 | .2 | .2 |
 
-The existing rows retain darker/cooler oak fissure offsets, pale crest offsets,
+The rows retain the approved oak fissure offsets, pale crest offsets,
 low-frequency variation and a blade highlight. Spruce has shallower offsets,
 zero blade mottle strength and margin width, and low cuticle gloss. All seven
 references were viewed once in this session. No preset was altered during the
@@ -226,17 +226,27 @@ The earlier explicit shader compilation check passed at 4c5bf29.
 
 ## Stills
 
-**One of two still-capture rounds used.** All eight PNGs were captured from
-6d9b325 with the unchanged archived driver. Build and capture both exited 0.
-stills.json records fn-26's species/scale/reference/session/capture fields,
-repo-relative paths, SHA-256, exact cameras and complete scene rows. Session 3,
-capture 1 identifies this first fn-29 still round. The temporary example was
-removed again; stills-driver.rs remains the reproduction source.
+**Two of two still-capture rounds used.** The first round used 6d9b325. The
+second, final round uses baca4a6 plus the owner-approved oak fissure offset
+(-0.04,-0.03,0.002), replacing (-0.1,-0.075,0.005). Strength remains 0.65.
+The host traced its slate-colour finding to cavity 0.6 cutting the base
+(0.225,0.218,0.198) to 40% before adding the offset. The old endpoint was
+(0.025,0.03845,0.08245), with blue over three times red. The host reported
+round-3 trunk centre-crop means of (79,89,115), against fn-26's (169,167,160).
+The approved row gives (0.064,0.0677,0.0805); no other material value changed.
+This is the owner's reason for the change, not an image verdict from this run.
 
-Only oak-trunk, spruce-trunk, oak-branch and oak-leaf-frontlit were inspected,
-for blank frames, black frames or wrong cameras. No second round was used,
-no row or camera was adjusted, and no reference was viewed again. Owner verdicts
-remain blank. capture-status.json records the inspection scope and paths.
+All eight PNGs were overwritten using the unchanged archived driver. Build and
+capture exited 0. Every camera and scene row matches the first capture exactly.
+Only the oak trunk and branch hashes changed. stills.json records session 3,
+capture 2, SHA-256, repo-relative paths, exact cameras, complete scene rows and
+fn-26's species/scale/reference fields. The temporary example was removed again;
+stills-driver.rs remains the reproduction source. Neither clock was rerun.
+
+In each round only oak-trunk, spruce-trunk, oak-branch and oak-leaf-frontlit were
+inspected for blank frames, black frames or wrong cameras. No reference was
+viewed again. Owner verdicts remain blank. capture-status.json records both
+inspection rounds; the two-round capture budget is now exhausted.
 
 All captures use seed 7, 1600x1000, Level::Chosen. Wood uses the default scene.
 Leaf frontlit/backlit uses sun azimuth 0/180 and elevation 10, with every other
@@ -294,13 +304,23 @@ viewed each once and did not modify or redistribute any reference.
 
 | Required command | Exit code | Scope |
 |---|---:|---|
-| cargo fmt --all -- --check | 0 | local round 2 checkpoint; host also passed at 08ece33 |
-| cargo clippy --workspace --all-targets -- -D warnings | 0 | local round 2 checkpoint; host also passed at 08ece33 |
-| cargo test --release --workspace | 0 | local round 2 checkpoint; 45 binaries |
+| cargo fmt --all -- --check | 0 | local round 4 checkpoint |
+| cargo clippy --workspace --all-targets -- -D warnings | 0 | local round 4 checkpoint |
+| cargo test --release --workspace | 0 | local round 4 checkpoint; 45 binaries, zero adapter skips |
 | cargo test --release --workspace | 101 | host at 08ece33; anatomy word in shared-noise comment |
 | cargo test --release --workspace --no-fail-fast | 101 | host at 08ece33; 45 binaries, one failure, zero adapter skips, no SIGSEGV; final shader focused device tests green |
-| npm run wasm:build && npm test | 0 | host at 08ece33; 77 passed |
-| npm run typecheck | 0 | host at 08ece33 |
+| npm run wasm:build && npm test | 0 | local round 4 checkpoint; 77 passed; regenerated preset mirror |
+| npm run typecheck | 0 | local round 4 checkpoint |
+
+Round 4 ran all five gates serially. RUST_TEST_NOCAPTURE=1 exposed adapter
+skip messages in the workspace log; there were zero, with no crashes. Core and
+sweep passed without changing any pin. No test or tolerance was edited. README
+does not quote the offset values and needed no update. checks.json retains the
+commands, exit codes and logs for this and the earlier rounds.
+
+Round 4 distance means/p95 were 1.706067/4.50 at 2x and 1.662400/4.50 at 4x,
+in /255. Oak near was 0.926440/3.25; oak grazing 1.280511/4.25; spruce grazing
+0.670043/1.75. All passed the unchanged bounds and redraw differences were zero.
 
 The focused distance, resolution, socket and material shader command exited 0
 at 4c5bf29. The packed-varying blade/crown/look/material-shader command exited 0.
@@ -321,9 +341,9 @@ The round 3 browser orbit and eight stills are now captured by owner direction;
 the separate Chromium compilation check was not rerun. R6 remains over the
 native bound and awaits the owner. No image was inspected from either native clock.
 
-Seven checkpoints include the initial Flow scaffolding, implementation, GPU
-fixes, cost attempt, blocked evidence, comment fix, host lifecycle and round 3
-captures. This round uses one evidence checkpoint.
+Nine checkpoints include the implementation, evidence and host lifecycle
+records through round 4. This round uses one checkpoint; the host's final
+lifecycle commit reaches the ten-commit cap.
 No spec/task content was edited by this session, no owner verdict was issued, no agent was spawned,
 no history was rewritten and nothing was pushed. The temporary build target was
 removed; its source remains reproducible evidence rather than a public command.

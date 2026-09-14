@@ -3,7 +3,7 @@
   "reason": "R5 stills captured for owner judgment; native R6 decision awaits the look",
   "native_total_p50_ms": 4.0005,
   "native_bound_ms": 3.8,
-  "still_rounds_used": 1,
+  "still_rounds_used": 2,
   "still_round_limit": 2,
   "judgment_images_inspected": [
     "oak-trunk.png",
@@ -82,6 +82,27 @@
     ".flow/evidence/fn29/stills/spruce-needle-frontlit.png",
     ".flow/evidence/fn29/stills/spruce-needle-backlit.png"
   ],
-  "capture_source_commit": "6d9b325",
-  "stills_status": "captured; owner verdict pending"
+  "capture_source_commit": "baca4a6",
+  "stills_status": "second and final round captured; owner verdict pending",
+  "capture_source_changes": "owner-approved oak fissure offset (-0.04, -0.03, 0.002); strength 0.65 unchanged",
+  "inspection_rounds": [
+    {
+      "capture": 1,
+      "images": [
+        "oak-trunk.png",
+        "spruce-trunk.png",
+        "oak-branch.png",
+        "oak-leaf-frontlit.png"
+      ]
+    },
+    {
+      "capture": 2,
+      "images": [
+        "oak-trunk.png",
+        "spruce-trunk.png",
+        "oak-branch.png",
+        "oak-leaf-frontlit.png"
+      ]
+    }
+  ]
 }

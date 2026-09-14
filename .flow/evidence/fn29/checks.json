@@ -171,5 +171,53 @@
     "exit_code": 0,
     "log": "logs/round3-browser-orbit-retry.log",
     "scope": "round 3 capture at 6d9b325; first orbit launch failed before browser, retry resolves installed Playwright"
+  },
+  {
+    "command": "cargo build --release -p telperion-render --example fn29_stills",
+    "exit_code": 0,
+    "log": "logs/round4-stills-build.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "./target/release/examples/fn29_stills .flow/evidence/fn29/stills",
+    "exit_code": 0,
+    "log": "logs/round4-stills.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "cargo fmt --all -- --check",
+    "exit_code": 0,
+    "log": "logs/round4-fmt.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "logs/round4-clippy.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "cargo test --release --workspace",
+    "environment": {
+      "RUST_TEST_NOCAPTURE": "1"
+    },
+    "exit_code": 0,
+    "log": "logs/round4-workspace.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset",
+    "binaries": 45,
+    "adapter_skips": 0,
+    "crashes": 0
+  },
+  {
+    "command": "npm run wasm:build && npm test",
+    "exit_code": 0,
+    "log": "logs/round4-npm.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
+  },
+  {
+    "command": "npm run typecheck",
+    "exit_code": 0,
+    "log": "logs/round4-typecheck.log",
+    "scope": "round 4 checkpoint; owner-approved oak fissure offset"
   }
 ]
