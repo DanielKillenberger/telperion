@@ -17,7 +17,8 @@ fn read(id: u32, footprint: vec2<f32>) -> vec4<f32> {
     let circle = vec2(cos(f32(i) * 0.02454369), sin(f32(i) * 0.02454369));
     let share = SHARE;
     let row = vec4(30.0, 0.05, 1.0, -1.0);
-    let lichen = lichen_layer(circle * (3.1 + 0.0917 * j), 0.173 * j, footprint, 1.0, share, 0.0);
+    let lichen = lichen_layer(circle * (3.1 + 0.0917 * j), 0.173 * j, footprint, 1.0, share, 0.0,
+        1.0);
     let dash = lenticel_dash(circle, 0.0087 * j, 0.12 + 0.0031 * j, footprint, row);
     let plate = vec4(0.032, 0.0, 0.0, 0.0);
     let strip = vec3(0.0, 0.0, share);

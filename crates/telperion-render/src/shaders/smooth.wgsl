@@ -42,9 +42,13 @@ fn lichen_octave(p: vec3<f32>, pixel: f32, share: f32) -> f32 {
                 let present = smooth_presence(share, fract(a * 91.7 + b * 13.9));
                 let site = id + vec3(a, b, fract(a * 43.7 + b * 71.3));
                 let radius = LICHEN_REACH * mix(LICHEN_SMALL, 1.0, fract(a * 17.3 + b * 31.1));
-                let shade = mix(0.55, 1.0, fract(a * 29.3 + b * 57.1));
-                let disc = smooth_disc(length(p - site) / radius, pixel / radius);
-                cover = max(cover, disc * shade * present);
+                let distance = length(p - site) / radius;
+                // Most of the twenty-seven cannot reach: the filtered rim is
+                // worked out only for a patch whose rim this pixel can touch.
+                if (present > 0.0 && distance < 1.0 + SMOOTH_RIM + pixel / radius) {
+                    let shade = mix(0.55, 1.0, fract(a * 29.3 + b * 57.1));
+                    cover = max(cover, smooth_disc(distance, pixel / radius) * shade * present);
+                }
             }
         }
     }
@@ -55,20 +59,18 @@ fn lichen_mean(share: f32) -> f32 {
     return 1.0 - exp(-LICHEN_RATE * smooth_share(share));
 }
 
-// One octave of patches over cells of `scale` metres, warped so an outline
-// wanders, faded to its mean as a patch drops under two pixels.
+// One octave of patches over cells of `scale` metres, faded to its mean as a
+// patch drops under two pixels or the wood under it grows too thin to hold
+// one across, which `thin` says. The outline is the sphere's own cut: a warp
+// to fray it cost the birch's whole tree 0.07 ms and the spots read round.
 fn lichen_layer(arc: vec2<f32>, along: f32, footprint: vec2<f32>, scale: f32,
-    share: f32, salt: f32) -> f32 {
+    share: f32, salt: f32, thin: f32) -> f32 {
     let mean = lichen_mean(share);
     let pixel = max(footprint.x, footprint.y) / scale;
-    let retained = bark_pass(pixel / LICHEN_REACH);
+    let retained = bark_pass(pixel / LICHEN_REACH) * thin;
     if (retained <= 0.0) { return mean; }
     let p = vec3(arc, along) / scale + salt;
-    let warp = vec2(
-        bark_noise2_filtered(vec2(dot(p.xy, vec2(1.1, -0.9)), p.z * 1.3), vec2(pixel * 1.42, pixel * 1.3)),
-        bark_noise2_filtered(vec2(dot(p.xy, vec2(-0.7, 1.2)), p.z * 1.1), vec2(pixel * 1.39, pixel * 1.1)));
-    let warped = p + 0.3 * vec3(warp.x - 0.5, warp.y - 0.5, warp.x - warp.y);
-    return mix(mean, lichen_octave(warped, pixel, share), retained);
+    return mix(mean, lichen_octave(p, pixel, share), retained);
 }
 
 // Lichen over this fragment, two octaves: patches at the row's scale and the
@@ -77,8 +79,9 @@ fn lichen(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>) -> f
     let scale = u.lichen_detail.x;
     let share = u.lichen_detail.y;
     let arc = circle * radius;
-    let large = lichen_layer(arc, along, footprint, scale, share, 0.0);
-    let small = lichen_layer(arc, along, footprint, 0.4 * scale, share, 17.0);
+    let thin = smooth_thin(footprint, radius);
+    let large = lichen_layer(arc, along, footprint, scale, share, 0.0, thin);
+    let small = lichen_layer(arc, along, footprint, 0.4 * scale, share, 17.0, thin);
     return large + small - large * small;
 }
 
@@ -120,7 +123,7 @@ fn lenticel_dash(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32
         * (1.0 + 0.6 * SMOOTH_RIM * SMOOTH_RIM);
     let mean = vec2(1.0 - exp(-filled), 1.0 - exp(-LENTICEL_BOWL * filled));
     let extent = max(footprint.x / half, footprint.y / thin);
-    let retained = bark_pass(0.5 * extent);
+    let retained = bark_pass(0.5 * extent) * smooth_thin(footprint, radius);
     if (retained <= 0.0) { return mean; }
     let p = vec3(circle * radius / across, along / pitch);
     let base = floor(p);
@@ -137,8 +140,10 @@ fn lenticel_dash(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32
             let distance = length(vec3(dot(offset.xy, tangent) / half,
                 dot(offset.xy, circle) / half, offset.z / thin)) / size;
             let present = smooth_presence(LENTICEL_SHARE, fract(a * 91.7 + b * 13.9));
-            let bowl = 1.0 - smoothstep(0.0, 1.0 + SMOOTH_RIM, distance);
-            dash = max(dash, vec2(smooth_disc(distance, extent / size), bowl) * present);
+            if (present > 0.0 && distance < 1.0 + SMOOTH_RIM + extent / size) {
+                let bowl = 1.0 - smoothstep(0.0, 1.0 + SMOOTH_RIM, distance);
+                dash = max(dash, vec2(smooth_disc(distance, extent / size), bowl) * present);
+            }
         }
     }
     return mix(mean, dash, retained);
@@ -149,6 +154,15 @@ fn lenticel_dash(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32
 fn lenticel_groove(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>) -> f32 {
     let bowl = lenticel_dash(circle, along, radius, footprint, u.lenticel).y;
     return LENTICEL_DEPTH * LENTICEL_THIN * u.lenticel.y * u.lenticel.z * bowl;
+}
+
+// How much of a spot across the wood a pixel can still hold on wood of this
+// radius. Once a pixel's arc is half the radius the whole visible side of a
+// twig is a few pixels, and a spot across it is averaged by the pixel anyway:
+// the spot field returns its mean there and spends no hash on it, which is
+// most of the wood in a whole tree.
+fn smooth_thin(footprint: vec2<f32>, radius: f32) -> f32 {
+    return bark_pass(footprint.x / max(radius, 1e-6));
 }
 
 // Smooth bark's colour for this fragment's wood, before the relief tints it:
