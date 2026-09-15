@@ -65,6 +65,12 @@ and is not this term.
   amplitude, both silhouettes left the oval. The beech had to give up a shade
   of twig length for node headroom; the ceiling is still the owner's cost
   decision, not a form gap.
+- Multi-stem trees landed as fn-38 (round 6): the birch's table declares two
+  stems and the bare pair stands on them. Two stems cost close to double the
+  nodes — 41,103 to 88,244 at seed 1 — and the clump does not read in the
+  leaf-on pair, because the curtain covers the base; that is fn-44's reach,
+  not a form gap. The stems are spread symmetrically about one bearing, so
+  neither is the near-vertical stem the photograph's pair has.
 
 ## What is not a gap
 

@@ -286,3 +286,74 @@ recorded by sha256 in `round5-fn39/stills.json` with `visual_status:
 unassessed`, and a local judging page beside them
 (`measure/judge.html`, ignored) lays every round's pair, the numbers and the
 references out for the owner, who records the verdict in fn-34.
+
+## Round 6, fn-38: two stems (2026-09-15)
+
+The first thing the gap analysis named after round 3 was the one no value
+could reach: the birch in the S-WHOLE and S-BARE photographs stands on two
+stems that part at the ground, one leaning well out of the pair, and the
+generator grew one leader from the origin with every stage below it assuming
+one. fn-38 makes the clump three habit rows — how many stems leave the root,
+how far apart in bearing they part about a bearing the seed alone decides, and
+how far out of vertical the outermost of them lean — and grows them as
+order-zero axes born at the root. They share the base through the pipe model
+that was already there, each is swept as a trunk run with its own buried root
+and flare and no fork socket, the canopy and the twig layer measure against
+the thickest stem rather than the root's combined pipe, and the profile's
+diameter proxy stops calling several stems ambiguous and reports the largest
+with a count of how many crossed breast height.
+
+The birch's table declares two stems, a hundred and ten degrees apart in
+bearing and twenty-two degrees out of vertical apiece. Twelve degrees was
+tried first and read as one flared trunk that divided: this birch's curtain
+reaches to within a fraction of a metre of the ground, leaving only the first
+couple of metres of stem bare, and over that stretch a dozen degrees left the
+two of them still inside one another's bark. Every other table leaves the
+count at one stem, where the other two rows reach nothing, and is
+byte-identical; the birch's identity pin is re-recorded once with the reason
+stated. The fixed and fresh protocol passes all forty-eight cases
+(`measure/protocol-fn38/`), no birch seed is node-capped, and the heaviest
+birch seed stands at 94,838 nodes against the 250,000 ceiling. At seed 1 the
+birch went from 41,103 nodes and 3.6 s in round 5 to 88,244 nodes and 10.5 s:
+two stems are two crowns' worth of laterals inside one shell, and the cost is
+close to double.
+
+Photograph / round 5 → round 6, per reference; the last column is the
+outline's departure from its own fitted ellipse, photograph / still:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.67 → 0.68 | 0.15 / 0.13 → 0.13 | 0.46 / 0.43 → 0.45 | 91 / 159 → 156 | 0.17 / 0.11 → 0.08 |
+| S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.27 → 0.33 | 92 / 167 → 160 | 0.13 / — → 0.61 |
+| S-WHOLE | 0.85 / 0.91 → 0.92 | 0.08 / 0.14 → 0.15 | 0.44 / 0.58 → 0.51 | 83 / 78 → 49 | 0.22 / 0.11 → 0.10 |
+
+Two of those moved for the clump and not for noise. S-BARK is the close-up on
+the base, and its outline statistic went from unreadable — a mask that touched
+the frame on every side — to 0.61, far above the self-test's five-lobed disc
+at 0.06: the bark shot is no longer one column of wood but two parting, which
+is exactly what the statistic is measuring. S-WHOLE's centre mean fell from 78
+to 49 against the photograph's 83, and the clump is why: the middle of the
+leaf-on box used to hold the white trunk running up it, and with the two stems
+leaning apart there is foliage there instead. The proportions barely moved,
+which is what taking one axis and making it two about the same shell should
+do; the leaf-on crown grew a little less dense, its occupied share falling
+from 0.58 toward the photograph's 0.44.
+
+What the host read on the two pairs, within the four-image rule. On S-BARE the
+still now plainly stands on two stems: one flared foot at the ground dividing
+immediately into two white stems that lean apart, both carrying bark and both
+flared where they meet the ground. Against the photograph the parting is
+lower and more symmetric — the photograph's two stems run up together for a
+couple of metres before one leans away, and ours part at the root and open
+into a V — and the photograph's leaning stem travels much further out before
+it rises. On S-WHOLE the clump does not read at all: the curtain covers the
+base to within a fraction of a metre of the ground and only a stub of white
+shows under it, where the photograph's two stems are visible under a canopy
+lifted on that side. That is the curtain's reach rather than the clump, and it
+belongs to fn-44; the fine hanging shoots still take the trunk's white bark,
+which is fn-40's. What else reads wrong and is nobody's spec yet: the parting
+is a symmetric V because the two stems are spread about one bearing and lean
+by the same angle, so neither of them is the near-vertical stem the
+photograph's pair has. No visual pass is awarded. The round-6 pairs are
+recorded by sha256 in `round6-fn38/stills.json` with `visual_status:
+unassessed`, and the owner records the verdict in fn-34.
