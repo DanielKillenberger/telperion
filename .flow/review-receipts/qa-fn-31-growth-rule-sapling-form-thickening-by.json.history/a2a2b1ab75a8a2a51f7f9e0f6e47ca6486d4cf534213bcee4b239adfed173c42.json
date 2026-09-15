@@ -2,7 +2,7 @@
   "branch": "fn-31-round5-grok",
   "findings": {
     "backend": "interactive",
-    "headSha": "e736421514c9332277285db63cc25c4884961829",
+    "headSha": "6698f95f18bbbfbcba442827ee5900af9425254a",
     "items": [
       {
         "body": "lower and mid-crown first-order branches straight, +21 to +28 deg above horizontal at 36.9 and 65 y; owner: branches grow upwards (surface: crates/telperion-core/src/presets.rs (norway-spruce) / scaffold planning)",
@@ -10,7 +10,7 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
         "id": "finding-83703039982411cdeba45501180f2ed2",
-        "lastSeenReceiptId": "review-8fb9017bcc47a4212c3b364758afadcb4b831c04d1559ea5f34b754c3e1c842b",
+        "lastSeenReceiptId": "review-28009a3371af531dbc95719c85bb5f584e9b22859c342611498e59a41550330b",
         "ordinal": 1,
         "rIds": [],
         "severity": "P1",
@@ -23,7 +23,7 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
         "id": "finding-657e27bce0fadd8cf3cbb1c154f192ed",
-        "lastSeenReceiptId": "review-8fb9017bcc47a4212c3b364758afadcb4b831c04d1559ea5f34b754c3e1c842b",
+        "lastSeenReceiptId": "review-28009a3371af531dbc95719c85bb5f584e9b22859c342611498e59a41550330b",
         "ordinal": 3,
         "rIds": [],
         "severity": "P1",
@@ -36,7 +36,7 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
         "id": "finding-77fb6cc0e88a8995d1ffccbc41842d1e",
-        "lastSeenReceiptId": "review-8fb9017bcc47a4212c3b364758afadcb4b831c04d1559ea5f34b754c3e1c842b",
+        "lastSeenReceiptId": "review-28009a3371af531dbc95719c85bb5f584e9b22859c342611498e59a41550330b",
         "ordinal": 4,
         "rIds": [],
         "severity": "P1",
@@ -49,11 +49,11 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-28009a3371af531dbc95719c85bb5f584e9b22859c342611498e59a41550330b",
         "id": "finding-dc64a73a418da21a9de0a20f386b7049",
-        "lastSeenReceiptId": "review-8fb9017bcc47a4212c3b364758afadcb4b831c04d1559ea5f34b754c3e1c842b",
+        "lastSeenReceiptId": "review-28009a3371af531dbc95719c85bb5f584e9b22859c342611498e59a41550330b",
         "ordinal": 5,
         "rIds": [],
         "severity": "P1",
-        "status": "fixed",
+        "status": "open",
         "title": "F5 ten-year oak reads as a leafy bush with no visible stem"
       },
       {
@@ -62,7 +62,7 @@
         "confidence": 75,
         "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
         "id": "finding-9a1f0682a61d145d3a7d6829e3aa9361",
-        "lastSeenReceiptId": "review-8fb9017bcc47a4212c3b364758afadcb4b831c04d1559ea5f34b754c3e1c842b",
+        "lastSeenReceiptId": "review-28009a3371af531dbc95719c85bb5f584e9b22859c342611498e59a41550330b",
         "ordinal": 2,
         "rIds": [],
         "severity": "P1",
@@ -71,21 +71,29 @@
       }
     ],
     "reviewKind": "qa",
-    "round": 3,
+    "round": 2,
     "schemaVersion": 1,
-    "sourceReceiptId": "review-8fb9017bcc47a4212c3b364758afadcb4b831c04d1559ea5f34b754c3e1c842b",
-    "supersedesReceiptId": "review-28009a3371af531dbc95719c85bb5f584e9b22859c342611498e59a41550330b"
+    "sourceReceiptId": "review-28009a3371af531dbc95719c85bb5f584e9b22859c342611498e59a41550330b",
+    "supersedesReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef"
   },
-  "head_sha": "93457622353249a134a4e13fda32d7810ce7cf29",
+  "head_sha": "d4d9388c81081a838b5e588d365db0ca63afac5d",
   "id": "fn-31-growth-rule-sapling-form-thickening-by",
   "mode": "interactive",
   "open_p0p1": [
     {
       "classification": "introduced",
       "confidence": 100,
-      "file": "crates/telperion-core/src/radius (pipe split)",
+      "file": "crates/telperion-core/src/radius (pipe split) / presets.rs oregon-white-oak",
       "id": "F3 ten-year oak stem flares into a bottle at the ground",
-      "reason": "ground over breast-height radius 1.83, 1.52 and 1.88 on seeds 1, 7 and 42 against 1.6; blocked by the spec keeping the pipe fork split",
+      "reason": "ground over breast-height radius 1.92 on every seed after round 9; blocked by the spec keeping the pipe fork split; young stem taper invariant ignored with its numbers",
+      "severity": "P1"
+    },
+    {
+      "classification": "introduced",
+      "confidence": 100,
+      "file": "crates/telperion-core/src/branching/scaffold/station.rs reach",
+      "id": "F5 ten-year oak reads as a leafy bush with no visible stem",
+      "reason": "round 9 lowLimbReach 0.6 lets every sapling station reach for mature-crown room: 2.3 m bush, 651 nodes against 315; the owner rejected this form in round 5",
       "severity": "P1"
     }
   ],
@@ -120,7 +128,7 @@
     ],
     "total": 6
   },
-  "timestamp": "2026-09-15T19:04:59Z",
+  "timestamp": "2026-09-15T17:33:23Z",
   "type": "qa_verdict",
   "verdict": "NEEDS_WORK"
 }

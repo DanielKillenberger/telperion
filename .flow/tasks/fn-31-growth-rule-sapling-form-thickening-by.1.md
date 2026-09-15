@@ -347,3 +347,56 @@ on a busy machine: oak 2,136 ms in the quieter run, spruce 616 ms. An idle
 re-measure is still owed. Gates: one inherited red, the Ordinary look pin, now
 at 0.852. The 28-year zoomed-out frame and one browser close were flakes that
 passed on retry.
+
+## Round 10 — NEEDS_HUMAN, 2026-09-15
+
+Claude Opus ran round 10 on the candidate branch: five commits, `1b738d0..9345762`
+from d4d9388. The host read the diff:
+
+- The ten-year oak test moved to `tests/ten_year_oak.rs`. It keeps every old
+  assertion, tightens the lowest-limb floor from 5 to 10 percent of the height
+  and the node cap from 800 to 450, adds width and lower-leaf bounds, and runs on
+  seeds 1, 7 and 42.
+- The rule change raises low-limb reach with the stem, from zero at the mature
+  crown base to full strength at the juvenile height. It uses existing traits and
+  adds no species branch; only the oak moves.
+- The pins moved once, after `round10/CONVERGENCE.md`.
+
+The live QA re-run at 9345762 found:
+
+- **F5 fixed.** The ten-year oak is a narrow stemmed sapling on all three seeds.
+  Seed 42 sits at the 0.40 width floor as a curved leafy stem, for the owner to
+  judge against round 5's pole.
+- **F4 still fixed.** No umbrella at 24 and 28 years on seed 42.
+- **F1 unchanged and fixed.** The spruce is byte-identical to round 9.
+
+Blocked by bounds only the owner can move:
+
+- **F3, the ten-year flare.** The ratio is 1.83, 1.52 and 1.88 on seeds 1, 7
+  and 42 against 1.6. The spec keeps the pipe fork split.
+- **F2, the sparse 14.1-year spruce.** It carries about 9,700 leaves per m² of
+  height against 28,600 at 26.6 years. Filling it puts the mature spruce at
+  +29.5 percent against the ±15 percent population band.
+- **The crown-mass invariant.** No reach value passes; the whole reach misses at
+  34.8 and 33.0 percent against 35.
+
+Host cost measurement at load 2.3 to 3.8, with one other session rendering:
+
+| Species | Mature build samples | Ceiling |
+|---|---|---|
+| Oak | 1,949 to 2,299 ms, medians 2,039 and 2,131 | 2,463 ms |
+| Spruce | 515 to 588 ms, median 524 | 867 ms |
+
+Gates: fmt, clippy, `npm test` (77 of 77) and typecheck are green. `cargo test
+--release --workspace` has 349 passed, 9 ignored and the one inherited red, the
+Ordinary clay look pin (0.852). The QA receipt records F1, F4 and F5 as fixed
+and F2 and F3 as open.
+
+Owner decisions:
+
+1. R1 on the round-10 strips.
+2. The flare: accept it, or relax the fork-split boundary.
+3. The 14.1-year spruce: accept it, or widen the population band.
+4. Whether the crown-mass target stands.
+5. On acceptance: re-record the clay pin, merge the candidate, delete the two
+   worktrees, run the gates, and open the PR.
