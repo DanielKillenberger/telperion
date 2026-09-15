@@ -306,3 +306,18 @@ chronicle and the read-at-age contract, and fn-28 owns smoothing between years.
 No open spec covers posture that changes with age, so it needs a new one. The
 harness took about 7 s to build the mature spruce in the browser and 9 s for
 the mature oak. That is recorded, not filed, because R5 is measured natively.
+
+## Round 9 dispatched — 2026-09-15
+
+Owner: "i never set a commit budget rule so pls keep going as long as things are
+achievable within the spec's boundaries. Use opus was worker". CLAUDE.md's
+per-task budget is replaced on both branches, in commits 9188ad9c and 9a735627.
+Round 9 runs on Claude Opus on the candidate branch from 9a735627, using the
+brief `.flow/tmp/fn-31-round9-brief.md`. It covers four items:
+
+1. Red-first invariants: spruce posture by crown position, spruce continuity
+   from 5 to 26.6 years, young stem taper, and no oak umbrella at 24 to 30 years.
+2. The spruce posture and continuity (F1, F2).
+3. The ten-year oak's flare (F3).
+4. The oak crown within R5 (F4), un-ignoring the crown-mass invariant if a rule
+   passes every gate.
