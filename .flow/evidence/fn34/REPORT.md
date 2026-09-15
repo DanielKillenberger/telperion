@@ -607,3 +607,121 @@ It still does not read as the photograph's tree, for these reasons:
 No visual pass is awarded. The round-7 pairs are recorded by sha256 in
 `round7-birch/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 8b, fn-47: the curtain's strands vary in length (2026-09-15)
+
+Round 7 read the birch as a ball on a V, its curtain stopping at one height all
+round, and put part of that down to every strand being the same length. fn-47
+gives the twig table a sixth curtain row, `pendulousVariation`, 0 to 1, neutral
+0: a hanging shoot's own pendulous length is the table's times one minus the
+row times a draw in 0 to 1. The draw is keyed by the shoot's own key and the
+family seed, the identity the local law already draws a lateral's vigour and
+departure from: the station's birth identity and the bud's place on it, never
+the order the tree grows in, so a build at an age, one month by month and one
+in uneven pieces grow every strand to the same length. The sag's arc is spent
+over the shoot's own length, so a short strand ends as near vertical as a long
+one. Neutral is inert: every table but the birch's leaves the row at zero and
+is byte-identical, and the birch at zero is round 7's tree.
+
+### The birch's table
+
+A variation of 0.95 over a pendulous length lengthened from 2.5 m to 3 m, so
+each strand runs anything from 0.15 m to 3 m, which is what S-WHOLE and S-BARE
+show: a hand's width to about three metres. The crown base stays at round 7's
+0.10.
+
+The strand runs at the first fixed seed. A strand here is every descending run
+of local wood, and a whole one is a strand whose last step hangs within a
+millionth of a radian of vertical, which at a sag of 1 is a shoot that ran its
+own length rather than being stopped by the shell or the floor:
+
+| Seed 1 | Strands | At the pendulous length | p10 | p25 | p50 | p75 | p90 | Longest |
+|---|---|---|---|---|---|---|---|---|
+| Round 7, all strands | 15,617 | 49% | 0.63 | 0.92 | 1.99 | 2.50 | 2.50 | 2.50 |
+| Round 7, whole strands | 7,720 | 99.8% | 2.50 | 2.50 | 2.50 | 2.50 | 2.50 | 2.50 |
+| Round 8b, all strands | 15,600 | 0% | 0.34 | 0.69 | 1.05 | 1.69 | 2.40 | 3.00 |
+| Round 8b, whole strands | 9,609 | 0% | 0.38 | 0.73 | 1.38 | 2.12 | 2.62 | 3.00 |
+
+Lengths are metres. All strands average 1.72 m before and 1.22 m after. The
+strands now spread across the whole band. More of them end in free air than
+before (62% against 49%), because a shorter strand meets the shell or the
+floor less often.
+
+The matched stills now render at 1440 tall (the rig change in bb13ea3), and
+the mask figures move with the resolution, so the round-7 table was rendered
+again on the same rig (`measure/pairs-fn47-base/`, not committed). Photograph /
+round 7 at 720 / round 7 at 1440 → round 8b:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.69 / 0.70 → 0.69 | 0.15 / 0.20 / 0.20 → 0.21 | 0.46 / 0.46 / 0.46 → 0.44 | 91 / 167 / 162 → 162 | 0.17 / 0.09 / 0.09 → 0.09 |
+| S-BARK | 1.07 / 1.03 / 1.12 → 1.13 | 1.00 / 0.00 / 0.00 → 0.00 | 0.47 / 0.38 / 0.34 → 0.34 | 92 / 154 / 153 → 153 | 0.13 / 0.72 / 0.73 → 0.73 |
+| S-WHOLE | 0.85 / 0.86 / 0.94 → 0.95 | 0.08 / 0.21 / 0.21 → 0.21 | 0.44 / 0.46 / 0.41 → 0.40 | 83 / 89 / 85 → 89 | 0.22 / 0.12 / 0.13 → 0.13 |
+
+Against the same rig, the variation moves almost nothing in the outline.
+Width over height, crown base and outline deviation are within 0.01 of the
+round-7 table on every reference. What moves is how full the crown is. Shorter
+strands carry less leaf-bearing wood, and the seed-1 crown carries 313,686
+leaves against 444,750. Occupied falls 0.01 to 0.02 on both matched references,
+a little further below the photographs, and the leaf-on centre is 4 brighter,
+89 against the photograph's 83. The width over height of 0.95 on S-WHOLE is
+the 1440 rig's, not this round's: the round-7 table reads 0.94 on it.
+
+The cost at the first fixed seed is 110,151 nodes, 6,592,480 wood triangles
+and 313,686 leaves in 3.1 s, against round 7's 152,330 nodes, 9,143,160
+triangles and 444,750 leaves. The heaviest birch seed stands at 112,044 nodes
+against round 7's 154,583. The fixed and fresh protocol passes all forty-eight
+cases (`measure/protocol-fn47/`), and no seed is node-capped.
+
+### What the host read on the pairs, and what is left
+
+Within the four-image rule, S-WHOLE and S-BARE once each. Strands of visibly
+different lengths now show inside the curtain, and on S-BARE the strand ends
+along the right-hand side of the crown stop at different heights. The two
+stems stand clear below the crown on both pairs.
+
+The curtain does not end in a ragged hem. On both pairs the crown is still a
+round mass with a smooth, rounded lower edge sitting on the two stems, and
+the variation did not change that silhouette. The measurement says why, and it
+is not the strand length. Seen from eight bearings, 60 columns across the
+middle of the crown each, the lowest wood in a column sits on average 1 cm
+above the shell's lower surface, both before and after the row, and only 6% of
+columns end more than a quarter of a metre above it (7% before). The limbs
+fill the shell down to its lower surface. A strand hanging from a limb near
+that surface meets it within centimetres whatever its own length, and each
+column holds hundreds of strands, so the longest ones set the edge. The lower
+edge of the crown is the shell's rounded bottom. That is the ball.
+
+The host tried the three rows the brief names, in numbers and without
+spending images:
+
+- **Pendulous length.** At 1.5 m, 22% of columns end free of the shell, and the
+  curtain becomes a short fringe that no longer reads as weeping.
+- **Crown base.** At 0.07, 7% of columns end free of the shell.
+- **Variation.** It changes nothing in the hem at any value, for the reason
+  above.
+
+Two diagnostic builds were measured and not kept:
+
+- **A curtain let out of the shell.** The hem falls 1.4 m below the shell and
+  its roughness doubles, from 0.09 m to 0.19 m. The variation still makes no
+  difference (0.18 m without it, 0.19 m with it): the edge of a dense curtain
+  is its longest strands.
+- **One draw per limb rather than per shoot.** 17% of columns end free, against
+  6%.
+
+What is left, and whose it is:
+
+- **The hem is the shell.** fn-44 kept the shell around the curtain, and while
+  it holds, no strand row reaches the silhouette's lower edge. A ragged hem needs
+  the curtain to hang past the shell's lower surface, or to hang in bunches
+  from its limbs rather than as an even fringe, so that a column's lowest strand
+  is not always a long one. Either is a generator change outside this spec.
+- **The crown is a little thinner than both photographs.** The leaf spacing
+  row could restore it, but it is not one of the rows this round tuned.
+- **The white fine shoots** (fn-46) and **the symmetric V of the stems**
+  (fn-48) are owned elsewhere.
+
+No visual pass is awarded. The round-8b pairs are recorded by sha256 in
+`round8b-fn47/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.

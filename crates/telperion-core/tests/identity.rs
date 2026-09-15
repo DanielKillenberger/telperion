@@ -53,6 +53,12 @@
 //! base, which is the sagging curtain's floor, rises from 0.015 to 0.10 of
 //! the height so the two stems stand clear under it, and a leaf every 60 mm
 //! of shoot rather than 36 lets the sky back through two stems' crowns.
+//! fn-47 re-pins the silver birch alone: its table is the first to state a
+//! pendulous variation, so each hanging shoot runs its own share of a
+//! pendulous length lengthened from 2.5 m to 3 m, anything from a twentieth
+//! of it to the whole, as the strands of S-WHOLE and S-BARE do. Every other
+//! table leaves the variation at zero, which is one length to the byte; the
+//! element pin does not move.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -129,13 +135,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 3929556,
-        wood_triangles: 7605480,
-        instances: 391902,
-        min: [-6.51028703305269, -0.07199999690055847, -6.339091063526724],
-        max: [6.4649505615234375, 15.35163688659668, 6.496953656890554],
-        skeleton: 13073206196273823952,
-        placement: 15566016928509104126,
+        wood_vertices: 2891986,
+        wood_triangles: 5598280,
+        instances: 280681,
+        min: [-6.508162021636963, -0.07199999690055847, -6.346981950267566],
+        max: [6.471988773247245, 15.359739147161827, 6.496689910225074],
+        skeleton: 2501673387105098722,
+        placement: 12643201762294960480,
         element: 1872173242819532549,
     },
 ];

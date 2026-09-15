@@ -30,13 +30,15 @@ const IDS: [&str; 7] = [
 /// The tree each shipped table grew with the row forced to its neutral,
 /// photographed when fn-47 landed and before any table stated the row. Each is
 /// the tree fn-44's own neutral pins and `tests/identity.rs` recorded before
-/// the row existed, which is what says the row at zero reaches nothing.
+/// the row existed, which is what says the row at zero reaches nothing. The
+/// birch's was re-recorded once when its own table lengthened the pendulous
+/// length from 2.5 m to 3 m beside the variation it states.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     12852486373694172527,
-    13073206196273823952,
+    4985991025717268658,
     12471405148157309180,
     14199367530911903060,
 ];
@@ -311,11 +313,9 @@ fn one_seed_is_one_curtain_whatever_order_it_grows_in() {
     };
     let mut f = curtain(0.8);
     f.age = AGE;
-    let built = runs(&Specimen::build(&f).expect("the curtain builds"));
-    let whole = strands(Specimen::build(&f).expect("the curtain builds").tree())
-        .iter()
-        .filter(|s| s.whole())
-        .count();
+    let built = Specimen::build(&f).expect("the curtain builds");
+    let whole = strands(built.tree()).iter().filter(|s| s.whole()).count();
+    let built = runs(&built);
     assert!(
         whole >= 100,
         "seed {SEED}: the curtain at {AGE} years hung {whole} whole strands"

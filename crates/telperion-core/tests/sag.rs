@@ -31,13 +31,15 @@ const IDS: [&str; 7] = [
 /// length from 3.5 m to 2.5 m: its own table moved, not the neutral law.
 /// And once more at the merge with fn-38, whose clump puts the same table on
 /// two stems; every other table's neutral stood. Round 7 lifts that birch's
-/// crown base, which moves its tree with the row at any value.
+/// crown base, which moves its tree with the row at any value. fn-47's birch
+/// states a pendulous variation over a 3 m pendulous length, which caps a
+/// shoot that does not sag as surely as it sets the run of one that does.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     12852486373694172527,
-    1381814102884070673,
+    4999518722089928750,
     12471405148157309180,
     14199367530911903060,
 ];
@@ -113,6 +115,9 @@ fn hanging(sag: f64, pendulous: f64) -> Family {
     f.skeleton.twigs.pendulous_length = pendulous;
     f.skeleton.twigs.twig.bearing_diameter = 0.015;
     f.skeleton.twigs.sag = sag;
+    // One length for every strand: the arc is read against the pendulous
+    // length, and fn-47's variation gives each shoot its own.
+    f.skeleton.twigs.pendulous_variation = 0.0;
     f
 }
 

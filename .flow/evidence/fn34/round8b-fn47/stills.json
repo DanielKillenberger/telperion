@@ -1,0 +1,37 @@
+{
+  "round": "8b",
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-47: each hanging shoot runs its own share of the pendulous length (skeleton.twigs.pendulousVariation); the silver birch states a variation of 0.95 over a pendulous length lengthened from 2.5 m to 3 m, strands from 0.15 m to 3 m; matched stills rendered at the first fixed seed at 1440 tall; pairs on disk under the ignored measure/pairs-fn47/, recorded here by sha256; the round-7 table re-rendered on the same 1440 rig is under measure/pairs-fn47-base/",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn47/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "e284db8f6c15c8b0d42c3f740802fe30c9c4d8ea7c665274bdf99d9fc7ac5541",
+      "still_sha256": "8dbca77394f48a21a1be6ff6b711c8eaf637396b36a05ac9237339e435eed4d7",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn47/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "5062b6c37bfd0477630f1828c7d43a98ed6032364fe9ab093d20ff3eb9fab349",
+      "still_sha256": "3de8219a925e8b59650c8c8eabdb424beb171cec56c046fdab943be3a0916c37",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn47/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "9bb643cf4b8efaeea5007acc9a6a2d8e9b0a87e0e2ce7f8657e91ac80b999c06",
+      "still_sha256": "57d2cb3d5276bf498068c145fee3579eb430bdee3dc6ab40263be2f8583c50dc",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

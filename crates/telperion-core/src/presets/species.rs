@@ -144,13 +144,12 @@ pub(super) fn silver_birch(p: &mut Family) {
     // closed back into a mass with no sky through it.
     p.skeleton.twigs.twig.internode_length = 0.06;
     p.skeleton.twigs.twig.bearing_diameter = 0.02;
-    // The weeping birch's own curtain: a full hang, shoots running three and a
-    // half metres unbranched instead of the twig's own quarter, every shoot
-    // under a descending limb hanging, and nine degrees between neighbours
+    // The weeping birch's own curtain: a full hang, shoots running metres
+    // unbranched instead of the twig's own quarter (their length is stated
+    // with its variation below), every shoot under a descending limb hanging, and nine degrees between neighbours
     // where the spruce stands them four apart - a birch's curtain is long and
     // open, not the spruce's dense fringe.
     p.skeleton.twigs.hang = 2.4;
-    p.skeleton.twigs.pendulous_length = 2.5;
     p.skeleton.twigs.pendulous_radius = 1.0;
     p.skeleton.twigs.curtain_separation = 9.0;
     // And the curtain hangs: in S-WHOLE and S-BARE the shoots arch out of the
@@ -160,6 +159,13 @@ pub(super) fn silver_birch(p: &mut Family) {
     // runs less has turned less, so anything short of the row's own end
     // leaves the curtain standing out of the crown rather than falling from it.
     p.skeleton.twigs.sag = 1.0;
+    // And no two strands alike: in S-WHOLE and S-BARE they run anything from
+    // a hand's width to about three metres, so the curtain ends in a ragged
+    // hem, lower under the heavier limbs, and not at one height all round.
+    // Each shoot runs its own share of a three-metre pendulous length, down
+    // to a twentieth of it.
+    p.skeleton.twigs.pendulous_length = 3.0;
+    p.skeleton.twigs.pendulous_variation = 0.95;
     p.radii.trunk_radius = 0.01;
     p.element = ElementParams {
         length: 0.055,
