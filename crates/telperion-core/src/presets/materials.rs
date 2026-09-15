@@ -183,15 +183,16 @@ pub(super) fn beech() -> MaterialParams {
         // A dense crown lit as one mass (fn-52): the lighting normal bends
         // most of the way to the crown's outward direction and the sun wraps
         // a little past the terminator, so the sky-lit top and the sunward
-        // shell carry the crown. A thin blade transmits almost evenly
+        // shell carry the crown. A thin blade transmits close to evenly
         // (Jacquemoud & Ustin 2019, Leaf Optical Properties), sky and sun
-        // alike, and the glossy cuticle returns the sky toward grazing, a
-        // little above a smooth wax's 0.04. Set against B-WHOLE's own centre,
-        // sRGB 71/94/74 under overcast, where this row draws 64/85/68.
+        // alike. The glossy cuticle's sheen sits above a smooth wax's 0.04:
+        // B-WHOLE's brightest centre pixels are a pale, sky-lit green,
+        // 149/180/152, not sky. Set against B-WHOLE's centre, sRGB 71/94/74
+        // under overcast, where this row draws 63/85/67.
         canopy_normal: 0.8,
         light_wrap: 0.4,
-        diffuse_transmission: 0.9,
-        leaf_sheen: 0.06,
+        diffuse_transmission: 1.0,
+        leaf_sheen: 0.1,
     }
 }
 
@@ -262,13 +263,14 @@ pub(super) fn birch() -> MaterialParams {
         sky_occlusion_strength: 0.4,
         // The same canopy as the beech's (fn-52), with a softer terminator
         // for the airy hanging crown and a less glossy cuticle. Set against
-        // S-WHOLE, whose leaf pixels sit above half brightness a fifth of the
-        // time: this row puts 24% of the leaf pixels there, where the card
-        // put 2%.
+        // S-WHOLE, whose centre pixels sit above half brightness a fifth of
+        // the time: this row puts 20% of the leaf pixels there, where the
+        // card put 2%, and the centre's leaf pixels read 81 against the
+        // photograph's 83.
         canopy_normal: 0.8,
         light_wrap: 0.5,
-        diffuse_transmission: 0.9,
-        leaf_sheen: 0.05,
+        diffuse_transmission: 1.0,
+        leaf_sheen: 0.06,
     }
 }
 

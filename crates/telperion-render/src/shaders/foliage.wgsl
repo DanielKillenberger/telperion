@@ -91,7 +91,8 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     // A leaf in a mass is lit as part of it: the normal the light arriving
     // at it is read by - sky, sun and what passes through - bends from the
     // face toward the crown's outward direction by the row's canopy normal,
-    // and is the face's own at zero or with no crown.
+    // and is the face's own at zero or with no crown. What the face itself
+    // reflects, the sun's glint and the sky's sheen, stays the face's.
     var lit = n;
     if (u.canopy.x > 0.0 && u.crown_centre.w > 0.5) {
         let outward = crown_outward(in.world, u.crown_centre.xyz, u.crown_radii.xyz);
@@ -128,11 +129,12 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     }
     var radiance = colour * (shaded + direct) + through + direct * cuticle;
     if (u.canopy.w > 0.0) {
-        // The mass returns the sky it mirrors, most of it at grazing, so a
-        // crown's rim reads light against its sky. It is the mass's sheen and
-        // reads the bent normal; the sun's glint above stays the face's own.
-        let mirror = reflect(-to_eye, lit);
-        radiance += sheen(lit, to_eye, u.canopy.w) * occluded_ambient(mirror, in.leaf.z) * interior;
+        // The cuticle returns the sky its own face mirrors, most of it at
+        // grazing. Reflection is the surface's, so it reads the face, as the
+        // sun's glint does; the bent normal stands for light arriving through
+        // the mass, and on its silhouette would mirror the sky off every rim.
+        let mirror = reflect(-to_eye, n);
+        radiance += sheen(n, to_eye, u.canopy.w) * occluded_ambient(mirror, in.leaf.z) * interior;
     }
     return vec4<f32>(tone(radiance), 1.0);
 }
