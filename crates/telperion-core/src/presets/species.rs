@@ -14,32 +14,31 @@ pub(super) fn european_beech(p: &mut Family) {
     // Mature open-grown Fagus sylvatica. Envelope height is the 32 m
     // reference at 120 yr; oak growth traits, not a beech calibration.
     oak_growth(p, 120.0);
-    // A leader that carries the crown to the top, limbs leaving it one or
-    // two at a time along its length and rising (owner, round 5b), and in
-    // leaf one full oval on that trunk. The scaffold ends its leader at
-    // crownBase + (1 - crownBase) * apicalDominance of the height, so 0.9
-    // runs it to nine tenths. The leader is only as thick as what it
-    // carries: a first-order limb runs to the shell and its tips grow with
-    // the square of that run, so a steep limb from low on the bole carries
-    // a share of the crown's top and the leader's girth with it. Leaving at
-    // 65 degrees and bending up over their run (0.45), the low limbs meet
-    // the shell short and the heaviest leave from a quarter to a half of
-    // the height; at 48 degrees eight of them climbed to within a metre of
-    // the leader's top and it was lost among them above a quarter. Side
-    // branches half their limb's length, held nearly level, and two limbs
-    // a station, 2.2 m apart, keep them few.
+    // The winter photograph (B-BARE, fn-54): a straight trunk clear to about
+    // a fifth of the height, a core that stays the thickest wood to about
+    // half of it and runs on toward the top, and limbs that leave it 25 to
+    // 40 degrees from vertical and rise straight alongside it before they
+    // spread; their side branches rise with them, so the fine wood is an
+    // upward broom and not a tangle. Stations 2.9 m apart from the crown's
+    // base put the first limbs at 5.8 m, two a station at 28 degrees, barely
+    // bending (0.1) and hardly crooked. The leader runs to four fifths of
+    // the height; limbs this steep carry less of the crown's top than
+    // round 11's level ones did, so the core holds its girth without them
+    // leaving at 65 degrees. Side branches run two thirds of their limb and
+    // leave it level with its own heading, which is what widens the lower
+    // crown: the limbs themselves stay close to the core.
     p.skeleton.habit = HabitParams {
-        apical_dominance: 0.9,
+        apical_dominance: 0.8,
         whorl_strength: 0.15,
-        leader_internode: 2.2,
+        leader_internode: 2.9,
         laterals_per_station: 2,
-        lateral_pitch: 65.0,
-        pitch_variation: 10.0,
-        rise_primary: 0.45,
-        rise_secondary: 0.1,
-        crookedness: 6.0,
-        lateral_spacing: 2.2,
-        lateral_length_ratio: 0.5,
+        lateral_pitch: 28.0,
+        pitch_variation: 6.0,
+        rise_primary: 0.1,
+        rise_secondary: 0.0,
+        crookedness: 3.0,
+        lateral_spacing: 2.0,
+        lateral_length_ratio: 0.65,
         lateral_orders: 3,
         attractor_weight: 0.0,
         twig_tip_taper: 0.25,
@@ -49,14 +48,15 @@ pub(super) fn european_beech(p: &mut Family) {
         stem_lean: 0.0,
         stem_lean_spread: 0.0,
     };
-    // The crown starts low, is widest a little under half its depth and
-    // rounds off at the top rather than squaring into a shoulder.
+    // An upright oval, widest a little below the middle of the crown and
+    // rounding to its top (B-BARE: width over height about 0.74). The shell
+    // starts at 0.14 of the height, so no wood and no leaf stands under 4.5 m.
     p.skeleton.envelope = Envelope {
         height: 32.0,
-        crown_base: 0.05,
-        spread: 0.52,
-        fullness: 0.48,
-        shoulder: 1.5,
+        crown_base: 0.14,
+        spread: 0.36,
+        fullness: 0.4,
+        shoulder: 1.8,
         // A beech's crown is lumpy where its limbs end and hollow where they
         // do not. Four or five broad lobes around a wavelength most of the
         // tree's own height, at not quite a fifth of the radius.
@@ -68,33 +68,34 @@ pub(super) fn european_beech(p: &mut Family) {
     // generation two is a twig whatever the pipe model left its radius.
     p.skeleton.twigs.generations = 2;
     p.skeleton.twigs.laterals = 4;
-    // Fewer, heavier scaffold tips leave more of the scaffold above a tenth
-    // of the trunk's radius, where no twig starts; the twig layer starts on
-    // wood under 0.17 of it, so the crown keeps its shoots.
-    p.skeleton.twigs.limb_radius = 0.17;
-    // Four twig laterals a station fill the crown; a shorter twig pays for
-    // them and for the longer leader, so the heaviest protocol seed keeps a
-    // fifth of the ceiling in hand.
-    p.skeleton.twigs.length_ratio = 0.30;
-    // Short shoots carry most of the leaves now, so the long shoots only
-    // have to spread the crown: each stands out at 50 degrees, turned by
-    // the golden angle, with a leaf every 5 cm. Two-ranked at 32 degrees
-    // with a leaf every 2 cm, every spray was a flat frond and the crown
-    // read as a hemlock (owner and host, round 11); the bottlebrush the
-    // golden angle once made was the comb of leaves along it, which the
-    // clusters have replaced.
-    p.skeleton.twigs.angle = 50.0;
+    // The twig layer starts on wood under 0.28 of the trunk's radius, so the
+    // side branches of steep limbs carry shoots along most of their length
+    // and the crown's inside is not bare wood under a shell of leaves.
+    p.skeleton.twigs.limb_radius = 0.28;
+    // Four twig laterals a station fill the crown; a twig a quarter of its
+    // parent's length pays for them and for the wider twig layer, so the
+    // heaviest protocol seed stays well under the node ceiling.
+    p.skeleton.twigs.length_ratio = 0.25;
+    // Short shoots carry most of the leaves, so the long shoots only have
+    // to spread the crown: each stands out at 40 degrees, rising with the
+    // broom its limb makes, turned by the golden angle, with a leaf every
+    // 5 cm. Two-ranked at 32 degrees with a leaf every 2 cm, every spray was
+    // a flat frond and the crown read as a hemlock (owner and host, round 11).
+    p.skeleton.twigs.angle = 40.0;
     p.skeleton.twigs.divergence = 137.5;
     p.skeleton.twigs.twig.internode_length = 0.05;
     p.skeleton.twigs.twig.bearing_diameter = 0.03;
-    p.radii.trunk_radius = 0.014;
-    // Two thirds of the default taper per metre, and a fork exponent of
-    // 2.6: a parent's radius is the n-th root of the sum of its children's
-    // n-th powers, so a higher n lets the leader keep its girth. At 2.8 the
-    // wood sat on a cliff - a few degrees of limb angle collapsed the local
-    // layer to a third of its nodes - and 2.6 keeps the core off it.
+    // A trunk a little over a metre through at breast height, a third of
+    // the default taper per metre, and a fork exponent of 2.9: a parent's
+    // radius is the n-th root of the sum of its children's n-th powers, so a
+    // higher n lets the core keep its girth ("much more thick core trunks
+    // for almost the entire height", owner, round 5c). Round 6 found a cliff
+    // at 2.8 under limbs at 48 degrees, where a few degrees of limb angle
+    // collapsed the twig layer; under these steep limbs every protocol seed
+    // grows its whole twig layer.
+    p.radii.trunk_radius = 0.016;
     p.radii.length_taper = 0.2;
-    p.radii.fork_exponent = 2.6;
+    p.radii.fork_exponent = 2.9;
     // A beech stands on a modest flare, not the oak's buttress.
     p.surface.flare_radius = 1.5;
     p.element = ElementParams {
@@ -112,7 +113,7 @@ pub(super) fn european_beech(p: &mut Family) {
     };
     p.shell_depth = 1.0;
     // Most of a beech's leaves stand in clusters all along its limbs and
-    // deep inside the crown, on wood under a third of the trunk's radius,
+    // deep inside the crown, on any wood under 0.7 of the trunk's radius,
     // which twig wood alone left bare. A cluster of eight leaves fanned a
     // half circle every 4 cm, held 20 cm off the wood: longer than a spur,
     // it stands where a leafy side shoot holds its leaves, so each limb
@@ -122,7 +123,7 @@ pub(super) fn european_beech(p: &mut Family) {
     // slender wood's own row of leaves stood, so that row is off.
     p.canopy.shoot_radius = 0.0;
     p.canopy.short_shoot_spacing = 0.04;
-    p.canopy.short_shoot_radius = 0.35;
+    p.canopy.short_shoot_radius = 0.7;
     p.canopy.short_shoot_length = 0.2;
     p.canopy.short_shoot_leaves = 8;
     p.canopy.short_shoot_spread = 90.0;
