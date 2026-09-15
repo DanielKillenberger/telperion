@@ -14,22 +14,25 @@
 // The soft rim a spot is drawn with, in its own radii.
 const SMOOTH_RIM = 0.15;
 
-// A spot's soft disc: one at its site, nought past its rim, the rim widened
-// by the footprint the way every band of the bark field is.
-fn smooth_disc(distance: f32, pixel: f32) -> f32 {
-    return 1.0 - bark_edge(1.0 - SMOOTH_RIM, 1.0 + SMOOTH_RIM, distance, pixel);
+// A spot's disc: one at its site, nought past its rim, the rim `rim` of its
+// radius wide and widened by the footprint the way every band of the bark
+// field is.
+fn smooth_disc(distance: f32, pixel: f32, rim: f32) -> f32 {
+    return 1.0 - bark_edge(1.0 - rim, 1.0 + rim, distance, pixel);
 }
 
 // Lichen patches are spheres about sites anywhere in their cells, reaching
 // past them, so the twenty-seven cells about this point are read. The layer
 // is read once a fragment, like the mottle; the relief never reads it.
-const LICHEN_REACH = 0.62; // the largest patch's radius, in cells
-const LICHEN_SMALL = 0.35; // the smallest patch against the largest
+const LICHEN_REACH = 0.55; // the largest patch's radius, in cells
+const LICHEN_SMALL = 0.2; // the smallest patch against the largest
 const LICHEN_LONG = 1.25; // how far a patch may be drawn out along one axis
+const LICHEN_LOBE = 0.3; // how far its outline swells and bites in, lobe by lobe
+const LICHEN_RIM = 0.06; // its edge, in its own radii: a thallus stops sharply
 // What one octave averages to is 1 - exp(-rate * share): patches overlap as
 // independent covers do. The rate is measured over a sweep of rings of the
 // field and pinned by the smooth means test, as the plate means are.
-const LICHEN_RATE = 0.31;
+const LICHEN_RATE = 0.133;
 
 fn lichen_octave(p: vec3<f32>, pixel: f32, share: f32) -> f32 {
     let base = floor(p);
@@ -42,19 +45,26 @@ fn lichen_octave(p: vec3<f32>, pixel: f32, share: f32) -> f32 {
                 let b = bark_hash(id.xy + vec2(13.0, 31.0) * id.z + vec2(61.7, 17.3));
                 let present = smooth_presence(share, fract(a * 91.7 + b * 13.9));
                 let site = id + vec3(a, b, fract(a * 43.7 + b * 71.3));
-                let radius = LICHEN_REACH * mix(LICHEN_SMALL, 1.0, fract(a * 17.3 + b * 31.1));
+                let size = fract(a * 17.3 + b * 31.1);
+                let radius = LICHEN_REACH * mix(LICHEN_SMALL, 1.0, size);
                 // Most of the twenty-seven cannot reach: a patch is shaped and
                 // its filtered rim worked out only where this pixel can touch
-                // it, at the furthest its longest axis carries it.
-                let reach = (1.0 + SMOOTH_RIM + pixel / radius) * LICHEN_LONG;
+                // it, at the furthest its longest axis and lobe carry it.
+                let reach = (1.0 + LICHEN_RIM + pixel / radius) * LICHEN_LONG * (1.0 + LICHEN_LOBE);
                 if (present > 0.0 && length(p - site) < reach * radius) {
-                    // A sphere drawn out along its own three axes, so no two
-                    // cut the bark to the same round disc.
+                    // A sphere drawn out along its own three axes and lobed by
+                    // its own phases, so no two cut the bark to one disc.
                     let axes = mix(vec3(1.0 / LICHEN_LONG), vec3(LICHEN_LONG),
                         fract(vec3(a * 53.3 + b * 7.1, a * 11.9 + b * 61.7, a * 37.1 + b * 23.9)));
-                    let distance = length((p - site) * axes) / radius;
-                    let shade = mix(0.55, 1.0, fract(a * 29.3 + b * 57.1));
-                    cover = max(cover, smooth_disc(distance, pixel / radius) * shade * present);
+                    let offset = (p - site) * axes;
+                    let span = length(offset);
+                    let phase = 6.2831855 * vec3(a, b, fract(a * 7.7 + b * 3.3));
+                    let lobe = dot(sin(5.0 * offset / max(span, 1e-5) + phase), vec3(1.0 / 3.0));
+                    let distance = span / (radius * (1.0 + LICHEN_LOBE * lobe));
+                    // The small spots are the bright young ones; a broad patch
+                    // is thinner and lets the bark through.
+                    let shade = mix(1.0, 0.45, size);
+                    cover = max(cover, smooth_disc(distance, pixel / radius, LICHEN_RIM) * shade * present);
                 }
             }
         }
@@ -149,7 +159,8 @@ fn lenticel_dash(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32
             let present = smooth_presence(LENTICEL_SHARE, fract(a * 91.7 + b * 13.9));
             if (present > 0.0 && distance < 1.0 + SMOOTH_RIM + extent / size) {
                 let bowl = 1.0 - smoothstep(0.0, 1.0 + SMOOTH_RIM, distance);
-                dash = max(dash, vec2(smooth_disc(distance, extent / size), bowl) * present);
+                dash = max(dash, vec2(smooth_disc(distance, extent / size, SMOOTH_RIM), bowl)
+                    * present);
             }
         }
     }

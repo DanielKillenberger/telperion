@@ -183,11 +183,10 @@ pub(super) fn beech() -> MaterialParams {
         brightness_range_low: -0.1,
         brightness_range_high: 0.1,
         interior_darkening: 0.35,
-        // Smooth bark: no ridge field at all. The close-up drew it as vertical
-        // wavy ridges with bright rims at every setting the field has, down to
-        // a crackle at 2 mm; the beech's fissure, crest and plate rows draw
-        // nothing without it, and what the eye reads is the colour below.
-        ridge_scale: 0.0,
+        // Smooth bark: the ridge field only as a 2 mm grain with no furrow and
+        // no tint. At a centimetre and more it drew vertical wavy ridges with
+        // bright rims on B-BASE; tinted at 2 mm, a crackle glaze.
+        ridge_scale: 0.002,
         plate_scale: 0.04,
         furrow_strength: 0.0,
         roughness_detail: 0.08,
@@ -201,13 +200,13 @@ pub(super) fn beech() -> MaterialParams {
         fissure_red: -0.04,
         fissure_green: -0.03,
         fissure_blue: -0.02,
-        fissure_strength: 0.2,
+        fissure_strength: 0.0,
         crest_red: 0.06,
         crest_green: 0.055,
         crest_blue: 0.045,
-        crest_strength: 0.25,
+        crest_strength: 0.0,
         bark_mottle_scale: 0.12,
-        bark_mottle_strength: 0.12,
+        bark_mottle_strength: 0.1,
         cavity_strength: 0.35,
         blade_mottle_scale: 5.0,
         blade_mottle_strength: 0.1,
@@ -234,17 +233,18 @@ pub(super) fn beech() -> MaterialParams {
         orientation_blue: 0.0,
         directional_occlusion: 0.0,
         depth_strength: 0.0,
-        // B-BASE: pale lichen spots, many small and some broad, and a few
-        // faint horizontal lines. No strip peels.
-        lichen_scale: 0.015,
-        lichen_coverage: 0.4,
-        lichen_red: 0.76,
-        lichen_green: 0.78,
-        lichen_blue: 0.7,
-        lichen_strength: 0.9,
+        // B-BASE: lichen in few patches of widely varied size, the small ones
+        // bright white and the broad ones thin grey-green, and a few faint
+        // horizontal lines. No strip peels.
+        lichen_scale: 0.04,
+        lichen_coverage: 0.5,
+        lichen_red: 0.8,
+        lichen_green: 0.82,
+        lichen_blue: 0.76,
+        lichen_strength: 1.0,
         lenticel_density: 6.0,
         lenticel_length: 0.08,
-        lenticel_strength: 0.6,
+        lenticel_strength: 0.25,
         lenticel_tint: -0.3,
         peel_curl: 0.0,
         peel_red: 0.0,
@@ -314,8 +314,8 @@ pub(super) fn birch() -> MaterialParams {
         crest_green: 0.1,
         crest_blue: 0.1,
         crest_strength: 0.4,
-        bark_mottle_scale: 0.9,
-        bark_mottle_strength: 0.18,
+        bark_mottle_scale: 0.15,
+        bark_mottle_strength: 0.12,
         cavity_strength: 0.3,
         blade_mottle_scale: 5.5,
         blade_mottle_strength: 0.12,
@@ -325,9 +325,9 @@ pub(super) fn birch() -> MaterialParams {
         margin_blue: 0.01,
         cuticle_gloss: 0.28,
         sky_occlusion_strength: 0.4,
-        // The plate network as peeling strips: 3 cm plates at the base's
+        // The plate network as peeling strips: 1.5 cm plates at the base's
         // girth, stretched across by the curl into bands three times wider.
-        plate_cell_scale: 0.1,
+        plate_cell_scale: 0.05,
         plate_elongation: 0.0,
         plate_dome: 0.3,
         plate_edge_lift: 0.3,
@@ -343,24 +343,25 @@ pub(super) fn birch() -> MaterialParams {
         orientation_blue: 0.0,
         directional_occlusion: 0.6,
         depth_strength: 0.4,
-        // S-BARK: a chalk-white stem banded with dark lenticel dashes and a
-        // few grey-black blotches over a dark base. The dark there is the strips
-        // that have peeled: seven in ten at the flare, fewer as the wood
-        // thins, each one whole, down to none where the relief ends.
-        lichen_scale: 0.06,
-        lichen_coverage: 0.12,
-        lichen_red: 0.13,
-        lichen_green: 0.13,
-        lichen_blue: 0.13,
-        lichen_strength: 0.75,
+        // S-BARK: a chalk-white stem with a fine grey grain, banded with dark
+        // lenticel dashes and small, ragged grey-black marks over a darker
+        // base. The marks are the strips that have peeled, grey-black inner
+        // bark: most at the flare, fewer as the wood thins, each one whole,
+        // none where the relief ends. The lichen is only the grain.
+        lichen_scale: 0.01,
+        lichen_coverage: 1.0,
+        lichen_red: 0.5,
+        lichen_green: 0.5,
+        lichen_blue: 0.48,
+        lichen_strength: 0.45,
         lenticel_density: 18.0,
         lenticel_length: 0.06,
         lenticel_strength: 0.9,
         lenticel_tint: -0.9,
-        peel_curl: 0.7,
-        peel_red: 0.16,
-        peel_green: 0.15,
-        peel_blue: 0.135,
+        peel_curl: 0.65,
+        peel_red: 0.26,
+        peel_green: 0.24,
+        peel_blue: 0.22,
     }
 }
 
