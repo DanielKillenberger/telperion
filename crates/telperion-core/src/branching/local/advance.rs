@@ -77,7 +77,8 @@ impl Frontier {
             let bearing = !origin && s.radius <= t.twig.bearing_diameter / 2.0;
             // A switch out of leaf-bearing wood can release different laterals.
             // Such shoots remain awake until a radius wake condition is available.
-            let can_sleep = !origin && (t.laterals == 0 || !bearing);
+            // A curtain that drops is admitted by a band the clock cannot see.
+            let can_sleep = !origin && (t.laterals == 0 || !bearing) && !s.curtain.drops(t);
             let immediate = planner.clock.map_or(0, |clock| clock.slice + 1);
             let mut laterals = 0;
             let mut first_lateral = 0;
@@ -144,7 +145,7 @@ impl Frontier {
                     s.radius
                 };
                 let length = if lateral { s.length * ratio } else { s.length };
-                let length = s.curtain.length(length, t);
+                let length = s.curtain.length(length, t, key ^ seed);
                 let generation = s.generation + usize::from(lateral);
                 let terminal = !lateral && s.completed == s.internodes;
                 let is_twig = terminal
@@ -197,7 +198,7 @@ impl Frontier {
                         continue;
                     }
                     let p = position + heading * twig_length;
-                    if rejected(config, p) || s.curtain.below(p.y) {
+                    if !s.curtain.admits(config, t, p) || s.curtain.below(p.y) {
                         #[cfg(test)]
                         {
                             self.retries[1] += 1;
@@ -249,7 +250,7 @@ impl Frontier {
                     };
                     internodes = r.positions.len();
                     let p = r.positions[completed];
-                    if planner.growing_envelope && rejected(config, p) {
+                    if planner.growing_envelope && !s.curtain.admits(config, t, p) {
                         #[cfg(test)]
                         {
                             self.retries[3] += 1;

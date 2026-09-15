@@ -1,0 +1,37 @@
+{
+  "round": "8b",
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-47: each hanging shoot runs its own share of the pendulous length (skeleton.twigs.pendulousVariation); the silver birch states a variation of 0.95 over a pendulous length lengthened from 2.5 m to 3 m, strands from 0.15 m to 3 m, and after the host's QA a deeper, finer shell outline (irregularity 0.15 -> 0.35, lobe scale 0.45 -> 0.25) because the curtain fills to the shell's lower surface and that surface is the hem; matched stills rendered at the first fixed seed at 1440 tall; pairs on disk under the ignored measure/pairs-fn47/, recorded here by sha256; the round-7 table re-rendered on the same rig is under measure/pairs-fn47-base/",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn47/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "f4f57733d0e8311163671ae990fe8e3bab714034128f3b17935ca01f9ffc4501",
+      "still_sha256": "fa478fe73f0751717d0814a2f245baf76eade6943d7bdd54103e1e213016f156",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn47/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "444fc52c67838a86930ea54f401eb46d609e01d6ff94705799920507a58964f8",
+      "still_sha256": "f400d6fd70615f3d113c64665675c4577f939d69f0831be65e4edb6587a1c004",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn47/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "413769b7f99e482abc8a6ddf3df7a9d8b13e187665dc03137d182fe054bbeee1",
+      "still_sha256": "231bb7beaeb4a1bedd1ce8de6ca0354b0f7c3943c5bc32bddbf71599368737c7",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

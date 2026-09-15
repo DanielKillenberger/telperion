@@ -35,13 +35,17 @@ const IDS: [&str; 7] = [
 /// fn-45 re-records the beech's: its own table moved, and its neutral is its
 /// identity pin's skeleton, as a table that hangs nothing must be. Round 11
 /// re-records it again with that pin, when the beech's limbs leave wider so
-/// its leader keeps its girth.
+/// its leader keeps its girth. fn-47's birch states a pendulous variation
+/// over a 3 m pendulous length, which caps a shoot that does not sag as
+/// surely as it sets the run of one that does, and a deeper, finer outline
+/// for its shell. fn-51's birch lets its hanging shoots fall past that shell
+/// to the crown's base, sagging or not.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     2650342232535221885,
-    1381814102884070673,
+    9309723968444350364,
     12471405148157309180,
     14199367530911903060,
 ];
@@ -117,6 +121,9 @@ fn hanging(sag: f64, pendulous: f64) -> Family {
     f.skeleton.twigs.pendulous_length = pendulous;
     f.skeleton.twigs.twig.bearing_diameter = 0.015;
     f.skeleton.twigs.sag = sag;
+    // One length for every strand: the arc is read against the pendulous
+    // length, and fn-47's variation gives each shoot its own.
+    f.skeleton.twigs.pendulous_variation = 0.0;
     f
 }
 

@@ -1,4 +1,7 @@
-use telperion_core::{branching::generate, presets::Preset};
+use telperion_core::{
+    branching::{generate, in_curtain_band},
+    presets::Preset,
+};
 #[test]
 fn complete_presets_are_deterministic_and_solved() {
     for preset in [Preset::Ordinary, Preset::Telperion, Preset::Laurelin] {
@@ -8,11 +11,14 @@ fn complete_presets_are_deterministic_and_solved() {
         assert_eq!(a, generate(&p.skeleton, p.radii).unwrap());
         assert!(a.tree.nodes.len() > a.tree.crossover);
         assert!(a.tree.diagnostics.complete());
+        let (envelope, seed) = (p.skeleton.envelope, p.skeleton.seed);
         for n in a.tree.nodes.iter().skip(a.tree.crossover) {
-            assert!(p
-                .skeleton
-                .envelope
-                .contains(n.position, 1e-8, p.skeleton.seed));
+            assert!(
+                envelope.contains(n.position, 1e-8, seed)
+                    || in_curtain_band(&envelope, &p.skeleton.twigs, seed, n.position, 1e-8),
+                "seed {seed}: {:?} is outside the shell and the curtain's band",
+                n.position
+            );
             assert!(
                 n.position
                     .distance(a.tree.nodes[n.parent.unwrap() as usize].position)

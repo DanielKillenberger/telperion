@@ -152,6 +152,8 @@ export interface Family {
   twigs: {
   angle: number;
   angleVariation: number;
+  curtainClearance: number;
+  curtainDrop: number;
   curtainSeparation: number;
   divergence: number;
   generations: number;
@@ -162,6 +164,7 @@ export interface Family {
   limbRadius: number;
   pendulousLength: number;
   pendulousRadius: number;
+  pendulousVariation: number;
   ratioPower: number;
   reach: number;
   sag: number;
@@ -338,6 +341,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "generations": 6,
@@ -348,6 +353,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -527,6 +533,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "generations": 6,
@@ -537,6 +545,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -716,6 +725,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "generations": 6,
@@ -726,6 +737,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -905,6 +917,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 32,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 180,
           "generations": 2,
@@ -915,6 +929,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.17,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -1061,8 +1076,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.1,
           "fullness": 0.6,
           "height": 18,
-          "irregularity": 0.15,
-          "lobeScale": 0.45,
+          "irregularity": 0.35,
+          "lobeScale": 0.25,
           "shoulder": 1.6,
           "spread": 0.36
         },
@@ -1094,6 +1109,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 1.8,
+          "curtainDrop": 1,
           "curtainSeparation": 9,
           "divergence": 137.508,
           "generations": 6,
@@ -1102,8 +1119,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "laterals": 8,
           "lengthRatio": 0.6,
           "limbRadius": 0.1,
-          "pendulousLength": 2.5,
+          "pendulousLength": 3,
           "pendulousRadius": 1,
+          "pendulousVariation": 0.95,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 1,
@@ -1283,6 +1301,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "generations": 6,
@@ -1293,6 +1313,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -1472,6 +1493,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "generations": 6,
@@ -1482,6 +1505,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,

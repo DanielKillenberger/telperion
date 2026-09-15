@@ -87,6 +87,20 @@
 //! beech is fn-45's final tree, standing on the one stem and the neutral sag
 //! every table but the birch's leaves, and the birch is round 7's, at the
 //! generation row's neutral.
+//! fn-47 re-pins the silver birch alone: its table is the first to state a
+//! pendulous variation, so each hanging shoot runs its own share of a
+//! pendulous length lengthened from 2.5 m to 3 m, anything from a twentieth
+//! of it to the whole, as the strands of S-WHOLE and S-BARE do. Every other
+//! table leaves the variation at zero, which is one length to the byte; the
+//! element pin does not move. The same round moves the birch's outline too:
+//! its curtain fills to the shell's lower surface, so that surface is the
+//! hem, and lumps a quarter of the height across and 35% deep leave it
+//! ragged rather than the round bottom a gently lumpy shell drew.
+//! fn-51 re-pins the silver birch alone: its table is the first to state a
+//! curtain drop, so its hanging shoots fall past the shell's lower surface
+//! down to a clearance at the crown's own base, where the shell had held
+//! them. Every other table leaves the drop at zero, which is the shell
+//! holding the curtain to the byte; the element pin does not move.
 //! Round 11 re-pins the beech alone, once: on the round-8c winter pair its
 //! trunk split at a quarter of the height into limbs that climbed beside it
 //! to the crown's top. Its limbs leave at 65 degrees instead of 48, their
@@ -168,13 +182,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 3929556,
-        wood_triangles: 7605480,
-        instances: 391902,
-        min: [-6.51028703305269, -0.07199999690055847, -6.339091063526724],
-        max: [6.4649505615234375, 15.35163688659668, 6.496953656890554],
-        skeleton: 13073206196273823952,
-        placement: 15566016928509104126,
+        wood_vertices: 3252898,
+        wood_triangles: 6299200,
+        instances: 333486,
+        min: [-6.23061466217041, -0.07199999690055847, -7.190837383270264],
+        max: [7.134985408204572, 15.469784960217648, 5.815632649512932],
+        skeleton: 4441849425973384526,
+        placement: 8964417780306336820,
         element: 1872173242819532549,
     },
 ];

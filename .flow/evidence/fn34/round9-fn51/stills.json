@@ -1,0 +1,37 @@
+{
+  "round": "9",
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-51: a hanging shoot may fall below the crown's lower surface, a share of the way down to a clearance (skeleton.twigs.curtainDrop, curtainClearance); the silver birch states the whole drop down to a clearance at its own crown base, 1.8 m, chosen after the host's visual QA over a 1 m clearance that curtained the stems; matched stills rendered at the first fixed seed at 1440 tall; pairs on disk under the ignored measure/pairs-fn51/, recorded here by sha256; the round-8b table (the birch at a drop of 0) re-rendered on the same rig is under measure/pairs-fn51base/, and the 1 m candidate under measure/pairs-fn51a/",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn51/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "ad5ff29d0d63f72cac70f8f9943de39cade42cf406d8b39f34cc1a9840da42e8",
+      "still_sha256": "67cb4f0f312436b2145b3a8a5ce26845beb2ab5b6a244b055252a156fae5ad86",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn51/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "1319e7e29e3728460f2bcc815b2b543d6054ac7c1ffe1386c4a1b56984c8927d",
+      "still_sha256": "daa14193dc5b585a98b5fed9d0c01d8c433f5892cb2a7820cb08e243b3845cd1",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn51/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "06124dbfffa546ae7d794ad44ae1a259d7a1ca5977a1308d28af00a480e5b3ef",
+      "still_sha256": "17f9a3943c361c35eae01fed76984b1615ae90fb06b8509f4c59b8f0e8160be4",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

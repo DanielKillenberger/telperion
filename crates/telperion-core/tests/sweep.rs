@@ -76,6 +76,10 @@ const BANDS: [(&str, usize, usize); 7] = [
 // own two-ranked local divergence, so both leave this list.
 // Round 11 moves the beech's twig-layer threshold, where the twig layer
 // starts on the scaffold, so the sweep walks it and it leaves this list.
+// fn-47 adds the pendulous variation, the sixth. The birch states one, so the
+// sweep walks it.
+// fn-51 adds the drop and the clearance, the seventh and eighth. The birch
+// states both, so the sweep walks them.
 const HELD: [&str; 27] = [
     "/canopy/maxInstances",
     "/element/card",

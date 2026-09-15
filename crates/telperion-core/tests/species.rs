@@ -205,8 +205,15 @@ fn fixed_species(preset: Preset) {
         }
         assert!(a.tree.diagnostics.complete(), "seed {seed}: truncation");
         assert!(a.tree.nodes.len() > a.tree.crossover);
+        // Inside the shell, or a hanging shoot in the band below it.
+        let (envelope, twigs) = (family.skeleton.envelope, family.skeleton.twigs);
         for node in a.tree.nodes.iter().skip(a.tree.crossover) {
-            assert!(family.skeleton.envelope.contains(node.position, 1e-8, seed));
+            let p = node.position;
+            assert!(
+                envelope.contains(p, 1e-8, seed)
+                    || branching::in_curtain_band(&envelope, &twigs, seed, p, 1e-8),
+                "seed {seed}: {p:?} is outside the shell and the curtain's band"
+            );
         }
         let wood =
             surface::build(&a.tree, family.skeleton.envelope.height, &family.surface).unwrap();

@@ -15,7 +15,7 @@ use crate::{
     twigs::{branch_length, child_radius, TwigParams, MAX_LEVELS},
     Error, Result,
 };
-pub use local::append;
+pub use local::{append, in_band as in_curtain_band};
 pub use specimen::{
     ChangeRecord, PackedNode, PackedRead, Run, RunNode, Specimen, SpecimenBuffers, SpecimenRead,
 };
