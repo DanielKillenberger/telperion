@@ -1,0 +1,223 @@
+{
+ "protocol": "fn-26's, unchanged: headless --preset <id> --seed 7 --size 1600x1000 --out <scratch>/hero.png --timing <json>; one hero render, eight conditioning, eight warmup and 120 measured frames, Whole view. Base is d721fa16 built in a scratch checkout; new is this branch. Runs interleave base and new, each started only after the GPU read under 5% for three consecutive seconds with no other headless process alive (the GPU is shared with other workers).",
+ "device": "NVIDIA GeForce RTX 3080, NVIDIA 610.57.04, Vulkan, four samples a pixel",
+ "oak": {
+  "commit": "ee114239",
+  "runs": [
+   {
+    "binary": "base",
+    "round": 1,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.8302,
+    "total_p50_ms": 5.2037,
+    "total_p95_ms": 5.2705
+   },
+   {
+    "binary": "new",
+    "round": 1,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.8353,
+    "total_p50_ms": 5.2106,
+    "total_p95_ms": 5.6481
+   },
+   {
+    "binary": "base",
+    "round": 2,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.8507,
+    "total_p50_ms": 5.2257,
+    "total_p95_ms": 5.6832
+   },
+   {
+    "binary": "new",
+    "round": 2,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.8517,
+    "total_p50_ms": 5.2275,
+    "total_p95_ms": 5.7088
+   },
+   {
+    "binary": "base",
+    "round": 3,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.8404,
+    "total_p50_ms": 5.2152,
+    "total_p95_ms": 5.2739
+   },
+   {
+    "binary": "new",
+    "round": 3,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.8507,
+    "total_p50_ms": 5.2257,
+    "total_p95_ms": 5.4612
+   }
+  ],
+  "earlier": {
+   "commit": "500a7ce9",
+   "runs": [
+    {
+     "binary": "base",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8783,
+     "total_p50_ms": 5.2585,
+     "total_p95_ms": 5.612
+    },
+    {
+     "binary": "new",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8251,
+     "total_p50_ms": 5.1994,
+     "total_p95_ms": 5.4451
+    },
+    {
+     "binary": "base",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8343,
+     "total_p50_ms": 5.2111,
+     "total_p95_ms": 5.7257
+    },
+    {
+     "binary": "new",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8374,
+     "total_p50_ms": 5.2116,
+     "total_p95_ms": 5.7114
+    },
+    {
+     "binary": "base",
+     "round": 3,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8343,
+     "total_p50_ms": 5.207,
+     "total_p95_ms": 5.697
+    },
+    {
+     "binary": "new",
+     "round": 3,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8466,
+     "total_p50_ms": 5.2206,
+     "total_p95_ms": 5.7201
+    },
+    {
+     "binary": "base",
+     "round": 4,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8527,
+     "total_p50_ms": 5.2296,
+     "total_p95_ms": 5.6909
+    },
+    {
+     "binary": "new",
+     "round": 4,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8456,
+     "total_p50_ms": 5.2221,
+     "total_p95_ms": 5.7124
+    },
+    {
+     "binary": "base",
+     "round": 5,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8374,
+     "total_p50_ms": 5.2119,
+     "total_p95_ms": 5.6417
+    },
+    {
+     "binary": "new",
+     "round": 5,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.8579,
+     "total_p50_ms": 5.2365,
+     "total_p95_ms": 5.3358
+    }
+   ]
+  }
+ },
+ "birch": {
+  "commit": "ee114239 (smooth.wgsl as committed; the timed binary was built from it before the commit)",
+  "runs": [
+   {
+    "binary": "base",
+    "round": 1,
+    "verdict": "valid",
+    "vegetation_p50_ms": 3.9537,
+    "total_p50_ms": 4.15,
+    "total_p95_ms": 4.5245
+   },
+   {
+    "binary": "new",
+    "round": 1,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.3848,
+    "total_p50_ms": 4.5811,
+    "total_p95_ms": 4.9887
+   },
+   {
+    "binary": "base",
+    "round": 2,
+    "verdict": "valid",
+    "vegetation_p50_ms": 3.9567,
+    "total_p50_ms": 4.1528,
+    "total_p95_ms": 4.5281
+   },
+   {
+    "binary": "new",
+    "round": 2,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.3899,
+    "total_p50_ms": 4.5873,
+    "total_p95_ms": 4.981
+   }
+  ]
+ },
+ "beech": {
+  "commit": "ee114239",
+  "runs": [
+   {
+    "binary": "base",
+    "round": 1,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.9992,
+    "total_p50_ms": 5.8557,
+    "total_p95_ms": 6.3549
+   },
+   {
+    "binary": "new",
+    "round": 1,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.5947,
+    "total_p50_ms": 5.4536,
+    "total_p95_ms": 5.4996
+   },
+   {
+    "binary": "base",
+    "round": 2,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.9961,
+    "total_p50_ms": 5.8563,
+    "total_p95_ms": 6.3526
+   },
+   {
+    "binary": "new",
+    "round": 2,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.5916,
+    "total_p50_ms": 5.4502,
+    "total_p95_ms": 5.9172
+   }
+  ]
+ },
+ "cost_investigation": [
+  "the neighbour seed tracked inside the plate network's loop: +0.30 ms on the oak with every smooth row at zero; moved off the loop",
+  "with the terms compiled in but switched off by uniforms: +0.04 ms on the oak over four interleaved pairs; the wood pipeline is now built twice and a material with no smooth row draws through the one without them",
+  "lichen on every twig of the birch's whole tree: +0.5 ms; the spot fields now return their mean on wood whose visible side is a few pixels, and the filtered rim is worked out only where the pixel can touch it",
+  "passing over out-of-reach lichen cells before hashing them measured slower (+0.1 ms): a divergent branch costs more than the hashes it saves",
+  "the lichen outline warp cost the birch 0.07 ms and is dropped; patches are ellipsoids of their own axes instead, shaped only where a pixel can reach them"
+ ]
+}
