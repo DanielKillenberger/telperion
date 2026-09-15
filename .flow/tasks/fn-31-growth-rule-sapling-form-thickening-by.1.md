@@ -207,3 +207,24 @@ research pass sources open-grown diameter-at-age data for Quercus garryana and
 Picea abies with URLs and checksums, then round 8 on the candidate branch refits
 the thickening traits to the new curve, re-measures build cost against R5, and
 re-renders the strips. R1 and the crown fork stay open beside it.
+
+## Round 8 dispatched — diameter reference, 2026-09-15
+
+A research scout sourced open-grown diameter-at-age data (note in
+`.flow/tmp/fn-31-diameter-research.md`, copied into `round8/REFERENCE.md` by the
+round). No measured open-grown series exists for either species. The main
+finding is that fn-30's rejected oak diameters track wild Garry oak: dominant
+trees average 0.89 mm of radius a year across 18 stands (Maertens 2008), inside
+Stein's six to eight rings per centimetre. The trunk reads thin because fn-30
+fitted the height axis to a fast Quercus robur yield table, 24 m at 112 years.
+
+**Host assumption, open to the owner's correction:** keep fn-30's height fit and
+pace diameter to the same oak, using White 1998's open-grown common/sessile oak
+poor-ground class. It gives 0.160 m at 26.7 years, 0.337 at 56.1 and 0.672 at 112,
+and 0.785 m on the envelope-capped 23.6 m tree at 166 years. That is inside
+Stein's 60 to 100 cm with a height-to-diameter ratio of 30. The spruce follows
+Lässig 1991's open-grown reference, 91 cm at 100 years. The alternative is a true
+Garry-oak timeline: it keeps fn-30's diameters and slows the height axis, which
+reopens fn-30's height fit, the derived maturity and R5's build cost. Round 8
+runs on Claude Opus on the candidate branch with the brief
+`.flow/tmp/fn-31-round8-brief.md`.
