@@ -32,9 +32,12 @@ fn vertex(
 
 // Filter the physical footprint, not atan2's discontinuous derivative. Both
 // grain directions resolve at the same surface scale on a trunk and a limb.
+// A lenticel's groove is cut into the same height, where the row has one.
 fn bark_height(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>) -> f32 {
-    return bark_field_filtered(circle, along, radius, u.bark_detail.x, u.bark_detail.y,
-        footprint, u.bark_detail.w, u.plate, u.bark_structure.xw);
+    let field = bark_field_filtered(circle, along, radius, u.bark_detail.x, u.bark_detail.y,
+        footprint, u.bark_detail.w, u.plate, vec3(u.bark_structure.xw, u.peel.w));
+    if (u.lenticel.z <= 0.0 || u.lenticel.y <= 0.0) { return field; }
+    return field - lenticel_groove(circle, along, radius, footprint);
 }
 
 // A furrow floor is dark because its own crest stands between it and the sun.
@@ -237,7 +240,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let orientation = away * mix(0.55, 1.0, 1.0 - smoothstep(0.0, 2.5, in.world.y));
     let appearance = vec4<f32>(mottle, contact, depth_in_crown(in.world), maturity);
     let colour_range = bark_colour_range(in.radius, u.bark_detail.x, u.bark_detail.y,
-        u.bark_detail.w, u.plate, u.bark_structure.w);
+        u.bark_detail.w, u.plate, u.bark_structure.w, u.peel.w);
     let shadow = sunlight(in.world, base_normal);
     // Where the eye is actually looking on the surface, once the relief has
     // depth. Every field read below starts from here; the world position,
@@ -252,8 +255,22 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let seen = normalize(surface.yz);
     // One plate identity per fragment, shared by every shading cell the way
     // the mottle above is: a plate keeps one colour across its whole face.
-    let own = bark_plate_identity(seen, surface.x, in.radius, u.bark_detail.x,
-        footprint, u.plate, u.bark_structure.xw);
+    let identity = bark_plate_identity(seen, surface.x, in.radius, u.bark_detail.x,
+        footprint, u.plate, vec3(u.bark_structure.xw, u.peel.w));
+    let own = identity.x;
+    // Smooth bark's colour, once a fragment like the plate's identity. Each
+    // term is read only where its row is on, so a plated bark pays nothing.
+    var cover = vec3(0.0);
+    if (u.lichen.w > 0.0 && u.lichen_detail.x > 0.0) {
+        cover.x = u.lichen.w * lichen(seen, surface.x, in.radius, footprint);
+    }
+    if (u.lenticel.z > 0.0 && u.lenticel.y > 0.0) {
+        cover.y = u.lenticel.z * lenticel_dash(seen, surface.x, in.radius, footprint, u.lenticel).x;
+    }
+    if (u.peel.w > 0.0) { cover.z = identity.y; }
+    // It colours the wood the relief then tints, so bark_light is unchanged.
+    var surface_colour = bark;
+    if (any(cover > vec3(0.0))) { surface_colour = smooth_colour(bark, cover); }
     let spacing = clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0);
     let pixel = footprint / max(vec2(u.bark_detail.x, spacing), vec2(0.000001));
     let band = max(pixel.x, pixel.y);
@@ -277,7 +294,8 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
         let direct = bark_shade(surface, sx, sy, base_normal, dx, dy, in.radius,
             footprint, height, colour_range.y);
         return vec4<f32>(tone(bark_light(base_normal, height, in.world, shadow,
-            variance, appearance, colour_range, vec3<f32>(orientation, own, direct), bark)), 1.0);
+            variance, appearance, colour_range, vec3<f32>(orientation, own, direct),
+            surface_colour)), 1.0);
     }
     // Four half-pixel shading cells share nine heights. Each height uses the
     // cell's footprint: filtering over a full pixel here and integrating the
@@ -306,7 +324,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
             let n = bark_normal(base_normal, in.world, dx, dy,
                 h.y + h.w - h.x - h.z, h.z + h.w - h.x - h.y);
             lit += bark_light(n, dot(h, vec4(0.25)), in.world, shadow, variance,
-                appearance, colour_range, structure, bark);
+                appearance, colour_range, structure, surface_colour);
         }
     }
     return vec4<f32>(tone(lit * 0.25), 1.0);

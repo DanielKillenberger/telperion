@@ -50,12 +50,12 @@ const PROBE: &str = r#"
     let slice = 0.37 + f32((id.x / 128u) % 16u) * (SIZE * 1.7);
     let arc = vec2(across, slice) / 0.032;
     let bare = bark_plate_field(arc, along, 0.032, 1.0, vec2(0.0), vec2(0.5),
-        vec4(SIZE, LONG, 0.0, 0.0), vec2(0.0, FURROW));
+        vec4(SIZE, LONG, 0.0, 0.0), vec3(0.0, FURROW, 0.0));
     let domed = bark_plate_field(arc, along, 0.032, 1.0, vec2(0.0), vec2(0.5),
-        vec4(SIZE, LONG, 1.0, 0.0), vec2(0.0, FURROW));
+        vec4(SIZE, LONG, 1.0, 0.0), vec3(0.0, FURROW, 0.0));
     let lifted = bark_plate_field(arc, along, 0.032, 1.0, vec2(0.0), vec2(0.5),
-        vec4(SIZE, LONG, 0.0, 1.0), vec2(0.0, FURROW));
-    result[id.x] = vec4(bare.x, domed.x, lifted.x, bare.y);
+        vec4(SIZE, LONG, 0.0, 1.0), vec3(0.0, FURROW, 0.0));
+    result[id.x] = vec4(bare.relief, domed.relief, lifted.relief, bare.identity);
 }
 "#;
 
@@ -68,6 +68,7 @@ fn sample(size: f32, long: f32, furrow: f32) -> Vec<[f32; 4]> {
         "@group(0) @binding(0) var<uniform> u: Uniforms;",
         "var<private> u: Uniforms;",
     ) + include_str!("../src/shaders/bark.wgsl")
+        + include_str!("../src/shaders/plates.wgsl")
         + &probe;
     let module = wgpu::naga::front::wgsl::parse_str(&source)
         .unwrap_or_else(|e| panic!("{}", e.emit_to_string(&source)));
@@ -149,13 +150,13 @@ fn the_pinned_plate_mean_is_the_mean_the_field_averages_to() {
     // The far path returns bark_plate_mean() outright and the near path
     // averages to it. A drift between them is a step in brightness as a trunk
     // recedes, which no tolerance in the distance tests would explain.
-    let source = include_str!("../src/shaders/bark.wgsl");
+    let source = include_str!("../src/shaders/plates.wgsl");
     let pinned = |name: &str| {
         source
             .split_once(&format!("const {name} = "))
             .and_then(|(_, rest)| rest.split_once(';'))
             .map(|(value, _)| value.trim().parse::<f64>().unwrap())
-            .unwrap_or_else(|| panic!("{name} is not pinned in bark.wgsl"))
+            .unwrap_or_else(|| panic!("{name} is not pinned in plates.wgsl"))
     };
     // What the far path returns, from the six pinned numbers: a level and a
     // rate for each of face, dome and rim, the rate being how fast that level

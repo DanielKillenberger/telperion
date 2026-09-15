@@ -80,6 +80,10 @@ struct Uniforms {
     weathering: [f32; 4],         // RGB offsets, strength
     orientation: [f32; 4],        // RGB offsets, strength
     shoot: [f32; 4],              // young wood RGB, the radius below which wood is young
+    lichen: [f32; 4],             // patch RGB, strength
+    lichen_detail: [f32; 4],      // cell size in metres, coverage, reserved, reserved
+    lenticel: [f32; 4],           // rows per metre, longest dash in metres, strength, tint
+    peel: [f32; 4],               // inner bark RGB, curl
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform

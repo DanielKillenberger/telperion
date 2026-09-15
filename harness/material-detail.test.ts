@@ -18,6 +18,9 @@ it("carries every surface-detail control from the generated row through the pane
     "weatheringStrength", "weatheringRed", "weatheringGreen", "weatheringBlue",
     "orientationStrength", "orientationRed", "orientationGreen", "orientationBlue",
     "directionalOcclusion", "depthStrength",
+    "lichenScale", "lichenCoverage", "lichenRed", "lichenGreen", "lichenBlue", "lichenStrength",
+    "lenticelDensity", "lenticelLength", "lenticelStrength", "lenticelTint",
+    "peelCurl", "peelRed", "peelGreen", "peelBlue",
   ];
   for (const name of names) {
     expect(Object.keys(params.family.material)).toContain(name);

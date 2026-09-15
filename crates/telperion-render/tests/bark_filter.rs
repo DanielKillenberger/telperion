@@ -8,6 +8,7 @@ fn either_unresolved_axis_removes_relief_and_furrows_can_close() {
         "@group(0) @binding(0) var<uniform> u: Uniforms;",
         "var<private> u: Uniforms;",
     ) + include_str!("../src/shaders/bark.wgsl")
+        + include_str!("../src/shaders/plates.wgsl")
         + r#"
 @group(0) @binding(0) var<storage, read_write> result: array<vec4<f32>>;
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -15,10 +16,10 @@ fn either_unresolved_axis_removes_relief_and_furrows_can_close() {
     let along = 1.0 + f32(id.x / 64u) * 0.0027;
     let circle = vec2(cos(angle), sin(angle));
     result[id.x] = vec4(
-        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0), 1.0, vec4(0.0), vec2(0.0)),
-        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.5, 0.0), 1.0, vec4(0.0), vec2(0.0)),
-        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0, 0.5), 1.0, vec4(0.0), vec2(0.0)),
-        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0), 0.0, vec4(0.0), vec2(0.0)));
+        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0), 1.0, vec4(0.0), vec3(0.0)),
+        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.5, 0.0), 1.0, vec4(0.0), vec3(0.0)),
+        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0, 0.5), 1.0, vec4(0.0), vec3(0.0)),
+        bark_field_filtered(circle, along, 0.4, 0.014, 0.022, vec2(0.0), 0.0, vec4(0.0), vec3(0.0)));
 }
 "#;
     let module = wgpu::naga::front::wgsl::parse_str(&source)

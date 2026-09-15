@@ -42,8 +42,10 @@ impl Wood {
         surface: crate::pass::Surface,
     ) -> Self {
         let stages = format!(
-            "{}\n{}",
+            "{}\n{}\n{}\n{}",
             include_str!("shaders/bark.wgsl"),
+            include_str!("shaders/plates.wgsl"),
+            include_str!("shaders/smooth.wgsl"),
             include_str!("shaders/wood.wgsl")
         );
         let shader = crate::pass::lit_shader(gpu, "wood", &stages);

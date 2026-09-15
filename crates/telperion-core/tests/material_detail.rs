@@ -2,7 +2,7 @@
 use serde_json::json;
 use telperion_core::{blend, params, presets::Preset, Error};
 
-const FIELDS: [(&str, &str, f64, f64); 50] = [
+const FIELDS: [(&str, &str, f64, f64); 64] = [
     ("furrowStrength", "bark furrow strength", 0.0, 1.0),
     ("ridgeScale", "bark ridge scale", 0.0, 1.0),
     ("plateScale", "bark plate scale", 0.0, 1.0),
@@ -68,6 +68,20 @@ const FIELDS: [(&str, &str, f64, f64); 50] = [
         1.0,
     ),
     ("depthStrength", "bark depth strength", 0.0, 1.0),
+    ("lichenScale", "bark lichen scale", 0.0, 1.0),
+    ("lichenCoverage", "bark lichen coverage", 0.0, 1.0),
+    ("lichenRed", "bark lichen red", 0.0, 1.0),
+    ("lichenGreen", "bark lichen green", 0.0, 1.0),
+    ("lichenBlue", "bark lichen blue", 0.0, 1.0),
+    ("lichenStrength", "bark lichen strength", 0.0, 1.0),
+    ("lenticelDensity", "bark lenticel density", 0.0, 400.0),
+    ("lenticelLength", "bark lenticel length", 0.0, 0.5),
+    ("lenticelStrength", "bark lenticel strength", 0.0, 1.0),
+    ("lenticelTint", "bark lenticel tint", -1.0, 1.0),
+    ("peelCurl", "bark peel curl", 0.0, 1.0),
+    ("peelRed", "bark peel red", 0.0, 1.0),
+    ("peelGreen", "bark peel green", 0.0, 1.0),
+    ("peelBlue", "bark peel blue", 0.0, 1.0),
 ];
 
 #[test]
@@ -144,6 +158,20 @@ fn older_material_documents_gain_only_inert_detail_defaults() {
         "orientationBlue",
         "directionalOcclusion",
         "depthStrength",
+        "lichenScale",
+        "lichenCoverage",
+        "lichenRed",
+        "lichenGreen",
+        "lichenBlue",
+        "lichenStrength",
+        "lenticelDensity",
+        "lenticelLength",
+        "lenticelStrength",
+        "lenticelTint",
+        "peelCurl",
+        "peelRed",
+        "peelGreen",
+        "peelBlue",
         "ridgeScale",
         "plateScale",
         "roughnessDetail",

@@ -159,6 +159,20 @@ impl Scene {
                     m.orientation_strength,
                 ),
                 shoot: colour(m.shoot_red, m.shoot_green, m.shoot_blue, m.shoot_radius),
+                lichen: colour(
+                    m.lichen_red,
+                    m.lichen_green,
+                    m.lichen_blue,
+                    m.lichen_strength,
+                ),
+                lichen_detail: colour(m.lichen_scale, m.lichen_coverage, 0.0, 0.0),
+                lenticel: colour(
+                    m.lenticel_density,
+                    m.lenticel_length,
+                    m.lenticel_strength,
+                    m.lenticel_tint,
+                ),
+                peel: colour(m.peel_red, m.peel_green, m.peel_blue, m.peel_curl),
             }),
         );
     }
