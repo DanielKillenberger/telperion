@@ -966,3 +966,69 @@ What still reads wrong:
 No visual pass is awarded. The round-8 pairs are recorded by sha256 in
 `round8-fn46/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 8c: the merge of fn-45 and fn-46 (2026-09-15)
+
+The integration branch now carries both species' latest work in one tree. The
+beech is fn-45's final round-6 table, and fn-46 adds its young-shoot colour, an
+olive-brown (0.14/0.13/0.085 linear) below a 4 mm radius. The birch is round
+7's table with fn-46's round-8 colours: red-brown young wood below 1 cm, the
+yellow-green blade, and the lighter interior darkening. Neither merge conflicted
+on this step. Every identity pin reproduces exactly, because colour does not
+move geometry. All forty-eight protocol cases pass
+(`measure/protocol-merge46/`), and no seed is node-capped.
+
+Photograph / previous → merged. The previous round is fn-45's round 6 for the
+beech and fn-46's round 8 for the birch:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.73 → 0.73 | 0.25 / 0.29 → 0.29 | 0.28 / 0.47 → 0.49 | 100 / 126 → 121 | 0.29 / 0.09 → 0.09 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.78 → 0.78 | 0.05 / 0.10 → 0.10 | 130 / 75 → 75 | — / 0.16 → 0.16 |
+| B-WHOLE | 0.70 / 0.74 → 0.74 | 0.12 / 0.09 → 0.09 | 0.46 / 0.59 → 0.58 | 80 / 47 → 45 | 0.23 / 0.09 → 0.08 |
+| S-BARE | 0.70 / 0.70 → 0.70 | 0.15 / 0.22 → 0.22 | 0.46 / 0.52 → 0.52 | 91 / 71 → 71 | 0.17 / 0.09 → 0.09 |
+| S-BARK | 1.07 / 1.12 → 1.12 | 1.00 / 0.00 → 0.00 | 0.47 / 0.34 → 0.34 | 92 / 153 → 153 | 0.13 / 0.73 → 0.73 |
+| S-WHOLE | 0.85 / 0.94 → 0.94 | 0.08 / 0.21 → 0.21 | 0.44 / 0.42 → 0.42 | 83 / 35 → 35 | 0.22 / 0.13 → 0.13 |
+
+The three birch stills are byte-identical to round 8's sha256 records, and so
+is the beech's B-BASE close-up, where no wood is thin enough to take the shoot
+colour. The shoot colour moves only B-BARE and B-WHOLE: the winter crown's
+centre darkens from 126 to 121 against the photograph's 100, and the leaf-on
+centre from 47 to 45 against 80.
+
+### What the host read on the four pairs
+
+The host looked at B-WHOLE, B-BARE, S-WHOLE and S-BARE and changed nothing,
+since fn-50, fn-51 and fn-52 start from this merge.
+
+- **B-WHOLE.** The dome's outline and proportion sit near the photograph's. The
+  crown itself does not match it. The photograph is one dense, lit, mid-green
+  mass with the trunk hidden to the ground. Ours is a dark green umbrella of
+  feathery leaf sprays at the limb ends, with grey limbs bare along their
+  length and sky through the whole lower half of the crown. The bare limbs are
+  fn-50's short shoots, and the darkness (45 against 80) is fn-52's canopy
+  lighting.
+- **B-BARE.** The fine twig haze at the crown's top reads as a twig haze now,
+  and the young-shoot colour gives it a faint warmth. The wood is still grey
+  and paler than the photograph (121 against 100). The trunk divides into
+  several co-dominant limbs at about a quarter of the height and spreads into
+  a round vase, where the photograph's leader runs up past half its height
+  under a narrower, upright crown.
+- **S-WHOLE.** Two white stems part at the ground under a curtain of hanging
+  strands, and the leaves are the photograph's yellow-green in hue. The whole
+  mass is far too dark, 35 against 83, so it reads as a dark ball rather than
+  the photograph's sunlit curtain. Red-brown young wood shows in streaks
+  through the interior. The curtain stops at the crown's own base, so the tree
+  is a round ball on a V where the photograph's curtain falls below the crown
+  over the leaning stem's side. That is fn-51's gap, and the darkness is
+  fn-52's.
+- **S-BARE.** This is the closest pair so far. The hanging shoots draw a brown
+  winter haze that reads like the photograph's weeping twigs, where round 7 drew
+  a white fog. The veil is uniform, though, and dense enough to swallow the
+  white stems about a third of the way up. In the photograph the white main
+  stems run up through the crown, and sky shows between hanging clusters of
+  unequal length. The uniform length is fn-47's, the symmetric V fn-48's.
+
+No visual pass is awarded. The round-8c pairs are recorded by sha256 in
+`round8c-merge/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
