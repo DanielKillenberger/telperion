@@ -1617,3 +1617,68 @@ and the hem is ragged.
 No visual pass is awarded. The round-13 pairs are recorded by sha256 in
 `round13-birch/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 14: master's bark plates under the beech and the birch (2026-09-15)
+
+The integration branch merges master, which brings fn-32's bark plates (PR
+#27): sixteen material rows, the plate network in the bark and wood shaders,
+and fn-32's evidence under `.flow/evidence/fn32/`. It then merges fn-36, which
+brings the fn-40 spec. fn-32 stated plate rows for the oak and the spruce only.
+The beech and the birch state all sixteen at their neutral, which is the bark
+they drew before the network existed. Stating their own is fn-40's work. In
+the wood shader, the young-wood colour from fn-46 now feeds fn-32's base colour
+and weathered grey. At a shoot radius of zero that is the bark row, which is
+fn-32's shader exactly.
+
+Every identity pin equals the branch's. All forty-eight protocol cases pass
+(`measure/protocol-round14/`), and none is node-capped. The oak's native frame
+at seed 7, 1600 by 1000, is valid: 4.981 ms vegetation p50 and 5.356 ms total
+p50 (5.547 p95), against fn-32's recorded 4.842 and 5.214. That is 0.14 ms more,
+the cost of the young-wood term the wood shader now evaluates beside the plates.
+
+Photograph / previous → round 14. The previous round is round 11 for the beech
+and round 13 for the birch:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.73 → 0.73 | 0.25 / 0.24 → 0.24 | 0.28 / 0.43 → 0.43 | 100 / 124 → 124 | 0.29 / 0.07 → 0.07 |
+| B-BASE | 0.60 / 1.14 → 0.67 | 1.00 / 0.00 → 0.06 | 0.05 / 0.01 → 0.09 | 130 / 182 → 101 | — / — → 0.14 |
+| B-WHOLE | 0.70 / 0.74 → 0.74 | 0.12 / 0.09 → 0.09 | 0.46 / 0.65 → 0.65 | 80 / 35 → 35 | 0.23 / 0.07 → 0.07 |
+| S-BARE | 0.70 / 0.68 → 0.68 | 0.15 / 0.17 → 0.17 | 0.46 / 0.53 → 0.53 | 91 / 81 → 81 | 0.17 / 0.08 → 0.08 |
+| S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.31 → 0.31 | 92 / 167 → 167 | 0.13 / 0.51 → 0.51 |
+| S-WHOLE | 0.85 / 0.87 → 0.87 | 0.08 / 0.14 → 0.14 | 0.44 / 0.49 → 0.49 | 83 / 47 → 47 | 0.22 / 0.11 → 0.11 |
+
+Five of the six stills are byte-identical to their previous records. B-BASE
+moved, and neither merge moved it. Round 11 recorded B-BASE before 3349640f
+aimed a close-up at the stem, when the shot framed no trunk at all (occupied
+0.005). Rendered at the branch tip before this merge, 1df852f8, the beech's
+three stills are byte-identical to round 14's. The row is round 11's beech
+under the corrected aim, and the merge changed nothing on either species.
+
+### What the host read on the two close-ups
+
+The host opened B-BASE and S-BARK and changed nothing. fn-32's plates do nothing
+to either tree yet, because both tables leave every plate row at its neutral.
+What these pairs show is the bark fn-40 starts from.
+
+- **B-BASE.** The photograph is smooth, pale-grey beech bark, faintly mottled,
+  with white and grey-green lichen spots and patches scattered over it and a
+  few faint horizontal lines. The still is a grey trunk covered edge to edge in
+  vertical, wavy ridges with bright lit rims, like a fibrous or furrowed bark.
+  That is the beech's own fissure, crest and ridge rows drawn through the
+  pre-fn-32 relief field, and it reads as the wrong bark for a beech: too much
+  relief, all of it vertical, and no lichen. A light half and a dark half split
+  the frame down the middle, which is the sun across the cylinder.
+- **S-BARK.** The two photographs are a smooth chalk-white stem broken by dark
+  lenticel dashes and black blotches, and the rough base of an old birch, dark
+  and deeply fissured, with white bark peeling off it in plates. The still
+  frames the two stems parting in a V under the hanging strands. Both are
+  uniformly white with fine vertical wrinkle relief and faint pale patches,
+  with no dark lenticels, no black blotches, no fissured base and no peel. It
+  reads as a painted white trunk. The mask fills the frame because the strands
+  cross the top of the shot, so this pair's outline figure is not a bark
+  measurement.
+
+No visual pass is awarded. The round-14 pairs are recorded by sha256 in
+`round14-merge/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
