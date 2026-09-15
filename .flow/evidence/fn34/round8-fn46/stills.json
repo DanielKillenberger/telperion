@@ -1,0 +1,37 @@
+{
+  "round": 8,
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-46: young shoots take their own colour. The material row gains a shoot colour and a shoot radius; the silver birch states a red-brown young wood (0.095/0.07/0.055 linear) below 1 cm radius, blending to its white bark by 2 cm, after one visual-QA correction from 0.10/0.06/0.045, which the still drew too red. Geometry and leaves unchanged from round 7. Matched stills rendered at the first fixed seed; pairs on disk under the ignored measure/pairs-fn46/, recorded here by sha256",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn46/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "893eb7abc8bd64c10f873927be0075d22f695d977372e3b0d69f0bc99b5b90a3",
+      "still_sha256": "45f05b7a828b5d79142dfaf2e5c2d3160ee0a68759c888acb80d6f98ce03ca8b",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn46/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "02f1af26dc36cd0e1cc3281ba6b0e6663020324b4dd2d5f2750519e7a11e620e",
+      "still_sha256": "244bae46cc4fe4b5b41808b10c5ec0b4608702ac84aef320d7a55db33f400129",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn46/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "b02427f8202d31fa748277a62e3cec7f684c5cb687a0f02a55ab24eb1596f46e",
+      "still_sha256": "dad1804a809658535d62f1d8a8ab30dec6d4783a172331ce073cd650b45bb431",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}
