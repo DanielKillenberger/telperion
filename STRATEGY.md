@@ -1,6 +1,6 @@
 ---
 name: Telperion
-last_updated: 2026-09-10
+last_updated: 2026-09-14
 generator: flow-next-strategy
 ---
 
@@ -36,11 +36,11 @@ Species anatomy, branching and lifecycle behaviour form one continuous tree stru
 
 _Why it serves the approach:_ reference-based visual QA exposes structural mistakes that counts and continuity tests alone cannot catch, guiding the path toward realistic simulation.
 
-### The supernatural field
+### The catalogue
 
-A shared parametric field gives botanically grounded trees their authored supernatural character, with Telperion and Laurelin as the first demanding specimens.
+Every tree species in the world is the long-horizon goal, real and legendary alike. Each species is one spec generated from a template and implemented as a value table by a value-tier model, and the shared parametric field supplies a legendary tree's authored character on top of its real base species, with Telperion and Laurelin as the first demanding specimens. The generator's coverage is measured against the 23 Hallé and Oldeman architectural models, and a species that exposes an unsupported form or organ becomes a generator spec for the frontier tier.
 
-_Why it serves the approach:_ the whole tree responds to the same authored rules, keeping its form reproducible and its controls understandable.
+_Why it serves the approach:_ a template is a point in one continuous tree space, so every species added is evidence that the space is complete, every gap found names the next generator spec, and the whole tree still answers to the same authored rules; the owner's eye is spent on the final round of each species and the value tier spends the rest.
 
 ### The core and integration
 
