@@ -62,6 +62,8 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         element.cup, element.curl, element.lobe_depth, element.section_roundness,
         material.bark_red, material.bark_green, material.bark_blue,
         material.bark_roughness,
+        material.shoot_red, material.shoot_green, material.shoot_blue,
+        material.shoot_radius,
         material.leaf_front_red, material.leaf_front_green,
         material.leaf_front_blue,
         material.leaf_back_red, material.leaf_back_green, material.leaf_back_blue,

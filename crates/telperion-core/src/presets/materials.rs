@@ -7,6 +7,11 @@ pub(super) fn oak() -> MaterialParams {
         bark_green: 0.218,
         bark_blue: 0.198,
         bark_roughness: 0.85,
+        // Neutral: no young wood until the oak's own table states it.
+        shoot_red: 0.225,
+        shoot_green: 0.218,
+        shoot_blue: 0.198,
+        shoot_radius: 0.0,
         leaf_front_red: 0.028,
         leaf_front_green: 0.102,
         leaf_front_blue: 0.016,
@@ -57,6 +62,11 @@ pub(super) fn spruce() -> MaterialParams {
         bark_green: 0.078,
         bark_blue: 0.045,
         bark_roughness: 0.9,
+        // Neutral: no young wood until the spruce's own table states it.
+        shoot_red: 0.147,
+        shoot_green: 0.078,
+        shoot_blue: 0.045,
+        shoot_radius: 0.0,
         leaf_front_red: 0.018,
         leaf_front_green: 0.056,
         leaf_front_blue: 0.028,
@@ -107,6 +117,18 @@ pub(super) fn beech() -> MaterialParams {
         bark_green: 0.335,
         bark_blue: 0.295,
         bark_roughness: 0.4,
+        // Young shoots light olive- to grey-brown (VT Dendrology, Fagus
+        // sylvatica: "slender, zigzag, light brown"; OSU: stems olive-brown),
+        // grey by the second or third year. B-BARE's winter crown haze reads
+        // linear 0.064/0.055/0.033 to 0.149/0.136/0.097 on its own exposure,
+        // R:G:B 1:0.86:0.52 in its darker band. The birch's matched still
+        // drew a row redder by 0.85 in green and 0.78 in blue, so the row is
+        // set greener than the band; unrendered until the beech's table lands.
+        // Smooth grey from about 1.6 cm across.
+        shoot_red: 0.14,
+        shoot_green: 0.13,
+        shoot_blue: 0.085,
+        shoot_radius: 0.004,
         leaf_front_red: 0.022,
         leaf_front_green: 0.105,
         leaf_front_blue: 0.018,
@@ -157,17 +179,35 @@ pub(super) fn birch() -> MaterialParams {
         bark_green: 0.76,
         bark_blue: 0.7,
         bark_roughness: 0.48,
-        leaf_front_red: 0.055,
-        leaf_front_green: 0.165,
-        leaf_front_blue: 0.035,
-        leaf_back_red: 0.18,
-        leaf_back_green: 0.27,
-        leaf_back_blue: 0.11,
+        // Young shoots dark red-brown, glossy, with pale resin warts; the
+        // bark whitens only once it has thickened (VT Dendrology, Betula
+        // pendula: twigs "slender, reddish brown"; bark "reddish brown ...
+        // when very young, later turning white"; Atkinson 1992). S-BARE's
+        // winter crown haze reads linear 0.061/0.042/0.030 to 0.149/0.093/
+        // 0.066 on the exposure its trunk reads 0.78/0.78/0.71 on, R:G:B
+        // 1:0.69:0.49 in its darker band. The matched still reddens a row:
+        // 0.10/0.06/0.045 drew that band at 1:0.51:0.35, so the row is the
+        // greyer red-brown that draws it near the photograph's. White from
+        // about 4 cm across.
+        shoot_red: 0.095,
+        shoot_green: 0.07,
+        shoot_blue: 0.055,
+        shoot_radius: 0.01,
+        // A light, yellow-green blade, paler beneath. S-WHOLE's crown reads
+        // R:G:B 1:1.38:0.79 linear in its middle band (sRGB 92/108/82); the
+        // older 0.055/0.165/0.035 drew that band at 1:1.93:0.79, a bluer and
+        // darker green, and the rows below draw it at 83/105/73.
+        leaf_front_red: 0.1,
+        leaf_front_green: 0.19,
+        leaf_front_blue: 0.06,
+        leaf_back_red: 0.2,
+        leaf_back_green: 0.28,
+        leaf_back_blue: 0.14,
         hue_range_low: -0.025,
         hue_range_high: 0.025,
         brightness_range_low: -0.12,
         brightness_range_high: 0.12,
-        interior_darkening: 0.4,
+        interior_darkening: 0.15,
         ridge_scale: 0.025,
         plate_scale: 0.05,
         furrow_strength: 0.25,

@@ -17,6 +17,14 @@ pub struct MaterialParams {
     pub bark_blue: f64,
     /// How diffuse the bark is: 0 is a mirror, 1 is chalk.
     pub bark_roughness: f64,
+    /// The young wood's own colour, before its bark has formed. Wood thinner
+    /// than `shoot_radius` takes it, and gives it up to the bark colour on a
+    /// smoothstep of its radius by twice that; zero means no wood is young.
+    pub shoot_red: f64,
+    pub shoot_green: f64,
+    pub shoot_blue: f64,
+    /// Metres. The radius below which wood is young.
+    pub shoot_radius: f64,
     pub leaf_front_red: f64,
     pub leaf_front_green: f64,
     pub leaf_front_blue: f64,
@@ -80,6 +88,11 @@ impl Default for MaterialParams {
             bark_green: 0.105,
             bark_blue: 0.068,
             bark_roughness: 0.8,
+            // Young wood the colour of the bark, and none of it young.
+            shoot_red: 0.147,
+            shoot_green: 0.105,
+            shoot_blue: 0.068,
+            shoot_radius: 0.0,
             leaf_front_red: 0.068,
             leaf_front_green: 0.195,
             leaf_front_blue: 0.036,
@@ -185,6 +198,10 @@ impl MaterialParams {
             (self.bark_green, 0.0, 1.0, "bark green"),
             (self.bark_blue, 0.0, 1.0, "bark blue"),
             (self.bark_roughness, 0.0, 1.0, "bark roughness"),
+            (self.shoot_red, 0.0, 1.0, "young shoot red"),
+            (self.shoot_green, 0.0, 1.0, "young shoot green"),
+            (self.shoot_blue, 0.0, 1.0, "young shoot blue"),
+            (self.shoot_radius, 0.0, 0.1, "young shoot radius"),
             (self.leaf_front_red, 0.0, 1.0, "leaf front red"),
             (self.leaf_front_green, 0.0, 1.0, "leaf front green"),
             (self.leaf_front_blue, 0.0, 1.0, "leaf front blue"),
@@ -243,7 +260,7 @@ mod tests {
         // field without a bound would fail the count below.
         // One field put off its range, and the name the refusal must carry.
         type Refusal = (fn(&mut MaterialParams), &'static str);
-        let refusals: [Refusal; 34] = [
+        let refusals: [Refusal; 38] = [
             (|m| m.fissure_red = 2.0, "bark fissure red"),
             (|m| m.fissure_green = 2.0, "bark fissure green"),
             (|m| m.fissure_blue = 2.0, "bark fissure blue"),
@@ -270,6 +287,10 @@ mod tests {
             (|m| m.bark_green = -0.1, "bark green"),
             (|m| m.bark_blue = f64::NAN, "bark blue"),
             (|m| m.bark_roughness = 2.0, "bark roughness"),
+            (|m| m.shoot_red = -0.1, "young shoot red"),
+            (|m| m.shoot_green = 1.1, "young shoot green"),
+            (|m| m.shoot_blue = f64::NAN, "young shoot blue"),
+            (|m| m.shoot_radius = 0.101, "young shoot radius"),
             (|m| m.leaf_front_red = -1.0, "leaf front red"),
             (|m| m.leaf_front_green = 1.2, "leaf front green"),
             (|m| m.leaf_front_blue = f64::INFINITY, "leaf front blue"),

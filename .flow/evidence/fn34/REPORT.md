@@ -817,3 +817,152 @@ It still does not read as the photograph's tree, for these reasons:
 No visual pass is awarded. The round-7 pairs are recorded by sha256 in
 `round7-birch/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 8, fn-46: young shoots take their own colour (2026-09-15)
+
+Every piece of wood took the trunk's colour, so the birch drew its hanging
+curtain in white bark and two worker reads named the white shoots the loudest
+fault on the pairs. fn-46 gives the material row a young wood: `shootRed`,
+`shootGreen` and `shootBlue` (0 to 1) and `shootRadius` (0 to 0.1 m). Wood
+thinner than the radius takes the shoot colour and gives it up to the bark
+colour on a smoothstep of the radius it already carries, reaching the bark by
+twice the radius. The wood fragment mixes the two before mottle, cavity and
+occlusion act, next to the relief's own `maturity`, which carries relief by
+radius in ridge widths where the new term carries colour by radius in shoot
+radii. A row with no radius selects the bark colour alone. The five neutral
+presets' whole and bare stills hash the same before and after, ten of ten, and
+the render tests' pinned stills hold. The rows are validated by name, on the
+wire, walked linearly, in the regenerated browser metadata and in the
+harness's panel. Colour changes no geometry, so the birch's skeleton, its
+leaves and every mesh pin are round 7's.
+
+### The rows
+
+- **Silver birch: 0.095/0.07/0.055 below 1 cm radius, white by 2 cm.** The
+  literature gives the twigs as "slender, reddish brown" and the bark as
+  "reddish brown ... when very young, later turning white" (VT Dendrology;
+  Atkinson 1992). The S-BARE photograph's winter haze, read numerically off
+  the non-sky pixels of its crown, is linear 0.061/0.042/0.030 in its darker
+  band on the same exposure that reads its trunk at 0.78/0.78/0.71, which is
+  the bark row.
+- **European beech: 0.14/0.13/0.085 below 4 mm, grey by 8 mm.** Twigs "slender,
+  zigzag, light brown" (VT Dendrology), olive-brown stems (OSU). B-BARE's winter
+  haze reads 1:0.86:0.52 in its darker band. The beech's table is being
+  reworked on another branch, so this row is stated but not rendered here;
+  the host renders B-WHOLE and B-BARE after the merge.
+- **Oak, spruce, Ordinary and the Two Trees stay neutral**, with a shoot colour
+  equal to their own bark so a walk from one of them starts at no change.
+
+### What the worker changed after looking
+
+The first render at 0.10/0.06/0.045 turned the winter fog into a haze of
+strands, and it was too red. S-BARE's darker haze band read sRGB 72/51/41
+(linear 1:0.51:0.35) against the photograph's 70/58/48 (1:0.69:0.49), and a
+maroon cast showed through the middle of the leaf-on crown. The matched still
+reddens a row, so the row moved to the greyer 0.095/0.07/0.055, and the band
+now reads 71/58/49 (1:0.67:0.49). The beech's unrendered row takes the same
+correction toward green.
+
+### fn-34's value pass on the birch's leaves
+
+The host's read of the first round-8 S-WHOLE: the first birch that reads as a
+weeping birch, but a leaf mass far too dark and heavy, 32 against the
+photograph's 83 at the centre. That pass was authorised on the birch's leaf
+rows and its canopy density rows only, with the shot and the sun held as the
+instrument. The leaf rows moved to a lighter yellow-green blade, front
+0.10/0.19/0.06 and back 0.20/0.28/0.14, from S-WHOLE's own leaf band. That band
+reads R:G:B 1:1.38:0.79 linear (sRGB 92/108/82), where the old row drew it at
+1:1.93:0.79, and the new row draws it at sRGB 83/105/73. Interior darkening went
+from 0.4 to 0.15. The centre moved from 32 to 35. The target was within about
+10 of 83, and no row the pass may touch reaches it.
+
+These are the numbers behind that, each read off S-WHOLE's centre crop with
+one row moved at a time:
+
+- **The curtain's wood covers 74% of the centre crop.** That is the share of
+  pixels that change when only the shoot colour does. The same state with
+  white young wood reads 87, and with this dark wood 35. In the photograph the
+  strands hide behind the leaves.
+- **The leaves there are in shadow.** Even leaves of reflectance 1 reach only
+  78, or 81 with the crown's sky occlusion off as well. Sunlit leaf pixels,
+  brighter than half of full scale, are 1% of the crop against the
+  photograph's 20%. The shadow instrument is not the cause. Casting every leaf
+  rather than one in four reads 31.8 against 32.0, and quadrupling the
+  shadow's normal offset reads 32.4. The leaves' own light terms do not reach
+  it either: full transmission reads 35.9, and leaves turned up instead of
+  hanging read 34.8, against 35.3.
+- **Thinning the leaves bares the interior.** A retained shell of 0.3 reads
+  39, and one of 0.2 reads 44 on 226,452 leaves (46 with the new leaf rows).
+  The one image taken of 0.2 showed the upper crown as a bare brown tangle,
+  winter strands with leaves only at the rim. A twig internode of 120 mm reads 41 on 221,857 leaves, and
+  the internode also sets the stations of the hanging runs that fn-47 owns.
+  Both were put back.
+
+Photograph / round 7 → round 8:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.69 → 0.70 | 0.15 / 0.20 → 0.22 | 0.46 / 0.46 → 0.52 | 91 / 167 → 71 | 0.17 / 0.09 → 0.09 |
+| S-BARK | 1.07 / 1.03 → 1.12 | 1.00 / 0.00 → 0.00 | 0.47 / 0.38 → 0.34 | 92 / 154 → 153 | 0.13 / 0.72 → 0.73 |
+| S-WHOLE | 0.85 / 0.86 → 0.94 | 0.08 / 0.21 → 0.21 | 0.44 / 0.46 → 0.42 | 83 / 89 → 35 | 0.22 / 0.12 → 0.13 |
+
+The first render's shoot row read 68 and 31 for the two centre means, the
+corrected shoot row 71 and 32 before the leaf pass, and the same figures for
+the rest. The winter centre went from 75 brighter than the
+photograph to 20 darker, and its leading channel is now red, as the
+photograph's is (round 7 led with blue). The leaf-on centre went from 6
+brighter to 48 darker. The white wood had been carrying the leaf-on crown's
+brightness, and with it gone the curtain's wood and the shaded leaves read far
+darker than the photograph's sunlit crown.
+
+The mask figures moved although no geometry did. The still's tree mask is
+what stands out of the row's background, and white fine wood against a pale
+sky fell under that threshold where dark strands do not. So the curtain's
+thin tips now count. S-WHOLE's width over height reads 0.94 against 0.85,
+where round 7's 0.86 had been measuring a crown whose white edges the mask
+could not see. S-BARE's occupied figure went from 0.46 to 0.52 for the same
+reason, and S-WHOLE's fell from 0.46 to 0.42 because its box widened more than
+its mask filled.
+
+The cost is one smoothstep, one mix and one select per wood fragment. The
+oak's hero frame at seed 7, 1600 by 1000, measures 3.59 ms p50 and 3.93 ms p95,
+beside fn-29's recorded 3.60 ms and 4.18 ms for the same command. The birch at
+seed 1 measures 5.06 ms p50. The fixed and fresh numeric protocol passes all
+forty-eight cases unchanged, after the shoot rows (`measure/protocol-fn46/`)
+and again after the leaf pass (`measure/protocol-fn46b/`).
+
+### What the worker read on the pairs, and what is left
+
+Within the four-image rule, two images before the shoot row's correction and
+two after. The leaf pass was a fresh capture and took two more: the 0.2 shell,
+and the committed rows. S-BARE is byte-identical across the leaf pass, since
+it draws no leaves. On S-BARE the winter crown is no longer a white fog. It is a grey-brown
+haze of hanging strands, with the two white stems running up into white
+scaffold limbs inside it, which is how the photograph's winter tree is built.
+On S-WHOLE the curtain reads as dark strands under green leaves on two white
+stems. After the correction no red cast shows through, and after the leaf
+pass the green is the photograph's yellower green. No hard line
+between white and brown was visible at the pairs' scale. The ramp test holds
+the blend continuous: no neighbouring pixel columns differ by more than 0.06
+of the full step.
+
+What still reads wrong:
+
+- **The leaf-on crown is too dark and heavy**, 35 against 83 at the centre.
+  The pass above measured why: three quarters of the centre is curtain wood,
+  and the leaves over it get almost no sun. Both are outside the leaf and
+  density rows. The first is how much wood the curtain draws, which is its
+  strand count and girth (the twig and pendulous rows). The second is that
+  the leaves the camera sees stand in the crown's own shade under a side sun,
+  where the photograph's catch it. The leaf rows can only move the crown
+  between 32 and 35.
+- **The winter haze is a shade cooler than the photograph's.** Its darker band
+  matches, but the photograph's sunlit haze reads more coppery. That is a
+  second, sunlit band, and the scene's low sun does not warm the strands the
+  way the photograph's does.
+- **The uniform strand length and the level hem** (fn-47) and **the symmetric V
+  of the stems** (fn-48), unchanged from round 7.
+
+No visual pass is awarded. The round-8 pairs are recorded by sha256 in
+`round8-fn46/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
