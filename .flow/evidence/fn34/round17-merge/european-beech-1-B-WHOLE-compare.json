@@ -1,0 +1,58 @@
+{
+  "reference": "B-WHOLE",
+  "foliage": "leaf-on",
+  "photograph": {
+    "box_px": [
+      11,
+      17,
+      569,
+      817
+    ],
+    "width_over_height": 0.6965,
+    "fill": 0.9098,
+    "crown_base": 0.12,
+    "occupied": 0.4566,
+    "outline_deviation": 0.2274,
+    "centre": {
+      "rgb": [
+        71.4,
+        94.2,
+        73.6
+      ],
+      "order": "GBR",
+      "mean": 79.7
+    }
+  },
+  "still": {
+    "box_px": [
+      0,
+      100,
+      951,
+      1284
+    ],
+    "width_over_height": 0.7407,
+    "fill": 0.8917,
+    "crown_base": 0.0928,
+    "occupied": 0.6697,
+    "outline_deviation": 0.0715,
+    "centre": {
+      "rgb": [
+        47.2,
+        73.4,
+        49.0
+      ],
+      "order": "GBR",
+      "mean": 56.5
+    }
+  },
+  "method": {
+    "photograph": "tree box and crown base from the record, read by eye; occupied is the dark-pixel fraction of the box",
+    "still": "tree mask is what stands out of the row background under both suns; occupied is the mask's share of its box",
+    "outline_deviation": "root mean square of the mask's boundary radius about its best-fit ellipse, over 180 bins of bearing, as a fraction of the fitted radius; null when a bin is empty"
+  },
+  "pair": {
+    "path": ".flow/evidence/fn34/measure/pairs-round17/european-beech-1-B-WHOLE-pair.png",
+    "sha256": "dca907f5fd61e244b72db98595d128897e27ca30552615367a82551fa9dd38c1"
+  },
+  "still_sha256": "c0f91c133180cca8f9e7513df0398d596c2c1976db165d6eb5dce83f94170bed"
+}

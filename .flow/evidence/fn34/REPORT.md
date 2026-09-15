@@ -1928,3 +1928,84 @@ What these pairs show is the bark fn-40 starts from.
 No visual pass is awarded. The round-14 pairs are recorded by sha256 in
 `round14-merge/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 17: short shoots and canopy lighting together (2026-09-15)
+
+The integration branch merges fn-52 (a leaf mass lit as a canopy) and then
+fn-50 (short shoots clothe the limbs) over round 14.
+
+- **The beech** is fn-50's round-12 table under fn-52's canopy rows, as fn-52
+  set them: canopy normal 0.8, light wrap 0.4, diffuse transmission 1, leaf
+  sheen 0.08, crown shade 0.15. fn-50's table stands its twigs at 50 degrees on
+  the golden angle with a leaf every 5 cm, and puts five leaves on a spur every
+  2.5 cm of wood under a third of the trunk's radius. Round 11's habit,
+  envelope and radius rows are untouched.
+- **The birch** is round 13's geometry under fn-52's birch canopy rows.
+
+The frame uniform carries fn-32's four bark vec4s, fn-46's young wood and
+fn-52's canopy and crown shade, in one order on the Rust and shader sides. The
+beech's identity pin is fn-50's, the birch's is round 13's, and the oak, the
+spruce and the Two Trees are byte-identical. All forty-eight protocol cases
+pass (`measure/protocol-round17/`), and none is node-capped. The beech at
+seed 1 grows 171,453 nodes and 4,720,165 leaves in 6.7 s, and its heaviest
+seed stands at 200,476 nodes against the 250,000 ceiling. The oak's native
+frame is valid at 5.236 ms total p50 (5.677 p95), against round 14's 5.356 in
+one run each.
+
+Photograph / round 14 → round 17:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.73 → 0.72 | 0.25 / 0.24 → 0.24 | 0.28 / 0.43 → 0.44 | 100 / 124 → 123 | 0.29 / 0.07 → 0.07 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.06 → 0.11 | 0.05 / 0.09 → 0.09 | 130 / 101 → 101 | — / 0.14 → 0.14 |
+| B-WHOLE | 0.70 / 0.74 → 0.74 | 0.12 / 0.09 → 0.09 | 0.46 / 0.65 → 0.67 | 80 / 35 → 57 | 0.23 / 0.07 → 0.07 |
+| S-BARE | 0.70 / 0.68 → 0.68 | 0.15 / 0.17 → 0.17 | 0.46 / 0.53 → 0.53 | 91 / 81 → 81 | 0.17 / 0.08 → 0.08 |
+| S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.31 → 0.31 | 92 / 167 → 167 | 0.13 / 0.51 → 0.51 |
+| S-WHOLE | 0.85 / 0.87 → 0.87 | 0.08 / 0.14 → 0.15 | 0.44 / 0.49 → 0.48 | 83 / 47 → 71 | 0.22 / 0.11 → 0.11 |
+
+The winter and bark stills hold their sources byte for byte. B-BARE and B-BASE
+equal fn-50's round-12 stills, and S-BARE and S-BARK equal round 14's. The
+leaf-on centres move most: the beech's from 35 to 57 against 80, and the
+birch's from 47 to 71 against 83. Short shoots cost the beech some light. fn-52
+alone drew its older beech at 66, and fn-50 alone, unlit, at 22. Down the
+beech's leaf-on mask the six bands read 104, 83, 69, 63, 73 and 84 from top to
+bottom, where the lowest two carry the trunk. So the crown's top-to-underside
+shade is there and does not close into black.
+
+### What the host read on the two leaf-on pairs
+
+The host opened B-WHOLE and S-WHOLE and changed no row. Neither interaction
+the owner warned of appeared. The beech is not a black ball, and its short
+shoots have not flattened it into one tone: the top is lit, the underside
+falls into its own shade, and sky shows at the rim.
+
+- **B-WHOLE.** For the first time the beech is a full, closed dome of leaves,
+  where round 11 drew a hemlock of fronds and round 14 a dark umbrella. What
+  still reads wrong:
+  - **An even felt.** The mass is one fine texture from edge to edge. The
+    photograph's crown breaks into lobes, lit clusters with deep shade pockets
+    between them. No canopy row makes lobes; they come from how the limbs group
+    their leaves.
+  - **Fronds at the rim.** At the top and sides the twigs still show as
+    feathery, fern-like sprays against the sky.
+  - **Too dark and too blue.** The green is darker and bluer than the
+    photograph's (centre 47/73/49 against 71/94/74). Lowering the crown shade
+    toward 0.1 would buy back part of the 23 points. The host left fn-52's
+    calibrated row alone, because the interaction was not the failure the rule
+    names.
+  - **Too filled.** The crown fills 0.67 of its box against 0.46. The trunk
+    shows under it as in the photograph.
+- **S-WHOLE.** The lighting makes the birch read as a sunlit weeping tree.
+  Yellow-green cords hang with light along them and sky between them, and the
+  hem is ragged. What still reads wrong:
+  - **The top third** is dark, thin limbs with sparse sprays against the sky,
+    where the photograph's crown is full to the top. The red-brown young wood
+    reads nearly black there.
+  - **Leaf colour.** The lit leaves run pale and pastel at the cord tips, where
+    the photograph's leaves are a deeper olive green with bright highlights.
+  - **The mass** is still 12 points darker at the centre than the photograph.
+  - **The two stems** still read as a narrow Y from this camera.
+
+No visual pass is awarded. The round-17 pairs are recorded by sha256 in
+`round17-merge/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
