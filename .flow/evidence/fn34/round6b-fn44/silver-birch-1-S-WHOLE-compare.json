@@ -27,22 +27,22 @@
     "box_px": [
       28,
       0,
-      652,
+      651,
       720
     ],
-    "width_over_height": 0.9056,
+    "width_over_height": 0.9042,
     "fill": 1.0,
-    "crown_base": 0.1405,
-    "occupied": 0.5656,
-    "outline_deviation": 0.1156,
+    "crown_base": 0.114,
+    "occupied": 0.6148,
+    "outline_deviation": 0.1042,
     "centre": {
       "rgb": [
-        77.4,
-        93.0,
-        90.9
+        41.9,
+        60.6,
+        49.8
       ],
       "order": "GBR",
-      "mean": 87.1
+      "mean": 50.8
     }
   },
   "method": {
@@ -52,7 +52,7 @@
   },
   "pair": {
     "path": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-WHOLE-pair.png",
-    "sha256": "5e2ec4bf086da37ab2575e7a9cb19febfe18a2387fed8e0bcaacde9f0ff5bd3e"
+    "sha256": "336d59de6198a398cc0ac03509486b4a25db254835b1b07580b9b44a6b345ac8"
   },
-  "still_sha256": "8dfc0bf2a0f711ccee6933da8e4c9a914fab4010c26973c738e2b694747d0f3a"
+  "still_sha256": "b26e72474e54c1bcd8f9f447c3a3efc3604a7f5abeae4ec6d28c940cecc5d129"
 }

@@ -1054,7 +1054,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "laterals": 8,
           "lengthRatio": 0.6,
           "limbRadius": 0.1,
-          "pendulousLength": 3.5,
+          "pendulousLength": 2.5,
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,

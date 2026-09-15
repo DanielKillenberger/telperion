@@ -1,15 +1,15 @@
 {
   "round": "6b",
   "rendered_at": "2026-09-15",
-  "commit_note": "fn-44 pendulous shoots hang under gravity: the silver birch's table states a sag of 1, so a hanging shoot's course turns toward straight down along its run; matched stills re-rendered at the first fixed seed; pairs on disk under the ignored measure/pairs-fn44/, recorded here by sha256",
+  "commit_note": "fn-44 pendulous shoots hang under gravity, second pass on the owner's rejection of the first: a hanging shoot now runs the pendulous length its table states rather than what its own wood would hold out, and falls past the tip of the limb above it to the crown's own base, turning toward straight down as a cubic ease so its lower half hangs all but vertical; the shell still contains it. The birch states a sag of 1 over a 2.5 m pendulous length; matched stills re-rendered at the first fixed seed; pairs on disk under the ignored measure/pairs-fn44/, recorded here by sha256",
   "pairs": [
     {
       "case": "silver-birch-1-S",
       "reference": "S-BARE",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-BARE-pair.png",
-      "pair_sha256": "3aa58bcfadb036f32abb5a1e147cb2d0bcab8378d79b877f26724d5a4f6f6918",
-      "still_sha256": "4c8d3cf6cd616bf12c84bca2f39bb74e1a7f663ffad1d485ca3c2554a951e25f",
+      "pair_sha256": "6be6044e785f9f06829946581e8406c0a93e0bfc306ad1ab755fc640d7e35e10",
+      "still_sha256": "dd781d49f2f6d9dbb2d03cc8780a1be0163db22b84c026aeeb4c454a28138d62",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -18,8 +18,8 @@
       "reference": "S-BARK",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-BARK-pair.png",
-      "pair_sha256": "7a100e883e441150e5024f33ea1e8228ba548cadad6a6927d68802da0d8e2687",
-      "still_sha256": "96e1b1c124730280b24072db8680ae224b5f89487a71dbf7bea85da63338fb4d",
+      "pair_sha256": "c4afca8198fafe0b42c22f1268ce6e871268c6e6cbdd88807a1aab7e651b0385",
+      "still_sha256": "306204ce67a5e7b28d61c792a179a151a2d24115448494630d0ac485b4bfdf5d",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -28,8 +28,8 @@
       "reference": "S-WHOLE",
       "foliage": "leaf-on",
       "pair": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-WHOLE-pair.png",
-      "pair_sha256": "5e2ec4bf086da37ab2575e7a9cb19febfe18a2387fed8e0bcaacde9f0ff5bd3e",
-      "still_sha256": "8dfc0bf2a0f711ccee6933da8e4c9a914fab4010c26973c738e2b694747d0f3a",
+      "pair_sha256": "336d59de6198a398cc0ac03509486b4a25db254835b1b07580b9b44a6b345ac8",
+      "still_sha256": "b26e72474e54c1bcd8f9f447c3a3efc3604a7f5abeae4ec6d28c940cecc5d129",
       "visual_status": "unassessed",
       "owner_feedback": null
     }

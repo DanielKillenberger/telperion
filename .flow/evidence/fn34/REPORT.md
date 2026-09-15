@@ -334,63 +334,87 @@ The owner rejected the round-5 birch on one thing: "I think the worst part is
 the hanging curtains are not affected by gravity or smth. It's clearly wrong."
 fn-37 had made the curtain reachable as rows, but a curtain lateral departed in
 one fixed direction - across the crown and down by a droop - and then ran
-straight for its pendulous length, so every hanging shoot was a rod pointing
-sideways-and-down. fn-44 gives the twig table a fifth row, `sag`: how far
-toward straight down a hanging shoot's course has turned by the end of its
-pendulous length, spread along the run as an arc steepest where the shoot
-leaves the wood that bears it, which is the shape a slender weighted stem
-takes. Weight is not a turn a growing tip steers, so the branch law's own turn
-limit does not bound it; the departure droop, the floor and the separation are
-fn-37's and unchanged, and neutral is the straight rod every other table keeps.
+straight, so every hanging shoot was a rod pointing sideways-and-down. fn-44
+gives the twig table a fifth row, `sag`: how far toward straight down a hanging
+shoot's course has turned by the end of its pendulous length, spread along the
+run as a cubic ease, steepest where the shoot leaves the wood that bears it.
+Weight is not a turn a growing tip steers, so the branch law's own turn limit
+does not bound it. Neutral is the straight rod, and every table but the birch's
+leaves the row there and is byte-identical.
 
-The birch's table states the row's own end, a sag of 1: in both photographs the
-shoots arch out of the crown and fall nearly vertical over most of their
-length. Nothing else in the table moved and the birch's identity pin is
-re-recorded once with the reason stated.
+The first pass at this round was rejected too - "clearly this doesn't look
+right", a dome of white bristles with nothing hanging - and the measurement
+said why. Of the 5,761 hanging runs the first fixed seed plans, 4,226 (73%)
+ended at the length their own wood would hold out, a median of 1.00 m against
+the 3.5 m the table allowed; 1,099 (19%) at the tip of the limb they hung
+under; 436 (8%) at the shell. A shoot that spends a third of its arc is still
+pointing outward when it stops.
+
+Two of the three are not what ends a strand hanging by its own weight, and the
+sag row now carries both, walked by the row rather than switched by it so that
+no value of it is the frame where a shoot changes kind:
+
+- **The run.** The allometry that gives a self-supporting limb its length by
+  its own thickness has nothing to say about a strand hanging from one, so the
+  sag carries the run from what the branch law allows out to the whole
+  pendulous length.
+- **The floor.** The tip of the first descending ancestor is where a shoot held
+  out by its own wood comes to rest; a weeping one falls past it, so the sag
+  carries the floor down to the crown's own base.
+
+The third stays: the shell is what the envelope contains, every post-crossover
+node is inside it by an invariant this repository has held since the beginning,
+and a curtain is no exception. Measured both ways, letting the curtain out of
+the shell bought nothing the form needed and cost the invariant - the shoots
+ran 2.42 m rather than 2.37 m of 2.50 m, and the same 96% hung their lower half
+within 15 degrees either way - while the crown fell past the photograph's own
+crown base. So the shell holds and the curtain hangs inside it.
+
+The birch's table states a sag of 1 over a pendulous length shortened from
+3.5 m to 2.5 m, which is what the photograph's strands measure against the
+tree. At the first fixed seed its 4,266 hanging shoots run 2.37 m on average;
+their angle to straight down is 6.1 degrees at half the run and 1.3 degrees at
+its end, and the whole lower half of 96% of them lies within 15 degrees of
+vertical. Nothing else in the table moved.
 
 Photograph / round 5 → round 6b:
 
 | Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
 |---|---|---|---|---|---|
-| S-BARE | 0.70 / 0.673 → 0.673 | 0.15 / 0.132 → 0.135 | 0.46 / 0.430 → 0.427 | 91 / 159 → 161 | 0.17 / 0.110 → 0.107 |
-| S-BARK | 1.07 / 1.335 → 1.335 | 1.00 / 0.00 → 0.00 | 0.47 / 0.274 → 0.271 | 92 / 167 → 167 | 0.13 / — → — |
-| S-WHOLE | 0.85 / 0.906 → 0.906 | 0.08 / 0.141 → 0.141 | 0.44 / 0.578 → 0.566 | 83 / 78 → 87 | 0.22 / 0.114 → 0.116 |
+| S-BARE | 0.70 / 0.673 → 0.673 | 0.15 / 0.132 → 0.126 | 0.46 / 0.430 → 0.470 | 91 / 159 → 163 | 0.17 / 0.110 → 0.116 |
+| S-BARK | 1.07 / 1.335 → 1.335 | 1.00 / 0.00 → 0.00 | 0.47 / 0.274 → 0.300 | 92 / 167 → 167 | 0.13 / — → 0.767 |
+| S-WHOLE | 0.85 / 0.906 → 0.904 | 0.08 / 0.141 → 0.114 | 0.44 / 0.578 → 0.615 | 83 / 78 → 51 | 0.22 / 0.114 → 0.104 |
 
-Three decimal places this round, because it barely moves them: the
-silhouette's box is identical on all three references. That is the honest
-result rather than a disappointing one - the crown's outer extent is the
-envelope's shell, and what the sag changes is how the wood inside that shell
-lies. The two numbers that read inside the outline both moved toward the
-photograph: the leaf-on crown thinned from 0.578 to 0.566 occupied against the
-photograph's 0.443, and the whole tree's colour under the matched sun went from
-5 below the photograph to 4 above it (78 → 87 against 83). The bare crown base
-moved 0.003 toward the photograph's 0.15.
+The winter reference moves toward the photograph on both numbers that read the
+crown's shape: occupied from 0.430 to 0.470 against its 0.459, and the crown
+base a shade lower at 0.126 against its 0.15. The leaf-on crown base closes
+from 0.141 to 0.114 against its 0.08 - the curtain now reaches down the trunk
+the way the photograph's does. Two numbers move away and both have one cause:
+the leaf-on crown is denser (0.615 occupied against the photograph's 0.443) and
+darker (51 against 83), because it carries 1,139,792 retained leaves at the
+first fixed seed against round 5's 591,007. A shoot that runs two and a half
+metres instead of one carries two and a half times the leaf-bearing wood. That
+is the next value pass on this species and it is not this spec's: the levers
+are the retained shell depth, which the table holds at 0.45 to let light back
+in, and the crown's own leaf spacing. The bark reference's outline figure is
+noise - its mask fills the whole frame, which is what an outline statistic
+cannot read.
 
-The cost, at the first fixed seed: 491,884 retained leaves and 2,308,800 wood
-triangles against round 5's 591,007 and 2,443,040 - a sixth of the crown, given
-up because a shoot bent toward the ground spends its length against the
-clearance rule and stops above its floor sooner than a rod aimed out across the
-crown does. No growth hit the node cap and the fixed and fresh numeric protocol
-passes all forty-eight cases (`measure/protocol-fn44/`).
+The cost at the first fixed seed: 4,385,080 wood triangles and 1,139,792
+retained leaves against round 5's 2,443,040 and 591,007. No growth hit the node
+cap and the fixed and fresh numeric protocol passes all forty-eight cases
+(`measure/protocol-fn44c/`).
 
 What the host read on the S-WHOLE and S-BARE pairs, within the four-image rule:
-the bare tree now carries a fringe of fine wood falling from the underside of
-every limb, where round 5 had it standing out of them; the limbs rise and the
-twig-scale wood hangs off them, which is the photograph's architecture. The
-leaf-on crown is still a dome of frosted shoots rather than the photograph's
-hanging veils, and two known gaps account for that: the fine shoots take the
-bark row's white (fn-40's young-shoot colour) and the crown is one upright stem
-(fn-38's).
-
-One measured limit the owner should see before judging. The row's promise is
-over the pendulous length, and the birch's hanging shoots do not run it: at the
-first fixed seed the 6,405 shoots the sag reaches run 1.07 m on average, of the
-3.5 m the table allows, so they spend only the first third of the arc. Their
-first step lies about 19 degrees below horizontal and their last about 34
-degrees below it, where the same shoot over a full pendulous run would end
-vertical. Making them hang further is not another sag - the row is already at
-its end - but a shorter pendulous length, which is fn-37's row and the owner's
-call, since it also steepens the departure droop and shortens the shoots.
+the shoots hang. Strands fall from every limb down the lower half of the tree,
+the winter crown is a fringe hanging off ascending limbs rather than bristles
+standing out of a dome, and the leaf-on crown is a mass of hanging green
+strands - which is the photograph's architecture, and was in no earlier round.
+What reads wrong against the photograph is the mass rather than the form: the
+crown is denser and darker than the photograph's airy one, the strands are more
+even in length than a real tree's, and the fine shoots still take the bark
+row's white, which is fn-40's young-shoot colour. The single upright stem is
+fn-38's.
 
 No visual pass is awarded. The round-6b pairs are recorded by sha256 in
 `round6b-fn44/stills.json` with `visual_status: unassessed`; the owner judges

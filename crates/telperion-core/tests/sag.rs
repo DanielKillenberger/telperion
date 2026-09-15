@@ -27,23 +27,25 @@ const IDS: [&str; 7] = [
 /// photographed when fn-44 landed. The four species `tests/identity.rs` pins
 /// were byte-identical across the change, which is what says these are the
 /// trees the row never reached and not merely the trees it grows today.
+/// The birch's was re-recorded once when round 6b shortened its pendulous
+/// length from 3.5 m to 2.5 m: its own table moved, not the neutral law.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     12852486373694172527,
-    3822858689754929182,
+    10661855187862410323,
     12471405148157309180,
     14199367530911903060,
 ];
 
 /// The share of its angle to straight down a shoot still carries after
 /// running `travelled` of its pendulous length, stated here independently of
-/// the generator: an ease-out that has spent all of `sag` by the end of the
-/// run, and holds what it reached beyond it.
+/// the generator: a cubic ease-out that has spent all of `sag` by the end of
+/// the run, and holds what it reached beyond it.
 fn remaining(sag: f64, travelled: f64, pendulous: f64) -> f64 {
-    let u = (travelled / pendulous).clamp(0.0, 1.0);
-    1.0 - sag * u * (2.0 - u)
+    let left = 1.0 - (travelled / pendulous).clamp(0.0, 1.0);
+    1.0 - sag * (1.0 - left * left * left)
 }
 
 fn preset(id: &str) -> Family {
@@ -81,18 +83,22 @@ fn grown(f: &Family) -> (u64, usize) {
 struct Step {
     angle: f64,
     along: f64,
+    lowest: f64,
 }
 
 /// A family cooked to hang one readable shoot: the birch's curtain over a
-/// crown that reaches the ground, its axes straight so that what bends a
-/// shoot is its own weight and not the habit's crookedness, and the wood that
-/// bears leaves thin enough that a hanging run is subdivided into an arc
-/// rather than the two or three chords the shipped table gives it.
+/// crown that leaves it somewhere to fall, its axes straight so that what
+/// bends a shoot is its own weight and not the habit's crookedness, and the
+/// wood that bears leaves thin enough that a hanging run is subdivided into an
+/// arc rather than the two or three chords the shipped table gives it.
 fn hanging(sag: f64, pendulous: f64) -> Family {
     let mut f = preset("silver-birch");
     f.skeleton.habit.crookedness = 0.0;
-    f.skeleton.envelope.crown_base = 0.0;
-    f.skeleton.growth.max_nodes = Some(40_000);
+    f.skeleton.envelope.crown_base = 0.02;
+    // Room for the curtain to finish its runs: a shoot that hangs its whole
+    // pendulous length is six or seven nodes, and a crown cut off at its cap
+    // is a crown of half-grown shoots.
+    f.skeleton.growth.max_nodes = Some(150_000);
     f.skeleton.twigs.hang = 1.0;
     f.skeleton.twigs.pendulous_length = pendulous;
     f.skeleton.twigs.twig.bearing_diameter = 0.015;
@@ -142,6 +148,7 @@ fn hanging_runs(f: &Family) -> Vec<Vec<Step>> {
                     Step {
                         angle: (-step.normalized().y).clamp(-1.0, 1.0).acos(),
                         along,
+                        lowest: node.position.y,
                     }
                 })
                 .collect();
@@ -188,74 +195,6 @@ fn a_sag_never_reaches_a_table_that_hangs_nothing() {
             let mut loud = preset(id);
             loud.skeleton.twigs.sag = sag;
             assert_eq!(skeleton(&loud), pin, "{id}: sag {sag} moved a dry tree");
-        }
-    }
-}
-
-#[test]
-fn a_hanging_shoot_turns_toward_the_ground_and_never_back() {
-    // Along one shoot the angle to straight down never grows, no step turns
-    // more than the step before it, and nothing that left its limb hanging
-    // ever comes back up past the horizon.
-    const PENDULOUS: f64 = 0.3;
-    for sag in [1.0, 0.5] {
-        let runs = whole_runs(&hanging(sag, PENDULOUS), PENDULOUS);
-        assert!(
-            !runs.is_empty(),
-            "seed {SEED} sag {sag}: no hanging run long enough to read an arc on"
-        );
-        for run in &runs {
-            for k in 1..run.len() {
-                let (before, after) = (&run[k - 1], &run[k]);
-                assert!(
-                    after.angle <= before.angle + 1e-9,
-                    "seed {SEED} sag {sag}: step {k} turned back up, \
-                     {:.4} rad to {:.4} rad",
-                    before.angle,
-                    after.angle
-                );
-                assert!(
-                    after.angle < FRAC_PI_2,
-                    "seed {SEED} sag {sag}: step {k} points upward"
-                );
-                if k > 1 {
-                    let (last, this) =
-                        (run[k - 2].angle - before.angle, before.angle - after.angle);
-                    assert!(
-                        this <= last + 1e-9,
-                        "seed {SEED} sag {sag}: step {k} turned {this:.5} rad \
-                         against the {last:.5} rad of the step before it"
-                    );
-                }
-            }
-        }
-    }
-}
-
-#[test]
-fn a_shoot_of_its_full_pendulous_length_turns_the_stated_fraction() {
-    // The row is a promise about the end of a full run: a shoot that has run
-    // its whole pendulous length carries `1 - sag` of the angle it departed
-    // with. The departure itself is fn-37's droop and is read back off the
-    // first step rather than assumed.
-    const PENDULOUS: f64 = 0.3;
-    for sag in [1.0, 0.5] {
-        let whole = whole_runs(&hanging(sag, PENDULOUS), PENDULOUS);
-        assert!(
-            !whole.is_empty(),
-            "seed {SEED} sag {sag}: no shoot ran its whole pendulous length"
-        );
-        for run in &whole {
-            let first = &run[0];
-            let departure = first.angle / remaining(sag, first.along, PENDULOUS);
-            let end = run.last().expect("a run has a step").angle;
-            let wanted = departure * (1.0 - sag);
-            assert!(
-                (end - wanted).abs() < 1e-6,
-                "seed {SEED} sag {sag}: a shoot that departed at {:.4} rad \
-                 ended at {end:.4} rad, not the {wanted:.4} rad the row states",
-                departure
-            );
         }
     }
 }
@@ -347,3 +286,7 @@ fn a_walk_of_the_sag_row_bends_the_curtain_continuously() {
         descent[10]
     );
 }
+
+/// What the arc itself does to a shoot: its own file, beside the row's.
+#[path = "sag/arc.rs"]
+mod arc;

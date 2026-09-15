@@ -167,7 +167,7 @@ impl Frontier {
             // Terminal and lateral buds become eligible independently as the
             // scaffold extends and its trunk/branch radius ratio changes.
             *allocated |= buds;
-            let floor = Curtain::hangs_at(t, radius(i), root_radius)
+            let tip = Curtain::hangs_at(t, radius(i), root_radius)
                 .then(|| self.stations.floor(tree, i))
                 .flatten();
             let length = branch_length(radius(i));
@@ -186,7 +186,7 @@ impl Frontier {
                 internodes: t.internodes(radius(i), length),
                 key: n.identity.birth_order() as u32,
                 run: None,
-                curtain: Curtain::new(t, n.position, floor),
+                curtain: Curtain::new(t, n.position, tip, config.trunk_height),
             });
         }
         for i in completed {

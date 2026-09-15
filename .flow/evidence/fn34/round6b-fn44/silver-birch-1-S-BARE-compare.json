@@ -32,17 +32,17 @@
     ],
     "width_over_height": 0.6732,
     "fill": 0.9903,
-    "crown_base": 0.1348,
-    "occupied": 0.4265,
-    "outline_deviation": 0.107,
+    "crown_base": 0.1264,
+    "occupied": 0.4696,
+    "outline_deviation": 0.1162,
     "centre": {
       "rgb": [
-        151.0,
-        161.1,
-        172.2
+        155.9,
+        163.2,
+        170.8
       ],
       "order": "BGR",
-      "mean": 161.4
+      "mean": 163.3
     }
   },
   "method": {
@@ -52,7 +52,7 @@
   },
   "pair": {
     "path": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-BARE-pair.png",
-    "sha256": "3aa58bcfadb036f32abb5a1e147cb2d0bcab8378d79b877f26724d5a4f6f6918"
+    "sha256": "6be6044e785f9f06829946581e8406c0a93e0bfc306ad1ab755fc640d7e35e10"
   },
-  "still_sha256": "4c8d3cf6cd616bf12c84bca2f39bb74e1a7f663ffad1d485ca3c2554a951e25f"
+  "still_sha256": "dd781d49f2f6d9dbb2d03cc8780a1be0163db22b84c026aeeb4c454a28138d62"
 }
