@@ -32,15 +32,15 @@ scope:
   run for contacts.
 
 ## Acceptance
-- [ ] **R1** at a positive fork height the trunk run continues into the
+- [x] **R1** at a positive fork height the trunk run continues into the
       straighter stem and eases its girth into it over the fork's diameter;
       the other stem leaves as a socketed run; no ledge, no seam, on a
       synthetic clump and on the birch.
-- [ ] **R2** the stem-or-limb fact survives every read (full, shoot-less,
+- [x] **R2** the stem-or-limb fact survives every read (full, shoot-less,
       sparse interval, browser view); the sparse and packed-read tests hold,
       including `sparse_spruce_projects_only_changed_contact_paths`.
-- [ ] **R3** the contact query chooses the same run as the surface.
-- [ ] **R4** every shipped preset byte-identical at fork height 0; the
+- [x] **R3** the contact query chooses the same run as the surface.
+- [x] **R4** every shipped preset byte-identical at fork height 0; the
       birch's fork height is then set against S-WHOLE and S-BARE (the
       photographs disagree: S-WHOLE parts at the ground, S-BARE forks about
       a third of its visible height up), its pairs rendered again, visual QA
