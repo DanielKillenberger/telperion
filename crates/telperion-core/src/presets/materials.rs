@@ -121,10 +121,13 @@ pub(super) fn beech() -> MaterialParams {
         // sylvatica: "slender, zigzag, light brown"; OSU: stems olive-brown),
         // grey by the second or third year. B-BARE's winter crown haze reads
         // linear 0.064/0.055/0.033 to 0.149/0.136/0.097 on its own exposure,
-        // R:G:B 1:0.86:0.55; smooth grey from about 1.6 cm across.
+        // R:G:B 1:0.86:0.52 in its darker band. The birch's matched still
+        // drew a row redder by 0.85 in green and 0.78 in blue, so the row is
+        // set greener than the band; unrendered until the beech's table lands.
+        // Smooth grey from about 1.6 cm across.
         shoot_red: 0.14,
-        shoot_green: 0.12,
-        shoot_blue: 0.075,
+        shoot_green: 0.13,
+        shoot_blue: 0.085,
         shoot_radius: 0.004,
         leaf_front_red: 0.022,
         leaf_front_green: 0.105,
@@ -182,10 +185,13 @@ pub(super) fn birch() -> MaterialParams {
         // when very young, later turning white"; Atkinson 1992). S-BARE's
         // winter crown haze reads linear 0.061/0.042/0.030 to 0.149/0.093/
         // 0.066 on the exposure its trunk reads 0.78/0.78/0.71 on, R:G:B
-        // 1:0.62:0.44; white from about 4 cm across.
-        shoot_red: 0.1,
-        shoot_green: 0.06,
-        shoot_blue: 0.045,
+        // 1:0.69:0.49 in its darker band. The matched still reddens a row:
+        // 0.10/0.06/0.045 drew that band at 1:0.51:0.35, so the row is the
+        // greyer red-brown that draws it near the photograph's. White from
+        // about 4 cm across.
+        shoot_red: 0.095,
+        shoot_green: 0.07,
+        shoot_blue: 0.055,
         shoot_radius: 0.01,
         leaf_front_red: 0.055,
         leaf_front_green: 0.165,
