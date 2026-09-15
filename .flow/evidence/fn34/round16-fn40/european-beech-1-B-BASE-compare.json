@@ -32,17 +32,17 @@
     ],
     "width_over_height": 0.6674,
     "fill": 1.0,
-    "crown_base": 0.0028,
-    "occupied": 0.2111,
-    "outline_deviation": 0.1355,
+    "crown_base": 0.041,
+    "occupied": 0.1958,
+    "outline_deviation": 0.1485,
     "centre": {
       "rgb": [
-        113.2,
-        121.3,
-        127.8
+        115.3,
+        122.2,
+        128.1
       ],
       "order": "BGR",
-      "mean": 120.8
+      "mean": 121.9
     }
   },
   "method": {
@@ -52,7 +52,7 @@
   },
   "pair": {
     "path": ".flow/evidence/fn34/measure/pairs-fn40/european-beech-1-B-BASE-pair.png",
-    "sha256": "a35350e4294eab5253feaa3e70ae53ab3c4aa490e3ae09bd85a75f5e06ec8363"
+    "sha256": "2e580141724cd1d05a5fd091a7e036d06df4c08505d05985b9317120247f9dc1"
   },
-  "still_sha256": "c45b33a6cdc8b6d277037612227f45d470d2574d92234de5417b6e3525514db2"
+  "still_sha256": "368b0192f8a9cf74b6aa86b304df92cdfda22449e0899ff4903f1ba01b6a1fb4"
 }

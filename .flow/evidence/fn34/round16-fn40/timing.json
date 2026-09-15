@@ -141,96 +141,94 @@
   "note": "the oak draws through the pipeline without smooth bark, which the value pass did not touch"
  },
  "birch": {
-  "tables": "after the value pass",
+  "tables": "the owner's choice: the lobed lichen and the trial's rows, roughness 0.95",
   "runs": [
    {
     "binary": "base",
     "round": 1,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.1902,
-    "total_p50_ms": 4.3914,
-    "total_p95_ms": 4.9984
+    "vegetation_p50_ms": 3.9649,
+    "total_p50_ms": 4.1615,
+    "total_p95_ms": 4.5391
    },
    {
     "binary": "new",
     "round": 1,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.4032,
-    "total_p50_ms": 4.6008,
-    "total_p95_ms": 5.0668
+    "vegetation_p50_ms": 4.0212,
+    "total_p50_ms": 4.2184,
+    "total_p95_ms": 4.5932
    },
    {
     "binary": "base",
     "round": 2,
     "verdict": "valid",
-    "vegetation_p50_ms": 3.9475,
-    "total_p50_ms": 4.1441,
-    "total_p95_ms": 4.768
+    "vegetation_p50_ms": 3.9731,
+    "total_p50_ms": 4.17,
+    "total_p95_ms": 4.3953
    },
    {
     "binary": "new",
     "round": 2,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.352,
-    "total_p50_ms": 4.5473,
-    "total_p95_ms": 5.0007
+    "vegetation_p50_ms": 4.0151,
+    "total_p50_ms": 4.2117,
+    "total_p95_ms": 4.5932
    },
    {
     "binary": "base",
     "round": 3,
     "verdict": "valid",
-    "vegetation_p50_ms": 3.9444,
-    "total_p50_ms": 4.1408,
-    "total_p95_ms": 4.725
+    "vegetation_p50_ms": 3.9516,
+    "total_p50_ms": 4.1477,
+    "total_p95_ms": 4.5092
    },
    {
     "binary": "new",
     "round": 3,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.3561,
-    "total_p50_ms": 4.5519,
-    "total_p95_ms": 4.9649
+    "vegetation_p50_ms": 4.0069,
+    "total_p50_ms": 4.2048,
+    "total_p95_ms": 4.4449
    }
-  ],
-  "note": "round 1's base run (4.3914) was taken under another worker's load; rounds 2 and 3 are the clean pair"
+  ]
  },
  "beech": {
-  "tables": "after the value pass",
+  "tables": "the owner's choice: the lobed lichen and the trial's rows, roughness 0.95",
   "runs": [
    {
     "binary": "base",
     "round": 1,
     "verdict": "valid",
-    "vegetation_p50_ms": 5.2511,
-    "total_p50_ms": 6.1033,
-    "total_p95_ms": 6.8585
+    "vegetation_p50_ms": 4.9951,
+    "total_p50_ms": 5.8545,
+    "total_p95_ms": 6.3718
    },
    {
     "binary": "new",
     "round": 1,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.6029,
-    "total_p50_ms": 5.463,
-    "total_p95_ms": 5.9343
+    "vegetation_p50_ms": 4.6203,
+    "total_p50_ms": 5.4802,
+    "total_p95_ms": 5.954
    },
    {
     "binary": "base",
     "round": 2,
     "verdict": "valid",
-    "vegetation_p50_ms": 5.0063,
-    "total_p50_ms": 5.866,
-    "total_p95_ms": 6.1573
+    "vegetation_p50_ms": 4.9869,
+    "total_p50_ms": 5.8473,
+    "total_p95_ms": 5.8898
    },
    {
     "binary": "new",
     "round": 2,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.6029,
-    "total_p50_ms": 5.4628,
-    "total_p95_ms": 5.921
+    "vegetation_p50_ms": 4.6295,
+    "total_p50_ms": 5.4917,
+    "total_p95_ms": 6.0547
    }
-  ],
-  "note": "round 1's base run (6.1033) was taken under another worker's load; round 2 is the clean pair"
+  ]
  },
  "cost_investigation": [
   "the neighbour seed tracked inside the plate network's loop: +0.30 ms on the oak with every smooth row at zero; moved off the loop",
@@ -313,6 +311,100 @@
      "total_p95_ms": 5.9172
     }
    ]
+  }
+ },
+ "round_16_kept": {
+  "birch": {
+   "tables": "after the value pass",
+   "runs": [
+    {
+     "binary": "base",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.1902,
+     "total_p50_ms": 4.3914,
+     "total_p95_ms": 4.9984
+    },
+    {
+     "binary": "new",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.4032,
+     "total_p50_ms": 4.6008,
+     "total_p95_ms": 5.0668
+    },
+    {
+     "binary": "base",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 3.9475,
+     "total_p50_ms": 4.1441,
+     "total_p95_ms": 4.768
+    },
+    {
+     "binary": "new",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.352,
+     "total_p50_ms": 4.5473,
+     "total_p95_ms": 5.0007
+    },
+    {
+     "binary": "base",
+     "round": 3,
+     "verdict": "valid",
+     "vegetation_p50_ms": 3.9444,
+     "total_p50_ms": 4.1408,
+     "total_p95_ms": 4.725
+    },
+    {
+     "binary": "new",
+     "round": 3,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.3561,
+     "total_p50_ms": 4.5519,
+     "total_p95_ms": 4.9649
+    }
+   ],
+   "note": "round 1's base run (4.3914) was taken under another worker's load; rounds 2 and 3 are the clean pair"
+  },
+  "beech": {
+   "tables": "after the value pass",
+   "runs": [
+    {
+     "binary": "base",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 5.2511,
+     "total_p50_ms": 6.1033,
+     "total_p95_ms": 6.8585
+    },
+    {
+     "binary": "new",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.6029,
+     "total_p50_ms": 5.463,
+     "total_p95_ms": 5.9343
+    },
+    {
+     "binary": "base",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 5.0063,
+     "total_p50_ms": 5.866,
+     "total_p95_ms": 6.1573
+    },
+    {
+     "binary": "new",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.6029,
+     "total_p50_ms": 5.4628,
+     "total_p95_ms": 5.921
+    }
+   ],
+   "note": "round 1's base run (6.1033) was taken under another worker's load; round 2 is the clean pair"
   }
  }
 }

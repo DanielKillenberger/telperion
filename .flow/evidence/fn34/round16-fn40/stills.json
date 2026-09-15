@@ -1,15 +1,15 @@
 {
   "round": 16,
   "rendered_at": "2026-09-15",
-  "commit_note": "fn-40 over the fn-34 integration tip d721fa16, after the value pass on the owner's first look: the beech's bark rows as round 16 first committed them except roughness 0.4 to 0.95; the birch's blotches lightly smaller and greyer (plate cell 0.12 to 0.1, inner bark 0.1 to 0.16, lichen 0.07 to 0.13) and roughness 0.48 to 0.95. Matched stills at the 1440 rig, first fixed seed; pairs under the ignored measure/pairs-fn40/, recorded here by sha256. B-BASE and S-BARK were viewed by the worker; the other four were measured and not viewed.",
+  "commit_note": "fn-40 over the fn-34 integration tip d721fa16 with the owner's choice landed: the lobed lichen (lichen-lobed.patch) and the trial's beech and birch rows, with bark roughness at 0.95 on both. Matched stills at the 1440 rig, first fixed seed; pairs under the ignored measure/pairs-fn40/, recorded here by sha256. The owner chose B over A on the two close-ups; the other four pairs were measured and not viewed.",
   "pairs": [
     {
       "case": "european-beech-1-B",
       "reference": "B-BARE",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/european-beech-1-B-BARE-pair.png",
-      "pair_sha256": "e6622c3ac0832af27d1da9cfdee82d1f14764c9092117e77360b1c8bef6a45ff",
-      "still_sha256": "3f8f5cdbf8c063716ab8ef74b39ec8dd256da8beaff4cbdce717300ee79cc380",
+      "pair_sha256": "7e1d98fd923597de18496962906e68bf186215f9aee4e54674a376d865d5a8f4",
+      "still_sha256": "59c47cf6b5dbcb701299dbee72e84aeb5cfc71c553802cb98e01d8da546c9f39",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -18,18 +18,18 @@
       "reference": "B-BASE",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/european-beech-1-B-BASE-pair.png",
-      "pair_sha256": "a35350e4294eab5253feaa3e70ae53ab3c4aa490e3ae09bd85a75f5e06ec8363",
-      "still_sha256": "c45b33a6cdc8b6d277037612227f45d470d2574d92234de5417b6e3525514db2",
+      "pair_sha256": "2e580141724cd1d05a5fd091a7e036d06df4c08505d05985b9317120247f9dc1",
+      "still_sha256": "368b0192f8a9cf74b6aa86b304df92cdfda22449e0899ff4903f1ba01b6a1fb4",
       "visual_status": "unassessed",
-      "owner_feedback": "owner (via the coordinator): \"the beech material actually looks better ... not bad\"; \"from close: round 16 looks good\"; \"it's all still too plasticesque need to make it rough less reflective. All the materials have this problem.\""
+      "owner_feedback": "owner (via the coordinator), shown round 16 as kept (A) and the lobed-lichen trial (B) side by side: \"yea the new one is better!\"; earlier: \"from close: round 16 looks good\"; \"it's all still too plasticesque need to make it rough less reflective. All the materials have this problem.\""
     },
     {
       "case": "european-beech-1-B",
       "reference": "B-WHOLE",
       "foliage": "leaf-on",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/european-beech-1-B-WHOLE-pair.png",
-      "pair_sha256": "2dab745f43158dd69c6f59155aad0cb13da3fb546b32ca6ef42ea3324d370ad2",
-      "still_sha256": "e8608247a3143a882df59b2880f1b293d79216c2a5e691803b9860f17de80e77",
+      "pair_sha256": "3998849dbe5ebc96d19857bf8dcf5e537b3cf048edb1137591375c56e92802c8",
+      "still_sha256": "0401cd7197d0c39f8c4fc457009b9c1eeef90d2df653d94792dc711926f77fd5",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -38,8 +38,8 @@
       "reference": "S-BARE",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/silver-birch-1-S-BARE-pair.png",
-      "pair_sha256": "9b3c2b126488d2e793b222b740d14859b437eec09db92b2ff862e6b5ed23247c",
-      "still_sha256": "8cb5ef460b17d661cd8f58f2e09eb93598aaa86c85d92d0704de1cc7c8d90093",
+      "pair_sha256": "f49f8590738c380bb91478e6e13d1e5602b5f9a4898f0775073c351228f60fbf",
+      "still_sha256": "0bb84862e0c18136931b87be3881f45ec3e15057c446ea0a032e732c5e641463",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -48,18 +48,18 @@
       "reference": "S-BARK",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/silver-birch-1-S-BARK-pair.png",
-      "pair_sha256": "66d382d563abb55eb75b66d710851a901919b4b122e89d4e139411302904a105",
-      "still_sha256": "7771d82372737fa536397387a5f2157341ff9852f694b4cc077dc1277468fabd",
+      "pair_sha256": "b41308d9cb2bb1b7898732eaa6816e1573d33dda1de5727c2c5fb1b7aa3fef6c",
+      "still_sha256": "8d6803f5c88f5675874a0208640f9a47a4c593fb252b121c7f8af137c4ffb49d",
       "visual_status": "unassessed",
-      "owner_feedback": "owner (via the coordinator): \"from close: round 16 looks good\"; \"it's all still too plasticesque need to make it rough less reflective. All the materials have this problem.\""
+      "owner_feedback": "owner (via the coordinator), shown round 16 as kept (A) and the lobed-lichen trial (B) side by side: \"yea the new one is better!\"; earlier: \"from close: round 16 looks good\"; \"it's all still too plasticesque need to make it rough less reflective. All the materials have this problem.\""
     },
     {
       "case": "silver-birch-1-S",
       "reference": "S-WHOLE",
       "foliage": "leaf-on",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/silver-birch-1-S-WHOLE-pair.png",
-      "pair_sha256": "a2635f219840ede2dc6d5f1d85f7dfec37b184c0ebac7c21276ecd914b046054",
-      "still_sha256": "60fb13d370624b23d3d105d95f893c9067a0a63e02cf253445e68b087ef14029",
+      "pair_sha256": "391a5870b8625f44d79b55bdc0d4288ecd2e25f6bc355489bc28be3688f322f9",
+      "still_sha256": "954410204d57a4d237e2ba369bf5919cb3c0607ac194e225ade2bdaa848b54a6",
       "visual_status": "unassessed",
       "owner_feedback": null
     }
