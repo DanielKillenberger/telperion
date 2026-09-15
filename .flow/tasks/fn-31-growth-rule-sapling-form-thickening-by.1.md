@@ -400,3 +400,35 @@ Owner decisions:
 4. Whether the crown-mass target stands.
 5. On acceptance: re-record the clay pin, merge the candidate, delete the two
    worktrees, run the gates, and open the PR.
+
+## Owner feedback on round 10 and the caps decision — 2026-09-15
+
+The owner, on the 11-year oak in the harness: "11 years to get this? that just
+seems off?" The host measured it at 2.7 m tall with 200 to 300 nodes, and at
+430 to 530 nodes at 15 years. It jumps to 3,000 to 4,600 nodes and 33,000 to
+52,000 leaves by 20 years. So the crown arrives between 15 and 20 years instead
+of developing steadily. The full-size leaves (fn-43) and the flare (F3) add to
+it.
+
+Owner, on the ten-year test's 450-node cap: "shouldn't we avoid having
+arbitrary caps? but just make sure the generator produces expected results
+without assertions of any kind by keeping parameter ranges clean and accepting
+that some trees may need some more performance. We rather improve performance
+than arbitrarily cap things that have impact on generation." And: "if the node
+count is a parameter that can be set i guess that's fine but not hardcoded
+separately from ranges for params that are configurable."
+
+Decisions:
+
+- **CLAUDE.md carries the rule on both branches** (4f904457, 1eac36cc). A limit
+  that shapes generation is a validated parameter, and tests assert form, not
+  counts.
+- **R5's build ceiling is no longer a gate on form.** Cost is measured and
+  reported, and performance work replaces capping.
+- **Round 11 removes fn-31's count gates.** These are the ten-year node cap, the
+  fn-30 population bands and the leaf order bands. R3's collapse check stays,
+  because it is the spec's own criterion. Round 11 also handles `MAX_SHEDS`,
+  which lives in fn-31's shedding rule.
+- **The other hardcoded limits go to a separate spec,** since they sit in
+  earlier specs' code: `NODE_CEILING`, `MAX_UNITS`, `MAX_LEVELS` and
+  `MIN_STEPS_PER_BEND`.
