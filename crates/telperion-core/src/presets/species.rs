@@ -53,9 +53,9 @@ pub(super) fn european_beech(p: &mut Family) {
     // starts at 0.12 of the height, so no wood and no leaf stands under 3.8 m.
     p.skeleton.envelope = Envelope {
         height: 32.0,
-        crown_base: 0.12,
+        crown_base: 0.06,
         spread: 0.36,
-        fullness: 0.4,
+        fullness: 0.3,
         shoulder: 1.8,
         // A beech's crown is lumpy where its limbs end and hollow where they
         // do not. Four or five broad lobes around a wavelength most of the
@@ -75,7 +75,7 @@ pub(super) fn european_beech(p: &mut Family) {
     // Four twig laterals a station fill the crown; a twig a quarter of its
     // parent's length pays for them and for the wider twig layer, so the
     // heaviest protocol seed stays well under the node ceiling.
-    p.skeleton.twigs.length_ratio = 0.25;
+    p.skeleton.twigs.length_ratio = 0.23;
     // Short shoots carry most of the leaves, so the long shoots only have
     // to spread the crown: each stands out at 40 degrees, rising with the
     // broom its limb makes, turned by the golden angle, with a leaf every

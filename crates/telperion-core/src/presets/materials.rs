@@ -270,7 +270,7 @@ pub(super) fn beech() -> MaterialParams {
         // between them, which one smooth ellipsoid cannot draw. The whole of
         // the row, so a leaf under a full clump sees none of the sky its
         // own mass holds off.
-        lobe_shade: 1.0,
+        lobe_shade: 0.7,
     }
 }
 
