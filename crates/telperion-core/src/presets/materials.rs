@@ -53,6 +53,22 @@ pub(super) fn oak() -> MaterialParams {
         margin_blue: 0.006,
         cuticle_gloss: 0.35,
         sky_occlusion_strength: 0.5,
+        plate_cell_scale: 0.084,
+        plate_elongation: 1.8,
+        plate_dome: 0.41875,
+        plate_edge_lift: 0.27,
+        plate_furrow_width: 0.0,
+        plate_identity: 0.5,
+        weathering_strength: 0.425,
+        weathering_red: 0.0225,
+        weathering_green: 0.035,
+        weathering_blue: 0.00575,
+        orientation_strength: 0.40625,
+        orientation_red: -0.062,
+        orientation_green: 0.009,
+        orientation_blue: -0.1535,
+        directional_occlusion: 1.0,
+        depth_strength: 0.5375,
     }
 }
 
@@ -108,6 +124,22 @@ pub(super) fn spruce() -> MaterialParams {
         margin_blue: 0.002,
         cuticle_gloss: 0.05,
         sky_occlusion_strength: 0.6,
+        plate_cell_scale: 0.028,
+        plate_elongation: 0.2,
+        plate_dome: 0.39375,
+        plate_edge_lift: 0.5,
+        plate_furrow_width: 0.0,
+        plate_identity: 0.375,
+        weathering_strength: 0.6,
+        weathering_red: 0.015,
+        weathering_green: 0.03,
+        weathering_blue: 0.02975,
+        orientation_strength: 0.44375,
+        orientation_red: -0.014,
+        orientation_green: 0.026,
+        orientation_blue: -0.0155,
+        directional_occlusion: 0.30625,
+        depth_strength: 0.45625,
     }
 }
 
@@ -170,6 +202,25 @@ pub(super) fn beech() -> MaterialParams {
         margin_blue: 0.008,
         cuticle_gloss: 0.48,
         sky_occlusion_strength: 0.35,
+        // fn-32's plate network is not stated for this table yet: every
+        // plate row stands at its neutral, which is the bark it drew before
+        // the network existed. fn-40 states the smooth barks' own.
+        plate_cell_scale: 0.0,
+        plate_elongation: 0.0,
+        plate_dome: 0.0,
+        plate_edge_lift: 0.0,
+        plate_furrow_width: 0.0,
+        plate_identity: 0.0,
+        weathering_strength: 0.0,
+        weathering_red: 0.0,
+        weathering_green: 0.0,
+        weathering_blue: 0.0,
+        orientation_strength: 0.0,
+        orientation_red: 0.0,
+        orientation_green: 0.0,
+        orientation_blue: 0.0,
+        directional_occlusion: 0.0,
+        depth_strength: 0.0,
     }
 }
 
@@ -238,6 +289,25 @@ pub(super) fn birch() -> MaterialParams {
         margin_blue: 0.01,
         cuticle_gloss: 0.28,
         sky_occlusion_strength: 0.4,
+        // fn-32's plate network is not stated for this table yet: every
+        // plate row stands at its neutral, which is the bark it drew before
+        // the network existed. fn-40 states the smooth barks' own.
+        plate_cell_scale: 0.0,
+        plate_elongation: 0.0,
+        plate_dome: 0.0,
+        plate_edge_lift: 0.0,
+        plate_furrow_width: 0.0,
+        plate_identity: 0.0,
+        weathering_strength: 0.0,
+        weathering_red: 0.0,
+        weathering_green: 0.0,
+        weathering_blue: 0.0,
+        orientation_strength: 0.0,
+        orientation_red: 0.0,
+        orientation_green: 0.0,
+        orientation_blue: 0.0,
+        directional_occlusion: 0.0,
+        depth_strength: 0.0,
     }
 }
 

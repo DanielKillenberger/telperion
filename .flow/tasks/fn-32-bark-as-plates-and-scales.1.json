@@ -1,0 +1,15 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-14T12:41:56.719105Z",
+  "depends_on": [],
+  "id": "fn-32-bark-as-plates-and-scales.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-32-bark-as-plates-and-scales",
+  "spec_path": ".flow/tasks/fn-32-bark-as-plates-and-scales.1.md",
+  "status": "todo",
+  "title": "Implement Bark as plates and scales",
+  "updated_at": "2026-09-14T12:41:56.719105Z"
+}

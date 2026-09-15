@@ -43,21 +43,47 @@ fn compact(family: &mut Value) {
     element["sectionRoundness"] = json!(0.5);
     element["baseFullness"] = json!(0.5);
     element["tipSharpness"] = json!(0.5);
+    // And the one material trait that does the same. Four of the five shipped
+    // families state a furrow strength of exactly one, which is its own upper
+    // bound, so more than half of all jitters refuse the whole set on that
+    // field alone and the sample this test draws is decided by it rather than
+    // by the render path it means to exercise.
+    family["material"]["furrowStrength"] = json!(0.5);
 }
 
 /// Scales every number in the family by a factor near one. A whole number
 /// stays whole, and stays on its own side of zero: the schema reads counts as
 /// counts and refuses a float where it wanted one. Casts here saturate, which
 /// is what an uncapped count scaled past its own type should do.
-fn jitter(value: &mut Value, rng: &mut Rng) {
+///
+/// The factor is drawn from the field's own path and the attempt's number
+/// rather than from a running stream. A stream gives every field after a new
+/// one a different factor than it had, so adding one row to the schema
+/// redraws the whole sample and the test passes or fails on that draw's luck
+/// rather than on the render path it means to exercise. This way a new row
+/// changes its own factor and no other.
+fn seed(path: &str, attempt: usize) -> u32 {
+    // FNV-1a, so the draw is the same on every machine and every toolchain.
+    let mut hash = 0x811c_9dc5u32;
+    for byte in path.bytes().chain(attempt.to_le_bytes()) {
+        hash = (hash ^ u32::from(byte)).wrapping_mul(0x0100_0193);
+    }
+    hash
+}
+
+fn jitter(value: &mut Value, attempt: usize, path: &mut String) {
     match value {
         Value::Object(map) => {
-            for (_, field) in map.iter_mut() {
-                jitter(field, rng);
+            for (key, field) in map.iter_mut() {
+                let mark = path.len();
+                path.push('/');
+                path.push_str(key);
+                jitter(field, attempt, path);
+                path.truncate(mark);
             }
         }
         Value::Number(number) => {
-            let factor = rng.range(0.8, 1.25);
+            let factor = Rng::new(seed(path, attempt)).range(0.8, 1.25);
             if let Some(count) = number.as_u64() {
                 *value = json!((count as f64 * factor).round() as u64);
             } else if let Some(whole) = number.as_i64() {
@@ -133,23 +159,20 @@ fn every_shipped_family_renders_through_the_one_path() {
 fn parameter_sets_nobody_wrote_by_hand_render_the_same_way() {
     let Some(gpu) = gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let mut rng = Rng::new(20_260_908);
     // The jitter multiplies every number by up to 1.25, which carries any row
     // whose shipped value sits at the top of its own rail straight out of it.
     // fn-37's pendulous radius is 1 on every shipped table - every shoot under
     // a descending limb hangs - and its hang row is 1 on the two that weep, so
     // better than half of every set drawn is now a set the generator refuses
-    // by name. fn-44's sag is a fifth curtain row and neutral on every table,
-    // which moves no set out of its rail but does move every draw after it in
-    // the stream. The budget is what absorbs that: twenty sets still have to
+    // by name. The budget is what absorbs that: twenty sets still have to
     // render, and at 96 pixels the whole loop is under a second.
     let (mut rendered, mut refused, mut leafless, mut attempts) = (0, 0, 0, 0);
     while rendered < 20 && attempts < 400 {
         let &(_, id, _, _) = &params::CATALOGUE[attempts % params::CATALOGUE.len()];
         let mut value = params::metadata(&params::by_identity(id).expect("a shipped family"));
         compact(&mut value);
-        jitter(&mut value, &mut rng);
         attempts += 1;
+        jitter(&mut value, attempts, &mut String::new());
         match draws(&mut renderer, &value, 96) {
             // A set the generator will not have is refused, never drawn blank.
             Err(_) => refused += 1,

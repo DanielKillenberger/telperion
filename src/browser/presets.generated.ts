@@ -58,6 +58,8 @@ export interface Family {
   crestRed: number;
   crestStrength: number;
   cuticleGloss: number;
+  depthStrength: number;
+  directionalOcclusion: number;
   fissureBlue: number;
   fissureGreen: number;
   fissureRed: number;
@@ -76,6 +78,16 @@ export interface Family {
   marginGreen: number;
   marginRed: number;
   marginWidth: number;
+  orientationBlue: number;
+  orientationGreen: number;
+  orientationRed: number;
+  orientationStrength: number;
+  plateCellScale: number;
+  plateDome: number;
+  plateEdgeLift: number;
+  plateElongation: number;
+  plateFurrowWidth: number;
+  plateIdentity: number;
   plateScale: number;
   ridgeScale: number;
   roughnessDetail: number;
@@ -91,6 +103,10 @@ export interface Family {
   transmissionStrength: number;
   veinContrast: number;
   veinScale: number;
+  weatheringBlue: number;
+  weatheringGreen: number;
+  weatheringRed: number;
+  weatheringStrength: number;
 };
   radii: {
   forkExponent: number;
@@ -253,6 +269,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestRed": 0,
         "crestStrength": 0,
         "cuticleGloss": 0,
+        "depthStrength": 0,
+        "directionalOcclusion": 0,
         "fissureBlue": 0,
         "fissureGreen": 0,
         "fissureRed": 0,
@@ -271,6 +289,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0,
         "marginRed": 0,
         "marginWidth": 0,
+        "orientationBlue": 0,
+        "orientationGreen": 0,
+        "orientationRed": 0,
+        "orientationStrength": 0,
+        "plateCellScale": 0,
+        "plateDome": 0,
+        "plateEdgeLift": 0,
+        "plateElongation": 0,
+        "plateFurrowWidth": 0,
+        "plateIdentity": 0,
         "plateScale": 0,
         "ridgeScale": 0,
         "roughnessDetail": 0,
@@ -285,7 +313,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "transmissionRed": 0.3,
         "transmissionStrength": 0,
         "veinContrast": 0,
-        "veinScale": 8
+        "veinScale": 8,
+        "weatheringBlue": 0,
+        "weatheringGreen": 0,
+        "weatheringRed": 0,
+        "weatheringStrength": 0
       },
       "radii": {
         "forkExponent": 2,
@@ -446,6 +478,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestRed": 0.1,
         "crestStrength": 0.5,
         "cuticleGloss": 0.35,
+        "depthStrength": 0.5375,
+        "directionalOcclusion": 1,
         "fissureBlue": 0.005,
         "fissureGreen": -0.05,
         "fissureRed": -0.1,
@@ -464,6 +498,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0.035,
         "marginRed": 0.025,
         "marginWidth": 0.08,
+        "orientationBlue": -0.1535,
+        "orientationGreen": 0.009,
+        "orientationRed": -0.062,
+        "orientationStrength": 0.40625,
+        "plateCellScale": 0.084,
+        "plateDome": 0.41875,
+        "plateEdgeLift": 0.27,
+        "plateElongation": 1.8,
+        "plateFurrowWidth": 0,
+        "plateIdentity": 0.5,
         "plateScale": 0.055,
         "ridgeScale": 0.032,
         "roughnessDetail": 0.12,
@@ -478,7 +522,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "transmissionRed": 0.24,
         "transmissionStrength": 0.55,
         "veinContrast": 0.45,
-        "veinScale": 7
+        "veinScale": 7,
+        "weatheringBlue": 0.00575,
+        "weatheringGreen": 0.035,
+        "weatheringRed": 0.0225,
+        "weatheringStrength": 0.425
       },
       "radii": {
         "forkExponent": 2,
@@ -639,6 +687,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestRed": 0.05,
         "crestStrength": 0.3,
         "cuticleGloss": 0.05,
+        "depthStrength": 0.45625,
+        "directionalOcclusion": 0.30625,
         "fissureBlue": -0.02,
         "fissureGreen": -0.03,
         "fissureRed": -0.035,
@@ -657,6 +707,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0.015,
         "marginRed": 0.01,
         "marginWidth": 0,
+        "orientationBlue": -0.0155,
+        "orientationGreen": 0.026,
+        "orientationRed": -0.014,
+        "orientationStrength": 0.44375,
+        "plateCellScale": 0.028,
+        "plateDome": 0.39375,
+        "plateEdgeLift": 0.5,
+        "plateElongation": 0.2,
+        "plateFurrowWidth": 0,
+        "plateIdentity": 0.375,
         "plateScale": 0.03,
         "ridgeScale": 0.02,
         "roughnessDetail": 0.16,
@@ -671,7 +731,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "transmissionRed": 0.12,
         "transmissionStrength": 0.01,
         "veinContrast": 0,
-        "veinScale": 8
+        "veinScale": 8,
+        "weatheringBlue": 0.02975,
+        "weatheringGreen": 0.03,
+        "weatheringRed": 0.015,
+        "weatheringStrength": 0.6
       },
       "radii": {
         "forkExponent": 2,
@@ -832,6 +896,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestRed": 0.06,
         "crestStrength": 0.25,
         "cuticleGloss": 0.48,
+        "depthStrength": 0,
+        "directionalOcclusion": 0,
         "fissureBlue": -0.02,
         "fissureGreen": -0.03,
         "fissureRed": -0.04,
@@ -850,6 +916,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0.04,
         "marginRed": 0.02,
         "marginWidth": 0.04,
+        "orientationBlue": 0,
+        "orientationGreen": 0,
+        "orientationRed": 0,
+        "orientationStrength": 0,
+        "plateCellScale": 0,
+        "plateDome": 0,
+        "plateEdgeLift": 0,
+        "plateElongation": 0,
+        "plateFurrowWidth": 0,
+        "plateIdentity": 0,
         "plateScale": 0.04,
         "ridgeScale": 0.018,
         "roughnessDetail": 0.08,
@@ -864,7 +940,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "transmissionRed": 0.22,
         "transmissionStrength": 0.5,
         "veinContrast": 0.4,
-        "veinScale": 7
+        "veinScale": 7,
+        "weatheringBlue": 0,
+        "weatheringGreen": 0,
+        "weatheringRed": 0,
+        "weatheringStrength": 0
       },
       "radii": {
         "forkExponent": 2.6,
@@ -1025,6 +1105,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestRed": 0.08,
         "crestStrength": 0.2,
         "cuticleGloss": 0.28,
+        "depthStrength": 0,
+        "directionalOcclusion": 0,
         "fissureBlue": -0.22,
         "fissureGreen": -0.24,
         "fissureRed": -0.25,
@@ -1043,6 +1125,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0.05,
         "marginRed": 0.03,
         "marginWidth": 0.05,
+        "orientationBlue": 0,
+        "orientationGreen": 0,
+        "orientationRed": 0,
+        "orientationStrength": 0,
+        "plateCellScale": 0,
+        "plateDome": 0,
+        "plateEdgeLift": 0,
+        "plateElongation": 0,
+        "plateFurrowWidth": 0,
+        "plateIdentity": 0,
         "plateScale": 0.05,
         "ridgeScale": 0.025,
         "roughnessDetail": 0.1,
@@ -1057,7 +1149,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "transmissionRed": 0.28,
         "transmissionStrength": 0.6,
         "veinContrast": 0.35,
-        "veinScale": 6
+        "veinScale": 6,
+        "weatheringBlue": 0,
+        "weatheringGreen": 0,
+        "weatheringRed": 0,
+        "weatheringStrength": 0
       },
       "radii": {
         "forkExponent": 2,
@@ -1218,6 +1314,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestRed": 0,
         "crestStrength": 0.1,
         "cuticleGloss": 0.25,
+        "depthStrength": 0,
+        "directionalOcclusion": 0,
         "fissureBlue": 0,
         "fissureGreen": 0,
         "fissureRed": 0,
@@ -1236,6 +1334,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0,
         "marginRed": 0,
         "marginWidth": 0,
+        "orientationBlue": 0,
+        "orientationGreen": 0,
+        "orientationRed": 0,
+        "orientationStrength": 0,
+        "plateCellScale": 0,
+        "plateDome": 0,
+        "plateEdgeLift": 0,
+        "plateElongation": 0,
+        "plateFurrowWidth": 0,
+        "plateIdentity": 0,
         "plateScale": 0,
         "ridgeScale": 0,
         "roughnessDetail": 0,
@@ -1250,7 +1358,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "transmissionRed": 0.3,
         "transmissionStrength": 0,
         "veinContrast": 0,
-        "veinScale": 8
+        "veinScale": 8,
+        "weatheringBlue": 0,
+        "weatheringGreen": 0,
+        "weatheringRed": 0,
+        "weatheringStrength": 0
       },
       "radii": {
         "forkExponent": 2.15,
@@ -1411,6 +1523,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestRed": 0,
         "crestStrength": 0.1,
         "cuticleGloss": 0.3,
+        "depthStrength": 0,
+        "directionalOcclusion": 0,
         "fissureBlue": 0,
         "fissureGreen": 0,
         "fissureRed": 0,
@@ -1429,6 +1543,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "marginGreen": 0,
         "marginRed": 0,
         "marginWidth": 0,
+        "orientationBlue": 0,
+        "orientationGreen": 0,
+        "orientationRed": 0,
+        "orientationStrength": 0,
+        "plateCellScale": 0,
+        "plateDome": 0,
+        "plateEdgeLift": 0,
+        "plateElongation": 0,
+        "plateFurrowWidth": 0,
+        "plateIdentity": 0,
         "plateScale": 0,
         "ridgeScale": 0,
         "roughnessDetail": 0,
@@ -1443,7 +1567,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "transmissionRed": 0.3,
         "transmissionStrength": 0,
         "veinContrast": 0,
-        "veinScale": 8
+        "veinScale": 8,
+        "weatheringBlue": 0,
+        "weatheringGreen": 0,
+        "weatheringRed": 0,
+        "weatheringStrength": 0
       },
       "radii": {
         "forkExponent": 2.7,

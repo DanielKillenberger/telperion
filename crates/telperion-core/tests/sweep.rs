@@ -85,7 +85,8 @@ const BANDS: [(&str, usize, usize); 7] = [
 // upright and has no bearing to part from, so its divergence goes to none and
 // every table agrees on it: the divergence is held here, and the clump tests
 // walk it from nothing to a hundred degrees.
-const HELD: [&str; 28] = [
+const HELD: [&str; 29] = [
+    "/material/plateFurrowWidth",
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",

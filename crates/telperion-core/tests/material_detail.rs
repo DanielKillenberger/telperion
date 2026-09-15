@@ -2,7 +2,7 @@
 use serde_json::json;
 use telperion_core::{blend, params, presets::Preset, Error};
 
-const FIELDS: [(&str, &str, f64, f64); 34] = [
+const FIELDS: [(&str, &str, f64, f64); 50] = [
     ("furrowStrength", "bark furrow strength", 0.0, 1.0),
     ("ridgeScale", "bark ridge scale", 0.0, 1.0),
     ("plateScale", "bark plate scale", 0.0, 1.0),
@@ -47,6 +47,27 @@ const FIELDS: [(&str, &str, f64, f64); 34] = [
     ("shootGreen", "young shoot green", 0.0, 1.0),
     ("shootBlue", "young shoot blue", 0.0, 1.0),
     ("shootRadius", "young shoot radius", 0.0, 0.1),
+    ("plateCellScale", "bark plate cell scale", 0.0, 1.0),
+    ("plateElongation", "bark plate elongation", 0.0, 16.0),
+    ("plateDome", "bark plate dome", 0.0, 1.0),
+    ("plateEdgeLift", "bark plate edge lift", 0.0, 1.0),
+    ("plateFurrowWidth", "bark plate furrow width", 0.0, 1.0),
+    ("plateIdentity", "bark plate identity", 0.0, 1.0),
+    ("weatheringStrength", "bark weathering strength", 0.0, 1.0),
+    ("weatheringRed", "bark weathering red", -1.0, 1.0),
+    ("weatheringGreen", "bark weathering green", -1.0, 1.0),
+    ("weatheringBlue", "bark weathering blue", -1.0, 1.0),
+    ("orientationStrength", "bark orientation strength", 0.0, 1.0),
+    ("orientationRed", "bark orientation red", -1.0, 1.0),
+    ("orientationGreen", "bark orientation green", -1.0, 1.0),
+    ("orientationBlue", "bark orientation blue", -1.0, 1.0),
+    (
+        "directionalOcclusion",
+        "bark directional occlusion",
+        0.0,
+        1.0,
+    ),
+    ("depthStrength", "bark depth strength", 0.0, 1.0),
 ];
 
 #[test]
@@ -107,6 +128,22 @@ fn older_material_documents_gain_only_inert_detail_defaults() {
         "cuticleGloss",
         "skyOcclusionStrength",
         "shootRadius",
+        "plateCellScale",
+        "plateElongation",
+        "plateDome",
+        "plateEdgeLift",
+        "plateFurrowWidth",
+        "plateIdentity",
+        "weatheringStrength",
+        "weatheringRed",
+        "weatheringGreen",
+        "weatheringBlue",
+        "orientationStrength",
+        "orientationRed",
+        "orientationGreen",
+        "orientationBlue",
+        "directionalOcclusion",
+        "depthStrength",
         "ridgeScale",
         "plateScale",
         "roughnessDetail",

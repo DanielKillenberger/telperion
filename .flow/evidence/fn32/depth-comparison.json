@@ -1,0 +1,25 @@
+{
+  "criterion": "R2",
+  "question": "parallax on the height field, or vertex displacement on the near wood level",
+  "device": "NVIDIA GeForce RTX 3080, NVIDIA 610.57.04, vulkan, 4 samples a pixel",
+  "protocol": {
+    "cost": "headless --preset oregon-white-oak --seed 7 --size 1600x1000 --timing <json>; one hero render, 8 conditioning, 8 warmup, 120 measured frames",
+    "effect": "cargo test --release -p telperion-render --test bark_depth: mean and worst absolute channel difference over a 640x400 trunk frame, row at 0.6 against row at 0",
+    "aliasing": "the unchanged bark_distance 4x masked agreement, mean and p95 in /255",
+    "forest": "the eight-tree forest the spec names was retired with the TypeScript harness at fn-22/fn-24 and has no driver in this repo. The single-oak native protocol fn-26 established is the smaller capture and the one that still exists; it was used for both candidates identically."
+  },
+  "runs": [
+    {"candidate": "row off", "total_p50_ms": [4.351, 4.368], "frame_change": null, "aliasing_4x": null},
+    {"candidate": "parallax on the height field", "total_p50_ms": [4.453, 4.440], "frame_change": {"mean_255": 1.8916, "worst_255": 129}, "aliasing_4x": {"mean_255": 2.971, "p95_255": 9.0}},
+    {"candidate": "vertex displacement, near wood level", "total_p50_ms": [4.406, 4.391], "frame_change": {"mean_255": 0.5177, "worst_255": 74}, "aliasing_4x": {"mean_255": 2.839, "p95_255": 8.25}}
+  ],
+  "chosen": "parallax on the height field",
+  "reasons": [
+    "3.7 times the change in the picture for 0.049 ms more, which is inside the run-to-run spread of the protocol",
+    "displacement's effect is bounded by how finely the wood is tessellated rather than by the row, so a 4 mm plate on a trunk whose vertices stand centimetres apart is a low wobble rather than a furrow",
+    "displacement moves the colour pass alone, so the tree would shadow and select against a surface it is not drawn at; making the shadow and selection stages agree costs a whole field evaluation per vertex in each",
+    "displacement's own virtue, a moved silhouette, is what the spec's boundary and the fn-24 pins ask to keep still"
+  ],
+  "limit_of_the_choice": "parallax leaves the silhouette the smooth cylinder the mesh is, so the depth it gives is interior to the outline",
+  "pins": "neither candidate reaches the core, so the wood mesh bytes and the fn-24 identity pins are untouched by either, with the row on or off. The bark_depth test holds the mesh hash and the frame's exact return to itself with the row at zero."
+}
