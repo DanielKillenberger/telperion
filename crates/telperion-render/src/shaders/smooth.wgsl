@@ -42,7 +42,11 @@ fn lichen_octave(p: vec3<f32>, pixel: f32, share: f32) -> f32 {
                 let present = smooth_presence(share, fract(a * 91.7 + b * 13.9));
                 let site = id + vec3(a, b, fract(a * 43.7 + b * 71.3));
                 let radius = LICHEN_REACH * mix(LICHEN_SMALL, 1.0, fract(a * 17.3 + b * 31.1));
-                let distance = length(p - site) / radius;
+                // A patch is a sphere drawn out along its own three axes, so
+                // no two cut the bark to the same round disc.
+                let axes = mix(vec3(0.8), vec3(1.25),
+                    fract(vec3(a * 53.3 + b * 7.1, a * 11.9 + b * 61.7, a * 37.1 + b * 23.9)));
+                let distance = length((p - site) * axes) / radius;
                 // Most of the twenty-seven cannot reach: the filtered rim is
                 // worked out only for a patch whose rim this pixel can touch.
                 if (present > 0.0 && distance < 1.0 + SMOOTH_RIM + pixel / radius) {
