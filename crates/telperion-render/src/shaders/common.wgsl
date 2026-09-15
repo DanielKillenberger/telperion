@@ -50,6 +50,9 @@ struct Uniforms {
     bark_colour_detail: vec4<f32>, // mottle scale, mottle strength, cavity strength, sky occlusion strength
     leaf_colour_detail: vec4<f32>, // mottle scale, mottle strength, cuticle gloss, reserved
     margin: vec4<f32>, // RGB offsets, width
+    /// Young wood's own colour, and in `w` the radius below which wood takes
+    /// it; zero is a row with no young wood.
+    shoot: vec4<f32>,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

@@ -121,6 +121,10 @@ macro_rules! fields {
         $op!($f, $v, "material", "barkGreen"; material.bark_green);
         $op!($f, $v, "material", "barkBlue"; material.bark_blue);
         $op!($f, $v, "material", "barkRoughness"; material.bark_roughness);
+        $op!($f, $v, "material", "shootRed"; material.shoot_red);
+        $op!($f, $v, "material", "shootGreen"; material.shoot_green);
+        $op!($f, $v, "material", "shootBlue"; material.shoot_blue);
+        $op!($f, $v, "material", "shootRadius"; material.shoot_radius);
         $op!($f, $v, "material", "leafFrontRed"; material.leaf_front_red);
         $op!($f, $v, "material", "leafFrontGreen"; material.leaf_front_green);
         $op!($f, $v, "material", "leafFrontBlue"; material.leaf_front_blue);

@@ -79,6 +79,10 @@ export interface Family {
   plateScale: number;
   ridgeScale: number;
   roughnessDetail: number;
+  shootBlue: number;
+  shootGreen: number;
+  shootRadius: number;
+  shootRed: number;
   skyOcclusionStrength: number;
   thickness: number;
   transmissionBlue: number;
@@ -265,6 +269,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0,
         "ridgeScale": 0,
         "roughnessDetail": 0,
+        "shootBlue": 0.068,
+        "shootGreen": 0.105,
+        "shootRadius": 0,
+        "shootRed": 0.147,
         "skyOcclusionStrength": 0,
         "thickness": 1,
         "transmissionBlue": 0.1,
@@ -449,6 +457,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0.055,
         "ridgeScale": 0.032,
         "roughnessDetail": 0.12,
+        "shootBlue": 0.198,
+        "shootGreen": 0.218,
+        "shootRadius": 0,
+        "shootRed": 0.225,
         "skyOcclusionStrength": 0.5,
         "thickness": 0.65,
         "transmissionBlue": 0.07,
@@ -633,6 +645,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0.03,
         "ridgeScale": 0.02,
         "roughnessDetail": 0.16,
+        "shootBlue": 0.045,
+        "shootGreen": 0.078,
+        "shootRadius": 0,
+        "shootRed": 0.147,
         "skyOcclusionStrength": 0.6,
         "thickness": 3.5,
         "transmissionBlue": 0.08,
@@ -817,6 +833,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0.04,
         "ridgeScale": 0.018,
         "roughnessDetail": 0.08,
+        "shootBlue": 0.075,
+        "shootGreen": 0.12,
+        "shootRadius": 0.004,
+        "shootRed": 0.14,
         "skyOcclusionStrength": 0.35,
         "thickness": 0.6,
         "transmissionBlue": 0.08,
@@ -1001,6 +1021,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0.05,
         "ridgeScale": 0.025,
         "roughnessDetail": 0.1,
+        "shootBlue": 0.045,
+        "shootGreen": 0.06,
+        "shootRadius": 0.01,
+        "shootRed": 0.1,
         "skyOcclusionStrength": 0.4,
         "thickness": 0.45,
         "transmissionBlue": 0.1,
@@ -1185,6 +1209,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0,
         "ridgeScale": 0,
         "roughnessDetail": 0,
+        "shootBlue": 0.068,
+        "shootGreen": 0.105,
+        "shootRadius": 0,
+        "shootRed": 0.147,
         "skyOcclusionStrength": 0.2,
         "thickness": 1,
         "transmissionBlue": 0.1,
@@ -1369,6 +1397,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0,
         "ridgeScale": 0,
         "roughnessDetail": 0,
+        "shootBlue": 0.068,
+        "shootGreen": 0.105,
+        "shootRadius": 0,
+        "shootRed": 0.147,
         "skyOcclusionStrength": 0.2,
         "thickness": 1,
         "transmissionBlue": 0.1,

@@ -7,6 +7,11 @@ pub(super) fn oak() -> MaterialParams {
         bark_green: 0.218,
         bark_blue: 0.198,
         bark_roughness: 0.85,
+        // Neutral: no young wood until the oak's own table states it.
+        shoot_red: 0.225,
+        shoot_green: 0.218,
+        shoot_blue: 0.198,
+        shoot_radius: 0.0,
         leaf_front_red: 0.028,
         leaf_front_green: 0.102,
         leaf_front_blue: 0.016,
@@ -57,6 +62,11 @@ pub(super) fn spruce() -> MaterialParams {
         bark_green: 0.078,
         bark_blue: 0.045,
         bark_roughness: 0.9,
+        // Neutral: no young wood until the spruce's own table states it.
+        shoot_red: 0.147,
+        shoot_green: 0.078,
+        shoot_blue: 0.045,
+        shoot_radius: 0.0,
         leaf_front_red: 0.018,
         leaf_front_green: 0.056,
         leaf_front_blue: 0.028,
@@ -107,6 +117,15 @@ pub(super) fn beech() -> MaterialParams {
         bark_green: 0.335,
         bark_blue: 0.295,
         bark_roughness: 0.4,
+        // Young shoots light olive- to grey-brown (VT Dendrology, Fagus
+        // sylvatica: "slender, zigzag, light brown"; OSU: stems olive-brown),
+        // grey by the second or third year. B-BARE's winter crown haze reads
+        // linear 0.064/0.055/0.033 to 0.149/0.136/0.097 on its own exposure,
+        // R:G:B 1:0.86:0.55; smooth grey from about 1.6 cm across.
+        shoot_red: 0.14,
+        shoot_green: 0.12,
+        shoot_blue: 0.075,
+        shoot_radius: 0.004,
         leaf_front_red: 0.022,
         leaf_front_green: 0.105,
         leaf_front_blue: 0.018,
@@ -157,6 +176,17 @@ pub(super) fn birch() -> MaterialParams {
         bark_green: 0.76,
         bark_blue: 0.7,
         bark_roughness: 0.48,
+        // Young shoots dark red-brown, glossy, with pale resin warts; the
+        // bark whitens only once it has thickened (VT Dendrology, Betula
+        // pendula: twigs "slender, reddish brown"; bark "reddish brown ...
+        // when very young, later turning white"; Atkinson 1992). S-BARE's
+        // winter crown haze reads linear 0.061/0.042/0.030 to 0.149/0.093/
+        // 0.066 on the exposure its trunk reads 0.78/0.78/0.71 on, R:G:B
+        // 1:0.62:0.44; white from about 4 cm across.
+        shoot_red: 0.1,
+        shoot_green: 0.06,
+        shoot_blue: 0.045,
+        shoot_radius: 0.01,
         leaf_front_red: 0.055,
         leaf_front_green: 0.165,
         leaf_front_blue: 0.035,

@@ -69,7 +69,7 @@ fn socket_contact(n: vec3<f32>, dx: vec3<f32>, dy: vec3<f32>,
 
 // Appearance carries mottle, geometric contact, crown depth and relief maturity.
 fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
-    variance: f32, appearance: vec4<f32>, colour_range: vec2<f32>) -> vec3<f32> {
+    variance: f32, appearance: vec4<f32>, colour_range: vec2<f32>, bark: vec3<f32>) -> vec3<f32> {
     let sun = u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * shadow;
     // Roughness is what a surface does with the sun it does not scatter: chalk
     // spreads it over the whole face, a smooth young bark keeps a narrow sheen
@@ -93,7 +93,7 @@ fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
     // Apply cavity to the base here: multiplying tinted colour by it would
     // introduce height squared and change the mean as the footprint widens.
     let cavity_weight = 1.0 - u.bark_colour_detail.z * fissure;
-    let albedo = u.bark.rgb * cavity_weight + u.fissure.rgb * u.fissure.w * fissure
+    let albedo = bark * cavity_weight + u.fissure.rgb * u.fissure.w * fissure
         + u.crest.rgb * u.crest.w * crest;
     let colour = clamp(albedo * appearance.x, vec3<f32>(0.0), vec3<f32>(1.0));
     let contact = 1.0 - u.bark_colour_detail.z * appearance.y;
@@ -131,6 +131,12 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let base = 1.0 - smoothstep(0.0, max(in.radius, 0.0001), max(in.world.y, 0.0));
     let maturity = smoothstep(2.0, 5.0, 2.0 * in.radius / max(u.bark_detail.x, 0.000001))
         * select(0.0, 1.0, u.bark_detail.x > 0.0);
+    // Maturity carries relief by radius in ridge widths; youth carries colour
+    // by radius in shoot radii. Wood below the row's radius is the shoot's
+    // colour, gives it up to the bark's by twice that, and mottle, cavity and
+    // occlusion still act on it. A row with no radius takes the bark alone.
+    let youth = 1.0 - smoothstep(u.shoot.w, 2.0 * u.shoot.w, in.radius);
+    let bark = select(u.bark.rgb, mix(u.bark.rgb, u.shoot.rgb, youth), u.shoot.w > 0.0);
     var contact = base;
     if (u.bark_colour_detail.z > 0.0) {
         contact = max(contact, socket_contact(base_normal, dx, dy, nx, ny, in.radius));
@@ -156,7 +162,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // redundant field evaluations and four identical lighting evaluations.
     if (u.bark_detail.x <= 0.0 || in.radius <= u.bark_detail.x || band >= 1.0) {
         let height = bark_height(circle, in.surface.x, in.radius, footprint);
-        return vec4<f32>(tone(bark_light(base_normal, height, in.world, shadow, variance, appearance, colour_range)), 1.0);
+        return vec4<f32>(tone(bark_light(base_normal, height, in.world, shadow, variance, appearance, colour_range, bark)), 1.0);
     }
     // Four half-pixel shading cells share nine heights. Each height uses the
     // cell's footprint: filtering over a full pixel here and integrating the
@@ -179,7 +185,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
             // Average the two differences, divided by a half-pixel cell.
             let n = bark_normal(base_normal, in.world, dx, dy,
                 h.y + h.w - h.x - h.z, h.z + h.w - h.x - h.y);
-            lit += bark_light(n, dot(h, vec4(0.25)), in.world, shadow, variance, appearance, colour_range);
+            lit += bark_light(n, dot(h, vec4(0.25)), in.world, shadow, variance, appearance, colour_range, bark);
         }
     }
     return vec4<f32>(tone(lit * 0.25), 1.0);
