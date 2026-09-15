@@ -104,6 +104,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.light_wrap,
         material.diffuse_transmission,
         material.leaf_sheen,
+        material.crown_shade,
 
         shell_depth,
     );

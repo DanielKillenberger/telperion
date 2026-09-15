@@ -58,6 +58,7 @@ pub(super) fn oak() -> MaterialParams {
         light_wrap: 0.0,
         diffuse_transmission: 0.0,
         leaf_sheen: 0.0,
+        crown_shade: 0.0,
     }
 }
 
@@ -118,6 +119,7 @@ pub(super) fn spruce() -> MaterialParams {
         light_wrap: 0.0,
         diffuse_transmission: 0.0,
         leaf_sheen: 0.0,
+        crown_shade: 0.0,
     }
 }
 
@@ -194,6 +196,11 @@ pub(super) fn beech() -> MaterialParams {
         light_wrap: 0.4,
         diffuse_transmission: 1.0,
         leaf_sheen: 0.08,
+        // The crown over a leaf takes its sky, so the dome's underside falls
+        // into its own shade: B-WHOLE's leaf mass falls from 125 at the top
+        // sixth to 52 at the bottom, and 0.15 a radius draws 91 to 55, where
+        // no shade drew the bottom brighter than the middle.
+        crown_shade: 0.15,
     }
 }
 
@@ -272,6 +279,9 @@ pub(super) fn birch() -> MaterialParams {
         light_wrap: 0.5,
         diffuse_transmission: 1.0,
         leaf_sheen: 0.06,
+        // S-WHOLE's crown falls from 153 at the top sixth to 38 at the
+        // bottom; 0.2 a radius draws 156 to 45.
+        crown_shade: 0.2,
     }
 }
 

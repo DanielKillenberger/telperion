@@ -171,6 +171,7 @@ macro_rules! fields {
         $op!($f, $v, "material", "lightWrap"; material.light_wrap);
         $op!($f, $v, "material", "diffuseTransmission"; material.diffuse_transmission);
         $op!($f, $v, "material", "leafSheen"; material.leaf_sheen);
+        $op!($f, $v, "material", "crownShade"; material.crown_shade);
 
         $op!($f, $v, "shellDepth"; shell_depth);
     };

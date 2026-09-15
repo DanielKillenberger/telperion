@@ -93,6 +93,11 @@ pub struct MaterialParams {
     /// The cuticle's reflectance of the sky at normal incidence, rising to
     /// the whole sky at grazing by Schlick's Fresnel; zero reflects no sky.
     pub leaf_sheen: f64,
+    /// How much of the sky one crown radius of leaves takes from a leaf that
+    /// reads it through the mass - the sky over it, behind it and in its
+    /// sheen - so the underside of a crown falls into its own shade. Zero
+    /// sees the sky through the mass.
+    pub crown_shade: f64,
 }
 
 impl Default for MaterialParams {
@@ -154,6 +159,7 @@ impl Default for MaterialParams {
             light_wrap: 0.0,
             diffuse_transmission: 0.0,
             leaf_sheen: 0.0,
+            crown_shade: 0.0,
         }
     }
 }
@@ -207,6 +213,7 @@ impl MaterialParams {
                 "leaf diffuse transmission",
             ),
             (self.leaf_sheen, 0.0, 0.5, "leaf sheen"),
+            (self.crown_shade, 0.0, 1.0, "leaf crown shade"),
             (self.ridge_scale, 0.0, 1.0, "bark ridge scale"),
             (self.plate_scale, 0.0, 1.0, "bark plate scale"),
             (self.furrow_strength, 0.0, 1.0, "bark furrow strength"),
@@ -289,7 +296,7 @@ mod tests {
         // field without a bound would fail the count below.
         // One field put off its range, and the name the refusal must carry.
         type Refusal = (fn(&mut MaterialParams), &'static str);
-        let refusals: [Refusal; 42] = [
+        let refusals: [Refusal; 43] = [
             (|m| m.fissure_red = 2.0, "bark fissure red"),
             (|m| m.fissure_green = 2.0, "bark fissure green"),
             (|m| m.fissure_blue = 2.0, "bark fissure blue"),
@@ -319,6 +326,7 @@ mod tests {
                 "leaf diffuse transmission",
             ),
             (|m| m.leaf_sheen = 0.51, "leaf sheen"),
+            (|m| m.crown_shade = 1.5, "leaf crown shade"),
             (|m| m.bark_red = 1.5, "bark red"),
             (|m| m.bark_green = -0.1, "bark green"),
             (|m| m.bark_blue = f64::NAN, "bark blue"),

@@ -54,3 +54,29 @@ fn sheen(normal: vec3<f32>, to_eye: vec3<f32>, f0: f32) -> f32 {
     let square = grazing * grazing;
     return f0 + (1.0 - f0) * square * square * grazing;
 }
+
+/// How much crown lies ahead of a point along a direction: the chord, in
+/// crown radii, that the ray from the point cuts through the ellipsoid the
+/// placements fill. Nothing once the ray has left it; two across a diameter.
+fn crown_chord(position: vec3<f32>, direction: vec3<f32>, centre: vec3<f32>,
+    radii: vec3<f32>) -> f32 {
+    let r = max(radii, vec3<f32>(1e-6));
+    let q = (position - centre) / r;
+    let d = direction / r;
+    let a = max(dot(d, d), 1e-12);
+    let b = dot(q, d);
+    let discriminant = b * b - a * (dot(q, q) - 1.0);
+    if (discriminant <= 0.0) {
+        return 0.0;
+    }
+    let root = sqrt(discriminant);
+    let far = (-b + root) / a;
+    let near = max((-b - root) / a, 0.0);
+    return max(far - near, 0.0) * sqrt(a);
+}
+
+/// The share of the sky that reaches a leaf along a direction through the
+/// mass: each crown radius of chord takes `shade` of it, none at zero.
+fn through_crown(chord: f32, shade: f32) -> f32 {
+    return max(1.0 - shade * chord, 0.0);
+}

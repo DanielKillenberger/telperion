@@ -2,7 +2,7 @@
 use serde_json::json;
 use telperion_core::{blend, params, presets::Preset, Error};
 
-const FIELDS: [(&str, &str, f64, f64); 38] = [
+const FIELDS: [(&str, &str, f64, f64); 39] = [
     ("furrowStrength", "bark furrow strength", 0.0, 1.0),
     ("ridgeScale", "bark ridge scale", 0.0, 1.0),
     ("plateScale", "bark plate scale", 0.0, 1.0),
@@ -51,6 +51,7 @@ const FIELDS: [(&str, &str, f64, f64); 38] = [
     ("lightWrap", "leaf light wrap", 0.0, 1.0),
     ("diffuseTransmission", "leaf diffuse transmission", 0.0, 1.0),
     ("leafSheen", "leaf sheen", 0.0, 0.5),
+    ("crownShade", "leaf crown shade", 0.0, 1.0),
 ];
 
 #[test]
@@ -115,6 +116,7 @@ fn older_material_documents_gain_only_inert_detail_defaults() {
         "lightWrap",
         "diffuseTransmission",
         "leafSheen",
+        "crownShade",
         "ridgeScale",
         "plateScale",
         "roughnessDetail",
@@ -188,6 +190,7 @@ fn every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged() {
             m.light_wrap,
             m.diffuse_transmission,
             m.leaf_sheen,
+            m.crown_shade,
         ]
     };
     let mut lit = Vec::new();

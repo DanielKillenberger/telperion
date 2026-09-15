@@ -60,6 +60,17 @@ fn vein_tone(coord: vec2<f32>) -> f32 {
         * (0.8 * vein - 0.25 * margin);
 }
 
+/// The share of the sky that reaches a leaf at `world` through the crown
+/// standing over it: the chord straight up, where an overcast sky is
+/// brightest, taken at the row's shade per crown radius. All of it at zero.
+fn crown_sky(world: vec3<f32>) -> f32 {
+    if (u.crown_shade.x <= 0.0 || u.crown_centre.w < 0.5) {
+        return 1.0;
+    }
+    let chord = crown_chord(world, vec3<f32>(0.0, 1.0, 0.0), u.crown_centre.xyz, u.crown_radii.xyz);
+    return through_crown(chord, u.crown_shade.x);
+}
+
 @fragment
 fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
     // A leaf has no back. Nothing is culled, so the face the eye sees takes the
@@ -104,7 +115,14 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     // than as speckle. The sun is not attenuated - what reaches through is
     // the dapple the shared normal-offset comparison kernel reads.
     let interior = 1.0 - u.leaf_front.w * in.leaf.z;
-    let shaded = occluded_ambient(lit, in.leaf.z) * interior;
+    // The sky a leaf reads, over it, behind it and in its sheen, is what the
+    // crown standing over it lets through, so a crown's underside falls into
+    // its own shade.
+    let overhead = crown_sky(in.world);
+    var shaded = occluded_ambient(lit, in.leaf.z) * interior;
+    if (u.crown_shade.x > 0.0) {
+        shaded *= overhead;
+    }
     // One comparison result gates reflection and transmission alike. The
     // original face normal still offsets the receiver, as before this term.
     let visibility = sunlight(in.world, n);
@@ -116,7 +134,7 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
         // A thin leaf scatters what passes through it: the row's share leaves
         // the near face evenly, and carries the sky behind the leaf with it.
         let transmittance = u.transmission.rgb * (u.transmission.w * exp(-u.leaf_detail.w));
-        let behind = occluded_ambient(-lit, in.leaf.z) * interior;
+        let behind = occluded_ambient(-lit, in.leaf.z) * interior * overhead;
         through = mix(through, diffuse_through(lit, u.sun_direction.xyz, u.sun.rgb,
             visibility, behind, transmittance), u.canopy.z);
     }
@@ -134,7 +152,8 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
         // sun's glint does; the bent normal stands for light arriving through
         // the mass, and on its silhouette would mirror the sky off every rim.
         let mirror = reflect(-to_eye, n);
-        radiance += sheen(n, to_eye, u.canopy.w) * occluded_ambient(mirror, in.leaf.z) * interior;
+        radiance += sheen(n, to_eye, u.canopy.w) * occluded_ambient(mirror, in.leaf.z)
+            * interior * overhead;
     }
     return vec4<f32>(tone(radiance), 1.0);
 }

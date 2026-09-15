@@ -58,6 +58,7 @@ export interface Family {
   crestGreen: number;
   crestRed: number;
   crestStrength: number;
+  crownShade: number;
   cuticleGloss: number;
   diffuseTransmission: number;
   fissureBlue: number;
@@ -253,6 +254,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestGreen": 0,
         "crestRed": 0,
         "crestStrength": 0,
+        "crownShade": 0,
         "cuticleGloss": 0,
         "diffuseTransmission": 0,
         "fissureBlue": 0,
@@ -446,6 +448,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestGreen": 0.085,
         "crestRed": 0.1,
         "crestStrength": 0.5,
+        "crownShade": 0,
         "cuticleGloss": 0.35,
         "diffuseTransmission": 0,
         "fissureBlue": 0.005,
@@ -639,6 +642,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestGreen": 0.025,
         "crestRed": 0.05,
         "crestStrength": 0.3,
+        "crownShade": 0,
         "cuticleGloss": 0.05,
         "diffuseTransmission": 0,
         "fissureBlue": -0.02,
@@ -832,6 +836,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestGreen": 0.055,
         "crestRed": 0.06,
         "crestStrength": 0.25,
+        "crownShade": 0.15,
         "cuticleGloss": 0.48,
         "diffuseTransmission": 1,
         "fissureBlue": -0.02,
@@ -1025,6 +1030,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestGreen": 0.07,
         "crestRed": 0.08,
         "crestStrength": 0.2,
+        "crownShade": 0.2,
         "cuticleGloss": 0.28,
         "diffuseTransmission": 1,
         "fissureBlue": -0.22,
@@ -1218,6 +1224,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestGreen": 0,
         "crestRed": 0,
         "crestStrength": 0.1,
+        "crownShade": 0,
         "cuticleGloss": 0.25,
         "diffuseTransmission": 0,
         "fissureBlue": 0,
@@ -1411,6 +1418,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestGreen": 0,
         "crestRed": 0,
         "crestStrength": 0.1,
+        "crownShade": 0,
         "cuticleGloss": 0.3,
         "diffuseTransmission": 0,
         "fissureBlue": 0,

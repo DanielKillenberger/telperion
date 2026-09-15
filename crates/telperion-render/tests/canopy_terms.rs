@@ -189,3 +189,36 @@ fn the_sheen_rises_from_its_reflectance_to_all_of_the_sky_at_grazing() {
     assert!(close(grazing, 1.0), "{grazing}");
     assert!(close(behind, 1.0), "a face turned away is grazing at most");
 }
+
+#[test]
+fn the_crown_over_a_leaf_takes_its_share_of_the_sky_per_radius() {
+    let Some(gpu) = common::gpu() else { return };
+    // A crown of radii 2, 4 and 2 about (0, 5, 0), read straight up.
+    let rows = evaluate(
+        &gpu,
+        2,
+        "let c = vec3<f32>(0.0, 5.0, 0.0);\n\
+         let r = vec3<f32>(2.0, 4.0, 2.0);\n\
+         let up = vec3<f32>(0.0, 1.0, 0.0);\n\
+         result[0] = vec4(crown_chord(vec3<f32>(0.0, 1.2, 0.0), up, c, r), \
+             crown_chord(vec3<f32>(0.0, 5.0, 0.0), up, c, r), \
+             crown_chord(vec3<f32>(0.0, 8.8, 0.0), up, c, r), \
+             crown_chord(vec3<f32>(3.0, 5.0, 0.0), up, c, r));\n\
+         result[1] = vec4(through_crown(1.9, 0.0), through_crown(1.0, 0.3), \
+             through_crown(1.9, 0.3), through_crown(1.9, 1.0));",
+    );
+    let [under, centre, top, outside] = rows[0];
+    // Under the crown the whole height stands over the leaf; at its centre
+    // half of it; at its top almost none; beside it none.
+    assert!(close(under, 1.95), "under {under}");
+    assert!(close(centre, 1.0), "centre {centre}");
+    assert!(close(top, 0.05), "top {top}");
+    assert_eq!(outside, 0.0);
+    let [none, half, most, all] = rows[1];
+    assert_eq!(none, 1.0, "no shade takes nothing");
+    assert!(close(half, 0.7) && close(most, 1.0 - 0.57), "{:?}", rows[1]);
+    assert_eq!(
+        all, 0.0,
+        "a full shade over most of a diameter takes it all"
+    );
+}

@@ -1,6 +1,7 @@
 //! The canopy rows on real frames: a shell of leaves lit as one mass under
-//! the canopy normal, one leaf facing and facing away from the sun under the
-//! other three, and the clay and bare views, which no canopy row may touch.
+//! the canopy normal and falling into its own shade under the crown shade,
+//! one leaf facing and facing away from the sun under the other three, and
+//! the clay and bare views, which no canopy row may touch.
 mod common;
 use telperion_core::{
     foliage::{build_element, ElementParams, Instances},
@@ -23,6 +24,7 @@ fn canopy(row: MaterialParams) -> MaterialParams {
         light_wrap: 0.5,
         diffuse_transmission: 1.0,
         leaf_sheen: 0.1,
+        crown_shade: 0.5,
         ..row
     }
 }
@@ -155,6 +157,76 @@ fn the_canopy_normal_lights_the_sunward_side_of_the_mass_over_the_far_side() {
     assert!(
         band(&mass, SIZE * 5 / 8..SIZE * 3 / 4) > band(&cards, SIZE * 5 / 8..SIZE * 3 / 4),
         "the sunward side did not brighten"
+    );
+}
+
+/// The mean of the picture's channels over a band of rows across its middle
+/// columns, in 0..255.
+fn rows(still: &Still, rows: std::ops::Range<u32>) -> f64 {
+    let (mut sum, mut count) = (0.0, 0.0);
+    for y in rows {
+        for x in SIZE * 3 / 8..SIZE * 5 / 8 {
+            let at = ((y * SIZE + x) * 4) as usize;
+            sum += still.rgba[at..at + 3]
+                .iter()
+                .map(|&c| f64::from(c))
+                .sum::<f64>()
+                / 3.0;
+            count += 1.0;
+        }
+    }
+    sum / count
+}
+
+#[test]
+fn the_crown_shade_darkens_the_underside_of_the_mass_more_than_its_top() {
+    let Some(gpu) = common::gpu() else { return };
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    renderer.submit(&shell()).unwrap();
+    renderer.set_view(View::Whole);
+    renderer.set_figure(false);
+    // Overcast: a sun on the horizon behind the eye lights nothing of note,
+    // so the sky carries the crown and the shade is the sky's.
+    renderer.set_scene(SceneRow {
+        sun_azimuth: 180.0,
+        sun_elevation: 0.0,
+        sun_red: 0.0,
+        sun_green: 0.0,
+        sun_blue: 0.0,
+        ..Default::default()
+    });
+    let camera = Camera {
+        position: CENTRE + Vec3::new(0.0, 0.0, 8.0),
+        target: CENTRE,
+        field_of_view: 36.0,
+        near: 0.1,
+        far: 100.0,
+    };
+    let row = MaterialParams {
+        canopy_normal: 0.5,
+        ..translucent()
+    };
+    let open = draw(&mut renderer, &camera, row);
+    let shaded = draw(
+        &mut renderer,
+        &camera,
+        MaterialParams {
+            crown_shade: 0.5,
+            ..row
+        },
+    );
+    let (top, bottom) = (SIZE / 4..SIZE * 3 / 8, SIZE * 5 / 8..SIZE * 3 / 4);
+    let kept = |band: std::ops::Range<u32>| rows(&shaded, band.clone()) / rows(&open, band);
+    assert!(
+        kept(bottom.clone()) < 0.9,
+        "the underside kept {:.2}",
+        kept(bottom.clone())
+    );
+    assert!(
+        kept(top.clone()) > kept(bottom.clone()) + 0.1,
+        "the top kept {:.2} and the underside {:.2}",
+        kept(top),
+        kept(bottom)
     );
 }
 
