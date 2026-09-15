@@ -1929,6 +1929,191 @@ No visual pass is awarded. The round-14 pairs are recorded by sha256 in
 `round14-merge/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
 
+## Round 15: the birch's trunk and hem (2026-09-15)
+
+The owner's round-13 notes on the birch were three: "the trunk being too
+thin", "can we also have the second trunk be moved up/down?", and "a hard cut
+on the leaves so there's a straight line at the bottom that looks
+unnatural", to be fixed with values where values reach. Round 15 moves two
+rows on the silver birch's table and nothing else. `radii.trunk_radius` goes
+from 0.01 to 0.014 of the height, and `twigs.curtain_drop` from 1 to 0.6. The
+second stem's parting height is out of reach of any row. The birch re-pins
+once (identity, and the neutral pins in `sag.rs`, `strands.rs` and
+`drop.rs`). The beech stays round 11's, and the oak, the spruce and the Two
+Trees are byte-identical. The cooked curtains in `drop.rs` and `strands.rs`
+inherit the table's radius, so they now state round 13's 0.01, the wood their
+counts were read on. With the new trunk their thicker wood grew longer
+laterals, and the shell cut half the short strands of `strands.rs` short.
+
+### The stems
+
+Two stems share the root through the pipe model, so each carries half its
+cross-section. Measured on the S-WHOLE photograph, which holds the whole
+tree in its box, the upright stem is 23 px across at breast height against a
+tree 864 px tall (0.027 of the height). The leaning stem is 15 px (0.017).
+The round-13 still's stems read 0.018 and 0.017 on the same measure. The
+trunk radius scales every structural radius by one factor, so it is the one
+row that thickens the stems without changing their taper. At 0.014 the stems
+read 0.024 and 0.023 in the still. That is nine tenths of the photograph's
+upright stem and more than its leaning one. The pipe model splits the root
+between the two stems about evenly, and no row makes one thinner than the
+other.
+
+The fork exponent and the taper stay the family's 2 and 0.6. A stem already
+keeps about four fifths of its breast-height girth at a quarter of the height,
+as the S-BARE photograph's stem does (about 32 px at breast height, about 25
+px a quarter of the way up the frame). An exponent of 1.8 at a trunk radius of
+0.015 gave the same stems with a largest limb of 0.118 m against 0.126 m. It
+would make every parent thicker than its children's wood, and the limbs at
+0.014 read slender in S-BARE, so the table keeps 2. An exponent of 3 cut the
+tree from 99,568 nodes to 27,987.
+
+On the tree, at seed 1:
+
+| Seed 1 | Height | Stem 1 (upright), diameter at 1.3 m / at H/4 | Stem 2 (leaning) | Largest limb / median limb at its base |
+|---|---|---|---|---|
+| Round 13 | 15.55 m | 0.237 / 0.201 m | 0.249 / 0.202 m | 0.090 / 0.024 m |
+| Round 15 | 15.92 m | 0.332 / 0.281 m | 0.348 / 0.282 m | 0.126 / 0.034 m |
+
+The profile's DBH, the largest stem, goes from 0.249 m to 0.348 m, inside its
+contextual 0.2 to 0.6 m, and the protocol's 24 birch seeds measure 0.342 to
+0.362 m.
+
+The trunk is not a free row. The local law gives thicker bearing wood longer
+laterals, so the tree grows from 99,568 to 107,139 nodes at seed 1 and stands
+0.37 m taller.
+
+### The hem
+
+The brief expected a drop below 1 to make the floor inherit the shell's
+lumps. `pendant.rs` holds two limits on a hanging shoot, and only one of them
+does that. The band's foot (`in_band`) is the shell's lower surface in the
+shoot's own column, lowered by the drop's share of the way to the clearance,
+so below a drop of 1 it follows the lumps. The curtain's own floor
+(`Curtain::new`) is `walk(trunk_height, min(clearance, trunk_height), drop)`,
+one height for every shoot. The birch's clearance is its crown base, 1.8 m,
+so that floor is 1.8 m at any drop. At the axis the foot meets it, because
+the shell's lower surface there is the crown base.
+
+At the whole drop the foot is the clearance everywhere, and every strand long
+enough stopped on it. The measure below counts 657 strand ends in the lowest
+ten centimetres of the curtain, against 59 to 282 in each of the next nine
+ten-centimetre bands, and 98 near-level edges of hanging wood below 2.3 m where
+strands ran along the floor. That pile is the straight line on the owner's
+still. At a drop of 0.6 the pile is gone (43 strand ends), and the hem rises
+from the stems toward the crown's edge with the shell's lumps.
+
+The hem statistic of rounds 8b and 9 was not committed, so this round
+re-implements it. Eight bearings, 60 columns each across the middle four
+fifths of the smooth shell's width, record the lowest local wood in each
+column against the smooth shell's round bottom. "Level" is the share of
+columns within 7.5 cm of the commonest height. Local roughness is the RMS
+about a five-column running mean.
+
+| Seed 1 | Columns 0.25 m above / below the round bottom | Hem off the round bottom | Local roughness | Level | Hem p10 / p50 / p90 | Lowest wood, 0-1 / 1-2 / 2-3 / 3-4 / 4-5 m from the axis | Strand ends in the lowest 10 cm | Near-level edges below 2.3 m |
+|---|---|---|---|---|---|---|---|---|
+| Round 13 | 0% / 83% | -1.26 m | 0.27 m | 65% at 1.80 m | 1.80 / 1.83 / 4.08 m | 1.80 / 1.80 / 1.80 / 1.80 / 1.90 m | 657 | 98 |
+| Round 15 | 0% / 74% | -0.87 m | 0.18 m | 17% at 1.90 m | 1.90 / 2.38 / 4.11 m | 1.82 / 1.95 / 2.17 / 2.51 / 2.98 m | 43 | 2 |
+
+The drop was walked at the round-15 trunk. At 0.8, 0.7, 0.6, 0.5 and 0.45
+the level share is 31%, 24%, 17%, 14% and 13%, and the strand ends in the
+lowest ten centimetres number 171, 84, 43, 24 and 24. Local roughness falls
+with the drop too (0.22, 0.20, 0.18, 0.16, 0.14 m), as round 9 found. Where
+the foot binds less, a column's lowest wood follows the foot's smooth rise
+instead of jumping between the floor and a free strand end. The table takes
+0.6 by eye. At 0.7 the S-WHOLE still kept a nearly level edge across the
+middle, and 0.45 raised the curtain's sides further without breaking the
+middle.
+
+The other rows the brief named reach none of this. At a drop of 0.5 to 0.7,
+irregularity 0.35 to 0.5 and lobe scale 0.12 to 0.25 move the level share by
+at most 5 points. A pendulous variation of 0.8 or 1 moves it by at most 1
+point, and a clearance of 1.4 m lowers the whole hem 0.2 m and the stems' bare
+height with it. Three other birch rows were measured and not kept. A curtain
+separation of 15 or 25 degrees and four twig laterals instead of eight thin
+the curtain but leave 50% to 61% of columns level at the whole drop. A sag of
+0.85 gives each limb its own floor between its tip and the bottom and was
+rendered. At the whole drop it left 47% of columns level and 147 strand edges
+running level along those floors, and it would bend the strands off vertical,
+the look fn-44 set the sag to 1 for.
+
+### The stills
+
+Photograph / round 13 → round 15:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.68 → 0.68 | 0.15 / 0.17 → 0.19 | 0.46 / 0.53 → 0.53 | 91 / 81 → 72 | 0.17 / 0.08 → 0.09 |
+| S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.31 → 0.38 | 92 / 167 → 169 | 0.13 / 0.51 → 0.27 |
+| S-WHOLE | 0.85 / 0.87 → 0.90 | 0.08 / 0.14 → 0.19 | 0.44 / 0.49 → 0.46 | 83 / 47 → 44 | 0.22 / 0.11 → 0.11 |
+
+Breaking the line costs the crown base on both matched references. On S-WHOLE
+the curtain's lowest row rises from 0.14 to 0.19 of the height, against the
+photograph's 0.08, and on S-BARE from 0.17 to 0.19 against 0.15. The hem now
+rises away from the stems, and the photograph's curtain hangs lowest on the
+leaning stem's side. The longer laterals of the thicker wood widen S-WHOLE's
+crown from 0.87 to 0.90 of its height, against 0.85. The leaf-on crown's
+occupied share comes from 0.49 to 0.46, toward the photograph's 0.44. S-BARE's
+centre darkens from 81 to 72 against the photograph's 91, and the worker did
+not separate the thicker limbs from the longer laterals as the cause. S-BARK's
+mask still fills its frame, so its width and outline figures read the frame.
+
+The protocol passes all forty-eight numeric cases
+(`measure/protocol-round15/`) and all 57 captures, and no seed is node-capped.
+The heaviest birch seed, 2665347455, stands at 137,285 nodes against round
+13's 118,274 and the 250,000 ceiling. At seed 1 the birch grows 107,139 nodes,
+6,355,600 wood triangles and 330,132 leaves, and one measured case takes 2.6 s
+against round 13's 2.3 s. The round-15 stills were rebuilt and captured from
+the final table, and they are byte-identical to the protocol's capture of seed
+1.
+
+### What the worker read on the pairs
+
+Candidates at drops of 0.7, 0.45 and 0.6 and a sag of 0.85 were rendered.
+Within the four-image rule the worker opened the S-WHOLE pair at 0.7 and a
+crop of its lower crown beside round 13's, a crop of the lower crown at 0.45
+and at a sag of 0.85, and the final S-WHOLE and S-BARE pairs.
+
+- **Stems as thick as the photograph's: yes on S-WHOLE.** The two white
+  stems now carry the weight of the photograph's upright stem, where round 13
+  showed two thin white rods. S-BARE's photograph is framed tighter than its
+  still. Its tree runs out of the top of the frame while the still's box
+  holds the whole tree, so its stem is 0.035 to 0.040 of the box at breast
+  height against the still's 0.025 and 0.023, and that pair cannot answer
+  the question.
+- **The hem ragged and natural with no straight line: partly.** On S-BARE,
+  yes. The veil ends at uneven heights, lowest beside the stems and higher
+  toward both sides, with single strands hanging below it. On S-WHOLE the
+  ruler-straight line across the crown is gone, and toward both sides the
+  strands end at their own lengths. Over the stems, across about the middle
+  third of the crown, the leaf mass still ends in a smooth edge about 1.9 m
+  up that curves gently upward at its ends. That edge is where the curtain's
+  one floor and the band's foot meet at the axis, and no value moves them
+  apart.
+
+What is left, and whose it is:
+
+- **The edge over the stems.** The curtain's floor is one height for every
+  shoot, and at the axis the band's foot always meets it. A floor that varies
+  by column or by strand is a generator row in `pendant.rs`, outside a value
+  pass.
+- **The hem's shape.** Short of the whole drop the hem is lowest over the
+  stems and rises outward. The S-WHOLE photograph lifts its curtain over the
+  stems and hangs it lowest on the leaning stem's side. The shell is centred
+  on the root, so the lean does not reach the hem.
+- **The second stem's parting height.** Every stem of a clump leaves the root
+  node at the ground (`branching/scaffold/stems.rs` sets only each stem's
+  heading). The crown base and the bole set where limbs start on a stem, not
+  where the stems part, so no row moves the fork. A smaller lean would only
+  hide the two stems inside each other's bark for longer, the workaround the
+  brief rules out.
+- **Owned elsewhere:** the bark's look (fn-40) and the leaf mass's
+  brightness (fn-52).
+
+No visual pass is awarded. The round-15 pairs are recorded by sha256 in
+`round15-birch/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
+
 ## Round 17: short shoots and canopy lighting together (2026-09-15)
 
 The integration branch merges fn-52 (a leaf mass lit as a canopy) and then

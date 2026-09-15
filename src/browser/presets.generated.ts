@@ -1218,7 +1218,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       "radii": {
         "forkExponent": 2,
         "lengthTaper": 0.6,
-        "trunkRadius": 0.01
+        "trunkRadius": 0.014
       },
       "shellDepth": 0.45,
       "skeleton": {
@@ -1272,7 +1272,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angle": 45,
           "angleVariation": 10,
           "curtainClearance": 1.8,
-          "curtainDrop": 1,
+          "curtainDrop": 0.6,
           "curtainSeparation": 9,
           "divergence": 137.508,
           "generations": 6,

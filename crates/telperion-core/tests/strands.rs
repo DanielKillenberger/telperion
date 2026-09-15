@@ -37,15 +37,15 @@ const IDS: [&str; 7] = [
 /// that shell to the crown's base.
 /// The beech's is its identity skeleton, taken at the merges into fn-34's
 /// integration branch (round 11's, then fn-50's): its own table moved, not
-/// the row. The birch's
-/// is re-recorded at the same merges, when fn-48's unequal clump joined its
-/// table.
+/// the row. The birch's is re-recorded at the same merges, when fn-48's
+/// unequal clump joined its table, and once in round 15, when its trunk
+/// thickened and its curtain stopped short of the whole drop.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     8478216101743105815,
-    6030905640253599567,
+    6043516217086885291,
     12471405148157309180,
     14199367530911903060,
 ];
@@ -101,6 +101,11 @@ fn curtain(variation: f64) -> Family {
     f.skeleton.twigs.pendulous_length = PENDULOUS;
     f.skeleton.twigs.sag = 1.0;
     f.skeleton.twigs.pendulous_variation = variation;
+    // The wood the counts were read on: round 13's trunk, a hundredth of the
+    // height at the root. Round 15 thickened the shipped table's stems, and
+    // the branch law gives thicker wood longer laterals, which cuts more of
+    // this crown's runs short against the shell.
+    f.radii.trunk_radius = 0.01;
     f
 }
 

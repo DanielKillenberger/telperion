@@ -226,13 +226,28 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.skeleton.twigs.pendulous_variation = 0.95;
     // And the curtain hangs below the crown: in S-WHOLE and S-BARE the limbs
     // make the crown's shape and the strands fall past it, so the shell no
-    // longer holds a hanging shoot. The whole drop, down to a clearance that
-    // is the crown's own base: in both photographs the two stems stand clear
-    // under the curtain for their first two metres, and one floor lower than
-    // that curtains them where the lowest limbs hang beside them.
-    p.skeleton.twigs.curtain_drop = 1.0;
+    // longer holds a hanging shoot. The clearance is the crown's own base: in
+    // both photographs the two stems stand clear under the curtain for their
+    // first two metres, and one floor lower than that curtains them where the
+    // lowest limbs hang beside them. Six tenths of the drop toward it, not the
+    // whole: at the whole drop the band's foot is that one height all round,
+    // and every strand long enough stopped on it, 657 strand ends in its
+    // lowest ten centimetres, so the hem was a straight line (owner, round
+    // 13). Short of the whole, a column's foot is the shell's lower surface
+    // lowered by the share, so the hem rises away from the stems with the
+    // shell's lumps and the strands end at their own lengths.
+    p.skeleton.twigs.curtain_drop = 0.6;
     p.skeleton.twigs.curtain_clearance = 1.8;
-    p.radii.trunk_radius = 0.01;
+    // Two stems share one root through the pipe model, so each is thinner than
+    // a single birch's trunk (owner, round 13: "the trunk being too thin"). In
+    // S-WHOLE the upright stem is 0.027 of the tree's height across at breast
+    // height and the leaning one 0.017; at 0.01 the matched still's stems read
+    // 0.018 and 0.017, and at 0.014 they read 0.024 and 0.023. The fork
+    // exponent and the taper stay the family's: the stems already narrow to
+    // about four fifths of their breast-height girth by a quarter of the
+    // height, as S-BARE's stem does, and a lower exponent that thickens the
+    // stems alone would put a parent thicker than its children's wood.
+    p.radii.trunk_radius = 0.014;
     p.element = ElementParams {
         length: 0.055,
         width: 0.045,
