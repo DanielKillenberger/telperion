@@ -1,0 +1,37 @@
+{
+  "round": 15,
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-34 round 15 on the integration branch after round 13: the silver birch's trunk radius from 0.01 to 0.014 of the height and its curtain drop from 1 to 0.6, on the owner's round-13 notes (stems too thin, a straight line at the bottom of the leaves); no other row moved. Matched stills at the 1440 rig, first fixed seed, rebuilt and captured from the final table and byte-identical to the protocol-round15 capture; pairs on disk under the ignored measure/pairs-round15/, recorded here by sha256",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round15/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "651f52bf763ead1568eceeb0eed913f56927023ebd90c3ffb0d6067f812697e9",
+      "still_sha256": "27e3d0bef8c20e3dc4ce2dfb6c93c9ec1f248cf7c3bab82ed0338a5431f69220",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round15/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "cf6fa81cc4e6b30e443bf1dfba49cb729a2144939bef067aaa541ba6d345e85d",
+      "still_sha256": "dd4e8ace4c39a165e98904f1f22d8c674c17988df02a96c228a5ad31ac797d70",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-round15/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "3e68b12f07b80d818a51616def9b5c9ecc82419428db947d15410086ff6bf9cb",
+      "still_sha256": "7b47facfd5bae94f68fa4b91477763aaee3fcf2b21ad551b701c4ff7805b8136",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}
