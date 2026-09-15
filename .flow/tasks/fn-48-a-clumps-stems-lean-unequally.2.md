@@ -57,6 +57,12 @@ to the combined trunk (+17 to 21% nodes on the birch); its callers all read
 trees that carry bud fates, and aged packed reads are byte-identical with
 and without it.
 
+Host decision (2026-09-15): the owner allowed this task only "If it's
+nothing major", and the ledge fix is not. a3a72a13 reverts the birch's fork
+height to 0, so it parts at the ground as S-WHOLE's photograph does, with
+no ledge and round 13's pins; the row stays for the owner to move. The
+ledge fix is a follow-up task if the owner wants the stem moved up.
+
 ## Done summary
 TBD
 
