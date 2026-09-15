@@ -74,8 +74,11 @@ const BANDS: [(&str, usize, usize); 7] = [
 // it and it is not held here.
 // Round 6b gives the beech its own local departure angle, and round 6c its
 // own two-ranked local divergence, so both leave this list.
-// fn-48 adds the clump's lean spread, 0 on every table until the birch states
-// its own.
+// fn-48 adds the clump's lean spread, and the birch states the whole of it, so
+// the sweep walks it. At the whole spread the birch's first stem stands
+// upright and has no bearing to part from, so its divergence goes to none and
+// every table agrees on it: the divergence is held here, and the clump tests
+// walk it from nothing to a hundred degrees.
 const HELD: [&str; 29] = [
     "/canopy/maxInstances",
     "/element/card",
@@ -91,7 +94,7 @@ const HELD: [&str; 29] = [
     "/skeleton/growth/maxNodes",
     "/skeleton/growth/stepDistance",
     "/skeleton/growth/trunkHeight",
-    "/skeleton/habit/stemLeanSpread",
+    "/skeleton/habit/stemDivergence",
     "/skeleton/seed",
     "/skeleton/step",
     "/skeleton/twigs/angleVariation",

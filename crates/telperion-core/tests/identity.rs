@@ -87,6 +87,13 @@
 //! beech is fn-45's final tree, standing on the one stem and the neutral sag
 //! every table but the birch's leaves, and the birch is round 7's, at the
 //! generation row's neutral.
+//! fn-48 re-pins the silver birch alone, once: its table is the first to
+//! state a clump's lean spread, and states the whole of it, so its first
+//! stem stands upright and its second leans twenty-eight degrees out of the
+//! pair on the seed's own bearing, against the one near-vertical and one
+//! leaning stem of the S-WHOLE and S-BARE photographs, where the fn-38 clump
+//! parted in an even V. Every other table leaves the spread at zero, which is
+//! fn-38's lean to the bit, and the element pin does not move.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -163,13 +170,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 3929556,
-        wood_triangles: 7605480,
-        instances: 391902,
-        min: [-6.51028703305269, -0.07199999690055847, -6.339091063526724],
-        max: [6.4649505615234375, 15.35163688659668, 6.496953656890554],
-        skeleton: 13073206196273823952,
-        placement: 15566016928509104126,
+        wood_vertices: 3839624,
+        wood_triangles: 7431200,
+        instances: 401714,
+        min: [-6.984553813934326, -0.09124138951301575, -6.327679195233658],
+        max: [6.455200710800297, 15.949391658527944, 6.593493411260482],
+        skeleton: 7448613105997715411,
+        placement: 14825609139240852423,
         element: 1872173242819532549,
     },
 ];

@@ -139,17 +139,20 @@ pub(super) fn silver_birch(p: &mut Family) {
         attractor_weight: 0.0,
         twig_tip_taper: 0.35,
         shedding_threshold: 0.0,
-        // The photograph's birch stands on two stems that part at the ground,
-        // one of them leaning well out of the pair. Two stems wide apart in
-        // bearing, so the split reads from a camera set anywhere but along it,
-        // and a good twenty degrees out of vertical apiece: this birch's
-        // curtain reaches almost to the ground, leaving only the first couple
-        // of metres of stem bare, and a dozen degrees put the two of them
-        // still inside one another's bark over that stretch.
+        // The photograph's birch stands on two stems that part at the ground:
+        // one near vertical, the other leaning well out before it rises into
+        // the crown. The whole spread stands the first upright and leans the
+        // second by all of the lean, so the pair is that and not an even V.
+        // An upright stem has no bearing to part from, so a divergence would
+        // only turn the leaning one about the seed's own bearing; it is left
+        // at none. Twenty-eight degrees is the lean the photographs' leaning
+        // stem shows across the view; the curtain leaves only the first
+        // couple of metres of stem bare, and less put the two of them still
+        // inside one another's bark over that stretch.
         stems: 2,
-        stem_divergence: 110.0,
-        stem_lean: 22.0,
-        stem_lean_spread: 0.0,
+        stem_divergence: 0.0,
+        stem_lean: 28.0,
+        stem_lean_spread: 1.0,
     };
     // A narrower crown carrying its mass up top, with squarer shoulders than
     // the round-3 oval. The crown's base is also the curtain's floor: a shoot
