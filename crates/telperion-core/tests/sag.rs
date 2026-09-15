@@ -33,13 +33,14 @@ const IDS: [&str; 7] = [
 /// two stems; every other table's neutral stood. Round 7 lifts that birch's
 /// crown base, which moves its tree with the row at any value. fn-47's birch
 /// states a pendulous variation over a 3 m pendulous length, which caps a
-/// shoot that does not sag as surely as it sets the run of one that does.
+/// shoot that does not sag as surely as it sets the run of one that does, and
+/// a deeper, finer outline for its shell.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     12852486373694172527,
-    4999518722089928750,
+    4895668800915172604,
     12471405148157309180,
     14199367530911903060,
 ];

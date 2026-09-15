@@ -617,18 +617,20 @@ gives the twig table a sixth curtain row, `pendulousVariation`, 0 to 1, neutral
 row times a draw in 0 to 1. The draw is keyed by the shoot's own key and the
 family seed, the identity the local law already draws a lateral's vigour and
 departure from: the station's birth identity and the bud's place on it, never
-the order the tree grows in, so a build at an age, one month by month and one
-in uneven pieces grow every strand to the same length. The sag's arc is spent
+the order the tree grows in. A build at an age, one month by month and one in
+uneven pieces grow every strand to the same length. The sag's arc is spent
 over the shoot's own length, so a short strand ends as near vertical as a long
 one. Neutral is inert: every table but the birch's leaves the row at zero and
-is byte-identical, and the birch at zero is round 7's tree.
+is byte-identical.
 
 ### The birch's table
 
 A variation of 0.95 over a pendulous length lengthened from 2.5 m to 3 m, so
 each strand runs anything from 0.15 m to 3 m, which is what S-WHOLE and S-BARE
 show: a hand's width to about three metres. The crown base stays at round 7's
-0.10.
+0.10. After the host's visual QA, described below, the shell's outline is
+deeper and finer: irregularity from 0.15 to 0.35 and lobe scale from 0.45 to
+0.25 of the height.
 
 The strand runs at the first fixed seed. A strand here is every descending run
 of local wood, and a whole one is a strand whose last step hangs within a
@@ -639,86 +641,107 @@ own length rather than being stopped by the shell or the floor:
 |---|---|---|---|---|---|---|---|---|
 | Round 7, all strands | 15,617 | 49% | 0.63 | 0.92 | 1.99 | 2.50 | 2.50 | 2.50 |
 | Round 7, whole strands | 7,720 | 99.8% | 2.50 | 2.50 | 2.50 | 2.50 | 2.50 | 2.50 |
-| Round 8b, all strands | 15,600 | 0% | 0.34 | 0.69 | 1.05 | 1.69 | 2.40 | 3.00 |
-| Round 8b, whole strands | 9,609 | 0% | 0.38 | 0.73 | 1.38 | 2.12 | 2.62 | 3.00 |
+| Round 8b, all strands | 13,720 | 0% | 0.33 | 0.70 | 1.05 | 1.69 | 2.37 | 3.00 |
+| Round 8b, whole strands | 8,395 | 0% | 0.36 | 0.71 | 1.37 | 2.10 | 2.61 | 3.00 |
 
-Lengths are metres. All strands average 1.72 m before and 1.22 m after. The
-strands now spread across the whole band. More of them end in free air than
-before (62% against 49%), because a shorter strand meets the shell or the
+Lengths are metres. All strands average 1.72 m before and 1.21 m after, and
+they now spread across the whole band. More of them end in free air than
+before (61% against 49%), because a shorter strand meets the shell or the
 floor less often.
+
+### What the host changed after looking
+
+The variation alone did not change the silhouette. On both pairs the crown
+was still a round mass with a smooth, rounded lower edge. The measurement says
+why. Seen from eight bearings, 60 columns across the middle of the crown each,
+the lowest wood in a column sat on average 1 cm above the shell's lower
+surface, and only 6% of columns ended more than a quarter of a metre above
+the round bottom (7% before the row). The limbs fill the shell down to its
+lower surface, and each column holds hundreds of strands, so the longest
+strands in every column reach it whatever the draw. The lower edge of the
+crown is the shell's rounded bottom. Neither a shorter pendulous length nor a
+lower crown base freed it without losing the weeping form: 22% of columns at
+1.5 m, where the curtain becomes a short fringe, and 7% at a crown base of
+0.07.
+
+So the hem was moved where it is made. The shell's outline rows from fn-39
+were walked on seed 1 over irregularity 0.15 to 0.45 and lobe scale 0.15 to
+0.45, with the variation kept. The hem's departure from the round bottom grows
+with the amplitude, from 0.16 m to 0.40 m. A wavelength of a fifth to a
+quarter of the height frees the most columns (15% to 19%); at 0.35 of the
+height the lumps land where the curtain does not reach (3% to 9%). Three
+tables were rendered and read in numbers only: 0.35 at 0.25, 0.45 at 0.2 and
+0.35 at 0.2. Only 0.35 at 0.25 made the hem in the stills' own masks less
+even on both references. None of the three moved the outline deviation,
+0.12 to 0.13 on S-WHOLE and 0.09 to 0.10 on S-BARE, so none broke the crown
+into blobs. The table states 0.35 at 0.25.
+
+The hem, measured on the tree and on the stills. The mask figures are the
+standard deviation of the crown mask's lowest pixel per column about a smooth
+fit, as a share of the tree's height:
+
+| Seed 1 | Columns free of the round bottom | Hem off the round bottom | Local roughness | Mask hem, S-WHOLE / S-BARE |
+|---|---|---|---|---|
+| Round 7 table | 7% | 0.16 m | 0.09 m | 0.022 / 0.029 |
+| Variation alone | 6% | 0.16 m | 0.09 m | 0.022 / 0.033 |
+| Round 8b | 18% | 0.35 m | 0.15 m | 0.034 / 0.038 |
 
 The matched stills now render at 1440 tall (the rig change in bb13ea3), and
 the mask figures move with the resolution, so the round-7 table was rendered
 again on the same rig (`measure/pairs-fn47-base/`, not committed). Photograph /
-round 7 at 720 / round 7 at 1440 → round 8b:
+round 7 at 720 / round 7 at 1440 / variation alone → round 8b:
 
 | Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
 |---|---|---|---|---|---|
-| S-BARE | 0.70 / 0.69 / 0.70 → 0.69 | 0.15 / 0.20 / 0.20 → 0.21 | 0.46 / 0.46 / 0.46 → 0.44 | 91 / 167 / 162 → 162 | 0.17 / 0.09 / 0.09 → 0.09 |
-| S-BARK | 1.07 / 1.03 / 1.12 → 1.13 | 1.00 / 0.00 / 0.00 → 0.00 | 0.47 / 0.38 / 0.34 → 0.34 | 92 / 154 / 153 → 153 | 0.13 / 0.72 / 0.73 → 0.73 |
-| S-WHOLE | 0.85 / 0.86 / 0.94 → 0.95 | 0.08 / 0.21 / 0.21 → 0.21 | 0.44 / 0.46 / 0.41 → 0.40 | 83 / 89 / 85 → 89 | 0.22 / 0.12 / 0.13 → 0.13 |
+| S-BARE | 0.70 / 0.69 / 0.70 / 0.69 → 0.69 | 0.15 / 0.20 / 0.20 / 0.21 → 0.20 | 0.46 / 0.46 / 0.46 / 0.44 → 0.42 | 91 / 167 / 162 / 162 → 162 | 0.17 / 0.09 / 0.09 / 0.09 → 0.09 |
+| S-BARK | 1.07 / 1.03 / 1.12 / 1.13 → 1.17 | 1.00 / 0.00 / 0.00 / 0.00 → 0.00 | 0.47 / 0.38 / 0.34 / 0.34 → 0.35 | 92 / 154 / 153 / 153 → 168 | 0.13 / 0.72 / 0.73 / 0.73 → none |
+| S-WHOLE | 0.85 / 0.86 / 0.94 / 0.95 → 0.95 | 0.08 / 0.21 / 0.21 / 0.21 → 0.21 | 0.44 / 0.46 / 0.41 / 0.40 → 0.39 | 83 / 89 / 85 / 89 → 95 | 0.22 / 0.12 / 0.13 / 0.13 → 0.13 |
 
-Against the same rig, the variation moves almost nothing in the outline.
-Width over height, crown base and outline deviation are within 0.01 of the
-round-7 table on every reference. What moves is how full the crown is. Shorter
-strands carry less leaf-bearing wood, and the seed-1 crown carries 313,686
-leaves against 444,750. Occupied falls 0.01 to 0.02 on both matched references,
-a little further below the photographs, and the leaf-on centre is 4 brighter,
-89 against the photograph's 83. The width over height of 0.95 on S-WHOLE is
-the 1440 rig's, not this round's: the round-7 table reads 0.94 on it.
+Against the same rig, width over height, crown base and outline deviation on
+the two matched references are within 0.01 of the round-7 table. The width
+over height of 0.95 on S-WHOLE is the 1440 rig's: the round-7 table reads 0.94
+on it. S-BARK's outline is null because its mask boundary no longer closes
+all the way round. What moves is how full the crown is. Shorter strands carry
+less leaf-bearing wood, and the lumpier shell holds less crown, so the seed-1
+crown carries 277,424 leaves against round 7's 444,750. Occupied falls to 0.39
+on S-WHOLE and 0.42 on S-BARE, below the photographs' 0.44 and 0.46, and the
+leaf-on centre is 95 against the photograph's 83, with more sky through it.
 
-The cost at the first fixed seed is 110,151 nodes, 6,592,480 wood triangles
-and 313,686 leaves in 3.1 s, against round 7's 152,330 nodes, 9,143,160
-triangles and 444,750 leaves. The heaviest birch seed stands at 112,044 nodes
-against round 7's 154,583. The fixed and fresh protocol passes all forty-eight
-cases (`measure/protocol-fn47/`), and no seed is node-capped.
+The cost at the first fixed seed is 98,113 nodes, 5,867,520 wood triangles and
+277,424 leaves, against round 7's 152,330 nodes, 9,143,160 triangles and
+444,750 leaves. The heaviest birch seed stands at 107,569 nodes against round
+7's 154,583. The fixed and fresh protocol passes all forty-eight cases
+(`measure/protocol-fn47-outline/`), and no seed is node-capped.
 
 ### What the host read on the pairs, and what is left
 
-Within the four-image rule, S-WHOLE and S-BARE once each. Strands of visibly
-different lengths now show inside the curtain, and on S-BARE the strand ends
-along the right-hand side of the crown stop at different heights. The two
-stems stand clear below the crown on both pairs.
+Within the four-image rule, S-WHOLE and S-BARE once with the variation alone
+and once on the final table. On the final pairs the lower edge is no longer an
+even curve. On S-WHOLE the curtain hangs lower in separate strands on the
+right, and the edge rises unevenly toward the left stem. On S-BARE the strand
+ends along the lower right stop at different heights, with a notch, and the
+curtain comes lower in the middle right than on the left. Strands of visibly
+different lengths show inside the curtain on both. The two stems stand clear
+below the crown.
 
-The curtain does not end in a ragged hem. On both pairs the crown is still a
-round mass with a smooth, rounded lower edge sitting on the two stems, and
-the variation did not change that silhouette. The measurement says why, and it
-is not the strand length. Seen from eight bearings, 60 columns across the
-middle of the crown each, the lowest wood in a column sits on average 1 cm
-above the shell's lower surface, both before and after the row, and only 6% of
-columns end more than a quarter of a metre above it (7% before). The limbs
-fill the shell down to its lower surface. A strand hanging from a limb near
-that surface meets it within centimetres whatever its own length, and each
-column holds hundreds of strands, so the longest ones set the edge. The lower
-edge of the crown is the shell's rounded bottom. That is the ball.
-
-The host tried the three rows the brief names, in numbers and without
-spending images:
-
-- **Pendulous length.** At 1.5 m, 22% of columns end free of the shell, and the
-  curtain becomes a short fringe that no longer reads as weeping.
-- **Crown base.** At 0.07, 7% of columns end free of the shell.
-- **Variation.** It changes nothing in the hem at any value, for the reason
-  above.
-
-Two diagnostic builds were measured and not kept:
-
-- **A curtain let out of the shell.** The hem falls 1.4 m below the shell and
-  its roughness doubles, from 0.09 m to 0.19 m. The variation still makes no
-  difference (0.18 m without it, 0.19 m with it): the edge of a dense curtain
-  is its longest strands.
-- **One draw per limb rather than per shoot.** 17% of columns end free, against
-  6%.
+It still does not read as the photograph's hem. The tree is a round crown on
+a V whose lower edge is uneven, not a curtain falling to a ragged fringe.
+The lower left of the crown is a thin haze, and nothing hangs as low as the
+photograph's left-hand curtain, which comes to about a metre off the ground.
+The hem is the shell's lower surface made lumpier, and a lumpier shell is as
+far as the table can take it.
 
 What is left, and whose it is:
 
 - **The hem is the shell.** fn-44 kept the shell around the curtain, and while
-  it holds, no strand row reaches the silhouette's lower edge. A ragged hem needs
-  the curtain to hang past the shell's lower surface, or to hang in bunches
-  from its limbs rather than as an even fringe, so that a column's lowest strand
-  is not always a long one. Either is a generator change outside this spec.
-- **The crown is a little thinner than both photographs.** The leaf spacing
-  row could restore it, but it is not one of the rows this round tuned.
+  it holds, every column's longest strands end on its lower surface. Two
+  diagnostic builds were measured and not kept. A curtain let out of the shell
+  drops its hem 1.4 m and doubles its roughness, though the variation still
+  makes no difference there, because the edge of a dense curtain is its
+  longest strands. One draw per limb rather than per shoot frees 17% of
+  columns against 6%. Either direction is a spec decision outside fn-47.
+- **The crown is thinner than both photographs.** The leaf spacing row could
+  restore it; this round did not tune it.
 - **The white fine shoots** (fn-46) and **the symmetric V of the stems**
   (fn-48) are owned elsewhere.
 

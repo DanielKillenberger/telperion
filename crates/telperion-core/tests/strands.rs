@@ -32,13 +32,14 @@ const IDS: [&str; 7] = [
 /// the tree fn-44's own neutral pins and `tests/identity.rs` recorded before
 /// the row existed, which is what says the row at zero reaches nothing. The
 /// birch's was re-recorded once when its own table lengthened the pendulous
-/// length from 2.5 m to 3 m beside the variation it states.
+/// length from 2.5 m to 3 m beside the variation it states and deepened its
+/// shell's outline.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     12852486373694172527,
-    4985991025717268658,
+    15406140524928908849,
     12471405148157309180,
     14199367530911903060,
 ];
@@ -78,12 +79,15 @@ fn skeleton(tree: &Tree) -> u64 {
 
 /// The birch's curtain over a crown that leaves it room to fall, as fn-44's
 /// sag test cooks it: one stem, straight axes, fine leaf-bearing wood so a run
-/// is an arc of several chords, a full hang and a full sag.
+/// is an arc of several chords, a full hang and a full sag. Its shell keeps
+/// the gentle lumps the counts were read on; a lumpier one cuts more runs short.
 fn curtain(variation: f64) -> Family {
     let mut f = preset("silver-birch");
     f.skeleton.habit.stems = 1;
     f.skeleton.habit.crookedness = 0.0;
     f.skeleton.envelope.crown_base = 0.02;
+    f.skeleton.envelope.irregularity = 0.15;
+    f.skeleton.envelope.lobe_scale = 0.45;
     f.skeleton.growth.max_nodes = Some(150_000);
     f.skeleton.twigs.twig.internode_length = 0.036;
     f.skeleton.twigs.twig.bearing_diameter = 0.015;
@@ -120,14 +124,10 @@ fn strands(tree: &Tree) -> Vec<Strand> {
             chains.entry(n.branch).or_default().push(i);
         }
     }
-    let linked = |nodes: &Vec<usize>| {
-        nodes
-            .windows(2)
-            .all(|w| tree.nodes[w[1]].parent == Some(w[0] as u32))
-    };
+    let linked = |w: &[usize]| tree.nodes[w[1]].parent == Some(w[0] as u32);
     chains
         .into_iter()
-        .filter(|(_, nodes)| linked(nodes))
+        .filter(|(_, nodes)| nodes.windows(2).all(linked))
         .filter_map(|(branch, nodes)| {
             let mut along = 0.0;
             let steps: Vec<(f64, f64)> = nodes

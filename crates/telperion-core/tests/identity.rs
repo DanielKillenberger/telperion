@@ -58,7 +58,10 @@
 //! pendulous length lengthened from 2.5 m to 3 m, anything from a twentieth
 //! of it to the whole, as the strands of S-WHOLE and S-BARE do. Every other
 //! table leaves the variation at zero, which is one length to the byte; the
-//! element pin does not move.
+//! element pin does not move. The same round moves the birch's outline too:
+//! its curtain fills to the shell's lower surface, so that surface is the
+//! hem, and lumps a quarter of the height across and 35% deep leave it
+//! ragged rather than the round bottom a gently lumpy shell drew.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -135,13 +138,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 2891986,
-        wood_triangles: 5598280,
-        instances: 280681,
-        min: [-6.508162021636963, -0.07199999690055847, -6.346981950267566],
-        max: [6.471988773247245, 15.359739147161827, 6.496689910225074],
-        skeleton: 2501673387105098722,
-        placement: 12643201762294960480,
+        wood_vertices: 2803014,
+        wood_triangles: 5426400,
+        instances: 267876,
+        min: [-6.23061466217041, -0.07199999690055847, -7.190837383270264],
+        max: [7.130828755621561, 15.450942995466937, 5.813313961029053],
+        skeleton: 2245756617113293970,
+        placement: 8165213721872415580,
         element: 1872173242819532549,
     },
 ];

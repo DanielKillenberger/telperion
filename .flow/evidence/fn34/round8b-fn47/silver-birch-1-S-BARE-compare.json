@@ -25,24 +25,24 @@
   },
   "still": {
     "box_px": [
-      21,
-      75,
-      939,
-      1357
+      0,
+      59,
+      950,
+      1375
     ],
-    "width_over_height": 0.692,
-    "fill": 0.9424,
-    "crown_base": 0.2065,
-    "occupied": 0.4402,
-    "outline_deviation": 0.0939,
+    "width_over_height": 0.6909,
+    "fill": 0.9549,
+    "crown_base": 0.2016,
+    "occupied": 0.4232,
+    "outline_deviation": 0.0913,
     "centre": {
       "rgb": [
-        155.9,
-        161.9,
-        167.5
+        155.4,
+        161.7,
+        167.8
       ],
       "order": "BGR",
-      "mean": 161.8
+      "mean": 161.6
     }
   },
   "method": {
@@ -52,7 +52,7 @@
   },
   "pair": {
     "path": ".flow/evidence/fn34/measure/pairs-fn47/silver-birch-1-S-BARE-pair.png",
-    "sha256": "e284db8f6c15c8b0d42c3f740802fe30c9c4d8ea7c665274bdf99d9fc7ac5541"
+    "sha256": "f4f57733d0e8311163671ae990fe8e3bab714034128f3b17935ca01f9ffc4501"
   },
-  "still_sha256": "8dbca77394f48a21a1be6ff6b711c8eaf637396b36a05ac9237339e435eed4d7"
+  "still_sha256": "fa478fe73f0751717d0814a2f245baf76eade6943d7bdd54103e1e213016f156"
 }

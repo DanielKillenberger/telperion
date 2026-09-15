@@ -128,11 +128,14 @@ pub(super) fn silver_birch(p: &mut Family) {
         spread: 0.36,
         fullness: 0.6,
         shoulder: 1.6,
-        // The birch's own lumps are finer and shallower than the beech's: a
-        // narrow crown of hanging shoots, with the shell they hang from
-        // ragged rather than lobed.
-        irregularity: 0.15,
-        lobe_scale: 0.45,
+        // The birch's own lumps are finer than the beech's: a narrow crown of
+        // hanging shoots, with the shell they hang from ragged rather than
+        // lobed. The curtain fills to the shell's lower surface, so that
+        // surface is the hem; lumps a quarter of the height across and a
+        // third of the radius deep leave it ragged, lower in some bearings
+        // than others, as the photographs' hem is.
+        irregularity: 0.35,
+        lobe_scale: 0.25,
     };
     p.skeleton.bias = BiasParams::NONE;
     p.skeleton.twigs.laterals = 8;

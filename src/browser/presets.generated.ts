@@ -1037,8 +1037,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.1,
           "fullness": 0.6,
           "height": 18,
-          "irregularity": 0.15,
-          "lobeScale": 0.45,
+          "irregularity": 0.35,
+          "lobeScale": 0.25,
           "shoulder": 1.6,
           "spread": 0.36
         },
