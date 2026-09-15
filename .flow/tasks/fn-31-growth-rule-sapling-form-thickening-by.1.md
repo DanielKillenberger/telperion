@@ -228,3 +228,50 @@ Garry-oak timeline: it keeps fn-30's diameters and slows the height axis, which
 reopens fn-30's height fit, the derived maturity and R5's build cost. Round 8
 runs on Claude Opus on the candidate branch with the brief
 `.flow/tmp/fn-31-round8-brief.md`.
+
+## Round 8 — NEEDS_HUMAN, 2026-09-15
+
+Claude Opus implemented round 8 in-host on the candidate branch, eight commits
+`16f44dd..6f8635c` from round 7's `ffc945f`. The host read the range and re-ran
+the diameter, shape-invariant and identity suites: all green. The reference
+rows in the renamed `trunk_diameters_track_the_open_grown_reference` went red
+first, then passed after a numeric refit of the oak's and the spruce's
+thickening rows. The tolerance, the assertion and the lifetime schedule are
+unchanged, and there is no species branch. Oak: `juvenileRadius` 0.64, delay
+0.15, shape 0.5, `youngRadius` 0.94, `seedlingRadius` 0.012, which keeps the
+leaves within about 3 percent of round 7. Spruce: `juvenileRadius` 0.71, delay
+0.16, shape 0.8, the `youngRadius` splice removed. Breast-height diameter at seed 7:
+
+| Preset | Age (years) | Diameter (m) | Reference (m) | Miss |
+|---|---:|---:|---:|---:|
+| Oak | 10 | 0.048 | 0.048 | −0.3% |
+| Oak | 26.7 | 0.179 | 0.160 | +12.1% |
+| Oak | 56.1 | 0.376 | 0.337 | +11.6% |
+| Oak | 112 | 0.609 | 0.672 | −9.4% |
+| Oak | 166 | 0.686 | 0.785 | −12.6% |
+| Spruce | 14.1 | 0.078 | 0.078 | −0.6% |
+| Spruce | 26.6 | 0.212 | 0.199 | +6.6% |
+| Spruce | 36.9 | 0.277 | 0.299 | −7.4% |
+| Spruce | 65 | 0.345 | 0.323 | +6.8% |
+
+The mature oak trunk is now wider than the scale figure. The idle mature build
+runs about 1.9 s for the oak and 0.6 s for the spruce, under the R5 ceilings,
+though it was measured on a busy machine against round 7's rows in the same
+window. The pins moved once after `round8/CONVERGENCE.md`. The sweep's list of
+held parameters loses the thickening delay and shape because two presets now
+author them. Gates: fmt, clippy, `npm test` (77 of 77) and typecheck are green.
+`cargo test --release --workspace` has the same single red as round 7, the
+Ordinary clay look pin.
+
+Host observation for the owner: the ten-year oak's stem flares at the ground
+into a bottle shape in both seed rows. Its breast-height diameter is on target;
+the flare is below breast height.
+
+Decisions for the owner, on the strip page:
+- R1 on the round-8 strips, the ten-year flare included.
+- R2 on the new reference and the timeline assumption: the fast-oak pace, or a
+  true Garry oak timeline.
+- Whether the oak's fit near the tolerance edge stands, or thickening is keyed
+  to the 99.9-percent height year for every preset. That would centre both
+  species near 8 to 9 percent; the number is modelled.
+- The crown fork, open since round 7.
