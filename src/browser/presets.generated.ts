@@ -1029,7 +1029,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "envelope": {
-          "crownBase": 0.015,
+          "crownBase": 0.1,
           "fullness": 0.6,
           "height": 18,
           "irregularity": 0.15,
@@ -1080,7 +1080,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.003,
-            "internodeLength": 0.036,
+            "internodeLength": 0.06,
             "length": 0.45,
             "stationsPerInternode": 1
           },

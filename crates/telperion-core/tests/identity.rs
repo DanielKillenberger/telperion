@@ -49,6 +49,10 @@
 //! so two stems carry a curtain that hangs, and neither branch's pin is that
 //! tree. The beech's pin is round 5b's, unmoved by the merge; the oak, the
 //! spruce and the Two Trees are byte-identical.
+//! Round 7's visual QA then moves the birch's own table twice: the crown
+//! base, which is the sagging curtain's floor, rises from 0.015 to 0.10 of
+//! the height so the two stems stand clear under it, and a leaf every 60 mm
+//! of shoot rather than 36 lets the sky back through two stems' crowns.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -125,13 +129,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 5013052,
-        wood_triangles: 9702560,
-        instances: 817574,
-        min: [-6.598268287661332, -0.07199999690055847, -6.45496355805626],
-        max: [6.457955131925387, 14.146892759676422, 6.272252728384387],
-        skeleton: 2202575793534763606,
-        placement: 18151706123665333423,
+        wood_vertices: 3929556,
+        wood_triangles: 7605480,
+        instances: 391902,
+        min: [-6.51028703305269, -0.07199999690055847, -6.339091063526724],
+        max: [6.4649505615234375, 15.35163688659668, 6.496953656890554],
+        skeleton: 13073206196273823952,
+        placement: 15566016928509104126,
         element: 1872173242819532549,
     },
 ];

@@ -118,12 +118,13 @@ pub(super) fn silver_birch(p: &mut Family) {
         stem_divergence: 110.0,
         stem_lean: 22.0,
     };
-    // The curtain is what reaches the ground, so the envelope has to leave it
-    // somewhere to reach: almost no bare trunk, a narrower crown carrying its
-    // mass up top, and squarer shoulders than the round-3 oval.
+    // A narrower crown carrying its mass up top, with squarer shoulders than
+    // the round-3 oval. The crown's base is also the curtain's floor: a shoot
+    // that hangs by its own weight falls to it, and in both photographs the
+    // two stems stand clear under the curtain for their first two metres.
     p.skeleton.envelope = Envelope {
         height: 18.0,
-        crown_base: 0.015,
+        crown_base: 0.10,
         spread: 0.36,
         fullness: 0.6,
         shoulder: 1.6,
@@ -138,7 +139,10 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.skeleton.twigs.length_ratio = 0.6;
     p.skeleton.twigs.twig.diameter = 0.003;
     p.skeleton.twigs.twig.length = 0.45;
-    p.skeleton.twigs.twig.internode_length = 0.036;
+    // A leaf every 60 mm of shoot: two stems carry two crowns' worth of
+    // shoots inside one shell, and at the single stem's 36 mm the curtain
+    // closed back into a mass with no sky through it.
+    p.skeleton.twigs.twig.internode_length = 0.06;
     p.skeleton.twigs.twig.bearing_diameter = 0.02;
     // The weeping birch's own curtain: a full hang, shoots running three and a
     // half metres unbranched instead of the twig's own quarter, every shoot

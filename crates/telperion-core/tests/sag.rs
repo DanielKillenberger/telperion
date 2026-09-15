@@ -30,13 +30,14 @@ const IDS: [&str; 7] = [
 /// The birch's was re-recorded once when round 6b shortened its pendulous
 /// length from 3.5 m to 2.5 m: its own table moved, not the neutral law.
 /// And once more at the merge with fn-38, whose clump puts the same table on
-/// two stems; every other table's neutral stood.
+/// two stems; every other table's neutral stood. Round 7 lifts that birch's
+/// crown base, which moves its tree with the row at any value.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     12852486373694172527,
-    15858309657048408599,
+    1381814102884070673,
     12471405148157309180,
     14199367530911903060,
 ];
@@ -94,10 +95,14 @@ struct Step {
 /// wood that bears leaves thin enough that a hanging run is subdivided into an
 /// arc rather than the two or three chords the shipped table gives it. It
 /// stands on one stem: fn-38's clump splits the birch's wood between two, and
-/// wood that thin bears its hanging shoots in one or two chords again.
+/// wood that thin bears its hanging shoots in one or two chords again. Its
+/// internodes stay the 36 mm the arc was read on: round 7's 60 mm lays a run's
+/// stations unevenly, and a longer stride turns further in one step while the
+/// turn per metre still eases off the whole way down.
 fn hanging(sag: f64, pendulous: f64) -> Family {
     let mut f = preset("silver-birch");
     f.skeleton.habit.stems = 1;
+    f.skeleton.twigs.twig.internode_length = 0.036;
     f.skeleton.habit.crookedness = 0.0;
     f.skeleton.envelope.crown_base = 0.02;
     // Room for the curtain to finish its runs: a shoot that hangs its whole
