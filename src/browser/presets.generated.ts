@@ -845,7 +845,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "maxTurnPerStep": 35
         },
         "habit": {
-          "apicalDominance": 0.5,
+          "apicalDominance": 0.57,
           "attractorWeight": 0,
           "crookedness": 6,
           "lateralLengthRatio": 0.6,

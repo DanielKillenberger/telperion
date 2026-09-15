@@ -1,0 +1,37 @@
+{
+  "round": "6-fn45",
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-45 round 6: the twig layer states its depth (skeleton.twigs.generations), and the beech's table spends the freed budget on girth - fork exponent 2.8, three twig laterals a station, two limbs a station 2.2 m apart at 0.6 length, apical dominance 0.57; matched stills rendered at 1440 tall and paired at 720; pairs on disk under the ignored measure/pairs-fn45/, recorded here by sha256",
+  "pairs": [
+    {
+      "case": "european-beech-1-B",
+      "reference": "B-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn45/european-beech-1-B-BARE-pair.png",
+      "pair_sha256": "28858f3514f4378dd99f681e6f2c55db1c7e35a8e75ed7280ef29d14705e3e57",
+      "still_sha256": "4f21a376a8e53c69221ac8abb37a803f645f8fd86c7474416bad2ea4c02ba4b8",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "european-beech-1-B",
+      "reference": "B-BASE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn45/european-beech-1-B-BASE-pair.png",
+      "pair_sha256": "553f54c4de20d4b7ee5978d480f74114dc89ea0abdf34a9d3900d2643d454ba4",
+      "still_sha256": "d0ff3c1bf2da784fa700c3b30ab63fe2bf3440538781757f5612661ac858cb4a",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "european-beech-1-B",
+      "reference": "B-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn45/european-beech-1-B-WHOLE-pair.png",
+      "pair_sha256": "41540b7e87ff8866093ae85f0e774be0117f886b7dea7a620726a30b405319b9",
+      "still_sha256": "8be1e9f9fe5318a5f1b2bd78d9324c8719022575435ec01c4713092859085822",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

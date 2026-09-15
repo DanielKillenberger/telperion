@@ -23,7 +23,14 @@ pub(super) fn european_beech(p: &mut Family) {
     // dominance, the limbs leave at 38 degrees and rise, and the axes are
     // barely crooked.
     p.skeleton.habit = HabitParams {
-        apical_dominance: 0.5,
+        // Round 6: with two limbs a station the leader was one of four
+        // co-dominant axes by mid-crown, and the core thinned where the
+        // photograph's is still thick. At 0.57 - the side of the bound a
+        // broadleaf stays on - the leader runs to 96 per cent of the height
+        // and carries half again the radius at three fifths of it. Above it,
+        // at 0.59, two of the protocol's own seeds collapse a wood triangle
+        // in float32 when the surface is built.
+        apical_dominance: 0.57,
         whorl_strength: 0.15,
         leader_internode: 2.2,
         laterals_per_station: 2,

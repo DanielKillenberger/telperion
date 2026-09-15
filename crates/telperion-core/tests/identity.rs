@@ -39,8 +39,9 @@
 //! keeps its girth up through the crown; its scaffold throws two limbs a
 //! station instead of four, a station further apart and longer; and the twig
 //! layer states its own depth and drops from five laterals a station to
-//! three, which is where the nodes for the thicker core come from. Its leaf
-//! count falls by a fifth and stays inside the fidelity band. The oak, the
+//! three, which is where the nodes for the thicker core come from; and its
+//! leader keeps more of that girth past the first fork, at 0.57 apical
+//! dominance. Its leaf count falls by a fifth and stays in the fidelity band. The oak, the
 //! spruce, the birch and the Two Trees are byte-identical: the generation row
 //! sits at the top of its rail on every other table, which reaches nothing.
 //! No device is needed; this is the core's own arithmetic.
@@ -104,17 +105,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 6184190,
-        wood_triangles: 11985560,
-        instances: 1229319,
+        wood_vertices: 6309780,
+        wood_triangles: 12229920,
+        instances: 1251939,
         min: [
-            -17.255900181974408,
+            -17.272529208872687,
             -0.12800000607967377,
-            -16.159354757910435,
+            -15.639991055065652,
         ],
-        max: [17.42668450980465, 32.06712644216418, 15.908411739274852],
-        skeleton: 10263011107101304109,
-        placement: 10263101613241603484,
+        max: [17.413520042546796, 32.04913333641358, 16.092120997704992],
+        skeleton: 17796949077266237288,
+        placement: 15837116481935064129,
         element: 15097586524950800877,
     },
     Pin {
