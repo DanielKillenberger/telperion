@@ -466,3 +466,24 @@ dense sapling on a short visible stem, for the owner to judge.
   30 years.
 
 Round 12 goes next on F6.
+
+## Session paused — 2026-09-16 00:50
+
+Round 12, the 20-year tuft (F6), was still running at the pause. Its commits
+so far run from 29e79462 to 43da4f62:
+
+- red-first invariants, with the no-gap crown check widened to 15 to 30 years
+  plus a silhouette bound;
+- the fix;
+- the single pin move after convergence;
+- the young height re-measured once and still blocked;
+- `growth.lowLimbStep` as a new parameter.
+
+The owner judged the round-11 and round-12 pictures "not bad". The owner also
+reported the harness failing to build: its renderer wasm predated
+`lowLimbStep` and rejected the preset. The host rebuilt it with
+`npm run render:build` and the harness loads again. On seed 7 at 20 years the
+tuft is joined into one crown; seeds 1 and 42 are not yet checked.
+
+The resume steps are in `.flow/tmp/fn-31-resume.md`: review round 12, re-run
+QA, update the page, then the owner's decisions and the merge.
