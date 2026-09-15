@@ -208,11 +208,14 @@ fn a_position_float32_cannot_hold_is_still_an_error() {
 /// stated them (it also named a twig generation rail this branch does not
 /// carry), failed this seed: two stations of one truncated limb 11.4
 /// micrometres apart, 25 m up. A test-only family; no shipped table moves.
+/// Every wood row the shipped beech has since moved is stated here, so the
+/// reproduction does not drift with the catalogue's table.
 #[test]
 fn the_reproducing_beech_builds_and_drops_two_triangles() {
     let mut f = Preset::EuropeanBeech.parameters();
     let h = &mut f.skeleton.habit;
     h.apical_dominance = 0.58;
+    h.rise_primary = 0.3;
     h.laterals_per_station = 2;
     h.lateral_pitch = 58.0;
     h.rise_secondary = 0.1;
@@ -221,6 +224,7 @@ fn the_reproducing_beech_builds_and_drops_two_triangles() {
     f.skeleton.envelope.crown_base = 0.05;
     f.skeleton.envelope.fullness = 0.48;
     f.skeleton.envelope.shoulder = 1.5;
+    f.skeleton.twigs.generations = telperion_core::twigs::MAX_GENERATIONS;
     f.skeleton.twigs.laterals = 4;
     f.skeleton.twigs.length_ratio = 0.36;
     f.skeleton.twigs.angle = 32.0;
