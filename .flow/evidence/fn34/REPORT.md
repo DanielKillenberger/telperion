@@ -384,3 +384,12 @@ as the photograph's costs on the order of a third more nodes. Either the
 ceiling rises for the catalogue (a cost decision the gap table already
 names) or the beech gives up twig density for girth. Neither is a value the
 table may spend on its own.
+
+The owner's read on the 5c winter pair, after this: "Too many small
+branches. It does seem like there's less density on the reference actually.
+Fewer larger branches compared to ours which has many more thinner ones
+directly attached to the trunk." Two laterals a station, 2.2 m apart and
+0.6 long, at exponent 2.8: 60 first-order limbs instead of 106, and a fifth
+twig generation of 73,627 branches, capped on every heavy seed. The twig
+layer spends whatever the limbs give up, so the coupling is the
+generator's: fn-45.
