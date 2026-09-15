@@ -1,5 +1,5 @@
 {
- "session": "fn-40 task 1, 2026-09-15",
+ "session": "fn-40 task 1, 2026-09-15, after the value pass",
  "method": {
   "tool": "uv run .flow/evidence/fn34/round16-fn40/receipt.py <captures> <scratch>, after the capture, from the repository root",
   "crop_rgb": "fn-29's ImageMagick command on the centre 400x400 crop, unchanged",
@@ -283,6 +283,270 @@
  },
  "after": {
   "stills": {
+   "B-BASE": "c45b33a6cdc8b6d277037612227f45d470d2574d92234de5417b6e3525514db2",
+   "S-BARK": "7771d82372737fa536397387a5f2157341ff9852f694b4cc077dc1277468fabd"
+  },
+  "measurement": {
+   "B-BASE": {
+    "native": {
+     "still_rgb": [
+      112,
+      120,
+      127
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      132,
+      133,
+      138
+     ],
+     "photograph_order": "BGR",
+     "still": {
+      "orientation_entropy": 0.9909,
+      "area_variation": 1.1872,
+      "furrow_curvature": 2.3872,
+      "junction_arms": 3.1,
+      "dark_fraction": 0.6017,
+      "furrow_period": 200.0
+     },
+     "photograph": {
+      "orientation_entropy": 0.999,
+      "area_variation": 0.9173,
+      "furrow_curvature": 2.6962,
+      "junction_arms": 4.2315,
+      "dark_fraction": 0.708,
+      "furrow_period": 16.7645
+     },
+     "distance": 1.1942
+    },
+    "matched": {
+     "still_rgb": [
+      125,
+      132,
+      137
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      132,
+      133,
+      138
+     ],
+     "photograph_order": "BGR",
+     "still": {
+      "orientation_entropy": 0.995,
+      "area_variation": 0.8325,
+      "furrow_curvature": 2.301,
+      "junction_arms": 3.2336,
+      "dark_fraction": 0.5809,
+      "furrow_period": 184.5444
+     },
+     "photograph": {
+      "orientation_entropy": 0.9991,
+      "area_variation": 0.943,
+      "furrow_curvature": 2.8305,
+      "junction_arms": 4.2607,
+      "dark_fraction": 0.7283,
+      "furrow_period": 17.4292
+     },
+     "distance": 1.2183
+    }
+   },
+   "S-BARK": {
+    "native": {
+     "still_rgb": [
+      127,
+      133,
+      137
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      97,
+      101,
+      88
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.9396,
+      "area_variation": 0.8057,
+      "furrow_curvature": 1.8596,
+      "junction_arms": 3.1905,
+      "dark_fraction": 0.2429,
+      "furrow_period": 103.1593
+     },
+     "photograph": {
+      "orientation_entropy": 0.9873,
+      "area_variation": 1.2215,
+      "furrow_curvature": 2.626,
+      "junction_arms": 4.865,
+      "dark_fraction": 0.5966,
+      "furrow_period": 13.1666
+     },
+     "distance": 1.7714
+    },
+    "matched": {
+     "still_rgb": [
+      129,
+      135,
+      134
+     ],
+     "still_order": "GBR",
+     "photograph_rgb": [
+      93,
+      97,
+      84
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.9751,
+      "area_variation": 1.0477,
+      "furrow_curvature": 2.4026,
+      "junction_arms": 3.1685,
+      "dark_fraction": 0.2097,
+      "furrow_period": 73.1261
+     },
+     "photograph": {
+      "orientation_entropy": 0.988,
+      "area_variation": 1.564,
+      "furrow_curvature": 2.2945,
+      "junction_arms": 3.5259,
+      "dark_fraction": 0.6085,
+      "furrow_period": 23.5502
+     },
+     "distance": 0.901
+    }
+   },
+   "S-BARK-left": {
+    "native": {
+     "still_rgb": [
+      127,
+      133,
+      137
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      96,
+      99,
+      79
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.9396,
+      "area_variation": 0.8057,
+      "furrow_curvature": 1.8596,
+      "junction_arms": 3.1905,
+      "dark_fraction": 0.2429,
+      "furrow_period": 103.1593
+     },
+     "photograph": {
+      "orientation_entropy": 0.9934,
+      "area_variation": 1.9985,
+      "furrow_curvature": 2.0685,
+      "junction_arms": 3.4023,
+      "dark_fraction": 0.5794,
+      "furrow_period": 33.8409
+     },
+     "distance": 1.2213
+    },
+    "matched": {
+     "still_rgb": [
+      129,
+      135,
+      134
+     ],
+     "still_order": "GBR",
+     "photograph_rgb": [
+      96,
+      99,
+      79
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.9751,
+      "area_variation": 1.0477,
+      "furrow_curvature": 2.4026,
+      "junction_arms": 3.1685,
+      "dark_fraction": 0.2097,
+      "furrow_period": 73.1261
+     },
+     "photograph": {
+      "orientation_entropy": 0.9934,
+      "area_variation": 1.9911,
+      "furrow_curvature": 2.0493,
+      "junction_arms": 3.3898,
+      "dark_fraction": 0.5766,
+      "furrow_period": 33.9055
+     },
+     "distance": 1.0857
+    }
+   },
+   "S-BARK-right": {
+    "native": {
+     "still_rgb": [
+      127,
+      133,
+      137
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      84,
+      87,
+      81
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.9396,
+      "area_variation": 0.8057,
+      "furrow_curvature": 1.8596,
+      "junction_arms": 3.1905,
+      "dark_fraction": 0.2429,
+      "furrow_period": 103.1593
+     },
+     "photograph": {
+      "orientation_entropy": 0.9836,
+      "area_variation": 3.1729,
+      "furrow_curvature": 2.3366,
+      "junction_arms": 3.5718,
+      "dark_fraction": 0.7724,
+      "furrow_period": 25.3044
+     },
+     "distance": 2.2081
+    },
+    "matched": {
+     "still_rgb": [
+      129,
+      135,
+      134
+     ],
+     "still_order": "GBR",
+     "photograph_rgb": [
+      84,
+      88,
+      81
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.9751,
+      "area_variation": 1.0477,
+      "furrow_curvature": 2.4026,
+      "junction_arms": 3.1685,
+      "dark_fraction": 0.2097,
+      "furrow_period": 73.1261
+     },
+     "photograph": {
+      "orientation_entropy": 0.9835,
+      "area_variation": 3.1796,
+      "furrow_curvature": 2.3183,
+      "junction_arms": 3.5621,
+      "dark_fraction": 0.7712,
+      "furrow_period": 25.2685
+     },
+     "distance": 1.9736
+    }
+   }
+  }
+ },
+ "first_round_16": {
+  "stills": {
    "B-BASE": "b8dbaa0d626efb175f2fc98f3bc1c654f954643a053aa1acd5e4c9a2eaaf797c",
    "S-BARK": "e4fb78379d71900adfec3efc761886751e83e4161e2f29390c85dc958daa1ece"
   },
@@ -541,6 +805,268 @@
       "furrow_period": 25.2685
      },
      "distance": 1.8752
+    }
+   }
+  },
+  "note": "round 16 as first committed at ee114239, before the owner's look"
+ },
+ "trial_rejected": {
+  "note": "the lobed, crisp, size-varied lichen (lichen-lobed.patch) with a 2 mm untinted grain on the beech and a fine grey grain on the birch; B-BASE matched 0.6035 and S-BARK 0.7486. Reverted on the owner's instruction that round 16's close-ups stay as they were.",
+  "measurement": {
+   "B-BASE": {
+    "native": {
+     "still_rgb": [
+      115,
+      122,
+      128
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      132,
+      133,
+      138
+     ],
+     "photograph_order": "BGR",
+     "still": {
+      "orientation_entropy": 0.9269,
+      "area_variation": 3.524,
+      "furrow_curvature": 2.8808,
+      "junction_arms": 4.798,
+      "dark_fraction": 0.5342,
+      "furrow_period": 8.01
+     },
+     "photograph": {
+      "orientation_entropy": 0.999,
+      "area_variation": 0.9173,
+      "furrow_curvature": 2.6962,
+      "junction_arms": 4.2315,
+      "dark_fraction": 0.708,
+      "furrow_period": 16.7645
+     },
+     "distance": 2.1785
+    },
+    "matched": {
+     "still_rgb": [
+      124,
+      130,
+      135
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      132,
+      133,
+      138
+     ],
+     "photograph_order": "BGR",
+     "still": {
+      "orientation_entropy": 0.9965,
+      "area_variation": 1.1755,
+      "furrow_curvature": 2.6774,
+      "junction_arms": 4.7276,
+      "dark_fraction": 0.5378,
+      "furrow_period": 46.0432
+     },
+     "photograph": {
+      "orientation_entropy": 0.9991,
+      "area_variation": 0.943,
+      "furrow_curvature": 2.8305,
+      "junction_arms": 4.2607,
+      "dark_fraction": 0.7283,
+      "furrow_period": 17.4292
+     },
+     "distance": 0.6035
+    }
+   },
+   "S-BARK": {
+    "native": {
+     "still_rgb": [
+      115,
+      121,
+      126
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      97,
+      101,
+      88
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.9609,
+      "area_variation": 1.1177,
+      "furrow_curvature": 1.9859,
+      "junction_arms": 3.3802,
+      "dark_fraction": 0.413,
+      "furrow_period": 56.0028
+     },
+     "photograph": {
+      "orientation_entropy": 0.9873,
+      "area_variation": 1.2215,
+      "furrow_curvature": 2.626,
+      "junction_arms": 4.865,
+      "dark_fraction": 0.5966,
+      "furrow_period": 13.1666
+     },
+     "distance": 1.4116
+    },
+    "matched": {
+     "still_rgb": [
+      125,
+      132,
+      131
+     ],
+     "still_order": "GBR",
+     "photograph_rgb": [
+      93,
+      97,
+      84
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.983,
+      "area_variation": 1.1021,
+      "furrow_curvature": 2.2721,
+      "junction_arms": 3.3721,
+      "dark_fraction": 0.2477,
+      "furrow_period": 50.2355
+     },
+     "photograph": {
+      "orientation_entropy": 0.988,
+      "area_variation": 1.564,
+      "furrow_curvature": 2.2945,
+      "junction_arms": 3.5259,
+      "dark_fraction": 0.6085,
+      "furrow_period": 23.5502
+     },
+     "distance": 0.7486
+    }
+   },
+   "S-BARK-left": {
+    "native": {
+     "still_rgb": [
+      115,
+      121,
+      126
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      96,
+      99,
+      79
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.9609,
+      "area_variation": 1.1177,
+      "furrow_curvature": 1.9859,
+      "junction_arms": 3.3802,
+      "dark_fraction": 0.413,
+      "furrow_period": 56.0028
+     },
+     "photograph": {
+      "orientation_entropy": 0.9934,
+      "area_variation": 1.9985,
+      "furrow_curvature": 2.0685,
+      "junction_arms": 3.4023,
+      "dark_fraction": 0.5794,
+      "furrow_period": 33.8409
+     },
+     "distance": 0.7923
+    },
+    "matched": {
+     "still_rgb": [
+      125,
+      132,
+      131
+     ],
+     "still_order": "GBR",
+     "photograph_rgb": [
+      96,
+      99,
+      79
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.983,
+      "area_variation": 1.1021,
+      "furrow_curvature": 2.2721,
+      "junction_arms": 3.3721,
+      "dark_fraction": 0.2477,
+      "furrow_period": 50.2355
+     },
+     "photograph": {
+      "orientation_entropy": 0.9934,
+      "area_variation": 1.9911,
+      "furrow_curvature": 2.0493,
+      "junction_arms": 3.3898,
+      "dark_fraction": 0.5766,
+      "furrow_period": 33.9055
+     },
+     "distance": 0.9347
+    }
+   },
+   "S-BARK-right": {
+    "native": {
+     "still_rgb": [
+      115,
+      121,
+      126
+     ],
+     "still_order": "BGR",
+     "photograph_rgb": [
+      84,
+      87,
+      81
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.9609,
+      "area_variation": 1.1177,
+      "furrow_curvature": 1.9859,
+      "junction_arms": 3.3802,
+      "dark_fraction": 0.413,
+      "furrow_period": 56.0028
+     },
+     "photograph": {
+      "orientation_entropy": 0.9836,
+      "area_variation": 3.1729,
+      "furrow_curvature": 2.3366,
+      "junction_arms": 3.5718,
+      "dark_fraction": 0.7724,
+      "furrow_period": 25.3044
+     },
+     "distance": 1.7988
+    },
+    "matched": {
+     "still_rgb": [
+      125,
+      132,
+      131
+     ],
+     "still_order": "GBR",
+     "photograph_rgb": [
+      84,
+      88,
+      81
+     ],
+     "photograph_order": "GRB",
+     "still": {
+      "orientation_entropy": 0.983,
+      "area_variation": 1.1021,
+      "furrow_curvature": 2.2721,
+      "junction_arms": 3.3721,
+      "dark_fraction": 0.2477,
+      "furrow_period": 50.2355
+     },
+     "photograph": {
+      "orientation_entropy": 0.9835,
+      "area_variation": 3.1796,
+      "furrow_curvature": 2.3183,
+      "junction_arms": 3.5621,
+      "dark_fraction": 0.7712,
+      "furrow_period": 25.2685
+     },
+     "distance": 1.8729
     }
    }
   }

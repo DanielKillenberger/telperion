@@ -1,15 +1,15 @@
 {
   "round": 16,
   "rendered_at": "2026-09-15",
-  "commit_note": "fn-40 at ee114239 over the fn-34 integration tip d721fa16: smooth bark's lichen, lenticel and peel rows, stated by the beech and the birch; every other table leaves them at zero and draws through the wood pipeline built without them. Matched stills at the 1440 rig, first fixed seed; pairs on disk under the ignored measure/pairs-fn40/, recorded here by sha256. B-BASE and S-BARK were viewed by the worker; the other four were measured and not viewed.",
+  "commit_note": "fn-40 over the fn-34 integration tip d721fa16, after the value pass on the owner's first look: the beech's bark rows as round 16 first committed them except roughness 0.4 to 0.95; the birch's blotches lightly smaller and greyer (plate cell 0.12 to 0.1, inner bark 0.1 to 0.16, lichen 0.07 to 0.13) and roughness 0.48 to 0.95. Matched stills at the 1440 rig, first fixed seed; pairs under the ignored measure/pairs-fn40/, recorded here by sha256. B-BASE and S-BARK were viewed by the worker; the other four were measured and not viewed.",
   "pairs": [
     {
       "case": "european-beech-1-B",
       "reference": "B-BARE",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/european-beech-1-B-BARE-pair.png",
-      "pair_sha256": "2552545e6ce079e9dd4edd15de0f6c2eea211c6c661a1edebd8d974386aa2a03",
-      "still_sha256": "c68304c02a5bbbe79cd31244f5f5f244b84f2f940e1331819b89161d5d7c266f",
+      "pair_sha256": "e6622c3ac0832af27d1da9cfdee82d1f14764c9092117e77360b1c8bef6a45ff",
+      "still_sha256": "3f8f5cdbf8c063716ab8ef74b39ec8dd256da8beaff4cbdce717300ee79cc380",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -18,18 +18,18 @@
       "reference": "B-BASE",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/european-beech-1-B-BASE-pair.png",
-      "pair_sha256": "4aa735011b5724dc89789d92d6c27b657535b19c7e248fdc64af0e8d6383b871",
-      "still_sha256": "b8dbaa0d626efb175f2fc98f3bc1c654f954643a053aa1acd5e4c9a2eaaf797c",
+      "pair_sha256": "a35350e4294eab5253feaa3e70ae53ab3c4aa490e3ae09bd85a75f5e06ec8363",
+      "still_sha256": "c45b33a6cdc8b6d277037612227f45d470d2574d92234de5417b6e3525514db2",
       "visual_status": "unassessed",
-      "owner_feedback": null
+      "owner_feedback": "owner (via the coordinator): \"the beech material actually looks better ... not bad\"; \"from close: round 16 looks good\"; \"it's all still too plasticesque need to make it rough less reflective. All the materials have this problem.\""
     },
     {
       "case": "european-beech-1-B",
       "reference": "B-WHOLE",
       "foliage": "leaf-on",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/european-beech-1-B-WHOLE-pair.png",
-      "pair_sha256": "e63e400394322328fe1d42483654032cf95aaeee8b738f4f9103d403a229ed29",
-      "still_sha256": "86b734420b1e979b027ea152d138c39f9569ec6e70ace5de2795d2fa275bd82a",
+      "pair_sha256": "2dab745f43158dd69c6f59155aad0cb13da3fb546b32ca6ef42ea3324d370ad2",
+      "still_sha256": "e8608247a3143a882df59b2880f1b293d79216c2a5e691803b9860f17de80e77",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -38,8 +38,8 @@
       "reference": "S-BARE",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/silver-birch-1-S-BARE-pair.png",
-      "pair_sha256": "f111399567c6630b6780766555bb33888ba92e145f4b5aaf5c7a8354035a327e",
-      "still_sha256": "efddbd5d315fabbec5b3704ff724c5336943d66901aab0b8f7502ec32f0b5f45",
+      "pair_sha256": "9b3c2b126488d2e793b222b740d14859b437eec09db92b2ff862e6b5ed23247c",
+      "still_sha256": "8cb5ef460b17d661cd8f58f2e09eb93598aaa86c85d92d0704de1cc7c8d90093",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -48,18 +48,18 @@
       "reference": "S-BARK",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/silver-birch-1-S-BARK-pair.png",
-      "pair_sha256": "2ca7f8bfdd4feea754c214c7e877b466c567cbce2a03baa46aeabe880a34ee2b",
-      "still_sha256": "e4fb78379d71900adfec3efc761886751e83e4161e2f29390c85dc958daa1ece",
+      "pair_sha256": "66d382d563abb55eb75b66d710851a901919b4b122e89d4e139411302904a105",
+      "still_sha256": "7771d82372737fa536397387a5f2157341ff9852f694b4cc077dc1277468fabd",
       "visual_status": "unassessed",
-      "owner_feedback": null
+      "owner_feedback": "owner (via the coordinator): \"from close: round 16 looks good\"; \"it's all still too plasticesque need to make it rough less reflective. All the materials have this problem.\""
     },
     {
       "case": "silver-birch-1-S",
       "reference": "S-WHOLE",
       "foliage": "leaf-on",
       "pair": ".flow/evidence/fn34/measure/pairs-fn40/silver-birch-1-S-WHOLE-pair.png",
-      "pair_sha256": "45217dcedfe841aea9112c08f42540742c5c5cf88ebc8621a4324d2ad3c3ca9f",
-      "still_sha256": "160aa84b08be8e7e76f48ffd3950ce2df57929e1b2dbf0e98f01fc0516572ee2",
+      "pair_sha256": "a2635f219840ede2dc6d5f1d85f7dfec37b184c0ebac7c21276ecd914b046054",
+      "still_sha256": "60fb13d370624b23d3d105d95f893c9067a0a63e02cf253445e68b087ef14029",
       "visual_status": "unassessed",
       "owner_feedback": null
     }

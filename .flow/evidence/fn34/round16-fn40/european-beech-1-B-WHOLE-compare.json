@@ -33,7 +33,7 @@
     "width_over_height": 0.743,
     "fill": 0.8889,
     "crown_base": 0.093,
-    "occupied": 0.6546,
+    "occupied": 0.6545,
     "outline_deviation": 0.0735,
     "centre": {
       "rgb": [
@@ -52,7 +52,7 @@
   },
   "pair": {
     "path": ".flow/evidence/fn34/measure/pairs-fn40/european-beech-1-B-WHOLE-pair.png",
-    "sha256": "e63e400394322328fe1d42483654032cf95aaeee8b738f4f9103d403a229ed29"
+    "sha256": "2dab745f43158dd69c6f59155aad0cb13da3fb546b32ca6ef42ea3324d370ad2"
   },
-  "still_sha256": "86b734420b1e979b027ea152d138c39f9569ec6e70ace5de2795d2fa275bd82a"
+  "still_sha256": "e8608247a3143a882df59b2880f1b293d79216c2a5e691803b9860f17de80e77"
 }

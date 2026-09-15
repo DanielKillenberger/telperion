@@ -137,81 +137,100 @@
      "total_p95_ms": 5.3358
     }
    ]
-  }
+  },
+  "note": "the oak draws through the pipeline without smooth bark, which the value pass did not touch"
  },
  "birch": {
-  "commit": "ee114239 (smooth.wgsl as committed; the timed binary was built from it before the commit)",
+  "tables": "after the value pass",
   "runs": [
    {
     "binary": "base",
     "round": 1,
     "verdict": "valid",
-    "vegetation_p50_ms": 3.9537,
-    "total_p50_ms": 4.15,
-    "total_p95_ms": 4.5245
+    "vegetation_p50_ms": 4.1902,
+    "total_p50_ms": 4.3914,
+    "total_p95_ms": 4.9984
    },
    {
     "binary": "new",
     "round": 1,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.3848,
-    "total_p50_ms": 4.5811,
-    "total_p95_ms": 4.9887
+    "vegetation_p50_ms": 4.4032,
+    "total_p50_ms": 4.6008,
+    "total_p95_ms": 5.0668
    },
    {
     "binary": "base",
     "round": 2,
     "verdict": "valid",
-    "vegetation_p50_ms": 3.9567,
-    "total_p50_ms": 4.1528,
-    "total_p95_ms": 4.5281
+    "vegetation_p50_ms": 3.9475,
+    "total_p50_ms": 4.1441,
+    "total_p95_ms": 4.768
    },
    {
     "binary": "new",
     "round": 2,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.3899,
-    "total_p50_ms": 4.5873,
-    "total_p95_ms": 4.981
+    "vegetation_p50_ms": 4.352,
+    "total_p50_ms": 4.5473,
+    "total_p95_ms": 5.0007
+   },
+   {
+    "binary": "base",
+    "round": 3,
+    "verdict": "valid",
+    "vegetation_p50_ms": 3.9444,
+    "total_p50_ms": 4.1408,
+    "total_p95_ms": 4.725
+   },
+   {
+    "binary": "new",
+    "round": 3,
+    "verdict": "valid",
+    "vegetation_p50_ms": 4.3561,
+    "total_p50_ms": 4.5519,
+    "total_p95_ms": 4.9649
    }
-  ]
+  ],
+  "note": "round 1's base run (4.3914) was taken under another worker's load; rounds 2 and 3 are the clean pair"
  },
  "beech": {
-  "commit": "ee114239",
+  "tables": "after the value pass",
   "runs": [
    {
     "binary": "base",
     "round": 1,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.9992,
-    "total_p50_ms": 5.8557,
-    "total_p95_ms": 6.3549
+    "vegetation_p50_ms": 5.2511,
+    "total_p50_ms": 6.1033,
+    "total_p95_ms": 6.8585
    },
    {
     "binary": "new",
     "round": 1,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.5947,
-    "total_p50_ms": 5.4536,
-    "total_p95_ms": 5.4996
+    "vegetation_p50_ms": 4.6029,
+    "total_p50_ms": 5.463,
+    "total_p95_ms": 5.9343
    },
    {
     "binary": "base",
     "round": 2,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.9961,
-    "total_p50_ms": 5.8563,
-    "total_p95_ms": 6.3526
+    "vegetation_p50_ms": 5.0063,
+    "total_p50_ms": 5.866,
+    "total_p95_ms": 6.1573
    },
    {
     "binary": "new",
     "round": 2,
     "verdict": "valid",
-    "vegetation_p50_ms": 4.5916,
-    "total_p50_ms": 5.4502,
-    "total_p95_ms": 5.9172
+    "vegetation_p50_ms": 4.6029,
+    "total_p50_ms": 5.4628,
+    "total_p95_ms": 5.921
    }
-  ]
+  ],
+  "note": "round 1's base run (6.1033) was taken under another worker's load; round 2 is the clean pair"
  },
  "cost_investigation": [
   "the neighbour seed tracked inside the plate network's loop: +0.30 ms on the oak with every smooth row at zero; moved off the loop",
@@ -219,5 +238,81 @@
   "lichen on every twig of the birch's whole tree: +0.5 ms; the spot fields now return their mean on wood whose visible side is a few pixels, and the filtered rim is worked out only where the pixel can touch it",
   "passing over out-of-reach lichen cells before hashing them measured slower (+0.1 ms): a divergent branch costs more than the hashes it saves",
   "the lichen outline warp cost the birch 0.07 ms and is dropped; patches are ellipsoids of their own axes instead, shaped only where a pixel can reach them"
- ]
+ ],
+ "first_round_16": {
+  "birch": {
+   "commit": "ee114239 (smooth.wgsl as committed; the timed binary was built from it before the commit)",
+   "runs": [
+    {
+     "binary": "base",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 3.9537,
+     "total_p50_ms": 4.15,
+     "total_p95_ms": 4.5245
+    },
+    {
+     "binary": "new",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.3848,
+     "total_p50_ms": 4.5811,
+     "total_p95_ms": 4.9887
+    },
+    {
+     "binary": "base",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 3.9567,
+     "total_p50_ms": 4.1528,
+     "total_p95_ms": 4.5281
+    },
+    {
+     "binary": "new",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.3899,
+     "total_p50_ms": 4.5873,
+     "total_p95_ms": 4.981
+    }
+   ]
+  },
+  "beech": {
+   "commit": "ee114239",
+   "runs": [
+    {
+     "binary": "base",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.9992,
+     "total_p50_ms": 5.8557,
+     "total_p95_ms": 6.3549
+    },
+    {
+     "binary": "new",
+     "round": 1,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.5947,
+     "total_p50_ms": 5.4536,
+     "total_p95_ms": 5.4996
+    },
+    {
+     "binary": "base",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.9961,
+     "total_p50_ms": 5.8563,
+     "total_p95_ms": 6.3526
+    },
+    {
+     "binary": "new",
+     "round": 2,
+     "verdict": "valid",
+     "vegetation_p50_ms": 4.5916,
+     "total_p50_ms": 5.4502,
+     "total_p95_ms": 5.9172
+    }
+   ]
+  }
+ }
 }
