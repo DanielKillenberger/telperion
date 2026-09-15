@@ -89,7 +89,11 @@ fn beech_identity_resolves_to_frozen_profile_and_native_anatomy() {
     let family = preset.parameters();
     assert_eq!(family.age, 120.0);
     assert!((family.skeleton.envelope.height - 32.0).abs() < 1e-9);
-    assert!(family.skeleton.habit.apical_dominance < 0.35);
+    // Round 5b (owner, 2026-09-15): the reference beech's trunk runs up
+    // through its crown with steep rising limbs, so the leader keeps its
+    // dominance; the bound moved from 0.35 to admit 0.5 and still refuse an
+    // excurrent conifer's leader.
+    assert!(family.skeleton.habit.apical_dominance < 0.6);
     assert!(family.skeleton.habit.crookedness < 16.0);
     assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
     assert!(!family.skeleton.bias.supernatural.enabled);
