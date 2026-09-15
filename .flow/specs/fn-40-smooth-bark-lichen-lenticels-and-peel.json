@@ -1,13 +1,22 @@
 {
   "branch_name": "fn-40-smooth-bark-lichen-lenticels-and-peel",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-14T20:33:01.908966Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-32-bark-as-plates-and-scales"
   ],
   "id": "fn-40-smooth-bark-lichen-lenticels-and-peel",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-40-smooth-bark-lichen-lenticels-and-peel.md",
   "status": "open",
   "title": "Smooth bark: lichen, lenticels and peel",
@@ -22,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-14T20:33:02.433018Z"
+  "updated_at": "2026-09-15T17:01:52.742457Z"
 }
