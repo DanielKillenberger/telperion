@@ -149,6 +149,7 @@ impl Frontier {
                 let terminal = !lateral && s.completed == s.internodes;
                 let is_twig = terminal
                     || (lateral && bearing)
+                    || generation >= t.generations as usize
                     || radius <= twig_radius
                     || length < t.twig.internode_length;
                 let starts = lateral || s.branch.is_none() || terminal;

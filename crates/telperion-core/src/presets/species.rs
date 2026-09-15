@@ -26,14 +26,18 @@ pub(super) fn european_beech(p: &mut Family) {
         apical_dominance: 0.5,
         whorl_strength: 0.15,
         leader_internode: 2.2,
-        laterals_per_station: 4,
+        laterals_per_station: 2,
         lateral_pitch: 42.0,
         pitch_variation: 10.0,
         rise_primary: 0.3,
         rise_secondary: 0.0,
         crookedness: 6.0,
-        lateral_spacing: 1.4,
-        lateral_length_ratio: 0.46,
+        // Round 6, the owner on the 5c winter pair: "Fewer larger branches
+        // compared to ours which has many more thinner ones directly attached
+        // to the trunk." Half as many limbs a station, a station further
+        // apart, and each limb more than half its parent's length.
+        lateral_spacing: 2.2,
+        lateral_length_ratio: 0.6,
         lateral_orders: 3,
         attractor_weight: 0.0,
         twig_tip_taper: 0.25,
@@ -53,23 +57,26 @@ pub(super) fn european_beech(p: &mut Family) {
         lobe_scale: 0.7,
     };
     p.skeleton.bias = BiasParams::NONE;
-    p.skeleton.twigs.laterals = 5;
-    // Five laterals a station put the beech within a percent of the node
-    // ceiling on most seeds; a twig a shade shorter buys the outline's lobes
-    // the headroom their per-seed noise spends.
+    // Round 6, fn-45. Two rows buy the girth the owner asked for. The twig
+    // law is two generations deep and says so: a lateral born at generation
+    // two is a twig whatever the pipe model left its radius, so the depth no
+    // longer follows the wood. And three laterals a station instead of five
+    // is where the budget for a Murray's-law core comes from - the beech
+    // trades twig density for girth, which is what the photograph shows.
+    p.skeleton.twigs.generations = 2;
+    p.skeleton.twigs.laterals = 3;
     p.skeleton.twigs.length_ratio = 0.40;
     p.skeleton.twigs.twig.bearing_diameter = 0.03;
     p.radii.trunk_radius = 0.014;
     // Round 5c, the owner: "much more thick core trunks for almost the
     // entire height of the tree. Our tree thins out too quickly." The beech
-    // sheds half the default taper per metre. The fork exponent is the row
-    // that would keep the leader thick (a parent's radius is the n-th root
-    // of the sum of its children's, so a higher n lets the leader set it),
-    // but every exponent above 1.8 grew a fifth twig generation past the
-    // node ceiling, with two laterals a station as with four: the twig
-    // budget follows the radius, which is fn-45's, not a row.
+    // sheds half the default taper per metre.
     p.radii.length_taper = 0.3;
-    p.radii.fork_exponent = 1.8;
+    // Round 6: a parent's radius is the n-th root of the sum of its
+    // children's n-th powers, so a higher n lets the leader keep the girth
+    // its branches take. Near Murray's 3 the core runs thick up through the
+    // crown. It costs nodes, and the twig laterals above pay for them.
+    p.radii.fork_exponent = 2.8;
     // A beech stands on a modest flare, not the oak's buttress.
     p.surface.flare_radius = 1.5;
     p.element = ElementParams {

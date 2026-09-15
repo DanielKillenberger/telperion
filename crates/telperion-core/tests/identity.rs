@@ -32,6 +32,17 @@
 //! re-pins it again on the owner's next note ("much more thick core trunks
 //! for almost the entire height"): half the taper per metre, a lower fork
 //! exponent, and the limbs at 42 degrees.
+//! fn-45 re-pins the beech alone, once, on the owner's round-5c note that
+//! the winter pair has "too many small branches ... Fewer larger branches
+//! compared to ours which has many more thinner ones directly attached to
+//! the trunk". Its fork exponent rises to 2.8, near Murray's law, so the core
+//! keeps its girth up through the crown; its scaffold throws two limbs a
+//! station instead of four, a station further apart and longer; and the twig
+//! layer states its own depth and drops from five laterals a station to
+//! three, which is where the nodes for the thicker core come from. Its leaf
+//! count falls by a fifth and stays inside the fidelity band. The oak, the
+//! spruce, the birch and the Two Trees are byte-identical: the generation row
+//! sits at the top of its rail on every other table, which reaches nothing.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -93,17 +104,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 6510994,
-        wood_triangles: 12553400,
-        instances: 1520948,
+        wood_vertices: 6184190,
+        wood_triangles: 11985560,
+        instances: 1229319,
         min: [
-            -17.08121084895728,
+            -17.255900181974408,
             -0.12800000607967377,
-            -15.863580706279707,
+            -16.159354757910435,
         ],
-        max: [17.345312380377766, 32.068859062177204, 16.104214894087672],
-        skeleton: 12724258804456017391,
-        placement: 1428090863184977654,
+        max: [17.42668450980465, 32.06712644216418, 15.908411739274852],
+        skeleton: 10263011107101304109,
+        placement: 10263101613241603484,
         element: 15097586524950800877,
     },
     Pin {

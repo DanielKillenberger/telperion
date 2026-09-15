@@ -178,10 +178,15 @@ fn shedding_keeps_whole_runs_and_terminal_transition() {
     assert_eq!(tree.nodes[4].parent, Some(3));
     assert_eq!(tree.nodes[4].kind, NodeKind::Twig);
 }
+/// The generation limit is the `generations` row, not the structural
+/// `MAX_LEVELS` stop behind it: laterals whose radius never falls become
+/// twigs at the row's generation, and the tree is complete rather than
+/// truncated. `MAX_LEVELS` stays as the stop the rail can no longer reach.
 #[test]
 fn generation_limit_is_explicit() {
     let mut tree = crown();
     let mut t = TwigParams {
+        generations: 3,
         length_ratio: 1.0,
         ratio_power: 0.0,
         laterals: 1,
@@ -206,6 +211,16 @@ fn generation_limit_is_explicit() {
         HabitParams::default(),
     )
     .unwrap();
-    assert!(tree.diagnostics.level_capped);
-    assert!(!tree.diagnostics.complete());
+    assert!(!tree.diagnostics.level_capped);
+    assert!(tree.diagnostics.complete());
+    let deepest = tree
+        .nodes
+        .iter()
+        .filter(|n| n.kind == NodeKind::Branch)
+        .count();
+    assert!(deepest > 0, "the row left no wood at all");
+    assert!(
+        tree.nodes.iter().any(|n| n.kind == NodeKind::Twig),
+        "the row made no twigs"
+    );
 }

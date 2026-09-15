@@ -114,6 +114,8 @@ export interface GrowerParams {
   /** Share of the crown's depth colonization leaves for the branches. */
   reach: number;
   laterals: number;
+  /** Twig-law generations of branching: a lateral born at or past it is a twig whatever the pipe model left its radius. */
+  twigGenerations: number;
   angleVariation: number;
   vigourVariation: number;
   twigAngle: number;
@@ -295,6 +297,11 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "angleVariation", label: "angle variation", min: 0, max: 90, step: 1, unit: "deg" },
   { key: "vigourVariation", label: "vigour variation", min: 0, max: 0.95, step: 0.01, unit: "" },
   { key: "laterals", label: "laterals", min: 0, max: 7, step: 1, unit: "" },
+  /* The twig layer's depth, 1 to 6. The radius solve decides how far a
+     lateral can keep branching, so a table that asks for girth buys a
+     deeper twig layer it did not ask for; this row states the depth
+     instead. Six is the neutral - the deepest shipped tree branches four. */
+  { key: "twigGenerations", label: "twig generations", min: 1, max: 6, step: 1, unit: "" },
   { key: "limbRadius", label: "limbRadius", min: 0, max: 1, step: 0.005, unit: "r" },
   // Measured on Telperion: at 0 the 79 cm colonization tips end at the
   // shell and 21 m branches reach out past it, the cactus the owner saw;

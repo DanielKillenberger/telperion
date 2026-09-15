@@ -58,6 +58,7 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "twigs", "ratioPower"; skeleton.twigs.ratio_power);
         $op!($f, $v, "skeleton", "twigs", "internodeFactor"; skeleton.twigs.internode_factor);
         $op!($f, $v, "skeleton", "twigs", "laterals"; skeleton.twigs.laterals);
+        $op!($f, $v, "skeleton", "twigs", "generations"; skeleton.twigs.generations);
         $op!($f, $v, "skeleton", "twigs", "limbRadius"; skeleton.twigs.limb_radius);
         $op!($f, $v, "skeleton", "twigs", "reach"; skeleton.twigs.reach);
         $op!($f, $v, "skeleton", "twigs", "angle"; skeleton.twigs.angle);
