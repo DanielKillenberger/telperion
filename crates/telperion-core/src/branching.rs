@@ -161,6 +161,7 @@ fn headroom(tree: &Tree, c: &GrowthConfig, t: TwigParams) -> usize {
     for n in tree.nodes.iter().skip(1) {
         children[n.parent.unwrap() as usize] += 1
     }
+    let stem = tree.stem_radius(|i| tree.nodes[i].radius);
     let mut estimate = 0;
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
         if n.position.y < c.trunk_height {
@@ -170,7 +171,7 @@ fn headroom(tree: &Tree, c: &GrowthConfig, t: TwigParams) -> usize {
         if children[i] == 0 {
             estimate += nodes_for(n.radius, length, 0, t, ratio)
         }
-        if n.radius < t.limb_radius * tree.nodes[0].radius {
+        if n.radius < t.limb_radius * stem {
             estimate += t.laterals as usize
                 * nodes_for(
                     child_radius(n.radius, ratio, t.ratio_power),

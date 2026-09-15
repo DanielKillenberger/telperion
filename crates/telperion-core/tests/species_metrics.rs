@@ -78,16 +78,25 @@ fn analytic_units_dbh_axes_and_retained_area() {
     );
 }
 #[test]
-fn missing_ambiguous_truncated_and_nonfinite_are_distinct() {
+fn missing_multi_stemmed_truncated_and_nonfinite_are_distinct() {
     let (mut t, e, i) = fixture();
     let m = measure(&t, &[], &e, 0, &Instances::default()).unwrap();
     assert_eq!(m["height_m"]["status"], "unavailable");
     assert_eq!(m["crown_width_m"]["status"], "unavailable");
+    // A second stem leaving the root crosses breast height on its own edge:
+    // the proxy is the largest of them, and it says how many there were.
     t.nodes[3].parent = Some(0);
     t.nodes[3].kind = NodeKind::Structural;
+    let clump = measure(&t, &[0., 4., 0.], &e, 1, &i).unwrap();
+    assert_eq!(clump["dbh_m"]["status"], "measured_proxy");
+    assert_eq!(clump["dbh_m"]["stems"], 2);
+    let diameters = clump["dbh_m"]["diameters_m"].as_array().unwrap().clone();
     assert_eq!(
-        measure(&t, &[0., 4., 0.], &e, 1, &i).unwrap()["dbh_m"]["status"],
-        "ambiguous"
+        clump["dbh_m"]["value"].as_f64().unwrap(),
+        diameters
+            .iter()
+            .map(|v| v.as_f64().unwrap())
+            .fold(0., f64::max)
     );
     t.diagnostics.node_capped = true;
     assert_eq!(

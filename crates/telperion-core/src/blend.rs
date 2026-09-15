@@ -107,12 +107,14 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     walk!(degrees:
         skeleton.habit.lateral_pitch, skeleton.habit.pitch_variation,
         skeleton.habit.crookedness,
+        skeleton.habit.stem_divergence, skeleton.habit.stem_lean,
         skeleton.twigs.angle, skeleton.twigs.angle_variation,
         skeleton.twigs.divergence, skeleton.twigs.curtain_separation,
         canopy.divergence, canopy.scatter,
     );
     walk!(count:
         skeleton.habit.laterals_per_station, skeleton.habit.lateral_orders,
+        skeleton.habit.stems,
         skeleton.twigs.twig.stations_per_internode, skeleton.twigs.laterals,
         surface.radial_segments, surface.lobes,
         canopy.clump, element.cross_segments,

@@ -62,6 +62,19 @@ impl Axis {
         }
     }
 }
+/// The step an axis of this order advances by: its own internode divided into
+/// whole growth steps, so a station always lands on a node at exactly the
+/// spacing the trait asks for.
+fn growth_unit(habit: HabitParams, config: &GrowthConfig, order: u32) -> f64 {
+    let spacing = if order == 0 {
+        habit.leader_internode
+    } else {
+        habit.lateral_spacing
+    }
+    .max(1e-6);
+    let steps = (spacing / config.step_distance).ceil().max(1.0);
+    (spacing / steps).max(1e-9)
+}
 struct Builder<'a> {
     tree: &'a mut Tree,
     envelope: Envelope,
@@ -202,14 +215,7 @@ impl Builder<'_> {
     /// The growth unit divides the axis's own internode, so a station always
     /// lands on a node at exactly the spacing the trait asks for.
     fn unit(&self, order: u32) -> f64 {
-        let spacing = if order == 0 {
-            self.habit.leader_internode
-        } else {
-            self.habit.lateral_spacing
-        }
-        .max(1e-6);
-        let steps = (spacing / self.config.step_distance).ceil().max(1.0);
-        (spacing / steps).max(1e-9)
+        growth_unit(self.habit, self.config, order)
     }
     /// Laterals borne at one station: the whorl on the leader, one alternating
     /// bud on every axis below it.
@@ -367,6 +373,8 @@ impl Builder<'_> {
 }
 
 mod frontier;
+mod stems;
 #[cfg(test)]
 pub(super) use frontier::generate;
 pub(super) use frontier::Frontier;
+pub(super) use stems::placed as stems_placed;

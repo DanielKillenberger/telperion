@@ -35,6 +35,9 @@ fn hanging_row() -> HabitParams {
         attractor_weight: 0.0,
         twig_tip_taper: 0.25,
         shedding_threshold: 0.0,
+        stems: 1,
+        stem_divergence: 0.0,
+        stem_lean: 0.0,
     }
 }
 /// The opposite corner: the leader yields early and every axis is crooked.
@@ -55,6 +58,9 @@ fn crooked_row() -> HabitParams {
         attractor_weight: 0.0,
         twig_tip_taper: 0.25,
         shedding_threshold: 0.0,
+        stems: 1,
+        stem_divergence: 0.0,
+        stem_lean: 0.0,
     }
 }
 

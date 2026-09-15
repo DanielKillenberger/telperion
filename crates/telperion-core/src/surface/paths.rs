@@ -75,7 +75,11 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
         result.runs.push(Run {
             start,
             end: result.nodes.len(),
-            trunk: s == 0,
+            // Every run that leaves the root is a trunk run: a buried root
+            // sample, the flare its own height earns it, and no fork socket
+            // where it meets the ground. A tree on one stem has exactly one,
+            // which is the run that was the trunk before stems were a row.
+            trunk: attach == 0,
         });
         s += 1;
     }

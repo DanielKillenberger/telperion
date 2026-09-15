@@ -31,6 +31,9 @@ pub(super) fn european_beech(p: &mut Family) {
         attractor_weight: 0.0,
         twig_tip_taper: 0.25,
         shedding_threshold: 0.0,
+        stems: 1,
+        stem_divergence: 0.0,
+        stem_lean: 0.0,
     };
     p.skeleton.envelope = Envelope {
         height: 32.0,
@@ -97,6 +100,9 @@ pub(super) fn silver_birch(p: &mut Family) {
         attractor_weight: 0.0,
         twig_tip_taper: 0.35,
         shedding_threshold: 0.0,
+        stems: 1,
+        stem_divergence: 0.0,
+        stem_lean: 0.0,
     };
     // The curtain is what reaches the ground, so the envelope has to leave it
     // somewhere to reach: almost no bare trunk, a narrower crown carrying its

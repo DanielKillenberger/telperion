@@ -135,7 +135,9 @@ impl Frontier {
         if self.stations.pending.is_empty() {
             return;
         }
-        let root_radius = radius(0);
+        // The twig layer measures against the thickest stem, not the root's
+        // combined pipe: one stem and that is the root itself, unchanged.
+        let root_radius = tree.stem_radius(radius);
         let divergence = t.divergence.to_radians();
         let mut frontier = Vec::new();
         let mut completed = Vec::new();

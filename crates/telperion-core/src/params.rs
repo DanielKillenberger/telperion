@@ -32,6 +32,9 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "habit", "attractorWeight"; skeleton.habit.attractor_weight);
         $op!($f, $v, "skeleton", "habit", "twigTipTaper"; skeleton.habit.twig_tip_taper);
         $op!($f, $v, "skeleton", "habit", "sheddingThreshold"; skeleton.habit.shedding_threshold);
+        $op!($f, $v, "skeleton", "habit", "stems"; skeleton.habit.stems);
+        $op!($f, $v, "skeleton", "habit", "stemDivergence"; skeleton.habit.stem_divergence);
+        $op!($f, $v, "skeleton", "habit", "stemLean"; skeleton.habit.stem_lean);
         $op!($f, $v, "element", "connectorLength"; element.connector_length);
         $op!($f, $v, "skeleton", "seed"; skeleton.seed);
         $op!($f, $v, "skeleton", "attractors"; skeleton.attractors);

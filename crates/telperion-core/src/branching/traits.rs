@@ -39,6 +39,16 @@ pub struct HabitParams {
     /// Monthly vigour threshold; zero disables shedding. The legacy envelope
     /// builder interprets it as shell depth.
     pub shedding_threshold: f64,
+    /// Stems leaving the root. One is the single trunk every tree was, to the
+    /// byte; a birch, a hazel or a coppiced oak stands on more.
+    pub stems: u32,
+    /// Degrees of bearing between neighbouring stems, about a bearing the seed
+    /// alone decides. Inert at one stem, which has no neighbour.
+    pub stem_divergence: f64,
+    /// Degrees from vertical the outermost stems tilt away from the root; the
+    /// ones between tilt in proportion to how far out they stand. Inert at one
+    /// stem, which stands at the centre and so tilts by none of it.
+    pub stem_lean: f64,
 }
 impl Default for HabitParams {
     fn default() -> Self {
@@ -58,6 +68,9 @@ impl Default for HabitParams {
             attractor_weight: 1.0,
             twig_tip_taper: 1.0,
             shedding_threshold: 0.45,
+            stems: 1,
+            stem_divergence: 0.0,
+            stem_lean: 0.0,
         }
     }
 }
@@ -94,6 +107,15 @@ impl HabitParams {
             (unit(self.attractor_weight), "attractor weight"),
             (unit(self.twig_tip_taper), "twig tip taper"),
             (unit(self.shedding_threshold), "shedding threshold"),
+            ((1..=6).contains(&self.stems), "stems"),
+            (
+                self.stem_divergence.is_finite() && (0.0..=120.0).contains(&self.stem_divergence),
+                "stem divergence",
+            ),
+            (
+                self.stem_lean.is_finite() && (0.0..=45.0).contains(&self.stem_lean),
+                "stem lean",
+            ),
         ] {
             if !valid {
                 return Err(Error::InvalidInput(trait_name));

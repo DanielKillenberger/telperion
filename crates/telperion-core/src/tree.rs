@@ -73,6 +73,30 @@ pub struct Tree {
     pub diagnostics: Diagnostics,
 }
 impl Tree {
+    /// The wood a canopy or a twig layer measures itself against: the thickest
+    /// stem leaving the root, read through whatever radius the caller trusts.
+    /// The root carries every stem's pipe together, so a clump has to measure
+    /// one stem rather than the combined trunk none of its shoots would ever
+    /// read as slender beside; a tree on one stem measures the root itself,
+    /// which IS that stem's own base, and so is left exactly where it was.
+    pub(crate) fn stem_radius(&self, radius: impl Fn(usize) -> f64) -> f64 {
+        if self.nodes.is_empty() {
+            return 0.0;
+        }
+        let mut stems = 0;
+        let mut largest = 0.0_f64;
+        for (i, n) in self.nodes.iter().enumerate().skip(1) {
+            if n.parent == Some(0) {
+                stems += 1;
+                largest = largest.max(radius(i));
+            }
+        }
+        if stems > 1 {
+            largest
+        } else {
+            radius(0)
+        }
+    }
     pub fn validate(&self) -> Result<()> {
         if self.nodes.len() > u32::MAX as usize || self.crossover > self.nodes.len() {
             return Err(Error::InvalidInput("tree length"));

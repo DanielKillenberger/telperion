@@ -75,6 +75,17 @@ export interface GrowerParams {
    *  that a crown stops reading as a tree and starts reading as a
    *  hedge. */
   spread: number;
+  /** Stems leaving the ground. 1 is the single trunk every tree was; a
+   *  birch, a hazel or a coppiced oak stands on more. */
+  stems: number;
+  /** Degrees of bearing between neighbouring stems, about a bearing the
+   *  seed alone decides. Nothing at one stem, which has no neighbour. */
+  stemDivergence: number;
+  /** Degrees from vertical the outermost stems tilt away from the root;
+   *  the ones between tilt in proportion to how far out they stand.
+   *  Nothing at one stem, which stands at the centre. Two stems need
+   *  both this and a divergence, or they are the same stem twice. */
+  stemLean: number;
   /** Master over `lean`, `writheAmplitude` and `spiralRate`: 0 leaves
    *  the tree dead straight, 1 is the three of them as dialled. */
   torsion: number;
@@ -246,6 +257,14 @@ export const SLIDERS: readonly SliderSpec[] = [
      not that it covers Valinor. */
   { group: "skeleton", key: "height", label: "height", min: 4, max: 400, step: 0.5, unit: "m" },
   { key: "spread", label: "spread", min: 0.12, max: 0.65, step: 0.01, unit: "" },
+  /* The clump. A count and the two rows that say how it stands: how far
+     apart in bearing the stems leave the root, and how far out of
+     vertical the outermost of them lean. At one stem the other two
+     reach nothing, which is where every tree that stands on a single
+     trunk sits. */
+  { key: "stems", label: "stems", min: 1, max: 6, step: 1, unit: "" },
+  { key: "stemDivergence", label: "stem divergence", min: 0, max: 120, step: 1, unit: "deg" },
+  { key: "stemLean", label: "stem lean", min: 0, max: 45, step: 1, unit: "deg" },
   // The bias dials run well past what looks good. The owner has to be
   // able to see where too much is, or the usable range sits at the
   // ceiling and reads as a limit rather than as a choice.

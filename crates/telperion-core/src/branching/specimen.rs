@@ -58,6 +58,13 @@ pub struct Specimen {
     retention: retention::Retention,
     births: events::Events,
 }
+/// A stem's own root node: the structural node a stem leaves the root on. It
+/// is the base of a trunk rather than a shoot, so it is born with the root and
+/// the chronicle never sheds it.
+fn stem_root(node: &Node) -> bool {
+    node.parent == Some(0) && node.kind == NodeKind::Structural
+}
+
 impl Specimen {
     pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
         params.envelope.validate()?;
@@ -79,6 +86,7 @@ impl Specimen {
         };
         let config = params.resolved_growth(points.len())?;
         let bias = GrowthBias::new(params.envelope, params.seed, params.bias)?;
+        scaffold::stems_placed(params, &config)?;
 
         let scaffold = scaffold::Frontier::new(params, &config, points);
         Ok(Self {
@@ -136,6 +144,10 @@ impl Specimen {
         }
         let mut born = Vec::new();
         let mut linked = Vec::new();
+        // A clump's stems are the base the tree stands on, not its first
+        // year's growth: each stem's own root node is born with the root in
+        // year zero. A tree on one stem has only the root, as it always had.
+        let clump = self.params.habit.stems > 1;
         for (i, node) in self
             .tree
             .nodes
@@ -155,7 +167,7 @@ impl Specimen {
                         self.keyframes.track_eligibility(node.identity, node.kind);
                     }
                     linked.push(i);
-                    node.shoot.birth_year = if i == 0 {
+                    node.shoot.birth_year = if i == 0 || (clump && stem_root(node)) {
                         0.0
                     } else {
                         (t.age.slice + 1) as f64

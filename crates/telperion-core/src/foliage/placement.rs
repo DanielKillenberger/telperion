@@ -160,7 +160,10 @@ fn place_impl(
     let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
     let runs = match twig {
         Some(_) => bearing_runs(tree, p),
-        None => shoots(tree, tree.nodes[0].radius * p.shoot_radius),
+        None => shoots(
+            tree,
+            tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius,
+        ),
     };
     for nodes in runs {
         place_run(
@@ -246,7 +249,7 @@ fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
 /// Every unbranched run of leaf-bearing wood: what the twig layer marked, plus
 /// whatever else is slender enough for shoot_radius to clothe.
 fn bearing_runs(tree: &Tree, p: CanopyParams) -> Vec<Vec<usize>> {
-    let slender = tree.nodes[0].radius * p.shoot_radius;
+    let slender = tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius;
     let bearing = |i: usize| {
         let n = &tree.nodes[i];
         n.parent.is_some()

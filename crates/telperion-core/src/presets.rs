@@ -98,6 +98,9 @@ impl Preset {
                 attractor_weight: 0.0,
                 twig_tip_taper: 0.25,
                 shedding_threshold: 0.0,
+                stems: 1,
+                stem_divergence: 0.0,
+                stem_lean: 0.0,
             };
             p.skeleton.envelope = Envelope {
                 height: 24.0,
@@ -167,6 +170,9 @@ impl Preset {
                 attractor_weight: 0.0,
                 twig_tip_taper: 0.25,
                 shedding_threshold: 0.0,
+                stems: 1,
+                stem_divergence: 0.0,
+                stem_lean: 0.0,
             };
             p.skeleton.envelope = Envelope {
                 height: 15.0,
@@ -253,6 +259,9 @@ impl Preset {
             attractor_weight: 1.0,
             twig_tip_taper: 1.0,
             shedding_threshold: 0.45,
+            stems: 1,
+            stem_divergence: 0.0,
+            stem_lean: 0.0,
         };
         p.skeleton.envelope = if silver {
             Envelope {

@@ -22,12 +22,15 @@ impl Frontier {
         config: &GrowthConfig,
         points: Vec<Vec3>,
     ) -> Self {
-        let base = config
-            .trunk_height
-            .max(params.envelope.height * params.envelope.crown_base);
-        let top = base + (params.envelope.height - base) * params.habit.apical_dominance;
+        let top = super::stems::top(params, config);
+        // Every stem is an order-zero axis born at the root, with the leader's
+        // own length rule: the bole gates read order and not birth, so a stem
+        // is a trunk all the way down and never a lateral in the bole.
         let queue = if params.envelope.height > 0.0 && top > 0.0 {
-            VecDeque::from([Axis::new(0, Vec3::Y, top, 0, params.seed ^ 0x742b_e831)])
+            super::stems::stems(params)
+                .into_iter()
+                .map(|stem| Axis::new(0, stem.heading, top, 0, stem.key))
+                .collect()
         } else {
             VecDeque::new()
         };

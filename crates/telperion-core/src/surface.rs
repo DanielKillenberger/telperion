@@ -5,10 +5,12 @@ mod attachment;
 mod dependencies;
 mod frames;
 mod paths;
+mod samples;
 pub(crate) use attachment::AttachmentSurface;
 pub(crate) use dependencies::affected as affected_contacts;
 use frames::frames;
 use paths::paths;
+use samples::sample_path;
 /// One complete surface run, in descending order of its largest sample radius.
 /// The spans tile the wood index buffer; a caster can draw a single prefix.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -111,66 +113,6 @@ fn vertex(out: &mut Vec<f32>, p: Vec3) -> Result<()> {
     Ok(())
 }
 
-fn sample_path(
-    tree: &Tree,
-    height: f64,
-    params: &SurfaceParams,
-    path_nodes: &[usize],
-    trunk: bool,
-    distance: &[f64],
-    samples: &mut Vec<Sample>,
-) {
-    let nodes = &tree.nodes;
-    let depth = params.lobe_depth;
-    let segments = params.radial_segments.max(params.lobes * 4) as usize;
-    let burial = params.flare_depth * height;
-    let socket = params.fork_socket;
-    let swell = params.fork_swell;
-    let flare = |y: f64| {
-        1.0 + (params.flare_radius - 1.0)
-            * (-y.max(0.0) / (params.flare_falloff * height)).exp_fixed()
-    };
-    samples.clear();
-    if trunk {
-        let root = &nodes[path_nodes[0]];
-        if burial > 0.0 {
-            samples.push(Sample {
-                p: Vec3::new(root.position.x, root.position.y - burial, root.position.z),
-                r: root.radius * flare(root.position.y),
-                d: 0.0,
-            });
-        }
-        for &i in path_nodes {
-            samples.push(Sample {
-                p: nodes[i].position,
-                r: nodes[i].radius * flare(nodes[i].position.y),
-                d: distance[i],
-            });
-        }
-    } else {
-        let attach = path_nodes[0];
-        let first = path_nodes[1];
-        let pr = nodes[attach].radius;
-        let away = (nodes[first].position - nodes[attach].position).normalized();
-        let inscribed = pr * (1.0 - depth) * (std::f64::consts::PI / segments as f64).cos_fixed();
-        let sink = (socket * pr).min(0.9 * inscribed);
-        let contained = (inscribed * inscribed - sink * sink).max(0.0).sqrt() / (1.0 + depth);
-        samples.push(Sample {
-            p: nodes[attach].position + away * (-sink),
-            r: (nodes[first].start_radius * swell).min(contained) * flare(nodes[attach].position.y),
-            d: distance[attach],
-        });
-        for &i in &path_nodes[1..] {
-            let swelling = 1.0
-                + (swell - 1.0) * (-(distance[i] - distance[attach]) / pr.max(1e-9)).exp_fixed();
-            samples.push(Sample {
-                p: nodes[i].position,
-                r: nodes[i].radius * swelling * flare(nodes[i].position.y),
-                d: distance[i],
-            });
-        }
-    }
-}
 /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
 pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<SurfaceMesh> {
     tree.validate()?;
