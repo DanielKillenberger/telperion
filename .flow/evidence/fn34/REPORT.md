@@ -1617,3 +1617,72 @@ and the hem is ragged.
 No visual pass is awarded. The round-13 pairs are recorded by sha256 in
 `round13-birch/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 15b, fn-48.2: the second stem parts at a height (2026-09-15)
+
+The owner on round 13: "Can we also have the second trunk be moved up/down?"
+fn-48.2 adds one habit row, `skeleton.habit.stem_fork_height`, 0 to 0.5 of the
+bole's height and neutral 0. At a positive height the clump's later stems are
+held on its first until that stem lands a node at or over the height, and they
+leave it there. Below the fork the tree is one trunk, and the pipe model gives
+it the stems' summed girth. The species metrics count a stem at a fork as well
+as at the root, so a fork under breast height reads as two stems there. Every
+other table states 0, which is fn-38's clump to the bit.
+
+The two photographs disagree on where the birch parts. S-WHOLE's pair leaves
+the ground as two. S-BARE's stands on one trunk that forks about a third of its
+visible height up, above its own crown base. The rail stops at half the bole,
+0.9 m on the birch's 1.8 m crown base. The table states that top, which is as
+far toward S-BARE as the row reaches. The fork lands at 0.96 m, the first node
+over 0.9 m. At a fork the twig layer measures the stems above it, as it does at
+the ground. Measured against the combined trunk, the first two fixed seeds grew
+17 to 21% more nodes. The birch re-pins once; the other tables are
+byte-identical. All forty-eight protocol cases pass (`measure/protocol-fn48b/`),
+none node-capped. At seed 1 the birch grows 105,484 nodes, 6,278,240 wood
+triangles and 340,767 leaves, and its DBH is two stems of 0.23 and 0.25 m. The
+heaviest birch seed stands at 130,198 nodes against round 13's 118,274.
+
+Photograph / round 13 → round 15b:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.68 → 0.67 | 0.15 / 0.17 → 0.16 | 0.46 / 0.53 → 0.52 | 91 / 81 → 79 | 0.17 / 0.08 → 0.10 |
+| S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.31 → 0.29 | 92 / 167 → 166 | 0.13 / 0.51 → — |
+| S-WHOLE | 0.85 / 0.87 → 0.89 | 0.08 / 0.14 → 0.14 | 0.44 / 0.49 → 0.47 | 83 / 47 → 44 | 0.22 / 0.11 → 0.11 |
+
+The crown figures barely move. The row changes where the stems part, and none of
+these statistics read the base of the tree.
+
+### What the worker read on the pairs
+
+Three images of the capture: the S-BARE and S-WHOLE pairs, and a crop of the
+S-BARE still around the fork.
+
+- **S-BARE.** The birch now stands on one white trunk to about a metre, and the
+  leaning stem leaves it to the left there. That is the photograph's habit, one
+  trunk that forks, but the photograph forks a third of its visible height up,
+  far above anything the rail reaches. The fork is not clean. The trunk's full girth ends in a ring at
+  the fork, and the upright stem rises from inside it, narrower, so a ledge
+  shows on the upright stem's side. The sweep's trunk run follows the wider
+  stem, which is the leaning one. The upright stem is socketed into the trunk
+  at what the trunk can contain, and the rest of the girth is left as a
+  shoulder.
+- **S-WHOLE.** The photograph's pair parts at the ground. Ours stands on a
+  metre of one trunk under the curtain before the leaning stem leaves, and that
+  lean still barely reads from this camera, as in round 13.
+
+The worker found a fix for the ledge but did not land it: the fix reaches past
+the surfaces this task names. Let the trunk run carry on into the straighter
+stem and ease its girth into it over the fork's diameter; the render of that
+showed a clean fork with no ledge. A stem born on a stem can only be told from
+a limb by its bud's fate. The specimen's shoot-less reads
+(`branching/specimen/history.rs`), its sparse interval trees
+(`branching/specimen/interval.rs`) and the browser's view tree
+(`specimen/view.rs`, rebuilt from `RunNode`) do not carry that fate. In those
+trees a surface rule keyed on it takes every station for a fork. Carrying the
+fate through all three, and mirroring the run choice in the contact query
+(`branching/specimen/contacts.rs`), is a follow-up task.
+
+No visual pass is awarded. The round-15b pairs are recorded by sha256 in
+`round15b-fn48/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
