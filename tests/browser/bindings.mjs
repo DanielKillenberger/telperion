@@ -143,7 +143,9 @@ try {
       // smallest fixture that keeps a leaf on it.
       if (id === 'silver-birch') specimen.skeleton.envelope.height = 8;
       specimen.skeleton.growth.maxNodes = 12000;
-      specimen.canopy.maxInstances = 12000;
+      // A ceiling, not a target: the beech's short shoots put five leaves on
+      // every 2.5 cm of its limbs, about 30,000 on this fixture's wood.
+      specimen.canopy.maxInstances = 40000;
       specimen.skeleton.twigs.twig.internodeLength = 0.04;
       const output = engine.build(specimen, { foliage: true, structure: true, field: true });
       const foliage = output.foliage, d = output.diagnostics;

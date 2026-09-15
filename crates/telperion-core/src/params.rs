@@ -108,6 +108,11 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "scatter"; canopy.scatter);
         $op!($f, $v, "canopy", "size"; canopy.size);
         $op!($f, $v, "canopy", "sizeVariation"; canopy.size_variation);
+        $op!($f, $v, "canopy", "shortShootSpacing"; canopy.short_shoot_spacing);
+        $op!($f, $v, "canopy", "shortShootRadius"; canopy.short_shoot_radius);
+        $op!($f, $v, "canopy", "shortShootLength"; canopy.short_shoot_length);
+        $op!($f, $v, "canopy", "shortShootLeaves"; canopy.short_shoot_leaves);
+        $op!($f, $v, "canopy", "shortShootSpread"; canopy.short_shoot_spread);
         $op!($f, $v, "canopy", "maxInstances"; canopy.max_instances);
         $op!($f, $v, "element", "length"; element.length);
         $op!($f, $v, "element", "width"; element.width);

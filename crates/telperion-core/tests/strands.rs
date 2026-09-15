@@ -35,15 +35,16 @@ const IDS: [&str; 7] = [
 /// length from 2.5 m to 3 m beside the variation it states and deepened its
 /// shell's outline, and once more when fn-51's drop let its curtain fall past
 /// that shell to the crown's base.
-/// The beech's is its round-11 identity skeleton, taken at the merge into
-/// fn-34's integration branch: its own table moved, not the row. The birch's
+/// The beech's is its identity skeleton, taken at the merges into fn-34's
+/// integration branch (round 11's, then fn-50's): its own table moved, not
+/// the row. The birch's
 /// is re-recorded at the same merges, when fn-48's unequal clump joined its
 /// table.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
-    2650342232535221885,
+    8478216101743105815,
     6030905640253599567,
     12471405148157309180,
     14199367530911903060,

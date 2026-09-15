@@ -125,6 +125,12 @@ fn catalogue_roundtrips_all_controls_and_identities() {
             ("leanRise", json!(-1.5)),
             ("outward", json!(-0.2)),
             ("upward", json!(-0.6)),
+            // Short shoots are rows too, neutral at a spacing of zero.
+            ("shortShootSpacing", json!(0.12)),
+            ("shortShootRadius", json!(0.3)),
+            ("shortShootLength", json!(0.02)),
+            ("shortShootLeaves", json!(5)),
+            ("shortShootSpread", json!(60.0)),
         ] {
             value["canopy"][trait_name] = set;
             assert_eq!(value, metadata(&parse(&value).unwrap()));
@@ -148,6 +154,11 @@ fn catalogue_roundtrips_all_controls_and_identities() {
         ("outward", json!(-1.5), "outward"),
         ("upward", json!(-1.5), "upward"),
         ("surfaceContact", json!(2.0), "surface contact"),
+        ("shortShootSpacing", json!(0.001), "short shoot spacing"),
+        ("shortShootRadius", json!(1.5), "short shoot radius"),
+        ("shortShootLength", json!(0.6), "short shoot length"),
+        ("shortShootLeaves", json!(9), "short shoot leaves"),
+        ("shortShootSpread", json!(95.0), "short shoot spread"),
     ] {
         let mut value = metadata(&preset(0).unwrap());
         value["canopy"][trait_name] = bad;

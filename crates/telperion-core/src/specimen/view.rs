@@ -1,5 +1,6 @@
 //! Presentation keeps identity buffers and applies interval records. Wood is
-//! swept anew per presentation; foliage transforms come only from the record.
+//! swept anew per presentation; leaf transforms come from the record, and
+//! short shoots from the wood on screen.
 use super::*;
 use crate::{
     branching::SpecimenBuffers,
@@ -65,7 +66,7 @@ impl SpecimenView {
         let tree = self.tree()?;
         let wood = surface::build(&tree, self.specimen.surface_height(), &self.family.surface)?;
         let element = foliage::build_element(self.family.element)?;
-        let instances = foliage::Instances {
+        let mut instances = foliage::Instances {
             matrices: self
                 .buffers
                 .placements
@@ -73,12 +74,12 @@ impl SpecimenView {
                 .map(|p| p.transform)
                 .collect(),
         };
-        let instances = foliage::cull(
-            &instances,
-            &element,
-            self.specimen.envelope_at_age(self.age)?,
-            self.family.shell_depth,
-        )?;
+        let envelope = self.specimen.envelope_at_age(self.age)?;
+        // Short shoots are the wood's, not the record's: drawn from the wood
+        // on screen by its identity, as a one-shot build of it would draw them.
+        let f = &self.family;
+        foliage::place_short_shoots(&tree, envelope, f.skeleton.seed, f.canopy, &mut instances)?;
+        let instances = foliage::cull(&instances, &element, envelope, f.shell_depth)?;
         let bounds = mesh::union(wood.bounds, instances.bounds(&element)?.map(Into::into))
             .unwrap_or(surface::Bounds {
                 min: crate::math::Vec3::ZERO,
