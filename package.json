@@ -49,7 +49,8 @@
     "species:measure": "cargo build --release -p telperion-core --example species_measure && node tests/species.mjs --measure-only",
     "species:qa": "cargo build --release -p telperion-core --example species_measure && cargo build --release -p telperion-render --example headless && node tests/species.mjs",
     "test:render": "node scripts/test-render.mjs",
-    "species:compare": "uv run scripts/compare-references.py"
+    "species:compare": "uv run scripts/compare-references.py",
+    "species:quick": "cargo build --release -p telperion-render --example headless && node tests/species.mjs"
   },
   "devDependencies": {
     "@types/react": "19.0.0",
