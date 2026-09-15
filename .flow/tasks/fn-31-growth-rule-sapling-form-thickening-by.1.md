@@ -275,3 +275,34 @@ Decisions for the owner, on the strip page:
   to the 99.9-percent height year for every preset. That would centre both
   species near 8 to 9 percent; the number is modelled.
 - The crown fork, open since round 7.
+
+## Owner feedback on round 8 and QA pass — 2026-09-15
+
+Owner, on the live harness: "end result of oak is much better though it looks
+computer generated when you scrub. All the branching seems predetermined and it's
+just following rails. No bending changes etc. But i guess this would be out of
+scope for this spec?" and "The spruce needs improvements though. At all ages the
+branching looks weird and too straight. Especially mature the branches grow
+upwards. Do a QA pass on both to make sure they are up to scratch". The round-5
+acceptance of the spruce no longer stands.
+
+QA pass: Playwright drove the live harness in headed Chromium on the GPU at
+6f8635c. The verdict is NEEDS_WORK with four open P1 findings, each reproduced
+and filed to bug memory. The receipt is
+`.flow/review-receipts/qa-fn-31-growth-rule-sapling-form-thickening-by.json`.
+
+- **F1:** spruce primaries are straight and rise at every crown height. A probe
+  measured +21 to +28 degrees above horizontal in the lower three fifths at
+  36.9 and 65 years.
+- **F2:** the 14.1-year spruce reads as a different, gangly tree between the
+  5-year bottle brush and the 26.6-year cone.
+- **F3:** the ten-year oak stem flares into a bottle below breast height on
+  seeds 1 and 7, after round 8's `youngRadius`.
+- **F4:** the 26.7-year oak umbrella persists. This is the crown fork.
+
+Excluded by the spec's boundaries: the oak's branches keep fixed directions and
+only lengthen when scrubbed. Moving existing wood as the tree ages changes the
+chronicle and the read-at-age contract, and fn-28 owns smoothing between years.
+No open spec covers posture that changes with age, so it needs a new one. The
+harness took about 7 s to build the mature spruce in the browser and 9 s for
+the mature oak. That is recorded, not filed, because R5 is measured natively.
