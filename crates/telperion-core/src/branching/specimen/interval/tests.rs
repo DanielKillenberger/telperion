@@ -19,6 +19,7 @@ pub(in crate::branching::specimen) fn buffers(s: &Specimen, age: f64) -> Specime
                 position: n.position,
                 radii: [n.radius, n.start_radius, n.base_radius],
                 kind: n.kind,
+                stem: n.stem,
             });
     }
     for run in out.runs.values_mut() {

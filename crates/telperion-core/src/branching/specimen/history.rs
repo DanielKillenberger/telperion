@@ -152,6 +152,7 @@ impl Specimen {
                     identity: n.identity,
                     position: n.position,
                     kind: n.kind,
+                    stem: n.stem,
                     shoot: if shoot_history {
                         n.shoot.clone()
                     } else {

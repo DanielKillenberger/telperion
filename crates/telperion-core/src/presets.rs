@@ -102,6 +102,7 @@ impl Preset {
                 stem_divergence: 0.0,
                 stem_lean: 0.0,
                 stem_lean_spread: 0.0,
+                stem_fork_height: 0.0,
             };
             p.skeleton.envelope = Envelope {
                 height: 24.0,
@@ -175,6 +176,7 @@ impl Preset {
                 stem_divergence: 0.0,
                 stem_lean: 0.0,
                 stem_lean_spread: 0.0,
+                stem_fork_height: 0.0,
             };
             p.skeleton.envelope = Envelope {
                 height: 15.0,
@@ -265,6 +267,7 @@ impl Preset {
             stem_divergence: 0.0,
             stem_lean: 0.0,
             stem_lean_spread: 0.0,
+            stem_fork_height: 0.0,
         };
         p.skeleton.envelope = if silver {
             Envelope {

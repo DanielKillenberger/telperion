@@ -168,6 +168,7 @@ export interface Family {
   riseSecondary: number;
   sheddingThreshold: number;
   stemDivergence: number;
+  stemForkHeight: number;
   stemLean: number;
   stemLeanSpread: number;
   stems: number;
@@ -384,6 +385,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "riseSecondary": 0,
           "sheddingThreshold": 0.45,
           "stemDivergence": 0,
+          "stemForkHeight": 0,
           "stemLean": 0,
           "stemLeanSpread": 0,
           "stems": 1,
@@ -603,6 +605,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "riseSecondary": 0,
           "sheddingThreshold": 0,
           "stemDivergence": 0,
+          "stemForkHeight": 0,
           "stemLean": 0,
           "stemLeanSpread": 0,
           "stems": 1,
@@ -822,6 +825,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "riseSecondary": -0.8,
           "sheddingThreshold": 0,
           "stemDivergence": 0,
+          "stemForkHeight": 0,
           "stemLean": 0,
           "stemLeanSpread": 0,
           "stems": 1,
@@ -1041,6 +1045,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "riseSecondary": 0.1,
           "sheddingThreshold": 0,
           "stemDivergence": 0,
+          "stemForkHeight": 0,
           "stemLean": 0,
           "stemLeanSpread": 0,
           "stems": 1,
@@ -1260,6 +1265,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "riseSecondary": -0.85,
           "sheddingThreshold": 0,
           "stemDivergence": 0,
+          "stemForkHeight": 0.5,
           "stemLean": 28,
           "stemLeanSpread": 1,
           "stems": 2,
@@ -1479,6 +1485,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "riseSecondary": 0,
           "sheddingThreshold": 0.45,
           "stemDivergence": 0,
+          "stemForkHeight": 0,
           "stemLean": 0,
           "stemLeanSpread": 0,
           "stems": 1,
@@ -1698,6 +1705,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "riseSecondary": 0,
           "sheddingThreshold": 0.45,
           "stemDivergence": 0,
+          "stemForkHeight": 0,
           "stemLean": 0,
           "stemLeanSpread": 0,
           "stems": 1,

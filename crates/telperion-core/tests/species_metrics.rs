@@ -205,3 +205,41 @@ fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
         }
     }
 }
+/// A trunk that parts into two runs at `fork` metres, the second of them a
+/// clump's later stem if `second` and a limb if not.
+fn forked(fork: f64, second: bool) -> Tree {
+    let node = |x: f64, y: f64, parent: Option<u32>, radius: f64| Node {
+        position: Vec3::new(x, y, 0.),
+        parent,
+        radius,
+        start_radius: radius,
+        base_radius: radius,
+        branch: parent.map_or(0, |p| p + 1),
+        stem: true,
+        ..Node::root()
+    };
+    let mut nodes = vec![
+        node(0., 0., None, 0.3),
+        node(0., fork, Some(0), 0.3),
+        node(0., 4., Some(1), 0.2),
+        node(1., 4., Some(1), 0.15),
+    ];
+    nodes[3].stem = second;
+    Tree {
+        crossover: nodes.len(),
+        nodes,
+        ..Tree::default()
+    }
+}
+#[test]
+fn a_fork_below_breast_height_is_two_stems_there_and_above_it_one() {
+    let (_, e, _) = fixture();
+    let stems =
+        |t: &Tree| measure(t, &[], &e, 0, &Instances::default()).unwrap()["dbh_m"]["stems"].clone();
+    // Parted under the plane, each stem crosses it on its own wood.
+    assert_eq!(stems(&forked(1.0, true)), 2);
+    // Parted over it, the plane cuts the one trunk below the fork.
+    assert_eq!(stems(&forked(2.0, true)), 1);
+    // And a limb leaving the trunk under the plane is that trunk's.
+    assert_eq!(stems(&forked(1.0, false)), 1);
+}

@@ -11,6 +11,9 @@
 //! all of it and the first stem stands upright, the last leans by the whole
 //! angle and the ones between by their place in the clump, which is a
 //! dominant stem with the lesser ones pushed out beside it.
+//! `stem_fork_height` moves where they part: none of it and every stem leaves
+//! the root; some of it and the first stem grows alone up to that share of
+//! the bole, and the later stems leave it there, one trunk below the fork.
 use super::*;
 use std::f64::consts::TAU;
 
@@ -26,13 +29,66 @@ pub(in crate::branching) struct Stem {
     pub key: u32,
 }
 
+/// The bole's height: the crown's base, or the growth's own trunk height if
+/// that stands higher.
+fn bole(params: &SkeletonParams, config: &GrowthConfig) -> f64 {
+    config
+        .trunk_height
+        .max(params.envelope.height * params.envelope.crown_base)
+}
+
 /// How far an order-zero axis runs: the leader's own rule, the bole plus the
 /// share of the crown the apical dominance keeps for the leader.
 pub(in crate::branching) fn top(params: &SkeletonParams, config: &GrowthConfig) -> f64 {
-    let base = config
-        .trunk_height
-        .max(params.envelope.height * params.envelope.crown_base);
+    let base = bole(params, config);
     base + (params.envelope.height - base) * params.habit.apical_dominance
+}
+
+/// The clump as the frontier first holds it. Every stem is an order-zero axis
+/// with the leader's own length rule - the bole gates read order and not
+/// birth, so a stem is a trunk all the way down and never a lateral in the
+/// bole. With no fork height every stem leaves the root; with one, the first
+/// leaves it alone and carries the rest until it stands at their height, and
+/// each of them runs to the leader's top from there.
+pub(in crate::branching) fn axes(params: &SkeletonParams, config: &GrowthConfig) -> VecDeque<Axis> {
+    let top = top(params, config);
+    if params.envelope.height <= 0.0 || top <= 0.0 {
+        return VecDeque::new();
+    }
+    let fork = bole(params, config) * params.habit.stem_fork_height;
+    let mut clump = stems(params)
+        .into_iter()
+        .map(|stem| Axis::new(0, stem.heading, top, 0, stem.key));
+    if fork <= 0.0 {
+        return clump.collect();
+    }
+    let Some(mut first) = clump.next() else {
+        return VecDeque::new();
+    };
+    first.forks = clump
+        .map(|stem| Axis {
+            length: top - fork,
+            ..stem
+        })
+        .collect();
+    first.fork_height = fork;
+    VecDeque::from([first])
+}
+
+impl Axis {
+    /// Hands the stems held on this axis to `into`, born on node `at`, once
+    /// that node stands at their height - or wherever the axis stopped, if it
+    /// stops short of it, so a clump never loses a stem to a short leader.
+    pub(super) fn part(&mut self, at: usize, height: f64, stopped: bool, into: &mut Vec<Axis>) {
+        if self.forks.is_empty() || !(stopped || height + TOLERANCE >= self.fork_height) {
+            return;
+        }
+        into.extend(self.forks.drain(..).map(|stem| Axis {
+            at,
+            tip: at,
+            ..stem
+        }));
+    }
 }
 
 /// Every stem of a family, in order.

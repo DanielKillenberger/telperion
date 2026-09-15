@@ -12,6 +12,8 @@ pub struct RunNode {
     /// Distal, proximal and allocation radii, in metres.
     pub radii: [f64; 3],
     pub kind: NodeKind,
+    /// Wood of a stem and not a limb, as the node carries it.
+    pub stem: bool,
 }
 
 impl PartialEq for RunNode {
@@ -20,6 +22,7 @@ impl PartialEq for RunNode {
         self.identity == other.identity
             && self.parent == other.parent
             && self.kind == other.kind
+            && self.stem == other.stem
             && position(self.position) == position(other.position)
             && self.radii.map(f64::to_bits) == other.radii.map(f64::to_bits)
     }
@@ -83,6 +86,7 @@ pub(super) fn runs(
             position: n.position,
             radii: [n.radius, n.start_radius, n.base_radius],
             kind: n.kind,
+            stem: n.stem,
         });
     }
     for run in out.values_mut() {

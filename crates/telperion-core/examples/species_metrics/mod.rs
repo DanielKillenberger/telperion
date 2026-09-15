@@ -96,12 +96,20 @@ pub fn measure(
             m["crown_width_height_ratio"] = scalar(x.max(z) / h, "measured");
         }
     }
-    // Every node's own stem: the axis it traces back to leaving the root.
-    // Parents always precede their children, so one forward pass names them.
+    // Every node's own stem: the axis it traces back to leaving the root, or
+    // leaving the fork a clump's later stems part from its first at. A fork
+    // is a node two stems leave, which a limb never is, so below it the clump
+    // is one stem, and above it each run is its own. Parents always precede
+    // their children, so one forward pass names them.
+    let mut runs = vec![0usize; tree.nodes.len()];
+    for n in tree.nodes.iter().skip(1).filter(|n| n.stem) {
+        runs[n.parent.unwrap() as usize] += 1;
+    }
     let mut stem = vec![0usize; tree.nodes.len()];
     for i in 1..tree.nodes.len() {
         let parent = tree.nodes[i].parent.unwrap() as usize;
-        stem[i] = if parent == 0 { i } else { stem[parent] };
+        let fork = runs[parent] > 1 && tree.nodes[i].stem;
+        stem[i] = if parent == 0 || fork { i } else { stem[parent] };
     }
     // The widest structural edge each stem crosses breast height on, keyed by
     // that stem, so a lateral that happens to cross the plane beside its own

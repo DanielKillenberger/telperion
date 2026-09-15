@@ -39,13 +39,14 @@ const IDS: [&str; 7] = [
 /// integration branch (round 11's, then fn-50's): its own table moved, not
 /// the row. The birch's is re-recorded at the same merges, when fn-48's
 /// unequal clump joined its table, and once in round 15, when its trunk
-/// thickened and its curtain stopped short of the whole drop.
+/// thickened and its curtain stopped short of the whole drop, and once more
+/// when fn-48.3 parted its clump a metre up the bole.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     8478216101743105815,
-    6043516217086885291,
+    7184822159316193366,
     12471405148157309180,
     14199367530911903060,
 ];

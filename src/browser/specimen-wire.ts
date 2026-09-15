@@ -22,6 +22,7 @@ export class SpecimenWire {
     identity: this.node(), parent: this.u8() ? this.node() : null,
     position: { x: this.f64(), y: this.f64(), z: this.f64() },
     radii: [this.f64(), this.f64(), this.f64()], kind: ['Structural', 'Branch', 'Twig'][this.u32()],
+    stem: this.u8() !== 0,
   })) });
   identities() { return { nodes: this.vector(this.node), placements: this.vector(this.identity), shed: this.vector(this.node) }; }
   changes(): ChangeRecord {

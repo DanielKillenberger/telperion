@@ -7,7 +7,7 @@ export interface Placement { identity: PlacementIdentity; transform: number[] }
 export interface Run {
   identity: NodeIdentity;
   nodes: { identity: NodeIdentity; parent: NodeIdentity | null;
-    position: { x: number; y: number; z: number }; radii: number[]; kind: string }[];
+    position: { x: number; y: number; z: number }; radii: number[]; kind: string; stem: boolean }[];
 }
 export interface ChangeRecord {
   born_runs: Run[]; resized_runs: Run[]; shed_runs: NodeIdentity[];
@@ -19,9 +19,9 @@ export interface SpecimenRead {
   crossover: number; shed: NodeIdentity[]; nodes: NodeIdentity[]; placements: PlacementIdentity[];
   structure: { values: Float64Array; topology: Uint32Array }; matrices: Float32Array;
 }
-/** Owned schema-1 little-endian chronicle and writer frontiers, without meshes.
+/** Owned schema-2 little-endian chronicle and writer frontiers, without meshes.
  * Caller mutation never reaches a retained specimen. */
-export interface SpecimenSnapshot { schema: 1; data: Uint8Array }
+export interface SpecimenSnapshot { schema: 2; data: Uint8Array }
 export interface SpecimenHandle {
   readonly frontier: number;
   readonly historyCap: number;
@@ -75,7 +75,7 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
       const e = get();
       try {
         check(e.specimen_snapshot(handle));
-        return { schema: 1, data: new Uint8Array(e.memory.buffer, e.buffer_ptr(16), e.buffer_len(16)).slice() };
+        return { schema: 2, data: new Uint8Array(e.memory.buffer, e.buffer_ptr(16), e.buffer_len(16)).slice() };
       } finally { e.specimen_snapshot_release(); }
     },
     release() { check(get().specimen_release(handle)); },
@@ -94,7 +94,7 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
       return wrap((metadata() as { handle: number }).handle);
     },
     import(snapshot: SpecimenSnapshot): SpecimenHandle {
-      if (snapshot.schema !== 1 || !(snapshot.data instanceof Uint8Array)) throw Error('Invalid specimen snapshot schema/data');
+      if (snapshot.schema !== 2 || !(snapshot.data instanceof Uint8Array)) throw Error('Invalid specimen snapshot schema/data');
       const e = get();
       try {
         check(e.specimen_snapshot_alloc(snapshot.data.length));

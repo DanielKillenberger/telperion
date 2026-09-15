@@ -42,7 +42,7 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
   return {
     ...params.family.skeleton,
     seed: params.seed,
-    /* The four clump rows, onto the habit table the preset carried. The
+    /* The five clump rows, onto the habit table the preset carried. The
        rest of that table has no dial and travels through untouched, so
        this is a named override and not an assembled row. */
     habit: {
@@ -51,6 +51,7 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
       stemDivergence: params.stemDivergence,
       stemLean: params.stemLean,
       stemLeanSpread: params.stemLeanSpread,
+      stemForkHeight: params.stemForkHeight,
     },
     /* Every member of `Envelope`, named. Spreading the default and
        overriding three of them was fine while the other two were
@@ -223,6 +224,7 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     stemDivergence: preset.skeleton.habit.stemDivergence,
     stemLean: preset.skeleton.habit.stemLean,
     stemLeanSpread: preset.skeleton.habit.stemLeanSpread,
+    stemForkHeight: preset.skeleton.habit.stemForkHeight,
     crownBase: envelope.crownBase,
     fullness: envelope.fullness,
     shoulder: envelope.shoulder,

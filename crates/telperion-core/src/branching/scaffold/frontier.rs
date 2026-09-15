@@ -22,20 +22,8 @@ impl Frontier {
         config: &GrowthConfig,
         points: Vec<Vec3>,
     ) -> Self {
-        let top = super::stems::top(params, config);
-        // Every stem is an order-zero axis born at the root, with the leader's
-        // own length rule: the bole gates read order and not birth, so a stem
-        // is a trunk all the way down and never a lateral in the bole.
-        let queue = if params.envelope.height > 0.0 && top > 0.0 {
-            super::stems::stems(params)
-                .into_iter()
-                .map(|stem| Axis::new(0, stem.heading, top, 0, stem.key))
-                .collect()
-        } else {
-            VecDeque::new()
-        };
         Self {
-            queue,
+            queue: super::stems::axes(params, config),
             consumed: vec![None; points.len()],
             year: 0,
             visited: Vec::new(),

@@ -1,0 +1,37 @@
+{
+  "round": "20",
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-48.3 over round 15b: the silver birch states the fork height at half the bole again (stem_fork_height 0.5, the fork node at 0.96 m), and the fork is swept clean: the trunk run carries on into the upright stem and eases its girth into it over the fork's diameter, and the leaning stem leaves from a socket in its side; no other birch row changed. Matched stills at the 1440 rig, first fixed seed; pairs on disk under the ignored measure/pairs-fn48c/, recorded here by sha256",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn48c/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "bb8d132fdc12885c2d88492e35ce0d608b77351f5f662ae0b1e172b7df932e96",
+      "still_sha256": "1b512704aef5d0679ee41dd409e96c062df1621a61cd589a52aec574e7c31184",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn48c/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "ad30306fa9bc591f606f30208ad77c26416e1934223392f5f0e656d729ad5fbc",
+      "still_sha256": "fb450042d60ec976d718b6cca087639929bfe9a36735f54e25cfd8b11be676cd",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn48c/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "87888b4130d0aeadb312c7cf3ccf1fb44cce53edf95fc312e52882281a264f38",
+      "still_sha256": "8db863f101b6c16b54359dd3a44075d9f298eefc4404f3e4d1496e9355979192",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

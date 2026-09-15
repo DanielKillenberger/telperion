@@ -1,0 +1,37 @@
+{
+  "round": "15b",
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-48.2 over round 13: the silver birch's clump parts at half the bole (stem_fork_height 0.5, the fork node at 0.96 m) instead of at the ground, and its twig layer measures the stems above the fork; no other birch row changed. Matched stills at the 1440 rig, first fixed seed; pairs on disk under the ignored measure/pairs-fn48b/, recorded here by sha256",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn48b/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "3c980c827f7f96343f360a01b9abdb4bc8037d6d2fbd04ab64db7b6a64a5c84b",
+      "still_sha256": "ee36a706cc305588954360206bd4ee1844595feec69d8470efb6664bb3634c8e",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn48b/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "3483149a09e0719d357a314ef68c37681704a940884851986ef0895692a3bd50",
+      "still_sha256": "900ad63ae0103e75f14bf249475e00039e9d1977dd385676bf2170efaf61c606",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn48b/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "c77b92de9876f2b288610f79902883734f74984d8daddd7669793487f79773d1",
+      "still_sha256": "908504eaaf58ceb054ba50daa547b04021b40b165db7cdba53c4c9ecf79be2d6",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

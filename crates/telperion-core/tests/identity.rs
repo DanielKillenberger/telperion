@@ -143,6 +143,18 @@
 //! whole, so its strands no longer stop on one floor all round and draw a
 //! straight hem. The beech stays round 11's; the oak, the spruce and the Two
 //! Trees are byte-identical, and the element pin does not move.
+//! fn-48.3 re-pins the silver birch alone, once: its table is the first to
+//! state a clump's fork height, half the bole, so its leaning stem leaves the
+//! upright one a metre up instead of at the ground, toward S-BARE's single
+//! trunk, and the fork is swept clean, the trunk carrying on into the upright
+//! stem; its twig layer measures the stems above the fork, as it measured
+//! them at the ground. Every other table leaves the row at zero, which is
+//! fn-38's clump to the bit, and the element pin does not move.
+//! The merge of round 15 and fn-48.3 on fn-34's integration branch re-pins
+//! the silver birch once: its table now states round 15's thicker stems and
+//! shorter drop with fn-48.3's fork half the bole up, and neither branch's
+//! pin is that tree. The beech stays fn-50's; the oak, the spruce and the Two
+//! Trees are byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -219,13 +231,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 3391170,
-        wood_triangles: 6565960,
-        instances: 357366,
-        min: [-5.787066534377726, -0.12773793935775757, -7.454381042972171],
-        max: [7.146889255860452, 16.21749501078411, 6.084157129395324],
-        skeleton: 15532385167767384718,
-        placement: 13644789865468559051,
+        wood_vertices: 3769832,
+        wood_triangles: 7299400,
+        instances: 402702,
+        min: [-6.3495562107383, -0.07199999690055847, -7.554782867431641],
+        max: [7.237551856414349, 16.389118194580078, 6.1833086013793945],
+        skeleton: 7974363890308515130,
+        placement: 7911979241264204740,
         element: 1872173242819532549,
     },
 ];

@@ -54,6 +54,10 @@ pub struct HabitParams {
     /// their order instead, the first upright and the last by all of
     /// `stem_lean`. Inert at one stem, which has nothing to lean against.
     pub stem_lean_spread: f64,
+    /// Where a clump's later stems leave the first, as a share of the bole's
+    /// height, 0 to 0.5. None of it parts them at the ground; half of it parts
+    /// them halfway up the bole, with one trunk below. Inert at one stem.
+    pub stem_fork_height: f64,
 }
 impl Default for HabitParams {
     fn default() -> Self {
@@ -77,6 +81,7 @@ impl Default for HabitParams {
             stem_divergence: 0.0,
             stem_lean: 0.0,
             stem_lean_spread: 0.0,
+            stem_fork_height: 0.0,
         }
     }
 }
@@ -123,6 +128,10 @@ impl HabitParams {
                 "stem lean",
             ),
             (unit(self.stem_lean_spread), "stem lean spread"),
+            (
+                self.stem_fork_height.is_finite() && (0.0..=0.5).contains(&self.stem_fork_height),
+                "stem fork height",
+            ),
         ] {
             if !valid {
                 return Err(Error::InvalidInput(trait_name));
