@@ -122,6 +122,13 @@
 //! below the crown and the unequal clump together, and none of the three
 //! branches' pins is that tree. The beech stays round 11's; the oak, the
 //! spruce and the Two Trees are byte-identical.
+//! Round 15 re-pins the silver birch alone, once, on the owner's round-13
+//! notes: its trunk radius rises from a hundredth of the height to 0.014, so
+//! each of the two stems that share the root reads as thick as the S-WHOLE
+//! photograph's, and its curtain falls six tenths of the drop instead of the
+//! whole, so its strands no longer stop on one floor all round and draw a
+//! straight hem. The beech stays round 11's; the oak, the spruce and the Two
+//! Trees are byte-identical, and the element pin does not move.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -194,17 +201,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 3252148,
-        wood_triangles: 6297840,
-        instances: 347704,
-        min: [
-            -5.7573046295895525,
-            -0.09124138951301575,
-            -7.360618998118021,
-        ],
-        max: [6.938842348003344, 15.855665690841128, 6.0106340697342775],
-        skeleton: 12047311324025911776,
-        placement: 16356818654961001025,
+        wood_vertices: 3391170,
+        wood_triangles: 6565960,
+        instances: 357366,
+        min: [-5.787066534377726, -0.12773793935775757, -7.454381042972171],
+        max: [7.146889255860452, 16.21749501078411, 6.084157129395324],
+        skeleton: 15532385167767384718,
+        placement: 13644789865468559051,
         element: 1872173242819532549,
     },
 ];
