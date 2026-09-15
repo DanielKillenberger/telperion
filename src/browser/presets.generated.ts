@@ -848,7 +848,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.018,
         "leafFrontGreen": 0.105,
         "leafFrontRed": 0.022,
-        "leafSheen": 0.1,
+        "leafSheen": 0.08,
         "lightWrap": 0.4,
         "marginBlue": 0.008,
         "marginGreen": 0.04,

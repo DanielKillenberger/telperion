@@ -187,12 +187,13 @@ pub(super) fn beech() -> MaterialParams {
         // (Jacquemoud & Ustin 2019, Leaf Optical Properties), sky and sun
         // alike. The glossy cuticle's sheen sits above a smooth wax's 0.04:
         // B-WHOLE's brightest centre pixels are a pale, sky-lit green,
-        // 149/180/152, not sky. Set against B-WHOLE's centre, sRGB 71/94/74
-        // under overcast, where this row draws 63/85/67.
+        // 149/180/152, not sky; at 0.1 the whole crown greyed. Set against
+        // B-WHOLE's centre, sRGB 71/94/74 under overcast, where this row
+        // draws 61/84/65.
         canopy_normal: 0.8,
         light_wrap: 0.4,
         diffuse_transmission: 1.0,
-        leaf_sheen: 0.1,
+        leaf_sheen: 0.08,
     }
 }
 
