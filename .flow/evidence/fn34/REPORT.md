@@ -1032,3 +1032,154 @@ since fn-50, fn-51 and fn-52 start from this merge.
 No visual pass is awarded. The round-8c pairs are recorded by sha256 in
 `round8c-merge/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 11: the beech's leader (2026-09-15)
+
+The owner's round-5 notes on the beech were a tree "not structurally sound",
+"much more thick core trunks for almost the entire height", and "fewer larger
+branches". fn-45's last pass set apical dominance to 0.9 and reported a leader
+reaching nine tenths of the height. On the round-8c B-BARE pair, though, the
+host and the integration worker both saw the trunk divide at about a quarter
+of the height into five or six limbs of equal weight, opening into a round vase
+with no leader visible through the crown. This round measures that fault on
+the generated tree and moves the beech's value table alone.
+
+### The fault, measured
+
+A scratch reader over the solved tree followed the order-zero axis from the
+root and took three kinds of reading. The first is its radius where it
+crosses a height, set against the thickest other wood crossing the same
+height. The second is the first-order limbs born on it, with their station
+heights. The third is the top of each limb's own structural subtree. The
+reader is not committed. Round 8c's table, on seeds 1, 2 and 3:
+
+| Reading | Seed 1 | Seed 2 | Seed 3 |
+|---|---|---|---|
+| Leader / thickest limb at the first fork (2.2 m) | 0.410 / 0.184 m = 2.23 | 0.416 / 0.182 = 2.29 | 0.410 / 0.183 = 2.23 |
+| Leader / thickest other at a quarter | 0.328 / 0.162 = 2.02 | 0.331 / 0.166 = 2.00 | 0.330 / 0.164 = 2.01 |
+| Leader / thickest other at half | 0.176 / 0.123 = 1.43 | 0.177 / 0.126 = 1.41 | 0.179 / 0.123 = 1.46 |
+| Leader / thickest other at three quarters | 0.056 / 0.064 = 0.88 | 0.057 / 0.076 = 0.75 | 0.056 / 0.073 = 0.76 |
+| Limbs born below 30% of the height | 8 | 8 | 8 |
+| ... ending within 1 m of the leader's top | 8 | 6 | 6 |
+
+First-order stations stand 2.2 m apart from 2.2 m, two limbs to each, 22
+limbs in all, on every seed. The reason is in the pipe model. A leader is
+exactly as thick as what it carries, and a first-order limb runs straight to
+the shell. With three scaffold orders, its tips grow with the square of that
+run. At 48 degrees the limbs born at 2.2, 4.4 and 6.6 m ran 15.5 to 18.5 m,
+and their side branches climbed to 0.9 to 1.0 of the height. So the six
+thickest limbs on seed 1 were all born below a quarter of the height, at 0.16
+to 0.18 m radius. Each carried a share of the crown's top, and the leader
+shed that share at every station. Its radius fell from 0.33 m at a quarter to
+0.18 m at half and 0.056 m at three quarters. By half the height, 13 pieces of
+wood were more than half as thick as it, and eight low limbs rose beside it
+to the top. That is the vase the pair shows, even though the leader itself
+reaches nine tenths.
+
+### What moved
+
+Three rows moved:
+
+- The limbs leave at 65 degrees instead of 48, and still bend up over their
+  run at 0.45.
+- The side branches of a limb run half its length instead of three fifths.
+- The twig layer starts on wood under 0.17 of the trunk's radius instead of a
+  tenth (`skeleton.twigs.limbRadius`).
+
+A wider departure meets the shell sooner low on the bole, where the shell is
+narrow. The limbs from 2.2 to 6.6 m now run 7 to 14 m and end 7 to 16 m up.
+The heaviest limbs leave between a quarter and a half of the height. A
+shorter side branch cuts the quadratic share of a long limb most. Fewer,
+heavier scaffold tips then left most of the scaffold above a tenth of the
+trunk's radius, where no twig starts: seed 1 fell to 106,247 nodes and a
+sparse crown. The threshold row gives the twig layer that wood back.
+
+Seed 1, round 8c → round 11:
+
+| Reading | Round 8c | Round 11 |
+|---|---|---|
+| Leader / thickest limb at the first fork | 2.23 | 3.47 |
+| Leader / thickest other at a quarter | 2.02 | 2.29 |
+| Leader / thickest other at half | 1.43 | 1.76 |
+| Leader / thickest other at three quarters | 0.88 | 1.46 |
+| Leader radius at a quarter, half and three quarters (m) | 0.328 / 0.176 / 0.056 | 0.379 / 0.252 / 0.127 |
+| Wood above half the leader's radius, crossing half the height | 13 | 5 |
+| Low limbs ending within 1 m of the leader's top | 8 of 8 | 0 of 6 |
+| Wood height (m) | 31.6 | 28.8 |
+
+Seeds 2 and 3 read the same. Their ratios at the first fork are 3.10 and
+3.18, at half 1.95 and 1.98, and at three quarters 1.46 and 1.45. No low limb
+on either reaches within a metre of the leader's top. The station heights did
+not move, because the leader's internode is unchanged. What changed is how
+long and how heavy each limb is. The low-limb count fell from 8 to 6 only
+because the wood's height fell: the limbs no longer climb 3 m past the
+leader, so 30 per cent of that height sits below the 8.8 m station. The
+leaf-on height, which counts the leaves, stays at about 32 m.
+
+Rows tried and not kept:
+
+- Two scaffold orders instead of three, with apical dominance 0.95 and the
+  twig threshold at 0.3, gave the most dominant leader: 2.06 at half, with
+  0.25 m of radius there. The leaf-on crown then became a vase of fronds
+  along bare straight limbs, wide at the top, which is what this pass had to
+  keep out.
+- A lower primary rise, 0.2, lifted the ratio at half on seed 1 (1.43 to
+  1.75) but not on seeds 2 and 3.
+- A fork exponent of 2.0 lifted it to 1.60 but thinned the leader at half
+  to 0.136 m.
+- One limb a station at twice the rate left it at 1.44.
+- Limbs at 58 degrees under a narrower shell (spread 0.48) kept the leader
+  visible only to about two fifths of the height on the winter pair.
+
+The leader's girth is the pipe model's, which gives an axis the girth of
+what it carries. So a leader dominant through the crown needs limbs that
+carry less of it, and the departure angle is the row that controls that.
+
+Budget: all 48 protocol cases pass (`measure/protocol-round11/`). The
+heaviest beech seed is 199,787 nodes against the 250,000 ceiling (round 8c:
+197,872), the lightest is 150,802, and no seed is node-capped. The DBH proxy
+holds at 0.889 m. Leaf instances at the identity seed are 2,254,119 →
+1,942,005. The beech's identity pin and its neutral-sag pin are re-recorded
+once, with the reason. Every other table is byte-identical. Two tests needed
+a change of their own:
+
+- The reproducing beech in `surface_collapse` now states the twig-layer
+  threshold it was grown with.
+- The sweep walks `limbRadius`, now that a table moves it.
+
+Photograph / round 8c → round 11:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.73 → 0.73 | 0.25 / 0.29 → 0.24 | 0.28 / 0.49 → 0.43 | 100 / 121 → 124 | 0.29 / 0.09 → 0.07 |
+| B-BASE | 0.60 / 0.67 → 1.14 | 1.00 / 0.78 → 0.00 | 0.05 / 0.10 → 0.01 | 130 / 75 → 182 | — / 0.16 → — |
+| B-WHOLE | 0.70 / 0.74 → 0.74 | 0.12 / 0.09 → 0.09 | 0.46 / 0.58 → 0.65 | 80 / 45 → 35 | 0.23 / 0.08 → 0.07 |
+
+### What the worker read on the pairs
+
+- **B-BARE.** Yes: one trunk visibly runs up through the crown past half the
+  height. It is plainly the thickest axis to about a third, and still the
+  central, thicker axis to about three fifths, with limbs leaving it one or
+  two at a time along its length and rising. Against the photograph, three
+  things still differ:
+  - The lower limbs leave nearly level before they turn up, where the
+    photograph's rise from the start.
+  - The crown is a broad round head, where the photograph's is an upright
+    oval that narrows to the top.
+  - The column above the first limbs is slimmer and paler than the
+    photograph's heavy grey one.
+- **B-WHOLE.** A full rounded crown on a central trunk, with the leaf mass
+  reaching lower than round 8c's. It is neither an umbrella nor a vase. The
+  centre is darker, 35 against 80, because more leaves sit in the middle of
+  the box; that is fn-52's lighting. The feathery sprays are fn-50's.
+- **B-BASE.** The close-up frames sky and grass and no trunk. The matched
+  camera (`shot_pose` in `crates/telperion-render/src/camera.rs`) aims at the
+  centre of the tree's bounds in x and z. From 1.2 m away the frame spans
+  about ±0.33 m. Round 8c's crown put that centre 0.42 m off the trunk and
+  the bark was half in frame; this crown puts it 1.0 m off. The fault is in
+  the camera's aim, not in the tree, and it needs a renderer change: a
+  close-up aimed at the stem it names. That change is outside this pass.
+
+No visual pass is awarded. The round-11 pairs are recorded by sha256 in
+`round11-beech/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.

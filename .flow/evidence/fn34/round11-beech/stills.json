@@ -1,0 +1,37 @@
+{
+  "round": "11",
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-34 integration round 11, the beech alone: limbs leave at 65 degrees instead of 48, side branches half their limb's length instead of three fifths, the twig layer starting on wood under 0.17 of the trunk's radius instead of a tenth. Matched stills at the 1440 rig, first fixed seed; pairs on disk under the ignored measure/pairs-round11/, recorded here by sha256. The B-BASE close-up frames no trunk: the matched camera aims at the bounds' centre, which this crown puts 1.0 m off the trunk",
+  "pairs": [
+    {
+      "case": "european-beech-1-B",
+      "reference": "B-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round11/european-beech-1-B-BARE-pair.png",
+      "pair_sha256": "2650b0a37822d2cc104a826348a8d9763e7c518013d8de1130100262a90d0b4e",
+      "still_sha256": "02c4a43fa9cba3b05e36d8c5ef51b1bb9a802660b2b175eafa6118a90d2f9be7",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "european-beech-1-B",
+      "reference": "B-BASE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round11/european-beech-1-B-BASE-pair.png",
+      "pair_sha256": "95df3aae53b286a68eba70998e7228cec8ab1b2bb7d8c94ac82930bb3006d334",
+      "still_sha256": "4fd81627170c763725a3f1c80807b04f0776308836b3eb0c1f7ded19de2f3d49",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "european-beech-1-B",
+      "reference": "B-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-round11/european-beech-1-B-WHOLE-pair.png",
+      "pair_sha256": "6ca7539d7a20cb9ee6cb26acb691c0a751f81be2975bac0ca84fdeaae5195d55",
+      "still_sha256": "0cf53feb07e494a529b025dc0a3a0aafd6a9b1e18ea40c20efa851646defa83f",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}
