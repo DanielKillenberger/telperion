@@ -2,7 +2,7 @@
   "branch": "fn-31-round5-grok",
   "findings": {
     "backend": "interactive",
-    "headSha": "2f0151f001e171aa71a60e13b256acb5e1e3301b",
+    "headSha": "6cf65a38340908ead5ad0aba80fde282e1ec74ba",
     "items": [
       {
         "body": "lower and mid-crown first-order branches straight, +21 to +28 deg above horizontal at 36.9 and 65 y; owner: branches grow upwards (surface: crates/telperion-core/src/presets.rs (norway-spruce) / scaffold planning)",
@@ -10,7 +10,7 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
         "id": "finding-83703039982411cdeba45501180f2ed2",
-        "lastSeenReceiptId": "review-6b2f6c6b5534eff77d90794dcd33e608163304fe63e89f8cc504b07eaa55ca5b",
+        "lastSeenReceiptId": "review-12c2cbe41ad9ae7d553dd2d149ab1431c88a2d1fac81fbdf057c189231952735",
         "ordinal": 1,
         "rIds": [],
         "severity": "P1",
@@ -23,7 +23,7 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
         "id": "finding-657e27bce0fadd8cf3cbb1c154f192ed",
-        "lastSeenReceiptId": "review-6b2f6c6b5534eff77d90794dcd33e608163304fe63e89f8cc504b07eaa55ca5b",
+        "lastSeenReceiptId": "review-12c2cbe41ad9ae7d553dd2d149ab1431c88a2d1fac81fbdf057c189231952735",
         "ordinal": 3,
         "rIds": [],
         "severity": "P1",
@@ -36,7 +36,7 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
         "id": "finding-77fb6cc0e88a8995d1ffccbc41842d1e",
-        "lastSeenReceiptId": "review-6b2f6c6b5534eff77d90794dcd33e608163304fe63e89f8cc504b07eaa55ca5b",
+        "lastSeenReceiptId": "review-12c2cbe41ad9ae7d553dd2d149ab1431c88a2d1fac81fbdf057c189231952735",
         "ordinal": 4,
         "rIds": [],
         "severity": "P1",
@@ -49,7 +49,7 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-28009a3371af531dbc95719c85bb5f584e9b22859c342611498e59a41550330b",
         "id": "finding-dc64a73a418da21a9de0a20f386b7049",
-        "lastSeenReceiptId": "review-6b2f6c6b5534eff77d90794dcd33e608163304fe63e89f8cc504b07eaa55ca5b",
+        "lastSeenReceiptId": "review-12c2cbe41ad9ae7d553dd2d149ab1431c88a2d1fac81fbdf057c189231952735",
         "ordinal": 5,
         "rIds": [],
         "severity": "P1",
@@ -62,11 +62,11 @@
         "confidence": 100,
         "firstSeenReceiptId": "review-12c2cbe41ad9ae7d553dd2d149ab1431c88a2d1fac81fbdf057c189231952735",
         "id": "finding-49b77c7cf6e845e58be60580de76b46c",
-        "lastSeenReceiptId": "review-6b2f6c6b5534eff77d90794dcd33e608163304fe63e89f8cc504b07eaa55ca5b",
+        "lastSeenReceiptId": "review-12c2cbe41ad9ae7d553dd2d149ab1431c88a2d1fac81fbdf057c189231952735",
         "ordinal": 6,
         "rIds": [],
         "severity": "P1",
-        "status": "fixed",
+        "status": "open",
         "title": "F6 separate tuft above the 20-year oak crown"
       },
       {
@@ -75,34 +75,21 @@
         "confidence": 75,
         "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
         "id": "finding-9a1f0682a61d145d3a7d6829e3aa9361",
-        "lastSeenReceiptId": "review-6b2f6c6b5534eff77d90794dcd33e608163304fe63e89f8cc504b07eaa55ca5b",
+        "lastSeenReceiptId": "review-12c2cbe41ad9ae7d553dd2d149ab1431c88a2d1fac81fbdf057c189231952735",
         "ordinal": 2,
         "rIds": [],
         "severity": "P1",
         "status": "not_fixed",
         "title": "F2 spruce 14.1 y reads as a different gangly tree"
-      },
-      {
-        "body": "C-shaped flank at 20 and 22 y on seed 7 and a hole at 22 y on seed 42 under one reaching limb; gone by 26.7 y; the height-band no-gap check cannot see it (surface: crates/telperion-core/src/branching/scaffold/station.rs)",
-        "classification": "introduced",
-        "confidence": 75,
-        "firstSeenReceiptId": "review-6b2f6c6b5534eff77d90794dcd33e608163304fe63e89f8cc504b07eaa55ca5b",
-        "id": "finding-469a451876f487c18fca0edc1ae3cbae",
-        "lastSeenReceiptId": "review-6b2f6c6b5534eff77d90794dcd33e608163304fe63e89f8cc504b07eaa55ca5b",
-        "ordinal": 7,
-        "rIds": [],
-        "severity": "P2",
-        "status": "open",
-        "title": "F7 hollow in one side of the 20-to-22-year oak crown"
       }
     ],
     "reviewKind": "qa",
-    "round": 5,
+    "round": 4,
     "schemaVersion": 1,
-    "sourceReceiptId": "review-6b2f6c6b5534eff77d90794dcd33e608163304fe63e89f8cc504b07eaa55ca5b",
-    "supersedesReceiptId": "review-12c2cbe41ad9ae7d553dd2d149ab1431c88a2d1fac81fbdf057c189231952735"
+    "sourceReceiptId": "review-12c2cbe41ad9ae7d553dd2d149ab1431c88a2d1fac81fbdf057c189231952735",
+    "supersedesReceiptId": "review-8fb9017bcc47a4212c3b364758afadcb4b831c04d1559ea5f34b754c3e1c842b"
   },
-  "head_sha": "5ecf53d2cfa5643fd77c97ead9cad7469868d95b",
+  "head_sha": "014e35ef7ded647362626addeee486f422c85e69",
   "id": "fn-31-growth-rule-sapling-form-thickening-by",
   "mode": "interactive",
   "open_p0p1": [
@@ -112,6 +99,14 @@
       "file": "crates/telperion-core/src/radius (pipe split)",
       "id": "F3 ten-year oak stem flares into a bottle at the ground",
       "reason": "ground over breast-height radius 1.79, 1.89 and 1.89 on seeds 1, 7 and 42 against 1.6; blocked by the spec keeping the pipe fork split",
+      "severity": "P1"
+    },
+    {
+      "classification": "introduced",
+      "confidence": 100,
+      "file": "crates/telperion-core/src/branching/scaffold/station.rs",
+      "id": "F6 separate tuft above the 20-year oak crown",
+      "reason": "at 20 y on seeds 7 and 42 a tuft sits above an oval crown with a gap; the umbrella invariant checks only 24 to 30 y; crown widest reach jumps 0.77 to 1.04 of height in one year on seed 7",
       "severity": "P1"
     }
   ],
@@ -146,7 +141,7 @@
     ],
     "total": 6
   },
-  "timestamp": "2026-09-15T22:51:35Z",
+  "timestamp": "2026-09-15T21:29:09Z",
   "type": "qa_verdict",
   "verdict": "NEEDS_WORK"
 }

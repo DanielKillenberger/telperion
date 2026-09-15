@@ -487,3 +487,51 @@ tuft is joined into one crown; seeds 1 and 42 are not yet checked.
 
 The resume steps are in `.flow/tmp/fn-31-resume.md`: review round 12, re-run
 QA, update the page, then the owner's decisions and the merge.
+
+## Round 12 — NEEDS_HUMAN, 2026-09-16
+
+Claude Opus ran round 12 on the candidate branch: eight commits, `29e79462..5ecf53d2`
+from 014e35ef. The host reviewed the range:
+
+- The no-gap crown check keeps its measure and bound; its age range grows from
+  24–30 to 15–30 years.
+- A new width check limits how much the crown's width over height may change
+  in a year: at most 1.25, from 5 to 30 years. It was red first on round 11.
+- The rule fix gives a limb below the mature crown base a share of today's room
+  that grows as its station nears that base.
+- `growth.lowLimbStep` is a new trait, validated from 0 to 1 and 0.1 on every
+  preset, per CLAUDE.md's no-caps rule. A test confirms the rule reads it.
+- The oak pin moved once, after `round12/CONVERGENCE.md`. Every other preset is
+  byte-identical.
+- The worker also checked years 5 to 30 on 19 seeds, and every bound passes on
+  every one.
+- Young height: 2.5 to 3.45 m still breaks a ten-year shape bound on some seed.
+
+Gates: fmt, clippy, `npm test` (77 of 77) and typecheck are green.
+`cargo test --release --workspace` has 353 passed, 8 ignored and the one
+inherited red, the Ordinary clay look pin. Cost on a busy machine: oak 2,174
+to 2,289 ms at load 7.1 to 7.9, spruce 577 to 598 ms.
+
+Host live QA at 5ecf53d2, on the oak at 15, 20, 22 and 26.7 years across seeds
+1, 7 and 42:
+
+- **F6 fixed.** No tuft on any seed; every crown is joined.
+- **F7, new P2.** At 20 and 22 years, seed 7's crown has a hollow in its left
+  side under one reaching limb, and seed 42 a smaller one at 22 years. Both are
+  gone by 26.7 years.
+
+The QA receipt now records F1, F4, F5 and F6 as fixed; F3 (P1, blocked by the
+fork split) and the P2s F2 and F7 stay open.
+
+The worker also reported that the one-millimetre yearly segments on kept low
+limbs make round 11's ten-year oak dense. Blocking them for every limb restores
+round 8's sapling but breaks the steady-crown bound; nothing was changed.
+
+Owner decisions:
+
+1. R1 on the strips.
+2. The ten-year flare: accept it, or relax the fork split.
+3. Whether the sparse 14.1-year spruce and the flank hollow at 20 to 22 years
+   stand.
+4. On acceptance: re-record the clay pin, merge, delete the worktrees, run the
+   gates, and open the PR.
