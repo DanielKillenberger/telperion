@@ -155,7 +155,11 @@ pub(super) fn beech() -> MaterialParams {
         bark_red: 0.54,
         bark_green: 0.5,
         bark_blue: 0.44,
-        bark_roughness: 0.4,
+        // Rough, not glossy, in the oak's and the spruce's range after the
+        // owner read the close-ups as plastic. At B-BASE's own light the old
+        // 0.4 highlight was already all but unseen; 0.95 leaves a sheen of
+        // three code values, where 0.9 left five.
+        bark_roughness: 0.95,
         // Young shoots light olive- to grey-brown (VT Dendrology, Fagus
         // sylvatica: "slender, zigzag, light brown"; OSU: stems olive-brown),
         // grey by the second or third year. B-BARE's winter crown haze reads
@@ -254,7 +258,9 @@ pub(super) fn birch() -> MaterialParams {
         bark_red: 0.78,
         bark_green: 0.76,
         bark_blue: 0.7,
-        bark_roughness: 0.48,
+        // Rough, not glossy, in the oak's and the spruce's range after the
+        // owner read the close-ups as plastic.
+        bark_roughness: 0.95,
         // Young shoots dark red-brown, glossy, with pale resin warts; the
         // bark whitens only once it has thickened (VT Dendrology, Betula
         // pendula: twigs "slender, reddish brown"; bark "reddish brown ...
@@ -319,9 +325,9 @@ pub(super) fn birch() -> MaterialParams {
         margin_blue: 0.01,
         cuticle_gloss: 0.28,
         sky_occlusion_strength: 0.4,
-        // The plate network as peeling strips: 3.6 cm plates at the base's
+        // The plate network as peeling strips: 3 cm plates at the base's
         // girth, stretched across by the curl into bands three times wider.
-        plate_cell_scale: 0.12,
+        plate_cell_scale: 0.1,
         plate_elongation: 0.0,
         plate_dome: 0.3,
         plate_edge_lift: 0.3,
@@ -338,23 +344,23 @@ pub(super) fn birch() -> MaterialParams {
         directional_occlusion: 0.6,
         depth_strength: 0.4,
         // S-BARK: a chalk-white stem banded with dark lenticel dashes and a
-        // few black blotches over a dark base. The dark there is the strips
+        // few grey-black blotches over a dark base. The dark there is the strips
         // that have peeled: seven in ten at the flare, fewer as the wood
         // thins, each one whole, down to none where the relief ends.
         lichen_scale: 0.06,
         lichen_coverage: 0.12,
-        lichen_red: 0.07,
-        lichen_green: 0.07,
-        lichen_blue: 0.07,
+        lichen_red: 0.13,
+        lichen_green: 0.13,
+        lichen_blue: 0.13,
         lichen_strength: 0.75,
         lenticel_density: 18.0,
         lenticel_length: 0.06,
         lenticel_strength: 0.9,
         lenticel_tint: -0.9,
         peel_curl: 0.7,
-        peel_red: 0.1,
-        peel_green: 0.085,
-        peel_blue: 0.075,
+        peel_red: 0.16,
+        peel_green: 0.15,
+        peel_blue: 0.135,
     }
 }
 
