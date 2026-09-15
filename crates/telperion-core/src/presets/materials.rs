@@ -193,17 +193,21 @@ pub(super) fn birch() -> MaterialParams {
         shoot_green: 0.07,
         shoot_blue: 0.055,
         shoot_radius: 0.01,
-        leaf_front_red: 0.055,
-        leaf_front_green: 0.165,
-        leaf_front_blue: 0.035,
-        leaf_back_red: 0.18,
-        leaf_back_green: 0.27,
-        leaf_back_blue: 0.11,
+        // A light, yellow-green blade, paler beneath. S-WHOLE's crown reads
+        // R:G:B 1:1.38:0.79 linear in its middle band (sRGB 92/108/82); the
+        // older 0.055/0.165/0.035 drew that band at 1:1.93:0.79, a bluer and
+        // darker green, and the rows below draw it at 83/105/73.
+        leaf_front_red: 0.1,
+        leaf_front_green: 0.19,
+        leaf_front_blue: 0.06,
+        leaf_back_red: 0.2,
+        leaf_back_green: 0.28,
+        leaf_back_blue: 0.14,
         hue_range_low: -0.025,
         hue_range_high: 0.025,
         brightness_range_low: -0.12,
         brightness_range_high: 0.12,
-        interior_darkening: 0.4,
+        interior_darkening: 0.15,
         ridge_scale: 0.025,
         plate_scale: 0.05,
         furrow_strength: 0.25,
