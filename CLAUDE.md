@@ -46,6 +46,8 @@ fn-13 task 5 consumed a full weekly quota on 22 full-forest GPU captures and ima
 
 The mantra is "Minimalist af, efficient af and beautiful". Typed Rust and TypeScript only under `src` and `crates`; no untyped JavaScript in production. Readable line widths, functions that do one thing, files under about 400 lines. Nothing is copied from a prototype or experiment without a rewrite and a test. Presets are value tables; no species or template branch in generator or renderer.
 
+No hardcoded caps on generation (owner, 2026-09-15). A count or limit that changes what the generator grows is a configurable parameter with a validated range that presets author, never a constant hardcoded apart from those ranges. Tests assert form, not counts: no node, leaf or population ceiling gates a result. Where a tree needs more work, improve performance instead of capping it; build cost is measured and reported, not a gate on form.
+
 <!-- BEGIN FLOW-NEXT -->
 <!-- flow-next:snippet:v2 -->
 ## Flow-Next
