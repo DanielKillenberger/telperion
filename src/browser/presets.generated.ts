@@ -1109,7 +1109,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "riseSecondary": -0.85,
           "sheddingThreshold": 0,
           "stemDivergence": 0,
-          "stemForkHeight": 0.5,
+          "stemForkHeight": 0,
           "stemLean": 28,
           "stemLeanSpread": 1,
           "stems": 2,

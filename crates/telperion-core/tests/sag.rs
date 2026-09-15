@@ -43,14 +43,12 @@ const IDS: [&str; 7] = [
 /// more: its clump now leans unequally, one stem upright and one leaning out,
 /// which moves its tree with the row at any value, and the merge of all three
 /// on fn-34's integration branch records the tree that states them together.
-/// fn-48.2's birch parts its stems a metre up the bole, which moves its tree
-/// with the row at any value.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     2650342232535221885,
-    8528257405669288411,
+    16630700164697225430,
     12471405148157309180,
     14199367530911903060,
 ];
