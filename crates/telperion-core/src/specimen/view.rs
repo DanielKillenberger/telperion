@@ -66,19 +66,34 @@ impl SpecimenView {
         let tree = self.tree()?;
         let wood = surface::build(&tree, self.specimen.surface_height(), &self.family.surface)?;
         let element = foliage::build_element(self.family.element)?;
+        let placements = self.buffers.placements.values();
         let mut instances = foliage::Instances {
-            matrices: self
-                .buffers
-                .placements
-                .values()
-                .map(|p| p.transform)
-                .collect(),
+            matrices: placements.clone().map(|p| p.transform).collect(),
         };
         let envelope = self.specimen.envelope_at_age(self.age)?;
         // Short shoots are the wood's, not the record's: drawn from the wood
         // on screen by its identity, as a one-shot build of it would draw them.
         let f = &self.family;
-        foliage::place_short_shoots(&tree, envelope, f.skeleton.seed, f.canopy, &mut instances)?;
+        let seed = f.skeleton.seed;
+        if f.canopy.limb_clumping > 0.0 {
+            // Each recorded leaf is borne by the shoot its identity names.
+            let index: BTreeMap<_, _> = (0..tree.nodes.len())
+                .map(|i| (tree.nodes[i].identity, i as u32))
+                .collect();
+            let owners = placements
+                .map(|p| index.get(&p.identity.shoot).copied().unwrap_or(0))
+                .collect();
+            foliage::place_short_shoots_clumped(
+                &tree,
+                envelope,
+                seed,
+                f.canopy,
+                owners,
+                &mut instances,
+            )?;
+        } else {
+            foliage::place_short_shoots(&tree, envelope, seed, f.canopy, &mut instances)?;
+        }
         let instances = foliage::cull(&instances, &element, envelope, f.shell_depth)?;
         let bounds = mesh::union(wood.bounds, instances.bounds(&element)?.map(Into::into))
             .unwrap_or(surface::Bounds {

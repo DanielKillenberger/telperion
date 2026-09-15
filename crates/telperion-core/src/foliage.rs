@@ -1,5 +1,6 @@
 //! Owned leaf elements and placements. No wood mesh is needed by this module.
 use crate::math::Transcendental;
+mod clumping;
 mod element;
 mod levels;
 mod outline;
@@ -16,7 +17,8 @@ pub use element::{build_element, AnatomyGeometry, Element, ElementParams, Foliag
 pub use levels::Level;
 pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
 pub use short_shoots::{
-    place_short_shoots, short_shoots, ShortShoot, MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING,
+    place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot,
+    MAX_SHORT_SHOOT_LEAVES, SHORT_SHOOT_SPACING,
 };
 pub use timeline::{Placement, PlacementIdentity};
 

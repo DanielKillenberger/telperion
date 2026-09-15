@@ -19,6 +19,7 @@ it("carries every surface-detail control from the generated row through the pane
     "orientationStrength", "orientationRed", "orientationGreen", "orientationBlue",
     "directionalOcclusion", "depthStrength",
     "canopyNormal", "lightWrap", "diffuseTransmission", "leafSheen", "crownShade",
+    "lobeShade",
   ];
   for (const name of names) {
     expect(Object.keys(params.family.material)).toContain(name);

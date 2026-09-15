@@ -132,6 +132,11 @@ pub struct MaterialParams {
     /// sheen - so the underside of a crown falls into its own shade. Zero
     /// sees the sky through the mass.
     pub crown_shade: f64,
+    /// How much of the sky and of what passes through the blade a leaf loses
+    /// to the leaves of its own lobe standing over it, read from the crown's
+    /// own placements rather than from one smooth ellipsoid: a lobe's face is
+    /// lit and what hangs under it falls into its shade. Zero sees none of it.
+    pub lobe_shade: f64,
 }
 
 impl Default for MaterialParams {
@@ -210,6 +215,7 @@ impl Default for MaterialParams {
             diffuse_transmission: 0.0,
             leaf_sheen: 0.0,
             crown_shade: 0.0,
+            lobe_shade: 0.0,
         }
     }
 }
@@ -295,6 +301,7 @@ impl MaterialParams {
             ),
             (self.leaf_sheen, 0.0, 0.5, "leaf sheen"),
             (self.crown_shade, 0.0, 1.0, "leaf crown shade"),
+            (self.lobe_shade, 0.0, 1.0, "leaf lobe shade"),
             (self.ridge_scale, 0.0, 1.0, "bark ridge scale"),
             (self.plate_scale, 0.0, 1.0, "bark plate scale"),
             (self.furrow_strength, 0.0, 1.0, "bark furrow strength"),
@@ -377,7 +384,7 @@ mod tests {
         // field without a bound would fail the count below.
         // One field put off its range, and the name the refusal must carry.
         type Refusal = (fn(&mut MaterialParams), &'static str);
-        let refusals: [Refusal; 59] = [
+        let refusals: [Refusal; 60] = [
             (|m| m.plate_cell_scale = 2.0, "bark plate cell scale"),
             (|m| m.plate_furrow_width = 1.5, "bark plate furrow width"),
             (|m| m.plate_elongation = 17.0, "bark plate elongation"),
@@ -430,6 +437,7 @@ mod tests {
             ),
             (|m| m.leaf_sheen = 0.51, "leaf sheen"),
             (|m| m.crown_shade = 1.5, "leaf crown shade"),
+            (|m| m.lobe_shade = -0.1, "leaf lobe shade"),
             (|m| m.bark_red = 1.5, "bark red"),
             (|m| m.bark_green = -0.1, "bark green"),
             (|m| m.bark_blue = f64::NAN, "bark blue"),

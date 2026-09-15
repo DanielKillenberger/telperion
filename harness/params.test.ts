@@ -138,6 +138,8 @@ describe("carried native controls", () => {
       shortShootSpacing: 0, shortShootRadius: 0.15, shortShootLength: 0.04,
       shortShootLeaves: 3, shortShootSpread: 45,
     });
+    // So is the gap between limb systems, neutral at none.
+    expect(DEFAULT_PARAMS.family.canopy).toMatchObject({ limbClumping: 0 });
     expect(DEFAULT_PARAMS.family.element).not.toHaveProperty("anatomy");
     expect(DEFAULT_PARAMS.family.canopy).not.toHaveProperty("attachment");
     expect(SLIDERS.map(s => s.key)).not.toContain("family");

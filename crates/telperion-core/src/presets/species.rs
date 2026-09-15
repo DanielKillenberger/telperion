@@ -19,9 +19,9 @@ pub(super) fn european_beech(p: &mut Family) {
     // half of it and runs on toward the top, and limbs that leave it 25 to
     // 40 degrees from vertical and rise straight alongside it before they
     // spread; their side branches rise with them, so the fine wood is an
-    // upward broom and not a tangle. Stations 2.9 m apart from the crown's
-    // base put the first limbs at 5.8 m, two a station at 28 degrees, barely
-    // bending (0.1) and hardly crooked. The leader runs to four fifths of
+    // upward broom and not a tangle. Stations 2.6 m apart from a crown base
+    // of 3.8 m put the first limbs at 5.2 m, two a station at 28 degrees,
+    // barely bending (0.1) and hardly crooked. The leader runs to four fifths of
     // the height; limbs this steep carry less of the crown's top than
     // round 11's level ones did, so the core holds its girth without them
     // leaving at 65 degrees. Side branches run two thirds of their limb and
@@ -30,7 +30,7 @@ pub(super) fn european_beech(p: &mut Family) {
     p.skeleton.habit = HabitParams {
         apical_dominance: 0.8,
         whorl_strength: 0.15,
-        leader_internode: 2.9,
+        leader_internode: 2.6,
         laterals_per_station: 2,
         lateral_pitch: 28.0,
         pitch_variation: 6.0,
@@ -50,10 +50,10 @@ pub(super) fn european_beech(p: &mut Family) {
     };
     // An upright oval, widest a little below the middle of the crown and
     // rounding to its top (B-BARE: width over height about 0.74). The shell
-    // starts at 0.14 of the height, so no wood and no leaf stands under 4.5 m.
+    // starts at 0.12 of the height, so no wood and no leaf stands under 3.8 m.
     p.skeleton.envelope = Envelope {
         height: 32.0,
-        crown_base: 0.14,
+        crown_base: 0.12,
         spread: 0.36,
         fullness: 0.4,
         shoulder: 1.8,
@@ -115,18 +115,24 @@ pub(super) fn european_beech(p: &mut Family) {
     // Most of a beech's leaves stand in clusters all along its limbs and
     // deep inside the crown, on any wood under 0.7 of the trunk's radius,
     // which twig wood alone left bare. A cluster of eight leaves fanned a
-    // half circle every 4 cm, held 20 cm off the wood: longer than a spur,
+    // half circle every 3 cm, held 20 cm off the wood: longer than a spur,
     // it stands where a leafy side shoot holds its leaves, so each limb
     // wears a sleeve of rosettes. Five leaves every 2.5 cm, 5 cm off, lined
     // every shoot with a comb of level leaves, and the crown's edge read as
     // fern fronds against the sky (host, round 17). They stand where the
     // slender wood's own row of leaves stood, so that row is off.
     p.canopy.shoot_radius = 0.0;
-    p.canopy.short_shoot_spacing = 0.04;
+    p.canopy.short_shoot_spacing = 0.03;
     p.canopy.short_shoot_radius = 0.7;
     p.canopy.short_shoot_length = 0.2;
     p.canopy.short_shoot_leaves = 8;
     p.canopy.short_shoot_spread = 90.0;
+    // Each limb system keeps a leaf mass of its own (fn-54): the leaves are
+    // thinned within a quarter of the way from the wall between two
+    // systems to their centres, so the crown breaks into rounded clumps
+    // with gaps between them, as B-WHOLE's does; the spurs stand a
+    // centimetre closer than round 18's to give back what the gaps take.
+    p.canopy.limb_clumping = 0.25;
     // A beech leaf is held flat and turned every way about its shoot;
     // leaning along it (0.45) laid the leaves down the twig like needles.
     // Scattered 80 degrees rather than 45, fewer lie edge-on to an eye

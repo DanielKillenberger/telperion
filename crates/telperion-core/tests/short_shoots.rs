@@ -25,6 +25,8 @@ fn beech(seed: u32) -> Family {
         short_shoot_length: 0.04,
         short_shoot_leaves: 5,
         short_shoot_spread: 70.0,
+        // No gap between limb systems: every leaf a short shoot hangs stays.
+        limb_clumping: 0.0,
         ..f.canopy
     };
     f

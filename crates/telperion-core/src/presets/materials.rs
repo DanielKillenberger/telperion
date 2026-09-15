@@ -75,6 +75,7 @@ pub(super) fn oak() -> MaterialParams {
         diffuse_transmission: 0.0,
         leaf_sheen: 0.0,
         crown_shade: 0.0,
+        lobe_shade: 0.0,
     }
 }
 
@@ -152,6 +153,7 @@ pub(super) fn spruce() -> MaterialParams {
         diffuse_transmission: 0.0,
         leaf_sheen: 0.0,
         crown_shade: 0.0,
+        lobe_shade: 0.0,
     }
 }
 
@@ -218,7 +220,10 @@ pub(super) fn beech() -> MaterialParams {
         margin_red: 0.02,
         margin_green: 0.04,
         margin_blue: 0.008,
-        cuticle_gloss: 0.48,
+        // A matte cuticle's glint: at 0.48, the glossiest leaf in the
+        // catalogue, the sun's white highlight read as plastic (owner,
+        // fn-54); the oak's is 0.35 and the birch's 0.28.
+        cuticle_gloss: 0.18,
         sky_occlusion_strength: 0.35,
         // fn-32's plate network is not stated for this table yet: every
         // plate row stands at its neutral, which is the bark it drew before
@@ -260,6 +265,12 @@ pub(super) fn beech() -> MaterialParams {
         // shoots' denser mass, 0.1 lifts the centre by two and a half points
         // over 0.15 and still falls from 126 at the top sixth to 76.
         crown_shade: 0.1,
+        // Each clump of leaves takes the sky from what hangs under it (fn-54):
+        // B-WHOLE's crown reads as lit billows with shade pockets under and
+        // between them, which one smooth ellipsoid cannot draw. The whole of
+        // the row, so a leaf under a full clump sees none of the sky its
+        // own mass holds off.
+        lobe_shade: 1.0,
     }
 }
 
@@ -360,6 +371,7 @@ pub(super) fn birch() -> MaterialParams {
         // S-WHOLE's crown falls from 153 at the top sixth to 38 at the
         // bottom; 0.2 a radius draws 156 to 45.
         crown_shade: 0.2,
+        lobe_shade: 0.0,
     }
 }
 

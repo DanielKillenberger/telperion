@@ -215,6 +215,9 @@ fn the_reproducing_beech_builds_and_drops_two_triangles() {
     let mut f = Preset::EuropeanBeech.parameters();
     let h = &mut f.skeleton.habit;
     h.apical_dominance = 0.58;
+    h.leader_internode = 2.2;
+    h.pitch_variation = 10.0;
+    h.crookedness = 6.0;
     h.rise_primary = 0.3;
     h.laterals_per_station = 2;
     h.lateral_pitch = 58.0;
@@ -222,6 +225,7 @@ fn the_reproducing_beech_builds_and_drops_two_triangles() {
     h.lateral_spacing = 2.2;
     h.lateral_length_ratio = 0.6;
     f.skeleton.envelope.crown_base = 0.05;
+    f.skeleton.envelope.spread = 0.52;
     f.skeleton.envelope.fullness = 0.48;
     f.skeleton.envelope.shoulder = 1.5;
     f.skeleton.twigs.generations = telperion_core::twigs::MAX_GENERATIONS;
@@ -230,6 +234,7 @@ fn the_reproducing_beech_builds_and_drops_two_triangles() {
     f.skeleton.twigs.length_ratio = 0.36;
     f.skeleton.twigs.angle = 32.0;
     f.skeleton.twigs.divergence = 180.0;
+    f.radii.trunk_radius = 0.014;
     f.radii.length_taper = 0.2;
     f.radii.fork_exponent = 2.6;
     f.skeleton.seed = 266;

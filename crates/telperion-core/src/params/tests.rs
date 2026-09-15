@@ -131,6 +131,8 @@ fn catalogue_roundtrips_all_controls_and_identities() {
             ("shortShootLength", json!(0.02)),
             ("shortShootLeaves", json!(5)),
             ("shortShootSpread", json!(60.0)),
+            // So is the gap between limb systems, neutral at none.
+            ("limbClumping", json!(0.4)),
         ] {
             value["canopy"][trait_name] = set;
             assert_eq!(value, metadata(&parse(&value).unwrap()));
@@ -159,6 +161,8 @@ fn catalogue_roundtrips_all_controls_and_identities() {
         ("shortShootLength", json!(0.6), "short shoot length"),
         ("shortShootLeaves", json!(9), "short shoot leaves"),
         ("shortShootSpread", json!(95.0), "short shoot spread"),
+        ("limbClumping", json!(1.5), "limb clumping"),
+        ("limbClumping", json!(-0.1), "limb clumping"),
     ] {
         let mut value = metadata(&preset(0).unwrap());
         value["canopy"][trait_name] = bad;
