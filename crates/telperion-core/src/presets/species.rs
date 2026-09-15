@@ -14,41 +14,25 @@ pub(super) fn european_beech(p: &mut Family) {
     // Mature open-grown Fagus sylvatica. Envelope height is the 32 m
     // reference at 120 yr; oak growth traits, not a beech calibration.
     oak_growth(p, 120.0);
-    // beech's crown is dense and the cap is a value like any other.
-    // Round 5b, the owner on the round-5 pairs: "clearly not structurally
-    // sound. The reference grows relatively straight up and out. Our
-    // generation bends too much." The winter photograph's trunk runs up
-    // through the crown and its limbs leave it steeply and keep rising;
-    // ours split low and arced out nearly flat. So the leader keeps its
-    // dominance, the limbs leave at 38 degrees and rise, and the axes are
-    // barely crooked.
+    // Round 6c, read against the leaf-on photograph: one dense oval leafed
+    // nearly to the ground on a central leader, limbs leaving it along the
+    // whole height. Ours was a vase of seven co-dominant stems at a third
+    // of the height under a flat umbrella of leaves. The limbs leave at 58
+    // degrees, not 32, so a low limb ends in the low crown instead of
+    // climbing beside the leader to the top; its side branches are held
+    // out nearly level rather than hanging; and two limbs a station, 2.2 m
+    // apart, keep them few. Apical dominance stays under 0.59 by the host's
+    // rule, which is what ends the leader at three fifths of the height.
     p.skeleton.habit = HabitParams {
-        // Round 6: with two limbs a station the leader was one of four
-        // co-dominant axes by mid-crown, and the core thinned where the
-        // photograph's is still thick. At 0.57 - the side of the bound a
-        // broadleaf stays on - the leader runs to 96 per cent of the height
-        // and carries half again the radius at three fifths of it. Above it,
-        // at 0.59, two of the protocol's own seeds collapse a wood triangle
-        // in float32 when the surface is built.
-        apical_dominance: 0.57,
+        apical_dominance: 0.58,
         whorl_strength: 0.15,
         leader_internode: 2.2,
         laterals_per_station: 2,
-        // Round 6b, on the photograph: its limbs leave the trunk steeply and
-        // every order of them keeps rising. Ours left at 42 degrees and the
-        // second order did not rise at all, so the lowest limbs swept out and
-        // down. At 32 degrees with a rising second order the low limbs climb
-        // through the crown instead of around its outside, which is also what
-        // carries twigs into the crown's interior.
-        lateral_pitch: 32.0,
+        lateral_pitch: 58.0,
         pitch_variation: 10.0,
         rise_primary: 0.3,
-        rise_secondary: 0.4,
+        rise_secondary: 0.1,
         crookedness: 6.0,
-        // Round 6, the owner on the 5c winter pair: "Fewer larger branches
-        // compared to ours which has many more thinner ones directly attached
-        // to the trunk." Half as many limbs a station, a station further
-        // apart, and each limb more than half its parent's length.
         lateral_spacing: 2.2,
         lateral_length_ratio: 0.6,
         lateral_orders: 3,
@@ -56,47 +40,43 @@ pub(super) fn european_beech(p: &mut Family) {
         twig_tip_taper: 0.25,
         shedding_threshold: 0.0,
     };
+    // The crown starts low, is widest a little under half its depth and
+    // rounds off at the top rather than squaring into a shoulder.
     p.skeleton.envelope = Envelope {
         height: 32.0,
-        crown_base: 0.12,
+        crown_base: 0.05,
         spread: 0.52,
-        shoulder: 1.8,
-        // Round 6b: the crown read as a broad fan widest high. The widest
-        // point moves down the crown's own depth to the photograph's.
-        fullness: 0.55,
+        fullness: 0.48,
+        shoulder: 1.5,
         // A beech's crown is lumpy where its limbs end and hollow where they
-        // do not, and the round-3 pair read as an oval against it. Four or
-        // five broad lobes around a wavelength most of the tree's own height,
-        // at not quite a fifth of the radius.
+        // do not. Four or five broad lobes around a wavelength most of the
+        // tree's own height, at not quite a fifth of the radius.
         irregularity: 0.18,
         lobe_scale: 0.7,
     };
     p.skeleton.bias = BiasParams::NONE;
-    // Round 6, fn-45. Two rows buy the girth the owner asked for. The twig
-    // law is two generations deep and says so: a lateral born at generation
-    // two is a twig whatever the pipe model left its radius, so the depth no
-    // longer follows the wood. And three laterals a station instead of five
-    // is where the budget for a Murray's-law core comes from - the beech
-    // trades twig density for girth, which is what the photograph shows.
+    // The twig law is two generations deep and says so: a lateral born at
+    // generation two is a twig whatever the pipe model left its radius.
     p.skeleton.twigs.generations = 2;
-    p.skeleton.twigs.laterals = 3;
-    p.skeleton.twigs.length_ratio = 0.40;
-    // Round 6b: a local shoot left its limb at 45 degrees, which on a limb
-    // rising at 60 put the shoot itself near horizontal. At 32 it follows the
-    // limb up.
+    p.skeleton.twigs.laterals = 4;
+    // Four twig laterals a station fill the crown; a twig a shade shorter
+    // pays for them, so the heaviest protocol seed keeps a sixth of the
+    // ceiling in hand.
+    p.skeleton.twigs.length_ratio = 0.36;
+    // A local shoot follows its limb rather than standing off it at 45,
+    // and its own shoots are two-ranked: a beech's spray is flat, where one
+    // turned by the golden angle read as a bottlebrush frond.
     p.skeleton.twigs.angle = 32.0;
+    p.skeleton.twigs.divergence = 180.0;
     p.skeleton.twigs.twig.bearing_diameter = 0.03;
     p.radii.trunk_radius = 0.014;
-    // Round 5c, the owner: "much more thick core trunks for almost the
-    // entire height of the tree. Our tree thins out too quickly." The beech
-    // sheds two thirds of the default taper per metre, which is what keeps
-    // the core traceable into the top fifth of the tree.
+    // Two thirds of the default taper per metre, and a fork exponent of
+    // 2.6: a parent's radius is the n-th root of the sum of its children's
+    // n-th powers, so a higher n lets the leader keep its girth. At 2.8 the
+    // wood sat on a cliff - a few degrees of limb angle collapsed the local
+    // layer to a third of its nodes - and 2.6 keeps the core off it.
     p.radii.length_taper = 0.2;
-    // Round 6: a parent's radius is the n-th root of the sum of its
-    // children's n-th powers, so a higher n lets the leader keep the girth
-    // its branches take. Near Murray's 3 the core runs thick up through the
-    // crown. It costs nodes, and the twig laterals above pay for them.
-    p.radii.fork_exponent = 2.8;
+    p.radii.fork_exponent = 2.6;
     // A beech stands on a modest flare, not the oak's buttress.
     p.surface.flare_radius = 1.5;
     p.element = ElementParams {
@@ -113,17 +93,23 @@ pub(super) fn european_beech(p: &mut Family) {
         ..Default::default()
     };
     p.shell_depth = 1.0;
-    // Round 6b: leaves follow twig wood one for one, and twig wood grows
-    // only from scaffold tips and from wood under `limb_radius` of the
-    // trunk's, so the leaf mass was a shell over a bare vase. Clothing every
-    // shoot under a twentieth of the trunk's radius leafs the crown's inside
-    // without growing a node for it - twice the leaves at the same wood.
+    // Leaves follow twig wood one for one; clothing every shoot under a
+    // twentieth of the trunk's radius leafs the crown's inside without
+    // growing a node for it.
     p.canopy.shoot_radius = 0.05;
-    p.canopy.forward_lean = 0.2;
+    // A beech leaf leans forward along its shoot and its blade is held
+    // flat, and it is large against the spacing of its shoots. Standing
+    // straight out on both sides of a two-ranked shoot, as at a lean of
+    // 0.2, every spray read as a fern's comb of pinnae.
+    p.canopy.forward_lean = 0.45;
     p.canopy.outward = 0.0;
-    p.canopy.upward = 0.0;
+    p.canopy.upward = 0.3;
+    // A tenth larger with less spread, so the largest leaf stays inside
+    // the sourced 4 to 10 cm.
+    p.canopy.size = 1.1;
     p.canopy.divergence = 180.0;
-    p.canopy.size_variation = 0.2;
+    p.canopy.scatter = 30.0;
+    p.canopy.size_variation = 0.12;
     p.material = materials::beech();
 }
 

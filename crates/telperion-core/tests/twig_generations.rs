@@ -179,35 +179,43 @@ fn the_neutral_reaches_no_shipped_preset() {
 }
 
 #[test]
-fn the_beechs_stated_depth_binds_its_own_radii() {
-    // The beech is the table the row was added for: its wood would branch a
-    // generation deeper than it wants, and the row - not the pipe model - is
-    // what stops it.
+fn the_beech_stays_at_its_stated_depth_whatever_its_radii() {
+    // The beech is the table the row was added for. On its shipped rows its
+    // radii happen to stop at the depth it states; thin the twig and bearing
+    // thresholds so they would not, and the row - not the pipe model - holds
+    // it there.
     let shipped = family("european-beech", 7);
     assert_eq!(
         shipped.skeleton.twigs.generations, 2,
         "the beech stopped stating its depth"
     );
-    let tree = grow(&shipped);
-    let gen = generations(&tree);
-    assert_eq!(
-        gen.iter().copied().max(),
-        Some(2),
-        "the beech grew past its own row"
-    );
-    for (i, node) in tree.nodes.iter().enumerate() {
-        assert!(
-            gen[i] < 2 || node.kind == NodeKind::Twig,
-            "node {i} is still branching at the beech's stated depth"
+    let mut fine = shipped.clone();
+    fine.skeleton.twigs.twig.diameter = 1e-4;
+    fine.skeleton.twigs.twig.bearing_diameter = 1e-4;
+    for (label, f) in [("shipped", shipped), ("fine twigs", fine)] {
+        let tree = grow(&f);
+        let gen = generations(&tree);
+        assert_eq!(
+            gen.iter().copied().max(),
+            Some(2),
+            "{label}: the beech grew past its row"
         );
+        for (i, node) in tree.nodes.iter().enumerate() {
+            assert!(
+                gen[i] < 2 || node.kind == NodeKind::Twig,
+                "{label}: node {i} is still branching at the beech's stated depth"
+            );
+        }
+        let mut free = f.clone();
+        free.skeleton.twigs.generations = MAX_GENERATIONS;
+        let deepest = generations(&grow(&free)).into_iter().max().unwrap_or(0);
+        if label == "fine twigs" {
+            assert!(
+                deepest > 2,
+                "fine twigs stop at {deepest} generations on their own"
+            );
+        }
     }
-    let mut free = shipped.clone();
-    free.skeleton.twigs.generations = MAX_GENERATIONS;
-    let deepest = generations(&grow(&free)).into_iter().max().unwrap_or(0);
-    assert!(
-        deepest > 2,
-        "the beech's radii stop at {deepest} generations on their own, so the row is inert"
-    );
 }
 
 #[test]

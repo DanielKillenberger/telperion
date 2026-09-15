@@ -46,7 +46,14 @@
 //! local shoots follow their limb up at 32 degrees instead of standing off it
 //! at 45, the crown's widest point moves down its own depth, the per-metre
 //! taper halves again, and every shoot under a twentieth of the trunk's
-//! radius carries leaves, which doubles the leaf count without a node. The oak, the
+//! radius carries leaves, which doubles the leaf count without a node.
+//! Round 6c reads the leaf-on pair: the crown was a vase of co-dominant
+//! stems under a flat umbrella of leaves. The limbs leave at 58 degrees and
+//! their side branches are held level, the crown starts at a twentieth of the
+//! height and rounds at the top, the fork exponent comes down to 2.6 off the
+//! cliff 2.8 sat on, four twig laterals a station fill the crown and a twig a
+//! shade shorter pays for them, a local shoot's own shoots are two-ranked,
+//! and the leaves lean along their shoots, lie flat and are a tenth larger. The oak, the
 //! spruce, the birch and the Two Trees are byte-identical: the generation row
 //! sits at the top of its rail on every other table, which reaches nothing.
 //! No device is needed; this is the core's own arithmetic.
@@ -110,13 +117,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 6399142,
-        wood_triangles: 12415480,
-        instances: 2495440,
-        min: [-16.59879256726196, -0.12800000607967377, -13.05251121622505],
-        max: [15.962544253799265, 32.048945753042894, 9.429980261274304],
-        skeleton: 10376235126903465523,
-        placement: 5545871911082763040,
+        wood_vertices: 5251044,
+        wood_triangles: 10176480,
+        instances: 2106977,
+        min: [
+            -16.327082392258934,
+            -0.12800000607967377,
+            -15.46583579437701,
+        ],
+        max: [16.9698603285396, 31.71231641260803, 15.460026573076002],
+        skeleton: 7890291168547906776,
+        placement: 15585212279580184080,
         element: 15097586524950800877,
     },
     Pin {

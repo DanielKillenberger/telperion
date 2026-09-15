@@ -731,17 +731,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clump": 5,
         "clumpSpan": 0.3,
         "divergence": 180,
-        "forwardLean": 0.2,
+        "forwardLean": 0.45,
         "leanRise": 0,
         "maxInstances": 4294967295,
         "outward": 0,
-        "scatter": 18,
+        "scatter": 30,
         "shootRadius": 0.05,
-        "size": 1,
-        "sizeVariation": 0.2,
+        "size": 1.1,
+        "sizeVariation": 0.12,
         "spacing": 0.006,
         "surfaceContact": 0,
-        "upward": 0
+        "upward": 0.3
       },
       "element": {
         "axialSegments": 8,
@@ -815,7 +815,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "veinScale": 7
       },
       "radii": {
-        "forkExponent": 2.8,
+        "forkExponent": 2.6,
         "lengthTaper": 0.2,
         "trunkRadius": 0.014
       },
@@ -833,30 +833,30 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "envelope": {
-          "crownBase": 0.12,
-          "fullness": 0.55,
+          "crownBase": 0.05,
+          "fullness": 0.48,
           "height": 32,
           "irregularity": 0.18,
           "lobeScale": 0.7,
-          "shoulder": 1.8,
+          "shoulder": 1.5,
           "spread": 0.52
         },
         "growth": {
           "maxTurnPerStep": 35
         },
         "habit": {
-          "apicalDominance": 0.57,
+          "apicalDominance": 0.58,
           "attractorWeight": 0,
           "crookedness": 6,
           "lateralLengthRatio": 0.6,
           "lateralOrders": 3,
-          "lateralPitch": 32,
+          "lateralPitch": 58,
           "lateralSpacing": 2.2,
           "lateralsPerStation": 2,
           "leaderInternode": 2.2,
           "pitchVariation": 10,
           "risePrimary": 0.3,
-          "riseSecondary": 0.4,
+          "riseSecondary": 0.1,
           "sheddingThreshold": 0,
           "twigTipTaper": 0.25,
           "whorlStrength": 0.15
@@ -867,12 +867,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angle": 32,
           "angleVariation": 10,
           "curtainSeparation": 4,
-          "divergence": 137.508,
+          "divergence": 180,
           "generations": 2,
           "hang": 0,
           "internodeFactor": 2.5,
-          "laterals": 3,
-          "lengthRatio": 0.4,
+          "laterals": 4,
+          "lengthRatio": 0.36,
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,

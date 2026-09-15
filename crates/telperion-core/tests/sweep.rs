@@ -67,9 +67,9 @@ const BANDS: [(&str, usize, usize); 7] = [
 // fn-45 makes the twig layer's depth a row. The beech states two generations
 // and every other table leaves it at the top of its rail, so the sweep walks
 // it and it is not held here.
-// Round 6b gives the beech its own local departure angle, so the twig angle
-// leaves this list too.
-const HELD: [&str; 29] = [
+// Round 6b gives the beech its own local departure angle, and round 6c its
+// own two-ranked local divergence, so both leave this list.
+const HELD: [&str; 28] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
@@ -87,7 +87,6 @@ const HELD: [&str; 29] = [
     "/skeleton/seed",
     "/skeleton/step",
     "/skeleton/twigs/angleVariation",
-    "/skeleton/twigs/divergence",
     "/skeleton/twigs/limbRadius",
     "/skeleton/twigs/pendulousRadius",
     "/skeleton/twigs/ratioPower",

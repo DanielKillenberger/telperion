@@ -1,15 +1,15 @@
 {
   "round": "6-fn45",
   "rendered_at": "2026-09-15",
-  "commit_note": "fn-45 round 6: the twig layer states its depth (skeleton.twigs.generations) and the beech spends the freed budget on girth and on the photograph's architecture - fork exponent 2.8, per-metre taper 0.2, three twig laterals a station, apical dominance 0.57, limbs at 32 degrees with a rising second order, local shoots at 32 degrees, crown widest at 0.55 of its depth, and every shoot under a twentieth of the trunk's radius leafed; matched stills rendered at 1440 tall and paired at 720; pairs on disk under the ignored measure/pairs-fn45/, recorded here by sha256",
+  "commit_note": "fn-45 round 6c: the twig layer states its depth (skeleton.twigs.generations); the beech read against the leaf-on pair - limbs at 58 degrees with level side branches and apical dominance 0.58, crown base 0.05, widest at 0.48 of its depth with a round top, fork exponent 2.6 and taper 0.2, four twig laterals at length ratio 0.36, two-ranked local shoots, shoots under a twentieth of the trunk's radius leafed, leaves leaning along their shoots, lying flat and a tenth larger; matched stills rendered at 1440 tall and paired at 720; pairs on disk under the ignored measure/pairs-fn45/, recorded here by sha256",
   "pairs": [
     {
       "case": "european-beech-1-B",
       "reference": "B-BARE",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn45/european-beech-1-B-BARE-pair.png",
-      "pair_sha256": "e19849ba67d3712296da24f95226ad6174216190213bb2259618ebf71fdf16c1",
-      "still_sha256": "18659d4e1d9e7c832f40668e7ea4de9c1f89f11173ec6a4e17dec849b5310583",
+      "pair_sha256": "7986c557be24cdd463a7071057531d356c562d8250941f20a0800503a0fbe4d9",
+      "still_sha256": "595bbe83448125d41d84260a968b52dbdad8cb3cdf6ca13d77c56aa320482c52",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -18,8 +18,8 @@
       "reference": "B-BASE",
       "foliage": "hidden",
       "pair": ".flow/evidence/fn34/measure/pairs-fn45/european-beech-1-B-BASE-pair.png",
-      "pair_sha256": "98a783b88b2d8bc339ecb1079345f94fc85f3db18cfcf51ea7878fa9e1a06e90",
-      "still_sha256": "b8063a33138f0daca77710a0764044baf0432463b43755a84ba3b3cfe988e902",
+      "pair_sha256": "fdf25883a7d9c2fc42478351f0394a3d7e5e1aee49a9356f9d9636f034a1deb5",
+      "still_sha256": "98ce6e3b99e5d02a60f43e8ef32687af62eff18f399951608e49ef5c185cb8d1",
       "visual_status": "unassessed",
       "owner_feedback": null
     },
@@ -28,8 +28,8 @@
       "reference": "B-WHOLE",
       "foliage": "leaf-on",
       "pair": ".flow/evidence/fn34/measure/pairs-fn45/european-beech-1-B-WHOLE-pair.png",
-      "pair_sha256": "a9991a19a006487e51500f2d5ff31ab5a12f6d470a1d3defea4ac15c1df9c036",
-      "still_sha256": "9212c3ea17591fe2055d2872bf1fb526020a78ed626fd539be3a0cfee68cf838",
+      "pair_sha256": "2394cf45f375111f4c69a18ea6cb6af8dfdc325f277f0635c81b0b2716a82cc2",
+      "still_sha256": "6bf8b322141332637985ffac863d8f47a2e2a23b1368f716a654a7f11f5b4c28",
       "visual_status": "unassessed",
       "owner_feedback": null
     }
