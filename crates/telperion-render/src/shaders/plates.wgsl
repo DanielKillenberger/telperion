@@ -25,7 +25,8 @@ const SMOOTH_BARK: bool = true;
 // trunk, so an elongated plate is one whose sites stand further apart
 // axially - and the axial offset is scaled back by the same elongation
 // before any distance is taken, which keeps a wall the same width in metres
-// whichever way it runs.
+// whichever way it runs. A peeling strip is stretched across the wood the
+// same way, so `stretch` carries both: across, across and along.
 //
 // What it returns for a point: its distance to the nearer boundary in plate
 // widths, its site's seed, how far along the run it stands from that site,
@@ -37,7 +38,7 @@ struct BarkCell {
     next: vec3<f32>,
 };
 
-fn bark_network(p: vec3<f32>, elongated: f32) -> BarkCell {
+fn bark_network(p: vec3<f32>, stretch: vec3<f32>) -> BarkCell {
     let base = floor(p);
     var first = 64.0;
     var second = 64.0;
@@ -56,7 +57,7 @@ fn bark_network(p: vec3<f32>, elongated: f32) -> BarkCell {
                 // Cells of one size are a wall. A weight per site is what
                 // makes one plate broad and its neighbour narrow off one row.
                 let weight = mix(0.72, 1.28, fract(a * 17.3 + b * 31.1));
-                let offset = (id + 0.15 + 0.7 * jitter - p) * vec3(1.0, 1.0, elongated);
+                let offset = (id + 0.15 + 0.7 * jitter - p) * stretch;
                 let distance = length(offset) / weight;
                 if (distance < first) {
                     second = first;
@@ -77,7 +78,7 @@ fn bark_network(p: vec3<f32>, elongated: f32) -> BarkCell {
     // kept too, for a colour that has to change across it; its seed is read
     // only where that colour is, so the loop the relief pays for is unchanged.
     return BarkCell(0.5 * (second - first) / max(length(next - nearest), 0.001), seed,
-        nearest.z / max(elongated, 0.001), next);
+        nearest.z / max(stretch.z, 0.001), next);
 }
 
 // Where the network's profile stands on average over a whole plate, measured
@@ -103,11 +104,11 @@ const BARK_PLATE_DEPTH = 0.045;
 const BARK_PLATE_WALL = 0.14;
 // Peel: how many plates wide a fully curled strip is stretched across the
 // wood, how far its lower edge lifts against a whole rim, and what a curl
-// adds to the mean the far path returns, in whole rims: the lower lip, less
-// the face a strip's wider ends give up. Measured by the smooth means test.
+// adds to the mean the far path returns, in whole rims: the lower lip is
+// about half of one. Measured by the smooth means test.
 const PEEL_WIDE = 3.0;
 const PEEL_LIFT = 1.0;
-const PEEL_MEAN = 0.4;
+const PEEL_MEAN = 0.5;
 // How wide the edge of a peeled strip's colour is, in plates: a torn edge
 // frays, and a white-to-black step narrower than a few pixels is one the
 // tone curve aliases however exactly the footprint integrates it.
@@ -167,10 +168,13 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     let far = BarkPlate(mean, 0.5, 0.5, vec3(0.5), 1.0, 0.0);
     if (size <= 0.0) { return far; }
     let run = size * (1.0 + max(plate.y, 0.0));
-    // A curling strip runs across the wood: its cell is wider than a plate.
-    // The lattice is stretched rather than the metric, so a strip's long
-    // edges keep the wall a plate has and its short ends fray wider.
-    let span = size * (1.0 + PEEL_WIDE * curl);
+    // A curling strip runs across the wood: its cell is wider than a plate,
+    // and its offsets are scaled back as the elongation's are, so its walls
+    // stay a plate's own. Stretching the lattice alone was measured: it
+    // widened every strip's ends and the birch's area variation fell from
+    // 1.33 to 0.84 against the photograph's 1.56.
+    let wide = 1.0 + PEEL_WIDE * curl;
+    let span = size * wide;
     // The circumferential lattice is the arc in plate widths; the axial one is
     // the run. Both footprints are measured in their own cell units.
     // Two footprints, because there are two bands. The plate itself leaves on
@@ -205,7 +209,8 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     // A furrow runs wherever two sites are equally near; a face is the
     // interior one site keeps to itself. That is what makes the network
     // branch and merge, and why three of its boundaries meet at a point.
-    let network = bark_network(warped, elongated);
+    let stretch = vec3(wide, wide, elongated);
+    let network = bark_network(warped, stretch);
     let edge = network.edge;
     // The floor of the furrow: the hairline the network cuts between two
     // faces, widened by the row. It is a fraction of a plate's own width, so
@@ -235,8 +240,7 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     // which is what a pixel straddling two plates actually averages to.
     let inside = clamp(edge / max(pixel, 1e-5), 0.0, 1.0);
     return BarkPlate(mix(mean, relief, retained), mix(0.5, own, inside * retained), own,
-        select(vec3(0.5), warped + vec3(network.next.xy, network.next.z / elongated),
-            SMOOTH_BARK),
+        select(vec3(0.5), warped + network.next / stretch, SMOOTH_BARK),
         clamp(0.5 + edge / max(pixel, PEEL_FRAY), 0.5, 1.0), retained);
 }
 
