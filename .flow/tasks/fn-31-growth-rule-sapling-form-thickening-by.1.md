@@ -121,3 +121,62 @@ Round 6 (Grok on fn-31-round5-grok, cab7655..3e07f0e) restored the mature oak cr
 ## Owner decision after round 6 — 2026-09-15
 
 The owner saw the candidate at seed 1 and 22.75 years in the harness: an inverted-cone crown on a bell-shaped trunk base, and called it "an awful regression." Leaf size and sprouts move to their own spec (captured today) so fn-31 finishes structural integrity first. Round 7 runs on Claude Opus on the candidate branch fn-31-round5-grok: shape invariants as red-first tests across seeds 1, 7 and 42 at every whole year (crown widest around mid-height and never at the top for the decurrent oak; trunk radius never increasing from the ground up; foliage every year; leaf and needle counts within a band of fn-30's mature tree), then the oak crown revised from Opus's round-5 rule so it holds at every age and seed, the trunk-base bell removed, and the bark-distance fixture green; the strip gains a seed-1 row and the ages 40 and 67.
+
+## Round 7 — NEEDS_HUMAN, 2026-09-15
+
+Claude Opus implemented round 7 in-host on the candidate branch `fn-31-round5-grok`,
+three commits `4138820..ffc945f` from round 6's `3e07f0e`; the host read the range
+and re-ran the invariant suite. Two of the three items landed and the third is a
+measured fork for the owner. `flowctl done` was not run.
+
+**Shape invariants** (`crates/telperion-core/tests/shape_invariants.rs`): one
+growth path per seed on 1, 7 and 42, read at every whole year to derived
+maturity, for the oak and the spruce. Red first on round 6 and on round 4, green
+now: no shoot whose whole run stands below the crown base; mature population
+inside fn-30's band. Green throughout: the bole never thickens upward, foliage
+every year, the oak crown never widest in its top fifth from 26.7 years, the
+mature oak width within 15 percent of fn-30's. Still red and `#[ignore]`d with
+its numbers: most wood below 60 percent of the height from 26.7 years.
+
+**The bell and the vase were both wood, not width.** The trunk radius never
+increases upward on any seed at any year, and `growth.youngRadius` is authored
+on the spruce alone; what read as a bell was retained seedling wood the rising
+crown base left behind (270 shoots reaching 1.19 m from a 0.025 m stem at 22
+years). Crown recession landed as one rule for every family: a shoot whose whole
+living run stands below the rising crown base dies as a stamp, keyed to the
+crown base each preset already authors and independent of the shedding
+threshold. The oak sheds 1,054 shoots by maturity and the spruce 626; node
+counts rise (oak 180,534 to 183,935 against fn-30's 196,901; spruce 72,393 to
+71,737 against 76,386), the mature oak half-width is 12.90 by 13.04 m against
+fn-30's 12.6 by 13.0, and the idle mature build is 1,841 ms oak and 548 ms
+spruce against the 2,463 and 867 ms ceilings. Pins moved once after
+`round7/CONVERGENCE.md`; both foliage element hashes unchanged.
+
+**The crown fork is withheld with three candidates measured** (`round7/REPORT.md`
+§3): the Opus round-5 reach fills the lower crown (15.6 to 42.6 percent of the
+wood below mid-height at 27 years) at 3,136 ms mature oak against R5's 2,463;
+that reach plus the oak's authored 0.45 shedding threshold restores the
+population at roughly 16,000 ms; envelope fullness 0.40 rounds the crown free
+but drops the one-shot seed-variation spread to 0.70 m under the 1 m the species
+gate holds. Round 4's derived-width spec is what buys R5 the room the first
+candidate needs.
+
+**Gates from the worktree root:** fmt, clippy, `npm test` (77 of 77, parity
+included) and typecheck green; `cargo test --release --workspace` has one red,
+the Ordinary clay look pin in `.flow/evidence/fn24/ordinary-hero.png`, which
+recession drifted (mean channel error 1.29). Its replacement is
+`round7/ordinary-hero.png`, captured with the command, camera and shaders
+unchanged; re-recording it is the host action that follows acceptance. The
+bark-distance fixture, red at baseline, is green with its assertion, tolerance,
+mask and camera untouched. Host review note: the two identity fixtures now skip
+a shed id instead of unwrapping it, which is a loosened assertion accepted for
+this round; a follow-up could assert the skipped ids are exactly the receded ones.
+
+**Decisions for the owner**, judged on `round7/oregon-white-oak-strips.png` (seed
+7 above seed 1 at 1, 10, 26.7, 40, 56.1, 67, 112 and 166 years) and the spruce
+strip beside fn-30's: R1 on the round-7 strips; the crown fork, whether the
+current crown stands with the 26.7-year umbrella, or the derived-width spec is
+opened first to fund the Opus reach under R5, or an R5 miss is accepted; R2's
+young-age diameter reference, still open since round 4. On acceptance the host
+re-records the clay pin, merges the candidate onto fn-31, deletes the two
+worktrees, runs the gates and opens the PR with fn-30 and fn-31.
