@@ -721,6 +721,11 @@ to the surface builder and is becoming its own bug spec.
 No visual pass is awarded; the pairs are in `round6-fn45/stills.json` and on
 the judging page, and the owner judges.
 
+The merge of fn-45 into fn-34's integration branch reproduced this round: the
+beech's three matched stills rendered from the merged branch
+(`measure/pairs-merge45/`) are byte-identical to the sha256 records in
+`round6-fn45/stills.json`, and so are their compare numbers.
+
 ## Round 7: the birch on two stems under a hanging curtain (2026-09-15)
 
 fn-38 and fn-44 each fixed one thing on its own branch, so round 6 showed two
