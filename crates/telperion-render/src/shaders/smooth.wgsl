@@ -25,6 +25,7 @@ fn smooth_disc(distance: f32, pixel: f32) -> f32 {
 // is read once a fragment, like the mottle; the relief never reads it.
 const LICHEN_REACH = 0.62; // the largest patch's radius, in cells
 const LICHEN_SMALL = 0.35; // the smallest patch against the largest
+const LICHEN_LONG = 1.25; // how far a patch may be drawn out along one axis
 // What one octave averages to is 1 - exp(-rate * share): patches overlap as
 // independent covers do. The rate is measured over a sweep of rings of the
 // field and pinned by the smooth means test, as the plate means are.
@@ -42,14 +43,16 @@ fn lichen_octave(p: vec3<f32>, pixel: f32, share: f32) -> f32 {
                 let present = smooth_presence(share, fract(a * 91.7 + b * 13.9));
                 let site = id + vec3(a, b, fract(a * 43.7 + b * 71.3));
                 let radius = LICHEN_REACH * mix(LICHEN_SMALL, 1.0, fract(a * 17.3 + b * 31.1));
-                // A patch is a sphere drawn out along its own three axes, so
-                // no two cut the bark to the same round disc.
-                let axes = mix(vec3(0.8), vec3(1.25),
-                    fract(vec3(a * 53.3 + b * 7.1, a * 11.9 + b * 61.7, a * 37.1 + b * 23.9)));
-                let distance = length((p - site) * axes) / radius;
-                // Most of the twenty-seven cannot reach: the filtered rim is
-                // worked out only for a patch whose rim this pixel can touch.
-                if (present > 0.0 && distance < 1.0 + SMOOTH_RIM + pixel / radius) {
+                // Most of the twenty-seven cannot reach: a patch is shaped and
+                // its filtered rim worked out only where this pixel can touch
+                // it, at the furthest its longest axis carries it.
+                let reach = (1.0 + SMOOTH_RIM + pixel / radius) * LICHEN_LONG;
+                if (present > 0.0 && length(p - site) < reach * radius) {
+                    // A sphere drawn out along its own three axes, so no two
+                    // cut the bark to the same round disc.
+                    let axes = mix(vec3(1.0 / LICHEN_LONG), vec3(LICHEN_LONG),
+                        fract(vec3(a * 53.3 + b * 7.1, a * 11.9 + b * 61.7, a * 37.1 + b * 23.9)));
+                    let distance = length((p - site) * axes) / radius;
                     let shade = mix(0.55, 1.0, fract(a * 29.3 + b * 57.1));
                     cover = max(cover, smooth_disc(distance, pixel / radius) * shade * present);
                 }
