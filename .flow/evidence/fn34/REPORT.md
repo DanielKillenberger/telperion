@@ -232,3 +232,57 @@ Photograph / round 4 → round 4b:
 | S-BARE | 0.70 / 0.67 → 0.67 | 0.15 / 0.15 → 0.14 | 0.46 / 0.41 → 0.44 | 91 / 161 → 160 |
 | S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.27 → 0.28 | 92 / 168 → 168 |
 | S-WHOLE | 0.85 / 0.88 → 0.88 | 0.08 / 0.15 → 0.13 | 0.44 / 0.57 → 0.58 | 83 / 86 → 77 |
+
+## Round 5, fn-39: the crown outline learns a bearing (2026-09-15)
+
+The gap analysis after round 3 named the smooth oval both crowns fill as the
+second thing a value table could not reach. fn-39 gave the envelope two rows,
+an outline amplitude as a fraction of the radius and a lobe wavelength as a
+fraction of the height, keyed by the family's seed so one seed is one outline,
+with growth, the scaffold and the twig planner rejecting against the lumpy
+shell while the two-dimensional profile keeps driving shedding and the crown
+index. The compare script gained the outline's radial deviation from its own
+fitted ellipse, read on the photograph's box and the still's mask alike.
+
+The beech states an amplitude of 0.18 at a wavelength of 0.7 of its height,
+four or five broad lobes; the birch 0.15 at 0.45, finer and shallower. The
+beech at five laterals a station stood within a percent of the node ceiling
+on most protocol seeds, and the lobes' per-seed noise tipped seed 89 over it
+at any amplitude tried, so its twig length ratio went from 0.42 to 0.40; the
+heaviest seed now sits at 224,436 nodes against the 250,000 ceiling, and the
+ceiling itself is untouched, a cost the owner sets. Both identity pins are
+re-recorded once with the reason stated. The fixed and fresh protocol passes
+all forty-eight cases (`measure/protocol-fn39/`).
+
+Photograph / previous round → round 5, per reference (previous is round 3 for
+the beech and round 4b for the birch); the last column is the new outline
+statistic, photograph / still:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.70 → 0.70 | 0.25 / 0.25 → 0.24 | 0.28 / 0.39 → 0.38 | 100 / 147 → 148 | 0.29 / 0.13 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.16 → 0.03 | 0.05 / 0.10 → 0.09 | 130 / 83 → 91 | — / 0.14 |
+| B-WHOLE | 0.70 / 0.69 → 0.69 | 0.12 / 0.08 → 0.08 | 0.46 / 0.64 → 0.65 | 80 / 50 → 52 | 0.23 / 0.10 |
+| S-BARE | 0.70 / 0.67 → 0.67 | 0.15 / 0.14 → 0.13 | 0.46 / 0.44 → 0.43 | 91 / 160 → 159 | 0.17 / 0.11 |
+| S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.28 → 0.27 | 92 / 168 → 167 | 0.13 / — |
+| S-WHOLE | 0.85 / 0.88 → 0.91 | 0.08 / 0.13 → 0.14 | 0.44 / 0.58 → 0.58 | 83 / 77 → 78 | 0.22 / 0.11 |
+
+How to read the outline column: a smooth oval of revolution sits near zero
+and the self-test's five-lobed disc reads above 0.06; the photograph's number
+is contaminated by whatever the box holds besides the tree (a fence, a house,
+neighbouring crowns), so it bounds the target from above rather than naming
+it. Both stills moved off the oval and stay under half the photograph's
+figure. The proportion numbers barely moved, which is what a perturbation of
+the shell about its own mean should do.
+
+What the host read on the two whole pairs, within the four-image rule: the
+beech's silhouette now carries lobes, a dent on the left and a shoulder top
+right, where round 3 was an oval; what it is not yet is one dense lit mass,
+and it stays darker and bluer than the photograph, which the gap table
+already assigns to appearance work. The birch's dome is ragged rather than
+round; it is still one upright stem under a frosted curtain, which are
+fn-38's and fn-40's. No visual pass is awarded. The round-5 pairs are
+recorded by sha256 in `round5-fn39/stills.json` with `visual_status:
+unassessed`, and a local judging page beside them
+(`measure/judge.html`, ignored) lays every round's pair, the numbers and the
+references out for the owner, who records the verdict in fn-34.

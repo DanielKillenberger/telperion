@@ -61,6 +61,10 @@ and is not this term.
 - Fine hanging shoots take the trunk's bark colour, so the birch's curtain
   reads white where its twigs are dark brown: a young-shoot colour by radius
   is a row for fn-40, not a form gap.
+- Crown outline irregularity landed as fn-39 (round 5): both tables state an
+  amplitude, both silhouettes left the oval. The beech had to give up a shade
+  of twig length for node headroom; the ceiling is still the owner's cost
+  decision, not a form gap.
 
 ## What is not a gap
 

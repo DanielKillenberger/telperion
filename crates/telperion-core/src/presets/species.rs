@@ -38,12 +38,19 @@ pub(super) fn european_beech(p: &mut Family) {
         spread: 0.52,
         fullness: 0.62,
         shoulder: 1.8,
-        irregularity: 0.0,
-        lobe_scale: 0.5,
+        // A beech's crown is lumpy where its limbs end and hollow where they
+        // do not, and the round-3 pair read as an oval against it. Four or
+        // five broad lobes around a wavelength most of the tree's own height,
+        // at not quite a fifth of the radius.
+        irregularity: 0.18,
+        lobe_scale: 0.7,
     };
     p.skeleton.bias = BiasParams::NONE;
     p.skeleton.twigs.laterals = 5;
-    p.skeleton.twigs.length_ratio = 0.42;
+    // Five laterals a station put the beech within a percent of the node
+    // ceiling on most seeds; a twig a shade shorter buys the outline's lobes
+    // the headroom their per-seed noise spends.
+    p.skeleton.twigs.length_ratio = 0.40;
     p.skeleton.twigs.twig.bearing_diameter = 0.03;
     p.radii.trunk_radius = 0.014;
     // A beech stands on a modest flare, not the oak's buttress.
@@ -100,8 +107,11 @@ pub(super) fn silver_birch(p: &mut Family) {
         spread: 0.36,
         fullness: 0.6,
         shoulder: 1.6,
-        irregularity: 0.0,
-        lobe_scale: 0.5,
+        // The birch's own lumps are finer and shallower than the beech's: a
+        // narrow crown of hanging shoots, with the shell they hang from
+        // ragged rather than lobed.
+        irregularity: 0.15,
+        lobe_scale: 0.45,
     };
     p.skeleton.bias = BiasParams::NONE;
     p.skeleton.twigs.laterals = 8;

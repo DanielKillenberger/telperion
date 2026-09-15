@@ -21,6 +21,11 @@
 //! spruce, the beech and the Two Trees are byte-identical: the spruce states
 //! the values that reproduce the constants the curtain used to carry, and
 //! every other table leaves hang at zero, which reaches nothing.
+//! fn-39 re-pins the beech and the birch once more: their tables are the
+//! first to state the crown outline's amplitude and wavelength, and the
+//! beech's twig is a shade shorter so the lobes' per-seed noise stays under
+//! the node ceiling. Every other table leaves the amplitude at zero, which
+//! is the smooth shell to the byte; the element pins do not move.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -82,28 +87,32 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 7554738,
-        wood_triangles: 14625360,
-        instances: 1564628,
+        wood_vertices: 6780162,
+        wood_triangles: 13119000,
+        instances: 1426880,
         min: [
-            -16.589685106740983,
+            -17.226654020877145,
             -0.12800000607967377,
-            -16.51757298502084,
+            -15.409727003124246,
         ],
-        max: [16.114613537412385, 31.160921166631667, 16.685418242036942],
-        skeleton: 7394357267497415501,
-        placement: 8371063440134723480,
+        max: [16.781582590967403, 31.186986480611825, 16.12820602758598],
+        skeleton: 8984006975649904930,
+        placement: 2354435618270148675,
         element: 15097586524950800877,
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 1502196,
-        wood_triangles: 2911120,
-        instances: 706451,
-        min: [-6.442835863337756, -0.07199999690055847, -6.493469595781608],
-        max: [6.479547009741255, 14.460379438873522, 6.307684632142807],
-        skeleton: 11568947664871027193,
-        placement: 6610926486567628475,
+        wood_vertices: 1616192,
+        wood_triangles: 3132920,
+        instances: 761413,
+        min: [
+            -6.8248784154548785,
+            -0.07199999690055847,
+            -6.5026954825750005,
+        ],
+        max: [6.549354711566223, 14.489135589258993, 6.328546476364245],
+        skeleton: 3822858689754929182,
+        placement: 18296506987449200033,
         element: 1872173242819532549,
     },
 ];
