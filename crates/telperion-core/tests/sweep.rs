@@ -64,6 +64,9 @@ const BANDS: [(&str, usize, usize); 7] = [
 // the curtain's shoot separation differ between the oak, the spruce and the
 // birch, so the sweep walks all three. The radius threshold is 1 on every
 // shipped row - every shoot under a descending limb hangs - and is held here.
+// fn-45 makes the twig layer's depth a row. The beech states two generations
+// and every other table leaves it at the top of its rail, so the sweep walks
+// it and it is not held here.
 const HELD: [&str; 30] = [
     "/canopy/maxInstances",
     "/element/card",
