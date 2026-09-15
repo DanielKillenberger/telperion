@@ -226,6 +226,7 @@ fn the_reproducing_beech_builds_and_drops_two_triangles() {
     f.skeleton.envelope.shoulder = 1.5;
     f.skeleton.twigs.generations = telperion_core::twigs::MAX_GENERATIONS;
     f.skeleton.twigs.laterals = 4;
+    f.skeleton.twigs.limb_radius = 0.1;
     f.skeleton.twigs.length_ratio = 0.36;
     f.skeleton.twigs.angle = 32.0;
     f.skeleton.twigs.divergence = 180.0;

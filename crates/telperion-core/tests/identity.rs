@@ -87,6 +87,15 @@
 //! beech is fn-45's final tree, standing on the one stem and the neutral sag
 //! every table but the birch's leaves, and the birch is round 7's, at the
 //! generation row's neutral.
+//! Round 11 re-pins the beech alone, once: on the round-8c winter pair its
+//! trunk split at a quarter of the height into limbs that climbed beside it
+//! to the crown's top. Its limbs leave at 65 degrees instead of 48, their
+//! side branches run half their length instead of three fifths, so the low
+//! limbs meet the shell short and the leader keeps the girth of the crown
+//! it carries; and the twig layer starts on wood under 0.17 of the trunk's
+//! radius instead of a tenth, so the fewer, heavier scaffold tips keep their
+//! shoots. The oak, the spruce, the birch and the Two Trees are
+//! byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -148,17 +157,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 5674634,
-        wood_triangles: 11000480,
-        instances: 2254119,
-        min: [
-            -15.769178596833994,
-            -0.12800000607967377,
-            -15.586756109897692,
-        ],
-        max: [15.928642023382666, 31.92434744419099, 15.4443230306659],
-        skeleton: 1327615920853420528,
-        placement: 9931266495336970622,
+        wood_vertices: 5017770,
+        wood_triangles: 9742760,
+        instances: 1942005,
+        min: [-15.6573525366675, -0.12800000607967377, -14.672681967975628],
+        max: [15.887328252409779, 32.04446584292465, 15.11811103251536],
+        skeleton: 2650342232535221885,
+        placement: 2204798781459053519,
         element: 15097586524950800877,
     },
     Pin {

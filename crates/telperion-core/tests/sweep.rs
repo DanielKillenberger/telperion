@@ -74,7 +74,9 @@ const BANDS: [(&str, usize, usize); 7] = [
 // it and it is not held here.
 // Round 6b gives the beech its own local departure angle, and round 6c its
 // own two-ranked local divergence, so both leave this list.
-const HELD: [&str; 28] = [
+// Round 11 moves the beech's twig-layer threshold, where the twig layer
+// starts on the scaffold, so the sweep walks it and it leaves this list.
+const HELD: [&str; 27] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
@@ -92,7 +94,6 @@ const HELD: [&str; 28] = [
     "/skeleton/seed",
     "/skeleton/step",
     "/skeleton/twigs/angleVariation",
-    "/skeleton/twigs/limbRadius",
     "/skeleton/twigs/pendulousRadius",
     "/skeleton/twigs/ratioPower",
     "/skeleton/twigs/reach",

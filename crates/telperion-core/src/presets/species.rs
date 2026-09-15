@@ -14,29 +14,32 @@ pub(super) fn european_beech(p: &mut Family) {
     // Mature open-grown Fagus sylvatica. Envelope height is the 32 m
     // reference at 120 yr; oak growth traits, not a beech calibration.
     oak_growth(p, 120.0);
-    // Round 6, read against both photographs: a leader that carries the
-    // crown to the top, limbs leaving it along the whole height and rising
-    // straight up and out (owner, round 5b), and in leaf one full oval on
-    // that trunk. The scaffold ends its leader at crownBase + (1 -
-    // crownBase) * apicalDominance of the height, so 0.9 runs it to nine
-    // tenths; below 0.6 it stopped at three fifths and forked. With the
-    // leader carrying the top, the limbs can leave at 48 degrees and bend
-    // up over their run (0.45) without the low ones climbing beside it to
-    // the crown's top, which at 32 degrees made a vase of seven stems under
-    // an umbrella of leaves. Their side branches are held nearly level, and
-    // two limbs a station, 2.2 m apart, keep them few.
+    // A leader that carries the crown to the top, limbs leaving it one or
+    // two at a time along its length and rising (owner, round 5b), and in
+    // leaf one full oval on that trunk. The scaffold ends its leader at
+    // crownBase + (1 - crownBase) * apicalDominance of the height, so 0.9
+    // runs it to nine tenths. The leader is only as thick as what it
+    // carries: a first-order limb runs to the shell and its tips grow with
+    // the square of that run, so a steep limb from low on the bole carries
+    // a share of the crown's top and the leader's girth with it. Leaving at
+    // 65 degrees and bending up over their run (0.45), the low limbs meet
+    // the shell short and the heaviest leave from a quarter to a half of
+    // the height; at 48 degrees eight of them climbed to within a metre of
+    // the leader's top and it was lost among them above a quarter. Side
+    // branches half their limb's length, held nearly level, and two limbs
+    // a station, 2.2 m apart, keep them few.
     p.skeleton.habit = HabitParams {
         apical_dominance: 0.9,
         whorl_strength: 0.15,
         leader_internode: 2.2,
         laterals_per_station: 2,
-        lateral_pitch: 48.0,
+        lateral_pitch: 65.0,
         pitch_variation: 10.0,
         rise_primary: 0.45,
         rise_secondary: 0.1,
         crookedness: 6.0,
         lateral_spacing: 2.2,
-        lateral_length_ratio: 0.6,
+        lateral_length_ratio: 0.5,
         lateral_orders: 3,
         attractor_weight: 0.0,
         twig_tip_taper: 0.25,
@@ -64,9 +67,13 @@ pub(super) fn european_beech(p: &mut Family) {
     // generation two is a twig whatever the pipe model left its radius.
     p.skeleton.twigs.generations = 2;
     p.skeleton.twigs.laterals = 4;
+    // Fewer, heavier scaffold tips leave more of the scaffold above a tenth
+    // of the trunk's radius, where no twig starts; the twig layer starts on
+    // wood under 0.17 of it, so the crown keeps its shoots.
+    p.skeleton.twigs.limb_radius = 0.17;
     // Four twig laterals a station fill the crown; a shorter twig pays for
     // them and for the longer leader, so the heaviest protocol seed keeps a
-    // sixth of the ceiling in hand.
+    // fifth of the ceiling in hand.
     p.skeleton.twigs.length_ratio = 0.30;
     // A local shoot follows its limb rather than standing off it at 45,
     // and its own shoots are two-ranked: a beech's spray is flat, where one
