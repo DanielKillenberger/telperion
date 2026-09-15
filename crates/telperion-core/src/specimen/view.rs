@@ -125,6 +125,7 @@ impl SpecimenView {
                     start_radius: n.radii[1],
                     base_radius: n.radii[2],
                     kind: n.kind,
+                    stem: n.stem,
                     ..Node::root()
                 })
             })

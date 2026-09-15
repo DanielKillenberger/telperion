@@ -11,6 +11,7 @@ pub(crate) use attachment::AttachmentSurface;
 pub(crate) use dependencies::affected as affected_contacts;
 use frames::frames;
 use paths::paths;
+pub(crate) use paths::straightest;
 use samples::sample_path;
 /// One complete surface run, in descending order of its largest sample radius.
 /// The spans tile the wood index buffer; a caster can draw a single prefix.
@@ -190,15 +191,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     // Ties retain path order, so the permutation is deterministic.
     let mut ordered = reserved(paths.runs.len())?;
     for path in &paths.runs {
-        sample_path(
-            tree,
-            height,
-            params,
-            &paths.nodes[path.start..path.end],
-            path.trunk,
-            &distance,
-            &mut samples,
-        );
+        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
         let radius = samples.iter().map(|s| s.r).fold(0.0, f64::max);
         ordered.push((path, radius));
     }
@@ -206,16 +199,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     for (path, largest_radius) in ordered {
         let first_index = u32::try_from(mesh.indices.len())
             .map_err(|_| Error::ResourceLimit("surface indices"))?;
-        let path_nodes = &paths.nodes[path.start..path.end];
-        sample_path(
-            tree,
-            height,
-            params,
-            path_nodes,
-            path.trunk,
-            &distance,
-            &mut samples,
-        );
+        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
         frames(&samples, &mut segments_scratch, &mut frame);
         let base = (mesh.positions.len() / 3) as u32;
         let seg = segments as u32;
@@ -330,6 +314,8 @@ fn finish(mut mesh: SurfaceMesh, segments: usize) -> Result<SurfaceMesh> {
     Ok(mesh)
 }
 
+#[cfg(test)]
+mod fork_tests;
 #[cfg(test)]
 mod tests {
     #[test]

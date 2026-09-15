@@ -37,6 +37,11 @@ pub struct Node {
     /// The run's stable identity is the identity of this first node.
     pub branch: u32,
     pub kind: NodeKind,
+    /// Wood of a stem, an order-zero axis: the one trunk of a tree on one
+    /// stem, or any stem of a clump. It is how a fork of stems is told from a
+    /// limb, so it is carried through every read, the shoot-less ones too,
+    /// where the bud's fate is not. The root is every stem's base and none.
+    pub stem: bool,
 }
 impl Node {
     pub fn root() -> Self {
@@ -50,6 +55,7 @@ impl Node {
             base_radius: 0.0,
             branch: 0,
             kind: NodeKind::Structural,
+            stem: false,
         }
     }
 }
@@ -80,17 +86,15 @@ impl Tree {
     /// read as slender beside; a tree on one stem measures the root itself,
     /// which IS that stem's own base, and so is left exactly where it was.
     /// A clump that parts above the ground is measured the same way, at the
-    /// fork: the node two terminal structural runs leave, which a lateral's
-    /// first node never is, so a single stem still has no fork to find.
+    /// fork: the node two stems leave, which a limb never is, so a single stem
+    /// still has no fork to find.
     pub(crate) fn stem_radius(&self, radius: impl Fn(usize) -> f64) -> f64 {
         if self.nodes.is_empty() {
             return 0.0;
         }
-        let terminal =
-            |n: &Node| n.kind == NodeKind::Structural && n.shoot.bud_fate == BudFate::Terminal;
         // What each node parts into: every child of the root, as a clump born
-        // there has always been counted, and terminal structural runs above it.
-        let parts = |i: usize, n: &Node| i == 0 || terminal(n);
+        // there has always been counted, and stems above it.
+        let parts = |i: usize, n: &Node| i == 0 || n.stem;
         let mut runs = vec![0_u8; self.nodes.len()];
         for n in self.nodes.iter().skip(1) {
             let p = n.parent.unwrap() as usize;
@@ -154,12 +158,14 @@ mod tests {
     use super::*;
 
     /// A trunk from the root to `fork` metres, two runs above it, the second
-    /// of them `second`'s bud, and a second run at the root if `clump`.
-    fn tree(fork: f64, second: BudFate, clump: bool) -> Tree {
+    /// of them a stem if `second` and a limb if not, and a second stem at the
+    /// root if `clump`.
+    fn tree(fork: f64, second: bool, clump: bool) -> Tree {
         let node = |y: f64, parent: Option<u32>, radius: f64| Node {
             position: Vec3::new(0.0, y, 0.0),
             parent,
             radius,
+            stem: true,
             ..Node::root()
         };
         let mut nodes = vec![
@@ -168,7 +174,7 @@ mod tests {
             node(4.0, Some(1), 0.2),
             node(4.0, Some(1), 0.15),
         ];
-        nodes[3].shoot.bud_fate = second;
+        nodes[3].stem = second;
         if clump {
             nodes.push(node(3.0, Some(0), 0.25));
         }
@@ -182,12 +188,18 @@ mod tests {
     #[test]
     fn a_clump_is_measured_by_its_largest_stem_wherever_it_parts() {
         let radius = |t: &Tree| t.stem_radius(|i| t.nodes[i].radius);
-        // One stem with a lateral limb: the root, as it always was.
-        assert_eq!(radius(&tree(1.0, BudFate::Lateral, false)), 0.3);
+        // One stem with a limb: the root, as it always was.
+        assert_eq!(radius(&tree(1.0, false, false)), 0.3);
         // Two stems at the root: the larger of them, as fn-38 measured it.
-        assert_eq!(radius(&tree(1.0, BudFate::Lateral, true)), 0.28);
-        assert_eq!(radius(&tree(1.0, BudFate::Terminal, true)), 0.28);
+        assert_eq!(radius(&tree(1.0, false, true)), 0.28);
+        assert_eq!(radius(&tree(1.0, true, true)), 0.28);
         // Two stems parting at a metre: the larger of them, not the trunk.
-        assert_eq!(radius(&tree(1.0, BudFate::Terminal, false)), 0.2);
+        assert_eq!(radius(&tree(1.0, true, false)), 0.2);
+        // A read that dropped every bud's fate still tells them apart.
+        let mut shootless = tree(1.0, false, false);
+        for n in &mut shootless.nodes {
+            n.shoot = ShootState::default();
+        }
+        assert_eq!(radius(&shootless), 0.3);
     }
 }

@@ -91,7 +91,7 @@ struct Query<'a> {
 }
 impl Query<'_> {
     fn alive(&self, id: NodeIdentity) -> bool {
-        let n = &self.s.tree.nodes[self.s.identities[id.key]];
+        let n = self.node(id);
         n.shoot.birth_year <= self.age.slice as f64
             && n.shoot.death_year.is_none_or(|year| self.age.slice < year)
     }
@@ -142,20 +142,42 @@ impl Query<'_> {
         self.outgoing.insert(id, children.clone());
         children
     }
+    fn node(&self, id: NodeIdentity) -> &Node {
+        &self.s.tree.nodes[self.s.identities[id.key]]
+    }
+    /// The surface's own choice: the straighter stem where stems part above
+    /// the root, and the widest child everywhere else.
     fn leader(&mut self, id: NodeIdentity) -> Option<NodeIdentity> {
         if let Some(&leader) = self.leaders.get(&id) {
             return leader;
         }
+        let children = self.children(id);
+        let leader = self
+            .straightest(id, &children)
+            .or_else(|| self.widest(&children));
+        self.leaders.insert(id, leader);
+        leader
+    }
+    fn straightest(&mut self, id: NodeIdentity, children: &[NodeIdentity]) -> Option<NodeIdentity> {
+        let parent = self.s.links[id.key].parent.filter(|_| self.node(id).stem)?;
+        let below = self.stand(parent);
+        let before = self.node(below).position;
+        let stems = children
+            .iter()
+            .filter(|&&child| self.node(child).stem)
+            .map(|&child| (child, self.node(child).position));
+        crate::surface::straightest(before, self.node(id).position, stems)
+    }
+    fn widest(&self, children: &[NodeIdentity]) -> Option<NodeIdentity> {
         let mut leader = None;
         let mut radius = f64::NEG_INFINITY;
-        for child in self.children(id) {
+        for &child in children {
             let current = self.s.keyframes.at(child, self.age.slice).unwrap()[1];
             if current > radius {
                 leader = Some(child);
                 radius = current;
             }
         }
-        self.leaders.insert(id, leader);
         leader
     }
     fn path(&mut self, mut edge: NodeIdentity) -> Vec<NodeIdentity> {
@@ -178,6 +200,35 @@ impl Query<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn contacts_carry_on_into_the_stem_the_surface_does() {
+        // Where a clump parts above the ground the query follows the
+        // straighter stem as the surface does, so every node's dependencies,
+        // the fork's and its stems' among them, are the sweep's own.
+        let mut f = crate::presets::Preset::OregonWhiteOak.parameters();
+        f.skeleton.seed = 7;
+        f.skeleton.habit.stems = 2;
+        f.skeleton.habit.stem_lean = 24.0;
+        f.skeleton.habit.stem_lean_spread = 1.0;
+        f.skeleton.habit.stem_fork_height = 0.4;
+        f.age = 16.0;
+        let s = Specimen::build(&f).unwrap();
+        for year in [8, 12, 16] {
+            let age = Age::from_years(year as f64).unwrap();
+            let (tree, _) = s.wood_at(age, false).unwrap();
+            let step = (tree.nodes.len() / 16).max(1);
+            let stems = tree.nodes.iter().filter(|n| n.stem);
+            for n in stems.chain(tree.nodes.iter().step_by(step)) {
+                let changed = BTreeSet::from([n.identity]);
+                assert_eq!(
+                    s.contact_candidates(&changed, age),
+                    crate::surface::affected_contacts(&tree, &changed).unwrap(),
+                    "year {year} node {:?}",
+                    n.identity
+                );
+            }
+        }
+    }
     #[test]
     fn indexed_contacts_match_both_endpoint_sweep_dependencies() {
         let (_, mut s, shoot) = super::super::foliage_tests::fixture(1.0);

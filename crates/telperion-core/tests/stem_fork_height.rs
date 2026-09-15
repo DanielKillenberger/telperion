@@ -4,8 +4,7 @@
 //! the girth below the fork, and the walk from parting at the ground.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
-    blend, branching, mesh, presets::Family, presets::Preset, surface, tree::NodeKind, tree::Tree,
-    Error,
+    blend, branching, mesh, presets::Family, presets::Preset, surface, tree::Tree, Error,
 };
 
 /// Every shipped table, so neutrality is asserted on all of them at once.
@@ -61,12 +60,12 @@ fn grow(family: &Family) -> Tree {
         .tree
 }
 
-/// Every structural node with more than one structural child that is not a
-/// lateral's first node: the root of a clump, and the fork it parts at.
+/// Every node more than one stem leaves, and the root if any does: the root
+/// of a clump, and the fork it parts at.
 fn forks(tree: &Tree) -> Vec<(usize, Vec<usize>)> {
     let mut runs = vec![Vec::new(); tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
-        if n.kind == NodeKind::Structural && n.shoot.bud_fate == Default::default() {
+        if n.stem {
             runs[n.parent.unwrap() as usize].push(i);
         }
     }

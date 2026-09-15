@@ -50,7 +50,7 @@ impl AttachmentSurface {
         let mut samples = Vec::new();
         let mut frame = Vec::new();
         let mut scratch = Vec::new();
-        for path in paths.runs {
+        for path in &paths.runs {
             let nodes = &paths.nodes[path.start..path.end];
             if selected.is_some_and(|ids| {
                 !nodes
@@ -60,15 +60,7 @@ impl AttachmentSurface {
             }) {
                 continue;
             }
-            sample_path(
-                tree,
-                height,
-                params,
-                nodes,
-                path.trunk,
-                &distance,
-                &mut samples,
-            );
+            sample_path(tree, height, params, &paths, path, &distance, &mut samples);
             frames(&samples, &mut scratch, &mut frame);
             let base = out.rings.len();
             for (i, s) in samples.iter().enumerate() {

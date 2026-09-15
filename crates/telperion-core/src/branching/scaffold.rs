@@ -142,10 +142,12 @@ impl Builder<'_> {
             .nodes
             .try_reserve(1)
             .map_err(|_| Error::ResourceLimit("scaffold allocation"))?;
+        // An order-zero axis is a stem, and every other axis a limb.
         self.tree.nodes.push(Node {
             position,
             parent: Some(parent as u32),
             branch: id as u32,
+            stem: !crown,
             ..Node::root()
         });
         Ok(Some(id))

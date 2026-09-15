@@ -3,7 +3,7 @@ use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 use telperion_core::{
     foliage::{transform_point, Element, FoliageUnit, Instances},
-    tree::{BudFate, Node, NodeKind, Tree},
+    tree::{NodeKind, Tree},
 };
 fn scalar(value: impl Into<Value>, status: &str) -> Value {
     json!({"status":status,"value":value.into()})
@@ -98,20 +98,17 @@ pub fn measure(
     }
     // Every node's own stem: the axis it traces back to leaving the root, or
     // leaving the fork a clump's later stems part from its first at. A fork
-    // is a node two terminal structural runs leave - a lateral's first node
-    // is a lateral bud's - so below it the clump is one stem, and above it
-    // each run is its own. Parents always precede their children, so one
-    // forward pass names them.
-    let terminal =
-        |n: &Node| n.kind == NodeKind::Structural && n.shoot.bud_fate == BudFate::Terminal;
+    // is a node two stems leave, which a limb never is, so below it the clump
+    // is one stem, and above it each run is its own. Parents always precede
+    // their children, so one forward pass names them.
     let mut runs = vec![0usize; tree.nodes.len()];
-    for n in tree.nodes.iter().skip(1).filter(|n| terminal(n)) {
+    for n in tree.nodes.iter().skip(1).filter(|n| n.stem) {
         runs[n.parent.unwrap() as usize] += 1;
     }
     let mut stem = vec![0usize; tree.nodes.len()];
     for i in 1..tree.nodes.len() {
         let parent = tree.nodes[i].parent.unwrap() as usize;
-        let fork = runs[parent] > 1 && terminal(&tree.nodes[i]);
+        let fork = runs[parent] > 1 && tree.nodes[i].stem;
         stem[i] = if parent == 0 || fork { i } else { stem[parent] };
     }
     // The widest structural edge each stem crosses breast height on, keyed by

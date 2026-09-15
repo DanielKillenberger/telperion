@@ -59,3 +59,34 @@ fn scrubbed_view_can_advance_beyond_its_old_history_window() {
         fresh.foliage.instances
     );
 }
+
+#[test]
+fn a_clump_that_parts_above_the_ground_is_viewed_as_it_is_read() {
+    // The view rebuilds its tree from the change records' runs, so it tells a
+    // stem from a limb by the flag each run node carries, and sweeps the fork
+    // the way the full read does: on into the upright stem, the other socketed.
+    let mut f = Preset::OregonWhiteOak.parameters();
+    f.skeleton.habit.stems = 2;
+    f.skeleton.habit.stem_lean = 24.0;
+    f.skeleton.habit.stem_lean_spread = 1.0;
+    f.skeleton.habit.stem_fork_height = 0.4;
+    f.age = 16.0;
+    let mut view = SpecimenView::build(&f).unwrap();
+    for age in [12.0, 16.0, 8.0, 17.0] {
+        view.seek(age).unwrap();
+        let mut fresh = f.clone();
+        fresh.age = age;
+        let read = Specimen::build(&fresh).unwrap().read().unwrap();
+        let mut stems = vec![0; read.tree.nodes.len()];
+        for n in read.tree.nodes.iter().filter(|n| n.stem) {
+            stems[n.parent.unwrap() as usize] += 1;
+        }
+        assert!(stems[1..].contains(&2), "at {age} the clump has not parted");
+        let wood = surface::build(&read.tree, read.surface_height, &fresh.surface).unwrap();
+        // Compared whole, not printed: a mesh is millions of floats.
+        assert!(
+            view.mesh().unwrap().wood == wood,
+            "at {age} the view swept another fork"
+        );
+    }
+}
