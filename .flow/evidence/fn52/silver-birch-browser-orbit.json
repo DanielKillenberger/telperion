@@ -1,0 +1,64 @@
+{
+  "preset": "silver-birch",
+  "seed": 7,
+  "session": "orbit",
+  "submitted": {
+    "bounds": {
+      "max": [
+        6.4649505615234375,
+        15.35163688659668,
+        6.496953656890554
+      ],
+      "min": [
+        -6.51028703305269,
+        -0.07199999690055847,
+        -6.339091063526724
+      ]
+    },
+    "foliageInstances": 391902,
+    "woodTriangles": 7605480,
+    "woodVertices": 3929556
+  },
+  "report": {
+    "adapter": "; comparison filtering: Linear",
+    "driver": "",
+    "backend": "webgpu",
+    "conditioning": 8,
+    "warmup": 8,
+    "measured": 120,
+    "samples": 120,
+    "verdict": "valid",
+    "p50_ms": 4.7124,
+    "p95_ms": 5.1343,
+    "selection_p50_ms": 0.0543,
+    "selection_p95_ms": 0.0563,
+    "shadow_p50_ms": 0.1265,
+    "shadow_p95_ms": 0.139,
+    "total_p50_ms": 4.9027,
+    "total_p95_ms": 5.3251,
+    "multisample": 4,
+    "wall_frames": 988,
+    "wall_p50_ms": 10,
+    "wall_p95_ms": 10.1,
+    "wall_max_ms": 20.2,
+    "caster_triangles": 32320,
+    "caster_instances": 97976
+  },
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "canvas": {
+    "width": 1600,
+    "height": 1000
+  },
+  "browser": "153.0.8010.12",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-renderer-backgrounding"
+  ]
+}

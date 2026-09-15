@@ -145,3 +145,179 @@ The spec's canopy terms answer 1 to 3: a lighting normal bent toward the
 crown's outward direction, the sun wrapped past the terminator, a diffuse
 share of transmission that carries the sun and the sky through the leaf, and
 a sheen that returns the sky toward grazing.
+
+## R2: the canopy rows
+
+Five rows on the material, each refused by name outside its rail, carried
+on the wire, walked linearly by the blend, present in the regenerated
+browser metadata and covered by the harness's panel test. Each is inert at
+zero. The WGSL terms live in `canopy.wgsl` as pure functions, concatenated
+after the transmission term, so the native and browser renderers compile
+the same source. Each term sits behind a uniform branch, and the clay view
+reads none of them.
+
+| Row (wire) | Rail | What it does |
+|---|---|---|
+| `canopyNormal` | 0..1 | Bends the lighting normal from the leaf's face toward the crown ellipsoid's outward direction at the fragment, so the sunward shell is lit whichever way its leaves turn. A leaf with no crown around it is not bent. |
+| `lightWrap` | 0..1 | Wraps the sun's cosine past the terminator, raised by the wrap and divided by one plus it. A face square to the sun takes exactly what it took before. |
+| `diffuseTransmission` | 0..1 | The share of the leaf's transmission that leaves it evenly rather than on the forward lobe. The diffuse share carries both the sun, gated by the shadow map, and the sky behind the leaf. |
+| `leafSheen` | 0..0.5 | The cuticle's reflectance of the sky at normal incidence, rising by Schlick's Fresnel to the whole sky at grazing, on the face's own normal. |
+| `crownShade` | 0..1 | The share of the sky that one crown radius of leaves takes from each leaf's sky reads (over it, behind it, in its sheen), by the chord of crown standing straight over the leaf. |
+
+The bend reads light arriving through the mass: sky, sun and transmission.
+What the face reflects, the sun's glint and the sheen, stays on the face
+normal. A first version took the sheen on the bent normal. It matched
+B-WHOLE's share above half brightness (13.5% against 12.4%), but on the pair
+the ellipsoid became a mirror along its silhouette, and every frond at the
+lower rim returned the horizon sky, grey and ghostly, where the photograph's
+lower crown is dark green. The face-normal sheen replaced it.
+
+The fifth row came from reading round 10's first rows by sixths of the
+crown. The leaves lit, but they did not fall off. B-WHOLE read 93 at the top
+and 69 at the bottom, where the photograph falls from 125 to 52. The diffuse
+share carried the whole sky into the dome's underside, since fn-29's
+crown-depth occlusion is nought at the shell.
+
+### Neutral is inert
+
+`neutral-before.sha` and `neutral-after.sha` hold 25 stills: the seven
+presets whole, bare and leaf at seed 1, and the four matched stills B-WHOLE,
+B-BARE, S-WHOLE and S-BARE. They were rendered by the base commit and by the
+final code. With the beech's and birch's rows at zero, all 25 hash the same.
+With them set, six move, exactly the six the rows reach: the beech's and
+birch's whole and leaf stills, B-WHOLE and S-WHOLE. The four bare and
+close-up matched stills are byte-identical to round 8c's records. No bug was
+fixed, so no pin moved.
+
+## R3: the rows set, and round 10
+
+| Row | Beech | Birch |
+|---|---|---|
+| canopyNormal | 0.8 | 0.8 |
+| lightWrap | 0.4 | 0.5 |
+| diffuseTransmission | 1.0 | 1.0 |
+| leafSheen | 0.08 | 0.06 |
+| crownShade | 0.15 | 0.2 |
+
+Photograph / round 8c → round 10, on the leaf-on pairs:
+
+| | S-WHOLE | B-WHOLE |
+|---|---|---|
+| Centre mean | 83.0 / 35.3 → 58.5 | 79.7 / 44.9 → 65.6 |
+| Centre crop above half | 21.8% / 1.8% → 3.1% | 12.4% / 7.0% → 7.2% |
+| Leaf pixels above half | — / 2.4% → 17.7% | — / 0.0% → 1.0% |
+| Leaf pixel mean | — / 39.7 → 87.7 | — / 21.1 → 67.9 |
+| Centre-crop leaf pixel mean | 83.0 (whole crop) / 33.7 → 71.2 | 79.7 (whole crop) / 17.9 → 53.1 |
+| Leaf brightness by sixths, top to bottom | 153 111 97 68 57 38 / 48 40 38 36 37 36 → 156 114 89 67 55 45 | 125 100 81 75 55 52 / 24 19 17 20 25 27 → 91 70 54 52 55 55 |
+
+The photograph's figures are over its whole centre crop, or its tree box's
+middle three fifths by sixths with pixels above 200 left out as sky. It has
+no leaf mask. The still's leaf pixels come from the diagnosis's coverage
+mask; the geometry did not move, so the mask holds. `bright.py` and `rows.py`
+compute these figures, and `bright-round10.json` holds them.
+
+- **S-WHOLE.** The leaf pixels now sit where the photograph's do. About a
+  fifth are above half (17.7% against the crop's 21.8%), the centre's leaf
+  pixels read 71, and the fall from top to bottom follows the photograph's
+  within ten at every sixth. The centre mean, 58.5 against 83, misses by
+  24. Half of that crop is the curtain's wood at about 41, and no leaf row
+  reaches it (fn-47, fn-51).
+- **B-WHOLE.** The centre mean is 65.6 against 79.7, 14 short. The hue is
+  the photograph's (sRGB 57/78/62 against 71/94/74), and the fall from top
+  to bottom has the photograph's shape. The level is short at the top two
+  sixths, and so is the share above half, 1% of the leaf pixels. The
+  photograph's bright centre pixels are a pale, sky-lit green (mean
+  149/180/152, 93% green-led, 7% near-white sky). The photograph's camera
+  exposed its overcast sky to a clipped white, where the renderer's fixed
+  exposure draws it at 189. The beech's leaf rows (front green 0.105) under
+  this exposure do not reach that level. Neither the leaf colour nor the
+  instrument is this spec's to move.
+
+## R4: the frame
+
+The oak's native hero frame, seed 7, 1600 by 1000, is the command fn-29's R6
+used. The base commit's binary was interleaved with this branch's, in two
+sessions on the shared RTX 3080. The oak ships neutral rows. "Every term on"
+drives the oak with all five rows set (0.8, 0.5, 1.0, 0.08, 0.2) through a
+temporary material override, not committed.
+
+| Total p50 (ms), median of the session | Base commit | Shipped oak | Every term on |
+|---|---|---|---|
+| Session 1, 5 rounds (`timing/f-*.json`) | 4.0100 | 3.9990 | 4.0074 |
+| Session 2, 7 rounds (`timing/g-*.json`) | 3.9785 | 3.9798 | 3.9836 |
+| fn-29's accepted, `.flow/evidence/fn29/oak-native-timing.json` | 3.9823 | | |
+
+Session 1 was contended: the unchanged base binary itself read 4.01 in it.
+In session 2 the shipped oak's frame is 3.9798 ms, at fn-29's accepted
+3.9823. With every term on it is 3.9836, 0.0013 ms above the accepted figure
+and 0.005 ms above the base in the same session, inside that session's own
+spread of 3.96 to 4.20. The terms cost nothing at neutral and nothing
+measurable when on.
+
+The browser orbit uses `orbit.mjs`, which is `tests/browser/render.mjs`'s own
+timing session run on its own. It orbits the hero pose on a bare canvas at
+1600 by 1000 in hardware Chromium (Vulkan), seed 7, on a 100 Hz display.
+
+| Preset | Wall p50 / p95 / worst (ms) | Frames | GPU total p50 (ms) |
+|---|---|---|---|
+| Oak (neutral rows) | 10.0 / 10.1 / 10.7 | 999 | 4.05 |
+| Silver birch (rows on) | 10.0 / 10.1 / 20.2 | 988 | 4.90 |
+| European beech (rows on) | 10.0 / 10.1 / 20.1 | 992 | 6.81 |
+
+fn-29 recorded the oak's orbit at 10.00 / 10.10 / 10.10 with a GPU total p50
+of 4.10. Every orbit holds 60 fps: p95 under 16.7 ms and no frame past
+33 ms.
+
+## R5: the tests
+
+- `crates/telperion-render/tests/canopy_terms.rs` puts the production terms
+  to a synthetic leaf on the GPU. The wrap is exact at zero, lights a face
+  just past the terminator and leaves a face square to the sun alone. The
+  canopy normal turns a face that looks away from the sun toward a sunward
+  shell, and is the face's own with no bend or no outward. Diffuse
+  transmission reaches a leaf lit from behind at the sun's cosine plus the
+  sky, and only the sky when the leaf faces the sun or is shadowed. The
+  sheen runs from its reflectance to all of the sky at grazing, and is
+  nothing at zero. The crown chord runs under, at the centre, at the top
+  and beside the crown, and the shade takes its share per radius.
+- `crates/telperion-render/tests/canopy_light.rs` covers real frames. On a
+  synthetic shell of 6,000 seeded leaves, the canopy normal makes the
+  sunward side lead the far side, and the crown shade darkens the
+  underside more than the top. One leaf facing and facing away from the sun
+  gains from diffuse transmission more when it faces away, and gains from
+  the wrap and the sheen. The canopy normal leaves a lone leaf byte for
+  byte. The clay view and the bare view are byte-identical with every row
+  on.
+- `crates/telperion-core/tests/material_detail.rs` covers the rows. Both
+  rail ends are refused by name on the wire, the endpoints round-trip, the
+  walk hits the interior point, and older documents gain inert zeros. Every
+  shipped canopy row crosses the page's wire as the native still reads it,
+  and only the beech and the birch state one; this is the native and
+  browser agreement, since both hand the parsed material to one renderer.
+  `material.rs`'s refusal table covers each row's name.
+- `harness/material-detail.test.ts` carries the five controls through the
+  panel.
+- `crates/telperion-render/tests/conformance.rs` now also scans
+  `canopy.wgsl` for family and anatomy names.
+- Neutral byte identity: the 25-still record above, and the pinned clay
+  still in `look.rs`.
+
+## What the implementer saw on the pairs
+
+The four-image rule was kept per capture: two pairs of the first round-10
+rows, two comparisons of the sheen's normal, and the two final pairs.
+
+- **S-WHOLE: yes, as a lit mass.** The upper shell and the sunward side read
+  a bright yellow-green, the crown falls into shade toward its base, and
+  the dark speckle of round 8c is gone. What still reads wrong is the band
+  of red-brown curtain wood through the upper middle, which is half the
+  centre crop (fn-47, fn-51); the hem stopping at the crown base (fn-51);
+  and a softer, more even texture than the photograph's clustered
+  highlights.
+- **B-WHOLE: lit, but not one mass.** The leaves are the photograph's
+  mid-green, lighter on the sky-lit top and darker toward the bottom. The
+  crown is still an umbrella of sprays at the limb ends, with grey limbs
+  and sky through its lower half (fn-50's short shoots and the vase pass),
+  so it cannot read as the photograph's single dense mass. The mass is also
+  a little flatter and dimmer than the photograph's: no dark interior
+  clumps under bright tops, and 66 against 80.

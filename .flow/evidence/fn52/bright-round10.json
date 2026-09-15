@@ -1,0 +1,36 @@
+{
+ "S-WHOLE": {
+  "photograph_centre": 0.218,
+  "round8c": {
+   "centre": 0.018,
+   "leaf": 0.024,
+   "centre_leaf": 0.009,
+   "leaf_mean": 39.7,
+   "centre_leaf_mean": 33.7
+  },
+  "round10": {
+   "centre": 0.031,
+   "leaf": 0.177,
+   "centre_leaf": 0.036,
+   "leaf_mean": 87.7,
+   "centre_leaf_mean": 71.2
+  }
+ },
+ "B-WHOLE": {
+  "photograph_centre": 0.124,
+  "round8c": {
+   "centre": 0.07,
+   "leaf": 0.0,
+   "centre_leaf": 0.0,
+   "leaf_mean": 21.1,
+   "centre_leaf_mean": 17.9
+  },
+  "round10": {
+   "centre": 0.072,
+   "leaf": 0.01,
+   "centre_leaf": 0.0,
+   "leaf_mean": 67.9,
+   "centre_leaf_mean": 53.1
+  }
+ }
+}

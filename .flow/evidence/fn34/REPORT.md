@@ -1032,3 +1032,90 @@ since fn-50, fn-51 and fn-52 start from this merge.
 No visual pass is awarded. The round-8c pairs are recorded by sha256 in
 `round8c-merge/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 10, fn-52: a leaf mass lit as a canopy (2026-09-15)
+
+Every leaf-on pair drew the leaf mass far darker than its photograph. fn-52
+first measured why, term by term, on S-WHOLE and B-WHOLE, and found no
+fault. The shading normal faces the eye at every leaf pixel and agrees with
+the face normal. One tone curve maps sky, wood and leaves. The shot's
+overcast reaches foliage exactly as it reaches wood. The darkness was the
+card model's. The transmission lobe kept 3% of its light under S-WHOLE's
+side sun. No sky passed through a leaf or reflected off one. Each card was
+lit alone, so 16% (S) and 7% (B) of leaf pixels saw the sun at all. The
+full diagnosis, with the per-term means, is in
+`.flow/evidence/fn52/REPORT.md`.
+
+The material row gains five canopy rows, each inert at zero: `canopyNormal`
+bends the lighting normal toward the crown's outward direction, `lightWrap`
+wraps the sun past the terminator, `diffuseTransmission` lets a thin leaf
+pass the sun and the sky evenly, `leafSheen` is the cuticle's Fresnel
+reflection of the sky, and `crownShade` is the sky the crown over a leaf
+takes from it. The beech states 0.8, 0.4, 1.0, 0.08 and 0.15; the birch
+0.8, 0.5, 1.0, 0.06 and 0.2. No geometry moved. The four bare and close-up
+stills are byte-identical to round 8c's, and every neutral preset's stills
+hash as before.
+
+Photograph / round 8c → round 10:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.73 → 0.73 | 0.25 / 0.29 → 0.29 | 0.28 / 0.49 → 0.49 | 100 / 121 → 121 | 0.29 / 0.09 → 0.09 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.78 → 0.78 | 0.05 / 0.10 → 0.10 | 130 / 75 → 75 | — / 0.16 → 0.16 |
+| B-WHOLE | 0.70 / 0.74 → 0.74 | 0.12 / 0.09 → 0.09 | 0.46 / 0.58 → 0.61 | 80 / 45 → 66 | 0.23 / 0.08 → 0.09 |
+| S-BARE | 0.70 / 0.70 → 0.70 | 0.15 / 0.22 → 0.22 | 0.46 / 0.52 → 0.52 | 91 / 71 → 71 | 0.17 / 0.09 → 0.09 |
+| S-BARK | 1.07 / 1.12 → 1.12 | 1.00 / 0.00 → 0.00 | 0.47 / 0.34 → 0.34 | 92 / 153 → 153 | 0.13 / 0.73 → 0.73 |
+| S-WHOLE | 0.85 / 0.94 → 0.94 | 0.08 / 0.21 → 0.21 | 0.44 / 0.42 → 0.42 | 83 / 35 → 59 | 0.22 / 0.13 → 0.13 |
+
+B-WHOLE's occupied figure rose from 0.58 to 0.61 although no geometry
+moved. Lit leaves stand further out of the pale background, so more of the
+crown's edge clears the mask's threshold.
+
+The share of pixels above half brightness, photograph / round 8c → round 10:
+
+| | Centre crop | Leaf pixels | Leaf mean |
+|---|---|---|---|
+| S-WHOLE | 21.8% / 1.8% → 3.1% | — / 2.4% → 17.7% | — / 40 → 88 |
+| B-WHOLE | 12.4% / 7.0% → 7.2% | — / 0.0% → 1.0% | — / 21 → 68 |
+
+Leaf brightness by sixths of the crown, top to bottom, photograph /
+round 8c → round 10:
+
+- S-WHOLE: 153 111 97 68 57 38 / 48 40 38 36 37 36 → 156 114 89 67 55 45.
+- B-WHOLE: 125 100 81 75 55 52 / 24 19 17 20 25 27 → 91 70 54 52 55 55.
+
+The birch's leaf pixels now sit where the photograph's do. About a fifth
+are above half, the centre's leaf pixels read 71, and the fall from the lit
+top to the shaded base follows the photograph's within ten at every sixth.
+Its centre mean still misses, 59 against 83, because half of that crop is
+the curtain's wood at about 41 (fn-47, fn-51). The beech's leaves are the
+photograph's hue and fall off with its shape, but the whole mass is 14
+short (66 against 80), and its highlights are 1% of leaf pixels. The
+photograph's bright pixels are a pale, sky-lit green, and its camera
+clipped the overcast sky to white where this renderer draws it at 189.
+
+The oak's native hero frame, interleaved against the base commit, is
+3.9798 ms total p50 with its neutral rows and 3.9836 ms with every term
+on, beside fn-29's accepted 3.9823 ms and a base of 3.9785 ms in the same
+session. The browser orbit holds 60 fps: the oak at 10.0 / 10.1 / 10.7 ms
+wall p50 / p95 / worst, and the birch and beech with their rows on under
+10.1 ms at p95 and 20.2 ms at worst. The fixed and fresh numeric protocol
+passes all forty-eight cases (`measure/protocol-fn52/`).
+
+### What the implementer read on the pairs
+
+- **S-WHOLE.** It reads as one lit mass: a bright yellow-green upper shell
+  and sunward side, falling into shade toward the base, where round 8c was
+  a dark ball. What still reads wrong is the band of red-brown curtain wood
+  through the upper middle (fn-47, fn-51), the hem stopping at the crown
+  base (fn-51), and a more even texture than the photograph's clustered
+  highlights.
+- **B-WHOLE.** The leaves are lit, the photograph's mid-green, lighter on
+  top and darker below. The crown is still an umbrella of sprays at the
+  limb ends with sky through its lower half (fn-50, the vase pass), so it
+  does not read as the photograph's one dense mass, and it is a little
+  flatter and dimmer than the photograph.
+
+No visual pass is awarded. The round-10 pairs are recorded by sha256 in
+`round10-fn52/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
