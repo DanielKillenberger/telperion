@@ -2183,6 +2183,238 @@ No visual pass is awarded. The round-15b pairs are recorded by sha256 in
 `round15b-fn48/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
 
+## Round 16, fn-40: smooth bark, lichen, lenticels and peel (2026-09-15)
+
+fn-40 lands on the fn-34 integration tip (`d721fa16`). The material gains
+fourteen rows. They are validated by name, blended, carried on the wire,
+written into the generated browser metadata and documented in the README.
+Every default is zero, and at zero a document renders as it did. The beech
+and the birch state them, and every other table leaves them at zero. After
+the owner's first look came one value pass. The owner then saw round 16 as
+kept (A) beside the worker's lichen trial (B), chose B, and B landed. The
+tables below are B, with bark roughness at 0.95.
+
+| Wire name | Range | Beech | Birch |
+|---|---|---|---|
+| lichenScale | 0-1 m | 0.04 | 0.01 |
+| lichenCoverage | 0-1 | 0.5 | 1.0 |
+| lichenRed/Green/Blue | each 0-1 | 0.8, 0.82, 0.76 | 0.5, 0.5, 0.48 |
+| lichenStrength | 0-1 | 1.0 | 0.45 |
+| lenticelDensity | 0-400 rows a metre | 6 | 18 |
+| lenticelLength | 0-0.5 m | 0.08 | 0.06 |
+| lenticelStrength | 0-1 | 0.25 | 0.9 |
+| lenticelTint | -1-1 | -0.3 | -0.9 |
+| peelCurl | 0-1 | 0 | 0.65 |
+| peelRed/Green/Blue | each 0-1 | 0 | 0.26, 0.24, 0.22 |
+
+### What the three layers are
+
+- **Lichen** is a set of patches, each an ellipsoid around a site that can
+  stand anywhere in its cell. Each is drawn out along its own three axes,
+  lobed by its own phases, and cut sharply at a rim of 0.06 of its radius.
+  Sizes run from a fifth of the largest to the largest. The small patches
+  are drawn at full colour and the broad ones let the bark through, down to
+  0.45. The trunk's surface cuts each patch, and two octaves are drawn, one
+  at the row's scale and one at two fifths of it. A patch mixes its colour
+  into the wood before the relief tints it. On the birch this layer is the
+  fine grey grain of the white bark.
+- **Lenticels** are short dashes that run across the wood. A dash darkens
+  the wood by the tint and cuts a bowl-shaped groove, which the cavity term
+  and the shaded normal already darken.
+- **Peel** is fn-32's plate network, stretched across the wood by the curl.
+  Each strip lifts at its lower edge, and a share of the strips has peeled
+  away whole to the inner-bark colour. That share follows the relief's own
+  maturity, so the old wood at the flare peels and the thin stem does not.
+  Across each strip's boundary the pixel takes each side's share by how
+  much of the pixel lies on that side, reading the neighbouring strip's own
+  share. The colour edge frays over 0.15 of a plate.
+- **All three fade with distance.** Each fades to its mean as the footprint
+  grows, on both axes and also on wood too thin to hold a spot across it.
+  `smooth_means.rs` holds those means to what the near path averages to.
+  The lichen's pinned rate is 0.133 for the lobed patches.
+
+### The beech's and the birch's bark rows
+
+- **Beech, grain.** The ridge field is only a 2 mm grain, with no furrow
+  and no tint (ridgeScale 0.018 to 0.002, furrowStrength 0.12 to 0, fissure
+  and crest strengths 0.2 and 0.25 to 0). At a centimetre and more it drew
+  vertical wavy ridges with bright rims on B-BASE.
+- **Beech, colour and roughness.** The bark colour moves from 0.36, 0.335,
+  0.295 to 0.54, 0.5, 0.44, the mottle from 0.6/0.12 to 0.12/0.1, and the
+  roughness from 0.4 to 0.95.
+- **Birch, relief.** ridgeScale moves from 0.025 to 0.08, so maturity
+  confines the relief to the root flare and leaves the stem and every limb
+  smooth. plateScale is 0.4, furrow 1, and the fissure tints are -0.7 at
+  strength 1.
+- **Birch, plates.** The plate rows are cell 0.05, dome 0.3, lift 0.3,
+  identity 0.3, directional occlusion 0.6 and depth 0.4, which gives small
+  strips of 1.5 cm at the flare's girth.
+- **Birch, mottle and roughness.** The mottle moves from 0.9/0.18 to
+  0.15/0.12 and the roughness from 0.48 to 0.95.
+
+### The owner's look, the value pass and the choice
+
+The owner's words, relayed by the coordinator:
+
+- On round 16 first: "the beech material actually looks better ... not
+  bad".
+- On round 16 first: "from close: round 16 looks good".
+- On round 16 first: "it's all still too plasticesque need to make it
+  rough less reflective. All the materials have this problem."
+- On A beside B, both close-ups: "yea the new one is better!" This choice
+  supersedes "round 16 looks good" for the lichen.
+
+What each step did:
+
+- **The value pass (A).** It kept the beech's rows, lightly shrank and
+  greyed the birch's blotches, and raised both roughnesses to 0.95.
+- **Roughness 0.95.** It stays in B. At the close-ups' own light the old
+  narrow highlight was already all but unseen: the beech's brightest column
+  measures 198.2 at roughness 0.4 and 198.2 at 1.0, where no highlight is
+  drawn. A rougher row widens it into a low sheen, 201.3 at 0.95. So the
+  plastic read at the close-ups comes from the renderer side, which is set
+  aside for a later spec.
+- **The trial (B).** It is `lichen-lobed.patch` on `smooth.wgsl` with the
+  rows in the table above. The worker tried it against the host's reading
+  of the first capture: fewer, irregular patches of widely varied size, a
+  fine grain, and the birch's blotches smaller, raggeder and greyer. It
+  landed as the owner chose it, with only the roughness changed from the
+  trial's 0.4 and 0.48.
+
+### Measured first
+
+fn-32's receipt is in `receipt.py` and `receipt.json`. It gives the centre
+400 px crop's mean colour and channel order, and the six-component
+structure distance to the photograph. The *matched* framing resamples both
+the still and the photograph to one 600 px frame height, so the crop covers
+the same stretch of bark in both, and it is the fair comparison. The
+*native* framing is fn-32's literal one. S-BARK's photograph is a diptych,
+so it is also measured half by half.
+
+| Distance to the photograph | Round 14 | Round 16 first | Kept (A) | Chosen (B) |
+|---|---:|---:|---:|---:|
+| B-BASE, matched | 1.3123 | 1.1751 | 1.2183 | **0.5907** |
+| B-BASE, native | 1.3300 | 1.1489 | 1.1942 | 2.1808 |
+| S-BARK, matched | 1.1525 | 0.8876 | 0.9010 | **0.7632** |
+| S-BARK's white stem half, matched | 1.4589 | 0.8950 | 1.0857 | 0.9406 |
+| S-BARK's old base half, matched | 2.1417 | 1.8752 | 1.9736 | 1.8812 |
+
+- **Matched framing.** B brings the beech's structure to its photograph on
+  every component but the dark fraction. B-BASE's matched crop is
+  124/130/134 against 132/133/138.
+- **Native framing.** B-BASE's native number worsens, because the 2 mm
+  grain at the still's full 1440 px measures an 8 px period against the
+  photograph's 17 px at its own 400 px. That framing does not match scale,
+  and the matched one does.
+- **S-BARK's colour.** Neither crop colour is a bark colour. The
+  photograph's is mostly dark foliage, and the still's native centre falls
+  largely between the two stems.
+
+### The other four pairs
+
+The other four pairs were measured and not viewed. The table gives
+photograph / round 14 → B.
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.73 → 0.73 | 0.25 / 0.24 → 0.23 | 0.28 / 0.43 → 0.42 | 100 / 124 → 137 | 0.29 / 0.07 → 0.08 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.06 → 0.04 | 0.05 / 0.09 → 0.20 | 130 / 101 → 122 | — / 0.14 → 0.15 |
+| B-WHOLE | 0.70 / 0.74 → 0.74 | 0.12 / 0.09 → 0.09 | 0.46 / 0.65 → 0.65 | 80 / 35 → 41 | 0.23 / 0.07 → 0.07 |
+| S-BARE | 0.70 / 0.68 → 0.68 | 0.15 / 0.17 → 0.20 | 0.46 / 0.53 → 0.51 | 91 / 81 → 96 | 0.17 / 0.08 → 0.09 |
+| S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.31 → 0.31 | 92 / 167 → 131 | 0.13 / 0.51 → 0.50 |
+| S-WHOLE | 0.85 / 0.87 → 0.87 | 0.08 / 0.14 → 0.14 | 0.44 / 0.49 → 0.48 | 83 / 47 → 52 | 0.22 / 0.11 → 0.11 |
+
+- **B-BARE's centre is recorded, not corrected:** 137 against its
+  photograph's 100, where round 14 drew 124. The close-up governs the
+  bark's colour. It is the photograph of the material, and B-BARE's
+  brightness is mostly its exposure and sky.
+- **The birch's far views move toward their photographs.** S-BARE's centre
+  goes from 81 to 96 against 91, and S-WHOLE's from 47 to 52 against 83.
+
+### R4: neutral rows and the frame
+
+- **Neutral stills.** At the base commit's hero, bare and close poses, the
+  oak and the spruce stills are byte-identical to that commit's.
+- **Resolution and distance.** Every existing test holds fn-32's numbers
+  to the digit: distance 2.385 and 2.904, trunk 1.826, oak grazing 2.946,
+  spruce grazing 2.754. Every redraw is 0/255.
+- **Mesh.** No row moves a vertex. `smooth_bark.rs` checks that the wood
+  mesh hash is equal with each layer on and off, and that the frame returns
+  byte for byte with all three at zero.
+- **The two smooth close-ups hold the resolution contract.** The beech
+  measures 1.63/5.50 against 3 and 12.
+- **The birch passes with little margin:** 2.99/11.25 against 3 and 12,
+  leaving 0.008 of the mean's bound. Its crisp grain and small grey-black
+  strips spend what round 16's 1.71 left. The next birch change that adds
+  edge will cross the bound; that is a fact to carry, not a tolerance to
+  move.
+
+The native frame follows fn-26's protocol at seed 7 and 1600x1000. Base
+and branch runs interleave. Each run starts only after the shared GPU has
+read idle for three seconds with no other headless process running.
+
+| Native total p50, ms | Base `d721fa16` | Branch | Change |
+|---|---|---|---|
+| Oregon white oak, every fn-32 term on | 5.2037, 5.2257, 5.2152 | 5.2106, 5.2275, 5.2257 | +0.006, inside the spread |
+| Silver birch, B | 4.1615, 4.1700, 4.1477 | 4.2184, 4.2117, 4.2048 | **+0.05** |
+| European beech, B | 5.8545, 5.8473 | 5.4802, 5.4917 | -0.36 |
+
+- **The oak is the baseline.** It measures 5.215 ms total p50 on this
+  machine now, against the one run of 5.356 that round 14 recorded.
+- **Neutral rows cost the oak nothing.** The wood pipeline is built twice,
+  and a material with no lichen, lenticel or peel draws through the build
+  that compiles those terms out. The oak draws through that build, so the
+  value pass and B leave it untouched.
+- **The birch costs far less under B.** It was +0.41 ms under A. The
+  birch's lichen is a 1 cm grain that fades to its mean across the whole
+  tree, where A's 6 cm blotches ran the full cell search over trunk and
+  limbs.
+- **The beech is cheaper.** Its 2 mm grain has faded well before the whole
+  tree's footprint.
+- **The bound is the owner's.** `timing.json` records every run, A's
+  included.
+
+### What the worker read on the two close-ups
+
+The worker viewed B-BASE and S-BARK at the record capture.
+
+- **B-BASE: yes, it reads as the photograph's kind of lichen and not polka
+  dots.** The patches are irregular and crisp, widely varied in size, with
+  small bright spots and broad thin grey-green ones over a fine grain.
+  Against the photograph:
+  - The patches are a little angular.
+  - The grain is finer and more regular than the photograph's.
+  - The lenticels still read as slits.
+- **S-BARK's stem: yes, it reads as the left photograph and not a cow
+  print.** The marks are small to medium, ragged, grey-black and varied,
+  on a white with a fine grey grain, banded by the lenticel dashes.
+  Against the photograph, the marks are cell-shaped rather than streaked
+  and grow denser towards the ground.
+- **S-BARK's old base: no.** It does not read as the right photograph. The
+  flare is dark with grey-black strips, but it is not deeply fissured, no
+  plate reads as lifting, and no orange inner bark shows.
+
+**What reaches the old base, and what does not.** The relief's
+radius-based maturity confines three things to the thickest wood near the
+ground: the relief itself, which carries fn-32's plates; the fissure tint;
+and the peeled share. That is why the base is dark and the stem white, with
+no height term. It cannot make the relief change its character with age,
+to vertical furrows and lifting plates at the base and horizontal strips
+above. One set of plate rows draws one network, and the spec's boundary
+excludes age-dependent bark change.
+
+### Not done, and open
+
+- **References.** The spec asks for one close bark photograph per species,
+  fetched with an fn-19 record and a shot block. This round used B-BASE and
+  S-BARK only, and none was fetched.
+- **Owner verdicts.** R4's bound and R5's verdict belong to the owner. The
+  six pairs are in `stills.json` with `visual_status: unassessed` and the
+  owner's words.
+- **The quick loop.** fn-34's quick loop (`f0430ec7`) is cherry-picked
+  onto this branch. The value trials ran through the archived
+  `smooth-driver.rs`, and the record through the full runner.
+
 ## Round 17: short shoots and canopy lighting together (2026-09-15)
 
 The integration branch merges fn-52 (a leaf mass lit as a canopy) and then

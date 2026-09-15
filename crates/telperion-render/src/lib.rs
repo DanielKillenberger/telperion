@@ -211,6 +211,7 @@ impl Renderer {
     /// beside the tree rather than carried by the mesh: a mesh is geometry,
     /// and no vertex of it changes when the bark does.
     pub fn set_material(&mut self, material: MaterialParams) {
+        self.wood.set_material(&material);
         self.scene.set_material(material);
     }
 

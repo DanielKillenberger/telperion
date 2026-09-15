@@ -2,7 +2,10 @@
 //! index arrays uploaded as they lie in memory, drawn as one indexed mesh.
 mod radius;
 
-use telperion_core::surface::{SurfaceMesh, SurfaceRun};
+use telperion_core::{
+    material::MaterialParams,
+    surface::{SurfaceMesh, SurfaceRun},
+};
 
 use crate::{
     buffer::{self, Held, Region},
@@ -17,10 +20,24 @@ const POSITION: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float
 const NORMAL: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![1 => Float32x3];
 const COORD: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![2 => Float32x2];
 
-/// The wood pipeline, the depth-only one the sun draws it through, and the
-/// buffers one tree's surface lives in.
+/// The switch the wood stages are built on, as the shader states it.
+const SMOOTH_ON: &str = "const SMOOTH_BARK: bool = true;";
+
+/// Whether a material draws any of smooth bark's terms: lichen, lenticels or
+/// a peeling strip. One that draws none is drawn by the pipeline without them.
+pub fn smooth_bark(m: &MaterialParams) -> bool {
+    (m.lichen_strength > 0.0 && m.lichen_scale > 0.0)
+        || (m.lenticel_strength > 0.0 && m.lenticel_length > 0.0)
+        || m.peel_curl > 0.0
+}
+
+/// The wood pipeline twice - with smooth bark's terms and without them - the
+/// depth-only one the sun draws it through, and the buffers one tree's
+/// surface lives in.
 pub struct Wood {
     pipeline: wgpu::RenderPipeline,
+    smooth: wgpu::RenderPipeline,
+    smooth_on: bool,
     shadow: wgpu::RenderPipeline,
     positions: Option<Held>,
     normals: Option<Held>,
@@ -42,11 +59,19 @@ impl Wood {
         surface: crate::pass::Surface,
     ) -> Self {
         let stages = format!(
-            "{}\n{}",
+            "{}\n{}\n{}\n{}",
             include_str!("shaders/bark.wgsl"),
+            include_str!("shaders/plates.wgsl"),
+            include_str!("shaders/smooth.wgsl"),
             include_str!("shaders/wood.wgsl")
         );
-        let shader = crate::pass::lit_shader(gpu, "wood", &stages);
+        assert!(
+            stages.contains(SMOOTH_ON),
+            "the wood stages lost their switch"
+        );
+        let plain = stages.replace(SMOOTH_ON, "const SMOOTH_BARK: bool = false;");
+        let shader = crate::pass::lit_shader(gpu, "wood", &plain);
+        let smooth = crate::pass::lit_shader(gpu, "smooth wood", &stages);
         let radius_layout = gpu
             .device
             .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -69,16 +94,21 @@ impl Wood {
                 attributes,
             })
         };
-        Self {
-            pipeline: crate::pipeline(
+        let lit = |module, label| {
+            crate::pipeline(
                 gpu,
                 &[Some(layout), Some(&radius_layout), Some(shadow.layout())],
-                &shader,
+                module,
                 surface,
                 &[vertex(&POSITION, 3), vertex(&NORMAL, 3), vertex(&COORD, 2)],
                 crate::pass::Depth::Surface,
-                "wood",
-            ),
+                label,
+            )
+        };
+        Self {
+            pipeline: lit(&shader, "wood"),
+            smooth: lit(&smooth, "smooth wood"),
+            smooth_on: false,
             // The sun sees a position and nothing else, so the normals and the
             // coordinates are not bound for it at all.
             shadow: crate::depth_pipeline(
@@ -164,6 +194,11 @@ impl Wood {
         );
     }
 
+    /// Which of the two lit pipelines the material draws through.
+    pub fn set_material(&mut self, material: &MaterialParams) {
+        self.smooth_on = smooth_bark(material);
+    }
+
     /// Draws the surface, or nothing when no tree has been submitted.
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> FrameStats {
         let (Some(positions), Some(normals), Some(coords), Some(indices)) =
@@ -171,7 +206,11 @@ impl Wood {
         else {
             return FrameStats::default();
         };
-        pass.set_pipeline(&self.pipeline);
+        pass.set_pipeline(if self.smooth_on {
+            &self.smooth
+        } else {
+            &self.pipeline
+        });
         pass.set_bind_group(1, self.radius_group.as_ref().expect("submitted radii"), &[]);
         pass.set_vertex_buffer(0, positions.live());
         pass.set_vertex_buffer(1, normals.live());

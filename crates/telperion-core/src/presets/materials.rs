@@ -75,6 +75,8 @@ pub(super) fn oak() -> MaterialParams {
         diffuse_transmission: 0.0,
         leaf_sheen: 0.0,
         crown_shade: 0.0,
+        // Plated bark: no lichen, lenticel or peel term of fn-40's.
+        ..MaterialParams::default()
     }
 }
 
@@ -152,15 +154,24 @@ pub(super) fn spruce() -> MaterialParams {
         diffuse_transmission: 0.0,
         leaf_sheen: 0.0,
         crown_shade: 0.0,
+        // Plated bark: no lichen, lenticel or peel term of fn-40's.
+        ..MaterialParams::default()
     }
 }
 
 pub(super) fn beech() -> MaterialParams {
     MaterialParams {
-        bark_red: 0.36,
-        bark_green: 0.335,
-        bark_blue: 0.295,
-        bark_roughness: 0.4,
+        // fn-40: B-BASE's smooth grey reads 132/133/138 at the centre of its
+        // close-up; the old 0.36/0.335/0.295 drew it at 96/101/106 under the
+        // shot's sun and sky, and this row draws it at 127/133/138.
+        bark_red: 0.54,
+        bark_green: 0.5,
+        bark_blue: 0.44,
+        // Rough, not glossy, in the oak's and the spruce's range after the
+        // owner read the close-ups as plastic. At B-BASE's own light the old
+        // 0.4 highlight was already all but unseen; 0.95 leaves a sheen of
+        // three code values, where 0.9 left five.
+        bark_roughness: 0.95,
         // Young shoots light olive- to grey-brown (VT Dendrology, Fagus
         // sylvatica: "slender, zigzag, light brown"; OSU: stems olive-brown),
         // grey by the second or third year. B-BARE's winter crown haze reads
@@ -184,9 +195,12 @@ pub(super) fn beech() -> MaterialParams {
         brightness_range_low: -0.1,
         brightness_range_high: 0.1,
         interior_darkening: 0.35,
-        ridge_scale: 0.018,
+        // Smooth bark: the ridge field only as a 2 mm grain with no furrow and
+        // no tint. At a centimetre and more it drew vertical wavy ridges with
+        // bright rims on B-BASE; tinted at 2 mm, a crackle glaze.
+        ridge_scale: 0.002,
         plate_scale: 0.04,
-        furrow_strength: 0.12,
+        furrow_strength: 0.0,
         roughness_detail: 0.08,
         vein_scale: 7.0,
         vein_contrast: 0.4,
@@ -198,13 +212,13 @@ pub(super) fn beech() -> MaterialParams {
         fissure_red: -0.04,
         fissure_green: -0.03,
         fissure_blue: -0.02,
-        fissure_strength: 0.2,
+        fissure_strength: 0.0,
         crest_red: 0.06,
         crest_green: 0.055,
         crest_blue: 0.045,
-        crest_strength: 0.25,
-        bark_mottle_scale: 0.6,
-        bark_mottle_strength: 0.12,
+        crest_strength: 0.0,
+        bark_mottle_scale: 0.12,
+        bark_mottle_strength: 0.1,
         cavity_strength: 0.35,
         blade_mottle_scale: 5.0,
         blade_mottle_strength: 0.1,
@@ -214,9 +228,7 @@ pub(super) fn beech() -> MaterialParams {
         margin_blue: 0.008,
         cuticle_gloss: 0.48,
         sky_occlusion_strength: 0.35,
-        // fn-32's plate network is not stated for this table yet: every
-        // plate row stands at its neutral, which is the bark it drew before
-        // the network existed. fn-40 states the smooth barks' own.
+        // No plate network: smooth bark has none to draw.
         plate_cell_scale: 0.0,
         plate_elongation: 0.0,
         plate_dome: 0.0,
@@ -252,6 +264,23 @@ pub(super) fn beech() -> MaterialParams {
         // sixth to 52 at the bottom, and 0.15 a radius draws 91 to 55, where
         // no shade drew the bottom brighter than the middle.
         crown_shade: 0.15,
+        // B-BASE: lichen in few patches of widely varied size, the small ones
+        // bright white and the broad ones thin grey-green, and a few faint
+        // horizontal lines. No strip peels.
+        lichen_scale: 0.04,
+        lichen_coverage: 0.5,
+        lichen_red: 0.8,
+        lichen_green: 0.82,
+        lichen_blue: 0.76,
+        lichen_strength: 1.0,
+        lenticel_density: 6.0,
+        lenticel_length: 0.08,
+        lenticel_strength: 0.25,
+        lenticel_tint: -0.3,
+        peel_curl: 0.0,
+        peel_red: 0.0,
+        peel_green: 0.0,
+        peel_blue: 0.0,
     }
 }
 
@@ -260,7 +289,9 @@ pub(super) fn birch() -> MaterialParams {
         bark_red: 0.78,
         bark_green: 0.76,
         bark_blue: 0.7,
-        bark_roughness: 0.48,
+        // Rough, not glossy, in the oak's and the spruce's range after the
+        // owner read the close-ups as plastic.
+        bark_roughness: 0.95,
         // Young shoots dark red-brown, glossy, with pale resin warts; the
         // bark whitens only once it has thickened (VT Dendrology, Betula
         // pendula: twigs "slender, reddish brown"; bark "reddish brown ...
@@ -290,9 +321,14 @@ pub(super) fn birch() -> MaterialParams {
         brightness_range_low: -0.12,
         brightness_range_high: 0.12,
         interior_darkening: 0.15,
-        ridge_scale: 0.025,
-        plate_scale: 0.05,
-        furrow_strength: 0.25,
+        // fn-40: the old base is dark and fissured and the stem above it
+        // smooth. Relief comes in with maturity, from a radius of one ridge
+        // width to two and a half, so at 8 cm it holds the root flare (20 cm
+        // at a quarter metre, 13 cm at one metre, 10 cm by four at seed 1)
+        // and leaves the stem and every limb smooth. Long, deep furrows.
+        ridge_scale: 0.08,
+        plate_scale: 0.4,
+        furrow_strength: 1.0,
         roughness_detail: 0.1,
         vein_scale: 6.0,
         vein_contrast: 0.35,
@@ -301,16 +337,16 @@ pub(super) fn birch() -> MaterialParams {
         transmission_green: 0.55,
         transmission_blue: 0.1,
         thickness: 0.45,
-        fissure_red: -0.25,
-        fissure_green: -0.24,
-        fissure_blue: -0.22,
-        fissure_strength: 0.45,
-        crest_red: 0.08,
-        crest_green: 0.07,
-        crest_blue: 0.06,
-        crest_strength: 0.2,
-        bark_mottle_scale: 0.9,
-        bark_mottle_strength: 0.18,
+        fissure_red: -0.7,
+        fissure_green: -0.7,
+        fissure_blue: -0.66,
+        fissure_strength: 1.0,
+        crest_red: 0.1,
+        crest_green: 0.1,
+        crest_blue: 0.1,
+        crest_strength: 0.4,
+        bark_mottle_scale: 0.15,
+        bark_mottle_strength: 0.12,
         cavity_strength: 0.3,
         blade_mottle_scale: 5.5,
         blade_mottle_strength: 0.12,
@@ -320,15 +356,14 @@ pub(super) fn birch() -> MaterialParams {
         margin_blue: 0.01,
         cuticle_gloss: 0.28,
         sky_occlusion_strength: 0.4,
-        // fn-32's plate network is not stated for this table yet: every
-        // plate row stands at its neutral, which is the bark it drew before
-        // the network existed. fn-40 states the smooth barks' own.
-        plate_cell_scale: 0.0,
+        // The plate network as peeling strips: 1.5 cm plates at the base's
+        // girth, stretched across by the curl into bands three times wider.
+        plate_cell_scale: 0.05,
         plate_elongation: 0.0,
-        plate_dome: 0.0,
-        plate_edge_lift: 0.0,
+        plate_dome: 0.3,
+        plate_edge_lift: 0.3,
         plate_furrow_width: 0.0,
-        plate_identity: 0.0,
+        plate_identity: 0.3,
         weathering_strength: 0.0,
         weathering_red: 0.0,
         weathering_green: 0.0,
@@ -337,8 +372,27 @@ pub(super) fn birch() -> MaterialParams {
         orientation_red: 0.0,
         orientation_green: 0.0,
         orientation_blue: 0.0,
-        directional_occlusion: 0.0,
-        depth_strength: 0.0,
+        directional_occlusion: 0.6,
+        depth_strength: 0.4,
+        // S-BARK: a chalk-white stem with a fine grey grain, banded with dark
+        // lenticel dashes and small, ragged grey-black marks over a darker
+        // base. The marks are the strips that have peeled, grey-black inner
+        // bark: most at the flare, fewer as the wood thins, each one whole,
+        // none where the relief ends. The lichen is only the grain.
+        lichen_scale: 0.01,
+        lichen_coverage: 1.0,
+        lichen_red: 0.5,
+        lichen_green: 0.5,
+        lichen_blue: 0.48,
+        lichen_strength: 0.45,
+        lenticel_density: 18.0,
+        lenticel_length: 0.06,
+        lenticel_strength: 0.9,
+        lenticel_tint: -0.9,
+        peel_curl: 0.65,
+        peel_red: 0.26,
+        peel_green: 0.24,
+        peel_blue: 0.22,
         // The same canopy as the beech's (fn-52), with a softer terminator
         // for the airy hanging crown and a less glossy cuticle. Set against
         // S-WHOLE, whose centre pixels sit above half brightness a fifth of

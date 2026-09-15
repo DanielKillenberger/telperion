@@ -367,6 +367,23 @@ light and changes no shadow map. `depthStrength` (0-1) gives the relief depth
 beyond the shaded normal. All fifteen default to zero, and with them at zero a
 document renders exactly as it did before they existed.
 
+Smooth bark is colour rather than relief. `lichenScale` (0-1 metres) is the
+size of the cells lichen patches scatter over, and `lichenCoverage` (0-1) the
+share of them holding one; a patch is a sphere cut by the bark's own surface,
+so most show small and a few broad, over two octaves. `lichenStrength` (0-1)
+covers the bark with `lichenRed/Green/Blue` (linear reflectance, 0-1).
+`lenticelDensity` (0-400 rows a metre) and `lenticelLength` (0-0.5 metres,
+the longest dash across the wood) lay short horizontal dashes;
+`lenticelStrength` (0-1) is how far one shows and how deep a shallow groove it
+cuts into the relief, and `lenticelTint` (-1-1) its value against the bark,
+-1 black. `peelCurl` (0-1) turns the plate network into strips peeling across
+the wood: they stretch up to four plates wide, lift at their lower edge, and
+that share of them has peeled away to `peelRed/Green/Blue` (linear
+reflectance, 0-1), the inner bark. The share rides on the relief's own
+maturity, so the old wood at the base peels and the young stem does not. All
+fourteen default to zero and are footprint-faded to their means, and at zero
+a document renders exactly as it did before they existed.
+
 Foliage selection compacts each level in placement-index order. Equal-depth
 leaf samples therefore resolve consistently when the same frame is redrawn.
 

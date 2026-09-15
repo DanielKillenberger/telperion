@@ -198,6 +198,20 @@ macro_rules! fields {
         $op!($f, $v, "material", "diffuseTransmission"; material.diffuse_transmission);
         $op!($f, $v, "material", "leafSheen"; material.leaf_sheen);
         $op!($f, $v, "material", "crownShade"; material.crown_shade);
+        $op!($f, $v, "material", "lichenScale"; material.lichen_scale);
+        $op!($f, $v, "material", "lichenCoverage"; material.lichen_coverage);
+        $op!($f, $v, "material", "lichenRed"; material.lichen_red);
+        $op!($f, $v, "material", "lichenGreen"; material.lichen_green);
+        $op!($f, $v, "material", "lichenBlue"; material.lichen_blue);
+        $op!($f, $v, "material", "lichenStrength"; material.lichen_strength);
+        $op!($f, $v, "material", "lenticelDensity"; material.lenticel_density);
+        $op!($f, $v, "material", "lenticelLength"; material.lenticel_length);
+        $op!($f, $v, "material", "lenticelStrength"; material.lenticel_strength);
+        $op!($f, $v, "material", "lenticelTint"; material.lenticel_tint);
+        $op!($f, $v, "material", "peelCurl"; material.peel_curl);
+        $op!($f, $v, "material", "peelRed"; material.peel_red);
+        $op!($f, $v, "material", "peelGreen"; material.peel_green);
+        $op!($f, $v, "material", "peelBlue"; material.peel_blue);
 
         $op!($f, $v, "shellDepth"; shell_depth);
     };
