@@ -28,7 +28,10 @@
 //! is the smooth shell to the byte; the element pins do not move.
 //! fn-34 round 5b re-pins the beech alone, on the owner's verdict that the
 //! round-5 beech "bends too much": its leader keeps its dominance, its limbs
-//! leave at 38 degrees and rise, and its axes are barely crooked.
+//! leave at 38 degrees and rise, and its axes are barely crooked. Round 5c
+//! re-pins it again on the owner's next note ("much more thick core trunks
+//! for almost the entire height"): half the taper per metre, a lower fork
+//! exponent, and the limbs at 42 degrees.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -90,17 +93,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 7026916,
-        wood_triangles: 13553160,
-        instances: 1624649,
+        wood_vertices: 6510994,
+        wood_triangles: 12553400,
+        instances: 1520948,
         min: [
-            -17.009743721766018,
+            -17.08121084895728,
             -0.12800000607967377,
-            -15.363683700561523,
+            -15.863580706279707,
         ],
-        max: [17.01350182476531, 31.999802439298183, 16.092353302018967],
-        skeleton: 12852486373694172527,
-        placement: 16138498328703486063,
+        max: [17.345312380377766, 32.068859062177204, 16.104214894087672],
+        skeleton: 12724258804456017391,
+        placement: 1428090863184977654,
         element: 15097586524950800877,
     },
     Pin {

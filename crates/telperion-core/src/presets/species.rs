@@ -27,7 +27,7 @@ pub(super) fn european_beech(p: &mut Family) {
         whorl_strength: 0.15,
         leader_internode: 2.2,
         laterals_per_station: 4,
-        lateral_pitch: 38.0,
+        lateral_pitch: 42.0,
         pitch_variation: 10.0,
         rise_primary: 0.3,
         rise_secondary: 0.0,
@@ -60,6 +60,16 @@ pub(super) fn european_beech(p: &mut Family) {
     p.skeleton.twigs.length_ratio = 0.40;
     p.skeleton.twigs.twig.bearing_diameter = 0.03;
     p.radii.trunk_radius = 0.014;
+    // Round 5c, the owner: "much more thick core trunks for almost the
+    // entire height of the tree. Our tree thins out too quickly." The beech
+    // sheds half the default taper per metre. The fork exponent is the row
+    // that would keep the leader thick (a parent's radius is the n-th root
+    // of the sum of its children's, so a higher n lets the leader set it),
+    // but every exponent above 1.8 grew a fifth twig generation past the
+    // node ceiling, with two laterals a station as with four: the twig
+    // budget follows the radius, which is fn-45's, not a row.
+    p.radii.length_taper = 0.3;
+    p.radii.fork_exponent = 1.8;
     // A beech stands on a modest flare, not the oak's buttress.
     p.surface.flare_radius = 1.5;
     p.element = ElementParams {

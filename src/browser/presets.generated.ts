@@ -811,8 +811,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "veinScale": 7
       },
       "radii": {
-        "forkExponent": 2,
-        "lengthTaper": 0.6,
+        "forkExponent": 2.8,
+        "lengthTaper": 0.3,
         "trunkRadius": 0.014
       },
       "shellDepth": 1,
@@ -846,7 +846,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crookedness": 6,
           "lateralLengthRatio": 0.46,
           "lateralOrders": 3,
-          "lateralPitch": 38,
+          "lateralPitch": 42,
           "lateralSpacing": 1.4,
           "lateralsPerStation": 4,
           "leaderInternode": 2.2,

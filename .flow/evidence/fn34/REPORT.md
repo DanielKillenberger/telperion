@@ -327,3 +327,60 @@ statistic fell as the ascending limbs fill the shell more evenly. The
 leaf-on crown remains a scatter of dark leaves with sky through it, which the
 gap table assigns to appearance. No visual pass is awarded; the pairs are in
 `round5b-beech/stills.json` and on the judging page.
+
+## Round 5c: a thick core and a clean still (2026-09-15, owner's notes on 5b)
+
+The owner on the round-5b pairs: "ok that is much closer. Is AA off? why is
+there this dithering effect again? ... Also just much more thick core trunks
+for almost the entire height of the tree. Our tree thins out too quickly."
+
+Anti-aliasing was on, at four samples a pixel, but the matched stills were
+rendered at the pair's own height of 720, so a twig thinner than a pixel
+dithered whatever the sampler did. The runner now renders a matched still at
+1440 tall (`MATCHED_HEIGHT` in `tests/species.mjs`) and the compare script's
+Lanczos step to 720 is the rest of the supersample; the measured numbers are
+fractions of the still and are unchanged by it. The fixed protocol stills
+keep their 960 by 720.
+
+The beech's radius rows moved for the first time: the per-metre taper from
+the default 0.6 to 0.3 and the fork exponent from 2.0 to 1.8, so the leader
+keeps its girth up through the crown instead of shedding it at every fork;
+the DBH proxy stays inside its gate at 0.885 m. The lower limbs leave at 42
+degrees instead of 38 so the crown starts lower and reads broader at the
+shoulder. The beech pin is re-recorded with the reason; the 24-seed protocol
+passes with the heaviest seed at 195,502 nodes.
+
+Photograph / round 5b → round 5c:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.70 → 0.70 | 0.25 / 0.27 → 0.27 | 0.28 / 0.38 → 0.35 | 100 / 141 → 142 | 0.29 / 0.07 → 0.08 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.00 → 0.00 | 0.05 / 0.75 → 0.72 | 130 / 78 → 112 | — / 0.23 → 0.38 |
+| B-WHOLE | 0.70 / 0.69 → 0.69 | 0.12 / 0.22 → 0.08 | 0.46 / 0.60 → 0.60 | 80 / 46 → 44 | 0.23 / 0.08 → 0.10 |
+
+No visual pass is awarded; the pairs are in `round5c-beech/stills.json` and
+on the judging page, and the owner judges.
+
+### Round 5d, attempted: the fork exponent against the node ceiling (2026-09-15)
+
+The owner on 5c: "doesn't seem that much thicker?" Right: 5c had moved the
+fork exponent the wrong way (1.8 makes the parent thicker relative to its
+leader, so the base is the same and the leader thins faster). The row that
+keeps a leader thick is a higher exponent, near Murray's 3. At 2.8 the bare
+pair showed exactly the core the owner asked for, and every one of the 24
+protocol seeds hit the 250,000-node ceiling: seed 1 went from 115,255
+branches with four orders and 115,080 twigs to 149,743 branches with a fifth
+order of 35,655 and 82,843 twigs, capped. The thicker wood stays above the
+threshold at which a limb becomes a twig for one more order, and that order
+is what the ceiling cannot hold. Exponents 2.0, 2.2, 2.3 and 2.5 with the
+halved taper capped the same three heavy seeds; raising the twig bearing
+diameter (0.03 to 0.045), the limb handoff share (0.1 to 0.16) and the twig
+diameter (5 to 8 mm) each left the fifth order and the cap in place. The
+table returns to 5c's values and the 5d stills are not recorded.
+
+What this needs is the owner's: the beech at five twig laterals a station
+sits within a percent of the ceiling before any of this, and a core as thick
+as the photograph's costs on the order of a third more nodes. Either the
+ceiling rises for the catalogue (a cost decision the gap table already
+names) or the beech gives up twig density for girth. Neither is a value the
+table may spend on its own.
