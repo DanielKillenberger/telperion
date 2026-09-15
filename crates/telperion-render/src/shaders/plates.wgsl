@@ -1,5 +1,11 @@
 // Concatenated after bark.wgsl, whose field reads this network and whose edge
 // integral the network uses.
+
+// Whether smooth bark's terms are compiled in. The wood pipeline is built
+// twice, once with this false, and a material with no lichen, lenticel or
+// peel draws through that one, so a plated bark pays nothing for them.
+const SMOOTH_BARK: bool = true;
+
 //
 // The plate network, the field's second primitive. Ridges are parallel: they
 // cannot branch, cannot merge, and cannot give one plate an identity of its
@@ -19,16 +25,25 @@
 // trunk, so an elongated plate is one whose sites stand further apart
 // axially - and the axial offset is scaled back by the same elongation
 // before any distance is taken, which keeps a wall the same width in metres
-// whichever way it runs. A peeling strip is stretched across the wood the
-// same way, so `stretch` carries both: across, across and along.
-fn bark_network(p: vec3<f32>, stretch: vec3<f32>) -> vec4<f32> {
+// whichever way it runs.
+//
+// What it returns for a point: its distance to the nearer boundary in plate
+// widths, its site's seed, how far along the run it stands from that site,
+// and the offset to the site across the nearer boundary, in plate widths.
+struct BarkCell {
+    edge: f32,
+    seed: f32,
+    lean: f32,
+    next: vec3<f32>,
+};
+
+fn bark_network(p: vec3<f32>, elongated: f32) -> BarkCell {
     let base = floor(p);
     var first = 64.0;
     var second = 64.0;
     var nearest = vec3(0.0);
     var next = vec3(0.0);
     var seed = 0.0;
-    var beside = 0.0;
     for (var z = -1; z <= 1; z++) {
         for (var y = -1; y <= 1; y++) {
             for (var x = -1; x <= 1; x++) {
@@ -41,29 +56,28 @@ fn bark_network(p: vec3<f32>, stretch: vec3<f32>) -> vec4<f32> {
                 // Cells of one size are a wall. A weight per site is what
                 // makes one plate broad and its neighbour narrow off one row.
                 let weight = mix(0.72, 1.28, fract(a * 17.3 + b * 31.1));
-                let offset = (id + 0.15 + 0.7 * jitter - p) * stretch;
+                let offset = (id + 0.15 + 0.7 * jitter - p) * vec3(1.0, 1.0, elongated);
                 let distance = length(offset) / weight;
                 if (distance < first) {
                     second = first;
                     next = nearest;
-                    beside = seed;
                     first = distance;
                     nearest = offset;
                     seed = fract(a * 91.7 + b * 13.9);
                 } else if (distance < second) {
                     second = distance;
                     next = offset;
-                    beside = fract(a * 91.7 + b * 13.9);
                 }
             }
         }
     }
     // Dividing the difference by how fast it grows gives a boundary of
     // physical width, rather than a hairline whose width depends on how far
-    // apart the two sites happened to fall. The plate across that boundary
-    // keeps its own seed too, for a colour that has to change across it.
-    return vec4(0.5 * (second - first) / max(length(next - nearest), 0.001), seed,
-        nearest.z / max(stretch.z, 0.001), beside);
+    // apart the two sites happened to fall. The site across that boundary is
+    // kept too, for a colour that has to change across it; its seed is read
+    // only where that colour is, so the loop the relief pays for is unchanged.
+    return BarkCell(0.5 * (second - first) / max(length(next - nearest), 0.001), seed,
+        nearest.z / max(elongated, 0.001), next);
 }
 
 // Where the network's profile stands on average over a whole plate, measured
@@ -88,19 +102,20 @@ const BARK_PLATE_FURROW_RIM = 1.619;
 const BARK_PLATE_DEPTH = 0.045;
 const BARK_PLATE_WALL = 0.14;
 // Peel: how many plates wide a fully curled strip is stretched across the
-// wood, how far its lower edge lifts against a whole rim, and the share of a
-// rim that lies on a strip's lower side - measured with the plate means.
+// wood, how far its lower edge lifts against a whole rim, and what a curl
+// adds to the mean the far path returns, in whole rims: the lower lip, less
+// the face a strip's wider ends give up. Measured by the smooth means test.
 const PEEL_WIDE = 3.0;
 const PEEL_LIFT = 1.0;
-const PEEL_LOWER = 0.5;
+const PEEL_MEAN = 0.4;
 // How wide the edge of a peeled strip's colour is, in plates: a torn edge
 // frays, and a white-to-black step narrower than a few pixels is one the
 // tone curve aliases however exactly the footprint integrates it.
 const PEEL_FRAY = 0.15;
 
-// A curled strip's lower lip averages as that much more rim lift.
+// A curled strip averages as that much more rim lift.
 fn bark_peel_lift(edge_lift: f32, curl: f32) -> f32 {
-    return edge_lift + PEEL_LIFT * PEEL_LOWER * curl;
+    return select(edge_lift, edge_lift + PEEL_MEAN * curl, SMOOTH_BARK);
 }
 
 // A wider furrow floor leaves less face, less dome and less rim, and each of
@@ -124,13 +139,15 @@ fn bark_plate_size(cell_scale: f32, girth: f32) -> f32 {
 // What the network says about one point. Relief is in units of one plate's
 // width; identity is the plate's own as colour reads it. The rest is for a
 // colour that changes whole from one plate to the next, the peel: this
-// plate's identity and its neighbour's across the nearer boundary, the share
-// of a pixel on this side of that boundary, and how much the footprint keeps.
+// plate's identity unfaded, where in the lattice the site across the nearer
+// boundary stands, the share of a pixel on this side of that boundary, and
+// how much the footprint keeps. The neighbour's own value is read by the peel
+// alone, where the peel is on: hashing it here would bill every plate.
 struct BarkPlate {
     relief: f32,
     identity: f32,
     own: f32,
-    beside: f32,
+    beside: vec3<f32>,
     side: f32,
     kept: f32,
 };
@@ -144,15 +161,16 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     let identity = structure.x;
     let dome = plate.z;
     let edge_lift = plate.w;
-    let curl = structure.z;
+    let curl = select(0.0, structure.z, SMOOTH_BARK);
     let mean = bark_plate_mean(dome, bark_peel_lift(edge_lift, curl), structure.y);
     let size = bark_plate_size(plate.x, girth);
-    let far = BarkPlate(mean, 0.5, 0.5, 0.5, 1.0, 0.0);
+    let far = BarkPlate(mean, 0.5, 0.5, vec3(0.5), 1.0, 0.0);
     if (size <= 0.0) { return far; }
     let run = size * (1.0 + max(plate.y, 0.0));
     // A curling strip runs across the wood: its cell is wider than a plate.
-    let wide = 1.0 + PEEL_WIDE * curl;
-    let span = size * wide;
+    // The lattice is stretched rather than the metric, so a strip's long
+    // edges keep the wall a plate has and its short ends fray wider.
+    let span = size * (1.0 + PEEL_WIDE * curl);
     // The circumferential lattice is the arc in plate widths; the axial one is
     // the run. Both footprints are measured in their own cell units.
     // Two footprints, because there are two bands. The plate itself leaves on
@@ -187,8 +205,8 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     // A furrow runs wherever two sites are equally near; a face is the
     // interior one site keeps to itself. That is what makes the network
     // branch and merge, and why three of its boundaries meet at a point.
-    let network = bark_network(warped, vec3(wide, wide, elongated));
-    let edge = network.x;
+    let network = bark_network(warped, elongated);
+    let edge = network.edge;
     // The floor of the furrow: the hairline the network cuts between two
     // faces, widened by the row. It is a fraction of a plate's own width, so
     // a bigger plate carries a wider furrow off one row and nothing about the
@@ -203,26 +221,37 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
         floor + 2.2 * BARK_PLATE_WALL, edge, pixel));
     // What this plate keeps of its own: how proud it stands, and how far it
     // leans across its own run. A scale lifted at one edge is a plate leaning.
-    let own = bark_plate_own(network.y);
+    let own = bark_plate_own(network.seed);
     let jitter = 2.0 * own - 1.0;
-    let lean = (2.0 * fract(own * 71.7) - 1.0) * clamp(network.z, -1.0, 1.0);
+    let lean = (2.0 * fract(own * 71.7) - 1.0) * clamp(network.lean, -1.0, 1.0);
     let proud = 1.0 + identity * (0.40 * jitter + 0.75 * lean);
     var relief = face * proud + dome * ramp * face + edge_lift * rim * proud;
     // A curling strip lifts at its lower edge, where its own site stands above.
     // Added apart, so a row with no curl keeps the arithmetic it always had.
-    if (curl > 0.0) { relief += curl * PEEL_LIFT * rim * smoothstep(0.0, 0.25, network.z); }
+    if (curl > 0.0) { relief += curl * PEEL_LIFT * rim * smoothstep(0.0, 0.25, network.lean); }
     // The identity is one value over a whole plate and nothing between two:
     // point-sampling it at a boundary is the one step in this field a box
     // filter cannot recover. Within a footprint of an edge it is the mean,
     // which is what a pixel straddling two plates actually averages to.
     let inside = clamp(edge / max(pixel, 1e-5), 0.0, 1.0);
     return BarkPlate(mix(mean, relief, retained), mix(0.5, own, inside * retained), own,
-        bark_plate_own(network.w), clamp(0.5 + edge / max(pixel, PEEL_FRAY), 0.5, 1.0), retained);
+        select(vec3(0.5), warped + vec3(network.next.xy, network.next.z / elongated),
+            SMOOTH_BARK),
+        clamp(0.5 + edge / max(pixel, PEEL_FRAY), 0.5, 1.0), retained);
 }
 
 // One plate's own value in 0..1, from its site's seed.
 fn bark_plate_own(seed: f32) -> f32 {
     return bark_hash(vec2(seed * 53.0, seed * 131.0 + 11.0));
+}
+
+// The own value of the plate whose site stands at `site` in the lattice: the
+// network's two hashes for that site's cell, read once, off the loop.
+fn bark_plate_beside(site: vec3<f32>) -> f32 {
+    let id = floor(site);
+    let a = bark_hash(id.xy + vec2(37.0, 17.0) * id.z);
+    let b = bark_hash(id.xy + vec2(11.0, 29.0) * id.z + vec2(53.1, 91.7));
+    return bark_plate_own(fract(a * 91.7 + b * 13.9));
 }
 
 // The identity of the plate under this fragment, and the share of it peeled
@@ -246,9 +275,11 @@ fn bark_plate_identity(circle: vec2<f32>, along: f32, radius: f32,
     let arc = circle * radius / ridge_scale;
     let field = bark_plate_field(arc, along, ridge_scale, girth, footprint, vec2(0.5),
         plate, structure);
+    if (!SMOOTH_BARK || structure.z <= 0.0) { return vec2(field.identity, 0.0); }
     let share = structure.z * smoothstep(2.0, 5.0, 2.0 * radius / ridge_scale);
-    let here = mix(smooth_presence(share, field.beside), smooth_presence(share, field.own),
-        field.side);
+    let beside = bark_plate_beside(field.beside);
+    let here = mix(smooth_presence(share, beside),
+        smooth_presence(share, field.own), field.side);
     return vec2(field.identity, mix(smooth_share(share), here, field.kept));
 }
 

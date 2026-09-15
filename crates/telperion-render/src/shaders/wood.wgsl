@@ -36,7 +36,7 @@ fn vertex(
 fn bark_height(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>) -> f32 {
     let field = bark_field_filtered(circle, along, radius, u.bark_detail.x, u.bark_detail.y,
         footprint, u.bark_detail.w, u.plate, vec3(u.bark_structure.xw, u.peel.w));
-    if (u.lenticel.z <= 0.0 || u.lenticel.y <= 0.0) { return field; }
+    if (!SMOOTH_BARK || u.lenticel.z <= 0.0 || u.lenticel.y <= 0.0) { return field; }
     return field - lenticel_groove(circle, along, radius, footprint);
 }
 
@@ -258,19 +258,22 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let identity = bark_plate_identity(seen, surface.x, in.radius, u.bark_detail.x,
         footprint, u.plate, vec3(u.bark_structure.xw, u.peel.w));
     let own = identity.x;
-    // Smooth bark's colour, once a fragment like the plate's identity. Each
-    // term is read only where its row is on, so a plated bark pays nothing.
-    var cover = vec3(0.0);
-    if (u.lichen.w > 0.0 && u.lichen_detail.x > 0.0) {
-        cover.x = u.lichen.w * lichen(seen, surface.x, in.radius, footprint);
-    }
-    if (u.lenticel.z > 0.0 && u.lenticel.y > 0.0) {
-        cover.y = u.lenticel.z * lenticel_dash(seen, surface.x, in.radius, footprint, u.lenticel).x;
-    }
-    if (u.peel.w > 0.0) { cover.z = identity.y; }
-    // It colours the wood the relief then tints, so bark_light is unchanged.
+    // Smooth bark's colour, once a fragment like the plate's identity, and
+    // only in the pipeline built with it; it colours the wood the relief then
+    // tints, so bark_light is unchanged.
     var surface_colour = bark;
-    if (any(cover > vec3(0.0))) { surface_colour = smooth_colour(bark, cover); }
+    if (SMOOTH_BARK) {
+        var cover = vec3(0.0);
+        if (u.lichen.w > 0.0 && u.lichen_detail.x > 0.0) {
+            cover.x = u.lichen.w * lichen(seen, surface.x, in.radius, footprint);
+        }
+        if (u.lenticel.z > 0.0 && u.lenticel.y > 0.0) {
+            cover.y = u.lenticel.z
+                * lenticel_dash(seen, surface.x, in.radius, footprint, u.lenticel).x;
+        }
+        if (u.peel.w > 0.0) { cover.z = identity.y; }
+        if (any(cover > vec3(0.0))) { surface_colour = smooth_colour(bark, cover); }
+    }
     let spacing = clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0);
     let pixel = footprint / max(vec2(u.bark_detail.x, spacing), vec2(0.000001));
     let band = max(pixel.x, pixel.y);
