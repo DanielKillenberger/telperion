@@ -1686,3 +1686,71 @@ fate through all three, and mirroring the run choice in the contact query
 No visual pass is awarded. The round-15b pairs are recorded by sha256 in
 `round15b-fn48/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 20, fn-48.3: a clean fork (2026-09-15)
+
+The owner asked for the second stem to move up the trunk, and round 15b left
+a ledge where it parted. The trunk's full girth ended in a ring at the fork,
+and the narrower upright stem rose from inside it. fn-48.3 sweeps that fork
+clean. Where two or more stems leave a node on a stem above the root, the
+trunk run carries on into the stem that turns least from the wood below.
+Over the fork's diameter it eases its girth from the trunk's down to that
+stem's own. The other stem leaves from a socket in the trunk's side, like any
+limb. Fewer stems, a limb anywhere, and a clump that parts at the ground
+follow the widest child as before. Every shipped table is byte-identical with
+its fork at the ground: wood, normals, coordinates, indices and leaves, full
+builds at two seeds and a scrubbed view.
+
+A stem is told from a limb by a flag on the node, `Node::stem`. The scaffold
+sets it on every order-zero axis, and it is carried through every read that
+rebuilds nodes: the full and shoot-less history, the sparse interval's
+selected wood, the change records' run nodes, and the browser view's tree
+rebuilt from them. The bud's fate is not consulted, because the shoot-less
+reads drop it. The contact query makes the same choice from the same
+positions, so the contacts and the surface follow one run. The flag changes
+the persisted node layout, so the specimen snapshot moves to schema 2 and the
+browser's wire decoder reads the extra byte.
+
+The birch states the row's top again, 0.5 of the bole, and the fork lands at
+0.96 m as in round 15b. The photographs still disagree. S-WHOLE's pair
+leaves the ground as two stems. S-BARE's stands on one trunk that forks at
+its lowest limbs, about a third of its visible height up. Both part at or
+under the crown's base and never inside the crown. The owner asked for the
+stem to move up, and the rail's top is as far toward S-BARE as the row
+reaches. The birch re-pins once, with fn-48.2's values, since no pin hashes
+the wood's sweep. The other tables are byte-identical. All forty-eight
+protocol cases pass (`measure/protocol-fn48c/`), none node-capped. The tree
+is round 15b's: at seed 1 the birch grows 105,484 nodes, 6,278,240 wood
+triangles and 340,767 leaves, its DBH is two stems of 0.23 and 0.25 m, and
+the heaviest birch seed stands at 130,198 nodes.
+
+Photograph / round 15b → round 20:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.67 → 0.67 | 0.15 / 0.16 → 0.16 | 0.46 / 0.52 → 0.52 | 91 / 79 → 79 | 0.17 / 0.10 → 0.10 |
+| S-BARK | 1.07 / 1.33 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.29 → 0.29 | 92 / 166 → 164 | 0.13 / — → — |
+| S-WHOLE | 0.85 / 0.89 → 0.89 | 0.08 / 0.14 → 0.14 | 0.44 / 0.47 → 0.47 | 83 / 44 → 44 | 0.22 / 0.11 → 0.11 |
+
+At this precision only S-BARK moves, and only its centre mean: its frame
+holds the lower trunk, where the fork is now swept differently.
+
+### What the worker read on the pairs
+
+Three images of the capture: the S-BARE and S-WHOLE pairs, and a crop of the
+S-BARE still around the fork.
+
+- **The fork.** The trunk narrows into the upright stem with no ring and no
+  step, and the leaning stem leaves its left side in a plain crotch. There is
+  no ledge and no seam.
+- **S-BARE.** One white trunk to about a metre, then the pair: the
+  photograph's habit of one trunk that forks. The photograph forks at its
+  lowest limbs, well above anything the rail reaches, so the fork is still
+  low against it.
+- **S-WHOLE.** The photograph's pair parts at the ground. Ours stands on a
+  metre of one trunk under the curtain before the leaning stem leaves. The
+  fork itself is as clean from this camera, and the lean still barely reads.
+
+No visual pass is awarded. The round-20 pairs are recorded by sha256 in
+`round20-fn48c/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.

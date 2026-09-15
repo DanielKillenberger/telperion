@@ -1,0 +1,58 @@
+{
+  "reference": "S-BARK",
+  "foliage": "hidden",
+  "photograph": {
+    "box_px": [
+      53,
+      0,
+      427,
+      400
+    ],
+    "width_over_height": 1.0675,
+    "fill": 1.0,
+    "crown_base": 1.0,
+    "occupied": 0.4708,
+    "outline_deviation": 0.1311,
+    "centre": {
+      "rgb": [
+        94.1,
+        97.9,
+        85.1
+      ],
+      "order": "GRB",
+      "mean": 92.4
+    }
+  },
+  "still": {
+    "box_px": [
+      0,
+      0,
+      1922,
+      1440
+    ],
+    "width_over_height": 1.3347,
+    "fill": 1.0,
+    "crown_base": 0.0,
+    "occupied": 0.286,
+    "outline_deviation": null,
+    "centre": {
+      "rgb": [
+        157.7,
+        166.6,
+        167.0
+      ],
+      "order": "BGR",
+      "mean": 163.8
+    }
+  },
+  "method": {
+    "photograph": "tree box and crown base from the record, read by eye; occupied is the dark-pixel fraction of the box",
+    "still": "tree mask is what stands out of the row background under both suns; occupied is the mask's share of its box",
+    "outline_deviation": "root mean square of the mask's boundary radius about its best-fit ellipse, over 180 bins of bearing, as a fraction of the fitted radius; null when a bin is empty"
+  },
+  "pair": {
+    "path": ".flow/evidence/fn34/measure/pairs-fn48c/silver-birch-1-S-BARK-pair.png",
+    "sha256": "ad30306fa9bc591f606f30208ad77c26416e1934223392f5f0e656d729ad5fbc"
+  },
+  "still_sha256": "fb450042d60ec976d718b6cca087639929bfe9a36735f54e25cfd8b11be676cd"
+}
