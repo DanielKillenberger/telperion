@@ -1,0 +1,136 @@
+{
+  "branch": "fn-31-round5-grok",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "005b054d10aebffea7ad7489bcd13ee7aec010be",
+    "items": [
+      {
+        "body": "lower and mid-crown first-order branches straight, +21 to +28 deg above horizontal at 36.9 and 65 y; owner: branches grow upwards (surface: crates/telperion-core/src/presets.rs (norway-spruce) / scaffold planning)",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
+        "id": "finding-83703039982411cdeba45501180f2ed2",
+        "lastSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "F1 spruce primaries straight and rising at every crown height"
+      },
+      {
+        "body": "10 y base flares below breast height on seeds 1 and 7 after round 8 youngRadius 0.94; owner rejected a trunk-base bell in round 6 (surface: crates/telperion-core/src/growth.rs radius_fraction / presets.rs oregon-white-oak)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
+        "id": "finding-657e27bce0fadd8cf3cbb1c154f192ed",
+        "lastSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
+        "ordinal": 3,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "F3 ten-year oak stem flares into a bottle at the ground"
+      },
+      {
+        "body": "flat wide top with a gap above a small lower cluster at 24 to 28 y; owner named it in round 6; the round-7 crown fork (surface: crates/telperion-core/src/branching/scaffold/station.rs reach)",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
+        "id": "finding-77fb6cc0e88a8995d1ffccbc41842d1e",
+        "lastSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
+        "ordinal": 4,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "F4 26.7 y oak is a flat umbrella on a bare stem"
+      },
+      {
+        "body": "14.1 y sparse with long straight laterals between a 5 y bottle brush and a 26.6 y cone (surface: crates/telperion-core/src/presets.rs (norway-spruce))",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
+        "id": "finding-9a1f0682a61d145d3a7d6829e3aa9361",
+        "lastSeenReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P1",
+        "status": "open",
+        "title": "F2 spruce 14.1 y reads as a different gangly tree"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-003a8b70de5384f539427816669150016079a1465236fdcaf8fe4b6ce1954eef"
+  },
+  "head_sha": "6f8635c090acc782eae303efbdb5f545a8c94a6b",
+  "id": "fn-31-growth-rule-sapling-form-thickening-by",
+  "mode": "interactive",
+  "open_p0p1": [
+    {
+      "classification": "pre_existing",
+      "confidence": 100,
+      "file": "crates/telperion-core/src/presets.rs (norway-spruce) / scaffold planning",
+      "id": "F1 spruce primaries straight and rising at every crown height",
+      "reason": "lower and mid-crown first-order branches straight, +21 to +28 deg above horizontal at 36.9 and 65 y; owner: branches grow upwards",
+      "severity": "P1"
+    },
+    {
+      "classification": "introduced",
+      "confidence": 75,
+      "file": "crates/telperion-core/src/presets.rs (norway-spruce)",
+      "id": "F2 spruce 14.1 y reads as a different gangly tree",
+      "reason": "14.1 y sparse with long straight laterals between a 5 y bottle brush and a 26.6 y cone",
+      "severity": "P1"
+    },
+    {
+      "classification": "introduced",
+      "confidence": 100,
+      "file": "crates/telperion-core/src/growth.rs radius_fraction / presets.rs oregon-white-oak",
+      "id": "F3 ten-year oak stem flares into a bottle at the ground",
+      "reason": "10 y base flares below breast height on seeds 1 and 7 after round 8 youngRadius 0.94; owner rejected a trunk-base bell in round 6",
+      "severity": "P1"
+    },
+    {
+      "classification": "introduced",
+      "confidence": 100,
+      "file": "crates/telperion-core/src/branching/scaffold/station.rs reach",
+      "id": "F4 26.7 y oak is a flat umbrella on a bare stem",
+      "reason": "flat wide top with a gap above a small lower cluster at 24 to 28 y; owner named it in round 6; the round-7 crown fork",
+      "severity": "P1"
+    }
+  ],
+  "qa_outcome": "NEEDS_WORK",
+  "rid_coverage": {
+    "covered": 6,
+    "rids": [
+      {
+        "coverage": "live",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "subtracted",
+        "id": "R3"
+      },
+      {
+        "coverage": "subtracted",
+        "id": "R4"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R5"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R6"
+      }
+    ],
+    "total": 6
+  },
+  "timestamp": "2026-09-15T14:40:15Z",
+  "type": "qa_verdict",
+  "verdict": "NEEDS_WORK"
+}
