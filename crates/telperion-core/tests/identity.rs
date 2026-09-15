@@ -32,6 +32,9 @@
 //! length the table states rather than what their own wood would hold out,
 //! and fall past the limb above them to the crown's own base. Every other
 //! table leaves the sag at zero, which is the straight rod to the byte.
+//! Round 6c thins the same birch's crown to the photograph's own airiness -
+//! a leaf every 36 mm of shoot where it had one every 12 - which moves its
+//! placement and its instance count and leaves its skeleton hash alone.
 //! fn-34 round 5b re-pins the beech alone, on the owner's verdict that the
 //! round-5 beech "bends too much": its leader keeps its dominance, its limbs
 //! leave at 38 degrees and rise, and its axes are barely crooked.
@@ -113,11 +116,11 @@ const PINS: [Pin; 4] = [
         id: "silver-birch",
         wood_vertices: 2795634,
         wood_triangles: 5414520,
-        instances: 1405298,
-        min: [-6.831034836379562, -0.07199999690055847, -6.501026703458233],
-        max: [6.550183302628332, 14.495618529671194, 6.338394210100566],
+        instances: 480611,
+        min: [-6.824135961571814, -0.07199999690055847, -6.505097638048355],
+        max: [6.553510290307488, 14.454916176850231, 6.278509434050845],
         skeleton: 7489899936332240660,
-        placement: 9343002930047400014,
+        placement: 9623445835273337033,
         element: 1872173242819532549,
     },
 ];

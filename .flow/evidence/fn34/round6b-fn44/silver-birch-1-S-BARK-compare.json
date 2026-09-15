@@ -33,16 +33,16 @@
     "width_over_height": 1.3347,
     "fill": 1.0,
     "crown_base": 0.0,
-    "occupied": 0.3001,
-    "outline_deviation": 0.7673,
+    "occupied": 0.3014,
+    "outline_deviation": 0.8723,
     "centre": {
       "rgb": [
-        160.9,
-        169.6,
-        169.4
+        160.7,
+        169.5,
+        169.2
       ],
       "order": "GBR",
-      "mean": 166.6
+      "mean": 166.5
     }
   },
   "method": {
@@ -52,7 +52,7 @@
   },
   "pair": {
     "path": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-BARK-pair.png",
-    "sha256": "c4afca8198fafe0b42c22f1268ce6e871268c6e6cbdd88807a1aab7e651b0385"
+    "sha256": "d80ee769bec2c792c56756b2c5111c28c5ebe4dfd8e27fcd54ec069c5813f728"
   },
-  "still_sha256": "306204ce67a5e7b28d61c792a179a151a2d24115448494630d0ac485b4bfdf5d"
+  "still_sha256": "e93f83bcc553f5ae5ddabddedeba488dd1f55b484dbb50255846a5b9b2ed6601"
 }

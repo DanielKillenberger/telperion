@@ -125,7 +125,7 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.skeleton.twigs.length_ratio = 0.6;
     p.skeleton.twigs.twig.diameter = 0.003;
     p.skeleton.twigs.twig.length = 0.45;
-    p.skeleton.twigs.twig.internode_length = 0.012;
+    p.skeleton.twigs.twig.internode_length = 0.036;
     p.skeleton.twigs.twig.bearing_diameter = 0.02;
     // The weeping birch's own curtain: a full hang, shoots running three and a
     // half metres unbranched instead of the twig's own quarter, every shoot

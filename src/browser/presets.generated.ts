@@ -1062,7 +1062,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.003,
-            "internodeLength": 0.012,
+            "internodeLength": 0.036,
             "length": 0.45,
             "stationsPerInternode": 1
           },
