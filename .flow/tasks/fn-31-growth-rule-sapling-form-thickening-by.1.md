@@ -432,3 +432,37 @@ Decisions:
 - **The other hardcoded limits go to a separate spec,** since they sit in
   earlier specs' code: `NODE_CEILING`, `MAX_UNITS`, `MAX_LEVELS` and
   `MIN_STEPS_PER_BEND`.
+
+## Round 11 — returned, QA re-run, 2026-09-15
+
+Claude Opus ran round 11 on the candidate branch: fourteen commits,
+`76eaa2d3..014e35ef` from 1eac36cc. The host read the diff and found:
+
+- **Count gates removed**, under the owner's decision. The ten-year 450-node
+  cap, the fn-30 population bands and the leaf order bands are gone. R3's
+  collapse check stays as a floor of half fn-30's nodes and leaves.
+- **`MAX_SHEDS` is now `growth.sheddingLimit`**, validated from 1 to 1e9 and
+  32 on every preset. Removing it outright takes Ordinary to 8,112 nodes,
+  under R3's floor. The pins are byte-identical.
+- **A steady young oak crown**, red first. Foliage per square metre of height
+  changes by at most a quarter a year from 5 to 20 years, and the 15-to-20-year
+  jump is gone. Sapling limbs now lengthen with their crown every year.
+- **The crown-mass invariant is un-ignored** and green on all three seeds.
+- **Young height blocked.** Every value from 2.5 to 3.45 m breaks a ten-year
+  shape bound on some seed, so 2.4 m stays, with its sources cited.
+- **F2 and F3 are still open.**
+
+Two rewritten fn-22 timing files from a browser test run were stashed with a
+labelled message, following fn-23's precedent. Their diff is saved in the
+session scratchpad.
+
+The live QA re-run at 014e35ef shows the young oak as one tree from 5 to 26.7
+years, with steady foliage: about 1,400 leaves at 5 years, 3,700 at 8, 9,600 at
+11, 25,000 at 15, 61,000 at 20 and 258,000 at 26.7. From 8 to 15 years it is a
+dense sapling on a short visible stem, for the owner to judge.
+
+- **F6, new P1:** at 20 years on seeds 7 and 42, a separate tuft sits above the
+  main crown with a gap between them. The umbrella invariant checks only 24 to
+  30 years.
+
+Round 12 goes next on F6.
