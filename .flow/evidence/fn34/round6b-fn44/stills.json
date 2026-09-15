@@ -1,0 +1,37 @@
+{
+  "round": "6b",
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-44 pendulous shoots hang under gravity: a hanging shoot runs the pendulous length its table states rather than what its own wood would hold out, falls past the tip of the limb above it to the crown's own base, and turns toward straight down as a cubic ease so its lower half hangs all but vertical; the shell still contains it. The birch states a sag of 1 over a 2.5 m pendulous length, and its crown is opened to the photograph's own airiness with a leaf every 36 mm of shoot where it had one every 12. Matched stills re-rendered at the first fixed seed; pairs on disk under the ignored measure/pairs-fn44/, recorded here by sha256",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "ea324b5de9d827ce5f62b44d30d9d4219b8d7e9d80c44973fd0f145dd4343a4a",
+      "still_sha256": "f2855581a8780e105fbd1b45fc0ad94b698cdf8ea1423564ce3150882bbd8ceb",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "d80ee769bec2c792c56756b2c5111c28c5ebe4dfd8e27fcd54ec069c5813f728",
+      "still_sha256": "e93f83bcc553f5ae5ddabddedeba488dd1f55b484dbb50255846a5b9b2ed6601",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "399a4c1e46e68e316eb5f56ebf3d2ed8bca55925990f83a01b57ced445d4510f",
+      "still_sha256": "78286af9338ac1ddfa828e51e5c51a4e8971d5233526a4c2d42af557448f561b",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

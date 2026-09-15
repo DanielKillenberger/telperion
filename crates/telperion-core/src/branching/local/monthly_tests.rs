@@ -152,7 +152,15 @@ fn monthly_run_keeps_stations_waiting_beyond_the_current_envelope() {
         seed: 7,
     };
     let run = planner
-        .run(Vec3::new(0.0, 0.5, 0.0), Vec3::Y, 1.0, 4, false, 11)
+        .run(Axis {
+            start: Vec3::new(0.0, 0.5, 0.0),
+            first: Vec3::Y,
+            length: 1.0,
+            internodes: 4,
+            bearing: false,
+            key: 11,
+            curtain: Curtain::default(),
+        })
         .unwrap();
     assert_eq!(
         run.length, 1.0,

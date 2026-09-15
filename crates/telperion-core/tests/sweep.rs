@@ -67,6 +67,8 @@ const BANDS: [(&str, usize, usize); 7] = [
 // fn-38 makes the clump three habit rows, and the silver birch is the table
 // that declares one: two stems, their bearings and their lean. Every other
 // table stands on one stem, so the sweep walks all three.
+// fn-44 adds the sag, the fifth curtain row. The birch is the table that
+// states one, so the oak-to-birch walk moves it and the sweep walks it.
 const HELD: [&str; 30] = [
     "/canopy/maxInstances",
     "/element/card",

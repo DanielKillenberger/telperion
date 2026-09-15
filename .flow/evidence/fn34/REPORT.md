@@ -287,6 +287,47 @@ unassessed`, and a local judging page beside them
 (`measure/judge.html`, ignored) lays every round's pair, the numbers and the
 references out for the owner, who records the verdict in fn-34.
 
+## Round 5b: the beech stands up (2026-09-15, owner's round-5 verdict)
+
+The owner judged the round-5 pairs on the judging page and did not accept
+either species. On the beech: "I still have an issue with the beech which is
+clearly not structurally sound. The reference grows relatively straight up
+and out. Our generation bends too much. Second trunk is missing but that's
+coming later that's fine." On the birch: "I think the worst part is the
+hanging curtains are not affected by gravity or smth. It's clearly wrong."
+The birch's verdict is fn-37's and became fn-44 (pendulous shoots hang under
+gravity); the second stem is fn-38's, in progress. The beech's structure is
+rows, so this is a value round on the beech alone.
+
+The winter pair shows what the owner saw: the photograph's trunk runs up
+through the crown and its limbs leave it steeply and keep rising; the
+round-5 beech split low into a few limbs that arced out nearly flat. The
+habit rows moved: apical dominance 0.2 to 0.5, lateral pitch 50 to 38
+degrees with variation 12 to 10, primary rise 0.08 to 0.3, crookedness 14 to
+6. Nothing else in the table changed. The beech pin is re-recorded with the
+reason stated; the 24-seed protocol passes with the heaviest seed at 210,706
+nodes.
+
+Photograph / round 5 → round 5b:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.70 → 0.70 | 0.25 / 0.24 → 0.27 | 0.28 / 0.38 → 0.38 | 100 / 148 → 141 | 0.29 / 0.13 → 0.07 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.03 → 0.00 | 0.05 / 0.09 → 0.75 | 130 / 91 → 78 | — / 0.14 → 0.23 |
+| B-WHOLE | 0.70 / 0.69 → 0.69 | 0.12 / 0.08 → 0.22 | 0.46 / 0.65 → 0.60 | 80 / 52 → 46 | 0.23 / 0.10 → 0.08 |
+
+What the host read on the bare and the whole pair: the trunk now continues
+through the crown and the limbs ascend nearly straight, which is the
+photograph's architecture. The cost is a crown that starts higher (base 0.22
+against 0.12) and is narrower at the shoulder, a goblet where the beech is
+broad low down; that is one more value pass (a lower first lateral, a touch
+more pitch low down), listed as round 5c. The base shot's occupied figure
+jumps because the steeper limbs now cross the base frame. The outline
+statistic fell as the ascending limbs fill the shell more evenly. The
+leaf-on crown remains a scatter of dark leaves with sky through it, which the
+gap table assigns to appearance. No visual pass is awarded; the pairs are in
+`round5b-beech/stills.json` and on the judging page.
+
 ## Round 6, fn-38: two stems (2026-09-15)
 
 The first thing the gap analysis named after round 3 was the one no value
@@ -357,3 +398,120 @@ by the same angle, so neither of them is the near-vertical stem the
 photograph's pair has. No visual pass is awarded. The round-6 pairs are
 recorded by sha256 in `round6-fn38/stills.json` with `visual_status:
 unassessed`, and the owner records the verdict in fn-34.
+
+## Round 6b, fn-44: the curtain hangs (2026-09-15)
+
+The owner rejected the round-5 birch on one thing: "I think the worst part is
+the hanging curtains are not affected by gravity or smth. It's clearly wrong."
+fn-37 had made the curtain reachable as rows, but a curtain lateral departed in
+one fixed direction - across the crown and down by a droop - and then ran
+straight, so every hanging shoot was a rod pointing sideways-and-down. fn-44
+gives the twig table a fifth row, `sag`: how far toward straight down a hanging
+shoot's course has turned by the end of its pendulous length, spread along the
+run as a cubic ease, steepest where the shoot leaves the wood that bears it.
+Weight is not a turn a growing tip steers, so the branch law's own turn limit
+does not bound it. Neutral is the straight rod, and every table but the birch's
+leaves the row there and is byte-identical.
+
+### What had to give way before a shoot could hang
+
+The first pass at this round was rejected too - "clearly this doesn't look
+right", a dome of white bristles with nothing hanging - and the measurement
+said why. Of the 5,761 hanging runs the first fixed seed plans, 4,226 (73%)
+ended at the length their own wood would hold out, a median of 1.00 m against
+the 3.5 m the table allowed; 1,099 (19%) at the tip of the limb they hung
+under; 436 (8%) at the shell. A shoot that spends a third of its arc is still
+pointing outward when it stops.
+
+Two of the three are not what ends a strand hanging by its own weight, and the
+sag row now carries both, walked by the row rather than switched by it so that
+no value of it is the frame where a shoot changes kind:
+
+- **The run.** The allometry that gives a self-supporting limb its length by
+  its own thickness has nothing to say about a strand hanging from one, so the
+  sag carries the run from what the branch law allows out to the whole
+  pendulous length.
+- **The floor.** The tip of the first descending ancestor is where a shoot held
+  out by its own wood comes to rest; a weeping one falls past it, so the sag
+  carries the floor down to the crown's own base.
+
+The third stays: the shell is what the envelope contains, every post-crossover
+node is inside it by an invariant this repository has held since the beginning,
+and a curtain is no exception. Measured both ways, letting the curtain out of
+the shell bought nothing the form needed and cost the invariant - the shoots
+ran 2.42 m rather than 2.37 m of 2.50 m, and the same 96% hung their lower half
+within 15 degrees either way - while the crown fell past the photograph's own
+crown base. So the shell holds and the curtain hangs inside it.
+
+### The birch's table
+
+A sag of 1 over a pendulous length shortened from 3.5 m to 2.5 m, which is what
+the photograph's strands measure against the tree. At the first fixed seed its
+4,266 hanging shoots run 2.37 m on average; their angle to straight down is
+6.1 degrees at half the run and 1.3 degrees at its end, and the whole lower
+half of 96% of them lies within 15 degrees of vertical.
+
+Then the crown had to be opened. A shoot that runs two and a half metres
+instead of one carries two and a half times the leaf-bearing wood, and the
+first render of this round put 1,139,792 leaves in the crown against round 5's
+591,007: the form hung, and the mass hid it. The lever is the twig's own
+internode length, 12 mm, which is where the leaves sit on a table that has a
+twig layer - the canopy's `spacing` row places leaves only on wood the twig
+layer has not marked, and on this table that is none of it. At 36 mm the crown
+carries 389,795 leaves, a third of what it did and a third fewer than round 5,
+and the sky comes back through it. The retained shell depth was tried too and
+put back: at 0.35 it culled the crown's interior and carried the leaf-on
+brightness to 91 against the photograph's 83, past it rather than up to it,
+where the leaf spacing alone lands on 79.5. The skeleton hash is unchanged by
+any of this - the wood is the same tree, and the 96% is the same 96%.
+
+Photograph / round 5 → round 6b:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.673 → 0.674 | 0.15 / 0.132 → 0.122 | 0.46 / 0.430 → 0.469 | 91 / 159 → 163 | 0.17 / 0.110 → 0.115 |
+| S-BARK | 1.07 / 1.335 → 1.335 | 1.00 / 0.00 → 0.00 | 0.47 / 0.274 → 0.301 | 92 / 167 → 167 | 0.13 / — → 0.872 |
+| S-WHOLE | 0.85 / 0.906 → 0.906 | 0.08 / 0.141 → 0.120 | 0.44 / 0.578 → 0.569 | 83 / 78 → 80 | 0.22 / 0.114 → 0.108 |
+
+Every number that compares is closer to its photograph than round 5's, on both
+the bare and the leaf-on reference: the winter crown fills 0.469 of its box
+against the photograph's 0.459, where round 5 filled 0.430; the leaf-on crown
+base falls from 0.141 to 0.120 against 0.08; the leaf-on crown is thinner
+(0.569 against 0.443) and brighter under the matched sun (80 against 83, from
+78). What is still furthest out is the leaf-on occupied figure, and it is the
+one number that a denser or thinner crown cannot fix alone: the wood itself
+fills 0.469 of the winter box, so a crown of strands hanging the length of the
+tree is a wide mask however few leaves it carries. The bark reference's outline
+figure is noise - its mask fills the whole frame, which is what an outline
+statistic cannot read.
+
+The cost at the first fixed seed: 4,385,080 wood triangles and 389,795 retained
+leaves against round 5's 2,443,040 and 591,007 - a third more wood for a third
+less leaf. No growth hit the node cap and the fixed and fresh numeric protocol
+passes all forty-eight cases (`measure/protocol-fn44d/`).
+
+### What the host read on the pairs, and what is left
+
+Within the four-image rule: the shoots hang, and the crown is now airy enough
+to see that they do. Strands fall from every limb down the lower half of the
+tree, sky shows between them, and the pale trunk reads through the crown the
+way the photograph's does - which is the photograph's architecture, and was in
+no earlier round.
+
+Three things still read wrong and each is somebody's row:
+
+- **The strands are all the same length.** 85% of the birch's hanging shoots
+  run exactly 2.50 m; the tenth percentile is 1.79 m and every metre of that
+  spread comes from the shell or the floor cutting a shoot short, not from a
+  row. `vigourVariation` varies the length the branch law asks for, and the
+  sag discards that length, so at sag 1 it reaches nothing. No twig row varies
+  a pendulous run per shoot. That is fn-34's gap against the photograph, whose
+  strands run every length from a hand's width to three metres, and closing it
+  is a row fn-44 did not open.
+- **The shoots are white.** Thinning the crown made the bark row's white more
+  visible, not less: fn-40's young-shoot colour by radius.
+- **One stem.** fn-38's.
+
+No visual pass is awarded. The round-6b pairs are recorded by sha256 in
+`round6b-fn44/stills.json` with `visual_status: unassessed`; the owner judges
+them on the judging page and records the verdict in fn-34.

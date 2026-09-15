@@ -15,16 +15,23 @@ pub(super) fn european_beech(p: &mut Family) {
     // reference at 120 yr; oak growth traits, not a beech calibration.
     oak_growth(p, 120.0);
     // beech's crown is dense and the cap is a value like any other.
+    // Round 5b, the owner on the round-5 pairs: "clearly not structurally
+    // sound. The reference grows relatively straight up and out. Our
+    // generation bends too much." The winter photograph's trunk runs up
+    // through the crown and its limbs leave it steeply and keep rising;
+    // ours split low and arced out nearly flat. So the leader keeps its
+    // dominance, the limbs leave at 38 degrees and rise, and the axes are
+    // barely crooked.
     p.skeleton.habit = HabitParams {
-        apical_dominance: 0.2,
+        apical_dominance: 0.5,
         whorl_strength: 0.15,
         leader_internode: 2.2,
         laterals_per_station: 4,
-        lateral_pitch: 50.0,
-        pitch_variation: 12.0,
-        rise_primary: 0.08,
+        lateral_pitch: 38.0,
+        pitch_variation: 10.0,
+        rise_primary: 0.3,
         rise_secondary: 0.0,
-        crookedness: 14.0,
+        crookedness: 6.0,
         lateral_spacing: 1.4,
         lateral_length_ratio: 0.46,
         lateral_orders: 3,
@@ -131,7 +138,7 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.skeleton.twigs.length_ratio = 0.6;
     p.skeleton.twigs.twig.diameter = 0.003;
     p.skeleton.twigs.twig.length = 0.45;
-    p.skeleton.twigs.twig.internode_length = 0.012;
+    p.skeleton.twigs.twig.internode_length = 0.036;
     p.skeleton.twigs.twig.bearing_diameter = 0.02;
     // The weeping birch's own curtain: a full hang, shoots running three and a
     // half metres unbranched instead of the twig's own quarter, every shoot
@@ -139,9 +146,16 @@ pub(super) fn silver_birch(p: &mut Family) {
     // where the spruce stands them four apart - a birch's curtain is long and
     // open, not the spruce's dense fringe.
     p.skeleton.twigs.hang = 2.4;
-    p.skeleton.twigs.pendulous_length = 3.5;
+    p.skeleton.twigs.pendulous_length = 2.5;
     p.skeleton.twigs.pendulous_radius = 1.0;
     p.skeleton.twigs.curtain_separation = 9.0;
+    // And the curtain hangs: in S-WHOLE and S-BARE the shoots arch out of the
+    // crown and fall nearly vertical over most of their length, so the row
+    // states the whole of the way there. A birch's shoot runs only a share of
+    // its pendulous length before the branch law stops it, and a shoot that
+    // runs less has turned less, so anything short of the row's own end
+    // leaves the curtain standing out of the crown rather than falling from it.
+    p.skeleton.twigs.sag = 1.0;
     p.radii.trunk_radius = 0.01;
     p.element = ElementParams {
         length: 0.055,

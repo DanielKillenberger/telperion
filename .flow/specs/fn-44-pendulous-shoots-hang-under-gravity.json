@@ -1,19 +1,13 @@
 {
-  "branch_name": "fn-34-beech-ash-and-birch-as-real-species",
+  "branch_name": "fn-44-pendulous-shoots-hang-under-gravity",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-09-14T13:23:15.741150Z",
+  "created_at": "2026-09-15T09:08:45.456524Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-36-reference-matched-stills-and-the",
-    "fn-37-pendulous-shoots-as-rows",
-    "fn-38-multi-stem-trees",
-    "fn-39-crown-outline-irregularity",
-    "fn-44-pendulous-shoots-hang-under-gravity"
-  ],
-  "id": "fn-34-beech-ash-and-birch-as-real-species",
+  "depends_on_epics": [],
+  "id": "fn-44-pendulous-shoots-hang-under-gravity",
   "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": true,
@@ -21,9 +15,9 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
-  "spec_path": ".flow/specs/fn-34-beech-ash-and-birch-as-real-species.md",
+  "spec_path": ".flow/specs/fn-44-pendulous-shoots-hang-under-gravity.md",
   "status": "open",
-  "title": "Beech, ash and birch as real species",
+  "title": "Pendulous shoots hang under gravity",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -35,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T09:09:36.172483Z"
+  "updated_at": "2026-09-15T09:09:35.668559Z"
 }

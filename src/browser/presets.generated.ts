@@ -159,6 +159,7 @@ export interface Family {
   pendulousRadius: number;
   ratioPower: number;
   reach: number;
+  sag: number;
   twig: {
   bearingDiameter: number;
   diameter: number;
@@ -339,6 +340,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.05,
             "diameter": 0.005,
@@ -522,6 +524,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.03,
             "diameter": 0.005,
@@ -705,6 +708,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.002,
@@ -853,17 +857,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "maxTurnPerStep": 35
         },
         "habit": {
-          "apicalDominance": 0.2,
+          "apicalDominance": 0.5,
           "attractorWeight": 0,
-          "crookedness": 14,
+          "crookedness": 6,
           "lateralLengthRatio": 0.46,
           "lateralOrders": 3,
-          "lateralPitch": 50,
+          "lateralPitch": 38,
           "lateralSpacing": 1.4,
           "lateralsPerStation": 4,
           "leaderInternode": 2.2,
-          "pitchVariation": 12,
-          "risePrimary": 0.08,
+          "pitchVariation": 10,
+          "risePrimary": 0.3,
           "riseSecondary": 0,
           "sheddingThreshold": 0,
           "stemDivergence": 0,
@@ -888,6 +892,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.03,
             "diameter": 0.005,
@@ -1067,14 +1072,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "laterals": 8,
           "lengthRatio": 0.6,
           "limbRadius": 0.1,
-          "pendulousLength": 3.5,
+          "pendulousLength": 2.5,
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 1,
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.003,
-            "internodeLength": 0.012,
+            "internodeLength": 0.036,
             "length": 0.45,
             "stationsPerInternode": 1
           },
@@ -1254,6 +1260,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.05,
             "diameter": 0.005,
@@ -1437,6 +1444,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.05,
             "diameter": 0.005,

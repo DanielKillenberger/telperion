@@ -32,6 +32,23 @@
 //! vertical apiece, against the two stems of the S-WHOLE and S-BARE
 //! photographs. Every other table leaves the count at one stem, which is the
 //! single upright trunk to the byte, and the element pin does not move.
+//! fn-44 re-pins the silver birch alone: its table is the first to state a
+//! sag, so its hanging shoots turn toward straight down along their runs
+//! instead of holding the direction they departed with, run the pendulous
+//! length the table states rather than what their own wood would hold out,
+//! and fall past the limb above them to the crown's own base. Every other
+//! table leaves the sag at zero, which is the straight rod to the byte.
+//! Round 6c thins the same birch's crown to the photograph's own airiness -
+//! a leaf every 36 mm of shoot where it had one every 12 - which moves its
+//! placement and its instance count and leaves its skeleton hash alone.
+//! fn-34 round 5b re-pins the beech alone, on the owner's verdict that the
+//! round-5 beech "bends too much": its leader keeps its dominance, its limbs
+//! leave at 38 degrees and rise, and its axes are barely crooked.
+//! The merge of fn-38 and fn-44 on fn-34's integration branch re-pins the
+//! silver birch once more: its table now declares both the clump and the sag,
+//! so two stems carry a curtain that hangs, and neither branch's pin is that
+//! tree. The beech's pin is round 5b's, unmoved by the merge; the oak, the
+//! spruce and the Two Trees are byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -93,28 +110,28 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 6780162,
-        wood_triangles: 13119000,
-        instances: 1426880,
+        wood_vertices: 7026916,
+        wood_triangles: 13553160,
+        instances: 1624649,
         min: [
-            -17.226654020877145,
+            -17.009743721766018,
             -0.12800000607967377,
-            -15.409727003124246,
+            -15.363683700561523,
         ],
-        max: [16.781582590967403, 31.186986480611825, 16.12820602758598],
-        skeleton: 8984006975649904930,
-        placement: 2354435618270148675,
+        max: [17.01350182476531, 31.999802439298183, 16.092353302018967],
+        skeleton: 12852486373694172527,
+        placement: 16138498328703486063,
         element: 15097586524950800877,
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 2583722,
-        wood_triangles: 5003280,
-        instances: 1159358,
-        min: [-6.583651363442726, -0.07199999690055847, -6.486508926289224],
-        max: [6.466640920156202, 14.155485515007156, 6.282887278506855],
-        skeleton: 16205257359213216748,
-        placement: 16253070557278513829,
+        wood_vertices: 5013052,
+        wood_triangles: 9702560,
+        instances: 817574,
+        min: [-6.598268287661332, -0.07199999690055847, -6.45496355805626],
+        max: [6.457955131925387, 14.146892759676422, 6.272252728384387],
+        skeleton: 2202575793534763606,
+        placement: 18151706123665333423,
         element: 1872173242819532549,
     },
 ];
