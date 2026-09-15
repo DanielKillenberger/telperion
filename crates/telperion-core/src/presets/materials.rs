@@ -69,6 +69,12 @@ pub(super) fn oak() -> MaterialParams {
         orientation_blue: -0.1535,
         directional_occlusion: 1.0,
         depth_strength: 0.5375,
+        // Neutral: a card lit alone, until this table states its canopy.
+        canopy_normal: 0.0,
+        light_wrap: 0.0,
+        diffuse_transmission: 0.0,
+        leaf_sheen: 0.0,
+        crown_shade: 0.0,
     }
 }
 
@@ -140,6 +146,12 @@ pub(super) fn spruce() -> MaterialParams {
         orientation_blue: -0.0155,
         directional_occlusion: 0.30625,
         depth_strength: 0.45625,
+        // Neutral: a card lit alone, until this table states its canopy.
+        canopy_normal: 0.0,
+        light_wrap: 0.0,
+        diffuse_transmission: 0.0,
+        leaf_sheen: 0.0,
+        crown_shade: 0.0,
     }
 }
 
@@ -221,6 +233,25 @@ pub(super) fn beech() -> MaterialParams {
         orientation_blue: 0.0,
         directional_occlusion: 0.0,
         depth_strength: 0.0,
+        // A dense crown lit as one mass (fn-52): the lighting normal bends
+        // most of the way to the crown's outward direction and the sun wraps
+        // a little past the terminator, so the sky-lit top and the sunward
+        // shell carry the crown. A thin blade transmits close to evenly
+        // (Jacquemoud & Ustin 2019, Leaf Optical Properties), sky and sun
+        // alike. The glossy cuticle's sheen sits above a smooth wax's 0.04:
+        // B-WHOLE's brightest centre pixels are a pale, sky-lit green,
+        // 149/180/152, not sky; at 0.1 the whole crown greyed. Set against
+        // B-WHOLE's centre, sRGB 71/94/74 under overcast, where this row
+        // draws 61/84/65.
+        canopy_normal: 0.8,
+        light_wrap: 0.4,
+        diffuse_transmission: 1.0,
+        leaf_sheen: 0.08,
+        // The crown over a leaf takes its sky, so the dome's underside falls
+        // into its own shade: B-WHOLE's leaf mass falls from 125 at the top
+        // sixth to 52 at the bottom, and 0.15 a radius draws 91 to 55, where
+        // no shade drew the bottom brighter than the middle.
+        crown_shade: 0.15,
     }
 }
 
@@ -308,6 +339,19 @@ pub(super) fn birch() -> MaterialParams {
         orientation_blue: 0.0,
         directional_occlusion: 0.0,
         depth_strength: 0.0,
+        // The same canopy as the beech's (fn-52), with a softer terminator
+        // for the airy hanging crown and a less glossy cuticle. Set against
+        // S-WHOLE, whose centre pixels sit above half brightness a fifth of
+        // the time: this row puts 20% of the leaf pixels there, where the
+        // card put 2%, and the centre's leaf pixels read 81 against the
+        // photograph's 83.
+        canopy_normal: 0.8,
+        light_wrap: 0.5,
+        diffuse_transmission: 1.0,
+        leaf_sheen: 0.06,
+        // S-WHOLE's crown falls from 153 at the top sixth to 38 at the
+        // bottom; 0.2 a radius draws 156 to 45.
+        crown_shade: 0.2,
     }
 }
 

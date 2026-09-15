@@ -1,0 +1,94 @@
+diff --git i/crates/telperion-render/src/scene/frame.rs w/crates/telperion-render/src/scene/frame.rs
+index b765be2..8d8efb0 100644
+--- i/crates/telperion-render/src/scene/frame.rs
++++ w/crates/telperion-render/src/scene/frame.rs
+@@ -131,7 +131,10 @@ impl Scene {
+                     m.blade_mottle_scale,
+                     m.blade_mottle_strength,
+                     m.cuticle_gloss,
+-                    0.0,
++                    std::env::var("TELPERION_DEBUG_TERM")
++                        .ok()
++                        .and_then(|v| v.parse::<f64>().ok())
++                        .unwrap_or(0.0),
+                 ),
+                 margin: colour(m.margin_red, m.margin_green, m.margin_blue, m.margin_width),
+                 shoot: colour(m.shoot_red, m.shoot_green, m.shoot_blue, m.shoot_radius),
+diff --git i/crates/telperion-render/src/shaders/foliage.wgsl w/crates/telperion-render/src/shaders/foliage.wgsl
+index 4776ebf..c7c85aa 100644
+--- i/crates/telperion-render/src/shaders/foliage.wgsl
++++ w/crates/telperion-render/src/shaders/foliage.wgsl
+@@ -107,5 +107,35 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
+         let half_way = normalize(normalize(u.eye.xyz - in.world) + u.sun_direction.xyz);
+         cuticle = gloss * pow(max(dot(n, half_way), 0.0), exp2(3.0 + 5.0 * gloss));
+     }
++    let mode = i32(u.leaf_colour_detail.w + 0.5);
++    if (mode > 0) {
++        let to_eye = normalize(u.eye.xyz - in.world);
++        let geometric = normalize(cross(dpdx(in.world), dpdy(in.world)));
++        let facing = select(-geometric, geometric, dot(geometric, to_eye) > 0.0);
++        let l = u.sun_direction.xyz;
++        var v = vec3<f32>(0.0);
++        switch mode {
++            case 1: { v = vec3<f32>(1.0, 0.0, 1.0); }
++            case 2: { v = colour; }
++            case 3: { v = colour * u.sun.rgb * max(dot(n, l), 0.0) / 4.0; }
++            case 4: { v = colour * direct / 4.0; }
++            case 5: { v = colour * ambient(n) / 4.0; }
++            case 6: { v = colour * shaded / 4.0; }
++            case 7: { v = through / 4.0; }
++            case 8: { v = direct * cuticle / 4.0; }
++            case 9: { v = vec3<f32>(visibility); }
++            case 10: { v = vec3<f32>(max(dot(n, l), 0.0)); }
++            case 11: { v = vec3<f32>(select(0.0, 1.0, front)); }
++            case 12: { v = vec3<f32>(in.leaf.z); }
++            case 13: { v = vec3<f32>(0.5 + 0.5 * dot(n, to_eye)); }
++            case 14: { v = (colour * (shaded + direct) + through + direct * cuticle) / 4.0; }
++            case 15: { v = vec3<f32>(0.5 + 0.5 * dot(n, facing)); }
++            case 16: { v = vec3<f32>(0.5 + 0.5 * dot(facing, l)); }
++            case 17: { v = u.sun.rgb * u.transmission.rgb * visibility * max(dot(-n, l), 0.0) / 4.0; }
++            case 18: { v = vec3<f32>(sunlight(in.world, select(-facing, facing, dot(facing, l) > 0.0))); }
++            default: { v = tone(colour * (shaded + direct) + through + direct * cuticle); }
++        }
++        return vec4<f32>(v, 1.0);
++    }
+     return vec4<f32>(tone(colour * (shaded + direct) + through + direct * cuticle), 1.0);
+ }
+diff --git i/crates/telperion-render/src/shaders/scene.wgsl w/crates/telperion-render/src/shaders/scene.wgsl
+index 19e69e4..0ea1a5c 100644
+--- i/crates/telperion-render/src/shaders/scene.wgsl
++++ w/crates/telperion-render/src/shaders/scene.wgsl
+@@ -29,6 +29,8 @@ fn vertex(
+ 
+ @fragment
+ fn fragment(in: Varying) -> @location(0) vec4<f32> {
++    if (i32(u.leaf_colour_detail.w + 0.5) == 1) { return vec4<f32>(0.0, 0.0, 0.0, 1.0); }
++    if (i32(u.leaf_colour_detail.w + 0.5) == 1) { return vec4<f32>(0.0, 0.0, 0.0, 1.0); }
+     let n = normalize(in.normal);
+     if (is_clay()) {
+         return vec4<f32>(in.colour.rgb * clay_light(n), 1.0);
+diff --git i/crates/telperion-render/src/shaders/sky.wgsl w/crates/telperion-render/src/shaders/sky.wgsl
+index 860a44a..25a60e3 100644
+--- i/crates/telperion-render/src/shaders/sky.wgsl
++++ w/crates/telperion-render/src/shaders/sky.wgsl
+@@ -20,6 +20,8 @@ fn vertex(@builtin(vertex_index) index: u32) -> Sky {
+ 
+ @fragment
+ fn fragment(in: Sky) -> @location(0) vec4<f32> {
++    if (i32(u.leaf_colour_detail.w + 0.5) == 1) { return vec4<f32>(0.0, 0.0, 0.0, 1.0); }
++    if (i32(u.leaf_colour_detail.w + 0.5) == 1) { return vec4<f32>(0.0, 0.0, 0.0, 1.0); }
+     let direction = normalize(
+         u.ray_forward.xyz + in.ndc.x * u.ray_right.xyz + in.ndc.y * u.ray_up.xyz,
+     );
+diff --git i/crates/telperion-render/src/shaders/wood.wgsl w/crates/telperion-render/src/shaders/wood.wgsl
+index deb844b..fdfdcff 100644
+--- i/crates/telperion-render/src/shaders/wood.wgsl
++++ w/crates/telperion-render/src/shaders/wood.wgsl
+@@ -103,6 +103,7 @@ fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
+ 
+ @fragment
+ fn fragment(in: Varying) -> @location(0) vec4<f32> {
++    if (i32(u.leaf_colour_detail.w + 0.5) == 1) { return vec4<f32>(0.0, 1.0, 1.0, 1.0); }
+     let base_normal = normalize(in.normal);
+     if (is_clay()) {
+         return vec4<f32>(u.clay.rgb * clay_light(base_normal), 1.0);

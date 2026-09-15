@@ -111,6 +111,27 @@ pub struct MaterialParams {
     pub directional_occlusion: f64,
     /// How far the relief is given depth beyond the shaded normal.
     pub depth_strength: f64,
+    /// How far a leaf is lit as part of its crown rather than as a lone card:
+    /// its lighting normal bends from the blade's toward the crown's outward
+    /// direction at its placement, so the sunward shell of the mass is lit
+    /// whichever way its blades turn. Zero lights the blade alone.
+    pub canopy_normal: f64,
+    /// How far the leaf's sunlight wraps past the terminator, as a fraction
+    /// of a right angle's cosine; a face square to the sun takes what it
+    /// always took. Zero is the plain cosine.
+    pub light_wrap: f64,
+    /// The share of the blade's transmission that leaves it diffusely, as a
+    /// thin leaf's does, rather than on the forward lobe toward the sun; the
+    /// diffuse share also carries the sky through the blade. Zero is the lobe.
+    pub diffuse_transmission: f64,
+    /// The cuticle's reflectance of the sky at normal incidence, rising to
+    /// the whole sky at grazing by Schlick's Fresnel; zero reflects no sky.
+    pub leaf_sheen: f64,
+    /// How much of the sky one crown radius of leaves takes from a leaf that
+    /// reads it through the mass - the sky over it, behind it and in its
+    /// sheen - so the underside of a crown falls into its own shade. Zero
+    /// sees the sky through the mass.
+    pub crown_shade: f64,
 }
 
 impl Default for MaterialParams {
@@ -184,6 +205,11 @@ impl Default for MaterialParams {
             orientation_blue: 0.0,
             directional_occlusion: 0.0,
             depth_strength: 0.0,
+            canopy_normal: 0.0,
+            light_wrap: 0.0,
+            diffuse_transmission: 0.0,
+            leaf_sheen: 0.0,
+            crown_shade: 0.0,
         }
     }
 }
@@ -259,6 +285,16 @@ impl MaterialParams {
                 "bark directional occlusion",
             ),
             (self.depth_strength, 0.0, 1.0, "bark depth strength"),
+            (self.canopy_normal, 0.0, 1.0, "leaf canopy normal"),
+            (self.light_wrap, 0.0, 1.0, "leaf light wrap"),
+            (
+                self.diffuse_transmission,
+                0.0,
+                1.0,
+                "leaf diffuse transmission",
+            ),
+            (self.leaf_sheen, 0.0, 0.5, "leaf sheen"),
+            (self.crown_shade, 0.0, 1.0, "leaf crown shade"),
             (self.ridge_scale, 0.0, 1.0, "bark ridge scale"),
             (self.plate_scale, 0.0, 1.0, "bark plate scale"),
             (self.furrow_strength, 0.0, 1.0, "bark furrow strength"),
@@ -341,7 +377,7 @@ mod tests {
         // field without a bound would fail the count below.
         // One field put off its range, and the name the refusal must carry.
         type Refusal = (fn(&mut MaterialParams), &'static str);
-        let refusals: [Refusal; 54] = [
+        let refusals: [Refusal; 59] = [
             (|m| m.plate_cell_scale = 2.0, "bark plate cell scale"),
             (|m| m.plate_furrow_width = 1.5, "bark plate furrow width"),
             (|m| m.plate_elongation = 17.0, "bark plate elongation"),
@@ -386,6 +422,14 @@ mod tests {
             (|m| m.margin_blue = 2.0, "leaf margin blue"),
             (|m| m.cuticle_gloss = 2.0, "leaf cuticle gloss"),
             (|m| m.sky_occlusion_strength = 2.0, "sky occlusion strength"),
+            (|m| m.canopy_normal = 1.1, "leaf canopy normal"),
+            (|m| m.light_wrap = -0.1, "leaf light wrap"),
+            (
+                |m| m.diffuse_transmission = f64::NAN,
+                "leaf diffuse transmission",
+            ),
+            (|m| m.leaf_sheen = 0.51, "leaf sheen"),
+            (|m| m.crown_shade = 1.5, "leaf crown shade"),
             (|m| m.bark_red = 1.5, "bark red"),
             (|m| m.bark_green = -0.1, "bark green"),
             (|m| m.bark_blue = f64::NAN, "bark blue"),

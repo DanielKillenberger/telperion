@@ -119,6 +119,11 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.orientation_blue,
         material.directional_occlusion,
         material.depth_strength,
+        material.canopy_normal,
+        material.light_wrap,
+        material.diffuse_transmission,
+        material.leaf_sheen,
+        material.crown_shade,
 
         shell_depth,
     );

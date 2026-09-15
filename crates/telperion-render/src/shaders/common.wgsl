@@ -62,6 +62,13 @@ struct Uniforms {
     /// Young wood's own colour, and in `w` the radius below which wood takes
     /// it; zero is a row with no young wood.
     shoot: vec4<f32>,
+    /// The leaf lit as a mass: the bend of its lighting normal toward the
+    /// crown's outward direction, the sun's wrap past the terminator, the
+    /// diffuse share of its transmission, and its sheen. All zero is a card.
+    canopy: vec4<f32>,
+    /// How much of the sky one crown radius of leaves takes from a leaf that
+    /// reads it through the mass; the rest is reserved. Zero sees through.
+    crown_shade: vec4<f32>,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

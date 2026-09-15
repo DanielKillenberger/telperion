@@ -159,6 +159,13 @@ impl Scene {
                     m.orientation_strength,
                 ),
                 shoot: colour(m.shoot_red, m.shoot_green, m.shoot_blue, m.shoot_radius),
+                canopy: colour(
+                    m.canopy_normal,
+                    m.light_wrap,
+                    m.diffuse_transmission,
+                    m.leaf_sheen,
+                ),
+                crown_shade: colour(m.crown_shade, 0.0, 0.0, 0.0),
             }),
         );
     }

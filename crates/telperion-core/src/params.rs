@@ -187,6 +187,11 @@ macro_rules! fields {
         $op!($f, $v, "material", "orientationBlue"; material.orientation_blue);
         $op!($f, $v, "material", "directionalOcclusion"; material.directional_occlusion);
         $op!($f, $v, "material", "depthStrength"; material.depth_strength);
+        $op!($f, $v, "material", "canopyNormal"; material.canopy_normal);
+        $op!($f, $v, "material", "lightWrap"; material.light_wrap);
+        $op!($f, $v, "material", "diffuseTransmission"; material.diffuse_transmission);
+        $op!($f, $v, "material", "leafSheen"; material.leaf_sheen);
+        $op!($f, $v, "material", "crownShade"; material.crown_shade);
 
         $op!($f, $v, "shellDepth"; shell_depth);
     };

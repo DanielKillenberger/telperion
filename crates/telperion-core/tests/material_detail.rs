@@ -2,7 +2,7 @@
 use serde_json::json;
 use telperion_core::{blend, params, presets::Preset, Error};
 
-const FIELDS: [(&str, &str, f64, f64); 50] = [
+const FIELDS: [(&str, &str, f64, f64); 55] = [
     ("furrowStrength", "bark furrow strength", 0.0, 1.0),
     ("ridgeScale", "bark ridge scale", 0.0, 1.0),
     ("plateScale", "bark plate scale", 0.0, 1.0),
@@ -68,6 +68,11 @@ const FIELDS: [(&str, &str, f64, f64); 50] = [
         1.0,
     ),
     ("depthStrength", "bark depth strength", 0.0, 1.0),
+    ("canopyNormal", "leaf canopy normal", 0.0, 1.0),
+    ("lightWrap", "leaf light wrap", 0.0, 1.0),
+    ("diffuseTransmission", "leaf diffuse transmission", 0.0, 1.0),
+    ("leafSheen", "leaf sheen", 0.0, 0.5),
+    ("crownShade", "leaf crown shade", 0.0, 1.0),
 ];
 
 #[test]
@@ -144,6 +149,11 @@ fn older_material_documents_gain_only_inert_detail_defaults() {
         "orientationBlue",
         "directionalOcclusion",
         "depthStrength",
+        "canopyNormal",
+        "lightWrap",
+        "diffuseTransmission",
+        "leafSheen",
+        "crownShade",
         "ridgeScale",
         "plateScale",
         "roughnessDetail",
@@ -205,4 +215,30 @@ fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
         .map(|entry| entry.1)
         .collect();
     assert_eq!(young, ["european-beech", "silver-birch"]);
+}
+
+/// The canopy rows cross the page's wire as the native still reads them, so
+/// the browser and the headless renderer light one crown alike.
+#[test]
+fn every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged() {
+    let canopy = |m: telperion_core::material::MaterialParams| {
+        [
+            m.canopy_normal,
+            m.light_wrap,
+            m.diffuse_transmission,
+            m.leaf_sheen,
+            m.crown_shade,
+        ]
+    };
+    let mut lit = Vec::new();
+    for (_, id, _, _) in params::CATALOGUE {
+        let family = Preset::from_id(id).unwrap().parameters();
+        let page = params::parse(&params::metadata(&family)).unwrap().material;
+        assert_eq!(canopy(page), canopy(family.material), "{id}");
+        if canopy(family.material).iter().any(|&v| v > 0.0) {
+            lit.push(*id);
+        }
+    }
+    // Only the two species whose tables state a canopy light one.
+    assert_eq!(lit, ["european-beech", "silver-birch"]);
 }

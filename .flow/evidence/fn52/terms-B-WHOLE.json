@@ -1,0 +1,95 @@
+{
+ "box": [
+  0,
+  98,
+  951,
+  1279
+ ],
+ "leaf_px": 389341,
+ "wood_px": 103116,
+ "centre_leaf_share": 0.409,
+ "centre_wood_share": 0.194,
+ "centre_mean": 45.0,
+ "centre_above_half": 0.07,
+ "leaf_mean": 21.1,
+ "leaf_above_half": 0.0,
+ "centre_leaf_mean": 17.9,
+ "centre_leaf_above_half": 0.0,
+ "wood_mean": 62.3,
+ "sky_mean": 189.0,
+ "linear_terms_green": {
+  "albedo": {
+   "leaf_green": 0.2538,
+   "centre_leaf_green": 0.2474
+  },
+  "sun_unshadowed": {
+   "leaf_green": 0.0081,
+   "centre_leaf_green": 0.0097
+  },
+  "sun_shadowed": {
+   "leaf_green": 0.0015,
+   "centre_leaf_green": 0.0006
+  },
+  "ambient_open": {
+   "leaf_green": 0.0491,
+   "centre_leaf_green": 0.0516
+  },
+  "ambient_occluded": {
+   "leaf_green": 0.0411,
+   "centre_leaf_green": 0.0385
+  },
+  "transmission": {
+   "leaf_green": 0.0035,
+   "centre_leaf_green": 0.0005
+  },
+  "specular": {
+   "leaf_green": 0.0004,
+   "centre_leaf_green": 0.0001
+  },
+  "total_linear": {
+   "leaf_green": 0.0464,
+   "centre_leaf_green": 0.0397
+  },
+  "transmission_diffuse": {
+   "leaf_green": 0.0501,
+   "centre_leaf_green": 0.0108
+  }
+ },
+ "geometry": {
+  "visibility": {
+   "mean": 0.233,
+   "share_positive": 0.199
+  },
+  "n_dot_sun": {
+   "mean": 0.061,
+   "share_positive": 0.321
+  },
+  "front": {
+   "mean": 0.21,
+   "share_positive": 0.377
+  },
+  "depth": {
+   "mean": 0.288,
+   "share_positive": 0.136
+  },
+  "n_dot_eye": {
+   "mean": 0.608,
+   "share_positive": 1.0
+  },
+  "n_dot_geometric": {
+   "mean": 0.99,
+   "share_positive": 1.0
+  },
+  "geometric_dot_sun": {
+   "mean": -0.46,
+   "share_positive": 0.11
+  }
+ },
+ "facing_sun_share": 0.321,
+ "facing_sun_visibility": 0.201,
+ "facing_sun_final_mean": 24.7,
+ "lit_share": 0.068,
+ "photo_centre_mean": 79.7,
+ "photo_centre_above_half": 0.124,
+ "photo_top_sky": 255.0
+}
