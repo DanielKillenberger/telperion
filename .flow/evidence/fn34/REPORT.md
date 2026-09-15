@@ -1183,3 +1183,160 @@ Photograph / round 8c → round 11:
 No visual pass is awarded. The round-11 pairs are recorded by sha256 in
 `round11-beech/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 12, fn-50: short shoots clothe the limbs (2026-09-15)
+
+fn-45 found two faults it could not reach with a row. Leaves grew only on
+twig wood, and twig wood grows at limb tips and on thin wood, so the crown's
+inside stayed bare. Each twig was 25 cm with a leaf every 2 cm, which is a
+fern's pinna. On round 11's leaf-on pair the owner and the host read a
+conifer, a cedar or a hemlock, not a broadleaf. A beech carries most of its
+leaves on short shoots: spurs a few centimetres long, two to five leaves
+each, all along its older limbs and deep inside the crown.
+
+### What the generator gained
+
+Five canopy rows grow short shoots (commit `57b2401c`):
+
+- `shortShootSpacing`: metres between spurs along the wood. Zero, the
+  neutral, grows none.
+- `shortShootRadius`: wood thicker than this share of the stem's radius
+  carries none.
+- `shortShootLength`: the spur's own length.
+- `shortShootLeaves`: the cluster's count, 1 to 8.
+- `shortShootSpread`: how far the cluster fans either side of the spur's
+  bearing.
+
+A spur stands on limb or branch wood, never on twig wood and never below the
+crown base. A cluster's leaves are held level, so every cluster is one flat
+spray, whichever side of the limb it leaves from. An earlier cut fanned the
+leaves in a cone about the spur, and it hung a tassel under every limb.
+
+A spur is a placement on wood the skeleton already has. It adds no node and
+no run, and the node ceiling does not move. The tests assert the same tree
+and the same wood with the rows on and off. Every draw belongs to the wood
+that bears it: the phase along the wood, each spur's bearing and its
+cluster come from the wood's identity and the seed, and wood is visited in
+identity order. So a tree stored in another order, a month-by-month replay
+and the growth view all place the same matrices. The growth view hangs the
+clusters after the record's leaves, drawn from the wood on screen.
+
+Culling keeps short-shoot leaves by the same shell rule as every other leaf,
+and the instance budget counts them. The spacing blends as the density it
+stands for, so a walk from none thins in from a kilometre apart and never
+arrives crowded. Every other shipped table states a zero spacing and every
+other identity pin holds byte for byte.
+
+### What the beech's table states
+
+The host widened this round's levers after round 11's reading: the beech's
+twig rows and leaf-orientation rows as well as the new rows. Habit, envelope
+and radius rows stay as round 11 set them, since they hold its leader.
+
+- **Short shoots.** A spur every 2.5 cm of wood under 0.35 of the trunk's
+  radius, 5 cm long, five leaves fanned 80 degrees either side. They stand
+  where the slender wood's own row of leaves stood, so `canopy.shootRadius`
+  drops from 0.05 to 0.
+- **Twigs.** Each stands out at 50 degrees instead of 32, turned by the
+  golden angle instead of two-ranked, with a leaf every 5 cm instead of 2.
+  Round 6c chose two-ranked twigs because the golden angle read as a
+  bottlebrush. That bottlebrush was the comb of leaves along each twig,
+  which the clusters have replaced.
+- **Leaves.** They lean 0.1 along their shoots instead of 0.45, and scatter
+  45 degrees instead of 30. At 0.45 the leaves lay down the twig like
+  needles.
+
+### What was tried, in order
+
+Each step was read on the B-WHOLE pair.
+
+1. **Short shoots alone, on round 11's twigs.** Spacing 8 cm down to 3 cm,
+   the radius band 0.15 to 0.45, up to 4.9 million leaves. The inside filled
+   and the grey limbs mostly went, but every spray still read as a frond.
+   The fronds were the twig layer, not the leaves.
+2. **Sparser leaves on the twigs alone** (one every 5 cm), **and the lower
+   lean alone.** Each was marginal.
+3. **Twigs at 50 degrees.** The crown became one mass, and the spikes at its
+   top mostly went. Combs still hung at its lower edge: flat two-ranked
+   sprays in vertical planes under drooping laterals.
+4. **Twigs turned by the golden angle.** The combs went, and the crown read
+   as a rounded, dense mass.
+5. **Short shoots only on wood under 0.12 of the trunk's radius.** No lobes
+   formed, and the bare thick limbs showed low.
+6. **Half the spur density.** The crown only got thinner and lacier, and no
+   lobes formed.
+
+### Numbers
+
+Seed 1, round 11 → round 12:
+
+| Reading | Round 11 | Round 12 |
+|---|---|---|
+| Leaves by third of the height, bottom/middle/top | 13.3 / 56.4 / 30.3 % | 13.7 / 56.5 / 29.7 % |
+| Lowest twentieth of the leaves, share of the height | 0.224 | 0.222 |
+| Lowest hundredth of the leaves, share of the height | 0.149 | 0.148 |
+| Leaves between 2 and 4 m | 4,239 | 12,928 |
+| Leaves between 4 and 6 m | 48,483 | 120,366 |
+| Leaves in all | 1,939,337 | 4,720,165 |
+| Short shoots (leaves on them) | none | 871,116 (4,355,580, 92 %) |
+| Nodes | 170,927 | 171,453 |
+
+Short shoots follow the wood, so the leaf mass's vertical distribution
+barely moves. The lowest metres of the crown hold little wood but the
+trunk and the first run of the lowest limbs. Those limbs rise from 2.2 m
+to 15 to 20 m and carry their side wood high. The low bands gain three
+times their leaves, and the share does not move.
+
+Budget: all 48 protocol cases pass (`measure/protocol-fn50/`). The beech
+seeds run 151,319 to 200,476 nodes against the 250,000 ceiling (round 11:
+150,802 to 199,787), and none is node-capped. Retained leaves run 4.25 to
+5.60 million, inside the species' 10^5 to 10^7 fidelity band. The DBH proxy
+holds at 0.889 m. At the identity seed the beech goes from 1,942,005 to
+4,719,055 leaf instances, about 2.4 times round 11's; the spruce ships 7.0
+million.
+
+The beech's identity pin and its neutral-sag pin are re-recorded once, with
+the reason. The twig rows move its skeleton; the rest moves only its
+placement. Every other table is byte-identical. The browser bindings
+fixture raises its leaf ceiling from 12,000 to 40,000. It is a ceiling, not
+a target, and the beech's small fixture now carries about 30,000 leaves.
+
+Photograph / round 11 → round 12:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.73 → 0.72 | 0.25 / 0.24 → 0.24 | 0.28 / 0.43 → 0.44 | 100 / 124 → 123 | 0.29 / 0.07 → 0.07 |
+| B-BASE | 0.60 / 1.14 → 0.67 | 1.00 / 0.00 → 0.11 | 0.05 / 0.01 → 0.09 | 130 / 182 → 101 | — / — → 0.14 |
+| B-WHOLE | 0.70 / 0.74 → 0.74 | 0.12 / 0.09 → 0.09 | 0.46 / 0.65 → 0.60 | 80 / 35 → 22 | 0.23 / 0.07 → 0.07 |
+
+B-BASE moves with the close-up camera fix (`3349640f`), not with this
+round: the close-up now aims at the stem and frames the trunk. B-WHOLE's
+centre is darker still, 22 against 80, because more leaves sit in the
+middle of the box. That is fn-52's lighting.
+
+### What the worker read on the pairs
+
+- **B-WHOLE, the question asked: a broadleaf beech with rounded, clustered
+  leaf masses, not a conifer?** It is not a conifer any more. The fronds
+  and the spiky sprays are gone, the crown is one rounded, dense broadleaf
+  mass leafed through its inside, and the grey limbs that showed through
+  round 11's lace are mostly covered. But it is not the photograph yet, so
+  to the whole question the answer is no:
+  - The mass is uniform. It lacks the photograph's billowy lobes with gaps
+    between them.
+  - It is not leafed nearly to the ground. In the middle the trunk is bare
+    to about a quarter of the height; at the sides the lowest leaves hang
+    at about 3.5 m, where the photograph's reach about 2 m.
+
+  Neither fault answered a leaf row. Density changes made the mass thinner
+  or thicker, never lobed. The low crown needs wood there, which the habit
+  rows grow. The photograph's lobes read through light and shade on the
+  clumps, which is fn-52's, and through the outline's own lobes, which the
+  envelope rows set (outline 0.07 against 0.23).
+- **B-BARE.** Round 11's tree: one leader visibly through the crown past
+  half its height, limbs leaving it one or two at a time. The twig rows
+  changed only fine twig texture.
+
+No visual pass is awarded. The round-12 pairs are recorded by sha256 in
+`round12-fn50/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
