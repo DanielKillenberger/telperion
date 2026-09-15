@@ -44,6 +44,7 @@ pub(super) fn european_beech(p: &mut Family) {
         stems: 1,
         stem_divergence: 0.0,
         stem_lean: 0.0,
+        stem_lean_spread: 0.0,
     };
     // The crown starts low, is widest a little under half its depth and
     // rounds off at the top rather than squaring into a shoulder.
@@ -148,6 +149,7 @@ pub(super) fn silver_birch(p: &mut Family) {
         stems: 2,
         stem_divergence: 110.0,
         stem_lean: 22.0,
+        stem_lean_spread: 0.0,
     };
     // A narrower crown carrying its mass up top, with squarer shoulders than
     // the round-3 oval. The crown's base is also the curtain's floor: a shoot

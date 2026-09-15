@@ -35,6 +35,7 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "habit", "stems"; skeleton.habit.stems);
         $op!($f, $v, "skeleton", "habit", "stemDivergence"; skeleton.habit.stem_divergence);
         $op!($f, $v, "skeleton", "habit", "stemLean"; skeleton.habit.stem_lean);
+        $op!($f, $v, "skeleton", "habit", "stemLeanSpread"; skeleton.habit.stem_lean_spread);
         $op!($f, $v, "element", "connectorLength"; element.connector_length);
         $op!($f, $v, "skeleton", "seed"; skeleton.seed);
         $op!($f, $v, "skeleton", "attractors"; skeleton.attractors);

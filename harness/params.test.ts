@@ -104,7 +104,7 @@ describe("branch-law controls", () => {
 describe("carried native controls", () => {
   it("keeps the Ordinary baseline natural and every carried trait a number", () => {
     expect(DEFAULT_PARAMS.supernaturalEnabled).toBe(false);
-    /* The habit is the Ordinary row of the trait table, eighteen numbers
+    /* The habit is the Ordinary row of the trait table, nineteen numbers
        and no tag. Written out rather than compared to itself: the panel
        shows the owner these values, and a row the core moves under it is
        a different default tree than the one the harness was tuned on. */
@@ -127,6 +127,7 @@ describe("carried native controls", () => {
       stems: 1,
       stemDivergence: 0,
       stemLean: 0,
+      stemLeanSpread: 0,
     });
     // The leaf and the way it sits on its shoot are rows as well.
     expect(DEFAULT_PARAMS.family.element).toMatchObject({ lobeCount: 0, lobeDepth: 0, sectionRoundness: 0 });
