@@ -1032,3 +1032,87 @@ since fn-50, fn-51 and fn-52 start from this merge.
 No visual pass is awarded. The round-8c pairs are recorded by sha256 in
 `round8c-merge/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 9b, fn-48: a clump's stems lean unequally (2026-09-15)
+
+fn-38 leaned a clump by one angle about one bearing, so the birch's two stems
+parted in a symmetric V. Both photographs show one near-vertical stem and one
+leaning well out of the pair. fn-48 adds one habit row,
+`skeleton.habit.stem_lean_spread`, 0 to 1 and neutral 0. It walks each stem's
+lean from fn-38's rule, where a stem leans by how far out of the clump's centre
+it stands, toward the stem's place in the clump's order. At any spread the
+first stem leans by `stem_lean` times one minus the spread, and the last by the
+whole lean. At the whole spread the first stem stands upright and each later
+one leans further out. The bearings stay the clump's own. At zero every stem's
+heading is fn-38's to the bit, and every table except the birch states zero.
+
+The birch's table states the whole spread and raises the lean from 22 to 28
+degrees. It also moves the divergence from 110 degrees to none. An upright stem
+has no bearing to part from, so at the whole spread the divergence only turns
+the leaning stem about the seed's own bearing. At seed 1 that bearing is 193.5
+degrees, and 110 degrees of divergence would have aimed the leaning stem within
+nine degrees of straight away from the matched stills' camera, where no lean
+reads. With no divergence, about three quarters of the lean lies across the
+view, and the 28 degrees of lean shows as about 21 in the still, the angle the
+S-WHOLE photograph's leaning stem shows. The birch's identity pin and its
+neutral-sag pin are re-recorded once for this. The other tables are
+byte-identical. The fixed and fresh protocol passes all forty-eight cases
+(`measure/protocol-fn48/`), and no seed is node-capped. The heaviest birch seed
+stands at 146,028 nodes against round 7's 154,583. The first fixed seed has
+124,763 nodes, 7,488,840 wood triangles and 389,369 leaves.
+
+Photograph / round 8c → round 9b:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.70 → 0.68 | 0.15 / 0.22 → 0.23 | 0.46 / 0.52 → 0.49 | 91 / 71 → 75 | 0.17 / 0.09 → 0.11 |
+| S-BARK | 1.07 / 1.12 → 1.21 | 1.00 / 0.00 → 0.00 | 0.47 / 0.34 → 0.30 | 92 / 153 → 176 | 0.13 / 0.73 → — |
+| S-WHOLE | 0.85 / 0.94 → 0.85 | 0.08 / 0.21 → 0.20 | 0.44 / 0.42 → 0.45 | 83 / 35 → 42 | 0.22 / 0.13 → 0.11 |
+
+S-WHOLE's width over height now matches the photograph at 0.85, where the even
+V spread the leaf-on crown to 0.94. Its occupied share sits within 0.01 of the
+photograph's. S-BARE's occupied share came down from 0.52 to 0.49, toward 0.46.
+S-BARK is the close-up on the base. Its mask is now the upright stem and the
+leaning one running off the top of the frame. The outline statistic has an
+empty bin and cannot be read, and the box's centre holds the upright stem's
+white bark (176) where the V put sky and grass between its two sides (153).
+The centre means that moved on the two whole-tree references moved for the
+same reason: an upright white stem now runs up the middle of the box.
+
+### What the worker read on the pairs
+
+Three images of the capture: S-BARE, S-WHOLE and S-BARK.
+
+- **S-BARE.** One stem stands near vertical and runs up the middle of the
+  crown, white and visible to about half the height. The other leaves the same
+  flared foot and leans out to the left for about the first fifth of the
+  height before the curtain swallows it. It reads as one near-vertical stem and
+  one leaning out, not a V. The photograph's leaning stem stays visible much
+  higher, because its winter veil is thinner and uneven. That is the curtain,
+  fn-47's and fn-51's.
+- **S-WHOLE.** The same: the right stem stands up and the left leans out from
+  the foot until the curtain covers it at about the same height. The
+  photograph's leaning stem runs out about a third of the tree's height under a
+  canopy that lifts over the stems. That lift is fn-51's hem. The leaf mass is
+  still too dark (42 against 83), which is fn-52's.
+- **S-BARK.** One foot, one upright stem, and one leaning stem parting from it
+  at the ground.
+
+Three things are left, and none of them is this spec's row:
+
+- **The upright stem wanders.** The birch's crookedness of 10 degrees bends it
+  in a slow S above the bole. The photographs' near-vertical stem is straight.
+  The crookedness row reaches every axis of the tree, not only the stems.
+- **The pair leans one way.** At the whole spread the upright stem is exactly
+  upright. In S-WHOLE the near-vertical stem leans slightly away from the
+  other. A spread below one with no divergence would lean it toward the
+  leaning stem, and the divergence rail's 120 degrees cannot put the two
+  opposite.
+- **Where the lean points is the seed's.** For two stems at the whole spread,
+  the leaning stem's bearing is the seed's own bearing, so from this camera
+  some seeds' leaning stems point toward or away from the eye. Only the first
+  fixed seed is posed against the photographs.
+
+No visual pass is awarded. The round-9b pairs are recorded by sha256 in
+`round9b-fn48/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
