@@ -75,11 +75,16 @@ pub(super) fn european_beech(p: &mut Family) {
     // them and for the longer leader, so the heaviest protocol seed keeps a
     // fifth of the ceiling in hand.
     p.skeleton.twigs.length_ratio = 0.30;
-    // A local shoot follows its limb rather than standing off it at 45,
-    // and its own shoots are two-ranked: a beech's spray is flat, where one
-    // turned by the golden angle read as a bottlebrush frond.
-    p.skeleton.twigs.angle = 32.0;
-    p.skeleton.twigs.divergence = 180.0;
+    // Short shoots carry most of the leaves now, so the long shoots only
+    // have to spread the crown: each stands out at 50 degrees, turned by
+    // the golden angle, with a leaf every 5 cm. Two-ranked at 32 degrees
+    // with a leaf every 2 cm, every spray was a flat frond and the crown
+    // read as a hemlock (owner and host, round 11); the bottlebrush the
+    // golden angle once made was the comb of leaves along it, which the
+    // clusters have replaced.
+    p.skeleton.twigs.angle = 50.0;
+    p.skeleton.twigs.divergence = 137.5;
+    p.skeleton.twigs.twig.internode_length = 0.05;
     p.skeleton.twigs.twig.bearing_diameter = 0.03;
     p.radii.trunk_radius = 0.014;
     // Two thirds of the default taper per metre, and a fork exponent of
@@ -105,22 +110,29 @@ pub(super) fn european_beech(p: &mut Family) {
         ..Default::default()
     };
     p.shell_depth = 1.0;
-    // Leaves follow twig wood one for one; clothing every shoot under a
-    // twentieth of the trunk's radius leafs the crown's inside without
-    // growing a node for it.
-    p.canopy.shoot_radius = 0.05;
-    // A beech leaf leans forward along its shoot and its blade is held
-    // flat, and it is large against the spacing of its shoots. Standing
-    // straight out on both sides of a two-ranked shoot, as at a lean of
-    // 0.2, every spray read as a fern's comb of pinnae.
-    p.canopy.forward_lean = 0.45;
+    // Most of a beech's leaves stand on short shoots: spurs a few
+    // centimetres long all along its limbs, five leaves apiece, one every
+    // two and a half centimetres of wood under a third of the trunk's
+    // radius. They leaf the crown's inside and its lower limbs, which twig
+    // wood alone left bare, and each cluster is a flat fan: the rounded,
+    // clustered mass of a broadleaf, not a frond. They stand where the
+    // slender wood's own row of leaves stood, so that row is off.
+    p.canopy.shoot_radius = 0.0;
+    p.canopy.short_shoot_spacing = 0.025;
+    p.canopy.short_shoot_radius = 0.35;
+    p.canopy.short_shoot_length = 0.05;
+    p.canopy.short_shoot_leaves = 5;
+    p.canopy.short_shoot_spread = 80.0;
+    // A beech leaf is held flat and turned every way about its shoot;
+    // leaning along it (0.45) laid the leaves down the twig like needles.
+    p.canopy.forward_lean = 0.1;
     p.canopy.outward = 0.0;
     p.canopy.upward = 0.3;
     // A tenth larger with less spread, so the largest leaf stays inside
     // the sourced 4 to 10 cm.
     p.canopy.size = 1.1;
     p.canopy.divergence = 180.0;
-    p.canopy.scatter = 30.0;
+    p.canopy.scatter = 45.0;
     p.canopy.size_variation = 0.12;
     p.material = materials::beech();
 }

@@ -96,6 +96,17 @@
 //! radius instead of a tenth, so the fewer, heavier scaffold tips keep their
 //! shoots. The oak, the spruce, the birch and the Two Trees are
 //! byte-identical.
+//! fn-50 re-pins the beech alone, once: on round 11's leaf-on pair the owner
+//! and the host read a hemlock, every twig a frond. Short shoots now carry
+//! most of its leaves, five to a spur every 2.5 cm of wood under a third of
+//! the trunk's radius, where the slender wood's own row of leaves stood; its
+//! twigs stand out at 50 degrees turned by the golden angle, with a leaf
+//! every 5 cm instead of two-ranked at 32 with one every 2; and its leaves
+//! lean less along their shoots and scatter wider. The twig rows move the
+//! skeleton, the rest only the placement. The habit, envelope and radius
+//! rows that hold round 11's leader are untouched, and the oak, the spruce,
+//! the birch and the Two Trees are byte-identical: every other table states
+//! no short shoot.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -157,13 +168,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 5017770,
-        wood_triangles: 9742760,
-        instances: 1942005,
-        min: [-15.6573525366675, -0.12800000607967377, -14.672681967975628],
-        max: [15.887328252409779, 32.04446584292465, 15.11811103251536],
-        skeleton: 2650342232535221885,
-        placement: 2204798781459053519,
+        wood_vertices: 5031410,
+        wood_triangles: 9769200,
+        instances: 4719055,
+        min: [
+            -15.592021942138672,
+            -0.12800000607967377,
+            -14.935297012329102,
+        ],
+        max: [15.929782379500104, 31.997190574634367, 15.216161078065474],
+        skeleton: 8478216101743105815,
+        placement: 8294590600763700138,
         element: 15097586524950800877,
     },
     Pin {

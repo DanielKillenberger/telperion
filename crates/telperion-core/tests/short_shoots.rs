@@ -58,6 +58,18 @@ fn none(p: CanopyParams) -> CanopyParams {
 }
 
 #[test]
+fn the_beech_carries_most_of_its_leaves_on_short_shoots() {
+    let mut f = Preset::EuropeanBeech.parameters();
+    f.skeleton.seed = 1;
+    assert!(f.canopy.short_shoot_spacing > 0.0);
+    f.skeleton.growth.max_nodes = Some(40_000);
+    let tree = grown(&f);
+    let all = placed(&f, &tree, f.canopy).matrices.len();
+    let own = placed(&f, &tree, none(f.canopy)).matrices.len();
+    assert!(all - own > own, "{own} of {all} leaves stand on twigs");
+}
+
+#[test]
 fn every_table_but_the_beech_grows_none() {
     for preset in [
         Preset::Ordinary,

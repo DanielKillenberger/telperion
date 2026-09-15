@@ -35,12 +35,13 @@ const IDS: [&str; 7] = [
 /// fn-45 re-records the beech's: its own table moved, and its neutral is its
 /// identity pin's skeleton, as a table that hangs nothing must be. Round 11
 /// re-records it again with that pin, when the beech's limbs leave wider so
-/// its leader keeps its girth.
+/// its leader keeps its girth, and fn-50 once more, when its twigs stand out
+/// at 50 degrees turned by the golden angle with a leaf every 5 cm.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
-    2650342232535221885,
+    8478216101743105815,
     1381814102884070673,
     12471405148157309180,
     14199367530911903060,
