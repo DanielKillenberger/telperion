@@ -1633,8 +1633,10 @@ fn-32's shader exactly.
 Every identity pin equals the branch's. All forty-eight protocol cases pass
 (`measure/protocol-round14/`), and none is node-capped. The oak's native frame
 at seed 7, 1600 by 1000, is valid: 4.981 ms vegetation p50 and 5.356 ms total
-p50 (5.547 p95), against fn-32's recorded 4.842 and 5.214. That is 0.14 ms more,
-the cost of the young-wood term the wood shader now evaluates beside the plates.
+p50 (5.547 p95), against fn-32's recorded 4.842 and 5.214. That is 0.14 ms more
+in one run. The host did not isolate it: the young-wood term is the one
+per-fragment addition to fn-32's wood shader, and run-to-run spread was not
+measured.
 
 Photograph / previous → round 14. The previous round is round 11 for the beech
 and round 13 for the birch:
