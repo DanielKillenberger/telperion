@@ -111,21 +111,25 @@ pub(super) fn european_beech(p: &mut Family) {
         ..Default::default()
     };
     p.shell_depth = 1.0;
-    // Most of a beech's leaves stand on short shoots: spurs a few
-    // centimetres long all along its limbs, five leaves apiece, one every
-    // two and a half centimetres of wood under a third of the trunk's
-    // radius. They leaf the crown's inside and its lower limbs, which twig
-    // wood alone left bare, and each cluster is a flat fan: the rounded,
-    // clustered mass of a broadleaf, not a frond. They stand where the
+    // Most of a beech's leaves stand in clusters all along its limbs and
+    // deep inside the crown, on wood under a third of the trunk's radius,
+    // which twig wood alone left bare. A cluster of eight leaves fanned a
+    // half circle every 4 cm, held 20 cm off the wood: longer than a spur,
+    // it stands where a leafy side shoot holds its leaves, so each limb
+    // wears a sleeve of rosettes. Five leaves every 2.5 cm, 5 cm off, lined
+    // every shoot with a comb of level leaves, and the crown's edge read as
+    // fern fronds against the sky (host, round 17). They stand where the
     // slender wood's own row of leaves stood, so that row is off.
     p.canopy.shoot_radius = 0.0;
-    p.canopy.short_shoot_spacing = 0.025;
+    p.canopy.short_shoot_spacing = 0.04;
     p.canopy.short_shoot_radius = 0.35;
-    p.canopy.short_shoot_length = 0.05;
-    p.canopy.short_shoot_leaves = 5;
-    p.canopy.short_shoot_spread = 80.0;
+    p.canopy.short_shoot_length = 0.2;
+    p.canopy.short_shoot_leaves = 8;
+    p.canopy.short_shoot_spread = 90.0;
     // A beech leaf is held flat and turned every way about its shoot;
     // leaning along it (0.45) laid the leaves down the twig like needles.
+    // Scattered 80 degrees rather than 45, fewer lie edge-on to an eye
+    // below the crown, where a level leaf reads as a needle.
     p.canopy.forward_lean = 0.1;
     p.canopy.outward = 0.0;
     p.canopy.upward = 0.3;
@@ -133,7 +137,7 @@ pub(super) fn european_beech(p: &mut Family) {
     // the sourced 4 to 10 cm.
     p.canopy.size = 1.1;
     p.canopy.divergence = 180.0;
-    p.canopy.scatter = 45.0;
+    p.canopy.scatter = 80.0;
     p.canopy.size_variation = 0.12;
     p.material = materials::beech();
 }

@@ -136,6 +136,12 @@
 //! The merges of fn-52 and fn-50 on the integration branch move no pin but
 //! fn-50's own: the beech is fn-50's tree and the birch round 13's, since
 //! canopy lighting is not geometry and no other table states a short shoot.
+//! fn-34 round 18 re-pins the beech's placement alone, once: on round 17's
+//! leaf-on pair the crown's edge read as fern fronds, every shoot lined with
+//! a comb of level leaves. Its clusters are now eight leaves fanned a half
+//! circle every 4 cm, held 20 cm off the wood, and its leaves scatter 80
+//! degrees instead of 45. Its skeleton and element hashes, and every other
+//! table, are byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -199,15 +205,15 @@ const PINS: [Pin; 4] = [
         id: "european-beech",
         wood_vertices: 5031410,
         wood_triangles: 9769200,
-        instances: 4719055,
+        instances: 4716942,
         min: [
-            -15.592021942138672,
+            -15.631836364602174,
             -0.12800000607967377,
             -14.935297012329102,
         ],
-        max: [15.929782379500104, 31.997190574634367, 15.216161078065474],
+        max: [15.987210601804568, 32.00710338615814, 15.213255904241555],
         skeleton: 8478216101743105815,
-        placement: 8294590600763700138,
+        placement: 361631047364848872,
         element: 15097586524950800877,
     },
     Pin {

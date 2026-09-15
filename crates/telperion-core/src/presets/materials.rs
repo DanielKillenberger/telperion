@@ -173,12 +173,18 @@ pub(super) fn beech() -> MaterialParams {
         shoot_green: 0.13,
         shoot_blue: 0.085,
         shoot_radius: 0.004,
-        leaf_front_red: 0.022,
-        leaf_front_green: 0.105,
-        leaf_front_blue: 0.018,
-        leaf_back_red: 0.14,
-        leaf_back_green: 0.23,
-        leaf_back_blue: 0.1,
+        // B-WHOLE's own leaf pixels, its centre crop, read linear
+        // 1:1.78:1.06, a grey green. The blade is set greyer than the old
+        // 1:4.8:0.8 front and lighter on both faces: an olive front and a
+        // pale grey-green back. The render lands greener than either face,
+        // 1:2.17:1.04, because what passes through the leaf adds its own
+        // green: with both faces black the centre still reads 41/61/44.
+        leaf_front_red: 0.08,
+        leaf_front_green: 0.15,
+        leaf_front_blue: 0.05,
+        leaf_back_red: 0.21,
+        leaf_back_green: 0.28,
+        leaf_back_blue: 0.15,
         hue_range_low: -0.02,
         hue_range_high: 0.02,
         brightness_range_low: -0.1,
@@ -242,16 +248,18 @@ pub(super) fn beech() -> MaterialParams {
         // B-WHOLE's brightest centre pixels are a pale, sky-lit green,
         // 149/180/152, not sky; at 0.1 the whole crown greyed. Set against
         // B-WHOLE's centre, sRGB 71/94/74 under overcast, where this row
-        // draws 61/84/65.
+        // drew 61/84/65 before the short shoots.
         canopy_normal: 0.8,
         light_wrap: 0.4,
         diffuse_transmission: 1.0,
         leaf_sheen: 0.08,
         // The crown over a leaf takes its sky, so the dome's underside falls
         // into its own shade: B-WHOLE's leaf mass falls from 125 at the top
-        // sixth to 52 at the bottom, and 0.15 a radius draws 91 to 55, where
-        // no shade drew the bottom brighter than the middle.
-        crown_shade: 0.15,
+        // sixth to 52 at the bottom, and 0.15 a radius drew 91 to 55, where
+        // no shade drew the bottom brighter than the middle. Under the short
+        // shoots' denser mass, 0.1 lifts the centre by two and a half points
+        // over 0.15 and still falls from 126 at the top sixth to 76.
+        crown_shade: 0.1,
     }
 }
 
