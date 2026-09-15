@@ -178,7 +178,7 @@ pub(super) fn beech() -> MaterialParams {
         // 1:4.8:0.8 front and lighter on both faces: an olive front and a
         // pale grey-green back. The render lands greener than either face,
         // 1:2.17:1.04, because what passes through the leaf adds its own
-        // green: with both faces black the centre still reads 41/61/44.
+        // green: with both faces black the centre still reads 38/57/40.
         leaf_front_red: 0.08,
         leaf_front_green: 0.15,
         leaf_front_blue: 0.05,

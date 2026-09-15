@@ -2009,3 +2009,179 @@ falls into its own shade, and sky shows at the rim.
 No visual pass is awarded. The round-17 pairs are recorded by sha256 in
 `round17-merge/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 18: the beech's rim, lobes and colour (2026-09-15)
+
+Round 17's B-WHOLE was the first full, closed, lit beech dome. Three things
+still read wrong against the photograph: fern fronds at the rim, one even
+felt where the photograph breaks into lit lobes, and a crown darker and
+greener than the photograph's. The owner's rule is to fix with values what
+values can fix. This pass moves the beech's value table alone, on its twig,
+short-shoot, canopy, envelope-outline and leaf-colour rows. Its habit,
+radius, envelope size and bark rows stay as round 17 has them.
+
+### What moved
+
+Four sets of rows moved:
+
+- **Short shoots.** Each cluster is eight leaves fanned a half circle, one
+  every 4 cm of wood, held 20 cm off it. Round 17 had five leaves fanned 80
+  degrees either side, one every 2.5 cm, 5 cm off. Twenty centimetres is
+  longer than a spur. The cluster stands where a leafy side shoot holds its
+  leaves, so each limb wears a sleeve of rosettes and not a comb of level
+  leaves. The density per metre of wood is unchanged, 200 leaves.
+- **Leaf scatter.** 80 degrees instead of 45, so fewer leaves lie edge-on
+  to an eye below the crown, where a level leaf reads as a needle.
+- **The blade.** Front 0.022/0.105/0.018 → 0.08/0.15/0.05, back
+  0.14/0.23/0.10 → 0.21/0.28/0.15. B-WHOLE's own leaf pixels, its centre
+  crop, read linear 1:1.78:1.06, a grey green. The front was 1:4.8:0.8.
+- **Crown shade.** 0.15 → 0.1. On this table that lifts the centre by 2.4
+  points, and the mass still falls from 126 at the top sixth to 76.
+
+No node is added, and the skeleton hash holds. At the identity seed the
+beech places 4,716,942 leaves against round 17's 4,719,055. Its identity
+pin is re-recorded once for this reason: placement, instance count and
+bounds moved. The skeleton and element hashes did not, and the sag, drop
+and strand tests hold. Every other table is byte-identical.
+
+### Numbers
+
+Photograph / round 17 → round 18:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.72 → 0.72 | 0.25 / 0.24 → 0.24 | 0.28 / 0.44 → 0.44 | 100 / 123 → 123 | 0.29 / 0.07 → 0.07 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.11 → 0.11 | 0.05 / 0.09 → 0.09 | 130 / 101 → 101 | — / 0.14 → 0.14 |
+| B-WHOLE | 0.70 / 0.74 → 0.74 | 0.12 / 0.09 → 0.09 | 0.46 / 0.67 → 0.67 | 80 / 57 → 63 | 0.23 / 0.07 → 0.07 |
+
+B-WHOLE's centre is 47/73/49 → 54/80/55 against 71/94/74. B-BARE and B-BASE
+draw round 17's wood. Their stills are not byte-identical: the matched camera
+frames bounds that include the leaves, and the frame moves by a pixel.
+
+A scratch reader, not committed, read the same numbers off the photograph
+and each B-WHOLE still. It reads the photograph's crown as what is not
+near-white sky:
+
+- **Rim line coherence.** The structure tensor's coherence over the top 45%
+  of the crown's mask, at 0.6% of the box height. Fronds are lines and score
+  high; clusters score low.
+- **Lobe contrast.** The spread of crown luminance after a blur of 2.5% of
+  the box height, over its mean, inside the eroded crown.
+- **Leaf-scale contrast.** The same spread for what the blur removes.
+
+| Reading | Photograph | Round 17 | Round 18 |
+|---|---|---|---|
+| Rim line coherence | 0.31 | 0.51 | 0.36 |
+| Lobe contrast | 0.18 | 0.08 | 0.11 |
+| Leaf-scale contrast | 0.43 | 0.19 | 0.18 |
+| Crown luminance, 10th / 90th percentile | 33 / 126 | 60 / 102 | 62 / 107 |
+| Brightest quarter of centre pixels | 120/153/121 | 71/96/80 | 75/100/82 |
+| Darkest quarter of centre pixels | 31/45/34 | 30/54/26 | 37/60/34 |
+| Luminance by sixth of the height, top to bottom | 144, 122, 97, 92, 71, 61 | 116, 94, 79, 73, 81, 89 | 126, 105, 84, 76, 82, 90 |
+
+### Two of the round-17 numbers do not compare
+
+- **Occupied.** The photograph's 0.46 is the share of its box darker than
+  0.35 luminance. The still's 0.67 is its tree mask's share. Read the same
+  way, the photograph's box is 0.88 crown, and the still's dark-pixel share
+  is 0.49 in round 17 and 0.44 in round 18. The crown is not overfilled, so
+  no row thinned it.
+- **Outline.** The photograph's 0.23 is also read off its dark pixels.
+  Read off a sky mask like the still's, over the crown above the fence, it
+  is 0.098, against the still's 0.07.
+
+The centre's level runs into the shot's exposure. The photograph's sky is
+clipped at 255, and the still's reads 180/191/203. Scaled so its sky
+matched the still's, the photograph's centre green would read at most sRGB
+68: linear 0.112 times 0.521. Round 18 draws 80. The hue is a row matter,
+and the rows move it only part of the way. With both faces of the blade
+black, the centre still reads 38/57/40. So what passes through the leaf and
+its sheen carry about half of its linear light, and the transmission's own
+green holds the render at 1:2.17:1.04 against the photograph's 1:1.78:1.06.
+The transmission row is outside this pass.
+
+### What was tried
+
+Each trial is a full B-WHOLE capture at the first fixed seed, read with the
+numbers above and on a crop sheet of the rim and centre.
+
+- **The rim.**
+  - Scatter 80 alone: coherence 0.48.
+  - Twig rows: length ratio 0.15 read 0.48, sparser and barer. Ratio 0.45
+    with six laterals at 65 degrees read 0.51. Angle 70 read no change. Two
+    laterals read 0.39 on 2.6 million leaves. A twig 12 cm long read 0.42
+    and moved the skeleton.
+  - Twigs reaching 0.05 past the scaffold read 0.46, and 0.4 read 1.6
+    million leaves.
+  - Clusters of eight at a half circle, every 4 cm, held 10, 15 and 20 cm
+    off the wood: 0.42, 0.41 and 0.37. Every 6 cm at 25 and 40 cm: 0.37 and
+    0.34, but leaves 40 cm from any wood are no beech. Every 3 cm at 20 cm:
+    0.36 on 6.2 million leaves, with no visible gain, so the leaf count stays
+    round 17's.
+- **Lobes.** Each trial ran on the table of its step, and lobe contrast is
+  0.08 on round 17:
+  - Envelope irregularity 0.35 at lobe scale 0.3: 0.11. The crown went
+    more ragged, sprays stuck out past it, and the outline held at 0.072.
+  - 0.45 at 0.3, with clusters only on wood under 0.15 of the trunk's
+    radius: 0.07.
+  - 0.4 at round 11's 0.7: 0.10, outline 0.070.
+  - 0.4 at 0.5: 0.14, outline 0.060. One lit bulge showed at the centre.
+  - 0.5 at 0.4 with interior darkening 0.55: 0.16. The crown turned ragged
+    and lopsided, no longer a dome, and the centre fell to 57.
+  - Interior darkening 0.7 alone: 0.087, and the centre fell by 9.
+  - The twig layer from wood under 0.11 of the trunk's radius, with
+    clusters under 0.1: 0.063, and bare limbs showed.
+  - Canopy normal 0.5 and 0.3: 0.074 and 0.069, and the centre 5 to 7
+    points darker.
+  - Twigs reaching 0.05 past the scaffold: 0.14. That row moves the
+    scaffold (B-BARE's occupied went 0.44 → 0.50), and it made the rim
+    worse.
+- **Colour.**
+  - A red back face took the centre's green from 77 to 61, so much of what
+    the eye below sees is the back of the blade.
+  - Front 0.05/0.13/0.035 with back 0.17/0.26/0.13 lifted the centre by 4.6.
+  - Leaf sheen 0.1 with a back of 0.25/0.32/0.19 drew a milky grey crown on
+    the crop sheet and was put back.
+
+Why no row makes lobes: every crown term in the leaf shader reads one smooth
+ellipsoid, the box the placements fill. The canopy normal, the crown shade,
+the interior darkening and the sky occlusion all read it
+(`crown_outward`, `crown_chord` and `depth_in_crown` in `canopy.wgsl` and
+`common.wgsl`). None of them can darken the hollow between two clumps of
+leaves or light a clump's own outer face. The one local shade is the sun's
+shadow map, and B-WHOLE's overcast of 0.9 leaves the sun a small share. At
+0.4 irregularity and 0.5 lobe scale, the one bulge past the ellipsoid took
+no interior darkening and lit, and that is the only lobe the rows drew. The
+photograph's lobes need two things no row states: limbs that group their
+leaves into clumps with voids between them, and a shading term that reads
+local depth in the leaf mass.
+
+### Budget
+
+All 48 protocol cases pass (`measure/protocol-round18/`). The beech seeds
+run 151,319 to 200,476 nodes against the 250,000 ceiling, unchanged from
+round 17, and none is node-capped. Retained leaves run 4.25 to 5.61
+million, inside the species' 10^5 to 10^7 band. The DBH proxy holds at
+0.889 m.
+
+### What the worker read on the pairs
+
+- **B-WHOLE, the rim: rounded leaf clusters and not fronds?** No. The fronds
+  are gone at the scale of the whole tree: the edge is a soft fringe of
+  small tufts, and the coherence reading agrees, 0.51 → 0.36 against the
+  photograph's 0.31. But it is a fine fuzz, not the photograph's distinct
+  rounded clumps with sky between them. At the top, thin shoots in the
+  young-wood colour still show as dark strokes through the fuzz. Leaves
+  20 cm off the wood do not hide them, and neither does a cluster every 3 cm.
+- **B-WHOLE, lobes: lit lobes with shade between them?** No. The mass is
+  still one even felt, lit at the top and falling into shade below, with
+  none of the photograph's lit clumps and dark pockets. The reason is above.
+- **B-WHOLE, the dome.** A full rounded dome on a central trunk, a shade
+  greener and lighter than round 17's. It is not an umbrella, a vase or a
+  conifer.
+- **B-BARE.** Round 17's tree: one leader runs visibly up through the crown
+  past half its height, and the limbs leave it one or two at a time.
+
+No visual pass is awarded. The round-18 pairs are recorded by sha256 in
+`round18-beech/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
