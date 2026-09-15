@@ -515,3 +515,95 @@ Three things still read wrong and each is somebody's row:
 No visual pass is awarded. The round-6b pairs are recorded by sha256 in
 `round6b-fn44/stills.json` with `visual_status: unassessed`; the owner judges
 them on the judging page and records the verdict in fn-34.
+
+## Round 7: the birch on two stems under a hanging curtain (2026-09-15)
+
+fn-38 and fn-44 each fixed one thing on its own branch, so round 6 showed two
+stems under a curtain of rods and round 6b showed a curtain that hangs from one
+stem. The fn-34 integration branch merges fn-44 into fn-38, which also brings
+round 5b's beech rows from fn-44's base. The birch's table now declares both
+the clump (two stems, 110 degrees apart in bearing, 22 degrees out of vertical)
+and the curtain (sag 1, a 2.5 m pendulous run). Three files conflicted and
+each kept both sides: the sweep's comment above the HELD list, the identity
+pins' doc paragraphs, and this report's round sections. The birch re-pins once
+for the merge, and the beech's pin is round 5b's. The sag test's cooked family
+now stands on one stem, because the clump splits the birch's wood between two
+and wood that thin bears its hanging shoots in one or two chords, leaving no
+arc to read. The birch's neutral-sag pin is re-recorded.
+
+### What the host changed after looking
+
+The first render of the merged table failed on sight. The curtain fell to the
+crown base of 0.015 of the height, 0.27 m, so on S-WHOLE the two stems showed as
+one white stub under a single mass, and on S-BARE as a short V under a white
+fog. Two stems carry two crowns' worth of shoots inside one shell, and at a leaf
+every 36 mm the seed-1 crown carried 848,801 leaves, more than twice round 6b's
+389,795, with no sky through it. Two rows of the birch's own table reach both
+problems:
+
+- **The crown base, 0.015 to 0.10 of the height.** Under a sag of 1 the crown's
+  base is the curtain's floor (fn-44), so lifting it lifts where the strands
+  stop. Measured off the still's own mask, the bare stem below the curtain went
+  from 7% to 16% of the tree's height on both references, about the first two
+  metres, which is what the photographs show.
+- **The twig internode, 36 mm to 60 mm.** This is the leaf spacing on a table
+  with a twig layer, the same lever round 6b used. The seed-1 crown carries
+  444,750 leaves.
+
+The sag test's cooked family keeps the 36 mm internode its arc was read on. At
+60 mm a run's stations fall unevenly, so a longer stride turns further in one
+step and the per-step check stops holding. The turn per metre still eases off
+the whole way down on all 228 whole runs, which is the law the row states.
+
+Photograph / round 6 / round 6b → round 7:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.68 / 0.67 → 0.69 | 0.15 / 0.13 / 0.12 → 0.20 | 0.46 / 0.45 / 0.47 → 0.46 | 91 / 156 / 163 → 167 | 0.17 / 0.08 / 0.12 → 0.09 |
+| S-BARK | 1.07 / 1.33 / 1.33 → 1.03 | 1.00 / 0.00 / 0.00 → 0.00 | 0.47 / 0.33 / 0.30 → 0.38 | 92 / 160 / 167 → 154 | 0.13 / 0.61 / 0.87 → 0.72 |
+| S-WHOLE | 0.85 / 0.92 / 0.91 → 0.86 | 0.08 / 0.15 / 0.12 → 0.21 | 0.44 / 0.51 / 0.57 → 0.46 | 83 / 49 / 80 → 89 | 0.22 / 0.10 / 0.11 → 0.12 |
+
+The merged table before the two QA rows read 0.91, 0.13, 0.50, 69 and 0.10 on
+S-WHOLE and 0.68, 0.11, 0.50, 166 and 0.10 on S-BARE. Width over height on
+S-WHOLE is the closest any round has come (0.86 against 0.85). Both occupied
+figures sit within 0.02 of their photographs. S-BARK's box stopped filling the
+frame, because the curtain no longer hangs across the base shot, and its width
+over height reads 1.03 against 1.07. Two numbers moved away. The crown base on
+both references is now above the photograph's, 0.21 against 0.08 on S-WHOLE,
+because that photograph's figure is its left-hand curtain reaching to about a
+metre while the stems stand clear in the middle, and one floor all round the
+tree can do one or the other. The leaf-on centre went from 14 darker than the
+photograph to 6 brighter, and the white fine shoots showing through the thinner
+crown account for part of that.
+
+The cost at the first fixed seed is 152,330 nodes, 9,143,160 wood triangles and
+444,750 leaves in 3.8 s, against round 6b's 4,385,080 triangles and 389,795
+leaves. The heaviest birch seed stands at 154,583 nodes against the 250,000
+ceiling. The fixed and fresh protocol passes all forty-eight cases
+(`measure/protocol-round7/`), and no seed is node-capped.
+
+### What the host read on the pairs, and what is left
+
+Within the four-image rule, two images before the QA rows and two after. On
+both pairs the tree now stands on two white stems that part at the ground and
+carry a curtain whose strands fall nearly vertical from the limbs. Sky shows
+through the leaf-on crown at its edges and in gaps through the middle. Neither
+round 6 nor round 6b had both.
+
+It still does not read as the photograph's tree, for these reasons:
+
+- **A ball on a V.** The curtain stops at one height all round, so the crown is
+  a round mass with a level lower edge. The photograph's curtain comes down to
+  about a metre over the leaning stem's side and lifts over the stems. Part of
+  that is the uniform strand length (the named gap; round 6b measured 85% of
+  strands at the full 2.5 m), and part is that the floor is one height for the whole tree.
+- **The stems are a symmetric V** parting at the root. The photograph's pair
+  runs up together before one leans away, and neither of ours is its
+  near-vertical stem. This is the named gap after fn-38.
+- **The winter crown is a white fog.** On S-BARE the fine hanging wood fills the
+  crown in the bark's white. The photograph's winter crown shows its limbs dark
+  against the sky with a brown haze of shoots. The colour is fn-40's.
+
+No visual pass is awarded. The round-7 pairs are recorded by sha256 in
+`round7-birch/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
