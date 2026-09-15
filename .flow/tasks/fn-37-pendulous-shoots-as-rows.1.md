@@ -114,6 +114,19 @@ rather than as strands hanging from one. Opening the cap is a row this spec
 did not ask for; whether fn-34 closes on this round or waits for one is the
 owner's call.
 
+### Owner verdict, round 5 (2026-09-15)
+
+Rejecting, on the judging page's S-WHOLE pair after round 5: "I think the
+worst part is the hanging curtains are not affected by gravity or smth. It's
+clearly wrong." Recorded in fn-34 under Owner verdicts. The reason is in
+`pendant.rs`: a curtain lateral departs in one fixed direction, across the
+crown and down by the droop, and then runs straight for its pendulous
+length, so a shoot is a rod pointing sideways-and-down rather than a slender
+stem bent to vertical by its own weight. The rows this task opened stand;
+the missing term is a sag along the shoot's run, captured as its own spec
+(pendulous shoots hang under gravity). The birch is compared again when it
+lands.
+
 ## Done summary
 
 The pendant mode is four twig rows — `hang`, `pendulousLength`,

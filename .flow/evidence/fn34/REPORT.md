@@ -286,3 +286,44 @@ recorded by sha256 in `round5-fn39/stills.json` with `visual_status:
 unassessed`, and a local judging page beside them
 (`measure/judge.html`, ignored) lays every round's pair, the numbers and the
 references out for the owner, who records the verdict in fn-34.
+
+## Round 5b: the beech stands up (2026-09-15, owner's round-5 verdict)
+
+The owner judged the round-5 pairs on the judging page and did not accept
+either species. On the beech: "I still have an issue with the beech which is
+clearly not structurally sound. The reference grows relatively straight up
+and out. Our generation bends too much. Second trunk is missing but that's
+coming later that's fine." On the birch: "I think the worst part is the
+hanging curtains are not affected by gravity or smth. It's clearly wrong."
+The birch's verdict is fn-37's and became fn-44 (pendulous shoots hang under
+gravity); the second stem is fn-38's, in progress. The beech's structure is
+rows, so this is a value round on the beech alone.
+
+The winter pair shows what the owner saw: the photograph's trunk runs up
+through the crown and its limbs leave it steeply and keep rising; the
+round-5 beech split low into a few limbs that arced out nearly flat. The
+habit rows moved: apical dominance 0.2 to 0.5, lateral pitch 50 to 38
+degrees with variation 12 to 10, primary rise 0.08 to 0.3, crookedness 14 to
+6. Nothing else in the table changed. The beech pin is re-recorded with the
+reason stated; the 24-seed protocol passes with the heaviest seed at 210,706
+nodes.
+
+Photograph / round 5 → round 5b:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.70 → 0.70 | 0.25 / 0.24 → 0.27 | 0.28 / 0.38 → 0.38 | 100 / 148 → 141 | 0.29 / 0.13 → 0.07 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.03 → 0.00 | 0.05 / 0.09 → 0.75 | 130 / 91 → 78 | — / 0.14 → 0.23 |
+| B-WHOLE | 0.70 / 0.69 → 0.69 | 0.12 / 0.08 → 0.22 | 0.46 / 0.65 → 0.60 | 80 / 52 → 46 | 0.23 / 0.10 → 0.08 |
+
+What the host read on the bare and the whole pair: the trunk now continues
+through the crown and the limbs ascend nearly straight, which is the
+photograph's architecture. The cost is a crown that starts higher (base 0.22
+against 0.12) and is narrower at the shoulder, a goblet where the beech is
+broad low down; that is one more value pass (a lower first lateral, a touch
+more pitch low down), listed as round 5c. The base shot's occupied figure
+jumps because the steeper limbs now cross the base frame. The outline
+statistic fell as the ascending limbs fill the shell more evenly. The
+leaf-on crown remains a scatter of dark leaves with sky through it, which the
+gap table assigns to appearance. No visual pass is awarded; the pairs are in
+`round5b-beech/stills.json` and on the judging page.

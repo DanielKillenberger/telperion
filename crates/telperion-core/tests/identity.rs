@@ -26,6 +26,9 @@
 //! beech's twig is a shade shorter so the lobes' per-seed noise stays under
 //! the node ceiling. Every other table leaves the amplitude at zero, which
 //! is the smooth shell to the byte; the element pins do not move.
+//! fn-34 round 5b re-pins the beech alone, on the owner's verdict that the
+//! round-5 beech "bends too much": its leader keeps its dominance, its limbs
+//! leave at 38 degrees and rise, and its axes are barely crooked.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -87,17 +90,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 6780162,
-        wood_triangles: 13119000,
-        instances: 1426880,
+        wood_vertices: 7026916,
+        wood_triangles: 13553160,
+        instances: 1624649,
         min: [
-            -17.226654020877145,
+            -17.009743721766018,
             -0.12800000607967377,
-            -15.409727003124246,
+            -15.363683700561523,
         ],
-        max: [16.781582590967403, 31.186986480611825, 16.12820602758598],
-        skeleton: 8984006975649904930,
-        placement: 2354435618270148675,
+        max: [17.01350182476531, 31.999802439298183, 16.092353302018967],
+        skeleton: 12852486373694172527,
+        placement: 16138498328703486063,
         element: 15097586524950800877,
     },
     Pin {

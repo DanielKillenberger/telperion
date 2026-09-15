@@ -15,16 +15,23 @@ pub(super) fn european_beech(p: &mut Family) {
     // reference at 120 yr; oak growth traits, not a beech calibration.
     oak_growth(p, 120.0);
     // beech's crown is dense and the cap is a value like any other.
+    // Round 5b, the owner on the round-5 pairs: "clearly not structurally
+    // sound. The reference grows relatively straight up and out. Our
+    // generation bends too much." The winter photograph's trunk runs up
+    // through the crown and its limbs leave it steeply and keep rising;
+    // ours split low and arced out nearly flat. So the leader keeps its
+    // dominance, the limbs leave at 38 degrees and rise, and the axes are
+    // barely crooked.
     p.skeleton.habit = HabitParams {
-        apical_dominance: 0.2,
+        apical_dominance: 0.5,
         whorl_strength: 0.15,
         leader_internode: 2.2,
         laterals_per_station: 4,
-        lateral_pitch: 50.0,
-        pitch_variation: 12.0,
-        rise_primary: 0.08,
+        lateral_pitch: 38.0,
+        pitch_variation: 10.0,
+        rise_primary: 0.3,
         rise_secondary: 0.0,
-        crookedness: 14.0,
+        crookedness: 6.0,
         lateral_spacing: 1.4,
         lateral_length_ratio: 0.46,
         lateral_orders: 3,
