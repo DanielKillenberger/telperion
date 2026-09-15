@@ -53,7 +53,10 @@
 //! height and rounds at the top, the fork exponent comes down to 2.6 off the
 //! cliff 2.8 sat on, four twig laterals a station fill the crown and a twig a
 //! shade shorter pays for them, a local shoot's own shoots are two-ranked,
-//! and the leaves lean along their shoots, lie flat and are a tenth larger. The oak, the
+//! and the leaves lean along their shoots, lie flat and are a tenth larger.
+//! The last round-6 re-pin lets the leader carry the crown to nine tenths of
+//! the height (apical dominance 0.9), so the limbs can leave at 48 degrees
+//! and rise over their run, and a twig length ratio of 0.30 pays for it. The oak, the
 //! spruce, the birch and the Two Trees are byte-identical: the generation row
 //! sits at the top of its rail on every other table, which reaches nothing.
 //! No device is needed; this is the core's own arithmetic.
@@ -117,17 +120,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 5251044,
-        wood_triangles: 10176480,
-        instances: 2106977,
+        wood_vertices: 5674634,
+        wood_triangles: 11000480,
+        instances: 2254119,
         min: [
-            -16.327082392258934,
+            -15.769178596833994,
             -0.12800000607967377,
-            -15.46583579437701,
+            -15.586756109897692,
         ],
-        max: [16.9698603285396, 31.71231641260803, 15.460026573076002],
-        skeleton: 7890291168547906776,
-        placement: 15585212279580184080,
+        max: [15.928642023382666, 31.92434744419099, 15.4443230306659],
+        skeleton: 1327615920853420528,
+        placement: 9931266495336970622,
         element: 15097586524950800877,
     },
     Pin {

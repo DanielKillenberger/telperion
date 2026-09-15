@@ -431,109 +431,106 @@ leaf-on pair: a flat umbrella of leaves on the top third over bare limbs, the
 trunk forking into five or six co-dominant stems at a third of the height,
 and foliage that read as fern fronds.
 
-Round 6b answered the first two with steep limbs (32 degrees) and a rising
-second order, which made the bare pair read well and the leaf-on pair fail:
-a limb leaving low at 32 degrees runs beside the leader to the top of the
-crown, so every limb tip - and every leaf, since leaves follow twig wood and
-twig wood grows from tips - ended in the upper third, and the long low limbs
+Round 6b answered the first two with steep limbs (32 degrees) and made the
+bare pair read while the leaf-on pair failed: the scaffold ended its leader
+at three fifths of the height, so the crown above that was carried by limbs,
+and a limb leaving low at 32 degrees ran beside the leader to the crown's
+top. Every limb tip - and every leaf, since leaves follow twig wood and twig
+wood grows from tips - ended in the upper third, and the long low limbs
 carried enough wood to rival the leader. On seed 1, seven stems crossed a
-third of the height at more than half the thickest one's radius; 72 per cent
-of the leaves sat in the top third; the lowest twentieth of the leaves began
-at 47 per cent of the height.
+third of the height at more than half the thickest one's radius, 72 per cent
+of the leaves sat in the top third, and the lowest twentieth of the leaves
+began at 47 per cent of the height. Round 6c then opened the limbs to 58
+degrees, which fixed the leaf-on pair and turned the bare crown into a round
+head with the leader still stopping at three fifths.
 
-Round 6c reads the leaf-on pair first. The limbs leave at 58 degrees, so a
-low limb ends in the low crown; their side branches are held nearly level
-(rise 0.1, not 0.4); apical dominance 0.58; the crown starts at a twentieth
-of the height, is widest at 0.48 of its depth and rounds at the top (shoulder
-1.5). The fork exponent comes down from 2.8 to 2.6: at 2.8 the wood sat on a
-cliff, where a few degrees of limb angle collapsed the local layer from about
-150,000 nodes to 55,000 and the crown to a skeleton. Four twig laterals a
-station fill the crown and a twig length ratio of 0.36 pays for them. Local
-shoots are two-ranked (divergence 180, not 137.5), so a spray is flat
-rather than a bottlebrush. Leaves lean along their shoots (0.45), lift toward
-the light (0.3), scatter 30 degrees and are a tenth larger with less spread,
-which keeps the largest leaf inside the sourced 4 to 10 cm; 1.3 times larger
-failed that gate. Shoots under a twentieth of the trunk's radius carry
-leaves (`canopy.shootRadius` 0.05), which leafs the inside of the crown at no
-node cost.
+The row that serves both pairs is apical dominance. The scaffold ends its
+leader at `crownBase + (1 - crownBase) * apicalDominance` of the height; the
+beech's 0.9 runs it to nine tenths, so the leader, not the limbs, carries
+the crown to the top. With that, the limbs leave at 48 degrees and bend up
+over their run (rise 0.45, climbing about 61 degrees over their length)
+without the low ones ending at the crown's top; their side branches are held
+nearly level (0.1). The crown starts at a twentieth of the height, is widest
+at 0.48 of its depth and rounds at the top (shoulder 1.5). The fork exponent
+is 2.6: at 2.8 the wood sat on a cliff, where a few degrees of limb angle
+collapsed the local layer from about 150,000 nodes to 55,000 and the crown
+to a skeleton. Four twig laterals a station fill the crown and a twig length
+ratio of 0.30 pays for them and for the longer leader. Local shoots are
+two-ranked (divergence 180, not 137.5), so a spray is flat rather than a
+bottlebrush. Leaves lean along their shoots (0.45), lift toward the light
+(0.3), scatter 30 degrees and are a tenth larger with less spread, keeping
+the largest leaf inside the sourced 4 to 10 cm. Shoots under a twentieth of
+the trunk's radius carry leaves (`canopy.shootRadius` 0.05), which leafs the
+inside of the crown at no node cost. The species test's bound on the beech's
+apical dominance moves from 0.6 to 0.95, which still refuses the spruce's
+excurrent 1.0.
 
-Seed 1, round 6b -> round 6c: stems at a third of the height 7 -> 1; leaves
-by third of the height 1/27/72 -> 10/62/28 per cent; lowest twentieth of the
-leaves at 47 -> 28 per cent of the height; leaf crown's radius at its top
-tenth over its widest 0.61 -> 0.43, a rounded top.
+Seed 1, round 6b -> final: stems at a third of the height 7 -> 1; the
+leader reaches 0.60 -> 0.90 of the height and at three quarters of it is
+0.88 of the thickest wood crossing there; leaves by third of the height
+1/27/72 -> 6/50/44 per cent; lowest twentieth of the leaves at 47 -> 32 per
+cent of the height; leaf crown's radius at its top tenth over its widest
+0.61 -> 0.42, a rounded top.
 
 Budget: every one of the 48 protocol cases passes, the heaviest beech seed
-is 202,342 nodes of the 250,000 ceiling, none is node-capped, and neither is
-any of a further 120 random seeds (heaviest 211,653). The DBH proxy holds at
-0.889 m.
+is 197,872 nodes of the 250,000 ceiling, none is node-capped, and neither is
+any of a further 120 random seeds (heaviest 206,066). No protocol or random
+seed fails the surface build on this table. The DBH proxy holds at 0.889 m.
 
 Photograph / round 5c -> round 6:
 
 | Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
 |---|---|---|---|---|---|
-| B-BARE | 0.74 / 0.70 -> 0.72 | 0.25 / 0.27 -> 0.25 | 0.28 / 0.35 -> 0.48 | 100 / 142 -> 126 | 0.29 / 0.08 -> 0.07 |
-| B-BASE | 0.60 / 0.67 -> 0.67 | 1.00 / 0.00 -> 0.00 | 0.05 / 0.72 -> 0.10 | 130 / 112 -> 107 | - / 0.38 -> 0.15 |
-| B-WHOLE | 0.70 / 0.69 -> 0.74 | 0.12 / 0.08 -> 0.09 | 0.46 / 0.60 -> 0.58 | 80 / 44 -> 41 | 0.23 / 0.10 -> 0.07 |
+| B-BARE | 0.74 / 0.70 -> 0.73 | 0.25 / 0.27 -> 0.29 | 0.28 / 0.35 -> 0.47 | 100 / 142 -> 126 | 0.29 / 0.08 -> 0.09 |
+| B-BASE | 0.60 / 0.67 -> 0.67 | 1.00 / 0.00 -> 0.78 | 0.05 / 0.72 -> 0.10 | 130 / 112 -> 75 | - / 0.38 -> 0.16 |
+| B-WHOLE | 0.70 / 0.69 -> 0.74 | 0.12 / 0.08 -> 0.09 | 0.46 / 0.60 -> 0.59 | 80 / 44 -> 47 | 0.23 / 0.10 -> 0.09 |
 
-Seed 1, round 5c -> round 6: 193,836 -> 178,851 nodes; 115,255 -> 84,180
-branch axes; 115,080 -> 83,303 twigs; branches per order 5c's four orders ->
-{1: 50, 2: 1,055, 3: 9,074, 4: 34,309, 5: 39,692}. Leaf instances at seed 7:
-1,520,948 -> 2,106,977, inside the fidelity band.
+Seed 1, round 5c -> round 6: 193,836 -> 188,636 nodes; 115,255 -> 87,670
+branch axes; 115,080 -> 86,700 twigs; branches per order 5c's four orders ->
+{1: 51, 2: 1,048, 3: 9,061, 4: 33,713, 5: 43,797}. Leaf instances at seed 7:
+1,520,948 -> 2,254,119, inside the fidelity band.
 
 ### Read on the pairs, without a verdict
 
-B-WHOLE: the crown is one full rounded oval on a central trunk, dense from
-about a quarter of the height to the top. The flat umbrella and the vase are
-gone. Three things still read wrong, and none of them has a row left that
-reaches it.
+B-BARE: one leader, thick at the base, runs up through the crown to near its
+top, with limbs leaving it along the whole height and rising steeply - the
+photograph's architecture, grown straight up and out. The crown is an
+upright oval rather than round 6c's round head. What still reads wrong: the
+crown is fuller and wider in its upper half than the photograph's, which
+narrows toward the top; the trunk above the first limbs is slimmer than the
+photograph's heavy column, and the leader thins to twig girth in its top
+fifth; occupied is 0.47 against the photograph's 0.28, most of which is the
+resolution of the two measurements (a dark-pixel fraction off a 267 by 360
+crop against a full mask at 961 by 1366), the rest genuinely more wood.
 
-The leaf mass stops at about a quarter of the height where the photograph's
-reaches about two metres above the ground; below it our lowest limbs are bare
-against the sky. Leaves follow twig wood, and twig wood grows only at
-scaffold tips and on wood under `limbRadius` of the trunk's; the lowest
-quarter of the crown holds only the trunk and the thick first metres of the
-lowest limbs, which leave at 58 degrees and end higher up. `limbRadius` from
-0.1 to 1.0 moved the lower third's share of the leaves from 4 to 6 per cent
-at a quarter of the twig layer's nodes; hanging the second order (rise -0.4)
-took the lowest twentieth of the leaves to 22 per cent of the height but
-hung every spray like a cedar's; limbs wider than 60 degrees collapsed the
-local layer.
-
-The sprays at the crown's edge still read as fern fronds. A twig is a fixed
-25 cm with a leaf every 2 cm - a pinna - and a beech's shoots are nearer 10
-cm. Shorter twigs cost a twig node per 15 cm of spray instead of per 25:
-twig length 0.15 m node-caps seed 1 even at three laterals a station and
-loses a fifth of the leaves. Larger leaves, which would close the comb, are
-held by the sourced leaf-size gate. A shoot that bears a cluster of leaves
-without a twig node for each would be generator work, not a row.
-
-The foliage is darker and bluer than the photograph's (centre mean 41
-against 80). That is appearance, owned elsewhere.
-
-B-BARE: a central leader thick at the base with limbs leaving it along its
-height, under a round crown. It reads less like the photograph than round
-6b's did: the photograph's limbs leave steeply and its crown is an upright
-oval, where ours leave at 58 degrees under a round head, and the leader ends
-at three fifths of the height. The pitch is a trade between the two pairs:
-32 degrees reads right bare and makes a vase leaf-on, 58 degrees the
-reverse. The row that would give both is apical dominance, which ends the
-scaffold's leader at `crownBase + (1 - crownBase) * apicalDominance` of the
-height: at 0.9 the leader reaches 91 per cent of the height with the same
-leaf-on shape. It is held under 0.59 by the host's rule, for the float32
-finding below, and by the species test's bound under 0.6.
+B-WHOLE: a full rounded crown on a central trunk, the leader visible running
+up into the leaf mass, the limbs rising under it. The umbrella and the vase
+are gone. The leaf mass sits higher than round 6c's (top third 44 per cent
+against 28) because steeper limbs carry their tips up, and below it the
+lower third of the crown is open, the rising limbs showing between sprays.
+Two faults are left for the generator spec the host is capturing and are not
+chased here: the leaf mass stops at about a third of the height where the
+photograph's reaches about two metres above the ground - leaves follow twig
+wood, and the lower crown holds only the trunk and the thick first metres of
+the lowest limbs - and the sprays at the crown's edge read as fern fronds,
+because a twig is a fixed 25 cm with a leaf every 2 cm and shorter twigs
+cost a twig node per 15 cm of spray, which the node ceiling refuses (twig
+length 0.15 m node-caps seed 1 even at three laterals a station). The
+foliage is darker and bluer than the photograph's (centre mean 47 against
+80); that is appearance, owned elsewhere.
 
 ### A robustness finding for the owner
 
 `surface.rs:351` refuses a wood triangle whose three float32 positions come
 out collinear with "surface triangle collapsed in float32", and the refusal
 is a hard `InvalidInput`: the seed grows no tree at all. Round 6 met it at
-apical dominance 0.59 (protocol seeds 2181184680 and 2779011501), but round
-6c's exploration shows it is not an apical-dominance effect: at 0.58, one
-candidate table failed protocol seed 55; at 0.9, the same table failed three
-of 120 random seeds and none of the protocol's. It tracks geometry, one seed
-in a hundred or so, wherever it falls. The shipped table is clean on all 24
+apical dominance 0.59 (protocol seeds 2181184680 and 2779011501), but it is
+not an apical-dominance effect: during round 6c one candidate table failed
+protocol seed 55 at 0.58, and the same table failed three of 120 random
+seeds at 0.9 and none of the protocol's. It tracks geometry, about one seed
+in a hundred, wherever it falls. The final table is clean on all 24
 protocol seeds and 120 random ones; that is a miss, not a cure. It belongs
-to the surface builder, and it is not fn-45's to fix.
+to the surface builder and is becoming its own bug spec.
 
 No visual pass is awarded; the pairs are in `round6-fn45/stills.json` and on
 the judging page, and the owner judges.
