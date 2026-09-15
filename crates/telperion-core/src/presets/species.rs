@@ -157,11 +157,20 @@ pub(super) fn silver_birch(p: &mut Family) {
         // stem shows across the view; the curtain leaves only the first
         // couple of metres of stem bare, and less put the two of them still
         // inside one another's bark over that stretch.
+        // Where they part is the two photographs' disagreement: S-WHOLE's
+        // pair leaves the ground as two, and S-BARE's stands on one trunk
+        // that forks at its lowest limbs, about a third of its visible
+        // height up. Both part at or under the crown's base and never in
+        // the crown, and the owner asked for the second stem to move up, so
+        // the table states the row's top, half the bole, as far toward
+        // S-BARE as it reaches: one trunk to a metre, then the pair, the
+        // trunk carrying on into the upright stem and the leaning one
+        // leaving from its side.
         stems: 2,
         stem_divergence: 0.0,
         stem_lean: 28.0,
         stem_lean_spread: 1.0,
-        stem_fork_height: 0.0,
+        stem_fork_height: 0.5,
     };
     // A narrower crown carrying its mass up top, with squarer shoulders than
     // the round-3 oval. The crown's base is also the curtain's floor: a shoot

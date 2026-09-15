@@ -33,13 +33,13 @@ const IDS: [&str; 7] = [
 /// The beech's is its round-11 identity skeleton, taken at the merge into
 /// fn-34's integration branch: its own table moved, not the row. The birch's
 /// is re-recorded at the same merges, when fn-48's unequal clump joined its
-/// table.
+/// table, and once more when fn-48.3 parted that clump a metre up the bole.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     2650342232535221885,
-    15114279530833391460,
+    7693504588169638484,
     12471405148157309180,
     14199367530911903060,
 ];

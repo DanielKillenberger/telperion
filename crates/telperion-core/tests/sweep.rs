@@ -85,9 +85,9 @@ const BANDS: [(&str, usize, usize); 7] = [
 // upright and has no bearing to part from, so its divergence goes to none and
 // every table agrees on it: the divergence is held here, and the clump tests
 // walk it from nothing to a hundred degrees.
-// fn-48.2 adds the clump's fork height, 0 on every table until the birch
-// states its own.
-const HELD: [&str; 29] = [
+// fn-48.2 adds the clump's fork height, and the birch states half the bole,
+// so the sweep walks it.
+const HELD: [&str; 28] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
@@ -103,7 +103,6 @@ const HELD: [&str; 29] = [
     "/skeleton/growth/stepDistance",
     "/skeleton/growth/trunkHeight",
     "/skeleton/habit/stemDivergence",
-    "/skeleton/habit/stemForkHeight",
     "/skeleton/seed",
     "/skeleton/step",
     "/skeleton/twigs/angleVariation",
