@@ -34,13 +34,14 @@ const IDS: [&str; 7] = [
 /// crown base, which moves its tree with the row at any value. fn-47's birch
 /// states a pendulous variation over a 3 m pendulous length, which caps a
 /// shoot that does not sag as surely as it sets the run of one that does, and
-/// a deeper, finer outline for its shell.
+/// a deeper, finer outline for its shell. fn-51's birch lets its hanging
+/// shoots fall past that shell to the crown's base, sagging or not.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     12852486373694172527,
-    4895668800915172604,
+    9309723968444350364,
     12471405148157309180,
     14199367530911903060,
 ];

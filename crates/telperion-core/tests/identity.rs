@@ -62,6 +62,11 @@
 //! its curtain fills to the shell's lower surface, so that surface is the
 //! hem, and lumps a quarter of the height across and 35% deep leave it
 //! ragged rather than the round bottom a gently lumpy shell drew.
+//! fn-51 re-pins the silver birch alone: its table is the first to state a
+//! curtain drop, so its hanging shoots fall past the shell's lower surface
+//! down to a clearance at the crown's own base, where the shell had held
+//! them. Every other table leaves the drop at zero, which is the shell
+//! holding the curtain to the byte; the element pin does not move.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -138,13 +143,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 2803014,
-        wood_triangles: 5426400,
-        instances: 267876,
+        wood_vertices: 3252898,
+        wood_triangles: 6299200,
+        instances: 333486,
         min: [-6.23061466217041, -0.07199999690055847, -7.190837383270264],
-        max: [7.130828755621561, 15.450942995466937, 5.813313961029053],
-        skeleton: 2245756617113293970,
-        placement: 8165213721872415580,
+        max: [7.134985408204572, 15.469784960217648, 5.815632649512932],
+        skeleton: 4441849425973384526,
+        placement: 8964417780306336820,
         element: 1872173242819532549,
     },
 ];

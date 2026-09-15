@@ -1080,8 +1080,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
-          "curtainClearance": 0.5,
-          "curtainDrop": 0,
+          "curtainClearance": 1.8,
+          "curtainDrop": 1,
           "curtainSeparation": 9,
           "divergence": 137.508,
           "hang": 2.4,

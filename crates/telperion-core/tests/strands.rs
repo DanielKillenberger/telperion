@@ -33,13 +33,14 @@ const IDS: [&str; 7] = [
 /// the row existed, which is what says the row at zero reaches nothing. The
 /// birch's was re-recorded once when its own table lengthened the pendulous
 /// length from 2.5 m to 3 m beside the variation it states and deepened its
-/// shell's outline.
+/// shell's outline, and once more when fn-51's drop let its curtain fall past
+/// that shell to the crown's base.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     12852486373694172527,
-    15406140524928908849,
+    6136943536194109230,
     12471405148157309180,
     14199367530911903060,
 ];

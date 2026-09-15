@@ -748,3 +748,138 @@ What is left, and whose it is:
 No visual pass is awarded. The round-8b pairs are recorded by sha256 in
 `round8b-fn47/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 9, fn-51: the curtain hangs below the crown (2026-09-15)
+
+Round 8b left the birch a round crown with a lumpy lower edge: while the
+shell held the curtain, the longest strands in every column ended on its
+lower surface, whatever their own lengths. The owner agreed the curtain
+should hang below the crown, reversing a decision fn-44 took when strands
+ran 2.4 m. fn-51 gives the twig table two rows. `curtainDrop`, 0 to 1,
+neutral 0, is how far below the shell's lower surface a hanging shoot may
+fall, as a share of the way from that surface down to `curtainClearance`,
+metres above the ground (0 to 5, default 0.5, never above the crown's own
+base). Only a shoot whose curtain hangs is let out, only below the lower
+surface in its own column and only where the shell is overhead. Above that
+surface and beside the crown's footprint the shell binds as it always did.
+The containment every test asserted is now "inside the shell, or in the
+curtain's band", and at a drop of 0 the band is empty and the old invariant
+holds exactly. Every table but the birch's leaves the drop at zero and is
+byte-identical.
+
+### The birch's table
+
+The whole drop, down to a clearance at the birch's own crown base, 1.8 m.
+The band's foot is then one height all round, and what sets the hem
+wherever the foot does not reach is each strand's own length.
+
+### What the host changed after looking
+
+The first table followed the photograph's left-hand curtain, the whole
+drop to a clearance of 1 m, and failed on sight. On S-WHOLE the curtain fell
+below the crown to a ragged fringe, but as one wall a metre off the ground
+across the whole width, and the two stems showed only as a white stub under
+it. Measured on the tree, the lowest wood within a metre of the axis came
+down from 1.85 m to 1.00 m. The lowest limbs sit beside the stems at the
+crown base, and their strands hang there. A clearance at the crown base
+keeps that ring where round 8b had it, at 1.80 m, and leaves the rest of the
+curtain free to fall. A smaller share only made the hem higher and
+smoother: at a clearance of 1.8 m the tree's hem roughness is 0.30 m at the
+whole drop, 0.25 m at 0.8 and 0.18 m at 0.6. The pendulous radius is no
+lever on this table: it changes nothing down to 0.15, and at 0.02 nothing
+hangs at all.
+
+The hem, measured on the tree with fn-47's statistic. Eight bearings of 60
+columns across the middle of the crown, the lowest wood in each column
+against the smooth shell's round bottom:
+
+| Seed 1 | Columns above the round bottom | Columns below it | Hem off the round bottom | Local roughness | Lowest wood, within 1 m of the axis / 3 to 4 m / 4 to 5 m / beyond 5 m |
+|---|---|---|---|---|---|
+| Round 8b | 18% | 14% | +0.11 m (0.25 m either way) | 0.15 m | 1.85 / 3.41 / 4.53 / 6.02 m |
+| Drop 1 to 1 m | 1% | 98% | -1.74 m | 0.35 m | 1.00 / 1.00 / 2.02 / 3.38 m |
+| Round 9 | 1% | 80% | -1.23 m | 0.30 m | 1.80 / 1.80 / 2.02 / 3.38 m |
+
+"Above" and "below" count columns more than a quarter of a metre off the
+round bottom. Round 8b's section gave its departure as 0.35 m. The same
+statistic, run again on the same table, reads +0.11 m signed and 0.25 m
+unsigned, while its 18% and 0.15 m reproduce. So this table's before and
+after both come from this run.
+
+The mask figures are fn-47's: the crown mask's lowest pixel per column,
+its standard deviation about a smooth fit and its local roughness, each as
+a share of the tree's height, with the hem's median row in the tree's box.
+Round 8b's table was rendered again on the same rig at a drop of zero
+(`measure/pairs-fn51base/`, not committed). It reproduces round 8b's
+compare numbers to the digit:
+
+| Stills | Hem off smooth, S-WHOLE / S-BARE | Local roughness | Hem's median row in the box |
+|---|---|---|---|
+| Round 8b | 0.034 / 0.038 | 0.0089 / 0.0073 | 0.74 / 0.78 |
+| Drop 1 to 1 m | 0.035 / 0.038 | 0.0053 / 0.0062 | 0.85 / 0.86 |
+| Round 9 | 0.037 / 0.035 | 0.0093 / 0.0066 | 0.85 / 0.85 |
+
+The hem came down in both stills, by 0.11 of the box's height on S-WHOLE
+and 0.07 on S-BARE. Its departure from a smooth fit barely moved: where the
+band's foot binds, the fringe ends near one height.
+
+Photograph / round 8b → round 9:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.69 → 0.70 | 0.15 / 0.20 → 0.15 | 0.46 / 0.42 → 0.47 | 91 / 162 → 162 | 0.17 / 0.09 → 0.07 |
+| S-BARK | 1.07 / 1.17 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.35 → 0.32 | 92 / 168 → 165 | 0.13 / none → 0.44 |
+| S-WHOLE | 0.85 / 0.95 → 0.95 | 0.08 / 0.21 → 0.14 | 0.44 / 0.39 → 0.44 | 83 / 95 → 94 | 0.22 / 0.13 → 0.10 |
+
+On S-BARE the crown base and the width over height now match the
+photograph's (0.15 and 0.70), and occupied is 0.47 against 0.46. On
+S-WHOLE the crown base falls from 0.21 to 0.14 against the photograph's
+0.08, and occupied comes back from round 8b's 0.39 to the photograph's 0.44.
+The strands carry leaves below the crown now, and the retained-shell cull
+keeps leaves outside the shell. The outline deviation moved away on both
+matched references, 0.10 against 0.22 and 0.07 against 0.17: a curtain
+that ends near one height all round has a smoother silhouette than a crown
+whose lumpy lower surface was its hem. S-BARK's box fills the frame again,
+because the curtain hangs across the base shot, so its outline figure
+reads the frame, not the tree.
+
+The cost at the first fixed seed is 114,100 nodes, 6,791,160 wood triangles
+and 347,686 retained leaves, against round 8b's 98,113 nodes, 5,867,520
+triangles and 277,424 leaves; one generation of it takes about 0.24 s where
+round 8b's took 0.09 s on the same machine. The heaviest
+birch seed stands at 121,765 nodes against round 8b's 107,569 and the
+250,000 ceiling. The fixed and fresh protocol passes all forty-eight cases
+(`measure/protocol-fn51/`), and no seed is node-capped. The protocol's
+numeric checks read no containment, so no protocol check needed the new
+invariant; the core tests that assert containment read it.
+
+### What the host read on the pairs, and what is left
+
+Within the four-image rule: the photograph once, both pairs at the 1 m
+clearance (only S-WHOLE opened), and S-WHOLE and S-BARE on the final
+table. On S-WHOLE the curtain now falls past where the crown's round
+bottom was, in strands, to a ragged fringe about two metres off the
+ground across most of the width. The two stems stand clear under it in
+the middle, and no round crown with a lumpy lower edge remains. On S-BARE
+the white strands fall from the limbs to the same fringe, with the V of
+the stems clear below it and visible through it.
+
+It is not yet the photograph's hem:
+
+- **One height all round.** Where the band's foot binds, the fringe ends
+  near one height, which is why the mask's departure from a smooth fit did
+  not grow. The photograph's curtain comes to about a metre over the
+  leaning stem's side and lifts over the stems and on the right. One
+  clearance cannot do both. A clearance of 1 m put the left-hand curtain
+  where the photograph has it and curtained the stems, and a clearance at
+  the crown base keeps the stems clear and leaves the curtain 0.8 m short of
+  the photograph's lowest strands. A lower hem on one side is the leaning
+  stem's limbs hanging there: fn-48's unequal stems, not a curtain row.
+- **The curtain is a wall.** Below the crown the strands fill the whole
+  width as one curtain. The photograph's curtain is a fringe on each limb,
+  with gaps between. Neither the drop nor the clearance reaches that.
+- **Owned elsewhere:** the white young shoots (fn-46), the dark leaf mass
+  (fn-52) and the symmetric V of the stems (fn-48).
+
+No visual pass is awarded. The round-9 pairs are recorded by sha256 in
+`round9-fn51/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.

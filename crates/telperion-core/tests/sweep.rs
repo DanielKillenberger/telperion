@@ -71,9 +71,9 @@ const BANDS: [(&str, usize, usize); 7] = [
 // states one, so the oak-to-birch walk moves it and the sweep walks it.
 // fn-47 adds the pendulous variation, the sixth. The birch states one, so the
 // sweep walks it.
-// fn-51 adds the drop and the clearance, the seventh and eighth. Until a table
-// states them, no preset moves them and they are held here.
-const HELD: [&str; 32] = [
+// fn-51 adds the drop and the clearance, the seventh and eighth. The birch
+// states both, so the sweep walks them.
+const HELD: [&str; 30] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
@@ -92,8 +92,6 @@ const HELD: [&str; 32] = [
     "/skeleton/step",
     "/skeleton/twigs/angle",
     "/skeleton/twigs/angleVariation",
-    "/skeleton/twigs/curtainClearance",
-    "/skeleton/twigs/curtainDrop",
     "/skeleton/twigs/divergence",
     "/skeleton/twigs/limbRadius",
     "/skeleton/twigs/pendulousRadius",

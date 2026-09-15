@@ -130,10 +130,10 @@ pub(super) fn silver_birch(p: &mut Family) {
         shoulder: 1.6,
         // The birch's own lumps are finer than the beech's: a narrow crown of
         // hanging shoots, with the shell they hang from ragged rather than
-        // lobed. The curtain fills to the shell's lower surface, so that
-        // surface is the hem; lumps a quarter of the height across and a
-        // third of the radius deep leave it ragged, lower in some bearings
-        // than others, as the photographs' hem is.
+        // lobed, lumps a quarter of the height across and a third of the
+        // radius deep. The curtain falls past the shell's lower surface
+        // (the drop below), so the lumps shape the crown the strands hang
+        // from rather than the hem they end in.
         irregularity: 0.35,
         lobe_scale: 0.25,
     };
@@ -169,6 +169,14 @@ pub(super) fn silver_birch(p: &mut Family) {
     // to a twentieth of it.
     p.skeleton.twigs.pendulous_length = 3.0;
     p.skeleton.twigs.pendulous_variation = 0.95;
+    // And the curtain hangs below the crown: in S-WHOLE and S-BARE the limbs
+    // make the crown's shape and the strands fall past it, so the shell no
+    // longer holds a hanging shoot. The whole drop, down to a clearance that
+    // is the crown's own base: in both photographs the two stems stand clear
+    // under the curtain for their first two metres, and one floor lower than
+    // that curtains them where the lowest limbs hang beside them.
+    p.skeleton.twigs.curtain_drop = 1.0;
+    p.skeleton.twigs.curtain_clearance = 1.8;
     p.radii.trunk_radius = 0.01;
     p.element = ElementParams {
         length: 0.055,
