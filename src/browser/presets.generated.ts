@@ -157,6 +157,7 @@ export interface Family {
   limbRadius: number;
   pendulousLength: number;
   pendulousRadius: number;
+  pendulousVariation: number;
   ratioPower: number;
   reach: number;
   sag: number;
@@ -338,6 +339,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -522,6 +524,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -706,6 +709,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -890,6 +894,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -1074,6 +1079,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 2.5,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 1,
@@ -1258,6 +1264,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,
@@ -1442,6 +1449,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
           "sag": 0,

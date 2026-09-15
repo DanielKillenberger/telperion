@@ -4,6 +4,8 @@
 //!
 //! A shoot's own weight bends it as it runs: the sag row turns its course
 //! toward straight down along the run, from the departure the droop gave it.
+//! And no two shoots need run alike: the variation row gives each its own
+//! share of the pendulous length, drawn from the shoot's own key.
 //!
 //! Every magnitude here is a twig row scaled by `hang`. At hang 0 a shoot
 //! carries no curtain at all and the local law reaches none of this; at hang 1
@@ -22,6 +24,9 @@ const DROOP_SLOPE: f64 = 0.5;
 /// may spend. Never zero, so a curtain stops above its floor rather than
 /// stacking shoots on it.
 const CLEARANCE: f64 = 0.8;
+/// The salt a shoot's own share of the pendulous length is drawn with, beside
+/// the ones the local law draws a lateral's vigour and departure with.
+const RUN: u32 = 0x3c6ef372;
 
 /// One shoot's curtain: how strongly it hangs, the bearing its laterals spread
 /// along, and the height its first descending ancestor's tip set as a floor.
@@ -74,18 +79,20 @@ impl Curtain {
         })
     }
 
-    /// A pendulous shoot stops at `pendulous_length`; the hang row walks that
-    /// cap in from the length the branch law asked for. Under a sag the
+    /// A pendulous shoot stops at its own pendulous length; the hang row walks
+    /// that cap in from the length the branch law asked for. Under a sag the
     /// pendulous length is what the shoot runs rather than a cap on what the
     /// branch law allows: the allometry that gives a self-supporting limb its
     /// length by its own thickness has nothing to say about a strand hanging
     /// from one, and the hang row then walks that run in from the law's own
-    /// length rather than extrapolating past it.
-    pub fn length(self, length: f64, t: TwigParams) -> f64 {
+    /// length rather than extrapolating past it. `shoot` is the shoot's key
+    /// and the family seed, which its own length is drawn from.
+    pub fn length(self, length: f64, t: TwigParams, shoot: u32) -> f64 {
+        let own = pendulous(t, shoot);
         if t.sag == 0.0 {
-            return walk(length, length.min(t.pendulous_length), self.hang);
+            return walk(length, length.min(own), self.hang);
         }
-        let hung = walk(length.min(t.pendulous_length), t.pendulous_length, t.sag);
+        let hung = walk(length.min(own), own, t.sag);
         walk(length, hung, self.hang.min(1.0))
     }
 
@@ -132,14 +139,16 @@ impl Curtain {
     /// course and the down vector span, so the shoot bends in its own plane
     /// and keeps the bearing about the trunk the droop gave it. Weight is not
     /// a turn the tip steers, so the law's own turn limit does not bound it;
-    /// a course this does not bend is returned as it came.
-    pub fn sagged(self, course: Vec3, travelled: f64, t: TwigParams) -> Vec3 {
+    /// a course this does not bend is returned as it came. The arc is spent
+    /// over the shoot's own pendulous length, so a short strand ends as near
+    /// vertical as a long one.
+    pub fn sagged(self, course: Vec3, travelled: f64, t: TwigParams, shoot: u32) -> Vec3 {
         if !self.sags(t) {
             return course;
         }
         let unit = course.normalized();
         let cosine = (-unit.y).clamp(-1.0, 1.0);
-        let turn = cosine.acos_fixed() * (1.0 - remaining(t, travelled));
+        let turn = cosine.acos_fixed() * (1.0 - remaining(t, travelled, pendulous(t, shoot)));
         if turn <= 1e-12 {
             return course;
         }
@@ -154,15 +163,25 @@ impl Curtain {
     }
 }
 
+/// A hanging shoot's own pendulous length: the table's, shortened by the
+/// variation row times a draw in 0 to 1 keyed by `shoot`. The key is the
+/// shoot's identity and the seed, not its place in the order the tree grows
+/// in, so the monthly and the one-shot build agree; at a variation of 0 the
+/// draw multiplies nothing and every shoot has the table's length to the byte.
+fn pendulous(t: TwigParams, shoot: u32) -> f64 {
+    let share = Rng::new(shoot ^ RUN).next_f64();
+    t.pendulous_length * (1.0 - t.pendulous_variation * share)
+}
+
 /// The share of its angle to straight down a hanging shoot still carries
-/// after running `travelled` of its pendulous length. The turn eases out as a
-/// cube, so half of it is spent in the first fifth of the run and the lower
-/// half of a shoot at full sag hangs within a few degrees of vertical: a
+/// after running `travelled` of its own pendulous length `run`. The turn eases
+/// out as a cube, so half of it is spent in the first fifth of the run and the
+/// lower half of a shoot at full sag hangs within a few degrees of vertical: a
 /// weeping stem arches over where it leaves the wood that bears it and falls
 /// straight for the rest of its length. A run longer than the pendulous
 /// length holds the angle it reached.
-fn remaining(t: TwigParams, travelled: f64) -> f64 {
-    let u = (travelled / t.pendulous_length).clamp(0.0, 1.0);
+fn remaining(t: TwigParams, travelled: f64, run: f64) -> f64 {
+    let u = (travelled / run).clamp(0.0, 1.0);
     let left = 1.0 - u;
     1.0 - t.sag * (1.0 - left * left * left)
 }

@@ -167,16 +167,18 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(trait_name)
                 .expect("the canopy publishes its lean and contact traits");
         }
-        // fn-37 turned the curtain from a hidden mode into four twig rows and
-        // fn-44 added the sag as a fifth. The frozen file predates them and
-        // states none; each is neutral or the magnitude the mode already used,
-        // so none is a geometry parameter the frozen protocol left unsaid.
+        // fn-37 turned the curtain from a hidden mode into four twig rows,
+        // fn-44 added the sag as a fifth and fn-47 the variation as a sixth.
+        // The frozen file predates them and states none; each is neutral or
+        // the magnitude the mode already used, so none is a geometry
+        // parameter the frozen protocol left unsaid.
         for row in [
             "hang",
             "pendulousLength",
             "pendulousRadius",
             "curtainSeparation",
             "sag",
+            "pendulousVariation",
         ] {
             emitted["skeleton"]["twigs"]
                 .as_object_mut()

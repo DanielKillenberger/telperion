@@ -50,6 +50,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         skeleton.twigs.reach, skeleton.twigs.vigour_variation,
         skeleton.twigs.hang, skeleton.twigs.pendulous_length,
         skeleton.twigs.pendulous_radius, skeleton.twigs.sag,
+        skeleton.twigs.pendulous_variation,
         radii.trunk_radius, radii.fork_exponent, radii.length_taper,
         surface.lobe_depth, surface.twist_rate, surface.flare_radius,
         surface.flare_falloff, surface.flare_depth, surface.fork_socket,

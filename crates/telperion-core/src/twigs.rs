@@ -52,6 +52,11 @@ pub struct TwigParams {
     /// vertical, and the turn is spread along the run as an arc steepest at the
     /// wood that bears it.
     pub sag: f64,
+    /// How much shorter than the pendulous length a hanging shoot may run, 0
+    /// to 1: each shoot's own length is the pendulous length times one minus
+    /// this times a draw in 0 to 1 keyed by the shoot and the seed. At 0 every
+    /// shoot has the one length the table states.
+    pub pendulous_variation: f64,
 }
 impl Default for TwigParams {
     fn default() -> Self {
@@ -77,6 +82,8 @@ impl Default for TwigParams {
             // Neutral: nothing gives in to its own weight until a table says
             // so, so a curtain is the straight rod it was before this row.
             sag: 0.0,
+            // Neutral: every hanging shoot has the one pendulous length.
+            pendulous_variation: 0.0,
         }
     }
 }
@@ -117,7 +124,7 @@ impl TwigParams {
         self.angle = self.angle.clamp(0.0, 90.0);
         self.angle_variation = self.angle_variation.clamp(0.0, 90.0);
         self.vigour_variation = self.vigour_variation.clamp(0.0, 0.95);
-        // The curtain's five rows are refused rather than clamped: a table
+        // The curtain's six rows are refused rather than clamped: a table
         // that asks for a droop or a separation outside the rail is a table
         // with a mistake in it, and the mistake is named.
         for (v, low, high, row) in [
@@ -126,6 +133,7 @@ impl TwigParams {
             (self.pendulous_radius, 0.0, 1.0, "pendulous radius"),
             (self.curtain_separation, 1.0, 45.0, "curtain separation"),
             (self.sag, 0.0, 1.0, "sag"),
+            (self.pendulous_variation, 0.0, 1.0, "pendulous variation"),
         ] {
             if !v.is_finite() || !(low..=high).contains(&v) {
                 return Err(Error::InvalidInput(row));

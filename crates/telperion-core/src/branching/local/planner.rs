@@ -106,7 +106,7 @@ impl Planner<'_> {
                         * self.crookedness.to_radians()
             };
             course = self.heading(at, course, wanted, stride);
-            let heading = curtain.sagged(course, travelled, self.twigs);
+            let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
             let end = at + heading * stride;
             if rejected(&config, end) {
                 let mut low = 0.0;

@@ -144,7 +144,7 @@ impl Frontier {
                     s.radius
                 };
                 let length = if lateral { s.length * ratio } else { s.length };
-                let length = s.curtain.length(length, t);
+                let length = s.curtain.length(length, t, key ^ seed);
                 let generation = s.generation + usize::from(lateral);
                 let terminal = !lateral && s.completed == s.internodes;
                 let is_twig = terminal
