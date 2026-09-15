@@ -18,6 +18,7 @@ frontier tier, and the species is compared again once that spec lands.
 | Crown outline lumpy and asymmetric, not a smooth oval | beech, birch | no; the envelope is a smooth shell every seed fills the same way | gap: crown outline irregularity |
 | Foliage reads as one continuous mass with sky showing through in holes | beech | partly; density is at the node cap, the rest is how a leaf mass is lit | appearance (fn-29 follow-on, fn-32 method) |
 | Bark and foliage bluer and darker than the photograph under overcast | beech | partly; rows moved it, the sky term does the rest | appearance |
+| Bark flat grey with no lichen spots (beech), flat white with no lenticel bands or peel (birch) | both | no; the bark field is ridges, plates and flakes, and fn-32 adds plates and scales, not smooth bark | gap: fn-40-smooth-bark-lichen-lenticels-and-peel |
 | Trunk reads short and thick | beech | closed in round 3 (crown base, flare) | done |
 | Crown base too high on the birch (0.20 against 0.08) | birch | no; the curtain is what reaches the ground | gap: pendulous shoots |
 | Leaves in tufts rather than strings along hanging shoots | birch | no; a tuft is a clump at a station, a string is a shoot | gap: pendulous shoots |
@@ -71,6 +72,14 @@ and is not this term.
   leaf-on pair, because the curtain covers the base; that is fn-44's reach,
   not a form gap. The stems are spread symmetrically about one bearing, so
   neither is the near-vertical stem the photograph's pair has.
+
+### Smooth bark
+
+The owner asked whether a texture spec exists. fn-32 covers plated and scaly
+bark; beech and birch are smooth, and what the eye reads on them is lichen
+patches, lenticel dashes and peeling strips, none of which the field has. fn-40-smooth-bark-lichen-lenticels-and-peel
+adds them as rows after fn-32 lands, judged on the B-BASE and S-BARK pairs
+with fn-32's measurement receipt.
 
 ## What is not a gap
 
