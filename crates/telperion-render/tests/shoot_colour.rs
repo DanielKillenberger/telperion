@@ -32,6 +32,7 @@ fn ramp() -> TreeMesh {
         bounds: None,
         runs: 1,
         run_table: Vec::new(),
+        dropped: 0,
     };
     for ring in 0..rings {
         let along = LENGTH * ring as f64 / (rings - 1) as f64;
