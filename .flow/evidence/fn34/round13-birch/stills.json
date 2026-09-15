@@ -1,0 +1,37 @@
+{
+  "round": 13,
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-34 integration after merging fn-51 (with fn-47) and fn-48 over round 8c: the silver birch with every spec but lighting - round 7's base, fn-47's varied strands and outline, fn-51's drop below the crown to a 1.8 m clearance, fn-48's unequal clump, fn-46's colours; no row changed after the host's visual QA. Matched stills at the 1440 rig, first fixed seed; pairs on disk under the ignored measure/pairs-round13/, recorded here by sha256",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round13/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "2fab9ea4231ef035c47fa0aee3b9b5c3025539d20ad55c5ce9e1796f3c8351de",
+      "still_sha256": "18bb90f9d78f663f82b891032e689d7001d414867c83116b5378615ee699b18e",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round13/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "5b51f678c0f0fd8a4870ef9b2d44122b36812937343c4dcf21dc74e8147dedc0",
+      "still_sha256": "e20d2f30fc2c1a16af5dbc9085c7ebc9063a12059b1ff49831f647c2bf1c4fb3",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-round13/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "4182f0af72e78742e52940a57d89585230e846f64c279a8d8fd933f486c59ba0",
+      "still_sha256": "8d7f92815cf1a838d6798f9504b17d621f9a3a306d1bb8e6d4ace00f687b68e4",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

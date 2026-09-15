@@ -1307,6 +1307,7 @@ It is not yet the photograph's hem:
 
 No visual pass is awarded. The round-9 pairs are recorded by sha256 in
 `round9-fn51/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
 
 ## Round 9b, fn-48: a clump's stems lean unequally (2026-09-15)
 
@@ -1390,6 +1391,7 @@ Three things are left, and none of them is this spec's row:
 
 No visual pass is awarded. The round-9b pairs are recorded by sha256 in
 `round9b-fn48/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
 
 ## Round 11: the beech's leader (2026-09-15)
 
@@ -1540,5 +1542,78 @@ Photograph / round 8c → round 11:
 
 No visual pass is awarded. The round-11 pairs are recorded by sha256 in
 `round11-beech/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.
 
+## Round 13: the birch with every spec but lighting (2026-09-15)
+
+The integration branch merges fn-51, which carries fn-47, and then fn-48 over
+round 8c. The birch now states every row its specs opened, all at once.
+
+- **Base (round 7):** crown base 0.10 and a leaf every 60 mm of shoot. Neither
+  fn-47 nor fn-51 moved them.
+- **fn-47:** a 3 m pendulous run that each strand takes its own share of, down
+  to a twentieth (variation 0.95), and a lumpier outline (irregularity 0.35,
+  lobe scale 0.25).
+- **fn-51:** a drop of 1 below the crown to a 1.8 m clearance.
+- **fn-48:** the clump (two stems, divergence 0, lean 28, spread 1).
+- **fn-46:** the colour rows in `materials.rs`.
+
+No two branches set the same birch row differently. The birch re-pins once for
+the combined table. The beech stays round 11's, and the oak, the spruce and the
+Two Trees are byte-identical. All forty-eight protocol cases pass
+(`measure/protocol-round13/`), and none is node-capped. At seed 1 the birch
+grows 99,568 nodes, 5,924,680 wood triangles and 317,348 leaves in 2.3 s. The
+heaviest birch seed stands at 118,274 nodes against the 250,000 ceiling.
+
+Photograph / round 8c → round 13:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.70 → 0.68 | 0.15 / 0.22 → 0.17 | 0.46 / 0.52 → 0.53 | 91 / 71 → 81 | 0.17 / 0.09 → 0.08 |
+| S-BARK | 1.07 / 1.12 → 1.33 | 1.00 / 0.00 → 0.00 | 0.47 / 0.34 → 0.31 | 92 / 153 → 167 | 0.13 / 0.73 → 0.51 |
+| S-WHOLE | 0.85 / 0.94 → 0.87 | 0.08 / 0.21 → 0.14 | 0.44 / 0.42 → 0.49 | 83 / 35 → 47 | 0.22 / 0.13 → 0.11 |
+
+The curtain falling below the crown brings the crown base on both references
+toward the photograph, 0.21 to 0.14 against 0.08 on S-WHOLE and 0.22 to 0.17
+against 0.15 on S-BARE. S-WHOLE's width over height comes back from 0.94 to
+0.87 against 0.85. The leaf-on crown now fills 0.49 of its box against the
+photograph's 0.44, where round 8c filled 0.42. Its centre brightens from 35 to
+47 because sky now shows between the strands, and the leaf mass itself is still
+fn-52's. S-BARK's mask fills its whole frame again, which the outline and width
+figures cannot read. That comes from either the lower curtain entering the
+close-up or 3349640f's close-up now aiming at the stem, and the host did not
+open S-BARK to tell which. Measured off the stills' own masks, the bare stem
+under the curtain is 13% of the tree's height on both references, against 16%
+in round 7.
+
+### What the host read on the pairs
+
+The host opened S-WHOLE and S-BARE once each and changed no row. Nothing
+the host could see was a bad interaction that a birch row reaches. Both stems
+stand clear under the curtain, the crown does not thin to a haze below its top,
+and the hem is ragged.
+
+- **S-WHOLE.** For the first time the silhouette reads as a weeping birch.
+  Cords of different lengths fall from the limbs well below the crown, sky
+  shows between them, the hem is ragged, and the crown's top is lumpy instead
+  of a dome. The upright stem runs white up through the middle of the curtain
+  to about half the height. Three things read wrong:
+  - The top third of the crown is thin, ascending limbs with short sprays,
+    where the photograph hangs strands from its top too. Shoots under an
+    ascending limb do not hang, which is the curtain law and not a row. A
+    denser leaf row would thicken the cords below as well.
+  - The second stem's lean barely reads from this camera. The two stems look
+    like a narrow Y at the ground. The lean's bearing is the seed's (fn-48
+    measured about three quarters of it across the view), and turning it with
+    the divergence row would fit a table to one camera.
+  - The mass is dark, which is fn-52's.
+- **S-BARE.** This is the closest pair yet. The white upright stem runs up
+  through a brown weeping veil to about two thirds of the height, the second
+  stem leans out beside it, and the strands hang in uneven cords with sky
+  between them, as the photograph's do. The ascending limbs at the top carry
+  bare sprays that stick up, where the photograph's upper limbs are softened
+  by haze. The veil is a shade denser and more even than the photograph's.
+
+No visual pass is awarded. The round-13 pairs are recorded by sha256 in
+`round13-birch/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
