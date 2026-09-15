@@ -56,6 +56,11 @@ if (!Number.isSafeInteger(timeout) || timeout < 1000) throw Error('Invalid timeo
  *  size is the old capture rig's, so the stills stay comparable with the
  *  images already in the fn9 record. */
 const SIZE = '960x720';
+/* Matched stills render at twice the pair's height: a twig thinner than a
+   pixel at 720 aliases into a dither that four samples cannot settle, and the
+   compare script's Lanczos step down to 720 is the rest of the supersample.
+   The measured numbers are fractions of the still and do not change with it. */
+const MATCHED_HEIGHT = 1440;
 const MEASURE = 'target/release/examples/species_measure';
 const HEADLESS = 'target/release/examples/headless';
 /** Whole tree, wood alone, and one placed element at generated scale -
@@ -181,7 +186,7 @@ const jobs = subjects.flatMap(c => VIEWS.map(view => ({ id: c.id, preset: c.pres
 for (const c of subjects.filter(c => c.seed === seeds.fixed[0] && referencesOf[c.preset]?.length)) {
   for (const record of referencesOf[c.preset]) for (const twin of [false, true]) {
     const name = `${c.id}-${record.id}${twin ? '-twin' : ''}`;
-    const size = `${Math.round(720 * record.shot.aspect[0] / record.shot.aspect[1])}x720`;
+    const size = `${Math.round(MATCHED_HEIGHT * record.shot.aspect[0] / record.shot.aspect[1])}x${MATCHED_HEIGHT}`;
     jobs.push({ id: c.id, preset: c.preset, seed: c.seed, view: record.shot.foliage === 'hidden' ? 'bare' : 'whole', reference: record.id, twin, shot: record.shot, size, provenance, png: join(out, `${name}.png`), result: join(out, `${name}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null });
   }
 }
