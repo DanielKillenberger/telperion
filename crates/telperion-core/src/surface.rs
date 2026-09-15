@@ -4,6 +4,7 @@ use crate::{math::Vec3, tree::Tree, Error, Result};
 mod attachment;
 mod dependencies;
 mod frames;
+mod normals;
 mod paths;
 mod samples;
 pub(crate) use attachment::AttachmentSurface;
@@ -86,7 +87,14 @@ pub struct SurfaceMesh {
     pub bounds: Option<Bounds>,
     pub runs: usize,
     pub run_table: Vec<SurfaceRun>,
+    /// Triangles dropped because their float32 corners span no area; each
+    /// run's span in the index buffer already leaves them out.
+    pub dropped: usize,
 }
+/// The most triangles a tree may drop: two rings' worth, the strips on both
+/// sides of each ring collapsed to a point. Past it the collapse is a fault
+/// upstream, and the build fails naming the count.
+const DROPPED_RINGS: usize = 2;
 #[derive(Clone, Copy)]
 struct Sample {
     p: Vec3,
@@ -165,6 +173,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
         bounds: None,
         runs: paths.runs.len(),
         run_table: reserved(paths.runs.len())?,
+        dropped: 0,
     };
     let longest = paths
         .runs
@@ -263,6 +272,14 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
                 top_ring + next,
             ]);
         }
+        mesh.normals.resize(mesh.positions.len(), 0.0);
+        mesh.dropped += normals::shade(
+            &mesh.positions,
+            &mut mesh.indices,
+            &mut mesh.normals,
+            (first_index as usize, base as usize),
+            |j| facing(&frame, segments, j),
+        )?;
         let end = u32::try_from(mesh.indices.len())
             .map_err(|_| Error::ResourceLimit("surface indices"))?;
         mesh.run_table.push(SurfaceRun {
@@ -271,43 +288,33 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
             largest_radius,
         });
     }
-    finish(mesh)
+    finish(mesh, segments)
 }
 
-fn finish(mut mesh: SurfaceMesh) -> Result<SurfaceMesh> {
-    mesh.normals.resize(mesh.positions.len(), 0.0);
-    let point = |index: u32| -> Result<Vec3> {
-        let offset = (index as usize)
-            .checked_mul(3)
-            .ok_or(Error::ResourceLimit("surface index"))?;
-        let p = mesh
-            .positions
-            .get(offset..offset + 3)
-            .ok_or(Error::InvalidInput("surface index"))?;
-        Ok(Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64))
-    };
-    for t in mesh.indices.as_chunks::<3>().0 {
-        let (a, b, c) = (point(t[0])?, point(t[1])?, point(t[2])?);
-        let normal = (c - b).cross(a - b);
-        if !normal.is_finite() || normal.length_squared() == 0.0 {
-            return Err(Error::InvalidInput("surface triangle collapsed in float32"));
-        }
-        for &index in t {
-            let offset = index as usize * 3;
-            for (k, v) in [normal.x, normal.y, normal.z].iter().enumerate() {
-                mesh.normals[offset + k] = (mesh.normals[offset + k] as f64 + v) as f32;
-            }
-        }
+/// The way run vertex `j` faces when no triangle is left to say: out from the
+/// axis for a ring vertex, along it for the two caps that sit on it.
+fn facing(frame: &[(Vec3, Vec3)], segments: usize, j: usize) -> Vec3 {
+    let ring = frame.len() * segments;
+    if j < ring {
+        let (normal, binormal) = frame[j / segments];
+        let angle = ((j % segments) as f64 / segments as f64) * std::f64::consts::TAU;
+        return normal * angle.cos_fixed() + binormal * angle.sin_fixed();
     }
-    for n in mesh.normals.as_chunks_mut::<3>().0 {
-        let v = Vec3::new(n[0] as f64, n[1] as f64, n[2] as f64);
-        if !v.is_finite() || v.length_squared() == 0.0 {
-            return Err(Error::InvalidInput(
-                "surface normal overflow or cancellation",
-            ));
-        }
-        let v = v.normalized();
-        n.copy_from_slice(&[v.x as f32, v.y as f32, v.z as f32]);
+    let (at, away) = if j == ring {
+        (0, -1.0)
+    } else {
+        (frame.len() - 1, 1.0)
+    };
+    let (normal, binormal) = frame[at];
+    normal.cross(binormal) * away
+}
+
+fn finish(mut mesh: SurfaceMesh, segments: usize) -> Result<SurfaceMesh> {
+    if mesh.dropped > DROPPED_RINGS * 2 * segments {
+        return Err(Error::InvalidValue {
+            field: "surface triangles collapsed in float32",
+            value: mesh.dropped.to_string(),
+        });
     }
     let mut min = Vec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
     let mut max = Vec3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
