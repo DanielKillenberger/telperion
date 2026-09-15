@@ -321,3 +321,29 @@ brief `.flow/tmp/fn-31-round9-brief.md`. It covers four items:
 3. The ten-year oak's flare (F3).
 4. The oak crown within R5 (F4), un-ignoring the crown-mass invariant if a rule
    passes every gate.
+
+## Round 9 — returned, QA re-run, 2026-09-15
+
+Claude Opus ran round 9 on the candidate branch: eleven commits, `87dd3f2..d4d9388`,
+with the report committed by the host. The host read the rule diff. It found no
+species branch and no chronicle change, and the pins moved once after
+`round9/CONVERGENCE.md`. The live QA re-run at d4d9388 found:
+
+- **F1 fixed.** The spruce's lower branches arc down and the top ascends, via
+  `crownPosture`, a stem-corrected spruce leader, and one whorl per flush.
+- **F4 fixed.** No umbrella at 24 to 30 years on either seed, via
+  `lowLimbReach` 0.6.
+- **F2 now P2.** The 14.1-year spruce has the same form as 26.6 years but reads
+  sparse.
+- **F3 blocked.** The ten-year taper ratio is 1.92 on every seed. The spec keeps
+  the pipe fork split, and the young-taper invariant is ignored with its numbers.
+- **F5, new P1.** The ten-year oak is a leafy bush with almost no visible stem:
+  651 nodes against round 8's 315. This is the form the owner rejected in
+  round 5, and `lowLimbReach` caused it.
+
+The crown-mass invariant still misses by one to two points on seeds 7 and 42.
+It would need `lowLimbReach` 0.8, which lands on R5's ceiling. Cost was measured
+on a busy machine: oak 2,136 ms in the quieter run, spruce 616 ms. An idle
+re-measure is still owed. Gates: one inherited red, the Ordinary look pin, now
+at 0.852. The 28-year zoomed-out frame and one browser close were flakes that
+passed on retry.
