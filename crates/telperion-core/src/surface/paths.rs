@@ -79,6 +79,9 @@ pub(super) fn paths(nodes: &[Node]) -> Result<Paths> {
             // sample, the flare its own height earns it, and no fork socket
             // where it meets the ground. A tree on one stem has exactly one,
             // which is the run that was the trunk before stems were a row.
+            // A stem a clump parts from its first above the ground leaves
+            // wood and not the ground, so it is swept from the socket of the
+            // trunk below the fork like any run that forks off, unburied.
             trunk: attach == 0,
         });
         s += 1;

@@ -43,6 +43,10 @@ struct Axis {
     station_index: usize,
     stationed: bool,
     children: Vec<Axis>,
+    /// A clump's later stems, held on its first until it stands at the height
+    /// they part at; none on every other axis.
+    forks: Vec<Axis>,
+    fork_height: f64,
 }
 impl Axis {
     fn new(at: usize, heading: Vec3, length: f64, order: u32, key: u32) -> Self {
@@ -59,6 +63,8 @@ impl Axis {
             station_index: 0,
             stationed: false,
             children: Vec::new(),
+            forks: Vec::new(),
+            fork_height: 0.0,
         }
     }
 }
@@ -356,6 +362,7 @@ impl Builder<'_> {
             }
             heading = next;
             at = id;
+            axis.part(at, self.tree.nodes[at].position.y, false, &mut children);
             since += stride;
             self.consume(self.tree.nodes[at].position, stride);
             stationed = false;
@@ -366,6 +373,7 @@ impl Builder<'_> {
                 stationed = true;
             }
         }
+        axis.part(at, self.tree.nodes[at].position.y, true, &mut children);
         // The apex bears its own station, so a leader that yields early still
         // hands the crown to its forks.
         if !stationed && at != axis.at && axis.order < self.habit.lateral_orders {

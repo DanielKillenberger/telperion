@@ -5,7 +5,7 @@ use species_metrics::{compare, measure};
 use telperion_core::{
     foliage::{Element, Instances},
     math::Vec3,
-    tree::{Node, NodeKind, Tree},
+    tree::{BudFate, Node, NodeKind, Tree},
 };
 fn fixture() -> (Tree, Element, Instances) {
     let node = |p, parent, radius, start_radius, branch, kind| Node {
@@ -204,4 +204,41 @@ fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
             assert_eq!(m["foliage_unit"], "needle");
         }
     }
+}
+/// A trunk that parts into two terminal stems at `fork` metres, the second of
+/// them `second`'s bud: a clump's later stem, or a lateral limb.
+fn forked(fork: f64, second: BudFate) -> Tree {
+    let node = |x: f64, y: f64, parent: Option<u32>, radius: f64| Node {
+        position: Vec3::new(x, y, 0.),
+        parent,
+        radius,
+        start_radius: radius,
+        base_radius: radius,
+        branch: parent.map_or(0, |p| p + 1),
+        ..Node::root()
+    };
+    let mut nodes = vec![
+        node(0., 0., None, 0.3),
+        node(0., fork, Some(0), 0.3),
+        node(0., 4., Some(1), 0.2),
+        node(1., 4., Some(1), 0.15),
+    ];
+    nodes[3].shoot.bud_fate = second;
+    Tree {
+        crossover: nodes.len(),
+        nodes,
+        ..Tree::default()
+    }
+}
+#[test]
+fn a_fork_below_breast_height_is_two_stems_there_and_above_it_one() {
+    let (_, e, _) = fixture();
+    let stems =
+        |t: &Tree| measure(t, &[], &e, 0, &Instances::default()).unwrap()["dbh_m"]["stems"].clone();
+    // Parted under the plane, each stem crosses it on its own wood.
+    assert_eq!(stems(&forked(1.0, BudFate::Terminal)), 2);
+    // Parted over it, the plane cuts the one trunk below the fork.
+    assert_eq!(stems(&forked(2.0, BudFate::Terminal)), 1);
+    // And a lateral limb leaving the trunk under the plane is that trunk's.
+    assert_eq!(stems(&forked(1.0, BudFate::Lateral)), 1);
 }

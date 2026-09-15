@@ -39,6 +39,7 @@ fn hanging_row() -> HabitParams {
         stem_divergence: 0.0,
         stem_lean: 0.0,
         stem_lean_spread: 0.0,
+        stem_fork_height: 0.0,
     }
 }
 /// The opposite corner: the leader yields early and every axis is crooked.
@@ -63,6 +64,7 @@ fn crooked_row() -> HabitParams {
         stem_divergence: 0.0,
         stem_lean: 0.0,
         stem_lean_spread: 0.0,
+        stem_fork_height: 0.0,
     }
 }
 

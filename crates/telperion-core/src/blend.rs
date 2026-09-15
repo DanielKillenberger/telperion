@@ -37,7 +37,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         skeleton.habit.rise_secondary, skeleton.habit.lateral_spacing,
         skeleton.habit.lateral_length_ratio, skeleton.habit.attractor_weight,
         skeleton.habit.twig_tip_taper, skeleton.habit.shedding_threshold,
-        skeleton.habit.stem_lean_spread,
+        skeleton.habit.stem_lean_spread, skeleton.habit.stem_fork_height,
         skeleton.step,
         skeleton.envelope.height, skeleton.envelope.crown_base,
         skeleton.envelope.spread, skeleton.envelope.fullness,

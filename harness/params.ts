@@ -91,6 +91,10 @@ export interface GrowerParams {
    *  first upright and the last by the whole of it. Nothing at one
    *  stem. */
   stemLeanSpread: number;
+  /** Where the later stems leave the first, as a share of the bole's
+   *  height, 0 to 0.5. 0 parts them at the ground; 0.5 halfway up the
+   *  bole, one trunk below the fork. Nothing at one stem. */
+  stemForkHeight: number;
   /** Master over `lean`, `writheAmplitude` and `spiralRate`: 0 leaves
    *  the tree dead straight, 1 is the three of them as dialled. */
   torsion: number;
@@ -280,16 +284,18 @@ export const SLIDERS: readonly SliderSpec[] = [
      not that it covers Valinor. */
   { group: "skeleton", key: "height", label: "height", min: 4, max: 400, step: 0.5, unit: "m" },
   { key: "spread", label: "spread", min: 0.12, max: 0.65, step: 0.01, unit: "" },
-  /* The clump. A count and the three rows that say how it stands: how
+  /* The clump. A count and the four rows that say how it stands: how
      far apart in bearing the stems leave the root, how far out of
-     vertical the outermost of them lean, and how unequally, from an
-     even V to one upright stem with the rest pushed out beside it. At
-     one stem the other three reach nothing, which is where every tree
-     that stands on a single trunk sits. */
+     vertical the outermost of them lean, how unequally, from an even V
+     to one upright stem with the rest pushed out beside it, and how
+     far up the bole they part. At one stem the other four reach
+     nothing, which is where every tree that stands on a single trunk
+     sits. */
   { key: "stems", label: "stems", min: 1, max: 6, step: 1, unit: "" },
   { key: "stemDivergence", label: "stem divergence", min: 0, max: 120, step: 1, unit: "deg" },
   { key: "stemLean", label: "stem lean", min: 0, max: 45, step: 1, unit: "deg" },
   { key: "stemLeanSpread", label: "stem lean spread", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "stemForkHeight", label: "stem fork height", min: 0, max: 0.5, step: 0.01, unit: "" },
   // The bias dials run well past what looks good. The owner has to be
   // able to see where too much is, or the usable range sits at the
   // ceiling and reads as a limit rather than as a choice.
