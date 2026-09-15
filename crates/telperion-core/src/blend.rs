@@ -100,6 +100,10 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.margin_blue,
         material.cuticle_gloss,
         material.sky_occlusion_strength,
+        material.canopy_normal,
+        material.light_wrap,
+        material.diffuse_transmission,
+        material.leaf_sheen,
 
         shell_depth,
     );

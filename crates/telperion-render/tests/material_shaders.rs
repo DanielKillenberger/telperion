@@ -7,12 +7,13 @@ fn production_material_stages_validate_with_uniform_derivatives() {
     };
     let prelude = include_str!("../src/shaders/common.wgsl");
     let transmission = include_str!("../src/shaders/transmission.wgsl");
+    let canopy = include_str!("../src/shaders/canopy.wgsl");
     let bark = include_str!("../src/shaders/bark.wgsl");
     for (name, detail, stage) in [
         ("wood", bark, include_str!("../src/shaders/wood.wgsl")),
         ("foliage", "", include_str!("../src/shaders/foliage.wgsl")),
     ] {
-        let source = format!("{prelude}\n{transmission}\n{detail}\n{stage}");
+        let source = format!("{prelude}\n{transmission}\n{canopy}\n{detail}\n{stage}");
         let module = wgsl::parse_str(&source)
             .unwrap_or_else(|e| panic!("{name}: {}", e.emit_to_string(&source)));
         Validator::new(ValidationFlags::all(), Capabilities::all())

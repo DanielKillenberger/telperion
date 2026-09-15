@@ -88,24 +88,51 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     let colour = clamp(hue_shift(face, hue) * brightness
         * veins * modulation + margin * u.margin.rgb,
         vec3<f32>(0.0), vec3<f32>(1.0));
+    // A leaf in a mass is lit as part of it: the normal the light arriving
+    // at it is read by - sky, sun and what passes through - bends from the
+    // face toward the crown's outward direction by the row's canopy normal,
+    // and is the face's own at zero or with no crown.
+    var lit = n;
+    if (u.canopy.x > 0.0 && u.crown_centre.w > 0.5) {
+        let outward = crown_outward(in.world, u.crown_centre.xyz, u.crown_radii.xyz);
+        lit = canopy_normal(n, outward, u.canopy.x);
+    }
+    let to_eye = normalize(u.eye.xyz - in.world);
     // Deep in the crown there is no sky to see: thousands of leaves stand
     // between this one and it, and what is left reads as a shaded mass rather
     // than as speckle. The sun is not attenuated - what reaches through is
     // the dapple the shared normal-offset comparison kernel reads.
-    let shaded = occluded_ambient(n, in.leaf.z) * (1.0 - u.leaf_front.w * in.leaf.z);
+    let interior = 1.0 - u.leaf_front.w * in.leaf.z;
+    let shaded = occluded_ambient(lit, in.leaf.z) * interior;
     // One comparison result gates reflection and transmission alike. The
     // original face normal still offsets the receiver, as before this term.
     let visibility = sunlight(in.world, n);
-    let direct = u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * visibility;
-    let through = u.sun.rgb * transmitted(n, normalize(u.eye.xyz - in.world),
+    let direct = u.sun.rgb * wrapped(dot(lit, u.sun_direction.xyz), u.canopy.y) * visibility;
+    var through = u.sun.rgb * transmitted(lit, to_eye,
         u.sun_direction.xyz, u.transmission.rgb, u.transmission.w,
         u.leaf_detail.w, visibility);
+    if (u.canopy.z > 0.0) {
+        // A thin leaf scatters what passes through it: the row's share leaves
+        // the near face evenly, and carries the sky behind the leaf with it.
+        let transmittance = u.transmission.rgb * (u.transmission.w * exp(-u.leaf_detail.w));
+        let behind = occluded_ambient(-lit, in.leaf.z) * interior;
+        through = mix(through, diffuse_through(lit, u.sun_direction.xyz, u.sun.rgb,
+            visibility, behind, transmittance), u.canopy.z);
+    }
     let gloss = u.leaf_colour_detail.z;
     var cuticle = 0.0;
     // A fully shadowed or backlit face has no reflected sun to glint.
     if (front && gloss > 0.0 && any(direct > vec3<f32>(0.0))) {
-        let half_way = normalize(normalize(u.eye.xyz - in.world) + u.sun_direction.xyz);
+        let half_way = normalize(to_eye + u.sun_direction.xyz);
         cuticle = gloss * pow(max(dot(n, half_way), 0.0), exp2(3.0 + 5.0 * gloss));
     }
-    return vec4<f32>(tone(colour * (shaded + direct) + through + direct * cuticle), 1.0);
+    var radiance = colour * (shaded + direct) + through + direct * cuticle;
+    if (u.canopy.w > 0.0) {
+        // The mass returns the sky it mirrors, most of it at grazing, so a
+        // crown's rim reads light against its sky. It is the mass's sheen and
+        // reads the bent normal; the sun's glint above stays the face's own.
+        let mirror = reflect(-to_eye, lit);
+        radiance += sheen(lit, to_eye, u.canopy.w) * occluded_ambient(mirror, in.leaf.z) * interior;
+    }
+    return vec4<f32>(tone(radiance), 1.0);
 }

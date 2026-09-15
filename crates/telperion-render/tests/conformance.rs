@@ -281,6 +281,7 @@ fn the_selection_path_names_no_family_and_no_anatomy() {
         source.join("foliage.rs"),
         source.join("shaders/select.wgsl"),
         source.join("shaders/foliage.wgsl"),
+        source.join("shaders/canopy.wgsl"),
     ];
     let anatomies = ["blade", "needle", "lobe", "petiole", "conifer", "broadleaf"];
     for path in files {

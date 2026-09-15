@@ -53,6 +53,11 @@ pub(super) fn oak() -> MaterialParams {
         margin_blue: 0.006,
         cuticle_gloss: 0.35,
         sky_occlusion_strength: 0.5,
+        // Neutral: a card lit alone, until this table states its canopy.
+        canopy_normal: 0.0,
+        light_wrap: 0.0,
+        diffuse_transmission: 0.0,
+        leaf_sheen: 0.0,
     }
 }
 
@@ -108,6 +113,11 @@ pub(super) fn spruce() -> MaterialParams {
         margin_blue: 0.002,
         cuticle_gloss: 0.05,
         sky_occlusion_strength: 0.6,
+        // Neutral: a card lit alone, until this table states its canopy.
+        canopy_normal: 0.0,
+        light_wrap: 0.0,
+        diffuse_transmission: 0.0,
+        leaf_sheen: 0.0,
     }
 }
 
@@ -170,6 +180,18 @@ pub(super) fn beech() -> MaterialParams {
         margin_blue: 0.008,
         cuticle_gloss: 0.48,
         sky_occlusion_strength: 0.35,
+        // A dense crown lit as one mass (fn-52): the lighting normal bends
+        // most of the way to the crown's outward direction and the sun wraps
+        // a little past the terminator, so the sky-lit top and the sunward
+        // shell carry the crown. A thin blade transmits almost evenly
+        // (Jacquemoud & Ustin 2019, Leaf Optical Properties), sky and sun
+        // alike, and the glossy cuticle returns the sky toward grazing, a
+        // little above a smooth wax's 0.04. Set against B-WHOLE's own centre,
+        // sRGB 71/94/74 under overcast, where this row draws 64/85/68.
+        canopy_normal: 0.8,
+        light_wrap: 0.4,
+        diffuse_transmission: 0.9,
+        leaf_sheen: 0.06,
     }
 }
 
@@ -238,6 +260,15 @@ pub(super) fn birch() -> MaterialParams {
         margin_blue: 0.01,
         cuticle_gloss: 0.28,
         sky_occlusion_strength: 0.4,
+        // The same canopy as the beech's (fn-52), with a softer terminator
+        // for the airy hanging crown and a less glossy cuticle. Set against
+        // S-WHOLE, whose leaf pixels sit above half brightness a fifth of the
+        // time: this row puts 24% of the leaf pixels there, where the card
+        // put 2%.
+        canopy_normal: 0.8,
+        light_wrap: 0.5,
+        diffuse_transmission: 0.9,
+        leaf_sheen: 0.05,
     }
 }
 

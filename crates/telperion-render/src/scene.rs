@@ -76,6 +76,7 @@ struct Uniforms {
     leaf_colour_detail: [f32; 4], // mottle scale, mottle strength, cuticle gloss, reserved
     margin: [f32; 4],             // RGB offsets, width
     shoot: [f32; 4],              // young wood RGB, the radius below which wood is young
+    canopy: [f32; 4],             // canopy normal, light wrap, diffuse transmission, sheen
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform

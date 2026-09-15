@@ -13,6 +13,7 @@ it("carries every surface-detail control from the generated row through the pane
     "bladeMottleScale", "bladeMottleStrength", "marginWidth",
     "marginRed", "marginGreen", "marginBlue", "cuticleGloss", "skyOcclusionStrength",
     "shootRed", "shootGreen", "shootBlue", "shootRadius",
+    "canopyNormal", "lightWrap", "diffuseTransmission", "leafSheen",
   ];
   for (const name of names) {
     expect(Object.keys(params.family.material)).toContain(name);

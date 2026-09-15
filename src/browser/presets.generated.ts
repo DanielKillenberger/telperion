@@ -52,12 +52,14 @@ export interface Family {
   bladeMottleStrength: number;
   brightnessRangeHigh: number;
   brightnessRangeLow: number;
+  canopyNormal: number;
   cavityStrength: number;
   crestBlue: number;
   crestGreen: number;
   crestRed: number;
   crestStrength: number;
   cuticleGloss: number;
+  diffuseTransmission: number;
   fissureBlue: number;
   fissureGreen: number;
   fissureRed: number;
@@ -72,6 +74,8 @@ export interface Family {
   leafFrontBlue: number;
   leafFrontGreen: number;
   leafFrontRed: number;
+  leafSheen: number;
+  lightWrap: number;
   marginBlue: number;
   marginGreen: number;
   marginRed: number;
@@ -243,12 +247,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "canopyNormal": 0,
         "cavityStrength": 0,
         "crestBlue": 0,
         "crestGreen": 0,
         "crestRed": 0,
         "crestStrength": 0,
         "cuticleGloss": 0,
+        "diffuseTransmission": 0,
         "fissureBlue": 0,
         "fissureGreen": 0,
         "fissureRed": 0,
@@ -263,6 +269,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
+        "leafSheen": 0,
+        "lightWrap": 0,
         "marginBlue": 0,
         "marginGreen": 0,
         "marginRed": 0,
@@ -432,12 +440,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0.15,
         "brightnessRangeHigh": 0.15,
         "brightnessRangeLow": -0.15,
+        "canopyNormal": 0,
         "cavityStrength": 0.6,
         "crestBlue": 0.055,
         "crestGreen": 0.085,
         "crestRed": 0.1,
         "crestStrength": 0.5,
         "cuticleGloss": 0.35,
+        "diffuseTransmission": 0,
         "fissureBlue": 0.005,
         "fissureGreen": -0.05,
         "fissureRed": -0.1,
@@ -452,6 +462,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.016,
         "leafFrontGreen": 0.102,
         "leafFrontRed": 0.028,
+        "leafSheen": 0,
+        "lightWrap": 0,
         "marginBlue": 0.006,
         "marginGreen": 0.035,
         "marginRed": 0.025,
@@ -621,12 +633,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0,
         "brightnessRangeHigh": 0.1,
         "brightnessRangeLow": -0.1,
+        "canopyNormal": 0,
         "cavityStrength": 0.6,
         "crestBlue": 0.01,
         "crestGreen": 0.025,
         "crestRed": 0.05,
         "crestStrength": 0.3,
         "cuticleGloss": 0.05,
+        "diffuseTransmission": 0,
         "fissureBlue": -0.02,
         "fissureGreen": -0.03,
         "fissureRed": -0.035,
@@ -641,6 +655,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.028,
         "leafFrontGreen": 0.056,
         "leafFrontRed": 0.018,
+        "leafSheen": 0,
+        "lightWrap": 0,
         "marginBlue": 0.002,
         "marginGreen": 0.015,
         "marginRed": 0.01,
@@ -810,12 +826,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0.1,
         "brightnessRangeHigh": 0.1,
         "brightnessRangeLow": -0.1,
+        "canopyNormal": 0.8,
         "cavityStrength": 0.35,
         "crestBlue": 0.045,
         "crestGreen": 0.055,
         "crestRed": 0.06,
         "crestStrength": 0.25,
         "cuticleGloss": 0.48,
+        "diffuseTransmission": 0.9,
         "fissureBlue": -0.02,
         "fissureGreen": -0.03,
         "fissureRed": -0.04,
@@ -830,6 +848,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.018,
         "leafFrontGreen": 0.105,
         "leafFrontRed": 0.022,
+        "leafSheen": 0.06,
+        "lightWrap": 0.4,
         "marginBlue": 0.008,
         "marginGreen": 0.04,
         "marginRed": 0.02,
@@ -999,12 +1019,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0.12,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "canopyNormal": 0.8,
         "cavityStrength": 0.3,
         "crestBlue": 0.06,
         "crestGreen": 0.07,
         "crestRed": 0.08,
         "crestStrength": 0.2,
         "cuticleGloss": 0.28,
+        "diffuseTransmission": 0.9,
         "fissureBlue": -0.22,
         "fissureGreen": -0.24,
         "fissureRed": -0.25,
@@ -1019,6 +1041,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.06,
         "leafFrontGreen": 0.19,
         "leafFrontRed": 0.1,
+        "leafSheen": 0.05,
+        "lightWrap": 0.5,
         "marginBlue": 0.01,
         "marginGreen": 0.05,
         "marginRed": 0.03,
@@ -1188,12 +1212,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0.04,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "canopyNormal": 0,
         "cavityStrength": 0.2,
         "crestBlue": 0,
         "crestGreen": 0,
         "crestRed": 0,
         "crestStrength": 0.1,
         "cuticleGloss": 0.25,
+        "diffuseTransmission": 0,
         "fissureBlue": 0,
         "fissureGreen": 0,
         "fissureRed": 0,
@@ -1208,6 +1234,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
+        "leafSheen": 0,
+        "lightWrap": 0,
         "marginBlue": 0,
         "marginGreen": 0,
         "marginRed": 0,
@@ -1377,12 +1405,14 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0.04,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "canopyNormal": 0,
         "cavityStrength": 0.2,
         "crestBlue": 0,
         "crestGreen": 0,
         "crestRed": 0,
         "crestStrength": 0.1,
         "cuticleGloss": 0.3,
+        "diffuseTransmission": 0,
         "fissureBlue": 0,
         "fissureGreen": 0,
         "fissureRed": 0,
@@ -1397,6 +1427,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
+        "leafSheen": 0,
+        "lightWrap": 0,
         "marginBlue": 0,
         "marginGreen": 0,
         "marginRed": 0,

@@ -135,6 +135,12 @@ impl Scene {
                 ),
                 margin: colour(m.margin_red, m.margin_green, m.margin_blue, m.margin_width),
                 shoot: colour(m.shoot_red, m.shoot_green, m.shoot_blue, m.shoot_radius),
+                canopy: colour(
+                    m.canopy_normal,
+                    m.light_wrap,
+                    m.diffuse_transmission,
+                    m.leaf_sheen,
+                ),
             }),
         );
     }
