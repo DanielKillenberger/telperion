@@ -80,7 +80,12 @@ const BANDS: [(&str, usize, usize); 7] = [
 // sweep walks it.
 // fn-51 adds the drop and the clearance, the seventh and eighth. The birch
 // states both, so the sweep walks them.
-const HELD: [&str; 27] = [
+// fn-48 adds the clump's lean spread, and the birch states the whole of it, so
+// the sweep walks it. At the whole spread the birch's first stem stands
+// upright and has no bearing to part from, so its divergence goes to none and
+// every table agrees on it: the divergence is held here, and the clump tests
+// walk it from nothing to a hundred degrees.
+const HELD: [&str; 28] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
@@ -95,6 +100,7 @@ const HELD: [&str; 27] = [
     "/skeleton/growth/maxNodes",
     "/skeleton/growth/stepDistance",
     "/skeleton/growth/trunkHeight",
+    "/skeleton/habit/stemDivergence",
     "/skeleton/seed",
     "/skeleton/step",
     "/skeleton/twigs/angleVariation",

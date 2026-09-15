@@ -267,7 +267,7 @@ fn every_habit_trait_moves_every_shipped_preset() {
                 "{preset:?}: {trait_name} left the skeleton unmoved"
             );
         }
-        // The two clump rows say how a second stem stands beside the first, so
+        // The three clump rows say how a second stem stands beside the first, so
         // they are inert while the tree has one - read against a clump, the
         // way the supernatural terms are read against a field that is on.
         let clump = HabitParams {
@@ -291,6 +291,13 @@ fn every_habit_trait_moves_every_shipped_preset() {
                 "stem lean",
                 HabitParams {
                     stem_lean: 22.0,
+                    ..clump
+                },
+            ),
+            (
+                "stem lean spread",
+                HabitParams {
+                    stem_lean_spread: (h.stem_lean_spread - 0.6).abs(),
                     ..clump
                 },
             ),

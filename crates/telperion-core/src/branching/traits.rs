@@ -49,6 +49,11 @@ pub struct HabitParams {
     /// ones between tilt in proportion to how far out they stand. Inert at one
     /// stem, which stands at the centre and so tilts by none of it.
     pub stem_lean: f64,
+    /// How unequally a clump's stems lean, 0 to 1. None of it is the lean
+    /// above, shared about the clump's centre; all of it leans the stems in
+    /// their order instead, the first upright and the last by all of
+    /// `stem_lean`. Inert at one stem, which has nothing to lean against.
+    pub stem_lean_spread: f64,
 }
 impl Default for HabitParams {
     fn default() -> Self {
@@ -71,6 +76,7 @@ impl Default for HabitParams {
             stems: 1,
             stem_divergence: 0.0,
             stem_lean: 0.0,
+            stem_lean_spread: 0.0,
         }
     }
 }
@@ -116,6 +122,7 @@ impl HabitParams {
                 self.stem_lean.is_finite() && (0.0..=45.0).contains(&self.stem_lean),
                 "stem lean",
             ),
+            (unit(self.stem_lean_spread), "stem lean spread"),
         ] {
             if !valid {
                 return Err(Error::InvalidInput(trait_name));

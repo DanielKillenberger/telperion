@@ -39,13 +39,16 @@ const IDS: [&str; 7] = [
 /// over a 3 m pendulous length, which caps a shoot that does not sag as
 /// surely as it sets the run of one that does, and a deeper, finer outline
 /// for its shell. fn-51's birch lets its hanging shoots fall past that shell
-/// to the crown's base, sagging or not.
+/// to the crown's base, sagging or not. fn-48 re-records the birch's once
+/// more: its clump now leans unequally, one stem upright and one leaning out,
+/// which moves its tree with the row at any value, and the merge of all three
+/// on fn-34's integration branch records the tree that states them together.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     2650342232535221885,
-    9309723968444350364,
+    16630700164697225430,
     12471405148157309180,
     14199367530911903060,
 ];

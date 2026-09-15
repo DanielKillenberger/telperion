@@ -101,6 +101,13 @@
 //! down to a clearance at the crown's own base, where the shell had held
 //! them. Every other table leaves the drop at zero, which is the shell
 //! holding the curtain to the byte; the element pin does not move.
+//! fn-48 re-pins the silver birch alone, once: its table is the first to
+//! state a clump's lean spread, and states the whole of it, so its first
+//! stem stands upright and its second leans twenty-eight degrees out of the
+//! pair on the seed's own bearing, against the one near-vertical and one
+//! leaning stem of the S-WHOLE and S-BARE photographs, where the fn-38 clump
+//! parted in an even V. Every other table leaves the spread at zero, which is
+//! fn-38's lean to the bit, and the element pin does not move.
 //! Round 11 re-pins the beech alone, once: on the round-8c winter pair its
 //! trunk split at a quarter of the height into limbs that climbed beside it
 //! to the crown's top. Its limbs leave at 65 degrees instead of 48, their
@@ -110,6 +117,11 @@
 //! radius instead of a tenth, so the fewer, heavier scaffold tips keep their
 //! shoots. The oak, the spruce, the birch and the Two Trees are
 //! byte-identical.
+//! The merge of fn-47, fn-51 and fn-48 on fn-34's integration branch re-pins
+//! the silver birch once: its table now states the varied strands, the drop
+//! below the crown and the unequal clump together, and none of the three
+//! branches' pins is that tree. The beech stays round 11's; the oak, the
+//! spruce and the Two Trees are byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -182,13 +194,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 3252898,
-        wood_triangles: 6299200,
-        instances: 333486,
-        min: [-6.23061466217041, -0.07199999690055847, -7.190837383270264],
-        max: [7.134985408204572, 15.469784960217648, 5.815632649512932],
-        skeleton: 4441849425973384526,
-        placement: 8964417780306336820,
+        wood_vertices: 3252148,
+        wood_triangles: 6297840,
+        instances: 347704,
+        min: [
+            -5.7573046295895525,
+            -0.09124138951301575,
+            -7.360618998118021,
+        ],
+        max: [6.938842348003344, 15.855665690841128, 6.0106340697342775],
+        skeleton: 12047311324025911776,
+        placement: 16356818654961001025,
         element: 1872173242819532549,
     },
 ];

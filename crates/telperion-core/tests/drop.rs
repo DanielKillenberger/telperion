@@ -31,13 +31,15 @@ const IDS: [&str; 7] = [
 /// row existed, the birch's being its round-8b table's, which is what says the
 /// row at zero reaches nothing.
 /// The beech's is its round-11 identity skeleton, taken at the merge into
-/// fn-34's integration branch: its own table moved, not the row.
+/// fn-34's integration branch: its own table moved, not the row. The birch's
+/// is re-recorded at the same merges, when fn-48's unequal clump joined its
+/// table.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     2650342232535221885,
-    2245756617113293970,
+    15114279530833391460,
     12471405148157309180,
     14199367530911903060,
 ];

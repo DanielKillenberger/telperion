@@ -7,6 +7,10 @@
 //! of bearing between neighbours, and tilted away from the centre by
 //! `stem_lean` — the outermost by all of it, the ones between in proportion to
 //! how far out they stand, so the middle stem of an odd clump stands upright.
+//! `stem_lean_spread` carries that lean from the clump's centre to its order:
+//! all of it and the first stem stands upright, the last leans by the whole
+//! angle and the ones between by their place in the clump, which is a
+//! dominant stem with the lesser ones pushed out beside it.
 use super::*;
 use std::f64::consts::TAU;
 
@@ -44,12 +48,18 @@ pub(in crate::branching) fn stems(params: &SkeletonParams) -> Vec<Stem> {
     let bearing = Rng::new(params.seed ^ BEARING_STREAM).range(0.0, TAU);
     let divergence = params.habit.stem_divergence.to_radians();
     let lean = params.habit.stem_lean.to_radians();
-    let span = f64::from(count - 1) / 2.0;
+    let spread = params.habit.stem_lean_spread;
+    let last = f64::from(count - 1);
+    let span = last / 2.0;
     (0..count)
         .map(|k| {
             let offset = f64::from(k) - span;
             let azimuth = bearing + offset * divergence;
-            let tilt = lean * (offset / span).abs();
+            // How far out it stands, walked toward where it comes in the
+            // clump; at no spread the walk adds nothing, to the bit.
+            let fanned = (offset / span).abs();
+            let ordered = f64::from(k) / last;
+            let tilt = lean * (fanned + (ordered - fanned) * spread);
             let out = Vec3::new(azimuth.cos_fixed(), 0.0, azimuth.sin_fixed());
             Stem {
                 heading: (Vec3::Y * tilt.cos_fixed() + out * tilt.sin_fixed()).normalized(),
@@ -66,8 +76,9 @@ const SAME_HEADING: f64 = 1e-9;
 /// Refuses a clump of stems the tree cannot be built on, by the stem that is
 /// wrong: one whose first growth unit is already outside the shell, and one
 /// that leaves the root on a heading a neighbour has already taken — no
-/// divergence between them, or no lean to carry them apart, which is the same
-/// stem twice and not two. A tree on one stem has nothing to refuse.
+/// divergence between them and no spread to lean them unequally, or no lean to
+/// carry them apart at all, which is the same stem twice and not two. A tree on
+/// one stem has nothing to refuse.
 ///
 /// The second test is degeneracy and not clearance on purpose. Any positive
 /// clearance would make some point between two valid rows invalid — a walk
@@ -147,10 +158,79 @@ mod tests {
         assert!((step - 60.0_f64.to_radians()).abs() < 1e-12);
     }
 
+    /// Degrees from vertical a stem leaves the root at.
+    fn tilt(stem: &Stem) -> f64 {
+        stem.heading.y.clamp(-1.0, 1.0).acos().to_degrees()
+    }
+
+    #[test]
+    fn no_spread_is_the_even_lean_to_the_bit() {
+        // The clump fn-38 grew, written out: every stem by how far out of the
+        // clump's centre it stands, about the same bearing.
+        for count in 2..=6 {
+            let p = habit(count, 50.0, 30.0);
+            let bearing = Rng::new(p.seed ^ BEARING_STREAM).range(0.0, TAU);
+            let span = f64::from(count - 1) / 2.0;
+            for (k, stem) in stems(&p).iter().enumerate() {
+                let offset = k as f64 - span;
+                let azimuth = bearing + offset * 50.0_f64.to_radians();
+                let tilt = 30.0_f64.to_radians() * (offset / span).abs();
+                let out = Vec3::new(azimuth.cos_fixed(), 0.0, azimuth.sin_fixed());
+                let was = (Vec3::Y * tilt.cos_fixed() + out * tilt.sin_fixed()).normalized();
+                assert_eq!(stem.heading, was, "{count} stems: stem {k} moved");
+            }
+        }
+    }
+
+    #[test]
+    fn a_spread_leans_the_clump_in_its_order() {
+        for count in 2..=6 {
+            let even = stems(&habit(count, 50.0, 30.0));
+            for spread in [0.25, 0.5, 0.8, 1.0] {
+                let mut p = habit(count, 50.0, 30.0);
+                p.habit.stem_lean_spread = spread;
+                let fan = stems(&p);
+                let leans: Vec<f64> = fan.iter().map(tilt).collect();
+                let last = leans.len() - 1;
+                // The first stem keeps what the spread leaves it, the last
+                // all of it.
+                assert!(
+                    (leans[0] - 30.0 * (1.0 - spread)).abs() < 1e-9,
+                    "{count} stems at {spread}: the first leans {}",
+                    leans[0]
+                );
+                assert!((leans[last] - 30.0).abs() < 1e-9);
+                // The bearings are the clump's own: only the lean moved.
+                for (stem, was) in fan.iter().zip(&even) {
+                    if tilt(stem) > 1e-6 && tilt(was) > 1e-6 {
+                        let bearing = |v: Vec3| v.z.atan2(v.x);
+                        let turn = bearing(stem.heading) - bearing(was.heading);
+                        assert!(turn.sin().abs() < 1e-12, "{count} at {spread} turned");
+                    }
+                }
+                // At the whole spread each stem leans by its place in the
+                // clump, so they rise in order from upright.
+                if spread == 1.0 {
+                    for (k, lean) in leans.iter().enumerate() {
+                        let place = 30.0 * k as f64 / last as f64;
+                        assert!((lean - place).abs() < 1e-9, "stem {k} leans {lean}");
+                    }
+                }
+                // Two stems lean in order at every spread.
+                if count == 2 {
+                    assert!(leans[0] < leans[1], "two stems at {spread}");
+                }
+            }
+        }
+    }
+
     #[test]
     fn stems_that_share_a_heading_are_refused_by_the_stem_that_is_wrong() {
-        for (divergence, lean) in [(0.0, 20.0), (60.0, 0.0)] {
-            let p = habit(2, divergence, lean);
+        // A spread leaves stems with no lean on one heading still: all of them
+        // upright, however unequally nothing is shared out.
+        for (divergence, lean, spread) in [(0.0, 20.0, 0.0), (60.0, 0.0, 0.0), (60.0, 0.0, 1.0)] {
+            let mut p = habit(2, divergence, lean);
+            p.habit.stem_lean_spread = spread;
             let config = p.resolved_growth(0).unwrap();
             assert_eq!(
                 placed(&p, &config),
@@ -163,6 +243,10 @@ mod tests {
         }
         let p = habit(2, 60.0, 20.0);
         let config = p.resolved_growth(0).unwrap();
+        assert_eq!(placed(&p, &config), Ok(()));
+        // And it parts two stems on one bearing by leaning them unequally.
+        let mut p = habit(2, 0.0, 20.0);
+        p.habit.stem_lean_spread = 0.5;
         assert_eq!(placed(&p, &config), Ok(()));
     }
 }
