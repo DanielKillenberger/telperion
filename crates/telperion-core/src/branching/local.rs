@@ -33,8 +33,8 @@ mod planner;
 mod seed;
 use pendant::Curtain;
 pub(super) mod waiting;
-use planner::rejected;
 pub(super) use planner::Planner;
+use planner::{rejected, Axis};
 #[derive(Clone, Default)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub(super) struct Frontier {

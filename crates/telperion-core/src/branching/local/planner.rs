@@ -7,6 +7,20 @@ pub(super) fn rejected(config: &GrowthConfig, p: Vec3) -> bool {
         })
 }
 pub(in crate::branching) type WidthQuery<'a> = Option<&'a dyn Fn(&Tree, usize) -> [f64; 3]>;
+/// What one axis asks the planner for: where it starts and the direction it
+/// leaves with, how far it runs and in how many internodes, whether its wood
+/// bears leaves rather than branching, the key its crookedness is drawn from,
+/// and the curtain that bends it if it hangs.
+#[derive(Clone, Copy)]
+pub(super) struct Axis {
+    pub start: Vec3,
+    pub first: Vec3,
+    pub length: f64,
+    pub internodes: usize,
+    pub bearing: bool,
+    pub key: u32,
+    pub curtain: Curtain,
+}
 pub(in crate::branching) struct Planner<'a> {
     pub(in crate::branching) clock: Option<super::waiting::Clock>,
     pub(in crate::branching) widths: WidthQuery<'a>,
@@ -39,15 +53,16 @@ impl Planner<'_> {
             c.max_turn_per_step.to_radians() * (distance / c.step_distance).min(1.0),
         )
     }
-    pub(super) fn run(
-        &self,
-        start: Vec3,
-        first: Vec3,
-        length: f64,
-        internodes: usize,
-        bearing: bool,
-        key: u32,
-    ) -> Option<Rc<Run>> {
+    pub(super) fn run(&self, axis: Axis) -> Option<Rc<Run>> {
+        let Axis {
+            start,
+            first,
+            length,
+            internodes,
+            bearing,
+            key,
+            curtain,
+        } = axis;
         // Plan the axis against its authored room. The live boundary is checked
         // separately for every birth, so a juvenile crown pauses the cached run
         // rather than permanently truncating it and flushing a terminal early.
@@ -71,22 +86,27 @@ impl Planner<'_> {
         }
         let mut points = vec![start];
         let mut along = vec![0.0];
-        let mut heading = first;
+        // The course is where the branch law holds the shoot; the heading is
+        // where it goes once its own weight has bent the course toward the
+        // ground. Without a curtain to hang from they are one vector.
+        let mut course = first;
         let phase = Rng::new(self.seed ^ key).range(0.0, TAU);
         let normal = first.perpendicular();
         let binormal = first.cross(normal);
         for k in 0..count {
             let stride = length * (stations[k] - if k == 0 { 0.0 } else { stations[k - 1] });
             let at = *points.last().unwrap();
+            let travelled = *along.last().unwrap() + stride;
             let wanted = if self.crookedness == 0.0 {
-                heading
+                course
             } else {
                 let angle = stations[k] * TAU * 2.0 + phase;
                 first
                     + (normal * angle.sin_fixed() + binormal * (angle * 0.7).cos_fixed())
                         * self.crookedness.to_radians()
             };
-            heading = self.heading(at, heading, wanted, stride);
+            course = self.heading(at, course, wanted, stride);
+            let heading = curtain.sagged(course, travelled, self.twigs);
             let end = at + heading * stride;
             if rejected(&config, end) {
                 let mut low = 0.0;

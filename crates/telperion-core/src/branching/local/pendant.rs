@@ -2,6 +2,9 @@
 //! how close to the floor beneath it it may reach, and how far apart its
 //! neighbours stand.
 //!
+//! A shoot's own weight bends it as it runs: the sag row turns its course
+//! toward straight down along the run, from the departure the droop gave it.
+//!
 //! Every magnitude here is a twig row scaled by `hang`. At hang 0 a shoot
 //! carries no curtain at all and the local law reaches none of this; at hang 1
 //! the droop is the constant the hidden mode had, and above 1 a shoot hangs
@@ -101,6 +104,49 @@ impl Curtain {
             walk3(upright, hung, self.hang).normalized()
         }
     }
+
+    /// Whether the shoots of this curtain give in to their own weight at all.
+    /// A curtain nobody hangs, and a table that states no sag, do not.
+    pub fn sags(self, t: TwigParams) -> bool {
+        self.hangs() && t.sag > 0.0
+    }
+
+    /// Where a hanging shoot goes `travelled` into its run: the course the
+    /// branch law holds, turned toward straight down by the share of its own
+    /// angle the sag row has spent by then. The turn is about the axis the
+    /// course and the down vector span, so the shoot bends in its own plane
+    /// and keeps the bearing about the trunk the droop gave it. Weight is not
+    /// a turn the tip steers, so the law's own turn limit does not bound it;
+    /// a course this does not bend is returned as it came.
+    pub fn sagged(self, course: Vec3, travelled: f64, t: TwigParams) -> Vec3 {
+        if !self.sags(t) {
+            return course;
+        }
+        let unit = course.normalized();
+        let cosine = (-unit.y).clamp(-1.0, 1.0);
+        let turn = cosine.acos_fixed() * (1.0 - remaining(t, travelled));
+        if turn <= 1e-12 {
+            return course;
+        }
+        let toward = -Vec3::Y - unit * cosine;
+        let toward = if toward.length_squared() > 1e-18 {
+            toward.normalized()
+        } else {
+            unit.perpendicular()
+        };
+        let (sine, cosine) = turn.sin_cos_fixed();
+        (unit * cosine + toward * sine).normalized()
+    }
+}
+
+/// The share of its angle to straight down a hanging shoot still carries
+/// after running `travelled` of its pendulous length. The turn eases out,
+/// steepest where the shoot leaves the wood that bears it and flat by the end
+/// of the run, which is the shape a slender stem bent by its own weight takes;
+/// a run longer than the pendulous length holds the angle it reached.
+fn remaining(t: TwigParams, travelled: f64) -> f64 {
+    let u = (travelled / t.pendulous_length).clamp(0.0, 1.0);
+    1.0 - t.sag * u * (2.0 - u)
 }
 
 /// Linear between the two, exact at both ends: a row at 0 or 1 is the end

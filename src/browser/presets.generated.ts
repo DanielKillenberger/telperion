@@ -156,6 +156,7 @@ export interface Family {
   pendulousRadius: number;
   ratioPower: number;
   reach: number;
+  sag: number;
   twig: {
   bearingDiameter: number;
   diameter: number;
@@ -333,6 +334,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.05,
             "diameter": 0.005,
@@ -513,6 +515,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.03,
             "diameter": 0.005,
@@ -693,6 +696,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.002,
@@ -873,6 +877,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.03,
             "diameter": 0.005,
@@ -1053,6 +1058,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.003,
@@ -1233,6 +1239,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.05,
             "diameter": 0.005,
@@ -1413,6 +1420,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.05,
             "diameter": 0.005,

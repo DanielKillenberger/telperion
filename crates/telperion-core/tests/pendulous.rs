@@ -128,13 +128,17 @@ fn each_curtain_row_is_refused_by_its_own_name() {
         ("radius", 1.001, "pendulous radius"),
         ("separation", 0.999, "curtain separation"),
         ("separation", 45.001, "curtain separation"),
+        ("sag", -0.001, "sag"),
+        ("sag", 1.001, "sag"),
+        ("sag", f64::NAN, "sag"),
     ] {
         let mut t = TwigParams::default();
         match row {
             "hang" => t.hang = bad,
             "length" => t.pendulous_length = bad,
             "radius" => t.pendulous_radius = bad,
-            _ => t.curtain_separation = bad,
+            "separation" => t.curtain_separation = bad,
+            _ => t.sag = bad,
         }
         assert_eq!(
             t.resolved().err(),
@@ -149,6 +153,7 @@ fn each_curtain_row_is_refused_by_its_own_name() {
             pendulous_length: 0.05,
             pendulous_radius: 0.0,
             curtain_separation: 1.0,
+            sag: 0.0,
             ..TwigParams::default()
         },
         TwigParams {
@@ -156,6 +161,7 @@ fn each_curtain_row_is_refused_by_its_own_name() {
             pendulous_length: 5.0,
             pendulous_radius: 1.0,
             curtain_separation: 45.0,
+            sag: 1.0,
             ..TwigParams::default()
         },
     ] {
@@ -169,14 +175,17 @@ fn the_floor_holds_under_every_hang_and_the_curtain_does_not_stack_on_it() {
     // crown that reaches the ground and a pendulous length longer than the
     // tree is tall, the curtain still stands clear of the ground and does not
     // pile its ends at one height.
-    for hang in [0.25, 0.5, 0.75, 1.0] {
-        let grown = grow(Preset::SilverBirch, |f| hanging_room(f, hang));
+    for (hang, sag) in [(0.25, 0.0), (0.5, 0.5), (0.75, 1.0), (1.0, 1.0)] {
+        let grown = grow(Preset::SilverBirch, |f| {
+            hanging_room(f, hang);
+            f.skeleton.twigs.sag = sag;
+        });
         let floor = grown.twigs.iter().copied().fold(f64::INFINITY, f64::min);
         let stacked = grown.twigs.iter().filter(|y| **y < floor + 0.02).count();
         assert!(floor > 0.0, "hang {hang}: the curtain reached the ground");
         assert!(
             stacked * 20 < grown.twigs.len(),
-            "hang {hang}: {stacked} of {} twig ends stacked on the floor",
+            "hang {hang} sag {sag}: {stacked} of {} twig ends stacked on the floor",
             grown.twigs.len()
         );
     }
@@ -191,4 +200,6 @@ fn the_spruce_states_the_values_that_reproduce_the_constants() {
     assert_eq!(t.pendulous_length, t.twig.length);
     assert_eq!(t.pendulous_radius, 1.0);
     assert_eq!(t.curtain_separation, 4.0);
+    // The constants held a shoot out straight, so the spruce states no sag.
+    assert_eq!(t.sag, 0.0);
 }

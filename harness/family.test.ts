@@ -137,6 +137,7 @@ describe("toSkeletonParams", () => {
       pendulousLength: DEFAULT_PARAMS.pendulousLength,
       pendulousRadius: DEFAULT_PARAMS.pendulousRadius,
       curtainSeparation: DEFAULT_PARAMS.curtainSeparation,
+      sag: DEFAULT_PARAMS.sag,
     });
     expect(mapped.twigs).not.toHaveProperty("levels");
   });

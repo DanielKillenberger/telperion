@@ -132,6 +132,11 @@ export interface GrowerParams {
   /** Degrees between neighbouring shoots in a curtain: how tightly the
    *  fall is combed about the wood that bears it. */
   curtainSeparation: number;
+  /** How far a hanging shoot has given in to its own weight by the end of
+   *  its pendulous run: 0 a rod held out along its departure, 1 a shoot
+   *  bent all the way to vertical, the bend steepest where it leaves the
+   *  wood that bears it. */
+  sag: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
@@ -309,11 +314,15 @@ export const SLIDERS: readonly SliderSpec[] = [
      droops harder the further it stands above the floor its own limb's
      tip set, deepening to the cap over `pendulousLength` - which is
      also where the shoot stops. `hang` is the master over all of it: at
-     0 there is no weeping in the tree whatever the rest say. */
+     0 there is no weeping in the tree whatever the rest say. `sag` is
+     the weight on the shoot after it departs: its course turns toward
+     straight down along the run, by `sag` of the way there over the
+     pendulous length, steepest at the wood that bears it. */
   { key: "hang", label: "hang", min: 0, max: 3, step: 0.01, unit: "" },
   { key: "pendulousLength", label: "pendulous length", min: 0.05, max: 5, step: 0.05, unit: "m" },
   { key: "pendulousRadius", label: "pendulous radius", min: 0, max: 1, step: 0.01, unit: "r" },
   { key: "curtainSeparation", label: "curtain separation", min: 1, max: 45, step: 0.5, unit: "deg" },
+  { key: "sag", label: "sag", min: 0, max: 1, step: 0.01, unit: "" },
   // The fork exponent, under the name the owner already turns. Below
   // 2 a fork sheds more than area and the tree runs from a heavy
   // trunk to threads; above 3 the limbs stop thinning enough to read

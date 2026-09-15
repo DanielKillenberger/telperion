@@ -224,14 +224,15 @@ impl Frontier {
                 } else {
                     if starts {
                         let length = s.curtain.clear(position.y, -wanted.normalized().y, length);
-                        run = planner.run(
-                            position,
-                            if lateral { wanted } else { from },
+                        run = planner.run(Axis {
+                            start: position,
+                            first: if lateral { wanted } else { from },
                             length,
                             internodes,
-                            radius <= t.twig.bearing_diameter / 2.0,
+                            bearing: radius <= t.twig.bearing_diameter / 2.0,
                             key,
-                        )
+                            curtain: s.curtain,
+                        })
                     }
                     let Some(r) = &run else {
                         next_wake = immediate;
