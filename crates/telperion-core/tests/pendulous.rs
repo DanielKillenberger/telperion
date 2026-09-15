@@ -134,6 +134,12 @@ fn each_curtain_row_is_refused_by_its_own_name() {
         ("variation", -0.001, "pendulous variation"),
         ("variation", 1.001, "pendulous variation"),
         ("variation", f64::NAN, "pendulous variation"),
+        ("drop", -0.001, "curtain drop"),
+        ("drop", 1.001, "curtain drop"),
+        ("drop", f64::NAN, "curtain drop"),
+        ("clearance", -0.001, "curtain clearance"),
+        ("clearance", 5.001, "curtain clearance"),
+        ("clearance", f64::INFINITY, "curtain clearance"),
     ] {
         let mut t = TwigParams::default();
         match row {
@@ -142,7 +148,9 @@ fn each_curtain_row_is_refused_by_its_own_name() {
             "radius" => t.pendulous_radius = bad,
             "separation" => t.curtain_separation = bad,
             "sag" => t.sag = bad,
-            _ => t.pendulous_variation = bad,
+            "variation" => t.pendulous_variation = bad,
+            "drop" => t.curtain_drop = bad,
+            _ => t.curtain_clearance = bad,
         }
         assert_eq!(
             t.resolved().err(),
@@ -159,6 +167,8 @@ fn each_curtain_row_is_refused_by_its_own_name() {
             curtain_separation: 1.0,
             sag: 0.0,
             pendulous_variation: 0.0,
+            curtain_drop: 0.0,
+            curtain_clearance: 0.0,
             ..TwigParams::default()
         },
         TwigParams {
@@ -168,6 +178,8 @@ fn each_curtain_row_is_refused_by_its_own_name() {
             curtain_separation: 45.0,
             sag: 1.0,
             pendulous_variation: 1.0,
+            curtain_drop: 1.0,
+            curtain_clearance: 5.0,
             ..TwigParams::default()
         },
     ] {

@@ -148,6 +148,8 @@ export interface Family {
   twigs: {
   angle: number;
   angleVariation: number;
+  curtainClearance: number;
+  curtainDrop: number;
   curtainSeparation: number;
   divergence: number;
   hang: number;
@@ -330,6 +332,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "hang": 0,
@@ -515,6 +519,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "hang": 0,
@@ -700,6 +706,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "hang": 1,
@@ -885,6 +893,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "hang": 0,
@@ -1070,6 +1080,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 9,
           "divergence": 137.508,
           "hang": 2.4,
@@ -1255,6 +1267,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "hang": 0,
@@ -1440,6 +1454,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
           "curtainSeparation": 4,
           "divergence": 137.508,
           "hang": 0,

@@ -31,6 +31,7 @@ mod advance;
 mod pendant;
 mod planner;
 mod seed;
+pub use pendant::in_band;
 use pendant::Curtain;
 pub(super) mod waiting;
 pub(super) use planner::Planner;

@@ -5,7 +5,10 @@
 //! A shoot's own weight bends it as it runs: the sag row turns its course
 //! toward straight down along the run, from the departure the droop gave it.
 //! And no two shoots need run alike: the variation row gives each its own
-//! share of the pendulous length, drawn from the shoot's own key.
+//! share of the pendulous length, drawn from the shoot's own key. The drop
+//! row lets a hanging shoot fall past the shell's lower surface, down a share
+//! of the way to a clearance above the ground: the limbs make the crown's
+//! shape and the strands hang from them below it.
 //!
 //! Every magnitude here is a twig row scaled by `hang`. At hang 0 a shoot
 //! carries no curtain at all and the local law reaches none of this; at hang 1
@@ -27,6 +30,10 @@ const CLEARANCE: f64 = 0.8;
 /// The salt a shoot's own share of the pendulous length is drawn with, beside
 /// the ones the local law draws a lateral's vigour and departure with.
 const RUN: u32 = 0x3c6ef372;
+/// The steps a column is searched in for the shell's lower surface, per lobe
+/// or per crown where the crown is shorter, and the halvings that close on it.
+const SEARCH: f64 = 32.0;
+const HALVINGS: usize = 32;
 
 /// One shoot's curtain: how strongly it hangs, the bearing its laterals spread
 /// along, and the height its first descending ancestor's tip set as a floor.
@@ -51,18 +58,37 @@ impl Curtain {
     /// `tip` is the height the first descending ancestor ends at, which is
     /// where a shoot held out by its own wood comes to rest. A shoot that
     /// gives in to its weight falls past it, so the sag row carries the floor
-    /// down from that tip to `base`, the height the crown's own room stops at.
+    /// down from that tip to `base`, the height the crown's own room stops at,
+    /// and the drop row carries that on down toward the clearance.
     pub fn new(t: TwigParams, at: Vec3, tip: Option<f64>, base: f64) -> Self {
         let hang = if tip.is_some() { t.hang } else { 0.0 };
+        let bottom = walk(base, t.curtain_clearance.min(base), dropped(t));
         Self {
             hang,
             across: Vec3::new(-at.z, 0.0, at.x).normalized(),
-            floor: tip.map(|tip| walk(tip, base, t.sag * hang.min(1.0))),
+            floor: tip.map(|tip| walk(tip, bottom, t.sag * hang.min(1.0))),
         }
     }
 
     pub fn hangs(self) -> bool {
         self.hang > 0.0
+    }
+
+    /// Whether this curtain's shoots may fall past the shell at all. A curtain
+    /// nobody hangs, and a table that states no drop, do not.
+    pub fn drops(self, t: TwigParams) -> bool {
+        self.hangs() && t.curtain_drop > 0.0
+    }
+
+    /// Whether a candidate at `p` may be born: inside the room the config
+    /// allows it, or, for a curtain that drops, in the band below the shell.
+    /// A curtain that does not drop is bound exactly as every other shoot.
+    pub fn admits(self, config: &GrowthConfig, t: TwigParams, p: Vec3) -> bool {
+        !rejected(config, p)
+            || (self.drops(t)
+                && config
+                    .shell
+                    .is_some_and(|shell| in_band(&shell, &t, config.seed, p, 0.0)))
     }
 
     /// Whether a candidate has passed below the floor the curtain may not
@@ -163,6 +189,87 @@ impl Curtain {
     }
 }
 
+/// Whether `p` lies in the band a hanging shoot of a curtain with the rows
+/// `t` may fall into: below the shell's lower surface in `p`'s own column, and
+/// no lower than the drop row's share of the way from that surface down to
+/// the clearance. A column the shell never reaches is not under the crown's
+/// footprint and has no band, and neither has a table that hangs nothing or
+/// drops nothing. The clearance never stands above the crown's own base.
+/// `tolerance` is metres of slack, as `Envelope::contains` takes it; with the
+/// shell's own containment this is the invariant every node past the
+/// crossover keeps.
+pub fn in_band(shell: &Envelope, t: &TwigParams, seed: u32, p: Vec3, tolerance: f64) -> bool {
+    let share = dropped(*t);
+    if share <= 0.0 || !p.is_finite() {
+        return false;
+    }
+    let clearance = t.curtain_clearance.min(shell.height * shell.crown_base);
+    if p.y < clearance - tolerance {
+        return false;
+    }
+    // The band's top is the surface itself, and its foot rises with it: a
+    // surface above `limit` puts `p` below the foot of its band.
+    let limit = if share < 1.0 {
+        (p.y + tolerance - share * clearance) / (1.0 - share)
+    } else {
+        shell.height
+    };
+    lower_surface(shell, seed, p, limit).is_some_and(|surface| {
+        p.y < surface + tolerance && p.y + tolerance >= walk(surface, clearance, share)
+    })
+}
+
+/// The share of the way to the clearance a table lets its hanging shoots fall.
+/// The hang row walks it in from nothing, as it walks the floor.
+fn dropped(t: TwigParams) -> f64 {
+    t.curtain_drop * t.hang.min(1.0)
+}
+
+/// The height of the shell's lower surface over `p`'s column: the lowest
+/// height at or below `limit` at which a point as far from the axis on the
+/// same bearing lies inside the shell, or None where the column does not meet
+/// it by then. The lobes scale the smooth radius by at most one plus the
+/// irregularity, so the column is outside everywhere below the smooth
+/// shell's own lower surface for that much less radius; the search climbs
+/// from there in steps finer than a lobe and closes on the crossing by halving.
+fn lower_surface(shell: &Envelope, seed: u32, p: Vec3, limit: f64) -> Option<f64> {
+    let radial = p.x.hypot_fixed(p.z);
+    let outside = |y: f64| radial > shell.radius_toward(Vec3::new(p.x, y, p.z), seed);
+    let base = shell.height * shell.crown_base;
+    let span = shell.height - base;
+    let widest = shell.max_radius() * (1.0 + shell.irregularity);
+    if span <= 0.0 || widest <= 0.0 || radial > widest {
+        return None;
+    }
+    let shoulder = shell.shoulder.max(0.1);
+    let rising = (1.0 - (radial / widest).powf_fixed(shoulder))
+        .max(0.0)
+        .powf_fixed(1.0 / shoulder);
+    let mut low = base + span * shell.fullness.clamp(0.001, 0.999) * (1.0 - rising);
+    if !outside(low) {
+        return Some(low);
+    }
+    let step = span.min(shell.lobe_scale * shell.height) / SEARCH;
+    let top = limit.min(shell.height);
+    while low < top {
+        let mut high = low + step;
+        if outside(high) {
+            low = high;
+            continue;
+        }
+        for _ in 0..HALVINGS {
+            let mid = (low + high) / 2.0;
+            if outside(mid) {
+                low = mid
+            } else {
+                high = mid
+            }
+        }
+        return Some(high);
+    }
+    None
+}
+
 /// A hanging shoot's own pendulous length: the table's, shortened by the
 /// variation row times a draw in 0 to 1 keyed by `shoot`. The key is the
 /// shoot's identity and the seed, not its place in the order the tree grows
@@ -194,4 +301,53 @@ fn walk(a: f64, b: f64, t: f64) -> f64 {
 
 fn walk3(a: Vec3, b: Vec3, t: f64) -> Vec3 {
     Vec3::new(walk(a.x, b.x, t), walk(a.y, b.y, t), walk(a.z, b.z, t))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Only a curtain that hangs is let below the shell, only into its band,
+    /// and only by a table that drops it.
+    #[test]
+    fn only_a_hanging_curtain_is_let_into_the_band() {
+        let shell = Envelope {
+            height: 10.0,
+            crown_base: 0.3,
+            ..Envelope::default()
+        };
+        let config = default_growth(shell, 0, 0.01);
+        let t = TwigParams {
+            hang: 1.0,
+            sag: 1.0,
+            curtain_drop: 1.0,
+            curtain_clearance: 1.0,
+            ..TwigParams::default()
+        };
+        let at = Vec3::new(1.0, 5.0, 0.0);
+        let hanging = Curtain::new(t, at, Some(5.0), config.trunk_height);
+        // Under the crown, below its lower surface, above the clearance.
+        let under = Vec3::new(1.0, 2.0, 0.0);
+        assert!(hanging.admits(&config, t, under));
+        assert!(!Curtain::default().admits(&config, t, under));
+        let dry = TwigParams {
+            curtain_drop: 0.0,
+            ..t
+        };
+        let still = Curtain::new(dry, at, Some(5.0), config.trunk_height);
+        assert!(!still.admits(&config, dry, under));
+        // Below the clearance, beside the crown's footprint, and outside the
+        // shell above its lower surface, the shell binds as it always did.
+        for p in [
+            Vec3::new(1.0, 0.5, 0.0),
+            Vec3::new(3.5, 2.0, 0.0),
+            Vec3::new(2.9, 9.0, 0.0),
+        ] {
+            assert!(!hanging.admits(&config, t, p), "{p:?} was let in");
+        }
+        // Inside the shell every curtain is admitted, whatever it drops.
+        let inside = Vec3::new(1.0, 5.0, 0.0);
+        assert!(Curtain::default().admits(&config, t, inside));
+        assert!(hanging.admits(&config, t, inside));
+    }
 }

@@ -73,6 +73,8 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "twigs", "curtainSeparation"; skeleton.twigs.curtain_separation);
         $op!($f, $v, "skeleton", "twigs", "sag"; skeleton.twigs.sag);
         $op!($f, $v, "skeleton", "twigs", "pendulousVariation"; skeleton.twigs.pendulous_variation);
+        $op!($f, $v, "skeleton", "twigs", "curtainDrop"; skeleton.twigs.curtain_drop);
+        $op!($f, $v, "skeleton", "twigs", "curtainClearance"; skeleton.twigs.curtain_clearance);
         $op!($f, $v, "skeleton", "growth", "influenceRadius"; skeleton.growth.influence_radius);
         $op!($f, $v, "skeleton", "growth", "killDistance"; skeleton.growth.kill_distance);
         $op!($f, $v, "skeleton", "growth", "stepDistance"; skeleton.growth.step_distance);

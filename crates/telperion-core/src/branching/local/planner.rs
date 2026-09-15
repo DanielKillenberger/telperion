@@ -108,12 +108,12 @@ impl Planner<'_> {
             course = self.heading(at, course, wanted, stride);
             let heading = curtain.sagged(course, travelled, self.twigs, key ^ self.seed);
             let end = at + heading * stride;
-            if rejected(&config, end) {
+            if !curtain.admits(&config, self.twigs, end) {
                 let mut low = 0.0;
                 let mut high = stride;
                 for _ in 0..40 {
                     let mid = (low + high) / 2.0;
-                    if rejected(&config, at + heading * mid) {
+                    if !curtain.admits(&config, self.twigs, at + heading * mid) {
                         high = mid
                     } else {
                         low = mid

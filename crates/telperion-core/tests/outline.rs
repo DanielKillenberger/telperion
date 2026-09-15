@@ -148,10 +148,11 @@ fn every_crown_node_lies_inside_the_shell_its_seed_shapes() {
         let grown = branching::generate(&params, RadiusParams::default()).unwrap();
         assert!(grown.tree.nodes.len() > grown.tree.crossover);
         for node in grown.tree.nodes.iter().skip(grown.tree.crossover) {
+            let p = node.position;
             assert!(
-                params.envelope.contains(node.position, 1e-8, seed),
-                "seed {seed}: {:?} is outside the shell that seed shapes",
-                node.position
+                params.envelope.contains(p, 1e-8, seed)
+                    || branching::in_curtain_band(&params.envelope, &params.twigs, seed, p, 1e-8),
+                "seed {seed}: {p:?} is outside the shell that seed shapes and its curtain's band"
             );
         }
         silhouettes.push(

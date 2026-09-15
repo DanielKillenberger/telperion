@@ -89,6 +89,10 @@ impl Frontier {
 }
 
 pub(super) fn below_reach(shoot: &Shoot, tree: &Tree, planner: &Planner<'_>) -> bool {
+    // A curtain that drops may fall below the trunk boundary, into its band.
+    if shoot.curtain.drops(planner.twigs) {
+        return false;
+    }
     // Every candidate is within the retained run length or the fixed twig
     // length. Thickening can change subdivision and bud fate, but neither can
     // bridge this gap to a trunk boundary which only rises. Include rounding

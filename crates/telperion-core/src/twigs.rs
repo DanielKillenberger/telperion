@@ -57,6 +57,15 @@ pub struct TwigParams {
     /// this times a draw in 0 to 1 keyed by the shoot and the seed. At 0 every
     /// shoot has the one length the table states.
     pub pendulous_variation: f64,
+    /// How far below the shell's lower surface a hanging shoot may fall, 0 to
+    /// 1, as a share of the way from that surface down to the clearance: at 0
+    /// the shell binds a hanging shoot as it binds every other, at 1 the shoot
+    /// may fall to the clearance. Only a shoot that hangs, only under the
+    /// crown's footprint.
+    pub curtain_drop: f64,
+    /// Metres above the ground no hanging shoot falls below, 0 to 5. Never
+    /// above the crown's own base, whatever the row says.
+    pub curtain_clearance: f64,
 }
 impl Default for TwigParams {
     fn default() -> Self {
@@ -84,6 +93,9 @@ impl Default for TwigParams {
             sag: 0.0,
             // Neutral: every hanging shoot has the one pendulous length.
             pendulous_variation: 0.0,
+            // Neutral: the shell holds the curtain, as it did before the row.
+            curtain_drop: 0.0,
+            curtain_clearance: 0.5,
         }
     }
 }
@@ -124,7 +136,7 @@ impl TwigParams {
         self.angle = self.angle.clamp(0.0, 90.0);
         self.angle_variation = self.angle_variation.clamp(0.0, 90.0);
         self.vigour_variation = self.vigour_variation.clamp(0.0, 0.95);
-        // The curtain's six rows are refused rather than clamped: a table
+        // The curtain's eight rows are refused rather than clamped: a table
         // that asks for a droop or a separation outside the rail is a table
         // with a mistake in it, and the mistake is named.
         for (v, low, high, row) in [
@@ -134,6 +146,8 @@ impl TwigParams {
             (self.curtain_separation, 1.0, 45.0, "curtain separation"),
             (self.sag, 0.0, 1.0, "sag"),
             (self.pendulous_variation, 0.0, 1.0, "pendulous variation"),
+            (self.curtain_drop, 0.0, 1.0, "curtain drop"),
+            (self.curtain_clearance, 0.0, 5.0, "curtain clearance"),
         ] {
             if !v.is_finite() || !(low..=high).contains(&v) {
                 return Err(Error::InvalidInput(row));

@@ -90,6 +90,8 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
       curtainSeparation: params.curtainSeparation,
       sag: params.sag,
       pendulousVariation: params.pendulousVariation,
+      curtainDrop: params.curtainDrop,
+      curtainClearance: params.curtainClearance,
     },
     bias: {
       gravitropism: params.gravitropism,
@@ -254,6 +256,8 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     curtainSeparation: preset.skeleton.twigs.curtainSeparation,
     sag: preset.skeleton.twigs.sag,
     pendulousVariation: preset.skeleton.twigs.pendulousVariation,
+    curtainDrop: preset.skeleton.twigs.curtainDrop,
+    curtainClearance: preset.skeleton.twigs.curtainClearance,
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
     lengthTaper: preset.radii.lengthTaper,
