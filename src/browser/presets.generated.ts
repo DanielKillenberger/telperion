@@ -736,7 +736,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "maxInstances": 4294967295,
         "outward": 0,
         "scatter": 18,
-        "shootRadius": 0,
+        "shootRadius": 0.05,
         "size": 1,
         "sizeVariation": 0.2,
         "spacing": 0.006,
@@ -816,7 +816,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "radii": {
         "forkExponent": 2.8,
-        "lengthTaper": 0.3,
+        "lengthTaper": 0.2,
         "trunkRadius": 0.014
       },
       "shellDepth": 1,
@@ -834,7 +834,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         },
         "envelope": {
           "crownBase": 0.12,
-          "fullness": 0.62,
+          "fullness": 0.55,
           "height": 32,
           "irregularity": 0.18,
           "lobeScale": 0.7,
@@ -850,13 +850,13 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crookedness": 6,
           "lateralLengthRatio": 0.6,
           "lateralOrders": 3,
-          "lateralPitch": 42,
+          "lateralPitch": 32,
           "lateralSpacing": 2.2,
           "lateralsPerStation": 2,
           "leaderInternode": 2.2,
           "pitchVariation": 10,
           "risePrimary": 0.3,
-          "riseSecondary": 0,
+          "riseSecondary": 0.4,
           "sheddingThreshold": 0,
           "twigTipTaper": 0.25,
           "whorlStrength": 0.15
@@ -864,7 +864,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "seed": 42,
         "step": 0.022,
         "twigs": {
-          "angle": 45,
+          "angle": 32,
           "angleVariation": 10,
           "curtainSeparation": 4,
           "divergence": 137.508,

@@ -161,22 +161,53 @@ fn the_rail_is_one_to_six_and_refused_by_name() {
 }
 
 #[test]
-fn the_neutral_changes_no_shipped_preset() {
-    // The deepest shipped tree branches four generations, so the top of the
-    // rail reaches nothing: every catalogue tree is the same to the byte with
-    // the row stated at its neutral. The beech states two, which is the depth
-    // its own radii already reach - the row pins that depth rather than
-    // leaving it to the pipe model.
+fn the_neutral_reaches_no_shipped_preset() {
+    // Nothing in the catalogue branches six generations deep, so a table that
+    // leaves the row at the top of its rail is the tree it always was. That is
+    // why the oak, the spruce, the birch and the Two Trees did not move a byte
+    // when the row arrived.
     for id in IDS {
-        let shipped = family(id, 7);
-        let mut neutral = shipped.clone();
-        neutral.skeleton.twigs.generations = MAX_GENERATIONS;
-        assert_eq!(
-            skeleton(&grow(&shipped)),
-            skeleton(&grow(&neutral)),
-            "{id} moved at the neutral generation count"
+        let mut f = family(id, 7);
+        f.skeleton.twigs.generations = MAX_GENERATIONS;
+        let tree = grow(&f);
+        let deepest = generations(&tree).into_iter().max().unwrap_or(0);
+        assert!(
+            deepest < MAX_GENERATIONS as usize,
+            "{id} branches {deepest} generations, so the neutral is not inert"
         );
     }
+}
+
+#[test]
+fn the_beechs_stated_depth_binds_its_own_radii() {
+    // The beech is the table the row was added for: its wood would branch a
+    // generation deeper than it wants, and the row - not the pipe model - is
+    // what stops it.
+    let shipped = family("european-beech", 7);
+    assert_eq!(
+        shipped.skeleton.twigs.generations, 2,
+        "the beech stopped stating its depth"
+    );
+    let tree = grow(&shipped);
+    let gen = generations(&tree);
+    assert_eq!(
+        gen.iter().copied().max(),
+        Some(2),
+        "the beech grew past its own row"
+    );
+    for (i, node) in tree.nodes.iter().enumerate() {
+        assert!(
+            gen[i] < 2 || node.kind == NodeKind::Twig,
+            "node {i} is still branching at the beech's stated depth"
+        );
+    }
+    let mut free = shipped.clone();
+    free.skeleton.twigs.generations = MAX_GENERATIONS;
+    let deepest = generations(&grow(&free)).into_iter().max().unwrap_or(0);
+    assert!(
+        deepest > 2,
+        "the beech's radii stop at {deepest} generations on their own, so the row is inert"
+    );
 }
 
 #[test]

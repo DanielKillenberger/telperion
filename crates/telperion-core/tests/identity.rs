@@ -41,7 +41,12 @@
 //! layer states its own depth and drops from five laterals a station to
 //! three, which is where the nodes for the thicker core come from; and its
 //! leader keeps more of that girth past the first fork, at 0.57 apical
-//! dominance. Its leaf count falls by a fifth and stays in the fidelity band. The oak, the
+//! dominance. Round 6b then reads the pair against the photograph again: the
+//! limbs leave at 32 degrees instead of 42 and every order of them rises, the
+//! local shoots follow their limb up at 32 degrees instead of standing off it
+//! at 45, the crown's widest point moves down its own depth, the per-metre
+//! taper halves again, and every shoot under a twentieth of the trunk's
+//! radius carries leaves, which doubles the leaf count without a node. The oak, the
 //! spruce, the birch and the Two Trees are byte-identical: the generation row
 //! sits at the top of its rail on every other table, which reaches nothing.
 //! No device is needed; this is the core's own arithmetic.
@@ -105,17 +110,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 6309780,
-        wood_triangles: 12229920,
-        instances: 1251939,
-        min: [
-            -17.272529208872687,
-            -0.12800000607967377,
-            -15.639991055065652,
-        ],
-        max: [17.413520042546796, 32.04913333641358, 16.092120997704992],
-        skeleton: 17796949077266237288,
-        placement: 15837116481935064129,
+        wood_vertices: 6399142,
+        wood_triangles: 12415480,
+        instances: 2495440,
+        min: [-16.59879256726196, -0.12800000607967377, -13.05251121622505],
+        max: [15.962544253799265, 32.048945753042894, 9.429980261274304],
+        skeleton: 10376235126903465523,
+        placement: 5545871911082763040,
         element: 15097586524950800877,
     },
     Pin {

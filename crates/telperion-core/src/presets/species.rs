@@ -34,10 +34,16 @@ pub(super) fn european_beech(p: &mut Family) {
         whorl_strength: 0.15,
         leader_internode: 2.2,
         laterals_per_station: 2,
-        lateral_pitch: 42.0,
+        // Round 6b, on the photograph: its limbs leave the trunk steeply and
+        // every order of them keeps rising. Ours left at 42 degrees and the
+        // second order did not rise at all, so the lowest limbs swept out and
+        // down. At 32 degrees with a rising second order the low limbs climb
+        // through the crown instead of around its outside, which is also what
+        // carries twigs into the crown's interior.
+        lateral_pitch: 32.0,
         pitch_variation: 10.0,
         rise_primary: 0.3,
-        rise_secondary: 0.0,
+        rise_secondary: 0.4,
         crookedness: 6.0,
         // Round 6, the owner on the 5c winter pair: "Fewer larger branches
         // compared to ours which has many more thinner ones directly attached
@@ -54,8 +60,10 @@ pub(super) fn european_beech(p: &mut Family) {
         height: 32.0,
         crown_base: 0.12,
         spread: 0.52,
-        fullness: 0.62,
         shoulder: 1.8,
+        // Round 6b: the crown read as a broad fan widest high. The widest
+        // point moves down the crown's own depth to the photograph's.
+        fullness: 0.55,
         // A beech's crown is lumpy where its limbs end and hollow where they
         // do not, and the round-3 pair read as an oval against it. Four or
         // five broad lobes around a wavelength most of the tree's own height,
@@ -73,12 +81,17 @@ pub(super) fn european_beech(p: &mut Family) {
     p.skeleton.twigs.generations = 2;
     p.skeleton.twigs.laterals = 3;
     p.skeleton.twigs.length_ratio = 0.40;
+    // Round 6b: a local shoot left its limb at 45 degrees, which on a limb
+    // rising at 60 put the shoot itself near horizontal. At 32 it follows the
+    // limb up.
+    p.skeleton.twigs.angle = 32.0;
     p.skeleton.twigs.twig.bearing_diameter = 0.03;
     p.radii.trunk_radius = 0.014;
     // Round 5c, the owner: "much more thick core trunks for almost the
     // entire height of the tree. Our tree thins out too quickly." The beech
-    // sheds half the default taper per metre.
-    p.radii.length_taper = 0.3;
+    // sheds two thirds of the default taper per metre, which is what keeps
+    // the core traceable into the top fifth of the tree.
+    p.radii.length_taper = 0.2;
     // Round 6: a parent's radius is the n-th root of the sum of its
     // children's n-th powers, so a higher n lets the leader keep the girth
     // its branches take. Near Murray's 3 the core runs thick up through the
@@ -100,6 +113,12 @@ pub(super) fn european_beech(p: &mut Family) {
         ..Default::default()
     };
     p.shell_depth = 1.0;
+    // Round 6b: leaves follow twig wood one for one, and twig wood grows
+    // only from scaffold tips and from wood under `limb_radius` of the
+    // trunk's, so the leaf mass was a shell over a bare vase. Clothing every
+    // shoot under a twentieth of the trunk's radius leafs the crown's inside
+    // without growing a node for it - twice the leaves at the same wood.
+    p.canopy.shoot_radius = 0.05;
     p.canopy.forward_lean = 0.2;
     p.canopy.outward = 0.0;
     p.canopy.upward = 0.0;
