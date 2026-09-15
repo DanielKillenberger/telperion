@@ -2,6 +2,8 @@
 use crate::math::Transcendental;
 use crate::{Error, Result};
 pub const MAX_LEVELS: usize = 12;
+/// Top of the `generations` rail, and its neutral.
+pub const MAX_GENERATIONS: u32 = 6;
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct TwigAnatomy {
@@ -30,6 +32,12 @@ pub struct TwigParams {
     pub ratio_power: f64,
     pub internode_factor: f64,
     pub laterals: u32,
+    /// Twig-law generations of branching, 1 to 6. A lateral born at or past
+    /// this generation is a twig whatever the pipe model left its radius, so
+    /// the twig layer's depth is a row a table states rather than a
+    /// consequence of how thick the wood is. `MAX_LEVELS` stays behind it as
+    /// the structural stop the rail can no longer reach.
+    pub generations: u32,
     pub limb_radius: f64,
     pub reach: f64,
     pub angle: f64,
@@ -61,6 +69,9 @@ impl Default for TwigParams {
             ratio_power: 1.3,
             internode_factor: 2.5,
             laterals: 2,
+            // Neutral: the deepest shipped tree branches four generations, so
+            // the top of the rail reproduces every one of them to the byte.
+            generations: MAX_GENERATIONS,
             limb_radius: 0.1,
             reach: 0.2,
             angle: 45.0,
@@ -117,6 +128,12 @@ impl TwigParams {
         self.angle = self.angle.clamp(0.0, 90.0);
         self.angle_variation = self.angle_variation.clamp(0.0, 90.0);
         self.vigour_variation = self.vigour_variation.clamp(0.0, 0.95);
+        // A generation count outside the rail is a table with a mistake in
+        // it, not a value to round into range: the depth of the twig layer is
+        // what the table is choosing here.
+        if !(1..=MAX_GENERATIONS).contains(&self.generations) {
+            return Err(Error::InvalidInput("twig generations"));
+        }
         // The curtain's five rows are refused rather than clamped: a table
         // that asks for a droop or a separation outside the rail is a table
         // with a mistake in it, and the mistake is named.

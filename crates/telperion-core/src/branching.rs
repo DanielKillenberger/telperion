@@ -133,7 +133,12 @@ pub fn default_growth(e: Envelope, attractors: usize, step: f64) -> GrowthConfig
 }
 fn headroom(tree: &Tree, c: &GrowthConfig, t: TwigParams) -> usize {
     fn nodes_for(radius: f64, length: f64, generation: usize, t: TwigParams, ratio: f64) -> usize {
-        if radius <= t.twig.diameter / 2.0 || length < t.twig.internode_length {
+        // The row bounds the depth before any radius does, so the estimate
+        // counts the same generations the law grows.
+        if radius <= t.twig.diameter / 2.0
+            || length < t.twig.internode_length
+            || generation >= t.generations as usize
+        {
             return 1;
         }
         if generation >= MAX_LEVELS {

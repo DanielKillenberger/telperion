@@ -132,9 +132,11 @@ try {
     for (const [id, unit] of [['oregon-white-oak', 'leaf'], ['norway-spruce', 'needle'], ['european-beech', 'leaf'], ['silver-birch', 'leaf']]) {
       const specimen = window.compactSpeciesFixture(presetById(id));
       // Small valid fixtures retain the authored habit and element rows.
-      // Beech's leader internode is 2.2 m; a 4 m envelope is shorter than
-      // two internodes and grows no twigs. Six metres keeps the habit.
-      if (id === 'european-beech') specimen.skeleton.envelope.height = 6;
+      // Beech's leader internode and lateral spacing are both 2.2 m; a 4 m
+      // envelope is shorter than two internodes and grows no twigs. Round 6
+      // moved the limbs a station further apart, so the fixture needs twelve
+      // metres to keep the habit and reach the twig layer.
+      if (id === 'european-beech') specimen.skeleton.envelope.height = 12;
       // The birch stands on two stems, so each carries half the base through
       // the pipe model and its wood is thinner all the way out; at 4 m the
       // twig layer finds nothing long enough to clothe. Eight metres is the

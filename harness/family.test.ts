@@ -127,6 +127,7 @@ describe("toSkeletonParams", () => {
       limbRadius: DEFAULT_PARAMS.limbRadius,
       reach: DEFAULT_PARAMS.reach,
       laterals: 2,
+      generations: DEFAULT_PARAMS.twigGenerations,
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
       internodeFactor: DEFAULT_PARAMS.internodeFactor,

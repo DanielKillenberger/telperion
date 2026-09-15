@@ -31,12 +31,14 @@ const IDS: [&str; 7] = [
 /// length from 3.5 m to 2.5 m: its own table moved, not the neutral law.
 /// And once more at the merge with fn-38, whose clump puts the same table on
 /// two stems; every other table's neutral stood. Round 7 lifts that birch's
-/// crown base, which moves its tree with the row at any value.
+/// crown base, which moves its tree with the row at any value. The merge of
+/// fn-45 re-records the beech's: its own table moved, and its neutral is its
+/// identity pin's skeleton, as a table that hangs nothing must be.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
-    12852486373694172527,
+    1327615920853420528,
     1381814102884070673,
     12471405148157309180,
     14199367530911903060,

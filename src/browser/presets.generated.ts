@@ -150,6 +150,7 @@ export interface Family {
   angleVariation: number;
   curtainSeparation: number;
   divergence: number;
+  generations: number;
   hang: number;
   internodeFactor: number;
   laterals: number;
@@ -331,6 +332,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angleVariation": 10,
           "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
           "hang": 0,
           "internodeFactor": 2.5,
           "laterals": 2,
@@ -515,6 +517,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angleVariation": 10,
           "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
           "hang": 0,
           "internodeFactor": 2.5,
           "laterals": 4,
@@ -699,6 +702,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angleVariation": 10,
           "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
           "hang": 1,
           "internodeFactor": 2.5,
           "laterals": 2,
@@ -743,17 +747,17 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "clump": 5,
         "clumpSpan": 0.3,
         "divergence": 180,
-        "forwardLean": 0.2,
+        "forwardLean": 0.45,
         "leanRise": 0,
         "maxInstances": 4294967295,
         "outward": 0,
-        "scatter": 18,
-        "shootRadius": 0,
-        "size": 1,
-        "sizeVariation": 0.2,
+        "scatter": 30,
+        "shootRadius": 0.05,
+        "size": 1.1,
+        "sizeVariation": 0.12,
         "spacing": 0.006,
         "surfaceContact": 0,
-        "upward": 0
+        "upward": 0.3
       },
       "element": {
         "axialSegments": 8,
@@ -827,8 +831,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "veinScale": 7
       },
       "radii": {
-        "forkExponent": 2,
-        "lengthTaper": 0.6,
+        "forkExponent": 2.6,
+        "lengthTaper": 0.2,
         "trunkRadius": 0.014
       },
       "shellDepth": 1,
@@ -845,30 +849,30 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "envelope": {
-          "crownBase": 0.12,
-          "fullness": 0.62,
+          "crownBase": 0.05,
+          "fullness": 0.48,
           "height": 32,
           "irregularity": 0.18,
           "lobeScale": 0.7,
-          "shoulder": 1.8,
+          "shoulder": 1.5,
           "spread": 0.52
         },
         "growth": {
           "maxTurnPerStep": 35
         },
         "habit": {
-          "apicalDominance": 0.5,
+          "apicalDominance": 0.9,
           "attractorWeight": 0,
           "crookedness": 6,
-          "lateralLengthRatio": 0.46,
+          "lateralLengthRatio": 0.6,
           "lateralOrders": 3,
-          "lateralPitch": 38,
-          "lateralSpacing": 1.4,
-          "lateralsPerStation": 4,
+          "lateralPitch": 48,
+          "lateralSpacing": 2.2,
+          "lateralsPerStation": 2,
           "leaderInternode": 2.2,
           "pitchVariation": 10,
-          "risePrimary": 0.3,
-          "riseSecondary": 0,
+          "risePrimary": 0.45,
+          "riseSecondary": 0.1,
           "sheddingThreshold": 0,
           "stemDivergence": 0,
           "stemLean": 0,
@@ -879,14 +883,15 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "seed": 42,
         "step": 0.022,
         "twigs": {
-          "angle": 45,
+          "angle": 32,
           "angleVariation": 10,
           "curtainSeparation": 4,
-          "divergence": 137.508,
+          "divergence": 180,
+          "generations": 2,
           "hang": 0,
           "internodeFactor": 2.5,
-          "laterals": 5,
-          "lengthRatio": 0.4,
+          "laterals": 4,
+          "lengthRatio": 0.3,
           "limbRadius": 0.1,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
@@ -1067,6 +1072,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angleVariation": 10,
           "curtainSeparation": 9,
           "divergence": 137.508,
+          "generations": 6,
           "hang": 2.4,
           "internodeFactor": 2.5,
           "laterals": 8,
@@ -1251,6 +1257,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angleVariation": 10,
           "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
           "hang": 0,
           "internodeFactor": 3.5,
           "laterals": 4,
@@ -1435,6 +1442,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "angleVariation": 10,
           "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
           "hang": 0,
           "internodeFactor": 6,
           "laterals": 2,

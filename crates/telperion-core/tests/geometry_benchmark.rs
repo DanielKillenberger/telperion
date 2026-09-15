@@ -184,6 +184,14 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the twig layer publishes its curtain rows");
         }
+        // fn-45 made the twig layer's depth a row. The frozen file predates
+        // it and states none; the neutral is the top of the rail, which is the
+        // unbounded depth the frozen protocol was measured at.
+        emitted["skeleton"]["twigs"]
+            .as_object_mut()
+            .unwrap()
+            .remove("generations")
+            .expect("the twig layer publishes its generation count");
         // fn-39 gave the envelope its outline rows. The frozen file predates
         // them and states neither; the amplitude is zero there, which is the
         // smooth shell the frozen protocol was measured on.

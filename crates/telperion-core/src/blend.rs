@@ -116,6 +116,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         skeleton.habit.laterals_per_station, skeleton.habit.lateral_orders,
         skeleton.habit.stems,
         skeleton.twigs.twig.stations_per_internode, skeleton.twigs.laterals,
+        skeleton.twigs.generations,
         surface.radial_segments, surface.lobes,
         canopy.clump, element.cross_segments,
     );

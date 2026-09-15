@@ -69,7 +69,12 @@ const BANDS: [(&str, usize, usize); 7] = [
 // table stands on one stem, so the sweep walks all three.
 // fn-44 adds the sag, the fifth curtain row. The birch is the table that
 // states one, so the oak-to-birch walk moves it and the sweep walks it.
-const HELD: [&str; 30] = [
+// fn-45 makes the twig layer's depth a row. The beech states two generations
+// and every other table leaves it at the top of its rail, so the sweep walks
+// it and it is not held here.
+// Round 6b gives the beech its own local departure angle, and round 6c its
+// own two-ranked local divergence, so both leave this list.
+const HELD: [&str; 28] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
@@ -86,9 +91,7 @@ const HELD: [&str; 30] = [
     "/skeleton/growth/trunkHeight",
     "/skeleton/seed",
     "/skeleton/step",
-    "/skeleton/twigs/angle",
     "/skeleton/twigs/angleVariation",
-    "/skeleton/twigs/divergence",
     "/skeleton/twigs/limbRadius",
     "/skeleton/twigs/pendulousRadius",
     "/skeleton/twigs/ratioPower",

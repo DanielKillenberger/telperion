@@ -43,7 +43,37 @@
 //! placement and its instance count and leaves its skeleton hash alone.
 //! fn-34 round 5b re-pins the beech alone, on the owner's verdict that the
 //! round-5 beech "bends too much": its leader keeps its dominance, its limbs
-//! leave at 38 degrees and rise, and its axes are barely crooked.
+//! leave at 38 degrees and rise, and its axes are barely crooked. Round 5c
+//! re-pins it again on the owner's next note ("much more thick core trunks
+//! for almost the entire height"): half the taper per metre, a lower fork
+//! exponent, and the limbs at 42 degrees.
+//! fn-45 re-pins the beech alone, once, on the owner's round-5c note that
+//! the winter pair has "too many small branches ... Fewer larger branches
+//! compared to ours which has many more thinner ones directly attached to
+//! the trunk". Its fork exponent rises to 2.8, near Murray's law, so the core
+//! keeps its girth up through the crown; its scaffold throws two limbs a
+//! station instead of four, a station further apart and longer; and the twig
+//! layer states its own depth and drops from five laterals a station to
+//! three, which is where the nodes for the thicker core come from; and its
+//! leader keeps more of that girth past the first fork, at 0.57 apical
+//! dominance. Round 6b then reads the pair against the photograph again: the
+//! limbs leave at 32 degrees instead of 42 and every order of them rises, the
+//! local shoots follow their limb up at 32 degrees instead of standing off it
+//! at 45, the crown's widest point moves down its own depth, the per-metre
+//! taper halves again, and every shoot under a twentieth of the trunk's
+//! radius carries leaves, which doubles the leaf count without a node.
+//! Round 6c reads the leaf-on pair: the crown was a vase of co-dominant
+//! stems under a flat umbrella of leaves. The limbs leave at 58 degrees and
+//! their side branches are held level, the crown starts at a twentieth of the
+//! height and rounds at the top, the fork exponent comes down to 2.6 off the
+//! cliff 2.8 sat on, four twig laterals a station fill the crown and a twig a
+//! shade shorter pays for them, a local shoot's own shoots are two-ranked,
+//! and the leaves lean along their shoots, lie flat and are a tenth larger.
+//! The last round-6 re-pin lets the leader carry the crown to nine tenths of
+//! the height (apical dominance 0.9), so the limbs can leave at 48 degrees
+//! and rise over their run, and a twig length ratio of 0.30 pays for it. The oak, the
+//! spruce, the birch and the Two Trees are byte-identical: the generation row
+//! sits at the top of its rail on every other table, which reaches nothing.
 //! The merge of fn-38 and fn-44 on fn-34's integration branch re-pins the
 //! silver birch once more: its table now declares both the clump and the sag,
 //! so two stems carry a curtain that hangs, and neither branch's pin is that
@@ -53,6 +83,10 @@
 //! base, which is the sagging curtain's floor, rises from 0.015 to 0.10 of
 //! the height so the two stems stand clear under it, and a leaf every 60 mm
 //! of shoot rather than 36 lets the sky back through two stems' crowns.
+//! The merge of fn-45 into fn-34's integration branch moves no pin: the
+//! beech is fn-45's final tree, standing on the one stem and the neutral sag
+//! every table but the birch's leaves, and the birch is round 7's, at the
+//! generation row's neutral.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -114,17 +148,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 7026916,
-        wood_triangles: 13553160,
-        instances: 1624649,
+        wood_vertices: 5674634,
+        wood_triangles: 11000480,
+        instances: 2254119,
         min: [
-            -17.009743721766018,
+            -15.769178596833994,
             -0.12800000607967377,
-            -15.363683700561523,
+            -15.586756109897692,
         ],
-        max: [17.01350182476531, 31.999802439298183, 16.092353302018967],
-        skeleton: 12852486373694172527,
-        placement: 16138498328703486063,
+        max: [15.928642023382666, 31.92434744419099, 15.4443230306659],
+        skeleton: 1327615920853420528,
+        placement: 9931266495336970622,
         element: 15097586524950800877,
     },
     Pin {
