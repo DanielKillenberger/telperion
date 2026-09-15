@@ -31,6 +31,7 @@ fn small() -> TreeMesh {
                 index_count: 6,
                 largest_radius: 1.0,
             }],
+            dropped: 0,
         },
         foliage: Foliage {
             element: Element::default(),
@@ -58,6 +59,7 @@ fn crown(levels: usize, indices: usize, instances: usize) -> TreeMesh {
         bounds: None,
         runs: 0,
         run_table: Vec::new(),
+        dropped: 0,
     };
     mesh.foliage.element = Element {
         level_indices: vec![0; indices],
