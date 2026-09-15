@@ -96,7 +96,10 @@ pub fn hero_pose(bounds: Bounds, aspect: f64, ground_reach: f64) -> Camera {
 /// hero pose solves it against the top and bottom edges alone, so a fill is a
 /// height the way a photograph's is and a wide crown may run off the sides;
 /// a stated distance overrides the solve; the eye never sinks below the
-/// ground, and nothing else places it.
+/// ground, and nothing else places it. A shot framed by its fill aims across
+/// the middle of the bounds; a close-up at a stated distance aims at the stem
+/// on the tree's own axis, because a crown that leans or spreads to one side
+/// carries the middle of the bounds off the trunk the photograph was taken of.
 pub fn shot_pose(bounds: Bounds, aspect: f64, ground_reach: f64, shot: &Shot) -> Camera {
     let size = bounds.max - bounds.min;
     let centre = (bounds.min + bounds.max) * 0.5;
@@ -108,11 +111,12 @@ pub fn shot_pose(bounds: Bounds, aspect: f64, ground_reach: f64, shot: &Shot) ->
     } else {
         reach_along(bounds, back, 1.0 / shot.fill, None, shot.fov, aspect)
     };
-    let target = Vec3::new(
-        centre.x,
-        bounds.min.y + size.y * shot.target_height,
-        centre.z,
-    );
+    let (x, z) = if shot.distance > 0.0 {
+        (0.0, 0.0)
+    } else {
+        (centre.x, centre.z)
+    };
+    let target = Vec3::new(x, bounds.min.y + size.y * shot.target_height, z);
     let mut position = target + back * reach;
     position.y = position.y.max(0.0);
     Camera {
@@ -631,5 +635,21 @@ mod tests {
             camera.near <= 0.1,
             "a close-up keeps a near plane it can see past"
         );
+    }
+
+    #[test]
+    fn a_close_up_aims_at_the_stem_and_a_framed_shot_at_the_bounds() {
+        // The oak's bounds sit off its axis; a crown that spreads to one
+        // side must not carry a close-up of the trunk off the trunk.
+        let close = Shot {
+            target_height: 0.04,
+            distance: 1.2,
+            ..Default::default()
+        };
+        let camera = shot_pose(oak_bounds(), 1.0, crate::GROUND_REACH, &close);
+        assert_eq!((camera.target.x, camera.target.z), (0.0, 0.0));
+        let framed = shot_pose(oak_bounds(), 1.0, crate::GROUND_REACH, &Shot::default());
+        assert!((framed.target.x - (-0.3)).abs() < 1e-9);
+        assert!((framed.target.z - 0.8).abs() < 1e-9);
     }
 }
