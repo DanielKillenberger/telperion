@@ -26,6 +26,10 @@
 //! beech's twig is a shade shorter so the lobes' per-seed noise stays under
 //! the node ceiling. Every other table leaves the amplitude at zero, which
 //! is the smooth shell to the byte; the element pins do not move.
+//! fn-44 re-pins the silver birch alone: its table is the first to state a
+//! sag, so its hanging shoots turn toward straight down along their runs
+//! instead of holding the direction they departed with. Every other table
+//! leaves the sag at zero, which is the straight rod to the byte.
 //! fn-34 round 5b re-pins the beech alone, on the owner's verdict that the
 //! round-5 beech "bends too much": its leader keeps its dominance, its limbs
 //! leave at 38 degrees and rise, and its axes are barely crooked.
@@ -105,17 +109,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 1616192,
-        wood_triangles: 3132920,
-        instances: 761413,
-        min: [
-            -6.8248784154548785,
-            -0.07199999690055847,
-            -6.5026954825750005,
-        ],
-        max: [6.549354711566223, 14.489135589258993, 6.328546476364245],
-        skeleton: 3822858689754929182,
-        placement: 18296506987449200033,
+        wood_vertices: 1549172,
+        wood_triangles: 3001760,
+        instances: 662546,
+        min: [-6.823680588384457, -0.07199999690055847, -6.507552512371151],
+        max: [6.554040834235442, 14.489754625775166, 6.351040668532664],
+        skeleton: 11729374815184080364,
+        placement: 2050683600321770303,
         element: 1872173242819532549,
     },
 ];

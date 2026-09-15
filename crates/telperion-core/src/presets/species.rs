@@ -136,6 +136,13 @@ pub(super) fn silver_birch(p: &mut Family) {
     p.skeleton.twigs.pendulous_length = 3.5;
     p.skeleton.twigs.pendulous_radius = 1.0;
     p.skeleton.twigs.curtain_separation = 9.0;
+    // And the curtain hangs: in S-WHOLE and S-BARE the shoots arch out of the
+    // crown and fall nearly vertical over most of their length, so the row
+    // states the whole of the way there. A birch's shoot runs only a share of
+    // its pendulous length before the branch law stops it, and a shoot that
+    // runs less has turned less, so anything short of the row's own end
+    // leaves the curtain standing out of the crown rather than falling from it.
+    p.skeleton.twigs.sag = 1.0;
     p.radii.trunk_radius = 0.01;
     p.element = ElementParams {
         length: 0.055,

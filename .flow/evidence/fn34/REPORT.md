@@ -327,3 +327,71 @@ statistic fell as the ascending limbs fill the shell more evenly. The
 leaf-on crown remains a scatter of dark leaves with sky through it, which the
 gap table assigns to appearance. No visual pass is awarded; the pairs are in
 `round5b-beech/stills.json` and on the judging page.
+
+## Round 6b, fn-44: the curtain hangs (2026-09-15)
+
+The owner rejected the round-5 birch on one thing: "I think the worst part is
+the hanging curtains are not affected by gravity or smth. It's clearly wrong."
+fn-37 had made the curtain reachable as rows, but a curtain lateral departed in
+one fixed direction - across the crown and down by a droop - and then ran
+straight for its pendulous length, so every hanging shoot was a rod pointing
+sideways-and-down. fn-44 gives the twig table a fifth row, `sag`: how far
+toward straight down a hanging shoot's course has turned by the end of its
+pendulous length, spread along the run as an arc steepest where the shoot
+leaves the wood that bears it, which is the shape a slender weighted stem
+takes. Weight is not a turn a growing tip steers, so the branch law's own turn
+limit does not bound it; the departure droop, the floor and the separation are
+fn-37's and unchanged, and neutral is the straight rod every other table keeps.
+
+The birch's table states the row's own end, a sag of 1: in both photographs the
+shoots arch out of the crown and fall nearly vertical over most of their
+length. Nothing else in the table moved and the birch's identity pin is
+re-recorded once with the reason stated.
+
+Photograph / round 5 → round 6b:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.673 → 0.673 | 0.15 / 0.132 → 0.135 | 0.46 / 0.430 → 0.427 | 91 / 159 → 161 | 0.17 / 0.110 → 0.107 |
+| S-BARK | 1.07 / 1.335 → 1.335 | 1.00 / 0.00 → 0.00 | 0.47 / 0.274 → 0.271 | 92 / 167 → 167 | 0.13 / — → — |
+| S-WHOLE | 0.85 / 0.906 → 0.906 | 0.08 / 0.141 → 0.141 | 0.44 / 0.578 → 0.566 | 83 / 78 → 87 | 0.22 / 0.114 → 0.116 |
+
+Three decimal places this round, because it barely moves them: the
+silhouette's box is identical on all three references. That is the honest
+result rather than a disappointing one - the crown's outer extent is the
+envelope's shell, and what the sag changes is how the wood inside that shell
+lies. The two numbers that read inside the outline both moved toward the
+photograph: the leaf-on crown thinned from 0.578 to 0.566 occupied against the
+photograph's 0.443, and the whole tree's colour under the matched sun went from
+5 below the photograph to 4 above it (78 → 87 against 83). The bare crown base
+moved 0.003 toward the photograph's 0.15.
+
+The cost, at the first fixed seed: 491,884 retained leaves and 2,308,800 wood
+triangles against round 5's 591,007 and 2,443,040 - a sixth of the crown, given
+up because a shoot bent toward the ground spends its length against the
+clearance rule and stops above its floor sooner than a rod aimed out across the
+crown does. No growth hit the node cap and the fixed and fresh numeric protocol
+passes all forty-eight cases (`measure/protocol-fn44/`).
+
+What the host read on the S-WHOLE and S-BARE pairs, within the four-image rule:
+the bare tree now carries a fringe of fine wood falling from the underside of
+every limb, where round 5 had it standing out of them; the limbs rise and the
+twig-scale wood hangs off them, which is the photograph's architecture. The
+leaf-on crown is still a dome of frosted shoots rather than the photograph's
+hanging veils, and two known gaps account for that: the fine shoots take the
+bark row's white (fn-40's young-shoot colour) and the crown is one upright stem
+(fn-38's).
+
+One measured limit the owner should see before judging. The row's promise is
+over the pendulous length, and the birch's hanging shoots do not run it: at the
+first fixed seed the 6,405 shoots the sag reaches run 1.07 m on average, of the
+3.5 m the table allows, so they spend only the first third of the arc. Their
+first step lies about 19 degrees below horizontal and their last about 34
+degrees below it, where the same shoot over a full pendulous run would end
+vertical. Making them hang further is not another sag - the row is already at
+its end - but a shorter pendulous length, which is fn-37's row and the owner's
+call, since it also steepens the departure droop and shortens the shoots.
+
+No visual pass is awarded. The round-6b pairs are recorded by sha256 in
+`round6b-fn44/stills.json` with `visual_status: unassessed`; the owner judges
+them on the judging page and records the verdict in fn-34.

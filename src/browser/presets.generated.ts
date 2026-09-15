@@ -1058,7 +1058,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "pendulousRadius": 1,
           "ratioPower": 1.3,
           "reach": 0.2,
-          "sag": 0,
+          "sag": 1,
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.003,

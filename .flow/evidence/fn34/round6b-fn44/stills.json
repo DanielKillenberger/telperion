@@ -1,0 +1,37 @@
+{
+  "round": "6b",
+  "rendered_at": "2026-09-15",
+  "commit_note": "fn-44 pendulous shoots hang under gravity: the silver birch's table states a sag of 1, so a hanging shoot's course turns toward straight down along its run; matched stills re-rendered at the first fixed seed; pairs on disk under the ignored measure/pairs-fn44/, recorded here by sha256",
+  "pairs": [
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "3aa58bcfadb036f32abb5a1e147cb2d0bcab8378d79b877f26724d5a4f6f6918",
+      "still_sha256": "4c8d3cf6cd616bf12c84bca2f39bb74e1a7f663ffad1d485ca3c2554a951e25f",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "7a100e883e441150e5024f33ea1e8228ba548cadad6a6927d68802da0d8e2687",
+      "still_sha256": "96e1b1c124730280b24072db8680ae224b5f89487a71dbf7bea85da63338fb4d",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1-S",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-fn44/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "5e2ec4bf086da37ab2575e7a9cb19febfe18a2387fed8e0bcaacde9f0ff5bd3e",
+      "still_sha256": "8dfc0bf2a0f711ccee6933da8e4c9a914fab4010c26973c738e2b694747d0f3a",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}
