@@ -180,3 +180,30 @@ opened first to fund the Opus reach under R5, or an R5 miss is accepted; R2's
 young-age diameter reference, still open since round 4. On acceptance the host
 re-records the clay pin, merges the candidate onto fn-31, deletes the two
 worktrees, runs the gates and opens the PR with fn-30 and fn-31.
+
+## Owner verdict on R2 — 2026-09-15
+
+The owner opened the round-7 harness at the mature oak and judged the trunk:
+"it's incredibly thin at mature ages. even at 166? what's wrong with this?
+Surely the trunk should be thicker than the comparison human nob thing?" and,
+on the 30 cm breast-height diameter the rule reaches at 166 years, "surely that
+30cm number isn't true for trees 30 years old? how did we get to this?" The
+cause traced to fn-30's composed diameter reference: a 7.2 cm stand-grown
+yield-table anchor at age 30 (Jüttner 1955, Quercus robur/petraea, site class I)
+with a straight line to zero before it and Gould 2011's large-tree increment
+integrated after it, which fn-30's report itself calls a composition choice and
+not a measurement of an open-grown Garry oak. fn-31's rounds fitted the
+thickening traits to that curve within 15 percent at 26.7, 56.1 and 112 years,
+and defended it since; it also held the five-year spruce whorls low in round 4
+and keeps the mature spruce thin. Against Stein 1990's open-grown 60 to 100 cm
+at 15 to 27 m and six to eight rings per centimetre, the model's oak is two to
+four times too thin at every age (5.9 cm at 26.7 years, 22 cm at 112, 30 cm at
+166; the one-shot envelope oak is 84 cm at the same height).
+
+**R2 verdict: the composed young-age diameter reference is rejected. Stein's
+mature open-grown figures anchor the diameter judgment, with an open-grown
+young anchor to be sourced, for both species.** Owner: "alright go". Next: a
+research pass sources open-grown diameter-at-age data for Quercus garryana and
+Picea abies with URLs and checksums, then round 8 on the candidate branch refits
+the thickening traits to the new curve, re-measures build cost against R5, and
+re-renders the strips. R1 and the crown fork stay open beside it.
