@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
 import { createHash, randomInt } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { resolve, join, dirname } from 'node:path';
+import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /* ------------------------------------------------------------------ *
@@ -29,6 +29,9 @@ if (args.includes('--help')) {
   --capture-only              Reuse measurements in --output; do not regenerate
   --case ID                   Capture only this case (partial, never protocol pass)
   --timeout-ms N              Per native/capture process limit (default 300000)
+  --quick PRESET              Tuning look: the preset's matched stills at the
+                              first fixed seed, no twins, no protocol, then
+                              the photograph pairs (npm run species:quick)
 Build both examples first: npm run species:qa does it. Stills come from
 target/release/examples/headless, which needs a GPU that is not a software
 fallback; it names the condition on stderr and exits non-zero otherwise.
@@ -42,10 +45,10 @@ Exit 1 for failed/missing required evidence or unassessed visual results.
 Human inspection goes in REPORT.md; this runner never awards visual approval.`);
   process.exit(0);
 }
-const known = new Set(['--draw-seeds', '--seeds', '--profiles', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms']);
+const known = new Set(['--draw-seeds', '--seeds', '--profiles', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms', '--quick']);
 for (let i = 0; i < args.length; i++) {
   if (!known.has(args[i])) throw Error(`Unknown option ${args[i]}`);
-  if (['--seeds', '--profiles', '--output', '--case', '--timeout-ms'].includes(args[i])) {
+  if (['--seeds', '--profiles', '--output', '--case', '--timeout-ms', '--quick'].includes(args[i])) {
     if (!args[++i] || args[i].startsWith('--')) throw Error('Missing option value');
   }
 }
@@ -120,6 +123,36 @@ const profiles = await json(profilesPath);
 const referencesOf = {};
 for (const p of profiles.profiles) {
   try { referencesOf[p.id] = (await json(join(dirname(profilesPath), p.id, 'references.json'))).references.filter(r => r.shot); } catch { referencesOf[p.id] = []; }
+}
+/* The tuning look: what a value trial needs to be seen and nothing the
+   evidence needs. The same matched stills at the same height as a full round,
+   so what is judged here is what the round will show; no twin, no fixed
+   views, no protocol, no provenance. A round still runs the full runner. */
+if (option('--quick')) {
+  const preset = option('--quick');
+  const records = referencesOf[preset];
+  if (!records?.length) throw Error(`No matched reference records for ${preset}`);
+  // Under the cohort's ignored measure/ directory, so a look is never evidence.
+  const out = resolve(option('--output') ?? join(dirname(profilesPath), 'measure', 'quick', preset));
+  await mkdir(out, { recursive: true });
+  const seed = profiles.protocol.fixed_seeds[0];
+  const id = `${preset}-${seed}`;
+  const runs = [];
+  // One at a time: the GPU is shared with whatever else is rendering.
+  for (const record of records) {
+    const run = await capture({ id, preset, seed, reference: record.id, twin: false, shot: record.shot,
+      view: record.shot.foliage === 'hidden' ? 'bare' : 'whole',
+      size: `${Math.round(MATCHED_HEIGHT * record.shot.aspect[0] / record.shot.aspect[1])}x${MATCHED_HEIGHT}`,
+      png: join(out, `${id}-${record.id}.png`) });
+    console.log(run.reference, run.capture_status, run.report);
+    runs.push(run);
+  }
+  if (runs.some(run => run.capture_status !== 'pass')) process.exit(1);
+  const pairs = await command('uv', ['run', 'scripts/compare-references.py', '--pairs-only', '--references',
+    join(dirname(profilesPath), preset, 'references.json'), '--captures', out, '--refs', join('.refs', basename(dirname(profilesPath)), preset),
+    '--case', id, '--out', out]);
+  process.stdout.write(pairs.stdout); process.stderr.write(pairs.stderr);
+  process.exit(pairs.code === 0 ? 0 : 1);
 }
 if (args.includes('--draw-seeds')) {
   const manifest = { drawn_at: new Date().toISOString(), calibration_commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), method: 'OS cryptographic random u32; reject only fixed/duplicate seeds', fixed: profiles.protocol.fixed_seeds, fresh: {} };

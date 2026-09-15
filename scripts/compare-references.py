@@ -19,6 +19,7 @@ verdict.
 
   uv run scripts/compare-references.py --references FILE --captures DIR \
       --refs DIR --case ID --out DIR
+  uv run scripts/compare-references.py ... --pairs-only   (a quick look: pairs, no numbers)
   uv run scripts/compare-references.py --self-test
 """
 from __future__ import annotations
@@ -205,13 +206,18 @@ def run(args: argparse.Namespace) -> int:
             raise SystemExit(f"{record['id']}: photograph bytes do not match asset_sha256")
         stem = Path(args.captures) / f"{args.case}-{record['id']}"
         still_path, twin_path = stem.with_suffix(".png"), Path(f"{stem}-twin.png")
-        for path in (still_path, twin_path):
+        for path in (still_path,) if args.pairs_only else (still_path, twin_path):
             if not path.exists():
                 raise SystemExit(f"{record['id']}: still missing at {path}")
-        photo, still, twin = load(photo_path), load(still_path), load(twin_path)
-        result = compare(record, photo, still, twin)
+        photo, still = load(photo_path), load(still_path)
         pair_path = out / f"{args.case}-{record['id']}-pair.png"
         pair(crop(photo, shot.get("crop")), still, f"{record['id']}  |  {args.case}  |  {shot['foliage']}", pair_path)
+        if args.pairs_only:
+            # A quick look while tuning: the pair to see, no twin, no numbers.
+            written.append(pair_path)
+            print(record["id"], pair_path)
+            continue
+        result = compare(record, photo, still, load(twin_path))
         result["pair"] = {"path": str(pair_path), "sha256": sha256(pair_path)}
         result["still_sha256"] = sha256(still_path)
         (out / f"{args.case}-{record['id']}-compare.json").write_text(json.dumps(result, indent=2) + "\n")
@@ -283,6 +289,7 @@ def main() -> int:
     parser.add_argument("--refs")
     parser.add_argument("--case")
     parser.add_argument("--out")
+    parser.add_argument("--pairs-only", action="store_true", help="write the pairs only: no twin, no measurement")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
