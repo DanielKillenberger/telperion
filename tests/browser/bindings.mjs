@@ -135,6 +135,11 @@ try {
       // Beech's leader internode is 2.2 m; a 4 m envelope is shorter than
       // two internodes and grows no twigs. Six metres keeps the habit.
       if (id === 'european-beech') specimen.skeleton.envelope.height = 6;
+      // The birch stands on two stems, so each carries half the base through
+      // the pipe model and its wood is thinner all the way out; at 4 m the
+      // twig layer finds nothing long enough to clothe. Eight metres is the
+      // smallest fixture that keeps a leaf on it.
+      if (id === 'silver-birch') specimen.skeleton.envelope.height = 8;
       specimen.skeleton.growth.maxNodes = 12000;
       specimen.canopy.maxInstances = 12000;
       specimen.skeleton.twigs.twig.internodeLength = 0.04;

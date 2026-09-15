@@ -64,10 +64,10 @@ const BANDS: [(&str, usize, usize); 7] = [
 // the curtain's shoot separation differ between the oak, the spruce and the
 // birch, so the sweep walks all three. The radius threshold is 1 on every
 // shipped row - every shoot under a descending limb hangs - and is held here.
-// fn-38 makes the clump three habit rows. Every shipped table stands on one
-// stem, where the divergence and the lean between stems reach nothing, so all
-// three are held here until a species declares a clump of its own.
-const HELD: [&str; 33] = [
+// fn-38 makes the clump three habit rows, and the silver birch is the table
+// that declares one: two stems, their bearings and their lean. Every other
+// table stands on one stem, so the sweep walks all three.
+const HELD: [&str; 30] = [
     "/canopy/maxInstances",
     "/element/card",
     "/element/cup",
@@ -82,9 +82,6 @@ const HELD: [&str; 33] = [
     "/skeleton/growth/maxNodes",
     "/skeleton/growth/stepDistance",
     "/skeleton/growth/trunkHeight",
-    "/skeleton/habit/stemDivergence",
-    "/skeleton/habit/stemLean",
-    "/skeleton/habit/stems",
     "/skeleton/seed",
     "/skeleton/step",
     "/skeleton/twigs/angle",

@@ -111,8 +111,12 @@ impl Builder<'_> {
         // The envelope has no width below the crown base, so it constrains the
         // bole's height and nothing else there; a crown axis never enters that
         // region at all. An axis that already stands outside the silhouette,
-        // as a leaning bole does where it meets the crown, may close on it.
-        let held = self.envelope.contains(start, TOLERANCE, self.config.seed);
+        // as a leaning bole does where it meets the crown, may close on it -
+        // and the root is such a point for every stem that leaves it, since
+        // the shell has no width there at all. An upright first edge stands
+        // on the axis, where the shell contains it at every height it reaches,
+        // so no tree that grew one stem straight up moves by this.
+        let held = parent != 0 && self.envelope.contains(start, TOLERANCE, self.config.seed);
         if (1..=8).any(|k| {
             let p = start.lerp(position, k as f64 / 8.0);
             let bole = p.y < self.config.trunk_height;

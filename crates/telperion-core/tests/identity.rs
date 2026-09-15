@@ -26,6 +26,12 @@
 //! beech's twig is a shade shorter so the lobes' per-seed noise stays under
 //! the node ceiling. Every other table leaves the amplitude at zero, which
 //! is the smooth shell to the byte; the element pins do not move.
+//! fn-38 re-pins the silver birch once more, and only the silver birch: its
+//! table is the first to declare a clump, two stems parting at the ground a
+//! hundred and ten degrees apart in bearing and a dozen degrees out of
+//! vertical apiece, against the two stems of the S-WHOLE and S-BARE
+//! photographs. Every other table leaves the count at one stem, which is the
+//! single upright trunk to the byte, and the element pin does not move.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -102,17 +108,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 1616192,
-        wood_triangles: 3132920,
-        instances: 761413,
-        min: [
-            -6.8248784154548785,
-            -0.07199999690055847,
-            -6.5026954825750005,
-        ],
-        max: [6.549354711566223, 14.489135589258993, 6.328546476364245],
-        skeleton: 3822858689754929182,
-        placement: 18296506987449200033,
+        wood_vertices: 2453456,
+        wood_triangles: 4751080,
+        instances: 1144930,
+        min: [-6.589704273743679, -0.07199999690055847, -6.340485883503911],
+        max: [6.419847152370051, 13.821733561928935, 6.551118729076291],
+        skeleton: 7941728224000018890,
+        placement: 8864465780689807921,
         element: 1872173242819532549,
     },
 ];

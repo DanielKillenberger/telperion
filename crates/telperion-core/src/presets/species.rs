@@ -100,9 +100,14 @@ pub(super) fn silver_birch(p: &mut Family) {
         attractor_weight: 0.0,
         twig_tip_taper: 0.35,
         shedding_threshold: 0.0,
-        stems: 1,
-        stem_divergence: 0.0,
-        stem_lean: 0.0,
+        // The photograph's birch stands on two stems that part at the ground,
+        // one of them leaning out of the pair. Two stems wide apart in bearing
+        // so the split reads from a camera set anywhere but along it, and a
+        // dozen degrees out of vertical apiece - a birch clump opens slowly,
+        // it does not fall away from itself.
+        stems: 2,
+        stem_divergence: 110.0,
+        stem_lean: 12.0,
     };
     // The curtain is what reaches the ground, so the envelope has to leave it
     // somewhere to reach: almost no bare trunk, a narrower crown carrying its

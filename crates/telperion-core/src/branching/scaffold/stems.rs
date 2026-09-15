@@ -82,7 +82,7 @@ pub(in crate::branching) fn placed(params: &SkeletonParams, config: &GrowthConfi
     }
     let unit = growth_unit(params.habit, config, 0);
     for (k, stem) in stems.iter().enumerate() {
-        if !first_edge_fits(params, config, stem.heading * unit) {
+        if !first_edge_fits(params, stem.heading * unit) {
             return Err(Error::InvalidValue {
                 field: "stem outside the crown envelope",
                 value: format!("stem {k}"),
@@ -102,12 +102,12 @@ pub(in crate::branching) fn placed(params: &SkeletonParams, config: &GrowthConfi
 }
 
 /// The scaffold's own gate on an edge, asked of the first one a stem would
-/// take: the envelope has no width below the crown base, so it constrains the
-/// bole's height and nothing else there.
-fn first_edge_fits(params: &SkeletonParams, config: &GrowthConfig, p: Vec3) -> bool {
-    p.y >= -TOLERANCE
-        && p.y <= params.envelope.height + TOLERANCE
-        && (p.y < config.trunk_height || params.envelope.contains(p, TOLERANCE, params.seed))
+/// take. The shell has no width at the root, so a stem leaves it the way a
+/// leaning bole meets the crown - from outside, free to close on it - and what
+/// is left to ask is whether the first unit is inside the tree's own height at
+/// all. A shell that has no room for it is a shell the stem cannot start in.
+fn first_edge_fits(params: &SkeletonParams, p: Vec3) -> bool {
+    p.y >= -TOLERANCE && p.y <= params.envelope.height + TOLERANCE
 }
 
 #[cfg(test)]

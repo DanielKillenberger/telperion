@@ -3,7 +3,8 @@
 //! byte — then the rails, the stems inside the shell and apart from one
 //! another, the trunk run each of them is swept as, the base they share
 //! through the pipe model, the diameter proxy that names how many there were,
-//! the walk from one stem to two, and the year a stem's own root is born.
+//! the walk from one stem to two, and the stem root the chronicle never
+//! sheds.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     blend, branching, mesh, presets::Family, presets::Preset, surface, tree::NodeKind, Error,
@@ -61,10 +62,12 @@ fn stem_roots(tree: &telperion_core::tree::Tree) -> Vec<usize> {
 fn one_stem_is_every_shipped_tree_exactly_as_it_was() {
     // The count's neutral value is inert, and so are the two rows that say
     // how a clump stands: at one stem there is no neighbour to stand apart
-    // from, so neither reaches anything. Every mesh a shipped table builds is
-    // the mesh it built before the clump was a row.
+    // from, so neither reaches anything. Every table is read at the neutral
+    // count, the birch's own clump included, so the rule is asserted on all
+    // seven alike; what each table builds as it is shipped is pinned in the
+    // identity photograph beside this.
     for preset in PRESETS {
-        let base = family(preset, |_| {});
+        let base = family(preset, |f| f.skeleton.habit.stems = 1);
         let bytes = |f: &Family| {
             let m = mesh::build(f, mesh::Detail::Full).expect("the table builds a tree");
             (
@@ -79,8 +82,8 @@ fn one_stem_is_every_shipped_tree_exactly_as_it_was() {
             )
         };
         let was = bytes(&base);
-        assert_eq!(base.skeleton.habit.stems, 1, "{preset:?} is not neutral");
         let dialled = family(preset, |f| {
+            f.skeleton.habit.stems = 1;
             f.skeleton.habit.stem_divergence = 90.0;
             f.skeleton.habit.stem_lean = 30.0;
         });
@@ -368,24 +371,30 @@ fn the_walk_from_one_stem_to_two_opens_the_clump_rather_than_switching_it() {
 }
 
 #[test]
-fn a_stems_own_root_is_born_with_the_root_and_never_shed() {
-    // Node zero is year zero, and a stem's own root node is the base of a
-    // trunk rather than the first year's growth, so it carries the same year
-    // and the chronicle keeps it however the crown is thinned.
+fn a_stems_own_root_is_never_shed() {
+    // A stem's own root node is the base of a trunk rather than a shoot: the
+    // chronicle thins the crown around it and never takes it, or the tree
+    // would be standing on nothing. It is born in the slice it grew in, like
+    // every other node - a read of the tree at an age is the tree a fresh
+    // build of that age grows, and a fresh build at year zero has grown
+    // nothing, so a stem stamped with the root's own year would be in the one
+    // and not the other.
     let mut f = clump(2);
     f.age = 12.0;
     f.skeleton.growth.max_nodes = Some(WALK_NODES);
     let mut specimen = branching::Specimen::build(&f).expect("the clump starts growing");
     specimen.advance(6.0).expect("the clump grows on");
     let tree = specimen.tree();
-    for &i in &stem_roots(tree) {
-        assert_eq!(
-            tree.nodes[i].shoot.birth_year, 0.0,
-            "a stem's root was born after the root it leaves"
-        );
+    let roots = stem_roots(tree);
+    assert_eq!(roots.len(), 2, "the clump lost a stem");
+    for &i in &roots {
         assert_eq!(
             tree.nodes[i].shoot.death_year, None,
             "a stem's root was shed"
+        );
+        assert!(
+            tree.nodes[i].shoot.birth_year > 0.0,
+            "a stem's root claims the root's own year"
         );
     }
 }
