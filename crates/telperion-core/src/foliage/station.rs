@@ -142,7 +142,7 @@ fn stations(
     Ok(stations)
 }
 
-fn reserve(out: &mut Instances, stations: usize, p: CanopyParams) -> Result<()> {
+pub(super) fn reserve(out: &mut Instances, stations: usize, p: CanopyParams) -> Result<()> {
     let total = out
         .matrices
         .len()
@@ -163,7 +163,7 @@ fn reserve(out: &mut Instances, stations: usize, p: CanopyParams) -> Result<()> 
 /// The leaf's own axis: the radial off the wood, leaned along the shoot by
 /// forward lean and by lean rise where the radial faces up, then carried
 /// outward from the trunk and upward by the canopy's own terms.
-fn axis(point: Vec3, radial: Vec3, tangent: Vec3, p: CanopyParams) -> Vec3 {
+pub(super) fn axis(point: Vec3, radial: Vec3, tangent: Vec3, p: CanopyParams) -> Vec3 {
     let outward = Vec3::new(point.x, 0., point.z);
     let mut axis = radial + tangent * (p.forward_lean + p.lean_rise * radial.y.max(0.));
     if outward.length_squared() > 1e-12 {
@@ -176,7 +176,7 @@ fn axis(point: Vec3, radial: Vec3, tangent: Vec3, p: CanopyParams) -> Vec3 {
     axis.normalized()
 }
 
-fn matrix(
+pub(super) fn matrix(
     point: Vec3,
     mut axis: Vec3,
     tangent: Vec3,

@@ -11,6 +11,11 @@ export interface Family {
   outward: number;
   scatter: number;
   shootRadius: number;
+  shortShootLeaves: number;
+  shortShootLength: number;
+  shortShootRadius: number;
+  shortShootSpacing: number;
+  shortShootSpread: number;
   size: number;
   sizeVariation: number;
   spacing: number;
@@ -202,6 +207,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0.6,
         "scatter": 18,
         "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.35,
         "spacing": 0.006,
@@ -391,6 +401,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0,
         "scatter": 18,
         "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.2,
         "spacing": 0.006,
@@ -580,6 +595,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0,
         "scatter": 18,
         "shootRadius": 0.025,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.2,
         "spacing": 0.006,
@@ -769,6 +789,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0,
         "scatter": 30,
         "shootRadius": 0.05,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1.1,
         "sizeVariation": 0.12,
         "spacing": 0.006,
@@ -958,6 +983,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0,
         "scatter": 18,
         "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.2,
         "spacing": 0.006,
@@ -1147,6 +1177,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0.42,
         "scatter": 14,
         "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.28,
         "spacing": 0.0045,
@@ -1336,6 +1371,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "outward": 0.72,
         "scatter": 22,
         "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1.5,
         "sizeVariation": 0.4,
         "spacing": 0.0065,

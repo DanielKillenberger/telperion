@@ -1,5 +1,5 @@
 use super::{
-    range,
+    range, short_shoots,
     station::{place_run, Run},
     Instances,
 };
@@ -33,6 +33,19 @@ pub struct CanopyParams {
     pub scatter: f64,
     pub size: f64,
     pub size_variation: f64,
+    /// Metres between short shoots along limb and branch wood: spurs a few
+    /// centimetres long, each ending in a cluster of leaves. Zero grows none.
+    pub short_shoot_spacing: f64,
+    /// Wood thicker than this fraction of the stem's radius carries no short
+    /// shoot, and neither does twig wood or anything below the crown base.
+    pub short_shoot_radius: f64,
+    /// Metres from the bark to the cluster a short shoot carries.
+    pub short_shoot_length: f64,
+    /// Leaves in one short shoot's cluster, 1 to 8.
+    pub short_shoot_leaves: u32,
+    /// Degrees either side of its short shoot's bearing a cluster's leaves
+    /// fan across, held level: 90 is a half circle, 0 stacks them.
+    pub short_shoot_spread: f64,
     /// Hard total budget. Exceeding it returns an error, never partial foliage.
     #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::index"))]
     pub max_instances: usize,
@@ -53,6 +66,13 @@ impl Default for CanopyParams {
             scatter: 18.,
             size: 1.,
             size_variation: 0.35,
+            // Neutral: no short shoot grows until a table states a spacing.
+            // The other four are a beech's spur, so a spacing alone reads.
+            short_shoot_spacing: 0.,
+            short_shoot_radius: 0.15,
+            short_shoot_length: 0.04,
+            short_shoot_leaves: 3,
+            short_shoot_spread: 45.,
             max_instances: usize::MAX,
         }
     }
@@ -133,6 +153,7 @@ fn place_impl(
     if p.clump > 64 {
         return Err(Error::InvalidInput("foliage clump"));
     }
+    short_shoots::validate(&p)?;
     if let Some(t) = twig {
         range(t.internode_length, 1e-6, 1e6, "twig internode")?;
         if !(1..=64).contains(&t.stations_per_internode) {
@@ -179,6 +200,9 @@ fn place_impl(
             &mut out,
         )?;
     }
+    // A second source over the limbs and branches: short shoots draw from
+    // their own wood's stream, so the leaves above keep every byte.
+    short_shoots::clothe(tree, envelope, seed, &p, &mut out)?;
     Ok(out)
 }
 fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {
