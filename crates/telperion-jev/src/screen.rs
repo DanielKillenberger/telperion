@@ -133,6 +133,75 @@ pub fn format_report(report: &ScreenReport) -> String {
     out
 }
 
+pub(crate) struct ComposedKind {
+    pub kind: Option<String>,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub elapsed_ms: u64,
+}
+
+/// Screen each candidate sentence in a citation section. Site-quality wins
+/// over a measured size so a restated criterion cannot pass.
+pub(crate) fn compose_kind(
+    transport: &dyn Transport,
+    key: &str,
+    ledger_dir: &Path,
+    source: &SourceRef,
+    section: &str,
+) -> Result<ComposedKind, CallerError> {
+    let questions = screen_questions();
+    let found = candidate_sentences(section);
+    let parts: Vec<(String, String)> = if found.is_empty() {
+        vec![(section.to_string(), section.to_string())]
+    } else {
+        found.into_iter().map(|c| (c.sentence, c.context)).collect()
+    };
+    let mut kinds = Vec::new();
+    let mut input_tokens = 0;
+    let mut output_tokens = 0;
+    let mut elapsed_ms = 0;
+    for (sentence, context) in parts {
+        let screen_state = json!({
+            "species": "",
+            "source": {"id": source.id, "url": source.url},
+            "candidate": {"sentence": sentence, "context": context},
+        });
+        let entry = evaluate(
+            transport,
+            key,
+            EvaluateRequest {
+                tool: "screen",
+                source: Some(source),
+                state: &screen_state,
+                questions: &questions,
+                ledger_dir,
+            },
+        )?;
+        accumulate(
+            &entry,
+            &mut input_tokens,
+            &mut output_tokens,
+            &mut elapsed_ms,
+        );
+        if let Some(kind) = entry.choice("kind") {
+            kinds.push(kind);
+        }
+    }
+    let kind = if kinds.iter().any(|kind| kind == "site_quality_criterion") {
+        Some("site_quality_criterion".into())
+    } else if kinds.iter().any(|kind| kind == "measured_size_at_age") {
+        Some("measured_size_at_age".into())
+    } else {
+        kinds.into_iter().next()
+    };
+    Ok(ComposedKind {
+        kind,
+        input_tokens,
+        output_tokens,
+        elapsed_ms,
+    })
+}
+
 pub(crate) fn accumulate(
     entry: &LedgerEntry,
     input: &mut u64,

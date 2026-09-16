@@ -8,8 +8,8 @@ use serde_json::json;
 use crate::caller::{evaluate, CallerError, EvaluateRequest, HttpRequest, Transport};
 use crate::extract::{key_terms, section_for_terms, visible_text};
 use crate::ledger::SourceRef;
-use crate::questions::{citation_questions, screen_questions, thresholds};
-use crate::screen::accumulate;
+use crate::questions::{citation_questions, thresholds};
+use crate::screen::{accumulate, compose_kind};
 use crate::sha256_hex;
 
 #[derive(Debug, Clone)]
@@ -167,7 +167,6 @@ pub fn cite(
     loads: &[SourceLoad],
 ) -> Result<CiteReport, CallerError> {
     let questions = citation_questions();
-    let screen_q = screen_questions();
     let cuts = thresholds();
     let mut rows = Vec::new();
     let mut input_tokens = 0;
@@ -237,32 +236,15 @@ pub fn cite(
                     .unwrap_or_else(|| "says_nothing".into());
                 let confidence = entry.confidence("relation").unwrap_or(0.0);
 
-                let mut kind = None;
-                if carries_number(&claim.claim) {
-                    let screen_state = json!({
-                        "species": "",
-                        "source": {"id": source.id, "url": source.url},
-                        "candidate": {"sentence": section, "context": section},
-                    });
-                    let screen_entry = evaluate(
-                        transport,
-                        key,
-                        EvaluateRequest {
-                            tool: "screen",
-                            source: Some(&source),
-                            state: &screen_state,
-                            questions: &screen_q,
-                            ledger_dir,
-                        },
-                    )?;
-                    accumulate(
-                        &screen_entry,
-                        &mut input_tokens,
-                        &mut output_tokens,
-                        &mut elapsed_ms,
-                    );
-                    kind = screen_entry.choice("kind");
-                }
+                let kind = if carries_number(&claim.claim) {
+                    let composed = compose_kind(transport, key, ledger_dir, &source, &section)?;
+                    input_tokens += composed.input_tokens;
+                    output_tokens += composed.output_tokens;
+                    elapsed_ms += composed.elapsed_ms;
+                    composed.kind
+                } else {
+                    None
+                };
 
                 let (listed, reason) = list_reason(
                     &relation,
