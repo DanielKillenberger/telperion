@@ -98,6 +98,10 @@ This is fn-9's method applied three times with no new engine work of its own. Th
 
 - **Scope (2026-09-15).** The owner moved the European ash to its own spec, fn-56-european-ash-as-a-real-species, so this spec closes on the beech and the birch.
 
+- **Round 22 (2026-09-16), the silver birch, matched pairs on the judging page (https://claude.ai/artifact/Pu1s9YB9TfnFWLxmbu2dVt), the integration branch at `4e6d903c` with every dependency merged.** Accepting. The owner's words: "It's good but the texturing regressed. It's too much now too much contrast. The texture in the reference isn't black." The regression is fn-40's birch bark as it reads on the merged, thicker stems: S-BARK's centre falls from 167 at round 17 to 65 at round 22 against the photograph's 92.
+
+- **Round 22, depth shading on the beech (choice A).** The owner keeps `material.lobeShade` at 0.7, as shipped, over 0.0.
+
 ## Requirement coverage
 
 | Requirement | Task |
