@@ -354,9 +354,9 @@ pub(super) fn birch() -> MaterialParams {
         transmission_green: 0.55,
         transmission_blue: 0.1,
         thickness: 0.45,
-        fissure_red: -0.7,
-        fissure_green: -0.7,
-        fissure_blue: -0.66,
+        fissure_red: -0.44,
+        fissure_green: -0.44,
+        fissure_blue: -0.41,
         fissure_strength: 1.0,
         crest_red: 0.1,
         crest_green: 0.1,
@@ -392,10 +392,15 @@ pub(super) fn birch() -> MaterialParams {
         directional_occlusion: 0.6,
         depth_strength: 0.4,
         // S-BARK: a chalk-white stem with a fine grey grain, banded with dark
-        // lenticel dashes and small, ragged grey-black marks over a darker
-        // base. The marks are the strips that have peeled, grey-black inner
-        // bark: most at the flare, fewer as the wood thins, each one whole,
-        // none where the relief ends. The lichen is only the grain.
+        // lenticel dashes and small, ragged grey marks over a darker base.
+        // The marks are the strips that have peeled, grey inner bark: most at
+        // the flare, fewer as the wood thins, each one whole, none where the
+        // relief ends. The lichen is only the grain. The owner at round 22:
+        // "too much contrast. The texture in the reference isn't black." At
+        // 0.65 of the strips peeled and a near-black inner bark, 40% of the
+        // stem's pixels read near-black against the photograph's 11%; a
+        // third peeled, a grey inner bark and lighter dashes and fissures
+        // read 6%, and the stem is mostly white as the photograph's is.
         lichen_scale: 0.01,
         lichen_coverage: 1.0,
         lichen_red: 0.5,
@@ -404,12 +409,12 @@ pub(super) fn birch() -> MaterialParams {
         lichen_strength: 0.45,
         lenticel_density: 18.0,
         lenticel_length: 0.06,
-        lenticel_strength: 0.9,
-        lenticel_tint: -0.9,
-        peel_curl: 0.65,
-        peel_red: 0.26,
-        peel_green: 0.24,
-        peel_blue: 0.22,
+        lenticel_strength: 0.72,
+        lenticel_tint: -0.62,
+        peel_curl: 0.3,
+        peel_red: 0.33,
+        peel_green: 0.315,
+        peel_blue: 0.29,
         // The same canopy as the beech's (fn-52), with a softer terminator
         // for the airy hanging crown and a less glossy cuticle. Set against
         // S-WHOLE, whose centre pixels sit above half brightness a fifth of

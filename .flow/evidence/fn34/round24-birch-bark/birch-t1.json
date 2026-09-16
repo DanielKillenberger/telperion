@@ -1,0 +1,57 @@
+{
+ "name": "t1",
+ "values": {
+  "peel_red": "0.45",
+  "peel_green": "0.43",
+  "peel_blue": "0.40",
+  "lenticel_tint": "-0.6",
+  "lenticel_strength": "0.7",
+  "fissure_red": "-0.45",
+  "fissure_green": "-0.45",
+  "fissure_blue": "-0.42"
+ },
+ "S-WHOLE": {
+  "centre": [
+   83.0,
+   68.9
+  ],
+  "occupied": [
+   0.443,
+   0.425
+  ]
+ },
+ "S-BARE": {
+  "centre": [
+   91.3,
+   86.9
+  ],
+  "occupied": [
+   0.459,
+   0.488
+  ]
+ },
+ "S-BARK": {
+  "centre": [
+   92.4,
+   129.5
+  ],
+  "occupied": [
+   0.471,
+   0.357
+  ]
+ },
+ "bark": {
+  "photo": {
+   "mean": 96.9,
+   "spread": 52.7,
+   "near_black": 0.113,
+   "p05": 19.3
+  },
+  "still": {
+   "mean": 117.6,
+   "spread": 55.6,
+   "near_black": 0.029,
+   "p05": 34.9
+  }
+ }
+}

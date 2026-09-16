@@ -1,0 +1,37 @@
+{
+  "round": "24",
+  "rendered_at": "2026-09-16",
+  "commit_note": "The birch's bark answers the owner's round-22 note with nine birch material rows, and S-BARK's camera returns to the metre and a half its record states. Stills under the ignored measure/pairs-round24/, recorded by sha256; the numeric protocol is round 22's, since material rows do not reach it.",
+  "pairs": [
+    {
+      "case": "silver-birch-1",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-round24/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "8aa21cf624d42abe08e471029677c2c052a8382e79882aa3d3b5fc1dc66c4a31",
+      "still_sha256": "09b798d9fc4a0a9d76a1c06cad9e1b451f94a7b6758c37029f22ba1cb95589f2",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round24/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "93f0aeed2afaf600c684500f10d20afe8664638281f91fd260c9f6f375e852e2",
+      "still_sha256": "5b9645003149a978b487e427d6e0955e0fc595b3482563aa8d3bbd5ab772e275",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round24/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "f83b75601ad69b1eaf31b78ca9138938ea63aac456f8562679017fc98787d12e",
+      "still_sha256": "758393146c8103d05948466a3b29cc59f528cb01e55ab46625aa388c763c0621",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}

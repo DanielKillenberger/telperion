@@ -221,7 +221,7 @@
           "azimuth": 30,
           "elevation": 0,
           "fill": 1.0,
-          "targetHeight": 0.06,
+          "targetHeight": 0.09,
           "fov": 45,
           "distance": 1.5
         },
@@ -245,7 +245,7 @@
           "crownBase": 1.0
         },
         "confidence": "low",
-        "derivation": "A trunk close-up read from the caption and the landscape frame: level with the bark from about a metre and a half; the distance is stated. No crown is in the frame."
+        "derivation": "A trunk close-up read from the caption and the landscape frame: level with the bark from about a metre and a half; the distance is stated. No crown is in the frame. Amended 2026-09-16 (owner's path review): the camera's target is a share of the tree's height, and 0.06 fell at 0.93 m on the 15.6 m birch it was set on but at 0.99 m, just above fn-48.3's fork at 0.96 m, on the merged 16.4 m tree, so the close-up framed the crotch. 0.09 puts the target at the stated metre and a half."
       }
     }
   ]

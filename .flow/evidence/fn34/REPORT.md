@@ -2975,3 +2975,43 @@ teeth row. fn-60 specs both; fn-34 depends on it.
 The next beech value round follows fn-59: the crown base back to B-BARE's
 reading, more crookedness, the round-23 taper, and a lighter lichen. The
 birch's bark contrast goes in the same round, as birch colour rows only.
+
+## Round 24: the birch's bark, and S-BARK framed where its record says (2026-09-16)
+
+The owner accepted the birch at round 22 with one note: "It's good but the
+texturing regressed. It's too much now too much contrast. The texture in the
+reference isn't black." fn-34 now closes on the birch, so this round answers
+that note and nothing else.
+
+**The camera.** S-BARK's shot block aims at a share of the tree's height, and
+its derivation says the photograph was taken level with the bark from about a
+metre and a half. At 0.06 the target fell at 0.93 m on the 15.6 m birch the
+record was set on, and at 0.99 m, just above fn-48.3's fork, on the merged
+16.4 m tree. The record now states 0.09, and says why. With the bark unchanged
+the close-up's centre goes from 65 to 95 against the photograph's 92, and
+S-WHOLE and S-BARE do not move.
+
+**The contrast.** `birch_trial.py` reads the luminance inside S-BARK's tree
+box for both the still and the photograph.
+
+| | Near-black share | Luminance spread | Reads as |
+|---|---|---|---|
+| Photograph | 0.113 | 52.7 | a mostly white stem with small dark marks |
+| Round 22, camera fixed | 0.397 | 67.1 | a dark camouflage pattern |
+| Trial 1, colours at full step | 0.029 | 55.6 | too light |
+| Trial 4, colours tuned | 0.147 | 60.0 | right numbers, still large grey blotches |
+| Trial 5, a third peeled (shipped) | 0.055 | 57.1 | a mostly white stem with small grey marks |
+
+The colours alone matched the numbers and not the look. The blotches were the
+share of peeled strips: at `peel_curl` 0.65, two thirds of the plate network
+showed inner bark. The birch now peels 0.3, its inner bark is grey
+(0.33/0.315/0.29 against 0.26/0.24/0.22), its lenticel dashes are lighter
+(strength 0.72, tint −0.62, from 0.9 and −0.9), and its fissures are shallower
+in value (−0.44/−0.44/−0.41, from −0.7/−0.7/−0.66). Trial 5's centre reads 136
+against 92. The photograph's box also holds its darker, rugged second panel,
+so the host judged trial 5 by eye.
+
+Every gate passes, the smooth-bark resolution test included. No pin moves,
+since material rows do not reach the mesh, and the numeric protocol is round
+22's. The pairs are in `round24-birch-bark/stills.json` with
+`visual_status: unassessed`, on the judging page for the owner's verdict.
