@@ -50,6 +50,7 @@ The compare script's numbers are kept for every round as regression readings. Th
 - **R1:** Every checklist line is answered yes by the owner at three fixed seeds, recorded verbatim in this spec. Errors: a no names the line and the round; it is not a failure of the spec. [user]
 - **R2:** The 48-case protocol passes at every shipped round, none capped, and the identity pins are re-recorded once per round with the reason. Errors: a numeric failure is a retained case, never a resample. [paraphrase]
 - **R3:** Each round's pairs, numbers and the host's read are recorded in a round section with stills by sha256. Errors: none beyond the record. [paraphrase]
+- **R4:** On acceptance the beech moves from `params::IN_WORK` back into `CATALOGUE` under its reserved ABI id 5, `EUROPEAN_BEECH` returns to the browser exports, and the binding test lists seven identities again. Until then it is unlisted and refused by name (owner, 2026-09-16: hold it out of the public list). Errors: the in-work test fails if the id is reused. [user]
 
 ## Boundaries
 <!-- scope: business -->
