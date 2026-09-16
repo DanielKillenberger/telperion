@@ -581,3 +581,30 @@ Scope, on the candidate branch `fn-31-round5-grok`:
 5. F2, the sparse 14.1-year spruce. Under CLAUDE.md's no-caps rule the
    ±15 percent population band no longer gates it; the population change is
    reported.
+
+## Owner decision: the oak becomes a pedunculate oak — 2026-09-16
+
+Asked whether Garry oaks grow around Basel (they do not: the species is native
+to western North America), the owner chose to swap the oak preset in place to
+the local, well-studied European oak: "let's go with 1. We should have gone
+the well studied path anyway".
+
+- **Species:** Quercus robur, pedunculate oak (Stieleiche), open-grown and as
+  close to wild as the evidence allows, under the owner's rule "represent
+  trees that grow in the wild as closely as possible". The Garry oak survivor
+  path above is superseded.
+- **Identity:** the catalogue row `oregon-white-oak`, "Oregon white oak",
+  Quercus garryana becomes a pedunculate oak row. Numeric ABI id 3 stays.
+  Historical `experiments/fn9-iterations` files keep the old id.
+- **Evidence first:** the host runs a Q. robur evidence pass (height and
+  diameter by age, young phases, open-grown mature size), with the same
+  checksum, quote and Jev-weighting method as young-height/REFERENCE.md.
+  Round 8's White 1998 and fn-30's Jüttner 1955 sources are already Q. robur
+  or Q. robur/petraea.
+- **Form:** leaf, bark and crown move to Q. robur and go to the owner's eye.
+  The fn-24 note preferring pointed lobes was about the Garry oak leaf; a
+  pedunculate oak's lobes are rounded.
+- **Round 13:** the Opus worker was told to stop working toward Garry oak
+  targets, keep only species-neutral mechanism (young-phase traits, the
+  no-spurt invariant, diameter pacing) and return. The rename and the Q. robur
+  fit follow in a new brief.
