@@ -168,6 +168,10 @@
 //! pin does not move. Merged onto fn-34's integration branch, the beech keeps
 //! fn-54's pin and the birch keeps round 15 and fn-48.3's; the oak, the
 //! spruce and the Two Trees are byte-identical.
+//! fn-34 round 25 re-pins the silver birch's element and placement once: its
+//! blade is triangular with eight shallow notches a margin and thirty-two
+//! stations, against S-LEAF. The shell cull reads the blade, so nine more
+//! leaves stay; the skeleton and every other table are byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -246,12 +250,12 @@ const PINS: [Pin; 4] = [
         id: "silver-birch",
         wood_vertices: 3769832,
         wood_triangles: 7299400,
-        instances: 402702,
+        instances: 402711,
         min: [-6.3495562107383, -0.07199999690055847, -7.554782867431641],
         max: [7.237551856414349, 16.389118194580078, 6.1833086013793945],
         skeleton: 7974363890308515130,
-        placement: 7911979241264204740,
-        element: 1872173242819532549,
+        placement: 13979302139962734497,
+        element: 1566806128915370638,
     },
 ];
 

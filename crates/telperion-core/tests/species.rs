@@ -126,7 +126,9 @@ fn birch_identity_resolves_to_frozen_profile_and_native_anatomy() {
     assert!(family.skeleton.habit.rise_secondary < 0.0);
     assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
     assert!(!family.skeleton.bias.supernatural.enabled);
-    assert_eq!(family.element.lobe_count, 0);
+    // A serrate margin, drawn as shallow notches, not lobes, under a pointed tip.
+    assert_eq!(family.element.lobe_count, 8);
+    assert!(family.element.lobe_depth > 0.0 && family.element.lobe_depth <= 0.15);
     assert!(family.element.tip_sharpness > 1.0);
     assert_eq!(family.canopy.divergence, 180.0);
     assert!(Preset::from_id("Betula pendula").is_none());

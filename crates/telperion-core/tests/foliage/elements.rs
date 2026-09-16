@@ -114,7 +114,13 @@ fn every_element_trait_moves_every_shipped_preset() {
             (
                 "lobe count",
                 ElementParams {
-                    lobe_count: p.lobe_count + 1,
+                    // One lobe more, or one fewer on a table already at the
+                    // rail's top of eight.
+                    lobe_count: if p.lobe_count >= 8 {
+                        p.lobe_count - 1
+                    } else {
+                        p.lobe_count + 1
+                    },
                     // A margin with one more lobe needs the sections to carry
                     // it; the depth is what puts them there.
                     lobe_depth: (p.lobe_depth + 0.1).min(1.0),

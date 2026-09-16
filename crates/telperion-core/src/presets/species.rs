@@ -270,17 +270,22 @@ pub(super) fn silver_birch(p: &mut Family) {
     // height, as S-BARE's stem does, and a lower exponent that thickens the
     // stems alone would put a parent thicker than its children's wood.
     p.radii.trunk_radius = 0.014;
+    // S-LEAF: a triangular blade, widest a fifth of the way up over a broad,
+    // nearly straight base, with a short pointed tip. Eight shallow notches along
+    // each margin stand for its teeth: the lobe rows cut symmetric notches,
+    // not the forward-leaning double teeth the photograph shows, which are
+    // fn-60's. Thirty-two stations keep the outline from reading as facets.
     p.element = ElementParams {
         length: 0.055,
         width: 0.045,
         connector_length: 0.022,
-        widest_at: 0.28,
-        base_fullness: 0.55,
-        tip_sharpness: 1.8,
-        lobe_count: 0,
-        lobe_depth: 0.0,
+        widest_at: 0.2,
+        base_fullness: 0.3,
+        tip_sharpness: 1.1,
+        lobe_count: 8,
+        lobe_depth: 0.1,
         section_roundness: 0.0,
-        axial_segments: 8,
+        axial_segments: 32,
         ..Default::default()
     };
     // Sky through the crown: a curtain three and a half metres long fills the

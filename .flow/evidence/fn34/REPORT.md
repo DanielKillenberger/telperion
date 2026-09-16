@@ -3015,3 +3015,41 @@ Every gate passes, the smooth-bark resolution test included. No pin moves,
 since material rows do not reach the mesh, and the numeric protocol is round
 22's. The pairs are in `round24-birch-bark/stills.json` with
 `visual_status: unassessed`, on the judging page for the owner's verdict.
+
+## Round 25: the birch's leaf, by value rows (2026-09-16)
+
+The owner asked, on the leaf pairs, "why is there no texture to the leaf? i
+thought we have that capability?" and whether the leaf could be fixed now by
+values. fn-26's blade detail is on for the birch but draws little: its veins
+are hairlines of a fixed width, brightened rather than darkened, over a faint
+mottle, with no relief. Values reach the leaf's shape and make the veins
+visible; the rest is fn-60's.
+
+The birch's element now states a triangular blade: widest at 0.2 of its
+length (from 0.28), base fullness 0.3 (from 0.55), tip sharpness 1.1 (from
+1.8), over a broad base with a short pointed tip. Eight shallow lobes at depth
+0.1 stand for its teeth; deeper ones read as slots. Thirty-two stations
+(from 8) keep the notched outline from reading as facets, where twenty drew it
+in angular steps. Its vein contrast goes from 0.35 to 0.8 and its blade
+mottle from 0.12 to 0.2. `leaf-trials/` under the ignored `measure/` holds the
+trials; `leaf_trial.py` renders them.
+
+The birch's element and placement pins are re-recorded once, and the shell
+cull keeps nine more leaves (402,711). The skeleton and every other table are
+byte-identical. Two tests carried the old blade: the species test asserted no
+lobes, and now asserts eight shallow ones under a pointed tip; the element
+walk stepped the lobe count past the rail's eight, and now steps inward
+there. All forty-eight protocol cases pass (`measure/protocol-round25/`), none
+capped, and every gate passes.
+
+**Draw cost.** At S-WHOLE's framing every birch leaf draws its finest level,
+so the drawn triangles follow the stations: 22.2 M at 8, 39.2 M at 20 and
+56.2 M at 32, about 63, 110 and 159 a leaf. The same blade without notches
+draws the same count. The host kept 32 for the shape, under the owner's rule
+that cost is measured and reported rather than capped, and fn-60 now owns
+why the levels do not coarsen a leaf a few pixels across. S-WHOLE's centre
+moves from 68.9 to 70.8 against the photograph's 83.
+
+Not reachable by values, and fn-60's: forward-leaning double teeth, veins
+that read dark and sunken, a blade that puckers between them, and the
+eight-lobe cap (`element.rs:153`), which runs against the no-caps rule.

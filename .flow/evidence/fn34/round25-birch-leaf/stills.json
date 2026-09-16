@@ -1,0 +1,57 @@
+{
+  "round": "25",
+  "rendered_at": "2026-09-16",
+  "commit_note": "Round 24's birch with its leaf shaped by value rows against S-LEAF. Protocol in measure/protocol-round25/ (48/48, none capped).",
+  "pairs": [
+    {
+      "case": "silver-birch-1",
+      "reference": "S-WHOLE",
+      "foliage": "leaf-on",
+      "pair": ".flow/evidence/fn34/measure/pairs-round25/silver-birch-1-S-WHOLE-pair.png",
+      "pair_sha256": "65c3e7f0eabda412a9bfeef26e92f0270af41a8d26276a9fa12bbc13c1df3961",
+      "still_sha256": "3b45c46fdec959105d01685727b28ed2380915b64c78e735e3542a32b1626e57",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1",
+      "reference": "S-BARE",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round25/silver-birch-1-S-BARE-pair.png",
+      "pair_sha256": "3b5b94b903f990559e5ee2854c69d0164461d65220eff067a2c3b2003260e7f2",
+      "still_sha256": "f2b372c3d70054c040a062d66d46322bef8bcda52deecdd423477393b1d5cc7d",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1",
+      "reference": "S-BARK",
+      "foliage": "hidden",
+      "pair": ".flow/evidence/fn34/measure/pairs-round25/silver-birch-1-S-BARK-pair.png",
+      "pair_sha256": "60e8f793df4a6506581fdd7e579a49a325a4cab568c5a6a6a07bb28032e901a3",
+      "still_sha256": "ad26129b19ddb35c1e4f214cc716930aa1b13726a29393518b83396935c5f3e0",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1",
+      "reference": "S-LEAF",
+      "foliage": "leaf",
+      "pair": ".flow/evidence/fn34/measure/pairs-leaf25/silver-birch-1-S-LEAF-pair.png",
+      "pair_sha256": "a9aae2c6b34cd90682345a98a8b587721c403c6660eeed606925528683cab28d",
+      "still_sha256": "7ccca41a4664bb715ec5066f1ba94d7de40ad74059d8ec02e0b7176080fc1a14",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    },
+    {
+      "case": "silver-birch-1",
+      "reference": "S-SHOOT",
+      "foliage": "leaf",
+      "pair": ".flow/evidence/fn34/measure/pairs-leaf25/silver-birch-1-S-SHOOT-pair.png",
+      "pair_sha256": "f8507bba3d97af5b1ed233615288a365bac0b75b3ef50f26d412227195c9dd00",
+      "still_sha256": "7ccca41a4664bb715ec5066f1ba94d7de40ad74059d8ec02e0b7176080fc1a14",
+      "visual_status": "unassessed",
+      "owner_feedback": null
+    }
+  ]
+}
