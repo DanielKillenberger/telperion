@@ -1,0 +1,538 @@
+{
+ "notes": {
+  "outline": "The tree has clear regular outline/border that doesn't look natural.",
+  "rim_taper": "The taper approaching the border needs to produce thinner branches twigs.",
+  "profile": "It's also too dense at the shoulder of the crown. It's more sparse lower and gets more dense at the top.",
+  "density": "It generally looks too dense everywhere?"
+ },
+ "rows": {
+  "irregularity": 0.18,
+  "lobe_scale": 0.7,
+  "fullness": 0.3,
+  "shoulder": 1.8,
+  "spread": 0.36,
+  "limb_clumping": 0.25,
+  "twig_laterals": 4,
+  "twig_length_ratio": 0.23,
+  "twig_tip_taper": 0.25,
+  "length_taper": 0.2,
+  "lateral_length_ratio": 0.65,
+  "leaf_internode": 0.05,
+  "short_shoot_spacing": 0.03,
+  "short_shoot_leaves": 8
+ },
+ "answers": {
+  "outline": {
+   "irregularity": {
+    "choice": "raise",
+    "probabilities": {
+     "lower": 0.01,
+     "neither": 0.01,
+     "raise": 0.98
+    },
+    "confidence": 0.97
+   },
+   "lobe_scale": {
+    "choice": "lower",
+    "probabilities": {
+     "lower": 0.65,
+     "raise": 0.08,
+     "neither": 0.27
+    },
+    "confidence": 0.47
+   },
+   "fullness": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.0,
+     "neither": 0.97,
+     "raise": 0.03
+    },
+    "confidence": 0.95
+   },
+   "shoulder": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.21,
+     "neither": 0.74,
+     "raise": 0.05
+    },
+    "confidence": 0.61
+   },
+   "spread": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.01,
+     "neither": 0.97,
+     "raise": 0.02
+    },
+    "confidence": 0.96
+   },
+   "limb_clumping": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.14,
+     "neither": 0.62,
+     "raise": 0.24
+    },
+    "confidence": 0.44
+   },
+   "twig_laterals": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.0,
+     "neither": 0.95,
+     "raise": 0.05
+    },
+    "confidence": 0.93
+   },
+   "twig_length_ratio": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.0,
+     "neither": 0.98,
+     "raise": 0.02
+    },
+    "confidence": 0.97
+   },
+   "twig_tip_taper": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.01,
+     "neither": 0.99,
+     "raise": 0.0
+    },
+    "confidence": 0.99
+   },
+   "length_taper": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.0,
+     "neither": 0.97,
+     "raise": 0.03
+    },
+    "confidence": 0.95
+   },
+   "lateral_length_ratio": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.01,
+     "neither": 0.96,
+     "raise": 0.03
+    },
+    "confidence": 0.95
+   },
+   "leaf_internode": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.01,
+     "raise": 0.01,
+     "neither": 0.98
+    },
+    "confidence": 0.97
+   },
+   "short_shoot_spacing": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.05,
+     "neither": 0.94,
+     "raise": 0.01
+    },
+    "confidence": 0.92
+   },
+   "short_shoot_leaves": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.0,
+     "neither": 1.0,
+     "raise": 0.0
+    },
+    "confidence": 0.99
+   }
+  },
+  "rim_taper": {
+   "irregularity": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.95,
+     "raise": 0.04,
+     "lower": 0.01
+    },
+    "confidence": 0.94
+   },
+   "lobe_scale": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.94,
+     "lower": 0.06,
+     "raise": 0.0
+    },
+    "confidence": 0.9
+   },
+   "fullness": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.95,
+     "raise": 0.04,
+     "lower": 0.01
+    },
+    "confidence": 0.92
+   },
+   "shoulder": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.85,
+     "raise": 0.0,
+     "lower": 0.15
+    },
+    "confidence": 0.78
+   },
+   "spread": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.89,
+     "raise": 0.02,
+     "lower": 0.09
+    },
+    "confidence": 0.84
+   },
+   "limb_clumping": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.89,
+     "raise": 0.07,
+     "lower": 0.04
+    },
+    "confidence": 0.84
+   },
+   "twig_laterals": {
+    "choice": "lower",
+    "probabilities": {
+     "neither": 0.41,
+     "raise": 0.02,
+     "lower": 0.5700000000000001
+    },
+    "confidence": 0.35
+   },
+   "twig_length_ratio": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.6,
+     "raise": 0.02,
+     "lower": 0.38
+    },
+    "confidence": 0.41
+   },
+   "twig_tip_taper": {
+    "choice": "lower",
+    "probabilities": {
+     "neither": 0.04,
+     "raise": 0.0,
+     "lower": 0.96
+    },
+    "confidence": 0.93
+   },
+   "length_taper": {
+    "choice": "raise",
+    "probabilities": {
+     "neither": 0.02,
+     "raise": 0.97,
+     "lower": 0.01
+    },
+    "confidence": 0.95
+   },
+   "lateral_length_ratio": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.52,
+     "raise": 0.04,
+     "lower": 0.44
+    },
+    "confidence": 0.28
+   },
+   "leaf_internode": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.98,
+     "raise": 0.01,
+     "lower": 0.01
+    },
+    "confidence": 0.98
+   },
+   "short_shoot_spacing": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.97,
+     "raise": 0.02,
+     "lower": 0.01
+    },
+    "confidence": 0.96
+   },
+   "short_shoot_leaves": {
+    "choice": "neither",
+    "probabilities": {
+     "neither": 0.98,
+     "raise": 0.0,
+     "lower": 0.02
+    },
+    "confidence": 0.97
+   }
+  },
+  "profile": {
+   "irregularity": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.01,
+     "raise": 0.03,
+     "neither": 0.96
+    },
+    "confidence": 0.95
+   },
+   "lobe_scale": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.05,
+     "raise": 0.03,
+     "neither": 0.92
+    },
+    "confidence": 0.89
+   },
+   "fullness": {
+    "choice": "raise",
+    "probabilities": {
+     "lower": 0.05,
+     "raise": 0.88,
+     "neither": 0.07
+    },
+    "confidence": 0.83
+   },
+   "shoulder": {
+    "choice": "lower",
+    "probabilities": {
+     "lower": 0.93,
+     "raise": 0.02,
+     "neither": 0.05
+    },
+    "confidence": 0.89
+   },
+   "spread": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.04,
+     "raise": 0.01,
+     "neither": 0.95
+    },
+    "confidence": 0.92
+   },
+   "limb_clumping": {
+    "choice": "neither",
+    "probabilities": {
+     "raise": 0.31,
+     "lower": 0.07,
+     "neither": 0.62
+    },
+    "confidence": 0.43
+   },
+   "twig_laterals": {
+    "choice": "lower",
+    "probabilities": {
+     "lower": 0.82,
+     "raise": 0.01,
+     "neither": 0.17
+    },
+    "confidence": 0.73
+   },
+   "twig_length_ratio": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.2,
+     "raise": 0.06,
+     "neither": 0.74
+    },
+    "confidence": 0.6
+   },
+   "twig_tip_taper": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.03,
+     "raise": 0.01,
+     "neither": 0.96
+    },
+    "confidence": 0.94
+   },
+   "length_taper": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.02,
+     "raise": 0.14,
+     "neither": 0.84
+    },
+    "confidence": 0.76
+   },
+   "lateral_length_ratio": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.2,
+     "raise": 0.07,
+     "neither": 0.73
+    },
+    "confidence": 0.6
+   },
+   "leaf_internode": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.01,
+     "raise": 0.35,
+     "neither": 0.64
+    },
+    "confidence": 0.45
+   },
+   "short_shoot_spacing": {
+    "choice": "neither",
+    "probabilities": {
+     "lower": 0.05,
+     "raise": 0.37,
+     "neither": 0.58
+    },
+    "confidence": 0.37
+   },
+   "short_shoot_leaves": {
+    "choice": "lower",
+    "probabilities": {
+     "lower": 0.54,
+     "raise": 0.01,
+     "neither": 0.45
+    },
+    "confidence": 0.3
+   }
+  },
+  "density": {
+   "irregularity": {
+    "choice": "neither",
+    "probabilities": {
+     "raise": 0.2,
+     "lower": 0.02,
+     "neither": 0.78
+    },
+    "confidence": 0.68
+   },
+   "lobe_scale": {
+    "choice": "neither",
+    "probabilities": {
+     "raise": 0.17,
+     "lower": 0.17,
+     "neither": 0.66
+    },
+    "confidence": 0.49
+   },
+   "fullness": {
+    "choice": "neither",
+    "probabilities": {
+     "raise": 0.17,
+     "lower": 0.07,
+     "neither": 0.76
+    },
+    "confidence": 0.64
+   },
+   "shoulder": {
+    "choice": "lower",
+    "probabilities": {
+     "raise": 0.05,
+     "lower": 0.66,
+     "neither": 0.29
+    },
+    "confidence": 0.49
+   },
+   "spread": {
+    "choice": "lower",
+    "probabilities": {
+     "raise": 0.03,
+     "lower": 0.59,
+     "neither": 0.38
+    },
+    "confidence": 0.39
+   },
+   "limb_clumping": {
+    "choice": "raise",
+    "probabilities": {
+     "raise": 0.85,
+     "lower": 0.02,
+     "neither": 0.13
+    },
+    "confidence": 0.77
+   },
+   "twig_laterals": {
+    "choice": "lower",
+    "probabilities": {
+     "raise": 0.01,
+     "lower": 0.98,
+     "neither": 0.01
+    },
+    "confidence": 0.97
+   },
+   "twig_length_ratio": {
+    "choice": "lower",
+    "probabilities": {
+     "raise": 0.11,
+     "lower": 0.55,
+     "neither": 0.34
+    },
+    "confidence": 0.33
+   },
+   "twig_tip_taper": {
+    "choice": "neither",
+    "probabilities": {
+     "raise": 0.07,
+     "lower": 0.17,
+     "neither": 0.76
+    },
+    "confidence": 0.64
+   },
+   "length_taper": {
+    "choice": "raise",
+    "probabilities": {
+     "raise": 0.53,
+     "lower": 0.05,
+     "neither": 0.42
+    },
+    "confidence": 0.29
+   },
+   "lateral_length_ratio": {
+    "choice": "lower",
+    "probabilities": {
+     "raise": 0.06,
+     "lower": 0.55,
+     "neither": 0.39
+    },
+    "confidence": 0.32
+   },
+   "leaf_internode": {
+    "choice": "raise",
+    "probabilities": {
+     "raise": 0.97,
+     "lower": 0.0,
+     "neither": 0.03
+    },
+    "confidence": 0.94
+   },
+   "short_shoot_spacing": {
+    "choice": "raise",
+    "probabilities": {
+     "raise": 0.93,
+     "lower": 0.01,
+     "neither": 0.06
+    },
+    "confidence": 0.89
+   },
+   "short_shoot_leaves": {
+    "choice": "lower",
+    "probabilities": {
+     "raise": 0.01,
+     "lower": 0.94,
+     "neither": 0.05
+    },
+    "confidence": 0.91
+   }
+  }
+ }
+}
