@@ -238,7 +238,7 @@ pub fn cite(
                 let confidence = entry.confidence("relation").unwrap_or(0.0);
 
                 let mut kind = None;
-                if looks_like_height_at_age(&claim.claim) {
+                if carries_number(&claim.claim) {
                     let screen_state = json!({
                         "species": "",
                         "source": {"id": source.id, "url": source.url},
@@ -293,6 +293,11 @@ pub fn cite(
     })
 }
 
+/// A claim that carries a digit is numeric and gets the compose screen.
+pub fn carries_number(claim: &str) -> bool {
+    claim.chars().any(|ch| ch.is_ascii_digit())
+}
+
 pub fn looks_like_height_at_age(claim: &str) -> bool {
     let lower = claim.to_ascii_lowercase();
     if lower.contains("per year")
@@ -331,6 +336,9 @@ pub fn list_reason(
             true,
             format!("confidence {confidence:.2} below {threshold}"),
         );
+    }
+    if kind == Some("site_quality_criterion") {
+        return (true, "source sentence is a site-quality criterion".into());
     }
     if height_at_age && kind != Some("measured_size_at_age") {
         return (

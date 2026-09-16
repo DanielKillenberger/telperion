@@ -4,7 +4,8 @@ use serde_json::json;
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::cases::run_labelled_cases;
 use telperion_jev::cite::{
-    cite, load_claim_source, looks_like_height_at_age, parse_research, ResearchClaim, SourceLoad,
+    carries_number, cite, load_claim_source, looks_like_height_at_age, parse_research,
+    ResearchClaim, SourceLoad,
 };
 use telperion_jev::questions::{citation_cases, severity_level, thresholds, triage_cases};
 use telperion_jev::triage::triage;
@@ -37,23 +38,36 @@ fn citation_lists_o1_and_passes_the_six_true_claims() {
     )
     .unwrap();
     assert_eq!(report.rows.len(), 9);
-    let mut passed = 0;
-    let mut listed_o1 = false;
+    let mut hits = 0;
     for (case, row) in cases.iter().zip(report.rows.iter()) {
-        if case.id == "o1-misuse" {
-            assert!(row.listed, "{}: {}", case.id, row.reason);
-            listed_o1 = true;
+        if carries_number(&case.claim) {
+            assert!(
+                row.kind.is_some(),
+                "{} is numeric but skipped the compose screen",
+                case.id
+            );
         }
-        if case.true_claim {
-            assert!(!row.listed, "{} listed: {}", case.id, row.reason);
-            passed += 1;
+        let expect_listed = !case.true_claim;
+        assert_eq!(
+            row.listed, expect_listed,
+            "{} listed={} reason={}",
+            case.id, row.listed, row.reason
+        );
+        if case.id == "o1-as-typical" {
+            assert!(row.listed);
+            assert_eq!(row.kind.as_deref(), Some("site_quality_criterion"));
         }
-        if case.height_at_age {
-            assert!(row.kind.is_some(), "{} skipped the compose screen", case.id);
+        if case.id == "spruce-five-years" {
+            assert_eq!(row.relation, "contradicts");
+        }
+        if case.id == "oak-sprouts" || case.id == "oak-usual-rate" {
+            assert!(!row.listed, "{} must still pass: {}", case.id, row.reason);
+        }
+        if expect_listed == row.listed {
+            hits += 1;
         }
     }
-    assert!(listed_o1);
-    assert_eq!(passed, 6);
+    assert_eq!(hits, 9);
 }
 
 #[test]

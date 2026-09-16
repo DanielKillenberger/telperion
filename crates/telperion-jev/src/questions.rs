@@ -95,6 +95,8 @@ pub fn selection_questions(question: &str, spans: &[String]) -> Value {
 pub struct ScreenCase {
     pub id: String,
     pub source_id: String,
+    #[serde(default)]
+    pub species: String,
     pub sentence: String,
     #[serde(default)]
     pub context: Option<String>,

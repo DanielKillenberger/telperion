@@ -12,11 +12,12 @@
         ]
       },
       "site_quality_criterion": {
-        "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do. 'Sustained height growth of X ft per year for trees of an age band', when the surrounding text is evaluating a site, is this kind.",
+        "what": "A growth or height figure listed among indicators used to evaluate a site's potential; it describes a threshold or test of the site, not what trees typically do",
         "examples": [
-          "Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old"
+          "site index 70 ft at 50 years",
+          "a site is classed good when 20-year increment exceeds 4 m"
         ],
-        "not_for": "an observed growth rate reported as typical or usual ('usually', 'generally')"
+        "not_for": "an observed growth rate reported as typical or usual"
       },
       "mature_size_range": {
         "what": "The size of mature or full-grown trees with no age given, or a maximum size"

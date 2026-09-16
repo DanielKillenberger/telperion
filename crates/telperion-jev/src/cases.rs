@@ -6,9 +6,7 @@ use serde_json::json;
 
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cite::{cite, ResearchClaim, SourceLoad};
-use crate::questions::{
-    screen_cases, screen_questions, selection_cases, severity_level, thresholds, triage_cases,
-};
+use crate::questions::{screen_cases, screen_questions, selection_cases, thresholds, triage_cases};
 use crate::select::select;
 use crate::triage::triage;
 
@@ -100,7 +98,7 @@ fn run_screen(
     for case in screen_cases() {
         let context = case.context.as_deref().unwrap_or(case.sentence.as_str());
         let state = json!({
-            "species": case.source_id,
+            "species": case.species,
             "candidate": {
                 "sentence": case.sentence,
                 "context": context,
@@ -195,17 +193,9 @@ fn run_cite(
         .collect();
     let report = cite(transport, key, ledger_dir, &claims, &loads)?;
     let mut rows = Vec::new();
-    let mut pilot_hits = 0;
     for (case, row) in cases.iter().zip(report.rows.iter()) {
         let expected = if case.true_claim { "pass" } else { "OWNER" };
         let answered = if row.listed { "OWNER" } else { "pass" };
-        let hit = expected == answered;
-        if case.true_claim && !row.listed {
-            pilot_hits += 1;
-        }
-        if case.id == "o1-misuse" && row.listed {
-            pilot_hits += 1;
-        }
         rows.push(CaseRow {
             set: "cite".into(),
             id: case.id.clone(),
@@ -214,13 +204,10 @@ fn run_cite(
             top_probability: row.confidence,
             confidence: row.confidence,
             ledger: row.ledger.clone(),
-            hit,
+            hit: expected == answered,
         });
     }
-    let mut set = score_set("cite compose", 7, rows, None);
-    set.hits = pilot_hits;
-    set.required = 7;
-    Ok(set)
+    Ok(score_set("cite compose", 9, rows, None))
 }
 
 fn run_routes(
@@ -340,7 +327,6 @@ fn run_severity(
             confidence: score,
             ledger: proposal.ledger.last().cloned().unwrap_or_default(),
         });
-        let _ = severity_level(score);
     }
     Ok(score_set("triage severity", 4, rows, None))
 }
