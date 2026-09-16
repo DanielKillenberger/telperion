@@ -705,3 +705,30 @@ Owner decisions:
 5. Whether `growth.youngLateralSpacing`, which is tested but unused,
    stays or goes.
 6. `bark_distance` measuring a 24 m scene, not the shipped oak.
+
+## Owner verdicts on round 13 — 2026-09-16
+
+1. **R1 on the round-13 strips: accepted** ("yes").
+2. **The leaf: close enough for this spec.** The owner: "we need this
+   drastically improved in a later spec if we don't have that already". No open
+   spec owns leaf shape (fn-14 and fn-24 are done; fn-43 is leaf size by age),
+   so the host captures one.
+3. **The node-ceiling blocks:** the host explains them before a verdict.
+4. **The spruce: "spruce looks bugged. Needs fixed".**
+5. **`growth.youngLateralSpacing`:** the host explains it before a verdict.
+6. **`bark_distance`:** the host explains it before a verdict.
+
+Host diagnosis of the spruce. At 14.1 years the render is a bare skeleton with
+needle wisps, and the preset sets `growth.leafLifetime` 1.0, so the evergreen
+drops its needles every year. Reich, Oleksyn, Tjoelker 1996, Tree Physiology
+16:643 (PMID 14871702, doi 10.1093/treephys/16.7.643; the abstract fetched
+through Firecrawl has sha256
+`75bb4d7ac9e3a4d913d33e5cded2d037c9eecfa0293eb9d0da7b0683e0529f68`), says:
+"18-year-old trees of 18 Norway spruce populations ... all of the Norway spruce
+populations had between 6.4 and 7.2 needle age cohorts." The young spruce also
+ramifies late. Seed 7 over the same ages:
+
+| Age | Nodes | Leaves per metre of height |
+|---|---|---|
+| 14.1 | 3,322 | 47,000 |
+| 26.6 | 51,042 | 310,000 |
