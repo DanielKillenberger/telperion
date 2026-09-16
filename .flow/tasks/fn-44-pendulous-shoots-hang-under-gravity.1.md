@@ -20,7 +20,8 @@ not bound weight. The birch states sag 1 and its pairs are round 6b.
 - [x] **R2** the heading turns toward down monotonically as an ease-out arc
       over the pendulous length; droop, floor and separation are fn-37's.
 - [x] **R3** the birch states sag 1; round 6b rendered and recorded beside
-      round 5 in REPORT.md and `round6b-fn44/stills.json`; 48/48 protocol.
+      round 5 in REPORT.md and `.flow/evidence/fn34/rounds.tsv` (the
+      `round6b-fn44` rows); 48/48 protocol.
 - [x] **R4** `tests/sag.rs`: neutral identity, the rail, the monotone turn
       and end angles at sag 1 and 0.5, no step turning more than the last,
       the floor, determinism, a blend walk.
@@ -29,7 +30,8 @@ not bound weight. The birch states sag 1 and its pairs are round 6b.
 
 R3 reserves the verdict to the owner. The pairs are under
 `.flow/evidence/fn34/measure/pairs-fn44/`, recorded by sha256 in
-`round6b-fn44/stills.json` with `visual_status: unassessed`, and on the
+`.flow/evidence/fn34/rounds.tsv` (the `round6b-fn44` rows); no visual
+pass is awarded, and on the
 judging page. Commits aa8aaf1, f594569, 23287c4; the host read the sag law
 and the planner's course and heading split. Gates green: core (28 binaries),
 render (22), clippy, typecheck, wasm, compare self-test.

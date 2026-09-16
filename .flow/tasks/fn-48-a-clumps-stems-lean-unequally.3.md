@@ -50,8 +50,9 @@ scope:
 
 R4's last clause is the owner's verdict in fn-34, and this task cannot award
 it. The round is REPORT.md's round 20; its pairs are recorded by sha256 in
-`round20-fn48c/stills.json` with `visual_status: unassessed`, and the work is
-merged into `fn-34-integration` (`64a3aea4`).
+`.flow/evidence/fn34/rounds.tsv` (the `round20-fn48c` rows); no visual
+pass is awarded, and the work is merged into `fn-34-integration`
+(`64a3aea4`).
 
 The birch states the fork at half the bole, the rail's top, which puts the
 fork node at 0.96 m. The two photographs disagree and the row cannot satisfy

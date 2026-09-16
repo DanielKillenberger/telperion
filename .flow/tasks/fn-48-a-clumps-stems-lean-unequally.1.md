@@ -21,7 +21,8 @@ have pointed the lean straight away from the stills' camera.
       because it leaves an odd clump's middle stem upright and puts two
       stems on one heading at full spread.
 - [x] **R3** round 9b rendered and recorded in REPORT.md and
-      `round9b-fn48/`; 48/48 protocol, heaviest birch seed 146,028 nodes.
+      `.flow/evidence/fn34/rounds.tsv` (the `round9b-fn48` rows);
+      48/48 protocol, heaviest birch seed 146,028 nodes.
 - [x] **R4** `tests/stem_lean_spread.rs` and the stems tests.
 
 ## NEEDS_HUMAN — the owner's verdict on the combined round

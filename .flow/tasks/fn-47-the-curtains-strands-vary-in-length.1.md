@@ -20,7 +20,8 @@ shell (irregularity 0.35 at lobe scale 0.25) to roughen the hem.
       it, keyed independent of growth order (direct, monthly and uneven
       builds agree), a short strand still ends vertical.
 - [x] **R3** round 8b rendered and recorded in REPORT.md and
-      `round8b-fn47/stills.json`; 48/48 protocol, heaviest birch seed
+      `.flow/evidence/fn34/rounds.tsv` (the `round8b-fn47` rows);
+      48/48 protocol, heaviest birch seed
       107,569 nodes.
 - [x] **R4** `tests/strands.rs` (six cases) and the rail in `pendulous.rs`.
 

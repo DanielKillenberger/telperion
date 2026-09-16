@@ -1,5 +1,10 @@
 # FN34: beech, ash and birch as real species
 
+The per-round compare numbers and stills records live in `rounds.tsv`, one
+row per round folder and reference, and each round's note in
+`rounds-notes.tsv`. The per-round files they were folded from are in git
+history at c25c02c3.
+
 2026-09-14. Packets, value tables and the fixed/fresh numeric protocol for
 European beech and silver birch. European ash has a complete profile and
 reference set; its template waits for fn-33. Visual verdicts are unassessed.
@@ -87,8 +92,8 @@ through the camera, sun, foliage state and aspect recorded on every whole,
 bare and base reference (the `shot` block in `references.json`), without the
 scale figure, and pairs each still with its photograph at one height. The
 compare script measures both images the same way. Pairs and stills stay on
-disk under the ignored `measure/pairs/` directory; `round2/stills.json` records
-each by sha256 and `round2/*-compare.json` carries the numbers.
+disk under the ignored `measure/pairs/` directory; `rounds.tsv` (the
+`round2` rows) records each by sha256 and carries the numbers.
 
 Photograph / still, per reference:
 
@@ -211,8 +216,8 @@ hit the node cap, and the fixed and fresh numeric protocol passes all
 forty-eight cases.
 
 No visual pass is awarded. The round-4 pairs are recorded by sha256 in
-`round4-fn37/stills.json` with `visual_status: unassessed`; the owner judges
-them and records the verdict here.
+`rounds.tsv` (the `round4-fn37` rows); no visual pass is awarded; the
+owner judges them and records the verdict here.
 
 ### Round 4b: the droop may exceed the hidden mode's constant (2026-09-15, host QA on fn-37)
 
@@ -282,8 +287,8 @@ and it stays darker and bluer than the photograph, which the gap table
 already assigns to appearance work. The birch's dome is ragged rather than
 round; it is still one upright stem under a frosted curtain, which are
 fn-38's and fn-40's. No visual pass is awarded. The round-5 pairs are
-recorded by sha256 in `round5-fn39/stills.json` with `visual_status:
-unassessed`, and a local judging page beside them
+recorded by sha256 in `rounds.tsv` (the `round5-fn39` rows); no visual
+pass is awarded, and a local judging page beside them
 (`measure/judge.html`, ignored) lays every round's pair, the numbers and the
 references out for the owner, who records the verdict in fn-34.
 
@@ -325,8 +330,9 @@ more pitch low down), listed as round 5c. The base shot's occupied figure
 jumps because the steeper limbs now cross the base frame. The outline
 statistic fell as the ascending limbs fill the shell more evenly. The
 leaf-on crown remains a scatter of dark leaves with sky through it, which the
-gap table assigns to appearance. No visual pass is awarded; the pairs are in
-`round5b-beech/stills.json` and on the judging page.
+gap table assigns to appearance. No visual pass is awarded; the pairs are
+recorded by sha256 in `rounds.tsv` (the `round5b-beech` rows) and on the
+judging page.
 
 ## Round 5c: a thick core and a clean still (2026-09-15, owner's notes on 5b)
 
@@ -358,8 +364,9 @@ Photograph / round 5b → round 5c:
 | B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.00 → 0.00 | 0.05 / 0.75 → 0.72 | 130 / 78 → 112 | — / 0.23 → 0.38 |
 | B-WHOLE | 0.70 / 0.69 → 0.69 | 0.12 / 0.22 → 0.08 | 0.46 / 0.60 → 0.60 | 80 / 46 → 44 | 0.23 / 0.08 → 0.10 |
 
-No visual pass is awarded; the pairs are in `round5c-beech/stills.json` and
-on the judging page, and the owner judges.
+No visual pass is awarded; the pairs are recorded by sha256 in
+`rounds.tsv` (the `round5c-beech` rows) and on the judging page, and the
+owner judges.
 
 ### Round 5d, attempted: the fork exponent against the node ceiling (2026-09-15)
 
@@ -462,8 +469,8 @@ which is fn-40's. What else reads wrong and is nobody's spec yet: the parting
 is a symmetric V because the two stems are spread about one bearing and lean
 by the same angle, so neither of them is the near-vertical stem the
 photograph's pair has. No visual pass is awarded. The round-6 pairs are
-recorded by sha256 in `round6-fn38/stills.json` with `visual_status:
-unassessed`, and the owner records the verdict in fn-34.
+recorded by sha256 in `rounds.tsv` (the `round6-fn38` rows); no visual
+pass is awarded, and the owner records the verdict in fn-34.
 
 ## Round 6b, fn-44: the curtain hangs (2026-09-15)
 
@@ -579,8 +586,8 @@ Three things still read wrong and each is somebody's row:
 - **One stem.** fn-38's.
 
 No visual pass is awarded. The round-6b pairs are recorded by sha256 in
-`round6b-fn44/stills.json` with `visual_status: unassessed`; the owner judges
-them on the judging page and records the verdict in fn-34.
+`rounds.tsv` (the `round6b-fn44` rows); no visual pass is awarded; the
+owner judges them on the judging page and records the verdict in fn-34.
 
 ## Round 6, fn-45: few big limbs (2026-09-15)
 
@@ -718,13 +725,14 @@ in a hundred, wherever it falls. The final table is clean on all 24
 protocol seeds and 120 random ones; that is a miss, not a cure. It belongs
 to the surface builder and is becoming its own bug spec.
 
-No visual pass is awarded; the pairs are in `round6-fn45/stills.json` and on
-the judging page, and the owner judges.
+No visual pass is awarded; the pairs are recorded by sha256 in
+`rounds.tsv` (the `round6-fn45` rows) and on the judging page, and the
+owner judges.
 
 The merge of fn-45 into fn-34's integration branch reproduced this round: the
 beech's three matched stills rendered from the merged branch
 (`measure/pairs-merge45/`) are byte-identical to the sha256 records in
-`round6-fn45/stills.json`, and so are their compare numbers.
+`rounds.tsv` (the `round6-fn45` rows), and so are their compare numbers.
 
 ## Round 7: the birch on two stems under a hanging curtain (2026-09-15)
 
@@ -815,8 +823,8 @@ It still does not read as the photograph's tree, for these reasons:
   against the sky with a brown haze of shoots. The colour is fn-40's.
 
 No visual pass is awarded. The round-7 pairs are recorded by sha256 in
-`round7-birch/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round7-birch` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 8, fn-46: young shoots take their own colour (2026-09-15)
 
@@ -964,8 +972,8 @@ What still reads wrong:
   of the stems** (fn-48), unchanged from round 7.
 
 No visual pass is awarded. The round-8 pairs are recorded by sha256 in
-`round8-fn46/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round8-fn46` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 8b, fn-47: the curtain's strands vary in length (2026-09-15)
 
@@ -1105,8 +1113,8 @@ What is left, and whose it is:
   (fn-48) are owned elsewhere.
 
 No visual pass is awarded. The round-8b pairs are recorded by sha256 in
-`round8b-fn47/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round8b-fn47` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 8c: the merge of fn-45 and fn-46 (2026-09-15)
 
@@ -1171,8 +1179,8 @@ since fn-50, fn-51 and fn-52 start from this merge.
   unequal length. The uniform length is fn-47's, the symmetric V fn-48's.
 
 No visual pass is awarded. The round-8c pairs are recorded by sha256 in
-`round8c-merge/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round8c-merge` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 9, fn-51: the curtain hangs below the crown (2026-09-15)
 
@@ -1306,8 +1314,8 @@ It is not yet the photograph's hem:
   (fn-52) and the symmetric V of the stems (fn-48).
 
 No visual pass is awarded. The round-9 pairs are recorded by sha256 in
-`round9-fn51/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round9-fn51` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 9b, fn-48: a clump's stems lean unequally (2026-09-15)
 
@@ -1390,8 +1398,8 @@ Three things are left, and none of them is this spec's row:
   fixed seed is posed against the photographs.
 
 No visual pass is awarded. The round-9b pairs are recorded by sha256 in
-`round9b-fn48/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round9b-fn48` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 10, fn-52: a leaf mass lit as a canopy (2026-09-15)
 
@@ -1477,8 +1485,8 @@ passes all forty-eight cases (`measure/protocol-fn52/`).
   flatter and dimmer than the photograph.
 
 No visual pass is awarded. The round-10 pairs are recorded by sha256 in
-`round10-fn52/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round10-fn52` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 11: the beech's leader (2026-09-15)
 
@@ -1628,8 +1636,8 @@ Photograph / round 8c → round 11:
   close-up aimed at the stem it names. That change is outside this pass.
 
 No visual pass is awarded. The round-11 pairs are recorded by sha256 in
-`round11-beech/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round11-beech` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 12, fn-50: short shoots clothe the limbs (2026-09-15)
 
@@ -1785,8 +1793,8 @@ middle of the box. That is fn-52's lighting.
   changed only fine twig texture.
 
 No visual pass is awarded. The round-12 pairs are recorded by sha256 in
-`round12-fn50/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round12-fn50` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 13: the birch with every spec but lighting (2026-09-15)
 
@@ -1859,8 +1867,8 @@ and the hem is ragged.
   by haze. The veil is a shade denser and more even than the photograph's.
 
 No visual pass is awarded. The round-13 pairs are recorded by sha256 in
-`round13-birch/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round13-birch` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 14: master's bark plates under the beech and the birch (2026-09-15)
 
@@ -1926,8 +1934,8 @@ What these pairs show is the bark fn-40 starts from.
   measurement.
 
 No visual pass is awarded. The round-14 pairs are recorded by sha256 in
-`round14-merge/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round14-merge` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 15: the birch's trunk and hem (2026-09-15)
 
@@ -2111,8 +2119,8 @@ What is left, and whose it is:
   brightness (fn-52).
 
 No visual pass is awarded. The round-15 pairs are recorded by sha256 in
-`round15-birch/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round15-birch` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 15b, fn-48.2: the second stem parts at a height (2026-09-15)
 
@@ -2180,8 +2188,8 @@ fate through all three, and mirroring the run choice in the contact query
 (`branching/specimen/contacts.rs`), is a follow-up task.
 
 No visual pass is awarded. The round-15b pairs are recorded by sha256 in
-`round15b-fn48/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round15b-fn48` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 16, fn-40: smooth bark, lichen, lenticels and peel (2026-09-15)
 
@@ -2493,8 +2501,8 @@ falls into its own shade, and sky shows at the rim.
   - **The two stems** still read as a narrow Y from this camera.
 
 No visual pass is awarded. The round-17 pairs are recorded by sha256 in
-`round17-merge/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round17-merge` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 20, fn-48.3: a clean fork (2026-09-15)
 
@@ -2561,8 +2569,8 @@ S-BARE still around the fork.
   fork itself is as clean from this camera, and the lean still barely reads.
 
 No visual pass is awarded. The round-20 pairs are recorded by sha256 in
-`round20-fn48c/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round20-fn48c` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 21: the birch on the integration branch (2026-09-16)
 
@@ -2639,8 +2647,8 @@ Three images: the S-BARE, S-WHOLE and S-BARK pairs.
   separate dark rods rather than a flared trunk.
 
 No visual pass is awarded. The round-21 pairs are recorded by sha256 in
-`round21-integration/stills.json` with `visual_status: unassessed`, and the
-owner records the verdict in fn-34.
+`rounds.tsv` (the `round21-integration` rows); no visual pass is awarded,
+and the owner records the verdict in fn-34.
 ## Round 18: the beech's rim, lobes and colour (2026-09-15)
 
 Round 17's B-WHOLE was the first full, closed, lit beech dome. Three things
@@ -2814,8 +2822,8 @@ million, inside the species' 10^5 to 10^7 band. The DBH proxy holds at
   past half its height, and the limbs leave it one or two at a time.
 
 No visual pass is awarded. The round-18 pairs are recorded by sha256 in
-`round18-beech/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round18-beech` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 19, fn-54: the beech's crown from its limb systems (2026-09-16)
 
@@ -2896,8 +2904,8 @@ Three images: the B-WHOLE pair at each lobe shade, and the B-BARE pair.
   photograph carries a broader, flatter head.
 
 No visual pass is awarded. The round-19 pairs are recorded by sha256 in
-`round19-fn54/stills.json` with `visual_status: unassessed`, and the owner
-records the verdict in fn-34.
+`rounds.tsv` (the `round19-fn54` rows); no visual pass is awarded, and
+the owner records the verdict in fn-34.
 
 ## Round 22: what the integration branch ships (2026-09-16)
 
@@ -2936,7 +2944,7 @@ between them on the page.
   dark horizontal dashes cross it, which the photograph does not show.
 
 No visual pass is awarded. The pairs are recorded by sha256 in
-`round22-ships/stills.json` with `visual_status: unassessed`.
+`rounds.tsv` (the `round22-ships` rows); no visual pass is awarded.
 
 ## After round 23: the owner's notes and what the bare beech lacks (2026-09-16)
 
@@ -3013,8 +3021,9 @@ so the host judged trial 5 by eye.
 
 Every gate passes, the smooth-bark resolution test included. No pin moves,
 since material rows do not reach the mesh, and the numeric protocol is round
-22's. The pairs are in `round24-birch-bark/stills.json` with
-`visual_status: unassessed`, on the judging page for the owner's verdict.
+22's. The pairs are recorded by sha256 in `rounds.tsv` (the
+`round24-birch-bark` rows); no visual pass is awarded, on the judging
+page for the owner's verdict.
 
 ## Round 25: the birch's leaf, by value rows (2026-09-16)
 

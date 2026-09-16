@@ -38,8 +38,8 @@ birch's table against its S-WHOLE and S-BARE references with the new rows.
       again and the crown base and occupied numbers on S-WHOLE and S-BARE are
       recorded beside round 3's in `.flow/evidence/fn34/REPORT.md`. The pairs
       themselves stay on disk under the ignored `measure/` directory and are
-      recorded by sha256 in `.flow/evidence/fn34/round4-fn37/stills.json` with
-      `visual_status: unassessed`. **The owner's verdict is the open slot.**
+      recorded by sha256 in `.flow/evidence/fn34/rounds.tsv` (the
+      `round4-fn37` rows); no visual pass is awarded. **The owner's verdict is the open slot.**
 - [x] **R5** Tests cover the predicate's continuity across zero
       (`tests/pendulous.rs`), the four rails, the floor under any hang, the
       spruce's stated constants, the oak-to-birch sweep walk (`tests/sweep.rs`)
@@ -99,8 +99,8 @@ the envelope from 0.33 to 0.36.
 
 R4 reserves the verdict to the owner and this task cannot award it. The
 round-4 pairs are on disk under `.flow/evidence/fn34/measure/pairs-fn37/` and
-recorded by sha256 in `.flow/evidence/fn34/round4-fn37/stills.json` with
-`visual_status: unassessed`.
+recorded by sha256 in `.flow/evidence/fn34/rounds.tsv` (the
+`round4-fn37` rows); no visual pass is awarded.
 
 Five of the eight comparable numbers moved toward the photograph, the crown
 base most of all: S-BARE is within 0.004 of it and S-WHOLE halved its distance.

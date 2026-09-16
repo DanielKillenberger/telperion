@@ -22,7 +22,8 @@ a 1.0 m clearance hid the stems behind one wall of curtain.
       the monthly boundary test assert the new invariant, the old one at
       drop 0.
 - [x] **R3** round 9 rendered and recorded in REPORT.md and
-      `round9-fn51/stills.json`; 48/48 protocol, heaviest birch seed
+      `.flow/evidence/fn34/rounds.tsv` (the `round9-fn51` rows);
+      48/48 protocol, heaviest birch seed
       121,765 nodes.
 - [x] **R4** `tests/drop.rs` (eight tests), a unit test in pendant.rs, the
       rails in pendulous.rs.

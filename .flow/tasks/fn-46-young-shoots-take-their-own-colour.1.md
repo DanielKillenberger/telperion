@@ -23,7 +23,8 @@ S-WHOLE's own leaf pixels and lowered its interior darkening.
       failed the test), mottle still acts on young wood, native and
       browser draw the same shader.
 - [x] **R3** round 8 rendered and recorded in REPORT.md and
-      `round8-fn46/stills.json`; the 48-case protocol unchanged.
+      `.flow/evidence/fn34/rounds.tsv` (the `round8-fn46` rows); the
+      48-case protocol unchanged.
 - [x] **R4** `crates/telperion-render/tests/shoot_colour.rs` and the rail
       and wire tests.
 

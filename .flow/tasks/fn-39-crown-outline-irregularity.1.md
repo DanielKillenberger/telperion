@@ -40,7 +40,7 @@ judges them in fn-34.
       amplitude against their whole references; the matched pairs are rendered
       again as round 5 with the numbers beside round 3's and round 4b's in
       `.flow/evidence/fn34/REPORT.md`, the pairs recorded by sha256 in
-      `round5-fn39/stills.json`. The beech's twig length ratio went from 0.42
+      `.flow/evidence/fn34/rounds.tsv` (the `round5-fn39` rows). The beech's twig length ratio went from 0.42
       to 0.40 so the lobes' per-seed noise stays under the node ceiling (seed
       89 reached it at any amplitude); the 48-case protocol passes. The owner's
       verdict is the open item, recorded in fn-34.
@@ -54,9 +54,9 @@ judges them in fn-34.
 
 R4 reserves the verdict to the owner and this task cannot award it. The
 round-5 pairs are on disk under `.flow/evidence/fn34/measure/pairs-fn39/`,
-recorded by sha256 in `.flow/evidence/fn34/round5-fn39/stills.json` with
-`visual_status: unassessed`, and laid out with every earlier round, the
-numbers and the references on the local judging page
+recorded by sha256 in `.flow/evidence/fn34/rounds.tsv` (the
+`round5-fn39` rows); no visual pass is awarded, and laid out with every
+earlier round, the numbers and the references on the local judging page
 `.flow/evidence/fn34/measure/judge.html`.
 
 Both silhouettes left the oval: the outline statistic reads 0.10 on the

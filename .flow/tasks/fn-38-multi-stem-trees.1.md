@@ -27,7 +27,8 @@ two stems at 22 degrees of lean and its pairs are round 6.
       with a count; twig eligibility keys off `Tree::stem_radius`.
 - [x] **R4** the birch's table declares two stems; round 6 rendered at 22
       degrees (12 read as one trunk dividing), recorded beside round 5 in
-      REPORT.md and `round6-fn38/stills.json`; 48/48 protocol, heaviest seed
+      REPORT.md and `.flow/evidence/fn34/rounds.tsv` (the `round6-fn38`
+      rows); 48/48 protocol, heaviest seed
       94,838 nodes.
 - [x] **R5** `tests/stems.rs`, nine cases; stem roots are never shed. The
       year-zero birth stamp was implemented and reverted (see below).

@@ -243,7 +243,7 @@ temporary material override, not committed.
 
 | Total p50 (ms), median of the session | Base commit | Shipped oak | Every term on |
 |---|---|---|---|
-| Session 1, 5 rounds (`timing/f-*.json`) | 4.0100 | 3.9990 | 4.0074 |
+| Session 1, 5 rounds (`timing/f-*.json`, on disk under `.flow/evidence/fn34/measure/archive/fn52-timing/`) | 4.0100 | 3.9990 | 4.0074 |
 | Session 2, 7 rounds (`timing/g-*.json`) | 3.9785 | 3.9798 | 3.9836 |
 | fn-29's accepted, `.flow/evidence/fn29/oak-native-timing.json` | 3.9823 | | |
 

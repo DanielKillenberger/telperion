@@ -21,7 +21,8 @@ round 11's.
 - [x] **R2** clusters on eligible wood above the crown base; the node count
       is identical with short shoots on and off, asserted.
 - [x] **R3** round 12 rendered and recorded in REPORT.md and
-      `round12-fn50/`; 48/48 protocol, beech seeds 151,319 to 200,476
+      `.flow/evidence/fn34/rounds.tsv` (the `round12-fn50` rows);
+      48/48 protocol, beech seeds 151,319 to 200,476
       nodes, 4.25 to 5.60 million leaves inside the fidelity band.
 - [x] **R4** the short-shoot tests, split under the 400-line rule.
 
