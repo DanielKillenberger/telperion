@@ -13,6 +13,7 @@ The 2026-09-16 sweep and the five live Jev pilots that sit behind
 | `pilot/exp4_triage.json` | Eight routes, seven duplicate pairs, four severity labels |
 | `pilot/exp5_sections.json` | Report-section selection over fn-30 `REPORT.md` |
 | `pilot/jev.py`, `build_exp.py`, `build_exp2.py` | Pilot scripts. They are evidence, not shipped tools |
+| `cases-live.txt` | Rewrite live run of `jev cases`: per-case rows, accuracy and confidence spread |
 
 The shipped caller and tools are a rewrite with tests in `crates/telperion-jev`.
 The labelled cases the tools load live in `crates/telperion-jev/data/cases`.

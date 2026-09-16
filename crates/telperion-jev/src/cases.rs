@@ -98,11 +98,12 @@ fn run_screen(
     let questions = screen_questions();
     let mut rows = Vec::new();
     for case in screen_cases() {
+        let context = case.context.as_deref().unwrap_or(case.sentence.as_str());
         let state = json!({
             "species": case.source_id,
             "candidate": {
                 "sentence": case.sentence,
-                "context": case.sentence,
+                "context": context,
             }
         });
         let entry = evaluate(

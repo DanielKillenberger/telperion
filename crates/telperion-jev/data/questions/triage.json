@@ -15,7 +15,7 @@
   },
   "severity": {
     "type": "score",
-    "instructions": "How severe is the defect in `observation` against the owner's standard in `standard`, for a spec whose acceptance rests on the owner's eye?",
+    "instructions": "Score 0 to 2. Use the owner's words in `standard` as the judge, not how striking the form looks on its own. If the standard calls the defect minor, otherwise continuous, or gone by a later age, score below 0.5. If the owner has already rejected the form by name, score at or above 1.9. A wrong form that is visible but not rejected sits between 0.5 and 1.9.",
     "criteria": [
       {
         "summary": "Cosmetic: a small local blemish the owner did not name and that resolves on its own within a few years of growth",

@@ -96,6 +96,8 @@ pub struct ScreenCase {
     pub id: String,
     pub source_id: String,
     pub sentence: String,
+    #[serde(default)]
+    pub context: Option<String>,
     pub expect_kind: String,
 }
 

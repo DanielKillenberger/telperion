@@ -102,7 +102,7 @@
   "severity": [
     {
       "id": "hollow",
-      "observation": "After round 12, the oak's crown at 20 and 22 years has a hollow in one side under a single reaching limb. It shrinks by 24 years and is gone by 26.7.",
+      "observation": "After round 12, the oak's crown at 20 and 22 years has a hollow in one side under a single reaching limb: on the left of seed 7, and smaller in the middle-left of seed 42 at 22 years. It shrinks by 24 years and is gone by 26.7.",
       "standard": "The owner's round-6 decision: a rounded, broad oak crown. The QA note adds: minor, the crown is otherwise continuous.",
       "expect_level": "cosmetic"
     },
