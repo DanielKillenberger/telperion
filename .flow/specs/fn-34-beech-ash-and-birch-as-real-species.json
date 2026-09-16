@@ -32,7 +32,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-34-beech-ash-and-birch-as-real-species.md",
-  "status": "open",
+  "status": "done",
   "title": "Beech, ash and birch as real species",
   "tracker": {
     "baseHashFlow": null,
@@ -45,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-16T09:51:00.937678Z"
+  "updated_at": "2026-09-16T11:43:13.282246Z"
 }

@@ -80,9 +80,8 @@ stands 16.43 m, so the camera now sits at 0.986 m, just above this fork. The
 close-up frames the crotch rather than the bole it framed before.
 
 ## Done summary
-TBD - the host completes the task after the owner's verdict.
-
+The fork where a stem parts from a stem is swept clean, the trunk run carrying on into the upright stem; the specimen snapshot moved to schema 2. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits: 969d1bc7, 925f2a05, 6b514511, 55dc2ddc
-- Tests: cargo test --release -p telperion-core, cargo test --release -p telperion-render, cargo clippy --release --workspace --all-targets -- -D warnings, npm run typecheck, npm run rust:test:wasm, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases)
+- Commits: 55dc2ddc
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

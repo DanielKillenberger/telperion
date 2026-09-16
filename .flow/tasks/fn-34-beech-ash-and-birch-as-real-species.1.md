@@ -27,9 +27,8 @@ Round 1 verdict (2026-09-14): rejecting, "To me it's clear that it's not there y
 The host reviewed the worker's range from 3468ef7, ran the core, render, typecheck, clippy and browser gates (all pass), removed the dead ash fixture and rebased the branch onto master. R3 closes only on the owner's visual verdicts: twelve stills under `.flow/evidence/fn34/stills/`, three fixed seeds per species in whole and bare views, judged beside the references in `.refs/fn34/`. The owner records a verdict per species in the spec; on accepting verdicts the host runs `flowctl done`. Ash's template and the growth-trait rewrite wait for fn-33 and fn-30 and are outside this task.
 
 ## Done summary
-TBD — host completes the task after the owner's verdicts.
-
+The silver birch ships as a catalogue species, accepted by the owner at round 25 after matched-shot rounds 2 to 25; the veins' tone and relief are fn-60's. The European beech is held out of the public catalogue (`params::IN_WORK`, ABI id 5 reserved) and continues in fn-62 with fn-61; the European ash is fn-56's. All forty-eight protocol cases pass at round 25, none capped.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 377fdaeb
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

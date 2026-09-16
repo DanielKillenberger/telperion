@@ -75,9 +75,8 @@ npm run typecheck, uv run scripts/compare-references.py --self-test, the
 48-case fixed and fresh protocol (`measure/protocol-fn39/`, all pass).
 
 ## Done summary
-TBD, after the owner's verdict on the round-5 pairs.
-
+The crown shell takes an irregular outline by amplitude and wavelength rows; neutral is the smooth shell to the byte. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 40e42bb5
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

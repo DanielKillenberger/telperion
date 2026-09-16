@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-48-a-clumps-stems-lean-unequally.md",
-  "status": "open",
+  "status": "done",
   "title": "A clump's stems lean unequally",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T12:45:35.235327Z"
+  "updated_at": "2026-09-16T11:43:10.493929Z"
 }

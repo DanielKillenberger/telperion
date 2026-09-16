@@ -39,9 +39,8 @@ decision for the owner; fn-44's worker removed the first because it broke
 the repo's containment invariant, when strands ran only 2.4 m.
 
 ## Done summary
-TBD, after the owner's verdict and the decision on the shell.
-
+Each hanging shoot draws its own share of the pendulous length, so the curtain's hem is ragged. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e5636535
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

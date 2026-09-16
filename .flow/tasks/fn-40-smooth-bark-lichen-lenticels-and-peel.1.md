@@ -38,9 +38,8 @@ for the owner to choose. Out of reach within the spec: the birch's old,
 deeply fissured, peeling base, which needs bark that changes with age.
 
 ## Done summary
-TBD, after the owner's verdict and the lichen choice.
-
+Smooth bark carries lichen, lenticel and peel rows. The birch's values were retuned at round 24 against the owner's contrast note (near-black 40% to 6% against the photograph's 11%). Peeling strips as geometry are not part of it. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9437d3fd
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

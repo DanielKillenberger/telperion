@@ -35,9 +35,8 @@ crookedness row, and each seed picks its own bearing for the leaning stem.
 The verdict comes on the merged round.
 
 ## Done summary
-TBD, after the owner's verdict on the combined round.
-
+A clump's stems lean unequally by a spread row; the birch has one upright and one leaning stem. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d757f581
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

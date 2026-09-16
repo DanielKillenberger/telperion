@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-50-short-shoots-clothe-the-limbs.md",
-  "status": "open",
+  "status": "done",
   "title": "Short shoots clothe the limbs",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T13:36:28.510514Z"
+  "updated_at": "2026-09-16T11:43:11.457083Z"
 }

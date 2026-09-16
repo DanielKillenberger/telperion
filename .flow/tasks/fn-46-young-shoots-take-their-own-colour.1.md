@@ -39,9 +39,8 @@ colour are not the cause. That is fn-52's (a leaf mass lit as a canopy).
 The oak's hero frame measures 3.59 ms median against fn-29's 3.60 ms.
 
 ## Done summary
-TBD, after the owner's verdict on the combined round.
-
+Young wood takes its own colour below a radius, by rows; the birch's dark shoots are stated. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 34bf9c2d
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-45-few-big-limbs-the-twig-budget-follows.md",
-  "status": "open",
+  "status": "done",
   "title": "Few big limbs: the twig budget follows the radius",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T09:42:18.823856Z"
+  "updated_at": "2026-09-16T11:43:09.071999Z"
 }

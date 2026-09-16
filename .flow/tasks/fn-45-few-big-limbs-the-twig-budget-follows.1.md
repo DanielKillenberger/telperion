@@ -77,9 +77,8 @@ the branch commits: the original was a stub with every field TBD, although the
 work had shipped and merged.
 
 ## Done summary
-TBD - the host completes the task after the owner's verdict.
-
+The twig layer states its own depth (`skeleton.twigs.generations`), and the beech's leader carries its crown. The capability is merged; the beech's own verdict is fn-62's. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits: 1ab5505b, d3fa9279, aa73e027, 34b125f5, 102881da, 45ef8e3c
-- Tests: cargo test --release -p telperion-core, cargo test --release -p telperion-render, cargo clippy --release --workspace --all-targets -- -D warnings, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases)
+- Commits: 45ef8e3c
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

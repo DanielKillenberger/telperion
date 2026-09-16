@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-47-the-curtains-strands-vary-in-length.md",
-  "status": "open",
+  "status": "done",
   "title": "The curtain's strands vary in length",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T12:45:32.764583Z"
+  "updated_at": "2026-09-16T11:43:09.995462Z"
 }

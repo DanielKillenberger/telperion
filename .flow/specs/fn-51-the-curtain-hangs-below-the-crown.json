@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-51-the-curtain-hangs-below-the-crown.md",
-  "status": "open",
+  "status": "done",
   "title": "The curtain hangs below the crown",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T14:21:57.330710Z"
+  "updated_at": "2026-09-16T11:43:11.918826Z"
 }

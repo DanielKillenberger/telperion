@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-38-multi-stem-trees.md",
-  "status": "open",
+  "status": "done",
   "title": "Multi-stem trees",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-14T20:30:48.116704Z"
+  "updated_at": "2026-09-16T11:43:07.207827Z"
 }

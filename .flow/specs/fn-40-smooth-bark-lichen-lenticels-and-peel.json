@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-40-smooth-bark-lichen-lenticels-and-peel.md",
-  "status": "open",
+  "status": "done",
   "title": "Smooth bark: lichen, lenticels and peel",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T17:01:52.742457Z"
+  "updated_at": "2026-09-16T11:43:08.164160Z"
 }

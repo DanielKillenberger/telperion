@@ -38,9 +38,8 @@ wasm `specimen_read` carry no short shoots, by the spec's boundary on
 seasonal development; only the growth view's mesh shows them.
 
 ## Done summary
-TBD, after the owner's verdict on the combined round.
-
+Short spur shoots with leaf clusters clothe the limbs by rows. The capability is merged; the beech's own verdict is fn-62's. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d0bf6f21
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

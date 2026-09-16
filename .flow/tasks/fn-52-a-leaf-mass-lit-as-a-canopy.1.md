@@ -38,9 +38,8 @@ The beech's leaves are lit but the crown does not read as one mass, which
 is its shape (fn-50). The worker's read agrees on both.
 
 ## Done summary
-TBD, after the owner's verdict on the combined round.
-
+The leaf mass is lit as a canopy (canopy normal, light wrap, diffuse transmission, sheen, crown shade); the birch reads as one lit mass. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 19b418f3
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

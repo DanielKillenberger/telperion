@@ -18,9 +18,8 @@ Reference-matched stills: a shot block per reference record, --camera and --no-f
 R4's last clause is the owner's: the six round-2 pairs for the beech and the birch are rendered, measured and on the judging page; fn-34 records the verdict. Gates on the branch: cargo test --release -p telperion-render (all pass, shot device test included), cargo test --release -p telperion-core (no failures), npm run typecheck, cargo clippy -D warnings, uv run scripts/compare-references.py --self-test. PR #25.
 
 ## Done summary
-TBD, after the owner's verdict on the round-2 pairs.
-
+The matched-shot rig renders each reference record through its own camera, sun and foliage state, and the compare script pairs and measures it. Every fn-34 round from 2 to 25 was judged through it. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 27b77b75
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

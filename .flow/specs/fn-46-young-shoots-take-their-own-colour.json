@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-46-young-shoots-take-their-own-colour.md",
-  "status": "open",
+  "status": "done",
   "title": "Young shoots take their own colour",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T12:45:30.254992Z"
+  "updated_at": "2026-09-16T11:43:09.529683Z"
 }

@@ -42,9 +42,8 @@ length (fn-37's row, which also shortens the shoots) or a sag law over the
 shoot's own run; the owner decides on the pair.
 
 ## Done summary
-TBD, after the owner's verdict on the round-6b pairs.
-
+Hanging shoots sag toward vertical along their run by a row; neutral is the straight rod. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e140791b
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

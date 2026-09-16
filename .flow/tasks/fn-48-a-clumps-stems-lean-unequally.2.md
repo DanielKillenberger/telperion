@@ -64,9 +64,8 @@ no ledge and round 13's pins; the row stays for the owner to move. The
 ledge fix is a follow-up task if the owner wants the stem moved up.
 
 ## Done summary
-TBD
-
+A clump's second stem parts at a stated height; the birch states half the bole. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 744f408c
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:

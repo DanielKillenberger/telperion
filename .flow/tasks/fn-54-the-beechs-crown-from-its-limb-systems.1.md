@@ -10,13 +10,11 @@ TBD
 - [ ] TBD
 
 ## Done summary
-TBD
-
+R1 to R3 delivered and merged: the beech's architecture from B-BARE, `canopy.limbClumping` and `material.lobeShade`, all railed and neutral byte-identical. R4 is measured and unmet (B-WHOLE centre 56 against 80; depth shading costs 14 counts and buys no outline) and R5's verdict is not yet accepting; both carry into fn-62 with the owner's round-22 notes. The owner kept depth shading at 0.7. The owner accepted the silver birch at fn-34 round 25 (2026-09-16); the European beech's verdict moved to fn-62.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a061b46d
+- Tests: cargo fmt --all -- --check, cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release -p telperion-core --no-fail-fast, cargo test --release -p telperion-render --no-fail-fast, npm run typecheck, npm run rust:test:wasm, npm test, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases, measure/protocol-round25)
 - PRs:
-
 ## Where fn-54 stopped (2026-09-16, owner shutdown)
 
 Done, on branch fn-53-beech-crown-limb-systems:
