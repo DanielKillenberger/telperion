@@ -155,6 +155,19 @@
 //! shorter drop with fn-48.3's fork half the bole up, and neither branch's
 //! pin is that tree. The beech stays fn-50's; the oak, the spruce and the Two
 //! Trees are byte-identical.
+//! fn-34 round 18 re-pins the beech's placement alone, once: on round 17's
+//! leaf-on pair the crown's edge read as fern fronds, every shoot lined with
+//! a comb of level leaves. Its clusters are now eight leaves fanned a half
+//! circle every 4 cm, held 20 cm off the wood, and its leaves scatter 80
+//! degrees instead of 45. Its skeleton and element hashes, and every other
+//! table, are byte-identical.
+//! fn-54 re-pins the beech alone, once: its architecture is read from B-BARE,
+//! its limb systems clump their leaves, and its leaf mass comes down to about
+//! two metres (crown base 0.06), so its skeleton, placement and counts move
+//! and its crown box narrows from about 15.6 m to 10.9 m across. The element
+//! pin does not move. Merged onto fn-34's integration branch, the beech keeps
+//! fn-54's pin and the birch keeps round 15 and fn-48.3's; the oak, the
+//! spruce and the Two Trees are byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -216,17 +229,17 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 5031410,
-        wood_triangles: 9769200,
-        instances: 4719055,
+        wood_vertices: 5630782,
+        wood_triangles: 10932240,
+        instances: 4998808,
         min: [
-            -15.592021942138672,
+            -10.932916729046667,
             -0.12800000607967377,
-            -14.935297012329102,
+            -10.620726570645942,
         ],
-        max: [15.929782379500104, 31.997190574634367, 15.216161078065474],
-        skeleton: 8478216101743105815,
-        placement: 8294590600763700138,
+        max: [11.738023752642789, 32.19426824035393, 11.282478529769147],
+        skeleton: 18271545552042455757,
+        placement: 12375024254034778185,
         element: 15097586524950800877,
     },
     Pin {

@@ -13,7 +13,8 @@ fn a_value_off_its_range_is_refused_by_its_own_name() {
     // field without a bound would fail the count below.
     // One field put off its range, and the name the refusal must carry.
     type Refusal = (fn(&mut MaterialParams), &'static str);
-    let refusals: [Refusal; 73] = [
+    let refusals: [Refusal; 74] = [
+        (|m| m.lobe_shade = -0.1, "leaf lobe shade"),
         (|m| m.lichen_scale = 1.5, "bark lichen scale"),
         (|m| m.lichen_coverage = -0.1, "bark lichen coverage"),
         (|m| m.lichen_red = 1.1, "bark lichen red"),

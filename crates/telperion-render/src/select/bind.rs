@@ -36,6 +36,8 @@ pub fn draw_layout(gpu: &Gpu) -> wgpu::BindGroupLayout {
                 // The level being drawn arrives as a dynamic offset into the
                 // one buffer every level's list lives in.
                 storage(1, vertex, true, true),
+                // How deep each cell of the crown stands in its own mass.
+                storage(2, vertex, true, false),
             ],
         })
 }
@@ -75,6 +77,7 @@ pub fn draw_group(
     layout: &wgpu::BindGroupLayout,
     placements: &Held,
     lists: &Held,
+    masses: &Held,
     stride: u64,
 ) -> wgpu::BindGroup {
     gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -92,6 +95,10 @@ pub fn draw_group(
                     offset: 0,
                     size: wgpu::BufferSize::new(stride),
                 }),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: masses.buffer().as_entire_binding(),
             },
         ],
     })
@@ -112,6 +119,7 @@ pub fn leaf_group(gpu: &Gpu, layout: &wgpu::BindGroupLayout) -> wgpu::BindGroup 
     };
     let placements = held("leaf placement", bytemuck::cast_slice(&IDENTITY));
     let list = held("leaf list", bytemuck::cast_slice(&[0u32]));
+    let masses = held("leaf masses", bytemuck::cast_slice(&crate::mass::empty()));
     gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("leaf selection"),
         layout,
@@ -123,6 +131,10 @@ pub fn leaf_group(gpu: &Gpu, layout: &wgpu::BindGroupLayout) -> wgpu::BindGroup 
             wgpu::BindGroupEntry {
                 binding: 1,
                 resource: list.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: masses.as_entire_binding(),
             },
         ],
     })

@@ -256,6 +256,7 @@ fn every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged() {
             m.diffuse_transmission,
             m.leaf_sheen,
             m.crown_shade,
+            m.lobe_shade,
         ]
     };
     let mut lit = Vec::new();

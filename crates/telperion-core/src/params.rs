@@ -114,6 +114,7 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "shortShootLength"; canopy.short_shoot_length);
         $op!($f, $v, "canopy", "shortShootLeaves"; canopy.short_shoot_leaves);
         $op!($f, $v, "canopy", "shortShootSpread"; canopy.short_shoot_spread);
+        $op!($f, $v, "canopy", "limbClumping"; canopy.limb_clumping);
         $op!($f, $v, "canopy", "maxInstances"; canopy.max_instances);
         $op!($f, $v, "element", "length"; element.length);
         $op!($f, $v, "element", "width"; element.width);
@@ -212,6 +213,7 @@ macro_rules! fields {
         $op!($f, $v, "material", "peelRed"; material.peel_red);
         $op!($f, $v, "material", "peelGreen"; material.peel_green);
         $op!($f, $v, "material", "peelBlue"; material.peel_blue);
+        $op!($f, $v, "material", "lobeShade"; material.lobe_shade);
 
         $op!($f, $v, "shellDepth"; shell_depth);
     };

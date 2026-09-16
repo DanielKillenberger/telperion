@@ -159,6 +159,11 @@ pub struct MaterialParams {
     pub peel_red: f64,
     pub peel_green: f64,
     pub peel_blue: f64,
+    /// How much of the sky and of what passes through the blade a leaf loses
+    /// to the leaves of its own lobe standing over it, read from the crown's
+    /// own placements rather than from one smooth ellipsoid: a lobe's face is
+    /// lit and what hangs under it falls into its shade. Zero sees none of it.
+    pub lobe_shade: f64,
 }
 
 impl Default for MaterialParams {
@@ -251,6 +256,7 @@ impl Default for MaterialParams {
             peel_red: 0.0,
             peel_green: 0.0,
             peel_blue: 0.0,
+            lobe_shade: 0.0,
         }
     }
 }
@@ -350,6 +356,7 @@ impl MaterialParams {
             (self.peel_red, 0.0, 1.0, "bark peel red"),
             (self.peel_green, 0.0, 1.0, "bark peel green"),
             (self.peel_blue, 0.0, 1.0, "bark peel blue"),
+            (self.lobe_shade, 0.0, 1.0, "leaf lobe shade"),
             (self.ridge_scale, 0.0, 1.0, "bark ridge scale"),
             (self.plate_scale, 0.0, 1.0, "bark plate scale"),
             (self.furrow_strength, 0.0, 1.0, "bark furrow strength"),

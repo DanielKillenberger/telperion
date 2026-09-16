@@ -81,7 +81,7 @@ struct Uniforms {
     orientation: [f32; 4],        // RGB offsets, strength
     shoot: [f32; 4],              // young wood RGB, the radius below which wood is young
     canopy: [f32; 4],             // canopy normal, light wrap, diffuse transmission, sheen
-    crown_shade: [f32; 4],        // the sky one crown radius takes, reserved
+    crown_shade: [f32; 4],        // the sky one crown radius takes, lobe shade, reserved
     lichen: [f32; 4],             // patch RGB, strength
     lichen_detail: [f32; 4],      // cell size in metres, coverage, reserved, reserved
     lenticel: [f32; 4],           // rows per metre, longest dash in metres, strength, tint

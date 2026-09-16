@@ -183,6 +183,13 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(row)
                 .expect("the canopy publishes its short-shoot rows");
         }
+        // fn-54 adds the gap between limb systems; the frozen file predates
+        // it, and at none it thins no leaf.
+        emitted["canopy"]
+            .as_object_mut()
+            .unwrap()
+            .remove("limbClumping")
+            .expect("the canopy publishes its limb clumping");
         // fn-37 turned the curtain from a hidden mode into four twig rows,
         // fn-44 added the sag as a fifth, fn-47 the variation as a sixth and
         // fn-51 the drop and its clearance. The frozen file predates them and

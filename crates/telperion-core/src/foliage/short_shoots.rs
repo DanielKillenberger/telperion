@@ -82,7 +82,26 @@ pub fn place_short_shoots(
     out: &mut Instances,
 ) -> Result<()> {
     checked(tree, envelope, &p)?;
-    clothe(tree, envelope, seed, &p, out)
+    clothe(tree, envelope, seed, &p, out, None)
+}
+
+/// `place_short_shoots` for a crown whose limb systems clump: `owners` names
+/// the node that bears each placement already in `out`, and once the short
+/// shoots are hung the whole crown is thinned by the rule the one-shot build
+/// thins by.
+pub fn place_short_shoots_clumped(
+    tree: &Tree,
+    envelope: Envelope,
+    seed: u32,
+    p: CanopyParams,
+    mut owners: Vec<u32>,
+    out: &mut Instances,
+) -> Result<()> {
+    checked(tree, envelope, &p)?;
+    range(p.limb_clumping, 0., 1., "limb clumping")?;
+    clothe(tree, envelope, seed, &p, out, Some(&mut owners))?;
+    super::clumping::thin(tree, &owners, seed, p.limb_clumping, out);
+    Ok(())
 }
 
 /// What the placement stage checks before either source places a leaf.
@@ -99,6 +118,7 @@ pub(super) fn clothe(
     seed: u32,
     p: &CanopyParams,
     out: &mut Instances,
+    mut owners: Option<&mut Vec<u32>>,
 ) -> Result<()> {
     let leaves = p.short_shoot_leaves;
     let spread = p.short_shoot_spread.to_radians();
@@ -122,6 +142,9 @@ pub(super) fn clothe(
                 let lean = axis(at, radial, tangent, *p);
                 out.matrices
                     .push(matrix(at, lean, tangent, radial, *p, &mut rng)?);
+            }
+            if let Some(owners) = owners.as_mut() {
+                owners.resize(out.matrices.len(), s.shoot.wood as u32);
             }
         }
         Ok(())

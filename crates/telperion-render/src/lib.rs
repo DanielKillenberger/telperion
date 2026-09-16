@@ -10,6 +10,7 @@ mod device;
 mod foliage;
 #[cfg(not(target_arch = "wasm32"))]
 mod headless;
+mod mass;
 mod pass;
 mod scene;
 mod select;

@@ -1,5 +1,5 @@
 use super::{
-    range, short_shoots,
+    clumping, range, short_shoots,
     station::{place_run, Run},
     Instances,
 };
@@ -46,6 +46,11 @@ pub struct CanopyParams {
     /// Degrees either side of its short shoot's bearing a cluster's leaves
     /// fan across, held level: 90 is a half circle, 0 stacks them.
     pub short_shoot_spread: f64,
+    /// How far into each limb system the gap between it and its neighbours
+    /// reaches, as a share of the way from their shared boundary to the
+    /// system's centre: each limb system then keeps a rounded leaf mass of its
+    /// own. Zero, the neutral, thins nothing.
+    pub limb_clumping: f64,
     /// Hard total budget. Exceeding it returns an error, never partial foliage.
     #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::index"))]
     pub max_instances: usize,
@@ -73,6 +78,8 @@ impl Default for CanopyParams {
             short_shoot_length: 0.04,
             short_shoot_leaves: 3,
             short_shoot_spread: 45.,
+            // Neutral: every leaf the stations and the short shoots place.
+            limb_clumping: 0.,
             max_instances: usize::MAX,
         }
     }
@@ -147,6 +154,7 @@ fn place_impl(
         (p.scatter, 0., 90., "scatter"),
         (p.size, 0., 1000., "foliage size"),
         (p.size_variation, 0., 0.9, "size variation"),
+        (p.limb_clumping, 0., 1., "limb clumping"),
     ] {
         range(v, l, h, n)?;
     }
@@ -186,6 +194,8 @@ fn place_impl(
             tree.stem_radius(|i| tree.nodes[i].radius) * p.shoot_radius,
         ),
     };
+    // Which wood bears each leaf, kept only where limb systems clump.
+    let mut owners = (p.limb_clumping > 0.).then(Vec::new);
     for nodes in runs {
         place_run(
             &Run {
@@ -199,10 +209,16 @@ fn place_impl(
             &mut rng,
             &mut out,
         )?;
+        if let Some(owners) = owners.as_mut() {
+            owners.resize(out.matrices.len(), nodes[1] as u32);
+        }
     }
     // A second source over the limbs and branches: short shoots draw from
     // their own wood's stream, so the leaves above keep every byte.
-    short_shoots::clothe(tree, envelope, seed, &p, &mut out)?;
+    short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
+    if let Some(owners) = owners {
+        clumping::thin(tree, &owners, seed, p.limb_clumping, &mut out);
+    }
     Ok(out)
 }
 fn shoots(tree: &Tree, max_radius: f64) -> Vec<Vec<usize>> {

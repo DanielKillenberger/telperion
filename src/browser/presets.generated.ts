@@ -7,6 +7,7 @@ export interface Family {
   divergence: number;
   forwardLean: number;
   leanRise: number;
+  limbClumping: number;
   maxInstances: number;
   outward: number;
   scatter: number;
@@ -94,6 +95,7 @@ export interface Family {
   lichenScale: number;
   lichenStrength: number;
   lightWrap: number;
+  lobeShade: number;
   marginBlue: number;
   marginGreen: number;
   marginRed: number;
@@ -243,6 +245,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 137.508,
         "forwardLean": 0,
         "leanRise": 0,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0.6,
         "scatter": 18,
@@ -330,6 +333,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lichenScale": 0,
         "lichenStrength": 0,
         "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0,
         "marginGreen": 0,
         "marginRed": 0,
@@ -477,6 +481,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 180,
         "forwardLean": 0.25,
         "leanRise": 0,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0,
         "scatter": 18,
@@ -564,6 +569,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lichenScale": 0,
         "lichenStrength": 0,
         "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0.006,
         "marginGreen": 0.035,
         "marginRed": 0.025,
@@ -711,6 +717,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 137.508,
         "forwardLean": 0.05,
         "leanRise": 1.2,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0,
         "scatter": 18,
@@ -798,6 +805,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lichenScale": 0,
         "lichenStrength": 0,
         "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0.002,
         "marginGreen": 0.015,
         "marginRed": 0.01,
@@ -945,15 +953,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 180,
         "forwardLean": 0.1,
         "leanRise": 0,
+        "limbClumping": 0.25,
         "maxInstances": 4294967295,
         "outward": 0,
-        "scatter": 45,
+        "scatter": 80,
         "shootRadius": 0,
-        "shortShootLeaves": 5,
-        "shortShootLength": 0.05,
-        "shortShootRadius": 0.35,
-        "shortShootSpacing": 0.025,
-        "shortShootSpread": 80,
+        "shortShootLeaves": 8,
+        "shortShootLength": 0.2,
+        "shortShootRadius": 0.7,
+        "shortShootSpacing": 0.03,
+        "shortShootSpread": 90,
         "size": 1.1,
         "sizeVariation": 0.12,
         "spacing": 0.006,
@@ -1001,8 +1010,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "crestGreen": 0.055,
         "crestRed": 0.06,
         "crestStrength": 0,
-        "crownShade": 0.15,
-        "cuticleGloss": 0.48,
+        "crownShade": 0.1,
+        "cuticleGloss": 0.18,
         "depthStrength": 0,
         "diffuseTransmission": 1,
         "directionalOcclusion": 0,
@@ -1014,12 +1023,12 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "hueRangeHigh": 0.02,
         "hueRangeLow": -0.02,
         "interiorDarkening": 0.35,
-        "leafBackBlue": 0.1,
-        "leafBackGreen": 0.23,
-        "leafBackRed": 0.14,
-        "leafFrontBlue": 0.018,
-        "leafFrontGreen": 0.105,
-        "leafFrontRed": 0.022,
+        "leafBackBlue": 0.15,
+        "leafBackGreen": 0.28,
+        "leafBackRed": 0.21,
+        "leafFrontBlue": 0.05,
+        "leafFrontGreen": 0.15,
+        "leafFrontRed": 0.08,
         "leafSheen": 0.08,
         "lenticelDensity": 6,
         "lenticelLength": 0.08,
@@ -1032,6 +1041,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lichenScale": 0.04,
         "lichenStrength": 1,
         "lightWrap": 0.4,
+        "lobeShade": 0.7,
         "marginBlue": 0.008,
         "marginGreen": 0.04,
         "marginRed": 0.02,
@@ -1071,9 +1081,9 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "weatheringStrength": 0
       },
       "radii": {
-        "forkExponent": 2.6,
+        "forkExponent": 2.9,
         "lengthTaper": 0.2,
-        "trunkRadius": 0.014
+        "trunkRadius": 0.016
       },
       "shellDepth": 1,
       "skeleton": {
@@ -1089,30 +1099,30 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "envelope": {
-          "crownBase": 0.05,
-          "fullness": 0.48,
+          "crownBase": 0.06,
+          "fullness": 0.3,
           "height": 32,
           "irregularity": 0.18,
           "lobeScale": 0.7,
-          "shoulder": 1.5,
-          "spread": 0.52
+          "shoulder": 1.8,
+          "spread": 0.36
         },
         "growth": {
           "maxTurnPerStep": 35
         },
         "habit": {
-          "apicalDominance": 0.9,
+          "apicalDominance": 0.8,
           "attractorWeight": 0,
-          "crookedness": 6,
-          "lateralLengthRatio": 0.5,
+          "crookedness": 3,
+          "lateralLengthRatio": 0.65,
           "lateralOrders": 3,
-          "lateralPitch": 65,
-          "lateralSpacing": 2.2,
+          "lateralPitch": 28,
+          "lateralSpacing": 2,
           "lateralsPerStation": 2,
-          "leaderInternode": 2.2,
-          "pitchVariation": 10,
-          "risePrimary": 0.45,
-          "riseSecondary": 0.1,
+          "leaderInternode": 2.6,
+          "pitchVariation": 6,
+          "risePrimary": 0.1,
+          "riseSecondary": 0,
           "sheddingThreshold": 0,
           "stemDivergence": 0,
           "stemForkHeight": 0,
@@ -1125,7 +1135,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "seed": 42,
         "step": 0.022,
         "twigs": {
-          "angle": 50,
+          "angle": 40,
           "angleVariation": 10,
           "curtainClearance": 0.5,
           "curtainDrop": 0,
@@ -1135,8 +1145,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "hang": 0,
           "internodeFactor": 2.5,
           "laterals": 4,
-          "lengthRatio": 0.3,
-          "limbRadius": 0.17,
+          "lengthRatio": 0.23,
+          "limbRadius": 0.28,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,
           "pendulousVariation": 0,
@@ -1179,6 +1189,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 180,
         "forwardLean": 0.6,
         "leanRise": 0.3,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0,
         "scatter": 18,
@@ -1266,6 +1277,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lichenScale": 0.01,
         "lichenStrength": 0.45,
         "lightWrap": 0.5,
+        "lobeShade": 0,
         "marginBlue": 0.01,
         "marginGreen": 0.05,
         "marginRed": 0.03,
@@ -1413,6 +1425,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 137.508,
         "forwardLean": 0,
         "leanRise": 0,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0.42,
         "scatter": 14,
@@ -1500,6 +1513,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lichenScale": 0,
         "lichenStrength": 0,
         "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0,
         "marginGreen": 0,
         "marginRed": 0,
@@ -1647,6 +1661,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 99.502,
         "forwardLean": 0,
         "leanRise": 0,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0.72,
         "scatter": 22,
@@ -1734,6 +1749,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "lichenScale": 0,
         "lichenStrength": 0,
         "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0,
         "marginGreen": 0,
         "marginRed": 0,

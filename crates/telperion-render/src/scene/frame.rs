@@ -165,7 +165,7 @@ impl Scene {
                     m.diffuse_transmission,
                     m.leaf_sheen,
                 ),
-                crown_shade: colour(m.crown_shade, 0.0, 0.0, 0.0),
+                crown_shade: colour(m.crown_shade, m.lobe_shade, 0.0, 0.0),
                 lichen: colour(
                     m.lichen_red,
                     m.lichen_green,

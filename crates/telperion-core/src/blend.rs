@@ -62,7 +62,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         canopy.shoot_radius, canopy.spacing, canopy.clump_span, canopy.outward,
         canopy.upward, canopy.forward_lean, canopy.lean_rise,
         canopy.surface_contact, canopy.size, canopy.size_variation,
-        canopy.short_shoot_radius, canopy.short_shoot_length,
+        canopy.short_shoot_radius, canopy.short_shoot_length, canopy.limb_clumping,
         element.connector_length, element.length, element.width,
         element.widest_at, element.base_fullness, element.tip_sharpness,
         element.cup, element.curl, element.lobe_depth, element.section_roundness,
@@ -141,6 +141,7 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.peel_red,
         material.peel_green,
         material.peel_blue,
+        material.lobe_shade,
 
         shell_depth,
     );

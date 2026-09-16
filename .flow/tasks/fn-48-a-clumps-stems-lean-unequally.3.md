@@ -46,10 +46,43 @@ scope:
       a third of its visible height up), its pairs rendered again, visual QA
       before returning, and the owner judges in fn-34.
 
+## NEEDS_HUMAN
+
+R4's last clause is the owner's verdict in fn-34, and this task cannot award
+it. The round is REPORT.md's round 20; its pairs are recorded by sha256 in
+`round20-fn48c/stills.json` with `visual_status: unassessed`, and the work is
+merged into `fn-34-integration` (`64a3aea4`).
+
+The birch states the fork at half the bole, the rail's top, which puts the
+fork node at 0.96 m. The two photographs disagree and the row cannot satisfy
+both: S-WHOLE's pair leaves the ground as two stems, and S-BARE's stands on
+one trunk that forks at its lowest limbs, about a third of its visible
+height up. The owner asked for the stem to move up, and 0.5 is as far toward
+S-BARE as the row reaches.
+
+The host's read on the pairs: the trunk narrows into the upright stem with no
+ring and no step, and the leaning stem leaves its left side in a plain crotch,
+so there is no ledge and no seam. S-BARE shows one white trunk to about a
+metre and then the pair, which is its photograph's habit, though the
+photograph forks well above anything the rail reaches. S-WHOLE stands on a
+metre of one trunk under the curtain where its photograph parts at the ground,
+and the lean still barely reads.
+
+All forty-eight protocol cases pass (`measure/protocol-fn48c/`), none capped.
+Every shipped table is byte-identical with its fork at the ground: wood,
+normals, coordinates, indices and leaves, at two seeds and a scrubbed view.
+The specimen snapshot moves to schema 2 for the stem flag, and the browser's
+wire decoder reads the extra byte.
+
+A consequence found later, in round 21 on the integration branch: the S-BARK
+shot block aims its camera at 0.06 of the tree's height, and the merged birch
+stands 16.43 m, so the camera now sits at 0.986 m, just above this fork. The
+close-up frames the crotch rather than the bole it framed before.
+
 ## Done summary
-TBD
+TBD - the host completes the task after the owner's verdict.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 969d1bc7, 925f2a05, 6b514511, 55dc2ddc
+- Tests: cargo test --release -p telperion-core, cargo test --release -p telperion-render, cargo clippy --release --workspace --all-targets -- -D warnings, npm run typecheck, npm run rust:test:wasm, uv run scripts/compare-references.py --self-test, node tests/species.mjs --measure-only (48 cases)
 - PRs:
