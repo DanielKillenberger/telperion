@@ -2898,3 +2898,42 @@ Three images: the B-WHOLE pair at each lobe shade, and the B-BARE pair.
 No visual pass is awarded. The round-19 pairs are recorded by sha256 in
 `round19-fn54/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 22: what the integration branch ships (2026-09-16)
+
+fn-54 is merged (`4e6d903c`), so every spec fn-34 depends on is on this
+branch. This is the round the owner judges, on the page at
+https://claude.ai/artifact/Pu1s9YB9TfnFWLxmbu2dVt, which carries every round
+since 3 and saves the verdicts where the host reads them back.
+
+All forty-eight protocol cases pass (`measure/protocol-round22/`), none
+capped. Seed 1: the beech grows 187,968 nodes and 4,928,780 leaves, as in
+round 19; the birch 111,835 nodes and 353,867 leaves, as in round 21. The
+birch's three stills are byte-identical to round 21's.
+
+The beech's stills differ from round 19's because fn-40's bark now reaches
+it. Photograph / round 19 → round 22:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.74 → 0.74 | 0.25 / 0.30 → 0.30 | 0.28 / 0.42 → 0.41 | 100 / 99 → 116 | 0.29 / 0.12 → 0.11 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.02 → 0.01 | 0.05 / 0.09 → 0.22 | 130 / 100 → 121 | — / 0.13 → 0.17 |
+| B-WHOLE | 0.70 / 0.75 → 0.75 | 0.12 / 0.10 → 0.10 | 0.46 / 0.53 → 0.53 | 80 / 53 → 56 | 0.23 / 0.17 → 0.17 |
+
+The depth-shading trial repeats on the merged tree: B-WHOLE reads 56.4 at
+lobe shade 0.7 and 70.4 at 0.0, against the photograph's 79.7, with the
+outline 0.17 at both (`measure/pairs-round22-lobe0/`). The owner chooses
+between them on the page.
+
+### What the host read on the pairs
+
+- **B-BARE.** fn-40's lichen, pale at full strength over half the bark,
+  whitens every limb, so the winter crown reads silver where the
+  photograph's is grey-brown. Its centre rises from 99, on the photograph,
+  to 116.
+- **B-BASE.** The lobed lichen reads as the photograph's scattered pale
+  patches. The ground is paler than the photograph's mid-grey, and crisp
+  dark horizontal dashes cross it, which the photograph does not show.
+
+No visual pass is awarded. The pairs are recorded by sha256 in
+`round22-ships/stills.json` with `visual_status: unassessed`.
