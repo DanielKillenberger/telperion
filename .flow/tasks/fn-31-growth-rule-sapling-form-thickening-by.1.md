@@ -648,3 +648,60 @@ The brief went back into the same worker session (base bc43640f):
 4. a first pass on leaf form;
 5. re-derive the young tests;
 6. F2.
+
+## Round 13 — NEEDS_HUMAN, 2026-09-16
+
+The worker returned `92c3954e..3ca193d6` from bc43640f. The host wrote
+`round13/REPORT.md`, since the harness refused the worker's write (c12f94cc).
+
+- **Identity.** The oak is now `pedunculate-oak`, Quercus robur, ABI id 3,
+  across 48 files. There is no alias for the old id.
+- **Height.** It follows Jev's curve: seed 7's tallest wood is 1.48 m at 10,
+  5.36 at 20, 21.68 at 60 and 26.66 at 100. Derived mature age is 135 and
+  lifetime 327. `tests/oak_height.rs` pins it, and the no-spurt invariant is
+  on and green.
+- **Trunk.**
+  - It follows the open-grown oak girth rule: 68, 70 and 78 cm at 75, 80 and
+    103 years, against 59, 63 and 79 (+14.5%, +11.2%, −1.0%).
+  - It is 84 cm at 135 years. H/D falls at every age.
+  - W2's 118 cm at 181 is blocked: 89 cm, −24.7%. The thicker trunk radius it
+    needs stops the oak at `NODE_CEILING` (250,000) in years 77 to 84.
+- **Leaf, first pass.** 11 × 7.5 cm, 3 mm petiole, rounded lobes. The render
+  has no basal auricles, because the outline has no term for them.
+- **New traits.**
+  - `growth.saplingSpacing` replaces the literal 0.32 and holds 0.32 on
+    every preset.
+  - `growth.youngLateralSpacing` is off (1) on every preset.
+  - The 0.28 m floor beside the first is an older literal, left for fn-53.
+- **Invariants.**
+  - No-gap crown, 15 to 30 years: ignored as blocked. The 17-year tuft
+    closes at a tier share of 0.18 to 0.21 on 19 seeds, but every such
+    share stops some seed at the node ceiling (seed 5 in year 118 at 0.20).
+  - Silhouette window: now opens at 8 years instead of 5.
+  - Mature width: 14 m ± 15% half-width.
+  - Diameter rows: re-derived.
+  - Young-taper bound: removed on the owner's look.
+  - `bark_distance`: keeps its 24 m scene; the 28 m oak reads 3.33
+    against 3.0 at 4x, traced to crown shadow, not bark (CONVERGENCE §4).
+- **F2.** No row change. `youngLateralSpacing` fills the 14-year spruce but
+  fills later ages more and nears the ceiling.
+- **Cost, load 2.4.** Oak 1,887 ms, spruce 534 ms.
+- **Pins.** The oak identity and scaffold pins moved once after
+  CONVERGENCE.md: nodes +21%, leaves +24%. Every other preset is
+  byte-identical.
+
+The host reviewed the range and re-ran the gates at c12f94cc: fmt, clippy,
+typecheck and `npm test` (77 of 77) pass. `cargo test --release
+--workspace --no-fail-fast` gives 358 passed, 9 ignored and one red, the
+inherited Ordinary clay pin. The strip page carries round 13 on top:
+https://claude.ai/artifact/PGhR9tQn2sH1b9oQPTCA6j
+
+Owner decisions:
+
+1. R1 on the round-13 strips.
+2. The leaf.
+3. Whether the two node-ceiling blocks wait for fn-53.
+4. F2: stands, or another pass.
+5. Whether `growth.youngLateralSpacing`, which is tested but unused,
+   stays or goes.
+6. `bark_distance` measuring a 24 m scene, not the shipped oak.
