@@ -608,3 +608,43 @@ the well studied path anyway".
   targets, keep only species-neutral mechanism (young-phase traits, the
   no-spurt invariant, diameter pacing) and return. The rename and the Q. robur
   fit follow in a new brief.
+
+## Round 13, pedunculate oak brief — 2026-09-16
+
+The worker paused on the owner's species change and returned db708cd8:
+`growth.saplingRate` (metres a year, 0 to 10, default 0), the young phase
+that hands over to the mature curve without a step, and the no-spurt
+invariant (yearly nominal gain ratio at most 1.25). Every preset is
+unchanged, and the gates are green except the inherited clay pin. The host
+reviewed the range; production reads the sapling-aware `height_fraction`
+throughout, and the pure `fraction()` survives only in `waiting.rs` test
+modules. b1ccfc1f added Garry oak targets and db708cd8 removes them.
+
+The host's Q. robur evidence pass is `.flow/evidence/fn31/robur/REFERENCE.md`
+(bc43640f). The sources:
+
+- wild Knepp saplings;
+- a Polish provenance stand;
+- planted and sown oaks on former fields;
+- the 2021 NW-FVA oak yield table;
+- open-grown girth-age rules (Woodland Trust, White 1998).
+
+Jev weighted the 14 height items. From 94,974 smooth curves it chose
+envelope 28 m, `saplingRate` 0.06, `youngAge` 1, `rate` 0.04, `shape` 3
+(probability 0.59). That curve gives 1.49 m at 10, 5.36 at 20, 21.76 at 60
+and 26.77 at 100, with maturity near year 135. Two taller candidates
+(envelopes 30 and 32) stopped with `ResourceLimit("node ceiling reached")`
+in years 65 to 68, which is evidence for fn-53.
+
+Rename impact: the old id `oregon-white-oak` appears in 60 files on
+`fn-34-integration`, 57 on `fn-53-beech-crown-limb-systems` and 48 on
+master. Whichever lands after fn-31 resolves the rename.
+
+The brief went back into the same worker session (base bc43640f):
+
+1. rename the preset to `pedunculate-oak`;
+2. author the height curve;
+3. refit thickening to open-grown Q. robur girth;
+4. a first pass on leaf form;
+5. re-derive the young tests;
+6. F2.
