@@ -206,7 +206,7 @@ fn older_material_documents_gain_only_inert_detail_defaults() {
 /// two paths draw the same young wood exactly when the wire carries it whole.
 #[test]
 fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
-    for (_, id, _, _) in params::CATALOGUE {
+    for (_, id, _, _) in params::CATALOGUE.iter().chain(params::IN_WORK) {
         let native = Preset::from_id(id).unwrap().parameters().material;
         let page = params::parse(&params::metadata(
             &Preset::from_id(id).unwrap().parameters(),
@@ -232,6 +232,7 @@ fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
     // Only the two species whose tables state young wood have any.
     let young: Vec<_> = params::CATALOGUE
         .iter()
+        .chain(params::IN_WORK)
         .filter(|entry| {
             Preset::from_id(entry.1)
                 .unwrap()
@@ -242,7 +243,7 @@ fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
         })
         .map(|entry| entry.1)
         .collect();
-    assert_eq!(young, ["european-beech", "silver-birch"]);
+    assert_eq!(young, ["silver-birch", "european-beech"]);
 }
 
 /// The canopy rows cross the page's wire as the native still reads them, so
@@ -260,7 +261,7 @@ fn every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged() {
         ]
     };
     let mut lit = Vec::new();
-    for (_, id, _, _) in params::CATALOGUE {
+    for (_, id, _, _) in params::CATALOGUE.iter().chain(params::IN_WORK) {
         let family = Preset::from_id(id).unwrap().parameters();
         let page = params::parse(&params::metadata(&family)).unwrap().material;
         assert_eq!(canopy(page), canopy(family.material), "{id}");
@@ -269,5 +270,5 @@ fn every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged() {
         }
     }
     // Only the two species whose tables state a canopy light one.
-    assert_eq!(lit, ["european-beech", "silver-birch"]);
+    assert_eq!(lit, ["silver-birch", "european-beech"]);
 }

@@ -228,11 +228,16 @@ pub const CATALOGUE: &[(u32, &str, &str, &str)] = &[
         "Quercus garryana",
     ),
     (4, "norway-spruce", "Norway spruce", "Picea abies"),
-    (5, "european-beech", "European beech", "Fagus sylvatica"),
     (6, "silver-birch", "Silver birch", "Betula pendula"),
     (1, "telperion", "Telperion", "The silver tree"),
     (2, "laurelin", "Laurelin", "The golden tree"),
 ];
+/// Tables still being judged. Their ABI ids are reserved, and they are not
+/// listed, served by id or built by name: the core's tests and the species
+/// runner reach them through `Preset`. The European beech ships when fn-62
+/// accepts it.
+pub const IN_WORK: &[(u32, &str, &str, &str)] =
+    &[(5, "european-beech", "European beech", "Fagus sylvatica")];
 pub fn preset(id: u32) -> Result<Family> {
     let identity = CATALOGUE
         .iter()
@@ -242,6 +247,9 @@ pub fn preset(id: u32) -> Result<Family> {
     by_identity(identity)
 }
 pub fn by_identity(id: &str) -> Result<Family> {
+    if !CATALOGUE.iter().any(|entry| entry.1 == id) {
+        return Err(Error::InvalidInput("preset identity"));
+    }
     let mut f = Preset::from_id(id)
         .ok_or(Error::InvalidInput("preset identity"))?
         .parameters();

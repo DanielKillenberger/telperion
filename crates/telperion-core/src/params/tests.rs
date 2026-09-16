@@ -288,3 +288,22 @@ fn resize_tolerance_is_a_validated_blended_wire_trait() {
         assert!(error.to_string().contains("growth.resizeTolerance"));
     }
 }
+
+#[test]
+fn a_table_in_work_is_reserved_unlisted_and_not_built_by_name() {
+    for &(abi, id, _, _) in IN_WORK {
+        assert!(
+            CATALOGUE
+                .iter()
+                .all(|entry| entry.0 != abi && entry.1 != id),
+            "{id}"
+        );
+        assert!(preset(abi).is_err(), "{id} served by id");
+        assert!(by_identity(id).is_err(), "{id} built by name");
+        assert!(parse(&json!(id)).is_err(), "{id} parsed by name");
+        assert!(
+            Preset::from_id(id).is_some(),
+            "{id} unreachable by the core"
+        );
+    }
+}

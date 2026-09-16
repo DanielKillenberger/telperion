@@ -16,7 +16,7 @@ use telperion_core::{
 };
 const HELP:&str="species_measure --case ID:PROFILE:PRESET:SEED [--case ...] --output FILE [--profiles FILE]
 Profiles default to .flow/evidence/fn9/profiles.json relative to the repository.
-Presets: ordinary, oregon-white-oak, norway-spruce, european-beech, silver-birch, telperion, laurelin. Unknown IDs fail; cases continue independently. european-ash is not a catalogue species.
+Presets: ordinary, oregon-white-oak, norway-spruce, european-beech, silver-birch, telperion, laurelin. Unknown IDs fail; cases continue independently. european-beech is in work (fn-62) and reached here by name, though not listed; european-ash is not a catalogue species.
 Example (compile first, then bound the entire run):
   cargo build --release -p telperion-core --example species_measure
   timeout 120s target/release/examples/species_measure --case oak-1:oregon-white-oak:oregon-white-oak:1 --output /tmp/oak-1.jsonl
