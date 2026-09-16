@@ -2937,3 +2937,41 @@ between them on the page.
 
 No visual pass is awarded. The pairs are recorded by sha256 in
 `round22-ships/stills.json` with `visual_status: unassessed`.
+
+## After round 23: the owner's notes and what the bare beech lacks (2026-09-16)
+
+The owner held round 23's A/B pick and named the cause of the leaf-on
+mismatch: branches that stand up bare droop under the weight of their leaves,
+and Telperion draws one skeleton in both states. The only droop the generator
+has is the curtain's `sag`. fn-54's crown base of 0.06, which brought the leaf
+mass down, pulled the winter crown down with it. fn-59 specs the bend; fn-34
+depends on it.
+
+The host compared round 22's B-BARE with its photograph in two height bands:
+
+- **Trunk.** The photograph stands on one thick trunk to about two fifths of
+  its visible height before a few stems divide. Ours divides into a sheaf of
+  near-parallel stems about a metre up.
+- **Line.** The photograph's branches zigzag and turn often. Ours are long
+  straight rods at `crookedness` 3.
+- **Taper.** The photograph grades from thick limbs through finer branches to
+  a haze of fine twigs at the outline. Ours reach the outline near full girth
+  and end in thin sprays.
+- **Angle with height.** The photograph's lower limbs spread wider and arch,
+  and its upper ones rise steeply. Ours all leave at about 28 degrees from one
+  low band. No row found yet varies pitch with height.
+- **Outline.** Ours is a clean dome of tips cut by the shell. The
+  photograph's edge is ragged and open.
+- **Colour.** fn-40's lichen pales our wood to near white. The photograph's
+  is grey-brown against the sky.
+
+The leaves had never been paired with their photographs; they are now
+(`measure/pairs-leaf22/`, on the judging page). The beech's blade is
+polygonal at eight segments, flat yellow-green against a dark glossy
+blue-green, and shows few of its side veins. The birch's is a spiked
+teardrop against a triangular, double-toothed blade, and the element has no
+teeth row. fn-60 specs both; fn-34 depends on it.
+
+The next beech value round follows fn-59: the crown base back to B-BARE's
+reading, more crookedness, the round-23 taper, and a lighter lichen. The
+birch's bark contrast goes in the same round, as birch colour rows only.
