@@ -3022,8 +3022,8 @@ so the host judged trial 5 by eye.
 Every gate passes, the smooth-bark resolution test included. No pin moves,
 since material rows do not reach the mesh, and the numeric protocol is round
 22's. The pairs are recorded by sha256 in `rounds.tsv` (the
-`round24-birch-bark` rows); no visual pass is awarded, on the judging
-page for the owner's verdict.
+`round24-birch-bark` rows); no visual pass is awarded, and the pairs are
+on the judging page for the owner's verdict.
 
 ## Round 25: the birch's leaf, by value rows (2026-09-16)
 
