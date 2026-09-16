@@ -2563,3 +2563,81 @@ S-BARE still around the fork.
 No visual pass is awarded. The round-20 pairs are recorded by sha256 in
 `round20-fn48c/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 21: the birch on the integration branch (2026-09-16)
+
+The integration branch carries birch round 15, fn-48.3's clean fork and
+fn-40's smooth bark over fn-36 to fn-52. This round measures and renders the
+birch on that stack. The beech is not touched: it re-measures at round 17's
+figures to the node, 171,453 nodes at seed 1 and 200,476 on its heaviest seed.
+
+Every gate passes on `080a6d17`: `cargo fmt --check`, clippy over the
+workspace with `-D warnings`, the core and render suites, `npm run typecheck`,
+`npm run rust:test:wasm`, the harness vitest run, and the compare script's
+self-test. The fixed and fresh protocol passes all forty-eight cases
+(`measure/protocol-round21/`). None is node-capped, level-capped or
+attraction-capped.
+
+The birch at seed 1 grows 111,835 nodes, 6,653,920 wood triangles and 353,867
+leaves in 2.41 s, stands 16.43 m on two stems of 0.33 and 0.35 m, and its
+heaviest seed reaches 148,304 nodes.
+
+Photograph / round 17 (integration) → round 21:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| S-BARE | 0.70 / 0.68 → 0.67 | 0.15 / 0.17 → 0.20 | 0.46 / 0.53 → 0.49 | 91 / 81 → 86 | 0.17 / 0.08 → 0.10 |
+| S-BARK | 1.07 / 1.33 → 1.12 | 1.00 / 0.00 → 0.00 | 0.47 / 0.31 → 0.41 | 92 / 167 → 65 | 0.13 / 0.51 → 0.44 |
+| S-WHOLE | 0.85 / 0.87 → 0.90 | 0.08 / 0.15 → 0.19 | 0.44 / 0.48 → 0.43 | 83 / 71 → 69 | 0.22 / 0.11 → 0.12 |
+
+The two far views move toward their photographs on brightness and on the
+share of the box the tree fills. S-BARE's centre goes from 81 to 86 against
+91, and its occupied share from 0.53 to 0.49 against 0.46. S-WHOLE's occupied
+share goes from 0.48 to 0.43 against 0.44. Both crown bases move away: S-BARE
+from 0.17 to 0.20 against 0.15, S-WHOLE from 0.15 to 0.19 against 0.08. The
+crown starts higher up the tree than either photograph's does.
+
+### The bark close-up frames the fork
+
+S-BARK's centre mean falls from 167 to 65 against the photograph's 92, and its
+width over height from 1.335 to 1.122. Neither move is a bark row changing
+value. The shot block puts the camera at `targetHeight` 0.06 of the tree's
+height, 1.5 m away. The birch stands 15.55 m at round 17 and 16.43 m at round
+21, so the camera looks at 0.933 m and then at 0.986 m. fn-48.3 forks the
+birch at 0.96 m. Round 17's close-up framed the single bole below the fork.
+Round 21's frames the crotch and the two parted stems above it, which is
+narrower in the frame and carries the dark relief of the flare.
+
+fn-40's own round 16 drew this close-up at 130.5 against 92.4 on a birch that
+framed below the fork. The further 66 counts of darkness arrived with the
+framing, not with the lichen, the lenticels or the peel.
+
+The birch also thickened on the integration branch, from stems of 0.237 and
+0.249 m at round 17 to 0.327 and 0.355 m here, which fn-36 to fn-52 account
+for and fn-48.3's branch never saw. fn-40 keys bark relief to absolute radius
+(`ridge_scale` 0.08, relief from one ridge width to two and a half), so a
+thicker stem holds the fissured base higher up the trunk than fn-40 calibrated
+against.
+
+### What the host read on the pairs
+
+Three images: the S-BARE, S-WHOLE and S-BARK pairs.
+
+- **S-BARE.** The white bole and the low fork read. The hanging strands are
+  longer, straighter and more even than the photograph's, so the winter
+  silhouette reads closer to a weeping willow's curtain than to the
+  photograph's open, twiggy crown. The photograph's tree forks well above its
+  lowest limbs; ours forks at a metre.
+- **S-WHOLE.** The leaf mass is darker and bluer than the photograph's pale
+  yellow-green, and it hangs in separated curtains where the photograph's
+  crown is one continuous mass with holes in it.
+- **S-BARK.** Near-black peel marks over stark white, reading as a
+  high-contrast blotch pattern. Both photographs show a pale grey-white ground
+  carrying fine dark lenticel dashes and a grey-green lichen wash, with the
+  ragged dark marks smaller and browner than ours.
+- **The base.** In both far views the root collar renders as a bundle of
+  separate dark rods rather than a flared trunk.
+
+No visual pass is awarded. The round-21 pairs are recorded by sha256 in
+`round21-integration/stills.json` with `visual_status: unassessed`, and the
+owner records the verdict in fn-34.
