@@ -1,0 +1,794 @@
+[
+ {
+  "label": "owic: Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 ",
+  "expect": "mature_size_range / unstated / false",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "candidate": {
+     "sentence": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in.",
+     "context": "Laboratory General Characteristics Oregon white oak, a member of the beech family (Fagaceae), is one of only four deciduous oaks native to the West Coast. The massive, branching trunks and broad crowns of old white oaks are characteristic features of valley woodlands in the Pacific Northwest. Size, Longevity, and Form Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum). Oregon white oaks may live 500 years. In forest stands on good sites, Oregon white oaks develop narrow crowns with small branches on straight, clear stems. In more open stands and on poor sites, boles are typically short and crooked; shrubby stands of stunted trees are common. Open-grown trees"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "owic: Oregon white oaks may live 500 years.",
+  "expect": "not_about_tree_size",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "candidate": {
+     "sentence": "Oregon white oaks may live 500 years.",
+     "context": "nly four deciduous oaks native to the West Coast. The massive, branching trunks and broad crowns of old white oaks are characteristic features of valley woodlands in the Pacific Northwest. Size, Longevity, and Form Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum). Oregon white oaks may live 500 years. In forest stands on good sites, Oregon white oaks develop narrow crowns with small branches on straight, clear stems. In more open stands and on poor sites, boles are typically short and crooked; shrubby stands of stunted trees are common. Open-grown trees develop very broad, rounded crowns (crown width may equal tota"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "owic: Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years",
+  "expect": "site_quality_criterion / stand_grown / false  <-- the CLAUDE.md case",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "candidate": {
+     "sentence": "Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old",
+     "context": "ment to persist among more competitive Douglas-fir and maple. The capability of a site for growing Oregon white oak should be evaluated by examining growth and form of older trees. Good potential for growth of this species is indicated by the following site characteristics: Top height on mature trees of at least 60 ft Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old Continuing diameter growth on mature trees. Climate Oregon white oak grows across a diverse range of climates, most of which have moderate to extreme summer drought and annual precipitation of 10 to 100 in. Within its range, mean daily temperatures may vary from lows of 13 to 50 \u001e\"F in January to highs of 60 to 84\u00b0F i"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "owic: It grows from sea level to 3800 ft in the north and at elevations of u",
+  "expect": "not_about_tree_size",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "candidate": {
+     "sentence": "It grows from sea level to 3800 ft in the north and at elevations of up to 7500 ft at the southern end of its range.",
+     "context": "species. Of the western hardwoods, Oregon white oak is one of the most resistant to damage from ice and snow. Twigs and buds have moderate resistance to cold injury. Healthy Oregon white oak are not prone to windthrow or breakage. Elevation Oregon white oak is usually found at lower elevations in the interior valleys. It grows from sea level to 3800 ft in the north and at elevations of up to 7500 ft at the southern end of its range. Soils While common on droughty soils, Oregon white oak is also competitive on soils that are poorly drained during the wet season and droughty during the summer. This commonly occurs on heavy clays, coarse-textured flood plains, and river terraces in the interior valleys. Oregon ash is also common under these conditio"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "owic: Height growth is usually less than 1 ft per year and diameter growth i",
+  "expect": "typical_growth_rate / false",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "candidate": {
+     "sentence": "Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in.",
+     "context": "stablished after the exclusion of fire. Thinning in dense, sapling-sized stands can increase diameter growth. Mixed-species Stands Competitive associates such as Douglas-fir and bigleaf maple must be controlled to maintain Oregon white oak on better sites. Growth and Yield Growth of Oregon white oak is generally slow. Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in. Faster growth, particularly in diameter, is possible (3 to 10 rings/in.). Stump sprouts may grow as much as 3 ft per year during the first 3 years. Oregon white oak stands may achieve basal area of up to 265 ft2 per acre and volume as high as 4500 ft3 per acre. Interactions with Wildlife Oregon white oak trees and sta"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "owic: Stump sprouts may grow as much as 3 ft per year during the first 3 yea",
+  "expect": "sprout_cultivar_or_nursery / false",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "candidate": {
+     "sentence": "Stump sprouts may grow as much as 3 ft per year during the first 3 years.",
+     "context": "ir and bigleaf maple must be controlled to maintain Oregon white oak on better sites. Growth and Yield Growth of Oregon white oak is generally slow. Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in. Faster growth, particularly in diameter, is possible (3 to 10 rings/in.). Stump sprouts may grow as much as 3 ft per year during the first 3 years. Oregon white oak stands may achieve basal area of up to 265 ft2 per acre and volume as high as 4500 ft3 per acre. Interactions with Wildlife Oregon white oak trees and stands are very important for wildlife. Oak woodlands and forests provide food and habitat for many species. Two of note are the acorn woodpecker and M"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "owic: untreated fence posts lasted an average of 18 years before failure.",
+  "expect": "not_about_tree_size",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "candidate": {
+     "sentence": "untreated fence posts lasted an average of 18 years before failure.",
+     "context": "h dyes or transparent stains, especially if dramatic color changes are sought. Heavily pigmented stains can also be used if care is taken to remove excess pigment from the wood. Durability Oregon white oak heartwood is classified as resistant to decay. In tests conducted by staff of the OSU Forest Products Department, untreated fence posts lasted an average of 18 years before failure. The sapwood has no decay resistance and will deteriorate rapidly. Iron stain and oxidative stain sometimes occur on Oregon white oak. Uses Oregon white oak is used for furniture, flooring, railroad ties, tight cooperage, turnings, veneer (sliced), millwork, fence posts, mine timbers, handles, boxes, crates, pallets, c"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "iastate: (may grow to 75 feet in 50 years).",
+  "expect": "measured_size_at_age / open_grown or unstated / true",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Iowa State University Extension, Iowa trees: Norway spruce",
+     "url": "https://naturalresources.extension.iastate.edu/forestry/iowa_trees/trees/norway_spruce.html"
+    },
+    "candidate": {
+     "sentence": "(may grow to 75 feet in 50 years).",
+     "context": "e and for windbreak plantings.\u00a0 It is a large, fast-growing tree requiring a fertile, moist soil. Hardiness:\u00a0 Zones 3b through 7 (can survive zone 8, but is not well adapted to those conditions) \n Norway Spruce Trees - Photos by Paul Wray, Iowa State University\u00a0 \n Growth Rate: \u00a0Moderate to fast, especially when young. (may grow to 75 feet in 50 years). Mature Shape: \u00a0Pyramidal with branches that hang down. Stiff when young, becoming more graceful with age. Height: \u00a075-100 feet\u00a0 Width: \u00a040-50 feet\u00a0 Site Requirements: \u00a0Adaptable, but prefers moist, cool areas. Often found around streams or lakes. Flowering Dates:\u00a0 April - June Seed Dispersal Dates: \u00a0September - April"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "iastate: Norway spruce grow 75 to 100 feet tall.",
+  "expect": "mature_size_range / false",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Iowa State University Extension, Iowa trees: Norway spruce",
+     "url": "https://naturalresources.extension.iastate.edu/forestry/iowa_trees/trees/norway_spruce.html"
+    },
+    "candidate": {
+     "sentence": "Norway spruce grow 75 to 100 feet tall.",
+     "context": "34\u00b0F to 40\u00b0F The needles are single, angular or four-sided, yellow-green in color, 1/2 to 1 inch long and slightly curved.\u00a0 More of the needles are borne on the upper surface of the twigs where they usually point forward. The foliage appears to droop or weep. The cone is 4 to 7 inches long; light brown; hanging down. \u00a0Norway spruce grow 75 to 100 feet tall. They make good winter cover for wildlife. \n Norway Spruce Leaves - Photos by Paul Wray, Iowa State University \n Diseases that Can Affect Norway Spruce Seasonal Needle Loss Rhizosphaera\u00a0Needle Cast Cytospora\u00a0Canker Insects that Can Affect Norway Spruce Conifer Spider Mites \u00a0 \n Norway Spruce Cone - Photo by Paul Wray, I"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "ncta: Growth during the first 10 years after field planting is relatively sl",
+  "expect": "measured_size_at_age / plantation_or_nursery / true",
+  "request": {
+   "state": {
+    "source": {
+     "title": "National Christmas Tree Association: Norway spruce variety page",
+     "url": "https://realchristmastrees.org/education/tree-varieties/norway-spruce/"
+    },
+    "candidate": {
+     "sentence": "Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree.",
+     "context": "this point, beyond which all growth ceases. The spruce budworm can also cause damage to buds and foliage, but less so than for white or red spruce. For Christmas trees, overall color of Norway spruce is fair to excellent, but needle retention is considered poor unless the trees are cut fresh and kept properly watered. Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree. Range: Norway spruce has a rather extensive range in Europe, growing from Scandinavia to the Balkans to the Alps. It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet. Propagation: Most propagation is by seed. Rooting is difficult and a challenge. For grafting, Norway spruce is a preferr"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "ncta: In Europe, Norway spruce grows from 130 to 215 feet in height, but in ",
+  "expect": "mature_size_range / false",
+  "request": {
+   "state": {
+    "source": {
+     "title": "National Christmas Tree Association: Norway spruce variety page",
+     "url": "https://realchristmastrees.org/education/tree-varieties/norway-spruce/"
+    },
+    "candidate": {
+     "sentence": "In Europe, Norway spruce grows from 130 to 215 feet in height, but in the United States is seldom more than 130 feet tall.",
+     "context": "ommonly planted here, particularly in southeastern Canada and northeastern United States. Originally, a number of plants were established as ornamentals, with Christmas tree plantings being established more recently. It has escaped cultivation in several localities and is considered naturalized in some of these areas. In Europe, Norway spruce grows from 130 to 215 feet in height, but in the United States is seldom more than 130 feet tall. Diameter may reach as much as two feet on older trees. It is readily identified by its dark green needles and drooping branchlets. Trees have dark green crown with a triangular shape. Leaves (needles) are 4-sided (rectangular in section), 1/2-1 inch long, and sharp or somewhat blunt at the tip. At the base of each nee"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "ncta: It is a cool climate species and is found at elevations of 3,300 feet ",
+  "expect": "not_about_tree_size",
+  "request": {
+   "state": {
+    "source": {
+     "title": "National Christmas Tree Association: Norway spruce variety page",
+     "url": "https://realchristmastrees.org/education/tree-varieties/norway-spruce/"
+    },
+    "candidate": {
+     "sentence": "It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet.",
+     "context": "is considered poor unless the trees are cut fresh and kept properly watered. Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree. Range: Norway spruce has a rather extensive range in Europe, growing from Scandinavia to the Balkans to the Alps. It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet. Propagation: Most propagation is by seed. Rooting is difficult and a challenge. For grafting, Norway spruce is a preferred understock for a number of spruce species. It has also been a model species for use in tissue culture, and procedures developed in Norway spruce are now being adapted to other tree species of inte"
+    }
+   },
+   "questions": {
+    "kind": {
+     "type": "choice",
+     "instructions": "The state holds one sentence from a source about a tree species, with the surrounding text. What kind of statement is `candidate.sentence`, read in its context?",
+     "criteria": {
+      "measured_size_at_age": {
+       "what": "A height or diameter paired with a specific age or age span, reported as what trees of that age reach",
+       "examples": [
+        "reaches 6 m at 20 years",
+        "8 to 11 years are required to grow a 6-7 foot tree"
+       ]
+      },
+      "site_quality_criterion": {
+       "what": "A growth figure used as a test of how good a site is, listed among indicators of site potential; it describes a threshold, not what trees typically do",
+       "not_for": "an observed growth rate reported as typical"
+      },
+      "mature_size_range": {
+       "what": "The size of mature or full-grown trees with no age given, or a maximum size"
+      },
+      "typical_growth_rate": {
+       "what": "A rate of growth per year or per period reported as typical or usual for the species, not tied to a site test",
+       "not_for": "stump sprouts, cultivars or nursery stock"
+      },
+      "sprout_cultivar_or_nursery": {
+       "what": "Growth or size of stump sprouts, coppice, a named cultivar, or nursery seedling stock, which does not describe a seed-grown wild tree"
+      },
+      "not_about_tree_size": {
+       "what": "The number is about something else: elevation, range, cones, needles, longevity, wood durability, seed bearing"
+      }
+     }
+    },
+    "condition": {
+     "type": "choice",
+     "instructions": "Under what growing condition does `candidate.sentence`, read in its context, describe the tree?",
+     "criteria": {
+      "open_grown": "A tree in the open, a landscape, a yard or a field with no neighbouring canopy competition",
+      "stand_grown": "A tree inside a forest stand or closed canopy, or a forestry site-index or stand context",
+      "plantation_or_nursery": "A planted crop such as a Christmas tree plantation, a nursery bed or a seedling lot",
+      "unstated": "The context does not say under what condition the tree grew"
+     }
+    },
+    "anchor_usable": {
+     "type": "noul",
+     "instructions": "Could code copy a height-at-age pair for a seed-grown tree of this species straight from `candidate.sentence`, using only numbers the sentence states and no assumption about age or condition?",
+     "criteria": {
+      "true": "The sentence itself states both a height (or height range) and the age at which it is reached",
+      "false": "Age or height is missing, the figure is a rate, a threshold, a maximum, a mature range, or it is about sprouts, cultivars or nursery stock"
+     }
+    }
+   }
+  }
+ }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "owic-mature",
+    "source_id": "OWIC-OAK",
+    "sentence": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in.",
+    "expect_kind": "mature_size_range"
+  },
+  {
+    "id": "owic-longevity",
+    "source_id": "OWIC-OAK",
+    "sentence": "Oregon white oaks may live 500 years.",
+    "expect_kind": "not_about_tree_size"
+  },
+  {
+    "id": "o1",
+    "source_id": "OWIC-OAK",
+    "sentence": "Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old",
+    "expect_kind": "site_quality_criterion"
+  },
+  {
+    "id": "owic-elevation",
+    "source_id": "OWIC-OAK",
+    "sentence": "It grows from sea level to 3800 ft in the north and at elevations of up to 7500 ft at the southern end of its range.",
+    "expect_kind": "not_about_tree_size"
+  },
+  {
+    "id": "owic-typical-rate",
+    "source_id": "OWIC-OAK",
+    "sentence": "Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in.",
+    "expect_kind": "typical_growth_rate"
+  },
+  {
+    "id": "owic-sprouts",
+    "source_id": "OWIC-OAK",
+    "sentence": "Stump sprouts may grow as much as 3 ft per year during the first 3 years.",
+    "expect_kind": "sprout_cultivar_or_nursery"
+  },
+  {
+    "id": "owic-posts",
+    "source_id": "OWIC-OAK",
+    "sentence": "untreated fence posts lasted an average of 18 years before failure.",
+    "expect_kind": "not_about_tree_size"
+  },
+  {
+    "id": "iastate-75-in-50",
+    "source_id": "IASTATE-SPRUCE",
+    "sentence": "(may grow to 75 feet in 50 years).",
+    "expect_kind": "measured_size_at_age"
+  },
+  {
+    "id": "iastate-mature",
+    "source_id": "IASTATE-SPRUCE",
+    "sentence": "Norway spruce grow 75 to 100 feet tall.",
+    "expect_kind": "mature_size_range"
+  },
+  {
+    "id": "ncta-6-7-foot",
+    "source_id": "NCTA-SPRUCE",
+    "sentence": "Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree.",
+    "expect_kind": "measured_size_at_age"
+  },
+  {
+    "id": "ncta-europe",
+    "source_id": "NCTA-SPRUCE",
+    "sentence": "In Europe, Norway spruce grows from 130 to 215 feet in height, but in the United States is seldom more than 130 feet tall.",
+    "expect_kind": "mature_size_range"
+  },
+  {
+    "id": "ncta-elevation",
+    "source_id": "NCTA-SPRUCE",
+    "sentence": "It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet.",
+    "expect_kind": "not_about_tree_size"
+  }
+]
