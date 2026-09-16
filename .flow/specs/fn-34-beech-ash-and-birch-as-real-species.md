@@ -106,6 +106,8 @@ This is fn-9's method applied three times with no new engine work of its own. Th
 
 - **Scope and path (2026-09-16).** After a review of the path with Fable and Jev (`.flow/evidence/fn34/review-2026-09-16/`), the owner moved the European beech to its own spec, fn-62-european-beech-as-a-real-species-judged, judged on a trait checklist and carrying every beech verdict above, with the Troll's-model scaffold rows in fn-61. This spec closes on the birch: one colour-row round for the bark contrast the owner named at round 22 and S-BARK's framing, then the owner's verdict. fn-59 and fn-60 no longer gate it. ("ok let's do that.")
 
+- **Round 25 (2026-09-16), the silver birch, on the judging page, the integration branch at `0df23900`.** Accepting, on the condition that the veins are later work. The owner's words: "outer rim is better but the veins aren't strong enough. But i guess that's for later spec. If so i accept". Earlier on round 24: "rest looks good to me given we don't have the peeling bark yet". The veins' tone and relief are fn-60's R5; `vein_contrast` sits at 0.8 of a rail that only lightens. Peeling strips as geometry have no spec yet. With the beech moved to fn-62 and the ash to fn-56, this verdict closes fn-34.
+
 ## Requirement coverage
 
 | Requirement | Task |
