@@ -21,6 +21,7 @@ pub struct Thresholds {
     pub anchor_usable: f64,
     pub severity_cosmetic: f64,
     pub severity_noticeable: f64,
+    pub severity_assessable: f64,
 }
 
 pub fn thresholds() -> Thresholds {
@@ -72,7 +73,10 @@ pub fn same_defect_questions() -> Value {
 
 pub fn severity_questions() -> Value {
     let raw: Value = serde_json::from_str(TRIAGE_JSON).expect("triage.json");
-    json!({ "severity": raw["severity"] })
+    json!({
+        "assessable": raw["assessable"],
+        "severity": raw["severity"],
+    })
 }
 
 /// Selection Choice: every extracted span plus `none`.

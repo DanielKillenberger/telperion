@@ -140,7 +140,10 @@ pub fn triage(
             &mut elapsed_ms,
         );
         ledger.push(entry.reference());
-        if let Some(score) = entry.score("severity") {
+        let assessable = entry.noul("assessable").unwrap_or(0.0);
+        if assessable < cuts.severity_assessable {
+            level = Some("unassessed".into());
+        } else if let Some(score) = entry.score("severity") {
             severity = Some(score);
             level = Some(severity_level(score).to_string());
         }
@@ -175,8 +178,12 @@ pub fn format_proposal(proposal: &TriageProposal) -> String {
             "nearest={finding}\nsame_defect={p:.2}\tabove_cut={above}\n"
         ));
     }
-    if let (Some(score), Some(level)) = (proposal.severity, &proposal.severity_level) {
-        out.push_str(&format!("severity={score:.2} ({level})\n"));
+    match (&proposal.severity, &proposal.severity_level) {
+        (_, Some(level)) if level == "unassessed" => out.push_str("severity=unassessed\n"),
+        (Some(score), Some(level)) => {
+            out.push_str(&format!("severity={score:.2} ({level})\n"));
+        }
+        _ => {}
     }
     out.push_str(&format!("ledger={:?}\n", proposal.ledger));
     out.push_str(&format!(

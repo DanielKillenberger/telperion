@@ -2,7 +2,7 @@ use telperion_jev::extract::{
     candidate_sentences, candidate_spans, section_for_terms, split_for_state, visible_text,
     STATE_SENTENCE_LIMIT,
 };
-use telperion_jev::questions::selection_cases;
+use telperion_jev::questions::{screen_cases, selection_cases};
 use telperion_jev::sha256_hex;
 
 #[test]
@@ -43,16 +43,68 @@ fn empty_source_yields_no_sentence() {
 }
 
 #[test]
-fn long_sentence_splits_and_keeps_the_whole_as_context() {
+fn long_sentence_splits_with_a_bounded_neighbourhood() {
     let mut sentence = String::from("Start. ");
     while sentence.len() <= STATE_SENTENCE_LIMIT {
         sentence.push_str("A measured 12 ft increment appears again. ");
     }
     let parts = split_for_state(&sentence);
     assert!(parts.len() > 1, "{}", parts.len());
-    for (part, whole) in &parts {
+    for (part, context) in &parts {
         assert!(part.len() <= STATE_SENTENCE_LIMIT);
-        assert_eq!(whole, &sentence);
+        assert!(context.len() <= STATE_SENTENCE_LIMIT);
+        assert!(
+            context.contains(part.trim()) || part.chars().take(24).all(|ch| context.contains(ch)),
+            "context should be a neighbourhood of the part"
+        );
+        assert!(context.len() < sentence.len());
+    }
+}
+
+#[test]
+fn unicode_offsets_stay_on_char_boundaries() {
+    let mut text = String::from("°");
+    text.push_str(&"x".repeat(319));
+    text.push_str("50 to 90 ft tall at the café — 12 m.");
+    let sentences = candidate_sentences(&text);
+    assert!(
+        sentences
+            .iter()
+            .any(|row| row.sentence.contains("50 to 90 ft")),
+        "{sentences:?}"
+    );
+    let spans = candidate_spans(&text);
+    assert!(
+        spans.iter().any(|span| span.contains("50 to 90 ft")),
+        "{spans:?}"
+    );
+    let section = section_for_terms(&text, &["café".into(), "tall".into()], 17);
+    assert!(section.is_some());
+
+    let o1 = screen_cases()
+        .into_iter()
+        .find(|case| case.id == "o1")
+        .expect("o1");
+    let o1_context = o1.context.as_deref().unwrap_or("");
+    assert!(
+        o1_context.contains('°') || o1_context.contains('F'),
+        "labelled OWIC context should carry the degree-Fahrenheit run"
+    );
+    let _ = candidate_sentences(o1_context);
+    let _ = section_for_terms(o1_context, &["height".into(), "growth".into()], 17);
+
+    let mut long = String::from("a");
+    while long.len() <= STATE_SENTENCE_LIMIT {
+        long.push('é');
+    }
+    long.push_str(" A measured 12 ft increment.");
+    let parts = split_for_state(&long);
+    assert!(!parts.is_empty());
+    for (part, context) in &parts {
+        assert!(part.len() <= STATE_SENTENCE_LIMIT);
+        assert!(context.len() <= STATE_SENTENCE_LIMIT);
+        assert!(part.is_char_boundary(part.len()));
+        assert!(context.is_char_boundary(context.len()));
     }
 }
 

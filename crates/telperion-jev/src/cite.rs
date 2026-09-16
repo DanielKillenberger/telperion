@@ -8,7 +8,7 @@ use serde_json::json;
 use crate::caller::{evaluate, CallerError, EvaluateRequest, HttpRequest, Transport};
 use crate::extract::{key_terms, section_for_terms, visible_text};
 use crate::ledger::SourceRef;
-use crate::questions::{citation_questions, thresholds};
+use crate::questions::{citation_questions, thresholds, Thresholds};
 use crate::screen::{accumulate, compose_kind};
 use crate::sha256_hex;
 
@@ -33,9 +33,12 @@ pub struct CiteRow {
     pub confidence: f64,
     pub section: String,
     pub ledger: String,
+    pub screen_ledger: String,
     pub listed: bool,
     pub reason: String,
     pub kind: Option<String>,
+    pub kind_confidence: f64,
+    pub anchor_usable: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -44,6 +47,37 @@ pub struct CiteReport {
     pub input_tokens: u64,
     pub output_tokens: u64,
     pub elapsed_ms: u64,
+}
+
+/// From a whole spec, the body of `## Resolved via Research` up to the next
+/// `## ` heading. A section-only file (no such heading) is returned as-is.
+pub fn research_markdown(markdown: &str) -> &str {
+    const HEADING: &str = "## Resolved via Research";
+    let Some(at) = markdown.find(HEADING) else {
+        return markdown;
+    };
+    let after = &markdown[at + HEADING.len()..];
+    let body = after.strip_prefix('\n').unwrap_or(after);
+    match body.find("\n## ") {
+        Some(end) => &body[..end],
+        None => body,
+    }
+}
+
+fn listed_row(claim: &str, relation: &str, reason: String) -> CiteRow {
+    CiteRow {
+        claim: claim.to_string(),
+        relation: relation.into(),
+        confidence: 0.0,
+        section: String::new(),
+        ledger: String::new(),
+        screen_ledger: String::new(),
+        listed: true,
+        reason,
+        kind: None,
+        kind_confidence: 0.0,
+        anchor_usable: 0.0,
+    }
 }
 
 /// Parse research-section bullets. A URL is fetched; "same paper" / "same
@@ -176,31 +210,21 @@ pub fn cite(
     for (claim, load) in claims.iter().zip(loads.iter()) {
         match load {
             SourceLoad::Unreachable(err) => {
-                rows.push(CiteRow {
-                    claim: claim.claim.clone(),
-                    relation: "unchecked".into(),
-                    confidence: 0.0,
-                    section: String::new(),
-                    ledger: String::new(),
-                    listed: true,
-                    reason: format!("fetch error: {err}"),
-                    kind: None,
-                });
+                rows.push(listed_row(
+                    &claim.claim,
+                    "unchecked",
+                    format!("fetch error: {err}"),
+                ));
             }
             SourceLoad::Bytes(bytes) => {
                 let text = visible_text(bytes);
                 let terms = key_terms(&claim.claim);
                 let Some(section) = section_for_terms(&text, &terms, 260) else {
-                    rows.push(CiteRow {
-                        claim: claim.claim.clone(),
-                        relation: "says_nothing".into(),
-                        confidence: 0.0,
-                        section: String::new(),
-                        ledger: String::new(),
-                        listed: true,
-                        reason: "key terms match no section".into(),
-                        kind: None,
-                    });
+                    rows.push(listed_row(
+                        &claim.claim,
+                        "says_nothing",
+                        "key terms match no section".into(),
+                    ));
                     continue;
                 };
                 let source = SourceRef {
@@ -236,22 +260,31 @@ pub fn cite(
                     .unwrap_or_else(|| "says_nothing".into());
                 let confidence = entry.confidence("relation").unwrap_or(0.0);
 
-                let kind = if carries_number(&claim.claim) {
+                let composed = if carries_number(&claim.claim) {
                     let composed = compose_kind(transport, key, ledger_dir, &source, &section)?;
                     input_tokens += composed.input_tokens;
                     output_tokens += composed.output_tokens;
                     elapsed_ms += composed.elapsed_ms;
-                    composed.kind
+                    Some(composed)
                 } else {
                     None
                 };
+                let kind = composed.as_ref().and_then(|c| c.kind.clone());
+                let kind_confidence = composed.as_ref().map(|c| c.kind_confidence).unwrap_or(0.0);
+                let anchor_usable = composed.as_ref().map(|c| c.anchor_usable).unwrap_or(0.0);
+                let screen_ledger = composed
+                    .as_ref()
+                    .map(|c| c.ledger.clone())
+                    .unwrap_or_default();
 
                 let (listed, reason) = list_reason(
                     &relation,
                     confidence,
                     kind.as_deref(),
+                    kind_confidence,
+                    anchor_usable,
                     looks_like_height_at_age(&claim.claim),
-                    cuts.citation_auto_accept,
+                    &cuts,
                 );
                 rows.push(CiteRow {
                     claim: claim.claim.clone(),
@@ -259,9 +292,12 @@ pub fn cite(
                     confidence,
                     section,
                     ledger: entry.reference(),
+                    screen_ledger,
                     listed,
                     reason,
                     kind,
+                    kind_confidence,
+                    anchor_usable,
                 });
             }
         }
@@ -304,8 +340,10 @@ pub fn list_reason(
     relation: &str,
     confidence: f64,
     kind: Option<&str>,
+    kind_confidence: f64,
+    anchor_usable: f64,
     height_at_age: bool,
-    threshold: f64,
+    cuts: &Thresholds,
 ) -> (bool, String) {
     if relation == "unchecked" {
         return (true, "unchecked".into());
@@ -313,10 +351,13 @@ pub fn list_reason(
     if relation != "supports" {
         return (true, relation.to_string());
     }
-    if confidence < threshold {
+    if confidence < cuts.citation_auto_accept {
         return (
             true,
-            format!("confidence {confidence:.2} below {threshold}"),
+            format!(
+                "confidence {confidence:.2} below {}",
+                cuts.citation_auto_accept
+            ),
         );
     }
     if kind == Some("site_quality_criterion") {
@@ -331,6 +372,26 @@ pub fn list_reason(
             ),
         );
     }
+    if height_at_age && kind == Some("measured_size_at_age") {
+        if kind_confidence < cuts.citation_auto_accept {
+            return (
+                true,
+                format!(
+                    "screen kind confidence {kind_confidence:.2} below {}",
+                    cuts.citation_auto_accept
+                ),
+            );
+        }
+        if anchor_usable < cuts.anchor_usable {
+            return (
+                true,
+                format!(
+                    "screen anchor {anchor_usable:.2} below {}",
+                    cuts.anchor_usable
+                ),
+            );
+        }
+    }
     (false, "pass".into())
 }
 
@@ -339,10 +400,14 @@ pub fn format_report(report: &CiteReport) -> String {
     for row in &report.rows {
         let mark = if row.listed { "OWNER" } else { "pass" };
         out.push_str(&format!(
-            "{mark}\t{rel}\tconf={conf:.2}\t{ledger}\t{reason}\t{claim}\n",
+            "{mark}\t{rel}\tconf={conf:.2}\tkind={kind}\tkind_conf={kc:.2}\tanchor={anchor:.2}\tcite={cite}\tscreen={screen}\t{reason}\t{claim}\n",
             rel = row.relation,
             conf = row.confidence,
-            ledger = row.ledger,
+            kind = row.kind.as_deref().unwrap_or("-"),
+            kc = row.kind_confidence,
+            anchor = row.anchor_usable,
+            cite = row.ledger,
+            screen = row.screen_ledger,
             reason = row.reason,
             claim = row.claim
         ));

@@ -5,7 +5,7 @@ use std::path::Path;
 use serde_json::json;
 
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
-use crate::extract::{candidate_sentences, split_for_state, visible_text};
+use crate::extract::{bound_state_text, candidate_sentences, split_for_state, visible_text};
 use crate::ledger::{LedgerEntry, SourceRef};
 use crate::questions::{screen_questions, thresholds};
 
@@ -47,7 +47,12 @@ pub fn screen(
     let mut elapsed_ms = 0u64;
 
     for candidate in candidate_sentences(&text) {
-        for (part, whole) in split_for_state(&candidate.sentence) {
+        for (part, neighborhood) in split_for_state(&candidate.sentence) {
+            let context = if part.len() == candidate.sentence.len() {
+                bound_state_text(&candidate.context)
+            } else {
+                bound_state_text(&neighborhood)
+            };
             let state = json!({
                 "species": species,
                 "source": {
@@ -57,9 +62,8 @@ pub fn screen(
                     "bytes": source.bytes,
                 },
                 "candidate": {
-                    "sentence": part,
-                    "context": candidate.context,
-                    "whole": whole,
+                    "sentence": bound_state_text(&part),
+                    "context": context,
                 }
             });
             let entry = evaluate(
@@ -135,9 +139,19 @@ pub fn format_report(report: &ScreenReport) -> String {
 
 pub(crate) struct ComposedKind {
     pub kind: Option<String>,
+    pub kind_confidence: f64,
+    pub anchor_usable: f64,
+    pub ledger: String,
     pub input_tokens: u64,
     pub output_tokens: u64,
     pub elapsed_ms: u64,
+}
+
+struct ScreenHit {
+    kind: String,
+    kind_confidence: f64,
+    anchor_usable: f64,
+    ledger: String,
 }
 
 /// Screen each candidate sentence in a citation section. Site-quality wins
@@ -152,11 +166,14 @@ pub(crate) fn compose_kind(
     let questions = screen_questions();
     let found = candidate_sentences(section);
     let parts: Vec<(String, String)> = if found.is_empty() {
-        vec![(section.to_string(), section.to_string())]
+        split_for_state(section)
     } else {
-        found.into_iter().map(|c| (c.sentence, c.context)).collect()
+        found
+            .into_iter()
+            .flat_map(|candidate| split_for_state(&candidate.sentence))
+            .collect()
     };
-    let mut kinds = Vec::new();
+    let mut hits = Vec::new();
     let mut input_tokens = 0;
     let mut output_tokens = 0;
     let mut elapsed_ms = 0;
@@ -164,7 +181,10 @@ pub(crate) fn compose_kind(
         let screen_state = json!({
             "species": "",
             "source": {"id": source.id, "url": source.url},
-            "candidate": {"sentence": sentence, "context": context},
+            "candidate": {
+                "sentence": bound_state_text(&sentence),
+                "context": bound_state_text(&context),
+            },
         });
         let entry = evaluate(
             transport,
@@ -184,18 +204,37 @@ pub(crate) fn compose_kind(
             &mut elapsed_ms,
         );
         if let Some(kind) = entry.choice("kind") {
-            kinds.push(kind);
+            hits.push(ScreenHit {
+                kind,
+                kind_confidence: entry.confidence("kind").unwrap_or(0.0),
+                anchor_usable: entry.noul("anchor_usable").unwrap_or(0.0),
+                ledger: entry.reference(),
+            });
         }
     }
-    let kind = if kinds.iter().any(|kind| kind == "site_quality_criterion") {
-        Some("site_quality_criterion".into())
-    } else if kinds.iter().any(|kind| kind == "measured_size_at_age") {
-        Some("measured_size_at_age".into())
-    } else {
-        kinds.into_iter().next()
-    };
+    let chosen = hits
+        .iter()
+        .find(|hit| hit.kind == "site_quality_criterion")
+        .or_else(|| hits.iter().find(|hit| hit.kind == "measured_size_at_age"))
+        .or_else(|| hits.first());
+    let ledgers = hits
+        .iter()
+        .map(|hit| hit.ledger.as_str())
+        .collect::<Vec<_>>()
+        .join(",");
     Ok(ComposedKind {
-        kind,
+        kind: chosen.map(|hit| hit.kind.clone()),
+        kind_confidence: chosen.map(|hit| hit.kind_confidence).unwrap_or(0.0),
+        anchor_usable: chosen.map(|hit| hit.anchor_usable).unwrap_or(0.0),
+        ledger: chosen
+            .map(|hit| {
+                if ledgers.is_empty() {
+                    hit.ledger.clone()
+                } else {
+                    ledgers
+                }
+            })
+            .unwrap_or_default(),
         input_tokens,
         output_tokens,
         elapsed_ms,

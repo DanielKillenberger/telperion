@@ -1,7 +1,8 @@
 mod common;
 
-use serde_json::json;
+use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
+use telperion_jev::extract::STATE_SENTENCE_LIMIT;
 use telperion_jev::ledger::SourceRef;
 use telperion_jev::questions::{screen_cases, selection_cases};
 use telperion_jev::screen::{format_report, screen};
@@ -184,4 +185,81 @@ fn questions_always_offer_a_no_match() {
     assert!(cite["relation"]["criteria"].get("says_nothing").is_some());
     let select = telperion_jev::questions::selection_questions("q", &["1 ft".into()]);
     assert!(select["span"]["criteria"].get("none").is_some());
+    let severity = telperion_jev::questions::severity_questions();
+    assert!(severity["assessable"]["criteria"].get("false").is_some());
+}
+
+#[test]
+fn screen_state_fields_stay_within_the_limit() {
+    use std::sync::Mutex;
+    struct Capture {
+        states: Mutex<Vec<Value>>,
+    }
+    impl Transport for Capture {
+        fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
+            let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}"))
+                .map_err(|err| err.to_string())?;
+            self.states.lock().unwrap().push(body["state"].clone());
+            Ok(HttpResponse {
+                status: 200,
+                body: serde_json::to_vec(&json!({
+                    "model": "jev-latest",
+                    "answers": {
+                        "kind": {
+                            "type": "choice",
+                            "choice": "not_about_tree_size",
+                            "probabilities": { "not_about_tree_size": 0.9 },
+                            "confidence": 0.9
+                        },
+                        "condition": {
+                            "type": "choice",
+                            "choice": "unstated",
+                            "probabilities": { "unstated": 0.9 },
+                            "confidence": 0.8
+                        },
+                        "anchor_usable": { "type": "noul", "noul": 0.05 }
+                    },
+                    "usage": {"input_tokens": 1, "output_tokens": 1}
+                }))
+                .unwrap(),
+            })
+        }
+    }
+    let mut sentence = String::from("Measured 12 ft ");
+    while sentence.len() <= STATE_SENTENCE_LIMIT {
+        sentence.push_str("and another increment ");
+    }
+    sentence.push('.');
+    let bytes = sentence.as_bytes();
+    let source = SourceRef {
+        id: "long".into(),
+        url: String::new(),
+        sha256: sha256_hex(bytes),
+        bytes: bytes.len() as u64,
+    };
+    let cap = Capture {
+        states: Mutex::new(Vec::new()),
+    };
+    let report = screen(&cap, "k", &ledger_dir("long-state"), &source, bytes, "oak").unwrap();
+    assert!(report.rows.len() > 1);
+    fn walk(value: &Value, limit: usize) {
+        match value {
+            Value::String(text) => {
+                assert!(
+                    text.len() <= limit,
+                    "state string is {} bytes, limit {limit}",
+                    text.len()
+                );
+            }
+            Value::Array(items) => items.iter().for_each(|item| walk(item, limit)),
+            Value::Object(map) => map.values().for_each(|item| walk(item, limit)),
+            _ => {}
+        }
+    }
+    let states = cap.states.lock().unwrap();
+    assert!(!states.is_empty());
+    for state in states.iter() {
+        walk(state, STATE_SENTENCE_LIMIT);
+        assert!(state["candidate"].get("whole").is_none());
+    }
 }

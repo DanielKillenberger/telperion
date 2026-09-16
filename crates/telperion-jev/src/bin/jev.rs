@@ -8,7 +8,9 @@ use std::process::ExitCode;
 use serde_json::{Map, Value};
 use telperion_jev::caller::{load_key, CallerError, UreqTransport};
 use telperion_jev::cases::{format_scores, run_labelled_cases};
-use telperion_jev::cite::{cite, format_report as format_cite, load_claim_source, parse_research};
+use telperion_jev::cite::{
+    cite, format_report as format_cite, load_claim_source, parse_research, research_markdown,
+};
 use telperion_jev::ledger::SourceRef;
 use telperion_jev::screen::{format_report as format_screen, screen};
 use telperion_jev::select::{format_report as format_select, select};
@@ -35,15 +37,15 @@ fn main() -> ExitCode {
 }
 
 fn run(cmd: &str, args: &[String]) -> Result<(), String> {
-    let key = load_key().map_err(|err| err.to_string())?;
     let ledger = flag(args, "--ledger")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(".flow/ledger/jev"));
-    let transport = UreqTransport;
     match cmd {
         "screen" => {
             let path = required(args, "--source")?;
             let species = required(args, "--species")?;
+            let key = load_key().map_err(|err| err.to_string())?;
+            let transport = UreqTransport;
             let bytes = fs::read(&path).map_err(|err| err.to_string())?;
             let source = SourceRef {
                 id: flag(args, "--id").unwrap_or_else(|| path.clone()),
@@ -58,6 +60,8 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
         "select" => {
             let path = required(args, "--document")?;
             let question = required(args, "--question")?;
+            let key = load_key().map_err(|err| err.to_string())?;
+            let transport = UreqTransport;
             let document = fs::read_to_string(&path).map_err(|err| err.to_string())?;
             let report =
                 select(&transport, &key, &ledger, &document, &question, None).map_err(show_err)?;
@@ -65,8 +69,10 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
         }
         "cite" => {
             let path = required(args, "--research")?;
+            let key = load_key().map_err(|err| err.to_string())?;
+            let transport = UreqTransport;
             let markdown = fs::read_to_string(&path).map_err(|err| err.to_string())?;
-            let claims = parse_research(&markdown);
+            let claims = parse_research(research_markdown(&markdown));
             let loads: Vec<_> = claims
                 .iter()
                 .map(|claim| load_claim_source(&transport, claim))
@@ -77,12 +83,14 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
         "triage" => {
             let observation = required(args, "--observation")?;
             let specs_path = required(args, "--specs")?;
-            let specs = read_map(&specs_path)?;
+            let standard = required(args, "--standard")?;
             let findings = flag(args, "--findings")
                 .map(|path| read_strings(&path))
                 .transpose()?
                 .unwrap_or_default();
-            let standard = flag(args, "--standard").unwrap_or_default();
+            let specs = read_map(&specs_path)?;
+            let key = load_key().map_err(|err| err.to_string())?;
+            let transport = UreqTransport;
             let proposal = triage(
                 &transport,
                 &key,
@@ -96,6 +104,8 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
             print!("{}", format_proposal(&proposal));
         }
         "cases" => {
+            let key = load_key().map_err(|err| err.to_string())?;
+            let transport = UreqTransport;
             let sets = run_labelled_cases(&transport, &key, &ledger).map_err(show_err)?;
             print!("{}", format_scores(&sets));
             if sets.iter().any(|set| !set.meets_pilot()) {
@@ -143,4 +153,24 @@ fn read_strings(path: &str) -> Result<Vec<String>, String> {
                 .ok_or_else(|| format!("{path}: expected string entries"))
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn triage_requires_standard_before_the_key() {
+        let err = run(
+            "triage",
+            &[
+                "--observation".into(),
+                "the crown is hollow".into(),
+                "--specs".into(),
+                "open.json".into(),
+            ],
+        )
+        .unwrap_err();
+        assert!(err.contains("missing --standard"), "{err}");
+    }
 }

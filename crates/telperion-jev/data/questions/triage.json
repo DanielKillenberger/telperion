@@ -13,6 +13,14 @@
       "false": "A different part of the tree, a different failure, or a different species; a fix for one would leave the other"
     }
   },
+  "assessable": {
+    "type": "noul",
+    "instructions": "Does `observation` describe a defect clearly enough, against the owner's `standard`, to assign a severity score? False is the no-match: empty, vague, or unmatched notes stay unassessed.",
+    "criteria": {
+      "true": "The observation names a visible defect and the standard gives enough to score it",
+      "false": "The observation is empty, too vague, or the standard does not address it; severity cannot be assigned"
+    }
+  },
   "severity": {
     "type": "score",
     "instructions": "How severe is the defect in `observation` against the owner's standard in `standard`, for a spec whose acceptance rests on the owner's eye? Weigh the owner's words in `standard` above how striking the form looks on its own: a defect the standard calls minor, otherwise continuous, or gone by a later age is cosmetic; a form the owner has already rejected by name is blocking; a wrong form that is visible but not rejected is noticeable.",

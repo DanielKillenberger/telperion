@@ -7,7 +7,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use serde_json::{json, Value};
 
-use crate::ledger::{write_entry, LedgerEntry, SourceRef, Usage};
+use crate::ledger::{new_entry_id, write_entry, LedgerEntry, SourceRef, Usage};
 use crate::sha256_hex;
 
 /// TypeSafe evaluation endpoint. Named here so the isolation guard can find it.
@@ -201,8 +201,19 @@ pub fn evaluate(
                 body: last_body,
             });
         }
-        let parsed: Value = serde_json::from_slice(&response.body)
-            .map_err(|err| CallerError::Json(err.to_string()))?;
+        let parsed: Value = match serde_json::from_slice(&response.body) {
+            Ok(value) => value,
+            Err(err) => {
+                let entry = failure_entry(
+                    &request,
+                    &state_sha256,
+                    started,
+                    format!("response json: {err}"),
+                );
+                let _ = write_entry(request.ledger_dir, &entry);
+                return Err(CallerError::Json(err.to_string()));
+            }
+        };
         let entry = success_entry(&request, &state_sha256, started, parsed);
         write_entry(request.ledger_dir, &entry).map_err(CallerError::Transport)?;
         return Ok(entry);
@@ -234,6 +245,7 @@ fn success_entry(
         })
     });
     LedgerEntry {
+        id: new_entry_id(),
         tool: request.tool.to_string(),
         state_sha256: state_sha256.to_string(),
         source: request.source.cloned(),
@@ -258,6 +270,7 @@ fn failure_entry(
     error: String,
 ) -> LedgerEntry {
     LedgerEntry {
+        id: new_entry_id(),
         tool: request.tool.to_string(),
         state_sha256: state_sha256.to_string(),
         source: request.source.cloned(),

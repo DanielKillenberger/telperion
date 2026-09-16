@@ -1,14 +1,14 @@
 mod common;
 
-use serde_json::json;
+use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::cases::run_labelled_cases;
 use telperion_jev::cite::{
-    carries_number, cite, load_claim_source, looks_like_height_at_age, parse_research,
-    ResearchClaim, SourceLoad,
+    carries_number, cite, format_report, load_claim_source, looks_like_height_at_age,
+    parse_research, research_markdown, ResearchClaim, SourceLoad,
 };
 use telperion_jev::questions::{citation_cases, severity_level, thresholds, triage_cases};
-use telperion_jev::triage::triage;
+use telperion_jev::triage::{format_proposal, triage};
 
 use common::{ledger_dir, CaseTransport};
 
@@ -53,6 +53,14 @@ fn citation_lists_o1_and_passes_the_six_true_claims() {
             "{} listed={} reason={}",
             case.id, row.listed, row.reason
         );
+        if carries_number(&case.claim) {
+            assert!(
+                !row.screen_ledger.is_empty(),
+                "{} numeric claim missing screen ledger",
+                case.id
+            );
+            assert_ne!(row.ledger, row.screen_ledger, "{}", case.id);
+        }
         if case.id == "o1-as-typical" {
             assert!(row.listed);
             assert_eq!(row.kind.as_deref(), Some("site_quality_criterion"));
@@ -102,6 +110,96 @@ fn citation_unreachable_and_no_section() {
     assert!(report.rows[0].reason.contains("connection refused"));
     assert_eq!(report.rows[1].relation, "says_nothing");
     assert_eq!(report.rows[1].confidence, 0.0);
+}
+
+#[test]
+fn low_confidence_measured_size_is_listed_with_both_ledgers() {
+    struct LowKind;
+    impl Transport for LowKind {
+        fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
+            let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}"))
+                .map_err(|err| err.to_string())?;
+            let answers = if body["questions"].get("kind").is_some() {
+                json!({
+                    "kind": {
+                        "type": "choice",
+                        "choice": "measured_size_at_age",
+                        "probabilities": { "measured_size_at_age": 0.31 },
+                        "confidence": 0.31
+                    },
+                    "condition": {
+                        "type": "choice",
+                        "choice": "unstated",
+                        "probabilities": { "unstated": 0.9 },
+                        "confidence": 0.8
+                    },
+                    "anchor_usable": { "type": "noul", "noul": 0.8 }
+                })
+            } else {
+                json!({
+                    "relation": {
+                        "type": "choice",
+                        "choice": "supports",
+                        "probabilities": { "supports": 0.99 },
+                        "confidence": 0.99
+                    }
+                })
+            };
+            Ok(HttpResponse {
+                status: 200,
+                body: serde_json::to_vec(&json!({
+                    "model": "jev-latest",
+                    "answers": answers,
+                    "usage": {"input_tokens": 1, "output_tokens": 1}
+                }))
+                .unwrap(),
+            })
+        }
+    }
+    let claims = [ResearchClaim {
+        claim: "Norway spruce reaches 23 m in 50 years.".into(),
+        url: "file:x".into(),
+        source_id: "x".into(),
+        unresolved: None,
+    }];
+    let loads = [SourceLoad::Bytes(
+        b"Norway spruce may grow to 75 feet in 50 years.".to_vec(),
+    )];
+    let report = cite(&LowKind, "k", &ledger_dir("low-kind"), &claims, &loads).unwrap();
+    assert!(report.rows[0].listed);
+    assert!(
+        report.rows[0].reason.contains("screen kind confidence"),
+        "{}",
+        report.rows[0].reason
+    );
+    assert!(!report.rows[0].ledger.is_empty());
+    assert!(!report.rows[0].screen_ledger.is_empty());
+    assert_ne!(report.rows[0].ledger, report.rows[0].screen_ledger);
+    let printed = format_report(&report);
+    assert!(printed.contains("cite="), "{printed}");
+    assert!(printed.contains("screen="), "{printed}");
+}
+
+#[test]
+fn whole_spec_uses_only_the_research_section() {
+    let spec = "\
+## Acceptance Criteria\n\
+- **R1:** Every bullet here is not a research claim. Source: https://example.test/not-research\n\
+## Resolved via Research\n\
+- **Iowa** — about 23 m in 50 years. Source: https://example.test/spruce\n\
+## Boundaries\n\
+- Jev never runs in the generator. Source: https://example.test/boundary\n\
+";
+    let section = research_markdown(spec);
+    assert!(section.contains("23 m"));
+    assert!(!section.contains("**R1:**"));
+    assert!(!section.contains("Jev never runs"));
+    let claims = parse_research(section);
+    assert_eq!(claims.len(), 1);
+    assert!(claims[0].claim.contains("23 m"));
+    let only = "- **Iowa** — about 23 m in 50 years. Source: https://example.test/spruce\n";
+    assert_eq!(research_markdown(only), only);
+    assert_eq!(parse_research(research_markdown(only)).len(), 1);
 }
 
 #[test]
@@ -194,6 +292,69 @@ fn triage_routes_eight_of_eight_and_ranks_true_pairs() {
     assert_eq!(severity_level(0.01), "cosmetic");
     assert_eq!(severity_level(1.79), "noticeable");
     assert_eq!(severity_level(2.0), "blocking");
+}
+
+#[test]
+fn unassessable_observation_is_unassessed() {
+    struct Vague;
+    impl Transport for Vague {
+        fn send(&self, request: &HttpRequest) -> Result<HttpResponse, String> {
+            let body: Value = serde_json::from_slice(request.body.as_deref().unwrap_or(b"{}"))
+                .map_err(|err| err.to_string())?;
+            if body["questions"].get("assessable").is_some()
+                || body["questions"].get("severity").is_some()
+            {
+                return Ok(HttpResponse {
+                    status: 200,
+                    body: serde_json::to_vec(&json!({
+                        "model": "jev-latest",
+                        "answers": {
+                            "assessable": { "type": "noul", "noul": 0.08 },
+                            "severity": {
+                                "type": "score",
+                                "score": 1.5,
+                                "confidence": 0.4,
+                                "probabilities": { "1": 0.6 }
+                            }
+                        },
+                        "usage": {"input_tokens": 1, "output_tokens": 1}
+                    }))
+                    .unwrap(),
+                });
+            }
+            Ok(HttpResponse {
+                status: 200,
+                body: serde_json::to_vec(&json!({
+                    "model": "jev-latest",
+                    "answers": {
+                        "spec": {
+                            "type": "choice",
+                            "choice": "fn-31",
+                            "probabilities": { "fn-31": 0.86, "new_spec": 0.04 },
+                            "confidence": 0.8
+                        }
+                    },
+                    "usage": {"input_tokens": 1, "output_tokens": 1}
+                }))
+                .unwrap(),
+            })
+        }
+    }
+    let cases = triage_cases();
+    let proposal = triage(
+        &Vague,
+        "k",
+        &ledger_dir("unassessed"),
+        "",
+        &cases.open_specs,
+        &[],
+        "The owner's recorded standard.",
+    )
+    .unwrap();
+    assert_eq!(proposal.severity_level.as_deref(), Some("unassessed"));
+    assert!(proposal.severity.is_none());
+    let printed = format_proposal(&proposal);
+    assert!(printed.contains("unassessed"), "{printed}");
 }
 
 #[test]

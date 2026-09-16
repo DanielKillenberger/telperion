@@ -3,10 +3,50 @@
 use regex::Regex;
 use std::sync::OnceLock;
 
-/// Character budget for one sentence field in the state sent to Jev.
+/// Byte budget for one sentence field in the state sent to Jev.
 /// A longer sentence is split at sentence boundaries; each part is judged
-/// with as much of the original as still fits in `context`.
+/// with a neighbourhood of the original that still fits in `context`.
 pub const STATE_SENTENCE_LIMIT: usize = 12_000;
+
+/// Greatest char boundary at or before `index`.
+pub fn floor_char_boundary(text: &str, index: usize) -> usize {
+    if index >= text.len() {
+        return text.len();
+    }
+    let mut i = index;
+    while i > 0 && !text.is_char_boundary(i) {
+        i -= 1;
+    }
+    i
+}
+
+/// Least char boundary at or after `index`.
+pub fn ceil_char_boundary(text: &str, index: usize) -> usize {
+    if index >= text.len() {
+        return text.len();
+    }
+    let mut i = index;
+    while i < text.len() && !text.is_char_boundary(i) {
+        i += 1;
+    }
+    i
+}
+
+/// Slice `text[from..to]` after clamping both ends onto char boundaries.
+pub fn slice_at(text: &str, from: usize, to: usize) -> &str {
+    let from = floor_char_boundary(text, from);
+    let to = ceil_char_boundary(text, to.max(from));
+    &text[from..to]
+}
+
+/// Truncate to the state limit on a char boundary.
+pub fn bound_state_text(text: &str) -> String {
+    if text.len() <= STATE_SENTENCE_LIMIT {
+        text.to_string()
+    } else {
+        slice_at(text, 0, STATE_SENTENCE_LIMIT).to_string()
+    }
+}
 
 fn unit_re() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
@@ -111,6 +151,8 @@ pub fn candidate_spans(text: &str) -> Vec<String> {
 }
 
 fn enclosing_sentence(text: &str, start: usize, end: usize) -> String {
+    let start = floor_char_boundary(text, start);
+    let end = ceil_char_boundary(text, end);
     let before = text[..start]
         .rfind(['.', '!', '?'])
         .map(|i| i + 1)
@@ -119,13 +161,13 @@ fn enclosing_sentence(text: &str, start: usize, end: usize) -> String {
         .find(['.', '!', '?'])
         .map(|i| end + i + 1)
         .unwrap_or(text.len());
-    text[before..after].trim().to_string()
+    slice_at(text, before, after).trim().to_string()
 }
 
 fn window(text: &str, start: usize, end: usize, radius: usize) -> String {
     let from = start.saturating_sub(radius);
-    let to = (end + radius).min(text.len());
-    collapse_ws(&text[from..to])
+    let to = end.saturating_add(radius).min(text.len());
+    collapse_ws(slice_at(text, from, to))
 }
 
 fn collapse_ws(text: &str) -> String {
@@ -133,51 +175,74 @@ fn collapse_ws(text: &str) -> String {
 }
 
 /// Split a sentence that exceeds the state limit. Each part is judged with
-/// the original sentence as `context`, truncated to the remaining budget.
+/// a bounded neighbourhood of the original sentence as `context`.
 pub fn split_for_state(sentence: &str) -> Vec<(String, String)> {
     if sentence.len() <= STATE_SENTENCE_LIMIT {
         return vec![(sentence.to_string(), sentence.to_string())];
     }
-    let mut parts = Vec::new();
+    let mut out = Vec::new();
     let mut cursor = 0;
-    let bytes = sentence.as_bytes();
     while cursor < sentence.len() {
-        let remaining = &sentence[cursor..];
-        if remaining.len() <= STATE_SENTENCE_LIMIT {
-            parts.push(remaining.to_string());
+        cursor = ceil_char_boundary(sentence, cursor);
+        if cursor >= sentence.len() {
             break;
         }
-        let window = &remaining[..STATE_SENTENCE_LIMIT];
-        let split_at = sentence_end_re()
-            .find_iter(window)
-            .last()
-            .map(|m| m.end())
-            .or_else(|| window.rfind(char::is_whitespace))
-            .unwrap_or(STATE_SENTENCE_LIMIT);
-        let take = if split_at == 0 {
-            STATE_SENTENCE_LIMIT
+        let remaining = sentence.len() - cursor;
+        let cap = floor_char_boundary(sentence, cursor + STATE_SENTENCE_LIMIT);
+        let end = if remaining <= STATE_SENTENCE_LIMIT || cap <= cursor {
+            sentence.len()
         } else {
-            split_at
+            let window = &sentence[cursor..cap];
+            let rel = sentence_end_re()
+                .find_iter(window)
+                .last()
+                .map(|m| m.end())
+                .or_else(|| window.rfind(char::is_whitespace))
+                .unwrap_or(window.len());
+            let abs = floor_char_boundary(sentence, cursor + rel);
+            if abs <= cursor {
+                cap
+            } else {
+                abs.min(cap)
+            }
         };
-        // Keep the split on a char boundary.
-        let take = remaining
-            .char_indices()
-            .map(|(i, _)| i)
-            .take_while(|&i| i <= take)
-            .last()
-            .filter(|&i| i > 0)
-            .unwrap_or(take.min(remaining.len()));
-        parts.push(remaining[..take].trim().to_string());
-        cursor += take;
-        while cursor < sentence.len() && bytes[cursor].is_ascii_whitespace() {
+        let part = sentence[cursor..end].trim().to_string();
+        if !part.is_empty() {
+            let context = neighborhood(sentence, cursor, end, STATE_SENTENCE_LIMIT);
+            out.push((part, context));
+        }
+        cursor = end;
+        while cursor < sentence.len() && sentence.as_bytes()[cursor].is_ascii_whitespace() {
             cursor += 1;
         }
     }
-    parts
-        .into_iter()
-        .filter(|part| !part.is_empty())
-        .map(|part| (part, sentence.to_string()))
-        .collect()
+    out
+}
+
+/// Neighbourhood of `[start, end)` inside `whole`, at most `limit` bytes,
+/// clamped to char boundaries.
+pub fn neighborhood(whole: &str, start: usize, end: usize, limit: usize) -> String {
+    let start = floor_char_boundary(whole, start);
+    let end = ceil_char_boundary(whole, end).max(start);
+    if whole.len() <= limit {
+        return whole.to_string();
+    }
+    let part_len = end - start;
+    if part_len >= limit {
+        return bound_state_text(&whole[start..end]);
+    }
+    let extra = limit - part_len;
+    let left = extra / 2;
+    let right = extra - left;
+    let from = floor_char_boundary(whole, start.saturating_sub(left));
+    let mut to = ceil_char_boundary(whole, end.saturating_add(right).min(whole.len()));
+    while to > from && to - from > limit {
+        to = floor_char_boundary(whole, to.saturating_sub(1));
+    }
+    if to <= from {
+        return bound_state_text(slice_at(whole, start, start.saturating_add(limit)));
+    }
+    whole[from..to].to_string()
 }
 
 /// Significant words used to locate a claim inside a source.
@@ -214,8 +279,9 @@ pub fn section_for_terms(source: &str, terms: &[String], radius: usize) -> Optio
             let score = terms
                 .iter()
                 .filter(|other| {
-                    let window_from = abs.saturating_sub(radius);
-                    let window_to = (abs + term.len() + radius).min(lower.len());
+                    let window_from = floor_char_boundary(&lower, abs.saturating_sub(radius));
+                    let window_to =
+                        ceil_char_boundary(&lower, (abs + term.len() + radius).min(lower.len()));
                     lower[window_from..window_to].contains(other.as_str())
                 })
                 .count();
@@ -231,6 +297,6 @@ pub fn section_for_terms(source: &str, terms: &[String], radius: usize) -> Optio
         return None;
     }
     let from = at.saturating_sub(radius);
-    let to = (at + radius).min(source.len());
-    Some(collapse_ws(&source[from..to]))
+    let to = at.saturating_add(radius).min(source.len());
+    Some(collapse_ws(slice_at(source, from, to)))
 }

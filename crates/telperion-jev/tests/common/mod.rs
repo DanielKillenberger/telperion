@@ -152,6 +152,7 @@ fn answers_for(body: &Value) -> Value {
             _ => 1.79,
         };
         return json!({
+            "assessable": { "type": "noul", "noul": 0.95 },
             "severity": {
                 "type": "score",
                 "score": score,

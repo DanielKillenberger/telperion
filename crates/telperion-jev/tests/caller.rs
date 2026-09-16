@@ -174,6 +174,82 @@ fn transport_error_writes_a_ledger_entry() {
     assert!(body.contains("\"error\""), "{body}");
 }
 
+#[test]
+fn malformed_json_records_a_failure_entry() {
+    let transport = Scripted::new(vec![Ok(HttpResponse {
+        status: 200,
+        body: b"not-json".to_vec(),
+    })]);
+    let dir = tempfile();
+    let state = json!({"n": 1});
+    let questions = json!({});
+    let err = evaluate(
+        &transport,
+        "k",
+        EvaluateRequest {
+            tool: "screen",
+            source: None,
+            state: &state,
+            questions: &questions,
+            ledger_dir: &dir,
+        },
+    )
+    .expect_err("malformed json");
+    match err {
+        CallerError::Json(msg) => assert!(!msg.is_empty(), "{msg}"),
+        other => panic!("{other}"),
+    }
+    let file = std::fs::read_dir(&dir).unwrap().next().unwrap().unwrap();
+    let body = std::fs::read_to_string(file.path()).unwrap();
+    assert!(body.contains("\"error\""), "{body}");
+    assert!(body.contains("response json"), "{body}");
+}
+
+#[test]
+fn same_state_writes_distinct_ids_and_files() {
+    let transport = Scripted::new(vec![
+        Ok(HttpResponse {
+            status: 200,
+            body: ok_body(),
+        }),
+        Ok(HttpResponse {
+            status: 200,
+            body: ok_body(),
+        }),
+    ]);
+    let dir = tempfile();
+    let state = json!({"n": 1});
+    let questions = json!({});
+    let first = evaluate(
+        &transport,
+        "k",
+        EvaluateRequest {
+            tool: "screen",
+            source: None,
+            state: &state,
+            questions: &questions,
+            ledger_dir: &dir,
+        },
+    )
+    .unwrap();
+    let second = evaluate(
+        &transport,
+        "k",
+        EvaluateRequest {
+            tool: "screen",
+            source: None,
+            state: &state,
+            questions: &questions,
+            ledger_dir: &dir,
+        },
+    )
+    .unwrap();
+    assert_ne!(first.id, second.id);
+    assert_ne!(first.reference(), second.reference());
+    assert!(first.reference().contains(&first.id));
+    assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 2);
+}
+
 fn tempfile() -> std::path::PathBuf {
     let dir = std::env::temp_dir().join(format!(
         "jev-caller-{}-{}",

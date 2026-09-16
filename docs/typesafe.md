@@ -32,7 +32,8 @@ verbatim from the source bytes. No model output is parsed for a number.
 
 A Choice always includes `none`, `unstated`, `says_nothing`, `not_about_tree_size`
 or `new_spec`, named for that question. A Noul's false criterion is the
-no-match. A selection whose recall regex dropped a span cannot choose it.
+no-match, including triage `assessable` (false leaves severity `unassessed`).
+A selection whose recall regex dropped a span cannot choose it.
 
 ## Candidate coverage is tested before a selection is trusted
 
@@ -59,22 +60,27 @@ prints, echoes or copies it. A missing key stops with a message that names
 that path. A failed call after retries records the failure and exits
 non-zero.
 
-The ledger entry holds the state's checksum, the questions, the answers with
-their probabilities and confidence, the model name, token usage, elapsed time
-and the source checksum. A pipeline that consumed a judgment cites that
-entry.
+The ledger entry holds a unique immutable id, the state's checksum, the
+questions, the answers with their probabilities and confidence, the model
+name, token usage, elapsed time and the source checksum. Reports cite that
+id. Filenames use it, and a write never overwrites an existing file. A
+pipeline that consumed a judgment cites that entry.
 
 ## A judgment proposes and never writes project state
 
 A triage run returns the owning spec, the most similar prior finding and a
-severity level. It does not create a memory entry, a QA receipt, a finding,
-an outcome or an owner verdict. The host session reads the proposal.
+severity level. `--standard` is required. An observation that fails the
+assessable Noul is reported as `unassessed` rather than a level. It does
+not create a memory entry, a QA receipt, a finding, an outcome or an owner
+verdict. The host session reads the proposal.
 
 ## Compose, then threshold
 
 A height-at-age number reaches a profile author only when the screen calls
 the sentence a measured size at a stated age and the citation check calls
-the claim supported, each above the labelled threshold. The O1 sentence
+the claim supported, each above the labelled threshold. The cite report
+carries the screen kind, kind confidence, `anchor_usable`, and both the
+citation and screen ledger references. The O1 sentence
 ("Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years
 old") is a site-quality criterion. The citation check alone called a
 restatement of that criterion supported at 1.00. The screen is why it does
@@ -88,9 +94,13 @@ From the repo root, with the key available to an interactive shell:
 bash -ic 'cargo run -p telperion-jev -- screen --source <file> --species <id> --id <source-id>'
 bash -ic 'cargo run -p telperion-jev -- select --document <file> --question "<field>"'
 bash -ic 'cargo run -p telperion-jev -- cite --research <spec-or-section.md>'
-bash -ic 'cargo run -p telperion-jev -- triage --observation "<note>" --specs <open.json> --findings <prior.json>'
+bash -ic 'cargo run -p telperion-jev -- triage --observation "<note>" --specs <open.json> --standard "<owner standard>" --findings <prior.json>'
 bash -ic 'cargo run -p telperion-jev -- cases'
 ```
+
+`cite --research` uses only `## Resolved via Research` when that heading is
+present, so acceptance and boundary bullets are not judged as claims. A
+file without the heading is treated as section-only input.
 
 `jev cases` reruns the four labelled sets against the live model, prints
 one row per case with expected, answered, top probability, confidence and
