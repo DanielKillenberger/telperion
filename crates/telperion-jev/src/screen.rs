@@ -7,7 +7,7 @@ use serde_json::json;
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::extract::{candidate_sentences, split_for_state, visible_text};
 use crate::ledger::{LedgerEntry, SourceRef};
-use crate::questions::screen_questions;
+use crate::questions::{screen_questions, thresholds};
 
 #[derive(Debug, Clone)]
 pub struct ScreenRow {
@@ -15,6 +15,7 @@ pub struct ScreenRow {
     pub kind: String,
     pub condition: String,
     pub anchor_probability: f64,
+    pub anchor_usable: bool,
     pub ledger: String,
     pub kind_confidence: f64,
 }
@@ -85,6 +86,8 @@ pub fn screen(
                     .choice("condition")
                     .unwrap_or_else(|| "unstated".into()),
                 anchor_probability: entry.noul("anchor_usable").unwrap_or(0.0),
+                anchor_usable: entry.noul("anchor_usable").unwrap_or(0.0)
+                    >= thresholds().anchor_usable,
                 ledger: entry.reference(),
                 kind_confidence: entry.confidence("kind").unwrap_or(0.0),
             });
@@ -114,10 +117,11 @@ pub fn format_report(report: &ScreenReport) -> String {
     }
     for row in &report.rows {
         out.push_str(&format!(
-            "{kind}\t{condition}\tanchor={anchor:.2}\t{ledger}\t{sentence}\n",
+            "{kind}\t{condition}\tanchor={anchor:.2}\tusable={usable}\t{ledger}\t{sentence}\n",
             kind = row.kind,
             condition = row.condition,
             anchor = row.anchor_probability,
+            usable = row.anchor_usable,
             ledger = row.ledger,
             sentence = row.sentence
         ));

@@ -77,6 +77,20 @@ impl LedgerEntry {
     pub fn probabilities(&self, question: &str) -> Option<&Value> {
         self.answers.get(question)?.get("probabilities")
     }
+
+    pub fn top_probability(&self, question: &str) -> f64 {
+        if let Some(noul) = self.noul(question) {
+            return noul.max(1.0 - noul);
+        }
+        self.probabilities(question)
+            .and_then(Value::as_object)
+            .and_then(|map| {
+                map.values()
+                    .filter_map(Value::as_f64)
+                    .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
+            })
+            .unwrap_or(0.0)
+    }
 }
 
 pub fn write_entry(dir: &Path, entry: &LedgerEntry) -> Result<PathBuf, String> {

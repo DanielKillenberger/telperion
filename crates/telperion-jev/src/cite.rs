@@ -17,6 +17,7 @@ pub struct ResearchClaim {
     pub claim: String,
     pub url: String,
     pub source_id: String,
+    pub unresolved: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -45,27 +46,50 @@ pub struct CiteReport {
     pub elapsed_ms: u64,
 }
 
-/// Parse research-section bullets that name a `Source:` URL or path.
+/// Parse research-section bullets. A URL is fetched; "same paper" / "same
+/// source" reuses the previous URL; any other bullet is kept and listed as
+/// unchecked when its source cannot be fetched.
 pub fn parse_research(markdown: &str) -> Vec<ResearchClaim> {
     let url_re = Regex::new(r"https?://\S+").expect("url regex");
     let mut claims = Vec::new();
+    let mut last_url = String::new();
+    let mut last_id = String::new();
     for raw in markdown.lines() {
         let line = raw.trim();
         if !line.starts_with('-') {
             continue;
         }
-        let Some(url_match) = url_re.find(line) else {
-            continue;
+        let source_tail = line
+            .rfind("Source:")
+            .map(|idx| line[idx + 7..].trim().trim_end_matches(['.', ',', ';']))
+            .unwrap_or("");
+        let url_in_line = url_re.find(line).map(|m| {
+            m.as_str()
+                .trim_end_matches([')', ']', '.', ',', '"'])
+                .to_string()
+        });
+        let (url, unresolved) = match url_in_line {
+            Some(url) => {
+                last_url = url.clone();
+                last_id = url
+                    .rsplit('/')
+                    .find(|part| !part.is_empty())
+                    .unwrap_or("source")
+                    .to_string();
+                (url, None)
+            }
+            None if is_same_source(source_tail) && !last_url.is_empty() => (last_url.clone(), None),
+            None if !source_tail.is_empty() => (
+                String::new(),
+                Some(format!("no fetchable source: {source_tail}")),
+            ),
+            None => (String::new(), Some("no fetchable source".to_string())),
         };
-        let url = url_match
-            .as_str()
-            .trim_end_matches([')', ']', '.', ',', '"'])
-            .to_string();
         let mut claim = line.trim_start_matches('-').trim().to_string();
         if let Some(idx) = claim.rfind("Source:") {
             claim.truncate(idx);
-        } else if let Some(idx) = claim.find(&url) {
-            claim.truncate(idx);
+        } else if let Some(url) = url_re.find(&claim) {
+            claim.truncate(url.start());
         }
         let claim = claim
             .trim()
@@ -74,18 +98,39 @@ pub fn parse_research(markdown: &str) -> Vec<ResearchClaim> {
         if claim.is_empty() {
             continue;
         }
-        let source_id = url
-            .rsplit('/')
-            .find(|part| !part.is_empty())
-            .unwrap_or("source")
-            .to_string();
+        let source_id = if url.is_empty() {
+            "unresolved".into()
+        } else if !last_id.is_empty() {
+            last_id.clone()
+        } else {
+            "source".into()
+        };
         claims.push(ResearchClaim {
             claim,
             url,
             source_id,
+            unresolved,
         });
     }
     claims
+}
+
+fn is_same_source(tail: &str) -> bool {
+    let lower = tail.to_ascii_lowercase();
+    lower.contains("same paper") || lower.contains("same source")
+}
+
+/// Fetch or read a parsed bullet. An empty URL is unreachable with the reason.
+pub fn load_claim_source(transport: &dyn Transport, claim: &ResearchClaim) -> SourceLoad {
+    if claim.url.is_empty() {
+        return SourceLoad::Unreachable(
+            claim
+                .unresolved
+                .clone()
+                .unwrap_or_else(|| "no fetchable source".into()),
+        );
+    }
+    load_source(transport, &claim.url)
 }
 
 pub fn load_source(transport: &dyn Transport, url: &str) -> SourceLoad {
@@ -250,7 +295,13 @@ pub fn cite(
 
 pub fn looks_like_height_at_age(claim: &str) -> bool {
     let lower = claim.to_ascii_lowercase();
-    if lower.contains("per year") || lower.contains("/year") {
+    if lower.contains("per year")
+        || lower.contains("/year")
+        || lower.contains(" a year")
+        || lower.contains("sprout")
+        || lower.contains("cultivar")
+        || lower.contains("nursery")
+    {
         return false;
     }
     let has_length = [" m ", " m.", "ft", "foot", "feet", "metre", "meter"]

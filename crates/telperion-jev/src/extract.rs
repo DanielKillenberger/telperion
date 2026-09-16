@@ -189,9 +189,14 @@ pub fn key_terms(claim: &str) -> Vec<String> {
     ];
     claim
         .split(|ch: char| !ch.is_alphanumeric())
-        .filter(|word| word.len() > 3)
+        .filter(|word| !word.is_empty())
         .map(|word| word.to_ascii_lowercase())
-        .filter(|word| !STOP.contains(&word.as_str()))
+        .filter(|word| {
+            if STOP.contains(&word.as_str()) {
+                return false;
+            }
+            word.chars().all(|ch| ch.is_ascii_digit()) || word.len() > 3
+        })
         .collect()
 }
 

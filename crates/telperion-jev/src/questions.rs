@@ -19,6 +19,8 @@ pub struct Thresholds {
     pub route_min_probability: f64,
     pub selection_spread_confidence: f64,
     pub anchor_usable: f64,
+    pub severity_cosmetic: f64,
+    pub severity_noticeable: f64,
 }
 
 pub fn thresholds() -> Thresholds {
@@ -169,10 +171,10 @@ pub fn triage_cases() -> TriageCases {
 }
 
 pub fn severity_level(score: f64) -> &'static str {
-    // Cuts from the pilot labels: hollow 0.01, rays 1.79, bottle 1.99, bush 2.00.
-    if score < 0.5 {
+    let cuts = thresholds();
+    if score < cuts.severity_cosmetic {
         "cosmetic"
-    } else if score < 1.9 {
+    } else if score < cuts.severity_noticeable {
         "noticeable"
     } else {
         "blocking"

@@ -89,7 +89,14 @@ bash -ic 'cargo run -p telperion-jev -- screen --source <file> --species <id> --
 bash -ic 'cargo run -p telperion-jev -- select --document <file> --question "<field>"'
 bash -ic 'cargo run -p telperion-jev -- cite --research <spec-or-section.md>'
 bash -ic 'cargo run -p telperion-jev -- triage --observation "<note>" --specs <open.json> --findings <prior.json>'
+bash -ic 'cargo run -p telperion-jev -- cases'
 ```
+
+`jev cases` reruns the four labelled sets against the live model, prints
+one row per case with expected, answered, top probability, confidence and
+ledger reference, then accuracy and confidence spread per set. It exits
+non-zero when a set misses its pilot score. Workspace tests keep the mock
+transport and the key unset.
 
 Each run prints its rows, the ledger path, and the total input and output
 tokens with wall time. No call cap is hardcoded.

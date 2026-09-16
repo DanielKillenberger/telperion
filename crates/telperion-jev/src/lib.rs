@@ -4,6 +4,7 @@
 //! or `telperion-wasm`. Workspace tests run with the key unset.
 
 pub mod caller;
+pub mod cases;
 pub mod cite;
 pub mod extract;
 pub mod isolation;

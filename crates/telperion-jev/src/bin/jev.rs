@@ -7,7 +7,8 @@ use std::process::ExitCode;
 
 use serde_json::{Map, Value};
 use telperion_jev::caller::{load_key, CallerError, UreqTransport};
-use telperion_jev::cite::{cite, format_report as format_cite, load_source, parse_research};
+use telperion_jev::cases::{format_scores, run_labelled_cases};
+use telperion_jev::cite::{cite, format_report as format_cite, load_claim_source, parse_research};
 use telperion_jev::ledger::SourceRef;
 use telperion_jev::screen::{format_report as format_screen, screen};
 use telperion_jev::select::{format_report as format_select, select};
@@ -18,7 +19,7 @@ fn main() -> ExitCode {
     let mut args = env::args().skip(1).collect::<Vec<_>>();
     if args.is_empty() {
         eprintln!(
-            "usage: jev <screen|select|cite|triage> [options]\n  key: {path} via bash -ic",
+            "usage: jev <screen|select|cite|triage|cases> [options]\n  key: {path} via bash -ic",
             path = telperion_jev::INTERACTIVE_SHELL
         );
         return ExitCode::from(2);
@@ -68,7 +69,7 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
             let claims = parse_research(&markdown);
             let loads: Vec<_> = claims
                 .iter()
-                .map(|claim| load_source(&transport, &claim.url))
+                .map(|claim| load_claim_source(&transport, claim))
                 .collect();
             let report = cite(&transport, &key, &ledger, &claims, &loads).map_err(show_err)?;
             print!("{}", format_cite(&report));
@@ -93,6 +94,13 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
             )
             .map_err(show_err)?;
             print!("{}", format_proposal(&proposal));
+        }
+        "cases" => {
+            let sets = run_labelled_cases(&transport, &key, &ledger).map_err(show_err)?;
+            print!("{}", format_scores(&sets));
+            if sets.iter().any(|set| !set.meets_pilot()) {
+                return Err("one or more labelled sets missed the pilot score".into());
+            }
         }
         other => return Err(format!("unknown command {other}")),
     }

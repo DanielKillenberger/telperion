@@ -163,7 +163,19 @@ pub fn evaluate(
             ],
             body: Some(body.clone()),
         };
-        let response = transport.send(&http).map_err(CallerError::Transport)?;
+        let response = match transport.send(&http) {
+            Ok(response) => response,
+            Err(err) => {
+                let entry = failure_entry(
+                    &request,
+                    &state_sha256,
+                    started,
+                    format!("transport: {err}"),
+                );
+                let _ = write_entry(request.ledger_dir, &entry);
+                return Err(CallerError::Transport(err));
+            }
+        };
         last_status = response.status;
         last_body = String::from_utf8_lossy(&response.body)
             .chars()
@@ -177,7 +189,12 @@ pub fn evaluate(
             break;
         }
         if response.status >= 400 {
-            let entry = failure_entry(&request, &state_sha256, started, last_status, &last_body);
+            let entry = failure_entry(
+                &request,
+                &state_sha256,
+                started,
+                format!("HTTP {last_status}: {last_body}"),
+            );
             let _ = write_entry(request.ledger_dir, &entry);
             return Err(CallerError::Http {
                 status: response.status,
@@ -191,7 +208,12 @@ pub fn evaluate(
         return Ok(entry);
     }
 
-    let entry = failure_entry(&request, &state_sha256, started, last_status, &last_body);
+    let entry = failure_entry(
+        &request,
+        &state_sha256,
+        started,
+        format!("HTTP {last_status}: {last_body}"),
+    );
     let _ = write_entry(request.ledger_dir, &entry);
     Err(CallerError::Http {
         status: last_status,
@@ -233,8 +255,7 @@ fn failure_entry(
     request: &EvaluateRequest<'_>,
     state_sha256: &str,
     started: Instant,
-    status: u16,
-    body: &str,
+    error: String,
 ) -> LedgerEntry {
     LedgerEntry {
         tool: request.tool.to_string(),
@@ -246,7 +267,7 @@ fn failure_entry(
         usage: None,
         elapsed_ms: started.elapsed().as_millis() as u64,
         recorded_at: now_rfc3339(),
-        error: Some(format!("HTTP {status}: {body}")),
+        error: Some(error),
     }
 }
 

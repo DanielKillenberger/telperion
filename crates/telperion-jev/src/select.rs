@@ -13,6 +13,7 @@ use crate::screen::accumulate;
 #[derive(Debug, Clone)]
 pub struct SelectReport {
     pub chosen: String,
+    pub contract_failure: bool,
     pub confidence: f64,
     pub spread: bool,
     pub candidates: Vec<String>,
@@ -50,7 +51,10 @@ pub fn select(
             ledger_dir,
         },
     )?;
-    let chosen = entry.choice("span").unwrap_or_else(|| "none".into());
+    let raw = entry.choice("span").unwrap_or_else(|| "none".into());
+    let allowed = raw == "none" || spans.iter().any(|span| span == &raw);
+    let contract_failure = !allowed;
+    let chosen = if allowed { raw } else { String::new() };
     let confidence = entry.confidence("span").unwrap_or(0.0);
     let spread = chosen == "none" && confidence < thresholds().selection_spread_confidence;
     let mut input_tokens = 0;
@@ -64,6 +68,7 @@ pub fn select(
     );
     Ok(SelectReport {
         chosen,
+        contract_failure,
         confidence,
         spread,
         candidates: spans,
@@ -80,13 +85,23 @@ pub fn select(
 }
 
 pub fn format_report(report: &SelectReport) -> String {
+    let chosen = if report.contract_failure {
+        "<rejected>"
+    } else {
+        report.chosen.as_str()
+    };
     let mut out = format!(
         "chosen={chosen} confidence={conf:.2} ledger={ledger}\nprobabilities={probs}\n",
-        chosen = report.chosen,
         conf = report.confidence,
         ledger = report.ledger,
         probs = report.probabilities
     );
+    if report.contract_failure {
+        out.push_str(&format!(
+            "contract failure: answer is not a candidate span or none\ncandidates={:?} beside {}\n",
+            report.candidates, report.sentence
+        ));
+    }
     if report.spread {
         out.push_str(&format!(
             "spread none: candidates={:?} beside {}\n",

@@ -132,6 +132,48 @@ fn spread_none_prints_the_candidate_list() {
 }
 
 #[test]
+fn forged_span_is_a_contract_failure() {
+    struct Forge;
+    impl Transport for Forge {
+        fn send(&self, _request: &HttpRequest) -> Result<HttpResponse, String> {
+            Ok(HttpResponse {
+                status: 200,
+                body: serde_json::to_vec(&json!({
+                    "model": "jev-latest",
+                    "answers": {
+                        "span": {
+                            "type": "choice",
+                            "choice": "9.99 m",
+                            "probabilities": { "9.99 m": 0.91 },
+                            "confidence": 0.9
+                        }
+                    },
+                    "usage": {"input_tokens": 1, "output_tokens": 1}
+                }))
+                .unwrap(),
+            })
+        }
+    }
+    let document = "8 to 11 years are required to grow a 6-7 foot tree.";
+    let report = select(
+        &Forge,
+        "k",
+        &ledger_dir("forge"),
+        document,
+        "Which candidate span is the height?",
+        None,
+    )
+    .unwrap();
+    assert!(report.contract_failure);
+    assert!(report.chosen.is_empty());
+    let printed = telperion_jev::select::format_report(&report);
+    assert!(printed.contains("contract failure"), "{printed}");
+    assert!(printed.contains("candidates="), "{printed}");
+    assert!(!printed.contains("chosen=9.99"), "{printed}");
+    assert!(printed.contains("chosen=<rejected>"), "{printed}");
+}
+
+#[test]
 fn questions_always_offer_a_no_match() {
     let screen = telperion_jev::screen_questions();
     assert!(screen["kind"]["criteria"]

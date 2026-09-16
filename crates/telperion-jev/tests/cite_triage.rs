@@ -2,8 +2,9 @@ mod common;
 
 use serde_json::json;
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
+use telperion_jev::cases::run_labelled_cases;
 use telperion_jev::cite::{
-    cite, list_reason, looks_like_height_at_age, parse_research, ResearchClaim, SourceLoad,
+    cite, load_claim_source, looks_like_height_at_age, parse_research, ResearchClaim, SourceLoad,
 };
 use telperion_jev::questions::{citation_cases, severity_level, thresholds, triage_cases};
 use telperion_jev::triage::triage;
@@ -12,26 +13,43 @@ use common::{ledger_dir, CaseTransport};
 
 #[test]
 fn citation_lists_o1_and_passes_the_six_true_claims() {
-    let cuts = thresholds();
+    let cases = citation_cases();
+    assert_eq!(cases.len(), 9);
+    let claims: Vec<ResearchClaim> = cases
+        .iter()
+        .map(|case| ResearchClaim {
+            claim: case.claim.clone(),
+            url: format!("file:{}", case.id),
+            source_id: case.id.clone(),
+            unresolved: None,
+        })
+        .collect();
+    let loads: Vec<SourceLoad> = cases
+        .iter()
+        .map(|case| SourceLoad::Bytes(case.section.as_bytes().to_vec()))
+        .collect();
+    let report = cite(
+        &CaseTransport,
+        "k",
+        &ledger_dir("cite-nine"),
+        &claims,
+        &loads,
+    )
+    .unwrap();
+    assert_eq!(report.rows.len(), 9);
     let mut passed = 0;
     let mut listed_o1 = false;
-    for case in citation_cases() {
-        let kind = case.expect_kind.as_deref();
-        let confidence = case.expect_confidence.unwrap_or(0.99);
-        let (listed, reason) = list_reason(
-            &case.expect_relation,
-            confidence,
-            kind,
-            case.height_at_age,
-            cuts.citation_auto_accept,
-        );
+    for (case, row) in cases.iter().zip(report.rows.iter()) {
         if case.id == "o1-misuse" {
-            assert!(listed, "{reason}");
+            assert!(row.listed, "{}: {}", case.id, row.reason);
             listed_o1 = true;
         }
         if case.true_claim {
-            assert!(!listed, "{} listed: {reason}", case.id);
+            assert!(!row.listed, "{} listed: {}", case.id, row.reason);
             passed += 1;
+        }
+        if case.height_at_age {
+            assert!(row.kind.is_some(), "{} skipped the compose screen", case.id);
         }
     }
     assert!(listed_o1);
@@ -45,11 +63,13 @@ fn citation_unreachable_and_no_section() {
             claim: "A claim about nothing botanical.".into(),
             url: "https://example.invalid/missing".into(),
             source_id: "missing".into(),
+            unresolved: None,
         },
         ResearchClaim {
             claim: "Taproot depth on a page about weather only.".into(),
             url: "https://example.test/weather".into(),
             source_id: "weather".into(),
+            unresolved: None,
         },
     ];
     let loads = vec![
@@ -103,23 +123,38 @@ fn triage_routes_eight_of_eight_and_ranks_true_pairs() {
     }
     assert_eq!(routed, 8);
 
-    let findings: Vec<String> = cases
-        .duplicates
-        .iter()
-        .map(|item| item.prior_finding.clone())
-        .collect();
-    let observation = cases.duplicates[0].new_observation.clone();
-    let proposal = triage(
-        &CaseTransport,
-        "k",
-        &ledger_dir("dup"),
-        &observation,
-        &cases.open_specs,
-        &findings,
-        "",
-    )
-    .unwrap();
-    assert!(proposal.same_defect.unwrap() > 0.5);
+    let mut true_ps = Vec::new();
+    let mut false_ps = Vec::new();
+    for pair in &cases.duplicates {
+        let proposal = triage(
+            &CaseTransport,
+            "k",
+            &ledger_dir("dup-rank"),
+            &pair.new_observation,
+            &cases.open_specs,
+            std::slice::from_ref(&pair.prior_finding),
+            "",
+        )
+        .unwrap();
+        let p = proposal.same_defect.expect(pair.id.as_str());
+        assert_eq!(
+            proposal.same_defect_match,
+            Some(p >= thresholds().duplicate_same_defect),
+            "{}",
+            pair.id
+        );
+        if pair.true_pair {
+            true_ps.push(p);
+        } else {
+            false_ps.push(p);
+        }
+    }
+    assert_eq!(true_ps.len(), 2);
+    assert_eq!(false_ps.len(), 5);
+    assert!(
+        true_ps.iter().all(|t| false_ps.iter().all(|f| t > f)),
+        "true={true_ps:?} false={false_ps:?}"
+    );
 
     let mut labels = 0;
     for sev in &cases.severity {
@@ -208,4 +243,104 @@ fn triage_writes_only_the_ledger() {
     assert!(std::fs::read_dir(&memory).unwrap().next().is_none());
     assert!(std::fs::read_dir(&receipts).unwrap().next().is_none());
     assert!(std::fs::read_dir(&ledger).unwrap().next().is_some());
+}
+
+#[test]
+fn parse_research_keeps_url_less_bullets_and_reuses_same_paper() {
+    let md = "\
+## Resolved via Research\n\
+- **Palubicki** — one iteration is one season. Source: https://algorithmicbotany.org/papers/selforg.sig2009.html\n\
+- **Vigour** — resource splits by λ. Source: same paper\n\
+- **Shedding** — light over size. Source: same paper, section on branch shedding\n\
+- **Weber and Penn 1995** has no time dimension. Source: the paper, and openalea/weberpenn below\n\
+- **No single equation** gives per-year increments. Source: the scout's synthesis\n";
+    let claims = parse_research(md);
+    assert_eq!(claims.len(), 5, "{claims:?}");
+    assert_eq!(
+        claims[0].url,
+        "https://algorithmicbotany.org/papers/selforg.sig2009.html"
+    );
+    assert!(claims[0].unresolved.is_none());
+    assert_eq!(claims[1].url, claims[0].url);
+    assert!(claims[1].unresolved.is_none(), "{:?}", claims[1]);
+    assert_eq!(claims[2].url, claims[0].url);
+    assert!(claims[2].unresolved.is_none());
+    assert!(claims[3].url.is_empty());
+    assert!(
+        claims[3]
+            .unresolved
+            .as_deref()
+            .unwrap()
+            .contains("openalea/weberpenn"),
+        "{:?}",
+        claims[3].unresolved
+    );
+    assert!(claims[4].url.is_empty());
+    assert!(
+        claims[4]
+            .unresolved
+            .as_deref()
+            .unwrap()
+            .contains("scout's synthesis"),
+        "{:?}",
+        claims[4].unresolved
+    );
+
+    let load = load_claim_source(&CaseTransport, &claims[3]);
+    match load {
+        SourceLoad::Unreachable(err) => assert!(err.contains("openalea/weberpenn"), "{err}"),
+        other => panic!("{other:?}"),
+    }
+    let report = cite(
+        &CaseTransport,
+        "k",
+        &ledger_dir("unresolved"),
+        std::slice::from_ref(&claims[4]),
+        &[load_claim_source(&CaseTransport, &claims[4])],
+    )
+    .unwrap();
+    assert_eq!(report.rows[0].relation, "unchecked");
+    assert!(report.rows[0].reason.contains("scout's synthesis"));
+
+    let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let fn11 = std::fs::read_to_string(repo.join(".flow/specs/fn-11-growth-over-time.md")).unwrap();
+    let research = fn11.split("## Resolved via Research").nth(1).unwrap();
+    let parsed = parse_research(research);
+    let same = parsed
+        .iter()
+        .find(|claim| claim.claim.contains("resource splits"))
+        .expect("same-paper vigour bullet");
+    assert_eq!(
+        same.url,
+        "https://algorithmicbotany.org/papers/selforg.sig2009.html"
+    );
+    let synthesis = parsed
+        .iter()
+        .find(|claim| claim.claim.contains("No single equation"))
+        .expect("synthesis bullet kept");
+    assert!(synthesis.url.is_empty());
+    assert!(synthesis
+        .unresolved
+        .as_deref()
+        .unwrap()
+        .contains("scout's synthesis"));
+}
+
+#[test]
+fn labelled_cases_meet_pilot_offline() {
+    let sets = run_labelled_cases(&CaseTransport, "k", &ledger_dir("cases")).unwrap();
+    for set in &sets {
+        assert!(
+            set.meets_pilot(),
+            "{} {}/{} ranking={:?}",
+            set.name,
+            set.hits,
+            set.required,
+            set.ranking_ok
+        );
+    }
 }

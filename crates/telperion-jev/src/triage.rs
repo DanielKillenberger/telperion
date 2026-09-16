@@ -17,6 +17,7 @@ pub struct TriageProposal {
     pub new_spec: bool,
     pub prior_finding: Option<String>,
     pub same_defect: Option<f64>,
+    pub same_defect_match: Option<bool>,
     pub severity: Option<f64>,
     pub severity_level: Option<String>,
     pub ledger: Vec<String>,
@@ -151,6 +152,7 @@ pub fn triage(
         new_spec,
         prior_finding: best_finding,
         same_defect: best_p,
+        same_defect_match: best_p.map(|p| p >= cuts.duplicate_same_defect),
         severity,
         severity_level: level,
         ledger,
@@ -168,7 +170,10 @@ pub fn format_proposal(proposal: &TriageProposal) -> String {
         dist = proposal.spec_probabilities
     );
     if let (Some(finding), Some(p)) = (&proposal.prior_finding, proposal.same_defect) {
-        out.push_str(&format!("nearest={finding}\nsame_defect={p:.2}\n"));
+        let above = proposal.same_defect_match.unwrap_or(false);
+        out.push_str(&format!(
+            "nearest={finding}\nsame_defect={p:.2}\tabove_cut={above}\n"
+        ));
     }
     if let (Some(score), Some(level)) = (proposal.severity, &proposal.severity_level) {
         out.push_str(&format!("severity={score:.2} ({level})\n"));

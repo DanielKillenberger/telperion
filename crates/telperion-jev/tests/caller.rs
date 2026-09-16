@@ -146,6 +146,34 @@ fn exhausted_retries_record_failure_and_error() {
     assert!(body.contains("HTTP 529"), "{body}");
 }
 
+#[test]
+fn transport_error_writes_a_ledger_entry() {
+    let transport = Scripted::new(vec![Err("connection refused".into())]);
+    let dir = tempfile();
+    let state = json!({"n": 1});
+    let questions = json!({});
+    let err = evaluate(
+        &transport,
+        "k",
+        EvaluateRequest {
+            tool: "screen",
+            source: None,
+            state: &state,
+            questions: &questions,
+            ledger_dir: &dir,
+        },
+    )
+    .expect_err("transport fails");
+    match err {
+        CallerError::Transport(msg) => assert!(msg.contains("connection refused"), "{msg}"),
+        other => panic!("{other}"),
+    }
+    let file = std::fs::read_dir(&dir).unwrap().next().unwrap().unwrap();
+    let body = std::fs::read_to_string(file.path()).unwrap();
+    assert!(body.contains("connection refused"), "{body}");
+    assert!(body.contains("\"error\""), "{body}");
+}
+
 fn tempfile() -> std::path::PathBuf {
     let dir = std::env::temp_dir().join(format!(
         "jev-caller-{}-{}",
