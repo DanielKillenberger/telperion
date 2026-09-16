@@ -2185,3 +2185,85 @@ million, inside the species' 10^5 to 10^7 band. The DBH proxy holds at
 No visual pass is awarded. The round-18 pairs are recorded by sha256 in
 `round18-beech/stills.json` with `visual_status: unassessed`, and the owner
 records the verdict in fn-34.
+
+## Round 19, fn-54: the beech's crown from its limb systems (2026-09-16)
+
+fn-54 sets the beech's architecture from B-BARE (R1), adds
+`canopy.limbClumping` at 0.25 so each limb system carries its own leaf mass
+with gaps between (R2), adds `material.lobeShade` at 0.7 so a leaf reads the
+depth of the mass over it (R3), and brings the leaf mass down to about two
+metres (crown base 0.06, fullness 0.3, twig length ratio 0.23). The beech
+only; the birch is round 18's.
+
+The fixed and fresh protocol passes all forty-eight cases
+(`measure/protocol-fn54/`), none node-capped. The beech at seed 1 grows
+187,968 nodes and 4,928,780 leaves, stands 32.11 m with its crown base at
+2.46 m and its first limbs at 2.60 m, and its heaviest seed reaches 200,005
+nodes on seed 89, against 199,237 before the leaf mass came down. One pin
+moves: the beech's neutral-drop skeleton in `tests/drop.rs`, re-recorded
+once. The identity, sag and strands pins are unchanged.
+
+Photograph / round 18 → round 19:
+
+| Reference | Width over height | Crown base | Occupied | Centre mean | Outline |
+|---|---|---|---|---|---|
+| B-BARE | 0.74 / 0.72 → 0.74 | 0.25 / 0.24 → 0.30 | 0.28 / 0.44 → 0.42 | 100 / 123 → 99 | 0.29 / 0.07 → 0.12 |
+| B-BASE | 0.60 / 0.67 → 0.67 | 1.00 / 0.11 → 0.02 | 0.05 / 0.09 → 0.09 | 130 / 101 → 100 | — / 0.14 → 0.13 |
+| B-WHOLE | 0.70 / 0.74 → 0.75 | 0.12 / 0.09 → 0.10 | 0.46 / 0.67 → 0.53 | 80 / 63 → 53 | 0.23 / 0.07 → 0.17 |
+
+B-WHOLE's outline lumpiness moves from 0.073 to 0.17 against the
+photograph's 0.227, where it had sat near 0.07 through every round since 11,
+and its occupied share falls from 0.67 toward the photograph's 0.46. B-BARE's
+centre lands on the photograph's, 99 against 100, where round 18 read 123.
+
+### R4: what the depth term costs, and what it does not buy
+
+The task file recorded that B-WHOLE's centre read 53 at lobe shade 1.0
+against round 18's 63, and that 0.7 was stated to buy the brightness back.
+It does not: at 0.7 the centre reads 53.2. The same tree rendered at lobe
+shade 0.0, to separate the term from this round's geometry
+(`measure/pairs-round19-lobe0/`), reads:
+
+| | Centre mean | Outline |
+|---|---|---|
+| Photograph | 79.7 | 0.227 |
+| Lobe shade 0.0 | 67.6 | 0.170 |
+| Lobe shade 0.7 | 53.2 | 0.170 |
+
+Two things follow. The depth term costs 14.4 counts of crown brightness and
+buys no silhouette lumpiness at all: the outline is 0.170 at both settings,
+so the lobes in the outline are R2's clumping, not R3's shading. And this
+round's geometry is brighter than round 18's, not darker: at lobe shade 0.0
+it reads 67.6 where round 18 read 62.8. The whole of the gap to round 18 is
+the depth term.
+
+So the beech's leaf faces, transmission and sheen are round 18's and
+untouched, and R4's reading against B-WHOLE's leaf pixels is not met at 53.2
+against 79.7. Raising the leaf rows to close it is the pass R4 asks for, and
+fn-46 measured on the birch that no leaf row reaches that far on its own:
+even white leaves read 78 there, which is why fn-52 lit the crown instead.
+Lowering the depth term closes half the gap and gives up the shade pockets
+between the lobes that R3 exists for. Both pairs are on the judging page as
+an A and a B, and the choice is the owner's.
+
+### What the host read on the pairs
+
+Three images: the B-WHOLE pair at each lobe shade, and the B-BARE pair.
+
+- **B-BARE.** A straight bole giving way to a fan of straight limbs rising
+  in an upright oval, which is the photograph's architecture. The limbs leave
+  the core over a shorter stretch of trunk than the photograph's, which spaces
+  them up a leader that keeps running, so ours reads more like a vase and less
+  like a column with branches along it.
+- **B-WHOLE at 0.7.** The crown breaks into rounded masses with dark pockets
+  between them and reads as a three-dimensional canopy rather than one felt.
+  It is plainly darker than the photograph.
+- **B-WHOLE at 0.0.** Brighter and nearer the photograph's exposure, and
+  flatter: the masses are still there in the outline but their faces and their
+  gaps read at nearly one tone.
+- Against the photograph both are smoother at the top of the crown, where the
+  photograph carries a broader, flatter head.
+
+No visual pass is awarded. The round-19 pairs are recorded by sha256 in
+`round19-fn54/stills.json` with `visual_status: unassessed`, and the owner
+records the verdict in fn-34.

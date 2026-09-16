@@ -971,7 +971,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontRed": 0.08,
         "leafSheen": 0.08,
         "lightWrap": 0.4,
-        "lobeShade": 1,
+        "lobeShade": 0.7,
         "marginBlue": 0.008,
         "marginGreen": 0.04,
         "marginRed": 0.02,
@@ -1025,8 +1025,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           }
         },
         "envelope": {
-          "crownBase": 0.12,
-          "fullness": 0.4,
+          "crownBase": 0.06,
+          "fullness": 0.3,
           "height": 32,
           "irregularity": 0.18,
           "lobeScale": 0.7,
@@ -1070,7 +1070,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "hang": 0,
           "internodeFactor": 2.5,
           "laterals": 4,
-          "lengthRatio": 0.25,
+          "lengthRatio": 0.23,
           "limbRadius": 0.28,
           "pendulousLength": 0.25,
           "pendulousRadius": 1,

@@ -48,3 +48,25 @@ Left:
   on the beech now), the full runner capture, compare JSONs and stills.json
   under round19-fn54/, the Round 19 section in REPORT.md, the 48-case
   protocol into measure/protocol-fn54, and every gate.
+
+## The mass grid's 62 ms, and why it is not skipped here (2026-09-16)
+
+R3's grid is built in `select::submit` for every preset, including the oak,
+the spruce and the Two Trees that state `lobe_shade: 0`. Skipping it needs the
+material at submission, and `Renderer::submit_at` can read it: `set_material`
+precedes `submit` in both production callers, `examples/headless.rs` and
+`web.rs`, where the comment at `web.rs:219` states that the material rides
+with the tree.
+
+The host plumbed a `masses: bool` through `Renderer::submit_at`,
+`foliage::submit` and `select::submit` and then reverted it. The renderer's
+own test `lobe_shade.rs::at_zero_the_row_draws_the_frame_it_always_drew`
+draws one submitted tree at two materials without re-submitting, so a grid
+chosen at submission is empty when the material later asks for depth, and the
+row silently stops working. A correct skip is a contract change, that the
+material is in force before the tree goes up, or a grid built on the GPU from
+the `placements` buffer that already holds the positions. Both belong to the
+owner, and neither is on this task's Left list.
+
+`mass::grid` counts 4.73 M placements into at most 64 cubed cells and then
+reads each cell's column up to `REACH`. The count dominates.

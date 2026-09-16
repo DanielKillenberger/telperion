@@ -20,7 +20,7 @@ pub(super) fn european_beech(p: &mut Family) {
     // 40 degrees from vertical and rise straight alongside it before they
     // spread; their side branches rise with them, so the fine wood is an
     // upward broom and not a tangle. Stations 2.6 m apart from a crown base
-    // of 3.8 m put the first limbs at 5.2 m, two a station at 28 degrees,
+    // of 1.9 m put the first limbs at 2.6 m, two a station at 28 degrees,
     // barely bending (0.1) and hardly crooked. The leader runs to four fifths of
     // the height; limbs this steep carry less of the crown's top than
     // round 11's level ones did, so the core holds its girth without them
@@ -50,7 +50,7 @@ pub(super) fn european_beech(p: &mut Family) {
     };
     // An upright oval, widest a little below the middle of the crown and
     // rounding to its top (B-BARE: width over height about 0.74). The shell
-    // starts at 0.12 of the height, so no wood and no leaf stands under 3.8 m.
+    // starts at 0.06 of the height, so no wood and no leaf stands under 1.9 m.
     p.skeleton.envelope = Envelope {
         height: 32.0,
         crown_base: 0.06,
