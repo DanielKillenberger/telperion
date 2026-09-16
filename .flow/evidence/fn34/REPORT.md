@@ -2274,7 +2274,7 @@ What each step did:
   drawn. A rougher row widens it into a low sheen, 201.3 at 0.95. So the
   plastic read at the close-ups comes from the renderer side, which is set
   aside for a later spec.
-- **The trial (B).** It is `lichen-lobed.patch` on `smooth.wgsl` with the
+- **The trial (B).** It is `lichen-lobed.patch` (on disk under `measure/archive/round16-fn40/`) on `smooth.wgsl` with the
   rows in the table above. The worker tried it against the host's reading
   of the first capture: fewer, irregular patches of widely varied size, a
   fine grain, and the birch's blotches smaller, raggeder and greyer. It
@@ -2283,7 +2283,7 @@ What each step did:
 
 ### Measured first
 
-fn-32's receipt is in `receipt.py` and `receipt.json`. It gives the centre
+fn-32's receipt is in `receipt.py` and `receipt.json`, kept on disk under `measure/archive/round16-fn40/` since raw receipts are not committed. It gives the centre
 400 px crop's mean colour and channel order, and the six-component
 structure distance to the photograph. The *matched* framing resamples both
 the still and the photograph to one 600 px frame height, so the crop covers
@@ -2413,7 +2413,7 @@ excludes age-dependent bark change.
   owner's words.
 - **The quick loop.** fn-34's quick loop (`f0430ec7`) is cherry-picked
   onto this branch. The value trials ran through the archived
-  `smooth-driver.rs`, and the record through the full runner.
+  `smooth-driver.rs` (on disk under `measure/archive/round16-fn40/`), and the record through the full runner.
 
 ## Round 17: short shoots and canopy lighting together (2026-09-15)
 
@@ -2991,7 +2991,7 @@ record was set on, and at 0.99 m, just above fn-48.3's fork, on the merged
 the close-up's centre goes from 65 to 95 against the photograph's 92, and
 S-WHOLE and S-BARE do not move.
 
-**The contrast.** `birch_trial.py` reads the luminance inside S-BARK's tree
+**The contrast.** `birch_trial.py` (on disk under `measure/archive/round24-birch-bark/`, with each trial's numbers) reads the luminance inside S-BARK's tree
 box for both the still and the photograph.
 
 | | Near-black share | Luminance spread | Reads as |
@@ -3032,7 +3032,7 @@ length (from 0.28), base fullness 0.3 (from 0.55), tip sharpness 1.1 (from
 (from 8) keep the notched outline from reading as facets, where twenty drew it
 in angular steps. Its vein contrast goes from 0.35 to 0.8 and its blade
 mottle from 0.12 to 0.2. `leaf-trials/` under the ignored `measure/` holds the
-trials; `leaf_trial.py` renders them.
+trials; `leaf_trial.py` and `drawcost.sh`, on disk under `measure/archive/round25-birch-leaf/`, render and count them.
 
 The birch's element and placement pins are re-recorded once, and the shell
 cull keeps nine more leaves (402,711). The skeleton and every other table are

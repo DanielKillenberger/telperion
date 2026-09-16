@@ -4,7 +4,7 @@ The owner asked for a review of the plan with Fable and, where it fits, Jev,
 "to make sure we're going down the right path" and not "get lost in the
 weeds". Fable (`claude-fable-5-1`) reviewed the specs, the report and six
 images; Jev checked each of the owner's recorded notes against the planned
-work (`jev-note-coverage.json`, from `coverage.py`).
+work (`jev-note-coverage.json`, from `coverage.py`, which is on disk under `measure/archive/review-2026-09-16/`).
 
 ## Findings
 

@@ -3,13 +3,13 @@
 The owner's round-22 beech verdict was "not yet", in four notes. Jev
 (TypeSafe, `jev-latest`) chose, for each note and each of fourteen beech
 rows, whether raising or lowering the row answers the note, or neither
-(`jev-note-mapping.json`, from `map_notes.py`). It picked from options code
+(`jev-note-mapping.json`, from `map_notes.py`, which is on disk under `measure/archive/round23-trials/`). It picked from options code
 gave it and wrote no value. Every move it put at 0.85 or above went into the
 trials.
 
-`trial.py` sets beech rows on the integration branch, renders the matched
+`trial.py` (on disk under `measure/archive/round23-trials/`, with each trial's JSON) sets beech rows on the integration branch, renders the matched
 stills, measures them with `scripts/compare-references.py`, and restores the
-preset. `trial-base.json` reproduces round 22 exactly.
+preset. Its baseline run reproduces round 22 exactly.
 
 | Trial | Box filled (B-WHOLE, photo 0.457) | Centre (photo 79.7) | Outline (photo 0.227) | Shoulder band |
 |---|---|---|---|---|
