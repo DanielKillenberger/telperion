@@ -44,3 +44,7 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      model. A model this harness cannot reach falls back to the session model
      with one note - routing never fails closed, and nothing here is validated. -->
 <!-- flow-next:model-routing:end -->
+
+## TypeSafe
+
+TypeSafe's Jev model (`typesafe:typesafe-ai` skill) screens source literature for measured values; it never runs in the generator, the renderer, or any path a preset reaches. The key is `$TYPESAFE_API_KEY`, reachable only through `bash -ic`; never read or echo it. Code finds and copies every number, and each is checked against its source before it reaches a preset. Full rule in `CLAUDE.md` under "TypeSafe".

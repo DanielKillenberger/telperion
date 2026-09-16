@@ -48,6 +48,14 @@ The mantra is "Minimalist af, efficient af and beautiful". Typed Rust and TypeSc
 
 No hardcoded caps on generation (owner, 2026-09-15). A count or limit that changes what the generator grows is a configurable parameter with a validated range that presets author, never a constant hardcoded apart from those ranges. Tests assert form, not counts: no node, leaf or population ceiling gates a result. Where a tree needs more work, improve performance instead of capping it; build cost is measured and reported, not a gate on form.
 
+## TypeSafe (owner, 2026-09-16)
+
+TypeSafe's Jev model is installed as the `typesafe:typesafe-ai` skill: `POST https://api.typesafe.ai/v1/systemone` with `Authorization: Bearer $TYPESAFE_API_KEY`. The key sits in `~/.bashrc` below its non-interactive guard (`[[ $- != *i* ]] && return`), so a plain shell never sees it; call through `bash -ic '...'`. Never read, echo or copy the key.
+
+Jev never runs in generation. No model call runs in the generator, the renderer, or any path a build or a preset load reaches: pin tests, byte-identical presets and seeded streams all depend on determinism. It works offline, on evidence about trees and on the owner's notes, and a preset stays a fixed table of values.
+
+Jev selects; it never supplies a number. It takes text and JSON only, and answers a Choice, a Noul or a Score over options code gives it. Code proposes every candidate value and owns every calculation, render and measurement. Two uses fit (owner, 2026-09-16). Screening source literature: Jev judges which candidates are a measured value at a stated age and under what growing condition, and code copies the number; every such value is checked against its source text before it reaches a preset. Tuning presets: Jev maps each of the owner's written verdict notes to the preset rows that answer it and the direction to move them, and may rank candidate values code proposed from their measured comparison; the value that ships is one code proposed and a render measured. First use: OWIC's "1 to 2 ft per year for trees 10 to 30 years old", cited as O1 behind the oak's 2.4 m ten-year height, is a site-classification criterion, not a measurement.
+
 <!-- BEGIN FLOW-NEXT -->
 <!-- flow-next:snippet:v2 -->
 ## Flow-Next

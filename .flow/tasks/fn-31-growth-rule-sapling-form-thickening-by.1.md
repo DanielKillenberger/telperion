@@ -535,3 +535,49 @@ Owner decisions:
    stand.
 4. On acceptance: re-record the clay pin, merge, delete the worktrees, run the
    gates, and open the PR.
+
+## Owner decisions on round 12 and the young height — 2026-09-16
+
+- **R1 on the round-12 strips: accepted.** Round 13 changes the young oak, so
+  its strips return for R1.
+- **F3, the ten-year flare: closed.** The owner looked at seeds 7 and 1 in
+  the harness at ten years and saw no flare: "it looks fine to me for seed 1
+  as well". The young-taper bound of 1.6 in `tests/shape_invariants.rs`
+  disagrees with the eye and is re-derived from a render the owner rejects.
+- **F2, the sparse 14.1-year spruce: another round.** F7, the 20-to-22-year
+  flank hollow, stands as a known P2.
+- **The oak follows wild Garry oak data.** Owner: "why wouldn't we just follow
+  the data make sure it's accurate and follow that. I'm no botanist" and "I
+  want to represent trees that grow in the wild as closely as possible". The
+  host gathered Garry oak height evidence and TypeSafe's Jev weighted it;
+  `.worktrees/fn-31-round5-grok/.flow/evidence/fn31/young-height/REFERENCE.md`
+  holds the sources, checksums, quotes, weights and runs. The owner approved
+  the survivor path as round 13's target: about 0.8 m at 5 years, 1.6 at 10,
+  2.4 at 15, 3.2 at 20, 13 at 60 and about 22 at 100.
+- **This overrides the spec where it conflicts.** The spec's "No new
+  reference sourcing; fn-30's curves ... are reused" yields to the new Garry
+  oak evidence. Round 8's open timeline question ("the fast-oak pace, or a
+  true Garry oak timeline") resolves to the Garry oak timeline, so the trunk
+  diameter follows Garry oak evidence as well, anchored on the R2 verdict's
+  Stein mature open-grown figures. The round-6 ask for "a visible leaning stem
+  and woody laterals" at ten years yields to the data: the ten-year oak is a
+  wild sapling about 1.6 m tall, and `tests/ten_year_oak.rs` is re-derived
+  for it.
+- **What else changed on the owner's instruction.** TypeSafe is installed and
+  documented in CLAUDE.md and AGENTS.md: evidence screening only, never in
+  generation. Firecrawl is installed and authenticated.
+
+## Round 13 — wild Garry oak growth, 2026-09-16
+
+Scope, on the candidate branch `fn-31-round5-grok`:
+
+1. The oak's height follows the survivor path. The one-anchor splice in
+   `GrowthTraits::height_fraction` cannot draw it (young-height/REFERENCE.md,
+   "Problems with the pick"), so the rule gains numeric young-phase traits
+   with validated ranges.
+2. The mature oak curve slows to about 13 m at 60 years.
+3. Trunk diameter follows Garry oak rates.
+4. The ten-year oak tests are re-derived for a wild sapling.
+5. F2, the sparse 14.1-year spruce. Under CLAUDE.md's no-caps rule the
+   ±15 percent population band no longer gates it; the population change is
+   reported.
