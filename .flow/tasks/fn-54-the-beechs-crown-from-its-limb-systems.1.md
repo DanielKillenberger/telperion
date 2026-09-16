@@ -70,3 +70,14 @@ owner, and neither is on this task's Left list.
 
 `mass::grid` counts 4.73 M placements into at most 64 cubed cells and then
 reads each cell's column up to `REACH`. The count dominates.
+
+## NEEDS_HUMAN: the owner's round-22 read (2026-09-16)
+
+R5's verdict is not yet accepting. On the merged tree (round 22) the owner
+wrote: "The tree has clear regular outline/border that doesn't look natural.
+The taper approaching the border needs to produce thinner branches twigs.
+It's also too dense at the shoulder of the crown. It's more sparse lower and
+gets more dense at the top. It generally looks too dense everywhere?" The
+owner kept depth shading at 0.7 (choice A). The next beech round answers
+those four notes: the outline, the twig taper toward the rim, the density
+profile from shoulder to top, and the overall density.

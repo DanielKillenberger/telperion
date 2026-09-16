@@ -100,6 +100,8 @@ This is fn-9's method applied three times with no new engine work of its own. Th
 
 - **Round 22 (2026-09-16), the silver birch, matched pairs on the judging page (https://claude.ai/artifact/Pu1s9YB9TfnFWLxmbu2dVt), the integration branch at `4e6d903c` with every dependency merged.** Accepting. The owner's words: "It's good but the texturing regressed. It's too much now too much contrast. The texture in the reference isn't black." The regression is fn-40's birch bark as it reads on the merged, thicker stems: S-BARK's centre falls from 167 at round 17 to 65 at round 22 against the photograph's 92.
 
+- **Round 22 (2026-09-16), the European beech, the same page and branch.** Not yet, keep going. The owner's words: "The tree has clear regular outline/border that doesn't look natural. The taper approaching the border needs to produce thinner branches twigs. It's also too dense at the shoulder of the crown. It's more sparse lower and gets more dense at the top. It generally looks too dense everywhere?" The spec stays open on the beech. The birch is accepted.
+
 - **Round 22, depth shading on the beech (choice A).** The owner keeps `material.lobeShade` at 0.7, as shipped, over 0.0.
 
 ## Requirement coverage
