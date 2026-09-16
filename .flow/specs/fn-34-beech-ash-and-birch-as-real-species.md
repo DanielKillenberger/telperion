@@ -104,6 +104,8 @@ This is fn-9's method applied three times with no new engine work of its own. Th
 
 - **Round 22, depth shading on the beech (choice A).** The owner keeps `material.lobeShade` at 0.7, as shipped, over 0.0.
 
+- **Scope and path (2026-09-16).** After a review of the path with Fable and Jev (`.flow/evidence/fn34/review-2026-09-16/`), the owner moved the European beech to its own spec, fn-62-european-beech-as-a-real-species-judged, judged on a trait checklist and carrying every beech verdict above, with the Troll's-model scaffold rows in fn-61. This spec closes on the birch: one colour-row round for the bark contrast the owner named at round 22 and S-BARK's framing, then the owner's verdict. fn-59 and fn-60 no longer gate it. ("ok let's do that.")
+
 ## Requirement coverage
 
 | Requirement | Task |
