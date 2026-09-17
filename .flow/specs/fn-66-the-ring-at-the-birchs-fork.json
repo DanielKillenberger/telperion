@@ -2,7 +2,7 @@
   "branch_name": "fn-66-the-ring-at-the-birchs-fork",
   "created_at": "2026-09-17T22:19:01.449689Z",
   "depends_on_epics": [
-    "fn-34-beech-ash-and-birch-as-real-species"
+    "fn-34-the-silver-birch-as-a-real-species"
   ],
   "id": "fn-66-the-ring-at-the-birchs-fork",
   "next_task": 1,
@@ -22,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-17T22:19:01.963649Z"
+  "updated_at": "2026-09-17T22:21:54.777777Z"
 }
