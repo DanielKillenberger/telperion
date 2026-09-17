@@ -22,6 +22,9 @@ Onboard European beech, silver birch and European ash as fn-9-style packets and 
 
 ## NEEDS_HUMAN
 
+Resolved 2026-09-18: the owner accepted round 26 in the harness on the mature path. Remaining generator work is the fork-ring bug spec and fn-4, outside this spec.
+
+
 Round 26 addendum (2026-09-17): the harness draws the specimen grown to age 100 (590,410 nodes at seed 1); the stills and the numeric protocol build the tree directly (73,337 nodes). The owner's harness view and the judging page are different trees. Verdict on hold until the stills render the harness's path; see the spec's round-26 addendum.
 
 
@@ -50,8 +53,12 @@ Round 1 verdict (2026-09-14): rejecting, "To me it's clear that it's not there y
 The host reviewed the worker's range from 3468ef7, ran the core, render, typecheck, clippy and browser gates (all pass), removed the dead ash fixture and rebased the branch onto master. R3 closes only on the owner's visual verdicts: twelve stills under `.flow/evidence/fn34/stills/`, three fixed seeds per species in whole and bare views, judged beside the references in `.refs/fn34/`. The owner records a verdict per species in the spec; on accepting verdicts the host runs `flowctl done`. Ash's template and the growth-trait rewrite wait for fn-33 and fn-30 and are outside this task.
 
 ## Done summary
-The silver birch ships as a catalogue species, accepted by the owner at round 25 after matched-shot rounds 2 to 25; the veins' tone and relief are fn-60's. The European beech is held out of the public catalogue (`params::IN_WORK`, ABI id 5 reserved) and continues in fn-62 with fn-61; the European ash is fn-56's. All forty-eight protocol cases pass at round 25, none capped.
+The silver birch ships as a catalogue species on the mature path, accepted by the owner at round 26 in the live harness on 2026-09-18 after the harness was made to draw the direct build (fn-65): "alright i will accept this. It looks great now". Round 26 moved four rows of the birch's value table, two limbs a station at 45 degrees instead of four at 62, and seven twig laterals at 0.55 of the parent's length instead of eight at 0.6, which took the lower crown from 27 primaries to 13 and the tree from 54,512 branches to 33,526 at seed 1, with the whole-tree centre on the photograph's 83. The round-25 acceptance on the judging page was withdrawn on 2026-09-17 when the harness showed a different tree; that tree was the growth path, now hidden behind ?growth=1.
+
+Two defects the owner found in the harness are generator work outside this spec and stay real on the mature path: the ring at the fork about 1 m up the bole (fn-48.3's fork, its own bug spec) and the flat-ended limbs (fn-4). The veins' tone and relief are fn-60's. The European beech continues in fn-62, the ash in fn-56.
+
+stage: impl-review - skipped(config: review.backend none; the host checked the round-26 diff, four preset rows and re-recorded pins)
 ## Evidence
-- Commits:
-- Tests:
-- PRs:
+- Commits: 04d7ce8afc511525101f7e1a9b807c0823710827, e2309e2b84255ef0ba9171bbad262db163b118b8, 3b635d6f3fa645914c621ad7b0730133bd5921c9, 3ebe0f19e6ce9ba7ec38573b5d010600968b9a8c, cbeb9223507551f1d2ef3772e4bb833876fdbe37, c5a9ac7d1523f9e076b5c5949ff9ad0390bd3f47
+- Tests: npm run species:qa (48/48 numeric, none capped; visual unassessed by design), cargo test --release --workspace, clippy -D warnings, cargo fmt --check (round 26 worker), npm test (77 then 83 after fn-65), npm run typecheck
+- PRs: https://github.com/DanielKillenberger/telperion/pull/29
