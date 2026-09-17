@@ -1,5 +1,7 @@
 # Calibrated growth: the oak and the spruce through time
 
+> **Shelved 2026-09-18.** Growth over time is a hidden feature since fn-65: the mature tree is the product and the harness draws the direct build. This spec resumes only when the owner un-hides growth; until then it is not ready and not in progress. The reason is recorded in CLAUDE.md under "Mature trees are the product".
+
 ## Conversation Evidence
 
 > user (2026-09-13): "should we have split the spec?"
