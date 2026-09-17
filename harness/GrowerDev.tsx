@@ -26,6 +26,7 @@ import { familyJson, presetToParams } from "./family";
 import {
   DEFAULT_PARAMS,
   type GrowerParams,
+  growthFromQuery,
   normalizeSeed,
   randomSeed,
 } from "./params";
@@ -96,6 +97,12 @@ export function GrowerDev() {
     }
   });
   const [params, setParams] = useState<GrowerParams>(initialLink.params);
+  /* Growth is hidden (owner, 2026-09-18). The mature tree is what the stills,
+     the protocol and every verdict are taken on, so it is what the harness
+     draws; `?growth=1` opens the specimen path exactly as before. */
+  const [growth] = useState(() => {
+    try { return growthFromQuery(window.location.search); } catch { return false; }
+  });
   const [age, setAge] = useState(initialLink.params.family.age);
   const chosenAge = useRef(age);
   const [frontier, setFrontier] = useState<number | null>(null);
@@ -133,6 +140,16 @@ export function GrowerDev() {
     const build = (): void => {
       try {
         const started = performance.now();
+        if (!growth) {
+          const submitted = stageRef.current?.setTree(familyJson(params));
+          if (submitted === undefined) return;
+          const buildMs = performance.now() - started;
+          setBuildError(null);
+          setStats({ ...submitted, buildMs });
+          lastBuildMs.current = buildMs;
+          stageRef.current?.frameIfWaiting();
+          return;
+        }
         const submitted = stageRef.current?.buildSpecimen(familyJson(params), chosenAge.current);
         if (submitted === undefined) return;
         const buildMs = performance.now() - started;
@@ -271,8 +288,8 @@ export function GrowerDev() {
 
       <aside className="gd-panel">
         <h1 className="gd-title">grower</h1>
-        <GrowthControls age={age} frontier={frontier} disabled={!ready || measuring || frontier === null} failed={buildError !== null}
-          seek={seekAge} rebuild={() => setRebuild(n => n + 1)} />
+        {growth && <GrowthControls age={age} frontier={frontier} disabled={!ready || measuring || frontier === null} failed={buildError !== null}
+          seek={seekAge} rebuild={() => setRebuild(n => n + 1)} />}
         {linkError && <div role="alert" className="gd-note gd-warn">
           {linkError}. Showing the default tree; choose a preset below.
           <button className="gd-button" onClick={() => setLinkError(null)}>dismiss link error</button>

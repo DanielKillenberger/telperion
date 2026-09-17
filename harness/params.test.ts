@@ -4,9 +4,23 @@ import {
   DEFAULT_PARAMS,
   SEED_MAX,
   SLIDERS,
+  growthFromQuery,
   normalizeSeed,
   readSlider,
 } from "./params";
+
+describe("growthFromQuery", () => {
+  it.each([
+    ["?growth=1", true],
+    ["?species=silver-birch&seed=1&growth=1", true],
+    ["", false],
+    ["?species=silver-birch&seed=1", false],
+    ["?growth=0", false],
+    ["?growth=true", false],
+  ])("reads %s as growth=%s", (search, expected) => {
+    expect(growthFromQuery(search)).toBe(expected);
+  });
+});
 
 describe("normalizeSeed", () => {
   it.each([
