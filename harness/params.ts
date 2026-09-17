@@ -353,6 +353,13 @@ export function normalizeSeed(raw: string): number | null {
   return value;
 }
 
+/** Growth is a hidden feature (owner, 2026-09-18): the harness draws the
+ *  mature tree, the same one the stills and the protocol build, unless the
+ *  page was opened with `?growth=1`. Any other value is the mature path. */
+export function growthFromQuery(search: string): boolean {
+  return new URLSearchParams(search).get("growth") === "1";
+}
+
 /** A fresh seed, drawn from the platform CSPRNG so consecutive rerolls
  *  are not neighbours in a weak sequence the eye can learn. */
 export function randomSeed(): number {

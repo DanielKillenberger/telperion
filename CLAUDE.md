@@ -40,6 +40,10 @@ fn-13 task 5 consumed a full weekly quota on 22 full-forest GPU captures and ima
 
 The mantra is "Minimalist af, efficient af and beautiful". Typed Rust and TypeScript only under `src` and `crates`; no untyped JavaScript in production. Readable line widths, functions that do one thing, files under about 400 lines. Nothing is copied from a prototype or experiment without a rewrite and a test. Presets are value tables; no species or template branch in generator or renderer.
 
+## Mature trees are the product (owner, 2026-09-18)
+
+The direct build (`mesh::build`, `branching::generate`) is the product. The harness, the headless stills, `species:qa`, the numeric protocol and every owner verdict draw and judge that tree. The growth path (fn-11, fn-30, the specimen grown to an age) is a hidden feature: reachable in the harness only behind `?growth=1`, kept buildable and pinned, never a default and never a gate on species work. A spec that routes production through growth needs the owner's word first; the fn-31 branch's "route production through growth" predates this rule and is superseded for master. The reason: on 2026-09-17 the birch at seed 1 was 73,337 nodes on the direct build and 590,410 on the growth path, and every fn-34 verdict had been taken on the path the harness did not show.
+
 One species per spec (owner, 2026-09-16). A new real species is onboarded by its own spec, never bundled with another. fn-34 took beech, ash and birch together, grew fifteen capability dependencies and ran 23 rounds before the ash moved to fn-56 and the beech to fn-62. A species spec is one authored manifest, one run of the onboarding method, its decisions resolved, and a checklist the owner ticks, as fn-62 does; the method itself lives in `docs/species-onboarding.md` and, once fn-58 lands, in the pipeline, never restated per species. A generator gap a species needs is its own spec that the species spec depends on.
 
 ## TypeSafe (owner, 2026-09-16)
