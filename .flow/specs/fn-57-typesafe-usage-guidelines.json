@@ -124,7 +124,7 @@
     "impl:fn-57-typesafe-usage-guidelines.1": 0
   },
   "spec_path": ".flow/specs/fn-57-typesafe-usage-guidelines.md",
-  "status": "open",
+  "status": "done",
   "title": "TypeSafe usage guidelines",
   "tracker": {
     "baseHashFlow": null,
@@ -137,5 +137,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-16T12:17:42.723653Z"
+  "updated_at": "2026-09-17T12:27:07.642303Z"
 }
