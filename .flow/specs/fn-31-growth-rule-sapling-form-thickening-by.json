@@ -14,7 +14,7 @@
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": true,
+  "ready": false,
   "spec_path": ".flow/specs/fn-31-growth-rule-sapling-form-thickening-by.md",
   "status": "open",
   "title": "Growth rule: sapling form, thickening by age, a shedding floor",
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-14T14:17:31.846929Z"
+  "updated_at": "2026-09-17T22:38:10.091582Z"
 }

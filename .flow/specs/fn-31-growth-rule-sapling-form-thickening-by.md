@@ -1,5 +1,7 @@
 # Growth rule: sapling form, thickening by age, a shedding floor
 
+> **Shelved 2026-09-18.** Growth over time is a hidden feature since fn-65: the mature tree is the product and the harness draws the direct build. Round 13 returned the species-neutral mechanism (`growth.saplingRate`, the young-phase hand-over, the no-spurt invariant) and the pedunculate oak brief with its Jev-weighted curve; the rename and the Q. robur fit wait with the rest. This spec resumes only when the owner un-hides growth. The reason is recorded in CLAUDE.md on master under "Mature trees are the product".
+
 ## Conversation Evidence
 
 > user (on the fn-30 age strips, 2026-09-14): "a bare pole doesn't sound very appealing?"

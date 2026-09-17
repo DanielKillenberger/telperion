@@ -732,3 +732,6 @@ ramifies late. Seed 7 over the same ages:
 |---|---|---|
 | 14.1 | 3,322 | 47,000 |
 | 26.6 | 51,042 | 310,000 |
+
+## Shelved — 2026-09-18
+Growth is hidden (fn-65). The task returns to todo and the claim is released; round 13's state above stands as the resume point.
