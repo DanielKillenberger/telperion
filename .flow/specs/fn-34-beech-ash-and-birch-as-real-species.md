@@ -115,6 +115,8 @@ This is fn-9's method applied three times with no new engine work of its own. Th
   - **Flat-ended stubby limbs** near the top, thick pipes with cut-off ends, one bent at nearly a right angle: the open fn-4 spec.
   - **Path.** PR #29 is a draft until the owner's verdict is retaken. One birch settings round for the whorls, twigs and leaf density, judged on a page that adds a base close-up and a view from inside the lower crown so it covers what the harness showed; then the fork-ring bug spec and fn-4; then the verdict again, and the PR back to ready.
 
+- **Round 26 addendum (2026-09-17), the harness and the stills draw different trees.** The owner opened round 26's birch in the harness at seed 1 and saw a different tree from the round-26 stills: messier, with a ring the still does not have. Confirmed natively with `node_buffer silver-birch` against `node_buffer silver-birch 100`: the stills, `species:qa` and every matched pair since round 2 build the tree directly (`mesh::build`, `branching::generate`) and give 73,337 nodes at seed 1; the harness builds a specimen and grows it to the preset's age of 100 (`buildSpecimen` in `harness/GrowerDev.tsx`) and gives 590,410 nodes at the same seed. Every fn-34 verdict so far judged the direct build, which the harness never shows, and the birch's growth traits were never calibrated (the task's own gap list). Until the judging stills render the path the harness draws, no fn-34 verdict transfers to the harness. The round-26 settings verdict is on hold behind that; the protocol change is its own spec, not a birch round.
+
 ## Requirement coverage
 
 | Requirement | Task |
