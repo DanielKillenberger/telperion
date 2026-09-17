@@ -1,0 +1,329 @@
+[
+ {
+  "label": "R1: The pipeline is a fixed sequence of commands, each with a typed JSON i",
+  "request": {
+   "state": {
+    "project_rules": {
+     "typesafe": "TypeSafe's Jev model is installed as the `typesafe:typesafe-ai` skill: `POST https://api.typesafe.ai/v1/systemone` with `Authorization: Bearer $TYPESAFE_API_KEY`. The key sits in `~/.bashrc` below its non-interactive guard (`[[ $- != *i* ]] && return`), so a plain shell never sees it; call through `bash -ic '...'`. Never read, echo or copy the key.\n\nJev never runs in generation. No model call runs in the generator, the renderer, or any path a build or a preset load reaches: pin tests, byte-identical presets and seeded streams all depend on determinism. It works offline, on evidence about trees and on the owner's notes, and a preset stays a fixed table of values.\n\nJev selects; it never supplies a number. It takes text and JSON only, and answers a Choice, a Noul or a Score over options code gives it. Code proposes every candidate value and owns every calculation, render and measurement. Two uses fit (owner, 2026-09-16). Screening source literature: Jev judges which candidates are a measured value at a stated age and under what growing condition, and code copies the number; every such value is checked against its source text before it reaches a preset. Tuning presets: Jev maps each of the owner's written verdict notes to the preset rows that answer it and the direction to move them, and may rank candidate values code proposed from their measured comparison; the value that ships is one code proposed and a render measured. First use: OWIC's \"1 to 2 ft per year for trees 10 to 30 years old\", cited as O1 behind the oak's 2.4 m ten-year height, is a site-classification criterion, not a measurement.",
+     "no_caps": "No hardcoded caps on generation (owner, 2026-09-15). A count or limit that changes what the generator grows is a configurable parameter with a validated range that presets author, never a constant hardcoded apart from those ranges. Tests assert form, not counts: no node, leaf or population ceiling gates a result. Where a tree needs more work, improve performance instead of capping it; build cost is measured and reported, not a gate on form."
+    },
+    "criterion": {
+     "id": "R1",
+     "text": "The pipeline is a fixed sequence of commands, each with a typed JSON input and output at a fixed path, idempotent on unchanged inputs and resumable from the top. A driver runs it from a runbook that contains no instruction to read a source, summarize, or decide. [paraphrase] Errors: a stage whose input is missing or whose checksum changed stops and names the stage to rerun; a stage never writes a partial output."
+    }
+   },
+   "questions": {
+    "testable": {
+     "type": "noul",
+     "instructions": "Could a reviewer point at code, an output file or a recorded run and say whether `criterion.text` is satisfied, with two engineers agreeing?",
+     "criteria": {
+      "true": "The criterion names an observable artifact, behaviour or measurement and a condition on it",
+      "false": "Satisfaction would rest on taste, on an unstated threshold, or on a term with no observable meaning"
+     }
+    },
+    "contradicts_rules": {
+     "type": "noul",
+     "instructions": "Does `criterion.text` require something that `project_rules` forbids, or forbid something they require?",
+     "criteria": {
+      "true": "A direct conflict with a stated rule",
+      "false": "Compatible with every stated rule, or the rules do not address it"
+     }
+    },
+    "driver_judgment": {
+     "type": "noul",
+     "instructions": "Does satisfying `criterion.text` leave a reading, summary or decision to the model driving the pipeline, as opposed to code, a typed judgment call, or a person?",
+     "criteria": {
+      "true": "Some step the criterion describes has to be done by the driving model reading or deciding",
+      "false": "Every step is code, a typed judgment over stated options, or an explicit hand-off to a person"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "R2: Source discovery and fetch run through Firecrawl. Search and the resea",
+  "request": {
+   "state": {
+    "project_rules": {
+     "typesafe": "TypeSafe's Jev model is installed as the `typesafe:typesafe-ai` skill: `POST https://api.typesafe.ai/v1/systemone` with `Authorization: Bearer $TYPESAFE_API_KEY`. The key sits in `~/.bashrc` below its non-interactive guard (`[[ $- != *i* ]] && return`), so a plain shell never sees it; call through `bash -ic '...'`. Never read, echo or copy the key.\n\nJev never runs in generation. No model call runs in the generator, the renderer, or any path a build or a preset load reaches: pin tests, byte-identical presets and seeded streams all depend on determinism. It works offline, on evidence about trees and on the owner's notes, and a preset stays a fixed table of values.\n\nJev selects; it never supplies a number. It takes text and JSON only, and answers a Choice, a Noul or a Score over options code gives it. Code proposes every candidate value and owns every calculation, render and measurement. Two uses fit (owner, 2026-09-16). Screening source literature: Jev judges which candidates are a measured value at a stated age and under what growing condition, and code copies the number; every such value is checked against its source text before it reaches a preset. Tuning presets: Jev maps each of the owner's written verdict notes to the preset rows that answer it and the direction to move them, and may rank candidate values code proposed from their measured comparison; the value that ships is one code proposed and a render measured. First use: OWIC's \"1 to 2 ft per year for trees 10 to 30 years old\", cited as O1 behind the oak's 2.4 m ten-year height, is a site-classification criterion, not a measurement.",
+     "no_caps": "No hardcoded caps on generation (owner, 2026-09-15). A count or limit that changes what the generator grows is a configurable parameter with a validated range that presets author, never a constant hardcoded apart from those ranges. Tests assert form, not counts: no node, leaf or population ceiling gates a result. Where a tree needs more work, improve performance instead of capping it; build cost is measured and reported, not a gate on form."
+    },
+    "criterion": {
+     "id": "R2",
+     "text": "Source discovery and fetch run through Firecrawl. Search and the research index list candidate sources for a taxon and field; scrape records markdown and raw bytes with their checksums; parse converts a local PDF to markdown. The pipeline uses no Firecrawl option that asks a model to answer or extract. [paraphrase] Errors: unauthenticated stops with the login command; a fetch failure lists the source as unfetched with the error; a parsed table with fewer age-indexed rows than its row count files a coverage-gap decision."
+    }
+   },
+   "questions": {
+    "testable": {
+     "type": "noul",
+     "instructions": "Could a reviewer point at code, an output file or a recorded run and say whether `criterion.text` is satisfied, with two engineers agreeing?",
+     "criteria": {
+      "true": "The criterion names an observable artifact, behaviour or measurement and a condition on it",
+      "false": "Satisfaction would rest on taste, on an unstated threshold, or on a term with no observable meaning"
+     }
+    },
+    "contradicts_rules": {
+     "type": "noul",
+     "instructions": "Does `criterion.text` require something that `project_rules` forbids, or forbid something they require?",
+     "criteria": {
+      "true": "A direct conflict with a stated rule",
+      "false": "Compatible with every stated rule, or the rules do not address it"
+     }
+    },
+    "driver_judgment": {
+     "type": "noul",
+     "instructions": "Does satisfying `criterion.text` leave a reading, summary or decision to the model driving the pipeline, as opposed to code, a typed judgment call, or a person?",
+     "criteria": {
+      "true": "Some step the criterion describes has to be done by the driving model reading or deciding",
+      "false": "Every step is code, a typed judgment over stated options, or an explicit hand-off to a person"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "R3: The screen and selection tools from fn-57 fill every numeric packet fi",
+  "request": {
+   "state": {
+    "project_rules": {
+     "typesafe": "TypeSafe's Jev model is installed as the `typesafe:typesafe-ai` skill: `POST https://api.typesafe.ai/v1/systemone` with `Authorization: Bearer $TYPESAFE_API_KEY`. The key sits in `~/.bashrc` below its non-interactive guard (`[[ $- != *i* ]] && return`), so a plain shell never sees it; call through `bash -ic '...'`. Never read, echo or copy the key.\n\nJev never runs in generation. No model call runs in the generator, the renderer, or any path a build or a preset load reaches: pin tests, byte-identical presets and seeded streams all depend on determinism. It works offline, on evidence about trees and on the owner's notes, and a preset stays a fixed table of values.\n\nJev selects; it never supplies a number. It takes text and JSON only, and answers a Choice, a Noul or a Score over options code gives it. Code proposes every candidate value and owns every calculation, render and measurement. Two uses fit (owner, 2026-09-16). Screening source literature: Jev judges which candidates are a measured value at a stated age and under what growing condition, and code copies the number; every such value is checked against its source text before it reaches a preset. Tuning presets: Jev maps each of the owner's written verdict notes to the preset rows that answer it and the direction to move them, and may rank candidate values code proposed from their measured comparison; the value that ships is one code proposed and a render measured. First use: OWIC's \"1 to 2 ft per year for trees 10 to 30 years old\", cited as O1 behind the oak's 2.4 m ten-year height, is a site-classification criterion, not a measurement.",
+     "no_caps": "No hardcoded caps on generation (owner, 2026-09-15). A count or limit that changes what the generator grows is a configurable parameter with a validated range that presets author, never a constant hardcoded apart from those ranges. Tests assert form, not counts: no node, leaf or population ceiling gates a result. Where a tree needs more work, improve performance instead of capping it; build cost is measured and reported, not a gate on form."
+    },
+    "criterion": {
+     "id": "R3",
+     "text": "The screen and selection tools from fn-57 fill every numeric packet field, height and trunk diameter at the reference ages, crown width and base, and organ dimensions, each with its source ID, copied span and ledger reference. A field with no admissible candidate is recorded as unavailable with the reason, and a missing age curve is filed as a missing-curve decision. A trait the sources only describe is scored over described levels and mapped to its value through an authored value table, with the level, its probability, the sentence and the table row recorded. [paraphrase] Errors: a described level whose trait has no authored value table is recorded as unavailable with the reason, never mapped by the model; otherwise no error surface beyond the coverage-gap decision."
+    }
+   },
+   "questions": {
+    "testable": {
+     "type": "noul",
+     "instructions": "Could a reviewer point at code, an output file or a recorded run and say whether `criterion.text` is satisfied, with two engineers agreeing?",
+     "criteria": {
+      "true": "The criterion names an observable artifact, behaviour or measurement and a condition on it",
+      "false": "Satisfaction would rest on taste, on an unstated threshold, or on a term with no observable meaning"
+     }
+    },
+    "contradicts_rules": {
+     "type": "noul",
+     "instructions": "Does `criterion.text` require something that `project_rules` forbids, or forbid something they require?",
+     "criteria": {
+      "true": "A direct conflict with a stated rule",
+      "false": "Compatible with every stated rule, or the rules do not address it"
+     }
+    },
+    "driver_judgment": {
+     "type": "noul",
+     "instructions": "Does satisfying `criterion.text` leave a reading, summary or decision to the model driving the pipeline, as opposed to code, a typed judgment call, or a person?",
+     "criteria": {
+      "true": "Some step the criterion describes has to be done by the driving model reading or deciding",
+      "false": "Every step is code, a typed judgment over stated options, or an explicit hand-off to a person"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "R4: Packet verification judges every claim in the filled packet against it",
+  "request": {
+   "state": {
+    "project_rules": {
+     "typesafe": "TypeSafe's Jev model is installed as the `typesafe:typesafe-ai` skill: `POST https://api.typesafe.ai/v1/systemone` with `Authorization: Bearer $TYPESAFE_API_KEY`. The key sits in `~/.bashrc` below its non-interactive guard (`[[ $- != *i* ]] && return`), so a plain shell never sees it; call through `bash -ic '...'`. Never read, echo or copy the key.\n\nJev never runs in generation. No model call runs in the generator, the renderer, or any path a build or a preset load reaches: pin tests, byte-identical presets and seeded streams all depend on determinism. It works offline, on evidence about trees and on the owner's notes, and a preset stays a fixed table of values.\n\nJev selects; it never supplies a number. It takes text and JSON only, and answers a Choice, a Noul or a Score over options code gives it. Code proposes every candidate value and owns every calculation, render and measurement. Two uses fit (owner, 2026-09-16). Screening source literature: Jev judges which candidates are a measured value at a stated age and under what growing condition, and code copies the number; every such value is checked against its source text before it reaches a preset. Tuning presets: Jev maps each of the owner's written verdict notes to the preset rows that answer it and the direction to move them, and may rank candidate values code proposed from their measured comparison; the value that ships is one code proposed and a render measured. First use: OWIC's \"1 to 2 ft per year for trees 10 to 30 years old\", cited as O1 behind the oak's 2.4 m ten-year height, is a site-classification criterion, not a measurement.",
+     "no_caps": "No hardcoded caps on generation (owner, 2026-09-15). A count or limit that changes what the generator grows is a configurable parameter with a validated range that presets author, never a constant hardcoded apart from those ranges. Tests assert form, not counts: no node, leaf or population ceiling gates a result. Where a tree needs more work, improve performance instead of capping it; build cost is measured and reported, not a gate on form."
+    },
+    "criterion": {
+     "id": "R4",
+     "text": "Packet verification judges every claim in the filled packet against its source section with fn-57's citation check, and judges each evidence obligation the onboarding doc states, such as no invented measurements and a page description is not an inspected image, as met or not over the packet and the ledger. Contradicted, unsupported and unmet items become decisions. [paraphrase] Errors: an unreachable source lists its claims as unchecked."
+    }
+   },
+   "questions": {
+    "testable": {
+     "type": "noul",
+     "instructions": "Could a reviewer point at code, an output file or a recorded run and say whether `criterion.text` is satisfied, with two engineers agreeing?",
+     "criteria": {
+      "true": "The criterion names an observable artifact, behaviour or measurement and a condition on it",
+      "false": "Satisfaction would rest on taste, on an unstated threshold, or on a term with no observable meaning"
+     }
+    },
+    "contradicts_rules": {
+     "type": "noul",
+     "instructions": "Does `criterion.text` require something that `project_rules` forbids, or forbid something they require?",
+     "criteria": {
+      "true": "A direct conflict with a stated rule",
+      "false": "Compatible with every stated rule, or the rules do not address it"
+     }
+    },
+    "driver_judgment": {
+     "type": "noul",
+     "instructions": "Does satisfying `criterion.text` leave a reading, summary or decision to the model driving the pipeline, as opposed to code, a typed judgment call, or a person?",
+     "criteria": {
+      "true": "Some step the criterion describes has to be done by the driving model reading or deciding",
+      "false": "Every step is code, a typed judgment over stated options, or an explicit hand-off to a person"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "R5: Curve composition and fit run in code from the selected points, with e",
+  "request": {
+   "state": {
+    "project_rules": {
+     "typesafe": "TypeSafe's Jev model is installed as the `typesafe:typesafe-ai` skill: `POST https://api.typesafe.ai/v1/systemone` with `Authorization: Bearer $TYPESAFE_API_KEY`. The key sits in `~/.bashrc` below its non-interactive guard (`[[ $- != *i* ]] && return`), so a plain shell never sees it; call through `bash -ic '...'`. Never read, echo or copy the key.\n\nJev never runs in generation. No model call runs in the generator, the renderer, or any path a build or a preset load reaches: pin tests, byte-identical presets and seeded streams all depend on determinism. It works offline, on evidence about trees and on the owner's notes, and a preset stays a fixed table of values.\n\nJev selects; it never supplies a number. It takes text and JSON only, and answers a Choice, a Noul or a Score over options code gives it. Code proposes every candidate value and owns every calculation, render and measurement. Two uses fit (owner, 2026-09-16). Screening source literature: Jev judges which candidates are a measured value at a stated age and under what growing condition, and code copies the number; every such value is checked against its source text before it reaches a preset. Tuning presets: Jev maps each of the owner's written verdict notes to the preset rows that answer it and the direction to move them, and may rank candidate values code proposed from their measured comparison; the value that ships is one code proposed and a render measured. First use: OWIC's \"1 to 2 ft per year for trees 10 to 30 years old\", cited as O1 behind the oak's 2.4 m ten-year height, is a site-classification criterion, not a measurement.",
+     "no_caps": "No hardcoded caps on generation (owner, 2026-09-15). A count or limit that changes what the generator grows is a configurable parameter with a validated range that presets author, never a constant hardcoded apart from those ranges. Tests assert form, not counts: no node, leaf or population ceiling gates a result. Where a tree needs more work, improve performance instead of capping it; build cost is measured and reported, not a gate on form."
+    },
+    "criterion": {
+     "id": "R5",
+     "text": "Curve composition and fit run in code from the selected points, with every composition choice a named manifest parameter, and produce the growth rate, growth shape and derived mature age with the three-age errors recorded. A miss beyond tolerance files a tolerance-miss decision; the pipeline never accepts one. [paraphrase] Errors: fewer than two age-indexed points for a curve files a missing-curve decision and skips the fit for that dimension."
+    }
+   },
+   "questions": {
+    "testable": {
+     "type": "noul",
+     "instructions": "Could a reviewer point at code, an output file or a recorded run and say whether `criterion.text` is satisfied, with two engineers agreeing?",
+     "criteria": {
+      "true": "The criterion names an observable artifact, behaviour or measurement and a condition on it",
+      "false": "Satisfaction would rest on taste, on an unstated threshold, or on a term with no observable meaning"
+     }
+    },
+    "contradicts_rules": {
+     "type": "noul",
+     "instructions": "Does `criterion.text` require something that `project_rules` forbids, or forbid something they require?",
+     "criteria": {
+      "true": "A direct conflict with a stated rule",
+      "false": "Compatible with every stated rule, or the rules do not address it"
+     }
+    },
+    "driver_judgment": {
+     "type": "noul",
+     "instructions": "Does satisfying `criterion.text` leave a reading, summary or decision to the model driving the pipeline, as opposed to code, a typed judgment call, or a person?",
+     "criteria": {
+      "true": "Some step the criterion describes has to be done by the driving model reading or deciding",
+      "false": "Every step is code, a typed judgment over stated options, or an explicit hand-off to a person"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "R6: A model-swap test drives the whole pipeline once with the host model a",
+  "request": {
+   "state": {
+    "project_rules": {
+     "typesafe": "TypeSafe's Jev model is installed as the `typesafe:typesafe-ai` skill: `POST https://api.typesafe.ai/v1/systemone` with `Authorization: Bearer $TYPESAFE_API_KEY`. The key sits in `~/.bashrc` below its non-interactive guard (`[[ $- != *i* ]] && return`), so a plain shell never sees it; call through `bash -ic '...'`. Never read, echo or copy the key.\n\nJev never runs in generation. No model call runs in the generator, the renderer, or any path a build or a preset load reaches: pin tests, byte-identical presets and seeded streams all depend on determinism. It works offline, on evidence about trees and on the owner's notes, and a preset stays a fixed table of values.\n\nJev selects; it never supplies a number. It takes text and JSON only, and answers a Choice, a Noul or a Score over options code gives it. Code proposes every candidate value and owns every calculation, render and measurement. Two uses fit (owner, 2026-09-16). Screening source literature: Jev judges which candidates are a measured value at a stated age and under what growing condition, and code copies the number; every such value is checked against its source text before it reaches a preset. Tuning presets: Jev maps each of the owner's written verdict notes to the preset rows that answer it and the direction to move them, and may rank candidate values code proposed from their measured comparison; the value that ships is one code proposed and a render measured. First use: OWIC's \"1 to 2 ft per year for trees 10 to 30 years old\", cited as O1 behind the oak's 2.4 m ten-year height, is a site-classification criterion, not a measurement.",
+     "no_caps": "No hardcoded caps on generation (owner, 2026-09-15). A count or limit that changes what the generator grows is a configurable parameter with a validated range that presets author, never a constant hardcoded apart from those ranges. Tests assert form, not counts: no node, leaf or population ceiling gates a result. Where a tree needs more work, improve performance instead of capping it; build cost is measured and reported, not a gate on form."
+    },
+    "criterion": {
+     "id": "R6",
+     "text": "A model-swap test drives the whole pipeline once with the host model and once with a small model from the repo's routing, on the oak and the spruce, and the packet, report and decision list are byte-identical apart from ledger timestamps and token counts. [paraphrase] Errors: a difference is reported per file and per field."
+    }
+   },
+   "questions": {
+    "testable": {
+     "type": "noul",
+     "instructions": "Could a reviewer point at code, an output file or a recorded run and say whether `criterion.text` is satisfied, with two engineers agreeing?",
+     "criteria": {
+      "true": "The criterion names an observable artifact, behaviour or measurement and a condition on it",
+      "false": "Satisfaction would rest on taste, on an unstated threshold, or on a term with no observable meaning"
+     }
+    },
+    "contradicts_rules": {
+     "type": "noul",
+     "instructions": "Does `criterion.text` require something that `project_rules` forbids, or forbid something they require?",
+     "criteria": {
+      "true": "A direct conflict with a stated rule",
+      "false": "Compatible with every stated rule, or the rules do not address it"
+     }
+    },
+    "driver_judgment": {
+     "type": "noul",
+     "instructions": "Does satisfying `criterion.text` leave a reading, summary or decision to the model driving the pipeline, as opposed to code, a typed judgment call, or a person?",
+     "criteria": {
+      "true": "Some step the criterion describes has to be done by the driving model reading or deciding",
+      "false": "Every step is code, a typed judgment over stated options, or an explicit hand-off to a person"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "R7: The pipeline is validated on the oak and the spruce against fn30. It r",
+  "request": {
+   "state": {
+    "project_rules": {
+     "typesafe": "TypeSafe's Jev model is installed as the `typesafe:typesafe-ai` skill: `POST https://api.typesafe.ai/v1/systemone` with `Authorization: Bearer $TYPESAFE_API_KEY`. The key sits in `~/.bashrc` below its non-interactive guard (`[[ $- != *i* ]] && return`), so a plain shell never sees it; call through `bash -ic '...'`. Never read, echo or copy the key.\n\nJev never runs in generation. No model call runs in the generator, the renderer, or any path a build or a preset load reaches: pin tests, byte-identical presets and seeded streams all depend on determinism. It works offline, on evidence about trees and on the owner's notes, and a preset stays a fixed table of values.\n\nJev selects; it never supplies a number. It takes text and JSON only, and answers a Choice, a Noul or a Score over options code gives it. Code proposes every candidate value and owns every calculation, render and measurement. Two uses fit (owner, 2026-09-16). Screening source literature: Jev judges which candidates are a measured value at a stated age and under what growing condition, and code copies the number; every such value is checked against its source text before it reaches a preset. Tuning presets: Jev maps each of the owner's written verdict notes to the preset rows that answer it and the direction to move them, and may rank candidate values code proposed from their measured comparison; the value that ships is one code proposed and a render measured. First use: OWIC's \"1 to 2 ft per year for trees 10 to 30 years old\", cited as O1 behind the oak's 2.4 m ten-year height, is a site-classification criterion, not a measurement.",
+     "no_caps": "No hardcoded caps on generation (owner, 2026-09-15). A count or limit that changes what the generator grows is a configurable parameter with a validated range that presets author, never a constant hardcoded apart from those ranges. Tests assert form, not counts: no node, leaf or population ceiling gates a result. Where a tree needs more work, improve performance instead of capping it; build cost is measured and reported, not a gate on form."
+    },
+    "criterion": {
+     "id": "R7",
+     "text": "The pipeline is validated on the oak and the spruce against fn30. It reproduces fn30's source set, composition choices and reference values, or lists every difference with the sentence and judgment behind it, and each question set carries a labelled set drawn from the fn30 sources with its accuracy and confidence spread reported. [paraphrase] Errors: no error surface beyond the reported differences."
+    }
+   },
+   "questions": {
+    "testable": {
+     "type": "noul",
+     "instructions": "Could a reviewer point at code, an output file or a recorded run and say whether `criterion.text` is satisfied, with two engineers agreeing?",
+     "criteria": {
+      "true": "The criterion names an observable artifact, behaviour or measurement and a condition on it",
+      "false": "Satisfaction would rest on taste, on an unstated threshold, or on a term with no observable meaning"
+     }
+    },
+    "contradicts_rules": {
+     "type": "noul",
+     "instructions": "Does `criterion.text` require something that `project_rules` forbids, or forbid something they require?",
+     "criteria": {
+      "true": "A direct conflict with a stated rule",
+      "false": "Compatible with every stated rule, or the rules do not address it"
+     }
+    },
+    "driver_judgment": {
+     "type": "noul",
+     "instructions": "Does satisfying `criterion.text` leave a reading, summary or decision to the model driving the pipeline, as opposed to code, a typed judgment call, or a person?",
+     "criteria": {
+      "true": "Some step the criterion describes has to be done by the driving model reading or deciding",
+      "false": "Every step is code, a typed judgment over stated options, or an explicit hand-off to a person"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "weakest criterion",
+  "request": {
+   "state": {
+    "criteria": {
+     "R1": "The pipeline is a fixed sequence of commands, each with a typed JSON input and output at a fixed path, idempotent on unchanged inputs and resumable from the top. A driver runs it from a runbook that contains no instruction to read a source, summarize, or decide. [paraphrase] Errors: a stage whose in",
+     "R2": "Source discovery and fetch run through Firecrawl. Search and the research index list candidate sources for a taxon and field; scrape records markdown and raw bytes with their checksums; parse converts a local PDF to markdown. The pipeline uses no Firecrawl option that asks a model to answer or extra",
+     "R3": "The screen and selection tools from fn-57 fill every numeric packet field, height and trunk diameter at the reference ages, crown width and base, and organ dimensions, each with its source ID, copied span and ledger reference. A field with no admissible candidate is recorded as unavailable with the ",
+     "R4": "Packet verification judges every claim in the filled packet against its source section with fn-57's citation check, and judges each evidence obligation the onboarding doc states, such as no invented measurements and a page description is not an inspected image, as met or not over the packet and the ",
+     "R5": "Curve composition and fit run in code from the selected points, with every composition choice a named manifest parameter, and produce the growth rate, growth shape and derived mature age with the three-age errors recorded. A miss beyond tolerance files a tolerance-miss decision; the pipeline never a",
+     "R6": "A model-swap test drives the whole pipeline once with the host model and once with a small model from the repo's routing, on the oak and the spruce, and the packet, report and decision list are byte-identical apart from ledger timestamps and token counts. [paraphrase] Errors: a difference is reporte",
+     "R7": "The pipeline is validated on the oak and the spruce against fn30. It reproduces fn30's source set, composition choices and reference values, or lists every difference with the sentence and judgment behind it, and each question set carries a labelled set drawn from the fn30 sources with its accuracy "
+    },
+    "boundaries": "- Jev never writes a number. A parameter reaches a preset only as a copied span, a fit over spans, or a described level mapped through a value table a person authored. Jev checks that the evidence says what the packet claims and picks among options code presents. [paraphrase]\n- Scoring a measured value against a described trait, such as a crown that may equal its height, waits for its own labelled set and is not in this spec. [inferred]\n- Every still stays with the owner's eye. The pipeline runs to the point where stills exist and files a visual-unassessed decision. [paraphrase]\n- No new generator or renderer behaviour. The pipeline consumes the existing measurement example, headless renderer and preset records. [inferred]\n- fn-57's caller, ledger, screen and citation tools are consumed, not rebuilt. This spec depends on fn-57. [paraphrase]"
+   },
+   "questions": {
+    "weakest": {
+     "type": "choice",
+     "instructions": "Which criterion in `criteria` would two engineers most likely disagree about whether it is satisfied?",
+     "criteria": {
+      "R1": null,
+      "R2": null,
+      "R3": null,
+      "R4": null,
+      "R5": null,
+      "R6": null,
+      "R7": null
+     }
+    },
+    "boundary_conflict": {
+     "type": "noul",
+     "instructions": "Does any bullet in `boundaries` forbid something a criterion in `criteria` requires?",
+     "criteria": {
+      "true": "At least one boundary and one criterion cannot both hold",
+      "false": "Every boundary is compatible with every criterion"
+     }
+    }
+   }
+  }
+ }
+]

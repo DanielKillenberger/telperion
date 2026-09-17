@@ -1,0 +1,308 @@
+[
+ {
+  "label": "Garry oak height at 1-25 y open-grown (fn30's gap)",
+  "expect": "none or proxy-only; gap wrong_condition/wrong_taxon; continue false",
+  "request": {
+   "state": {
+    "requirement": {
+     "taxon": "Quercus garryana (Oregon white oak)",
+     "field": "height at age",
+     "condition": "open-grown",
+     "required_ages_years": [
+      1,
+      5,
+      10,
+      25
+     ]
+    },
+    "evidence": [
+     {
+      "source": "OWIC",
+      "sentence": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum)",
+      "kind": "mature_size_range",
+      "condition": "unstated"
+     },
+     {
+      "source": "OWIC",
+      "sentence": "Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old",
+      "kind": "site_quality_criterion",
+      "condition": "stand_grown"
+     },
+     {
+      "source": "OWIC",
+      "sentence": "Height growth is usually less than 1 ft per year",
+      "kind": "typical_growth_rate",
+      "condition": "stand_grown"
+     },
+     {
+      "source": "OWIC",
+      "sentence": "Stump sprouts may grow as much as 3 ft per year during the first 3 years",
+      "kind": "sprout_cultivar_or_nursery",
+      "condition": "stand_grown"
+     },
+     {
+      "source": "OWIC",
+      "sentence": "The shoot of natural seedlings often remains small and shrubby for many years",
+      "kind": "qualitative_description",
+      "condition": "unstated"
+     },
+     {
+      "source": "Stein 1990 Silvics",
+      "sentence": "forest-grown trees reach 24 m at 95 to 135 years",
+      "kind": "measured_size_at_age",
+      "condition": "stand_grown"
+     },
+     {
+      "source": "Juettner 1955 yield table",
+      "sentence": "Quercus robur/petraea site class II: height by age 30 to 200 in ten-year rows",
+      "kind": "measured_size_at_age",
+      "condition": "stand_grown",
+      "taxon": "Quercus robur/petraea (proxy)"
+     }
+    ]
+   },
+   "questions": {
+    "sufficiency": {
+     "type": "score",
+     "instructions": "Given `requirement` and the screened `evidence` from every admitted source, how sufficient is the evidence to fit the requested curve for this taxon under the required condition, using only the numbers the sources state?",
+     "criteria": [
+      {
+       "summary": "None: no age-indexed size for this taxon under any condition; only mature ranges, rates, site criteria or descriptions",
+       "signals": [
+        "no measured_size_at_age candidates",
+        "only mature ranges"
+       ]
+      },
+      {
+       "summary": "Proxy only: age-indexed sizes exist but for another taxon, another condition such as stand-grown or plantation, or a sprout or cultivar, so a fit would rest on a composition a person must accept",
+       "signals": [
+        "points exist but taxon or condition differs"
+       ]
+      },
+      {
+       "summary": "Partial: measured points for this taxon under the required condition cover some required ages but leave a required age or age range with no point",
+       "signals": [
+        "one or two points",
+        "an age gap"
+       ]
+      },
+      {
+       "summary": "Sufficient: measured points for this taxon under the required condition cover every required age or bracket it closely",
+       "signals": [
+        "points at or around each required age"
+       ]
+      }
+     ]
+    },
+    "dominant_gap": {
+     "type": "choice",
+     "instructions": "What is the main reason the evidence falls short of `requirement`, if it does?",
+     "criteria": {
+      "no_age_indexed_points": "No source states a size at an age at all",
+      "wrong_condition": "Points exist but under stand-grown, plantation or unstated conditions where open-grown was required",
+      "wrong_taxon": "Points exist only for a proxy species",
+      "age_range_uncovered": "Points exist for this taxon and condition but a required age range has none",
+      "none": "The evidence meets the requirement"
+     }
+    },
+    "worth_continuing": {
+     "type": "noul",
+     "instructions": "Should the pipeline proceed to fit a curve for `requirement` from this evidence without first asking a person to admit a proxy or more sources?",
+     "criteria": {
+      "true": "Enough measured points for this taxon and condition exist to fit and check at the required ages",
+      "false": "A fit would rest on a proxy, a composition, an extrapolation or too few points, so a person must decide first"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "Norway spruce height 5-37 y open-grown",
+  "expect": "proxy-only or partial; continue false",
+  "request": {
+   "state": {
+    "requirement": {
+     "taxon": "Picea abies (Norway spruce)",
+     "field": "height at age",
+     "condition": "open-grown",
+     "required_ages_years": [
+      5,
+      14,
+      27,
+      37
+     ]
+    },
+    "evidence": [
+     {
+      "source": "Iowa State Extension",
+      "sentence": "may grow to 75 feet in 50 years",
+      "kind": "measured_size_at_age",
+      "condition": "unstated"
+     },
+     {
+      "source": "NCTA",
+      "sentence": "8 to 11 years are required to grow a 6-7 foot tree after field planting",
+      "kind": "measured_size_at_age",
+      "condition": "plantation_or_nursery"
+     },
+     {
+      "source": "Iowa State Extension",
+      "sentence": "Norway spruce grow 75 to 100 feet tall",
+      "kind": "mature_size_range",
+      "condition": "unstated"
+     },
+     {
+      "source": "Wiedemann yield table",
+      "sentence": "Picea abies site class I: height by age 20 to 120 in ten-year rows",
+      "kind": "measured_size_at_age",
+      "condition": "stand_grown"
+     },
+     {
+      "source": "Vospernik 2010",
+      "sentence": "five open-grown spruce at age 300 averaging 23 m",
+      "kind": "measured_size_at_age",
+      "condition": "open_grown"
+     }
+    ]
+   },
+   "questions": {
+    "sufficiency": {
+     "type": "score",
+     "instructions": "Given `requirement` and the screened `evidence` from every admitted source, how sufficient is the evidence to fit the requested curve for this taxon under the required condition, using only the numbers the sources state?",
+     "criteria": [
+      {
+       "summary": "None: no age-indexed size for this taxon under any condition; only mature ranges, rates, site criteria or descriptions",
+       "signals": [
+        "no measured_size_at_age candidates",
+        "only mature ranges"
+       ]
+      },
+      {
+       "summary": "Proxy only: age-indexed sizes exist but for another taxon, another condition such as stand-grown or plantation, or a sprout or cultivar, so a fit would rest on a composition a person must accept",
+       "signals": [
+        "points exist but taxon or condition differs"
+       ]
+      },
+      {
+       "summary": "Partial: measured points for this taxon under the required condition cover some required ages but leave a required age or age range with no point",
+       "signals": [
+        "one or two points",
+        "an age gap"
+       ]
+      },
+      {
+       "summary": "Sufficient: measured points for this taxon under the required condition cover every required age or bracket it closely",
+       "signals": [
+        "points at or around each required age"
+       ]
+      }
+     ]
+    },
+    "dominant_gap": {
+     "type": "choice",
+     "instructions": "What is the main reason the evidence falls short of `requirement`, if it does?",
+     "criteria": {
+      "no_age_indexed_points": "No source states a size at an age at all",
+      "wrong_condition": "Points exist but under stand-grown, plantation or unstated conditions where open-grown was required",
+      "wrong_taxon": "Points exist only for a proxy species",
+      "age_range_uncovered": "Points exist for this taxon and condition but a required age range has none",
+      "none": "The evidence meets the requirement"
+     }
+    },
+    "worth_continuing": {
+     "type": "noul",
+     "instructions": "Should the pipeline proceed to fit a curve for `requirement` from this evidence without first asking a person to admit a proxy or more sources?",
+     "criteria": {
+      "true": "Enough measured points for this taxon and condition exist to fit and check at the required ages",
+      "false": "A fit would rest on a proxy, a composition, an extrapolation or too few points, so a person must decide first"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "control: Douglas-fir with open-grown points at every age",
+  "expect": "sufficient; gap none; continue true",
+  "request": {
+   "state": {
+    "requirement": {
+     "taxon": "Pseudotsuga menziesii (Douglas-fir)",
+     "field": "height at age",
+     "condition": "open-grown",
+     "required_ages_years": [
+      10,
+      20,
+      40
+     ]
+    },
+    "evidence": [
+     {
+      "source": "hypothetical open-grown study",
+      "sentence": "open-grown Douglas-fir on the site averaged 4.1 m at 10 years, 11.8 m at 20 years and 24.0 m at 40 years",
+      "kind": "measured_size_at_age",
+      "condition": "open_grown"
+     },
+     {
+      "source": "hypothetical open-grown study",
+      "sentence": "at 30 years the open-grown trees averaged 18.5 m",
+      "kind": "measured_size_at_age",
+      "condition": "open_grown"
+     }
+    ]
+   },
+   "questions": {
+    "sufficiency": {
+     "type": "score",
+     "instructions": "Given `requirement` and the screened `evidence` from every admitted source, how sufficient is the evidence to fit the requested curve for this taxon under the required condition, using only the numbers the sources state?",
+     "criteria": [
+      {
+       "summary": "None: no age-indexed size for this taxon under any condition; only mature ranges, rates, site criteria or descriptions",
+       "signals": [
+        "no measured_size_at_age candidates",
+        "only mature ranges"
+       ]
+      },
+      {
+       "summary": "Proxy only: age-indexed sizes exist but for another taxon, another condition such as stand-grown or plantation, or a sprout or cultivar, so a fit would rest on a composition a person must accept",
+       "signals": [
+        "points exist but taxon or condition differs"
+       ]
+      },
+      {
+       "summary": "Partial: measured points for this taxon under the required condition cover some required ages but leave a required age or age range with no point",
+       "signals": [
+        "one or two points",
+        "an age gap"
+       ]
+      },
+      {
+       "summary": "Sufficient: measured points for this taxon under the required condition cover every required age or bracket it closely",
+       "signals": [
+        "points at or around each required age"
+       ]
+      }
+     ]
+    },
+    "dominant_gap": {
+     "type": "choice",
+     "instructions": "What is the main reason the evidence falls short of `requirement`, if it does?",
+     "criteria": {
+      "no_age_indexed_points": "No source states a size at an age at all",
+      "wrong_condition": "Points exist but under stand-grown, plantation or unstated conditions where open-grown was required",
+      "wrong_taxon": "Points exist only for a proxy species",
+      "age_range_uncovered": "Points exist for this taxon and condition but a required age range has none",
+      "none": "The evidence meets the requirement"
+     }
+    },
+    "worth_continuing": {
+     "type": "noul",
+     "instructions": "Should the pipeline proceed to fit a curve for `requirement` from this evidence without first asking a person to admit a proxy or more sources?",
+     "criteria": {
+      "true": "Enough measured points for this taxon and condition exist to fit and check at the required ages",
+      "false": "A fit would rest on a proxy, a composition, an extrapolation or too few points, so a person must decide first"
+     }
+    }
+   }
+  }
+ }
+]
