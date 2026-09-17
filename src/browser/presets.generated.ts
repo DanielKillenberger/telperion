@@ -7,10 +7,16 @@ export interface Family {
   divergence: number;
   forwardLean: number;
   leanRise: number;
+  limbClumping: number;
   maxInstances: number;
   outward: number;
   scatter: number;
   shootRadius: number;
+  shortShootLeaves: number;
+  shortShootLength: number;
+  shortShootRadius: number;
+  shortShootSpacing: number;
+  shortShootSpread: number;
   size: number;
   sizeVariation: number;
   spacing: number;
@@ -52,13 +58,16 @@ export interface Family {
   bladeMottleStrength: number;
   brightnessRangeHigh: number;
   brightnessRangeLow: number;
+  canopyNormal: number;
   cavityStrength: number;
   crestBlue: number;
   crestGreen: number;
   crestRed: number;
   crestStrength: number;
+  crownShade: number;
   cuticleGloss: number;
   depthStrength: number;
+  diffuseTransmission: number;
   directionalOcclusion: number;
   fissureBlue: number;
   fissureGreen: number;
@@ -74,6 +83,19 @@ export interface Family {
   leafFrontBlue: number;
   leafFrontGreen: number;
   leafFrontRed: number;
+  leafSheen: number;
+  lenticelDensity: number;
+  lenticelLength: number;
+  lenticelStrength: number;
+  lenticelTint: number;
+  lichenBlue: number;
+  lichenCoverage: number;
+  lichenGreen: number;
+  lichenRed: number;
+  lichenScale: number;
+  lichenStrength: number;
+  lightWrap: number;
+  lobeShade: number;
   marginBlue: number;
   marginGreen: number;
   marginRed: number;
@@ -82,6 +104,10 @@ export interface Family {
   orientationGreen: number;
   orientationRed: number;
   orientationStrength: number;
+  peelBlue: number;
+  peelCurl: number;
+  peelGreen: number;
+  peelRed: number;
   plateCellScale: number;
   plateDome: number;
   plateEdgeLift: number;
@@ -91,6 +117,10 @@ export interface Family {
   plateScale: number;
   ridgeScale: number;
   roughnessDetail: number;
+  shootBlue: number;
+  shootGreen: number;
+  shootRadius: number;
+  shootRed: number;
   skyOcclusionStrength: number;
   thickness: number;
   transmissionBlue: number;
@@ -126,6 +156,8 @@ export interface Family {
   crownBase: number;
   fullness: number;
   height: number;
+  irregularity: number;
+  lobeScale: number;
   shoulder: number;
   spread: number;
 };
@@ -151,6 +183,11 @@ export interface Family {
   risePrimary: number;
   riseSecondary: number;
   sheddingThreshold: number;
+  stemDivergence: number;
+  stemForkHeight: number;
+  stemLean: number;
+  stemLeanSpread: number;
+  stems: number;
   twigTipTaper: number;
   whorlStrength: number;
 };
@@ -159,13 +196,22 @@ export interface Family {
   twigs: {
   angle: number;
   angleVariation: number;
+  curtainClearance: number;
+  curtainDrop: number;
+  curtainSeparation: number;
   divergence: number;
+  generations: number;
+  hang: number;
   internodeFactor: number;
   laterals: number;
   lengthRatio: number;
   limbRadius: number;
+  pendulousLength: number;
+  pendulousRadius: number;
+  pendulousVariation: number;
   ratioPower: number;
   reach: number;
+  sag: number;
   twig: {
   bearingDiameter: number;
   diameter: number;
@@ -199,10 +245,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 137.508,
         "forwardLean": 0,
         "leanRise": 0,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0.6,
         "scatter": 18,
         "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.35,
         "spacing": 0.006,
@@ -244,13 +296,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "canopyNormal": 0,
         "cavityStrength": 0,
         "crestBlue": 0,
         "crestGreen": 0,
         "crestRed": 0,
         "crestStrength": 0,
+        "crownShade": 0,
         "cuticleGloss": 0,
         "depthStrength": 0,
+        "diffuseTransmission": 0,
         "directionalOcclusion": 0,
         "fissureBlue": 0,
         "fissureGreen": 0,
@@ -266,6 +321,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
+        "leafSheen": 0,
+        "lenticelDensity": 0,
+        "lenticelLength": 0,
+        "lenticelStrength": 0,
+        "lenticelTint": 0,
+        "lichenBlue": 0,
+        "lichenCoverage": 0,
+        "lichenGreen": 0,
+        "lichenRed": 0,
+        "lichenScale": 0,
+        "lichenStrength": 0,
+        "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0,
         "marginGreen": 0,
         "marginRed": 0,
@@ -274,6 +342,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "orientationGreen": 0,
         "orientationRed": 0,
         "orientationStrength": 0,
+        "peelBlue": 0,
+        "peelCurl": 0,
+        "peelGreen": 0,
+        "peelRed": 0,
         "plateCellScale": 0,
         "plateDome": 0,
         "plateEdgeLift": 0,
@@ -283,6 +355,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0,
         "ridgeScale": 0,
         "roughnessDetail": 0,
+        "shootBlue": 0.068,
+        "shootGreen": 0.105,
+        "shootRadius": 0,
+        "shootRed": 0.147,
         "skyOcclusionStrength": 0,
         "thickness": 1,
         "transmissionBlue": 0.1,
@@ -318,6 +394,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.3,
           "fullness": 0.45,
           "height": 24,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 2.2,
           "spread": 0.3
         },
@@ -338,6 +416,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.05,
           "riseSecondary": 0,
           "sheddingThreshold": 0.45,
+          "stemDivergence": 0,
+          "stemForkHeight": 0,
+          "stemLean": 0,
+          "stemLeanSpread": 0,
+          "stems": 1,
           "twigTipTaper": 1,
           "whorlStrength": 0.3
         },
@@ -346,13 +429,22 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
+          "hang": 0,
           "internodeFactor": 2.5,
           "laterals": 2,
           "lengthRatio": 0.4,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.05,
             "diameter": 0.005,
@@ -389,10 +481,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 180,
         "forwardLean": 0.25,
         "leanRise": 0,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0,
         "scatter": 18,
         "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.2,
         "spacing": 0.006,
@@ -434,13 +532,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0.15,
         "brightnessRangeHigh": 0.15,
         "brightnessRangeLow": -0.15,
+        "canopyNormal": 0,
         "cavityStrength": 0.6,
         "crestBlue": 0.055,
         "crestGreen": 0.085,
         "crestRed": 0.1,
         "crestStrength": 0.5,
+        "crownShade": 0,
         "cuticleGloss": 0.35,
         "depthStrength": 0.5375,
+        "diffuseTransmission": 0,
         "directionalOcclusion": 1,
         "fissureBlue": 0.005,
         "fissureGreen": -0.05,
@@ -456,6 +557,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.016,
         "leafFrontGreen": 0.102,
         "leafFrontRed": 0.028,
+        "leafSheen": 0,
+        "lenticelDensity": 0,
+        "lenticelLength": 0,
+        "lenticelStrength": 0,
+        "lenticelTint": 0,
+        "lichenBlue": 0,
+        "lichenCoverage": 0,
+        "lichenGreen": 0,
+        "lichenRed": 0,
+        "lichenScale": 0,
+        "lichenStrength": 0,
+        "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0.006,
         "marginGreen": 0.035,
         "marginRed": 0.025,
@@ -464,6 +578,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "orientationGreen": 0.009,
         "orientationRed": -0.062,
         "orientationStrength": 0.40625,
+        "peelBlue": 0,
+        "peelCurl": 0,
+        "peelGreen": 0,
+        "peelRed": 0,
         "plateCellScale": 0.084,
         "plateDome": 0.41875,
         "plateEdgeLift": 0.27,
@@ -473,6 +591,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0.055,
         "ridgeScale": 0.032,
         "roughnessDetail": 0.12,
+        "shootBlue": 0.198,
+        "shootGreen": 0.218,
+        "shootRadius": 0,
+        "shootRed": 0.225,
         "skyOcclusionStrength": 0.5,
         "thickness": 0.65,
         "transmissionBlue": 0.07,
@@ -508,6 +630,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.16,
           "fullness": 0.55,
           "height": 24,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 2.2,
           "spread": 0.55
         },
@@ -528,6 +652,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.12,
           "riseSecondary": 0,
           "sheddingThreshold": 0,
+          "stemDivergence": 0,
+          "stemForkHeight": 0,
+          "stemLean": 0,
+          "stemLeanSpread": 0,
+          "stems": 1,
           "twigTipTaper": 0.25,
           "whorlStrength": 0.1
         },
@@ -536,13 +665,22 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
+          "hang": 0,
           "internodeFactor": 2.5,
           "laterals": 4,
           "lengthRatio": 0.45,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.03,
             "diameter": 0.005,
@@ -579,10 +717,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 137.508,
         "forwardLean": 0.05,
         "leanRise": 1.2,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0,
         "scatter": 18,
         "shootRadius": 0.025,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.2,
         "spacing": 0.006,
@@ -624,13 +768,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0,
         "brightnessRangeHigh": 0.1,
         "brightnessRangeLow": -0.1,
+        "canopyNormal": 0,
         "cavityStrength": 0.6,
         "crestBlue": 0.01,
         "crestGreen": 0.025,
         "crestRed": 0.05,
         "crestStrength": 0.3,
+        "crownShade": 0,
         "cuticleGloss": 0.05,
         "depthStrength": 0.45625,
+        "diffuseTransmission": 0,
         "directionalOcclusion": 0.30625,
         "fissureBlue": -0.02,
         "fissureGreen": -0.03,
@@ -646,6 +793,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.028,
         "leafFrontGreen": 0.056,
         "leafFrontRed": 0.018,
+        "leafSheen": 0,
+        "lenticelDensity": 0,
+        "lenticelLength": 0,
+        "lenticelStrength": 0,
+        "lenticelTint": 0,
+        "lichenBlue": 0,
+        "lichenCoverage": 0,
+        "lichenGreen": 0,
+        "lichenRed": 0,
+        "lichenScale": 0,
+        "lichenStrength": 0,
+        "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0.002,
         "marginGreen": 0.015,
         "marginRed": 0.01,
@@ -654,6 +814,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "orientationGreen": 0.026,
         "orientationRed": -0.014,
         "orientationStrength": 0.44375,
+        "peelBlue": 0,
+        "peelCurl": 0,
+        "peelGreen": 0,
+        "peelRed": 0,
         "plateCellScale": 0.028,
         "plateDome": 0.39375,
         "plateEdgeLift": 0.5,
@@ -663,6 +827,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0.03,
         "ridgeScale": 0.02,
         "roughnessDetail": 0.16,
+        "shootBlue": 0.045,
+        "shootGreen": 0.078,
+        "shootRadius": 0,
+        "shootRed": 0.147,
         "skyOcclusionStrength": 0.6,
         "thickness": 3.5,
         "transmissionBlue": 0.08,
@@ -698,6 +866,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.04,
           "fullness": 0.15,
           "height": 15,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 1,
           "spread": 0.31
         },
@@ -718,6 +888,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.12,
           "riseSecondary": -0.8,
           "sheddingThreshold": 0,
+          "stemDivergence": 0,
+          "stemForkHeight": 0,
+          "stemLean": 0,
+          "stemLeanSpread": 0,
+          "stems": 1,
           "twigTipTaper": 0.25,
           "whorlStrength": 1
         },
@@ -726,13 +901,22 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
+          "hang": 1,
           "internodeFactor": 2.5,
           "laterals": 2,
           "lengthRatio": 0.4,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.02,
             "diameter": 0.002,
@@ -760,6 +944,242 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
     "note": "Picea abies"
   },
   {
+    "abiId": 6,
+    "family": {
+      "age": 70,
+      "canopy": {
+        "clump": 8,
+        "clumpSpan": 0.5,
+        "divergence": 180,
+        "forwardLean": 0.6,
+        "leanRise": 0.3,
+        "limbClumping": 0,
+        "maxInstances": 4294967295,
+        "outward": 0,
+        "scatter": 18,
+        "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
+        "size": 1,
+        "sizeVariation": 0.2,
+        "spacing": 0.006,
+        "surfaceContact": 0,
+        "upward": -0.35
+      },
+      "element": {
+        "axialSegments": 32,
+        "baseFullness": 0.3,
+        "card": false,
+        "connectorLength": 0.022,
+        "crossSegments": 2,
+        "cup": 0.18,
+        "curl": 0.12,
+        "length": 0.055,
+        "lobeCount": 8,
+        "lobeDepth": 0.1,
+        "sectionRoundness": 0,
+        "tipSharpness": 1.1,
+        "widestAt": 0.2,
+        "width": 0.045
+      },
+      "growth": {
+        "apicalControlLoss": 0,
+        "leafLifetime": 1,
+        "rate": 0.08,
+        "resizeTolerance": 0.0001,
+        "shape": 2,
+        "sheddingTolerance": 2
+      },
+      "material": {
+        "barkBlue": 0.7,
+        "barkGreen": 0.76,
+        "barkMottleScale": 0.15,
+        "barkMottleStrength": 0.12,
+        "barkRed": 0.78,
+        "barkRoughness": 0.95,
+        "bladeMottleScale": 5.5,
+        "bladeMottleStrength": 0.2,
+        "brightnessRangeHigh": 0.12,
+        "brightnessRangeLow": -0.12,
+        "canopyNormal": 0.8,
+        "cavityStrength": 0.3,
+        "crestBlue": 0.1,
+        "crestGreen": 0.1,
+        "crestRed": 0.1,
+        "crestStrength": 0.4,
+        "crownShade": 0.2,
+        "cuticleGloss": 0.28,
+        "depthStrength": 0.4,
+        "diffuseTransmission": 1,
+        "directionalOcclusion": 0.6,
+        "fissureBlue": -0.41,
+        "fissureGreen": -0.44,
+        "fissureRed": -0.44,
+        "fissureStrength": 1,
+        "furrowStrength": 1,
+        "hueRangeHigh": 0.025,
+        "hueRangeLow": -0.025,
+        "interiorDarkening": 0.15,
+        "leafBackBlue": 0.14,
+        "leafBackGreen": 0.28,
+        "leafBackRed": 0.2,
+        "leafFrontBlue": 0.06,
+        "leafFrontGreen": 0.19,
+        "leafFrontRed": 0.1,
+        "leafSheen": 0.06,
+        "lenticelDensity": 18,
+        "lenticelLength": 0.06,
+        "lenticelStrength": 0.72,
+        "lenticelTint": -0.62,
+        "lichenBlue": 0.48,
+        "lichenCoverage": 1,
+        "lichenGreen": 0.5,
+        "lichenRed": 0.5,
+        "lichenScale": 0.01,
+        "lichenStrength": 0.45,
+        "lightWrap": 0.5,
+        "lobeShade": 0,
+        "marginBlue": 0.01,
+        "marginGreen": 0.05,
+        "marginRed": 0.03,
+        "marginWidth": 0.05,
+        "orientationBlue": 0,
+        "orientationGreen": 0,
+        "orientationRed": 0,
+        "orientationStrength": 0,
+        "peelBlue": 0.29,
+        "peelCurl": 0.3,
+        "peelGreen": 0.315,
+        "peelRed": 0.33,
+        "plateCellScale": 0.05,
+        "plateDome": 0.3,
+        "plateEdgeLift": 0.3,
+        "plateElongation": 0,
+        "plateFurrowWidth": 0,
+        "plateIdentity": 0.3,
+        "plateScale": 0.4,
+        "ridgeScale": 0.08,
+        "roughnessDetail": 0.1,
+        "shootBlue": 0.055,
+        "shootGreen": 0.07,
+        "shootRadius": 0.01,
+        "shootRed": 0.095,
+        "skyOcclusionStrength": 0.4,
+        "thickness": 0.45,
+        "transmissionBlue": 0.1,
+        "transmissionGreen": 0.55,
+        "transmissionRed": 0.28,
+        "transmissionStrength": 0.6,
+        "veinContrast": 0.8,
+        "veinScale": 6,
+        "weatheringBlue": 0,
+        "weatheringGreen": 0,
+        "weatheringRed": 0,
+        "weatheringStrength": 0
+      },
+      "radii": {
+        "forkExponent": 2,
+        "lengthTaper": 0.6,
+        "trunkRadius": 0.014
+      },
+      "shellDepth": 0.45,
+      "skeleton": {
+        "attractors": 500,
+        "bias": {
+          "gravitropism": 0,
+          "lean": 0,
+          "supernatural": {
+            "enabled": false,
+            "spiralRate": 0,
+            "writheAmplitude": 0,
+            "writheWavelength": 0.45
+          }
+        },
+        "envelope": {
+          "crownBase": 0.1,
+          "fullness": 0.6,
+          "height": 18,
+          "irregularity": 0.35,
+          "lobeScale": 0.25,
+          "shoulder": 1.6,
+          "spread": 0.36
+        },
+        "growth": {
+          "maxTurnPerStep": 35
+        },
+        "habit": {
+          "apicalDominance": 0.45,
+          "attractorWeight": 0,
+          "crookedness": 10,
+          "lateralLengthRatio": 0.4,
+          "lateralOrders": 3,
+          "lateralPitch": 45,
+          "lateralSpacing": 1.2,
+          "lateralsPerStation": 2,
+          "leaderInternode": 1.6,
+          "pitchVariation": 14,
+          "risePrimary": 0.02,
+          "riseSecondary": -0.85,
+          "sheddingThreshold": 0,
+          "stemDivergence": 0,
+          "stemForkHeight": 0.5,
+          "stemLean": 28,
+          "stemLeanSpread": 1,
+          "stems": 2,
+          "twigTipTaper": 0.35,
+          "whorlStrength": 0.2
+        },
+        "seed": 42,
+        "step": 0.022,
+        "twigs": {
+          "angle": 45,
+          "angleVariation": 10,
+          "curtainClearance": 1.8,
+          "curtainDrop": 0.6,
+          "curtainSeparation": 9,
+          "divergence": 137.508,
+          "generations": 6,
+          "hang": 2.4,
+          "internodeFactor": 2.5,
+          "laterals": 7,
+          "lengthRatio": 0.55,
+          "limbRadius": 0.1,
+          "pendulousLength": 3,
+          "pendulousRadius": 1,
+          "pendulousVariation": 0.95,
+          "ratioPower": 1.3,
+          "reach": 0.2,
+          "sag": 1,
+          "twig": {
+            "bearingDiameter": 0.02,
+            "diameter": 0.003,
+            "internodeLength": 0.06,
+            "length": 0.45,
+            "stationsPerInternode": 1
+          },
+          "vigourVariation": 0.15
+        }
+      },
+      "surface": {
+        "flareDepth": 0.004,
+        "flareFalloff": 0.022,
+        "flareRadius": 2.1,
+        "forkSocket": 0.5,
+        "forkSwell": 1.35,
+        "lobeDepth": 0,
+        "lobes": 5,
+        "radialSegments": 12,
+        "twistRate": 0
+      }
+    },
+    "id": "silver-birch",
+    "name": "Silver birch",
+    "note": "Betula pendula"
+  },
+  {
     "abiId": 1,
     "family": {
       "age": 100,
@@ -769,10 +1189,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 137.508,
         "forwardLean": 0,
         "leanRise": 0,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0.42,
         "scatter": 14,
         "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1,
         "sizeVariation": 0.28,
         "spacing": 0.0045,
@@ -814,13 +1240,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0.04,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "canopyNormal": 0,
         "cavityStrength": 0.2,
         "crestBlue": 0,
         "crestGreen": 0,
         "crestRed": 0,
         "crestStrength": 0.1,
+        "crownShade": 0,
         "cuticleGloss": 0.25,
         "depthStrength": 0,
+        "diffuseTransmission": 0,
         "directionalOcclusion": 0,
         "fissureBlue": 0,
         "fissureGreen": 0,
@@ -836,6 +1265,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
+        "leafSheen": 0,
+        "lenticelDensity": 0,
+        "lenticelLength": 0,
+        "lenticelStrength": 0,
+        "lenticelTint": 0,
+        "lichenBlue": 0,
+        "lichenCoverage": 0,
+        "lichenGreen": 0,
+        "lichenRed": 0,
+        "lichenScale": 0,
+        "lichenStrength": 0,
+        "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0,
         "marginGreen": 0,
         "marginRed": 0,
@@ -844,6 +1286,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "orientationGreen": 0,
         "orientationRed": 0,
         "orientationStrength": 0,
+        "peelBlue": 0,
+        "peelCurl": 0,
+        "peelGreen": 0,
+        "peelRed": 0,
         "plateCellScale": 0,
         "plateDome": 0,
         "plateEdgeLift": 0,
@@ -853,6 +1299,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0,
         "ridgeScale": 0,
         "roughnessDetail": 0,
+        "shootBlue": 0.068,
+        "shootGreen": 0.105,
+        "shootRadius": 0,
+        "shootRed": 0.147,
         "skyOcclusionStrength": 0.2,
         "thickness": 1,
         "transmissionBlue": 0.1,
@@ -888,6 +1338,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.38,
           "fullness": 0.58,
           "height": 148,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 1.5,
           "spread": 0.24
         },
@@ -908,6 +1360,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.05,
           "riseSecondary": 0,
           "sheddingThreshold": 0.45,
+          "stemDivergence": 0,
+          "stemForkHeight": 0,
+          "stemLean": 0,
+          "stemLeanSpread": 0,
+          "stems": 1,
           "twigTipTaper": 1,
           "whorlStrength": 0.2
         },
@@ -916,13 +1373,22 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
+          "hang": 0,
           "internodeFactor": 3.5,
           "laterals": 4,
           "lengthRatio": 0.4,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.05,
             "diameter": 0.005,
@@ -959,10 +1425,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "divergence": 99.502,
         "forwardLean": 0,
         "leanRise": 0,
+        "limbClumping": 0,
         "maxInstances": 4294967295,
         "outward": 0.72,
         "scatter": 22,
         "shootRadius": 0,
+        "shortShootLeaves": 3,
+        "shortShootLength": 0.04,
+        "shortShootRadius": 0.15,
+        "shortShootSpacing": 0,
+        "shortShootSpread": 45,
         "size": 1.5,
         "sizeVariation": 0.4,
         "spacing": 0.0065,
@@ -1004,13 +1476,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "bladeMottleStrength": 0.04,
         "brightnessRangeHigh": 0.12,
         "brightnessRangeLow": -0.12,
+        "canopyNormal": 0,
         "cavityStrength": 0.2,
         "crestBlue": 0,
         "crestGreen": 0,
         "crestRed": 0,
         "crestStrength": 0.1,
+        "crownShade": 0,
         "cuticleGloss": 0.3,
         "depthStrength": 0,
+        "diffuseTransmission": 0,
         "directionalOcclusion": 0,
         "fissureBlue": 0,
         "fissureGreen": 0,
@@ -1026,6 +1501,19 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
+        "leafSheen": 0,
+        "lenticelDensity": 0,
+        "lenticelLength": 0,
+        "lenticelStrength": 0,
+        "lenticelTint": 0,
+        "lichenBlue": 0,
+        "lichenCoverage": 0,
+        "lichenGreen": 0,
+        "lichenRed": 0,
+        "lichenScale": 0,
+        "lichenStrength": 0,
+        "lightWrap": 0,
+        "lobeShade": 0,
         "marginBlue": 0,
         "marginGreen": 0,
         "marginRed": 0,
@@ -1034,6 +1522,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "orientationGreen": 0,
         "orientationRed": 0,
         "orientationStrength": 0,
+        "peelBlue": 0,
+        "peelCurl": 0,
+        "peelGreen": 0,
+        "peelRed": 0,
         "plateCellScale": 0,
         "plateDome": 0,
         "plateEdgeLift": 0,
@@ -1043,6 +1535,10 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "plateScale": 0,
         "ridgeScale": 0,
         "roughnessDetail": 0,
+        "shootBlue": 0.068,
+        "shootGreen": 0.105,
+        "shootRadius": 0,
+        "shootRed": 0.147,
         "skyOcclusionStrength": 0.2,
         "thickness": 1,
         "transmissionBlue": 0.1,
@@ -1078,6 +1574,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "crownBase": 0.24,
           "fullness": 0.38,
           "height": 132,
+          "irregularity": 0,
+          "lobeScale": 0.5,
           "shoulder": 3.2,
           "spread": 0.58
         },
@@ -1098,6 +1596,11 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
           "risePrimary": 0.05,
           "riseSecondary": 0,
           "sheddingThreshold": 0.45,
+          "stemDivergence": 0,
+          "stemForkHeight": 0,
+          "stemLean": 0,
+          "stemLeanSpread": 0,
+          "stems": 1,
           "twigTipTaper": 1,
           "whorlStrength": 0.2
         },
@@ -1106,13 +1609,22 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "twigs": {
           "angle": 45,
           "angleVariation": 10,
+          "curtainClearance": 0.5,
+          "curtainDrop": 0,
+          "curtainSeparation": 4,
           "divergence": 137.508,
+          "generations": 6,
+          "hang": 0,
           "internodeFactor": 6,
           "laterals": 2,
           "lengthRatio": 0.4,
           "limbRadius": 0.1,
+          "pendulousLength": 0.25,
+          "pendulousRadius": 1,
+          "pendulousVariation": 0,
           "ratioPower": 1.3,
           "reach": 0.2,
+          "sag": 0,
           "twig": {
             "bearingDiameter": 0.05,
             "diameter": 0.005,

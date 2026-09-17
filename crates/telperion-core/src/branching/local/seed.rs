@@ -124,7 +124,6 @@ impl Frontier {
         tree: &Tree,
         config: &GrowthConfig,
         t: TwigParams,
-        habit: HabitParams,
         widths: planner::WidthQuery<'_>,
     ) {
         if tree.nodes.len() < 2 {
@@ -136,7 +135,9 @@ impl Frontier {
         if self.stations.pending.is_empty() {
             return;
         }
-        let root_radius = radius(0);
+        // The twig layer measures against the thickest stem, not the root's
+        // combined pipe: one stem and that is the root itself, unchanged.
+        let root_radius = tree.stem_radius(radius);
         let divergence = t.divergence.to_radians();
         let mut frontier = Vec::new();
         let mut completed = Vec::new();
@@ -168,12 +169,9 @@ impl Frontier {
             // Terminal and lateral buds become eligible independently as the
             // scaffold extends and its trunk/branch radius ratio changes.
             *allocated |= buds;
-            let floor = if habit.rise_secondary < 0.0 {
-                self.stations.floor(tree, i)
-            } else {
-                None
-            };
-            let pendant = floor.is_some();
+            let tip = Curtain::hangs_at(t, radius(i), root_radius)
+                .then(|| self.stations.floor(tree, i))
+                .flatten();
             let length = branch_length(radius(i));
             frontier.push(Shoot {
                 flushed: !buds,
@@ -190,9 +188,7 @@ impl Frontier {
                 internodes: t.internodes(radius(i), length),
                 key: n.identity.birth_order() as u32,
                 run: None,
-                pendant,
-                curtain_across: Vec3::new(-n.position.z, 0.0, n.position.x).normalized(),
-                pendant_floor: floor,
+                curtain: Curtain::new(t, n.position, tip, config.trunk_height),
             });
         }
         for i in completed {

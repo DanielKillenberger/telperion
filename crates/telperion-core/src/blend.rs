@@ -8,6 +8,8 @@ use crate::{bias::SupernaturalParams, presets::Family, Error, Result};
 /// returned unchanged. The two rows are read at one seed — the result carries
 /// `a`'s, and the caller sets the seed it wants on both before it asks.
 ///
+/// A spacing whose zero grows nothing walks as the density it stands for, so
+/// a walk from none thins in from nothing rather than arriving at its closest.
 /// Angles take the shortest path between their two bearings. Counts are
 /// rounded last, and the leaf's counts are rounded the way its own rule
 /// demands: lobes down and sections up, so a margin that is legal at both ends
@@ -37,16 +39,22 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         skeleton.habit.rise_secondary, skeleton.habit.lateral_spacing,
         skeleton.habit.lateral_length_ratio, skeleton.habit.attractor_weight,
         skeleton.habit.twig_tip_taper, skeleton.habit.shedding_threshold,
+        skeleton.habit.stem_lean_spread, skeleton.habit.stem_fork_height,
         skeleton.step,
         skeleton.envelope.height, skeleton.envelope.crown_base,
         skeleton.envelope.spread, skeleton.envelope.fullness,
-        skeleton.envelope.shoulder,
+        skeleton.envelope.shoulder, skeleton.envelope.irregularity,
+        skeleton.envelope.lobe_scale,
         skeleton.bias.gravitropism, skeleton.bias.lean,
         skeleton.twigs.twig.diameter, skeleton.twigs.twig.length,
         skeleton.twigs.twig.internode_length, skeleton.twigs.twig.bearing_diameter,
         skeleton.twigs.length_ratio, skeleton.twigs.ratio_power,
         skeleton.twigs.internode_factor, skeleton.twigs.limb_radius,
         skeleton.twigs.reach, skeleton.twigs.vigour_variation,
+        skeleton.twigs.hang, skeleton.twigs.pendulous_length,
+        skeleton.twigs.pendulous_radius, skeleton.twigs.sag,
+        skeleton.twigs.pendulous_variation, skeleton.twigs.curtain_drop,
+        skeleton.twigs.curtain_clearance,
         radii.trunk_radius, radii.fork_exponent, radii.length_taper,
         surface.lobe_depth, surface.twist_rate, surface.flare_radius,
         surface.flare_falloff, surface.flare_depth, surface.fork_socket,
@@ -54,11 +62,14 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         canopy.shoot_radius, canopy.spacing, canopy.clump_span, canopy.outward,
         canopy.upward, canopy.forward_lean, canopy.lean_rise,
         canopy.surface_contact, canopy.size, canopy.size_variation,
+        canopy.short_shoot_radius, canopy.short_shoot_length, canopy.limb_clumping,
         element.connector_length, element.length, element.width,
         element.widest_at, element.base_fullness, element.tip_sharpness,
         element.cup, element.curl, element.lobe_depth, element.section_roundness,
         material.bark_red, material.bark_green, material.bark_blue,
         material.bark_roughness,
+        material.shoot_red, material.shoot_green, material.shoot_blue,
+        material.shoot_radius,
         material.leaf_front_red, material.leaf_front_green,
         material.leaf_front_blue,
         material.leaf_back_red, material.leaf_back_green, material.leaf_back_blue,
@@ -111,6 +122,26 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.orientation_blue,
         material.directional_occlusion,
         material.depth_strength,
+        material.canopy_normal,
+        material.light_wrap,
+        material.diffuse_transmission,
+        material.leaf_sheen,
+        material.crown_shade,
+        material.lichen_scale,
+        material.lichen_coverage,
+        material.lichen_red,
+        material.lichen_green,
+        material.lichen_blue,
+        material.lichen_strength,
+        material.lenticel_density,
+        material.lenticel_length,
+        material.lenticel_strength,
+        material.lenticel_tint,
+        material.peel_curl,
+        material.peel_red,
+        material.peel_green,
+        material.peel_blue,
+        material.lobe_shade,
 
         shell_depth,
     );
@@ -120,17 +151,21 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     walk!(degrees:
         skeleton.habit.lateral_pitch, skeleton.habit.pitch_variation,
         skeleton.habit.crookedness,
+        skeleton.habit.stem_divergence, skeleton.habit.stem_lean,
         skeleton.twigs.angle, skeleton.twigs.angle_variation,
-        skeleton.twigs.divergence,
-        canopy.divergence, canopy.scatter,
+        skeleton.twigs.divergence, skeleton.twigs.curtain_separation,
+        canopy.divergence, canopy.scatter, canopy.short_shoot_spread,
     );
     walk!(count:
         skeleton.habit.laterals_per_station, skeleton.habit.lateral_orders,
+        skeleton.habit.stems,
         skeleton.twigs.twig.stations_per_internode, skeleton.twigs.laterals,
+        skeleton.twigs.generations,
         surface.radial_segments, surface.lobes,
-        canopy.clump, element.cross_segments,
+        canopy.clump, canopy.short_shoot_leaves, element.cross_segments,
     );
     walk!(many: skeleton.attractors, canopy.max_instances);
+    walk!(density: canopy.short_shoot_spacing);
     // The leaf's own rounding rule: a lobed margin needs a crest and a sinus
     // section per lobe plus the base and the tip, and both sides of that are
     // linear, so lobes round down and sections up and no step of a walk
@@ -222,6 +257,19 @@ fn overridden(from: Option<f64>, to: Option<f64>, a: f64, b: f64, t: f64) -> Opt
     (from.is_some() || to.is_some()).then(|| linear(a, b, t))
 }
 
+/// Shoots per metre walk linearly, and the spacing is what they leave: a walk
+/// from zero, which grows none, starts past the furthest the rail allows and
+/// closes in, with no frame where the wood is suddenly crowded.
+fn density(a: f64, b: f64, t: f64) -> f64 {
+    let per = |spacing: f64| if spacing > 0.0 { 1.0 / spacing } else { 0.0 };
+    let walked = linear(per(a), per(b), t);
+    if walked > 0.0 {
+        (1.0 / walked).min(crate::foliage::SHORT_SHOOT_SPACING.1)
+    } else {
+        0.0
+    }
+}
+
 fn count(a: u32, b: u32, t: f64) -> u32 {
     linear(f64::from(a), f64::from(b), t).round() as u32
 }
@@ -274,6 +322,12 @@ mod tests {
         assert_eq!((count(1, 4, 0.5), count(1, 4, 0.1)), (3, 1));
         assert_eq!((down(0, 5, 0.99), up(20, 40, 0.01)), (4, 21));
         assert_eq!(many(0, 1000, 0.4), 400);
+        // A spacing walks as its density: halfway from none to a shoot every
+        // 10 cm is one every 20, and between two spacings the harmonic mean.
+        assert_eq!(density(0.0, 0.1, 0.5), 0.2);
+        assert_eq!(density(0.1, 0.0, 1.0), 0.0);
+        assert!((density(0.1, 0.3, 0.5) - 0.15).abs() < 1e-12);
+        assert_eq!(density(0.0, 0.1, 1e-9), 1000.0);
         // An override neither row states stays the envelope's to answer.
         assert_eq!(overridden(None, None, 1.0, 2.0, 0.5), None);
         assert_eq!(overridden(None, Some(2.0), 1.0, 2.0, 0.5), Some(1.5));

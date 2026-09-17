@@ -14,6 +14,7 @@ export function presetById(id: string): TreePreset {
 export const ORDINARY: Family = (({ id: _id, name: _name, note: _note, ...family }) => family)(presetById("ordinary"));
 export const OREGON_WHITE_OAK = presetById("oregon-white-oak");
 export const NORWAY_SPRUCE = presetById("norway-spruce");
+export const SILVER_BIRCH = presetById("silver-birch");
 export const TELPERION = presetById("telperion");
 export const LAURELIN = presetById("laurelin");
 export const TWO_TREES = [TELPERION, LAURELIN];

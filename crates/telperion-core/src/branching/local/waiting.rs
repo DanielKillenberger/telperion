@@ -89,6 +89,10 @@ impl Frontier {
 }
 
 pub(super) fn below_reach(shoot: &Shoot, tree: &Tree, planner: &Planner<'_>) -> bool {
+    // A curtain that drops may fall below the trunk boundary, into its band.
+    if shoot.curtain.drops(planner.twigs) {
+        return false;
+    }
     // Every candidate is within the retained run length or the fixed twig
     // length. Thickening can change subdivision and bud fate, but neither can
     // bridge this gap to a trunk boundary which only rises. Include rounding
@@ -162,9 +166,7 @@ mod frontier_tests {
             internodes: 1,
             key: 1,
             run: None,
-            pendant: false,
-            curtain_across: Vec3::X,
-            pendant_floor: None,
+            curtain: Curtain::default(),
         });
         (tree, frontier)
     }
@@ -234,7 +236,7 @@ mod frontier_tests {
             if config
                 .shell
                 .unwrap()
-                .contains(Vec3::new(0.0, 1.5, 0.0), 0.0)
+                .contains(Vec3::new(0.0, 1.5, 0.0), 0.0, config.seed)
             {
                 assert_eq!(tree.nodes.len(), 3, "missed the first eligible birth");
                 return;

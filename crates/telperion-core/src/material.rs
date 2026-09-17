@@ -17,6 +17,14 @@ pub struct MaterialParams {
     pub bark_blue: f64,
     /// How diffuse the bark is: 0 is a mirror, 1 is chalk.
     pub bark_roughness: f64,
+    /// The young wood's own colour, before its bark has formed. Wood thinner
+    /// than `shoot_radius` takes it, and gives it up to the bark colour on a
+    /// smoothstep of its radius by twice that; zero means no wood is young.
+    pub shoot_red: f64,
+    pub shoot_green: f64,
+    pub shoot_blue: f64,
+    /// Metres. The radius below which wood is young.
+    pub shoot_radius: f64,
     pub leaf_front_red: f64,
     pub leaf_front_green: f64,
     pub leaf_front_blue: f64,
@@ -103,6 +111,59 @@ pub struct MaterialParams {
     pub directional_occlusion: f64,
     /// How far the relief is given depth beyond the shaded normal.
     pub depth_strength: f64,
+    /// How far a leaf is lit as part of its crown rather than as a lone card:
+    /// its lighting normal bends from the blade's toward the crown's outward
+    /// direction at its placement, so the sunward shell of the mass is lit
+    /// whichever way its blades turn. Zero lights the blade alone.
+    pub canopy_normal: f64,
+    /// How far the leaf's sunlight wraps past the terminator, as a fraction
+    /// of a right angle's cosine; a face square to the sun takes what it
+    /// always took. Zero is the plain cosine.
+    pub light_wrap: f64,
+    /// The share of the blade's transmission that leaves it diffusely, as a
+    /// thin leaf's does, rather than on the forward lobe toward the sun; the
+    /// diffuse share also carries the sky through the blade. Zero is the lobe.
+    pub diffuse_transmission: f64,
+    /// The cuticle's reflectance of the sky at normal incidence, rising to
+    /// the whole sky at grazing by Schlick's Fresnel; zero reflects no sky.
+    pub leaf_sheen: f64,
+    /// How much of the sky one crown radius of leaves takes from a leaf that
+    /// reads it through the mass - the sky over it, behind it and in its
+    /// sheen - so the underside of a crown falls into its own shade. Zero
+    /// sees the sky through the mass.
+    pub crown_shade: f64,
+    /// Smooth bark's lichen: the size in metres of the cells its patches are
+    /// scattered over. Zero leaves no patch anywhere.
+    pub lichen_scale: f64,
+    /// The share of those cells that hold a patch.
+    pub lichen_coverage: f64,
+    /// A patch's own colour, a linear reflectance like the bark's.
+    pub lichen_red: f64,
+    pub lichen_green: f64,
+    pub lichen_blue: f64,
+    /// How far a patch covers the bark with that colour.
+    pub lichen_strength: f64,
+    /// Rows of lenticel dashes per metre along the wood.
+    pub lenticel_density: f64,
+    /// The longest dash across the wood, in metres; the shortest is under half.
+    pub lenticel_length: f64,
+    /// How far a dash shows: its tint, and the shallow groove it cuts.
+    pub lenticel_strength: f64,
+    /// A dash's value against the bark it marks: -1 is black, 0 no change.
+    pub lenticel_tint: f64,
+    /// How far the plate network's strips curl away: they stretch across the
+    /// wood into bands, lift at their lower edge, and this share of them has
+    /// peeled off to show the inner bark.
+    pub peel_curl: f64,
+    /// The inner bark a peeled strip leaves showing.
+    pub peel_red: f64,
+    pub peel_green: f64,
+    pub peel_blue: f64,
+    /// How much of the sky and of what passes through the blade a leaf loses
+    /// to the leaves of its own lobe standing over it, read from the crown's
+    /// own placements rather than from one smooth ellipsoid: a lobe's face is
+    /// lit and what hangs under it falls into its shade. Zero sees none of it.
+    pub lobe_shade: f64,
 }
 
 impl Default for MaterialParams {
@@ -114,6 +175,11 @@ impl Default for MaterialParams {
             bark_green: 0.105,
             bark_blue: 0.068,
             bark_roughness: 0.8,
+            // Young wood the colour of the bark, and none of it young.
+            shoot_red: 0.147,
+            shoot_green: 0.105,
+            shoot_blue: 0.068,
+            shoot_radius: 0.0,
             leaf_front_red: 0.068,
             leaf_front_green: 0.195,
             leaf_front_blue: 0.036,
@@ -171,6 +237,26 @@ impl Default for MaterialParams {
             orientation_blue: 0.0,
             directional_occlusion: 0.0,
             depth_strength: 0.0,
+            canopy_normal: 0.0,
+            light_wrap: 0.0,
+            diffuse_transmission: 0.0,
+            leaf_sheen: 0.0,
+            crown_shade: 0.0,
+            lichen_scale: 0.0,
+            lichen_coverage: 0.0,
+            lichen_red: 0.0,
+            lichen_green: 0.0,
+            lichen_blue: 0.0,
+            lichen_strength: 0.0,
+            lenticel_density: 0.0,
+            lenticel_length: 0.0,
+            lenticel_strength: 0.0,
+            lenticel_tint: 0.0,
+            peel_curl: 0.0,
+            peel_red: 0.0,
+            peel_green: 0.0,
+            peel_blue: 0.0,
+            lobe_shade: 0.0,
         }
     }
 }
@@ -246,6 +332,31 @@ impl MaterialParams {
                 "bark directional occlusion",
             ),
             (self.depth_strength, 0.0, 1.0, "bark depth strength"),
+            (self.canopy_normal, 0.0, 1.0, "leaf canopy normal"),
+            (self.light_wrap, 0.0, 1.0, "leaf light wrap"),
+            (
+                self.diffuse_transmission,
+                0.0,
+                1.0,
+                "leaf diffuse transmission",
+            ),
+            (self.leaf_sheen, 0.0, 0.5, "leaf sheen"),
+            (self.crown_shade, 0.0, 1.0, "leaf crown shade"),
+            (self.lichen_scale, 0.0, 1.0, "bark lichen scale"),
+            (self.lichen_coverage, 0.0, 1.0, "bark lichen coverage"),
+            (self.lichen_red, 0.0, 1.0, "bark lichen red"),
+            (self.lichen_green, 0.0, 1.0, "bark lichen green"),
+            (self.lichen_blue, 0.0, 1.0, "bark lichen blue"),
+            (self.lichen_strength, 0.0, 1.0, "bark lichen strength"),
+            (self.lenticel_density, 0.0, 400.0, "bark lenticel density"),
+            (self.lenticel_length, 0.0, 0.5, "bark lenticel length"),
+            (self.lenticel_strength, 0.0, 1.0, "bark lenticel strength"),
+            (self.lenticel_tint, -1.0, 1.0, "bark lenticel tint"),
+            (self.peel_curl, 0.0, 1.0, "bark peel curl"),
+            (self.peel_red, 0.0, 1.0, "bark peel red"),
+            (self.peel_green, 0.0, 1.0, "bark peel green"),
+            (self.peel_blue, 0.0, 1.0, "bark peel blue"),
+            (self.lobe_shade, 0.0, 1.0, "leaf lobe shade"),
             (self.ridge_scale, 0.0, 1.0, "bark ridge scale"),
             (self.plate_scale, 0.0, 1.0, "bark plate scale"),
             (self.furrow_strength, 0.0, 1.0, "bark furrow strength"),
@@ -266,6 +377,10 @@ impl MaterialParams {
             (self.bark_green, 0.0, 1.0, "bark green"),
             (self.bark_blue, 0.0, 1.0, "bark blue"),
             (self.bark_roughness, 0.0, 1.0, "bark roughness"),
+            (self.shoot_red, 0.0, 1.0, "young shoot red"),
+            (self.shoot_green, 0.0, 1.0, "young shoot green"),
+            (self.shoot_blue, 0.0, 1.0, "young shoot blue"),
+            (self.shoot_radius, 0.0, 0.1, "young shoot radius"),
             (self.leaf_front_red, 0.0, 1.0, "leaf front red"),
             (self.leaf_front_green, 0.0, 1.0, "leaf front green"),
             (self.leaf_front_blue, 0.0, 1.0, "leaf front blue"),
@@ -309,113 +424,4 @@ impl MaterialParams {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_row_every_family_starts_from_is_one_a_leaf_can_be_drawn_from() {
-        assert_eq!(MaterialParams::default().validate(), Ok(()));
-    }
-
-    #[test]
-    fn a_value_off_its_range_is_refused_by_its_own_name() {
-        // One field at a time, so the name in the refusal is the only name it
-        // could have come from. Every field is covered: a row that grew a
-        // field without a bound would fail the count below.
-        // One field put off its range, and the name the refusal must carry.
-        type Refusal = (fn(&mut MaterialParams), &'static str);
-        let refusals: [Refusal; 50] = [
-            (|m| m.plate_cell_scale = 2.0, "bark plate cell scale"),
-            (|m| m.plate_furrow_width = 1.5, "bark plate furrow width"),
-            (|m| m.plate_elongation = 17.0, "bark plate elongation"),
-            (|m| m.plate_dome = 2.0, "bark plate dome"),
-            (|m| m.plate_edge_lift = 2.0, "bark plate edge lift"),
-            (|m| m.plate_identity = 2.0, "bark plate identity"),
-            (|m| m.weathering_strength = 2.0, "bark weathering strength"),
-            (|m| m.weathering_red = 2.0, "bark weathering red"),
-            (|m| m.weathering_green = -2.0, "bark weathering green"),
-            (|m| m.weathering_blue = 2.0, "bark weathering blue"),
-            (
-                |m| m.orientation_strength = 2.0,
-                "bark orientation strength",
-            ),
-            (|m| m.orientation_red = 2.0, "bark orientation red"),
-            (|m| m.orientation_green = 2.0, "bark orientation green"),
-            (|m| m.orientation_blue = -2.0, "bark orientation blue"),
-            (
-                |m| m.directional_occlusion = 2.0,
-                "bark directional occlusion",
-            ),
-            (|m| m.depth_strength = 2.0, "bark depth strength"),
-            (|m| m.fissure_red = 2.0, "bark fissure red"),
-            (|m| m.fissure_green = 2.0, "bark fissure green"),
-            (|m| m.fissure_blue = 2.0, "bark fissure blue"),
-            (|m| m.fissure_strength = 2.0, "bark fissure strength"),
-            (|m| m.crest_red = 2.0, "bark crest red"),
-            (|m| m.crest_green = 2.0, "bark crest green"),
-            (|m| m.crest_blue = 2.0, "bark crest blue"),
-            (|m| m.crest_strength = 2.0, "bark crest strength"),
-            (|m| m.bark_mottle_scale = 9.0, "bark mottle scale"),
-            (|m| m.bark_mottle_strength = 2.0, "bark mottle strength"),
-            (|m| m.cavity_strength = 2.0, "bark cavity strength"),
-            (|m| m.blade_mottle_scale = 33.0, "leaf blade mottle scale"),
-            (
-                |m| m.blade_mottle_strength = 2.0,
-                "leaf blade mottle strength",
-            ),
-            (|m| m.margin_width = 1.5, "leaf margin width"),
-            (|m| m.margin_red = 2.0, "leaf margin red"),
-            (|m| m.margin_green = 2.0, "leaf margin green"),
-            (|m| m.margin_blue = 2.0, "leaf margin blue"),
-            (|m| m.cuticle_gloss = 2.0, "leaf cuticle gloss"),
-            (|m| m.sky_occlusion_strength = 2.0, "sky occlusion strength"),
-            (|m| m.bark_red = 1.5, "bark red"),
-            (|m| m.bark_green = -0.1, "bark green"),
-            (|m| m.bark_blue = f64::NAN, "bark blue"),
-            (|m| m.bark_roughness = 2.0, "bark roughness"),
-            (|m| m.leaf_front_red = -1.0, "leaf front red"),
-            (|m| m.leaf_front_green = 1.2, "leaf front green"),
-            (|m| m.leaf_front_blue = f64::INFINITY, "leaf front blue"),
-            (|m| m.leaf_back_red = 3.0, "leaf back red"),
-            (|m| m.leaf_back_green = -0.2, "leaf back green"),
-            (|m| m.leaf_back_blue = 1.000_1, "leaf back blue"),
-            (|m| m.hue_range_low = -0.7, "leaf hue range low"),
-            (|m| m.hue_range_high = 0.7, "leaf hue range high"),
-            (
-                |m| m.brightness_range_low = -1.5,
-                "leaf brightness range low",
-            ),
-            (
-                |m| m.brightness_range_high = 1.5,
-                "leaf brightness range high",
-            ),
-            (|m| m.interior_darkening = 1.1, "leaf interior darkening"),
-        ];
-        for (break_it, name) in refusals {
-            let mut row = MaterialParams::default();
-            break_it(&mut row);
-            assert_eq!(row.validate(), Err(Error::InvalidInput(name)));
-        }
-    }
-
-    #[test]
-    fn a_range_that_runs_backwards_is_refused_by_the_pairs_name() {
-        let mut hue = MaterialParams::default();
-        (hue.hue_range_low, hue.hue_range_high) = (0.2, -0.2);
-        assert_eq!(hue.validate(), Err(Error::InvalidInput("leaf hue range")));
-        let mut brightness = MaterialParams::default();
-        (
-            brightness.brightness_range_low,
-            brightness.brightness_range_high,
-        ) = (0.3, 0.1);
-        assert_eq!(
-            brightness.validate(),
-            Err(Error::InvalidInput("leaf brightness range"))
-        );
-        // A range of no width is a leaf that varies not at all, which is a
-        // family with one leaf colour and not an error.
-        let mut flat = MaterialParams::default();
-        (flat.hue_range_low, flat.hue_range_high) = (0.0, 0.0);
-        assert_eq!(flat.validate(), Ok(()));
-    }
-}
+mod tests;

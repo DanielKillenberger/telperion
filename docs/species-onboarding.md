@@ -25,6 +25,17 @@ Before dispatch, record a single integration owner for shared paths in each Flow
 
 Generation and captures use windows coordinated with fn13/fn18: owner, UTC interval, host, resource budget and lifecycle conditions. An unassigned/overlapping exclusive window blocks qualifying measurements. Contended costs may be labeled observations only. Never stop another session, shrink mature parameters, truncate foliage or reduce fidelity to obtain a pass. Cheap schema/support checks need no mature generation window.
 
+## One command per species
+
+A species is one spec rendered from `templates/species-spec.md`:
+
+```bash
+node scripts/new-species-spec.mjs --id european-ash --scientific "Fraxinus excelsior" \
+  --common "European ash" --model "Rauh" --organs "pinnate compound leaf, samara"
+```
+
+The script fills the taxon, the catalogue id, the architectural model and the organs, refuses a leftover placeholder, and creates the spec through `flowctl spec create`. The spec is then refined, marked ready and worked as one task; the routing block in `CLAUDE.md` sends species specs to the value tier. A species may not change generator or renderer code and may not hand-edit a generated file; a form or organ the field cannot express is a gap that becomes its own spec (fn-35 keeps the coverage file of architectural models). fn-34 is the worked example: three species in one spec, of which two shipped and one waits on a gap spec. A species is judged on reference-matched pairs (fn-36-reference-matched-stills-and-the): each reference record carries a shot block, the runner renders the matched still, and the compare script writes the pair and the numbers before the owner looks.
+
 ## Executable examples
 
 [Examples](../.flow/evidence/fn19/onboarding-examples/README.md) contain separate oak and spruce packets and an illustrative Scots pine extension. From the repository root:

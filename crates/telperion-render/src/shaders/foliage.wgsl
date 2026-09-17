@@ -9,6 +9,10 @@
 /// this draw's level was given. The list is bound at the level's own offset.
 @group(1) @binding(0) var<storage, read> placements: array<mat4x4<f32>>;
 @group(1) @binding(1) var<storage, read> list: array<u32>;
+/// How deep each cell of the crown stands in its own leaf mass, after a
+/// header of the grid's corner, its cell's edge and its three counts
+/// (mass.rs).
+@group(1) @binding(2) var<storage, read> masses: array<f32>;
 
 struct Varying {
     @builtin(position) clip: vec4<f32>,
@@ -18,7 +22,22 @@ struct Varying {
     // colour variation and mottle, instead of adding another vertex varying.
     @location(2) @interpolate(flat) leaf: vec3<f32>,
     @location(3) coord: vec2<f32>,
+    // How deep the placement stands in its own mass; none without the row.
+    @location(4) @interpolate(flat) mass: f32,
 };
+
+/// The depth in its own mass of the cell a placement stands in. A grid of no
+/// cells, as the leaf view binds, reads none.
+fn mass_depth(at: vec3<f32>) -> f32 {
+    let n = vec3<i32>(i32(masses[4]), i32(masses[5]), i32(masses[6]));
+    if (n.x <= 0) {
+        return 0.0;
+    }
+    let corner = vec3<f32>(masses[0], masses[1], masses[2]);
+    let cell = vec3<i32>(floor((at - corner) / masses[3]));
+    let c = clamp(cell, vec3<i32>(0), n - vec3<i32>(1));
+    return masses[8 + c.x + n.x * (c.y + n.y * c.z)];
+}
 
 @vertex
 fn vertex(
@@ -39,6 +58,10 @@ fn vertex(
     // Shared coarse triangles can cross the midrib without erasing it.
     out.coord = vec2<f32>(coord.x, coord.y * sign(position.x));
     out.leaf = vec3<f32>(offsets, depth_in_crown(placement[3].xyz));
+    out.mass = 0.0;
+    if (u.crown_shade.y > 0.0) {
+        out.mass = mass_depth(placement[3].xyz);
+    }
     return out;
 }
 
@@ -58,6 +81,17 @@ fn vein_tone(coord: vec2<f32>) -> f32 {
     let vein = max(midrib, secondary * 0.6);
     return 1.0 + u.leaf_detail.y * (1.0 - u.leaf_detail.z)
         * (0.8 * vein - 0.25 * margin);
+}
+
+/// The share of the sky that reaches a leaf at `world` through the crown
+/// standing over it: the chord straight up, where an overcast sky is
+/// brightest, taken at the row's shade per crown radius. All of it at zero.
+fn crown_sky(world: vec3<f32>) -> f32 {
+    if (u.crown_shade.x <= 0.0 || u.crown_centre.w < 0.5) {
+        return 1.0;
+    }
+    let chord = crown_chord(world, vec3<f32>(0.0, 1.0, 0.0), u.crown_centre.xyz, u.crown_radii.xyz);
+    return through_crown(chord, u.crown_shade.x);
 }
 
 @fragment
@@ -88,24 +122,70 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     let colour = clamp(hue_shift(face, hue) * brightness
         * veins * modulation + margin * u.margin.rgb,
         vec3<f32>(0.0), vec3<f32>(1.0));
+    // A leaf in a mass is lit as part of it: the normal the light arriving
+    // at it is read by - sky, sun and what passes through - bends from the
+    // face toward the crown's outward direction by the row's canopy normal,
+    // and is the face's own at zero or with no crown. What the face itself
+    // reflects, the sun's glint and the sky's sheen, stays the face's.
+    var lit = n;
+    if (u.canopy.x > 0.0 && u.crown_centre.w > 0.5) {
+        let outward = crown_outward(in.world, u.crown_centre.xyz, u.crown_radii.xyz);
+        lit = canopy_normal(n, outward, u.canopy.x);
+    }
+    let to_eye = normalize(u.eye.xyz - in.world);
     // Deep in the crown there is no sky to see: thousands of leaves stand
     // between this one and it, and what is left reads as a shaded mass rather
     // than as speckle. The sun is not attenuated - what reaches through is
     // the dapple the shared normal-offset comparison kernel reads.
-    let shaded = occluded_ambient(n, in.leaf.z) * (1.0 - u.leaf_front.w * in.leaf.z);
+    let interior = 1.0 - u.leaf_front.w * in.leaf.z;
+    // The sky a leaf reads, over it, behind it and in its sheen, is what the
+    // crown standing over it lets through, so a crown's underside falls into
+    // its own shade.
+    let overhead = crown_sky(in.world);
+    var shaded = occluded_ambient(lit, in.leaf.z) * interior;
+    if (u.crown_shade.x > 0.0) {
+        shaded *= overhead;
+    }
     // One comparison result gates reflection and transmission alike. The
     // original face normal still offsets the receiver, as before this term.
     let visibility = sunlight(in.world, n);
-    let direct = u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * visibility;
-    let through = u.sun.rgb * transmitted(n, normalize(u.eye.xyz - in.world),
+    let direct = u.sun.rgb * wrapped(dot(lit, u.sun_direction.xyz), u.canopy.y) * visibility;
+    var through = u.sun.rgb * transmitted(lit, to_eye,
         u.sun_direction.xyz, u.transmission.rgb, u.transmission.w,
         u.leaf_detail.w, visibility);
+    if (u.canopy.z > 0.0) {
+        // A thin leaf scatters what passes through it: the row's share leaves
+        // the near face evenly, and carries the sky behind the leaf with it.
+        let transmittance = u.transmission.rgb * (u.transmission.w * exp(-u.leaf_detail.w));
+        let behind = occluded_ambient(-lit, in.leaf.z) * interior * overhead;
+        through = mix(through, diffuse_through(lit, u.sun_direction.xyz, u.sun.rgb,
+            visibility, behind, transmittance), u.canopy.z);
+    }
     let gloss = u.leaf_colour_detail.z;
     var cuticle = 0.0;
     // A fully shadowed or backlit face has no reflected sun to glint.
     if (front && gloss > 0.0 && any(direct > vec3<f32>(0.0))) {
-        let half_way = normalize(normalize(u.eye.xyz - in.world) + u.sun_direction.xyz);
+        let half_way = normalize(to_eye + u.sun_direction.xyz);
         cuticle = gloss * pow(max(dot(n, half_way), 0.0), exp2(3.0 + 5.0 * gloss));
     }
-    return vec4<f32>(tone(colour * (shaded + direct) + through + direct * cuticle), 1.0);
+    // The leaves of its own mass standing over it take their share of the
+    // sky and of what passes through, so a clump's face is lit and what
+    // hangs under it falls into its shade.
+    var own = 1.0;
+    if (u.crown_shade.y > 0.0) {
+        own = 1.0 - u.crown_shade.y * in.mass;
+        shaded *= own;
+        through *= own;
+    }
+    var radiance = colour * (shaded + direct) + through + direct * cuticle;
+    if (u.canopy.w > 0.0) {
+        // The cuticle returns the sky its own face mirrors, most of it at
+        // grazing. Reflection is the surface's, so it reads the face, as the
+        // sun's glint does; the bent normal stands for light arriving through
+        // the mass, and on its silhouette would mirror the sky off every rim.
+        let mirror = reflect(-to_eye, n);
+        radiance += sheen(n, to_eye, u.canopy.w) * occluded_ambient(mirror, in.leaf.z)
+            * interior * overhead * own;
+    }
+    return vec4<f32>(tone(radiance), 1.0);
 }

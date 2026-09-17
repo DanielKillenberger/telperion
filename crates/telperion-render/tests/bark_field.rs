@@ -8,6 +8,7 @@ fn surface_lengths_young_wood_wrap_and_plate_drift() {
         "@group(0) @binding(0) var<uniform> u: Uniforms;",
         "var<private> u: Uniforms;",
     ) + include_str!("../src/shaders/bark.wgsl")
+        + include_str!("../src/shaders/plates.wgsl")
         + r#"
 @group(0) @binding(0) var<storage, read_write> result: array<vec4<f32>>;
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>) {

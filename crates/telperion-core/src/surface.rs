@@ -4,11 +4,15 @@ use crate::{math::Vec3, tree::Tree, Error, Result};
 mod attachment;
 mod dependencies;
 mod frames;
+mod normals;
 mod paths;
+mod samples;
 pub(crate) use attachment::AttachmentSurface;
 pub(crate) use dependencies::affected as affected_contacts;
 use frames::frames;
 use paths::paths;
+pub(crate) use paths::straightest;
+use samples::sample_path;
 /// One complete surface run, in descending order of its largest sample radius.
 /// The spans tile the wood index buffer; a caster can draw a single prefix.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -84,7 +88,14 @@ pub struct SurfaceMesh {
     pub bounds: Option<Bounds>,
     pub runs: usize,
     pub run_table: Vec<SurfaceRun>,
+    /// Triangles dropped because their float32 corners span no area; each
+    /// run's span in the index buffer already leaves them out.
+    pub dropped: usize,
 }
+/// The most triangles a tree may drop: two rings' worth, the strips on both
+/// sides of each ring collapsed to a point. Past it the collapse is a fault
+/// upstream, and the build fails naming the count.
+const DROPPED_RINGS: usize = 2;
 #[derive(Clone, Copy)]
 struct Sample {
     p: Vec3,
@@ -111,66 +122,6 @@ fn vertex(out: &mut Vec<f32>, p: Vec3) -> Result<()> {
     Ok(())
 }
 
-fn sample_path(
-    tree: &Tree,
-    height: f64,
-    params: &SurfaceParams,
-    path_nodes: &[usize],
-    trunk: bool,
-    distance: &[f64],
-    samples: &mut Vec<Sample>,
-) {
-    let nodes = &tree.nodes;
-    let depth = params.lobe_depth;
-    let segments = params.radial_segments.max(params.lobes * 4) as usize;
-    let burial = params.flare_depth * height;
-    let socket = params.fork_socket;
-    let swell = params.fork_swell;
-    let flare = |y: f64| {
-        1.0 + (params.flare_radius - 1.0)
-            * (-y.max(0.0) / (params.flare_falloff * height)).exp_fixed()
-    };
-    samples.clear();
-    if trunk {
-        let root = &nodes[path_nodes[0]];
-        if burial > 0.0 {
-            samples.push(Sample {
-                p: Vec3::new(root.position.x, root.position.y - burial, root.position.z),
-                r: root.radius * flare(root.position.y),
-                d: 0.0,
-            });
-        }
-        for &i in path_nodes {
-            samples.push(Sample {
-                p: nodes[i].position,
-                r: nodes[i].radius * flare(nodes[i].position.y),
-                d: distance[i],
-            });
-        }
-    } else {
-        let attach = path_nodes[0];
-        let first = path_nodes[1];
-        let pr = nodes[attach].radius;
-        let away = (nodes[first].position - nodes[attach].position).normalized();
-        let inscribed = pr * (1.0 - depth) * (std::f64::consts::PI / segments as f64).cos_fixed();
-        let sink = (socket * pr).min(0.9 * inscribed);
-        let contained = (inscribed * inscribed - sink * sink).max(0.0).sqrt() / (1.0 + depth);
-        samples.push(Sample {
-            p: nodes[attach].position + away * (-sink),
-            r: (nodes[first].start_radius * swell).min(contained) * flare(nodes[attach].position.y),
-            d: distance[attach],
-        });
-        for &i in &path_nodes[1..] {
-            let swelling = 1.0
-                + (swell - 1.0) * (-(distance[i] - distance[attach]) / pr.max(1e-9)).exp_fixed();
-            samples.push(Sample {
-                p: nodes[i].position,
-                r: nodes[i].radius * swelling * flare(nodes[i].position.y),
-                d: distance[i],
-            });
-        }
-    }
-}
 /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
 pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<SurfaceMesh> {
     tree.validate()?;
@@ -223,6 +174,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
         bounds: None,
         runs: paths.runs.len(),
         run_table: reserved(paths.runs.len())?,
+        dropped: 0,
     };
     let longest = paths
         .runs
@@ -239,15 +191,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     // Ties retain path order, so the permutation is deterministic.
     let mut ordered = reserved(paths.runs.len())?;
     for path in &paths.runs {
-        sample_path(
-            tree,
-            height,
-            params,
-            &paths.nodes[path.start..path.end],
-            path.trunk,
-            &distance,
-            &mut samples,
-        );
+        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
         let radius = samples.iter().map(|s| s.r).fold(0.0, f64::max);
         ordered.push((path, radius));
     }
@@ -255,16 +199,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     for (path, largest_radius) in ordered {
         let first_index = u32::try_from(mesh.indices.len())
             .map_err(|_| Error::ResourceLimit("surface indices"))?;
-        let path_nodes = &paths.nodes[path.start..path.end];
-        sample_path(
-            tree,
-            height,
-            params,
-            path_nodes,
-            path.trunk,
-            &distance,
-            &mut samples,
-        );
+        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
         frames(&samples, &mut segments_scratch, &mut frame);
         let base = (mesh.positions.len() / 3) as u32;
         let seg = segments as u32;
@@ -321,6 +256,14 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
                 top_ring + next,
             ]);
         }
+        mesh.normals.resize(mesh.positions.len(), 0.0);
+        mesh.dropped += normals::shade(
+            &mesh.positions,
+            &mut mesh.indices,
+            &mut mesh.normals,
+            (first_index as usize, base as usize),
+            |j| facing(&frame, segments, j),
+        )?;
         let end = u32::try_from(mesh.indices.len())
             .map_err(|_| Error::ResourceLimit("surface indices"))?;
         mesh.run_table.push(SurfaceRun {
@@ -329,43 +272,33 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
             largest_radius,
         });
     }
-    finish(mesh)
+    finish(mesh, segments)
 }
 
-fn finish(mut mesh: SurfaceMesh) -> Result<SurfaceMesh> {
-    mesh.normals.resize(mesh.positions.len(), 0.0);
-    let point = |index: u32| -> Result<Vec3> {
-        let offset = (index as usize)
-            .checked_mul(3)
-            .ok_or(Error::ResourceLimit("surface index"))?;
-        let p = mesh
-            .positions
-            .get(offset..offset + 3)
-            .ok_or(Error::InvalidInput("surface index"))?;
-        Ok(Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64))
-    };
-    for t in mesh.indices.as_chunks::<3>().0 {
-        let (a, b, c) = (point(t[0])?, point(t[1])?, point(t[2])?);
-        let normal = (c - b).cross(a - b);
-        if !normal.is_finite() || normal.length_squared() == 0.0 {
-            return Err(Error::InvalidInput("surface triangle collapsed in float32"));
-        }
-        for &index in t {
-            let offset = index as usize * 3;
-            for (k, v) in [normal.x, normal.y, normal.z].iter().enumerate() {
-                mesh.normals[offset + k] = (mesh.normals[offset + k] as f64 + v) as f32;
-            }
-        }
+/// The way run vertex `j` faces when no triangle is left to say: out from the
+/// axis for a ring vertex, along it for the two caps that sit on it.
+fn facing(frame: &[(Vec3, Vec3)], segments: usize, j: usize) -> Vec3 {
+    let ring = frame.len() * segments;
+    if j < ring {
+        let (normal, binormal) = frame[j / segments];
+        let angle = ((j % segments) as f64 / segments as f64) * std::f64::consts::TAU;
+        return normal * angle.cos_fixed() + binormal * angle.sin_fixed();
     }
-    for n in mesh.normals.as_chunks_mut::<3>().0 {
-        let v = Vec3::new(n[0] as f64, n[1] as f64, n[2] as f64);
-        if !v.is_finite() || v.length_squared() == 0.0 {
-            return Err(Error::InvalidInput(
-                "surface normal overflow or cancellation",
-            ));
-        }
-        let v = v.normalized();
-        n.copy_from_slice(&[v.x as f32, v.y as f32, v.z as f32]);
+    let (at, away) = if j == ring {
+        (0, -1.0)
+    } else {
+        (frame.len() - 1, 1.0)
+    };
+    let (normal, binormal) = frame[at];
+    normal.cross(binormal) * away
+}
+
+fn finish(mut mesh: SurfaceMesh, segments: usize) -> Result<SurfaceMesh> {
+    if mesh.dropped > DROPPED_RINGS * 2 * segments {
+        return Err(Error::InvalidValue {
+            field: "surface triangles collapsed in float32",
+            value: mesh.dropped.to_string(),
+        });
     }
     let mut min = Vec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
     let mut max = Vec3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
@@ -381,6 +314,8 @@ fn finish(mut mesh: SurfaceMesh) -> Result<SurfaceMesh> {
     Ok(mesh)
 }
 
+#[cfg(test)]
+mod fork_tests;
 #[cfg(test)]
 mod tests {
     #[test]

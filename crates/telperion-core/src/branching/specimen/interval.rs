@@ -48,6 +48,7 @@ impl Specimen {
                                 .at(member, to.slice)
                                 .ok_or(Error::InvalidInput("missing radius history"))?,
                             kind: n.kind,
+                            stem: n.stem,
                         })
                     })
                     .collect::<Result<Vec<_>>>()?;
@@ -139,6 +140,8 @@ impl Specimen {
 }
 
 #[cfg(test)]
+mod stem_tests;
+#[cfg(test)]
 pub(super) mod tests;
 
 impl Specimen {
@@ -177,6 +180,7 @@ impl Specimen {
                     identity: id,
                     position: n.position,
                     kind: n.kind,
+                    stem: n.stem,
                     radius: radii[0],
                     start_radius: radii[1],
                     base_radius: radii[2],

@@ -1,0 +1,252 @@
+{
+  "reference_version": "fn19-references-v1",
+  "sources": [
+    {
+      "id": "ATKINSON-BIRCH",
+      "url": "https://doi.org/10.2307/2260870",
+      "attribution": "Atkinson, M.D. 1992. Biological Flora of the British Isles No. 175. Betula pendula Roth and B. pubescens Ehrh. Journal of Ecology 80: 837-870.",
+      "verified": "2026-09-14",
+      "use": "Primary flora account. Tree to 30 m; slender pendant glabrous twigs; silvery-white bark; biserrate leaves. Height-diameter table for this context not extracted from the paywalled body; cited as the flora of record."
+    },
+    {
+      "id": "TSO-BIRCH",
+      "url": "https://www.treesandshrubsonline.org/articles/betula/betula-pendula",
+      "attribution": "Trees and Shrubs Online, International Dendrology Society. Betula pendula account.",
+      "verified": "2026-09-14",
+      "use": "Usually 10-15 m, to 25 m; pendulous outer branchlets; leaves 50-75 x 45-60 mm; petiole 20-30 mm; white bark."
+    },
+    {
+      "id": "JRC-BIRCH",
+      "url": "https://forest.jrc.ec.europa.eu/media/atlas/Betula_spp.pdf",
+      "attribution": "Beck, P., Caudullo, G., de Rigo, D. & Tinner, W. 2016. Betula pendula, Betula pubescens and other birches in Europe: distribution, habitat, usage and threats. In: European Atlas of Forest Tree Species. Publications Office of the EU.",
+      "verified": "2026-09-14",
+      "use": "B. pendula to 30 m; leaves 3-7 cm, coarsely double-serrate, fine point; drooping branches."
+    },
+    {
+      "id": "FNA-BIRCH",
+      "url": "http://efloras.org/florataxon.aspx?flora_id=1&taxon_id=200006160",
+      "attribution": "Flora of North America. Betula pendula Roth. FNA Vol. 3.",
+      "verified": "2026-09-14",
+      "use": "Trees to 25 m; leaf blade 3-7 x 2.5-5 cm, coarsely and sharply doubly serrate, apex acuminate."
+    },
+    {
+      "id": "OSU-BIRCH",
+      "url": "https://landscapeplants.oregonstate.edu/plants/betula-pendula",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "verified": "2026-09-14",
+      "use": "Landscape 12-15(24) m; leaf 2.5-7.5 cm; pendulous branching. Uncalibrated imagery. Cultivar descriptions excluded."
+    }
+  ],
+  "references": [
+    {
+      "id": "S-WHOLE",
+      "species_id": "silver-birch",
+      "kind": "real",
+      "source_id": "OSU-BIRCH",
+      "scale": [
+        "whole"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe339A.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: plant habit, summer. EXIF description: Betula pendula, unknown location or date, from a slide.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/silver-birch/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "cae1627afa33d8a881fe927090b222a37fc0dfa2febffa3e3f1edcc52aa309be",
+      "observation": "Caption: summer plant habit. Literature target is a light pyramidal-to-rounded crown with pendulous fine twigs.",
+      "limitations": [
+        "Uncalibrated slide; age and dimensions unknown.",
+        "Agent did not open the raster (four-images reading rule).",
+        "Qualitative evidence only."
+      ],
+      "shot": {
+        "camera": {
+          "azimuth": 30,
+          "elevation": -12,
+          "fill": 1.0,
+          "targetHeight": 0.5,
+          "fov": 40
+        },
+        "light": {
+          "sunAzimuth": 300,
+          "sunElevation": 55,
+          "overcast": 0.0
+        },
+        "foliage": "leaf-on",
+        "aspect": [
+          861,
+          900
+        ],
+        "tree": {
+          "box": [
+            0.0,
+            0.0,
+            0.85,
+            0.96
+          ],
+          "crownBase": 0.08
+        },
+        "confidence": "medium",
+        "derivation": "Deep blue sky and hard shadows on the lawn: full sun, high, from the camera's left. Eye height on the street, the crown touching the top edge: fill 1.0. Two stems; the weeping curtain reaches almost to the ground, so the crown base sits at a twelfth of the height. The right sixth of the frame is a neighbouring tree."
+      }
+    },
+    {
+      "id": "S-BARE",
+      "species_id": "silver-birch",
+      "kind": "real",
+      "source_id": "OSU-BIRCH",
+      "scale": [
+        "bare"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe340A.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: plant habit, winter. EXIF: Circle Ave. and Firwood, 12/24/99, from a slide.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/silver-birch/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "097c70624dd9a75df67d82b07857794b7bf082581544ee08789e2e8562063f6c",
+      "observation": "Caption: winter habit. Literature: fine hanging haze of twigs.",
+      "limitations": [
+        "Winter is anatomy-only.",
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ],
+      "shot": {
+        "camera": {
+          "azimuth": 30,
+          "elevation": -12,
+          "fill": 1.0,
+          "targetHeight": 0.5,
+          "fov": 45
+        },
+        "light": {
+          "sunAzimuth": 300,
+          "sunElevation": 28,
+          "overcast": 0.0
+        },
+        "foliage": "hidden",
+        "aspect": [
+          600,
+          900
+        ],
+        "tree": {
+          "box": [
+            0.0,
+            0.0,
+            1.0,
+            0.95
+          ],
+          "crownBase": 0.15
+        },
+        "confidence": "low",
+        "derivation": "Winter, blue sky, branch shadows on the wall from the upper left: a low sun from the camera's left. The crown is cut by the top and both sides, so the fill is read as the whole frame. Trunk clear for about a seventh of the visible height."
+      }
+    },
+    {
+      "id": "S-LEAF",
+      "species_id": "silver-birch",
+      "kind": "real",
+      "source_id": "OSU-BIRCH",
+      "scale": [
+        "attached-shoot"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe987A.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: leaves.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/silver-birch/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "b9a9e11c992ef95bf6a11663fb83f17535cbade50f0d5d1bc5b3fa1cab206fa1",
+      "observation": "Caption: leaves. Literature: deltoid, doubly serrate, acuminate.",
+      "limitations": [
+        "Single view, not a shoot distribution.",
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ]
+    },
+    {
+      "id": "S-SHOOT",
+      "species_id": "silver-birch",
+      "kind": "real",
+      "source_id": "OSU-BIRCH",
+      "scale": [
+        "attached-shoot"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe74.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: leafy shoot.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/silver-birch/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "d4580c5df386de24b95dfec80afdf362ed232b478bb4d9bcb5bd39938308a5e6",
+      "observation": "Caption: leafy shoot. Literature: alternate blades on a slender shoot.",
+      "limitations": [
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ]
+    },
+    {
+      "id": "S-BARK",
+      "species_id": "silver-birch",
+      "kind": "real",
+      "source_id": "OSU-BIRCH",
+      "scale": [
+        "base"
+      ],
+      "matching": "qualitative",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe3243.jpg",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: trunk, bark.",
+      "dimensions_m": null,
+      "age_years": null,
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/silver-birch/.",
+      "accessed_at": "2026-09-14",
+      "asset_sha256": "72d282e3ea593d2568aae43bc9da924626c2c965bae4b177edfb63f1db30f7ec",
+      "observation": "Caption: trunk bark. Literature: white, dark lenticels and chevrons.",
+      "limitations": [
+        "Bark close-up only.",
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ],
+      "shot": {
+        "camera": {
+          "azimuth": 30,
+          "elevation": 0,
+          "fill": 1.0,
+          "targetHeight": 0.09,
+          "fov": 45,
+          "distance": 1.5
+        },
+        "light": {
+          "sunAzimuth": 300,
+          "sunElevation": 40,
+          "overcast": 0.3
+        },
+        "foliage": "hidden",
+        "aspect": [
+          534,
+          400
+        ],
+        "tree": {
+          "box": [
+            0.1,
+            0.0,
+            0.8,
+            1.0
+          ],
+          "crownBase": 1.0
+        },
+        "confidence": "low",
+        "derivation": "A trunk close-up read from the caption and the landscape frame: level with the bark from about a metre and a half; the distance is stated. No crown is in the frame. Amended 2026-09-16 (owner's path review): the camera's target is a share of the tree's height, and 0.06 fell at 0.93 m on the 15.6 m birch it was set on but at 0.99 m, just above fn-48.3's fork at 0.96 m, on the merged 16.4 m tree, so the close-up framed the crotch. 0.09 puts the target at the stated metre and a half."
+      }
+    }
+  ]
+}

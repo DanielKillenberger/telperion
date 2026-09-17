@@ -159,8 +159,15 @@ fn every_shipped_family_renders_through_the_one_path() {
 fn parameter_sets_nobody_wrote_by_hand_render_the_same_way() {
     let Some(gpu) = gpu() else { return };
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    let (mut rendered, mut refused, mut attempts) = (0, 0, 0);
-    while rendered < 20 && attempts < 60 {
+    // The jitter multiplies every number by up to 1.25, which carries any row
+    // whose shipped value sits at the top of its own rail straight out of it.
+    // fn-37's pendulous radius is 1 on every shipped table - every shoot under
+    // a descending limb hangs - and its hang row is 1 on the two that weep, so
+    // better than half of every set drawn is now a set the generator refuses
+    // by name. The budget is what absorbs that: twenty sets still have to
+    // render, and at 96 pixels the whole loop is under a second.
+    let (mut rendered, mut refused, mut leafless, mut attempts) = (0, 0, 0, 0);
+    while rendered < 20 && attempts < 400 {
         let &(_, id, _, _) = &params::CATALOGUE[attempts % params::CATALOGUE.len()];
         let mut value = params::metadata(&params::by_identity(id).expect("a shipped family"));
         compact(&mut value);
@@ -170,15 +177,29 @@ fn parameter_sets_nobody_wrote_by_hand_render_the_same_way() {
             // A set the generator will not have is refused, never drawn blank.
             Err(_) => refused += 1,
             Ok((submitted, stats)) => {
+                // A jitter can also land on a family with nothing to hang a
+                // leaf on: a three metre envelope carrying a third of itself as
+                // bare trunk, over a twig anatomy whose wood never thins to the
+                // bearing diameter, grows wood and not one leaf-bearing twig.
+                // That is a tree with no crown rather than a crown the renderer
+                // lost, so it is counted apart instead of read as a drawing
+                // fault; every shipped crown is drawn by the test above, and
+                // what these sets still prove - that the frame is not one flat
+                // colour - `draws` has already asserted.
+                if submitted.foliage_instances == 0 {
+                    leafless += 1;
+                    continue;
+                }
                 drew_the_tree(&format!("set {attempts} from {id}"), &submitted, &stats);
                 rendered += 1;
             }
         }
     }
-    println!("{rendered} sets rendered, {refused} refused, {attempts} tried");
+    println!("{rendered} rendered, {refused} refused, {leafless} leafless, {attempts} tried");
     assert!(
         rendered >= 20,
-        "only {rendered} of {attempts} sets rendered ({refused} refused by the generator)"
+        "only {rendered} of {attempts} sets rendered \
+         ({refused} refused by the generator, {leafless} grew no crown)"
     );
 }
 
@@ -283,6 +304,7 @@ fn the_selection_path_names_no_family_and_no_anatomy() {
         source.join("foliage.rs"),
         source.join("shaders/select.wgsl"),
         source.join("shaders/foliage.wgsl"),
+        source.join("shaders/canopy.wgsl"),
     ];
     let anatomies = ["blade", "needle", "lobe", "petiole", "conifer", "broadleaf"];
     for path in files {

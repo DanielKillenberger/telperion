@@ -2,7 +2,7 @@
 use serde_json::json;
 use telperion_core::{blend, params, presets::Preset, Error};
 
-const FIELDS: [(&str, &str, f64, f64); 46] = [
+const FIELDS: [(&str, &str, f64, f64); 69] = [
     ("furrowStrength", "bark furrow strength", 0.0, 1.0),
     ("ridgeScale", "bark ridge scale", 0.0, 1.0),
     ("plateScale", "bark plate scale", 0.0, 1.0),
@@ -43,6 +43,10 @@ const FIELDS: [(&str, &str, f64, f64); 46] = [
     ("marginBlue", "leaf margin blue", -1.0, 1.0),
     ("cuticleGloss", "leaf cuticle gloss", 0.0, 1.0),
     ("skyOcclusionStrength", "sky occlusion strength", 0.0, 1.0),
+    ("shootRed", "young shoot red", 0.0, 1.0),
+    ("shootGreen", "young shoot green", 0.0, 1.0),
+    ("shootBlue", "young shoot blue", 0.0, 1.0),
+    ("shootRadius", "young shoot radius", 0.0, 0.1),
     ("plateCellScale", "bark plate cell scale", 0.0, 1.0),
     ("plateElongation", "bark plate elongation", 0.0, 16.0),
     ("plateDome", "bark plate dome", 0.0, 1.0),
@@ -64,6 +68,25 @@ const FIELDS: [(&str, &str, f64, f64); 46] = [
         1.0,
     ),
     ("depthStrength", "bark depth strength", 0.0, 1.0),
+    ("canopyNormal", "leaf canopy normal", 0.0, 1.0),
+    ("lightWrap", "leaf light wrap", 0.0, 1.0),
+    ("diffuseTransmission", "leaf diffuse transmission", 0.0, 1.0),
+    ("leafSheen", "leaf sheen", 0.0, 0.5),
+    ("crownShade", "leaf crown shade", 0.0, 1.0),
+    ("lichenScale", "bark lichen scale", 0.0, 1.0),
+    ("lichenCoverage", "bark lichen coverage", 0.0, 1.0),
+    ("lichenRed", "bark lichen red", 0.0, 1.0),
+    ("lichenGreen", "bark lichen green", 0.0, 1.0),
+    ("lichenBlue", "bark lichen blue", 0.0, 1.0),
+    ("lichenStrength", "bark lichen strength", 0.0, 1.0),
+    ("lenticelDensity", "bark lenticel density", 0.0, 400.0),
+    ("lenticelLength", "bark lenticel length", 0.0, 0.5),
+    ("lenticelStrength", "bark lenticel strength", 0.0, 1.0),
+    ("lenticelTint", "bark lenticel tint", -1.0, 1.0),
+    ("peelCurl", "bark peel curl", 0.0, 1.0),
+    ("peelRed", "bark peel red", 0.0, 1.0),
+    ("peelGreen", "bark peel green", 0.0, 1.0),
+    ("peelBlue", "bark peel blue", 0.0, 1.0),
 ];
 
 #[test]
@@ -123,6 +146,7 @@ fn older_material_documents_gain_only_inert_detail_defaults() {
         "marginBlue",
         "cuticleGloss",
         "skyOcclusionStrength",
+        "shootRadius",
         "plateCellScale",
         "plateElongation",
         "plateDome",
@@ -139,6 +163,25 @@ fn older_material_documents_gain_only_inert_detail_defaults() {
         "orientationBlue",
         "directionalOcclusion",
         "depthStrength",
+        "canopyNormal",
+        "lightWrap",
+        "diffuseTransmission",
+        "leafSheen",
+        "crownShade",
+        "lichenScale",
+        "lichenCoverage",
+        "lichenRed",
+        "lichenGreen",
+        "lichenBlue",
+        "lichenStrength",
+        "lenticelDensity",
+        "lenticelLength",
+        "lenticelStrength",
+        "lenticelTint",
+        "peelCurl",
+        "peelRed",
+        "peelGreen",
+        "peelBlue",
         "ridgeScale",
         "plateScale",
         "roughnessDetail",
@@ -156,4 +199,76 @@ fn older_material_documents_gain_only_inert_detail_defaults() {
             .is_some());
     }
     assert_eq!(stripped, old);
+}
+
+/// The page sends a family as its wire text and the native still takes the
+/// preset whole; both hand the parsed material to the one renderer. So the
+/// two paths draw the same young wood exactly when the wire carries it whole.
+#[test]
+fn every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged() {
+    for (_, id, _, _) in params::CATALOGUE.iter().chain(params::IN_WORK) {
+        let native = Preset::from_id(id).unwrap().parameters().material;
+        let page = params::parse(&params::metadata(
+            &Preset::from_id(id).unwrap().parameters(),
+        ))
+        .unwrap()
+        .material;
+        assert_eq!(
+            [
+                page.shoot_red,
+                page.shoot_green,
+                page.shoot_blue,
+                page.shoot_radius
+            ],
+            [
+                native.shoot_red,
+                native.shoot_green,
+                native.shoot_blue,
+                native.shoot_radius
+            ],
+            "{id}"
+        );
+    }
+    // Only the two species whose tables state young wood have any.
+    let young: Vec<_> = params::CATALOGUE
+        .iter()
+        .chain(params::IN_WORK)
+        .filter(|entry| {
+            Preset::from_id(entry.1)
+                .unwrap()
+                .parameters()
+                .material
+                .shoot_radius
+                > 0.0
+        })
+        .map(|entry| entry.1)
+        .collect();
+    assert_eq!(young, ["silver-birch", "european-beech"]);
+}
+
+/// The canopy rows cross the page's wire as the native still reads them, so
+/// the browser and the headless renderer light one crown alike.
+#[test]
+fn every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged() {
+    let canopy = |m: telperion_core::material::MaterialParams| {
+        [
+            m.canopy_normal,
+            m.light_wrap,
+            m.diffuse_transmission,
+            m.leaf_sheen,
+            m.crown_shade,
+            m.lobe_shade,
+        ]
+    };
+    let mut lit = Vec::new();
+    for (_, id, _, _) in params::CATALOGUE.iter().chain(params::IN_WORK) {
+        let family = Preset::from_id(id).unwrap().parameters();
+        let page = params::parse(&params::metadata(&family)).unwrap().material;
+        assert_eq!(canopy(page), canopy(family.material), "{id}");
+        if canopy(family.material).iter().any(|&v| v > 0.0) {
+            lit.push(*id);
+        }
+    }
+    // Only the two species whose tables state a canopy light one.
+    assert_eq!(lit, ["silver-birch", "european-beech"]);
 }

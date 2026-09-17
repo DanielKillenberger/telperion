@@ -281,6 +281,8 @@ fn change_record_replay_buffers_match_fresh_build_for_every_preset_and_blend() {
         Preset::Ordinary,
         Preset::OregonWhiteOak,
         Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
         Preset::Telperion,
         Preset::Laurelin,
     ]

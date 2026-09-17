@@ -11,7 +11,15 @@ use telperion_core::{
 };
 
 fn profiles() -> Value {
-    serde_json::from_str(include_str!("../../../.flow/evidence/fn9/profiles.json")).unwrap()
+    let mut root: Value =
+        serde_json::from_str(include_str!("../../../.flow/evidence/fn9/profiles.json")).unwrap();
+    let extra: Value =
+        serde_json::from_str(include_str!("../../../.flow/evidence/fn34/profiles.json")).unwrap();
+    let profiles = root["profiles"].as_array_mut().unwrap();
+    for profile in extra["profiles"].as_array().unwrap() {
+        profiles.push(profile.clone());
+    }
+    root
 }
 
 #[test]
@@ -62,6 +70,78 @@ fn fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens()
 #[test]
 fn fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
     fixed_species(Preset::NorwaySpruce);
+}
+
+#[test]
+fn beech_identity_resolves_to_frozen_profile_and_native_anatomy() {
+    let preset = Preset::from_id("european-beech").unwrap();
+    assert_eq!(preset, Preset::EuropeanBeech);
+    assert_eq!(preset.profile_id(), Some("european-beech"));
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    assert_eq!(profile["scientific_name"], "Fagus sylvatica");
+    assert_eq!(profile["readiness"], "ready");
+    let family = preset.parameters();
+    assert_eq!(family.age, 120.0);
+    assert!((family.skeleton.envelope.height - 32.0).abs() < 1e-9);
+    // Round 5b (owner, 2026-09-15): the reference beech "grows relatively
+    // straight up and out", its trunk running up through the crown. Round 6
+    // (fn-45) lets the leader carry the crown to nine tenths of the height,
+    // which is what the scaffold's apical dominance measures; the bound moves
+    // from 0.6 to 0.95, which still refuses the spruce's excurrent 1.0 - a
+    // leader that never yields to its limbs at all.
+    assert!(family.skeleton.habit.apical_dominance < 0.95);
+    assert!(family.skeleton.habit.crookedness < 16.0);
+    assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
+    assert!(!family.skeleton.bias.supernatural.enabled);
+    assert_eq!(family.element.lobe_count, 0);
+    assert_eq!(family.element.section_roundness, 0.0);
+    assert_eq!(family.canopy.divergence, 180.0);
+    assert!(Preset::from_id("Fagus sylvatica").is_none());
+    assert!(Preset::from_id("european-ash").is_none());
+}
+
+#[test]
+fn birch_identity_resolves_to_frozen_profile_and_native_anatomy() {
+    let preset = Preset::from_id("silver-birch").unwrap();
+    assert_eq!(preset, Preset::SilverBirch);
+    assert_eq!(preset.profile_id(), Some("silver-birch"));
+    let manifest = profiles();
+    let profile = manifest["profiles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|p| p["id"] == preset.profile_id().unwrap())
+        .unwrap();
+    assert_eq!(profile["scientific_name"], "Betula pendula");
+    assert_eq!(profile["readiness"], "ready");
+    let family = preset.parameters();
+    assert_eq!(family.age, 70.0);
+    assert!((family.skeleton.envelope.height - 18.0).abs() < 1e-9);
+    assert!(family.skeleton.habit.rise_secondary < 0.0);
+    assert_eq!(family.skeleton.habit.attractor_weight, 0.0);
+    assert!(!family.skeleton.bias.supernatural.enabled);
+    // A serrate margin, drawn as shallow notches, not lobes, under a pointed tip.
+    assert_eq!(family.element.lobe_count, 8);
+    assert!(family.element.lobe_depth > 0.0 && family.element.lobe_depth <= 0.15);
+    assert!(family.element.tip_sharpness > 1.0);
+    assert_eq!(family.canopy.divergence, 180.0);
+    assert!(Preset::from_id("Betula pendula").is_none());
+}
+
+#[test]
+fn fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::EuropeanBeech);
+}
+
+#[test]
+fn fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens() {
+    fixed_species(Preset::SilverBirch);
 }
 
 fn fixed_species(preset: Preset) {
@@ -127,8 +207,15 @@ fn fixed_species(preset: Preset) {
         }
         assert!(a.tree.diagnostics.complete(), "seed {seed}: truncation");
         assert!(a.tree.nodes.len() > a.tree.crossover);
+        // Inside the shell, or a hanging shoot in the band below it.
+        let (envelope, twigs) = (family.skeleton.envelope, family.skeleton.twigs);
         for node in a.tree.nodes.iter().skip(a.tree.crossover) {
-            assert!(family.skeleton.envelope.contains(node.position, 1e-8));
+            let p = node.position;
+            assert!(
+                envelope.contains(p, 1e-8, seed)
+                    || branching::in_curtain_band(&envelope, &twigs, seed, p, 1e-8),
+                "seed {seed}: {p:?} is outside the shell and the curtain's band"
+            );
         }
         let wood =
             surface::build(&a.tree, family.skeleton.envelope.height, &family.surface).unwrap();
@@ -207,24 +294,45 @@ fn fixed_species(preset: Preset) {
         leaf_counts.insert(kept.matrices.len());
     }
     // Engineering regression thresholds for specimen variation, not botanical ranges.
-    let dimensions = if preset == Preset::NorwaySpruce {
-        // A persistent leader reaches the authored height on every seed;
-        // azimuth, curtains and crown width are what vary.
-        vec![widths]
-    } else {
-        vec![heights, widths]
+    let dimensions = match preset {
+        Preset::NorwaySpruce => {
+            // A persistent leader reaches the authored height on every seed;
+            // azimuth, curtains and crown width are what vary.
+            vec![widths]
+        }
+        Preset::EuropeanBeech | Preset::SilverBirch => {
+            // A full crown fills its envelope on every seed, so neither
+            // dimension is pinned to vary; whichever of height or plan width
+            // the seeds move more is the one judged. fn-37 gave the birch the
+            // same property the beech already had: its curtain reaches the
+            // shell on every seed.
+            let range = |values: &Vec<f64>| {
+                values.iter().copied().fold(f64::NEG_INFINITY, f64::max)
+                    - values.iter().copied().fold(f64::INFINITY, f64::min)
+            };
+            if range(&heights) >= range(&widths) {
+                vec![heights]
+            } else {
+                vec![widths]
+            }
+        }
+        _ => vec![heights, widths],
+    };
+    // A specimen regression, not a botanical range, and scale-free like every
+    // other length the library states: the moving dimension has to move by
+    // more than a thirtieth of the tree's authored height. On the beech's 32 m
+    // envelope that is the metre this rule asked for before fn-37 stated it as
+    // a fraction; on the birch's 18 m one it is a little over half of it.
+    let apart = match preset {
+        Preset::NorwaySpruce => 0.1,
+        _ => preset.parameters().skeleton.envelope.height / 30.0,
     };
     for values in dimensions {
         let min = values.iter().copied().fold(f64::INFINITY, f64::min);
         let max = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
         assert!(
-            max - min
-                > if preset == Preset::NorwaySpruce {
-                    0.1
-                } else {
-                    1.0
-                },
-            "crown dimensions should vary across specimens"
+            max - min > apart,
+            "crown dimensions should vary by more than {apart} m across specimens: {values:?}"
         );
     }
     assert!(
@@ -268,7 +376,12 @@ fn spruce_identity_resolves_to_frozen_profile_and_native_anatomy() {
 
 #[test]
 fn scaffold_reaches_and_hanging_secondaries_subdivide_before_their_tips() {
-    for preset in [Preset::OregonWhiteOak, Preset::NorwaySpruce] {
+    for preset in [
+        Preset::OregonWhiteOak,
+        Preset::NorwaySpruce,
+        Preset::EuropeanBeech,
+        Preset::SilverBirch,
+    ] {
         let family = preset.parameters();
         let report = branching::generate(&family.skeleton, family.radii).unwrap();
         let twigs: Vec<_> = report

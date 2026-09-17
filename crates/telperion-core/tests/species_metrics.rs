@@ -78,16 +78,25 @@ fn analytic_units_dbh_axes_and_retained_area() {
     );
 }
 #[test]
-fn missing_ambiguous_truncated_and_nonfinite_are_distinct() {
+fn missing_multi_stemmed_truncated_and_nonfinite_are_distinct() {
     let (mut t, e, i) = fixture();
     let m = measure(&t, &[], &e, 0, &Instances::default()).unwrap();
     assert_eq!(m["height_m"]["status"], "unavailable");
     assert_eq!(m["crown_width_m"]["status"], "unavailable");
+    // A second stem leaving the root crosses breast height on its own edge:
+    // the proxy is the largest of them, and it says how many there were.
     t.nodes[3].parent = Some(0);
     t.nodes[3].kind = NodeKind::Structural;
+    let clump = measure(&t, &[0., 4., 0.], &e, 1, &i).unwrap();
+    assert_eq!(clump["dbh_m"]["status"], "measured_proxy");
+    assert_eq!(clump["dbh_m"]["stems"], 2);
+    let diameters = clump["dbh_m"]["diameters_m"].as_array().unwrap().clone();
     assert_eq!(
-        measure(&t, &[0., 4., 0.], &e, 1, &i).unwrap()["dbh_m"]["status"],
-        "ambiguous"
+        clump["dbh_m"]["value"].as_f64().unwrap(),
+        diameters
+            .iter()
+            .map(|v| v.as_f64().unwrap())
+            .fold(0., f64::max)
     );
     t.diagnostics.node_capped = true;
     assert_eq!(
@@ -195,4 +204,42 @@ fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
             assert_eq!(m["foliage_unit"], "needle");
         }
     }
+}
+/// A trunk that parts into two runs at `fork` metres, the second of them a
+/// clump's later stem if `second` and a limb if not.
+fn forked(fork: f64, second: bool) -> Tree {
+    let node = |x: f64, y: f64, parent: Option<u32>, radius: f64| Node {
+        position: Vec3::new(x, y, 0.),
+        parent,
+        radius,
+        start_radius: radius,
+        base_radius: radius,
+        branch: parent.map_or(0, |p| p + 1),
+        stem: true,
+        ..Node::root()
+    };
+    let mut nodes = vec![
+        node(0., 0., None, 0.3),
+        node(0., fork, Some(0), 0.3),
+        node(0., 4., Some(1), 0.2),
+        node(1., 4., Some(1), 0.15),
+    ];
+    nodes[3].stem = second;
+    Tree {
+        crossover: nodes.len(),
+        nodes,
+        ..Tree::default()
+    }
+}
+#[test]
+fn a_fork_below_breast_height_is_two_stems_there_and_above_it_one() {
+    let (_, e, _) = fixture();
+    let stems =
+        |t: &Tree| measure(t, &[], &e, 0, &Instances::default()).unwrap()["dbh_m"]["stems"].clone();
+    // Parted under the plane, each stem crosses it on its own wood.
+    assert_eq!(stems(&forked(1.0, true)), 2);
+    // Parted over it, the plane cuts the one trunk below the fork.
+    assert_eq!(stems(&forked(2.0, true)), 1);
+    // And a limb leaving the trunk under the plane is that trunk's.
+    assert_eq!(stems(&forked(1.0, false)), 1);
 }

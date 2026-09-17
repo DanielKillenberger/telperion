@@ -167,6 +167,69 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .remove(trait_name)
                 .expect("the canopy publishes its lean and contact traits");
         }
+        // fn-50 adds short shoots as five canopy rows. The frozen file
+        // predates them and states none; the spacing is zero there, which
+        // grows no short shoot, so none is a geometry parameter left unsaid.
+        for row in [
+            "shortShootSpacing",
+            "shortShootRadius",
+            "shortShootLength",
+            "shortShootLeaves",
+            "shortShootSpread",
+        ] {
+            emitted["canopy"]
+                .as_object_mut()
+                .unwrap()
+                .remove(row)
+                .expect("the canopy publishes its short-shoot rows");
+        }
+        // fn-54 adds the gap between limb systems; the frozen file predates
+        // it, and at none it thins no leaf.
+        emitted["canopy"]
+            .as_object_mut()
+            .unwrap()
+            .remove("limbClumping")
+            .expect("the canopy publishes its limb clumping");
+        // fn-37 turned the curtain from a hidden mode into four twig rows,
+        // fn-44 added the sag as a fifth, fn-47 the variation as a sixth and
+        // fn-51 the drop and its clearance. The frozen file predates them and
+        // states none; each is neutral or the magnitude the mode already
+        // used, so none is a geometry parameter the frozen protocol left
+        // unsaid.
+        for row in [
+            "hang",
+            "pendulousLength",
+            "pendulousRadius",
+            "curtainSeparation",
+            "sag",
+            "pendulousVariation",
+            "curtainDrop",
+            "curtainClearance",
+        ] {
+            emitted["skeleton"]["twigs"]
+                .as_object_mut()
+                .unwrap()
+                .remove(row)
+                .expect("the twig layer publishes its curtain rows");
+        }
+        // fn-45 made the twig layer's depth a row. The frozen file predates
+        // it and states none; the neutral is the top of the rail, which is the
+        // unbounded depth the frozen protocol was measured at.
+        emitted["skeleton"]["twigs"]
+            .as_object_mut()
+            .unwrap()
+            .remove("generations")
+            .expect("the twig layer publishes its generation count");
+        // fn-39 gave the envelope its outline rows. The frozen file predates
+        // them and states neither; the amplitude is zero there, which is the
+        // smooth shell the frozen protocol was measured on.
+        for row in ["irregularity", "lobeScale"] {
+            emitted["skeleton"]["envelope"]
+                .as_object_mut()
+                .unwrap()
+                .remove(row)
+                .expect("the envelope publishes its outline rows");
+        }
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);
         }

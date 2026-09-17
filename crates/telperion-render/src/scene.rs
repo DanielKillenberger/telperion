@@ -79,6 +79,13 @@ struct Uniforms {
     bark_structure: [f32; 4],     // plate identity, directional occlusion, depth strength, reserved
     weathering: [f32; 4],         // RGB offsets, strength
     orientation: [f32; 4],        // RGB offsets, strength
+    shoot: [f32; 4],              // young wood RGB, the radius below which wood is young
+    canopy: [f32; 4],             // canopy normal, light wrap, diffuse transmission, sheen
+    crown_shade: [f32; 4],        // the sky one crown radius takes, lobe shade, reserved
+    lichen: [f32; 4],             // patch RGB, strength
+    lichen_detail: [f32; 4],      // cell size in metres, coverage, reserved, reserved
+    lenticel: [f32; 4],           // rows per metre, longest dash in metres, strength, tint
+    peel: [f32; 4],               // inner bark RGB, curl
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform
@@ -103,6 +110,8 @@ pub struct Scene {
     vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
     index_count: u32,
+    /// The indices that are the floor alone; the figure follows them.
+    floor_index_count: u32,
     figure_offset: u64,
 }
 
@@ -112,6 +121,7 @@ impl Scene {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
         disc(ground_colour, &mut vertices, &mut indices);
+        let floor_index_count = indices.len() as u32;
         let figure_offset = (vertices.len() * size_of::<Vertex>()) as u64;
         indices.extend(figure_indices(vertices.len() as u32));
         vertices.extend(figure(Vec3::ZERO, figure_colour));
@@ -202,6 +212,7 @@ impl Scene {
             vertices: vertex_buffer,
             indices: index_buffer,
             index_count: indices.len() as u32,
+            floor_index_count,
             figure_offset,
         }
     }
@@ -274,21 +285,32 @@ impl Scene {
     }
 
     /// Draws the room: the sky behind everything outdoors, then the ground and
-    /// the figure, which share a buffer and one call.
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>, view: View) -> crate::FrameStats {
+    /// the figure, which share a buffer and one call. A frame that imitates a
+    /// photograph leaves the figure out and keeps the floor.
+    pub fn draw(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        view: View,
+        figure: bool,
+    ) -> crate::FrameStats {
         let mut sky = 0;
         if view != View::Clay {
             pass.set_pipeline(&self.sky);
             pass.draw(0..3, 0..1);
             sky = 1;
         }
+        let count = if figure {
+            self.index_count
+        } else {
+            self.floor_index_count
+        };
         pass.set_pipeline(&self.pipeline);
         pass.set_vertex_buffer(0, self.vertices.slice(..));
         pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
+        pass.draw_indexed(0..count, 0, 0..1);
         crate::FrameStats {
             draw_calls: 1 + sky,
-            triangles: self.index_count / 3 + sky,
+            triangles: count / 3 + sky,
             instances: 0,
         }
     }

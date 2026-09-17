@@ -43,13 +43,16 @@ impl Specimen {
             return;
         }
         self.read.take();
+        // A clump's stems are what the tree stands on: the chronicle sheds a
+        // shoot, never a stem's own root node.
+        let clump = self.params.habit.stems > 1;
         let roots: BTreeSet<_> = roots.iter().copied().collect();
         let mut dead = Vec::new();
         let mut pending = roots;
         while let Some(id) = pending.pop_first() {
             let i = self.identities[id.key];
             let n = &mut self.tree.nodes[i];
-            if i == 0 || n.shoot.death_year.is_some() {
+            if i == 0 || (clump && super::stem_root(n)) || n.shoot.death_year.is_some() {
                 continue;
             }
             n.shoot.death_year = Some(year);

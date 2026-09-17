@@ -8,10 +8,12 @@ use telperion_core::{
     Error,
 };
 
-const IDENTITIES: [&str; 5] = [
+const IDENTITIES: [&str; 7] = [
     "ordinary",
     "oregon-white-oak",
     "norway-spruce",
+    "european-beech",
+    "silver-birch",
     "telperion",
     "laurelin",
 ];

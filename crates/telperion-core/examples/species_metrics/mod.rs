@@ -96,26 +96,55 @@ pub fn measure(
             m["crown_width_height_ratio"] = scalar(x.max(z) / h, "measured");
         }
     }
-    let mut dbh = Vec::new();
-    for n in tree
+    // Every node's own stem: the axis it traces back to leaving the root, or
+    // leaving the fork a clump's later stems part from its first at. A fork
+    // is a node two stems leave, which a limb never is, so below it the clump
+    // is one stem, and above it each run is its own. Parents always precede
+    // their children, so one forward pass names them.
+    let mut runs = vec![0usize; tree.nodes.len()];
+    for n in tree.nodes.iter().skip(1).filter(|n| n.stem) {
+        runs[n.parent.unwrap() as usize] += 1;
+    }
+    let mut stem = vec![0usize; tree.nodes.len()];
+    for i in 1..tree.nodes.len() {
+        let parent = tree.nodes[i].parent.unwrap() as usize;
+        let fork = runs[parent] > 1 && tree.nodes[i].stem;
+        stem[i] = if parent == 0 || fork { i } else { stem[parent] };
+    }
+    // The widest structural edge each stem crosses breast height on, keyed by
+    // that stem, so a lateral that happens to cross the plane beside its own
+    // trunk is that trunk's reading and not a stem of its own.
+    let mut dbh = BTreeMap::<usize, f64>::new();
+    for (i, n) in tree
         .nodes
         .iter()
+        .enumerate()
         .skip(1)
-        .filter(|n| n.kind == NodeKind::Structural)
+        .filter(|(_, n)| n.kind == NodeKind::Structural)
     {
         let p = &tree.nodes[n.parent.unwrap() as usize];
         let a = p.position.y - ground;
         let b = n.position.y - ground;
         if (a <= 1.3 && b > 1.3) || (b <= 1.3 && a > 1.3) {
-            dbh.push(2. * (n.start_radius + (n.radius - n.start_radius) * (1.3 - a) / (b - a)));
+            let d = 2. * (n.start_radius + (n.radius - n.start_radius) * (1.3 - a) / (b - a));
+            let at = dbh.entry(stem[i]).or_default();
+            *at = at.max(d);
         }
     }
-    m["dbh_m"] = match dbh.as_slice() {
-        [v] => scalar(*v, "measured_proxy"),
-        [] => missing("no structural edge crosses breast height"),
-        _ => {
-            json!({"status":"ambiguous","reason":"multiple structural stems cross breast height","diameters_m":dbh})
-        }
+    // A multi-stemmed tree has no single diameter at breast height, and the
+    // forester's convention is to record the largest stem and say how many
+    // stems there were. One stem is that same rule with the count at one.
+    let diameters: Vec<f64> = dbh.into_values().collect();
+    m["dbh_m"] = if diameters.is_empty() {
+        missing("no structural edge crosses breast height")
+    } else {
+        let mut v = scalar(
+            diameters.iter().copied().fold(0., f64::max),
+            "measured_proxy",
+        );
+        v["stems"] = json!(diameters.len());
+        v["diameters_m"] = json!(diameters);
+        v
     };
     m["dbh_measurement_height_m"] = scalar(1.3, "defined");
     let mut children = vec![Vec::new(); tree.nodes.len()];

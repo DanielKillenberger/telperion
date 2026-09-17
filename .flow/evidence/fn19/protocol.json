@@ -2017,6 +2017,151 @@
               "minLength": 1
             },
             "minItems": 1
+          },
+          "shot": {
+            "type": "object",
+            "properties": {
+              "camera": {
+                "type": "object",
+                "properties": {
+                  "azimuth": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 360
+                  },
+                  "elevation": {
+                    "type": "number",
+                    "minimum": -20,
+                    "maximum": 80
+                  },
+                  "fill": {
+                    "type": "number",
+                    "minimum": 0.2,
+                    "maximum": 20
+                  },
+                  "targetHeight": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "fov": {
+                    "type": "number",
+                    "minimum": 10,
+                    "maximum": 90
+                  },
+                  "distance": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000
+                  }
+                },
+                "required": [
+                  "azimuth",
+                  "elevation",
+                  "fill",
+                  "targetHeight",
+                  "fov"
+                ],
+                "additionalProperties": false
+              },
+              "light": {
+                "type": "object",
+                "properties": {
+                  "sunAzimuth": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 360
+                  },
+                  "sunElevation": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 90
+                  },
+                  "overcast": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": [
+                  "sunAzimuth",
+                  "sunElevation",
+                  "overcast"
+                ],
+                "additionalProperties": false
+              },
+              "foliage": {
+                "enum": [
+                  "leaf-on",
+                  "hidden"
+                ]
+              },
+              "aspect": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 1
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "crop": {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "tree": {
+                "type": "object",
+                "properties": {
+                  "box": {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "minItems": 4,
+                    "maxItems": 4
+                  },
+                  "crownBase": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": [
+                  "box",
+                  "crownBase"
+                ],
+                "additionalProperties": false
+              },
+              "confidence": {
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              "derivation": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "camera",
+              "light",
+              "foliage",
+              "aspect",
+              "tree",
+              "confidence",
+              "derivation"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [

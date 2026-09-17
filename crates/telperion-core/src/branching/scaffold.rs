@@ -43,6 +43,10 @@ struct Axis {
     station_index: usize,
     stationed: bool,
     children: Vec<Axis>,
+    /// A clump's later stems, held on its first until it stands at the height
+    /// they part at; none on every other axis.
+    forks: Vec<Axis>,
+    fork_height: f64,
 }
 impl Axis {
     fn new(at: usize, heading: Vec3, length: f64, order: u32, key: u32) -> Self {
@@ -59,8 +63,23 @@ impl Axis {
             station_index: 0,
             stationed: false,
             children: Vec::new(),
+            forks: Vec::new(),
+            fork_height: 0.0,
         }
     }
+}
+/// The step an axis of this order advances by: its own internode divided into
+/// whole growth steps, so a station always lands on a node at exactly the
+/// spacing the trait asks for.
+fn growth_unit(habit: HabitParams, config: &GrowthConfig, order: u32) -> f64 {
+    let spacing = if order == 0 {
+        habit.leader_internode
+    } else {
+        habit.lateral_spacing
+    }
+    .max(1e-6);
+    let steps = (spacing / config.step_distance).ceil().max(1.0);
+    (spacing / steps).max(1e-9)
 }
 struct Builder<'a> {
     tree: &'a mut Tree,
@@ -98,15 +117,19 @@ impl Builder<'_> {
         // The envelope has no width below the crown base, so it constrains the
         // bole's height and nothing else there; a crown axis never enters that
         // region at all. An axis that already stands outside the silhouette,
-        // as a leaning bole does where it meets the crown, may close on it.
-        let held = self.envelope.contains(start, TOLERANCE);
+        // as a leaning bole does where it meets the crown, may close on it -
+        // and the root is such a point for every stem that leaves it, since
+        // the shell has no width there at all. An upright first edge stands
+        // on the axis, where the shell contains it at every height it reaches,
+        // so no tree that grew one stem straight up moves by this.
+        let held = parent != 0 && self.envelope.contains(start, TOLERANCE, self.config.seed);
         if (1..=8).any(|k| {
             let p = start.lerp(position, k as f64 / 8.0);
             let bole = p.y < self.config.trunk_height;
             p.y < -TOLERANCE
                 || p.y > self.envelope.height + TOLERANCE
                 || (crown && bole)
-                || (held && !bole && !self.envelope.contains(p, TOLERANCE))
+                || (held && !bole && !self.envelope.contains(p, TOLERANCE, self.config.seed))
         }) {
             self.paused = self.growing_envelope;
             return Ok(None);
@@ -119,10 +142,12 @@ impl Builder<'_> {
             .nodes
             .try_reserve(1)
             .map_err(|_| Error::ResourceLimit("scaffold allocation"))?;
+        // An order-zero axis is a stem, and every other axis a limb.
         self.tree.nodes.push(Node {
             position,
             parent: Some(parent as u32),
             branch: id as u32,
+            stem: !crown,
             ..Node::root()
         });
         Ok(Some(id))
@@ -190,7 +215,9 @@ impl Builder<'_> {
         let mut length = 0.0;
         for _ in 0..96 {
             let next = position + direction * (length + probe);
-            if !self.planning.contains(next, 0.0) || next.y < self.config.trunk_height {
+            if !self.planning.contains(next, 0.0, self.config.seed)
+                || next.y < self.config.trunk_height
+            {
                 break;
             }
             length += probe;
@@ -200,14 +227,7 @@ impl Builder<'_> {
     /// The growth unit divides the axis's own internode, so a station always
     /// lands on a node at exactly the spacing the trait asks for.
     fn unit(&self, order: u32) -> f64 {
-        let spacing = if order == 0 {
-            self.habit.leader_internode
-        } else {
-            self.habit.lateral_spacing
-        }
-        .max(1e-6);
-        let steps = (spacing / self.config.step_distance).ceil().max(1.0);
-        (spacing / steps).max(1e-9)
+        growth_unit(self.habit, self.config, order)
     }
     /// Laterals borne at one station: the whorl on the leader, one alternating
     /// bud on every axis below it.
@@ -344,6 +364,7 @@ impl Builder<'_> {
             }
             heading = next;
             at = id;
+            axis.part(at, self.tree.nodes[at].position.y, false, &mut children);
             since += stride;
             self.consume(self.tree.nodes[at].position, stride);
             stationed = false;
@@ -354,6 +375,7 @@ impl Builder<'_> {
                 stationed = true;
             }
         }
+        axis.part(at, self.tree.nodes[at].position.y, true, &mut children);
         // The apex bears its own station, so a leader that yields early still
         // hands the crown to its forks.
         if !stationed && at != axis.at && axis.order < self.habit.lateral_orders {
@@ -365,6 +387,8 @@ impl Builder<'_> {
 }
 
 mod frontier;
+mod stems;
 #[cfg(test)]
 pub(super) use frontier::generate;
 pub(super) use frontier::Frontier;
+pub(super) use stems::placed as stems_placed;

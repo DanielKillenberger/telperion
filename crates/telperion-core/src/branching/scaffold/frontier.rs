@@ -22,17 +22,8 @@ impl Frontier {
         config: &GrowthConfig,
         points: Vec<Vec3>,
     ) -> Self {
-        let base = config
-            .trunk_height
-            .max(params.envelope.height * params.envelope.crown_base);
-        let top = base + (params.envelope.height - base) * params.habit.apical_dominance;
-        let queue = if params.envelope.height > 0.0 && top > 0.0 {
-            VecDeque::from([Axis::new(0, Vec3::Y, top, 0, params.seed ^ 0x742b_e831)])
-        } else {
-            VecDeque::new()
-        };
         Self {
-            queue,
+            queue: super::stems::axes(params, config),
             consumed: vec![None; points.len()],
             year: 0,
             visited: Vec::new(),

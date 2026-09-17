@@ -41,7 +41,7 @@ fn branch_diagnostics(
             handoffs += 1;
             let mut r = n.base_radius;
             let mut generation = 0;
-            while r > t.twig.diameter / 2.0 && generation < twigs::MAX_LEVELS {
+            while r > t.twig.diameter / 2.0 && generation < t.generations as usize {
                 r = twigs::child_radius(r, t.length_ratio, t.ratio_power);
                 generation += 1;
             }

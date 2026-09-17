@@ -10,10 +10,12 @@ mod device;
 mod foliage;
 #[cfg(not(target_arch = "wasm32"))]
 mod headless;
+mod mass;
 mod pass;
 mod scene;
 mod select;
 mod shadow;
+mod shot;
 #[cfg(not(target_arch = "wasm32"))]
 mod structure;
 mod submit;
@@ -24,10 +26,13 @@ mod web;
 mod wood;
 
 pub use buffer::Region;
-pub use camera::{hero_pose, orbit_pose, walk_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN};
+pub use camera::{
+    hero_pose, orbit_pose, shot_pose, walk_pose, Camera, FIELD_OF_VIEW, FRAME_MARGIN,
+};
 pub use device::{Gpu, RenderError, Result};
 pub use scene::{SceneRow, DEPTH_FORMAT, GROUND_REACH};
 pub use select::{Level, MAX_LEVELS};
+pub use shot::Shot;
 use submit::crown_of;
 pub use submit::{fits, Submitted};
 pub use timing::{
@@ -92,6 +97,9 @@ pub struct Renderer {
     wood: wood::Wood,
     foliage: foliage::Foliage,
     view: View,
+    /// Whether the room draws its scale figure. On unless a still imitates a
+    /// photograph.
+    figure: bool,
     bounds: Option<Bounds>,
     /// The tolerance of each level of the crown's element, coarsest first, as
     /// the core built them. Kept here because a timing record names each
@@ -127,6 +135,7 @@ impl Renderer {
             wood,
             foliage,
             view: View::default(),
+            figure: true,
             bounds: None,
             level_deviations: Vec::new(),
             surface,
@@ -193,10 +202,17 @@ impl Renderer {
         self.view
     }
 
+    /// Whether the room keeps its 1.8 m scale figure. A still that imitates a
+    /// photograph leaves it out; every other frame keeps it, so no pin moves.
+    pub fn set_figure(&mut self, figure: bool) {
+        self.figure = figure;
+    }
+
     /// What the tree that is up is made of, as the family stated it. It is set
     /// beside the tree rather than carried by the mesh: a mesh is geometry,
     /// and no vertex of it changes when the bark does.
     pub fn set_material(&mut self, material: MaterialParams) {
+        self.wood.set_material(&material);
         self.scene.set_material(material);
     }
 
@@ -378,7 +394,7 @@ impl Renderer {
                 // A leaf is judged on its own: at 0.1 m the room around it is a
                 // wall, and the scale figure is not a scale for a leaf.
                 View::Leaf => FrameStats::default(),
-                view => self.scene.draw(&mut pass, view),
+                view => self.scene.draw(&mut pass, view, self.figure),
             }
         };
         let vegetation = {

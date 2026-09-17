@@ -13,10 +13,12 @@ use telperion_core::{
     presets::{Family, Preset},
 };
 
-const IDS: [&str; 5] = [
+const IDS: [&str; 7] = [
     "ordinary",
     "oregon-white-oak",
     "norway-spruce",
+    "european-beech",
+    "silver-birch",
     "telperion",
     "laurelin",
 ];
@@ -36,10 +38,12 @@ const SWEEP_NODES: usize = 8_000;
 /// it lowered Telperion's retained rail from a million to four hundred thousand.
 /// This band is where Ordinary's count stands, not where the owner has said a
 /// twenty-four metre crown should stand.
-const BANDS: [(&str, usize, usize); 5] = [
+const BANDS: [(&str, usize, usize); 7] = [
     ("ordinary", 10_000, 1_000_000),
     ("oregon-white-oak", 100_000, 10_000_000),
     ("norway-spruce", 100_000, 10_000_000),
+    ("european-beech", 100_000, 10_000_000),
+    ("silver-birch", 100_000, 10_000_000),
     ("telperion", 100_000, 10_000_000),
     ("laurelin", 100_000, 10_000_000),
 ];
@@ -48,15 +52,42 @@ const BANDS: [(&str, usize, usize); 5] = [
 /// the sweep cannot prove the walk carries them. Every other path in the wire is
 /// moved by some pair below and proved to walk; a parameter added to the wire is
 /// either moved by a preset or named here.
-// fn-11 publishes the timeline before species calibration: every preset still
-// shares its provisional age, rate, shape and shedding traits. Annual and
-// thickening tests independently walk them. Leaf lifetime varies between oak
-// and spruce, so the sweep itself checks that dimension among the moved paths.
+// fn-11 publishes the timeline before species calibration: rate, shape and
+// shedding traits are still shared. Age now differs on the new species so the
+// sweep walks it. Annual and thickening tests independently walk the rest.
+// Leaf lifetime varies between oak and spruce, so the sweep itself checks
+// that dimension among the moved paths.
 // The chronicle adds resizeTolerance at the same 1e-9 metre default in every
 // preset. params::tests::resize_tolerance_is_a_validated_blended_wire_trait
 // checks its non-default walk; no preset geometry or identity pin changes.
-const HELD: [&str; 31] = [
-    "/age",
+// fn-37 turns the curtain into four twig rows. Hang, the pendulous length and
+// the curtain's shoot separation differ between the oak, the spruce and the
+// birch, so the sweep walks all three. The radius threshold is 1 on every
+// shipped row - every shoot under a descending limb hangs - and is held here.
+// fn-38 makes the clump three habit rows, and the silver birch is the table
+// that declares one: two stems, their bearings and their lean. Every other
+// table stands on one stem, so the sweep walks all three.
+// fn-44 adds the sag, the fifth curtain row. The birch is the table that
+// states one, so the oak-to-birch walk moves it and the sweep walks it.
+// fn-45 makes the twig layer's depth a row. The beech states two generations
+// and every other table leaves it at the top of its rail, so the sweep walks
+// it and it is not held here.
+// Round 6b gives the beech its own local departure angle, and round 6c its
+// own two-ranked local divergence, so both leave this list.
+// Round 11 moves the beech's twig-layer threshold, where the twig layer
+// starts on the scaffold, so the sweep walks it and it leaves this list.
+// fn-47 adds the pendulous variation, the sixth. The birch states one, so the
+// sweep walks it.
+// fn-51 adds the drop and the clearance, the seventh and eighth. The birch
+// states both, so the sweep walks them.
+// fn-48 adds the clump's lean spread, and the birch states the whole of it, so
+// the sweep walks it. At the whole spread the birch's first stem stands
+// upright and has no bearing to part from, so its divergence goes to none and
+// every table agrees on it: the divergence is held here, and the clump tests
+// walk it from nothing to a hundred degrees.
+// fn-48.2 adds the clump's fork height, and the birch states half the bole,
+// so the sweep walks it.
+const HELD: [&str; 29] = [
     "/material/plateFurrowWidth",
     "/canopy/maxInstances",
     "/element/card",
@@ -72,12 +103,11 @@ const HELD: [&str; 31] = [
     "/skeleton/growth/maxNodes",
     "/skeleton/growth/stepDistance",
     "/skeleton/growth/trunkHeight",
+    "/skeleton/habit/stemDivergence",
     "/skeleton/seed",
     "/skeleton/step",
-    "/skeleton/twigs/angle",
     "/skeleton/twigs/angleVariation",
-    "/skeleton/twigs/divergence",
-    "/skeleton/twigs/limbRadius",
+    "/skeleton/twigs/pendulousRadius",
     "/skeleton/twigs/ratioPower",
     "/skeleton/twigs/reach",
     "/skeleton/twigs/twig/stationsPerInternode",
@@ -247,6 +277,46 @@ fn every_shipped_preset_carries_a_leaf_count_inside_the_fidelity_band() {
         assert!(
             (low..=high).contains(&leaves),
             "{id}: {leaves} retained leaves, outside {low} to {high}"
+        );
+    }
+}
+
+#[test]
+fn the_oak_to_birch_walk_ramps_the_curtain_up_from_nothing() {
+    // The oak never hangs and the birch does, so this is the walk that crosses
+    // the curtain. Hang is a row and not a switch: it rises through the walk,
+    // every step grows a tree the step before it did not, and no step is the
+    // frame where the curtain arrives.
+    let (mut hangs, mut skeletons) = (Vec::new(), Vec::new());
+    for step in 0..STEPS {
+        let mut family = walk("oregon-white-oak", "silver-birch", step);
+        family.skeleton.growth.max_nodes = Some(SWEEP_NODES);
+        hangs.push(family.skeleton.twigs.hang);
+        let tree = branching::generate(&family.skeleton, family.radii)
+            .unwrap_or_else(|e| panic!("step {step}: {e}"))
+            .tree;
+        skeletons.push(fnv(tree.nodes.iter().skip(1).flat_map(|n| {
+            [n.position.x, n.position.y, n.position.z]
+                .into_iter()
+                .flat_map(f64::to_le_bytes)
+        })));
+    }
+    assert_eq!(hangs[0], family("oregon-white-oak").skeleton.twigs.hang);
+    assert_eq!(hangs[0], 0.0, "the oak hangs");
+    assert_eq!(
+        hangs[STEPS - 1],
+        family("silver-birch").skeleton.twigs.hang,
+        "the walk did not reach the birch's own row"
+    );
+    for step in 1..STEPS {
+        assert!(
+            hangs[step] > hangs[step - 1],
+            "step {step} did not raise the hang row"
+        );
+        assert_ne!(
+            skeletons[step - 1],
+            skeletons[step],
+            "step {step} grew the tree the step before it did"
         );
     }
 }

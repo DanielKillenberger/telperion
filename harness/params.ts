@@ -75,6 +75,26 @@ export interface GrowerParams {
    *  that a crown stops reading as a tree and starts reading as a
    *  hedge. */
   spread: number;
+  /** Stems leaving the ground. 1 is the single trunk every tree was; a
+   *  birch, a hazel or a coppiced oak stands on more. */
+  stems: number;
+  /** Degrees of bearing between neighbouring stems, about a bearing the
+   *  seed alone decides. Nothing at one stem, which has no neighbour. */
+  stemDivergence: number;
+  /** Degrees from vertical the outermost stems tilt away from the root;
+   *  the ones between tilt in proportion to how far out they stand.
+   *  Nothing at one stem, which stands at the centre. Two stems need
+   *  both this and a divergence, or they are the same stem twice. */
+  stemLean: number;
+  /** How unequally the stems lean, 0 to 1. 0 is the lean above, shared
+   *  about the clump's centre; 1 leans them in their order instead, the
+   *  first upright and the last by the whole of it. Nothing at one
+   *  stem. */
+  stemLeanSpread: number;
+  /** Where the later stems leave the first, as a share of the bole's
+   *  height, 0 to 0.5. 0 parts them at the ground; 0.5 halfway up the
+   *  bole, one trunk below the fork. Nothing at one stem. */
+  stemForkHeight: number;
   /** Master over `lean`, `writheAmplitude` and `spiralRate`: 0 leaves
    *  the tree dead straight, 1 is the three of them as dialled. */
   torsion: number;
@@ -114,12 +134,42 @@ export interface GrowerParams {
   /** Share of the crown's depth colonization leaves for the branches. */
   reach: number;
   laterals: number;
+  /** Twig-law generations of branching: a lateral born at or past it is a twig whatever the pipe model left its radius. */
+  twigGenerations: number;
   angleVariation: number;
   vigourVariation: number;
   twigAngle: number;
   twigDivergence: number;
   internodeFactor: number;
   lengthRatio: number;
+  /** How far a shoot gives in to its own weight: 0 is a shoot held out
+   *  along the direction it was born with, 1 a curtain at full droop. */
+  hang: number;
+  /** Metres a hanging shoot runs before it stops, and the clearance
+   *  over which its droop deepens to the cap. */
+  pendulousLength: number;
+  /** Fraction of the trunk's own radius at or below which a station's
+   *  shoots hang rather than stand out: the wood fine enough to weep. */
+  pendulousRadius: number;
+  /** Degrees between neighbouring shoots in a curtain: how tightly the
+   *  fall is combed about the wood that bears it. */
+  curtainSeparation: number;
+  /** How far a hanging shoot has given in to its own weight by the end of
+   *  its pendulous run: 0 a rod held out along its departure, 1 a shoot
+   *  bent all the way to vertical, the bend steepest where it leaves the
+   *  wood that bears it. */
+  sag: number;
+  /** How much shorter than the pendulous length a hanging shoot may
+   *  run: 0 every strand the one length, 1 each strand anywhere from
+   *  nothing to the whole of it, drawn per shoot from the seed. */
+  pendulousVariation: number;
+  /** How far below the crown's lower surface a hanging shoot may fall:
+   *  0 the crown's outline holds the curtain, 1 the curtain may fall
+   *  all the way to the clearance, only where the crown is overhead. */
+  curtainDrop: number;
+  /** Metres above the ground no hanging shoot falls below, never above
+   *  the crown's own base. */
+  curtainClearance: number;
   /** The radius solve's fork exponent: what a fork does to thickness,
    *  and so the contrast between trunk and twig. 2 conserves
    *  cross-sectional area exactly. */
@@ -146,6 +196,16 @@ export interface GrowerParams {
   /** The envelope's profile exponent: 1 is a straight-sided cone, 2 an
    *  ellipse, and above that the shoulders square off into a dome. */
   shoulder: number;
+  /** How far the outline departs from that smooth shell, as a fraction
+   *  of the radius there. 0 is the oval of revolution every seed used
+   *  to fill the same way; above it the crown grows lobes and hollows
+   *  the seed alone decides, so two seeds of one tree read as two
+   *  trees from across a field. */
+  irregularity: number;
+  /** The lobes' wavelength over the shell's surface, as a fraction of
+   *  the height: low is a rough coat of small lumps, 1 is a handful of
+   *  lobes as long as the tree is tall. */
+  lobeScale: number;
   /** Lobes on the swept cross section: how many strands a limb reads
    *  as. 0 is the circle everyone else extrudes. */
   lobes: number;
@@ -181,9 +241,11 @@ export interface GrowerParams {
   /** The stretch at the tip the clump gathers into, as a fraction of
    *  the shoot's length. */
   clumpSpan: number;
-  /** How far an element turns away from the tree's axis, 0 to 1. */
+  /** How far an element turns away from the tree's axis, -1 to 1:
+   *  negative turns it back in toward the trunk. */
   outward: number;
-  /** How far an element turns toward the sky, 0 to 1. */
+  /** How far an element turns toward the sky, -1 to 1: negative hangs
+   *  it under its shoot instead. */
   upward: number;
   /** Random spread about the direction those two ask for, in degrees.
    *  Zero is a diagram. */
@@ -222,6 +284,18 @@ export const SLIDERS: readonly SliderSpec[] = [
      not that it covers Valinor. */
   { group: "skeleton", key: "height", label: "height", min: 4, max: 400, step: 0.5, unit: "m" },
   { key: "spread", label: "spread", min: 0.12, max: 0.65, step: 0.01, unit: "" },
+  /* The clump. A count and the four rows that say how it stands: how
+     far apart in bearing the stems leave the root, how far out of
+     vertical the outermost of them lean, how unequally, from an even V
+     to one upright stem with the rest pushed out beside it, and how
+     far up the bole they part. At one stem the other four reach
+     nothing, which is where every tree that stands on a single trunk
+     sits. */
+  { key: "stems", label: "stems", min: 1, max: 6, step: 1, unit: "" },
+  { key: "stemDivergence", label: "stem divergence", min: 0, max: 120, step: 1, unit: "deg" },
+  { key: "stemLean", label: "stem lean", min: 0, max: 45, step: 1, unit: "deg" },
+  { key: "stemLeanSpread", label: "stem lean spread", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "stemForkHeight", label: "stem fork height", min: 0, max: 0.5, step: 0.01, unit: "" },
   // The bias dials run well past what looks good. The owner has to be
   // able to see where too much is, or the usable range sits at the
   // ceiling and reads as a limit rather than as a choice.
@@ -271,6 +345,11 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "angleVariation", label: "angle variation", min: 0, max: 90, step: 1, unit: "deg" },
   { key: "vigourVariation", label: "vigour variation", min: 0, max: 0.95, step: 0.01, unit: "" },
   { key: "laterals", label: "laterals", min: 0, max: 7, step: 1, unit: "" },
+  /* The twig layer's depth, 1 to 6. The radius solve decides how far a
+     lateral can keep branching, so a table that asks for girth buys a
+     deeper twig layer it did not ask for; this row states the depth
+     instead. Six is the neutral - the deepest shipped tree branches four. */
+  { key: "twigGenerations", label: "twig generations", min: 1, max: 6, step: 1, unit: "" },
   { key: "limbRadius", label: "limbRadius", min: 0, max: 1, step: 0.005, unit: "r" },
   // Measured on Telperion: at 0 the 79 cm colonization tips end at the
   // shell and 21 m branches reach out past it, the cactus the owner saw;
@@ -278,6 +357,29 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "reach", label: "reach", min: 0, max: 0.9, step: 0.01, unit: "" },
   { key: "twigAngle", label: "branch angle", min: 0, max: 90, step: 1, unit: "deg" },
   { key: "twigDivergence", label: "branch divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
+  /* The weeping law. Wood finer than `pendulousRadius` of the trunk
+     sends its shoots across the crown and down rather than out along
+     the branch law's own departure, and they hang side by side as a
+     curtain, `curtainSeparation` degrees between neighbours. A shoot
+     droops harder the further it stands above the floor its own limb's
+     tip set, deepening to the cap over `pendulousLength` - which is
+     also where the shoot stops. `hang` is the master over all of it: at
+     0 there is no weeping in the tree whatever the rest say. `sag` is
+     the weight on the shoot after it departs: its course turns toward
+     straight down along the run, by `sag` of the way there over the
+     pendulous length, steepest at the wood that bears it.
+     `pendulousVariation` lets each shoot run its own share of that
+     length, so the curtain ends in a ragged hem rather than a level one.
+     `curtainDrop` lets the curtain fall past the crown's lower surface,
+     that share of the way down to `curtainClearance` above the ground. */
+  { key: "hang", label: "hang", min: 0, max: 3, step: 0.01, unit: "" },
+  { key: "pendulousLength", label: "pendulous length", min: 0.05, max: 5, step: 0.05, unit: "m" },
+  { key: "pendulousRadius", label: "pendulous radius", min: 0, max: 1, step: 0.01, unit: "r" },
+  { key: "curtainSeparation", label: "curtain separation", min: 1, max: 45, step: 0.5, unit: "deg" },
+  { key: "sag", label: "sag", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "pendulousVariation", label: "pendulous variation", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "curtainDrop", label: "curtain drop", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "curtainClearance", label: "curtain clearance", min: 0, max: 5, step: 0.05, unit: "m" },
   // The fork exponent, under the name the owner already turns. Below
   // 2 a fork sheds more than area and the tree runs from a heavy
   // trunk to threads; above 3 the limbs stop thinning enough to read
@@ -310,6 +412,12 @@ export const SLIDERS: readonly SliderSpec[] = [
      the profile is degenerate rather than extreme. */
   { key: "fullness", label: "fullness", min: 0.05, max: 0.95, step: 0.01, unit: "" },
   { key: "shoulder", label: "shoulder", min: 1, max: 4, step: 0.05, unit: "n" },
+  /* The outline's two rows. Everything above says what shape the
+     smooth shell is; these say how far the tree is allowed to depart
+     from it and at what size, which is the difference between a
+     silhouette and an oval. Neutral at 0, where every tree was. */
+  { key: "irregularity", label: "irregularity", min: 0, max: 0.5, step: 0.01, unit: "" },
+  { key: "lobeScale", label: "lobe scale", min: 0.05, max: 1, step: 0.01, unit: "h" },
   // The surface dials. `lobes` is a count and steps by one; the other
   // three run from the circular, straight, unflared surface every other
   // procedural tree has out to well past what looks good, on the same
@@ -329,8 +437,8 @@ export const SLIDERS: readonly SliderSpec[] = [
      Divergence steps in thousandths to retain the authored phyllotaxis;
      the other leaf controls keep the placement stage's existing rails. */
   { group: "canopy", key: "divergence", label: "divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
-  { key: "outward", label: "leaf outward", min: 0, max: 1, step: 0.01, unit: "" },
-  { key: "upward", label: "leaf upward", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "outward", label: "leaf outward", min: -1, max: 1, step: 0.01, unit: "" },
+  { key: "upward", label: "leaf upward", min: -1, max: 1, step: 0.01, unit: "" },
   { key: "scatter", label: "leaf scatter", min: 0, max: 90, step: 1, unit: "deg" },
   { key: "size", label: "leaf size", min: 0.2, max: 4, step: 0.05, unit: "x" },
   { key: "sizeVariation", label: "leaf size spread", min: 0, max: 0.9, step: 0.01, unit: "" },

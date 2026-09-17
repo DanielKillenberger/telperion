@@ -8,6 +8,7 @@ fn mature_girth_strengthens_an_axial_field() {
         "@group(0) @binding(0) var<uniform> u: Uniforms;",
         "var<private> u: Uniforms;",
     ) + include_str!("../src/shaders/bark.wgsl")
+        + include_str!("../src/shaders/plates.wgsl")
         + r#"
 @group(0) @binding(0) var<storage, read_write> result: array<vec4<f32>>;
 fn sample(x: f32, y: f32, radius: f32) -> f32 {

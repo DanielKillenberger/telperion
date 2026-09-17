@@ -2,6 +2,8 @@
 //! still and a browser frame of the same tree are the same picture.
 use telperion_core::{math::Vec3, surface::Bounds};
 
+use crate::shot::Shot;
+
 /// Vertical field of view, degrees. Narrow enough that the perspective does not
 /// editorialise about the trunk, wide enough to stand at a believable distance.
 pub const FIELD_OF_VIEW: f64 = 38.0;
@@ -61,31 +63,15 @@ fn reach_of(half: Vec3, direction: Vec3) -> f64 {
 pub fn hero_pose(bounds: Bounds, aspect: f64, ground_reach: f64) -> Camera {
     let size = bounds.max - bounds.min;
     let centre = (bounds.min + bounds.max) * 0.5;
-    let half = size * 0.5;
-
-    // The picture's axes at the hero direction, the same frame `look_at` builds.
     let back = FRAME_DIRECTION.normalized();
-    let right = Vec3::Y.cross(back).normalized();
-    let up = back.cross(right);
-    // A point sits inside an edge when its depth plus its offset toward that
-    // edge over the edge's tangent is under the distance; the crown's furthest
-    // such point is its support along `back + offset / tangent`, once per edge.
-    // The vertical tangent is the camera's own; the horizontal one is that
-    // times the aspect, so a wide viewport pulls in and a tall one pulls back.
-    let tangent = (FIELD_OF_VIEW.to_radians() / 2.0).tan();
-    let edges = [
-        up * (FRAME_MARGIN / tangent),
-        up * (-FRAME_MARGIN / tangent),
-        right * (FRAME_MARGIN / (tangent * aspect.max(0.1))),
-        right * (-FRAME_MARGIN / (tangent * aspect.max(0.1))),
-    ];
-    let solved = edges
-        .iter()
-        .map(|edge| reach_of(half, back + *edge))
-        .fold(0.0, f64::max);
-    // A subject with no extent at all leaves nothing to solve, and the eye
-    // would land on the target with no direction to look along.
-    let reach = if solved > 0.0 { solved } else { NEAR * 2.0 };
+    let reach = reach_along(
+        bounds,
+        back,
+        FRAME_MARGIN,
+        Some(FRAME_MARGIN),
+        FIELD_OF_VIEW,
+        aspect,
+    );
     let mut position = centre + back * reach;
     // The eye stands on the floor at least, and at a person's eye height for
     // anything taller than a person. A leaf is not looked at from 1.8 m, so
@@ -95,19 +81,105 @@ pub fn hero_pose(bounds: Bounds, aspect: f64, ground_reach: f64) -> Camera {
     } else {
         0.0
     });
-
     Camera {
         position,
         target: centre,
         field_of_view: FIELD_OF_VIEW,
-        // A leaf is looked at from centimetres away; a near plane fixed at a
-        // tenth of a metre would clip the whole subject out of the frame.
-        near: NEAR.min(reach / 2.0),
-        // The far plane clears the whole ground disc from wherever the camera
-        // stands: the disc reaches `ground_reach` from the origin and the
-        // camera is `reach` out from a target inside it.
-        far: reach + ground_reach * 2.0,
+        near: near_of(reach),
+        far: far_of(reach, ground_reach),
     }
+}
+
+/// The pose an authored shot describes: the eye on the stated direction, the
+/// crown filling the stated fraction of the frame, aimed at the stated height
+/// of the subject, through the stated lens. The distance is solved the way the
+/// hero pose solves it against the top and bottom edges alone, so a fill is a
+/// height the way a photograph's is and a wide crown may run off the sides;
+/// a stated distance overrides the solve; the eye never sinks below the
+/// ground, and nothing else places it. A shot framed by its fill aims across
+/// the middle of the bounds; a close-up at a stated distance aims at the stem
+/// on the tree's own axis, because a crown that leans or spreads to one side
+/// carries the middle of the bounds off the trunk the photograph was taken of.
+pub fn shot_pose(bounds: Bounds, aspect: f64, ground_reach: f64, shot: &Shot) -> Camera {
+    let size = bounds.max - bounds.min;
+    let centre = (bounds.min + bounds.max) * 0.5;
+    let (rise, run) = shot.elevation.to_radians().sin_cos();
+    let (across, along) = shot.azimuth.to_radians().sin_cos();
+    let back = Vec3::new(run * across, rise, run * along);
+    let reach = if shot.distance > 0.0 {
+        shot.distance
+    } else {
+        reach_along(bounds, back, 1.0 / shot.fill, None, shot.fov, aspect)
+    };
+    let (x, z) = if shot.distance > 0.0 {
+        (0.0, 0.0)
+    } else {
+        (centre.x, centre.z)
+    };
+    let target = Vec3::new(x, bounds.min.y + size.y * shot.target_height, z);
+    let mut position = target + back * reach;
+    position.y = position.y.max(0.0);
+    Camera {
+        position,
+        target,
+        field_of_view: shot.fov,
+        near: near_of(reach),
+        far: far_of(reach, ground_reach),
+    }
+}
+
+/// How far back along `back` the eye stands so the crown the bounds inscribe
+/// sits inside the frame at `margin` and no more: the support of that crown
+/// along each of the frame's edges, and the largest wins. The hero pose holds
+/// the crown inside all four edges; a shot states its fill as a height, the way
+/// a photograph is read, and lets a wide crown run off the sides.
+fn reach_along(
+    bounds: Bounds,
+    back: Vec3,
+    margin: f64,
+    sideways: Option<f64>,
+    field_of_view: f64,
+    aspect: f64,
+) -> f64 {
+    let half = (bounds.max - bounds.min) * 0.5;
+    // The picture's axes at this direction, the same frame `look_at` builds.
+    let right = Vec3::Y.cross(back).normalized();
+    let up = back.cross(right);
+    // A point sits inside an edge when its depth plus its offset toward that
+    // edge over the edge's tangent is under the distance; the crown's furthest
+    // such point is its support along `back + offset / tangent`, once per edge.
+    // The vertical tangent is the camera's own; the horizontal one is that
+    // times the aspect, so a wide viewport pulls in and a tall one pulls back.
+    let tangent = (field_of_view.to_radians() / 2.0).tan();
+    let mut edges = vec![up * (margin / tangent), up * (-margin / tangent)];
+    if let Some(margin) = sideways {
+        edges.push(right * (margin / (tangent * aspect.max(0.1))));
+        edges.push(right * (-margin / (tangent * aspect.max(0.1))));
+    }
+    let solved = edges
+        .iter()
+        .map(|edge| reach_of(half, back + *edge))
+        .fold(0.0, f64::max);
+    // A subject with no extent at all leaves nothing to solve, and the eye
+    // would land on the target with no direction to look along.
+    if solved > 0.0 {
+        solved
+    } else {
+        NEAR * 2.0
+    }
+}
+
+/// A leaf is looked at from centimetres away; a near plane fixed at a tenth
+/// of a metre would clip the whole subject out of the frame.
+fn near_of(reach: f64) -> f64 {
+    NEAR.min(reach / 2.0)
+}
+
+/// The far plane clears the whole ground disc from wherever the camera
+/// stands: the disc reaches `ground_reach` from the origin and the camera is
+/// `reach` out from a target inside it.
+fn far_of(reach: f64, ground_reach: f64) -> f64 {
+    reach + ground_reach * 2.0
 }
 
 /// The hero pose turned `turn` of a full revolution about the vertical axis
@@ -500,5 +572,84 @@ mod tests {
         let camera = hero_pose(oak_bounds(), 1.0, crate::GROUND_REACH);
         let stand = camera.position.distance(camera.target);
         assert!(camera.far > stand + crate::GROUND_REACH);
+    }
+
+    #[test]
+    fn a_shot_fills_the_frame_it_states_on_any_aspect() {
+        for aspect in [0.66, 1.0, 1.5] {
+            for fill in [0.6, 0.92, 1.0] {
+                let shot = Shot {
+                    azimuth: 210.0,
+                    elevation: -6.0,
+                    fill,
+                    ..Default::default()
+                };
+                let camera = shot_pose(oak_bounds(), aspect, crate::GROUND_REACH, &shot);
+                let view_projection = camera.view_projection(aspect);
+                let tallest = crown(oak_bounds())
+                    .iter()
+                    .map(|&point| project(&view_projection, point).1.abs())
+                    .fold(0.0, f64::max);
+                assert!(
+                    (tallest - fill).abs() < 5e-3,
+                    "the crown's top or bottom sits at {tallest} at fill {fill}, aspect {aspect}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_default_shot_looks_from_where_the_hero_pose_does() {
+        // The direction and the aim are the hero's; the distance is solved
+        // against the top and bottom edges alone, so on a frame where the
+        // sides bind the hero pose a shot stands closer, never elsewhere.
+        for aspect in [0.6, 1.0, 16.0 / 9.0] {
+            let hero = hero_pose(oak_bounds(), aspect, crate::GROUND_REACH);
+            let shot = shot_pose(oak_bounds(), aspect, crate::GROUND_REACH, &Shot::default());
+            let (a, b) = (hero.position - hero.target, shot.position - shot.target);
+            assert!(
+                a.normalized().dot(b.normalized()) > 0.9999,
+                "{hero:?} vs {shot:?}"
+            );
+            assert!((hero.target - shot.target).length() < 1e-9);
+            assert!(b.length() <= a.length() + 1e-9);
+        }
+    }
+
+    #[test]
+    fn a_shot_aims_where_it_says_and_never_sinks_underground() {
+        let low = Shot {
+            elevation: -20.0,
+            target_height: 0.05,
+            distance: 1.5,
+            ..Default::default()
+        };
+        let camera = shot_pose(oak_bounds(), 1.0, crate::GROUND_REACH, &low);
+        assert!((camera.target.y - 22.6 * 0.05).abs() < 1e-9);
+        assert!(camera.position.y >= 0.0);
+        assert!(
+            ((camera.position - camera.target).length() - 1.5).abs() < 1e-9,
+            "a stated distance is the distance"
+        );
+        assert!(
+            camera.near <= 0.1,
+            "a close-up keeps a near plane it can see past"
+        );
+    }
+
+    #[test]
+    fn a_close_up_aims_at_the_stem_and_a_framed_shot_at_the_bounds() {
+        // The oak's bounds sit off its axis; a crown that spreads to one
+        // side must not carry a close-up of the trunk off the trunk.
+        let close = Shot {
+            target_height: 0.04,
+            distance: 1.2,
+            ..Default::default()
+        };
+        let camera = shot_pose(oak_bounds(), 1.0, crate::GROUND_REACH, &close);
+        assert_eq!((camera.target.x, camera.target.z), (0.0, 0.0));
+        let framed = shot_pose(oak_bounds(), 1.0, crate::GROUND_REACH, &Shot::default());
+        assert!((framed.target.x - (-0.3)).abs() < 1e-9);
+        assert!((framed.target.z - 0.8).abs() < 1e-9);
     }
 }

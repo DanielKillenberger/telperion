@@ -9,6 +9,8 @@ fn habit_family(habit: HabitParams) -> SkeletonParams {
             spread: 0.3,
             fullness: 0.18,
             shoulder: 1.2,
+            irregularity: 0.0,
+            lobe_scale: 0.5,
         },
         bias: telperion_core::bias::BiasParams::NONE,
         ..Default::default()
@@ -33,6 +35,11 @@ fn hanging_row() -> HabitParams {
         attractor_weight: 0.0,
         twig_tip_taper: 0.25,
         shedding_threshold: 0.0,
+        stems: 1,
+        stem_divergence: 0.0,
+        stem_lean: 0.0,
+        stem_lean_spread: 0.0,
+        stem_fork_height: 0.0,
     }
 }
 /// The opposite corner: the leader yields early and every axis is crooked.
@@ -53,6 +60,11 @@ fn crooked_row() -> HabitParams {
         attractor_weight: 0.0,
         twig_tip_taper: 0.25,
         shedding_threshold: 0.0,
+        stems: 1,
+        stem_divergence: 0.0,
+        stem_lean: 0.0,
+        stem_lean_spread: 0.0,
+        stem_fork_height: 0.0,
     }
 }
 
@@ -96,6 +108,8 @@ fn a_crooked_row_subdivides_substantial_axes_without_effects() {
         spread: 0.55,
         fullness: 0.55,
         shoulder: 2.2,
+        irregularity: 0.0,
+        lobe_scale: 0.5,
     };
     let tree = generate(&p, RadiusParams::default()).unwrap().tree;
     let mut children = vec![0; tree.crossover];
@@ -162,9 +176,12 @@ fn habit_topology_bounds_seeds_and_limits_are_explicit() {
             let parent = &a.tree.nodes[n.parent.unwrap() as usize];
             assert!(n.position.distance(parent.position) > 1e-9);
             for t in [0.0, 0.25, 0.5, 0.75, 1.0] {
-                assert!(p
-                    .envelope
-                    .contains(parent.position.lerp(n.position, t), 1e-8));
+                assert!(
+                    p.envelope
+                        .contains(parent.position.lerp(n.position, t), 1e-8, p.seed),
+                    "seed {}: outside the perturbed shell",
+                    p.seed
+                );
             }
         }
         p.seed += 1;
@@ -282,6 +299,8 @@ fn clipped_local_axis_still_subdivides_before_its_terminal_twig() {
             spread: 1.0,
             fullness: 0.5,
             shoulder: 2.0,
+            irregularity: 0.0,
+            lobe_scale: 0.5,
         }),
         max_nodes: 10000,
         ..Default::default()
@@ -306,6 +325,9 @@ fn clipped_local_axis_still_subdivides_before_its_terminal_twig() {
         "clipped axis lost its lateral branches: {origins}"
     );
     for n in tree.nodes.iter().skip(2) {
-        assert!(config.shell.unwrap().contains(n.position, 1e-9));
+        assert!(config
+            .shell
+            .unwrap()
+            .contains(n.position, 1e-9, config.seed));
     }
 }

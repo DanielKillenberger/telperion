@@ -59,6 +59,25 @@ struct Uniforms {
     bark_structure: vec4<f32>, // identity, directional occlusion, depth, reserved
     weathering: vec4<f32>, // RGB offsets, strength
     orientation: vec4<f32>, // RGB offsets, strength
+    /// Young wood's own colour, and in `w` the radius below which wood takes
+    /// it; zero is a row with no young wood.
+    shoot: vec4<f32>,
+    /// The leaf lit as a mass: the bend of its lighting normal toward the
+    /// crown's outward direction, the sun's wrap past the terminator, the
+    /// diffuse share of its transmission, and its sheen. All zero is a card.
+    canopy: vec4<f32>,
+    /// How much of the sky one crown radius of leaves takes from a leaf that
+    /// reads it through the mass; the rest is reserved. Zero sees through.
+    crown_shade: vec4<f32>,
+    /// Smooth bark: a lichen patch's colour and how far it covers the bark,
+    /// the size of the cells its patches scatter over and the share holding
+    /// one, lenticel dash rows per metre, the longest dash, its strength and
+    /// its tint, and the inner bark a peeled strip shows with how far strips
+    /// curl away.
+    lichen: vec4<f32>, // RGB, strength
+    lichen_detail: vec4<f32>, // cell size, coverage, reserved, reserved
+    lenticel: vec4<f32>, // rows per metre, length, strength, tint
+    peel: vec4<f32>, // RGB, curl
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -218,3 +237,18 @@ fn bark_noise2_filtered(p: vec2<f32>, footprint: vec2<f32>) -> f32 {
     return 0.5 + (bark_noise2(p) - 0.5) * retained;
 }
 
+// Whether one of a scattered set - a lichen patch, a lenticel, a peeled
+// strip - is present, as a ramp on its own hash rather than a step, so a walk
+// between two shares fades it in rather than popping it. At a share of
+// nought none is present and at one every one is.
+fn smooth_presence(share: f32, own: f32) -> f32 {
+    return clamp((1.1 * share - own) / 0.1, 0.0, 1.0);
+}
+
+// The ramp's mean over every spot: the share, less half the ramp at each end.
+fn smooth_share(share: f32) -> f32 {
+    let x = 1.1 * share;
+    if (x < 0.1) { return 5.0 * x * x; }
+    let over = max(x - 1.0, 0.0);
+    return x - 0.05 - 5.0 * over * over;
+}

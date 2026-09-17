@@ -23,6 +23,9 @@ pub struct GrowthConfig {
     /// Degrees per step.
     pub max_turn_per_step: f64,
     pub shell: Option<Envelope>,
+    /// The family seed. The shell's outline is keyed by it, so every stage
+    /// that rejects against the shell rejects against the same one.
+    pub seed: u32,
 }
 impl Default for GrowthConfig {
     fn default() -> Self {
@@ -34,6 +37,7 @@ impl Default for GrowthConfig {
             max_nodes: 4000,
             max_turn_per_step: 35.0,
             shell: None,
+            seed: 0,
         }
     }
 }
@@ -66,7 +70,7 @@ impl GrowthConfig {
             if from.y < self.trunk_height {
                 to.y <= shell.height
             } else {
-                !shell.contains(from, 0.0) || shell.contains(to, 0.0)
+                !shell.contains(from, 0.0, self.seed) || shell.contains(to, 0.0, self.seed)
             }
         })
     }

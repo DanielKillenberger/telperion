@@ -85,6 +85,7 @@ pub struct Select {
     /// through the same layout as the crown and never rewritten.
     leaf: wgpu::BindGroup,
     placements: Option<Held>,
+    masses: Option<Held>,
     deviations: Option<Held>,
     lists: Option<Held>,
     counts: Option<Held>,
@@ -120,6 +121,7 @@ impl Select {
             compute_layout,
             draw_layout,
             placements: None,
+            masses: None,
             deviations: None,
             lists: None,
             counts: None,
@@ -176,6 +178,15 @@ impl Select {
             storage,
             bytemuck::cast_slice(&foliage.instances.matrices),
         );
+        let matrices = &foliage.instances.matrices;
+        let masses = crate::mass::grid(matrices, crate::submit::crown_of(foliage));
+        buffer::write(
+            gpu,
+            &mut self.masses,
+            "foliage masses",
+            storage,
+            bytemuck::cast_slice(&masses),
+        );
         buffer::write(
             gpu,
             &mut self.deviations,
@@ -220,6 +231,7 @@ impl Select {
     fn rebind(&mut self, gpu: &Gpu, stride: u64) {
         let (
             Some(placements),
+            Some(masses),
             Some(deviations),
             Some(lists),
             Some(counts),
@@ -227,6 +239,7 @@ impl Select {
             Some(scratch),
         ) = (
             &self.placements,
+            &self.masses,
             &self.deviations,
             &self.lists,
             &self.counts,
@@ -248,6 +261,7 @@ impl Select {
             &self.draw_layout,
             placements,
             lists,
+            masses,
             stride,
         ));
     }

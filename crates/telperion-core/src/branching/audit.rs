@@ -248,6 +248,15 @@ fn every_habit_trait_moves_every_shipped_preset() {
                     ..h
                 },
             ),
+            (
+                "stems",
+                HabitParams {
+                    stems: h.stems + 1,
+                    stem_divergence: 70.0,
+                    stem_lean: 14.0,
+                    ..h
+                },
+            ),
         ] {
             let mut moved = family.clone();
             moved.skeleton.habit = habit;
@@ -256,6 +265,57 @@ fn every_habit_trait_moves_every_shipped_preset() {
                 hashed(&moved),
                 base,
                 "{preset:?}: {trait_name} left the skeleton unmoved"
+            );
+        }
+        // The four clump rows say how a second stem stands beside the first, so
+        // they are inert while the tree has one - read against a clump, the
+        // way the supernatural terms are read against a field that is on.
+        let clump = HabitParams {
+            stems: h.stems + 1,
+            stem_divergence: 70.0,
+            stem_lean: 14.0,
+            ..h
+        };
+        let mut standing = family.clone();
+        standing.skeleton.habit = clump;
+        let on = hashed(&standing);
+        for (trait_name, habit) in [
+            (
+                "stem divergence",
+                HabitParams {
+                    stem_divergence: 100.0,
+                    ..clump
+                },
+            ),
+            (
+                "stem lean",
+                HabitParams {
+                    stem_lean: 22.0,
+                    ..clump
+                },
+            ),
+            (
+                "stem lean spread",
+                HabitParams {
+                    stem_lean_spread: (h.stem_lean_spread - 0.6).abs(),
+                    ..clump
+                },
+            ),
+            (
+                "stem fork height",
+                HabitParams {
+                    stem_fork_height: (h.stem_fork_height - 0.3).abs(),
+                    ..clump
+                },
+            ),
+        ] {
+            let mut moved = family.clone();
+            moved.skeleton.habit = habit;
+            habit.validate().unwrap();
+            assert_ne!(
+                hashed(&moved),
+                on,
+                "{preset:?}: {trait_name} left the clump unmoved"
             );
         }
     }

@@ -58,6 +58,19 @@ pub struct Specimen {
     retention: retention::Retention,
     births: events::Events,
 }
+/// A stem's own root node: the structural node a stem leaves the root on. It
+/// is the base of a trunk rather than a shoot, so the chronicle never sheds
+/// it - the tree would be standing on nothing.
+///
+/// It is NOT stamped with the root's own birth year. A read of the tree at any
+/// age is the tree a fresh build of that age grows, and a fresh build at year
+/// zero has grown nothing at all: a stem stamped with year zero would appear
+/// in the read and not in the build. Whether a clump's stems should instead be
+/// born with the root, before the first slice runs, is the owner's call.
+fn stem_root(node: &Node) -> bool {
+    node.parent == Some(0) && node.kind == NodeKind::Structural
+}
+
 impl Specimen {
     pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
         params.envelope.validate()?;
@@ -73,12 +86,13 @@ impl Specimen {
         }
         let inner = inner_envelope(params.envelope, twigs.reach);
         let points = if params.habit.attractor_weight > 0.0 {
-            inner.sample(params.attractors, &mut Rng::new(params.seed))?
+            inner.sample(params.attractors, &mut Rng::new(params.seed), params.seed)?
         } else {
             Vec::new()
         };
         let config = params.resolved_growth(points.len())?;
         let bias = GrowthBias::new(params.envelope, params.seed, params.bias)?;
+        scaffold::stems_placed(params, &config)?;
 
         let scaffold = scaffold::Frontier::new(params, &config, points);
         Ok(Self {
@@ -219,7 +233,6 @@ impl Specimen {
             &self.tree,
             &self.config,
             self.params.twigs.resolved()?,
-            self.params.habit,
             None,
         );
         if !self.tree.diagnostics.node_capped {

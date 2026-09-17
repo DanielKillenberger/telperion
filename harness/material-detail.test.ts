@@ -12,11 +12,17 @@ it("carries every surface-detail control from the generated row through the pane
     "barkMottleScale", "barkMottleStrength", "cavityStrength",
     "bladeMottleScale", "bladeMottleStrength", "marginWidth",
     "marginRed", "marginGreen", "marginBlue", "cuticleGloss", "skyOcclusionStrength",
+    "shootRed", "shootGreen", "shootBlue", "shootRadius",
     "plateCellScale", "plateElongation", "plateDome", "plateEdgeLift", "plateFurrowWidth",
     "plateIdentity",
     "weatheringStrength", "weatheringRed", "weatheringGreen", "weatheringBlue",
     "orientationStrength", "orientationRed", "orientationGreen", "orientationBlue",
     "directionalOcclusion", "depthStrength",
+    "canopyNormal", "lightWrap", "diffuseTransmission", "leafSheen", "crownShade",
+    "lichenScale", "lichenCoverage", "lichenRed", "lichenGreen", "lichenBlue", "lichenStrength",
+    "lenticelDensity", "lenticelLength", "lenticelStrength", "lenticelTint",
+    "peelCurl", "peelRed", "peelGreen", "peelBlue",
+    "lobeShade",
   ];
   for (const name of names) {
     expect(Object.keys(params.family.material)).toContain(name);

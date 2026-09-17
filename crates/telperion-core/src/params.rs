@@ -32,6 +32,11 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "habit", "attractorWeight"; skeleton.habit.attractor_weight);
         $op!($f, $v, "skeleton", "habit", "twigTipTaper"; skeleton.habit.twig_tip_taper);
         $op!($f, $v, "skeleton", "habit", "sheddingThreshold"; skeleton.habit.shedding_threshold);
+        $op!($f, $v, "skeleton", "habit", "stems"; skeleton.habit.stems);
+        $op!($f, $v, "skeleton", "habit", "stemDivergence"; skeleton.habit.stem_divergence);
+        $op!($f, $v, "skeleton", "habit", "stemLean"; skeleton.habit.stem_lean);
+        $op!($f, $v, "skeleton", "habit", "stemLeanSpread"; skeleton.habit.stem_lean_spread);
+        $op!($f, $v, "skeleton", "habit", "stemForkHeight"; skeleton.habit.stem_fork_height);
         $op!($f, $v, "element", "connectorLength"; element.connector_length);
         $op!($f, $v, "skeleton", "seed"; skeleton.seed);
         $op!($f, $v, "skeleton", "attractors"; skeleton.attractors);
@@ -41,6 +46,8 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "envelope", "spread"; skeleton.envelope.spread);
         $op!($f, $v, "skeleton", "envelope", "fullness"; skeleton.envelope.fullness);
         $op!($f, $v, "skeleton", "envelope", "shoulder"; skeleton.envelope.shoulder);
+        $op!($f, $v, "skeleton", "envelope", "irregularity"; skeleton.envelope.irregularity);
+        $op!($f, $v, "skeleton", "envelope", "lobeScale"; skeleton.envelope.lobe_scale);
         $op!($f, $v, "skeleton", "bias", "gravitropism"; skeleton.bias.gravitropism);
         $op!($f, $v, "skeleton", "bias", "lean"; skeleton.bias.lean);
         $op!($f, $v, "skeleton", "bias", "supernatural", "enabled"; skeleton.bias.supernatural.enabled);
@@ -56,12 +63,21 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "twigs", "ratioPower"; skeleton.twigs.ratio_power);
         $op!($f, $v, "skeleton", "twigs", "internodeFactor"; skeleton.twigs.internode_factor);
         $op!($f, $v, "skeleton", "twigs", "laterals"; skeleton.twigs.laterals);
+        $op!($f, $v, "skeleton", "twigs", "generations"; skeleton.twigs.generations);
         $op!($f, $v, "skeleton", "twigs", "limbRadius"; skeleton.twigs.limb_radius);
         $op!($f, $v, "skeleton", "twigs", "reach"; skeleton.twigs.reach);
         $op!($f, $v, "skeleton", "twigs", "angle"; skeleton.twigs.angle);
         $op!($f, $v, "skeleton", "twigs", "angleVariation"; skeleton.twigs.angle_variation);
         $op!($f, $v, "skeleton", "twigs", "vigourVariation"; skeleton.twigs.vigour_variation);
         $op!($f, $v, "skeleton", "twigs", "divergence"; skeleton.twigs.divergence);
+        $op!($f, $v, "skeleton", "twigs", "hang"; skeleton.twigs.hang);
+        $op!($f, $v, "skeleton", "twigs", "pendulousLength"; skeleton.twigs.pendulous_length);
+        $op!($f, $v, "skeleton", "twigs", "pendulousRadius"; skeleton.twigs.pendulous_radius);
+        $op!($f, $v, "skeleton", "twigs", "curtainSeparation"; skeleton.twigs.curtain_separation);
+        $op!($f, $v, "skeleton", "twigs", "sag"; skeleton.twigs.sag);
+        $op!($f, $v, "skeleton", "twigs", "pendulousVariation"; skeleton.twigs.pendulous_variation);
+        $op!($f, $v, "skeleton", "twigs", "curtainDrop"; skeleton.twigs.curtain_drop);
+        $op!($f, $v, "skeleton", "twigs", "curtainClearance"; skeleton.twigs.curtain_clearance);
         $op!($f, $v, "skeleton", "growth", "influenceRadius"; skeleton.growth.influence_radius);
         $op!($f, $v, "skeleton", "growth", "killDistance"; skeleton.growth.kill_distance);
         $op!($f, $v, "skeleton", "growth", "stepDistance"; skeleton.growth.step_distance);
@@ -93,6 +109,12 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "scatter"; canopy.scatter);
         $op!($f, $v, "canopy", "size"; canopy.size);
         $op!($f, $v, "canopy", "sizeVariation"; canopy.size_variation);
+        $op!($f, $v, "canopy", "shortShootSpacing"; canopy.short_shoot_spacing);
+        $op!($f, $v, "canopy", "shortShootRadius"; canopy.short_shoot_radius);
+        $op!($f, $v, "canopy", "shortShootLength"; canopy.short_shoot_length);
+        $op!($f, $v, "canopy", "shortShootLeaves"; canopy.short_shoot_leaves);
+        $op!($f, $v, "canopy", "shortShootSpread"; canopy.short_shoot_spread);
+        $op!($f, $v, "canopy", "limbClumping"; canopy.limb_clumping);
         $op!($f, $v, "canopy", "maxInstances"; canopy.max_instances);
         $op!($f, $v, "element", "length"; element.length);
         $op!($f, $v, "element", "width"; element.width);
@@ -111,6 +133,10 @@ macro_rules! fields {
         $op!($f, $v, "material", "barkGreen"; material.bark_green);
         $op!($f, $v, "material", "barkBlue"; material.bark_blue);
         $op!($f, $v, "material", "barkRoughness"; material.bark_roughness);
+        $op!($f, $v, "material", "shootRed"; material.shoot_red);
+        $op!($f, $v, "material", "shootGreen"; material.shoot_green);
+        $op!($f, $v, "material", "shootBlue"; material.shoot_blue);
+        $op!($f, $v, "material", "shootRadius"; material.shoot_radius);
         $op!($f, $v, "material", "leafFrontRed"; material.leaf_front_red);
         $op!($f, $v, "material", "leafFrontGreen"; material.leaf_front_green);
         $op!($f, $v, "material", "leafFrontBlue"; material.leaf_front_blue);
@@ -168,6 +194,26 @@ macro_rules! fields {
         $op!($f, $v, "material", "orientationBlue"; material.orientation_blue);
         $op!($f, $v, "material", "directionalOcclusion"; material.directional_occlusion);
         $op!($f, $v, "material", "depthStrength"; material.depth_strength);
+        $op!($f, $v, "material", "canopyNormal"; material.canopy_normal);
+        $op!($f, $v, "material", "lightWrap"; material.light_wrap);
+        $op!($f, $v, "material", "diffuseTransmission"; material.diffuse_transmission);
+        $op!($f, $v, "material", "leafSheen"; material.leaf_sheen);
+        $op!($f, $v, "material", "crownShade"; material.crown_shade);
+        $op!($f, $v, "material", "lichenScale"; material.lichen_scale);
+        $op!($f, $v, "material", "lichenCoverage"; material.lichen_coverage);
+        $op!($f, $v, "material", "lichenRed"; material.lichen_red);
+        $op!($f, $v, "material", "lichenGreen"; material.lichen_green);
+        $op!($f, $v, "material", "lichenBlue"; material.lichen_blue);
+        $op!($f, $v, "material", "lichenStrength"; material.lichen_strength);
+        $op!($f, $v, "material", "lenticelDensity"; material.lenticel_density);
+        $op!($f, $v, "material", "lenticelLength"; material.lenticel_length);
+        $op!($f, $v, "material", "lenticelStrength"; material.lenticel_strength);
+        $op!($f, $v, "material", "lenticelTint"; material.lenticel_tint);
+        $op!($f, $v, "material", "peelCurl"; material.peel_curl);
+        $op!($f, $v, "material", "peelRed"; material.peel_red);
+        $op!($f, $v, "material", "peelGreen"; material.peel_green);
+        $op!($f, $v, "material", "peelBlue"; material.peel_blue);
+        $op!($f, $v, "material", "lobeShade"; material.lobe_shade);
 
         $op!($f, $v, "shellDepth"; shell_depth);
     };
@@ -182,9 +228,16 @@ pub const CATALOGUE: &[(u32, &str, &str, &str)] = &[
         "Quercus garryana",
     ),
     (4, "norway-spruce", "Norway spruce", "Picea abies"),
+    (6, "silver-birch", "Silver birch", "Betula pendula"),
     (1, "telperion", "Telperion", "The silver tree"),
     (2, "laurelin", "Laurelin", "The golden tree"),
 ];
+/// Tables still being judged. Their ABI ids are reserved, and they are not
+/// listed, served by id or built by name: the core's tests and the species
+/// runner reach them through `Preset`. The European beech ships when fn-62
+/// accepts it.
+pub const IN_WORK: &[(u32, &str, &str, &str)] =
+    &[(5, "european-beech", "European beech", "Fagus sylvatica")];
 pub fn preset(id: u32) -> Result<Family> {
     let identity = CATALOGUE
         .iter()
@@ -194,6 +247,9 @@ pub fn preset(id: u32) -> Result<Family> {
     by_identity(identity)
 }
 pub fn by_identity(id: &str) -> Result<Family> {
+    if !CATALOGUE.iter().any(|entry| entry.1 == id) {
+        return Err(Error::InvalidInput("preset identity"));
+    }
     let mut f = Preset::from_id(id)
         .ok_or(Error::InvalidInput("preset identity"))?
         .parameters();

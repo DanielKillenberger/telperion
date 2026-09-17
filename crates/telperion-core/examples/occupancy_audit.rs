@@ -7,9 +7,11 @@ use telperion_core::{
     presets::Preset,
     tree::NodeKind,
 };
-use telperion_core::{tree, Error, Result};
+use telperion_core::{math, tree, Error, Result};
 // Recover path membership; mesh spans come from the radius-ordered run table.
+// The audit reads which nodes a run sweeps, not where its girth eases.
 #[path = "../src/surface/paths.rs"]
+#[allow(dead_code)]
 mod wood_paths;
 fn reserved<T>(n: usize) -> telperion_core::Result<Vec<T>> {
     let mut v = Vec::new();

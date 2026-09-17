@@ -119,6 +119,20 @@ fn catalogue_roundtrips_all_controls_and_identities() {
             ("forwardLean", json!(0.3)),
             ("leanRise", json!(0.8)),
             ("surfaceContact", json!(0.5)),
+            // Signed, so a leaf can lean back down its shoot and toward the
+            // ground; the wire carries the sign as readily as the magnitude.
+            ("forwardLean", json!(-0.45)),
+            ("leanRise", json!(-1.5)),
+            ("outward", json!(-0.2)),
+            ("upward", json!(-0.6)),
+            // Short shoots are rows too, neutral at a spacing of zero.
+            ("shortShootSpacing", json!(0.12)),
+            ("shortShootRadius", json!(0.3)),
+            ("shortShootLength", json!(0.02)),
+            ("shortShootLeaves", json!(5)),
+            ("shortShootSpread", json!(60.0)),
+            // So is the gap between limb systems, neutral at none.
+            ("limbClumping", json!(0.4)),
         ] {
             value["canopy"][trait_name] = set;
             assert_eq!(value, metadata(&parse(&value).unwrap()));
@@ -137,8 +151,18 @@ fn catalogue_roundtrips_all_controls_and_identities() {
     }
     for (trait_name, bad, message) in [
         ("forwardLean", json!(1.5), "forward lean"),
-        ("leanRise", json!(-0.1), "lean rise"),
+        ("forwardLean", json!(-1.5), "forward lean"),
+        ("leanRise", json!(-2.5), "lean rise"),
+        ("outward", json!(-1.5), "outward"),
+        ("upward", json!(-1.5), "upward"),
         ("surfaceContact", json!(2.0), "surface contact"),
+        ("shortShootSpacing", json!(0.001), "short shoot spacing"),
+        ("shortShootRadius", json!(1.5), "short shoot radius"),
+        ("shortShootLength", json!(0.6), "short shoot length"),
+        ("shortShootLeaves", json!(9), "short shoot leaves"),
+        ("shortShootSpread", json!(95.0), "short shoot spread"),
+        ("limbClumping", json!(1.5), "limb clumping"),
+        ("limbClumping", json!(-0.1), "limb clumping"),
     ] {
         let mut value = metadata(&preset(0).unwrap());
         value["canopy"][trait_name] = bad;
@@ -262,5 +286,24 @@ fn resize_tolerance_is_a_validated_blended_wire_trait() {
     for value in [-0.001, 1.001] {
         let error = parse(&json!({"growth":{"resizeTolerance":value}})).unwrap_err();
         assert!(error.to_string().contains("growth.resizeTolerance"));
+    }
+}
+
+#[test]
+fn a_table_in_work_is_reserved_unlisted_and_not_built_by_name() {
+    for &(abi, id, _, _) in IN_WORK {
+        assert!(
+            CATALOGUE
+                .iter()
+                .all(|entry| entry.0 != abi && entry.1 != id),
+            "{id}"
+        );
+        assert!(preset(abi).is_err(), "{id} served by id");
+        assert!(by_identity(id).is_err(), "{id} built by name");
+        assert!(parse(&json!(id)).is_err(), "{id} parsed by name");
+        assert!(
+            Preset::from_id(id).is_some(),
+            "{id} unreachable by the core"
+        );
     }
 }

@@ -16,7 +16,7 @@ use telperion_core::{
 };
 const HELP:&str="species_measure --case ID:PROFILE:PRESET:SEED [--case ...] --output FILE [--profiles FILE]
 Profiles default to .flow/evidence/fn9/profiles.json relative to the repository.
-Presets: ordinary, oregon-white-oak, norway-spruce, telperion, laurelin. Unknown IDs fail; cases continue independently.
+Presets: ordinary, oregon-white-oak, norway-spruce, european-beech, silver-birch, telperion, laurelin. Unknown IDs fail; cases continue independently. european-beech is in work (fn-62) and reached here by name, though not listed; european-ash is not a catalogue species.
 Example (compile first, then bound the entire run):
   cargo build --release -p telperion-core --example species_measure
   timeout 120s target/release/examples/species_measure --case oak-1:oregon-white-oak:oregon-white-oak:1 --output /tmp/oak-1.jsonl
@@ -86,7 +86,7 @@ fn specimen(preset: &str, seed: u32) -> Result<Value, String> {
         &kept,
     )?;
     Ok(
-        json!({"metrics":metrics,"timing_ms":{"growth":growth_ms,"surface":surface_ms,"foliage":foliage_ms,"measurement":start.elapsed().as_secs_f64()*1000.,"total":total.elapsed().as_secs_f64()*1000.},"counts":{"wood_vertices":wood.positions.len()/3,"wood_triangles":wood.indices.len()/3,"prototype_vertices":element.positions.len(),"prototype_triangles":element.indices.len()/3,"shed_nodes":report.shed},"output_bytes":{"wood_positions":wood.positions.len()*4,"wood_indices":wood.indices.len()*4,"retained_matrices":kept.matrices.len()*64}}),
+        json!({"metrics":metrics,"timing_ms":{"growth":growth_ms,"surface":surface_ms,"foliage":foliage_ms,"measurement":start.elapsed().as_secs_f64()*1000.,"total":total.elapsed().as_secs_f64()*1000.},"counts":{"wood_vertices":wood.positions.len()/3,"wood_triangles":wood.indices.len()/3,"wood_dropped":wood.dropped,"prototype_vertices":element.positions.len(),"prototype_triangles":element.indices.len()/3,"shed_nodes":report.shed},"output_bytes":{"wood_positions":wood.positions.len()*4,"wood_indices":wood.indices.len()*4,"retained_matrices":kept.matrices.len()*64}}),
     )
 }
 fn run() -> Result<bool, String> {

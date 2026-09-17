@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
 import { createHash, randomInt } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /* ------------------------------------------------------------------ *
@@ -29,20 +29,26 @@ if (args.includes('--help')) {
   --capture-only              Reuse measurements in --output; do not regenerate
   --case ID                   Capture only this case (partial, never protocol pass)
   --timeout-ms N              Per native/capture process limit (default 300000)
+  --quick PRESET              Tuning look: the preset's matched stills at the
+                              first fixed seed, no twins, no protocol, then
+                              the photograph pairs (npm run species:quick)
 Build both examples first: npm run species:qa does it. Stills come from
 target/release/examples/headless, which needs a GPU that is not a software
 fallback; it names the condition on stderr and exits non-zero otherwise.
 Every required specimen is captured whole, bare and as a single leaf, at the
-renderer's own hero pose. JSON records the command, the adapter line it printed,
+renderer's own hero pose. A reference record that carries a shot block is
+also imitated: the first fixed seed is posed by that camera, under that sun,
+in that foliage state, at the photograph's aspect, without the scale figure,
+twice (the twin with the sun on the horizon behind the tree, for the mask). JSON records the command, the adapter line it printed,
 parameters and hashes, with numeric/visual/owner fields kept separate.
 Exit 1 for failed/missing required evidence or unassessed visual results.
 Human inspection goes in REPORT.md; this runner never awards visual approval.`);
   process.exit(0);
 }
-const known = new Set(['--draw-seeds', '--seeds', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms']);
+const known = new Set(['--draw-seeds', '--seeds', '--profiles', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms', '--quick']);
 for (let i = 0; i < args.length; i++) {
   if (!known.has(args[i])) throw Error(`Unknown option ${args[i]}`);
-  if (['--seeds', '--output', '--case', '--timeout-ms'].includes(args[i])) {
+  if (['--seeds', '--profiles', '--output', '--case', '--timeout-ms', '--quick'].includes(args[i])) {
     if (!args[++i] || args[i].startsWith('--')) throw Error('Missing option value');
   }
 }
@@ -53,6 +59,11 @@ if (!Number.isSafeInteger(timeout) || timeout < 1000) throw Error('Invalid timeo
  *  size is the old capture rig's, so the stills stay comparable with the
  *  images already in the fn9 record. */
 const SIZE = '960x720';
+/* Matched stills render at twice the pair's height: a twig thinner than a
+   pixel at 720 aliases into a dither that four samples cannot settle, and the
+   compare script's Lanczos step down to 720 is the rest of the supersample.
+   The measured numbers are fractions of the still and do not change with it. */
+const MATCHED_HEIGHT = 1440;
 const MEASURE = 'target/release/examples/species_measure';
 const HEADLESS = 'target/release/examples/headless';
 /** Whole tree, wood alone, and one placed element at generated scale -
@@ -79,8 +90,20 @@ async function command(program, argv, limit = timeout) {
 /** One still. The renderer reports what it drew on its own last line, and
  *  a still with no triangles in it is a failure however cleanly the
  *  process exited. */
+/** The scene a shot's light states: the sun where the photograph's was, and
+ *  an overcast fraction that dims the sun and flattens the sky toward the
+ *  horizon colour, through the scene row's own fields. A twin drops the sun
+ *  to the horizon behind the tree, so its shadow leaves the frame and what
+ *  stands out of the background in both stills is the tree alone. */
+function sceneOf(light, camera, twin) {
+  const o = light.overcast, dim = 1 - 0.8 * o, mix = (a, b) => a + (b - a) * o;
+  return { sunAzimuth: twin ? (camera.azimuth + 180) % 360 : light.sunAzimuth, sunElevation: twin ? 5 : light.sunElevation,
+    sunRed: 3.0 * dim, sunGreen: 2.85 * dim, sunBlue: 2.6 * dim,
+    skyZenithRed: mix(0.18, 0.55), skyZenithGreen: mix(0.30, 0.66), skyZenithBlue: mix(0.62, 0.80) };
+}
 async function capture(job) {
-  const argv = ['--preset', job.preset, '--seed', String(job.seed), '--view', job.view, '--size', SIZE, '--out', job.png];
+  const argv = ['--preset', job.preset, '--seed', String(job.seed), '--view', job.view, '--size', job.size ?? SIZE, '--out', job.png];
+  if (job.shot) argv.push('--camera', JSON.stringify(job.shot.camera), '--scene', JSON.stringify(sceneOf(job.shot.light, job.shot.camera, job.twin)), '--no-figure');
   const run = await command(HEADLESS, argv);
   const report = run.stdout.trim().split('\n').at(-1) ?? '';
   const drawn = /(\d+) triangles and (\d+) instances drawn in (\d+) calls/.exec(report);
@@ -93,7 +116,44 @@ async function capture(job) {
 }
 
 const seedPath = resolve(option('--seeds') ?? '.flow/evidence/fn9/seeds.json');
-const profiles = await json('.flow/evidence/fn9/profiles.json');
+const profilesPath = resolve(option('--profiles') ?? '.flow/evidence/fn9/profiles.json');
+const profiles = await json(profilesPath);
+/* A species' reference records sit beside its profile; a record with a shot
+   block asks for a matched still. Species without records have none. */
+const referencesOf = {};
+for (const p of profiles.profiles) {
+  try { referencesOf[p.id] = (await json(join(dirname(profilesPath), p.id, 'references.json'))).references.filter(r => r.shot); } catch { referencesOf[p.id] = []; }
+}
+/* The tuning look: what a value trial needs to be seen and nothing the
+   evidence needs. The same matched stills at the same height as a full round,
+   so what is judged here is what the round will show; no twin, no fixed
+   views, no protocol, no provenance. A round still runs the full runner. */
+if (option('--quick')) {
+  const preset = option('--quick');
+  const records = referencesOf[preset];
+  if (!records?.length) throw Error(`No matched reference records for ${preset}`);
+  // Under the cohort's ignored measure/ directory, so a look is never evidence.
+  const out = resolve(option('--output') ?? join(dirname(profilesPath), 'measure', 'quick', preset));
+  await mkdir(out, { recursive: true });
+  const seed = profiles.protocol.fixed_seeds[0];
+  const id = `${preset}-${seed}`;
+  const runs = [];
+  // One at a time: the GPU is shared with whatever else is rendering.
+  for (const record of records) {
+    const run = await capture({ id, preset, seed, reference: record.id, twin: false, shot: record.shot,
+      view: record.shot.foliage === 'hidden' ? 'bare' : 'whole',
+      size: `${Math.round(MATCHED_HEIGHT * record.shot.aspect[0] / record.shot.aspect[1])}x${MATCHED_HEIGHT}`,
+      png: join(out, `${id}-${record.id}.png`) });
+    console.log(run.reference, run.capture_status, run.report);
+    runs.push(run);
+  }
+  if (runs.some(run => run.capture_status !== 'pass')) process.exit(1);
+  const pairs = await command('uv', ['run', 'scripts/compare-references.py', '--pairs-only', '--references',
+    join(dirname(profilesPath), preset, 'references.json'), '--captures', out, '--refs', join('.refs', basename(dirname(profilesPath)), preset),
+    '--case', id, '--out', out]);
+  process.stdout.write(pairs.stdout); process.stderr.write(pairs.stderr);
+  process.exit(pairs.code === 0 ? 0 : 1);
+}
 if (args.includes('--draw-seeds')) {
   const manifest = { drawn_at: new Date().toISOString(), calibration_commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), method: 'OS cryptographic random u32; reject only fixed/duplicate seeds', fixed: profiles.protocol.fixed_seeds, fresh: {} };
   for (const profile of profiles.profiles) {
@@ -127,7 +187,7 @@ for (const c of cases) {
   const path = join(out, `${c.id}.jsonl`);
   if (!args.includes('--capture-only')) {
     // Native output refuses overwrite; explicit replay uses a new output dir.
-    const run = await command(MEASURE, ['--case', `${c.id}:${c.preset}:${c.preset}:${c.seed}`, '--output', path]);
+    const run = await command(MEASURE, ['--case', `${c.id}:${c.preset}:${c.preset}:${c.seed}`, '--output', path, '--profiles', profilesPath]);
     await save(join(out, `${c.id}-process.json`), run);
   }
   try {
@@ -150,9 +210,19 @@ if (option('--case') && !subjects.some(c => c.id === option('--case'))) throw Er
    from them, and the profiles the cases came out of. */
 const sourceFiles = (await command('git', ['ls-files', 'crates/telperion-render', 'crates/telperion-core/src'])).stdout.trim().split('\n');
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async path => [path, sha(await readFile(path))])));
-const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), binarySha256: sha(await readFile(HEADLESS)), profilesSha256: sha(await readFile('.flow/evidence/fn9/profiles.json')), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))), size: SIZE };
+const provenance = { sourceHashes, sourceSha256: sha(JSON.stringify(sourceHashes)), commit: (await command('git', ['rev-parse', 'HEAD'])).stdout.trim(), binarySha256: sha(await readFile(HEADLESS)), profilesSha256: sha(await readFile(profilesPath)), runnerSha256: sha(await readFile(fileURLToPath(import.meta.url))), size: SIZE };
 await save(join(out, 'provenance.json'), provenance);
 const jobs = subjects.flatMap(c => VIEWS.map(view => ({ id: c.id, preset: c.preset, seed: c.seed, view, provenance, png: join(out, `${c.id}-${view}.png`), result: join(out, `${c.id}-${view}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null })));
+/* Matched stills: the first fixed seed of each species, once per reference
+   record with a shot block, and its twin. The size is the photograph's aspect
+   at the protocol height; the name is the reference's, not a view's. */
+for (const c of subjects.filter(c => c.seed === seeds.fixed[0] && referencesOf[c.preset]?.length)) {
+  for (const record of referencesOf[c.preset]) for (const twin of [false, true]) {
+    const name = `${c.id}-${record.id}${twin ? '-twin' : ''}`;
+    const size = `${Math.round(MATCHED_HEIGHT * record.shot.aspect[0] / record.shot.aspect[1])}x${MATCHED_HEIGHT}`;
+    jobs.push({ id: c.id, preset: c.preset, seed: c.seed, view: record.shot.foliage === 'hidden' ? 'bare' : 'whole', reference: record.id, twin, shot: record.shot, size, provenance, png: join(out, `${name}.png`), result: join(out, `${name}.json`), capture_status: 'pending', visual_status: 'unassessed', owner_feedback: null });
+  }
+}
 const suffix = option('--case') ? `-${option('--case')}` : '';
 const capturesPath = join(out, `captures${suffix}.json`);
 await save(join(out, `capture-plan${suffix}.json`), jobs);
@@ -161,7 +231,7 @@ for (const [index, job] of jobs.entries()) {
   try {
     // Reuse only a matching successful receipt with its PNG still beside it.
     const old = await json(job.result);
-    if (old.id === job.id && old.view === job.view && old.seed === job.seed && old.capture_status === 'pass'
+    if (old.id === job.id && old.view === job.view && old.seed === job.seed && old.reference === job.reference && old.twin === job.twin && old.capture_status === 'pass'
       && old.provenance?.sourceSha256 === provenance.sourceSha256 && old.provenance?.binarySha256 === provenance.binarySha256
       && old.provenance?.runnerSha256 === provenance.runnerSha256 && old.pngSha256 === sha(await readFile(job.png))) {
       jobs[index] = old; await save(capturesPath, jobs); continue;
@@ -172,7 +242,7 @@ for (const [index, job] of jobs.entries()) {
   jobs[index] = done;
   await save(job.result, done);
   await save(capturesPath, jobs);
-  console.log(done.id, done.view, done.capture_status, done.report);
+  console.log(done.id, done.reference ? `${done.reference}${done.twin ? ' twin' : ''}` : done.view, done.capture_status, done.report);
 }
-await save(join(out, `summary${suffix}.json`), { protocol_status: 'unassessed', reason: 'Human trait inspection required; see REPORT.md. Missing/failed images never pass.', partial: !!option('--case'), numeric: cases.map(c => ({ id: c.id, status: c.numeric.numeric_status ?? 'unassessed' })), captures: jobs.map(j => ({ id: j.id, view: j.view, status: j.capture_status, path: j.png })), owner_feedback: null });
+await save(join(out, `summary${suffix}.json`), { protocol_status: 'unassessed', reason: 'Human trait inspection required; see REPORT.md. Missing/failed images never pass.', partial: !!option('--case'), numeric: cases.map(c => ({ id: c.id, status: c.numeric.numeric_status ?? 'unassessed' })), captures: jobs.map(j => ({ id: j.id, view: j.view, reference: j.reference ?? null, twin: j.twin ?? false, status: j.capture_status, path: j.png })), owner_feedback: null });
 process.exitCode = 1;

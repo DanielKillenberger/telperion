@@ -127,12 +127,21 @@ describe("toSkeletonParams", () => {
       limbRadius: DEFAULT_PARAMS.limbRadius,
       reach: DEFAULT_PARAMS.reach,
       laterals: 2,
+      generations: DEFAULT_PARAMS.twigGenerations,
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
       internodeFactor: DEFAULT_PARAMS.internodeFactor,
       angleVariation: DEFAULT_PARAMS.angleVariation,
       vigourVariation: DEFAULT_PARAMS.vigourVariation,
       lengthRatio: DEFAULT_PARAMS.lengthRatio,
+      hang: DEFAULT_PARAMS.hang,
+      pendulousLength: DEFAULT_PARAMS.pendulousLength,
+      pendulousRadius: DEFAULT_PARAMS.pendulousRadius,
+      curtainSeparation: DEFAULT_PARAMS.curtainSeparation,
+      sag: DEFAULT_PARAMS.sag,
+      pendulousVariation: DEFAULT_PARAMS.pendulousVariation,
+      curtainDrop: DEFAULT_PARAMS.curtainDrop,
+      curtainClearance: DEFAULT_PARAMS.curtainClearance,
     });
     expect(mapped.twigs).not.toHaveProperty("levels");
   });

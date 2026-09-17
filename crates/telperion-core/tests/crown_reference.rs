@@ -13,7 +13,7 @@ fn ordinary_and_giant_crowns() {
             height,
             ..Default::default()
         };
-        let points = envelope.sample(count, &mut Rng::new(seed)).unwrap();
+        let points = envelope.sample(count, &mut Rng::new(seed), seed).unwrap();
         let config = GrowthConfig {
             step_distance: height * 0.02,
             kill_distance: height * 0.04,
@@ -33,8 +33,10 @@ fn ordinary_and_giant_crowns() {
         );
         for n in tree.nodes.iter().skip(1) {
             let parent = &tree.nodes[n.parent.unwrap() as usize];
-            if parent.position.y >= config.trunk_height && envelope.contains(parent.position, 0.0) {
-                assert!(envelope.contains(n.position, 0.0));
+            if parent.position.y >= config.trunk_height
+                && envelope.contains(parent.position, 0.0, config.seed)
+            {
+                assert!(envelope.contains(n.position, 0.0, config.seed));
             }
         }
     }
@@ -68,6 +70,8 @@ fn compare_pinned_fn6_when_requested() {
             spread: e[2],
             fullness: e[3],
             shoulder: e[4],
+            irregularity: 0.0,
+            lobe_scale: 0.5,
         };
         let b = values(lines.next().unwrap());
         let bias = GrowthBias::new(
@@ -94,6 +98,7 @@ fn compare_pinned_fn6_when_requested() {
             max_nodes: c[4] as usize,
             max_turn_per_step: c[5],
             shell: Some(envelope),
+            seed: 0,
         };
         let count: usize = lines.next().unwrap().parse().unwrap();
         let points: Vec<_> = (0..count)
@@ -128,8 +133,10 @@ fn compare_pinned_fn6_when_requested() {
         println!("{id}: FN6={reference_count}, Rust={}, same_topology={same_topology}, max_position_delta={max_delta:e}, capped={}",tree.nodes.len(),tree.diagnostics.node_capped);
         for n in tree.nodes.iter().skip(1) {
             let parent = &tree.nodes[n.parent.unwrap() as usize];
-            if parent.position.y >= config.trunk_height && envelope.contains(parent.position, 0.0) {
-                assert!(envelope.contains(n.position, 0.0));
+            if parent.position.y >= config.trunk_height
+                && envelope.contains(parent.position, 0.0, config.seed)
+            {
+                assert!(envelope.contains(n.position, 0.0, config.seed));
             }
         }
     }

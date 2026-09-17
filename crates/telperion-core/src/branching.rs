@@ -15,7 +15,7 @@ use crate::{
     twigs::{branch_length, child_radius, TwigParams, MAX_LEVELS},
     Error, Result,
 };
-pub use local::append;
+pub use local::{append, in_band as in_curtain_band};
 pub use specimen::{
     ChangeRecord, PackedNode, PackedRead, Run, RunNode, Specimen, SpecimenBuffers, SpecimenRead,
 };
@@ -62,6 +62,7 @@ pub struct GrowthOverrides {
 impl SkeletonParams {
     pub fn resolved_growth(&self, scattered: usize) -> Result<GrowthConfig> {
         let mut c = default_growth(self.envelope, scattered, self.step);
+        c.seed = self.seed;
         let o = self.growth;
         if let Some(v) = o.influence_radius {
             c.influence_radius = v
@@ -132,7 +133,12 @@ pub fn default_growth(e: Envelope, attractors: usize, step: f64) -> GrowthConfig
 }
 fn headroom(tree: &Tree, c: &GrowthConfig, t: TwigParams) -> usize {
     fn nodes_for(radius: f64, length: f64, generation: usize, t: TwigParams, ratio: f64) -> usize {
-        if radius <= t.twig.diameter / 2.0 || length < t.twig.internode_length {
+        // The row bounds the depth before any radius does, so the estimate
+        // counts the same generations the law grows.
+        if radius <= t.twig.diameter / 2.0
+            || length < t.twig.internode_length
+            || generation >= t.generations as usize
+        {
             return 1;
         }
         if generation >= MAX_LEVELS {
@@ -160,6 +166,7 @@ fn headroom(tree: &Tree, c: &GrowthConfig, t: TwigParams) -> usize {
     for n in tree.nodes.iter().skip(1) {
         children[n.parent.unwrap() as usize] += 1
     }
+    let stem = tree.stem_radius(|i| tree.nodes[i].radius);
     let mut estimate = 0;
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
         if n.position.y < c.trunk_height {
@@ -169,7 +176,7 @@ fn headroom(tree: &Tree, c: &GrowthConfig, t: TwigParams) -> usize {
         if children[i] == 0 {
             estimate += nodes_for(n.radius, length, 0, t, ratio)
         }
-        if n.radius < t.limb_radius * tree.nodes[0].radius {
+        if n.radius < t.limb_radius * stem {
             estimate += t.laterals as usize
                 * nodes_for(
                     child_radius(n.radius, ratio, t.ratio_power),

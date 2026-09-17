@@ -1,5 +1,6 @@
 //! Named families. Change the seed separately to draw another specimen.
 mod materials;
+mod species;
 use crate::{
     bias::{BiasParams, SupernaturalParams},
     branching::{HabitParams, SkeletonParams},
@@ -14,6 +15,8 @@ pub enum Preset {
     Ordinary,
     OregonWhiteOak,
     NorwaySpruce,
+    EuropeanBeech,
+    SilverBirch,
     Telperion,
     Laurelin,
 }
@@ -54,6 +57,8 @@ impl Preset {
         match self {
             Self::OregonWhiteOak => Some("oregon-white-oak"),
             Self::NorwaySpruce => Some("norway-spruce"),
+            Self::EuropeanBeech => Some("european-beech"),
+            Self::SilverBirch => Some("silver-birch"),
             _ => None,
         }
     }
@@ -64,6 +69,8 @@ impl Preset {
             "ordinary" => Some(Self::Ordinary),
             "oregon-white-oak" => Some(Self::OregonWhiteOak),
             "norway-spruce" => Some(Self::NorwaySpruce),
+            "european-beech" => Some(Self::EuropeanBeech),
+            "silver-birch" => Some(Self::SilverBirch),
             "telperion" => Some(Self::Telperion),
             "laurelin" => Some(Self::Laurelin),
             _ => None,
@@ -91,6 +98,11 @@ impl Preset {
                 attractor_weight: 0.0,
                 twig_tip_taper: 0.25,
                 shedding_threshold: 0.0,
+                stems: 1,
+                stem_divergence: 0.0,
+                stem_lean: 0.0,
+                stem_lean_spread: 0.0,
+                stem_fork_height: 0.0,
             };
             p.skeleton.envelope = Envelope {
                 height: 24.0,
@@ -98,6 +110,8 @@ impl Preset {
                 spread: 0.55,
                 fullness: 0.55,
                 shoulder: 2.2,
+                irregularity: 0.0,
+                lobe_scale: 0.5,
             };
             p.skeleton.bias = BiasParams::NONE;
             p.skeleton.twigs.laterals = 4;
@@ -158,6 +172,11 @@ impl Preset {
                 attractor_weight: 0.0,
                 twig_tip_taper: 0.25,
                 shedding_threshold: 0.0,
+                stems: 1,
+                stem_divergence: 0.0,
+                stem_lean: 0.0,
+                stem_lean_spread: 0.0,
+                stem_fork_height: 0.0,
             };
             p.skeleton.envelope = Envelope {
                 height: 15.0,
@@ -165,11 +184,21 @@ impl Preset {
                 spread: 0.31,
                 fullness: 0.15,
                 shoulder: 1.0,
+                irregularity: 0.0,
+                lobe_scale: 0.5,
             };
             p.skeleton.bias = BiasParams::NONE;
             p.skeleton.twigs.twig.diameter = 0.002;
             p.skeleton.twigs.twig.internode_length = 0.0025;
             p.skeleton.twigs.twig.bearing_diameter = 0.02;
+            // The spruce's curtain, as rows. These four are the values the
+            // twig layer used while the curtain was a hidden mode: full hang,
+            // every shoot under a descending limb, the default twig length as
+            // the pendulous run, four degrees between neighbours.
+            p.skeleton.twigs.hang = 1.0;
+            p.skeleton.twigs.pendulous_length = 0.25;
+            p.skeleton.twigs.pendulous_radius = 1.0;
+            p.skeleton.twigs.curtain_separation = 4.0;
             p.radii.trunk_radius = 0.015;
             // A shaft that holds its width to the distal point, rolled all
             // the way round: four sides, four cross segments, no seam vertex
@@ -202,6 +231,14 @@ impl Preset {
             p.material = materials::spruce();
             return p;
         }
+        if self == Self::EuropeanBeech {
+            species::european_beech(&mut p);
+            return p;
+        }
+        if self == Self::SilverBirch {
+            species::silver_birch(&mut p);
+            return p;
+        }
         if self == Self::Ordinary {
             return p;
         }
@@ -226,6 +263,11 @@ impl Preset {
             attractor_weight: 1.0,
             twig_tip_taper: 1.0,
             shedding_threshold: 0.45,
+            stems: 1,
+            stem_divergence: 0.0,
+            stem_lean: 0.0,
+            stem_lean_spread: 0.0,
+            stem_fork_height: 0.0,
         };
         p.skeleton.envelope = if silver {
             Envelope {
@@ -234,6 +276,8 @@ impl Preset {
                 spread: 0.24,
                 fullness: 0.58,
                 shoulder: 1.5,
+                irregularity: 0.0,
+                lobe_scale: 0.5,
             }
         } else {
             Envelope {
@@ -242,6 +286,8 @@ impl Preset {
                 spread: 0.58,
                 fullness: 0.38,
                 shoulder: 3.2,
+                irregularity: 0.0,
+                lobe_scale: 0.5,
             }
         };
         p.skeleton.attractors = if silver { 1600 } else { 1060 };

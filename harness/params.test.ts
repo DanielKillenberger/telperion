@@ -118,7 +118,7 @@ describe("branch-law controls", () => {
 describe("carried native controls", () => {
   it("keeps the Ordinary baseline natural and every carried trait a number", () => {
     expect(DEFAULT_PARAMS.supernaturalEnabled).toBe(false);
-    /* The habit is the Ordinary row of the trait table, fifteen numbers
+    /* The habit is the Ordinary row of the trait table, twenty numbers
        and no tag. Written out rather than compared to itself: the panel
        shows the owner these values, and a row the core moves under it is
        a different default tree than the one the harness was tuned on. */
@@ -138,10 +138,23 @@ describe("carried native controls", () => {
       attractorWeight: 1,
       twigTipTaper: 1,
       sheddingThreshold: 0.45,
+      stems: 1,
+      stemDivergence: 0,
+      stemLean: 0,
+      stemLeanSpread: 0,
+      stemForkHeight: 0,
     });
     // The leaf and the way it sits on its shoot are rows as well.
     expect(DEFAULT_PARAMS.family.element).toMatchObject({ lobeCount: 0, lobeDepth: 0, sectionRoundness: 0 });
     expect(DEFAULT_PARAMS.family.canopy).toMatchObject({ forwardLean: 0, leanRise: 0, surfaceContact: 0 });
+    // Short shoots are canopy rows the panel renders as its own controls,
+    // neutral at a spacing of zero: no table grows one until it says so.
+    expect(DEFAULT_PARAMS.family.canopy).toMatchObject({
+      shortShootSpacing: 0, shortShootRadius: 0.15, shortShootLength: 0.04,
+      shortShootLeaves: 3, shortShootSpread: 45,
+    });
+    // So is the gap between limb systems, neutral at none.
+    expect(DEFAULT_PARAMS.family.canopy).toMatchObject({ limbClumping: 0 });
     expect(DEFAULT_PARAMS.family.element).not.toHaveProperty("anatomy");
     expect(DEFAULT_PARAMS.family.canopy).not.toHaveProperty("attachment");
     expect(SLIDERS.map(s => s.key)).not.toContain("family");
