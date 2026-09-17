@@ -36,13 +36,15 @@ const IDS: [&str; 7] = [
 /// unequal clump joined its table, and once in round 15, when its trunk
 /// thickened: the branch law gives thicker wood longer laterals, so the tree
 /// moves with the row at zero; and once more when fn-48.3 parted its clump a
-/// metre up the bole.
+/// metre up the bole. Round 26 re-records it once more, when the owner's
+/// verdict on the live renderer halved its limbs at a station, stood them
+/// steeper and cut its twig laterals back: its own table moved, not the row.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     18271545552042455757,
-    13826751970281171671,
+    15051712452983243828,
     12471405148157309180,
     14199367530911903060,
 ];
@@ -102,6 +104,16 @@ fn curtain(drop: f64) -> Family {
     // the branch law gives thicker wood longer laterals, which cuts more of
     // this crown's runs short against the shell.
     f.radii.trunk_radius = 0.01;
+    // And the crown those counts were read under: round 25's whorl and twig
+    // budget. Round 26 halved the birch's limbs at a station, stood them
+    // steeper and cut the twig laterals back, which leaves fewer shoots under
+    // the crown's footprint to fall at all. What the share below measures is
+    // the drop law, not how many shoots the shipped table hangs, so the four
+    // rows that decide the shoot count are held where they were read.
+    f.skeleton.habit.laterals_per_station = 4;
+    f.skeleton.habit.lateral_pitch = 62.0;
+    f.skeleton.twigs.laterals = 8;
+    f.skeleton.twigs.length_ratio = 0.6;
     f
 }
 
@@ -208,8 +220,9 @@ fn a_hanging_curtain_falls_into_its_band_at_half_and_whole_drop() {
         let below = fallen(&f, &grown);
         assert!(
             below.len() * 20 >= grown.nodes.len() - grown.crossover,
-            "seed {SEED} drop {drop}: only {} nodes fell past the shell",
-            below.len()
+            "seed {SEED} drop {drop}: only {} of {} nodes past the crossover fell past the shell",
+            below.len(),
+            grown.nodes.len() - grown.crossover
         );
         lowest.push(below.iter().map(|n| n.position.y).fold(f64::MAX, f64::min));
         if drop == 1.0 {

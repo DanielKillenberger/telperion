@@ -172,6 +172,14 @@
 //! blade is triangular with eight shallow notches a margin and thirty-two
 //! stations, against S-LEAF. The shell cull reads the blade, so nine more
 //! leaves stay; the skeleton and every other table are byte-identical.
+//! fn-34 round 26 re-pins the silver birch alone, once, on the owner's
+//! verdict in the live renderer: its leader bears two limbs at a station
+//! instead of four and they leave at 45 degrees from vertical instead of 62,
+//! so the lower crown is no longer rings of near-horizontal spokes; and its
+//! twig layer drops from eight laterals at 0.6 of the parent's length to
+//! seven at 0.55, so the interior is a crown and not a thicket. Its
+//! skeleton, placement, counts and bounds move; the element pin does not,
+//! and every other table is byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 use telperion_core::{
     branching,
@@ -248,13 +256,13 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 3769832,
-        wood_triangles: 7299400,
-        instances: 402711,
-        min: [-6.3495562107383, -0.07199999690055847, -7.554782867431641],
-        max: [7.237551856414349, 16.389118194580078, 6.1833086013793945],
-        skeleton: 7974363890308515130,
-        placement: 13979302139962734497,
+        wood_vertices: 2539930,
+        wood_triangles: 4926760,
+        instances: 261496,
+        min: [-6.533411344414747, -0.07199999690055847, -7.58635488410414],
+        max: [7.448466674116961, 14.669875796508304, 5.884177207946777],
+        skeleton: 14293807423691432719,
+        placement: 3902580876089393132,
         element: 1566806128915370638,
     },
 ];

@@ -40,13 +40,15 @@ const IDS: [&str; 7] = [
 /// the row. The birch's is re-recorded at the same merges, when fn-48's
 /// unequal clump joined its table, and once in round 15, when its trunk
 /// thickened and its curtain stopped short of the whole drop, and once more
-/// when fn-48.3 parted its clump a metre up the bole.
+/// when fn-48.3 parted its clump a metre up the bole, and once in round 26,
+/// when the owner's verdict on the live renderer halved its limbs at a
+/// station, stood them steeper and cut its twig laterals back.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     18271545552042455757,
-    7184822159316193366,
+    14298361432347924974,
     12471405148157309180,
     14199367530911903060,
 ];

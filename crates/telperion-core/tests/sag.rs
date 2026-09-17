@@ -48,13 +48,15 @@ const IDS: [&str; 7] = [
 /// re-records the birch's once: its trunk is thicker, and the branch law
 /// gives thicker wood longer laterals, so its tree moves with the row at any
 /// value. fn-48.3's birch parts its stems a metre up the bole, which moves
-/// its tree again.
+/// its tree again. Round 26 re-records it once more, when the owner's verdict
+/// on the live renderer halves the limbs at a station, stands them steeper and
+/// cuts the twig laterals back: its own table moved, not the neutral law.
 const NEUTRAL: [u64; 7] = [
     17046456021212146411,
     14986275773972546726,
     12735573889651776723,
     18271545552042455757,
-    4849608275268009039,
+    5186628886684853116,
     12471405148157309180,
     14199367530911903060,
 ];

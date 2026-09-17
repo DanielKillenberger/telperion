@@ -158,8 +158,16 @@ pub(super) fn silver_birch(p: &mut Family) {
         apical_dominance: 0.45,
         whorl_strength: 0.2,
         leader_internode: 1.6,
-        laterals_per_station: 4,
-        lateral_pitch: 62.0,
+        // From inside the lower crown the four limbs a station threw at 62
+        // degrees read as rings of near-horizontal spokes, one ring every
+        // internode from 2 m to 9 m (owner, round 26: "way too many branches
+        // in the middle"). A pair a station, leaving at 45 degrees, climbs
+        // beside the stem the way the photographs' limbs do, and the droop
+        // the owner sees in them is `rise_secondary` on the shoots they
+        // carry, not the angle they leave at. At seed 1 the lower crown's
+        // primaries fall from 27 to 13 and the tree from 174 to 82.
+        laterals_per_station: 2,
+        lateral_pitch: 45.0,
         pitch_variation: 14.0,
         rise_primary: 0.02,
         rise_secondary: -0.85,
@@ -215,8 +223,14 @@ pub(super) fn silver_birch(p: &mut Family) {
         lobe_scale: 0.25,
     };
     p.skeleton.bias = BiasParams::NONE;
-    p.skeleton.twigs.laterals = 8;
-    p.skeleton.twigs.length_ratio = 0.6;
+    // Eight laterals a station at 0.6 of the parent's length filled the
+    // interior with twigs no view from outside showed: 54,500 branches at
+    // seed 1, most of them at orders 4 and 5, and a leaf mass the S-WHOLE
+    // pair reads 12 grey levels darker in the middle than the photograph.
+    // Seven at 0.55 leave 33,500 and put that centre on the photograph's own
+    // 83, which is where the leaf spacing below was re-read and left alone.
+    p.skeleton.twigs.laterals = 7;
+    p.skeleton.twigs.length_ratio = 0.55;
     p.skeleton.twigs.twig.diameter = 0.003;
     p.skeleton.twigs.twig.length = 0.45;
     // A leaf every 60 mm of shoot: two stems carry two crowns' worth of
