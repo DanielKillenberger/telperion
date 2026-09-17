@@ -1,5 +1,5 @@
 {
-  "branch_name": "fn-34-the-silver-birch-as-a-real-species",
+  "branch_name": "fn-34-integration",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
   "created_at": "2026-09-14T13:23:15.741150Z",
@@ -45,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-17T22:21:54.771353Z"
+  "updated_at": "2026-09-17T22:22:42.669206Z"
 }
