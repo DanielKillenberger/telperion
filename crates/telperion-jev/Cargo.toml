@@ -1,0 +1,17 @@
+[package]
+name = "telperion-jev"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Shared Jev caller, ledger and evidence tools. Never a dependency of core, render or wasm."
+
+[[bin]]
+name = "jev"
+path = "src/bin/jev.rs"
+
+[dependencies]
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+ureq = { version = "2.12", default-features = true }

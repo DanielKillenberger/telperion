@@ -1,0 +1,227 @@
+[
+ {
+  "label": "claim: Norway spruce in the landscape: moderate to fast when young, about 23 m in 50 ye",
+  "expect": "supports",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Iowa State University Extension, Iowa trees: Norway spruce",
+     "url": "https://naturalresources.extension.iastate.edu/forestry/iowa_trees/trees/norway_spruce.html"
+    },
+    "claim": "Norway spruce in the landscape: moderate to fast when young, about 23 m in 50 years.",
+    "section": "tree requiring a fertile, moist soil. Hardiness:\u00a0 Zones 3b through 7 (can survive zone 8, but is not well adapted to those conditions) \n Norway Spruce Trees - Photos by Paul Wray, Iowa State University\u00a0 \n Growth Rate: \u00a0Moderate to fast, especially when young. (may grow to 75 feet in 50 years). Mature Shape: \u00a0Pyramidal with branches that hang down. Stiff when young, becoming more graceful with age. Height: \u00a075-100 feet\u00a0 Width: \u00a040-50 feet\u00a0 Site Requirements: \u00a0Adaptable, but prefers moist, cool areas. Often found around streams or lakes. Flowering Da"
+   },
+   "questions": {
+    "relation": {
+     "type": "choice",
+     "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+     "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "claim: Norway spruce is stiff when young, becoming more graceful with age.",
+  "expect": "supports",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Iowa State University Extension, Iowa trees: Norway spruce",
+     "url": "https://naturalresources.extension.iastate.edu/forestry/iowa_trees/trees/norway_spruce.html"
+    },
+    "claim": "Norway spruce is stiff when young, becoming more graceful with age.",
+    "section": "but is not well adapted to those conditions) \n Norway Spruce Trees - Photos by Paul Wray, Iowa State University\u00a0 \n Growth Rate: \u00a0Moderate to fast, especially when young. (may grow to 75 feet in 50 years). Mature Shape: \u00a0Pyramidal with branches that hang down. Stiff when young, becoming more graceful with age. Height: \u00a075-100 feet\u00a0 Width: \u00a040-50 feet\u00a0 Site Requirements: \u00a0Adaptable, but prefers moist, cool areas. Often found around streams or lakes. Flowering Dates:\u00a0 April - June Seed Dispersal Dates: \u00a0September - April Seed Bearing Age: \u00a030-50 years Seed Bearing Fr"
+   },
+   "questions": {
+    "relation": {
+     "type": "choice",
+     "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+     "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "claim: Norway spruce plantation: growth in the first ten years after planting is slow; ",
+  "expect": "supports",
+  "request": {
+   "state": {
+    "source": {
+     "title": "National Christmas Tree Association: Norway spruce variety page",
+     "url": "https://realchristmastrees.org/education/tree-varieties/norway-spruce/"
+    },
+    "claim": "Norway spruce plantation: growth in the first ten years after planting is slow; 8 to 11 years to reach a 1.8 to 2.1 m tree.",
+    "section": "rm can also cause damage to buds and foliage, but less so than for white or red spruce. For Christmas trees, overall color of Norway spruce is fair to excellent, but needle retention is considered poor unless the trees are cut fresh and kept properly watered. Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree. Range: Norway spruce has a rather extensive range in Europe, growing from Scandinavia to the Balkans to the Alps. It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet. Propagation: Most propagation is by seed. Rooting is difficu"
+   },
+   "questions": {
+    "relation": {
+     "type": "choice",
+     "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+     "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "claim: Norway spruce reaches a 1.8 to 2.1 m tree within five years of field planting.",
+  "expect": "contradicts",
+  "request": {
+   "state": {
+    "source": {
+     "title": "National Christmas Tree Association: Norway spruce variety page",
+     "url": "https://realchristmastrees.org/education/tree-varieties/norway-spruce/"
+    },
+    "claim": "Norway spruce reaches a 1.8 to 2.1 m tree within five years of field planting.",
+    "section": "rm can also cause damage to buds and foliage, but less so than for white or red spruce. For Christmas trees, overall color of Norway spruce is fair to excellent, but needle retention is considered poor unless the trees are cut fresh and kept properly watered. Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree. Range: Norway spruce has a rather extensive range in Europe, growing from Scandinavia to the Balkans to the Alps. It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet. Propagation: Most propagation is by seed. Rooting is difficu"
+   },
+   "questions": {
+    "relation": {
+     "type": "choice",
+     "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+     "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "claim: Stump sprouts reach up to 0.9 m a year for the first three years.",
+  "expect": "supports",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "claim": "Stump sprouts reach up to 0.9 m a year for the first three years.",
+    "section": "hite oak on better sites. Growth and Yield Growth of Oregon white oak is generally slow. Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in. Faster growth, particularly in diameter, is possible (3 to 10 rings/in.). Stump sprouts may grow as much as 3 ft per year during the first 3 years. Oregon white oak stands may achieve basal area of up to 265 ft2 per acre and volume as high as 4500 ft3 per acre. Interactions with Wildlife Oregon white oak trees and stands are very important for wildlife. Oak woodlands and forests provide food and habitat"
+   },
+   "questions": {
+    "relation": {
+     "type": "choice",
+     "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+     "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "claim: Wild seedlings put down a deep taproot and the shoot stays small and shrubby for",
+  "expect": "supports",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "claim": "Wild seedlings put down a deep taproot and the shoot stays small and shrubby for many years.",
+    "section": "atural regeneration from seed is often quite good where there has been soil disturbance, particularly in the absence of fire or grazing. Seedlings rapidly develop a deep taproot, which may account for their ability to establish in grass and in droughty soils. The shoot of natural seedlings often remains small and shrubby for many years, perhaps to accommodate development of deep roots. This is followed by a sapling stage with relatively rapid growth. Regeneration from seed is greatly improved when seeds are protected from rodents and other predators. Regeneration from Vegetative Sprouts Oregon white oak sprouts vigorously after cutting or f"
+   },
+   "questions": {
+    "relation": {
+     "type": "choice",
+     "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+     "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "claim: Open-grown Oregon white oak reaches 2.4 m in height at ten years of age.",
+  "expect": "says_nothing  <-- the O1 misuse",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "claim": "Open-grown Oregon white oak reaches 2.4 m in height at ten years of age.",
+    "section": ". The capability of a site for growing Oregon white oak should be evaluated by examining growth and form of older trees. Good potential for growth of this species is indicated by the following site characteristics: Top height on mature trees of at least 60 ft Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old Continuing diameter growth on mature trees. Climate Oregon white oak grows across a diverse range of climates, most of which have moderate to extreme summer drought and annual precipitation of 10 to 100 in. Within its range, mean daily temperatures may vary f"
+   },
+   "questions": {
+    "relation": {
+     "type": "choice",
+     "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+     "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "claim: Oregon white oak typically grows 1 to 2 ft per year between ages 10 and 30.",
+  "expect": "says_nothing or contradicts (it is a site criterion, not a typical rate)",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "claim": "Oregon white oak typically grows 1 to 2 ft per year between ages 10 and 30.",
+    "section": ". The capability of a site for growing Oregon white oak should be evaluated by examining growth and form of older trees. Good potential for growth of this species is indicated by the following site characteristics: Top height on mature trees of at least 60 ft Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old Continuing diameter growth on mature trees. Climate Oregon white oak grows across a diverse range of climates, most of which have moderate to extreme summer drought and annual precipitation of 10 to 100 in. Within its range, mean daily temperatures may vary f"
+   },
+   "questions": {
+    "relation": {
+     "type": "choice",
+     "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+     "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+     }
+    }
+   }
+  }
+ },
+ {
+  "label": "claim: Oregon white oak height growth is usually under 0.3 m a year.",
+  "expect": "supports",
+  "request": {
+   "state": {
+    "source": {
+     "title": "Oregon Wood Innovation Center, Oregon State University: Oregon white oak (Quercus garryana) species page",
+     "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana"
+    },
+    "claim": "Oregon white oak height growth is usually under 0.3 m a year.",
+    "section": "apling-sized stands can increase diameter growth. Mixed-species Stands Competitive associates such as Douglas-fir and bigleaf maple must be controlled to maintain Oregon white oak on better sites. Growth and Yield Growth of Oregon white oak is generally slow. Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in. Faster growth, particularly in diameter, is possible (3 to 10 rings/in.). Stump sprouts may grow as much as 3 ft per year during the first 3 years. Oregon white oak stands may achieve basal area of up to 265 ft2 per acre and volume as high as 4500 ft3 per acr"
+   },
+   "questions": {
+    "relation": {
+     "type": "choice",
+     "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+     "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+     }
+    }
+   }
+  }
+ }
+]

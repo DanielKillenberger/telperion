@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "spec": {
+    "type": "choice",
+    "instructions": "Which open spec in `open_specs` owns the defect the owner describes in `owner_observation`? Pick the spec whose scope the fix belongs to.",
+    "new_spec": "No open spec covers this defect; it needs a new spec"
+  },
+  "same_defect": {
+    "type": "noul",
+    "instructions": "Is `new_observation` a report of the same defect as `prior_finding`, so that filing it again would be a duplicate? Same defect means the same wrong form on the same tree, even if seen at a different age or seed; a different wrong form, or the same kind of form on a different part of the tree, is a different defect.",
+    "criteria": {
+      "true": "The two describe one wrong form: the same part of the tree, the same species, the same failure; a fix for one would fix the other",
+      "false": "A different part of the tree, a different failure, or a different species; a fix for one would leave the other"
+    }
+  },
+  "assessable": {
+    "type": "noul",
+    "instructions": "Does `observation` describe a defect clearly enough, against the owner's `standard`, to assign a severity score? False is the no-match: empty, vague, or unmatched notes stay unassessed.",
+    "criteria": {
+      "true": "The observation names a visible defect and the standard gives enough to score it",
+      "false": "The observation is empty, too vague, or the standard does not address it; severity cannot be assigned"
+    }
+  },
+  "severity": {
+    "type": "score",
+    "instructions": "How severe is the defect in `observation` against the owner's standard in `standard`, for a spec whose acceptance rests on the owner's eye? Weigh the owner's words in `standard` above how striking the form looks on its own: a defect the standard calls minor, otherwise continuous, or gone by a later age is cosmetic; a form the owner has already rejected by name is blocking; a wrong form that is visible but not rejected is noticeable.",
+    "criteria": [
+      {
+        "summary": "Cosmetic: a small local blemish the owner did not name and that resolves on its own within a few years of growth",
+        "signals": ["minor", "otherwise continuous", "gone by a later age"]
+      },
+      {
+        "summary": "Noticeable: a wrong form visible at the hero pose that a viewer would remark on, but the tree still reads as the species and age",
+        "signals": ["visible at one age", "one seed"]
+      },
+      {
+        "summary": "Blocking: a form the owner has already rejected by name, or one that makes the tree read as a different tree or age",
+        "signals": ["owner rejected", "regression", "does not read as the species"]
+      }
+    ]
+  }
+}

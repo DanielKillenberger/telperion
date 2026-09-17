@@ -8,6 +8,8 @@ dist
 
 # Raw species-measure receipts stay on disk; summaries are committed.
 .flow/evidence/fn34/measure/
+# Jev ledger entries are per-run records, not source.
+.flow/ledger/
 
 # Rust outputs and reproducible migration artifacts.
 /target/

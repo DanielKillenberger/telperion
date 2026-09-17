@@ -1,0 +1,82 @@
+[
+  {
+    "id": "spruce-23m-50y",
+    "claim": "Norway spruce in the landscape: moderate to fast when young, about 23 m in 50 years.",
+    "section": "Growth Rate: Moderate to fast, especially when young. (may grow to 75 feet in 50 years).",
+    "expect_relation": "supports",
+    "true_claim": true,
+    "height_at_age": true,
+    "expect_kind": "measured_size_at_age"
+  },
+  {
+    "id": "spruce-stiff",
+    "claim": "Norway spruce is stiff when young, becoming more graceful with age.",
+    "section": "Mature Shape: Pyramidal with branches that hang down. Stiff when young, becoming more graceful with age.",
+    "expect_relation": "supports",
+    "true_claim": true,
+    "height_at_age": false
+  },
+  {
+    "id": "spruce-plantation",
+    "claim": "Norway spruce plantation: growth in the first ten years after planting is slow; 8 to 11 years to reach a 1.8 to 2.1 m tree.",
+    "section": "Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree.",
+    "expect_relation": "supports",
+    "true_claim": true,
+    "height_at_age": true,
+    "expect_kind": "measured_size_at_age"
+  },
+  {
+    "id": "spruce-five-years",
+    "claim": "Norway spruce reaches a 1.8 to 2.1 m tree within five years of field planting.",
+    "section": "Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree.",
+    "expect_relation": "contradicts",
+    "true_claim": false,
+    "height_at_age": true,
+    "expect_kind": "measured_size_at_age"
+  },
+  {
+    "id": "oak-sprouts",
+    "claim": "Stump sprouts reach up to 0.9 m a year for the first three years.",
+    "section": "Stump sprouts may grow as much as 3 ft per year during the first 3 years.",
+    "expect_relation": "supports",
+    "true_claim": true,
+    "height_at_age": false
+  },
+  {
+    "id": "oak-seedlings",
+    "claim": "Wild seedlings put down a deep taproot and the shoot stays small and shrubby for many years.",
+    "section": "The shoot of natural seedlings often remains small and shrubby for many years, perhaps to accommodate development of deep roots.",
+    "expect_relation": "supports",
+    "true_claim": true,
+    "height_at_age": false
+  },
+  {
+    "id": "o1-misuse",
+    "claim": "Open-grown Oregon white oak reaches 2.4 m in height at ten years of age.",
+    "section": "Good potential for growth of this species is indicated by the following site characteristics: Top height on mature trees of at least 60 ft Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old Continuing diameter growth on mature trees.",
+    "expect_relation": "supports",
+    "expect_confidence": 0.26,
+    "true_claim": false,
+    "height_at_age": true,
+    "expect_kind": "site_quality_criterion",
+    "list_for_owner": true
+  },
+  {
+    "id": "o1-as-typical",
+    "claim": "Oregon white oak typically grows 1 to 2 ft per year between ages 10 and 30.",
+    "section": "Good potential for growth of this species is indicated by the following site characteristics: Top height on mature trees of at least 60 ft Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old Continuing diameter growth on mature trees.",
+    "expect_relation": "supports",
+    "true_claim": false,
+    "height_at_age": false,
+    "expect_kind": "site_quality_criterion",
+    "list_for_owner": true
+  },
+  {
+    "id": "oak-usual-rate",
+    "claim": "Oregon white oak height growth is usually under 0.3 m a year.",
+    "section": "Growth of Oregon white oak is generally slow. Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in.",
+    "expect_relation": "supports",
+    "true_claim": true,
+    "height_at_age": false
+  }
+]

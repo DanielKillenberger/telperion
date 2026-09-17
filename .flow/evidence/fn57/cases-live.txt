@@ -1,0 +1,69 @@
+## screen kind
+id	expected	answered	top_p	conf	ledger	hit
+owic-mature	mature_size_range	mature_size_range	1.00	1.00	screen:18d5ccad31011d39-69959-0	true
+owic-longevity	not_about_tree_size	not_about_tree_size	1.00	1.00	screen:18d5ccad52e44a89-69959-1	true
+o1	site_quality_criterion	site_quality_criterion	1.00	0.99	screen:18d5ccad74db914d-69959-2	true
+owic-elevation	not_about_tree_size	not_about_tree_size	1.00	1.00	screen:18d5ccad96e07b12-69959-3	true
+owic-typical-rate	typical_growth_rate	typical_growth_rate	1.00	1.00	screen:18d5ccadb95d717a-69959-4	true
+owic-sprouts	sprout_cultivar_or_nursery	sprout_cultivar_or_nursery	1.00	1.00	screen:18d5ccaddb1a7260-69959-5	true
+owic-posts	not_about_tree_size	not_about_tree_size	1.00	1.00	screen:18d5ccadfcd45d4e-69959-6	true
+iastate-75-in-50	measured_size_at_age	measured_size_at_age	0.85	0.82	screen:18d5ccae1ecd17d6-69959-7	true
+iastate-mature	mature_size_range	mature_size_range	1.00	1.00	screen:18d5ccae4165dea7-69959-8	true
+ncta-6-7-foot	measured_size_at_age	measured_size_at_age	0.97	0.96	screen:18d5ccae6384e476-69959-9	true
+ncta-europe	mature_size_range	mature_size_range	1.00	1.00	screen:18d5ccae8627b2a3-69959-a	true
+ncta-elevation	not_about_tree_size	not_about_tree_size	1.00	1.00	screen:18d5ccaea87b6304-69959-b	true
+accuracy 12/12 (pilot 12)  conf min=0.82 median=1.00 max=1.00
+
+## select
+id	expected	answered	top_p	conf	ledger	hit
+owic-mature-height	50 to 90 ft	50 to 90 ft	1.00	1.00	select:18d5ccaecb29a0b6-69959-c	true
+owic-height-at-10y	none	none	0.54	0.47	select:18d5ccaeed11fd02-69959-d	true
+owic-lifespan	500 years	500 years	0.88	0.86	select:18d5ccaf0f22c76d-69959-e	true
+ncta-young-height	6-7 foot	6-7 foot	0.98	0.97	select:18d5ccaf31188159-69959-f	true
+ncta-young-age	8 to 11 years	8 to 11 years	1.00	1.00	select:18d5ccaf5364e357-69959-10	true
+accuracy 5/5 (pilot 5)  conf min=0.47 median=0.97 max=1.00
+
+## cite compose
+id	expected	answered	top_p	conf	ledger	hit
+spruce-23m-50y	pass	pass supports pass	1.00	1.00	cite:18d5ccaf7519ecd3-69959-11	true
+spruce-stiff	pass	pass supports pass	0.99	0.99	cite:18d5ccafc69ec925-69959-13	true
+spruce-plantation	pass	pass supports pass	1.00	1.00	cite:18d5ccafe8c1b236-69959-14	true
+spruce-five-years	OWNER	OWNER contradicts contradicts	0.95	0.95	cite:18d5ccb02e3dc814-69959-16	true
+oak-sprouts	pass	pass supports pass	0.99	0.99	cite:18d5ccb0720b5901-69959-18	true
+oak-seedlings	pass	pass supports pass	0.98	0.98	cite:18d5ccb0b74f7c84-69959-1a	true
+o1-misuse	OWNER	OWNER supports confidence 0.20 below 0.8	0.20	0.20	cite:18d5ccb0d8e6f101-69959-1b	true
+o1-as-typical	OWNER	OWNER supports source sentence is a site-quality criterion	0.97	0.97	cite:18d5ccb11cd67a29-69959-1d	true
+oak-usual-rate	pass	pass supports pass	0.94	0.94	cite:18d5ccb1604cb119-69959-1f	true
+accuracy 9/9 (pilot 9)  conf min=0.20 median=0.98 max=1.00
+
+## triage route
+id	expected	answered	top_p	conf	ledger	hit
+hollow	fn-31	fn-31	0.45	0.45	triage:18d5ccb1a6e07d18-69959-21	true
+pass-through	fn-4	fn-4	0.99	0.99	triage:18d5ccb1c9018511-69959-22	true
+seedling-leaves	fn-43	fn-43	1.00	1.00	triage:18d5ccb1eac7e2e6-69959-23	true
+flat-bark	fn-29	fn-29	1.00	1.00	triage:18d5ccb20d7298b7-69959-24	true
+straight-rays	fn-31|fn-21	fn-21	0.44	0.44	triage:18d5ccb22f9ad664-69959-25	true
+scroll-jumps	fn-28	fn-28	1.00	1.00	triage:18d5ccb251fa3684-69959-26	true
+node-cap	fn-53	fn-53	0.99	0.99	triage:18d5ccb2732fb150-69959-27	true
+pruning-heal	fn-16	fn-16	0.99	0.99	triage:18d5ccb294d66642-69959-28	true
+accuracy 8/8 (pilot 8)  conf min=0.44 median=0.99 max=1.00
+
+## triage duplicate
+id	expected	answered	top_p	conf	ledger	hit
+bush-shrub	true	0.77	0.77	0.77	triage:18d5ccb2d8833db1-69959-2a	true
+bottle-bell	true	0.80	0.80	0.80	triage:18d5ccb31cea666e-69959-2c	true
+hollow-tuft	false	0.08	0.08	0.08	triage:18d5ccb360de924f-69959-2e	true
+tuft-umbrella	false	0.23	0.23	0.23	triage:18d5ccb3c3f62615-69959-30	true
+gangly-rays	false	0.44	0.44	0.44	triage:18d5ccb4077e35d5-69959-32	true
+bottle-bush	false	0.17	0.17	0.17	triage:18d5ccb44c57f91f-69959-34	true
+hollow-umbrella	false	0.08	0.08	0.08	triage:18d5ccb4b024c504-69959-36	true
+accuracy 2/7 (pilot 2)  conf min=0.08 median=0.23 max=0.80
+true pairs above every negative: true
+
+## triage severity
+id	expected	answered	top_p	conf	ledger	hit
+hollow	cosmetic	cosmetic 0.01	0.01	0.01	triage:18d5ccb4f4ea9402-69959-38	true
+bush	blocking	blocking 2.00	2.00	2.00	triage:18d5ccb545c7ae42-69959-3a	true
+bottle	blocking	blocking 1.94	1.94	1.94	triage:18d5ccb58a060bdf-69959-3c	true
+rays	noticeable	noticeable 1.83	1.83	1.83	triage:18d5ccb5cdde86bf-69959-3e	true
+accuracy 4/4 (pilot 4)  conf min=0.01 median=1.89 max=2.00

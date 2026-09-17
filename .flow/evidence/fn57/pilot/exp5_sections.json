@@ -1,0 +1,84 @@
+[
+ {
+  "label": "sections of fn30 REPORT.md",
+  "expect": "The references / Owner verdict / The curves and their composition",
+  "request": {
+   "state": {
+    "report": {
+     "Protocol": "Native release builds, seed 7, full preset geometry, annual fn-11 slices and\npinned libm arithmetic. The host measured the trees with `growth_curve`; its\nJSONL files are in the scratch directory named below. Height is the highest\nwood node above the root. DBH is the diameter interpolated at 1.3 m above the\nroot along the thickest structural continuation. It is a trunk measurement,\nnot a maximum branch radius. Skeleton bounds exclude bark and foliage; mesh\nbounds in the identity table include both. The reference ages have decimal\nlabels, but the simulator completes whole yearly slices with no interpolation.\n\nThe host's `curves.py` fits the continuous envelope fraction. This report uses\nmeasur",
+     "The references": "The five files below are the host's fetched bytes in `scratchpad/refs/`.\nSHA-256 and byte counts were recomputed locally. The PDF text extractions are\n`ertrag.txt`, `gould.txt` and `utd.txt`. The script transcribes equations and\ntables from those sources. Source documents remain outside the repository.\n\n| ID | File | Source | SHA-256 | Bytes |\n|---|---|---|---|---:|\n| E1 | `ertragstafeln.pdf` | [Bavarian yield-table extracts, J\u00fcttner 1955 oak and Wiedemann 1936/42 spruce](https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf) | `c6c7d6558fe6f8157c2fea3a67e8aaed133902b18446eb32275972fc2a5f9885` | 351,827 |\n| G1 | `gould2011.pdf` |",
+     "The curves and their composition": "Oak height uses E1 J\u00fcttner oak site class II, a Quercus robur/petraea proxy.\nS1's forest-grown 24 m at 95 to 135 years motivates that class. This remains a\nstand-height proxy, with no measured conversion to open-grown height. Oak DBH\nstarts at E1 site class I's 7.2 cm at age 30. Thereafter G1's open-grown case\nsets BA and BAL to zero and integrates one tenth of its decade change in\nsquared DBH each year, at Douglas-fir site index 35 m. The anchor and integration\nare composition choices, not measurements of a 30-year-old open-grown Garry oak.\nBefore age 30 both oak dimensions extend linearly from zero to their first\nanchor. Gould DBH uses the nearest integer year. Its worked 40 cm case yields",
+     "The calibration and derived mature ages": "The grid search minimizes squared log height error at the first three ages,\nwith rate steps of 0.001 and shape steps of 0.1. It leaves the host's selected\ntraits unchanged. It does not fit DBH independently because fn-11 gives the\ntrunk radius the live envelope's scale. Changing rate and shape moves height\nand diameter together. The reference ratios in the table vary with age;\nthe generated ratios stay near 28 for oak and 35 for spruce after establishment.\n\n| Family | growth.rate | growth.shape | Derived mature age y | Shedding threshold |\n|---|---:|---:|---:|---:|\n| Oregon white oak | 0.032 | 2.0 | 432 | 0 |\n| Norway spruce | 0.091 | 3.4 | 158 | 0 |\n| Ordinary | 0.08 | 2.0 | 173 | 0 |\n| Tel",
+     "The convergence numbers": "This section was written before any identity literal moved. The host's\n`gc-oak.jsonl` and `gc-spruce.jsonl` compare derived-mature growth with the legacy\none-shot build at seed 7 and identical calibrated parameter values.\n\n| Species / build | Nodes | Crossover | Min node bounds m (x,y,z) | Max node bounds m (x,y,z) | Height m | Trunk DBH m |\n|---|---:|---:|---|---|---:|---:|\n| oak / growth | 196,901 | 5,394 | (-12.571036278, 0.000000000, -13.000525755) | (13.162611849, 23.729754716, 12.981341126) | 23.729754716 | 0.835594895 |\n| oak / one-shot | 139,040 | 3,602 | (-13.104248136, 0.000000000, -13.189332654) | (13.154735324, 23.463097053, 12.882966674) | 23.463097053 | 0.836387092 |\n| spruce /",
+     "The re-pin": "The production skeleton and placement hashes change because the grown tree\nhas the node populations and positions measured above. Every assertion remains\nexact. Surface sweeps follow the changed segment population, so oak wood vertices\nrise about 40.00 percent and spruce vertices fall about 12.89 percent. Living\nshoots determine cohort placements; oak instances rise 35.19 percent and spruce\ninstances fall 22.09 percent. Bark/leaf-inclusive bounds follow the new wood and\nplacements. The unchanged leaf elements keep their old hashes.\n\n| Pin | Oak old | Oak new | Spruce old | Spruce new |\n|---|---|---|---|---|\n| wood_vertices | `4262170` | `5966860` | `2888144` | `2515982` |\n| wood_triangles | ",
+     "What fn-11 measured": "Native three-build medians from [fn-11's report](../fn11/REPORT.md), carried\nwithout rerunning or relabelling them as calibrated costs.\n\n| Operation | Oak | Spruce | Commit |\n|---|---:|---:|---|\n| One-shot envelope | 67.8 ms | 37.1 ms | 2fd2668 |\n| Mature growth, 173 yearly slices | 1,273.5 ms | 932.9 ms | 972bace, 2fd2668 |\n| Sparse yearly advance | 13.4 ms | 20.6 ms | 2fd2668 |\n| Of which change record | 5.5 ms | 12.7 ms | 2fd2668 |\n| Sparse record plus packed read | 6.6 ms | 13.3 ms | 2fd2668 |\n| Few-change yearly advance | 6.6 ms | 4.9 ms | 2fd2668 |\n| Earlier-age read, mature tree | 262.3 ms | 2,314.7 ms | 2fd2668 |\n| Snapshot round trip | 320.7 ms, 121.9 MB | unmeasured | 972bace |\n\nBe",
+     "The mature build cost after calibration": "The existing `tolerance_cost_report` measures `Specimen::build` directly at\nthe traits' derived maturity, seed 7, with the production resize tolerance of\n0.0001 m. The command and its unedited output are in `/tmp/fn30-cost.log`.\n\n```sh\nFN11_TOLERANCE=0.0001 cargo test --release -p telperion-core --lib tolerance_cost_report -- --nocapture\n```\n\n| Species | Age y | Build samples ms | Median ms | Nodes | Radius keyframes |\n|---|---:|---|---:|---:|---:|\n| Oak | 432 | 2544.243810, 2446.199166, 2463.322165 | 2463.322165 | 196,901 | 1,996,669 |\n| Spruce | 158 | 877.680822, 866.292811, 867.473470 | 867.473470 | 76,386 | 243,028 |\n\nOak costs 1.93 times fn-11's 1273.5 ms mature build; spruce costs 0.93",
+     "The strips and the stills": "The host rendered every still through the headless example on an NVIDIA GeForce RTX 3080 at 4 samples a pixel, seed 7, with `--age` selecting the production growth path. Frames: `target/release/examples/headless --preset <id> --seed 7 --age <years> --size 700x1000 --out .flow/evidence/fn30/strips/<id>-age-<years>.png`, six per species (oak 10, 26.7, 56.1, 112, 200, 432 years; spruce 5, 14.1, 26.6, 36.9, 60, 158 years), composed with `montage -tile 6x1 -geometry +4+0` into the two strips below; the individual frames stay on disk under `strips/` and are gitignored. The mature heroes use fn-14's command (`--size 1600x1000`, no `--age`, so the preset's derived mature age), and the beside-fn-14 m",
+     "Deviations the owner may judge": "R1's DBH misses remain visible in the curve table, including the envelope-age\nmisses. At numerical maturity the extrapolated height targets also fail.\nA fitted stand-height proxy and a mixed-species oak diameter anchor do not\nestablish open-grown biological age. The owner may reject the reference\ncomposition, the model's fixed height-to-diameter coupling, or both.\n\nThe vigour proxy divides exposure by `1 + rate * node age` without a floor.\nWith a nonzero shedding threshold, every inactive shoot eventually falls\nbelow it. The host measured Ordinary falling from 28,401 nodes at age 25 to\n33 at 100, Telperion from 115,602 at 50 to 30 at 125, and Laurelin from 149,102\nat 50 to 169 at 173 with th",
+     "Gates": "The implementer ran these commands. Full unedited logs are at the absolute\npaths below. The renderer crate was linted but its tests were left to the host.\n\n| Command | Exit | Result / log |\n|---|---:|---|\n| `cargo fmt --all -- --check` | 0 | No output; `/tmp/fn30-fmt.log` |\n| `cargo clippy --workspace --all-targets -- -D warnings` | 0 | `/tmp/fn30-clippy.log` |\n| `cargo test --release -p telperion-core -p telperion-wasm` | 0 | 224 passed, 0 failed, 7 ignored across all targets; `/tmp/fn30-core-wasm-test.log` |\n| `npm run wasm:build` | 0 | Built Wasm and regenerated Rust family metadata; `/tmp/fn30-wasm-build.log` |\n| `npm run --ignore-scripts typecheck` | 0 | `/tmp/fn30-typecheck.log` |\n| `n",
+     "Verdicts": "R1 is blocked. All three fitted heights meet 15 percent; DBH does not. No owner\nacceptance of these misses has been supplied. Derived-maturity extrapolations\nalso miss, and remain contextual rather than validated open-grown targets.\n\nR2 has production routing, convergence evidence and one exact core re-pin.\nThe production identity test passes with both leaf elements unchanged. The host\nowns the remaining GPU validation and the final verdict.\n\nR3 awaits the host's strips and mature stills and the owner's words.\n\nR4's report is supplied with references, per-age composition, fn-11 costs,\ncalibrated CPU costs, convergence, pin results, deviations and GPU command/file\nplaceholders. The host suppl",
+     "Owner verdict": "Recorded 2026-09-14 from the owner's words in the host session, judged on the age strips served as a page (https://claude.ai/code/artifact/b45a1d55-4995-47f5-acdd-5356c549b568).\n\n- Reference composition and R1 diameter deviations: deferred. The owner judged the diameter miss a growth-rule defect (fixed slenderness), not a reference question, and moved it to the growth-rule spec that follows fn-30.\n- Derived-maturity interpretation and convergence: deferred to the same spec, which owns the rule that sets the derived ages.\n- Oak age strip and mature still beside fn-14: **rejecting.** Owner: \"the 10yo one is way too low quality and i'm not convinced that the 26yo looks like that either? This ca"
+    }
+   },
+   "questions": {
+    "reference_table": {
+     "type": "choice",
+     "instructions": "Which section of `report` holds the table of fetched reference source files with their SHA-256 and byte counts?",
+     "criteria": {
+      "Protocol": null,
+      "The references": null,
+      "The curves and their composition": null,
+      "The calibration and derived mature ages": null,
+      "The convergence numbers": null,
+      "The re-pin": null,
+      "What fn-11 measured": null,
+      "The mature build cost after calibration": null,
+      "The strips and the stills": null,
+      "Deviations the owner may judge": null,
+      "Gates": null,
+      "Verdicts": null,
+      "Owner verdict": null
+     }
+    },
+    "owner_slot": {
+     "type": "choice",
+     "instructions": "Which section of `report` is the slot where the owner records a verdict?",
+     "criteria": {
+      "Protocol": null,
+      "The references": null,
+      "The curves and their composition": null,
+      "The calibration and derived mature ages": null,
+      "The convergence numbers": null,
+      "The re-pin": null,
+      "What fn-11 measured": null,
+      "The mature build cost after calibration": null,
+      "The strips and the stills": null,
+      "Deviations the owner may judge": null,
+      "Gates": null,
+      "Verdicts": null,
+      "Owner verdict": null
+     }
+    },
+    "composition": {
+     "type": "choice",
+     "instructions": "Which section of `report` explains how the height and diameter curves were composed from the sources, including stand-grown fallbacks?",
+     "criteria": {
+      "Protocol": null,
+      "The references": null,
+      "The curves and their composition": null,
+      "The calibration and derived mature ages": null,
+      "The convergence numbers": null,
+      "The re-pin": null,
+      "What fn-11 measured": null,
+      "The mature build cost after calibration": null,
+      "The strips and the stills": null,
+      "Deviations the owner may judge": null,
+      "Gates": null,
+      "Verdicts": null,
+      "Owner verdict": null
+     }
+    }
+   }
+  }
+ }
+]
