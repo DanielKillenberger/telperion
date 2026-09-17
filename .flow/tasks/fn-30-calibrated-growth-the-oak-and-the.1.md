@@ -10,8 +10,8 @@ TBD
 Every R-ID in the parent spec's ## Acceptance Criteria is satisfied; judge this task against the spec's criteria directly.
 
 ## Done summary
-TBD
-
+Blocked:
+Shelved 2026-09-18. Growth over time is a hidden feature since fn-65: the mature tree is the product and the harness draws the direct build. This task resumes only when the owner un-hides growth. The round history above is the resume point.
 ## Evidence
 - Commits:
 - Tests:
