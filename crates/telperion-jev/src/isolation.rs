@@ -54,7 +54,7 @@ fn walk(dir: &Path, repo_root: &Path, hits: &mut Vec<IsolationHit>) {
         let path = entry.path();
         if path.is_dir() {
             let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-            if name == "target" || name == "node_modules" || name == "render" {
+            if name == "target" || name == "node_modules" {
                 continue;
             }
             walk(&path, repo_root, hits);

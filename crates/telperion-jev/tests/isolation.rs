@@ -38,3 +38,33 @@ fn failure_names_the_file_and_the_rule() {
         "{message}"
     );
 }
+
+#[test]
+fn a_render_subdirectory_of_the_browser_source_is_scanned() {
+    let root = std::env::temp_dir().join(format!(
+        "jev-isolation-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    let dir = root.join("src/browser/render");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(
+        dir.join("bindings.ts"),
+        format!("const endpoint = \"{ENDPOINT}\";\n"),
+    )
+    .unwrap();
+
+    let hits = scan(&root);
+    std::fs::remove_dir_all(&root).ok();
+
+    assert_eq!(
+        hits,
+        vec![IsolationHit {
+            file: PathBuf::from("src/browser/render/bindings.ts"),
+            marker: ENDPOINT.to_string(),
+        }]
+    );
+}
