@@ -1,7 +1,10 @@
+---
+satisfies: [R1, R2, R3, R4]
+---
 # fn-65-mature-trees-are-the-product-growth-is.1 Implement mature trees as the product; growth hidden
 
 ## Description
-TBD
+The harness draws the direct build by default; the growth path is reachable only behind ?growth=1; the owner's rule is recorded in CLAUDE.md.
 
 ## Acceptance
 - [ ] TBD
