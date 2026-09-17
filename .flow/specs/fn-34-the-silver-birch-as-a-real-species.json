@@ -32,7 +32,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-34-the-silver-birch-as-a-real-species.md",
-  "status": "open",
+  "status": "done",
   "title": "The silver birch as a real species",
   "tracker": {
     "baseHashFlow": null,
@@ -45,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-17T22:22:42.669206Z"
+  "updated_at": "2026-09-17T22:30:42.043198Z"
 }
