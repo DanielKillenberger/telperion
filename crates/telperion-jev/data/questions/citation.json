@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "relation": {
+    "type": "choice",
+    "instructions": "How does `section` relate to `claim`? The claim was written by a research agent summarizing the source; unit conversions (feet to metres) are acceptable paraphrase.",
+    "criteria": {
+      "supports": "The section states the claim or directly implies that it is true",
+      "contradicts": "The section states the opposite of the claim or implies it is false",
+      "says_nothing": "The section does not address what the claim asserts, either way"
+    }
+  }
+}

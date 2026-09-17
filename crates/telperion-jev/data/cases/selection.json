@@ -1,0 +1,32 @@
+[
+  {
+    "id": "owic-mature-height",
+    "document": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum). Oregon white oaks may live 500 years. Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old.",
+    "question": "Which candidate span states the height of a mature Oregon white oak under ordinary conditions (not the maximum)?",
+    "expect_span": "50 to 90 ft"
+  },
+  {
+    "id": "owic-height-at-10y",
+    "document": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum). Oregon white oaks may live 500 years. Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old.",
+    "question": "Which candidate span states the height an Oregon white oak has reached at ten years of age?",
+    "expect_span": "none"
+  },
+  {
+    "id": "owic-lifespan",
+    "document": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum). Oregon white oaks may live 500 years.",
+    "question": "Which candidate span states how long an Oregon white oak may live?",
+    "expect_span": "500 years"
+  },
+  {
+    "id": "ncta-young-height",
+    "document": "Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree.",
+    "question": "Which candidate span is the height a Norway spruce reaches at a stated age after field planting?",
+    "expect_span": "6-7 foot"
+  },
+  {
+    "id": "ncta-young-age",
+    "document": "Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree.",
+    "question": "Which candidate span is the age at which a field-planted Norway spruce reaches 6 to 7 feet?",
+    "expect_span": "8 to 11 years"
+  }
+]

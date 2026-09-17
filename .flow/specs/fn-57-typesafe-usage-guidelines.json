@@ -1,0 +1,141 @@
+{
+  "branch_name": "fn-57-typesafe-usage-guidelines",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-16T08:39:50.228132Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-57-typesafe-usage-guidelines",
+  "impl_review_rounds": {
+    "fn-57-typesafe-usage-guidelines.1": 1
+  },
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "c037872fa267dbf6371b3771d62f71bcfc6f900a8d5d0c2bfbd6c8866f86f933",
+      "backend": "cursor",
+      "base_sha": "65d3f531f6cd2cdd89e6e6d82826a711583707e2",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "cursor",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-70bf7051ac40c82c086a38d21c9a7e47",
+            "classification": "introduced",
+            "findingId": "finding-70bf7051ac40c82c086a38d21c9a7e47",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-07c62e1793bda832fcd10adbd61bb26f",
+            "classification": "introduced",
+            "findingId": "finding-07c62e1793bda832fcd10adbd61bb26f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d44a963d43022c9ff01d027bd69973d8",
+            "classification": "introduced",
+            "findingId": "finding-d44a963d43022c9ff01d027bd69973d8",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-13d91984c11d92408c746c109ae798d4",
+            "classification": "introduced",
+            "findingId": "finding-13d91984c11d92408c746c109ae798d4",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-79a6d2eeb1057b2f094a2f0c5eee10e3",
+            "classification": "introduced",
+            "findingId": "finding-79a6d2eeb1057b2f094a2f0c5eee10e3",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f2840b4e0f8ee1acac5b61413e7d1aba",
+            "classification": "introduced",
+            "findingId": "finding-f2840b4e0f8ee1acac5b61413e7d1aba",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8b5590dd06ec99ec07a1a0ac066c2c14",
+            "classification": "introduced",
+            "findingId": "finding-8b5590dd06ec99ec07a1a0ac066c2c14",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-74cf295e7a0fe92a2b0b05216427eb04",
+            "classification": "introduced",
+            "findingId": "finding-74cf295e7a0fe92a2b0b05216427eb04",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0d047ebfcf84211fd7043e2bb77a3325ea0afa2e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol-high",
+      "outcome": "verdict",
+      "output_bytes": 5038,
+      "output_sha256": "7b3e3ef6d39f098155b3e6733454613ce5e500586e8b8491ac48943cdb9f0cad",
+      "reservation_id": "54dba9c627724783a88f40f813b28b3c",
+      "round_consumed": true,
+      "scope": "impl:fn-57-typesafe-usage-guidelines.1",
+      "superseded_by": null,
+      "task": "fn-57-typesafe-usage-guidelines.1",
+      "timestamp": "2026-09-16T12:17:42.721079Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-57-typesafe-usage-guidelines.1": 0
+  },
+  "spec_path": ".flow/specs/fn-57-typesafe-usage-guidelines.md",
+  "status": "open",
+  "title": "TypeSafe usage guidelines",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-16T12:17:42.723653Z"
+}

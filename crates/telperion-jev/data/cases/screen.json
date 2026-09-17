@@ -1,0 +1,98 @@
+[
+  {
+    "id": "owic-mature",
+    "source_id": "OWIC-OAK",
+    "species": "Oregon white oak",
+    "sentence": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in.",
+    "expect_kind": "mature_size_range",
+    "context": "Laboratory General Characteristics Oregon white oak, a member of the beech family (Fagaceae), is one of only four deciduous oaks native to the West Coast. The massive, branching trunks and broad crowns of old white oaks are characteristic features of valley woodlands in the Pacific Northwest. Size, Longevity, and Form Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum). Oregon white oaks may live 500 years. In forest stands on good sites, Oregon white oaks develop narrow crowns with small branches on straight, clear stems. In more open stands and on poor sites, boles are typically short and crooked; shrubby stands of stunted trees are common. Open-grown trees"
+  },
+  {
+    "id": "owic-longevity",
+    "source_id": "OWIC-OAK",
+    "species": "Oregon white oak",
+    "sentence": "Oregon white oaks may live 500 years.",
+    "expect_kind": "not_about_tree_size",
+    "context": "nly four deciduous oaks native to the West Coast. The massive, branching trunks and broad crowns of old white oaks are characteristic features of valley woodlands in the Pacific Northwest. Size, Longevity, and Form Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum). Oregon white oaks may live 500 years. In forest stands on good sites, Oregon white oaks develop narrow crowns with small branches on straight, clear stems. In more open stands and on poor sites, boles are typically short and crooked; shrubby stands of stunted trees are common. Open-grown trees develop very broad, rounded crowns (crown width may equal tota"
+  },
+  {
+    "id": "o1",
+    "source_id": "OWIC-OAK",
+    "species": "Oregon white oak",
+    "sentence": "Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old",
+    "expect_kind": "site_quality_criterion",
+    "context": "ment to persist among more competitive Douglas-fir and maple. The capability of a site for growing Oregon white oak should be evaluated by examining growth and form of older trees. Good potential for growth of this species is indicated by the following site characteristics: Top height on mature trees of at least 60 ft Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old Continuing diameter growth on mature trees. Climate Oregon white oak grows across a diverse range of climates, most of which have moderate to extreme summer drought and annual precipitation of 10 to 100 in. Within its range, mean daily temperatures may vary from lows of 13 to 50 \u001e\"F in January to highs of 60 to 84°F i"
+  },
+  {
+    "id": "owic-elevation",
+    "source_id": "OWIC-OAK",
+    "species": "Oregon white oak",
+    "sentence": "It grows from sea level to 3800 ft in the north and at elevations of up to 7500 ft at the southern end of its range.",
+    "expect_kind": "not_about_tree_size",
+    "context": "species. Of the western hardwoods, Oregon white oak is one of the most resistant to damage from ice and snow. Twigs and buds have moderate resistance to cold injury. Healthy Oregon white oak are not prone to windthrow or breakage. Elevation Oregon white oak is usually found at lower elevations in the interior valleys. It grows from sea level to 3800 ft in the north and at elevations of up to 7500 ft at the southern end of its range. Soils While common on droughty soils, Oregon white oak is also competitive on soils that are poorly drained during the wet season and droughty during the summer. This commonly occurs on heavy clays, coarse-textured flood plains, and river terraces in the interior valleys. Oregon ash is also common under these conditio"
+  },
+  {
+    "id": "owic-typical-rate",
+    "source_id": "OWIC-OAK",
+    "species": "Oregon white oak",
+    "sentence": "Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in.",
+    "expect_kind": "typical_growth_rate",
+    "context": "stablished after the exclusion of fire. Thinning in dense, sapling-sized stands can increase diameter growth. Mixed-species Stands Competitive associates such as Douglas-fir and bigleaf maple must be controlled to maintain Oregon white oak on better sites. Growth and Yield Growth of Oregon white oak is generally slow. Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in. Faster growth, particularly in diameter, is possible (3 to 10 rings/in.). Stump sprouts may grow as much as 3 ft per year during the first 3 years. Oregon white oak stands may achieve basal area of up to 265 ft2 per acre and volume as high as 4500 ft3 per acre. Interactions with Wildlife Oregon white oak trees and sta"
+  },
+  {
+    "id": "owic-sprouts",
+    "source_id": "OWIC-OAK",
+    "species": "Oregon white oak",
+    "sentence": "Stump sprouts may grow as much as 3 ft per year during the first 3 years.",
+    "expect_kind": "sprout_cultivar_or_nursery",
+    "context": "ir and bigleaf maple must be controlled to maintain Oregon white oak on better sites. Growth and Yield Growth of Oregon white oak is generally slow. Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in. Faster growth, particularly in diameter, is possible (3 to 10 rings/in.). Stump sprouts may grow as much as 3 ft per year during the first 3 years. Oregon white oak stands may achieve basal area of up to 265 ft2 per acre and volume as high as 4500 ft3 per acre. Interactions with Wildlife Oregon white oak trees and stands are very important for wildlife. Oak woodlands and forests provide food and habitat for many species. Two of note are the acorn woodpecker and M"
+  },
+  {
+    "id": "owic-posts",
+    "source_id": "OWIC-OAK",
+    "species": "Oregon white oak",
+    "sentence": "untreated fence posts lasted an average of 18 years before failure.",
+    "expect_kind": "not_about_tree_size",
+    "context": "h dyes or transparent stains, especially if dramatic color changes are sought. Heavily pigmented stains can also be used if care is taken to remove excess pigment from the wood. Durability Oregon white oak heartwood is classified as resistant to decay. In tests conducted by staff of the OSU Forest Products Department, untreated fence posts lasted an average of 18 years before failure. The sapwood has no decay resistance and will deteriorate rapidly. Iron stain and oxidative stain sometimes occur on Oregon white oak. Uses Oregon white oak is used for furniture, flooring, railroad ties, tight cooperage, turnings, veneer (sliced), millwork, fence posts, mine timbers, handles, boxes, crates, pallets, c"
+  },
+  {
+    "id": "iastate-75-in-50",
+    "source_id": "IASTATE-SPRUCE",
+    "species": "Norway spruce",
+    "sentence": "(may grow to 75 feet in 50 years).",
+    "expect_kind": "measured_size_at_age",
+    "context": "e and for windbreak plantings.  It is a large, fast-growing tree requiring a fertile, moist soil. Hardiness:  Zones 3b through 7 (can survive zone 8, but is not well adapted to those conditions) \n Norway Spruce Trees - Photos by Paul Wray, Iowa State University  \n Growth Rate:  Moderate to fast, especially when young. (may grow to 75 feet in 50 years). Mature Shape:  Pyramidal with branches that hang down. Stiff when young, becoming more graceful with age. Height:  75-100 feet  Width:  40-50 feet  Site Requirements:  Adaptable, but prefers moist, cool areas. Often found around streams or lakes. Flowering Dates:  April - June Seed Dispersal Dates:  September - April"
+  },
+  {
+    "id": "iastate-mature",
+    "source_id": "IASTATE-SPRUCE",
+    "species": "Norway spruce",
+    "sentence": "Norway spruce grow 75 to 100 feet tall.",
+    "expect_kind": "mature_size_range",
+    "context": "34°F to 40°F The needles are single, angular or four-sided, yellow-green in color, 1/2 to 1 inch long and slightly curved.  More of the needles are borne on the upper surface of the twigs where they usually point forward. The foliage appears to droop or weep. The cone is 4 to 7 inches long; light brown; hanging down.  Norway spruce grow 75 to 100 feet tall. They make good winter cover for wildlife. \n Norway Spruce Leaves - Photos by Paul Wray, Iowa State University \n Diseases that Can Affect Norway Spruce Seasonal Needle Loss Rhizosphaera Needle Cast Cytospora Canker Insects that Can Affect Norway Spruce Conifer Spider Mites   \n Norway Spruce Cone - Photo by Paul Wray, I"
+  },
+  {
+    "id": "ncta-6-7-foot",
+    "source_id": "NCTA-SPRUCE",
+    "species": "Norway spruce",
+    "sentence": "Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree.",
+    "expect_kind": "measured_size_at_age",
+    "context": "this point, beyond which all growth ceases. The spruce budworm can also cause damage to buds and foliage, but less so than for white or red spruce. For Christmas trees, overall color of Norway spruce is fair to excellent, but needle retention is considered poor unless the trees are cut fresh and kept properly watered. Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree. Range: Norway spruce has a rather extensive range in Europe, growing from Scandinavia to the Balkans to the Alps. It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet. Propagation: Most propagation is by seed. Rooting is difficult and a challenge. For grafting, Norway spruce is a preferr"
+  },
+  {
+    "id": "ncta-europe",
+    "source_id": "NCTA-SPRUCE",
+    "species": "Norway spruce",
+    "sentence": "In Europe, Norway spruce grows from 130 to 215 feet in height, but in the United States is seldom more than 130 feet tall.",
+    "expect_kind": "mature_size_range",
+    "context": "ommonly planted here, particularly in southeastern Canada and northeastern United States. Originally, a number of plants were established as ornamentals, with Christmas tree plantings being established more recently. It has escaped cultivation in several localities and is considered naturalized in some of these areas. In Europe, Norway spruce grows from 130 to 215 feet in height, but in the United States is seldom more than 130 feet tall. Diameter may reach as much as two feet on older trees. It is readily identified by its dark green needles and drooping branchlets. Trees have dark green crown with a triangular shape. Leaves (needles) are 4-sided (rectangular in section), 1/2-1 inch long, and sharp or somewhat blunt at the tip. At the base of each nee"
+  },
+  {
+    "id": "ncta-elevation",
+    "source_id": "NCTA-SPRUCE",
+    "species": "Norway spruce",
+    "sentence": "It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet.",
+    "expect_kind": "not_about_tree_size",
+    "context": "is considered poor unless the trees are cut fresh and kept properly watered. Growth during the first 10 years after field planting is relatively slow and 8 to 11 years are required to grow a 6-7 foot tree. Range: Norway spruce has a rather extensive range in Europe, growing from Scandinavia to the Balkans to the Alps. It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet. Propagation: Most propagation is by seed. Rooting is difficult and a challenge. For grafting, Norway spruce is a preferred understock for a number of spruce species. It has also been a model species for use in tissue culture, and procedures developed in Norway spruce are now being adapted to other tree species of inte"
+  }
+]

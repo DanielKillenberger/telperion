@@ -1,0 +1,128 @@
+{
+  "open_specs": {
+    "fn-4": "Limbs that pass through each other, and the blunt ends they stop at: close up, limbs pass through one another, meet in hard creases where they cross, and several stop dead",
+    "fn-10": "Legendary tree profiles and supernatural traits: famous magical or legendary trees with reference material",
+    "fn-15": "Wind and structural motion: coherent movement from trunk through branches to leaves",
+    "fn-16": "Environment and damage response: light, competition, pruning and breakage influence subsequent growth",
+    "fn-17": "First external engine integration: prove the generator in an external engine or block-world consumer",
+    "fn-20": "Woody anatomy from roots through branch junctions: connected base, trunk and forks under close geometric inspection",
+    "fn-21": "Developmental shoots and within-species variation: crown and shoot plausibility through developmental causes and controlled variation, beginning with oak and spruce",
+    "fn-28": "A tree that grows smoothly as the page scrolls: the owner's website scrolls and a tree grows",
+    "fn-29": "Colour, cavity and occlusion: trunk, branch and leaf scale relief, veins, translucency, colour and cavity shading in the stills",
+    "fn-31": "Growth rule: sapling form, thickening by age, a shedding floor: the spec under QA right now; the oak and spruce at 1 to 30 years read as saplings that continue into the mature tree, trunk thickens with age, crown stays rounded and broad",
+    "fn-43": "Sprouts and leaf size by age: every leaf and needle is drawn at mature full size from the day its shoot is born, so a seedling carries leaves as large as an old tree's",
+    "fn-53": "No hardcoded caps on generation: node and leaf caps in tests and generator become validated parameters"
+  },
+  "routes": [
+    {
+      "id": "hollow",
+      "observation": "Looking at the 20-year oak, one side of the crown has a hollow under a single reaching limb; it fills in by 26.7 years.",
+      "expect": ["fn-31"]
+    },
+    {
+      "id": "pass-through",
+      "observation": "Two of the oak's limbs pass straight through each other near the fork and there is a hard crease where they cross.",
+      "expect": ["fn-4"]
+    },
+    {
+      "id": "seedling-leaves",
+      "observation": "The one-year oak seedling carries leaves as big as the mature tree's; they dwarf the stem.",
+      "expect": ["fn-43"]
+    },
+    {
+      "id": "flat-bark",
+      "observation": "The spruce bark reads flat; there is no shading in the cavity between the trunk and the branch collar, and the needles show no translucency against the light.",
+      "expect": ["fn-29"]
+    },
+    {
+      "id": "straight-rays",
+      "observation": "At all ages the branching looks weird and too straight. Especially mature the branches grow upwards.",
+      "expect": ["fn-31", "fn-21"]
+    },
+    {
+      "id": "scroll-jumps",
+      "observation": "When I scroll the demo page the tree jumps between ages instead of growing continuously.",
+      "expect": ["fn-28"]
+    },
+    {
+      "id": "node-cap",
+      "observation": "The ten-year oak test still has a node cap of 700 in it.",
+      "expect": ["fn-53"]
+    },
+    {
+      "id": "pruning-heal",
+      "observation": "The oak's trunk should split and heal over where a limb was cut off two years earlier.",
+      "expect": ["fn-16"]
+    }
+  ],
+  "duplicates": [
+    {
+      "id": "bush-shrub",
+      "new_observation": "After round 9, the ten-year Oregon white oak reads as a leafy bush with almost no visible stem on seeds 1 and 7. A 2.3 m bush, 2.2 m wide, with foliage from near the ground.",
+      "prior_finding": "Owner, round 5: the ten-year oak is a shrub with no visible stem and nothing leans.",
+      "true_pair": true
+    },
+    {
+      "id": "bottle-bell",
+      "new_observation": "The ten-year Oregon white oak's stem flares into a bottle at the ground in the live harness, on both seed 7 and seed 1. A thick flared base tapering sharply into the stem; the flare is below breast height.",
+      "prior_finding": "Owner, round 6: the trunk base is bell-shaped, an awful regression.",
+      "true_pair": true
+    },
+    {
+      "id": "hollow-tuft",
+      "new_observation": "After round 12, the oak's crown at 20 and 22 years has a hollow in one side under a single reaching limb.",
+      "prior_finding": "After round 11, the 20-year Oregon white oak carries a separate tuft of foliage above its main crown, with a gap between them.",
+      "true_pair": false
+    },
+    {
+      "id": "tuft-umbrella",
+      "new_observation": "After round 11, the 20-year Oregon white oak carries a separate tuft of foliage above its main crown, with a gap between them.",
+      "prior_finding": "The 26.7-year Oregon white oak is a flat-topped umbrella: a wide crown on a bare stem with a separate small cluster of branches below it.",
+      "true_pair": false
+    },
+    {
+      "id": "gangly-rays",
+      "new_observation": "The 14.1-year Norway spruce does not read as a continuation between the 5-year and 26.6-year trees: it is a sparse, gangly tree with long, thin, straight laterals.",
+      "prior_finding": "The primary branches of the Norway spruce are drawn as straight rays that rise from the trunk at every crown height.",
+      "true_pair": false
+    },
+    {
+      "id": "bottle-bush",
+      "new_observation": "The ten-year Oregon white oak's stem flares into a bottle at the ground.",
+      "prior_finding": "After round 9, the ten-year Oregon white oak reads as a leafy bush with almost no visible stem.",
+      "true_pair": false
+    },
+    {
+      "id": "hollow-umbrella",
+      "new_observation": "After round 12, the oak's crown at 20 and 22 years has a hollow in one side under a single reaching limb.",
+      "prior_finding": "The 26.7-year Oregon white oak is a flat-topped umbrella: a wide crown on a bare stem with a separate small cluster of branches below it.",
+      "true_pair": false
+    }
+  ],
+  "severity": [
+    {
+      "id": "hollow",
+      "observation": "After round 12, the oak's crown at 20 and 22 years has a hollow in one side under a single reaching limb: on the left of seed 7, and smaller in the middle-left of seed 42 at 22 years. It shrinks by 24 years and is gone by 26.7.",
+      "standard": "The owner's round-6 decision: a rounded, broad oak crown. The QA note adds: minor, the crown is otherwise continuous.",
+      "expect_level": "cosmetic"
+    },
+    {
+      "id": "bush",
+      "observation": "After round 9, the ten-year Oregon white oak reads as a leafy bush with almost no visible stem on seeds 1 and 7.",
+      "standard": "The owner rejected this form in the round-5 verdict: the ten-year oak is a shrub with no visible stem and nothing leans.",
+      "expect_level": "blocking"
+    },
+    {
+      "id": "bottle",
+      "observation": "The ten-year Oregon white oak's stem flares into a bottle at the ground in the live harness.",
+      "standard": "The owner rejected a bell-shaped trunk base in round 6 as an awful regression.",
+      "expect_level": "blocking"
+    },
+    {
+      "id": "rays",
+      "observation": "The primary branches of the Norway spruce are drawn as straight rays that rise from the trunk at every crown height, from 26.6 years to maturity.",
+      "standard": "R1: every later age reads as a continuation of the same Norway spruce; the species carries ascending upper, horizontal mid and drooping lower branches.",
+      "expect_level": "noticeable"
+    }
+  ]
+}
