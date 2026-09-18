@@ -15,6 +15,6 @@ Round 2, on the owner's R4 verdict: detail now leaves at the pixel, not an octav
 stage: impl-review - skipped(config: REVIEW_MODE=none)
 stage: implement - skipped(reach: gpt-6-astra unreachable, codex usage limit until 2026-09-19 16:27; session model used)
 ## Evidence
-- Commits: cccd12602bc4f29bde7b83adc35ea0dba979d42d, dd54d1311a426f5626180ef4de7f8f9c2701ac24, 42756e57973cd6f2955c1f5fe6c6facbc7151925, 3601b756ca85782e1305643f2b052daee5fcd234, 5beb0818d373bfefdfed23097d61037273d1e259, a9be84d1e693a9b73e1703e913471cdc1e3a46d9
-- Tests: baseline: green (cargo test --release --workspace exit 0; npm run typecheck && npm test exit 0, pre-edit, round 1), rustfmt --check on the touched files (cargo fmt --all -- --check carries an inherited diff in crates/telperion-core/examples/species_measure.rs and src/params/tests.rs, untouched here), cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release --workspace (81 suites ok, exit 0; bark_distance oak 2x 2.295, 4x 2.518 <= 3.0; smooth_bark beech 1.403, birch 2.896 <= 3.0; grazing 2.914/2.684), GREEN_RECEIPT: .flow/tmp/green-receipts/5beb0818-unittest.json, npm run typecheck && npm test (85 passed; browser modules rebuilt for the dev server), headless --timing x9 under .flow/evidence/fn71/timing (round2-*), footprint sweep: uv run --with numpy --with pillow .flow/evidence/fn71/sweep.py .flow/evidence/fn71/sweep/res4 beech|birch
+- Commits:
+- Tests:
 - PRs:

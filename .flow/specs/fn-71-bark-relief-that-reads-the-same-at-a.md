@@ -31,6 +31,8 @@ The owner's word on 2026-09-18: the drift at distance is a real problem, seen be
 
 - **Owner, 2026-09-18, R4 rejected on the first round.** Judged in the harness on the mature path with the two new wood terms and the beech's grain on: "it still looks much less detailed from a distance. There's a noticeable change in fidelity which shouldn't be the case. Fidelity should go down to a degree where it's not noticeable at that distance." [user] The 2x and 4x bounds passing is not the finish line; the far draw must read as the near draw minus what the eye cannot resolve, judged across a walk, and the terms that fade by amplitude an octave before a pixel are the first suspects. The task is reopened on this verdict. [paraphrase]
 
+- **Owner, 2026-09-18, R4 rejected on the second round.** Judged on the round-two build in the harness: "there's still a jump where the relief visibly disappears. It's a bit further away now but still there." [user] A fade window, however placed, is a jump when the walk crosses it; the relief may only leave by the box integral of its own height over the footprint, with no separate attenuation. The task is reopened for round three. [paraphrase]
+
 ## Boundaries
 <!-- scope: business -->
 
