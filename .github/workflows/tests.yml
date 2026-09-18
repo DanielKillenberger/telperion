@@ -1,9 +1,31 @@
 name: Tests
 
+# A push or pull request that touches only flow bookkeeping, documentation or
+# markdown starts no run. The four files listed after the exclusions are test
+# inputs that live under those trees: the species profiles and the benchmark
+# protocol the core tests read, and the spec the citation parser is tested on.
 on:
   push:
     branches: [master]
+    paths:
+      - '**'
+      - '!.flow/**'
+      - '!docs/**'
+      - '!**.md'
+      - '.flow/evidence/fn9/profiles.json'
+      - '.flow/evidence/fn34/profiles.json'
+      - '.flow/evidence/fn19/protocol.json'
+      - '.flow/specs/fn-11-growth-over-time.md'
   pull_request:
+    paths:
+      - '**'
+      - '!.flow/**'
+      - '!docs/**'
+      - '!**.md'
+      - '.flow/evidence/fn9/profiles.json'
+      - '.flow/evidence/fn34/profiles.json'
+      - '.flow/evidence/fn19/protocol.json'
+      - '.flow/specs/fn-11-growth-over-time.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,7 +38,84 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
+  # Each suite's key is a hash of its inputs (scripts/ci-key.mjs); a green run
+  # saved a receipt under the key, and a receipt found here skips the suite.
+  # GitHub restores a cache from the same branch or from master, so a pull
+  # request reads master's receipts and master writes its own.
+  receipts:
+    runs-on: ubuntu-latest
+    outputs:
+      rust-core: ${{ steps.rust-core.outputs.cache-hit }}
+      rust-render: ${{ steps.rust-render.outputs.cache-hit }}
+      rust-wasm: ${{ steps.rust-wasm.outputs.cache-hit }}
+      rust-jev: ${{ steps.rust-jev.outputs.cache-hit }}
+      node: ${{ steps.node.outputs.cache-hit }}
+      rust-all: ${{ steps.rust-core.outputs.cache-hit == 'true' && steps.rust-render.outputs.cache-hit == 'true' && steps.rust-wasm.outputs.cache-hit == 'true' && steps.rust-jev.outputs.cache-hit == 'true' }}
+      rust-core-key: ${{ steps.keys.outputs.rust-core }}
+      rust-render-key: ${{ steps.keys.outputs.rust-render }}
+      rust-wasm-key: ${{ steps.keys.outputs.rust-wasm }}
+      rust-jev-key: ${{ steps.keys.outputs.rust-jev }}
+      node-key: ${{ steps.keys.outputs.node }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: keys
+        name: Compute the receipt keys
+        run: |
+          for suite in rust-core rust-render rust-wasm rust-jev node; do
+            echo "$suite=$(node scripts/ci-key.mjs "$suite")" >> "$GITHUB_OUTPUT"
+          done
+
+      - id: rust-core
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-core
+          key: ${{ steps.keys.outputs.rust-core }}
+          lookup-only: true
+      - id: rust-render
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-render
+          key: ${{ steps.keys.outputs.rust-render }}
+          lookup-only: true
+      - id: rust-wasm
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-wasm
+          key: ${{ steps.keys.outputs.rust-wasm }}
+          lookup-only: true
+      - id: rust-jev
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-jev
+          key: ${{ steps.keys.outputs.rust-jev }}
+          lookup-only: true
+      - id: node
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/node
+          key: ${{ steps.keys.outputs.node }}
+          lookup-only: true
+
+      - name: Report the receipts
+        env:
+          RECEIPTS: |-
+            rust-core ${{ steps.keys.outputs.rust-core }} ${{ steps.rust-core.outputs.cache-hit }}
+            rust-render ${{ steps.keys.outputs.rust-render }} ${{ steps.rust-render.outputs.cache-hit }}
+            rust-wasm ${{ steps.keys.outputs.rust-wasm }} ${{ steps.rust-wasm.outputs.cache-hit }}
+            rust-jev ${{ steps.keys.outputs.rust-jev }} ${{ steps.rust-jev.outputs.cache-hit }}
+            node ${{ steps.keys.outputs.node }} ${{ steps.node.outputs.cache-hit }}
+        run: |
+          while read -r suite key hit; do
+            case $hit in
+              true) echo "$suite: receipt $key found, the suite is skipped." ;;
+              *) echo "$suite: receipt $key missing, the suite runs." ;;
+            esac
+          done <<< "$RECEIPTS"
+
+  rust:
+    needs: receipts
+    if: needs.receipts.outputs.rust-all != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -27,6 +126,49 @@ jobs:
         run: rustup toolchain install
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      # The ci profile is release without the fat link (Cargo.toml); every
+      # package script and local command stays on release.
+      - uses: ./.github/actions/suite
+        with:
+          suite: rust-core
+          key: ${{ needs.receipts.outputs.rust-core-key }}
+          hit: ${{ needs.receipts.outputs.rust-core }}
+          run: cargo test --profile ci -p telperion-core
+      - uses: ./.github/actions/suite
+        with:
+          suite: rust-render
+          key: ${{ needs.receipts.outputs.rust-render-key }}
+          hit: ${{ needs.receipts.outputs.rust-render }}
+          run: cargo test --profile ci -p telperion-render
+      - uses: ./.github/actions/suite
+        with:
+          suite: rust-wasm
+          key: ${{ needs.receipts.outputs.rust-wasm-key }}
+          hit: ${{ needs.receipts.outputs.rust-wasm }}
+          run: cargo test --profile ci -p telperion-wasm
+      - uses: ./.github/actions/suite
+        with:
+          suite: rust-jev
+          key: ${{ needs.receipts.outputs.rust-jev-key }}
+          hit: ${{ needs.receipts.outputs.rust-jev }}
+          run: cargo test --profile ci -p telperion-jev
+
+  node:
+    needs: receipts
+    if: needs.receipts.outputs.node != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
 
       # The version Cargo.lock pins for the wasm-bindgen crate; render:build
       # refuses any other CLI. The binary is restored by the cache above.
@@ -40,8 +182,11 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run rust:test
-
-      - run: npm test
-
-      - run: npm run typecheck
+      - uses: ./.github/actions/suite
+        with:
+          suite: node
+          key: ${{ needs.receipts.outputs.node-key }}
+          hit: ${{ needs.receipts.outputs.node }}
+          run: |
+            npm test
+            npm run typecheck

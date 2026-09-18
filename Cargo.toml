@@ -10,3 +10,13 @@ resolver = "2"
 [profile.release]
 lto = true
 codegen-units = 1
+
+# The workflow's profile: release without the fat link, so the test binaries
+# link in seconds. Every package script and local command stays on release.
+# Measured 2026-09-18: the workspace compiles from scratch in 29 s on the
+# 32-core desk against 130 s on release, and the four-core runner reaches
+# the core crate's first test 33 s into its cold rust job.
+[profile.ci]
+inherits = "release"
+lto = false
+codegen-units = 16

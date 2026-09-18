@@ -1,0 +1,43 @@
+name: Suite with a receipt
+description: >-
+  Runs a suite unless the receipts job found a green run with the same inputs,
+  and saves the receipt when the suite is green.
+
+inputs:
+  suite:
+    description: A suite name scripts/ci-key.mjs knows.
+    required: true
+  key:
+    description: The receipt key the receipts job computed for the suite.
+    required: true
+  hit:
+    description: Whether the receipts job found a cache entry under the key.
+    required: true
+  run:
+    description: The suite's commands, run when there is no receipt.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - if: inputs.hit == 'true'
+      shell: bash
+      run: |
+        echo "Skipped ${{ inputs.suite }}: receipt ${{ inputs.key }} matched."
+
+    - if: inputs.hit != 'true'
+      shell: bash
+      run: ${{ inputs.run }}
+
+    # Reached only when every command above passed: a red suite saves nothing.
+    - if: inputs.hit != 'true'
+      shell: bash
+      run: |
+        mkdir -p "$RUNNER_TEMP/receipts"
+        echo "${{ inputs.key }}" > "$RUNNER_TEMP/receipts/${{ inputs.suite }}"
+
+    - if: inputs.hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ runner.temp }}/receipts/${{ inputs.suite }}
+        key: ${{ inputs.key }}
