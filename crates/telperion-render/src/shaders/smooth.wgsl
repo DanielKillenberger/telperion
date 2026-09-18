@@ -124,58 +124,87 @@ const LENTICEL_DEPTH = 0.5;
 // A bowl fills this much of what the dash's disc fills, over the same cell.
 const LENTICEL_BOWL = 0.3;
 
-// The dash over this point, as filtered values in 0..1: the dash as colour
-// reads it, and the bowl its groove is cut to. `row` is the lenticel row:
-// rows per metre, the longest dash, strength and tint.
+// The most cells a dash's box reaches each side of the point, across the
+// arc and along the rows, for the colour a fragment reads once; the groove
+// the relief reads a dozen times a pixel keeps to the cells about the point
+// in its own row, and past a cell of box its few microns of depth leave
+// with the box.
+const LENTICEL_REACH_CELLS = vec2<i32>(5, 5);
+const LENTICEL_GROOVE_CELLS = vec2<i32>(1, 0);
+
+// The dash over this point, as box-averaged values in 0..1: the dash as
+// colour reads it, and the bowl its groove is cut to. `row` is the lenticel
+// row: rows per metre, the longest dash, strength and tint. A dash is a
+// rounded bar, its length across the wood and its thickness along it, and
+// its box integral is the product of one span on each axis, exact; the
+// cells read grow with the box, so a dash leaves the picture by that
+// averaging alone, wider and fainter, never in a step (fn-71). Dashes that
+// overlap cover as independent covers do.
 fn lenticel_dash(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>,
-    row: vec4<f32>) -> vec2<f32> {
+    row: vec4<f32>, cells: vec2<i32>) -> vec2<f32> {
     let half = 0.5 * row.y;
     let thin = LENTICEL_THIN * row.y;
     let across = half / LENTICEL_REACH;
     let pitch = max(1.0 / max(row.x, 1e-3), thin / LENTICEL_ROW);
     // A spheroid of radii half, half and thin, one to a cell of across,
     // across and pitch, fills this much of it before its size and presence;
-    // dashes that overlap cover as independent covers do.
+    // dashes that overlap cover as independent covers do. Wood whose pixel
+    // spans half its radius reads that mean: a quarter of its circumference
+    // is under the pixel, and no dash around it can be read.
     let sizes = (1.0 - pow(LENTICEL_SMALL, 4.0)) / (4.0 * (1.0 - LENTICEL_SMALL));
     let filled = smooth_share(LENTICEL_SHARE) * sizes * 4.18879
         * LENTICEL_REACH * LENTICEL_REACH * (thin / pitch)
         * (1.0 + 0.6 * SMOOTH_RIM * SMOOTH_RIM);
-    let mean = vec2(1.0 - exp(-filled), 1.0 - exp(-LENTICEL_BOWL * filled));
-    let extent = max(footprint.x / half, footprint.y / thin);
-    // A dash leaves when its length drops under a pixel, not its thickness:
-    // across the thin axis its rim is the edge integral, and a line a pixel
-    // thick is still a line the eye reads (fn-71).
-    let retained = bark_pass(0.5 * footprint.x / half) * smooth_thin(footprint, radius);
-    if (retained <= 0.0) { return mean; }
+    if (footprint.x >= 0.5 * radius) {
+        return vec2(1.0 - exp(-filled), 1.0 - exp(-LENTICEL_BOWL * filled));
+    }
     let p = vec3(circle * radius / across, along / pitch);
     let base = floor(p);
     let tangent = vec2(-circle.y, circle.x);
-    var dash = vec2(0.0);
-    for (var y = -1; y <= 1; y++) {
-        for (var x = -1; x <= 1; x++) {
-            let id = base + vec3(f32(x), f32(y), 0.0);
+    // The cells the box reaches: across the arc in the plane the circle is
+    // embedded in, where only the cells the circle passes near hold a dash
+    // that reaches the surface, and along the wood row by row.
+    let reach = min(vec2<i32>(ceil(0.5 * vec2(footprint.x / across, footprint.y / pitch))) + vec2(1),
+        cells);
+    let ring = radius / across;
+    var clear = vec2(1.0);
+    for (var y = -reach.x; y <= reach.x; y++) {
+        for (var x = -reach.x; x <= reach.x; x++) {
+            let cell = base.xy + vec2(f32(x), f32(y));
+            if (abs(length(cell + vec2(0.5)) - ring) > 1.5) { continue; }
+        for (var z = -reach.y; z <= reach.y; z++) {
+            let id = vec3(cell, base.z + f32(z));
             let a = bark_hash(id.xy + vec2(29.0, 13.0) * id.z + vec2(3.1, 47.9));
             let b = bark_hash(id.xy + vec2(17.0, 37.0) * id.z + vec2(71.3, 23.7));
+            let present = smooth_presence(LENTICEL_SHARE, fract(a * 91.7 + b * 13.9));
+            if (present <= 0.0) { continue; }
             let site = id + vec3(a, b, 0.5 + 2.0 * LENTICEL_JITTER * (fract(a * 43.7 + b * 71.3) - 0.5));
             let offset = (site - p) * vec3(across, across, pitch);
             let size = mix(LENTICEL_SMALL, 1.0, fract(a * 17.3 + b * 31.1));
-            let distance = length(vec3(dot(offset.xy, tangent) / half,
-                dot(offset.xy, circle) / half, offset.z / thin)) / size;
-            let present = smooth_presence(LENTICEL_SHARE, fract(a * 91.7 + b * 13.9));
-            if (present > 0.0 && distance < 1.0 + SMOOTH_RIM + extent / size) {
-                let bowl = 1.0 - smoothstep(0.0, 1.0 + SMOOTH_RIM, distance);
-                dash = max(dash, vec2(smooth_disc(distance, extent / size, SMOOTH_RIM), bowl)
-                    * present);
-            }
+            // A site standing off the surface is cut smaller by it.
+            let depth = dot(offset.xy, circle) / (half * size);
+            let cut = sqrt(max(1.0 - depth * depth, 0.0));
+            if (cut <= 0.0) { continue; }
+            let length = half * size * cut;
+            let height = thin * size * cut;
+            let u = dot(offset.xy, tangent) / length;
+            let v = offset.z / height;
+            let dash = bark_span(u, footprint.x / length, SMOOTH_RIM)
+                * bark_span(v, footprint.y / height, SMOOTH_RIM);
+            // The bowl is a ramp from the rim to the middle on each axis.
+            let bowl = bark_span(u, footprint.x / length, 1.0)
+                * bark_span(v, footprint.y / height, 1.0);
+            clear *= vec2(1.0) - vec2(dash, bowl) * present;
+        }
         }
     }
-    return mix(mean, dash, retained);
+    return vec2(1.0) - clear;
 }
 
 // The groove a dash cuts into the relief, in metres, so the cavity and the
 // shaded normal the field already carries darken it with no term of its own.
 fn lenticel_groove(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32>) -> f32 {
-    let bowl = lenticel_dash(circle, along, radius, footprint, u.lenticel).y;
+    let bowl = lenticel_dash(circle, along, radius, footprint, u.lenticel, LENTICEL_GROOVE_CELLS).y;
     return LENTICEL_DEPTH * LENTICEL_THIN * u.lenticel.y * u.lenticel.z * bowl;
 }
 

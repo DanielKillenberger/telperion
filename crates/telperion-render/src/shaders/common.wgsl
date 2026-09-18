@@ -260,9 +260,16 @@ fn bark_noise2_filtered(p: vec2<f32>, footprint: vec2<f32>) -> f32 {
     return 0.5 + (bark_noise2(p) - 0.5) * retained;
 }
 
-// The antiderivative of the lattice basis one value of the noise above is
-// weighted by: a smoothstep rising over the cell before its point and
-// falling over the cell after, integrated from far below.
+// The lattice basis one value of the noise above is weighted by: a
+// smoothstep rising over the cell before its point and falling over the
+// cell after, and its antiderivative from far below.
+fn bark_basis(v: f32) -> f32 {
+    if (v <= -1.0 || v >= 1.0) { return 0.0; }
+    let f = select(v, 1.0 + v, v < 0.0);
+    let s = f * f * (3.0 - 2.0 * f);
+    return select(1.0 - s, s, v < 0.0);
+}
+
 fn bark_basis_integral(v: f32) -> f32 {
     if (v <= -1.0) { return 0.0; }
     if (v >= 1.0) { return 1.0; }
@@ -273,36 +280,61 @@ fn bark_basis_integral(v: f32) -> f32 {
     return 0.5 + v - v * v * v * (1.0 - 0.5 * v);
 }
 
-// The noise above averaged over a box of `width` cells on each axis: the
-// box integral of every lattice value's basis, exact, so a half-size draw
-// reads the box mean of the four full-size samples it stands for and a
-// term linear in this noise agrees across resolution by construction. Two
-// cells of box is the most it integrates (sixteen values); a box under a
+// The most lattice points the box below spans on one axis: a box of six
+// cells, past which the window stops growing and the value is the six-cell
+// average about the point, within a sixth of the noise's deviation of the
+// mean it converges to.
+const BARK_BOX_REACH = 7;
+
+// The noise above averaged over a box of `width` cells on each axis, with
+// its gradient: the box integral of every lattice value's basis, exact, so a
+// half-size draw reads the box mean of the four full-size samples it stands
+// for and a term linear in this noise agrees across resolution by
+// construction, and leaves only by that averaging. The window grows with
+// the box, so the cost a pixel pays rises as the pixels fall; a box under a
 // thousandth of a cell is the point sample, which is what it averages to.
-fn bark_noise2_box(p: vec2<f32>, width: vec2<f32>) -> f32 {
-    let w = clamp(width, vec2(0.0), vec2(2.0));
-    if (max(w.x, w.y) < 0.001) { return bark_noise2(p); }
+fn bark_noise2_box(p: vec2<f32>, width: vec2<f32>) -> vec3<f32> {
+    let w = clamp(width, vec2(0.0), vec2(f32(BARK_BOX_REACH - 1)));
+    if (max(w.x, w.y) < 0.001) {
+        let c = floor(p);
+        let f = fract(p);
+        let a = bark_hash(c);
+        let b = bark_hash(c + vec2(1.0, 0.0));
+        let d = bark_hash(c + vec2(0.0, 1.0));
+        let e = bark_hash(c + vec2(1.0));
+        let wx = f.x * f.x * (3.0 - 2.0 * f.x);
+        let wy = f.y * f.y * (3.0 - 2.0 * f.y);
+        let dwx = 6.0 * f.x * (1.0 - f.x);
+        let dwy = 6.0 * f.y * (1.0 - f.y);
+        let value = mix(mix(a, b, wx), mix(d, e, wx), wy);
+        return vec3(value, mix(b - a, e - d, wy) * dwx, (mix(d, e, wx) - mix(a, b, wx)) * dwy);
+    }
     let low = p - 0.5 * w;
     let high = p + 0.5 * w;
     let first = floor(low);
-    var weight_x: array<f32, 4>;
-    var weight_y: array<f32, 4>;
-    for (var i = 0; i < 4; i++) {
+    let count = min(vec2<i32>(ceil(high) - first) + vec2(1), vec2(BARK_BOX_REACH));
+    var weight_x: array<f32, BARK_BOX_REACH>;
+    var weight_y: array<f32, BARK_BOX_REACH>;
+    var slope_x: array<f32, BARK_BOX_REACH>;
+    var slope_y: array<f32, BARK_BOX_REACH>;
+    for (var i = 0; i < BARK_BOX_REACH; i++) {
         let site = first + f32(i);
         weight_x[i] = bark_basis_integral(high.x - site.x) - bark_basis_integral(low.x - site.x);
         weight_y[i] = bark_basis_integral(high.y - site.y) - bark_basis_integral(low.y - site.y);
+        slope_x[i] = bark_basis(high.x - site.x) - bark_basis(low.x - site.x);
+        slope_y[i] = bark_basis(high.y - site.y) - bark_basis(low.y - site.y);
     }
-    var total = 0.0;
-    for (var y = 0; y < 4; y++) {
-        if (weight_y[y] <= 0.0) { continue; }
-        var row = 0.0;
-        for (var x = 0; x < 4; x++) {
-            if (weight_x[x] <= 0.0) { continue; }
-            row += weight_x[x] * bark_hash(first + vec2(f32(x), f32(y)));
+    var total = vec3(0.0);
+    for (var y = 0; y < count.y; y++) {
+        var row = vec2(0.0);
+        for (var x = 0; x < count.x; x++) {
+            let value = bark_hash(first + vec2(f32(x), f32(y)));
+            row += vec2(weight_x[x], slope_x[x]) * value;
         }
-        total += weight_y[y] * row;
+        total += vec3(weight_y[y] * row.x, weight_y[y] * row.y, slope_y[y] * row.x);
     }
-    return total / max(w.x * w.y, 1e-12);
+    let area = max(w.x, 0.001) * max(w.y, 0.001);
+    return vec3(total.x / area, total.y / area, total.z / area);
 }
 
 // Whether one of a scattered set - a lichen patch, a lenticel, a peeled

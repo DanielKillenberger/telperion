@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageFilter
 
-FACTORS = [1.5, 2, 3, 4, 6, 8]
+FACTORS = [1.5, 2, 3, 4, 6, 8]  # or the third argument, comma-separated
 BANDS = [2, 4, 8, 16]  # box widths in pixels of the reduced frame
 
 
@@ -52,7 +52,7 @@ def band_energy(array, mask, width):
     return detail[mask].std()
 
 
-def main(folder, preset):
+def main(folder, preset, factors=FACTORS):
     """`<preset>-x<f>.png` is the camera walked to f times the distance, its
     centre crop compared; `<preset>-r<f>.png` is the same camera drawn at a
     fth of the size, registered pixel for pixel, the footprint walked alone."""
@@ -62,7 +62,7 @@ def main(folder, preset):
     wood = (clay[..., 0] > clay[..., 2]).astype(np.float64)
     print(f"| factor | pixels | mean near / far | std near / far | " + " | ".join(f"band {b}px" for b in BANDS) + " | rms diff |")
     print("|---|---|---|---|" + "---|" * len(BANDS) + "---|")
-    for factor in FACTORS:
+    for factor in factors:
         reduced = reduce(near, factor)
         walked = folder / f"{preset}-x{factor:g}.png"
         if walked.exists():
@@ -85,4 +85,4 @@ def main(folder, preset):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], [float(f) for f in sys.argv[3].split(",")] if len(sys.argv) > 3 else FACTORS)

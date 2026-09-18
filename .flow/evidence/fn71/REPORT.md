@@ -199,3 +199,111 @@ having looked at the registered 3x pair of the beech base (near reduced
 against far drawn): round one's far draw was smoother and lighter, its grain
 gone; round two's carries the same fine grain as the reduction and reads as
 the same bark.
+
+# Round 3: the relief leaves by its box integral alone
+
+The owner rejected round two: "there's still a jump where the relief
+visibly disappears. It's a bit further away now but still there", and sent
+two harness frames of the silver birch one wheel notch apart (`PUSH_PER_NOTCH`
+1.12 in `harness/orbit.ts`), the trunk 180 to 250 pixels tall: at the closer
+notch the dark lenticel dashes and peel marks are on the trunk, one notch
+out they are gone. At that footprint (sixty to eighty millimetres of bark a
+pixel, the sum of both derivatives) round two's fades were crossing: the
+dash's, from thirty to sixty, and the plate network's, from twenty-five to
+fifty. A fade window is a jump wherever the walk crosses it.
+
+## What changed
+
+Every amplitude fade is gone from the relief, the plates, the dashes and
+the grain; each term leaves by the box integral of its own shape over the
+footprint, or by more reads of it inside the pixel.
+
+- The ridge band and the plate network are read only at footprints their
+  edge integrals stand for, under a ridge width and under half a plate, and
+  a wider pixel is shaded as more cells sharing a lattice of heights: two a
+  side under a ridge width, three under three, four beyond, each cell's
+  footprint capped at a width and the cells standing apart past four.
+  `survives`, the plate band's `bark_pass`, `lost` and the constant-height
+  shortcut at two widths are gone. The lost-slope roughness and facet term
+  now takes the cell's own footprint, the home for the shading the height
+  integral removes.
+- A lenticel dash is a rounded bar, its box integral the product of one
+  span on each axis (`bark_span`, the exact box integral of a rimmed
+  interval), summed over the cells the box reaches, which grow with it;
+  dashes that overlap cover as independent covers do. Its groove keeps to
+  the cells of its own row, the relief reading it a dozen times a pixel.
+- The grain's box window grows with the footprint to six cells, and its
+  gradient comes from the same integral (`bark_noise2_box` returns the
+  value and its two slopes), one integral a field instead of three.
+- Wood reads its means where no read can resolve anything: a pixel spanning
+  six ridge widths or three plates, where four cells stand a width and a
+  half apart and their estimate's own noise is above the box's residue (a
+  sixth of the relief's deviation), a twig whose pixel spans its own
+  radius, and dashes on wood whose pixel spans half its radius, a quarter
+  of its circumference. These are the cost bounds, not fades; the residue
+  they drop is under two code values.
+- The lichen keeps its fade from two pixels across to one, a follow-up: its
+  patches are spheres cut by the surface, read in twenty-seven cells, and a
+  disc's box integral with a growing window is the next step there.
+
+Four tests pinned the fade design and were re-pinned on the box-integral
+contract: `bark_filter` (an unresolved axis keeps under a tenth of the
+relief, not exactly none), `grain` (the far draw's move is under a fifth of
+the near one's, not exactly none, at eight times the distance), and
+`smooth_means` (the mean of far reads at every probe against the near mean,
+not one constant against it; the strip's box read carries a five per cent
+higher relief mean than its point read, a product of two edge integrals a
+box does not commute with, present in every mid-distance read before and
+now measured; the groove's one-row window misses six per cent of a groove a
+millimetre deep).
+
+## The sweep
+
+Footprint walk (`sweep/res6.md`, `sweep/hero6.md`), band ratio far/near at
+2 / 4 / 8 / 16 px; the seam would be a kink between two factors.
+
+| factor | beech B-BASE round 2 | beech B-BASE round 3 | birch S-BARK round 3 |
+|---|---|---|---|
+| 1.5 | 0.94 / 0.94 / 0.95 / 0.96 | 0.94 / 0.95 / 0.96 / 0.97 | 1.03 / 1.03 / 1.01 / 1.00 |
+| 2 | 0.95 / 0.95 / 0.95 / 0.96 | 0.97 / 0.97 / 0.98 / 0.99 | 1.03 / 1.03 / 1.00 / 0.99 |
+| 3 | 0.90 / 0.90 / 0.92 / 0.94 | 0.96 / 0.97 / 0.98 / 0.99 | 1.01 / 1.01 / 0.98 / 0.98 |
+| 4 | 0.85 / 0.85 / 0.90 / 0.93 | 0.95 / 0.96 / 0.97 / 0.98 | 0.99 / 0.98 / 0.96 / 0.97 |
+| 6 | 0.82 / 0.83 / 0.89 / 0.92 | 0.94 / 0.95 / 0.97 / 0.98 | 0.96 / 0.95 / 0.95 / 0.96 |
+| 8 | 0.79 / 0.81 / 0.88 / 0.91 | 0.94 / 0.95 / 0.97 / 0.98 | 0.94 / 0.93 / 0.93 / 0.95 |
+
+No adjacent pair of factors differs by more than 0.03 at any band; the
+beech's mean holds within 1.3% along the walk and the birch's within 1.6%.
+The birch at the hero pose (1350 by 900, factors 1.12, 1.25, 1.5, 2, 3, 4,
+the owner's notch first) reads 1.00 to 1.08 at every band with the mean
+within 0.4%: the dashes and marks stay through the notch. The implementer,
+having looked at the registered pairs: the birch trunk at the hero pose one
+notch out and at twice the footprint carries the same dashes and peel marks
+as the near draw reduced, dimmer and wider where the pixel is wider, and the
+beech base at four times reads as one bark.
+
+## R3 and receipts
+
+Beech B-BASE 1.04 against 3.0, birch S-BARK 2.54 (its 2 mm grain at 0.15
+kept), oak 2x 2.23, 4x 2.84 (the facet term now takes the cell's footprint,
+half the pixel's, and gives back a third of the round-one bias; still under
+the bound), grazing 2.89 and 2.70, every redraw byte-identical.
+
+## R5: cost
+
+Native hero frames, seed 7, 1600 by 1000, three rounds, `timing/round3-*`:
+
+| Preset | round 2 | round 3 |
+|---|---|---|
+| Oregon white oak | 5.917, 5.904, 5.889 | 9.98, 10.02, 10.12 |
+| Silver birch | 3.976, 3.981, 3.989 | 14.96, 15.22, 14.96 |
+| European beech | 11.358, 11.357, 11.358 | 19.56, 19.48, 19.97 |
+
+The first no-fade build cost 18, 38 and 236 ms; the twig and sparse-wood
+means and the groove's row brought it here. What remains, by switching rows
+off: the birch's dashes about 8 ms (a square window of cells filtered to
+the ring, read once a fragment on every branch wider than two pixels), its
+grain 3 ms, the cells 2 ms; the oak's plates 4 ms (the network read sixteen
+times a pixel on limbs seen at grazing angles). A dash window that walks the
+arc, the groove read once a fragment and shared by the cells, and a grain
+window capped at four cells are the reductions, follow-ups if the owner
+sets a bound.

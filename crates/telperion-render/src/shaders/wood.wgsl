@@ -261,14 +261,50 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // every shading cell's normal. Its exact mean once its cells are under
     // two pixels, so far wood is smooth between its features again.
     var grain = vec3<f32>(1.0, 0.0, 0.0);
-    if (u.grain.x > 0.0 && u.grain.y > 0.0) {
+    if (u.grain.x > 0.0 && u.grain.y > 0.0 && footprint.x < in.radius) {
         grain = bark_grain(surface, sx, sy, in.radius, footprint);
         appearance.x *= grain.x;
     }
+    let spacing = clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0);
+    let pixel = footprint / max(vec2(u.bark_detail.x, spacing), vec2(0.000001));
+    let band = max(pixel.x, pixel.y);
+    // The relief leaves the picture by the box integral of its own height
+    // over the footprint and nothing else (owner, fn-71). The field's edge
+    // integrals stand for that box while a read spans under a ridge width
+    // and under half a plate, so a pixel wider than that is shaded as more
+    // cells, each read at a footprint the integrals hold for: two a side
+    // while the pixel is under a ridge width, three under three, four
+    // beyond, and past four widths the cells stand apart and sample the
+    // pixel where they stand.
+    let plate_band = select(0.0, max(footprint.x, footprint.y) / u.plate.x, u.plate.x > 0.0);
+    let wide = max(band, 2.0 * plate_band);
+    let cells = select(select(2, 3, wide >= 1.0), 4, wide >= 3.0);
+    let cell_footprint = footprint / max(max(f32(cells), band), 2.0 * plate_band);
+    let cell_pixel = pixel / max(max(f32(cells), band), 2.0 * plate_band);
+    // Wood whose pixel spans six ridge widths or three plates reads its
+    // means: four cells a side stand a width and a half apart there, and
+    // their estimate's own noise is above the box's residue, a sixth of the
+    // relief's deviation. So does a twig whose pixel spans its own radius,
+    // whose box is its whole lit side.
+    let sparse = band >= 6.0 || plate_band >= 3.0 || footprint.x >= in.radius;
     // One plate identity per fragment, shared by every shading cell the way
     // the mottle above is: a plate keeps one colour across its whole face.
-    let identity = bark_plate_identity(seen, surface.x, in.radius, u.bark_detail.x,
-        footprint, u.plate, vec3(u.bark_structure.xw, u.peel.w));
+    // A pixel wider than half a plate averages the identity its cells read.
+    var identity = vec2(0.0);
+    if (plate_band < 0.5 || sparse) {
+        identity = bark_plate_identity(seen, surface.x, in.radius, u.bark_detail.x,
+            footprint, u.plate, vec3(u.bark_structure.xw, u.peel.w));
+    } else {
+        for (var y = 0; y < cells; y++) {
+            for (var x = 0; x < cells; x++) {
+                let coord = surface + ((f32(x) + 0.5) / f32(cells) - 0.5) * sx
+                    + ((f32(y) + 0.5) / f32(cells) - 0.5) * sy;
+                identity += bark_plate_identity(normalize(coord.yz), coord.x, in.radius,
+                    u.bark_detail.x, cell_footprint, u.plate, vec3(u.bark_structure.xw, u.peel.w));
+            }
+        }
+        identity /= f32(cells * cells);
+    }
     let own = identity.x;
     // Smooth bark's colour, once a fragment like the plate's identity, and
     // only in the pipeline built with it; it colours the wood the relief then
@@ -281,90 +317,72 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
         }
         if (u.lenticel.z > 0.0 && u.lenticel.y > 0.0) {
             cover.y = u.lenticel.z
-                * lenticel_dash(seen, surface.x, in.radius, footprint, u.lenticel).x;
+                * lenticel_dash(seen, surface.x, in.radius, footprint, u.lenticel,
+                    LENTICEL_REACH_CELLS).x;
         }
         if (u.peel.w > 0.0) { cover.z = identity.y; }
         if (any(cover > vec3(0.0))) { surface_colour = smooth_colour(bark, cover); }
     }
-    let spacing = clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0);
-    let pixel = footprint / max(vec2(u.bark_detail.x, spacing), vec2(0.000001));
-    let band = max(pixel.x, pixel.y);
-    // The half-range of the relief the ridge band's fade has taken out of the
-    // height this fragment reads: what the tints and the cavity are read over
-    // once the band is gone, so a far trunk keeps the furrows' mean shade
-    // rather than the rectified mean of a flat height, which is none. A
-    // furrowed field stands at its floor or its face and spans its whole
-    // range; one without furrows carries only its plate faces and flakes,
-    // and spans half of it (fn-71: the beech's near fissure reads 0.14, the
-    // uniform half-range that gives it).
-    let lost = (1.0 - bark_pass(0.5 * band)) * mix(0.5, 1.0, u.bark_detail.w);
     // Lost high-frequency slope variance remains a roughness contribution.
     // The same numeric row controls it; fully resolved and young wood add none.
-    let fine = max(pixel.x / 0.19, pixel.y / 0.19 + pixel.x * 5.64);
+    let fine = max(cell_pixel.x / 0.19, cell_pixel.y / 0.19 + cell_pixel.x * 5.64);
     let retained = bark_box(fine) * bark_pass(fine);
     let fine_slope = 0.012 / (0.19 * 0.3);
     let broad_slope = 0.095 * u.bark_detail.w / mix(0.04, 0.28, u.bark_detail.w);
-    // A ridge shoulder is box-filtered by its footprint well before its band
-    // fades: the edge integral keeps the pixel's own width, so the slope
-    // variance it keeps falls as sqrt(3/5) of the shoulder over the footprint.
+    // A ridge shoulder is box-filtered by the footprint a cell reads it at:
+    // the edge integral keeps the cell's own width, so the slope variance it
+    // keeps falls as sqrt(3/5) of the shoulder over that footprint, and what
+    // it loses shades the cell as the slopes the box removed would have.
     let shoulder = mix(0.04, 0.28, u.bark_detail.w);
-    let coarse = bark_pass(0.5 * band) * sqrt(min(1.0, 0.775 * shoulder / max(pixel.x, 1e-6)));
+    let coarse = sqrt(min(1.0, 0.775 * shoulder / max(cell_pixel.x, 1e-6)));
     let variance = (fine_slope * fine_slope * (1.0 - retained * retained)
         + (broad_slope * broad_slope + 0.05 * 0.05 / (0.3 * 0.3)) * (1.0 - coarse * coarse))
         * smoothstep(2.0, 5.0, 2.0 * in.radius / max(u.bark_detail.x, 0.000001))
         * select(0.0, 1.0, u.bark_detail.x > 0.0);
-    // Constant height has zero gradient. Shade it once, avoiding twenty
-    // redundant field evaluations and four identical lighting evaluations.
-    if (u.bark_detail.x <= 0.0 || in.radius <= u.bark_detail.x || band >= 2.0) {
-        // A constant field has nowhere to look down into, so the walk above
-        // returned the fragment's own coordinate and this is the same height.
+    // Wood with no relief has a constant height, and sparse wood reads its
+    // mean: shade either once.
+    if (u.bark_detail.x <= 0.0 || in.radius <= u.bark_detail.x || sparse) {
         let height = bark_height(seen, surface.x, in.radius, footprint);
-        let direct = bark_shade(surface, sx, sy, base_normal, dx, dy, in.radius,
-            footprint, height, colour_range.y);
         var n = base_normal;
         if (u.grain.y > 0.0) {
             n = relief_normal(base_normal, in.world, dx, dy, grain.y, grain.z);
         }
-        return vec4<f32>(tone(bark_light(n, height, lost, in.world, shadow,
-            variance, appearance, colour_range, vec3<f32>(orientation, own, direct),
+        return vec4<f32>(tone(bark_light(n, height, 0.0, in.world, shadow,
+            variance, appearance, colour_range, vec3<f32>(orientation, own, 1.0),
             surface_colour)), 1.0);
     }
-    // Four half-pixel shading cells share nine heights. Each height uses the
-    // cell's footprint: filtering over a full pixel here and integrating the
-    // cells again overfiltered the low-resolution albedo. Only wavelengths
-    // below 1.33 pixels widen back to the full-pixel mean before the shortcut.
-    let cell_footprint = footprint * mix(0.5, 1.0, smoothstep(1.5, 2.0, band));
-    var heights: array<f32, 9>;
-    for (var y = 0; y <= 2; y++) {
-        for (var x = 0; x <= 2; x++) {
-            let coord = surface + (0.5 * f32(x) - 0.5) * sx
-                + (0.5 * f32(y) - 0.5) * sy;
-            heights[y * 3 + x] = bark_height(normalize(coord.yz), coord.x, in.radius, cell_footprint);
+    // The cells share a lattice of heights, each read at the cell's footprint.
+    let side = cells + 1;
+    var heights: array<f32, 25>;
+    for (var y = 0; y < side; y++) {
+        for (var x = 0; x < side; x++) {
+            let coord = surface + (f32(x) / f32(cells) - 0.5) * sx
+                + (f32(y) / f32(cells) - 0.5) * sy;
+            heights[y * side + x] = bark_height(normalize(coord.yz), coord.x, in.radius, cell_footprint);
         }
     }
     // The walk towards the sun starts from the fragment's own centre height,
-    // which the nine above already carry: two more field samples, not eleven.
+    // which the lattice already carries: two more field samples, not eleven.
+    let centre = heights[(cells / 2) * side + cells / 2];
     let direct = bark_shade(surface, sx, sy, base_normal, dx, dy, in.radius,
-        cell_footprint, heights[4], colour_range.y);
+        cell_footprint, centre, colour_range.y);
     let structure = vec3<f32>(orientation, own, direct);
     var lit = vec3(0.0);
-    for (var y = 0; y < 2; y++) {
-        for (var x = 0; x < 2; x++) {
-            let h = vec4(heights[y * 3 + x], heights[y * 3 + x + 1],
-                heights[(y + 1) * 3 + x], heights[(y + 1) * 3 + x + 1]);
-            // Average the two differences, divided by a half-pixel cell, and
-            // the grain's own differences over the pixel on top.
-            let step = vec2(h.y + h.w - h.x - h.z, h.z + h.w - h.x - h.y);
+    for (var y = 0; y < cells; y++) {
+        for (var x = 0; x < cells; x++) {
+            let h = vec4(heights[y * side + x], heights[y * side + x + 1],
+                heights[(y + 1) * side + x], heights[(y + 1) * side + x + 1]);
+            // The cell's height differences, over one pixel, and the grain's
+            // own differences over the pixel on top.
+            let step = 0.5 * f32(cells) * vec2(h.y + h.w - h.x - h.z, h.z + h.w - h.x - h.y);
             let n = relief_normal(base_normal, in.world, dx, dy,
                 step.x + grain.y, step.y + grain.z);
             // Half the height the ramp across this cell spans, in the range
-            // the tints are read over, and the range the band's fade has
-            // already taken out of it: the cell's own rectified mean.
-            let ramp = 0.5 * length(step) / max(colour_range.y, 1e-10);
-            let spread = sqrt(ramp * ramp + lost * lost);
+            // the tints are read over: the cell's own rectified mean.
+            let spread = 0.5 * length(step) / f32(cells) / max(colour_range.y, 1e-10);
             lit += bark_light(n, dot(h, vec4(0.25)), spread, in.world, shadow, variance,
                 appearance, colour_range, structure, surface_colour);
         }
     }
-    return vec4<f32>(tone(lit * 0.25), 1.0);
+    return vec4<f32>(tone(lit / f32(cells * cells)), 1.0);
 }

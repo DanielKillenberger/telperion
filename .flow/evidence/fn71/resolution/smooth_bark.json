@@ -1,4 +1,4 @@
 [
-  {"fixture": "EuropeanBeech close-up", "mean": 1.4025, "p95": 4.00, "bound": 3},
-  {"fixture": "SilverBirch close-up", "mean": 2.8955, "p95": 10.00, "bound": 3}
+  {"fixture": "EuropeanBeech close-up", "mean": 1.0351, "p95": 3.00, "bound": 3},
+  {"fixture": "SilverBirch close-up", "mean": 2.5384, "p95": 9.25, "bound": 3}
 ]
