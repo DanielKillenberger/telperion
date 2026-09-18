@@ -132,10 +132,25 @@ fn socket_contact(n: vec3<f32>, dx: vec3<f32>, dy: vec3<f32>,
 // maturity; structure carries what the plate network says about this
 // fragment - which way it faces, which plate it belongs to, and how much of
 // the sun its own crest leaves it.
-fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
+// The mean of a rectified height over a shading cell the height crosses as
+// a ramp of half-spread `spread`: the cell's box average of max(t, 0), which
+// a kink taken at the cell's mean height understates on every cell the
+// mean crossing runs through, and by more the wider the cell.
+fn bark_rectified(t: f32, spread: f32) -> f32 {
+    if (abs(t) >= spread) { return max(t, 0.0); }
+    let lifted = t + spread;
+    return lifted * lifted / (4.0 * spread);
+}
+
+fn bark_light(n: vec3<f32>, height: f32, spread: f32, world: vec3<f32>, shadow: f32,
     variance: f32, appearance: vec4<f32>, colour_range: vec2<f32>,
     structure: vec3<f32>, bark: vec3<f32>) -> vec3<f32> {
-    let sun = u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * shadow * structure.z;
+    // The slopes the footprint lost still tilt the wood inside the pixel: the
+    // sun's cosine over those tilts averages below the filtered normal's, and
+    // the sky's affine share with it, so a far trunk keeps the shade its
+    // resolved relief cast rather than lightening as the relief filters out.
+    let facets = inverseSqrt(1.0 + variance);
+    let sun = u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * facets * shadow * structure.z;
     // Roughness is the width of the one lobe the sun glances off a trunk in:
     // chalk spreads it over the whole face, a smooth young bark keeps a
     // narrow sheen along the light. The lobe is normalised and its foot is
@@ -155,8 +170,8 @@ fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
     // Each signed side is affine until saturation; splitting at zero adds a
     // kink, but never the tint-times-cavity quadratic of the original map.
     let t = clamp((height - colour_range.x) / max(colour_range.y, 1e-10), -1.0, 1.0);
-    let crest = max(t, 0.0) * appearance.w;
-    let fissure = max(-t, 0.0) * appearance.w;
+    let crest = bark_rectified(t, spread) * appearance.w;
+    let fissure = bark_rectified(-t, spread) * appearance.w;
     // Apply cavity to the base here: multiplying tinted colour by it would
     // introduce height squared and change the mean as the footprint widens.
     let cavity_weight = 1.0 - u.bark_colour_detail.z * fissure;
@@ -178,7 +193,7 @@ fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
     let plate = vec3<f32>(1.0) + own * vec3<f32>(0.42, 0.34, 0.22);
     let colour = clamp(albedo * plate * appearance.x, vec3<f32>(0.0), vec3<f32>(1.0));
     let contact = 1.0 - u.bark_colour_detail.z * appearance.y;
-    return (colour * (occluded_ambient(n, appearance.z) + sun * (1.0 - mirrored.x))
+    return (colour * (occluded_ambient(n * facets, appearance.z) + sun * (1.0 - mirrored.x))
         + sun * mirrored.x * mirrored.y * cavity_weight) * contact;
 }
 
@@ -280,7 +295,11 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let retained = bark_box(fine) * bark_pass(fine);
     let fine_slope = 0.012 / (0.19 * 0.3);
     let broad_slope = 0.095 * u.bark_detail.w / mix(0.04, 0.28, u.bark_detail.w);
-    let coarse = bark_pass(band);
+    // A ridge shoulder is box-filtered by its footprint well before its band
+    // fades: the edge integral keeps the pixel's own width, so the slope
+    // variance it keeps falls as sqrt(3/5) of the shoulder over the footprint.
+    let shoulder = mix(0.04, 0.28, u.bark_detail.w);
+    let coarse = bark_pass(band) * sqrt(min(1.0, 0.775 * shoulder / max(pixel.x, 1e-6)));
     let variance = (fine_slope * fine_slope * (1.0 - retained * retained)
         + (broad_slope * broad_slope + 0.05 * 0.05 / (0.3 * 0.3)) * (1.0 - coarse * coarse))
         * smoothstep(2.0, 5.0, 2.0 * in.radius / max(u.bark_detail.x, 0.000001))
@@ -297,7 +316,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
         if (u.grain.y > 0.0) {
             n = relief_normal(base_normal, in.world, dx, dy, grain.y, grain.z);
         }
-        return vec4<f32>(tone(bark_light(n, height, in.world, shadow,
+        return vec4<f32>(tone(bark_light(n, height, 0.0, in.world, shadow,
             variance, appearance, colour_range, vec3<f32>(orientation, own, direct),
             surface_colour)), 1.0);
     }
@@ -326,9 +345,13 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
                 heights[(y + 1) * 3 + x], heights[(y + 1) * 3 + x + 1]);
             // Average the two differences, divided by a half-pixel cell, and
             // the grain's own differences over the pixel on top.
+            let step = vec2(h.y + h.w - h.x - h.z, h.z + h.w - h.x - h.y);
             let n = relief_normal(base_normal, in.world, dx, dy,
-                h.y + h.w - h.x - h.z + grain.y, h.z + h.w - h.x - h.y + grain.z);
-            lit += bark_light(n, dot(h, vec4(0.25)), in.world, shadow, variance,
+                step.x + grain.y, step.y + grain.z);
+            // Half the height the ramp across this cell spans, in the range
+            // the tints are read over: the cell's own rectified mean.
+            let spread = 0.25 * length(step) / max(colour_range.y, 1e-10);
+            lit += bark_light(n, dot(h, vec4(0.25)), spread, in.world, shadow, variance,
                 appearance, colour_range, structure, surface_colour);
         }
     }
