@@ -39,6 +39,8 @@ This spec makes the highlight physical and adds a pixel-scale grain, as renderer
 
 - **Owner, 2026-09-18.** The 4x distance-series bound in `bark_distance.rs` is recalibrated from 3.0 to 3.25. The old sheen put 15% of the sun on the lit trunk, sitting the frame on the tone curve's shoulder where the relief's cross-resolution error compressed into fewer code values; base read 2.904, fn-55's physical highlight 3.134, and no highlight at all 3.167. The relief's drift at distance is a real defect seen before fn-55 and is fn-71's, which restores 3.0; the 2x and p95 bounds stand. The bark grain rows stay held off in the tables until fn-71 sets their value.
 
+- **Owner, 2026-09-18, R4.** Judged on the six matched stills at master and on this branch, served side by side with a slider: "i see barely a difference". [user] The measured difference is under 1.2% RMSE in every view and the close-ups' mean brightness moves 0.3/255. The value part of the fix had landed in fn-40 and fn-54, the bark grain ships held off, and the birch's peel rims are the relief's lighting, so the branch is accepted as the shading foundation and the visible step, grain on bark with its bound, is fn-71's, started straight after the merge. [paraphrase]
+
 ## Resolved via Codebase
 
 - Bark highlight: `crates/telperion-render/src/shaders/wood.wgsl` about `:153-165` (`gloss = 1 - clamp(bark.w + ...)`, `sheen = gloss * pow(max(dot(n, half_way), 0.0), exp2(1.0 + 10.0 * gloss))`).
