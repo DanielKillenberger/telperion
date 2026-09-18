@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-63-gap-loop-options-escalation-and-resume.md",
-  "status": "open",
+  "status": "done",
   "title": "Gap loop: options, escalation and resume",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T19:34:02.851197Z"
+  "updated_at": "2026-09-18T21:11:07.485325Z"
 }
