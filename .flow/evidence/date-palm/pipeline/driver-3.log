@@ -1,0 +1,28 @@
+The capability list on the manifest is `woody-axes`, `apical-rosette`, `pinnate-frond`, `acanthophyll`, `persistent-leaf-base`, `infructescence`. Reasoning is in `.flow/evidence/date-palm/pipeline/packet/capability.json`.
+
+**Per-trait outcomes**
+
+| Need | Parameter | Outcome |
+|---|---|---|
+| Single stem | `habit.stems = 1` | reachable. That is `woody-axes`. |
+| Unbranched Corner axis | `habit.lateral_orders = 0` | reachable. Scaffold stations laterals only when `axis.order < lateral_orders`. |
+| Zero laterals per station | `habit.laterals_per_station = 0` | unreachable-value (rail is 1–12). Inert once orders are 0. Not a gap. |
+| Leader persists | `habit.apical_dominance` near 1 | reachable. |
+| Near-constant trunk | `radii.length_taper = 0` on that unbranched axis | reachable. The pipe model still runs. The mature column is constant. |
+| Fronds only at the apex | canopy / twigs | `unsupported-anatomy` (`apical-rosette`). Placement clothes slender wood. `twigs.generations` cannot be 0. |
+| Pinnate frond | `element` is one blade | `unsupported-anatomy` (`pinnate-frond`). |
+| Acanthophyll | no parameter | `unsupported-anatomy`. |
+| Persistent leaf base | no organ trait | `unsupported-anatomy`. |
+| Infructescence | no organ slot today | `unsupported-anatomy`. |
+
+**Needs that already have a spec**
+
+`pinnate-frond` and `infructescence` depend on open **fn-33** (compound leaves and one reproductive organ slot). Not new gaps. Nothing open covers `apical-rosette`, `acanthophyll`, or `persistent-leaf-base`.
+
+**What `gate` filed**
+
+`date-palm/gate/onboarding-gate/capability`, detail `the generator does not support woody-axes, apical-rosette, pinnate-frond, acanthophyll, persistent-leaf-base, infructescence`. Registry and seeds are still open. I did not act on any of them. `woody-axes` is in the generator’s vocabulary. It is missing here only because `date-palm` is not a registered preset, so `--support` returned an empty list.
+
+**Confidence**
+
+High on the rails and on how scaffold, radius, and placement use them. I read those files. I did not invent the unbranched-stem or constant-diameter results. Medium on the leaf base (organ versus bark plates) and on whether a branched date spadix is one fn-33 organ element. Those two are marked unsure in `capability.json`. Guessing either as a new gap, or guessing the unbranched stem as unreachable from the `laterals_per_station` rail alone, would have been the wrong call.

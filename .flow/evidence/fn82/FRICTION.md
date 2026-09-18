@@ -75,3 +75,30 @@ Entries follow the friction rule in CLAUDE.md; the owner decides which become sp
   because options for "register the preset" would mint a spec to do what fn-82
   already exists to do, and `seeds` only says that `generate`, which the same
   gate blocks, has not run.
+
+## 2026-09-19 — capability assessment is a source read, and the laterals rail lies
+
+- **Doing:** the CAPABILITY ASSESSMENT stage the runbook skipped, for
+  Phoenix dactylifera, writing `engineering.required_capabilities` and
+  `packet/capability.json`.
+- **Hindered by:** the stage is in `docs/species-onboarding.md`'s handoff
+  table and is not one of the eleven pipeline commands, so walking the
+  runbook never stops on it. The habit table's `laterals_per_station`
+  rail is 1..=12, which reads as "a stem that bears no laterals is
+  unreachable" until `scaffold.rs` is opened and `lateral_orders=0` is
+  seen to skip `station()` entirely. A cheap driver that only reads
+  `validate()` files a false `unsupported-anatomy` on the unbranched
+  stem. `capabilities()` still only derives six names from a registered
+  preset, so every name we write is missing, including `woody-axes`,
+  because `date-palm` is not registered.
+- **Cost:** the reading, not credits. Gate itself was 0.256 s and 0 Jev.
+  The earlier literature chain remains the wasted spend this stage should
+  have sat in front of.
+- **What would remove it:** a pipeline command, or a seed-time derivation
+  from the spec's model and organs, so the required list exists before
+  discover. A one-page trait-use note next to the rails
+  (`lateral_orders=0` means no laterals; `laterals_per_station` is inert
+  then) so the next cheap driver does not re-read `scaffold.rs`.
+- **Early return:** not taken. The assessment was the assigned work and
+  finished. The new `onboarding-gate/capability` decision was left for
+  the host.

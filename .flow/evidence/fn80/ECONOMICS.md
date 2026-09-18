@@ -264,3 +264,84 @@ cheaper. A step can be fast and still be the wrong place to spend.
   the required list exists. Proposal, for the owner: one spec against the gate
   and the seed, making the spec's model and organs the required list. The owner
   decides whether it is written.
+
+## 2026-09-19 — capability assessment: cheap model, if it reads the code that uses the ranges
+
+- **Step.** The CAPABILITY ASSESSMENT stage of `docs/species-onboarding.md`,
+  which is not a pipeline command. Read `traits.rs`, `scaffold.rs`,
+  `element.rs`, `placement.rs`, `radius.rs`, `twigs.rs`, and
+  `capabilities()` in `geometry_benchmark.rs`. Wrote
+  `engineering.required_capabilities` and `packet/capability.json`. Reran
+  `gate --example` once. Did not run the gap loop and did not mint a spec.
+- **Cost.** 0 Firecrawl, 0 Jev, 1 gate run (`gate.json` cost.runs is now 2,
+  0.256 s this invoke). Driver thinking: heavy. This is the first step on
+  this run that is a judgment over source, not a command. Token count still
+  unmeasurable. No escalation.
+- **Dominates?** Yes of this leg, and of whether the gap loop has a true
+  halt. The literature chain already spent 9 Firecrawl credits and 40 Jev
+  calls to reach a vacuous gate. This leg spent none of those and filed
+  `date-palm/gate/onboarding-gate/capability`.
+- **Was a cheap model enough?** Yes, unaided, provided it reads the
+  *use* of each trait and not only `validate()`. I am that cheap tier
+  (`cursor-grok-4.6-high-fast`). I was not guessing on the ranges or on
+  `lateral_orders=0` and `length_taper=0`. I was guessing if I had stopped
+  at the `laterals_per_station` rail (1..=12), which looks like "cannot have
+  zero laterals" until `scaffold.rs` shows that 0 orders never stations one.
+  Persistent leaf base (organ versus bark plate) and whether a date spadix
+  fits fn-33's one organ element are the two places I marked unsure rather
+  than deciding. Guessing either as a new gap, or guessing the unbranched
+  stem as unreachable, would have been worse than useless.
+- **Cheaper next time.** Keep this on the cheap tier. Do not send it to a
+  frontier model. What a thousand species cannot afford is each agent
+  rediscovering that the assessment is not a command and rereading six
+  source files. Put the spec's model and organs on the seed, and have a
+  mechanical check emit the required list before discover. A cheap driver
+  then only reads `capability.json` for the two unsure rows.
+- **Swarm reading.** One cheap-tier invoke that reads the trait space, 0
+  credits, 0 Jev, then one 20 ms gate. Acceptable at a thousand if the
+  required list is derived from the spec. Unacceptable if every species
+  pays a 20-file source read to write six strings the spec already named.
+
+## 2026-09-19 — the capability assessment, and what it says about the escalation line
+
+- **Step.** The onboarding method's capability assessment, the stage the skill
+  never conducts, run on the value tier before the owner ruled that reasoning
+  and system design escalate to the host. Then verified by the host.
+- **Cost.** Under four minutes, one bridge call, no credits. The host's
+  verification was three source reads and one generation trial.
+- **What it produced.** Six required capabilities on the manifest, and a
+  per-trait record separating what the trait space reaches from what no trait
+  expresses. `gate`, rerun, filed
+  `date-palm/gate/onboarding-gate/capability` naming the missing list. That is
+  the first real capability halt the pipeline has ever filed, and it is what
+  the gap loop needs to route.
+- **Quality, checked not assumed.** The host verified the load-bearing claims
+  against the source rather than accepting them. `lateral_orders = 0` does
+  yield an unbranched axis: `scaffold.rs` stations a lateral only while
+  `axis.order < habit.lateral_orders`, and the validity check admits 0. The
+  twig rail is 1 to 6, so twigs cannot be switched off, which is why an apical
+  rosette is unmet. A generation trial over the oak's family with
+  `lateralOrders: 0`, `lengthTaper: 0` and an 18 m envelope produced a single
+  unbranched stem measuring 17.99 m tall and 0.648 m in constant diameter. So
+  the palm's TRUNK is reachable today as a value table; what is missing is the
+  organs and their placement, not the form of the stem. The assessment was
+  right and the host's earlier reading, that no combination of values produces
+  a palm's trunk, was wrong.
+- **The escalation reading, which is the point.** The value tier did this well:
+  it read the rails from source, refused to call a reachable value a gap,
+  found that two of the six needs are already covered by open fn-33, and marked
+  two judgments unsure rather than deciding them. It also caught a defect in
+  the gate itself, that `woody-axes` shows as missing only because `--support`
+  returns an empty list for an unregistered preset. That is a strong showing
+  for a cheap model on a reasoning step.
+  It does not overturn the owner's rule. The rule holds because the failure
+  mode is asymmetric and invisible: a wrong reading is caught by the next
+  stage, a wrong capability judgment is written into an artifact and then
+  believed. This run happens to be a case where the cheap tier was right, and
+  nobody could have known that without the host checking. The check is the
+  cost of the rule, and it is far cheaper than the assessment itself.
+- **Swarm reading.** The shape that works is a cheap tier that drafts and a
+  host that verifies, not a cheap tier that decides. Drafting cost four
+  minutes; verifying cost three reads and one trial. A thousand species can
+  afford both. What a thousand species cannot afford is a wrong form judgment
+  written into a manifest and discovered after the generator work is built.
