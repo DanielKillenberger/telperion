@@ -38,20 +38,35 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
     let (_, select_sha) = body(&ctx, STAGE, "select")?;
     let (_, generate_sha) = body(&ctx, STAGE, "generate")?;
-    let pinned = inputs(&[("fetch.json", &fetch_sha), ("select.json", &select_sha), ("generate.json", &generate_sha)]);
+    let pinned = inputs(&[
+        ("fetch.json", &fetch_sha),
+        ("select.json", &select_sha),
+        ("generate.json", &generate_sha),
+    ]);
     let mut header = ctx.header(STAGE, "document", pinned, vec![]);
     if ctx.is_current(STAGE, &header.idempotence_key) {
         return Ok(Outcome::Current);
     }
     let species = ctx.admitted.manifest.species.clone();
-    let bound: BTreeMap<String, String> = [("select.json".into(), select_sha)].into_iter().collect();
+    let bound: BTreeMap<String, String> =
+        [("select.json".into(), select_sha)].into_iter().collect();
     let mut decisions = Vec::new();
     let copies = write_copies(&ctx, &fetch, &species)?;
     let (validated, work) = write_article(&ctx, &species)?;
     if !validated {
-        let parts = DecisionParts { species: &species, stage: STAGE, kind: "article-unfilled", field: None, age_years: None };
+        let parts = DecisionParts {
+            species: &species,
+            stage: STAGE,
+            kind: "article-unfilled",
+            field: None,
+            age_years: None,
+        };
         decisions.push(Decision::new(
-            parts, &["report"], bound.clone(), vec![], json!({"work": work}),
+            parts,
+            &["report"],
+            bound.clone(),
+            vec![],
+            json!({"work": work}),
             &["accept", "write-article"],
             "The article still has unfilled sections or uncited claims.",
         ));
@@ -59,8 +74,18 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     let article = ctx.paths.dir.join("ARTICLE.md");
     let written = std::fs::read_to_string(&article).unwrap_or_default();
     let (claims, loads) = claims_in(&ctx, judge, &written);
-    let failed = |err: crate::caller::CallerError| StageError::Failed { stage: STAGE.into(), reason: err.to_string() };
-    let report = cite(judge.transport, judge.key, &judge.ledger_dir, &claims, &loads).map_err(failed)?;
+    let failed = |err: crate::caller::CallerError| StageError::Failed {
+        stage: STAGE.into(),
+        reason: err.to_string(),
+    };
+    let report = cite(
+        judge.transport,
+        judge.key,
+        &judge.ledger_dir,
+        &claims,
+        &loads,
+    )
+    .map_err(failed)?;
     let mut rows = Vec::new();
     for (claim, row) in claims.iter().zip(report.rows.iter()) {
         if !row.identity.is_empty() {
@@ -72,11 +97,25 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         }));
         if row.listed && row.relation != "unchecked" {
             let contradicts = row.relation == "contradicts";
-            let kind = if contradicts { "article-claim-contradicted" } else { "article-claim-unsupported" };
-            let parts = DecisionParts { species: &species, stage: STAGE, kind, field: Some(&claim.source_id), age_years: None };
+            let kind = if contradicts {
+                "article-claim-contradicted"
+            } else {
+                "article-claim-unsupported"
+            };
+            let parts = DecisionParts {
+                species: &species,
+                stage: STAGE,
+                kind,
+                field: Some(&claim.source_id),
+                age_years: None,
+            };
             let payload = json!({"claim": row.claim, "section": row.section, "relation": row.relation, "reason": row.reason});
             decisions.push(Decision::new(
-                parts, &["report"], bound.clone(), vec![row.identity.clone()], payload,
+                parts,
+                &["report"],
+                bound.clone(),
+                vec![row.identity.clone()],
+                payload,
                 &["accept", "recite", "rewrite-sentence"],
                 "The citation check listed this article claim for a person.",
             ));
@@ -86,11 +125,14 @@ pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
     if !decisions.is_empty() {
         append_decisions(&ctx.paths.decisions(), decisions)?;
     }
-    ctx.write(&header, json!({
-        "sources": copies, "article": article.display().to_string(),
-        "article_validated": validated, "article_work": work, "claims": rows,
-        "tokens": {"input": report.input_tokens, "output": report.output_tokens},
-    }))?;
+    ctx.write(
+        &header,
+        json!({
+            "sources": copies, "article": article.display().to_string(),
+            "article_validated": validated, "article_work": work, "claims": rows,
+            "tokens": {"input": report.input_tokens, "output": report.output_tokens},
+        }),
+    )?;
     Ok(Outcome::Ran { decisions: ids })
 }
 
@@ -101,7 +143,15 @@ fn write_copies(ctx: &Context, fetch: &Value, species: &str) -> Result<Vec<Value
     let mut written = Vec::new();
     for source in &ctx.admitted.manifest.sources {
         let cached = verified_cache(ctx, &source.id, &fetch["sources"][&source.id]);
-        let mut argv = args(&[SOURCES_SCRIPT, "--species", species, "--source", &source.id, "--fetched", &today()]);
+        let mut argv = args(&[
+            SOURCES_SCRIPT,
+            "--species",
+            species,
+            "--source",
+            &source.id,
+            "--fetched",
+            &today(),
+        ]);
         if let Some(path) = &cached {
             argv.extend(args(&["--from", &path.display().to_string()]));
             if let Some(passages) = passages_file(ctx, &source.id)? {
@@ -113,9 +163,13 @@ fn write_copies(ctx: &Context, fetch: &Value, species: &str) -> Result<Vec<Value
         let (ok, printed, failed) = node(&ctx.paths, &argv)?;
         if !ok {
             let tail = failed.trim().lines().next_back().unwrap_or("no output");
-            return Err(StageError::Failed { stage: STAGE.into(), reason: format!("{}: {tail}", source.id) });
+            return Err(StageError::Failed {
+                stage: STAGE.into(),
+                reason: format!("{}: {tail}", source.id),
+            });
         }
-        written.push(json!({"id": source.id, "form": form_in(&printed), "cached": cached.is_some()}));
+        written
+            .push(json!({"id": source.id, "form": form_in(&printed), "cached": cached.is_some()}));
     }
     Ok(written)
 }
@@ -124,7 +178,11 @@ fn write_copies(ctx: &Context, fetch: &Value, species: &str) -> Result<Vec<Value
 /// still matches its bytes.
 fn verified_cache(ctx: &Context, id: &str, record: &Value) -> Option<PathBuf> {
     cached_markdown(ctx, STAGE, id, record).ok()?;
-    Some(ctx.paths.cache().join(record["cached"]["markdown"].as_str()?))
+    Some(
+        ctx.paths
+            .cache()
+            .join(record["cached"]["markdown"].as_str()?),
+    )
 }
 
 /// The passages an extract keeps for one source: each provenance entry's JSON
@@ -134,15 +192,20 @@ fn verified_cache(ctx: &Context, id: &str, record: &Value) -> Option<PathBuf> {
 /// Only a `copied` route is quotable; a described value's span is the judge's
 /// paraphrase and would fail that verification for the right reason.
 fn passages_file(ctx: &Context, id: &str) -> Result<Option<PathBuf>, StageError> {
-    if !ctx.paths.sidecar().exists() { return Ok(None); }
+    if !ctx.paths.sidecar().exists() {
+        return Ok(None);
+    }
     let provenance = read_json(&ctx.paths.sidecar())?;
     let entries = provenance["entries"].as_object().into_iter().flatten();
     let mine = entries.filter(|(_, entry)| {
         entry["source"].as_str() == Some(id) && entry["route"].as_str() == Some("copied")
     });
-    let passage = |(pointer, entry): (&String, &Value)| json!({"location": pointer, "quote": entry["span"]});
+    let passage =
+        |(pointer, entry): (&String, &Value)| json!({"location": pointer, "quote": entry["span"]});
     let passages: Vec<Value> = mine.map(passage).collect();
-    if passages.is_empty() { return Ok(None); }
+    if passages.is_empty() {
+        return Ok(None);
+    }
     let path = ctx.paths.run.join("document").join(format!("{id}.json"));
     write_atomic(&path, &serde_json::to_vec(&passages).unwrap_or_default())?;
     Ok(Some(path))
@@ -153,14 +216,21 @@ fn passages_file(ctx: &Context, id: &str) -> Result<Option<PathBuf>, StageError>
 /// crash, so the stage records it and finishes.
 fn write_article(ctx: &Context, species: &str) -> Result<(bool, Vec<String>), StageError> {
     let (ok, _, failed) = node(&ctx.paths, &args(&[ARTICLE_SCRIPT, "--species", species]))?;
-    let work = failed.lines().map(str::trim).filter(|line| !line.is_empty());
+    let work = failed
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty());
     Ok((ok, work.map(str::to_string).collect()))
 }
 
 /// Every claim the article makes, one per cited source. Each is checked
 /// against the copy in this folder, so the check reads the text a reader
 /// following the link would.
-fn claims_in(ctx: &Context, judge: &Judge<'_>, article: &str) -> (Vec<ResearchClaim>, Vec<SourceLoad>) {
+fn claims_in(
+    ctx: &Context,
+    judge: &Judge<'_>,
+    article: &str,
+) -> (Vec<ResearchClaim>, Vec<SourceLoad>) {
     let urls = source_urls(ctx);
     let mut claims = Vec::new();
     let mut loads = Vec::new();
@@ -168,7 +238,12 @@ fn claims_in(ctx: &Context, judge: &Judge<'_>, article: &str) -> (Vec<ResearchCl
         let copy = ctx.paths.dir.join("sources").join(format!("{id}.md"));
         loads.push(load_source(judge.transport, &copy.display().to_string()));
         let url = urls.get(&id).cloned().unwrap_or_default();
-        claims.push(ResearchClaim { claim: line, url, source_id: id, unresolved: None });
+        claims.push(ResearchClaim {
+            claim: line,
+            url,
+            source_id: id,
+            unresolved: None,
+        });
     }
     (claims, loads)
 }
@@ -200,29 +275,45 @@ fn cited(article: &str) -> Vec<(String, String)> {
 fn source_urls(ctx: &Context) -> BTreeMap<String, String> {
     let record = read_json(&ctx.paths.dir.join("sources.json")).unwrap_or_default();
     let sources = record["sources"].as_array().cloned().unwrap_or_default();
-    let pair = |s: &Value| Some((s["id"].as_str()?.to_string(), s["url"].as_str()?.to_string()));
+    let pair = |s: &Value| {
+        Some((
+            s["id"].as_str()?.to_string(),
+            s["url"].as_str()?.to_string(),
+        ))
+    };
     sources.iter().filter_map(pair).collect()
 }
 
 /// One catalogue script, run from the repository root and appended to the
 /// run's command log, with what it printed and whether it succeeded.
 fn node(paths: &Paths, argv: &[String]) -> Result<(bool, String, String), StageError> {
-    let output = Command::new("node").args(argv).output().map_err(|err| StageError::Failed {
-        stage: STAGE.into(),
-        reason: format!("node {}: {err}", argv.join(" ")),
-    })?;
+    let output = Command::new("node")
+        .args(argv)
+        .output()
+        .map_err(|err| StageError::Failed {
+            stage: STAGE.into(),
+            reason: format!("node {}: {err}", argv.join(" ")),
+        })?;
     let mut logged = vec!["node".to_string()];
     logged.extend(argv.iter().cloned());
     log_command(paths, &logged, output.status.code().unwrap_or(-1))?;
     let printed = |bytes: &[u8]| String::from_utf8_lossy(bytes).into_owned();
-    Ok((output.status.success(), printed(&output.stdout), printed(&output.stderr)))
+    Ok((
+        output.status.success(),
+        printed(&output.stdout),
+        printed(&output.stderr),
+    ))
 }
 
 /// The copy's form, as the script printed it in `wrote <path> (<form>, N
 /// bytes)`. The rights rule that chose it is the script's alone.
 fn form_in(printed: &str) -> String {
     let (_, tail) = printed.rsplit_once('(').unwrap_or(("", "unknown,"));
-    tail.split(',').next().unwrap_or("unknown").trim().to_string()
+    tail.split(',')
+        .next()
+        .unwrap_or("unknown")
+        .trim()
+        .to_string()
 }
 
 fn args(argv: &[&str]) -> Vec<String> {
@@ -248,6 +339,9 @@ mod tests {
         let found = cited(article);
         let ids: Vec<&str> = found.iter().map(|(_, id)| id.as_str()).collect();
         assert_eq!(ids, vec!["A1", "B2"]);
-        assert_eq!(form_in("wrote catalogue/x/sources/A1.md (extract, 812 bytes)\n"), "extract");
+        assert_eq!(
+            form_in("wrote catalogue/x/sources/A1.md (extract, 812 bytes)\n"),
+            "extract"
+        );
     }
 }
