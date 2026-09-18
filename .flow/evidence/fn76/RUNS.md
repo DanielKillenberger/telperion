@@ -47,3 +47,20 @@ The fix publishes each hit as the literal `true` or `false`
 (`cache-hit == 'true'`), so no field can be empty. The run after the fix is
 the one that proves a Rust receipt is written, and the run after that is the
 one that proves the skip.
+
+## After the merge
+
+| Run | What | Total | receipts | crates | rust-receipts | node |
+|---|---|---|---|---|---|---|
+| 35395043461 | the receipt fix, last run on the PR, caches warm | 4 min 03 s | 15 s | core 1/4 2 min 33 s, core 2/4 2 min 53 s, core 3/4 2 min 21 s, core 4/4 2 min 09 s, render 1 min 48 s, wasm and jev 2 min 12 s | 6 s, four Rust receipts written | 3 min 34 s |
+| 35396066673 | first push to master, merge 7831ce4a, no receipt and no build cache on master yet | 4 min 10 s | 18 s | core 1/4 2 min 43 s, core 2/4 3 min 13 s, core 3/4 2 min 40 s, core 4/4 2 min 21 s, render 1 min 26 s, wasm and jev 1 min 57 s | 5 s | 3 min 46 s |
+
+Run 35395043461 is the one that proves the fix: its `rust-receipts` job wrote
+all four Rust receipts, where the run before it wrote none. Master's own run
+is cold, as fn-74's was, and saved its receipts and build cache for the next
+push.
+
+R5 stands at 2 min 55 s warm and 4 min 10 s cold on master, against the
+three-minute bound. The bound is met warm and missed cold by 70 seconds; the
+cold case pays about two minutes of build the receipts and the build cache
+remove on every later run.
