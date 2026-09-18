@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-81-the-species-article-the-sources.md",
-  "status": "open",
+  "status": "done",
   "title": "The species article: the sources distilled, every claim cited",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T22:17:29.952587Z"
+  "updated_at": "2026-09-18T23:09:50.926373Z"
 }
