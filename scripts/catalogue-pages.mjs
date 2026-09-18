@@ -89,12 +89,15 @@ function speciesPage(species) {
     ],
   ));
 
+  out.push('\n[Read the article](ARTICLE.md) — the sources distilled, every claim cited.\n');
+
   out.push('\n## Bibliography\n');
   out.push(table(
-    ['Id', 'Source', 'Rights', 'Verified', 'Good for'],
+    ['Id', 'Source', 'Local copy', 'Rights', 'Verified', 'Good for'],
     (species.sources.sources ?? []).map((source) => [
       source.id,
       `[${source.title}](${source.url})`,
+      `[sources/${source.id}.md](sources/${source.id}.md)`,
       source.rights,
       source.verified ?? 'unverified',
       source.use ?? '',

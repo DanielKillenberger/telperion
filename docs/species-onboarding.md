@@ -29,7 +29,9 @@ Generation and captures use windows coordinated with fn13/fn18: owner, UTC inter
 
 `docs/species-pipeline.md` is the runbook: a fixed sequence of
 `species-pipeline` commands takes the admitted sources to the packet, the
-provenance sidecar, the fitted curves, the decision list and the report, with
+provenance sidecar, the fitted curves, the decision list, the species'
+documentation - a markdown copy of every admitted source and the article
+distilled from them, written by the `document` stage - and the report, with
 Jev judging every reading step through `crates/telperion-jev` and code owning
 every number. The stage handoffs above name what each artifact must carry; the
 pipeline produces them, and a person admits the manifest and resolves the
