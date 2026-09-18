@@ -269,6 +269,10 @@ impl Context {
         let m = &self.admitted.manifest;
         let mut tools = m.versions.tools.clone();
         tools.insert("species-pipeline".into(), TOOL_VERSION.into());
+        // A landed gap fix is a tool version: it expires the key of the stage
+        // that halted and of every stage after it, and leaves the earlier
+        // ones current, so the run resumes where it stopped (fn-63 R4).
+        tools.extend(super::gap::resume::landed_tools(&self.paths.dir, stage));
         let key = idempotence_key(
             &inputs,
             keyed_on,

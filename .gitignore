@@ -37,3 +37,4 @@ __pycache__/
 .flow/evidence/*/pipeline/cache/
 .flow/evidence/*/pipeline/stills/
 .flow/evidence/*/pipeline/ledger/entries/
+.flow/evidence/*/ledger/

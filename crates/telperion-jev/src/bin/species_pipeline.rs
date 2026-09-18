@@ -8,6 +8,7 @@ use std::process::ExitCode;
 
 use telperion_jev::caller::{load_key, UreqTransport};
 use telperion_jev::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource};
+use telperion_jev::pipeline::gap::cli as gap_cli;
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::known::{flow_root, KnownSources};
 use telperion_jev::pipeline::render::{Measurer, SpeciesExample};
@@ -17,7 +18,7 @@ use telperion_jev::pipeline::stages::{
 };
 use telperion_jev::pipeline::swap;
 
-const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n  stages: discover fetch extract screen quality select verify fit gate generate report";
+const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n       species-pipeline gap <command> --dir DIR  (see `gap` for its own usage)\n  stages: discover fetch extract screen quality select verify fit gate generate report";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -46,7 +47,14 @@ fn main() -> ExitCode {
         eprintln!("{USAGE}");
         return ExitCode::from(2);
     };
-    let result = run(&command, &dir, &args);
+    if command == gap_cli::COMMAND {
+        return finish(gap_cli::run(&args), &dir, &args);
+    }
+    finish(run(&command, &dir, &args), &dir, &args)
+}
+
+/// Prints the outcome, appends the command to the run's log, and exits.
+fn finish(result: Result<String, String>, dir: &Path, args: &[String]) -> ExitCode {
     let exit = match &result {
         Ok(message) => {
             println!("{message}");
@@ -57,7 +65,7 @@ fn main() -> ExitCode {
             1
         }
     };
-    if let Err(err) = log_command(&Paths::new(&dir), &args, exit) {
+    if let Err(err) = log_command(&Paths::new(dir), args, exit) {
         eprintln!("command log: {err}");
     }
     ExitCode::from(exit as u8)
