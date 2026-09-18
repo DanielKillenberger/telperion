@@ -37,13 +37,13 @@
 | Growth reference | 32 m at 120 years |
 
 ## Reference images
-| Id | Scale | Kept | Source | Observation |
+| Id | Scale | Image | Source | Observation |
 |---|---|---|---|---|
-| B-WHOLE | whole | by url only | OSU-BEECH | Caption: plant habit. Literature target is a dense oval-to-rounded open-grown crown. Raster not opened in this session (four-images reading rule); qualitative matching only. |
-| B-BARE | bare, base | by url only | OSU-BEECH | Caption: winter habit and trunk bark. Literature: smooth silver-grey bark, elephant-hide on old trunks; regular winter scaffold. |
-| B-LEAF | attached-shoot | by url only | OSU-BEECH | Caption: leaf. Literature: ovate-elliptic, entire or wavy, acute tip, short petiole, lustrous dark green above. |
-| B-LEAVES | attached-shoot | by url only | OSU-BEECH | Caption: leaves. Literature: alternate two-ranked simple blades. |
-| B-BASE | base | by url only | OSU-BEECH | The right half of the same diptych as B-BARE: smooth grey bark with lichen spots, filling the frame. Read from the raster for the shot block (2026-09-14). |
+| B-WHOLE | whole | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy951.jpg) | OSU-BEECH | Caption: plant habit. Literature target is a dense oval-to-rounded open-grown crown. Raster not opened in this session (four-images reading rule); qualitative matching only. |
+| B-BARE | bare, base | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy896.jpg) | OSU-BEECH | Caption: winter habit and trunk bark. Literature: smooth silver-grey bark, elephant-hide on old trunks; regular winter scaffold. |
+| B-LEAF | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy4532.jpg) | OSU-BEECH | Caption: leaf. Literature: ovate-elliptic, entire or wavy, acute tip, short petiole, lustrous dark green above. |
+| B-LEAVES | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy47.jpg) | OSU-BEECH | Caption: leaves. Literature: alternate two-ranked simple blades. |
+| B-BASE | base | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy896.jpg) | OSU-BEECH | The right half of the same diptych as B-BARE: smooth grey bark with lichen spots, filling the frame. Read from the raster for the shot block (2026-09-14). |
 
 ## Stills
 _None recorded._

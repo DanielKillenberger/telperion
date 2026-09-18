@@ -38,13 +38,13 @@
 | Growth reference | 18 m at 70 years |
 
 ## Reference images
-| Id | Scale | Kept | Source | Observation |
+| Id | Scale | Image | Source | Observation |
 |---|---|---|---|---|
-| S-WHOLE | whole | by url only | OSU-BIRCH | Caption: summer plant habit. Literature target is a light pyramidal-to-rounded crown with pendulous fine twigs. |
-| S-BARE | bare | by url only | OSU-BIRCH | Caption: winter habit. Literature: fine hanging haze of twigs. |
-| S-LEAF | attached-shoot | by url only | OSU-BIRCH | Caption: leaves. Literature: deltoid, doubly serrate, acuminate. |
-| S-SHOOT | attached-shoot | by url only | OSU-BIRCH | Caption: leafy shoot. Literature: alternate blades on a slender shoot. |
-| S-BARK | base | by url only | OSU-BIRCH | Caption: trunk bark. Literature: white, dark lenticels and chevrons. |
+| S-WHOLE | whole | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe339A.jpg) | OSU-BIRCH | Caption: summer plant habit. Literature target is a light pyramidal-to-rounded crown with pendulous fine twigs. |
+| S-BARE | bare | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe340A.jpg) | OSU-BIRCH | Caption: winter habit. Literature: fine hanging haze of twigs. |
+| S-LEAF | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe987A.jpg) | OSU-BIRCH | Caption: leaves. Literature: deltoid, doubly serrate, acuminate. |
+| S-SHOOT | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe74.jpg) | OSU-BIRCH | Caption: leafy shoot. Literature: alternate blades on a slender shoot. |
+| S-BARK | base | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/bepe3243.jpg) | OSU-BIRCH | Caption: trunk bark. Literature: white, dark lenticels and chevrons. |
 
 ## Stills
 | Still | Preset | Seed | View | Verdict | Owner |

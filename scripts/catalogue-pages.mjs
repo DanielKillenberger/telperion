@@ -130,12 +130,20 @@ function speciesPage(species) {
   const references = species.references.references ?? [];
   const kept = references.filter((reference) => reference.kept === true);
   out.push('\n## Reference images\n');
+  // An image the project may not keep is still reachable: its record carries the
+  // url it was read at, so the id links there. A page that printed "by url only"
+  // and dropped the url left the reader with nothing to open. A kept image links
+  // to the copy in this folder instead, and is shown below the table.
   out.push(table(
-    ['Id', 'Scale', 'Kept', 'Source', 'Observation'],
+    ['Id', 'Scale', 'Image', 'Source', 'Observation'],
     references.map((reference) => [
       reference.id,
       (reference.scale ?? []).join(', '),
-      reference.kept ? `\`${reference.path}\`` : 'by url only',
+      reference.kept
+        ? `[in this folder](${reference.path})`
+        : reference.url
+          ? `[at the source](${reference.url})`
+          : 'not recorded',
       reference.source_id,
       reference.observation ?? '',
     ]),

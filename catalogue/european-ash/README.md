@@ -28,13 +28,13 @@
 _No preset ships for this species yet, so there is nothing to pin._
 
 ## Reference images
-| Id | Scale | Kept | Source | Observation |
+| Id | Scale | Image | Source | Observation |
 |---|---|---|---|---|
-| A-WHOLE | whole | by url only | OSU-ASH | Caption: plant habit. Literature: round-headed, broad-spreading. |
-| A-LEAF | attached-shoot | by url only | OSU-ASH | Caption: leaf. Literature: pinnate, 7-13 leaflets. This is the organ fn-33 must express. |
-| A-SHOOT | attached-shoot | by url only | OSU-ASH | Caption: leafy shoots. Literature: opposite compound leaves. |
-| A-UNDER | attached-shoot | by url only | OSU-ASH | Caption: leaflet underside. Literature: lighter green below, villous midrib. |
-| A-BARK | base | by url only | OSU-ASH | Caption: trunk bark. Literature: grey, furrowed when mature. |
+| A-WHOLE | whole | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex911B.jpg) | OSU-ASH | Caption: plant habit. Literature: round-headed, broad-spreading. |
+| A-LEAF | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex6719.jpg) | OSU-ASH | Caption: leaf. Literature: pinnate, 7-13 leaflets. This is the organ fn-33 must express. |
+| A-SHOOT | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex6612.jpg) | OSU-ASH | Caption: leafy shoots. Literature: opposite compound leaves. |
+| A-UNDER | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex6614.jpg) | OSU-ASH | Caption: leaflet underside. Literature: lighter green below, villous midrib. |
+| A-BARK | base | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/frex656.jpg) | OSU-ASH | Caption: trunk bark. Literature: grey, furrowed when mature. |
 
 ## Stills
 _None recorded._

@@ -35,11 +35,11 @@
 | Growth reference | 15 m at 100 years |
 
 ## Reference images
-| Id | Scale | Kept | Source | Observation |
+| Id | Scale | Image | Source | Observation |
 |---|---|---|---|---|
-| S-WHOLE | whole | by url only | OSU-SPRUCE | Persistent leader, conical tiers and variable openness; left specimen shows hanging secondary systems. |
-| S-BRANCH | attached-shoot | by url only | OSU-SPRUCE | Upturned primary tip and hanging secondary branchlets retain visible surrounding connectivity. |
-| S-NEEDLE | attached-shoot | by url only | OSU-SPRUCE | Individual needles around twig and peg attachment visible. |
+| S-WHOLE | whole | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab977.jpg) | OSU-SPRUCE | Persistent leader, conical tiers and variable openness; left specimen shows hanging secondary systems. |
+| S-BRANCH | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab428B.jpg) | OSU-SPRUCE | Upturned primary tip and hanging secondary branchlets retain visible surrounding connectivity. |
+| S-NEEDLE | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab347A_0.jpg) | OSU-SPRUCE | Individual needles around twig and peg attachment visible. |
 
 ## Stills
 | Still | Preset | Seed | View | Verdict | Owner |

@@ -37,11 +37,11 @@
 | Growth reference | 24 m at 100 years |
 
 ## Reference images
-| Id | Scale | Kept | Source | Observation |
+| Id | Scale | Image | Source | Observation |
 |---|---|---|---|---|
-| O-WHOLE | whole | by url only | OSU-OAK | Broad uneven crown, internal windows and substantial low limbs. |
-| O-BARE | bare, fork | by url only | OSU-OAK | Crooked ascending scaffolds subdivide into fine axes; large fork continuity is visible. |
-| O-LEAF | attached-shoot | by url only | OSU-OAK | Rounded lobes, narrowing petiole and visible twig attachment. |
+| O-WHOLE | whole | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga788B.jpg) | OSU-OAK | Broad uneven crown, internal windows and substantial low limbs. |
+| O-BARE | bare, fork | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga999A.jpg) | OSU-OAK | Crooked ascending scaffolds subdivide into fine axes; large fork continuity is visible. |
+| O-LEAF | attached-shoot | [at the source](https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/quga28.jpg) | OSU-OAK | Rounded lobes, narrowing petiole and visible twig attachment. |
 
 ## Stills
 | Still | Preset | Seed | View | Verdict | Owner |
