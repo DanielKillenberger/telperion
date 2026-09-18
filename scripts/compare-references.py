@@ -190,6 +190,20 @@ def compare(record: dict, photo: np.ndarray, still: np.ndarray, twin: np.ndarray
     }
 
 
+def photograph(record: dict, args: argparse.Namespace) -> Path:
+    """Where a reference record's photograph is.
+
+    An image the project may keep is an LFS object in the species' catalogue
+    folder, under the path the record states; `git lfs pull` brings the bytes
+    down. An image the project may not keep is recorded by url and hash only
+    and the fetch adapter caches it in the ignored cache directory. Either way
+    the bytes are checked against `asset_sha256` before anything is compared.
+    """
+    if record.get("kept"):
+        return Path(args.catalogue) / record["species_id"] / record["path"]
+    return Path(args.refs) / record["url"].rsplit("/", 1)[-1]
+
+
 def run(args: argparse.Namespace) -> int:
     references = json.loads(Path(args.references).read_text())
     out = Path(args.out)
@@ -199,7 +213,7 @@ def run(args: argparse.Namespace) -> int:
         shot = record.get("shot")
         if not shot:
             continue
-        photo_path = Path(args.refs) / record["url"].rsplit("/", 1)[-1]
+        photo_path = photograph(record, args)
         if not photo_path.exists():
             raise SystemExit(f"{record['id']}: photograph missing at {photo_path}")
         if record.get("asset_sha256") and sha256(photo_path) != record["asset_sha256"]:
@@ -278,6 +292,14 @@ def self_test() -> int:
     record = {"id": "T", "shot": {"foliage": "leaf-on", "tree": {"box": [0.25, 0.13, 0.5, 0.74], "crownBase": 0.28}}}
     result = compare(record, photo, still, twin)
     assert abs(result["photograph"]["width_over_height"] - 120 / 222) < 0.02, result
+    # A kept image is an LFS object in the species' catalogue folder; an image
+    # the project may not keep is in the ignored cache, by the url's file name.
+    where = argparse.Namespace(catalogue="catalogue", refs=".refs/fn34/silver-birch")
+    kept = {"id": "S-BARK", "species_id": "silver-birch", "kept": True, "path": "refs/bark.jpg"}
+    assert photograph(kept, where) == Path("catalogue/silver-birch/refs/bark.jpg")
+    unkept = {"id": "S-WHOLE", "species_id": "silver-birch", "kept": False,
+              "url": "https://example.invalid/plantimage/betu123B.jpg"}
+    assert photograph(unkept, where) == Path(".refs/fn34/silver-birch/betu123B.jpg")
     print("self-test ok", json.dumps(result["still"]))
     return 0
 
@@ -287,6 +309,7 @@ def main() -> int:
     parser.add_argument("--references")
     parser.add_argument("--captures")
     parser.add_argument("--refs")
+    parser.add_argument("--catalogue", default="catalogue")
     parser.add_argument("--case")
     parser.add_argument("--out")
     parser.add_argument("--pairs-only", action="store_true", help="write the pairs only: no twin, no measurement")
