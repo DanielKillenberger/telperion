@@ -18,3 +18,19 @@ Entries follow the friction rule in CLAUDE.md; the owner decides which become sp
 - **What would remove it:** known sources filtered by taxon before ranking; a citation-policy prior so Wikipedia cannot be `ranked_first`; research queries that drop social posts and a sister species.
 - **Early return:** not taken; the edit is the skill's draft step and the credit spend was already done.
 
+## 2026-09-18 23:45 gate examples are not in the worktree binary set
+
+- **Doing:** about to run `gate --example` after verify.
+- **Hindered by:** `target/release/species-pipeline` is present, but `target/release/examples/species_measure` and `geometry_benchmark` are not. The runbook lists those two example builds before any stage; the previous driver only built the pipeline binary. Gate cannot run until they exist.
+- **Cost:** 22.5 s wall clock for `cargo build --release -p telperion-core --example species_measure --example geometry_benchmark`. Incremental; core recompiled. Zero Firecrawl.
+- **What would remove it:** the species-pipeline build script, or the skill's "build once", also builds the two examples the gate calls. A cheap swarm agent that is handed only `species-pipeline` stops at gate for a missing binary, not for a palm capability.
+- **Early return:** not taken; the build is the runbook's listed prerequisite, not a workaround.
+
+## 2026-09-18 23:47 gate passed capability because the required list was empty
+
+- **Doing:** reading `gate.json` after `gate --example`, to name the capability line for the host's gap loop.
+- **Hindered by:** `required`, `supported` and `missing` are all `[]`. The spec already names Corner and a frond; the admitted manifest has `growth_form: palm` and no `engineering.required_capabilities`. Gate only compares that list, so it never asked whether the generator draws a Corner palm, a frond, or a trunk without secondary thickening. The halt is `onboarding-gate/registry` and `onboarding-gate/seeds`. Seeds cannot exist until generate, which the same decisions block.
+- **Cost:** none in credits. A few minutes reading `gate.rs` and `required_capabilities` so the report does not invent a capability line the artifact does not carry.
+- **What would remove it:** the seed or the spec's model and organs become the required list before discover, so a palm files `onboarding-gate/capability` with a named line (`architectural-model:Corner`, or `frond`, or `no-secondary-thickening`) and a cheap driver can hand that id to the host.
+- **Early return:** taken on the gap loop, as this leg's brief requires. The two `onboarding-gate` ids are recorded. The form gap is not among them.
+
