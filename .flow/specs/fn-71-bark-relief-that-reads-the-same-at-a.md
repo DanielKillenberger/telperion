@@ -35,6 +35,8 @@ The owner's word on 2026-09-18: the drift at distance is a real problem, seen be
 
 - **Owner, 2026-09-18, R4 accepted on the third round.** Walking the round-three build in the harness with every amplitude fade gone: "yea much better". [user] The seam is gone; the footprint sweep is flat within 0.03 between adjacent factors and the birch keeps its dashes and marks through the wheel notch. The cost went to 10.0, 15.0 and 19.6 ms on the three hero frames against round two's 5.9, 4.0 and 11.4, so the three reductions the report names run before the PR with round two's cost as the target and the flat sweep as the invariant. [paraphrase]
 
+- **Not fully met, tracked rather than claimed.** R1 names the oak and the spruce; the shipped 4x series asserts the oak alone, because the spruce's bare crown throws twig shadows over its trunk at every strip the fixture can frame (plain wood with no relief reads 6.2/255 there), and its bark is held meanwhile by the grazing fixture at 2.70. R3's lichen keeps its amplitude fade while every other term lost one. Both are the follow-up spec's, named in this spec's report. [paraphrase]
+
 ## Boundaries
 <!-- scope: business -->
 
