@@ -314,6 +314,29 @@ pub fn parse(v: &Value) -> Result<Family> {
     Ok(f)
 }
 
+/// A family with some of its rows restated: `overrides` is a partial wire
+/// object laid over the family's own wire, then read back through `parse`, so
+/// an unknown key or a value off its range is refused by name. A value trial
+/// states only the rows it moves.
+pub fn overlay(f: &Family, overrides: &Value) -> Result<Family> {
+    let mut wire = metadata(f);
+    lay(&mut wire, overrides)?;
+    parse(&wire)
+}
+fn lay(wire: &mut Value, over: &Value) -> Result<()> {
+    let map = over
+        .as_object()
+        .ok_or(Error::InvalidInput("family object"))?;
+    for (key, value) in map {
+        match (wire.get_mut(key), value.is_object()) {
+            (Some(slot), true) if slot.is_object() => lay(slot, value)?,
+            (Some(slot), _) => *slot = value.clone(),
+            (None, _) => return Err(Error::InvalidInput("unknown family parameter")),
+        }
+    }
+    Ok(())
+}
+
 // Serialization lives behind the `json` feature; the default core stays serde-free.
 trait Wire: Sized {
     fn encode(&self) -> Value;

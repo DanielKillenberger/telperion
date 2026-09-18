@@ -12,6 +12,7 @@ use std::path::{Path, PathBuf};
 use telperion_core::{
     blend,
     mesh::{self, Detail},
+    params,
     presets::{Family, Preset},
 };
 use telperion_render::{
@@ -26,6 +27,11 @@ fn run() -> Result<(), String> {
     let preset = Preset::from_id(&arguments.preset)
         .ok_or_else(|| format!("unknown tree \"{}\"", arguments.preset))?;
     let mut family = preset.parameters();
+    if let Some(path) = &arguments.family {
+        let text = std::fs::read_to_string(path).map_err(|error| format!("--family: {error}"))?;
+        let rows = serde_json::from_str(&text).map_err(|error| format!("--family: {error}"))?;
+        family = params::overlay(&family, &rows).map_err(|error| format!("--family: {error:?}"))?;
+    }
     family.skeleton.seed = arguments.seed;
     if let Some(id) = &arguments.to {
         let mut far = Preset::from_id(id)

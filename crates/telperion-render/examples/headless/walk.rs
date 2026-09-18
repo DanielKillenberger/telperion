@@ -13,12 +13,16 @@ pub const FPS: u32 = 24;
 pub const USAGE: &str = "usage: headless --preset <id> --seed <n> --out <png> [--size WxH] \
                          [--view whole|bare|leaf|clay] [--level <n>] [--timing <json>] [--orbit] \
                          [--scene <json>] [--camera <json>] [--no-figure] [--to <preset>] \
-                         [--frames <n>] [--walk <seconds>] [--hold <seconds>] [--sweep <degrees>]";
+                         [--frames <n>] [--walk <seconds>] [--hold <seconds>] [--sweep <degrees>] \
+                         [--family <json>]";
 
 #[derive(Debug)]
 pub struct Arguments {
     pub preset: String,
     pub seed: u32,
+    /// A partial wire object laid over the preset: the rows a value trial
+    /// moves, and nothing else. None is the preset as shipped.
+    pub family: Option<PathBuf>,
     pub out: PathBuf,
     pub size: (u32, u32),
     pub view: View,
@@ -151,6 +155,7 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
     let (mut shot, mut figure) = (None, true);
     let (mut orbit, mut to, mut frames) = (false, None, None);
     let (mut walk, mut hold, mut sweep) = (None, None, None);
+    let mut family = None;
     let mut args = arguments;
     while let Some(flag) = args.next() {
         let mut value = || args.next().ok_or(format!("{flag} needs a value\n{USAGE}"));
@@ -191,6 +196,7 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
                 );
             }
             "--out" => out = Some(PathBuf::from(value()?)),
+            "--family" => family = Some(PathBuf::from(value()?)),
             "--timing" => timing = Some(PathBuf::from(value()?)),
             "--scene" => {
                 let raw = value()?;
@@ -261,6 +267,7 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Arguments, Strin
     Ok(Arguments {
         preset: preset.ok_or(format!("--preset is required\n{USAGE}"))?,
         seed: seed.ok_or(format!("--seed is required\n{USAGE}"))?,
+        family,
         out: out.ok_or(format!("--out is required\n{USAGE}"))?,
         size,
         view,

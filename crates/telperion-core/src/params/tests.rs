@@ -307,3 +307,26 @@ fn a_table_in_work_is_reserved_unlisted_and_not_built_by_name() {
         );
     }
 }
+
+#[test]
+fn an_overlay_moves_the_rows_it_names_and_nothing_else() {
+    let base = preset(3).unwrap();
+    let moved = overlay(
+        &base,
+        &json!({"skeleton": {"habit": {"lateralPitch": 51.0}}, "radii": {"forkExponent": 2.5}}),
+    )
+    .unwrap();
+    let mut expected = metadata(&base);
+    expected["skeleton"]["habit"]["lateralPitch"] = json!(51.0);
+    expected["radii"]["forkExponent"] = json!(2.5);
+    assert_eq!(metadata(&moved), expected);
+    assert_eq!(metadata(&overlay(&base, &json!({})).unwrap()), metadata(&base));
+    assert_eq!(
+        overlay(&base, &json!({"skeleton": {"habit": {"pitch": 1.0}}})).err(),
+        Some(Error::InvalidInput("unknown family parameter"))
+    );
+    assert_eq!(
+        overlay(&base, &json!({"material": {"barkRed": 1.5}})).err(),
+        Some(Error::InvalidInput("bark red"))
+    );
+}

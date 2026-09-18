@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use serde_json::{Map, Value};
-use telperion_jev::caller::{load_key, CallerError, UreqTransport};
+use telperion_jev::caller::{evaluate, load_key, CallerError, EvaluateRequest, UreqTransport};
 use telperion_jev::cases::{format_scores, run_labelled_cases};
 use telperion_jev::cite::{
     cite, format_report as format_cite, load_claim_source, parse_research, research_markdown,
@@ -21,7 +21,7 @@ fn main() -> ExitCode {
     let mut args = env::args().skip(1).collect::<Vec<_>>();
     if args.is_empty() {
         eprintln!(
-            "usage: jev <screen|select|cite|triage|cases> [options]\n  key: {path} via bash -ic",
+            "usage: jev <screen|select|cite|triage|cases|ask> [options]\n  key: {path} via bash -ic",
             path = telperion_jev::INTERACTIVE_SHELL
         );
         return ExitCode::from(2);
@@ -102,6 +102,33 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
             )
             .map_err(show_err)?;
             print!("{}", format_proposal(&proposal));
+        }
+        "ask" => {
+            // One evaluation over a state and a question set code wrote: the
+            // caller, the ledger and the no-match answers are the asker's.
+            let state = read_map(&required(args, "--state")?)?;
+            let questions = read_map(&required(args, "--questions")?)?;
+            let tool = flag(args, "--tool").unwrap_or_else(|| "ask".into());
+            let key = load_key().map_err(|err| err.to_string())?;
+            let entry = evaluate(
+                &UreqTransport,
+                &key,
+                EvaluateRequest {
+                    tool: &tool,
+                    source: None,
+                    state: &Value::Object(state),
+                    questions: &Value::Object(questions),
+                    ledger_dir: &ledger,
+                },
+            )
+            .map_err(show_err)?;
+            let out = serde_json::json!({
+                "reference": entry.reference(),
+                "model": entry.model,
+                "answers": entry.answers,
+                "elapsed_ms": entry.elapsed_ms,
+            });
+            println!("{}", serde_json::to_string_pretty(&out).map_err(|err| err.to_string())?);
         }
         "cases" => {
             let key = load_key().map_err(|err| err.to_string())?;
