@@ -83,25 +83,32 @@ fn loop_choice(record: &Value) -> Option<String> {
 }
 
 /// Gap routes by their latest route, and the share the loop took itself.
+/// `gaps` counts every gap the run met, `unrouted` those still waiting for a
+/// set or a route, and the share is over the routed ones alone: a gap nobody
+/// has routed yet is not a decision the loop declined to take.
 fn autonomy(paths: &Paths) -> Result<Value, GapError> {
     let mut counts: Map<String, Value> = [Route::Proceed, Route::Stronger, Route::Owner]
         .into_iter()
         .map(|route| (route.key().to_string(), json!(0)))
         .collect();
-    let mut total = 0u64;
+    let mut gaps = 0u64;
+    let mut routed = 0u64;
     for record in super::all(&paths.dir)? {
+        gaps += 1;
         let Some(route) = record["route"].as_str() else {
             continue;
         };
         let count = counts.entry(route.to_string()).or_insert_with(|| json!(0));
         *count = json!(count.as_u64().unwrap_or(0) + 1);
-        total += 1;
+        routed += 1;
     }
     let taken = counts[Route::Proceed.key()].as_u64().unwrap_or(0);
     Ok(json!({
-        "gaps": total,
+        "gaps": gaps,
+        "routed": routed,
+        "unrouted": gaps - routed,
         "decisions": counts,
-        "share_taken": if total == 0 { 0.0 } else { taken as f64 / total as f64 },
+        "share_taken": if routed == 0 { 0.0 } else { taken as f64 / routed as f64 },
     }))
 }
 
@@ -289,9 +296,22 @@ mod tests {
         );
         let counts = autonomy(&paths).unwrap();
         assert_eq!(counts["gaps"], 2);
+        assert_eq!(counts["routed"], 2);
+        assert_eq!(counts["unrouted"], 0);
         assert_eq!(counts["decisions"]["proceed"], 1);
         assert_eq!(counts["decisions"]["owner"], 1);
         assert_eq!(counts["decisions"]["stronger"], 0);
+        assert_eq!(counts["share_taken"], 0.5);
+        // A gap met but not yet routed is a gap, and no decision either way.
+        gap_record(&paths, "silver-birch/gate/onboarding-gate/bark", "", "");
+        let mut open =
+            super::super::read(&paths, "silver-birch/gate/onboarding-gate/bark").unwrap();
+        open["route"] = Value::Null;
+        super::super::write(&paths, &open).unwrap();
+        let counts = autonomy(&paths).unwrap();
+        assert_eq!(counts["gaps"], 3);
+        assert_eq!(counts["routed"], 2);
+        assert_eq!(counts["unrouted"], 1);
         assert_eq!(counts["share_taken"], 0.5);
     }
 

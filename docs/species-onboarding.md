@@ -36,6 +36,15 @@ pipeline produces them, and a person admits the manifest and resolves the
 decisions it files. A species spec runs the pipeline once and restates none of
 the method.
 
+When a stage halts on a capability the generator cannot express, the runbook's
+**The gap loop** section takes over: the agent writes candidate fixes, a
+threshold table routes the gap to the loop, to a stronger reasoning model or to
+the owner, and the chosen fix becomes its own spec the species spec depends on.
+The run resumes from the halted stage once that spec lands. `add-species` is
+the skill that walks the whole path, from "add species A" to the checklist the
+owner ticks, with the run's autonomy, quality and efficiency numbers written
+beside its report.
+
 ## One command per species
 
 A species is one spec rendered from `templates/species-spec.md`:

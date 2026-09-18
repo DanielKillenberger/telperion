@@ -148,6 +148,105 @@ newline), so two runs over the same inputs are byte-identical. The sidecar
 and the decisions carry chosen options, levels, copied values and ledger
 identities, never probabilities; the probabilities live in the ledger entries.
 
+## The gap loop
+
+A stage that files an `onboarding-gate` or a `level-miss` has met a **gap**: a
+capability the species needs that no value table reaches. Every other decision
+kind stays inside the run. The loop turns that halt into a reviewed generator
+spec and resumes the run where it stopped; `.claude/skills/add-species` is the
+conductor that walks it.
+
+```sh
+P=target/release/species-pipeline
+$P gap open    --dir DIR --decision ID
+$P gap options --dir DIR --decision ID --author agent|stronger --model NAME --options FILE
+$P gap route   --dir DIR --decision ID [--verdicts FILE]
+$P gap reroute --dir DIR --decision ID
+$P gap spec    --dir DIR --decision ID --spec SPEC
+$P gap review  --dir DIR --decision ID --verdict ship|needs-work
+$P gap resume  --dir DIR --decision ID --commit SHA [--pin-note NOTE]
+$P gap round   --dir DIR --species S --verdict V [--note N]
+$P gap accept  --dir DIR --species S --verdict V
+$P gap metrics --dir DIR --species S
+```
+
+Each gap keeps one record at `DIR/gaps/<slug>/gap.json`, the value rounds live
+in `DIR/rounds.json` and the run's three numbers in `DIR/metrics.json`. Only
+`gap route` reaches Jev.
+
+### Options
+
+An option file is `{"options": [...]}` or a bare list of two to four entries.
+The agent or the stronger reasoning model writes them; Jev never does.
+
+```json
+{"gap": "silver-birch/gate/onboarding-gate/capability",
+ "option": "curtain-rows", "change_kind": "generator|value_table|appearance",
+ "touches": "twig layer", "moves_pin": true,
+ "changes_preset_output": ["norway-spruce"], "serves_species": ["silver-birch"],
+ "reversible": true, "summary": "What changes, in one or two sentences.",
+ "spends_captures": false, "lowers_bar": false, "changes_boundary": false}
+```
+
+The last three default to false and are the owner signals beyond the contract's
+fields. An empty set from the agent routes to the stronger model; an empty set
+from the stronger model too routes to the owner. The stronger model never
+writes the first set.
+
+### The route
+
+`gap route` asks one Jev request over the set: per option its change kind, any
+prior owner verdict for or against it, whether it generalizes and whether it
+moves a pin; over the set, which option best answers the capability, with
+`none` as the no-match answer. Code reads the answers into the record's
+signals, and `crates/telperion-jev/data/gap-routes.json` names the route from
+them. The table's rows are tried in order and the first whose conditions all
+hold wins; the five owner signals sit first, so they override the spread.
+
+| Route | Meaning |
+|---|---|
+| `proceed` | A clear winner inside the loop's remit. The loop resolves the `gap-fix` decision itself. |
+| `stronger` | No winner, or an irreversible generator change: the stronger model writes the set. A set it wrote that routes here again is the owner's. |
+| `owner` | A pin moves, another preset's output changes, a capture budget is spent, a data-quality bar is lowered, a Boundary changes, or a verdict already decided against it. The `gap-fix` decision is filed open. |
+
+Every routed gap records its judgments, its signals, its route, the row that
+matched and the table version, so `gap reroute` re-reads a changed table
+against the recorded signals with no new call. A signal missing from a record
+routes to the owner by rule, never to the catch-all row. Thresholds are data:
+they are set from the labelled cases and tuned from the owner's reversals, and
+no threshold is a constant in code.
+
+### Resume
+
+The chosen fix is minted as its own spec that the species spec depends on,
+worked under the repo's review, and never applied inside the species run. A
+gap spec reviewed `needs-work` twice files a `gap-review` decision for the
+owner. `gap resume` records the landing as a tool version, `fix:<spec>` at its
+commit, which enters the idempotence key of the halted stage and of every
+stage after it: those rerun, the earlier ones stay current. A fix whose option
+moves a pin lands only with `--pin-note` naming the preset, the change and the
+reason (fn-53).
+
+### Rounds and the numbers
+
+`gap round` opens one value round on a verdict; the table's
+`rounds_per_verdict` bounds them at two, and the third is refused and filed as
+a `value-rounds` decision for the owner. `gap metrics` writes `metrics.json`
+beside the report: the share of gaps the loop decided itself, the rounds each
+verdict took to accept with the owner's reversals by decision id, and the
+tokens, wall clock, Jev calls, Firecrawl credits and captures the run spent.
+A reversal is recorded, never counted a failure: it is what the next threshold
+tuning reads.
+
+### The labelled cases
+
+`data/questions/gap.json` is the versioned question set and
+`data/cases/gap.json` its labelled cases, the fn-34 gaps with the owner's
+actual choices as the labels, a no-match case among them and a third held out.
+`jev cases` scores them live beside the other sets and fails when change kind
+or prior-verdict coverage falls below 0.9 held out, or best match below 0.8,
+listing the missed case ids.
+
 ## The model-swap test
 
 `species-pipeline swap --left DIR_A --right DIR_B` compares the packet, the

@@ -140,8 +140,9 @@ pub fn run(args: &[String]) -> Result<String, String> {
             let species = required(args, "--species")?;
             let record = metrics::write(&paths, &species).map_err(show)?;
             Ok(format!(
-                "gap metrics: {} gaps, {:.2} taken by the loop, {} reversals, {} captures",
+                "gap metrics: {} gaps ({} routed), {:.2} taken by the loop, {} reversals, {} captures",
                 record["autonomy"]["gaps"],
+                record["autonomy"]["routed"],
                 record["autonomy"]["share_taken"].as_f64().unwrap_or(0.0),
                 record["quality"]["reversals"]
                     .as_array()
