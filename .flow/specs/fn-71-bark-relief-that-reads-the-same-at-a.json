@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-71-bark-relief-that-reads-the-same-at-a.md",
-  "status": "open",
+  "status": "done",
   "title": "Bark relief that reads the same at a distance",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T15:59:37.178624Z"
+  "updated_at": "2026-09-18T21:42:01.956270Z"
 }
