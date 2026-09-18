@@ -46,6 +46,10 @@ The direct build (`mesh::build`, `branching::generate`) is the product. The harn
 
 One species per spec (owner, 2026-09-16). A new real species is onboarded by its own spec, never bundled with another. fn-34 took beech, ash and birch together, grew fifteen capability dependencies and ran 23 rounds before the ash moved to fn-56 and the beech to fn-62. A species spec is one authored manifest, one run of the onboarding method, its decisions resolved, and a checklist the owner ticks, as fn-62 does; the method itself lives in `docs/species-onboarding.md` and, once fn-58 lands, in the pipeline, never restated per species. A generator gap a species needs is its own spec that the species spec depends on.
 
+## Friction reports (owner, 2026-09-18)
+
+Every agent on a build reports friction as it happens, in `.flow/evidence/<spec>/FRICTION.md`, one dated entry per report: what it was doing, what slowed or hindered it, what it cost in minutes, ticks or tokens, and what would have removed it (a missing flag, a hand step, a slow gate, a wait that dwarfed the work). A report is written the moment progress slows, never reconstructed at the end. When the slowness is obviously inefficient, the agent returns early with the report and `NEEDS_HUMAN` instead of pushing through; a build that burned its budget on a known inefficiency has broken this. At the end of a build, before the spec closes, the host reads every FRICTION.md entry of that spec and specs each one to fix, as its own spec or as a line in an open one, so the next build does not pay it again. The rule exists because fn-13 task 5 spent a weekly quota on captures nobody had flagged as slow and fn-34 ran 23 rounds before anyone wrote down that the loop had no finish line.
+
 ## TypeSafe (owner, 2026-09-16)
 
 The usage guideline is `docs/typesafe.md`. Tools live in `crates/telperion-jev`. Jev may run in evidence tooling, research checks, QA triage and report assembly. It never runs in generation, rendering, presets, the Wasm bindings, the browser source, or any test on the workspace test commands.

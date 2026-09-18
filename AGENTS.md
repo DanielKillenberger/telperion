@@ -48,3 +48,7 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 ## TypeSafe
 
 TypeSafe's Jev model (`typesafe:typesafe-ai` skill) screens source literature for measured values; it never runs in the generator, the renderer, or any path a preset reaches. The key is `$TYPESAFE_API_KEY`, reachable only through `bash -ic`; never read or echo it. Code finds and copies every number, and each is checked against its source before it reaches a preset. Full rule in `docs/typesafe.md` and in `CLAUDE.md` under "TypeSafe".
+
+## Friction reports (owner, 2026-09-18)
+
+Every agent on a build reports friction as it happens, in `.flow/evidence/<spec>/FRICTION.md`, one dated entry per report: what it was doing, what slowed or hindered it, what it cost in minutes, ticks or tokens, and what would have removed it (a missing flag, a hand step, a slow gate, a wait that dwarfed the work). A report is written the moment progress slows, never reconstructed at the end. When the slowness is obviously inefficient, the agent returns early with the report and `NEEDS_HUMAN` instead of pushing through; a build that burned its budget on a known inefficiency has broken this. At the end of a build, before the spec closes, the host reads every FRICTION.md entry of that spec and specs each one to fix, as its own spec or as a line in an open one, so the next build does not pay it again. The rule exists because fn-13 task 5 spent a weekly quota on captures nobody had flagged as slow and fn-34 ran 23 rounds before anyone wrote down that the loop had no finish line.
