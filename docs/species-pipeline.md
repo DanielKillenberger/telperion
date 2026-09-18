@@ -66,7 +66,7 @@ the assessment's result does not reissue the manifest proposal.
 
 Each round reads the species spec's architectural model and organs, the habit,
 element and attachment traits in `crates/telperion-core/src`, and the
-generator's capability vocabulary. For every trait the species needs it
+generator's capability vocabulary below. For every trait the species needs it
 records one of three outcomes: a value the trait space reaches, a value the
 trait space cannot reach, or a structure no trait expresses
 (`unsupported-anatomy`, the disposition `docs/species-onboarding.md` names).
@@ -77,6 +77,36 @@ decided; an unsure item routes to the owner rather than into a gap.
 The round writes the unmet names to `manifest.json` under
 `engineering.required_capabilities` and its reasoning to
 `DIR/packet/capability.json`, which is a list of rounds, not a single record.
+
+### The vocabulary, and what the gate does with it
+
+The vocabulary is `crates/telperion-core/src/capability.rs`: one declared list
+of what the generator expresses, each name carrying the one line that says
+what the name means, owned by no preset. A name the generator cannot express
+is absent from that list and waits beside it under `UNEXPRESSED`, so an
+assessment can state the need before the need can be met. The spec that gives
+the generator a capability moves its line from the one list to the other, in
+one line, with a test that failed before the implementation and passes after;
+that move is how a later round sees the world change.
+
+The `gate` stage compares the required set against that list, and `gate.json`
+records `vocabulary_version`, the digest of the declared names, beside
+`required`, `expressed`, `missing` and `unrecognised`. A required name in
+neither list is unrecognised, which is its own report rather than missing:
+nobody has said what the name means. The version is the one a round records,
+so a round and the gate that followed it can be compared. The gate fails
+closed, so a species whose packet and manifest name no required capability has
+had no assessment, and that is unresolved rather than met.
+
+A registered preset is asked a second question, and it is not this one:
+whether its own value table produces what the species requires of it.
+`geometry_benchmark --support <preset>` reads that off the shipped values for
+the six names it has a threshold for, and the gate records the answer under
+`capability.preset` and files `preset-capability` when the table falls short.
+It never contributes to `missing`, and an unregistered preset is not asked at
+all. The empty answer it used to give was read as a missing capability: on
+2026-09-19 the date palm's gate reported all six of its required names
+missing, `woody-axes` among them, which every preset draws.
 
 ### Rounds, because one assessment is never the last
 
@@ -355,7 +385,10 @@ owner. `gap resume` records the landing as a tool version, `fix:<spec>` at its
 commit, which enters the idempotence key of the halted stage and of every
 stage after it: those rerun, the earlier ones stay current. A fix whose option
 moves a pin lands only with `--pin-note` naming the preset, the change and the
-reason (fn-53).
+reason (fn-53). A gap spec that gives the generator a capability also moves
+that name into the vocabulary's expressed list, in the one line, with the test
+that failed before the implementation; a landing that leaves the name where it
+was tells the next round nothing changed.
 
 ### Rounds and the numbers
 

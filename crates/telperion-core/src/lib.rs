@@ -2,6 +2,7 @@
 pub mod bias;
 pub mod blend;
 pub mod branching;
+pub mod capability;
 pub mod colonization;
 pub mod envelope;
 pub mod field;
