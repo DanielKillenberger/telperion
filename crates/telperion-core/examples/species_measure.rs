@@ -11,11 +11,13 @@ use std::{
 use telperion_core::{
     branching,
     foliage::{self, TwigPlacement},
+    params,
     presets::Preset,
     surface,
 };
-const HELP:&str="species_measure --case ID:PROFILE:PRESET:SEED [--case ...] --output FILE [--profiles FILE]
+const HELP:&str="species_measure --case ID:PROFILE:PRESET:SEED [--case ...] --output FILE [--profiles FILE] [--family FILE]
 Profiles default to .flow/evidence/fn9/profiles.json relative to the repository.
+--family FILE lays a partial wire object over every case's preset (a value trial); --print-family PRESET prints a preset's wire and exits.
 Presets: ordinary, oregon-white-oak, norway-spruce, european-beech, silver-birch, telperion, laurelin. Unknown IDs fail; cases continue independently. european-beech is in work (fn-62) and reached here by name, though not listed; european-ash is not a catalogue species.
 Example (compile first, then bound the entire run):
   cargo build --release -p telperion-core --example species_measure
@@ -42,9 +44,9 @@ fn event(file: &mut File, value: &Value) -> Result<(), String> {
         .and_then(|_| file.sync_data())
         .map_err(|e| e.to_string())
 }
-fn specimen(preset: &str, seed: u32) -> Result<Value, String> {
+fn specimen(preset: &str, seed: u32, family: &Value) -> Result<Value, String> {
     let preset = Preset::from_id(preset).ok_or_else(|| format!("unknown preset: {preset}"))?;
-    let mut f = preset.parameters();
+    let mut f = params::overlay(&preset.parameters(), family).map_err(|e| format!("family: {e:?}"))?;
     f.skeleton.seed = seed;
     let total = Instant::now();
     let start = Instant::now();
@@ -93,6 +95,7 @@ fn run() -> Result<bool, String> {
     let mut args = std::env::args().skip(1);
     let mut cases = Vec::new();
     let mut output = None;
+    let mut family = json!({});
     let mut profiles =
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../.flow/evidence/fn9/profiles.json");
     while let Some(arg) = args.next() {
@@ -107,6 +110,15 @@ fn run() -> Result<bool, String> {
             "--case" => cases.push(value),
             "--output" => output = Some(value),
             "--profiles" => profiles = value.into(),
+            "--family" => {
+                family = serde_json::from_str(&fs::read_to_string(&value).map_err(|e| format!("family: {e}"))?)
+                    .map_err(|e| format!("family: {e}"))?
+            }
+            "--print-family" => {
+                let preset = Preset::from_id(&value).ok_or_else(|| format!("unknown preset: {value}"))?;
+                println!("{}", serde_json::to_string_pretty(&params::metadata(&preset.parameters())).map_err(|e| e.to_string())?);
+                return Ok(true);
+            }
             _ => return Err(format!("unknown argument: {arg}")),
         }
     }
@@ -175,7 +187,7 @@ fn run() -> Result<bool, String> {
                 }
             }
             species_metrics::compare(profile, &json!({}))?;
-            let mut data = specimen(parts[2], seed)?;
+            let mut data = specimen(parts[2], seed, &family)?;
             let (pass, checks) = species_metrics::compare(profile, &data["metrics"])?;
             data["event"] = json!("completed");
             data["case"] = json!(case);
