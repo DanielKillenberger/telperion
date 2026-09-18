@@ -6,13 +6,14 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
 use telperion_jev::pipeline::adapter::firecrawl::{
-    parse_args, research_args, scrape_args, search_args,
+    credits_used, parse_args, research_args, scrape_args, search_args,
 };
 use telperion_jev::pipeline::adapter::tables::{
-    age_indexed_rows, coverage, markdown_tables, table_rows_for,
+    age_indexed_rows, block_rows, coverage, markdown_tables, table_rows_for,
 };
 use telperion_jev::pipeline::adapter::{
     checksums, is_pdf, AdapterError, FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource, Scrape,
+    Spent,
 };
 
 const OWIC: &str = "https://research.fs.usda.gov/silvics/oregon-white-oak";
@@ -196,6 +197,86 @@ fn a_flattened_table_is_a_coverage_gap() {
     assert_eq!(gap.found, 4);
     assert_eq!(gap.expected, 11);
     assert!(!gap.complete);
+}
+
+fn ash_markdown() -> String {
+    fs::read_to_string(
+        fixtures()
+            .parent()
+            .unwrap()
+            .join("ash")
+            .join("ertragstafeln.md"),
+    )
+    .unwrap()
+}
+
+/// The ash run of 2026-09-18: one markdown table at index 5 packs five
+/// species under label rows, 31 age-indexed rows with a value in column 1
+/// against the eleven the manifest stated.
+#[test]
+fn a_merged_table_is_a_coverage_gap_and_its_block_yields_the_species_rows() {
+    let markdown = ash_markdown();
+    let all = table_rows_for(&markdown, 5).unwrap();
+    let with_value = all.iter().filter(|r| r.values[0].is_some()).count();
+    assert_eq!(with_value, 31);
+    let merged = coverage(&all[..with_value], 11);
+    assert!(!merged.complete, "{merged:?}");
+
+    let tables = markdown_tables(&markdown);
+    let esche = block_rows(&tables[5], "Esche").unwrap();
+    assert_eq!(esche.len(), 11);
+    assert_eq!(esche.first().unwrap().age_years, 20.0);
+    assert_eq!(esche.last().unwrap().age_years, 120.0);
+    assert_eq!(esche[0].values[0], Some(12.0));
+    assert_eq!(esche[10].values[0], Some(33.1));
+    assert!(coverage(&esche, 11).complete);
+    // The label matches without regard to case; the last block runs to the table's end.
+    assert_eq!(block_rows(&tables[5], "birke").unwrap().len(), 6);
+    assert_eq!(
+        block_rows(&tables[5], "Marilandica-Pappel, Nordbaden")
+            .unwrap()
+            .len(),
+        6
+    );
+
+    let labels = block_rows(&tables[5], "Eiche").unwrap_err();
+    assert_eq!(
+        labels,
+        vec![
+            "Esche",
+            "Schwarzerle",
+            "Birke",
+            "Robusta-Pappel",
+            "Marilandica-Pappel, Nordbaden"
+        ]
+    );
+}
+
+#[test]
+fn credits_are_read_where_the_cli_prices_a_call_and_estimated_where_it_does_not() {
+    assert_eq!(
+        credits_used(r#"{"success":true,"data":{"web":[]},"creditsUsed":2}"#),
+        Some(2)
+    );
+    assert_eq!(
+        credits_used(r#"{"success":true,"data":{"markdown":"x","metadata":{"creditsUsed":1}}}"#),
+        Some(1)
+    );
+    assert_eq!(credits_used(r#"{"results":[]}"#), None);
+    assert_eq!(credits_used("not json"), None);
+
+    let mut spent = Spent::default();
+    spent.add(Some(2));
+    spent.add(None);
+    spent.add(None);
+    assert_eq!(spent.calls, 3);
+    assert_eq!(spent.credits(), 4);
+    assert!(spent.method().starts_with("estimated"));
+    let before = spent;
+    spent.add(Some(1));
+    let run = spent.since(&before);
+    assert_eq!((run.calls, run.credits()), (1, 1));
+    assert_eq!(run.method(), "reported by the adapter");
 }
 
 #[test]

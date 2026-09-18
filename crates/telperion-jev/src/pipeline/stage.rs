@@ -5,7 +5,9 @@
 //! question-set versions, the model name and the tool versions, and does
 //! nothing when the artifact on disk already carries that key. Missing
 //! inputs, an open decision that stops the stage, or a changed checksum stop
-//! it by name. Every run appends to the command log.
+//! it by name. Opening a stage records it on the resolutions it consumes, and
+//! every artifact carries what its stage spent. Every run appends to the
+//! command log.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -14,14 +16,18 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use super::canon::{canonical_sha256, file_sha256, read_json, write_canonical, CanonError};
-use super::decision::{open_for_stage, reconcile, Decision};
+use super::consume::{mark_consumed, rejected_proposal, ReconcileError};
+use super::cost::{earlier_cost, Cost};
+use super::decision::{
+    open_for_stage, read_decisions, reconcile, write_decisions, Decision, Resolution,
+};
 use super::manifest::{self, Admitted, ManifestError};
 
 pub const TOOL_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// The fixed sequence. Discovery proposes; every later stage reads the
 /// admitted manifest.
-pub const STAGES: [&str; 11] = [
+pub static STAGES: [&str; 11] = [
     "discover", "fetch", "extract", "screen", "quality", "select", "verify", "fit", "gate",
     "generate", "report",
 ];
@@ -140,6 +146,8 @@ pub struct Header {
     pub tools: BTreeMap<String, String>,
     pub ledger: Vec<String>,
     pub idempotence_key: String,
+    #[serde(default)]
+    pub cost: Cost,
 }
 
 /// What a stage reads before it runs.
@@ -151,9 +159,11 @@ pub struct Context {
 }
 
 impl Context {
-    /// Loads the manifest, reconciles decisions with resolutions, and refuses
-    /// to run `stage` when a global open decision stops it. Field-scoped open
-    /// decisions are returned for the stage to exclude those fields.
+    /// Loads the manifest, reconciles decisions with resolutions, records
+    /// `stage` on the resolutions it consumes, and refuses to run it when a
+    /// global open decision or a rejected manifest proposal stops it.
+    /// Field-scoped open decisions are returned for the stage to exclude
+    /// those fields.
     pub fn open(dir: &Path, stage: &str) -> Result<(Self, Vec<String>), StageError> {
         let paths = Paths::new(dir);
         let manifest_path = paths.manifest();
@@ -164,12 +174,27 @@ impl Context {
             });
         }
         let admitted = manifest::load(&manifest_path).map_err(StageError::Manifest)?;
-        let decisions = reconcile(&paths.decisions(), &paths.resolutions())?;
+        let decisions =
+            reconcile(&paths.decisions(), &paths.resolutions()).map_err(|err| match err {
+                ReconcileError::File(err) => StageError::File(err),
+                refused @ ReconcileError::Refused(_) => StageError::Failed {
+                    stage: stage.into(),
+                    reason: refused.to_string(),
+                },
+            })?;
         let (global, fields) = open_for_stage(&decisions, stage);
         if !global.is_empty() {
             return Err(StageError::OpenDecision {
                 stage: stage.into(),
                 decisions: global,
+            });
+        }
+        if let Some(id) = rejected_proposal(&decisions, stage) {
+            return Err(StageError::Failed {
+                stage: stage.into(),
+                reason: format!(
+                    "manifest-proposed {id} was rejected; edit the seed and run discover again"
+                ),
             });
         }
         Ok((
@@ -197,7 +222,29 @@ impl Context {
         Ok((value, found))
     }
 
-    /// The header for `stage` over `inputs` (artifact path -> checksum).
+    /// The resolution a person wrote for decision `id`, when it binds.
+    pub fn resolved(&self, id: &str) -> Option<&Resolution> {
+        self.decisions
+            .iter()
+            .find(|d| d.id == id)
+            .and_then(|d| d.resolution.as_ref())
+    }
+
+    /// The checksum of the bound resolutions to `stage`'s own decisions, so a
+    /// resolution written after the stage ran changes its idempotence key.
+    pub fn resolutions_sha256(&self, stage: &str) -> String {
+        let bound: Vec<Value> = self
+            .decisions
+            .iter()
+            .filter(|d| d.stage == stage)
+            .filter_map(|d| d.resolution.as_ref())
+            .map(|r| json!({"id": r.id, "option": r.option, "payload": r.payload}))
+            .collect();
+        canonical_sha256(&json!(bound))
+    }
+
+    /// The header for `stage` over `inputs` (artifact path -> checksum), keyed
+    /// on the admitted manifest's checksum.
     pub fn header(
         &self,
         stage: &str,
@@ -205,12 +252,26 @@ impl Context {
         inputs: BTreeMap<String, String>,
         ledger: Vec<String>,
     ) -> Header {
+        self.header_keyed(stage, schema, inputs, ledger, &self.admitted.sha256.clone())
+    }
+
+    /// The header for `stage` with its idempotence key over `keyed_on` in place
+    /// of the manifest checksum: discovery keys on the seed, so admitting the
+    /// manifest does not rerun it.
+    pub fn header_keyed(
+        &self,
+        stage: &str,
+        schema: &str,
+        inputs: BTreeMap<String, String>,
+        ledger: Vec<String>,
+        keyed_on: &str,
+    ) -> Header {
         let m = &self.admitted.manifest;
         let mut tools = m.versions.tools.clone();
         tools.insert("species-pipeline".into(), TOOL_VERSION.into());
         let key = idempotence_key(
             &inputs,
-            &self.admitted.sha256,
+            keyed_on,
             &m.versions.question_sets,
             &m.model,
             &tools,
@@ -226,6 +287,7 @@ impl Context {
             tools,
             ledger,
             idempotence_key: key,
+            cost: Cost::default(),
         }
     }
 
@@ -240,12 +302,35 @@ impl Context {
     }
 
     /// Writes the stage artifact: the header's fields at the top level and the
-    /// body under `body`.
+    /// body under `body`. The cost written is the sum over every run that
+    /// wrote this artifact: the header carries this run's adapter spend, and
+    /// its ledger references count its Jev calls, except in the report,
+    /// whose ledger cites every earlier artifact's references and which asks
+    /// nothing itself.
     pub fn write(&self, header: &Header, body: Value) -> Result<PathBuf, StageError> {
-        let mut value = serde_json::to_value(header).expect("header serializes");
-        value["body"] = body;
         let path = self.paths.artifact(&header.stage);
+        let mut cost = earlier_cost(&path);
+        let mut this_run = header.cost.clone();
+        this_run.runs = 1;
+        this_run.jev_calls = if header.stage == "report" {
+            0
+        } else {
+            header.ledger.len() as u32
+        };
+        cost.add(&this_run);
+        let mut header = header.clone();
+        header.cost = cost;
+        let mut value = serde_json::to_value(&header).expect("header serializes");
+        value["body"] = body;
         write_canonical(&path, &value)?;
+        // A resolution counts as consumed once the stage that acts on it has
+        // written its artifact, never on merely reading it: a stage that stops
+        // before writing leaves every resolution it read unconsumed. The list
+        // is re-read, because the stage may have appended decisions meanwhile.
+        let mut decisions = read_decisions(&self.paths.decisions())?;
+        if mark_consumed(&mut decisions, &header.stage) {
+            write_decisions(&self.paths.decisions(), &decisions)?;
+        }
         Ok(path)
     }
 }

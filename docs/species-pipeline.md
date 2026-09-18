@@ -56,12 +56,74 @@ stops while open. A person writes `DIR/resolutions.json`:
 A resolution binds only while its checksums match the decision's; a stale one
 is void and the decision reopens. The discover stage's `manifest-proposed`
 decision stops every later stage until a person writes the admitted manifest
-to `DIR/manifest.json` and resolves it.
+to `DIR/manifest.json` and resolves it. That decision binds to the seed
+(species, taxon, the fields with their conditions and required ages), and
+discover keys on the seed too: admitting sources, curves, proxies or
+engineering rows reruns nothing and keeps the admission, while a seed edit
+reruns discover, reissues the proposal and voids the old admission.
 
-Kinds: `manifest-proposed`, `unavailable-source`, `coverage-gap`,
-`data-insufficient`, `claim-contradicted`, `claim-unsupported`,
-`obligation-unmet`, `structural-unmet`, `missing-curve`, `tolerance-miss`,
-`onboarding-gate`, `level-miss`, `no-reference`, `visual-unassessed`.
+Four kinds carry options a stage consumes. A resolution to one of them with
+an option outside its list is refused when the next stage reads it, naming
+the kind and the options that are consumed; the stage that acted on a
+resolution records itself as `consumed_by` on the decision.
+
+| Kind | Options | Consumed by |
+|---|---|---|
+| `manifest-proposed` | `admit`, `reject` | every stage after discover; a rejected proposal stops them until the seed is edited and discover runs again |
+| `unavailable-source` | `retry`, `replace-source`, `drop-source` | fetch: `retry` fetches again, `replace-source` fetches the `url` in the resolution's `payload` under the same source id and records both urls, `drop-source` skips the source and records it under `dropped` |
+| `coverage-gap` | `accept-rows`, `fix-table`, `drop-table` | fetch: `accept-rows` keeps the rows as parsed, `fix-table` reads the table entry the manifest now admits (and stops if the count still differs), `drop-table` records the table with no rows |
+| `data-insufficient` | `admit-proxy`, `add-sources`, `lower-bar` | quality, by editing the manifest's fields only |
+
+```json
+{"id": "european-ash/fetch/unavailable-source/M1", "inputs_sha256": {"url": "..."},
+ "option": "replace-source", "payload": {"url": "https://example.test/the-same-page"},
+ "by": "owner", "at": "2026-09-18"}
+```
+
+Other kinds: `claim-contradicted`, `claim-unsupported`, `obligation-unmet`,
+`structural-unmet`, `missing-curve`, `tolerance-miss`, `onboarding-gate`,
+`level-miss`, `no-reference`, `visual-unassessed`.
+
+## Sources and tables
+
+Discovery lists what the repository already knows before any search (`.flow`
+under the working directory, the repository root the runbook runs from): the
+sources every admitted manifest under `.flow/evidence` names, with the
+dimensions their tables cover and any fetch error their run recorded, and the
+URLs the specs cite under `## Resolved via Research`. They enter Jev's ranking
+as candidates of kind `known` with their origin marked, never admitted by
+being known, and a known candidate carrying a fetch error is listed and never
+proposed. The search query is the field in plain words (`Fraxinus excelsior
+height at age, open grown`), not the field id.
+
+An admitted table names its markdown table by `table_index` and, when one
+markdown table packs several species under label rows (a name in the first
+cell, every other cell empty, as Firecrawl parses the Ertragstafeln extract),
+the `block` that opens its rows:
+
+```json
+{"id": "E1-ash-height-I", "table_index": 5, "block": "Esche", "expected_rows": 11,
+ "dimension": "height_m", "unit": "m", "value_column": 1,
+ "condition": "stand_grown", "taxon": "Fraxinus excelsior"}
+```
+
+The rows run from the label row to the next label row or the table's end.
+Fetch files `coverage-gap` when the parsed count differs from `expected_rows`
+in either direction (fewer is a flattened table, more is a merged one) and
+when the block label is not there, naming the labels the table carries.
+
+The plain request that records a source's raw bytes trusts the host's
+certificate store, so a page Firecrawl scraped is not refused over a chain
+the bundled roots lack; a page the host store also rejects files
+`unavailable-source` with the TLS error verbatim.
+
+## Cost
+
+Every artifact's header carries `cost`: the runs that wrote it, the Jev calls
+it made and the Firecrawl credits it spent, counted from the CLI's
+`creditsUsed` where a response prices itself and estimated at one credit per
+call where it does not, with the method named. The report sums them per
+stage and in total under `costs` and in its `## Cost` table.
 
 ## Artifacts
 
