@@ -1,0 +1,116 @@
+{
+ "context": "mature open-grown",
+ "curves": {
+  "dbh": {
+   "below_first_row": "linear-from-zero",
+   "factor": 2.0,
+   "method": "scaled-table",
+   "table": "E1-spruce-dg-I"
+  },
+  "envelope_height_m": 15.0,
+  "height": {
+   "below_first_row": "linear-from-zero",
+   "method": "table",
+   "table": "E1-spruce-height-I"
+  },
+  "mature_dbh_m": 0.422,
+  "reference_ages_years": [
+   14.1,
+   26.6,
+   36.9
+  ],
+  "tolerance_percent": 15.0
+ },
+ "described": [],
+ "engineering": {
+  "curves.mature_dbh_m": {
+   "rationale": "fn30 REPORT: the growth build's measured trunk DBH at seed 7 (0.421595017 m)",
+   "value": 0.422
+  }
+ },
+ "fields": [
+  {
+   "bar": "proxy_only",
+   "condition": "open_grown",
+   "field": "height_m",
+   "proxy": {
+    "source": "E1",
+    "taxon": "Picea abies stand-grown site class I"
+   },
+   "question": "Which candidate span is the height a Norway spruce reaches at a stated age after field planting?",
+   "required_ages_years": [
+    14.1,
+    26.6,
+    36.9
+   ]
+  }
+ ],
+ "growth_form": "conifer",
+ "model": "jev-latest",
+ "preset": "norway-spruce",
+ "profile_id": "norway-spruce",
+ "schema": "manifest",
+ "schema_version": 1,
+ "seed": 7,
+ "sources": [
+  {
+   "id": "E1",
+   "rights": "published tables; extract cited with attribution",
+   "sha256": null,
+   "tables": [
+    {
+     "condition": "stand_grown",
+     "dimension": "height_m",
+     "expected_rows": 11,
+     "id": "E1-spruce-height-I",
+     "table_index": 0,
+     "taxon": "Picea abies",
+     "unit": "m",
+     "value_column": 1
+    },
+    {
+     "condition": "stand_grown",
+     "dimension": "dbh_m",
+     "expected_rows": 11,
+     "id": "E1-spruce-dg-I",
+     "table_index": 1,
+     "taxon": "Picea abies",
+     "unit": "cm",
+     "value_column": 1
+    }
+   ],
+   "title": "Bavarian yield-table extracts, Wiedemann 1936/42 spruce",
+   "url": "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf"
+  },
+  {
+   "id": "I1",
+   "rights": "extension page, cited with attribution",
+   "sha256": null,
+   "tables": [],
+   "title": "Iowa State Extension, Norway spruce",
+   "url": "https://hortnews.extension.iastate.edu/norway-spruce"
+  }
+ ],
+ "species": "norway-spruce",
+ "taxon": {
+  "common_name": "Norway spruce",
+  "cultivar": null,
+  "rank": "species",
+  "scientific_name": "Picea abies"
+ },
+ "transfers": [],
+ "versions": {
+  "question_sets": {
+   "citation": 1,
+   "described": 1,
+   "obligations": 1,
+   "ranking": 1,
+   "screen": 1,
+   "sufficiency": 1
+  },
+  "tools": {
+   "firecrawl": "fixture",
+   "fn30-curves": "transcribed"
+  }
+ }
+}

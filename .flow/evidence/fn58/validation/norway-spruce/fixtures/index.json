@@ -1,0 +1,21 @@
+{
+ "parse": {
+  "E1.pdf": "ertragstafeln.md"
+ },
+ "research": {},
+ "scrape": {
+  "https://hortnews.extension.iastate.edu/norway-spruce": {
+   "content_type": "text/html",
+   "final_url": "https://hortnews.extension.iastate.edu/norway-spruce",
+   "markdown": "iowa.md",
+   "raw": "iowa.html"
+  },
+  "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf": {
+   "content_type": "application/pdf",
+   "final_url": "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf",
+   "markdown": "ertragstafeln.md",
+   "raw": "ertragstafeln.pdf"
+  }
+ },
+ "search": {}
+}

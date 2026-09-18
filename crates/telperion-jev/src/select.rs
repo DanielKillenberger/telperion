@@ -19,6 +19,7 @@ pub struct SelectReport {
     pub candidates: Vec<String>,
     pub sentence: String,
     pub ledger: String,
+    pub identity: String,
     pub probabilities: serde_json::Value,
     pub input_tokens: u64,
     pub output_tokens: u64,
@@ -74,6 +75,7 @@ pub fn select(
         candidates: spans,
         sentence: document.chars().take(240).collect(),
         ledger: entry.reference(),
+        identity: entry.identity.clone(),
         probabilities: entry
             .probabilities("span")
             .cloned()

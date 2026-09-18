@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "source": {
+    "type": "choice",
+    "instructions": "Each entry of `candidates` carries its `title`, its `snippet` and the `kind` of statement the snippet was screened as. Which candidate is the best evidence for `requirement.field` of `requirement.taxon` under `requirement.condition`, judged on those three alone? Prefer the candidate whose snippet states the field for that taxon under that condition over one that states it for another taxon, another condition, or another field.",
+    "none": "No candidate is evidence for this field of this taxon under this condition"
+  }
+}

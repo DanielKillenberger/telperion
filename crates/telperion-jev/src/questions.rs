@@ -22,6 +22,9 @@ pub struct Thresholds {
     pub severity_cosmetic: f64,
     pub severity_noticeable: f64,
     pub severity_assessable: f64,
+    pub obligation_cut: f64,
+    pub accuracy_bar: f64,
+    pub ranking_bar: f64,
 }
 
 pub fn thresholds() -> Thresholds {

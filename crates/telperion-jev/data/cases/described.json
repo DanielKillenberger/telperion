@@ -1,0 +1,386 @@
+[
+  {
+    "id": "beech-crown-habit",
+    "trait": "crown habit",
+    "levels": [
+      {
+        "key": "narrow_upright",
+        "summary": "The crown is clearly taller than it is wide, its branches rising close to the trunk"
+      },
+      {
+        "key": "oval",
+        "summary": "The crown is about half again as tall as it is wide, widest near mid height"
+      },
+      {
+        "key": "rounded",
+        "summary": "The crown is about as wide as it is tall and its top reads as a dome"
+      },
+      {
+        "key": "broad_spreading",
+        "summary": "The crown is wider than it is tall and its lowest limbs reach far out from the trunk"
+      }
+    ],
+    "sentences": [
+      "Landscape height 15-23 m, spread 12-18 m.",
+      "Commonly 30-40 m, to 50 m, with a dense crown carried on a single clean bole.",
+      "The open-grown literature target is a dense oval-to-rounded crown."
+    ],
+    "expect_level": "oval",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "oak-crown-habit",
+    "trait": "crown habit",
+    "levels": [
+      {
+        "key": "narrow_upright",
+        "summary": "The crown is clearly taller than it is wide, its branches rising close to the trunk"
+      },
+      {
+        "key": "oval",
+        "summary": "The crown is about half again as tall as it is wide, widest near mid height"
+      },
+      {
+        "key": "rounded",
+        "summary": "The crown is about as wide as it is tall and its top reads as a dome"
+      },
+      {
+        "key": "broad_spreading",
+        "summary": "The crown is wider than it is tall and its lowest limbs reach far out from the trunk"
+      }
+    ],
+    "sentences": [
+      "Open-grown trees develop very broad, rounded crowns (crown width may equal total height).",
+      "The massive, branching trunks and broad crowns of old white oaks are characteristic features of valley woodlands."
+    ],
+    "expect_level": "rounded",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "ash-crown-habit",
+    "trait": "crown habit",
+    "levels": [
+      {
+        "key": "narrow_upright",
+        "summary": "The crown is clearly taller than it is wide, its branches rising close to the trunk"
+      },
+      {
+        "key": "oval",
+        "summary": "The crown is about half again as tall as it is wide, widest near mid height"
+      },
+      {
+        "key": "rounded",
+        "summary": "The crown is about as wide as it is tall and its top reads as a dome"
+      },
+      {
+        "key": "broad_spreading",
+        "summary": "The crown is wider than it is tall and its lowest limbs reach far out from the trunk"
+      }
+    ],
+    "sentences": [
+      "Landscape to 25 (30+) m, equal or greater width.",
+      "Round-headed and broad-spreading in the open."
+    ],
+    "expect_level": "broad_spreading",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "spruce-crown-habit",
+    "trait": "crown habit",
+    "levels": [
+      {
+        "key": "narrow_upright",
+        "summary": "The crown is clearly taller than it is wide, its branches rising close to the trunk"
+      },
+      {
+        "key": "oval",
+        "summary": "The crown is about half again as tall as it is wide, widest near mid height"
+      },
+      {
+        "key": "rounded",
+        "summary": "The crown is about as wide as it is tall and its top reads as a dome"
+      },
+      {
+        "key": "broad_spreading",
+        "summary": "The crown is wider than it is tall and its lowest limbs reach far out from the trunk"
+      }
+    ],
+    "sentences": [
+      "Mature Shape: Pyramidal with branches that hang down.",
+      "Height: 75-100 feet  Width: 40-50 feet.",
+      "Trees have a dark green crown with a triangular shape."
+    ],
+    "expect_level": "narrow_upright",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "birch-branch-droop",
+    "trait": "branch droop",
+    "levels": [
+      {
+        "key": "ascending",
+        "summary": "Branch tips rise above the point where the branch leaves the trunk"
+      },
+      {
+        "key": "level",
+        "summary": "Branches leave the trunk near horizontal and their tips stay level"
+      },
+      {
+        "key": "drooping",
+        "summary": "Branches arch downward along their length while their tips stay well clear of the ground"
+      },
+      {
+        "key": "weeping",
+        "summary": "The outer branchlets hang almost vertically and the curtain reaches towards the ground"
+      }
+    ],
+    "sentences": [
+      "Usually 10-15 m, to 25 m; pendulous outer branchlets.",
+      "The weeping curtain reaches almost to the ground on an open-grown specimen.",
+      "Slender pendant glabrous twigs."
+    ],
+    "expect_level": "weeping",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "spruce-branch-droop",
+    "trait": "branch droop",
+    "levels": [
+      {
+        "key": "ascending",
+        "summary": "Branch tips rise above the point where the branch leaves the trunk"
+      },
+      {
+        "key": "level",
+        "summary": "Branches leave the trunk near horizontal and their tips stay level"
+      },
+      {
+        "key": "drooping",
+        "summary": "Branches arch downward along their length while their tips stay well clear of the ground"
+      },
+      {
+        "key": "weeping",
+        "summary": "The outer branchlets hang almost vertically and the curtain reaches towards the ground"
+      }
+    ],
+    "sentences": [
+      "Mature Shape: Pyramidal with branches that hang down. Stiff when young, becoming more graceful with age.",
+      "It is readily identified by its dark green needles and drooping branchlets.",
+      "The foliage appears to droop or weep."
+    ],
+    "expect_level": "drooping",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "oak-branch-droop",
+    "trait": "branch droop",
+    "levels": [
+      {
+        "key": "ascending",
+        "summary": "Branch tips rise above the point where the branch leaves the trunk"
+      },
+      {
+        "key": "level",
+        "summary": "Branches leave the trunk near horizontal and their tips stay level"
+      },
+      {
+        "key": "drooping",
+        "summary": "Branches arch downward along their length while their tips stay well clear of the ground"
+      },
+      {
+        "key": "weeping",
+        "summary": "The outer branchlets hang almost vertically and the curtain reaches towards the ground"
+      }
+    ],
+    "sentences": [
+      "Crooked ascending scaffolds subdivide into fine axes.",
+      "In forest stands on good sites, Oregon white oaks develop narrow crowns with small branches on straight, clear stems."
+    ],
+    "expect_level": "ascending",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "beech-branch-droop-unstated",
+    "trait": "branch droop",
+    "levels": [
+      {
+        "key": "ascending",
+        "summary": "Branch tips rise above the point where the branch leaves the trunk"
+      },
+      {
+        "key": "level",
+        "summary": "Branches leave the trunk near horizontal and their tips stay level"
+      },
+      {
+        "key": "drooping",
+        "summary": "Branches arch downward along their length while their tips stay well clear of the ground"
+      },
+      {
+        "key": "weeping",
+        "summary": "The outer branchlets hang almost vertically and the curtain reaches towards the ground"
+      }
+    ],
+    "sentences": [
+      "Silver-grey bark, smooth, elephant-hide on old trunks.",
+      "Leaves 4-10 cm, petiole 5-15 mm, alternate ovate-elliptic.",
+      "Lifespan 150-300 years."
+    ],
+    "expect_level": "unstated",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "birch-bark",
+    "trait": "bark appearance",
+    "levels": [
+      {
+        "key": "white",
+        "summary": "The trunk reads white or silvery-white from a distance, marked with dark lenticels"
+      },
+      {
+        "key": "silver_grey",
+        "summary": "The trunk is smooth and silver-grey, without ridges"
+      },
+      {
+        "key": "grey_furrowed",
+        "summary": "The trunk is grey and furrowed into ridges on mature wood"
+      },
+      {
+        "key": "dark_fissured",
+        "summary": "The trunk is dark and deeply fissured into plates"
+      }
+    ],
+    "sentences": [
+      "Silvery-white bark; biserrate leaves.",
+      "White bark with dark lenticels and chevrons on the trunk."
+    ],
+    "expect_level": "white",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "beech-bark",
+    "trait": "bark appearance",
+    "levels": [
+      {
+        "key": "white",
+        "summary": "The trunk reads white or silvery-white from a distance, marked with dark lenticels"
+      },
+      {
+        "key": "silver_grey",
+        "summary": "The trunk is smooth and silver-grey, without ridges"
+      },
+      {
+        "key": "grey_furrowed",
+        "summary": "The trunk is grey and furrowed into ridges on mature wood"
+      },
+      {
+        "key": "dark_fissured",
+        "summary": "The trunk is dark and deeply fissured into plates"
+      }
+    ],
+    "sentences": [
+      "Silver-grey bark, smooth.",
+      "Smooth grey bark with lichen spots; elephant-hide on old trunks."
+    ],
+    "expect_level": "silver_grey",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "ash-bark",
+    "trait": "bark appearance",
+    "levels": [
+      {
+        "key": "white",
+        "summary": "The trunk reads white or silvery-white from a distance, marked with dark lenticels"
+      },
+      {
+        "key": "silver_grey",
+        "summary": "The trunk is smooth and silver-grey, without ridges"
+      },
+      {
+        "key": "grey_furrowed",
+        "summary": "The trunk is grey and furrowed into ridges on mature wood"
+      },
+      {
+        "key": "dark_fissured",
+        "summary": "The trunk is dark and deeply fissured into plates"
+      }
+    ],
+    "sentences": [
+      "Grey bark.",
+      "Trunk bark grey, furrowed when mature."
+    ],
+    "expect_level": "grey_furrowed",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "spruce-bark-unstated",
+    "trait": "bark appearance",
+    "levels": [
+      {
+        "key": "white",
+        "summary": "The trunk reads white or silvery-white from a distance, marked with dark lenticels"
+      },
+      {
+        "key": "silver_grey",
+        "summary": "The trunk is smooth and silver-grey, without ridges"
+      },
+      {
+        "key": "grey_furrowed",
+        "summary": "The trunk is grey and furrowed into ridges on mature wood"
+      },
+      {
+        "key": "dark_fissured",
+        "summary": "The trunk is dark and deeply fissured into plates"
+      }
+    ],
+    "sentences": [
+      "The needles are single, angular or four-sided, 1/2 to 1 inch long and slightly curved.",
+      "The cone is 4 to 7 inches long; light brown; hanging down.",
+      "It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet."
+    ],
+    "expect_level": "unstated",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "birch-crown-habit-unstated",
+    "trait": "crown habit",
+    "levels": [
+      {
+        "key": "narrow_upright",
+        "summary": "The crown is clearly taller than it is wide, its branches rising close to the trunk"
+      },
+      {
+        "key": "oval",
+        "summary": "The crown is about half again as tall as it is wide, widest near mid height"
+      },
+      {
+        "key": "rounded",
+        "summary": "The crown is about as wide as it is tall and its top reads as a dome"
+      },
+      {
+        "key": "broad_spreading",
+        "summary": "The crown is wider than it is tall and its lowest limbs reach far out from the trunk"
+      }
+    ],
+    "sentences": [
+      "Leaf blade 3-7 x 2.5-5 cm, coarsely and sharply doubly serrate, apex acuminate.",
+      "Silvery-white bark.",
+      "Height-diameter table for this context not extracted from the paywalled body."
+    ],
+    "expect_level": "unstated",
+    "holdout": true,
+    "negative": true
+  }
+]

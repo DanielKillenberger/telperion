@@ -1,0 +1,36 @@
+{
+  "scrape": {
+    "https://research.fs.usda.gov/silvics/oregon-white-oak": {
+      "final_url": "https://research.fs.usda.gov/silvics/oregon-white-oak",
+      "content_type": "text/html; charset=utf-8",
+      "raw": "owic.html",
+      "markdown": "owic.md"
+    }
+  },
+  "search": {
+    "Quercus garryana mature height": [
+      {
+        "url": "https://owic.oregonstate.edu/oregon-white-oak-quercus-garryana",
+        "title": "Oregon white oak (Quercus garryana)",
+        "snippet": "Mature Oregon white oaks are 50 to 90 ft tall."
+      },
+      {
+        "url": "https://research.fs.usda.gov/silvics/oregon-white-oak",
+        "title": "Oregon White Oak | Silvics of North America",
+        "snippet": "Silvics volume entry for Quercus garryana."
+      }
+    ]
+  },
+  "research": {
+    "Norway spruce height diameter ratio individual tree growth models": [
+      {
+        "url": "https://doi.org/10.1016/j.foreco.2010.07.055",
+        "title": "Do individual-tree growth models correctly represent height:diameter ratios of Norway spruce and Scots pine?",
+        "snippet": "Height:diameter ratios are an important measure of stand stability."
+      }
+    ]
+  },
+  "parse": {
+    "ertragstafeln.pdf": "ertragstafeln.md"
+  }
+}

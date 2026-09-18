@@ -324,7 +324,10 @@ fn an_overlay_moves_the_rows_it_names_and_nothing_else() {
     expected["skeleton"]["habit"]["lateralPitch"] = json!(51.0);
     expected["radii"]["forkExponent"] = json!(2.5);
     assert_eq!(metadata(&moved), expected);
-    assert_eq!(metadata(&overlay(&base, &json!({})).unwrap()), metadata(&base));
+    assert_eq!(
+        metadata(&overlay(&base, &json!({})).unwrap()),
+        metadata(&base)
+    );
     assert_eq!(
         overlay(&base, &json!({"skeleton": {"habit": {"pitch": 1.0}}})).err(),
         Some(Error::InvalidInput("unknown family parameter"))

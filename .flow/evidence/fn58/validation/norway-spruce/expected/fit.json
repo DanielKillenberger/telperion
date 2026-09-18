@@ -1,0 +1,31 @@
+{
+ "derived_mature_age_years": 158,
+ "misses": {
+  "dbh_m": [
+   "14.1",
+   "26.6",
+   "36.9"
+  ],
+  "height_m": []
+ },
+ "rate": 0.091,
+ "rows": [
+  {
+   "age_years": 14.1,
+   "reference_dbh_m": 0.106,
+   "reference_height_m": 5.0
+  },
+  {
+   "age_years": 26.6,
+   "reference_dbh_m": 0.203,
+   "reference_height_m": 10.0
+  },
+  {
+   "age_years": 36.9,
+   "reference_dbh_m": 0.285,
+   "reference_height_m": 15.0
+  }
+ ],
+ "shape": 3.4,
+ "source": "fn30 REPORT.md, curve table and calibration table, rounded as printed"
+}
