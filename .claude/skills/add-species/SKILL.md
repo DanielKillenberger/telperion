@@ -27,20 +27,25 @@ the repository root, with the key available to an interactive shell.
    species spec from `templates/species-spec.md`. Refine it, mark it ready.
 2. **Manifest.** Run `discover`, read its proposal, draft `DIR/manifest.json`,
    and ask the owner to admit it. Nothing after discover runs until they do.
-3. **Stages.** Run the runbook's stages in order. A stage that prints
+3. **Capability assessment.** The runbook's **The capability assessment**
+   section, before any later stage. It is the host's, not yours: reasoning and
+   system design escalate to the host. Stop and hand it up. It runs again after
+   every gap fix lands, under the runbook's convergence rule and its budget of
+   three rounds.
+4. **Stages.** Run the runbook's stages in order. A stage that prints
    `current` did nothing and is right to skip.
-4. **A stage that stops.** Read the decision it names.
+5. **A stage that stops.** Read the decision it names.
    - An `onboarding-gate` or a `level-miss` is a **gap**: go to *At a gap*.
    - Any other kind is a decision inside the run: resolve it the runbook's
      way, or hand it to the owner when it is theirs.
-5. **Verdicts.** A verdict that is not accepting takes at most two value
+6. **Verdicts.** A verdict that is not accepting takes at most two value
    rounds (`gap round`), then names a gap or goes to the owner. The third
    round is refused by the tool, not by judgment.
-6. **Documentation.** `document` is a stage like any other and runs in its
+7. **Documentation.** `document` is a stage like any other and runs in its
    place; it is named here only because a species that reaches the owner
    undocumented is the failure it removes. An `article-claim-unsupported`
    decision is a sentence to rewrite or recite, never one to accept blind.
-7. **QA and handoff.** Run the species QA pass, write `metrics.json`
+8. **QA and handoff.** Run the species QA pass, write `metrics.json`
    (`gap metrics`) beside the report, and hand the owner the checklist. The
    stills are theirs; no route here decides a visual verdict.
 
@@ -74,6 +79,9 @@ that moves a pin lands only with a `--pin-note` under fn-53's rule.
 - No generator or renderer change inside a species run. Every fix is its own
   reviewed spec, and the run resumes only once it lands.
 - No visual verdict. The owner ticks the checklist.
+- No reasoning about the system. The capability assessment, gap analysis, the
+  candidate fixes for a gap and the shape of a spec it mints are the host's.
+  Report and stop; escalation is not failure and costs nothing.
 - No threshold edited to reach a route you wanted. `data/gap-routes.json` is
   the owner's dial; a route you disagree with is reported, not routed around.
 - No full-forest capture, and no capture at all before the defect reproduces
