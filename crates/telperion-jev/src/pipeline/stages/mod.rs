@@ -22,10 +22,14 @@
 //! - `fit.body`: the curve module's `FitReport` plus `{"points": {...}}`.
 //! - `gate.body`: `{"capability", "registry", "seeds", "unresolved": [...]}`.
 //! - `generate.body`: `{"metrics", "described": {...}, "transfers": {...}, "stills": [...]}`.
+//! - `document.body`: `{"sources": [{"id", "form", "cached"}], "article",
+//!   "article_validated", "article_work": [...], "claims": [CiteRow],
+//!   "tokens": {"input", "output"}}`.
 //! - `report.body`: the report's sections, also rendered to `report.md`, with
 //!   `costs.stages.<stage>` and `costs.total` summed from every artifact's `cost`.
 
 pub mod discover;
+pub mod document;
 pub mod extract;
 pub mod fetch;
 pub mod fit;

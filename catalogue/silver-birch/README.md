@@ -11,14 +11,16 @@
 | Preset | silver-birch |
 | Profile readiness | ready |
 
+[Read the article](ARTICLE.md) — the sources distilled, every claim cited.
+
 ## Bibliography
-| Id | Source | Rights | Verified | Good for |
-|---|---|---|---|---|
-| ATKINSON-BIRCH | [Atkinson, M.D. 1992. Biological Flora of the British Isles No. 175. Betula pendula Roth and B. pubescens Ehrh. Journal of Ecology 80: 837-870.](https://doi.org/10.2307/2260870) | published article; cited with attribution, no redistribution inferred | 2026-09-14 | Primary flora account. Tree to 30 m; slender pendant glabrous twigs; silvery-white bark; biserrate leaves. Height-diameter table for this context not extracted from the paywalled body; cited as the flora of record. |
-| FNA-BIRCH | [Flora of North America. Betula pendula Roth. FNA Vol. 3.](http://efloras.org/florataxon.aspx?flora_id=1&taxon_id=200006160) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Trees to 25 m; leaf blade 3-7 x 2.5-5 cm, coarsely and sharply doubly serrate, apex acuminate. |
-| JRC-BIRCH | [Beck, P., Caudullo, G., de Rigo, D. & Tinner, W. 2016. Betula pendula, Betula pubescens and other birches in Europe: distribution, habitat, usage and threats. In: European Atlas of Forest Tree Species. Publications Office of the EU.](https://forest.jrc.ec.europa.eu/media/atlas/Betula_spp.pdf) | European Commission JRC, CC BY 4.0; cited with attribution | 2026-09-14 | B. pendula to 30 m; leaves 3-7 cm, coarsely double-serrate, fine point; drooping branches. |
-| OSU-BIRCH | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/betula-pendula) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Landscape 12-15(24) m; leaf 2.5-7.5 cm; pendulous branching. Uncalibrated imagery. Cultivar descriptions excluded. |
-| TSO-BIRCH | [Trees and Shrubs Online, International Dendrology Society. Betula pendula account.](https://www.treesandshrubsonline.org/articles/betula/betula-pendula) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Usually 10-15 m, to 25 m; pendulous outer branchlets; leaves 50-75 x 45-60 mm; petiole 20-30 mm; white bark. |
+| Id | Source | Local copy | Rights | Verified | Good for |
+|---|---|---|---|---|---|
+| ATKINSON-BIRCH | [Atkinson, M.D. 1992. Biological Flora of the British Isles No. 175. Betula pendula Roth and B. pubescens Ehrh. Journal of Ecology 80: 837-870.](https://doi.org/10.2307/2260870) | [sources/ATKINSON-BIRCH.md](sources/ATKINSON-BIRCH.md) | published article; cited with attribution, no redistribution inferred | 2026-09-14 | Primary flora account. Tree to 30 m; slender pendant glabrous twigs; silvery-white bark; biserrate leaves. Height-diameter table for this context not extracted from the paywalled body; cited as the flora of record. |
+| FNA-BIRCH | [Flora of North America. Betula pendula Roth. FNA Vol. 3.](http://efloras.org/florataxon.aspx?flora_id=1&taxon_id=200006160) | [sources/FNA-BIRCH.md](sources/FNA-BIRCH.md) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Trees to 25 m; leaf blade 3-7 x 2.5-5 cm, coarsely and sharply doubly serrate, apex acuminate. |
+| JRC-BIRCH | [Beck, P., Caudullo, G., de Rigo, D. & Tinner, W. 2016. Betula pendula, Betula pubescens and other birches in Europe: distribution, habitat, usage and threats. In: European Atlas of Forest Tree Species. Publications Office of the EU.](https://forest.jrc.ec.europa.eu/media/atlas/Betula_spp.pdf) | [sources/JRC-BIRCH.md](sources/JRC-BIRCH.md) | European Commission JRC, CC BY 4.0; cited with attribution | 2026-09-14 | B. pendula to 30 m; leaves 3-7 cm, coarsely double-serrate, fine point; drooping branches. |
+| OSU-BIRCH | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/betula-pendula) | [sources/OSU-BIRCH.md](sources/OSU-BIRCH.md) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Landscape 12-15(24) m; leaf 2.5-7.5 cm; pendulous branching. Uncalibrated imagery. Cultivar descriptions excluded. |
+| TSO-BIRCH | [Trees and Shrubs Online, International Dendrology Society. Betula pendula account.](https://www.treesandshrubsonline.org/articles/betula/betula-pendula) | [sources/TSO-BIRCH.md](sources/TSO-BIRCH.md) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Usually 10-15 m, to 25 m; pendulous outer branchlets; leaves 50-75 x 45-60 mm; petiole 20-30 mm; white bark. |
 
 ## Identity pins
 | Pin | Value |

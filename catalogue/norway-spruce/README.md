@@ -11,11 +11,13 @@
 | Preset | norway-spruce |
 | Profile readiness | ready |
 
+[Read the article](ARTICLE.md) — the sources distilled, every claim cited.
+
 ## Bibliography
-| Id | Source | Rights | Verified | Good for |
-|---|---|---|---|---|
-| NCSU-SPRUCE | [Picea abies, NC State Extension Plant Toolbox](https://plants.ces.ncsu.edu/plants/picea-abies/) | web page; cited with attribution, no redistribution inferred | 2026-09-04 | Species-form landscape spread and peg attachment. Photo cultivar captions must not silently become species targets. |
-| OSU-SPRUCE | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/picea-abies) | web page; cited with attribution, no redistribution inferred | 2026-09-06 | Species-form pyramidal habit, drooping secondaries, individual four-sided needles; exclude cultivars. |
+| Id | Source | Local copy | Rights | Verified | Good for |
+|---|---|---|---|---|---|
+| NCSU-SPRUCE | [Picea abies, NC State Extension Plant Toolbox](https://plants.ces.ncsu.edu/plants/picea-abies/) | [sources/NCSU-SPRUCE.md](sources/NCSU-SPRUCE.md) | web page; cited with attribution, no redistribution inferred | 2026-09-04 | Species-form landscape spread and peg attachment. Photo cultivar captions must not silently become species targets. |
+| OSU-SPRUCE | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/picea-abies) | [sources/OSU-SPRUCE.md](sources/OSU-SPRUCE.md) | web page; cited with attribution, no redistribution inferred | 2026-09-06 | Species-form pyramidal habit, drooping secondaries, individual four-sided needles; exclude cultivars. |
 
 ## Identity pins
 | Pin | Value |

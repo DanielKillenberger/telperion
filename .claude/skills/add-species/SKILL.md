@@ -36,7 +36,11 @@ the repository root, with the key available to an interactive shell.
 5. **Verdicts.** A verdict that is not accepting takes at most two value
    rounds (`gap round`), then names a gap or goes to the owner. The third
    round is refused by the tool, not by judgment.
-6. **QA and handoff.** Run the species QA pass, write `metrics.json`
+6. **Documentation.** `document` is a stage like any other and runs in its
+   place; it is named here only because a species that reaches the owner
+   undocumented is the failure it removes. An `article-claim-unsupported`
+   decision is a sentence to rewrite or recite, never one to accept blind.
+7. **QA and handoff.** Run the species QA pass, write `metrics.json`
    (`gap metrics`) beside the report, and hand the owner the checklist. The
    stills are theirs; no route here decides a visual verdict.
 

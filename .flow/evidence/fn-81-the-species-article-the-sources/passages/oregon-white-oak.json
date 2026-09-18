@@ -1,0 +1,19 @@
+{
+  "OSU-OAK": [
+    { "location": "Quercus garryana, description", "lines": [76, 76] },
+    { "location": "Quercus garryana, site", "lines": [78, 78] },
+    { "location": "Quercus garryana, range", "lines": [83, 83] }
+  ],
+  "OSU-OAK-ID": [
+    { "location": "Oregon white oak, size", "lines": [51, 52] },
+    { "location": "Oregon white oak, leaves", "lines": [54, 57] },
+    { "location": "Oregon white oak, bark", "lines": [65, 66] }
+  ],
+  "OWIC-OAK": [
+    { "location": "Oregon white oak, the tree", "lines": [43, 43] },
+    { "location": "Oregon white oak, mature size", "lines": [47, 47] },
+    { "location": "Oregon white oak, open-grown form", "lines": [49, 49] },
+    { "location": "Oregon white oak, fire and bark", "lines": [67, 67] },
+    { "location": "Oregon white oak, growth rate", "lines": [133, 133] }
+  ]
+}

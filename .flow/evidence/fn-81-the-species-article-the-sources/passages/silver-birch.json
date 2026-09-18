@@ -1,0 +1,14 @@
+{
+  "FNA-BIRCH": [
+    { "location": "Betula pendula, names", "lines": [23, 27] },
+    { "location": "Betula pendula, description", "lines": [29, 29] },
+    { "location": "Betula pendula, habitat and range", "lines": [31, 31] },
+    { "location": "Betula pendula, discussion", "lines": [33, 33] }
+  ],
+  "OSU-BIRCH": [
+    { "location": "Betula pendula, names", "lines": [46, 54] },
+    { "location": "Betula pendula, description", "lines": [76, 76] },
+    { "location": "Betula pendula, site and pests", "lines": [78, 78] },
+    { "location": "Betula pendula, range and hardiness", "lines": [80, 80] }
+  ]
+}

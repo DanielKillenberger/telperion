@@ -11,16 +11,18 @@
 | Preset | none yet |
 | Profile readiness | unready |
 
+[Read the article](ARTICLE.md) — the sources distilled, every claim cited.
+
 ## Bibliography
-| Id | Source | Rights | Verified | Good for |
-|---|---|---|---|---|
-| BALTIC-ASH | [Dobrowolska, D. related / Baltic Forestry 26(1): 73-78, 2020. Characteristic of chosen biometric features of European ash (Fraxinus excelsior L.) due to the age of trees and the forest site type.](https://balticforestry.lammc.lt/bf/PDF_Articles/2020-26%5B1%5D/Baltic%20Forestry%202020.1_73-78.pdf) | published article PDF; cited with attribution, no redistribution inferred | 2026-09-14 | Forest dominant/codominant height about 22-30 m and DBH about 0.22-0.50 m at 48-120 years, by site type. |
-| E1 | [Ertragstafelauszuege (AFZ Forstkalender 2024), Esche block from the Wiedemann/Schober tables](https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf) | published tables; extract cited with attribution | pipeline | published tables; extract cited with attribution |
-| J1 | [European Atlas of Forest Tree Species: Fraxinus excelsior](https://forest.jrc.ec.europa.eu/media/atlas/Fraxinus_excelsior.pdf) | European Commission JRC, CC BY 4.0; cited with attribution | pipeline | European Commission JRC, CC BY 4.0; cited with attribution |
-| KEW-ASH | [Plants of the World Online, Royal Botanic Gardens, Kew. Fraxinus excelsior L.](https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:609009-1) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Deciduous tree up to 40 m; leaves 20-25 cm, 9-13 toothed leaflets, opposite pairs. |
-| O1 | [Oregon State University Landscape Plants: Fraxinus excelsior](https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior) | web page; cited with attribution | pipeline | web page; cited with attribution |
-| OSU-ASH | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Landscape to 25(30+) m, equal or greater width; leaf 25-30 cm, 7-11 leaflets each 5-10 cm. Uncalibrated imagery. |
-| THOMAS-ASH | [Thomas, P.A. 2016. Biological Flora of the British Isles: Fraxinus excelsior. Journal of Ecology 104: 1158-1209.](https://doi.org/10.1111/1365-2745.12566) | published article; cited with attribution, no redistribution inferred | 2026-09-14 | Primary flora. British typical 12-18 m, exceptionally 43 m; opposite pinnate leaves to 30 cm; up to 13 leaflets usually c. 7 cm; grey bark. |
+| Id | Source | Local copy | Rights | Verified | Good for |
+|---|---|---|---|---|---|
+| BALTIC-ASH | [Dobrowolska, D. related / Baltic Forestry 26(1): 73-78, 2020. Characteristic of chosen biometric features of European ash (Fraxinus excelsior L.) due to the age of trees and the forest site type.](https://balticforestry.lammc.lt/bf/PDF_Articles/2020-26%5B1%5D/Baltic%20Forestry%202020.1_73-78.pdf) | [sources/BALTIC-ASH.md](sources/BALTIC-ASH.md) | published article PDF; cited with attribution, no redistribution inferred | 2026-09-14 | Forest dominant/codominant height about 22-30 m and DBH about 0.22-0.50 m at 48-120 years, by site type. |
+| E1 | [Ertragstafelauszuege (AFZ Forstkalender 2024), Esche block from the Wiedemann/Schober tables](https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf) | [sources/E1.md](sources/E1.md) | published tables; extract cited with attribution | pipeline | published tables; extract cited with attribution |
+| J1 | [European Atlas of Forest Tree Species: Fraxinus excelsior](https://forest.jrc.ec.europa.eu/media/atlas/Fraxinus_excelsior.pdf) | [sources/J1.md](sources/J1.md) | European Commission JRC, CC BY 4.0; cited with attribution | pipeline | European Commission JRC, CC BY 4.0; cited with attribution |
+| KEW-ASH | [Plants of the World Online, Royal Botanic Gardens, Kew. Fraxinus excelsior L.](https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:609009-1) | [sources/KEW-ASH.md](sources/KEW-ASH.md) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Deciduous tree up to 40 m; leaves 20-25 cm, 9-13 toothed leaflets, opposite pairs. |
+| O1 | [Oregon State University Landscape Plants: Fraxinus excelsior](https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior) | [sources/O1.md](sources/O1.md) | web page; cited with attribution | pipeline | web page; cited with attribution |
+| OSU-ASH | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior) | [sources/OSU-ASH.md](sources/OSU-ASH.md) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Landscape to 25(30+) m, equal or greater width; leaf 25-30 cm, 7-11 leaflets each 5-10 cm. Uncalibrated imagery. |
+| THOMAS-ASH | [Thomas, P.A. 2016. Biological Flora of the British Isles: Fraxinus excelsior. Journal of Ecology 104: 1158-1209.](https://doi.org/10.1111/1365-2745.12566) | [sources/THOMAS-ASH.md](sources/THOMAS-ASH.md) | published article; cited with attribution, no redistribution inferred | 2026-09-14 | Primary flora. British typical 12-18 m, exceptionally 43 m; opposite pinnate leaves to 30 cm; up to 13 leaflets usually c. 7 cm; grey bark. |
 
 ## Identity pins
 _No preset ships for this species yet, so there is nothing to pin._

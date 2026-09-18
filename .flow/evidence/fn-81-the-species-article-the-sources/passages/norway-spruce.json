@@ -1,0 +1,18 @@
+{
+  "NCSU-SPRUCE": [
+    { "location": "Picea abies, description", "lines": [42, 42] },
+    { "location": "Picea abies, climate and site", "lines": [44, 44] },
+    { "location": "Quick ID hints, form", "lines": [50, 50] },
+    { "location": "Quick ID hints, needles", "lines": [52, 52] },
+    { "location": "Attributes, origin and dimensions", "lines": [171, 171] },
+    { "location": "Leaves", "lines": [181, 181] },
+    { "location": "Bark", "lines": [183, 183] },
+    { "location": "Stem", "lines": [185, 185] }
+  ],
+  "OSU-SPRUCE": [
+    { "location": "Picea abies, description", "lines": [74, 74] },
+    { "location": "Picea abies, site", "lines": [76, 76] },
+    { "location": "Picea abies, range", "lines": [78, 78] },
+    { "location": "Picea abies, cultivars", "lines": [80, 80] }
+  ]
+}

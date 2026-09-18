@@ -206,7 +206,10 @@ fn an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_
     let resumed = resume::resume(&paths, &halt, "abc1234", None).unwrap();
     assert_eq!(resumed.spec, "fn-37-pendulous-shoots-as-rows");
     // The halted stage and every stage after it rerun; the earlier ones do not.
-    assert_eq!(resumed.reruns, vec!["gate", "generate", "report"]);
+    assert_eq!(
+        resumed.reruns,
+        vec!["gate", "generate", "document", "report"]
+    );
     assert_ne!(key_for(&paths, "gate"), gate_before);
     assert_eq!(key_for(&paths, "fetch"), fetch_before);
     // A second landing is refused; the record already carries one.
