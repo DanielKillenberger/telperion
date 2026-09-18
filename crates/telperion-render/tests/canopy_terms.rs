@@ -222,3 +222,65 @@ fn the_crown_over_a_leaf_takes_its_share_of_the_sky_per_radius() {
         "a full shade over most of a diameter takes it all"
     );
 }
+
+#[test]
+fn the_highlight_returns_at_most_its_fresnel_share_of_the_sun() {
+    let Some(gpu) = common::gpu() else { return };
+    // The lobe integrated over every direction the eye can take, weighted
+    // by the eye's cosine and divided by pi: the share of the sun a surface
+    // returns as its highlight, by reciprocity. A face at +z under a sun 27
+    // degrees off it, seen square, oblique and at grazing, chalk and smooth.
+    let rows = evaluate(
+        &gpu,
+        3,
+        "let n = vec3<f32>(0.0, 0.0, 1.0);\n\
+         let to_sun = normalize(vec3<f32>(0.0, 0.5, 1.0));\n\
+         var views = array<vec3<f32>, 3>(n, normalize(vec3<f32>(0.0, 1.0, 1.0)), normalize(vec3<f32>(0.0, 5.0, 1.0)));\n\
+         for (var r = 0; r < 2; r++) {\n\
+             let roughness = select(0.95, 0.4, r == 1);\n\
+             var row = vec4<f32>(0.0);\n\
+             for (var i = 0; i < 90; i++) {\n\
+                 let theta = (f32(i) + 0.5) * 0.017453292;\n\
+                 for (var j = 0; j < 180; j++) {\n\
+                     let phi = (f32(j) + 0.5) * 0.034906585;\n\
+                     let to_eye = vec3<f32>(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));\n\
+                     let h = highlight(n, to_sun, to_eye, 0.04, roughness);\n\
+                     row.x += h.x * h.y * cos(theta) * sin(theta) * 0.017453292 * 0.034906585 / 3.14159265;\n\
+                 }\n\
+             }\n\
+             for (var v = 0; v < 3; v++) {\n\
+                 let h = highlight(n, to_sun, views[v], 0.04, roughness);\n\
+                 row[v + 1] = h.x * h.y;\n\
+             }\n\
+             result[r] = row;\n\
+         }\n\
+         let mirror = normalize(vec3<f32>(0.0, -0.5, 1.0));\n\
+         let none = highlight(n, to_sun, mirror, 0.0, 0.4);\n\
+         result[2] = vec4(none.x, none.y, highlight(n, to_sun, mirror, 0.04, 0.4).y, highlight(n, to_sun, mirror, 0.04, 0.95).y);",
+    );
+    for (name, row) in [("chalk", rows[0]), ("smooth", rows[1])] {
+        // The physical bound: over the hemisphere a dielectric returns a few
+        // per cent of the sun and never more than its Fresnel share, where
+        // the old lobes returned the gloss row's fraction of it outright.
+        assert!(
+            row[0] > 0.01 && row[0] <= 0.08,
+            "{name} returns {} of the sun over the hemisphere",
+            row[0]
+        );
+        // Toward the eye the lobe times its share is never more than the sun.
+        assert!(
+            row[1..].iter().all(|v| (0.0..=1.0).contains(v)),
+            "{name}: {row:?}"
+        );
+    }
+    let [none_x, none_y, smooth, chalk] = rows[2];
+    assert_eq!(
+        (none_x, none_y),
+        (0.0, 0.0),
+        "no reflectance mirrors nothing"
+    );
+    assert!(
+        smooth > chalk,
+        "a smooth lobe peaks above a chalk one: {smooth} {chalk}"
+    );
+}

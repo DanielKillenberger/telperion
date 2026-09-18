@@ -112,20 +112,6 @@ fn bark_parallax(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     return surface + offset.x * sx + offset.y * sy;
 }
 
-// Surface-gradient bump mapping needs no tangent attribute and displaces no
-// vertex. The determinant handles either orientation of the screen axes.
-fn bark_normal(n: vec3<f32>, world: vec3<f32>, dx: vec3<f32>, dy: vec3<f32>,
-    height_x: f32, height_y: f32) -> vec3<f32> {
-    let rx = cross(dy, n);
-    let ry = cross(n, dx);
-    let det = dot(dx, rx);
-    // Relief cannot keep its full shading slope at a grazing silhouette.
-    // Blend the resulting normal so large slopes cannot defeat visibility.
-    let facing = abs(dot(n, normalize(u.eye.xyz - world)));
-    let gradient = height_x * rx + height_y * ry;
-    let perturbed = normalize(n - gradient * sign(det) / max(abs(det), 1e-10));
-    return normalize(mix(n, perturbed, smoothstep(0.0, 0.6, facing)));
-}
 
 // Minimum principal curvature of the existing smooth surface. A convex tube
 // has no contact cavity; the concave direction at a joined neck does. This
@@ -150,18 +136,20 @@ fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
     variance: f32, appearance: vec4<f32>, colour_range: vec2<f32>,
     structure: vec3<f32>, bark: vec3<f32>) -> vec3<f32> {
     let sun = u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * shadow * structure.z;
-    // Roughness is what a surface does with the sun it does not scatter: chalk
-    // spreads it over the whole face, a smooth young bark keeps a narrow sheen
-    // along the light. One lobe, no second light - the sun is the only thing
+    // Roughness is the width of the one lobe the sun glances off a trunk in:
+    // chalk spreads it over the whole face, a smooth young bark keeps a
+    // narrow sheen along the light. The lobe is normalised and its foot is
+    // the row's reflectance, so what it mirrors is taken from the diffuse
+    // rather than added to it. No second light - the sun is the only thing
     // bright enough to glance off a trunk.
     let detail = height / max(0.055 * u.bark_detail.x, 0.0001);
-    let gloss = 1.0 - clamp(u.bark.w + u.bark_detail.z * (detail + variance), 0.0, 1.0);
-    var sheen = 0.0;
-    // The result is exactly zero without gloss or reflected sun. Rough bark
-    // and shadowed sockets need no eye vector or specular exponentiation.
-    if (gloss > 0.0 && any(sun > vec3<f32>(0.0))) {
-        let half_way = normalize(normalize(u.eye.xyz - world) + u.sun_direction.xyz);
-        sheen = gloss * pow(max(dot(n, half_way), 0.0), exp2(1.0 + 10.0 * gloss));
+    let roughness = clamp(u.bark.w + u.bark_detail.z * (detail + variance), 0.0, 1.0);
+    var mirrored = vec2<f32>(0.0);
+    // Exactly nothing without reflectance or reflected sun: a shadowed
+    // socket needs no eye vector or specular exponentiation.
+    if (u.reflectance.x > 0.0 && any(sun > vec3<f32>(0.0))) {
+        mirrored = highlight(n, u.sun_direction.xyz, normalize(u.eye.xyz - world),
+            u.reflectance.x, roughness);
     }
     // The field's mean is the untinted face, including its constant far path.
     // Each signed side is affine until saturation; splitting at zero adds a
@@ -190,8 +178,8 @@ fn bark_light(n: vec3<f32>, height: f32, world: vec3<f32>, shadow: f32,
     let plate = vec3<f32>(1.0) + own * vec3<f32>(0.42, 0.34, 0.22);
     let colour = clamp(albedo * plate * appearance.x, vec3<f32>(0.0), vec3<f32>(1.0));
     let contact = 1.0 - u.bark_colour_detail.z * appearance.y;
-    return (colour * (occluded_ambient(n, appearance.z) + sun)
-        + sun * sheen * cavity_weight) * contact;
+    return (colour * (occluded_ambient(n, appearance.z) + sun * (1.0 - mirrored.x))
+        + sun * mirrored.x * mirrored.y * cavity_weight) * contact;
 }
 
 @fragment
@@ -238,7 +226,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // damp things settle. One weight; the row's tint says what it looks like.
     let away = clamp(0.5 - 0.5 * dot(base_normal, u.sun_direction.xyz), 0.0, 1.0);
     let orientation = away * mix(0.55, 1.0, 1.0 - smoothstep(0.0, 2.5, in.world.y));
-    let appearance = vec4<f32>(mottle, contact, depth_in_crown(in.world), maturity);
+    var appearance = vec4<f32>(mottle, contact, depth_in_crown(in.world), maturity);
     let colour_range = bark_colour_range(in.radius, u.bark_detail.x, u.bark_detail.y,
         u.bark_detail.w, u.plate, u.bark_structure.w, u.peel.w);
     let shadow = sunlight(in.world, base_normal);
@@ -253,6 +241,15 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
             flat, colour_range);
     }
     let seen = normalize(surface.yz);
+    // The grain below the relief, once per fragment like the mottle: a
+    // factor on the colour, and height differences over one pixel that tilt
+    // every shading cell's normal. Its exact mean once its cells are under
+    // two pixels, so far wood is smooth between its features again.
+    var grain = vec3<f32>(1.0, 0.0, 0.0);
+    if (u.grain.x > 0.0 && u.grain.y > 0.0) {
+        grain = bark_grain(surface, sx, sy, in.radius, footprint);
+        appearance.x *= grain.x;
+    }
     // One plate identity per fragment, shared by every shading cell the way
     // the mottle above is: a plate keeps one colour across its whole face.
     let identity = bark_plate_identity(seen, surface.x, in.radius, u.bark_detail.x,
@@ -296,7 +293,11 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
         let height = bark_height(seen, surface.x, in.radius, footprint);
         let direct = bark_shade(surface, sx, sy, base_normal, dx, dy, in.radius,
             footprint, height, colour_range.y);
-        return vec4<f32>(tone(bark_light(base_normal, height, in.world, shadow,
+        var n = base_normal;
+        if (u.grain.y > 0.0) {
+            n = relief_normal(base_normal, in.world, dx, dy, grain.y, grain.z);
+        }
+        return vec4<f32>(tone(bark_light(n, height, in.world, shadow,
             variance, appearance, colour_range, vec3<f32>(orientation, own, direct),
             surface_colour)), 1.0);
     }
@@ -323,9 +324,10 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
         for (var x = 0; x < 2; x++) {
             let h = vec4(heights[y * 3 + x], heights[y * 3 + x + 1],
                 heights[(y + 1) * 3 + x], heights[(y + 1) * 3 + x + 1]);
-            // Average the two differences, divided by a half-pixel cell.
-            let n = bark_normal(base_normal, in.world, dx, dy,
-                h.y + h.w - h.x - h.z, h.z + h.w - h.x - h.y);
+            // Average the two differences, divided by a half-pixel cell, and
+            // the grain's own differences over the pixel on top.
+            let n = relief_normal(base_normal, in.world, dx, dy,
+                h.y + h.w - h.x - h.z + grain.y, h.z + h.w - h.x - h.y + grain.z);
             lit += bark_light(n, dot(h, vec4(0.25)), in.world, shadow, variance,
                 appearance, colour_range, structure, surface_colour);
         }

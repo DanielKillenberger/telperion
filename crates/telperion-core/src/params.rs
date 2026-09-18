@@ -214,6 +214,12 @@ macro_rules! fields {
         $op!($f, $v, "material", "peelGreen"; material.peel_green);
         $op!($f, $v, "material", "peelBlue"; material.peel_blue);
         $op!($f, $v, "material", "lobeShade"; material.lobe_shade);
+        $op!($f, $v, "material", "barkReflectance"; material.bark_reflectance);
+        $op!($f, $v, "material", "leafReflectance"; material.leaf_reflectance);
+        $op!($f, $v, "material", "barkGrainScale"; material.bark_grain_scale);
+        $op!($f, $v, "material", "barkGrainStrength"; material.bark_grain_strength);
+        $op!($f, $v, "material", "bladeGrainScale"; material.blade_grain_scale);
+        $op!($f, $v, "material", "bladeGrainStrength"; material.blade_grain_strength);
 
         $op!($f, $v, "shellDepth"; shell_depth);
     };

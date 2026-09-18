@@ -23,6 +23,8 @@ it("carries every surface-detail control from the generated row through the pane
     "lenticelDensity", "lenticelLength", "lenticelStrength", "lenticelTint",
     "peelCurl", "peelRed", "peelGreen", "peelBlue",
     "lobeShade",
+    "barkReflectance", "leafReflectance",
+    "barkGrainScale", "barkGrainStrength", "bladeGrainScale", "bladeGrainStrength",
   ];
   for (const name of names) {
     expect(Object.keys(params.family.material)).toContain(name);

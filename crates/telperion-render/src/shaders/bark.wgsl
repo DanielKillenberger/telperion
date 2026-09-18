@@ -95,6 +95,32 @@ fn bark_flakes(arc: vec2<f32>, along: f32, spacing: f32, pixel: vec2<f32>,
     return 0.012 * mix(mean, fine.x * face * shoulder * shoulder, band);
 }
 
+// The grain below the relief: filtered noise at the row's cell size over the
+// surface in metres, one field on each axis of the circle so the trunk has no
+// seam and no stretched tangent. It fades an octave before the mottle, from
+// two pixels a cell to one, because its tilt of the normal is not linear in
+// it: at its exact mean once a cell is a pixel across, so a half-size still
+// agrees with the full one and far wood is smooth between its features.
+fn bark_grain_field(surface: vec3<f32>, radius: f32, scale: f32, footprint: vec2<f32>) -> f32 {
+    let p = vec3(normalize(surface.yz) * radius, surface.x) / scale;
+    let pixel = 2.0 * footprint / scale;
+    return 0.5 * (bark_noise2_filtered(p.xz, pixel)
+        + bark_noise2_filtered(p.yz + vec2(0.0, 61.7), pixel));
+}
+
+// A factor on the colour, and the grain's height differences over one pixel
+// that tilt every shading cell's normal: exactly one and nought at the mean.
+fn bark_grain(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, radius: f32,
+    footprint: vec2<f32>) -> vec3<f32> {
+    let scale = u.grain.x;
+    let here = bark_grain_field(surface, radius, scale, footprint);
+    let right = bark_grain_field(surface + sx, radius, scale, footprint);
+    let up = bark_grain_field(surface + sy, radius, scale, footprint);
+    // A cell's relief is a third of its width at full strength.
+    let height = u.grain.y * scale / 3.0;
+    return vec3(1.0 + u.grain.y * (2.0 * here - 1.0), (right - here) * height, (up - here) * height);
+}
+
 // The same nominal depth and integrated face bands anchor colour and the
 // constant-height shortcut. Their units become metres only at the end.
 const BARK_DEPTH_RANGE = vec2(0.55, 1.35);

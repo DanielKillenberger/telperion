@@ -87,7 +87,10 @@ const BANDS: [(&str, usize, usize); 7] = [
 // walk it from nothing to a hundred degrees.
 // fn-48.2 adds the clump's fork height, and the birch states half the bole,
 // so the sweep walks it.
-const HELD: [&str; 29] = [
+const HELD: [&str; 32] = [
+    "/material/barkGrainStrength",
+    "/material/barkReflectance",
+    "/material/leafReflectance",
     "/material/plateFurrowWidth",
     "/canopy/maxInstances",
     "/element/card",

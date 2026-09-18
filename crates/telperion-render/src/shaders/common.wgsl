@@ -78,6 +78,12 @@ struct Uniforms {
     lichen_detail: vec4<f32>, // cell size, coverage, reserved, reserved
     lenticel: vec4<f32>, // rows per metre, length, strength, tint
     peel: vec4<f32>, // RGB, curl
+    /// What the bark and the cuticle mirror of the sun at normal incidence,
+    /// the foot of each material's one highlight.
+    reflectance: vec4<f32>, // bark, leaf, reserved, reserved
+    /// The grain below the relief: the bark's cell size in metres and its
+    /// strength, the leaf's cells per leaf length and its strength.
+    grain: vec4<f32>,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
@@ -154,6 +160,23 @@ fn occluded_ambient(n: vec3<f32>, depth: f32) -> vec3<f32> {
 /// The sun on a surface of this normal, shadowed by the map it threw.
 fn key(n: vec3<f32>, world: vec3<f32>) -> vec3<f32> {
     return u.sun.rgb * max(dot(n, u.sun_direction.xyz), 0.0) * sunlight(world, n);
+}
+
+/// A normal tilted by a height field's differences over one pixel, from the
+/// screen-space derivatives of the surface: surface-gradient bump mapping,
+/// which needs no tangent attribute and displaces no vertex. The determinant
+/// handles either orientation of the screen axes. Relief cannot keep its full
+/// shading slope at a grazing silhouette, so the tilt is blended out as the
+/// surface turns away and large slopes cannot defeat visibility.
+fn relief_normal(n: vec3<f32>, world: vec3<f32>, dx: vec3<f32>, dy: vec3<f32>,
+    height_x: f32, height_y: f32) -> vec3<f32> {
+    let rx = cross(dy, n);
+    let ry = cross(n, dx);
+    let det = dot(dx, rx);
+    let facing = abs(dot(n, normalize(u.eye.xyz - world)));
+    let gradient = height_x * rx + height_y * ry;
+    let perturbed = normalize(n - gradient * sign(det) / max(abs(det), 1e-10));
+    return normalize(mix(n, perturbed, smoothstep(0.0, 0.6, facing)));
 }
 
 /// Linear radiance to a value a display can hold: Narkowicz's fit of the ACES
