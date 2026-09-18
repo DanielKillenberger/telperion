@@ -18,7 +18,7 @@ use crate::cases::{CaseRow, SetScore};
 use crate::questions::thresholds;
 
 /// One row and whether its case is held out.
-type Rows = Vec<(CaseRow, bool)>;
+pub(crate) type Rows = Vec<(CaseRow, bool)>;
 
 /// Ask every case of every pipeline set and score each judged question over
 /// the labelled cases and over the held-out cases.
@@ -292,7 +292,7 @@ fn noul_row(
 }
 
 /// One SetScore over the labelled cases and one over the held-out cases.
-fn split(name: &str, rows: Rows, bar: f64) -> Vec<SetScore> {
+pub(crate) fn split(name: &str, rows: Rows, bar: f64) -> Vec<SetScore> {
     let labelled = rows
         .iter()
         .filter(|(_, holdout)| !holdout)

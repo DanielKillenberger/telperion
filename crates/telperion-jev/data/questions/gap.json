@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "change_kind": {
+    "type": "choice",
+    "instructions": "`gap` names a capability a species needs that no value table reaches, and `options` are candidate fixes an agent wrote. From the named option's `summary` and `touches` alone, what does it change: only rows a preset already has, the generator's own rules, or the renderer's appearance?",
+    "criteria": {
+      "value_table": "Only values in a species' table move; no rule, term, row or organ is added to the generator and no shader changes",
+      "generator": "The generator gains a rule, a term, a row, an axis or an organ it does not have, or one of its rules is rewritten",
+      "appearance": "Only the renderer's lighting, colour, surface or material rows change; no geometry rule moves",
+      "unstated": "The summary does not say what would change"
+    }
+  },
+  "prior_verdict": {
+    "type": "choice",
+    "instructions": "`verdicts` are the owner's earlier written verdicts and rules on this species and its generator. Does one of them already decide for or against the named option?",
+    "criteria": {
+      "for": "A verdict asks for what the option does, or names the same fix",
+      "against": "A verdict rejects what the option does, forbids what it moves, or the option would reverse a decision a verdict took",
+      "none": "No verdict speaks to this option either way"
+    }
+  },
+  "generalizes": {
+    "type": "noul",
+    "instructions": "Would the named option serve species beyond the one that asked, as a capability other species could state in their own rows, rather than a fix shaped for this one tree?",
+    "criteria": {
+      "true": "Other species or growth forms would state the same row or use the same rule; the option names them or the summary makes it plain",
+      "false": "The option fits the one species that asked and no other would state it"
+    }
+  },
+  "moves_pin": {
+    "type": "noul",
+    "instructions": "Would the named option change the output of a preset that already ships, so its identity pin would have to be re-recorded, rather than leaving every shipped preset byte-identical at a neutral value?",
+    "criteria": {
+      "true": "A shipped preset's tree or frame changes; a pin moves",
+      "false": "Every shipped preset stays byte-identical; the change is inert at its neutral value or touches no shipped preset"
+    }
+  },
+  "best_match": {
+    "type": "choice",
+    "instructions": "`gap` names the capability the species needs, as its `detail` states it. Which of `options` answers that capability as stated, at the smallest change that reaches it? Prefer the option that gives the species a row over one that patches a constant, and the one that serves other species over one that serves this tree alone. Answer none when no option answers the capability.",
+    "none": "No option answers the capability the gap names"
+  }
+}

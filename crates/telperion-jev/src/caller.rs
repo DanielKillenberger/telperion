@@ -291,7 +291,7 @@ fn request_model(parsed: &Value) -> &str {
     parsed.get("model").and_then(Value::as_str).unwrap_or(MODEL)
 }
 
-fn now_rfc3339() -> String {
+pub(crate) fn now_rfc3339() -> String {
     let secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
