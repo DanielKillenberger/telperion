@@ -264,10 +264,12 @@ never part of the workspace test commands.
 
 ## The question sets
 
-Four versioned sets under `crates/telperion-jev/data/questions`: source
+Five versioned sets under `crates/telperion-jev/data/questions`: source
 ranking per field, data sufficiency per field with its dominant gap, described
-level scoring over levels a person wrote, and the semantic obligations
-(`inspected_image`, `measurement_not_invention`). Their labelled cases with
-negative and held-out entries live under `data/cases`; `jev cases` reruns them
-live and fails when a held-out accuracy is below 0.9 (0.8 top-one agreement
-for ranking), listing the missed case ids.
+level scoring over levels a person wrote, the semantic obligations
+(`inspected_image`, `measurement_not_invention`), and the gap loop's options.
+Their labelled cases with negative and held-out entries live under
+`data/cases`; `jev cases` reruns them live and fails when a held-out accuracy
+is below 0.9 (0.8 top-one agreement for ranking and for the gap set's best
+match), listing the missed case ids. `--only labelled|pipeline|gap` runs one
+family alone, so a set being tuned costs one family's calls.
