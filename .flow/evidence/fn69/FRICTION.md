@@ -15,3 +15,11 @@
 - **Cost:** about three minutes (one blocked launch from a dcg redirect rule, one real launch, the diagnosis).
 - **What would remove it:** a one-line quota probe before the bridge (a cheap `codex exec` on a trivial prompt, or reading the usage endpoint), and a dated line in the routing block naming who implements while the quota is out, as the block already records for 2026-09-08 to 2026-09-11.
 - **Early return:** not taken; the worker's Phase 1b degrade rule applies (session model implements, the summary records `implement - skipped(reach: gpt-6-astra unreachable, session model used)`), and the task is one workflow file.
+
+## 2026-09-18 host: the branch cannot be pushed, the gh token lacks the workflow scope
+
+- **Doing:** pushing the spec branch before make-pr, over HTTPS through `gh auth git-credential` because the tool shell reaches no SSH agent (the 1Password agent answers "communication with agent failed").
+- **Hindered by:** GitHub refused the push: "refusing to allow an OAuth App to create or update workflow `.github/workflows/tests.yml` without `workflow` scope". The gh token carries `gist`, `read:org` and `repo` only, and a workflow file is the whole diff of this spec.
+- **Cost:** the run stops here with the build complete and unpushed; one owner action (`gh auth refresh -s workflow`, or unlocking 1Password so the SSH remote signs) unblocks it.
+- **What would remove it:** the `workflow` scope on the gh token, granted once, or an SSH agent the tool shell can reach.
+- **Early return:** taken; the host stops with NEEDS_HUMAN instead of a workaround around the token's scope.
