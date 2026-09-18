@@ -285,6 +285,12 @@ fn run_transfer(
     let nearest = judgment.entry.choice("nearest").unwrap_or("none".into());
     let scored = judgment.entry.score("relation").unwrap_or(f64::NAN);
     let index = level_from_score(scored, spec.levels.len());
+    // No relation score is no reference: the dial files no-reference, never the first level.
+    let nearest = if index.is_none() {
+        NO_REFERENCE.to_string()
+    } else {
+        nearest
+    };
     shipped.ledger.push(judgment.reference.clone());
     let input = TransferInput {
         dial: spec.dial.clone(),
@@ -295,9 +301,8 @@ fn run_transfer(
             nearest
         },
         second: None,
-        relation: spec
-            .levels
-            .get(index)
+        relation: index
+            .and_then(|i| spec.levels.get(i))
             .map_or_else(String::new, |l| l.key.clone()),
         levels: spec.levels.clone(),
         target_range: spec.target_range,

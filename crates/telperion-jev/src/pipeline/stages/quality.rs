@@ -69,7 +69,9 @@ pub fn run(dir: &Path, judge: &Judge<'_>) -> Result<Outcome, StageError> {
                 reason: err.to_string(),
             })?;
         let score = judgment.entry.score("sufficiency").unwrap_or(0.0);
-        let level = Sufficiency::from_index(level_from_score(score, SUFFICIENCY_LEVELS.len()));
+        // No score is the lowest level: the gate fails closed.
+        let level =
+            Sufficiency::from_index(level_from_score(score, SUFFICIENCY_LEVELS.len()).unwrap_or(0));
         let gap = judgment
             .entry
             .choice("dominant_gap")
@@ -123,7 +125,8 @@ fn evidence_for(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Valu
                 "sentence": row["sentence"],
                 "kind": row["kind"],
                 "condition": row["condition"],
-                "taxon": manifest.taxon.scientific_name,
+                // A sentence from the field's proxy source describes the proxy taxon.
+                "taxon": field.proxy.as_ref().filter(|p| row["source"] == p.source).map_or(manifest.taxon.scientific_name.as_str(), |p| p.taxon.as_str()),
             })
         })
         .collect();
@@ -164,9 +167,22 @@ fn measured_points(manifest: &Manifest, field: &Field, evidence: &[Value]) -> Ve
             item["kind"] == "measured_size_at_age"
                 && item["condition"] == field.condition
                 && item["taxon"] == manifest.taxon.scientific_name
+                && names_field(field, item["sentence"].as_str().unwrap_or_default())
         })
         .cloned()
         .collect()
+}
+
+/// Whether a sentence is about this field's dimension: a height sentence is
+/// not a diameter point. A field with no word list passes every sentence.
+fn names_field(field: &Field, sentence: &str) -> bool {
+    let words: &[&str] = match field.field.as_str() {
+        "height_m" => &["height", "tall", "high"],
+        "dbh_m" => &["diameter", "dbh", "trunk", "girth", "dg "],
+        _ => return true,
+    };
+    let lower = sentence.to_ascii_lowercase();
+    words.iter().any(|w| lower.contains(w))
 }
 
 fn coverage(field: &Field, points: &[Value]) -> (Vec<f64>, Vec<f64>) {

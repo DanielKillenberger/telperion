@@ -40,7 +40,12 @@ fn scratch(tag: &str) -> PathBuf {
 
 /// Writes a shell script standing in for the installed CLI. It records its
 /// arguments and echoes the JSON shape the real CLI printed on 2026-09-18.
-fn fake_cli(dir: &Path, body: &str) -> String {
+static CLI_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+/// The guard serializes the tests that fork the fake CLI: a script written by
+/// one test while another forks is `Text file busy` (ETXTBSY) on Linux.
+fn fake_cli(dir: &Path, body: &str) -> (String, std::sync::MutexGuard<'static, ()>) {
+    let guard = CLI_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     let path = dir.join("fake-firecrawl");
     let script = format!(
         "#!/bin/sh\nfor a in \"$@\"; do printf '%s\\n' \"$a\" >> \"{}/argv.txt\"; done\n{body}\n",
@@ -48,7 +53,7 @@ fn fake_cli(dir: &Path, body: &str) -> String {
     );
     fs::write(&path, script).unwrap();
     fs::set_permissions(&path, fs::Permissions::from_mode(0o755)).unwrap();
-    path.display().to_string()
+    (path.display().to_string(), guard)
 }
 
 fn recorded_argv(dir: &Path) -> Vec<String> {
@@ -226,7 +231,7 @@ fn is_pdf_reads_the_content_type_then_the_url() {
 #[test]
 fn the_cli_adapter_builds_its_arguments_and_reads_the_output() {
     let dir = scratch("cli");
-    let program = fake_cli(&dir, CANNED);
+    let (program, _cli) = fake_cli(&dir, CANNED);
     let mut cli = FirecrawlCli::with_program(program, dir.join("cache"));
     assert_eq!(cli.raw_from, RawSource::Cli);
 
@@ -289,7 +294,7 @@ fn the_cli_adapter_builds_its_arguments_and_reads_the_output() {
 #[test]
 fn a_rejected_credential_is_unauthenticated_and_every_other_failure_is_failed() {
     let dir = scratch("unauth");
-    let program = fake_cli(
+    let (program, first) = fake_cli(
         &dir,
         "echo 'Error: Request failed with status 401 Unauthorized' >&2\nexit 1",
     );
@@ -302,8 +307,9 @@ fn a_rejected_credential_is_unauthenticated_and_every_other_failure_is_failed() 
         other => panic!("{other}"),
     }
 
+    drop(first);
     let dir = scratch("failed");
-    let program = fake_cli(&dir, "echo 'Error: connect ETIMEDOUT' >&2\nexit 2");
+    let (program, _cli) = fake_cli(&dir, "echo 'Error: connect ETIMEDOUT' >&2\nexit 2");
     let cli = FirecrawlCli::with_program(program, dir.join("cache"));
     match cli.scrape(OWIC).unwrap_err() {
         AdapterError::Failed { url, error } => {

@@ -114,16 +114,15 @@ pub fn obligation_questions(name: &str) -> Value {
     Value::Object(out)
 }
 
-/// Round a Score to the nearest level index, clamped into the table.
-pub fn level_from_score(score: f64, level_count: usize) -> usize {
-    if level_count == 0 {
-        return 0;
+/// Round a Score to the nearest level index, clamped into the table. A
+/// missing or non-finite score is no level at all: the caller routes it to
+/// its no-match answer, never to the first row.
+pub fn level_from_score(score: f64, level_count: usize) -> Option<usize> {
+    if level_count == 0 || !score.is_finite() {
+        return None;
     }
     let last = (level_count - 1) as f64;
-    if !score.is_finite() {
-        return 0;
-    }
-    score.round().clamp(0.0, last) as usize
+    Some(score.round().clamp(0.0, last) as usize)
 }
 
 #[derive(Debug, Clone, Deserialize)]

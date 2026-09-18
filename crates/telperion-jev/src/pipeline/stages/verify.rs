@@ -11,14 +11,14 @@ use crate::cite::{cite, ResearchClaim, SourceLoad};
 use crate::pipeline::canon::read_json;
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
-use crate::pipeline::sets::obligation_questions;
+use crate::pipeline::sets::{measurement_state, obligation_questions};
 use crate::pipeline::stage::{Context, StageError};
+use crate::questions::thresholds;
 
 use super::extract::cached_markdown;
 use super::{body, inputs};
 
 pub const STAGE: &str = "verify";
-const OBLIGATION_CUT: f64 = 0.5;
 
 #[derive(Debug)]
 pub enum Outcome {
@@ -98,7 +98,8 @@ pub fn run(dir: &Path, judge: &Judge<'_>) -> Result<Outcome, StageError> {
                 stage: STAGE.into(),
                 reason: err.to_string(),
             })?;
-        let held = judgment.entry.noul("inspected_image").unwrap_or(0.0) >= OBLIGATION_CUT;
+        let held =
+            judgment.entry.noul("inspected_image").unwrap_or(0.0) >= thresholds().obligation_cut;
         header.ledger.push(judgment.reference.clone());
         obligations.push(json!({"obligation": "inspected_image", "reference": reference["id"], "held": held, "ledger": judgment.reference}));
         if !held {
@@ -112,7 +113,13 @@ pub fn run(dir: &Path, judge: &Judge<'_>) -> Result<Outcome, StageError> {
         }
     }
     for (pointer, entry) in sidecar["entries"].as_object().into_iter().flatten() {
-        let state = json!({"value_statement": entry["span"], "source_excerpt": entry["span"]});
+        let span = entry["span"].as_str().unwrap_or_default();
+        let source_id = entry["source"].as_str().unwrap_or_default();
+        let Some(excerpt) = excerpt_for(&ctx, source_id, &fetch["sources"][source_id], span) else {
+            obligations.push(json!({"obligation": "measurement_not_invention", "pointer": pointer, "held": Value::Null, "unchecked": "source not cached"}));
+            continue;
+        };
+        let state = measurement_state(span, &excerpt);
         let judgment = judge
             .ask(
                 "obligation:measurement_not_invention",
@@ -128,7 +135,7 @@ pub fn run(dir: &Path, judge: &Judge<'_>) -> Result<Outcome, StageError> {
             .entry
             .noul("measurement_not_invention")
             .unwrap_or(0.0)
-            >= OBLIGATION_CUT;
+            >= thresholds().obligation_cut;
         header.ledger.push(judgment.reference.clone());
         obligations.push(json!({"obligation": "measurement_not_invention", "pointer": pointer, "held": held, "ledger": judgment.reference}));
         if !held {
@@ -201,6 +208,24 @@ fn claims_for(
         });
     }
     Ok((claims, loads))
+}
+
+/// The cached source text around the span, bounded to a few hundred
+/// characters each side, or None when the source is not cached: the value's
+/// evidence is its source, never the span itself.
+fn excerpt_for(ctx: &Context, source_id: &str, record: &Value, span: &str) -> Option<String> {
+    let markdown = cached_markdown(ctx, STAGE, source_id, record).ok()?;
+    let at = markdown.find(span).unwrap_or(0);
+    let start = markdown[..at]
+        .char_indices()
+        .rev()
+        .nth(600)
+        .map_or(0, |(i, _)| i);
+    let end = markdown[at..]
+        .char_indices()
+        .nth(span.chars().count() + 600)
+        .map_or(markdown.len(), |(i, _)| at + i);
+    Some(markdown[start..end].to_string())
 }
 
 fn unmet(species: &str, obligation: &str, value: &str, ledger: &str, select_sha: &str) -> Decision {

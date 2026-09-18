@@ -162,16 +162,17 @@ fn the_runner_scores_every_set_labelled_and_held_out_against_its_bound() {
 #[test]
 fn level_from_score_rounds_to_the_nearest_level_and_clamps() {
     let table = [
-        (-4.0, 4, 0),
-        (0.0, 4, 0),
-        (0.4, 4, 0),
-        (0.6, 4, 1),
-        (1.5, 4, 2),
-        (2.49, 4, 2),
-        (3.0, 4, 3),
-        (9.0, 4, 3),
-        (2.0, 1, 0),
-        (f64::NAN, 4, 0),
+        (-4.0, 4, Some(0)),
+        (0.0, 4, Some(0)),
+        (0.4, 4, Some(0)),
+        (0.6, 4, Some(1)),
+        (1.5, 4, Some(2)),
+        (2.49, 4, Some(2)),
+        (3.0, 4, Some(3)),
+        (9.0, 4, Some(3)),
+        (2.0, 1, Some(0)),
+        (f64::NAN, 4, None),
+        (f64::INFINITY, 4, None),
     ];
     for (score, levels, expected) in table {
         assert_eq!(
@@ -180,7 +181,7 @@ fn level_from_score_rounds_to_the_nearest_level_and_clamps() {
             "{score} over {levels}"
         );
     }
-    assert_eq!(level_from_score(1.0, 0), 0);
+    assert_eq!(level_from_score(1.0, 0), None);
 }
 
 #[test]

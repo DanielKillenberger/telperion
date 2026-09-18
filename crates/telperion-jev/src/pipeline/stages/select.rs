@@ -193,7 +193,8 @@ pub fn parse_span(span: &str) -> Option<([f64; 2], String)> {
         "cm" => 0.01,
         _ => 0.0254,
     };
-    let prefix = lower[..at].trim_end();
+    // A decimal comma is a decimal point: `7,2 cm` is 0.072 m, as the table parser reads it.
+    let prefix = lower[..at].trim_end().replace(',', ".");
     let numbers: Vec<f64> = prefix
         .split(|c: char| !(c.is_ascii_digit() || c == '.'))
         .filter_map(|t| t.parse::<f64>().ok())
@@ -263,8 +264,8 @@ fn score_described(
         judgment.entry.score("level").unwrap_or(f64::NAN),
         levels.len() + 1,
     );
-    let level = levels
-        .get(index)
+    let level = index
+        .and_then(|i| levels.get(i))
         .map(|l| l.key.clone())
         .unwrap_or_else(|| "unstated".into());
     Ok((
@@ -327,7 +328,7 @@ mod tests {
             ("50 to 90 ft tall", [15.24, 27.432], "ft"),
             ("reaches 6 m at 20 years", [6.0, 6.0], "m"),
             ("24 to 40 in. in DBH", [0.6096, 1.016], "in"),
-            ("DG 7,2 cm", [0.02, 0.02], "cm"),
+            ("DG 7,2 cm", [0.072, 0.072], "cm"),
             ("15-27 m tall", [15.0, 27.0], "m"),
         ];
         for (span, range, unit) in cases {

@@ -39,3 +39,11 @@
 - **Cost:** one test rewritten to compare the stage's own artifact instead, and about 20 minutes to find the cause.
 - **What would remove it:** the fix landed in `canon.rs` (canonical bytes are the fixed point of serialize-then-parse, with a test); turning on `float_roundtrip` workspace-wide would also remove it but unifies the feature into the core, render and wasm crates' parsing and is the owner's call.
 - **Early return:** not taken; the fix is local.
+
+## 2026-09-18 16:45 a one-line test edit costs a twenty-minute release rebuild of the jev crate
+
+- **Doing:** rerunning `cargo test --release -p telperion-jev` after the host's fixes to seven files from the audit.
+- **Hindered by:** the crate now has about twenty test targets, each linked in release; a foreground run passed the harness's 600 s cap while still compiling and was moved to the background, then sat for 22 minutes, the last part on a test the host's own lock had deadlocked (a fake-CLI guard held across a second call in the same test).
+- **Cost:** about 25 minutes of wall clock and one hung run, for a change that touched seven files.
+- **What would remove it:** run the crate's tests in the dev profile (a `[profile.test]` with opt-level 1, or a `test:quick` that drops `--release` for jev), and fold the integration tests into one binary per surface so a change relinks one target, not twenty. The deadlock itself was the host's, fixed by dropping the first guard before the second helper call.
+- **Early return:** taken, in effect: the run was killed once its process showed zero CPU on one test binary.

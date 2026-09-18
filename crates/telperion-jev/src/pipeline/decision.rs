@@ -175,11 +175,17 @@ pub fn apply_resolutions(decisions: &mut [Decision], resolutions: &[Resolution])
         } else {
             decision.status = Status::Open;
             decision.resolution = None;
+            // Set, never append: a rerun that reconciles the same stale
+            // resolution must leave the list byte-identical.
+            let base = decision
+                .note
+                .split("[void resolution")
+                .next()
+                .unwrap_or_default()
+                .trim();
             decision.note = format!(
-                "{} [void resolution by {} at {}: inputs changed or option unknown]",
-                decision.note.trim_end_matches(']').trim(),
-                resolution.by,
-                resolution.at
+                "{base} [void resolution by {} at {}: inputs changed or option unknown]",
+                resolution.by, resolution.at
             );
         }
     }
@@ -287,10 +293,16 @@ mod tests {
             inputs_sha256: sha(&[("points", "bbb")]),
             ..good
         };
-        apply_resolutions(&mut list, &[stale]);
+        apply_resolutions(&mut list, std::slice::from_ref(&stale));
         assert_eq!(list[0].status, Status::Open);
         assert!(list[0].resolution.is_none());
         assert!(list[0].note.contains("void resolution"), "{}", list[0].note);
+        // A second reconcile of the same stale resolution changes nothing: the
+        // note is set, never appended, so a rerun's decision list is byte-identical.
+        let once = list[0].note.clone();
+        apply_resolutions(&mut list, &[stale]);
+        assert_eq!(list[0].note, once);
+        assert_eq!(once.matches("void resolution").count(), 1);
     }
 
     #[test]

@@ -22,3 +22,4 @@ stage: implement - skipped(reach: gpt-6-astra unreachable, codex usage limit unt
 - Commits: 05023ebf3a013b394c074a7689f32594e546374e
 - Tests: cargo test --release -p telperion-core, cargo test --release -p telperion-render -p telperion-wasm -p telperion-jev, cargo test --release -p telperion-jev, npm test, npm run typecheck, cargo clippy -p telperion-jev --all-targets -- -D warnings, cargo fmt -p telperion-jev -- --check, baseline: none (spec defines no Quick commands); focused cargo test --release -p telperion-jev green pre-edit
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)

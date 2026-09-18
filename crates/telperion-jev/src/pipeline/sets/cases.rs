@@ -15,9 +15,7 @@ use super::{
 };
 use crate::caller::{evaluate, CallerError, EvaluateRequest, Transport};
 use crate::cases::{CaseRow, SetScore};
-
-const ACCURACY_BAR: f64 = 0.9;
-const RANKING_BAR: f64 = 0.8;
+use crate::questions::thresholds;
 
 /// One row and whether its case is held out.
 type Rows = Vec<(CaseRow, bool)>;
@@ -30,27 +28,27 @@ pub fn run_pipeline_cases(
     ledger_dir: &Path,
 ) -> Result<Vec<SetScore>, CallerError> {
     let (levels, gaps) = run_sufficiency(transport, key, ledger_dir)?;
-    let mut out = split("sufficiency level", levels, ACCURACY_BAR);
-    out.extend(split("sufficiency gap", gaps, ACCURACY_BAR));
+    let mut out = split("sufficiency level", levels, thresholds().accuracy_bar);
+    out.extend(split("sufficiency gap", gaps, thresholds().accuracy_bar));
     out.extend(split(
         "ranking source",
         run_ranking(transport, key, ledger_dir)?,
-        RANKING_BAR,
+        thresholds().ranking_bar,
     ));
     out.extend(split(
         "described level",
         run_described(transport, key, ledger_dir)?,
-        ACCURACY_BAR,
+        thresholds().accuracy_bar,
     ));
     out.extend(split(
         "obligation inspected_image",
         run_inspected_image(transport, key, ledger_dir)?,
-        ACCURACY_BAR,
+        thresholds().accuracy_bar,
     ));
     out.extend(split(
         "obligation measurement_not_invention",
         run_measurement(transport, key, ledger_dir)?,
-        ACCURACY_BAR,
+        thresholds().accuracy_bar,
     ));
     Ok(out)
 }
@@ -76,10 +74,12 @@ fn run_sufficiency(
                 ledger_dir,
             },
         )?;
+        // A missing score is the lowest level, as the gate itself reads it.
         let index = level_from_score(
-            entry.score("sufficiency").unwrap_or(0.0),
+            entry.score("sufficiency").unwrap_or(f64::NAN),
             SUFFICIENCY_LEVELS.len(),
-        );
+        )
+        .unwrap_or(0);
         let level = SUFFICIENCY_LEVELS[index];
         levels.push((
             CaseRow {
@@ -175,7 +175,11 @@ fn run_described(
                 ledger_dir,
             },
         )?;
-        let index = level_from_score(entry.score("level").unwrap_or(0.0), case.levels.len() + 1);
+        let index = level_from_score(
+            entry.score("level").unwrap_or(f64::NAN),
+            case.levels.len() + 1,
+        )
+        .unwrap_or(case.levels.len());
         let answered = case
             .levels
             .get(index)
