@@ -23,3 +23,11 @@
 - **Cost:** the run stops here with the build complete and unpushed; one owner action (`gh auth refresh -s workflow`, or unlocking 1Password so the SSH remote signs) unblocks it.
 - **What would remove it:** the `workflow` scope on the gh token, granted once, or an SSH agent the tool shell can reach.
 - **Early return:** taken; the host stops with NEEDS_HUMAN instead of a workaround around the token's scope.
+
+## 2026-09-18 host: a second session commits onto the branch checked out in the shared clone
+
+- **Doing:** opening the PR for the spec branch after the push.
+- **Hindered by:** the branch had been cut from local master, which carried four owner commits not on origin, and a concurrent session working fn-58 in the main checkout committed its task mint onto the checked-out fn-69 branch. A squash merge would have folded all of it into the CI commit. The owner chose a rebuild: the branch was recreated from origin/master in its own worktree with the four CI commits cherry-picked, the fn-58 commit was cherry-picked onto local master, and the main checkout returned to master.
+- **Cost:** about eight minutes, one owner question, one force-push of a branch that had no PR yet.
+- **What would remove it:** the work stage branching from origin/master rather than local master when the two differ, and every session running in its own worktree so a checked-out branch is never a shared commit target.
+- **Early return:** not taken; the rebuild was short.
