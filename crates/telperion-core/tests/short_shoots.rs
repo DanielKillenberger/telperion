@@ -3,6 +3,7 @@
 //! already has, so these tests hold the rows to their rails, the shoots to the
 //! wood that may bear them, the skeleton to its node count, and the draws to
 //! the wood's own identity whatever order the wood is stored or grown in.
+mod specimens;
 use telperion_core::{
     branching,
     foliage::{self, CanopyParams, Instances, TwigPlacement},
@@ -33,7 +34,7 @@ fn beech(seed: u32) -> Family {
 }
 
 fn grown(f: &Family) -> Tree {
-    branching::generate(&f.skeleton, f.radii).unwrap().tree
+    specimens::tree(f)
 }
 
 fn twig(f: &Family) -> Option<TwigPlacement> {

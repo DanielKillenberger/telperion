@@ -23,5 +23,6 @@ path = "../../tests/migration/foundation.rs"
 # decimal a bit-off, and the catalogue's identity pins are compared bit for bit
 # against the same literals in test source.
 serde_json = { version = "1", features = ["float_roundtrip"] }
+bincode = "=1.3.3"
 # Examples and tests read the wire the binding publishes, never a second copy.
 telperion-core = { path = ".", features = ["json"] }

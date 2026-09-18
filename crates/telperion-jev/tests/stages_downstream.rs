@@ -15,6 +15,7 @@ use common::{ledger_dir, CaseTransport};
 use serde_json::{json, Map, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
+use telperion_jev::pipeline::gap::metrics;
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::render::{Measured, Measurer, RenderError};
 use telperion_jev::pipeline::stage::{Context, Paths};
@@ -591,7 +592,27 @@ fn the_report_is_halted_with_an_open_decision_and_complete_once_it_is_resolved()
         report::run(&Paths::new(&dir)).unwrap(),
         report::Outcome::Ran { .. }
     ));
-    assert_eq!(body_of(&dir, "report")["status"], "complete");
+    // Every decision is resolved, but the run's three numbers are not written
+    // yet: the report names the missing record rather than calling it done.
+    let body = body_of(&dir, "report");
+    assert_eq!(body["status"], "incomplete");
+    assert!(body["metrics"]["missing"]
+        .as_str()
+        .is_some_and(|said| said.contains("metrics.json")));
+    let page = std::fs::read_to_string(dir.join("report.md")).unwrap();
+    assert!(page.contains("## The run's numbers"));
+    assert!(page.contains("Missing: metrics.json"), "{page}");
+
+    metrics::write(&Paths::new(&dir), "oregon-white-oak").unwrap();
+    assert!(matches!(
+        report::run(&Paths::new(&dir)).unwrap(),
+        report::Outcome::Ran { .. }
+    ));
+    let body = body_of(&dir, "report");
+    assert_eq!(body["status"], "complete");
+    assert_eq!(body["metrics"]["autonomy"]["gaps"], 0);
+    let page = std::fs::read_to_string(dir.join("report.md")).unwrap();
+    assert!(page.contains("0 gaps, 0 routed"), "{page}");
 }
 
 #[test]

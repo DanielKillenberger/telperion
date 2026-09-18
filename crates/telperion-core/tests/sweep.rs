@@ -3,6 +3,7 @@
 //! the oak-to-spruce walk with no frame where the tree changes kind; and every
 //! wire parameter a preset moves proved to be walked at all. No device is
 //! needed; this is the core's own arithmetic.
+mod specimens;
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
@@ -277,9 +278,7 @@ fn every_pair_of_presets_grows_a_tree_at_every_step() {
 #[test]
 fn every_shipped_preset_carries_a_leaf_count_inside_the_fidelity_band() {
     for (id, low, high) in BANDS {
-        let leaves = mesh::build(&family(id), Detail::Full)
-            .unwrap_or_else(|e| panic!("{id}: {e}"))
-            .foliage_instances();
+        let leaves = specimens::mesh(&family(id)).foliage_instances();
         assert!(
             (low..=high).contains(&leaves),
             "{id}: {leaves} retained leaves, outside {low} to {high}"

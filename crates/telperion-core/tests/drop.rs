@@ -3,6 +3,7 @@
 //! above the ground, and only under the crown's footprint; nothing else leaves
 //! the shell. Neutral is the shell holding the curtain, byte for byte.
 //! No device is needed; this is the core's own arithmetic.
+mod specimens;
 use std::collections::BTreeMap;
 
 use telperion_core::{
@@ -60,9 +61,7 @@ fn preset(id: &str) -> Family {
 }
 
 fn tree(f: &Family) -> Tree {
-    branching::generate(&f.skeleton, f.radii)
-        .expect("the row grows a tree")
-        .tree
+    specimens::tree(f)
 }
 
 /// FNV-1a over node positions and parent links, the pattern the pins use.

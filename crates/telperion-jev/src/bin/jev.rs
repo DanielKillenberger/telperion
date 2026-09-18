@@ -12,6 +12,7 @@ use telperion_jev::cite::{
     cite, format_report as format_cite, load_claim_source, parse_research, research_markdown,
 };
 use telperion_jev::ledger::SourceRef;
+use telperion_jev::pipeline::gap::questions::run_gap_cases;
 use telperion_jev::pipeline::sets::cases::run_pipeline_cases;
 use telperion_jev::pipeline::sets::missed_ids;
 use telperion_jev::screen::{format_report as format_screen, screen};
@@ -23,7 +24,7 @@ fn main() -> ExitCode {
     let mut args = env::args().skip(1).collect::<Vec<_>>();
     if args.is_empty() {
         eprintln!(
-            "usage: jev <screen|select|cite|triage|cases|ask> [options]\n  key: {path} via bash -ic",
+            "usage: jev <screen|select|cite|triage|cases|ask> [options]\n  cases: [--only labelled|pipeline|gap]\n  key: {path} via bash -ic",
             path = telperion_jev::INTERACTIVE_SHELL
         );
         return ExitCode::from(2);
@@ -136,10 +137,28 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
             );
         }
         "cases" => {
+            // `--only <prefix>` runs one family of sets instead of all of
+            // them: the budget rule is small before large, and a set whose
+            // wording is being tuned is asked alone.
+            let only = flag(args, "--only").unwrap_or_default();
+            let runs = |name: &str| only.is_empty() || name.starts_with(&only);
             let key = load_key().map_err(|err| err.to_string())?;
             let transport = UreqTransport;
-            let mut sets = run_labelled_cases(&transport, &key, &ledger).map_err(show_err)?;
-            sets.extend(run_pipeline_cases(&transport, &key, &ledger).map_err(show_err)?);
+            let mut sets = Vec::new();
+            if runs("labelled") {
+                sets.extend(run_labelled_cases(&transport, &key, &ledger).map_err(show_err)?);
+            }
+            if runs("pipeline") {
+                sets.extend(run_pipeline_cases(&transport, &key, &ledger).map_err(show_err)?);
+            }
+            if runs("gap") {
+                sets.extend(run_gap_cases(&transport, &key, &ledger).map_err(show_err)?);
+            }
+            if sets.is_empty() {
+                return Err(format!(
+                    "--only {only} matches no family; they are labelled, pipeline and gap"
+                ));
+            }
             print!("{}", format_scores(&sets));
             let missed: Vec<&_> = sets.iter().filter(|set| !set.meets_pilot()).collect();
             for set in &missed {

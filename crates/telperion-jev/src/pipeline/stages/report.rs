@@ -8,18 +8,23 @@
 //! ledger references are the ones the artifacts' headers already carry.
 //!
 //! The status is `halted` while any decision is open and `complete` only when
-//! every one is resolved, so a run that stopped at a gap says so. No
-//! probability is written here, and the stills are named, never judged.
+//! every one is resolved, so a run that stopped at a gap says so. The cost
+//! section sums what every stage's artifact records it spent, Firecrawl
+//! credits and Jev calls, per stage and in total. No probability is written
+//! here, and the stills are named, never judged.
 
 use serde_json::{json, Map, Value};
 
 use crate::pipeline::canon::{file_sha256, read_json, write_atomic};
-use crate::pipeline::stage::{Context, Paths, StageError};
+use crate::pipeline::cost::Cost;
+use crate::pipeline::gap::metrics;
+use crate::pipeline::stage::{Context, Paths, StageError, STAGES};
 
 use super::inputs;
 
 pub const STAGE: &str = "report";
-/// The artifacts the report reads, in the order the run wrote them.
+/// The artifacts whose bodies the report reads, in the order the run wrote
+/// them; every stage's artifact is read for its cost.
 const EARLIER: [&str; 8] = [
     "fetch", "screen", "quality", "select", "verify", "fit", "gate", "generate",
 ];
@@ -35,17 +40,32 @@ pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
     let mut read = Map::new();
     let mut pairs: Vec<(String, String)> = Vec::new();
     let mut ledger: Vec<String> = Vec::new();
-    for name in EARLIER {
+    let mut costs = Map::new();
+    let mut total = Cost::default();
+    for name in STAGES.iter().filter(|name| **name != STAGE) {
         let path = ctx.paths.artifact(name);
         if !path.exists() {
             continue;
         }
         let artifact = read_json(&path)?;
-        ledger.extend(strings(&artifact["ledger"]));
+        let cost: Cost = serde_json::from_value(artifact["cost"].clone()).unwrap_or_default();
+        total.add(&cost);
+        costs.insert(name.to_string(), json!(cost));
         pairs.push((format!("{name}.json"), file_sha256(&path)?));
+        if !EARLIER.contains(name) {
+            continue;
+        }
+        ledger.extend(strings(&artifact["ledger"]));
         read.insert(name.to_string(), artifact["body"].clone());
     }
-    for sidecar in [ctx.paths.decisions(), ctx.paths.sidecar()] {
+    // `metrics.json` is an input, not just a read: writing the run's numbers
+    // has to expire the report's key, or a report written before them would
+    // stay current and keep saying they are missing.
+    for sidecar in [
+        ctx.paths.decisions(),
+        ctx.paths.sidecar(),
+        metrics::metrics_path(&ctx.paths),
+    ] {
         if sidecar.exists() {
             let name = sidecar.file_name().unwrap_or_default().to_string_lossy();
             pairs.push((name.into_owned(), file_sha256(&sidecar)?));
@@ -68,15 +88,30 @@ pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
         .map(|d| json!({"id": d.id, "kind": d.kind, "status": d.status}))
         .collect();
     let halted = decisions.iter().any(|d| d["status"] == json!("open"));
-    let status = if halted { "halted" } else { "complete" };
+    // The run's three numbers are the gap loop's record (fn-63 R5). A run
+    // with no metrics record is not complete, whatever its decisions say:
+    // the report names the missing record rather than reporting a run whose
+    // autonomy, quality and efficiency nobody can read.
+    let numbers = metrics::metrics_path(&ctx.paths);
+    let status = match (halted, numbers.exists()) {
+        (true, _) => "halted",
+        (false, false) => "incomplete",
+        (false, true) => "complete",
+    };
     let body = json!({
         "species": ctx.admitted.manifest.species,
         "status": status,
+        "metrics": if numbers.exists() {
+            read_json(&numbers).unwrap_or_else(|_| json!({"unreadable": true}))
+        } else {
+            json!({"missing": "metrics.json; run `species-pipeline gap metrics`"})
+        },
         "sources": sources(&read),
         "fields": fields(&read),
         "curves": curves(&read),
         "decisions": decisions,
         "stills": read.get("generate").map_or(json!([]), |g| g["stills"].clone()),
+        "costs": {"stages": costs, "total": total},
         "ledger": ledger,
     });
     write_atomic(&ctx.paths.dir.join("report.md"), page(&body).as_bytes())?;
@@ -275,6 +310,60 @@ fn page(body: &Value) -> String {
         })
         .collect();
     out.push_str(&table(&["Still", "Path or error"], rows));
+
+    out.push_str("\n## The run's numbers\n\n");
+    let numbers = &body["metrics"];
+    if let Some(missing) = numbers["missing"].as_str() {
+        out.push_str(&format!("Missing: {missing}.\n"));
+    } else {
+        out.push_str(&table(
+            &["Autonomy", "Quality", "Efficiency"],
+            vec![vec![
+                format!(
+                    "{} gaps, {} routed, {} taken by the loop",
+                    cell(&numbers["autonomy"]["gaps"]),
+                    cell(&numbers["autonomy"]["routed"]),
+                    cell(&numbers["autonomy"]["decisions"]["proceed"])
+                ),
+                format!(
+                    "{} value rounds, {} reversals",
+                    cell(&numbers["quality"]["rounds_total"]),
+                    numbers["quality"]["reversals"]
+                        .as_array()
+                        .map_or(0, Vec::len)
+                ),
+                format!(
+                    "{} in and {} out tokens, {} ms, {} captures",
+                    cell(&numbers["efficiency"]["input_tokens"]),
+                    cell(&numbers["efficiency"]["output_tokens"]),
+                    cell(&numbers["efficiency"]["wall_clock_ms"]),
+                    cell(&numbers["efficiency"]["captures"])
+                ),
+            ]],
+        ));
+    }
+
+    out.push_str("\n## Cost\n\n");
+    let cost_row = |name: &str, cost: &Value| {
+        vec![
+            name.to_string(),
+            cell(&cost["runs"]),
+            cell(&cost["firecrawl_credits"]),
+            cell(&cost["firecrawl_method"]),
+            cell(&cost["jev_calls"]),
+        ]
+    };
+    let mut rows: Vec<Vec<String>> = body["costs"]["stages"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .map(|(name, cost)| cost_row(name, cost))
+        .collect();
+    rows.push(cost_row("total", &body["costs"]["total"]));
+    out.push_str(&table(
+        &["Stage", "Runs", "Firecrawl credits", "Counted", "Jev calls"],
+        rows,
+    ));
     out
 }
 

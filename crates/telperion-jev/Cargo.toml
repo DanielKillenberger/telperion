@@ -20,4 +20,4 @@ serde = { version = "1", features = ["derive"] }
 # compares their numbers, so a parse has to return the double that was written.
 serde_json = { version = "1", features = ["float_roundtrip"] }
 sha2 = "0.10"
-ureq = { version = "2.12", default-features = true }
+ureq = { version = "2.12", default-features = true, features = ["native-certs"] }

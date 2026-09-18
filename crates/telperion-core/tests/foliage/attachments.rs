@@ -325,9 +325,7 @@ fn every_attachment_trait_moves_every_shipped_preset() {
         Preset::Laurelin,
     ] {
         let family = preset.parameters();
-        let tree = branching::generate(&family.skeleton, family.radii)
-            .unwrap()
-            .tree;
+        let tree = crate::specimens::tree(&family);
         let base = placement_hash(&family, &tree);
         let p = family.canopy;
         for (name, canopy) in [

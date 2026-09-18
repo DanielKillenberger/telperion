@@ -3,8 +3,9 @@
 //! the fork a grown clump parts at and the socket its later stem leaves from,
 //! the girth below the fork, and the walk from parting at the ground.
 //! No device is needed; this is the core's own arithmetic.
+mod specimens;
 use telperion_core::{
-    blend, branching, mesh, presets::Family, presets::Preset, surface, tree::Tree, Error,
+    blend, branching, presets::Family, presets::Preset, surface, tree::Tree, Error,
 };
 
 /// Every shipped table, so neutrality is asserted on all of them at once.
@@ -55,9 +56,7 @@ fn bole(f: &Family) -> f64 {
 }
 
 fn grow(family: &Family) -> Tree {
-    branching::generate(&family.skeleton, family.radii)
-        .expect("the row grows a tree")
-        .tree
+    specimens::tree(family)
 }
 
 /// Every node more than one stem leaves, and the root if any does: the root
@@ -79,7 +78,7 @@ fn forks(tree: &Tree) -> Vec<(usize, Vec<usize>)> {
 fn at_one_stem_the_fork_height_reaches_no_table() {
     for preset in PRESETS {
         let bytes = |f: &Family| {
-            let m = mesh::build(f, mesh::Detail::Full).expect("the table builds a tree");
+            let m = specimens::mesh(f);
             (
                 fnv(m.wood.positions.iter().flat_map(|v| v.to_le_bytes())),
                 fnv(m

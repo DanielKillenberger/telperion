@@ -1,5 +1,6 @@
 //! The one engine-neutral mesh call: every preset builds, the reported counts
 //! describe the buffers a renderer uploads, and the bounds enclose both parts.
+mod specimens;
 use telperion_core::{
     math::Vec3,
     mesh::{self, Detail},
@@ -31,7 +32,7 @@ fn contains(b: Bounds, p: Vec3) -> bool {
 fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
     for id in IDENTITIES {
         let family = Preset::from_id(id).expect("preset identity").parameters();
-        let m = mesh::build(&family, Detail::Full).unwrap_or_else(|e| panic!("{id}: {e}"));
+        let m = specimens::mesh(&family);
         let mut end = 0;
         let mut radius = f64::INFINITY;
         assert_eq!(m.wood.run_table.len(), m.wood.runs);

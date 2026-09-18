@@ -11,7 +11,9 @@ use std::process::ExitCode;
 
 use telperion_jev::caller::{load_key, UreqTransport};
 use telperion_jev::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource};
+use telperion_jev::pipeline::gap::cli as gap_cli;
 use telperion_jev::pipeline::judge::Judge;
+use telperion_jev::pipeline::known::{flow_root, KnownSources};
 use telperion_jev::pipeline::render::{Measurer, SpeciesExample};
 use telperion_jev::pipeline::stage::{log_command, Paths, STAGES};
 use telperion_jev::pipeline::stages::{
@@ -19,7 +21,7 @@ use telperion_jev::pipeline::stages::{
 };
 use telperion_jev::pipeline::swap;
 
-const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n  stages: discover fetch extract screen quality select verify fit gate generate report";
+const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n       species-pipeline gap <command> --dir DIR  (see `gap` for its own usage)\n  stages: discover fetch extract screen quality select verify fit gate generate report";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -52,7 +54,14 @@ fn main() -> ExitCode {
         .map(PathBuf::from)
         .unwrap_or(dir.clone());
     let paths = Paths::with_run(&dir, &run_dir);
-    let result = run(&command, &paths, &args);
+    if command == gap_cli::COMMAND {
+        return finish(gap_cli::run(&paths, &args), &paths, &args);
+    }
+    finish(run(&command, &paths, &args), &paths, &args)
+}
+
+/// Prints the outcome, appends the command to the run's log, and exits.
+fn finish(result: Result<String, String>, paths: &Paths, args: &[String]) -> ExitCode {
     let exit = match &result {
         Ok(message) => {
             println!("{message}");
@@ -63,7 +72,7 @@ fn main() -> ExitCode {
             1
         }
     };
-    if let Err(err) = log_command(&paths, &args, exit) {
+    if let Err(err) = log_command(paths, args, exit) {
         eprintln!("command log: {err}");
     }
     ExitCode::from(exit as u8)
@@ -95,7 +104,18 @@ fn run(stage: &str, paths: &Paths, args: &[String]) -> Result<String, String> {
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("catalogue"));
     let outcome = match stage {
-        "discover" => describe(discover::run(paths, &catalogue, adapter.as_ref(), &judge)),
+        "discover" => {
+            let flow = flow_root(&paths.run);
+            let known = KnownSources::scan(&catalogue, &flow, &paths.manifest());
+            if known.sources.is_empty() {
+                eprintln!(
+                    "discover: no catalogued sources, admitted manifests or research URLs found under {} or {}",
+                    catalogue.display(),
+                    flow.display()
+                );
+            }
+            describe(discover::run(paths, adapter.as_ref(), &judge, &known))
+        }
         "fetch" => describe(fetch::run(paths, adapter.as_ref())),
         "extract" => describe(extract::run(paths)),
         "screen" => describe(screen::run(paths, &judge)),
@@ -144,11 +164,12 @@ fn adapter_from(args: &[String], paths: &Paths) -> Box<dyn FetchAdapter> {
         Some(spec) if spec.starts_with("fixture:") => {
             Box::new(FixtureAdapter::new(spec.trim_start_matches("fixture:")))
         }
-        _ => Box::new(FirecrawlCli {
-            program: "firecrawl".into(),
-            cache_dir: paths.cache().join("firecrawl"),
-            raw_from: RawSource::Direct,
-        }),
+        _ => {
+            let mut cli = FirecrawlCli::new();
+            cli.cache_dir = paths.cache().join("firecrawl");
+            cli.raw_from = RawSource::Direct;
+            Box::new(cli)
+        }
     }
 }
 

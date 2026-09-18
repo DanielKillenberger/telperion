@@ -7,9 +7,13 @@
 
 pub mod adapter;
 pub mod canon;
+pub mod consume;
+pub mod cost;
 pub mod curve;
 pub mod decision;
+pub mod gap;
 pub mod judge;
+pub mod known;
 pub mod manifest;
 pub mod render;
 pub mod routes;

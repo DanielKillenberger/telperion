@@ -15,6 +15,7 @@ use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::judge::Judge;
+use telperion_jev::pipeline::known::KnownSources;
 use telperion_jev::pipeline::stage::{Context, Paths, StageError};
 use telperion_jev::pipeline::stages::{discover, extract, fetch, quality, screen, select, verify};
 
@@ -52,7 +53,7 @@ impl Transport for PipelineTransport {
 }
 
 const OWIC: &str = "https://research.fs.usda.gov/silvics/oregon-white-oak";
-const QUERY: &str = "Quercus garryana height_m open_grown by age";
+const QUERY: &str = "Quercus garryana height at age, open grown";
 
 fn manifest() -> Value {
     json!({
@@ -124,7 +125,13 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
 
     // Discovery proposes; the decision stops fetch until a person admits.
     assert!(matches!(
-        discover::run(&Paths::new(&dir), &catalogue_absent(&dir), &adapter, &judge).unwrap(),
+        discover::run(
+            &Paths::new(&dir),
+            &adapter,
+            &judge,
+            &KnownSources::default()
+        )
+        .unwrap(),
         discover::Outcome::Ran { .. }
     ));
     let discover_body = read_json(&dir.join("discover.json")).unwrap();
@@ -289,7 +296,13 @@ fn a_field_below_the_bar_files_data_insufficient_and_select_records_it_unavailab
         key: "test-key",
         ledger_dir: dir.join("ledger").join("entries"),
     };
-    discover::run(&Paths::new(&dir), &catalogue_absent(&dir), &adapter, &judge).unwrap();
+    discover::run(
+        &Paths::new(&dir),
+        &adapter,
+        &judge,
+        &KnownSources::default(),
+    )
+    .unwrap();
     let decisions = read_json(&dir.join("decisions.json")).unwrap();
     let proposed = &decisions["decisions"][0];
     write_canonical(
@@ -333,12 +346,6 @@ fn a_field_below_the_bar_files_data_insufficient_and_select_records_it_unavailab
     );
 }
 
-/// Discovery takes a catalogue directory; a test points it at one that does not
-/// exist, so only the adapter's hits are listed, exactly as before fn-35.
-fn catalogue_absent(dir: &std::path::Path) -> std::path::PathBuf {
-    dir.join("no-catalogue")
-}
-
 /// A catalogue holding one species folder with one source.
 fn catalogue_with_one_source(dir: &Path) -> PathBuf {
     let catalogue = dir.join("catalogue").join("oregon-white-oak");
@@ -364,29 +371,36 @@ fn catalogue_with_one_source(dir: &Path) -> PathBuf {
 
 /// Every source the catalogue already holds is a candidate, and it is listed
 /// before the adapter's first web hit. The first ash run spent six driver
-/// dispatches searching for a table the repository already named.
+/// dispatches searching for a table the repository already named. Since the
+/// merge with master the catalogue reaches discovery as a known source, so the
+/// candidate's kind is `known` and its origin names the catalogue folder it
+/// came from.
 #[test]
 fn discovery_lists_every_catalogued_source_before_it_searches_the_web() {
     let (dir, adapter) = scratch();
     let transport = PipelineTransport(CaseTransport);
     let judge = judge(&transport, &dir);
     let catalogue = catalogue_with_one_source(&dir);
+    // No evidence tree and no specs: the catalogue is the only thing known.
+    let known = KnownSources::scan(&catalogue, &dir.join("no-flow"), &dir.join("manifest.json"));
 
-    discover::run(&Paths::new(&dir), &catalogue, &adapter, &judge).unwrap();
+    discover::run(&Paths::new(&dir), &adapter, &judge, &known).unwrap();
 
     let hits = read_json(&dir.join("discover.json")).unwrap()["body"]["proposals"][0]["hits"]
         .as_array()
         .cloned()
         .unwrap();
-    assert_eq!(hits[0]["kind"], json!("catalogue"), "{hits:?}");
+    assert_eq!(hits[0]["kind"], json!("known"), "{hits:?}");
+    assert_eq!(
+        hits[0]["origin"],
+        json!("catalogue:oregon-white-oak#USFS-OAK")
+    );
     assert_eq!(
         hits[0]["url"],
         json!("https://research.fs.usda.gov/silvics/oregon-white-oak-catalogued")
     );
     assert!(
-        hits[1..]
-            .iter()
-            .all(|hit| hit["kind"] != json!("catalogue")),
+        hits[1..].iter().all(|hit| hit["kind"] != json!("known")),
         "a web hit was listed among the catalogue's own: {hits:?}"
     );
 }
@@ -403,7 +417,7 @@ fn a_run_directory_keeps_a_runs_scratch_out_of_the_species_folder() {
     let transport = PipelineTransport(CaseTransport);
     let judge = judge(&transport, &run);
 
-    discover::run(&paths, &catalogue_absent(&species), &adapter, &judge).unwrap();
+    discover::run(&paths, &adapter, &judge, &KnownSources::default()).unwrap();
     let proposed = read_json(&species.join("decisions.json")).unwrap()["decisions"][0].clone();
     write_canonical(
         &species.join("resolutions.json"),

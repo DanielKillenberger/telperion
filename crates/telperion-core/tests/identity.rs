@@ -181,6 +181,7 @@
 //! skeleton, placement, counts and bounds move; the element pin does not,
 //! and every other table is byte-identical.
 //! No device is needed; this is the core's own arithmetic.
+mod specimens;
 use telperion_core::{
     branching,
     mesh::{self, Detail},
@@ -290,7 +291,7 @@ fn shipped_species_meshes_are_the_tree_recorded_before_the_levels() {
             "{id}: skeleton moved"
         );
 
-        let m = mesh::build(&family, Detail::Full).unwrap_or_else(|e| panic!("{id}: {e}"));
+        let m = specimens::mesh(&family);
         assert_eq!(
             (m.wood_vertices(), m.wood_triangles(), m.foliage_instances()),
             (pin.wood_vertices, pin.wood_triangles, pin.instances),
