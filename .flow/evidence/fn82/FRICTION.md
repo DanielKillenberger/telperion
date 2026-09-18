@@ -34,3 +34,44 @@ Entries follow the friction rule in CLAUDE.md; the owner decides which become sp
 - **What would remove it:** the seed or the spec's model and organs become the required list before discover, so a palm files `onboarding-gate/capability` with a named line (`architectural-model:Corner`, or `frond`, or `no-secondary-thickening`) and a cheap driver can hand that id to the host.
 - **Early return:** taken on the gap loop, as this leg's brief requires. The two `onboarding-gate` ids are recorded. The form gap is not among them.
 
+
+## 2026-09-18 — host: the capability vocabulary cannot express a form gap
+
+- **Doing:** taking the gap loop from the two `onboarding-gate` ids the driver
+  recorded, to route the palm's form gap.
+- **Hindered by:** there is no form gap to route, and there cannot be one yet.
+  Two things compose. First, `required_capabilities` reads the generate
+  stage's `species.json` when it exists, else the manifest's `engineering`
+  entry, else nothing; on a first run neither exists, because gate blocks
+  generate and nothing derives the entry from the species spec, so `required`
+  is empty. Second, and deeper, `supported` comes from
+  `geometry_benchmark --support <preset>`, which calls `Preset::from_id` and
+  returns `{"implemented":false,"capabilities":[]}` with exit code 0 for a
+  preset that is not registered. So both lists are empty, `missing` is empty,
+  and capability passes silently for every new species.
+  Even filling the required list would not reach it. The vocabulary is
+  `woody-axes`, pushed unconditionally for every preset, plus `lobed-blade`,
+  `four-sided-needle`, `alternate-petiole`, `radial-peg` and
+  `tiered-secondary`, each derived from a threshold on an existing preset's
+  own parameters. Those are leaf and attachment descriptors of a branching
+  woody tree. There is no term for an unbranched stem, for Corner's model, for
+  a trunk without secondary thickening, or for a frond, so a palm's actual
+  needs cannot be written down in it. The check answers "does this registered
+  preset's value table produce a lobed blade", not "can the generator draw this
+  form".
+- **Cost:** the whole literature chain across two legs, 9 estimated Firecrawl
+  credits and 40 Jev calls, to reach a gate that could not ask the question the
+  species was chosen to ask. The gap loop itself is sound and opened the gap
+  record correctly; it has nothing true to route.
+- **What would remove it:** one spec, proposed and not written. The supported
+  set has to describe the generator rather than an already-registered preset,
+  the vocabulary has to carry architectural form and organ terms beside the
+  leaf descriptors, and the required list has to be derived from the species
+  spec's stated model and organs at seed time, before the literature stages.
+  fn-35 already records that no architectural-model coverage file exists and
+  that the 23-model list becomes its own spec when a species first names an
+  unsupported model; the date palm is that trigger.
+- **Early return:** taken. The loop is not run on the two bookkeeping gates,
+  because options for "register the preset" would mint a spec to do what fn-82
+  already exists to do, and `seeds` only says that `generate`, which the same
+  gate blocks, has not run.
