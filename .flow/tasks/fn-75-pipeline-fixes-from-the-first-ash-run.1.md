@@ -22,3 +22,4 @@ stage: implement - skipped(reach: gpt-6-astra unreachable, codex usage limit unt
 - Commits: 78d6e3312ce6d0dc20d333098a2328d39b21a279
 - Tests: cargo test --release -p telperion-jev (140 passed, 17 binaries, suite_rc=0 on the final tree), cargo test -p telperion-jev (dev profile, 140 passed; baseline pre-edit 140 passed on the merged tree), cargo clippy -p telperion-jev --all-targets -- -D warnings (rc=0), cargo fmt -p telperion-jev -- --check (rc=0), baseline: none (spec defines no Quick commands); focused dev-profile cargo test -p telperion-jev green pre-edit, live check by hand, not on the workspace commands: fetch_raw on the MoBot page still fails UnknownIssuer over the system store; curl and openssl s_client show the server omits its intermediate (verify return code 21), recorded in .flow/evidence/fn75/FRICTION.md
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)

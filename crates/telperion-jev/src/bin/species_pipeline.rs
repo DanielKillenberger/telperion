@@ -9,7 +9,7 @@ use std::process::ExitCode;
 use telperion_jev::caller::{load_key, UreqTransport};
 use telperion_jev::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource};
 use telperion_jev::pipeline::judge::Judge;
-use telperion_jev::pipeline::known::KnownSources;
+use telperion_jev::pipeline::known::{flow_root, KnownSources};
 use telperion_jev::pipeline::render::{Measurer, SpeciesExample};
 use telperion_jev::pipeline::stage::{log_command, Paths, STAGES};
 use telperion_jev::pipeline::stages::{
@@ -87,7 +87,14 @@ fn run(stage: &str, dir: &Path, args: &[String]) -> Result<String, String> {
     let example = example_from(args, dir);
     let outcome = match stage {
         "discover" => {
-            let known = KnownSources::scan(Path::new(".flow"), &Paths::new(dir).manifest());
+            let flow = flow_root(dir);
+            let known = KnownSources::scan(&flow, &Paths::new(dir).manifest());
+            if known.sources.is_empty() {
+                eprintln!(
+                    "discover: no admitted manifests or research URLs found under {}",
+                    flow.display()
+                );
+            }
             describe(discover::run(dir, adapter.as_ref(), &judge, &known))
         }
         "fetch" => describe(fetch::run(dir, adapter.as_ref())),

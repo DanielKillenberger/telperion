@@ -18,7 +18,9 @@ use serde_json::{json, Value};
 use super::canon::{canonical_sha256, file_sha256, read_json, write_canonical, CanonError};
 use super::consume::{mark_consumed, rejected_proposal, ReconcileError};
 use super::cost::{earlier_cost, Cost};
-use super::decision::{open_for_stage, reconcile, write_decisions, Decision, Resolution};
+use super::decision::{
+    open_for_stage, read_decisions, reconcile, write_decisions, Decision, Resolution,
+};
 use super::manifest::{self, Admitted, ManifestError};
 
 pub const TOOL_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -172,7 +174,7 @@ impl Context {
             });
         }
         let admitted = manifest::load(&manifest_path).map_err(StageError::Manifest)?;
-        let mut decisions =
+        let decisions =
             reconcile(&paths.decisions(), &paths.resolutions()).map_err(|err| match err {
                 ReconcileError::File(err) => StageError::File(err),
                 refused @ ReconcileError::Refused(_) => StageError::Failed {
@@ -180,9 +182,6 @@ impl Context {
                     reason: refused.to_string(),
                 },
             })?;
-        if mark_consumed(&mut decisions, stage) {
-            write_decisions(&paths.decisions(), &decisions)?;
-        }
         let (global, fields) = open_for_stage(&decisions, stage);
         if !global.is_empty() {
             return Err(StageError::OpenDecision {
@@ -324,6 +323,14 @@ impl Context {
         let mut value = serde_json::to_value(&header).expect("header serializes");
         value["body"] = body;
         write_canonical(&path, &value)?;
+        // A resolution counts as consumed once the stage that acts on it has
+        // written its artifact, never on merely reading it: a stage that stops
+        // before writing leaves every resolution it read unconsumed. The list
+        // is re-read, because the stage may have appended decisions meanwhile.
+        let mut decisions = read_decisions(&self.paths.decisions())?;
+        if mark_consumed(&mut decisions, &header.stage) {
+            write_decisions(&self.paths.decisions(), &decisions)?;
+        }
         Ok(path)
     }
 }

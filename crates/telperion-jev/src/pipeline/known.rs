@@ -13,7 +13,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use super::canon::read_json;
-use super::decision::read_decisions;
+use super::decision::{read_decisions, Status};
 use super::manifest::Manifest;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -29,6 +29,20 @@ pub struct KnownSource {
     /// The fetch error the owning run recorded for it, when one did.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+}
+
+/// How many research URLs from the specs join one field's candidate list.
+pub const SPEC_URLS_PER_FIELD: usize = 8;
+
+/// The `.flow` directory a run directory sits under: the nearest ancestor
+/// named `.flow`, so the scan never depends on the process's working
+/// directory. A run directory outside any `.flow` tree yields `.flow`
+/// relative to the working directory, as the runbook runs from the root.
+pub fn flow_root(dir: &Path) -> PathBuf {
+    dir.ancestors()
+        .find(|p| p.file_name().is_some_and(|name| name == ".flow"))
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from(".flow"))
 }
 
 #[derive(Debug, Clone, Default)]
@@ -61,13 +75,25 @@ impl KnownSources {
         }
     }
 
-    /// The sources named for `field`: those whose tables cover it and those
-    /// named for every field.
+    /// The sources named for `field`: every manifest source whose tables cover
+    /// it or that is named for every field, then at most
+    /// `SPEC_URLS_PER_FIELD` research URLs from the specs, in URL order. The
+    /// cap keeps the list Jev ranks from growing with the spec count.
     pub fn for_field(&self, field: &str) -> Vec<&KnownSource> {
-        self.sources
+        let named =
+            |s: &&KnownSource| s.dimensions.is_empty() || s.dimensions.iter().any(|d| d == field);
+        let from_manifests = self
+            .sources
             .iter()
-            .filter(|s| s.dimensions.is_empty() || s.dimensions.iter().any(|d| d == field))
-            .collect()
+            .filter(|s| s.origin.starts_with("manifest:"))
+            .filter(named);
+        let from_specs = self
+            .sources
+            .iter()
+            .filter(|s| !s.origin.starts_with("manifest:"))
+            .filter(named)
+            .take(SPEC_URLS_PER_FIELD);
+        from_manifests.chain(from_specs).collect()
     }
 }
 
@@ -100,7 +126,9 @@ fn manifest_sources(path: &Path) -> Vec<KnownSource> {
         .and_then(|decisions| read_decisions(&decisions).ok())
         .unwrap_or_default()
         .into_iter()
-        .filter(|d| d.kind == "unavailable-source")
+        // An error stands only while its decision is open: a source retried,
+        // replaced or dropped since is not listed with a stale failure.
+        .filter(|d| d.kind == "unavailable-source" && d.status == Status::Open)
         .filter_map(|d| {
             let source = d.payload["source"].as_str()?.to_string();
             let error = d.payload["error"].as_str()?.to_string();
@@ -253,5 +281,23 @@ mod tests {
         assert_eq!(merged.error.as_deref(), Some("tls"));
         merge(&mut by_url, known(&[], None));
         assert!(by_url["https://example.test/e1"].dimensions.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod root_tests {
+    use super::flow_root;
+    use std::path::{Path, PathBuf};
+
+    #[test]
+    fn the_flow_root_is_the_nearest_dot_flow_ancestor() {
+        assert_eq!(
+            flow_root(Path::new("/repo/.flow/evidence/european-ash/pipeline")),
+            PathBuf::from("/repo/.flow")
+        );
+        assert_eq!(
+            flow_root(Path::new("/tmp/scratch/run")),
+            PathBuf::from(".flow")
+        );
     }
 }

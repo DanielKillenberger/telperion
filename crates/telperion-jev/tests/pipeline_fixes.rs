@@ -22,6 +22,8 @@ use telperion_jev::pipeline::stages::{discover, fetch, report};
 const ERTRAGSTAFELN: &str = "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf";
 const OSU: &str = "https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior";
 const MOBOT: &str = "https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxonid=282928";
+/// A source an earlier run failed on and then retried: known, without an error.
+const RETRIED: &str = "https://www.tree-guide.com/ash";
 const TLS_ERROR: &str = "fetch failed for https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxonid=282928: Connection Failed: tls connection init failed: invalid peer certificate: UnknownIssuer";
 const HEIGHT_QUERY: &str = "Fraxinus excelsior height at age, open grown";
 const DBH_QUERY: &str = "Fraxinus excelsior trunk diameter at breast height at age, open grown";
@@ -172,7 +174,7 @@ impl Run {
         fs::create_dir_all(&earlier).unwrap();
         let mut manifest = seed();
         manifest["species"] = json!("earlier-ash");
-        manifest["sources"] = json!([source("M1", MOBOT, vec![])]);
+        manifest["sources"] = json!([source("M1", MOBOT, vec![]), source("O1", RETRIED, vec![])]);
         write_manifest(&earlier, &manifest);
         write_canonical(
             &earlier.join("decisions.json"),
@@ -181,6 +183,12 @@ impl Run {
                 "kind": "unavailable-source", "status": "open", "blocks": ["extract"], "field": "M1",
                 "inputs_sha256": {"url": "x"}, "ledger": [], "options": ["retry", "replace-source", "drop-source"],
                 "note": "", "payload": {"source": "M1", "url": MOBOT, "error": TLS_ERROR}
+            }, {
+                "id": "earlier-ash/fetch/unavailable-source/O1", "species": "earlier-ash", "stage": "fetch",
+                "kind": "unavailable-source", "status": "resolved", "blocks": ["extract"], "field": "O1",
+                "inputs_sha256": {"url": "y"}, "ledger": [], "options": ["retry", "replace-source", "drop-source"],
+                "note": "", "payload": {"source": "O1", "url": RETRIED, "error": "connect ETIMEDOUT"},
+                "resolution": {"id": "earlier-ash/fetch/unavailable-source/O1", "inputs_sha256": {"url": "y"}, "option": "retry", "by": "owner", "at": "2026-09-18", "note": ""}
             }]}),
         )
         .unwrap();
@@ -501,6 +509,15 @@ fn discovery_lists_the_repository_sources_first_and_never_proposes_one_with_a_fe
         .collect();
     assert!(!for_crown.contains(&ERTRAGSTAFELN), "{for_crown:?}");
     assert!(for_crown.contains(&MOBOT), "{for_crown:?}");
+    // An error stands only while its decision is open: the retried source
+    // carries none, the open one keeps its error.
+    let by_url = |url: &str| known.sources.iter().find(|s| s.url == url).unwrap();
+    assert!(
+        by_url(RETRIED).error.is_none(),
+        "{:?}",
+        by_url(RETRIED).error
+    );
+    assert!(by_url(MOBOT).error.is_some());
 
     run.discover().unwrap();
     let body = read_json(&run.dir.join("discover.json")).unwrap();
