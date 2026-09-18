@@ -191,7 +191,10 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
     ));
     let profile = read_json(&dir.join("packet").join("profile.json")).unwrap();
     let metric = &profile["profiles"][0]["metrics"]["height_m"];
-    assert_eq!(metric["range"], json!([15.24, 27.432]));
+    // 90 ft is 27.432000000000002 m as a double, and the artifact carries the
+    // product, not a rounding of it; serde_json's float_roundtrip parse reads
+    // back what was written, so the expectation is the product itself.
+    assert_eq!(metric["range"], json!([15.24, 27.432_000_000_000_002]));
     assert_eq!(metric["source"], json!(["S1"]));
     let sidecar = read_json(&dir.join("provenance.json")).unwrap();
     let entry = &sidecar["entries"]["/profiles/0/metrics/height_m"];

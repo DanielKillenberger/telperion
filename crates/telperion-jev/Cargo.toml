@@ -16,6 +16,8 @@ path = "src/bin/species_pipeline.rs"
 [dependencies]
 regex = "1"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+# float_roundtrip: the pipeline reads back the canonical artifacts it wrote and
+# compares their numbers, so a parse has to return the double that was written.
+serde_json = { version = "1", features = ["float_roundtrip"] }
 sha2 = "0.10"
 ureq = { version = "2.12", default-features = true }
