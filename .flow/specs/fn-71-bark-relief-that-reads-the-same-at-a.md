@@ -27,6 +27,16 @@ The owner's word on 2026-09-18: the drift at distance is a real problem, seen be
 - **R4:** The beech's and birch's close-ups and hero frames are rendered again at the hero distance and at 4x, the implementer answers after looking whether the bark reads the same material at both, and the owner judges in the harness on the mature path. [user]
 - **R5:** Every redraw stays byte-identical, single-stem and untouched presets keep their pins, and the frame cost is recorded beside fn-55's. [inferred] Errors: a moved pin on an untouched preset fails naming it.
 
+## Decisions
+
+- **Owner, 2026-09-18, R4 rejected on the first round.** Judged in the harness on the mature path with the two new wood terms and the beech's grain on: "it still looks much less detailed from a distance. There's a noticeable change in fidelity which shouldn't be the case. Fidelity should go down to a degree where it's not noticeable at that distance." [user] The 2x and 4x bounds passing is not the finish line; the far draw must read as the near draw minus what the eye cannot resolve, judged across a walk, and the terms that fade by amplitude an octave before a pixel are the first suspects. The task is reopened on this verdict. [paraphrase]
+
+- **Owner, 2026-09-18, R4 rejected on the second round.** Judged on the round-two build in the harness: "there's still a jump where the relief visibly disappears. It's a bit further away now but still there." [user] A fade window, however placed, is a jump when the walk crosses it; the relief may only leave by the box integral of its own height over the footprint, with no separate attenuation. The task is reopened for round three. [paraphrase]
+
+- **Owner, 2026-09-18, R4 accepted on the third round.** Walking the round-three build in the harness with every amplitude fade gone: "yea much better". [user] The seam is gone; the footprint sweep is flat within 0.03 between adjacent factors and the birch keeps its dashes and marks through the wheel notch. The cost went to 10.0, 15.0 and 19.6 ms on the three hero frames against round two's 5.9, 4.0 and 11.4, so the three reductions the report names run before the PR with round two's cost as the target and the flat sweep as the invariant. [paraphrase]
+
+- **Not fully met, tracked rather than claimed.** R1 names the oak and the spruce; the shipped 4x series asserts the oak alone, because the spruce's bare crown throws twig shadows over its trunk at every strip the fixture can frame (plain wood with no relief reads 6.2/255 there), and its bark is held meanwhile by the grazing fixture at 2.70. R3's lichen keeps its amplitude fade while every other term lost one. Both are the follow-up spec's, named in this spec's report. [paraphrase]
+
 ## Boundaries
 <!-- scope: business -->
 

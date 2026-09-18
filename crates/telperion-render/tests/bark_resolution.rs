@@ -52,6 +52,10 @@ fn trunk_agrees_with_a_box_reduction_at_half_resolution() {
     // RGB in the delivered sRGB still, averaged by an exact 2x2 box (no
     // sharpening or registration). Three code values mean, twelve at p95:
     // enough for quantization/lighting, not the rejected sparkling edges.
+    resolution::record(
+        "bark_resolution_trunk",
+        &[("OregonWhiteOak 1x".into(), mean, p95, 3.0)],
+    );
     assert!(
         mean <= 3.0 && p95 <= 12.0,
         "bark aliases across resolution: mean {mean:.6}, p95 {p95:.2}"
@@ -120,12 +124,13 @@ fn grazing_trunks_agree_with_a_box_reduction_at_half_resolution() {
             "{preset:?} plain grazing: {:?}",
             masked_agreement(&plain_high, &plain_low, &mask)
         );
-        measurements.push((mean, p95));
+        measurements.push((format!("{preset:?} grazing"), mean, p95, 3.0));
     }
+    resolution::record("bark_resolution_grazing", &measurements);
     assert!(
         measurements
             .iter()
-            .all(|&(mean, p95)| mean <= 3.0 && p95 <= 12.0),
+            .all(|(_, mean, p95, bound)| mean <= bound && *p95 <= 12.0),
         "grazing bark aliases across resolution: {measurements:?}"
     );
 }

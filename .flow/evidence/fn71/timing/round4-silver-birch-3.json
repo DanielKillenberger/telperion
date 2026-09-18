@@ -1,0 +1,29 @@
+{
+  "adapter": "NVIDIA GeForce RTX 3080; comparison filtering: Linear",
+  "driver": "NVIDIA 610.57.04",
+  "backend": "vulkan",
+  "conditioning": 8,
+  "warmup": 8,
+  "measured": 120,
+  "samples": 120,
+  "verdict": "valid",
+  "p50_ms": 6.9857,
+  "p95_ms": 7.5807,
+  "selection_p50_ms": 0.0364,
+  "selection_p95_ms": 0.0376,
+  "shadow_p50_ms": 0.0901,
+  "shadow_p95_ms": 0.0942,
+  "total_p50_ms": 7.1150,
+  "total_p95_ms": 7.7082,
+  "levels": [
+    { "deviation_m": 0.004575, "instances_p50": 261496 },
+    { "deviation_m": 0.002287, "instances_p50": 0 },
+    { "deviation_m": 0.000286, "instances_p50": 0 },
+    { "deviation_m": 0.000036, "instances_p50": 0 },
+    { "deviation_m": 0.000000, "instances_p50": 0 },
+    { "deviation_m": null, "instances_p50": 0 }
+  ],
+  "multisample": 4,
+  "caster_triangles": 113040,
+  "caster_instances": 65374
+}

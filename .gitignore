@@ -38,3 +38,6 @@ __pycache__/
 .flow/evidence/*/pipeline/stills/
 .flow/evidence/*/pipeline/ledger/entries/
 .flow/evidence/*/ledger/
+
+# fn-71 distance sweeps: the stills stay on disk, the measured curves are committed.
+.flow/evidence/fn71/sweep/**/*.png

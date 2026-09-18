@@ -299,15 +299,14 @@ pub(super) fn beech() -> MaterialParams {
         peel_green: 0.0,
         peel_blue: 0.0,
         // fn-55: a dielectric's foot under the one highlight, and the blade's
-        // cells between its veins at ninety a blade. The bark's grain is
-        // stated at 1 mm and held off: at B-BASE's 0.7 mm a pixel it sits on
-        // the half-size still's Nyquist edge and reads 3.40 against the
-        // resolution contract's 3.0. Its value is set in fn-71, with the
-        // relief's own drift at distance (owner, 2026-09-18).
+        // cells between its veins at ninety a blade. fn-71 sets the bark's
+        // grain at 2 mm cells, three pixels at B-BASE's 1440, where the
+        // close-up reads 2.37 against the resolution contract's 3.0; 1 mm
+        // cells sat on the half-size still's Nyquist edge and read 2.76.
         bark_reflectance: 0.04,
         leaf_reflectance: 0.04,
-        bark_grain_scale: 0.001,
-        bark_grain_strength: 0.0,
+        bark_grain_scale: 0.002,
+        bark_grain_strength: 0.3,
         blade_grain_scale: 90.0,
         blade_grain_strength: 0.3,
     }
@@ -442,13 +441,15 @@ pub(super) fn birch() -> MaterialParams {
         crown_shade: 0.2,
         lobe_shade: 0.0,
         // fn-55: as the beech's. S-BARK's chalk white is grained at the pixel
-        // in the photograph; at 1 mm the grain holds the resolution contract
-        // here (2.998 against 3.0) and is held off with the beech's until
-        // fn-71 sets both (owner, 2026-09-18).
+        // in the photograph: 2 mm cells, two and a bit pixels at S-BARK's
+        // 1440, at 0.15 (fn-71). The close-up reads 2.90 against the
+        // resolution contract's 3.0 with the grain box-averaged over the
+        // pixel, 2.75 with none; 0.2 read 2.999 and 0.3 read 3.24, the
+        // grain's tilt of the normal being what the reduction cannot match.
         bark_reflectance: 0.04,
         leaf_reflectance: 0.04,
-        bark_grain_scale: 0.001,
-        bark_grain_strength: 0.0,
+        bark_grain_scale: 0.002,
+        bark_grain_strength: 0.15,
         blade_grain_scale: 90.0,
         blade_grain_strength: 0.3,
     }

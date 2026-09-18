@@ -1,14 +1,18 @@
-//! Smooth bark's far path returns what its near path averages to. Lichen,
-//! lenticels and a curling strip each fade to a mean once a pixel cannot
-//! resolve them; a mean that is not the field's own average is a step in
+//! Smooth bark's far reads average to what its near reads average to. Lichen
+//! fades to a mean once a pixel cannot resolve it; lenticels and a curling
+//! strip leave by their box integrals (fn-71), whose average over the surface
+//! is the field's own; a far mean that is not the near mean is a step in
 //! colour as a trunk recedes, which no distance tolerance would explain.
 mod common;
 
 /// Every probe samples the surface of a cylinder a few cells across, one ring
 /// per row at a radius of its own, so the rings cross the lattice at every
 /// offset rather than the one a single radius would. Each is read at zero
-/// footprint and at one no pixel could resolve, so the far value is the mean
-/// the shader returns rather than a number copied into this test.
+/// footprint and at a box of five centimetres, a cell or two of every layer
+/// on wood wide enough to read them (the plate network at the half-plate
+/// cap its caller holds it to),
+/// so the far mean is what the shader returns rather than a number copied
+/// into this test.
 const PROBE: &str = r#"
 @group(0) @binding(0) var<storage, read_write> result: array<vec4<f32>>;
 fn read(id: u32, footprint: vec2<f32>) -> vec4<f32> {
@@ -19,16 +23,17 @@ fn read(id: u32, footprint: vec2<f32>) -> vec4<f32> {
     let row = vec4(30.0, 0.05, 1.0, -1.0);
     let lichen = lichen_layer(circle * (3.1 + 0.0917 * j), 0.173 * j, footprint, 1.0, share, 0.0,
         1.0);
-    let dash = lenticel_dash(circle, 0.0087 * j, 0.12 + 0.0031 * j, footprint, row);
+    let dash = lenticel_dash(circle, 0.0087 * j, 0.12 + 0.0031 * j, footprint, row,
+        LENTICEL_REACH_CELLS);
     let plate = vec4(0.032, 0.0, 0.0, 0.0);
     let strip = vec3(0.0, 0.0, share);
-    let peel = bark_plate_field(circle * (5.0 + 0.1 * j), 0.0157 * j, 0.032, 1.0, footprint,
-        vec2(0.5), plate, strip).relief;
+    let peel = bark_plate_field(circle * (5.0 + 0.1 * j), 0.0157 * j, 0.032, 1.0,
+        min(footprint, vec2(0.016)), vec2(0.5), plate, strip).relief;
     return vec4(lichen, dash.x, peel, dash.y);
 }
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     result[id.x] = read(id.x, vec2(0.0));
-    if (id.x == 0u) { result[65536u] = read(0u, vec2(1.0e3)); }
+    result[65536u + id.x] = read(id.x, vec2(0.05));
 }
 "#;
 
@@ -65,7 +70,7 @@ fn sample(share: f32) -> Option<(Vec<[f32; 4]>, [f32; 4])> {
             compilation_options: Default::default(),
             cache: None,
         });
-    let bytes = (65536 + 1) * 16;
+    let bytes = 2 * 65536 * 16;
     let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC;
     let output = gpu.device.create_buffer(&wgpu::BufferDescriptor {
         label: None,
@@ -105,7 +110,9 @@ fn sample(share: f32) -> Option<(Vec<[f32; 4]>, [f32; 4])> {
     recv.recv().unwrap().unwrap();
     let mapped = read.slice(..).get_mapped_range().unwrap();
     let rows: &[[f32; 4]] = bytemuck::cast_slice(&mapped);
-    Some((rows[..65536].to_vec(), rows[65536]))
+    let far: [f32; 4] =
+        std::array::from_fn(|c| (rows[65536..].iter().map(|v| v[c]).sum::<f32>() / 65536.0) as f32);
+    Some((rows[..65536].to_vec(), far))
 }
 
 #[test]
@@ -126,8 +133,17 @@ fn every_smooth_layer_fades_to_the_mean_its_field_averages_to() {
         for (name, near, far, tolerance) in [
             ("lichen", lichen, far[0], 0.015),
             ("lenticel", lenticel, far[1], 0.004),
-            ("a lenticel's groove", groove, far[3], 0.004),
-            ("a curled strip", peel, far[2], 0.02),
+            // The groove keeps to its own row of cells, the relief reading
+            // it a dozen times a pixel, so a box of several rows misses the
+            // dashes of the rows beside: six per cent of a groove a
+            // millimetre deep, under a hundredth of the relief it is cut in.
+            ("a lenticel's groove", groove, far[3], 0.01),
+            // A box read of the strip's relief at half a plate, the widest
+            // its caller reads it at, carries a mean four to five per cent
+            // over the point read's (fn-71): the wall's rim is a product of
+            // two edge integrals, which a box does not commute with. Every
+            // mid-distance read carried it before; now it is measured.
+            ("a curled strip", peel, far[2], 0.05),
         ] {
             if (near - f64::from(far)).abs() > tolerance {
                 worst.push(format!("{name} at {share}: near {near:.4}, far {far:.4}"));

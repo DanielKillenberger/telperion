@@ -7,6 +7,22 @@ fn bark_step_integral(t: f32) -> f32 {
     return x * x * x * (1.0 - 0.5 * x) + max(t - 1.0, 0.0);
 }
 
+// A mark of unit half-length with a rim `rim` wide, averaged over a box of
+// `width` about `x`, both in the mark's own half-lengths: the exact box
+// integral of the mark's own profile, so a dash or a strip leaves the
+// picture by that averaging alone and reads wider and fainter, never gone.
+fn bark_span(x: f32, width: f32, rim: f32) -> f32 {
+    let r = max(rim, 0.001);
+    if (width < 0.001) {
+        return smoothstep(-1.0 - r, -1.0 + r, x) * (1.0 - smoothstep(1.0 - r, 1.0 + r, x));
+    }
+    let high = x + 0.5 * width;
+    let low = x - 0.5 * width;
+    let rise = bark_step_integral((high + 1.0 + r) / (2.0 * r)) - bark_step_integral((low + 1.0 + r) / (2.0 * r));
+    let fall = bark_step_integral((high - 1.0 + r) / (2.0 * r)) - bark_step_integral((low - 1.0 + r) / (2.0 * r));
+    return 2.0 * r * (rise - fall) / width;
+}
+
 fn bark_edge(low: f32, high: f32, at: f32, footprint: f32) -> f32 {
     let span = high - low;
     // The intrinsic cubic edge has derivative variance span^2/20. A pixel
@@ -95,17 +111,17 @@ fn bark_flakes(arc: vec2<f32>, along: f32, spacing: f32, pixel: vec2<f32>,
     return 0.012 * mix(mean, fine.x * face * shoulder * shoulder, band);
 }
 
-// The grain below the relief: filtered noise at the row's cell size over the
-// surface in metres, one field on each axis of the circle so the trunk has no
-// seam and no stretched tangent. It fades an octave before the mottle, from
-// two pixels a cell to one, because its tilt of the normal is not linear in
-// it: at its exact mean once a cell is a pixel across, so a half-size still
-// agrees with the full one and far wood is smooth between its features.
-fn bark_grain_field(surface: vec3<f32>, radius: f32, scale: f32, footprint: vec2<f32>) -> f32 {
+// The grain below the relief: noise at the row's cell size over the surface
+// in metres, one field on each axis of the circle so the trunk has no seam
+// and no stretched tangent, box-averaged over the pixel's own extent on each
+// axis, with the gradient the same integral gives. It leaves the picture by
+// that averaging and nothing else.
+fn bark_grain_field(surface: vec3<f32>, radius: f32, scale: f32, footprint: vec2<f32>) -> vec4<f32> {
     let p = vec3(normalize(surface.yz) * radius, surface.x) / scale;
-    let pixel = 2.0 * footprint / scale;
-    return 0.5 * (bark_noise2_filtered(p.xz, pixel)
-        + bark_noise2_filtered(p.yz + vec2(0.0, 61.7), pixel));
+    let pixel = footprint / scale;
+    let across = bark_noise2_box(p.xz, pixel);
+    let around = bark_noise2_box(p.yz + vec2(0.0, 61.7), pixel);
+    return 0.5 * vec4(across.x + around.x, across.y, around.y, across.z + around.z);
 }
 
 // A factor on the colour, and the grain's height differences over one pixel
@@ -113,12 +129,14 @@ fn bark_grain_field(surface: vec3<f32>, radius: f32, scale: f32, footprint: vec2
 fn bark_grain(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, radius: f32,
     footprint: vec2<f32>) -> vec3<f32> {
     let scale = u.grain.x;
-    let here = bark_grain_field(surface, radius, scale, footprint);
-    let right = bark_grain_field(surface + sx, radius, scale, footprint);
-    let up = bark_grain_field(surface + sy, radius, scale, footprint);
+    let field = bark_grain_field(surface, radius, scale, footprint);
+    let here = vec3(normalize(surface.yz) * radius, surface.x);
+    let right = vec3(normalize((surface + sx).yz) * radius, surface.x + sx.x) - here;
+    let up = vec3(normalize((surface + sy).yz) * radius, surface.x + sy.x) - here;
     // A cell's relief is a third of its width at full strength.
     let height = u.grain.y * scale / 3.0;
-    return vec3(1.0 + u.grain.y * (2.0 * here - 1.0), (right - here) * height, (up - here) * height);
+    return vec3(1.0 + u.grain.y * (2.0 * field.x - 1.0),
+        dot(field.yzw, right) / scale * height, dot(field.yzw, up) / scale * height);
 }
 
 // The same nominal depth and integrated face bands anchor colour and the
@@ -184,11 +202,11 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
         wander, plate, structure).relief;
     let plates = bark_plate_depth(plate, ridge_scale, girth) * network;
     let face_bands = 0.05 * 0.7 * 0.89 + 0.012 * 0.89 * 0.75 * 0.5;
-    // Every shorter band has also vanished here. Avoid evaluating invisible
-    // sites, especially when differentiating the height on distant runs.
-    if (scale_pixel >= 1.0) {
-        return ridge_scale * maturity * girth * (ridge_mean + face_bands + plates);
-    }
+    // The ridge band leaves the picture by its edge integral alone, which is
+    // its box filter (fn-71); the caller keeps every footprint it reads the
+    // field at under a ridge width, where a single edge's integral stands
+    // for the columns the box spans, and averages more reads across a
+    // wider pixel instead of fading the band.
     let character = bark_noise_filtered(dot(arc, vec2(0.13, -0.17)) + along / (spacing * 9.0),
         pixel.x * 0.22 + pixel.y / 9.0);
     let ragged = vec2(
@@ -213,9 +231,8 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
     let depth = bark_depth(elongated) * mix(BARK_DEPTH_RANGE.x, BARK_DEPTH_RANGE.y, character) * furrow;
     let broken = mix(0.15, 1.0,
         bark_noise_filtered(along / (spacing * 2.1) + column.y * 73.0, max(pixel.y / 2.1, pixel.x)));
-    let ridge = mix(ridge_mean, shoulder * depth * mix(broken, 1.0, elongated),
-        bark_pass(scale_pixel));
-    let plate_relief = mix(0.7 * 0.89, shoulder * scale_plate.x, bark_pass(scale_pixel));
+    let ridge = shoulder * depth * mix(broken, 1.0, elongated);
+    let plate_relief = shoulder * scale_plate.x;
     // Finer flakes live only on the flat faces, never across a furrow or lip.
     let flake = bark_flakes(arc, along, spacing, pixel, column.y, scale_plate.y, shoulder);
     return ridge_scale * maturity * girth * (ridge + 0.05 * plate_relief + flake + plates);

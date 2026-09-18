@@ -1,6 +1,6 @@
-//! The grain below the relief varies a close-up and converges to its mean with
-//! its footprint, on the bark and on the blade, so a distant tree is the smooth
-//! one it was.
+//! The grain below the relief varies a close-up and converges with its
+//! footprint, on the bark by the box integral of its own noise over the pixel
+//! and on the blade by its fade, so a distant tree is the smooth one it was.
 mod common;
 use telperion_core::{
     material::MaterialParams,
@@ -10,20 +10,27 @@ use telperion_core::{
 };
 use telperion_render::{render, Camera, Level, Renderer, Still, View, STILL_FORMAT};
 
-/// How many channels moved between two stills, and the furthest one moved.
-fn moved(a: &Still, b: &Still) -> (usize, u8) {
-    a.rgba
+/// How many channels moved between two stills, the furthest one moved, and
+/// the mean move over every channel.
+fn moved(a: &Still, b: &Still) -> (usize, u8, f64) {
+    let (count, worst, total) = a
+        .rgba
         .iter()
         .zip(&b.rgba)
         .map(|(a, b)| a.abs_diff(*b))
-        .fold((0, 0), |(count, worst), d| {
-            (count + usize::from(d > 0), worst.max(d))
-        })
+        .fold((0, 0, 0u64), |(count, worst, total), d| {
+            (
+                count + usize::from(d > 0),
+                worst.max(d),
+                total + u64::from(d),
+            )
+        });
+    (count, worst, total as f64 / a.rgba.len() as f64)
 }
 
 /// The row with its grain on and off drawn from one pose: near, the grain
-/// has to show; far, where its cells are under two pixels, it has to be its
-/// exact mean and leave the still where the smooth row put it.
+/// has to show; far, it has to have converged by `converged` of the mean
+/// move it made near, the way the pixel's box integral of its noise does.
 fn near_and_far(
     renderer: &mut Renderer,
     off: MaterialParams,
@@ -31,21 +38,24 @@ fn near_and_far(
     camera: impl Fn(f64) -> Camera,
     (near, far): (f64, f64),
     size: (u32, u32),
+    converged: f64,
 ) {
+    let mut near_move = 0.0;
     for (distance, showing) in [(near, true), (far, false)] {
         let pose = camera(distance);
         renderer.set_material(off);
         let smooth = render(renderer, &pose, size.0, size.1).unwrap();
         renderer.set_material(on);
         let grained = render(renderer, &pose, size.0, size.1).unwrap();
-        let (count, worst) = moved(&smooth, &grained);
-        eprintln!("distance {distance}: {count} channels moved, worst {worst}");
+        let (count, worst, mean) = moved(&smooth, &grained);
+        eprintln!("distance {distance}: {count} channels moved, worst {worst}, mean {mean:.4}");
         if showing {
             assert!(count > smooth.rgba.len() / 100, "no grain near: {count}");
+            near_move = mean;
         } else {
             assert!(
-                worst <= 2 && count * 200 < smooth.rgba.len(),
-                "the grain did not fade far: {count} channels moved, worst {worst}"
+                mean <= near_move * converged,
+                "the grain did not converge far: mean {mean:.4} against {near_move:.4} near"
             );
         }
     }
@@ -71,8 +81,10 @@ fn bark_grain_shows_near_and_is_its_mean_far() {
         ..off
     };
     let target = Vec3::new(0.0, 2.0, 0.0);
-    // The trunk at two metres, as bark_distance frames it, and at four times
-    // that, where a pixel is eight millimetres of bark.
+    // The trunk at two metres, as bark_distance frames it, and at eight times
+    // that, where a pixel is sixteen millimetres of bark and its box spans
+    // five cells of the grain (fn-71: the grain leaves by that box integral
+    // alone, so what is left is the box's own residue, under a fifth).
     let camera = |distance: f64| Camera {
         target,
         position: target
@@ -81,7 +93,7 @@ fn bark_grain_shows_near_and_is_its_mean_far() {
         near: 0.01,
         far: 1000.0,
     };
-    near_and_far(&mut renderer, off, on, camera, (0.5, 4.0), (800, 500));
+    near_and_far(&mut renderer, off, on, camera, (0.5, 8.0), (800, 500), 0.2);
 }
 
 #[test]
@@ -108,5 +120,5 @@ fn blade_grain_shows_near_and_is_its_mean_far() {
     };
     // At twelve centimetres a cell of ninety a blade is three pixels across;
     // at six metres the whole leaf is a few.
-    near_and_far(&mut renderer, off, on, camera, (0.12, 6.0), (256, 256));
+    near_and_far(&mut renderer, off, on, camera, (0.12, 6.0), (256, 256), 0.0);
 }

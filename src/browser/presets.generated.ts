@@ -1019,8 +1019,8 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "material": {
         "barkBlue": 0.7,
-        "barkGrainScale": 0.001,
-        "barkGrainStrength": 0,
+        "barkGrainScale": 0.002,
+        "barkGrainStrength": 0.15,
         "barkGreen": 0.76,
         "barkMottleScale": 0.15,
         "barkMottleStrength": 0.12,
