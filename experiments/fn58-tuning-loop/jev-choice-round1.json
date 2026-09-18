@@ -1,0 +1,53 @@
+{
+ "round": 1,
+ "ledger": "tune-probe-choice:18d65e2281210c91-da39-0",
+ "jev_pick": "none",
+ "jev_confidence": 0.17,
+ "jev_top": [
+  [
+   "none",
+   0.19
+  ],
+  [
+   "crown_base_up",
+   0.15
+  ],
+  [
+   "laterals_per_station_down",
+   0.15
+  ],
+  [
+   "spread_down",
+   0.15
+  ],
+  [
+   "lateral_pitch_down",
+   0.04
+  ]
+ ],
+ "code_argmin": "laterals_per_station:down",
+ "code_scores": {
+  "laterals_per_station:down": 0.187,
+  "crown_base:up": 0.1925,
+  "lateral_pitch:down": 0.2098,
+  "crookedness:down": 0.2284,
+  "twig_length_ratio:down": 0.2292,
+  "limb_clumping:up": 0.2429,
+  "short_shoot_leaves:down": 0.243,
+  "twig_laterals:down": 0.2443,
+  "spread:down": 0.2444,
+  "twig_tip_taper:down": 0.2448,
+  "twig_tip_taper:up": 0.2456,
+  "limb_clumping:down": 0.2458,
+  "crown_base:down": 0.2492,
+  "short_shoot_spacing:up": 0.2509,
+  "irregularity:up": 0.253,
+  "irregularity:down": 0.2552,
+  "crookedness:up": 0.258,
+  "short_shoot_spacing:down": 0.26,
+  "twig_laterals:up": 0.2606,
+  "twig_length_ratio:up": 0.2685,
+  "spread:up": 0.2755,
+  "lateral_pitch:up": 0.2814
+ }
+}

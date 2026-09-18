@@ -76,6 +76,7 @@ Kinds and their payloads: tolerance-miss carries field, age, measured, reference
 - **Structural obligations are checked in code, semantic ones by Jev.** Provenance present on every filled value, an asset hash on every inspected image, a non-empty rights field, a resolvable source ID, these are code checks. Whether a reference's observation describes a page rather than an inspected image, and whether a stated value is a measurement or an invention, are Jev questions with labelled cases. [paraphrase]
 - **No number reaches the packet from a model.** The selection stage copies spans; the fit stage computes; the level route maps through a table a person authored; the reference route computes from a tuned template's shipped value and a scored relation. A judgment answers with option keys and probabilities only. [paraphrase]
 - **Judgments are stable in their answer, not in their probabilities.** Four identical calls on the O1 sentence on 2026-09-16 returned the same option every time with the kind confidence fixed at 0.99, while the condition confidence moved between 0.80 and 0.88 and the anchor probability between 0.05 and 0.06. Comparisons across runs therefore use the chosen option, the level, the decision and the copied value, never the probabilities, which stay in the ledger. [paraphrase]
+- **A yield-table PDF parses with its rows intact.** Firecrawl's parse of the Bavarian Ertragstafeln extract on 2026-09-18 returned the spruce table as eleven markdown rows from 20 to 120 years with decimal commas kept, in under two seconds, and the whole ten-page file as 511 table rows; footnote text carried garbled characters, numeric rows did not (`.flow/evidence/fn58/parse-ertragstafeln.json`). Decimal and unit conversion stay in code, and the coverage-gap decision stays the guard for a table that does flatten. [inferred]
 - **Generation stays deterministic and offline.** The generation stage runs the existing measurement example and the headless renderer with the key unset, as fn-57's guard requires. The swap test and every stage that reaches the network are excluded from the workspace test commands. [paraphrase]
 
 ## Acceptance Criteria
@@ -100,6 +101,7 @@ Kinds and their payloads: tolerance-miss carries field, age, measured, reference
 - Every still stays with the owner's eye. The pipeline runs to the point where stills exist and files a visual-unassessed decision, which the report may describe before the final stop. [paraphrase]
 - No new generator or renderer behaviour. The pipeline consumes the existing measurement example, headless renderer and preset records. [inferred]
 - No gap handling. A capability the generator lacks halts the run as a decision; fn-63-gap-loop-options-escalation-and-resume proposes, routes and resumes.
+- No tuning loop after the first render. Moving a preset toward its photographs by measured rounds is fn-68's work, which runs beside this spec on the beech today and takes its targets from this spec's packet once the packet exists. The described route's one render-and-measure pass per trait stays here. [user]
 - This spec ships no species. The oak and the spruce appear only as validation fixtures under R6 and R7; every new species is its own spec under the one-species-per-spec rule. [paraphrase]
 - fn-57's caller, ledger, screen, selection and citation tools are consumed, not rebuilt. The three question sets named in R4 are this spec's, built on that caller. [paraphrase]
 
@@ -115,15 +117,26 @@ The host first declined the reviewer's finding that a described level mapped thr
 
 On 2026-09-17 the owner added the reference-transfer route: Jev should take the research data and the previous templates' research data and values and figure out the new template's values, faster than an LLM writing numbers. [user] The route is comparative on purpose. Jev picks the nearest tuned template and scores the relation, which is the kind of judgment it is calibrated for, and code owns the arithmetic and the render-and-measure admission, so the owner's TypeSafe rule holds unchanged. The owner confirmed the shape in the same conversation. [paraphrase]
 
+### Implementation Tradeoffs
+<!-- scope: technical -->
+
+On 2026-09-18 the owner asked whether Jev could take the parameters and the research and return the parameter set that gets closer, with a model judging each render. A probe on the beech at fn-62's round 22 (`experiments/fn58-tuning-loop/`) answered it. Code evaluated a candidate by measuring it, rendering its two matched stills and reading the compare script's five numbers against the photograph's. A code sweep over twelve dials took the distance from 0.245 to 0.145 in three rounds and 74 evaluations. Asked one yes-or-no per move, Jev stalled at 0.245. Asked to compare the measured candidates, its answer was flat. Asked one direction per dial, up, down or hold, over the owner's notes, it reached 0.154 in 13 evaluations, the same first move as the sweep at a sixth of the cost, and never proposed the dials the notes do not name. The loop is code, the number decides, Jev routes a note to a direction, and the owner's eye judges the finalists. The owner chose a parallel spec for it, fn-68, so this spec keeps its finish line on fn30 validation. [paraphrase]
+
 ## Strategy Alignment
 
 - Serves "Growth and botanical fidelity": species anatomy and lifecycle behaviour judged against real trees, with the references themselves made checkable before they shape a preset. [strategy:Growth and botanical fidelity]
 - Serves the Attributability metric under the same track: every sourced value in a packet traces to a sentence, a judgment and a checksum, as every preset change traces to a dial. [strategy:Growth and botanical fidelity]
 
+## Resolved via Codebase
+
+- A partial wire object lays over a preset through `params::overlay` (`crates/telperion-core/src/params.rs`, tested in `params/tests.rs`); the species example takes it as `--family FILE` and prints a preset's wire with `--print-family` (`crates/telperion-core/examples/species_measure.rs`); the headless renderer takes the same `--family FILE` (`crates/telperion-render/examples/headless.rs`, `headless/walk.rs`). An empty overlay reproduced the beech's metrics and its still byte for byte on 2026-09-18. This is the render-and-measure step the described route and the reference route need.
+- `jev ask --state FILE --questions FILE [--tool NAME]` posts one evaluation over a state and a question set code wrote and prints the ledger reference and the answers (`crates/telperion-jev/src/bin/jev.rs`). A question set this spec adds runs through it before it has a subcommand of its own.
+- The compare script's still-side numbers are importable functions (`scripts/compare-references.py`: `tree_mask`, `box_of`, `crown_base`, `measure`), so a loop reads a still's numbers without the photograph on disk; the photograph's numbers are the round table's (`.flow/evidence/fn34/rounds.tsv`).
+
 ## Parked unknowns
 
-- Whether the fn30 yield-table PDFs survive the adapter's parse with their rows intact. One parse of the Ertragstafeln extract against its known row count answers it, and the answer decides whether a table-aware extractor is needed before R2 can pass.
 - Which sources the research index actually holds for forestry. A search for Gould 2011 and Vospernik 2010 answers it and decides how much of discovery falls to web search.
 - Whether the adapter's raw HTML equals the original response bytes. One scrape of the OWIC page compared with the pilot's curl fetch by checksum answers it, and the answer decides whether the fetch stage needs a second request for the raw bytes.
 - Whether TypeSafe exposes a pinned model version for R6's recorded model name, shared with fn-57's parked item.
 - Whether two anchors, the oak and the spruce, carry a first reference transfer for a broadleaf such as the birch, or whether the route should wait for a third tuned template. The first run on a real species answers it.
+- Which source carries an age-indexed table for the oak fixture under R7. The Ertragstafeln extract's oak is Quercus rubra, so it covers the spruce's age axis and not the oak's; the source fn30 actually composed the oak's young-age reference from, read out of its script comments, answers it and names what the manifest admits.

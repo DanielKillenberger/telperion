@@ -25,3 +25,6 @@ dist
 # Python bytecode never ships.
 __pycache__/
 *.pyc
+
+# Cinematic captures: videos and frame sequences stay on disk.
+.flow/evidence/birch-cinematic/

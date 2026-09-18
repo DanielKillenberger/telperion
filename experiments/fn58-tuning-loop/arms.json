@@ -1,0 +1,256 @@
+{
+ "preset": "european-beech",
+ "seed": 1,
+ "photograph": {
+  "B-BARE": {
+   "width_over_height": 0.7417,
+   "crown_base": 0.25,
+   "occupied": 0.2813,
+   "outline_deviation": 0.2937,
+   "centre": 99.9
+  },
+  "B-WHOLE": {
+   "width_over_height": 0.6965,
+   "crown_base": 0.12,
+   "occupied": 0.4566,
+   "outline_deviation": 0.2274,
+   "centre": 79.7
+  }
+ },
+ "dials": {
+  "lateral_pitch": {
+   "path": "skeleton/habit/lateralPitch",
+   "step": 6.0,
+   "bounds": [
+    10.0,
+    70.0
+   ]
+  },
+  "laterals_per_station": {
+   "path": "skeleton/habit/lateralsPerStation",
+   "step": 1,
+   "bounds": [
+    1,
+    4
+   ]
+  },
+  "crookedness": {
+   "path": "skeleton/habit/crookedness",
+   "step": 3.0,
+   "bounds": [
+    0.0,
+    15.0
+   ]
+  },
+  "twig_tip_taper": {
+   "path": "skeleton/habit/twigTipTaper",
+   "step": 0.1,
+   "bounds": [
+    0.05,
+    0.6
+   ]
+  },
+  "twig_laterals": {
+   "path": "skeleton/twigs/laterals",
+   "step": 1,
+   "bounds": [
+    1,
+    8
+   ]
+  },
+  "twig_length_ratio": {
+   "path": "skeleton/twigs/lengthRatio",
+   "step": 0.05,
+   "bounds": [
+    0.1,
+    0.6
+   ]
+  },
+  "irregularity": {
+   "path": "skeleton/envelope/irregularity",
+   "step": 0.08,
+   "bounds": [
+    0.0,
+    0.5
+   ]
+  },
+  "spread": {
+   "path": "skeleton/envelope/spread",
+   "step": 0.04,
+   "bounds": [
+    0.2,
+    0.6
+   ]
+  },
+  "crown_base": {
+   "path": "skeleton/envelope/crownBase",
+   "step": 0.04,
+   "bounds": [
+    0.02,
+    0.3
+   ]
+  },
+  "short_shoot_leaves": {
+   "path": "canopy/shortShootLeaves",
+   "step": 2,
+   "bounds": [
+    2,
+    12
+   ]
+  },
+  "short_shoot_spacing": {
+   "path": "canopy/shortShootSpacing",
+   "step": 0.01,
+   "bounds": [
+    0.01,
+    0.08
+   ]
+  },
+  "limb_clumping": {
+   "path": "canopy/limbClumping",
+   "step": 0.1,
+   "bounds": [
+    0.0,
+    0.6
+   ]
+  }
+ },
+ "evaluations": 74,
+ "wall_seconds": 1086,
+ "ledger": [
+  "tune-probe:18d65d2278af1b8e-8244-0"
+ ],
+ "arms": [
+  {
+   "arm": "jev",
+   "final": {},
+   "trajectory": [
+    {
+     "round": 0,
+     "score": 0.2453,
+     "key": "44136fa355b3"
+    },
+    {
+     "round": 1,
+     "stop": "no proposed move improved the score by 1%",
+     "ledger": "tune-probe:18d65d2278af1b8e-8244-0",
+     "tried": {
+      "twig_tip_taper:up": 0.2456,
+      "twig_tip_taper:down": 0.2448
+     }
+    }
+   ]
+  },
+  {
+   "arm": "sweep",
+   "final": {
+    "skeleton": {
+     "habit": {
+      "lateralsPerStation": 1
+     },
+     "envelope": {
+      "crownBase": 0.1,
+      "spread": 0.32
+     }
+    }
+   },
+   "trajectory": [
+    {
+     "round": 0,
+     "score": 0.2453,
+     "key": "44136fa355b3"
+    },
+    {
+     "round": 1,
+     "accepted": "laterals_per_station:down",
+     "score": 0.187,
+     "key": "1abe9433ef89",
+     "tried": {
+      "lateral_pitch:down": 0.2098,
+      "lateral_pitch:up": 0.2814,
+      "laterals_per_station:down": 0.187,
+      "crookedness:down": 0.2284,
+      "crookedness:up": 0.258,
+      "twig_tip_taper:down": 0.2448,
+      "twig_tip_taper:up": 0.2456,
+      "twig_laterals:down": 0.2443,
+      "twig_laterals:up": 0.2606,
+      "twig_length_ratio:down": 0.2292,
+      "twig_length_ratio:up": 0.2685,
+      "irregularity:down": 0.2552,
+      "irregularity:up": 0.253,
+      "spread:down": 0.2444,
+      "spread:up": 0.2755,
+      "crown_base:down": 0.2492,
+      "crown_base:up": 0.1925,
+      "short_shoot_leaves:down": 0.243,
+      "short_shoot_spacing:down": 0.26,
+      "short_shoot_spacing:up": 0.2509,
+      "limb_clumping:down": 0.2458,
+      "limb_clumping:up": 0.2429
+     }
+    },
+    {
+     "round": 2,
+     "accepted": "crown_base:up",
+     "score": 0.1527,
+     "key": "a1dc4a9137a8",
+     "tried": {
+      "lateral_pitch:down": 0.1696,
+      "lateral_pitch:up": 0.2072,
+      "laterals_per_station:up": 0.2453,
+      "crookedness:down": 0.1926,
+      "crookedness:up": 0.1911,
+      "twig_tip_taper:down": 0.1866,
+      "twig_tip_taper:up": 0.1877,
+      "twig_laterals:down": 0.1724,
+      "twig_laterals:up": 0.1872,
+      "twig_length_ratio:down": 0.1673,
+      "twig_length_ratio:up": 0.2003,
+      "irregularity:down": 0.1794,
+      "irregularity:up": 0.1893,
+      "spread:down": 0.1766,
+      "spread:up": 0.2091,
+      "crown_base:down": 0.1822,
+      "crown_base:up": 0.1527,
+      "short_shoot_leaves:down": 0.1838,
+      "short_shoot_spacing:down": 0.193,
+      "short_shoot_spacing:up": 0.182,
+      "limb_clumping:down": 0.1901,
+      "limb_clumping:up": 0.1835
+     }
+    },
+    {
+     "round": 3,
+     "accepted": "spread:down",
+     "score": 0.1451,
+     "key": "9ba2e1f70f7f",
+     "tried": {
+      "lateral_pitch:down": 0.1641,
+      "lateral_pitch:up": 0.1685,
+      "laterals_per_station:up": 0.1925,
+      "crookedness:down": 0.1565,
+      "crookedness:up": 0.1506,
+      "twig_tip_taper:down": 0.1533,
+      "twig_tip_taper:up": 0.1525,
+      "twig_laterals:down": 0.1577,
+      "twig_laterals:up": 0.1557,
+      "twig_length_ratio:down": 0.1592,
+      "twig_length_ratio:up": 0.1554,
+      "irregularity:down": 0.1482,
+      "irregularity:up": 0.1517,
+      "spread:down": 0.1451,
+      "spread:up": 0.1675,
+      "crown_base:down": 0.187,
+      "crown_base:up": 0.1501,
+      "short_shoot_leaves:down": 0.1578,
+      "short_shoot_spacing:down": 0.1534,
+      "short_shoot_spacing:up": 0.1596,
+      "limb_clumping:down": 0.1511,
+      "limb_clumping:up": 0.1556
+     }
+    }
+   ]
+  }
+ ]
+}

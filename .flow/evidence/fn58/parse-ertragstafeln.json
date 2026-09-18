@@ -1,0 +1,59 @@
+{
+ "parked_unknown": "fn30 yield-table PDF through the adapter's parse",
+ "date": "2026-09-18",
+ "url": "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf",
+ "pdf_sha256": "c6c7d6558fe6f8157c2fea3a67e8aaed133902b18446eb32275972fc2a5f9885",
+ "pdf_bytes": 351827,
+ "markdown_sha256": "4634c5d1d2719fadf086928f0d15decec1ca835c8ae1e468a802bd50f9662572",
+ "parser": "firecrawl parse -f markdown (v2/parse)",
+ "parse_seconds": 1.6,
+ "table_rows_total": 511,
+ "blocks": {
+  "Fichte (Assmann/Franz 1963)": {
+   "rows": 11,
+   "ages": [
+    20,
+    120
+   ],
+   "columns": "Mittelh\u00f6he m by H\u00f6henbonit\u00e4t I-V, then Grundfl\u00e4che"
+  },
+  "Roteiche": {
+   "rows": 10,
+   "ages": [
+    10,
+    100
+   ]
+  },
+  "Buche": {
+   "rows": 12,
+   "ages": [
+    40,
+    150
+   ]
+  },
+  "Esche": {
+   "rows": 11,
+   "ages": [
+    20,
+    120
+   ]
+  },
+  "Kiefer": {
+   "rows": 12,
+   "ages": [
+    30,
+    140
+   ]
+  },
+  "Tanne W\u00fcrttemberg": {
+   "rows": 10,
+   "ages": [
+    30,
+    120
+   ]
+  }
+ },
+ "finding": "Age-indexed rows survive as markdown table rows with decimal commas; no table-aware extractor needed. Footnote text carries OCR-style garbles, numeric rows do not.",
+ "block_count_method": "counted by eye from the parsed markdown for the named blocks; a heading cell followed by integer-age rows",
+ "caveat": "This extract holds Roteiche (Quercus rubra), not the J\u00fcttner 1955 Stiel/Traubeneiche table fn-11 assumed; the oak's age axis needs another source. A parse finding only: rows intact, decimal commas kept, footnote text garbled, numeric rows clean."
+}

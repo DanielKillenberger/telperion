@@ -1,13 +1,22 @@
 {
   "branch_name": "fn-58-species-template-pipeline-literature-to",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-16T09:02:17.433107Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-57-typesafe-usage-guidelines"
   ],
   "id": "fn-58-species-template-pipeline-literature-to",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-58-species-template-pipeline-literature-to.md",
   "status": "open",
   "title": "Species template pipeline: literature to preset",
@@ -22,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-16T09:02:18.416564Z"
+  "updated_at": "2026-09-18T12:32:54.345754Z"
 }
