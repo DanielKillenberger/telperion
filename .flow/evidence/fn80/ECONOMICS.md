@@ -39,3 +39,32 @@ cheaper. A step can be fast and still be the wrong place to spend.
 
 ## Entries
 
+## 2026-09-18 — the capability question is answerable before the literature spend
+
+- **Step.** The `add-species` skill's order: mint the spec, run `discover`,
+  admit the manifest, then walk the stages; the capability gate that files an
+  `onboarding-gate` decision sits at `gate`, near the end.
+- **Cost.** The literature stages are where Firecrawl credits go: the European
+  ash run spent 107 of them before reaching its gate. For the date palm, the
+  architectural model is Corner, known from the taxon alone and needing no
+  source at all, and fn-35 already records that no architectural-model coverage
+  file exists and that the 23-model list becomes its own spec the first time a
+  species names an unsupported model. So at least one of this species' gaps was
+  knowable for zero credits, before the run started.
+- **Dominates?** Yes for a species whose form is unsupported. The whole
+  literature spend precedes the finding that the species cannot be drawn yet,
+  and is then repeated when the species resumes after the gap specs land, since
+  the run's own fixes expire the stages from the halted one down.
+- **Cheaper next time.** A capability pre-flight before `discover`: take the
+  architectural model and the organ list off the spec, check them against the
+  coverage file, and file the `onboarding-gate` decision then, when it costs
+  nothing. The literature stages run only for a species whose form the field
+  already draws, or after its gap specs land. This reorders the skill; it adds
+  no new machinery, because the gap loop already takes an `onboarding-gate`
+  decision from wherever it is filed.
+- **Swarm reading.** At a thousand species the sort matters more than the
+  saving on any one. Most of the world's trees are forms the field does not yet
+  draw, so a swarm that spends the literature budget before the capability
+  check spends most of its budget on species it then parks. The pre-flight
+  turns the catalogue into a cheap sort into "drawable now" and "waiting on a
+  named gap", and only the first group costs credits.
