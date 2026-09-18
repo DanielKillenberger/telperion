@@ -1,9 +1,8 @@
 //! The curtain as rows. Neutral at zero, continuous across every value,
 //! refused by its own name outside its rail, and floored at every hang.
 //! No device is needed; this is the core's own arithmetic.
-use telperion_core::{
-    branching, presets::Family, presets::Preset, tree::NodeKind, twigs::TwigParams, Error,
-};
+mod specimens;
+use telperion_core::{presets::Family, presets::Preset, tree::NodeKind, twigs::TwigParams, Error};
 
 const SEED: u32 = 7;
 
@@ -20,9 +19,7 @@ fn grow(preset: Preset, row: impl Fn(&mut Family)) -> Grown {
     let mut family = preset.parameters();
     family.skeleton.seed = SEED;
     row(&mut family);
-    let tree = branching::generate(&family.skeleton, family.radii)
-        .expect("the row grows a tree")
-        .tree;
+    let tree = specimens::tree(&family);
     let mut skeleton = 14695981039346656037_u64;
     let (mut nodes, mut twigs) = (Vec::with_capacity(tree.nodes.len()), Vec::new());
     for n in tree.nodes.iter().skip(1) {

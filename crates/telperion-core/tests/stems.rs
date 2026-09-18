@@ -6,8 +6,9 @@
 //! the walk from one stem to two, and the stem root the chronicle never
 //! sheds.
 //! No device is needed; this is the core's own arithmetic.
+mod specimens;
 use telperion_core::{
-    blend, branching, mesh, presets::Family, presets::Preset, surface, tree::NodeKind, Error,
+    blend, branching, presets::Family, presets::Preset, surface, tree::NodeKind, Error,
 };
 
 /// Every shipped table, so neutrality is asserted on all of them at once.
@@ -42,9 +43,7 @@ fn family(preset: Preset, row: impl Fn(&mut Family)) -> Family {
 }
 
 fn grow(family: &Family) -> telperion_core::tree::Tree {
-    branching::generate(&family.skeleton, family.radii)
-        .expect("the row grows a tree")
-        .tree
+    specimens::tree(&family)
 }
 
 /// The structural nodes a tree's stems leave the root on.
@@ -69,7 +68,7 @@ fn one_stem_is_every_shipped_tree_exactly_as_it_was() {
     for preset in PRESETS {
         let base = family(preset, |f| f.skeleton.habit.stems = 1);
         let bytes = |f: &Family| {
-            let m = mesh::build(f, mesh::Detail::Full).expect("the table builds a tree");
+            let m = specimens::mesh(&f);
             (
                 fnv(m.wood.positions.iter().flat_map(|v| v.to_le_bytes())),
                 fnv(m

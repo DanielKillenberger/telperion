@@ -44,12 +44,15 @@ jobs:
   # request reads master's receipts and master writes its own.
   receipts:
     runs-on: ubuntu-latest
+    # A lookup that misses leaves cache-hit empty, and an empty field collapses
+    # where a consumer splits on whitespace, so each hit is published as the
+    # literal true or false.
     outputs:
-      rust-core: ${{ steps.rust-core.outputs.cache-hit }}
-      rust-render: ${{ steps.rust-render.outputs.cache-hit }}
-      rust-wasm: ${{ steps.rust-wasm.outputs.cache-hit }}
-      rust-jev: ${{ steps.rust-jev.outputs.cache-hit }}
-      node: ${{ steps.node.outputs.cache-hit }}
+      rust-core: ${{ steps.rust-core.outputs.cache-hit == 'true' }}
+      rust-render: ${{ steps.rust-render.outputs.cache-hit == 'true' }}
+      rust-wasm: ${{ steps.rust-wasm.outputs.cache-hit == 'true' }}
+      rust-jev: ${{ steps.rust-jev.outputs.cache-hit == 'true' }}
+      node: ${{ steps.node.outputs.cache-hit == 'true' }}
       rust-all: ${{ steps.rust-core.outputs.cache-hit == 'true' && steps.rust-render.outputs.cache-hit == 'true' && steps.rust-wasm.outputs.cache-hit == 'true' && steps.rust-jev.outputs.cache-hit == 'true' }}
       rust-core-key: ${{ steps.keys.outputs.rust-core }}
       rust-render-key: ${{ steps.keys.outputs.rust-render }}
@@ -100,11 +103,11 @@ jobs:
       - name: Report the receipts
         env:
           RECEIPTS: |-
-            rust-core ${{ steps.keys.outputs.rust-core }} ${{ steps.rust-core.outputs.cache-hit }}
-            rust-render ${{ steps.keys.outputs.rust-render }} ${{ steps.rust-render.outputs.cache-hit }}
-            rust-wasm ${{ steps.keys.outputs.rust-wasm }} ${{ steps.rust-wasm.outputs.cache-hit }}
-            rust-jev ${{ steps.keys.outputs.rust-jev }} ${{ steps.rust-jev.outputs.cache-hit }}
-            node ${{ steps.keys.outputs.node }} ${{ steps.node.outputs.cache-hit }}
+            rust-core ${{ steps.keys.outputs.rust-core }} ${{ steps.rust-core.outputs.cache-hit == 'true' }}
+            rust-render ${{ steps.keys.outputs.rust-render }} ${{ steps.rust-render.outputs.cache-hit == 'true' }}
+            rust-wasm ${{ steps.keys.outputs.rust-wasm }} ${{ steps.rust-wasm.outputs.cache-hit == 'true' }}
+            rust-jev ${{ steps.keys.outputs.rust-jev }} ${{ steps.rust-jev.outputs.cache-hit == 'true' }}
+            node ${{ steps.keys.outputs.node }} ${{ steps.node.outputs.cache-hit == 'true' }}
         run: |
           while read -r suite key hit; do
             case $hit in
@@ -113,48 +116,95 @@ jobs:
             esac
           done <<< "$RECEIPTS"
 
-  rust:
+  # Each Rust crate without a receipt runs under cargo-nextest on standard
+  # runners (.github/actions/nextest): the core crate as four count partitions
+  # of its tests, chosen from the runner's per-test times, the render crate
+  # whole, and the two small crates together. A crate's receipt is saved in
+  # rust-receipts when every job of that crate is green.
+  core:
+    name: core ${{ matrix.partition }}/4
     needs: receipts
-    if: needs.receipts.outputs.rust-all != 'true'
+    if: needs.receipts.outputs.rust-core != 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        partition: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/nextest
+        with:
+          packages: telperion-core
+          partition: count:${{ matrix.partition }}/4
+
+  render:
+    needs: receipts
+    if: needs.receipts.outputs.rust-render != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
-      # rustup reads the channel, profile, components and targets from
-      # rust-toolchain.toml; the workflow names none of them.
-      - name: Install the pinned Rust toolchain
-        run: rustup toolchain install
-
-      - uses: Swatinem/rust-cache@v2
+      - uses: ./.github/actions/nextest
         with:
-          cache-on-failure: true
+          packages: telperion-render
 
-      # The ci profile is release without the fat link (Cargo.toml); every
-      # package script and local command stays on release.
-      - uses: ./.github/actions/suite
+  wasm-jev:
+    name: wasm and jev
+    needs: receipts
+    if: needs.receipts.outputs.rust-wasm != 'true' || needs.receipts.outputs.rust-jev != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/nextest
         with:
-          suite: rust-core
+          packages: >-
+            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm' || '' }}
+            ${{ needs.receipts.outputs.rust-jev != 'true' && 'telperion-jev' || '' }}
+
+  # Reached whatever the crate jobs did; a crate's receipt is written only
+  # when its jobs succeeded and it had none, so a red crate saves nothing.
+  rust-receipts:
+    needs: [receipts, core, render, wasm-jev]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write the receipts of the crates whose jobs were green
+        env:
+          RECEIPTS: |-
+            rust-core ${{ needs.receipts.outputs.rust-core-key }} ${{ needs.receipts.outputs.rust-core }} ${{ needs.core.result }}
+            rust-render ${{ needs.receipts.outputs.rust-render-key }} ${{ needs.receipts.outputs.rust-render }} ${{ needs.render.result }}
+            rust-wasm ${{ needs.receipts.outputs.rust-wasm-key }} ${{ needs.receipts.outputs.rust-wasm }} ${{ needs.wasm-jev.result }}
+            rust-jev ${{ needs.receipts.outputs.rust-jev-key }} ${{ needs.receipts.outputs.rust-jev }} ${{ needs.wasm-jev.result }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/receipts"
+          while read -r suite key hit result; do
+            if [ "$hit" != true ] && [ "$result" = success ]; then
+              echo "$key" > "$RUNNER_TEMP/receipts/$suite"
+              echo "$suite: green, receipt $key written."
+            else
+              echo "$suite: receipt $hit, jobs $result, nothing written."
+            fi
+          done <<< "$RECEIPTS"
+
+      - if: needs.receipts.outputs.rust-core != 'true' && needs.core.result == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-core
           key: ${{ needs.receipts.outputs.rust-core-key }}
-          hit: ${{ needs.receipts.outputs.rust-core }}
-          run: cargo test --profile ci -p telperion-core
-      - uses: ./.github/actions/suite
+      - if: needs.receipts.outputs.rust-render != 'true' && needs.render.result == 'success'
+        uses: actions/cache/save@v6
         with:
-          suite: rust-render
+          path: ${{ runner.temp }}/receipts/rust-render
           key: ${{ needs.receipts.outputs.rust-render-key }}
-          hit: ${{ needs.receipts.outputs.rust-render }}
-          run: cargo test --profile ci -p telperion-render
-      - uses: ./.github/actions/suite
+      - if: needs.receipts.outputs.rust-wasm != 'true' && needs.wasm-jev.result == 'success'
+        uses: actions/cache/save@v6
         with:
-          suite: rust-wasm
+          path: ${{ runner.temp }}/receipts/rust-wasm
           key: ${{ needs.receipts.outputs.rust-wasm-key }}
-          hit: ${{ needs.receipts.outputs.rust-wasm }}
-          run: cargo test --profile ci -p telperion-wasm
-      - uses: ./.github/actions/suite
+      - if: needs.receipts.outputs.rust-jev != 'true' && needs.wasm-jev.result == 'success'
+        uses: actions/cache/save@v6
         with:
-          suite: rust-jev
+          path: ${{ runner.temp }}/receipts/rust-jev
           key: ${{ needs.receipts.outputs.rust-jev-key }}
-          hit: ${{ needs.receipts.outputs.rust-jev }}
-          run: cargo test --profile ci -p telperion-jev
 
   node:
     needs: receipts

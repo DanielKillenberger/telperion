@@ -1,10 +1,6 @@
-use telperion_core::{
-    branching::{self},
-    presets::Preset,
-    radius,
-    tree::NodeKind,
-};
+use telperion_core::{presets::Preset, radius, tree::NodeKind};
 
+mod specimens;
 #[test]
 fn only_childless_species_structure_gets_terminal_taper() {
     for preset in [
@@ -20,8 +16,7 @@ fn only_childless_species_structure_gets_terminal_taper() {
         if preset == Preset::NorwaySpruce {
             family.skeleton.seed = 1;
         }
-        let report = branching::generate(&family.skeleton, family.radii).unwrap();
-        let tree = &report.tree;
+        let tree = &specimens::tree(&family);
         tree.validate_solved().unwrap();
         assert!(tree.diagnostics.complete());
         let mut children = vec![0; tree.nodes.len()];

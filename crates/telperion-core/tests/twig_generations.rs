@@ -5,9 +5,10 @@
 //! for girth bought a deeper, wider twig layer it never asked for, and the
 //! node ceiling refused it. This row states the depth instead, so the two are
 //! independent. No device is needed; this is the core's own arithmetic.
+mod specimens;
 use telperion_core::{
     blend,
-    branching::{self, append, HabitParams},
+    branching::{append, HabitParams},
     colonization::GrowthConfig,
     envelope::Envelope,
     foliage::{self, TwigPlacement},
@@ -74,9 +75,7 @@ fn family(id: &str, seed: u32) -> Family {
 }
 
 fn grow(f: &Family) -> Tree {
-    branching::generate(&f.skeleton, f.radii)
-        .expect("a shipped family grows")
-        .tree
+    specimens::tree(&f)
 }
 
 /// A one-metre structural stem, thick enough that the radius never falls to
