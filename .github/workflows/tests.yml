@@ -1,0 +1,47 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # rustup reads the channel, profile, components and targets from
+      # rust-toolchain.toml; the workflow names none of them.
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+
+      # The version Cargo.lock pins for the wasm-bindgen crate; render:build
+      # refuses any other CLI. The binary is restored by the cache above.
+      - name: Install wasm-bindgen-cli at the crate's pin
+        run: cargo install wasm-bindgen-cli --version "$(cargo pkgid wasm-bindgen | sed 's/.*@//')"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run rust:test
+
+      - run: npm test
+
+      - run: npm run typecheck
