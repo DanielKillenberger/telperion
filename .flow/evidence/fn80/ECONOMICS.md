@@ -68,3 +68,12 @@ cheaper. A step can be fast and still be the wrong place to spend.
   check spends most of its budget on species it then parks. The pre-flight
   turns the catalogue into a cheap sort into "drawable now" and "waiting on a
   named gap", and only the first group costs credits.
+
+## 2026-09-18 — date-palm discover: 6 estimated Firecrawl credits, 2 Jev calls, 10.6 s
+
+- **Step.** `species-pipeline discover` on the date-palm seed (two fields, `height_m` and `dbh_m`, both `open_grown`, ages 20/50/80). One plain-word web search and one research-index search per field, then one ranking judgment per field.
+- **Cost.** `discover.json` records 6 Firecrawl credits (method: estimated, one credit per unpriced CLI call), 2 Jev calls (ledger `9f3928213de63590113735f2`, `f6d62e66ff4d519ab72091c0`), 1 run, about 10.6 s wall clock. Two fields should be 4 CLI calls; the extra 2 unpriced calls are not named in the stage. No scrape. Credits used: 6 of the run's 40-cap.
+- **Dominates?** No of this run so far. It is the whole Firecrawl spend because the run stops before fetch. It does not dominate a finished species: the ash run spent 107 credits and most of those were later stages.
+- **Cheaper next time.** Three cuts, in order of swarm leverage. (1) Taxon-filter the known list so oak, spruce and fn-11 URLs never enter a palm ranking; 11 of 21 hits per field were those, and both Jev calls paid to reject them. (2) Price `research search-papers` (and search when the CLI omits `creditsUsed`) so the 6 is a real number, not an estimate. (3) Drop or cache the research index for a first-pass discover when the web hits already contain an extension page; both research lists here were off-topic or same-taxon morphology, and none ranked first.
+- **Swarm reading.** A thousand species at this seed is 6,000 estimated Firecrawl credits and 2,000 Jev calls, plus whatever fetch then spends. That discover slice is cheap enough to swarm if the later stages stay parked for unsupported forms (see the entry above). It is not cheap if every species also fetches: the ash 107 is the number that multiplies. The known-list flood is paid on every species until it is filtered, and it grows as more manifests land.
+
