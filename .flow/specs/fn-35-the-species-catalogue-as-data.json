@@ -15,7 +15,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-35-the-species-catalogue-as-data.md",
-  "status": "open",
+  "status": "done",
   "title": "The species catalogue as data",
   "tracker": {
     "baseHashFlow": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T18:56:23.298569Z"
+  "updated_at": "2026-09-18T22:16:45.778156Z"
 }
