@@ -19,6 +19,7 @@ use serde_json::{json, Map, Value};
 
 use crate::pipeline::canon::{file_sha256, read_json, write_atomic};
 use crate::pipeline::cost::Cost;
+use crate::pipeline::gap::metrics;
 use crate::pipeline::stage::{Context, StageError, STAGES};
 
 use super::inputs;
@@ -59,7 +60,14 @@ pub fn run(dir: &Path) -> Result<Outcome, StageError> {
         ledger.extend(strings(&artifact["ledger"]));
         read.insert(name.to_string(), artifact["body"].clone());
     }
-    for sidecar in [ctx.paths.decisions(), ctx.paths.sidecar()] {
+    // `metrics.json` is an input, not just a read: writing the run's numbers
+    // has to expire the report's key, or a report written before them would
+    // stay current and keep saying they are missing.
+    for sidecar in [
+        ctx.paths.decisions(),
+        ctx.paths.sidecar(),
+        metrics::metrics_path(&ctx.paths),
+    ] {
         if sidecar.exists() {
             let name = sidecar.file_name().unwrap_or_default().to_string_lossy();
             pairs.push((name.into_owned(), file_sha256(&sidecar)?));
@@ -82,10 +90,24 @@ pub fn run(dir: &Path) -> Result<Outcome, StageError> {
         .map(|d| json!({"id": d.id, "kind": d.kind, "status": d.status}))
         .collect();
     let halted = decisions.iter().any(|d| d["status"] == json!("open"));
-    let status = if halted { "halted" } else { "complete" };
+    // The run's three numbers are the gap loop's record (fn-63 R5). A run
+    // with no metrics record is not complete, whatever its decisions say:
+    // the report names the missing record rather than reporting a run whose
+    // autonomy, quality and efficiency nobody can read.
+    let numbers = metrics::metrics_path(&ctx.paths);
+    let status = match (halted, numbers.exists()) {
+        (true, _) => "halted",
+        (false, false) => "incomplete",
+        (false, true) => "complete",
+    };
     let body = json!({
         "species": ctx.admitted.manifest.species,
         "status": status,
+        "metrics": if numbers.exists() {
+            read_json(&numbers).unwrap_or_else(|_| json!({"unreadable": true}))
+        } else {
+            json!({"missing": "metrics.json; run `species-pipeline gap metrics`"})
+        },
         "sources": sources(&read),
         "fields": fields(&read),
         "curves": curves(&read),
@@ -290,6 +312,38 @@ fn page(body: &Value) -> String {
         })
         .collect();
     out.push_str(&table(&["Still", "Path or error"], rows));
+
+    out.push_str("\n## The run's numbers\n\n");
+    let numbers = &body["metrics"];
+    if let Some(missing) = numbers["missing"].as_str() {
+        out.push_str(&format!("Missing: {missing}.\n"));
+    } else {
+        out.push_str(&table(
+            &["Autonomy", "Quality", "Efficiency"],
+            vec![vec![
+                format!(
+                    "{} gaps, {} routed, {} taken by the loop",
+                    cell(&numbers["autonomy"]["gaps"]),
+                    cell(&numbers["autonomy"]["routed"]),
+                    cell(&numbers["autonomy"]["decisions"]["proceed"])
+                ),
+                format!(
+                    "{} value rounds, {} reversals",
+                    cell(&numbers["quality"]["rounds_total"]),
+                    numbers["quality"]["reversals"]
+                        .as_array()
+                        .map_or(0, Vec::len)
+                ),
+                format!(
+                    "{} in and {} out tokens, {} ms, {} captures",
+                    cell(&numbers["efficiency"]["input_tokens"]),
+                    cell(&numbers["efficiency"]["output_tokens"]),
+                    cell(&numbers["efficiency"]["wall_clock_ms"]),
+                    cell(&numbers["efficiency"]["captures"])
+                ),
+            ]],
+        ));
+    }
 
     out.push_str("\n## Cost\n\n");
     let cost_row = |name: &str, cost: &Value| {

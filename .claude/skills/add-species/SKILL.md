@@ -53,7 +53,7 @@ route the table gave:
 
 | Route | What you do |
 |---|---|
-| `proceed` | Mint the fix as its own spec, record it (`gap spec`), work it under the repo's review, record each verdict (`gap review`), and on landing run `gap resume --commit <sha>`. Then rerun the stages it names. |
+| `proceed` | Mint the fix as its own spec, make the species spec depend on it (`flowctl`), record it here (`gap spec`), work it under the repo's review, record each verdict (`gap review`), and on landing run `gap resume --commit <sha>`. Then rerun the stages it names and `gap metrics` before the report. |
 | `stronger` | Hand the same gap to the stronger reasoning model named in CLAUDE.md's routing block. It writes the set; record it with `--author stronger`, and route again. |
 | `owner` | Stop. The decision the route filed is the owner's; say what it is and wait. Never resolve it yourself. |
 

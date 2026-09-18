@@ -137,6 +137,8 @@ stage and in total under `costs` and in its `## Cost` table.
 | `packet/profile.json`, `packet/references.json` | fn19 closed records | select |
 | `packet/species.json`, `packet/specimens.json` | fn19 closed records | generate |
 | `provenance.json` | provenance v1, keyed by JSON Pointer | select, generate |
+| `gaps/<slug>/gap.json`, `rounds.json` | gap v1, rounds v1 | the gap loop |
+| `metrics.json` | metrics v1 | `gap metrics` |
 | `decisions.json`, `resolutions.json` | decisions v1 | every stage; a person |
 | `command-log.json` | command-log v1 | the driver binary |
 | `ledger/entries/`, `ledger/index.json` | fn-57 ledger entries; identity index | the caller |
@@ -236,7 +238,10 @@ beside the report: the share of gaps the loop decided itself, the rounds each
 verdict took to accept with the owner's reversals by decision id, and the
 tokens, wall clock, Jev calls, Firecrawl credits and captures the run spent.
 A reversal is recorded, never counted a failure: it is what the next threshold
-tuning reads.
+tuning reads. The report reads that record: a run whose every decision is
+resolved but whose numbers are not written is `incomplete`, not `complete`,
+and its page names the missing record. `metrics.json` is one of the report's
+inputs, so writing the numbers expires the report's key and it runs again.
 
 ### The labelled cases
 
