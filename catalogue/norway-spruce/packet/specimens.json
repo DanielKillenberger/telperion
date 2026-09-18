@@ -1,0 +1,49 @@
+{
+  "benchmark_id": "fn19-v1",
+  "cases": [
+    {
+      "id": "norway-spruce-1",
+      "parameter_species_id": "norway-spruce",
+      "seed": 1,
+      "seed_role": "regression",
+      "species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-2",
+      "parameter_species_id": "norway-spruce",
+      "seed": 2,
+      "seed_role": "regression",
+      "species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3",
+      "parameter_species_id": "norway-spruce",
+      "seed": 3,
+      "seed_role": "regression",
+      "species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3501386541",
+      "parameter_species_id": "norway-spruce",
+      "seed": 3501386541,
+      "seed_role": "holdout-at-freeze",
+      "species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-3258201723",
+      "parameter_species_id": "norway-spruce",
+      "seed": 3258201723,
+      "seed_role": "holdout-at-freeze",
+      "species_id": "norway-spruce"
+    },
+    {
+      "id": "norway-spruce-2774604799",
+      "parameter_species_id": "norway-spruce",
+      "seed": 2774604799,
+      "seed_role": "holdout-at-freeze",
+      "species_id": "norway-spruce"
+    }
+  ],
+  "schema": "specimens",
+  "schema_version": 1
+}

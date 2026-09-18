@@ -1,0 +1,129 @@
+{
+  "context": "Mature tree-form, healthy leaf-on, open-grown European parkland or woodland-edge; not a golden-leaf cultivar, not a dieback-killed skeleton.",
+  "curves": {
+    "dbh": {
+      "below_first_row": "linear-from-zero",
+      "method": "table",
+      "table": "E1-ash-dg-I"
+    },
+    "envelope_height_m": 28.0,
+    "height": {
+      "below_first_row": "linear-from-zero",
+      "method": "table",
+      "table": "E1-ash-height-I"
+    },
+    "mature_dbh_m": 0.55,
+    "reference_ages_years": [
+      20.0,
+      50.0,
+      80.0
+    ],
+    "tolerance_percent": 15.0
+  },
+  "described": [],
+  "engineering": {
+    "curves.envelope_height_m": {
+      "rationale": "fn-34 ash profile reference_height_by_age: 28 m at 80 years; profile height range 20 to 35 m",
+      "value": 28.0
+    },
+    "curves.mature_dbh_m": {
+      "rationale": "midpoint of the fn-34 ash profile's dbh_m range 0.3 to 0.8 m (BALTIC-ASH); no measured open-grown value yet",
+      "value": 0.55
+    }
+  },
+  "fields": [
+    {
+      "bar": "proxy_only",
+      "condition": "open_grown",
+      "field": "height_m",
+      "proxy": {
+        "source": "E1",
+        "taxon": "Fraxinus excelsior stand-grown site class I"
+      },
+      "question": "Which candidate span states the height a European ash reaches at a stated age, or its usual mature height, for a tree grown in the open?",
+      "required_ages_years": [
+        20.0,
+        50.0,
+        80.0
+      ]
+    },
+    {
+      "bar": "partial",
+      "condition": "open_grown",
+      "field": "dbh_m",
+      "proxy": null,
+      "question": "Which candidate span states the trunk diameter at breast height of a European ash at a stated age, or at maturity, for a tree grown in the open?",
+      "required_ages_years": [
+        20.0,
+        50.0,
+        80.0
+      ]
+    }
+  ],
+  "growth_form": "broadleaf",
+  "model": "jev-latest",
+  "preset": "european-ash",
+  "profile_id": "european-ash",
+  "schema": "manifest",
+  "schema_version": 1,
+  "seed": 7,
+  "sources": [
+    {
+      "id": "E1",
+      "rights": "published tables; extract cited with attribution",
+      "sha256": "c6c7d6558fe6f8157c2fea3a67e8aaed133902b18446eb32275972fc2a5f9885",
+      "tables": [
+        {
+          "condition": "stand_grown",
+          "dimension": "height_m",
+          "expected_rows": 11,
+          "id": "E1-ash-height-I",
+          "table_index": 5,
+          "taxon": "Fraxinus excelsior",
+          "unit": "m",
+          "value_column": 1
+        }
+      ],
+      "title": "Ertragstafelauszuege (AFZ Forstkalender 2024), Esche block from the Wiedemann/Schober tables",
+      "url": "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf"
+    },
+    {
+      "id": "J1",
+      "rights": "European Commission JRC, CC BY 4.0; cited with attribution",
+      "sha256": null,
+      "tables": [],
+      "title": "European Atlas of Forest Tree Species: Fraxinus excelsior",
+      "url": "https://forest.jrc.ec.europa.eu/media/atlas/Fraxinus_excelsior.pdf"
+    },
+    {
+      "id": "O1",
+      "rights": "web page; cited with attribution",
+      "sha256": null,
+      "tables": [],
+      "title": "Oregon State University Landscape Plants: Fraxinus excelsior",
+      "url": "https://landscapeplants.oregonstate.edu/plants/fraxinus-excelsior"
+    }
+  ],
+  "species": "european-ash",
+  "taxon": {
+    "common_name": "European ash",
+    "cultivar": null,
+    "rank": "species",
+    "scientific_name": "Fraxinus excelsior"
+  },
+  "transfers": [],
+  "versions": {
+    "question_sets": {
+      "citation": 1,
+      "described": 1,
+      "obligations": 1,
+      "ranking": 1,
+      "screen": 1,
+      "sufficiency": 1
+    },
+    "tools": {
+      "firecrawl": "1.23.3",
+      "species-pipeline": "d0f8516b"
+    }
+  }
+}

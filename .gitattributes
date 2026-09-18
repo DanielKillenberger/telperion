@@ -1,0 +1,4 @@
+# Reference images in the species catalogue are LFS objects: the record and its
+# image stay together, versioned, while a clone stays small and a checkout pulls
+# the bytes only where a matched still is rendered.
+catalogue/**/refs/** filter=lfs diff=lfs merge=lfs -text

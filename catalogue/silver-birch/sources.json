@@ -1,0 +1,62 @@
+{
+  "schema": "sources",
+  "schema_version": 1,
+  "sources": [
+    {
+      "attribution": "Atkinson, M.D. 1992. Biological Flora of the British Isles No. 175. Betula pendula Roth and B. pubescens Ehrh. Journal of Ecology 80: 837-870.",
+      "id": "ATKINSON-BIRCH",
+      "rights": "published article; cited with attribution, no redistribution inferred",
+      "sha256": null,
+      "tables": [],
+      "title": "Atkinson, M.D. 1992. Biological Flora of the British Isles No. 175. Betula pendula Roth and B. pubescens Ehrh. Journal of Ecology 80: 837-870.",
+      "url": "https://doi.org/10.2307/2260870",
+      "use": "Primary flora account. Tree to 30 m; slender pendant glabrous twigs; silvery-white bark; biserrate leaves. Height-diameter table for this context not extracted from the paywalled body; cited as the flora of record.",
+      "verified": "2026-09-14"
+    },
+    {
+      "attribution": "Flora of North America. Betula pendula Roth. FNA Vol. 3.",
+      "id": "FNA-BIRCH",
+      "rights": "web page; cited with attribution, no redistribution inferred",
+      "sha256": null,
+      "tables": [],
+      "title": "Flora of North America. Betula pendula Roth. FNA Vol. 3.",
+      "url": "http://efloras.org/florataxon.aspx?flora_id=1&taxon_id=200006160",
+      "use": "Trees to 25 m; leaf blade 3-7 x 2.5-5 cm, coarsely and sharply doubly serrate, apex acuminate.",
+      "verified": "2026-09-14"
+    },
+    {
+      "attribution": "Beck, P., Caudullo, G., de Rigo, D. & Tinner, W. 2016. Betula pendula, Betula pubescens and other birches in Europe: distribution, habitat, usage and threats. In: European Atlas of Forest Tree Species. Publications Office of the EU.",
+      "id": "JRC-BIRCH",
+      "rights": "European Commission JRC, CC BY 4.0; cited with attribution",
+      "sha256": null,
+      "tables": [],
+      "title": "Beck, P., Caudullo, G., de Rigo, D. & Tinner, W. 2016. Betula pendula, Betula pubescens and other birches in Europe: distribution, habitat, usage and threats. In: European Atlas of Forest Tree Species. Publications Office of the EU.",
+      "url": "https://forest.jrc.ec.europa.eu/media/atlas/Betula_spp.pdf",
+      "use": "B. pendula to 30 m; leaves 3-7 cm, coarsely double-serrate, fine point; drooping branches.",
+      "verified": "2026-09-14"
+    },
+    {
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "id": "OSU-BIRCH",
+      "rights": "web page; cited with attribution, no redistribution inferred",
+      "sha256": null,
+      "tables": [],
+      "title": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "url": "https://landscapeplants.oregonstate.edu/plants/betula-pendula",
+      "use": "Landscape 12-15(24) m; leaf 2.5-7.5 cm; pendulous branching. Uncalibrated imagery. Cultivar descriptions excluded.",
+      "verified": "2026-09-14"
+    },
+    {
+      "attribution": "Trees and Shrubs Online, International Dendrology Society. Betula pendula account.",
+      "id": "TSO-BIRCH",
+      "rights": "web page; cited with attribution, no redistribution inferred",
+      "sha256": null,
+      "tables": [],
+      "title": "Trees and Shrubs Online, International Dendrology Society. Betula pendula account.",
+      "url": "https://www.treesandshrubsonline.org/articles/betula/betula-pendula",
+      "use": "Usually 10-15 m, to 25 m; pendulous outer branchlets; leaves 50-75 x 45-60 mm; petiole 20-30 mm; white bark.",
+      "verified": "2026-09-14"
+    }
+  ],
+  "species": "silver-birch"
+}

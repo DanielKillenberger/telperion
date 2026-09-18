@@ -1,0 +1,49 @@
+{
+  "benchmark_id": null,
+  "cases": [
+    {
+      "id": "silver-birch-1",
+      "parameter_species_id": "silver-birch",
+      "seed": 1,
+      "seed_role": "regression",
+      "species_id": "silver-birch"
+    },
+    {
+      "id": "silver-birch-2",
+      "parameter_species_id": "silver-birch",
+      "seed": 2,
+      "seed_role": "regression",
+      "species_id": "silver-birch"
+    },
+    {
+      "id": "silver-birch-3",
+      "parameter_species_id": "silver-birch",
+      "seed": 3,
+      "seed_role": "regression",
+      "species_id": "silver-birch"
+    },
+    {
+      "id": "silver-birch-1877235147",
+      "parameter_species_id": "silver-birch",
+      "seed": 1877235147,
+      "seed_role": "holdout-at-freeze",
+      "species_id": "silver-birch"
+    },
+    {
+      "id": "silver-birch-661928304",
+      "parameter_species_id": "silver-birch",
+      "seed": 661928304,
+      "seed_role": "holdout-at-freeze",
+      "species_id": "silver-birch"
+    },
+    {
+      "id": "silver-birch-2665347455",
+      "parameter_species_id": "silver-birch",
+      "seed": 2665347455,
+      "seed_role": "holdout-at-freeze",
+      "species_id": "silver-birch"
+    }
+  ],
+  "schema": "specimens",
+  "schema_version": 1
+}

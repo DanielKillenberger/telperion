@@ -1,0 +1,49 @@
+{
+  "benchmark_id": null,
+  "cases": [
+    {
+      "id": "european-beech-1",
+      "parameter_species_id": "european-beech",
+      "seed": 1,
+      "seed_role": "regression",
+      "species_id": "european-beech"
+    },
+    {
+      "id": "european-beech-2",
+      "parameter_species_id": "european-beech",
+      "seed": 2,
+      "seed_role": "regression",
+      "species_id": "european-beech"
+    },
+    {
+      "id": "european-beech-3",
+      "parameter_species_id": "european-beech",
+      "seed": 3,
+      "seed_role": "regression",
+      "species_id": "european-beech"
+    },
+    {
+      "id": "european-beech-2073704155",
+      "parameter_species_id": "european-beech",
+      "seed": 2073704155,
+      "seed_role": "holdout-at-freeze",
+      "species_id": "european-beech"
+    },
+    {
+      "id": "european-beech-2669371334",
+      "parameter_species_id": "european-beech",
+      "seed": 2669371334,
+      "seed_role": "holdout-at-freeze",
+      "species_id": "european-beech"
+    },
+    {
+      "id": "european-beech-2043853165",
+      "parameter_species_id": "european-beech",
+      "seed": 2043853165,
+      "seed_role": "holdout-at-freeze",
+      "species_id": "european-beech"
+    }
+  ],
+  "schema": "specimens",
+  "schema_version": 1
+}

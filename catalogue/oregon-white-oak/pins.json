@@ -1,0 +1,33 @@
+{
+  "growth_reference": {
+    "age": 100.0,
+    "height_m": 24.0
+  },
+  "leaf_band": [
+    100000,
+    10000000
+  ],
+  "pins": {
+    "element": "4207404028969543471",
+    "instances": 869310,
+    "max": [
+      13.217684715842124,
+      23.557227415847606,
+      13.003187181590542
+    ],
+    "min": [
+      -13.163122928115051,
+      -0.09600000083446503,
+      -13.242490423042556
+    ],
+    "placement": "15624359871475047912",
+    "skeleton": "14986275773972546726",
+    "wood_triangles": 8255000,
+    "wood_vertices": 4262170
+  },
+  "profile_sha256": "e166c87169e189fc37603e27908dffdaa7fda78033295973fc577d08310f600c",
+  "schema": "pins",
+  "schema_version": 1,
+  "seed": 7,
+  "species": "oregon-white-oak"
+}

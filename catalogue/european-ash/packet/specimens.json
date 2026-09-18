@@ -1,0 +1,28 @@
+{
+  "benchmark_id": null,
+  "cases": [
+    {
+      "id": "european-ash-1",
+      "parameter_species_id": "european-ash",
+      "seed": 1,
+      "seed_role": "regression",
+      "species_id": "european-ash"
+    },
+    {
+      "id": "european-ash-2",
+      "parameter_species_id": "european-ash",
+      "seed": 2,
+      "seed_role": "regression",
+      "species_id": "european-ash"
+    },
+    {
+      "id": "european-ash-3",
+      "parameter_species_id": "european-ash",
+      "seed": 3,
+      "seed_role": "regression",
+      "species_id": "european-ash"
+    }
+  ],
+  "schema": "specimens",
+  "schema_version": 1
+}

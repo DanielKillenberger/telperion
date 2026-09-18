@@ -1,19 +1,17 @@
 {
-  "id": "silver-birch",
-  "scientific_name": "Betula pendula",
-  "taxon_rank": "species",
-  "cultivar": null,
   "context": "mature-open-grown",
-  "profile_id": "silver-birch",
-  "profile_path": ".flow/evidence/fn34/silver-birch/profile.json",
-  "profile_sha256": "a5753625c759581e04189d20594ea917d6c5204799fdc50b70a2e32ac88a3c30",
-  "preset": "silver-birch",
-  "required_capabilities": [
-    "woody-axes",
-    "entire-blade",
-    "alternate-petiole",
-    "pendulous-laterals"
+  "cultivar": null,
+  "fixed_seeds": [
+    1,
+    2,
+    3
   ],
+  "holdout_seeds": [
+    1877235147,
+    661928304,
+    2665347455
+  ],
+  "id": "silver-birch",
   "parameters": {
     "age": 70.0,
     "canopy": {
@@ -187,21 +185,23 @@
       "twistRate": 0.0
     }
   },
-  "fixed_seeds": [
-    1,
-    2,
-    3
-  ],
-  "holdout_seeds": [
-    1877235147,
-    661928304,
-    2665347455
-  ],
+  "preset": "silver-birch",
+  "profile_id": "silver-birch",
+  "profile_path": "packet/profile.json",
+  "profile_sha256": "dc439e6adbfa8d3dda89e86b6cb743e0bcfe0a59dcb9f13bfd72e7e392ff1d8f",
   "reference_ids": [
     "S-WHOLE",
     "S-BARE",
     "S-LEAF",
     "S-SHOOT",
     "S-BARK"
-  ]
+  ],
+  "required_capabilities": [
+    "woody-axes",
+    "entire-blade",
+    "alternate-petiole",
+    "pendulous-laterals"
+  ],
+  "scientific_name": "Betula pendula",
+  "taxon_rank": "species"
 }

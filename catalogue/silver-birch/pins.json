@@ -1,0 +1,33 @@
+{
+  "growth_reference": {
+    "age": 70.0,
+    "height_m": 18.0
+  },
+  "leaf_band": [
+    100000,
+    10000000
+  ],
+  "pins": {
+    "element": "1566806128915370638",
+    "instances": 261496,
+    "max": [
+      7.448466674116961,
+      14.669875796508304,
+      5.884177207946777
+    ],
+    "min": [
+      -6.533411344414747,
+      -0.07199999690055847,
+      -7.58635488410414
+    ],
+    "placement": "3902580876089393132",
+    "skeleton": "14293807423691432719",
+    "wood_triangles": 4926760,
+    "wood_vertices": 2539930
+  },
+  "profile_sha256": "dc439e6adbfa8d3dda89e86b6cb743e0bcfe0a59dcb9f13bfd72e7e392ff1d8f",
+  "schema": "pins",
+  "schema_version": 1,
+  "seed": 7,
+  "species": "silver-birch"
+}

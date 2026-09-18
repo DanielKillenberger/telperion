@@ -1,0 +1,211 @@
+{
+  "schema": "stills",
+  "schema_version": 1,
+  "species": "oregon-white-oak",
+  "stills": [
+    {
+      "camera": {
+        "far": 1000.0,
+        "field_of_view": 38.0,
+        "near": 0.01,
+        "position": {
+          "x": 1.7307636095778745,
+          "y": 2.2967023330704928,
+          "z": -1.7307636095778745
+        },
+        "target": {
+          "x": 0.0,
+          "y": 2.0,
+          "z": 0.0
+        }
+      },
+      "capture": 3,
+      "fork": null,
+      "owner_feedback": null,
+      "path": ".flow/evidence/fn29/stills/oak-trunk.png",
+      "preset": "oregon-white-oak",
+      "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+      "scale": "trunk",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 135.0,
+        "sunBlue": 2.6,
+        "sunElevation": 55.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "session": 3,
+      "sha256": "6c30e265f120cc14828cb8fd06702016ec1602f4ca0816014c26336419cfda29",
+      "species": "Oregon white oak",
+      "view": "Bare",
+      "visual_status": "unassessed"
+    },
+    {
+      "camera": {
+        "far": 1000.0,
+        "field_of_view": 38.0,
+        "near": 0.01,
+        "position": {
+          "x": -1.335209229402595,
+          "y": 4.351800788132381,
+          "z": -1.9281673692824055
+        },
+        "target": {
+          "x": 0.0,
+          "y": 4.0,
+          "z": 0.0
+        }
+      },
+      "capture": 3,
+      "fork": {
+        "height": 4.0,
+        "index": 8,
+        "radius": 0.39088976459153435
+      },
+      "owner_feedback": null,
+      "path": ".flow/evidence/fn29/stills/oak-branch.png",
+      "preset": "oregon-white-oak",
+      "reference": "OWNER-WHITE-OAK (bark), O-BARE (form)",
+      "scale": "branch",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 135.0,
+        "sunBlue": 2.6,
+        "sunElevation": 55.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "session": 3,
+      "sha256": "e670649ff49db48555715eea8acad5a1976ece743e60ab859f8e9182bac5b804",
+      "species": "Oregon white oak",
+      "view": "Bare",
+      "visual_status": "unassessed"
+    },
+    {
+      "camera": {
+        "far": 800.194958291769,
+        "field_of_view": 38.0,
+        "near": 0.0974791458845074,
+        "position": {
+          "x": 0.09994036346412577,
+          "y": 0.10113435942201085,
+          "z": 0.1671528079309551
+        },
+        "target": {
+          "x": 0.0,
+          "y": 0.0560000017285347,
+          "z": 0.005958673311397433
+        }
+      },
+      "capture": 3,
+      "fork": null,
+      "owner_feedback": null,
+      "path": ".flow/evidence/fn29/stills/oak-leaf-frontlit.png",
+      "preset": "oregon-white-oak",
+      "reference": "O-LEAF",
+      "scale": "leaf-frontlit",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 0.0,
+        "sunBlue": 2.6,
+        "sunElevation": 10.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "session": 3,
+      "sha256": "4db221ab4e1d1ecb4e3a036532866c058475732ebe897f0d7208b792f9d69783",
+      "species": "Oregon white oak",
+      "view": "Leaf",
+      "visual_status": "unassessed"
+    },
+    {
+      "camera": {
+        "far": 800.194958291769,
+        "field_of_view": 38.0,
+        "near": 0.0974791458845074,
+        "position": {
+          "x": 0.09994036346412577,
+          "y": 0.10113435942201085,
+          "z": 0.1671528079309551
+        },
+        "target": {
+          "x": 0.0,
+          "y": 0.0560000017285347,
+          "z": 0.005958673311397433
+        }
+      },
+      "capture": 3,
+      "fork": null,
+      "owner_feedback": null,
+      "path": ".flow/evidence/fn29/stills/oak-leaf-backlit.png",
+      "preset": "oregon-white-oak",
+      "reference": "O-LEAF",
+      "scale": "leaf-backlit",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 180.0,
+        "sunBlue": 2.6,
+        "sunElevation": 10.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "session": 3,
+      "sha256": "35529eb9ae475b88c98514cd01e1421297884bff58316b185dc2a802a5ed8fdc",
+      "species": "Oregon white oak",
+      "view": "Leaf",
+      "visual_status": "unassessed"
+    }
+  ]
+}
