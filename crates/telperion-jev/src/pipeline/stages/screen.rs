@@ -2,13 +2,11 @@
 //! candidate sentence with its kind, growing condition, anchor probability
 //! and ledger identity.
 
-use std::path::Path;
-
 use serde_json::{json, Value};
 
 use crate::ledger::SourceRef;
 use crate::pipeline::judge::Judge;
-use crate::pipeline::stage::{Context, StageError};
+use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::screen::screen;
 
 use super::extract::cached_markdown;
@@ -22,8 +20,8 @@ pub enum Outcome {
     Ran { rows: usize },
 }
 
-pub fn run(dir: &Path, judge: &Judge<'_>) -> Result<Outcome, StageError> {
-    let (ctx, _) = Context::open(dir, STAGE)?;
+pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
+    let (ctx, _) = Context::open(paths, STAGE)?;
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
     let (_, extract_sha) = body(&ctx, STAGE, "extract")?;
     let mut header = ctx.header(

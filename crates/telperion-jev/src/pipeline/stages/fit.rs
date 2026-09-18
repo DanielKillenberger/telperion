@@ -12,8 +12,6 @@
 //! skipped the same way. Every `ToleranceMiss` files `tolerance-miss`, which
 //! blocks generation and the report; the stage never accepts one.
 
-use std::path::Path;
-
 use serde_json::{json, Map, Value};
 
 use crate::pipeline::curve::{
@@ -21,7 +19,7 @@ use crate::pipeline::curve::{
 };
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use crate::pipeline::manifest::{CompositionSpec, Manifest};
-use crate::pipeline::stage::{Context, StageError};
+use crate::pipeline::stage::{Context, Paths, StageError};
 
 use super::{body, inputs};
 
@@ -39,8 +37,8 @@ pub enum Outcome {
     },
 }
 
-pub fn run(dir: &Path) -> Result<Outcome, StageError> {
-    let (ctx, blocked) = Context::open(dir, STAGE)?;
+pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
+    let (ctx, blocked) = Context::open(paths, STAGE)?;
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
     let (_, quality_sha) = body(&ctx, STAGE, "quality")?;
     let header = ctx.header(

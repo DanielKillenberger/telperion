@@ -1,0 +1,51 @@
+{
+  "schema": "sources",
+  "schema_version": 1,
+  "sources": [
+    {
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "id": "OSU-OAK",
+      "rights": "web page; cited with attribution, no redistribution inferred",
+      "sha256": null,
+      "tables": [],
+      "title": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "url": "https://landscapeplants.oregonstate.edu/plants/quercus-garryana",
+      "use": "Species identity, rounded spreading crown, crooked branches, simple lobed leaves; uncalibrated imagery.",
+      "verified": "2026-09-06"
+    },
+    {
+      "attribution": "Oak species, OSU Common Trees of the Pacific Northwest",
+      "id": "OSU-OAK-ID",
+      "rights": "web page; cited with attribution, no redistribution inferred",
+      "sha256": null,
+      "tables": [],
+      "title": "Oak species, OSU Common Trees of the Pacific Northwest",
+      "url": "https://treespnw.forestry.oregonstate.edu/broadleaf_genera/species/oak_spp.htm",
+      "use": "Blade width 2-5 inches; rounded irregular lobes. Distinguish the Oregon oak section from preceding California black oak.",
+      "verified": "2026-09-04"
+    },
+    {
+      "attribution": "Oregon White Oak, Oregon Wood Innovation Center; Niemiec, Ahrens, Willits & Hibbs, Hardwoods of the Pacific Northwest, 1995",
+      "id": "OWIC-OAK",
+      "rights": "web page; cited with attribution, no redistribution inferred",
+      "sha256": null,
+      "tables": [],
+      "title": "Oregon White Oak, Oregon Wood Innovation Center; Niemiec, Ahrens, Willits & Hibbs, Hardwoods of the Pacific Northwest, 1995",
+      "url": "https://owic.oregonstate.edu/node/79",
+      "use": "Independently presented units corroborate mature sizes and width comparable to height. “May equal” is not a numerical crown-width distribution.",
+      "verified": "2026-09-04"
+    },
+    {
+      "attribution": "William I. Stein, Silvics of North America, 1990, US Forest Service",
+      "id": "USFS-OAK",
+      "rights": "US Forest Service publication, public domain; cited with attribution",
+      "sha256": null,
+      "tables": [],
+      "title": "William I. Stein, Silvics of North America, 1990, US Forest Service",
+      "url": "https://research.fs.usda.gov/silvics/oregon-white-oak",
+      "use": "Species and habitat context; do not reinterpret known OCR unit errors as fresh measurements.",
+      "verified": "2026-09-06"
+    }
+  ],
+  "species": "oregon-white-oak"
+}

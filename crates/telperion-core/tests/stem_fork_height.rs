@@ -56,7 +56,7 @@ fn bole(f: &Family) -> f64 {
 }
 
 fn grow(family: &Family) -> Tree {
-    specimens::tree(&family)
+    specimens::tree(family)
 }
 
 /// Every node more than one stem leaves, and the root if any does: the root
@@ -78,7 +78,7 @@ fn forks(tree: &Tree) -> Vec<(usize, Vec<usize>)> {
 fn at_one_stem_the_fork_height_reaches_no_table() {
     for preset in PRESETS {
         let bytes = |f: &Family| {
-            let m = specimens::mesh(&f);
+            let m = specimens::mesh(f);
             (
                 fnv(m.wood.positions.iter().flat_map(|v| v.to_le_bytes())),
                 fnv(m

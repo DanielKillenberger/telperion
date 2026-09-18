@@ -1,25 +1,20 @@
 {
-  "id": "european-beech",
-  "scientific_name": "Fagus sylvatica",
-  "taxon_rank": "species",
+  "context": "mature-open-grown; template waits for fn-33 compound leaves; simple-blade fixture is not a catalogue species",
   "cultivar": null,
-  "context": "mature-open-grown",
-  "profile_id": "european-beech",
-  "profile_path": ".flow/evidence/fn34/european-beech/profile.json",
-  "profile_sha256": "43f7f9f55f0780cee49a7ceb3651265ac5e9229ee538963da74ca12997923e56",
-  "preset": "european-beech",
-  "required_capabilities": [
-    "woody-axes",
-    "entire-blade",
-    "alternate-petiole"
+  "fixed_seeds": [
+    1,
+    2,
+    3
   ],
+  "holdout_seeds": [],
+  "id": "european-ash",
   "parameters": {
-    "age": 120.0,
+    "age": 80.0,
     "canopy": {
       "clump": 5,
       "clumpSpan": 0.3,
       "divergence": 180.0,
-      "forwardLean": 0.2,
+      "forwardLean": 0.0,
       "leanRise": 0.0,
       "maxInstances": 18446744073709551615,
       "outward": 0.0,
@@ -32,10 +27,10 @@
       "upward": 0.0
     },
     "element": {
-      "axialSegments": 8,
-      "baseFullness": 0.75,
+      "axialSegments": 5,
+      "baseFullness": 0.5,
       "card": false,
-      "connectorLength": 0.008,
+      "connectorLength": 0.004,
       "crossSegments": 2,
       "cup": 0.18,
       "curl": 0.12,
@@ -43,9 +38,9 @@
       "lobeCount": 0,
       "lobeDepth": 0.0,
       "sectionRoundness": 0.0,
-      "tipSharpness": 0.7,
-      "widestAt": 0.45,
-      "width": 0.045
+      "tipSharpness": 1.4,
+      "widestAt": 0.4,
+      "width": 0.03
     },
     "growth": {
       "apicalControlLoss": 0.0,
@@ -56,51 +51,51 @@
       "sheddingTolerance": 2.0
     },
     "material": {
-      "barkBlue": 0.39,
-      "barkGreen": 0.41,
-      "barkMottleScale": 0.6,
-      "barkMottleStrength": 0.12,
-      "barkRed": 0.42,
-      "barkRoughness": 0.4,
+      "barkBlue": 0.3,
+      "barkGreen": 0.32,
+      "barkMottleScale": 0.7,
+      "barkMottleStrength": 0.16,
+      "barkRed": 0.32,
+      "barkRoughness": 0.75,
       "bladeMottleScale": 5.0,
       "bladeMottleStrength": 0.1,
       "brightnessRangeHigh": 0.1,
       "brightnessRangeLow": -0.1,
-      "cavityStrength": 0.35,
-      "crestBlue": 0.045,
-      "crestGreen": 0.055,
-      "crestRed": 0.06,
-      "crestStrength": 0.25,
-      "cuticleGloss": 0.48,
-      "fissureBlue": -0.02,
-      "fissureGreen": -0.03,
-      "fissureRed": -0.04,
-      "fissureStrength": 0.2,
-      "furrowStrength": 0.12,
+      "cavityStrength": 0.5,
+      "crestBlue": 0.05,
+      "crestGreen": 0.07,
+      "crestRed": 0.08,
+      "crestStrength": 0.35,
+      "cuticleGloss": 0.3,
+      "fissureBlue": -0.04,
+      "fissureGreen": -0.06,
+      "fissureRed": -0.08,
+      "fissureStrength": 0.5,
+      "furrowStrength": 0.7,
       "hueRangeHigh": 0.02,
       "hueRangeLow": -0.02,
-      "interiorDarkening": 0.6,
+      "interiorDarkening": 0.45,
       "leafBackBlue": 0.1,
-      "leafBackGreen": 0.23,
-      "leafBackRed": 0.14,
-      "leafFrontBlue": 0.018,
-      "leafFrontGreen": 0.105,
-      "leafFrontRed": 0.022,
+      "leafBackGreen": 0.22,
+      "leafBackRed": 0.13,
+      "leafFrontBlue": 0.025,
+      "leafFrontGreen": 0.12,
+      "leafFrontRed": 0.03,
       "marginBlue": 0.008,
       "marginGreen": 0.04,
       "marginRed": 0.02,
       "marginWidth": 0.04,
-      "plateScale": 0.04,
-      "ridgeScale": 0.018,
-      "roughnessDetail": 0.08,
-      "skyOcclusionStrength": 0.55,
-      "thickness": 0.6,
+      "plateScale": 0.05,
+      "ridgeScale": 0.03,
+      "roughnessDetail": 0.14,
+      "skyOcclusionStrength": 0.45,
+      "thickness": 0.55,
       "transmissionBlue": 0.08,
       "transmissionGreen": 0.5,
       "transmissionRed": 0.22,
       "transmissionStrength": 0.5,
       "veinContrast": 0.4,
-      "veinScale": 7.0
+      "veinScale": 6.0
     },
     "radii": {
       "forkExponent": 2.0,
@@ -121,11 +116,11 @@
         }
       },
       "envelope": {
-        "crownBase": 0.12,
-        "fullness": 0.7,
-        "height": 32.0,
-        "shoulder": 1.8,
-        "spread": 0.5
+        "crownBase": 0.14,
+        "fullness": 0.45,
+        "height": 28.0,
+        "shoulder": 1.6,
+        "spread": 0.55
       },
       "growth": {
         "influenceRadius": null,
@@ -136,21 +131,21 @@
         "trunkHeight": null
       },
       "habit": {
-        "apicalDominance": 0.2,
+        "apicalDominance": 0.25,
         "attractorWeight": 0.0,
-        "crookedness": 8.0,
+        "crookedness": 10.0,
         "lateralLengthRatio": 0.42,
         "lateralOrders": 3,
-        "lateralPitch": 50.0,
-        "lateralSpacing": 1.8,
+        "lateralPitch": 52.0,
+        "lateralSpacing": 1.7,
         "lateralsPerStation": 4,
-        "leaderInternode": 2.2,
+        "leaderInternode": 2.0,
         "pitchVariation": 12.0,
-        "risePrimary": 0.08,
+        "risePrimary": 0.06,
         "riseSecondary": 0.0,
         "sheddingThreshold": 0.0,
         "twigTipTaper": 0.25,
-        "whorlStrength": 0.15
+        "whorlStrength": 0.2
       },
       "seed": 42,
       "step": 0.022,
@@ -186,20 +181,22 @@
       "twistRate": 0.0
     }
   },
-  "fixed_seeds": [
-    1,
-    2,
-    3
-  ],
-  "holdout_seeds": [
-    2073704155,
-    2669371334,
-    2043853165
-  ],
+  "preset": null,
+  "profile_id": "european-ash",
+  "profile_path": "packet/profile.json",
+  "profile_sha256": "4d2d814f4659f3aa2269a8d3692dd03c9719f7f4dbc76f00b2f542893ba01d19",
   "reference_ids": [
-    "B-WHOLE",
-    "B-BARE",
-    "B-LEAF",
-    "B-LEAVES"
-  ]
+    "A-WHOLE",
+    "A-LEAF",
+    "A-SHOOT",
+    "A-UNDER",
+    "A-BARK"
+  ],
+  "required_capabilities": [
+    "woody-axes",
+    "pinnate-compound",
+    "opposite-attachment"
+  ],
+  "scientific_name": "Fraxinus excelsior",
+  "taxon_rank": "species"
 }

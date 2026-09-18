@@ -151,8 +151,8 @@ fn judge<'a>(transport: &'a GapTransport, paths: &Paths) -> Judge<'a> {
 }
 
 /// The key a stage would compute right now, with no artifact written.
-fn key_for(dir: &Path, stage: &str) -> String {
-    let (ctx, _) = Context::open(dir, stage).unwrap();
+fn key_for(paths: &Paths, stage: &str) -> String {
+    let (ctx, _) = Context::open(paths, stage).unwrap();
     ctx.header(stage, "schema", BTreeMap::new(), vec![])
         .idempotence_key
 }
@@ -164,8 +164,8 @@ fn an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_
     let paths = Paths::new(&dir);
     let halt = file_halt(&paths, "capability");
     // Keys before anything lands, so the landing's effect is measurable.
-    let gate_before = key_for(&dir, "gate");
-    let fetch_before = key_for(&dir, "fetch");
+    let gate_before = key_for(&paths, "gate");
+    let fetch_before = key_for(&paths, "fetch");
 
     let mut record = gap::open(&paths, &halt).unwrap();
     assert_eq!(record["halt"]["kind"], "onboarding-gate");
@@ -207,8 +207,8 @@ fn an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_
     assert_eq!(resumed.spec, "fn-37-pendulous-shoots-as-rows");
     // The halted stage and every stage after it rerun; the earlier ones do not.
     assert_eq!(resumed.reruns, vec!["gate", "generate", "report"]);
-    assert_ne!(key_for(&dir, "gate"), gate_before);
-    assert_eq!(key_for(&dir, "fetch"), fetch_before);
+    assert_ne!(key_for(&paths, "gate"), gate_before);
+    assert_eq!(key_for(&paths, "fetch"), fetch_before);
     // A second landing is refused; the record already carries one.
     assert!(resume::resume(&paths, &halt, "def5678", None)
         .unwrap_err()

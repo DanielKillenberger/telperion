@@ -1,0 +1,269 @@
+{
+  "reference_version": "fn19-references-v1",
+  "references": [
+    {
+      "accessed_at": "2026-09-14",
+      "age_years": null,
+      "asset_sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: plant habit. Tree-form leaf-on; exact age and dimensions unknown. Species form, not a named cultivar caption.",
+      "dimensions_m": null,
+      "id": "B-WHOLE",
+      "kept": false,
+      "kind": "real",
+      "limitations": [
+        "Uncalibrated landscape photograph; no measured height, crown fraction or age.",
+        "Agent did not open the raster; observation is caption plus flora, not pixel inspection.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ],
+      "matching": "qualitative",
+      "observation": "Caption: plant habit. Literature target is a dense oval-to-rounded open-grown crown. Raster not opened in this session (four-images reading rule); qualitative matching only.",
+      "scale": [
+        "whole"
+      ],
+      "shot": {
+        "aspect": [
+          593,
+          898
+        ],
+        "camera": {
+          "azimuth": 30,
+          "elevation": -15,
+          "fill": 0.93,
+          "fov": 40,
+          "targetHeight": 0.5
+        },
+        "confidence": "medium",
+        "crop": [
+          0.5,
+          0,
+          0.5,
+          1
+        ],
+        "derivation": "Right half of the diptych. Flat white sky, no cast shadow: overcast. Eye at about 1.6 m on the lawn with the horizon low in the frame and the crown centre about 14 m up at 45 m: the eye sits about 15 degrees below the aim. The crown touches the top edge and the base sits near the bottom: fill 0.93. Trunk clear for about a tenth of the height.",
+        "foliage": "leaf-on",
+        "light": {
+          "overcast": 0.9,
+          "sunAzimuth": 135,
+          "sunElevation": 55
+        },
+        "tree": {
+          "box": [
+            0.02,
+            0.02,
+            0.96,
+            0.91
+          ],
+          "crownBase": 0.12
+        }
+      },
+      "source_id": "OSU-BEECH",
+      "species_id": "european-beech",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy951.jpg",
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-beech/."
+    },
+    {
+      "accessed_at": "2026-09-14",
+      "age_years": null,
+      "asset_sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: plant habit, winter; trunk, bark. Winter anatomy and bark only.",
+      "dimensions_m": null,
+      "id": "B-BARE",
+      "kept": false,
+      "kind": "real",
+      "limitations": [
+        "Winter is anatomy-only; not summer density.",
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ],
+      "matching": "qualitative",
+      "observation": "Caption: winter habit and trunk bark. Literature: smooth silver-grey bark, elephant-hide on old trunks; regular winter scaffold.",
+      "scale": [
+        "bare",
+        "base"
+      ],
+      "shot": {
+        "aspect": [
+          267,
+          400
+        ],
+        "camera": {
+          "azimuth": 30,
+          "elevation": -8,
+          "fill": 0.95,
+          "fov": 45,
+          "targetHeight": 0.5
+        },
+        "confidence": "low",
+        "crop": [
+          0,
+          0,
+          0.5,
+          1
+        ],
+        "derivation": "Left half of the diptych. Blue sky and lit brick: a low winter sun from the right of the camera. Eye height on the path, the crown cut by both side edges so the fill is read from the height alone. The trunk is clear for about a quarter of the visible height.",
+        "foliage": "hidden",
+        "light": {
+          "overcast": 0.1,
+          "sunAzimuth": 300,
+          "sunElevation": 25
+        },
+        "tree": {
+          "box": [
+            0.0,
+            0.0,
+            1.0,
+            0.9
+          ],
+          "crownBase": 0.25
+        }
+      },
+      "source_id": "OSU-BEECH",
+      "species_id": "european-beech",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy896.jpg",
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-beech/."
+    },
+    {
+      "accessed_at": "2026-09-14",
+      "age_years": null,
+      "asset_sha256": "119b44834e1c62dcb4e4268ae8e21fcff0c9304039380d72aaede2e43d0f2655",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: leaf. Close-up; whole-tree age unknown.",
+      "dimensions_m": null,
+      "id": "B-LEAF",
+      "kept": false,
+      "kind": "real",
+      "limitations": [
+        "Single leaf, not a shoot distribution.",
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ],
+      "matching": "qualitative",
+      "observation": "Caption: leaf. Literature: ovate-elliptic, entire or wavy, acute tip, short petiole, lustrous dark green above.",
+      "scale": [
+        "attached-shoot"
+      ],
+      "source_id": "OSU-BEECH",
+      "species_id": "european-beech",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy4532.jpg",
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-beech/."
+    },
+    {
+      "accessed_at": "2026-09-14",
+      "age_years": null,
+      "asset_sha256": "25188f3e6e7d410dcf5d9978e1440e723752ce9882c34a2404673ec9e6f2384f",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: leaves. Attached foliage; cultivar status unspecified.",
+      "dimensions_m": null,
+      "id": "B-LEAVES",
+      "kept": false,
+      "kind": "real",
+      "limitations": [
+        "Not a complete multi-internode developmental shoot.",
+        "Agent did not open the raster.",
+        "Qualitative evidence only."
+      ],
+      "matching": "qualitative",
+      "observation": "Caption: leaves. Literature: alternate two-ranked simple blades.",
+      "scale": [
+        "attached-shoot"
+      ],
+      "source_id": "OSU-BEECH",
+      "species_id": "european-beech",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy47.jpg",
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-beech/."
+    },
+    {
+      "accessed_at": "2026-09-14",
+      "age_years": null,
+      "asset_sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Page caption: plant habit, winter; trunk, bark. The right half of the diptych: the trunk bark from about a metre.",
+      "dimensions_m": null,
+      "id": "B-BASE",
+      "kept": false,
+      "kind": "real",
+      "limitations": [
+        "Uncalibrated landscape photograph; the same asset as B-BARE cropped to its right half.",
+        "No measured trunk diameter; the close-up distance is an estimate."
+      ],
+      "matching": "qualitative",
+      "observation": "The right half of the same diptych as B-BARE: smooth grey bark with lichen spots, filling the frame. Read from the raster for the shot block (2026-09-14).",
+      "scale": [
+        "base"
+      ],
+      "shot": {
+        "aspect": [
+          267,
+          400
+        ],
+        "camera": {
+          "azimuth": 30,
+          "distance": 1.2,
+          "elevation": 0,
+          "fill": 1.0,
+          "fov": 45,
+          "targetHeight": 0.04
+        },
+        "confidence": "low",
+        "crop": [
+          0.5,
+          0,
+          0.5,
+          1
+        ],
+        "derivation": "Right half of the diptych: the trunk from about a metre, level with it, the bark filling the frame; the distance is stated because a close-up is not a fill. No crown is in the frame.",
+        "foliage": "hidden",
+        "light": {
+          "overcast": 0.2,
+          "sunAzimuth": 300,
+          "sunElevation": 30
+        },
+        "tree": {
+          "box": [
+            0.05,
+            0.0,
+            0.9,
+            1.0
+          ],
+          "crownBase": 1.0
+        }
+      },
+      "source_id": "OSU-BEECH",
+      "species_id": "european-beech",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/fasy896.jpg",
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed. Stored under ignored .refs/fn34/european-beech/."
+    }
+  ],
+  "sources": [
+    {
+      "attribution": "Packham, J.R., Thomas, P.A., Atkinson, M.D. & Degen, T. 2012. Biological Flora of the British Isles: Fagus sylvatica. Journal of Ecology 100: 1557-1608.",
+      "id": "PACKHAM-BEECH",
+      "url": "https://doi.org/10.1111/j.1365-2745.2012.02017.x",
+      "use": "Mature height 30-40 m (to 50 m), leaf 4-10 cm, petiole 5-15 mm, silver-grey bark, alternate ovate-elliptic leaves. Primary flora account.",
+      "verified": "2026-09-14"
+    },
+    {
+      "attribution": "Houston Durrant, T., de Rigo, D. & Caudullo, G. 2016. Fagus sylvatica in Europe: distribution, habitat, usage and threats. In: European Atlas of Forest Tree Species. Publications Office of the EU.",
+      "id": "JRC-BEECH",
+      "url": "https://forest.jrc.ec.europa.eu/media/atlas/Fagus_sylvatica.pdf",
+      "use": "Commonly 30-40 m, to 50 m; typical leaf 10 x 7 cm; lifespan 150-300 years.",
+      "verified": "2026-09-14"
+    },
+    {
+      "attribution": "Trees and Shrubs Online, International Dendrology Society. Fagus sylvatica account, citing Tutin et al. 1993 and Cullen et al. 2011.",
+      "id": "TSO-BEECH",
+      "url": "https://www.treesandshrubsonline.org/articles/fagus/fagus-sylvatica/",
+      "use": "Tree to 50 m x 1(-1.3?) m dbh; leaves (3-)4-10 x 2.5-4 cm; parkland trees thicker.",
+      "verified": "2026-09-14"
+    },
+    {
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "id": "OSU-BEECH",
+      "url": "https://landscapeplants.oregonstate.edu/plants/fagus-sylvatica",
+      "use": "Landscape height 15-23 m, spread 12-18 m, leaf 5-10 cm, petiole 0.5-1 cm, smooth grey bark. Uncalibrated imagery. Cultivar descriptions excluded.",
+      "verified": "2026-09-14"
+    }
+  ]
+}

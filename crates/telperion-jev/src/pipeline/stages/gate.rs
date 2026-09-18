@@ -7,7 +7,7 @@
 //! and the stage claims no measurement window of its own. Jev is not called
 //! here; the two checks run the repository's own example binaries.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 use serde_json::{json, Map, Value};
@@ -15,7 +15,7 @@ use serde_json::{json, Map, Value};
 use crate::pipeline::canon::read_json;
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use crate::pipeline::manifest::Manifest;
-use crate::pipeline::stage::{Context, StageError};
+use crate::pipeline::stage::{Context, Paths, StageError};
 
 use super::{body, inputs};
 
@@ -73,8 +73,8 @@ impl GateChecks for ExampleChecks {
     }
 }
 
-pub fn run(dir: &Path, checks: &dyn GateChecks) -> Result<Outcome, StageError> {
-    let (ctx, _) = Context::open(dir, STAGE)?;
+pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError> {
+    let (ctx, _) = Context::open(paths, STAGE)?;
     let (_, select_sha) = body(&ctx, STAGE, "select")?;
     let header = ctx.header(
         STAGE,

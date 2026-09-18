@@ -268,6 +268,7 @@ npm run rust:test
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 npm test
+npm run catalogue:check
 npm run typecheck
 npm run build
 npx playwright install chromium

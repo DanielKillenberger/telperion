@@ -5,15 +5,13 @@
 //! sufficiency level and names the dominant gap. A field below the manifest's
 //! bar files a data-insufficient decision; the stop is code on the level.
 
-use std::path::Path;
-
 use serde_json::{json, Map, Value};
 
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Field, Manifest, Sufficiency};
 use crate::pipeline::sets::{level_from_score, sufficiency_questions, SUFFICIENCY_LEVELS};
-use crate::pipeline::stage::{Context, StageError};
+use crate::pipeline::stage::{Context, Paths, StageError};
 
 use super::{body, inputs};
 
@@ -28,8 +26,8 @@ pub enum Outcome {
     Ran { decisions: Vec<String> },
 }
 
-pub fn run(dir: &Path, judge: &Judge<'_>) -> Result<Outcome, StageError> {
-    let (ctx, _) = Context::open(dir, STAGE)?;
+pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
+    let (ctx, _) = Context::open(paths, STAGE)?;
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
     let (screen, screen_sha) = body(&ctx, STAGE, "screen")?;
     let mut header = ctx.header(

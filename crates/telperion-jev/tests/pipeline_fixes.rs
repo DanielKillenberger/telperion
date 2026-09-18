@@ -16,7 +16,7 @@ use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::known::KnownSources;
-use telperion_jev::pipeline::stage::{Context, StageError};
+use telperion_jev::pipeline::stage::{Context, Paths, StageError};
 use telperion_jev::pipeline::stages::{discover, fetch, report};
 
 const ERTRAGSTAFELN: &str = "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf";
@@ -200,8 +200,20 @@ impl Run {
         .unwrap();
     }
 
+    /// The run's own paths: this harness keeps the record and the run's
+    /// scratch in one directory, as a test and a swap trial do.
+    fn paths(&self) -> Paths {
+        Paths::new(&self.dir)
+    }
+
+    /// What the repository knows, with no catalogue of its own: this run's
+    /// tree is the evidence tree and the specs it wrote above.
     fn known(&self) -> KnownSources {
-        KnownSources::scan(&self.flow, &self.dir.join("manifest.json"))
+        KnownSources::scan(
+            &self.flow.join("catalogue"),
+            &self.flow,
+            &self.dir.join("manifest.json"),
+        )
     }
 
     fn discover(&self) -> Result<discover::Outcome, StageError> {
@@ -211,11 +223,11 @@ impl Run {
             key: "test-key",
             ledger_dir: self.dir.join("ledger").join("entries"),
         };
-        discover::run(&self.dir, &self.adapter, &judge, &self.known())
+        discover::run(&self.paths(), &self.adapter, &judge, &self.known())
     }
 
     fn fetch(&self) -> Result<fetch::Outcome, StageError> {
-        fetch::run(&self.dir, &self.adapter)
+        fetch::run(&self.paths(), &self.adapter)
     }
 
     fn decisions(&self) -> Vec<Value> {
@@ -600,7 +612,7 @@ fn the_report_sums_cost_per_stage_and_a_rerun_shows_one_discovery() {
     ));
     assert!(matches!(run.fetch().unwrap(), fetch::Outcome::Current));
     assert!(matches!(
-        report::run(&run.dir).unwrap(),
+        report::run(&run.paths()).unwrap(),
         report::Outcome::Ran { .. }
     ));
 
@@ -628,7 +640,7 @@ fn the_report_sums_cost_per_stage_and_a_rerun_shows_one_discovery() {
     assert!(page.contains("| total | 2 | 7 |"), "{page}");
 
     // The stage reports itself current and the rejected proposal stops fetch.
-    let (ctx, _) = Context::open(&run.dir, "report").unwrap();
+    let (ctx, _) = Context::open(&run.paths(), "report").unwrap();
     assert_eq!(ctx.decisions.len(), 1);
     run.resolve(vec![run.resolution(
         "european-ash/discover/manifest-proposed",

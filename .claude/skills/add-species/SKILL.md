@@ -17,7 +17,9 @@ inside this run.
 
 ## The loop
 
-`DIR` is `.flow/evidence/<species>/pipeline`. Build once, then walk the
+`DIR` is the species' catalogue folder, `catalogue/<species>`, and `RUN` is
+`.flow/evidence/<species>/pipeline`, which takes the run's scratch: every
+command below carries `--dir DIR --run-dir RUN`. Build once, then walk the
 runbook's stages in order. Every command is a `species-pipeline` command from
 the repository root, with the key available to an interactive shell.
 

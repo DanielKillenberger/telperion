@@ -43,7 +43,7 @@ fn family(preset: Preset, row: impl Fn(&mut Family)) -> Family {
 }
 
 fn grow(family: &Family) -> telperion_core::tree::Tree {
-    specimens::tree(&family)
+    specimens::tree(family)
 }
 
 /// The structural nodes a tree's stems leave the root on.
@@ -68,7 +68,7 @@ fn one_stem_is_every_shipped_tree_exactly_as_it_was() {
     for preset in PRESETS {
         let base = family(preset, |f| f.skeleton.habit.stems = 1);
         let bytes = |f: &Family| {
-            let m = specimens::mesh(&f);
+            let m = specimens::mesh(f);
             (
                 fnv(m.wood.positions.iter().flat_map(|v| v.to_le_bytes())),
                 fnv(m

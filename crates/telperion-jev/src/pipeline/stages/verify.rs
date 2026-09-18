@@ -3,8 +3,6 @@
 //! obligations in code. Contradicted, unsupported and unmet items become
 //! decisions of their kinds.
 
-use std::path::Path;
-
 use serde_json::{json, Value};
 
 use crate::cite::{cite, ResearchClaim, SourceLoad};
@@ -12,7 +10,7 @@ use crate::pipeline::canon::read_json;
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use crate::pipeline::judge::Judge;
 use crate::pipeline::sets::{measurement_state, obligation_questions};
-use crate::pipeline::stage::{Context, StageError};
+use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::questions::thresholds;
 
 use super::extract::cached_markdown;
@@ -26,8 +24,8 @@ pub enum Outcome {
     Ran { decisions: Vec<String> },
 }
 
-pub fn run(dir: &Path, judge: &Judge<'_>) -> Result<Outcome, StageError> {
-    let (ctx, _) = Context::open(dir, STAGE)?;
+pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
+    let (ctx, _) = Context::open(paths, STAGE)?;
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
     let (_, select_sha) = body(&ctx, STAGE, "select")?;
     let mut header = ctx.header(

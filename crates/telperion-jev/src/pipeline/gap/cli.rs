@@ -5,8 +5,6 @@
 //! paths and ids: it writes no option, resolves no decision and judges no
 //! still. Only `route` reaches Jev, and only through the shared caller.
 
-use std::path::Path;
-
 use serde_json::Value;
 
 use super::option::{parse_options, Author, Written};
@@ -29,16 +27,19 @@ pub const USAGE: &str = "usage: species-pipeline gap <command> --dir DIR\n  \
     accept  --species S --verdict V                the verdict accepts\n  \
     metrics --species S                            write metrics.json";
 
-/// Runs one gap command. `args` is the driver's argv from `gap` onward.
-pub fn run(args: &[String]) -> Result<String, String> {
+/// Runs one gap command. `args` is the driver's argv from `gap` onward, and
+/// `paths` carries the species folder the driver resolved from `--dir` beside
+/// the run directory the ledger is written to.
+pub fn run(paths: &Paths, args: &[String]) -> Result<String, String> {
     let command = args.get(1).cloned().unwrap_or_default();
-    let dir = flag(args, "--dir").ok_or_else(|| USAGE.to_string())?;
-    let paths = Paths::new(Path::new(&dir));
+    // The driver resolved `--dir` into `paths` already; the flag is still
+    // required here, so a gap command that lacks it names its own usage.
+    flag(args, "--dir").ok_or_else(|| USAGE.to_string())?;
     match command.as_str() {
         "open" => {
             let id = required(args, "--decision")?;
-            let record = super::open(&paths, &id).map_err(show)?;
-            super::write(&paths, &record).map_err(show)?;
+            let record = super::open(paths, &id).map_err(show)?;
+            super::write(paths, &record).map_err(show)?;
             Ok(format!(
                 "gap open: {id} ({} at {})",
                 record["halt"]["kind"].as_str().unwrap_or_default(),
@@ -53,9 +54,9 @@ pub fn run(args: &[String]) -> Result<String, String> {
             let file = required(args, "--options")?;
             let options = parse_options(&read_json_file(&file)?).map_err(show)?;
             let count = options.len();
-            let mut record = super::open(&paths, &id).map_err(show)?;
+            let mut record = super::open(paths, &id).map_err(show)?;
             let written = option::add_set(&mut record, author, &model, options).map_err(show)?;
-            super::write(&paths, &record).map_err(show)?;
+            super::write(paths, &record).map_err(show)?;
             Ok(match written {
                 Written::Ready => format!("gap options: {count} from the {}", author.key()),
                 Written::EmptyToStronger => {
@@ -79,25 +80,25 @@ pub fn run(args: &[String]) -> Result<String, String> {
                 key: &key,
                 ledger_dir: paths.ledger().join("entries"),
             };
-            let routed = routing::route(&paths, &judge, &id, &verdicts).map_err(show)?;
+            let routed = routing::route(paths, &judge, &id, &verdicts).map_err(show)?;
             Ok(describe_route(&routed))
         }
         "reroute" => {
             let id = required(args, "--decision")?;
-            let routed = routing::reroute(&paths, &id).map_err(show)?;
+            let routed = routing::reroute(paths, &id).map_err(show)?;
             Ok(describe_route(&routed))
         }
         "spec" => {
             let id = required(args, "--decision")?;
             let spec = required(args, "--spec")?;
-            resume::record_spec(&paths, &id, &spec).map_err(show)?;
+            resume::record_spec(paths, &id, &spec).map_err(show)?;
             Ok(format!("gap spec: {spec} minted for {id}"))
         }
         "review" => {
             let id = required(args, "--decision")?;
             let verdict = required(args, "--verdict")?;
             Ok(
-                match resume::record_review(&paths, &id, &verdict).map_err(show)? {
+                match resume::record_review(paths, &id, &verdict).map_err(show)? {
                     resume::Reviewed::Recorded { needs_work } => {
                         format!("gap review: {verdict} ({needs_work} needs-work so far)")
                     }
@@ -111,7 +112,7 @@ pub fn run(args: &[String]) -> Result<String, String> {
             let id = required(args, "--decision")?;
             let commit = required(args, "--commit")?;
             let pin = flag(args, "--pin-note");
-            let resumed = resume::resume(&paths, &id, &commit, pin.as_deref()).map_err(show)?;
+            let resumed = resume::resume(paths, &id, &commit, pin.as_deref()).map_err(show)?;
             Ok(format!(
                 "gap resume: {} landed at {commit}; rerun {}",
                 resumed.spec,
@@ -123,7 +124,7 @@ pub fn run(args: &[String]) -> Result<String, String> {
             let verdict = required(args, "--verdict")?;
             let note = flag(args, "--note").unwrap_or_default();
             Ok(
-                match rounds::open_round(&paths, &species, &verdict, &note).map_err(show)? {
+                match rounds::open_round(paths, &species, &verdict, &note).map_err(show)? {
                     rounds::Opened::Round(round) => format!("gap round: {verdict} round {round}"),
                     rounds::Opened::Spent { round, decision } => format!(
                         "gap round: {verdict} round {round} is past the bound; filed {decision} for the owner"
@@ -133,12 +134,12 @@ pub fn run(args: &[String]) -> Result<String, String> {
         }
         "accept" => {
             let verdict = required(args, "--verdict")?;
-            let round = rounds::accept(&paths, &verdict).map_err(show)?;
+            let round = rounds::accept(paths, &verdict).map_err(show)?;
             Ok(format!("gap accept: {verdict} accepts at round {round}"))
         }
         "metrics" => {
             let species = required(args, "--species")?;
-            let record = metrics::write(&paths, &species).map_err(show)?;
+            let record = metrics::write(paths, &species).map_err(show)?;
             Ok(format!(
                 "gap metrics: {} gaps ({} routed), {:.2} taken by the loop, {} reversals, {} captures",
                 record["autonomy"]["gaps"],
@@ -214,27 +215,30 @@ fn read_strings(path: &str) -> Result<Vec<String>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::Path;
 
     fn argv(words: &[&str]) -> Vec<String> {
         words.iter().map(|w| w.to_string()).collect()
     }
 
+    fn nowhere() -> Paths {
+        Paths::new(Path::new("/nowhere"))
+    }
+
     #[test]
     fn every_command_names_the_flag_it_lacks_before_it_reads_anything() {
-        assert!(run(&argv(&["gap", "open"])).unwrap_err().contains("usage"));
-        let err = run(&argv(&["gap", "open", "--dir", "/nowhere"])).unwrap_err();
+        assert!(run(&nowhere(), &argv(&["gap", "open"]))
+            .unwrap_err()
+            .contains("usage"));
+        let err = run(&nowhere(), &argv(&["gap", "open", "--dir", "/nowhere"])).unwrap_err();
         assert!(err.contains("missing --decision"), "{err}");
-        let err = run(&argv(&[
-            "gap",
-            "round",
-            "--dir",
-            "/nowhere",
-            "--species",
-            "s",
-        ]))
+        let err = run(
+            &nowhere(),
+            &argv(&["gap", "round", "--dir", "/nowhere", "--species", "s"]),
+        )
         .unwrap_err();
         assert!(err.contains("missing --verdict"), "{err}");
-        let err = run(&argv(&["gap", "fly", "--dir", "/nowhere"])).unwrap_err();
+        let err = run(&nowhere(), &argv(&["gap", "fly", "--dir", "/nowhere"])).unwrap_err();
         assert!(err.contains("unknown gap command fly"), "{err}");
     }
 

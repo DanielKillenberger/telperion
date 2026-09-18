@@ -1,9 +1,10 @@
 name: Tests
 
 # A push or pull request that touches only flow bookkeeping, documentation or
-# markdown starts no run. The four files listed after the exclusions are test
-# inputs that live under those trees: the species profiles and the benchmark
-# protocol the core tests read, and the spec the citation parser is tested on.
+# markdown starts no run. The paths listed after the exclusions are test inputs
+# that live under those trees: the species profiles and the benchmark protocol
+# the core tests read, the spec the citation parser is tested on, and the
+# catalogue, whose generated pages are markdown the structure check gates.
 on:
   push:
     branches: [master]
@@ -16,6 +17,7 @@ on:
       - '.flow/evidence/fn34/profiles.json'
       - '.flow/evidence/fn19/protocol.json'
       - '.flow/specs/fn-11-growth-over-time.md'
+      - 'catalogue/**'
   pull_request:
     paths:
       - '**'
@@ -26,6 +28,7 @@ on:
       - '.flow/evidence/fn34/profiles.json'
       - '.flow/evidence/fn19/protocol.json'
       - '.flow/specs/fn-11-growth-over-time.md'
+      - 'catalogue/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

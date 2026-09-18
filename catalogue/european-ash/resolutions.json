@@ -1,0 +1,24 @@
+{
+  "resolutions": [
+    {
+      "at": "2026-09-18",
+      "by": "Daniel Killenberger (host-drafted, owner-admitted in session)",
+      "id": "european-ash/discover/manifest-proposed",
+      "inputs_sha256": {
+        "draft": "51c6d52958ba45f9b87a2594c20b0770dee3bf8f42c941f6b59720617e811f4b"
+      },
+      "note": "Sources E1 (Ertragstafeln, Esche height block), J1 (JRC atlas), O1 (OSU), M1 (MoBot) admitted; height proxied on the stand-grown site class I table; no diameter table exists in the extract, so the dbh curve is expected to file missing-curve. Re-bound to the second proposal: admitting the manifest changed discover's idempotence key, discover ran again and reissued the decision. Re-bound after the manifest edit.",
+      "option": "admit"
+    },
+    {
+      "at": "2026-09-18",
+      "by": "Daniel Killenberger (host-resolved in session)",
+      "id": "european-ash/fetch/unavailable-source/M1",
+      "inputs_sha256": {
+        "url": "f3d9f487a8c4f69355161062d9a7e95621b936c27d8e53108e4a1d095858a956"
+      },
+      "note": "MoBot Plant Finder duplicates the OSU landscape page; the Rust client refused its TLS chain (UnknownIssuer). Dropped for this run.",
+      "option": "drop-source"
+    }
+  ]
+}

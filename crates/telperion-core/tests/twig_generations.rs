@@ -75,7 +75,7 @@ fn family(id: &str, seed: u32) -> Family {
 }
 
 fn grow(f: &Family) -> Tree {
-    specimens::tree(&f)
+    specimens::tree(f)
 }
 
 /// A one-metre structural stem, thick enough that the radius never falls to

@@ -61,7 +61,8 @@ fn grow(family: &Family) -> Tree {
 /// The cache path of a family's skeleton, or `None` when the family is not a
 /// shipped table at a seed.
 pub fn path(family: &Family) -> Option<PathBuf> {
-    let wire = params::metadata(family).to_string();
+    let metadata = params::metadata(family);
+    let wire = metadata.to_string();
     let seed = family.skeleton.seed;
     let fixed = [
         Preset::Ordinary,
@@ -76,7 +77,7 @@ pub fn path(family: &Family) -> Option<PathBuf> {
     .any(|preset| {
         let mut table = preset.parameters();
         table.skeleton.seed = seed;
-        params::metadata(&table).to_string() == wire
+        params::metadata(&table) == metadata
     });
     fixed.then(|| directory().join(format!("tree-{seed}-{:016x}.bin", fnv(wire.as_bytes()))))
 }

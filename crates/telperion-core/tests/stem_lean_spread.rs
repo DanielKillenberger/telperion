@@ -52,7 +52,7 @@ fn clump(stems: u32, spread: f64) -> Family {
 }
 
 fn grow(family: &Family) -> Tree {
-    specimens::tree(&family)
+    specimens::tree(family)
 }
 
 /// Degrees from vertical each stem's first edge leaves the root at, in the
@@ -74,7 +74,7 @@ fn leans(tree: &Tree) -> Vec<f64> {
 fn at_one_stem_the_spread_reaches_no_table() {
     for preset in PRESETS {
         let bytes = |f: &Family| {
-            let m = specimens::mesh(&f);
+            let m = specimens::mesh(f);
             (
                 fnv(m.wood.positions.iter().flat_map(|v| v.to_le_bytes())),
                 fnv(m

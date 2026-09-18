@@ -1,0 +1,18 @@
+{
+  "entries": {
+    "/profiles/0/metrics/height_m": {
+      "ledger": [
+        "b29825ee01f6264a86533480"
+      ],
+      "route": "copied",
+      "source": "J1",
+      "span": "20-35 m",
+      "unit": "m"
+    }
+  },
+  "schema": "provenance",
+  "schema_version": 1,
+  "unavailable": {
+    "dbh_m": "below the data-quality bar"
+  }
+}

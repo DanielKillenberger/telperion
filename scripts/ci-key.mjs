@@ -25,6 +25,8 @@ const CORE_TESTS = [
   'tests/migration',
   '.flow/evidence/fn9/profiles.json', '.flow/evidence/fn34/profiles.json',
   '.flow/evidence/fn19/protocol.json',
+  // The identity, sweep and growth-reference tests read the catalogue's pins.
+  'catalogue',
 ];
 
 const SUITES = {
@@ -42,7 +44,9 @@ const SUITES = {
     profile: 'release',
     inputs: [
       CORE, RENDER, WASM, 'src', 'harness', 'tests',
+      'catalogue', '.gitattributes',
       'scripts/build-wasm.mjs', 'scripts/build-render.mjs',
+      'scripts/catalogue-check.mjs', 'scripts/catalogue-pages.mjs',
       'package.json', 'package-lock.json',
       'tsconfig.json', 'tsconfig.build.json', 'vite.config.ts', 'vitest.config.ts',
     ],

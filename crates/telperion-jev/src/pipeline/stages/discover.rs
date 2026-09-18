@@ -1,16 +1,21 @@
 //! Discovery proposes sources for a person to admit into the manifest.
 //!
 //! For every evidence field the manifest requires, the candidates are what
-//! the repository already knows for that field (the sources admitted
-//! manifests in the evidence tree name and the URLs the specs cite), then the
-//! adapter's web search and research index on a plain-word query. Jev ranks
-//! them per field and the stage files a manifest-proposed decision carrying
-//! the draft manifest and the ranking judgment behind every proposal. The
-//! stage keys on the seed (species, taxon, fields), not the whole manifest,
-//! so admitting sources does not rerun it. Nothing is admitted here.
+//! the repository already knows for that field - the sources the catalogue's
+//! own bibliographies hold, the sources admitted manifests in the evidence
+//! tree name, and the URLs the specs cite - then the adapter's web search and
+//! research index on a plain-word query. Jev ranks them per field and the
+//! stage files a manifest-proposed decision carrying the draft manifest and
+//! the ranking judgment behind every proposal. The stage keys on the seed
+//! (species, taxon, fields), not the whole manifest, so admitting sources
+//! does not rerun it. Nothing is admitted here.
+//!
+//! What the repository knows comes first because a source it has already
+//! verified is the cheapest evidence there is: the first ash run spent six
+//! driver dispatches searching the web for a yield table a reference file in
+//! the repository already named.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::Path;
 
 use serde_json::{json, Value};
 
@@ -22,7 +27,7 @@ use crate::pipeline::judge::Judge;
 use crate::pipeline::known::KnownSources;
 use crate::pipeline::manifest::{seed_sha256, Manifest, Source};
 use crate::pipeline::sets::ranking_questions;
-use crate::pipeline::stage::{Context, StageError, STAGES};
+use crate::pipeline::stage::{Context, Paths, StageError, STAGES};
 
 use super::inputs;
 
@@ -36,12 +41,12 @@ pub enum Outcome {
 }
 
 pub fn run(
-    dir: &Path,
+    paths: &Paths,
     adapter: &dyn FetchAdapter,
     judge: &Judge<'_>,
     known: &KnownSources,
 ) -> Result<Outcome, StageError> {
-    let (ctx, _) = Context::open(dir, STAGE)?;
+    let (ctx, _) = Context::open(paths, STAGE)?;
     let manifest = &ctx.admitted.manifest;
     let seed = seed_sha256(manifest);
     let mut header = ctx.header_keyed(STAGE, "discover", inputs(&[]), vec![], &seed);

@@ -85,7 +85,7 @@ fn skeleton(f: &Family) -> u64 {
 /// The tree one family grows: the hash of its skeleton and how many nodes it
 /// carries, which is what says a walk bends a curtain rather than replacing it.
 fn grown(f: &Family) -> (u64, usize) {
-    let tree = specimens::tree(&f);
+    let tree = specimens::tree(f);
     let mut hash = 14695981039346656037_u64;
     for n in tree.nodes.iter().skip(1) {
         for byte in [n.position.x, n.position.y, n.position.z]
@@ -150,7 +150,7 @@ fn whole_runs(f: &Family, pendulous: f64) -> Vec<Vec<Step>> {
 /// one branch identity's own chain of nodes; a chain broken by the frontier's
 /// ordering is dropped rather than read as a shoot.
 fn hanging_runs(f: &Family) -> Vec<Vec<Step>> {
-    let tree = specimens::tree(&f);
+    let tree = specimens::tree(f);
     let mut chains: BTreeMap<u32, Vec<usize>> = BTreeMap::new();
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
         if n.kind == NodeKind::Branch {

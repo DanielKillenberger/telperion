@@ -1,0 +1,215 @@
+{
+  "definitions": {
+    "branch_count": "Biological axes beginning at forks, excluding trunk. Collapse degree-two chains; choose thickest child as axis continuation, tie-break by stable node index.",
+    "branch_order": "Trunk order 0; continuing dominant axis retains order, lateral at fork increases it by one.",
+    "crown_base_m": "Lowest retained foliage Y above ground; report live primary-branch insertion separately. Hanging foliage and branch insertion are different.",
+    "crown_width_height_ratio": "crown_width_m / height_m.",
+    "crown_width_m": "Maximum of X and Z retained-foliage AABB spans; also report both spans. Approximation to field maximum spread; do not use wood buttress or envelope width.",
+    "dbh_m": "Diameter at 1.3 m above root ground along dominant trunk, interpolating intersecting structural edge radii; report 2*radius as circular-equivalent centreline model proxy. Multi-stem at this plane is ambiguous and must be flagged, not summed. Sources using US breast height (~1.37 m) are approximate comparisons; retain measurement height.",
+    "foliage_length_m": "For ash, the whole pinnate leaf, base of the lowest leaflet pair to the terminal leaflet tip, excluding the woody attachment. Leaflet length is a separate field. A simple-blade stand-in is not this measurement.",
+    "foliage_units": "Ash: one pinnate leaf is one placement; leaflets are instances. Report placements, instances and units_per_instance. A simple blade is not an ash leaf.",
+    "foliage_width_m": "Maximum width of the whole pinnate leaf across opposite leaflet pairs. Leaflet width is not this field.",
+    "height_m": "Maximum Y of actual wood/retained foliage above root ground Y=0; exclude root flare below ground. Also report wood-only height. Envelope height is a parameter, not a measurement.",
+    "leaf_area_m2": "Sum transformed triangle areas once per leaflet sheet; do not double for double-sided rendering.",
+    "leaflet_count": "Number of leaflets on one leaf, including the terminal leaflet. Typical 7-13; one leaf is one placement and its leaflets are instances.",
+    "leaflet_length_m": "Base-to-tip of one leaflet lamina, excluding the rachis.",
+    "twig_count": "Unique retained twig runs (NodeKind::Twig), each a terminal fine woody axis; does not imply one leaf."
+  },
+  "profiles": [
+    {
+      "anatomy": {
+        "attachment": "Opposite (decussate) pairs; one leaflet of a pair may be displaced. Not alternate simple blades.",
+        "branching": "Round-headed, broad-spreading open crown; grey bark smooth then furrowed; opposite twigs.",
+        "element": "Opposite pinnate compound leaf, 7-13 sessile serrate leaflets on a rachis, terminal leaflet present, black winter buds. One leaf is one placement; leaflets are instances. Unsupported until fn-33."
+      },
+      "capability_matrix": {
+        "opposite-attachment": "unmet as a paired station; divergence 180 is not opposite pairing",
+        "pinnate-compound": "unmet; waits for fn-33-flowers-cones-and-compound-leaves-as",
+        "simple-blade": "supported-but-wrong-organ",
+        "woody-axes": "supported"
+      },
+      "common_name": "European ash",
+      "context": "Mature tree-form, healthy leaf-on, open-grown European parkland or woodland-edge; not a golden-leaf cultivar, not a dieback-killed skeleton. Profile and references are complete. The template waits for fn-33 compound leaves; a simple-blade fixture is not a passing species (R4).",
+      "id": "european-ash",
+      "metrics": {
+        "branch_count": {
+          "classification": "contextual",
+          "confidence": "unknown",
+          "note": "No context-matched biological range located.",
+          "range": null,
+          "source": [],
+          "unit": "axes"
+        },
+        "branch_order": {
+          "classification": "contextual",
+          "confidence": "unknown",
+          "note": "No context-matched biological range located.",
+          "range": null,
+          "source": [],
+          "unit": "order"
+        },
+        "crown_base_m": {
+          "classification": "contextual",
+          "confidence": "unknown",
+          "note": "No context-matched biological range located.",
+          "range": null,
+          "source": [],
+          "unit": "m"
+        },
+        "crown_width_height_ratio": {
+          "classification": "contextual",
+          "confidence": "low",
+          "note": "Engineering estimate from OSU equal-or-greater width. Labelled estimate.",
+          "range": [
+            0.9,
+            1.3
+          ],
+          "source": [
+            "OSU-ASH"
+          ],
+          "unit": "ratio"
+        },
+        "crown_width_m": {
+          "classification": "contextual",
+          "confidence": "medium",
+          "note": "OSU: equal or somewhat greater width than height, round-headed and broad spreading. Contextual until the template lands.",
+          "range": [
+            20,
+            35
+          ],
+          "source": [
+            "OSU-ASH"
+          ],
+          "unit": "m"
+        },
+        "dbh_m": {
+          "classification": "contextual",
+          "confidence": "medium",
+          "note": "Dobrowolska & Kowalczyk 2020: forest dominant/codominant mean DBH about 0.22-0.50 m at 48-120 years. Open-grown trees can be thicker. Not a pass claim until the template lands.",
+          "range": [
+            0.3,
+            0.8
+          ],
+          "source": [
+            "BALTIC-ASH"
+          ],
+          "unit": "m"
+        },
+        "foliage_length_m": {
+          "classification": "gating",
+          "confidence": "high",
+          "note": "Whole pinnate leaf. Thomas to 30 cm; OSU 25-30 cm; Kew 20-25 cm. A simple-blade fixture cannot meet this as an ash leaf.",
+          "range": [
+            0.2,
+            0.3
+          ],
+          "source": [
+            "THOMAS-ASH",
+            "OSU-ASH",
+            "KEW-ASH"
+          ],
+          "unit": "m"
+        },
+        "foliage_units": {
+          "classification": "contextual",
+          "confidence": "unknown",
+          "note": "Metrics must report placements, instances and units per instance once compound leaves exist.",
+          "range": null,
+          "source": [],
+          "unit": "placements"
+        },
+        "foliage_width_m": {
+          "classification": "contextual",
+          "confidence": "unknown",
+          "note": "No cited whole-leaf width distribution; leaflet width is not this field.",
+          "range": null,
+          "source": [],
+          "unit": "m"
+        },
+        "height_m": {
+          "classification": "gating",
+          "confidence": "medium",
+          "note": "OSU landscape to 25(30+) m; Kew to 40 m; Baltic forestry dominant/codominant 22-30 m at 50-120 years. Thomas 2016 British woodland typical 12-18 m is contextual and is not substituted. Exceptional 40-43 m is not gated.",
+          "range": [
+            20,
+            35
+          ],
+          "source": [
+            "OSU-ASH",
+            "BALTIC-ASH",
+            "KEW-ASH"
+          ],
+          "unit": "m"
+        },
+        "leaf_area_m2": {
+          "classification": "contextual",
+          "confidence": "low",
+          "note": "Thomas cites Grime, Hodgson & Hunt 2007: typically << 5000 mm2 per leaf. Not converted into a gate.",
+          "range": null,
+          "source": [
+            "THOMAS-ASH"
+          ],
+          "unit": "m2"
+        },
+        "leaflet_count": {
+          "classification": "gating",
+          "confidence": "high",
+          "note": "Thomas up to 13; OSU 7-11; Kew 9-13. One leaf is one placement; leaflets are instances.",
+          "range": [
+            7,
+            13
+          ],
+          "source": [
+            "THOMAS-ASH",
+            "OSU-ASH",
+            "KEW-ASH"
+          ],
+          "unit": "leaflets per leaf"
+        },
+        "leaflet_length_m": {
+          "classification": "gating",
+          "confidence": "high",
+          "note": "OSU leaflets 5-10 cm; Thomas usually c. 7 cm. Units-per-instance target once fn-33 lands.",
+          "range": [
+            0.05,
+            0.1
+          ],
+          "source": [
+            "OSU-ASH",
+            "THOMAS-ASH"
+          ],
+          "unit": "m"
+        },
+        "twig_count": {
+          "classification": "contextual",
+          "confidence": "unknown",
+          "note": "No context-matched biological range located.",
+          "range": null,
+          "source": [],
+          "unit": "runs"
+        }
+      },
+      "readiness": "unready",
+      "reference_height_by_age": {
+        "age_years": 80,
+        "height_m": 28,
+        "note": "Recorded target for a future template. Not used: the ash is not a catalogue species."
+      },
+      "rubric": {
+        "bark": "Grey, furrowed when mature; A-BARK.",
+        "branching_habit": "Open opposite scaffold; A-WHOLE.",
+        "crown_silhouette": "Round-headed, as wide as tall or wider; A-WHOLE.",
+        "foliage_shape_attachment": "Pinnate compound, opposite; A-LEAF, A-SHOOT. A simple blade fails this trait."
+      },
+      "scientific_name": "Fraxinus excelsior",
+      "sources": [
+        "THOMAS-ASH",
+        "OSU-ASH",
+        "KEW-ASH",
+        "BALTIC-ASH"
+      ]
+    }
+  ],
+  "provenance": "packet/profile.json",
+  "schema_version": 1
+}

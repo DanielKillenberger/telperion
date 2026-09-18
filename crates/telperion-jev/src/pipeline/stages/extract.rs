@@ -1,13 +1,11 @@
 //! Candidate extraction: every sentence with a length, age or rate unit,
 //! from the cached markdown of every fetched source, with its context.
 
-use std::path::Path;
-
 use serde_json::{json, Value};
 
 use crate::extract::{candidate_sentences, visible_text};
 use crate::pipeline::canon::file_sha256;
-use crate::pipeline::stage::{Context, StageError};
+use crate::pipeline::stage::{Context, Paths, StageError};
 
 use super::{body, inputs};
 
@@ -19,8 +17,8 @@ pub enum Outcome {
     Ran { candidates: usize },
 }
 
-pub fn run(dir: &Path) -> Result<Outcome, StageError> {
-    let (ctx, _) = Context::open(dir, STAGE)?;
+pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
+    let (ctx, _) = Context::open(paths, STAGE)?;
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
     let header = ctx.header(
         STAGE,

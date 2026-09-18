@@ -34,7 +34,7 @@ fn beech(seed: u32) -> Family {
 }
 
 fn grown(f: &Family) -> Tree {
-    specimens::tree(&f)
+    specimens::tree(f)
 }
 
 fn twig(f: &Family) -> Option<TwigPlacement> {

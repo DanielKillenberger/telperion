@@ -1,7 +1,8 @@
-//! What the repository already knows before any search: the sources every
-//! admitted manifest under the evidence tree names, with the dimensions their
-//! tables cover and any fetch error their run recorded, and the URLs the
-//! specs' `## Resolved via Research` sections cite. Discovery lists them as
+//! What the repository already knows before any search: the sources the
+//! catalogue's own bibliographies hold, the sources every admitted manifest
+//! under the evidence tree names, with the dimensions their tables cover and
+//! any fetch error their run recorded, and the URLs the specs'
+//! `## Resolved via Research` sections cite. Discovery lists them as
 //! candidates Jev ranks like searched ones, with their origin marked; nothing
 //! is fetched here and nothing is admitted by being known.
 
@@ -21,7 +22,8 @@ pub struct KnownSource {
     pub url: String,
     pub title: String,
     pub snippet: String,
-    /// `manifest:<path>#<source id>` or `spec:<spec id>`.
+    /// `catalogue:<species id>#<source id>`, `manifest:<path>#<source id>`
+    /// or `spec:<spec id>`.
     pub origin: String,
     /// The dimensions the source's admitted tables cover; empty when the
     /// source is named for every field.
@@ -51,14 +53,19 @@ pub struct KnownSources {
 }
 
 impl KnownSources {
-    /// Every manifest under `<flow>/evidence` other than the run's own, and
-    /// every research URL under `<flow>/specs`, one entry per URL.
-    pub fn scan(flow: &Path, own_manifest: &Path) -> Self {
+    /// Every species bibliography under `catalogue`, every manifest under
+    /// `<flow>/evidence` other than the run's own, and every research URL
+    /// under `<flow>/specs`, one entry per URL. A catalogue that is absent or
+    /// unreadable yields nothing and the rest is scanned as before.
+    pub fn scan(catalogue: &Path, flow: &Path, own_manifest: &Path) -> Self {
         let own = fs::canonicalize(own_manifest).ok();
         let mut manifests = Vec::new();
         collect_manifests(&flow.join("evidence"), &mut manifests);
         manifests.sort();
         let mut by_url: BTreeMap<String, KnownSource> = BTreeMap::new();
+        for source in catalogue_sources(catalogue) {
+            merge(&mut by_url, source);
+        }
         for path in manifests {
             if fs::canonicalize(&path).ok() == own {
                 continue;
@@ -75,26 +82,81 @@ impl KnownSources {
         }
     }
 
-    /// The sources named for `field`: every manifest source whose tables cover
-    /// it or that is named for every field, then at most
-    /// `SPEC_URLS_PER_FIELD` research URLs from the specs, in URL order. The
-    /// cap keeps the list Jev ranks from growing with the spec count.
+    /// The sources named for `field`: every catalogued source and every
+    /// manifest source whose tables cover it or that is named for every
+    /// field, then at most `SPEC_URLS_PER_FIELD` research URLs from the
+    /// specs, in URL order. The cap keeps the list Jev ranks from growing
+    /// with the spec count.
     pub fn for_field(&self, field: &str) -> Vec<&KnownSource> {
         let named =
             |s: &&KnownSource| s.dimensions.is_empty() || s.dimensions.iter().any(|d| d == field);
-        let from_manifests = self
-            .sources
-            .iter()
-            .filter(|s| s.origin.starts_with("manifest:"))
-            .filter(named);
+        let recorded = |s: &&KnownSource| {
+            s.origin.starts_with("catalogue:") || s.origin.starts_with("manifest:")
+        };
+        let from_records = self.sources.iter().filter(recorded).filter(named);
         let from_specs = self
             .sources
             .iter()
-            .filter(|s| !s.origin.starts_with("manifest:"))
+            .filter(|s| !recorded(s))
             .filter(named)
             .take(SPEC_URLS_PER_FIELD);
-        from_manifests.chain(from_specs).collect()
+        from_records.chain(from_specs).collect()
     }
+}
+
+/// Every source the catalogue's species bibliographies hold, in folder order.
+/// A folder without a readable `sources.json` is skipped, so a catalogue that
+/// is absent or half-written never stops discovery.
+fn catalogue_sources(catalogue: &Path) -> Vec<KnownSource> {
+    let Ok(entries) = fs::read_dir(catalogue) else {
+        return Vec::new();
+    };
+    let mut folders: Vec<PathBuf> = entries.flatten().map(|entry| entry.path()).collect();
+    folders.sort();
+    let mut out = Vec::new();
+    for folder in folders {
+        let Ok(value) = read_json(&folder.join("sources.json")) else {
+            continue;
+        };
+        let species = folder
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        for source in value["sources"].as_array().into_iter().flatten() {
+            let (Some(url), Some(title)) = (source["url"].as_str(), source["title"].as_str())
+            else {
+                continue;
+            };
+            let id = source["id"].as_str().unwrap_or("?");
+            let mut dimensions: Vec<String> = source["tables"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter_map(|table| table["dimension"].as_str().map(str::to_string))
+                .collect();
+            dimensions.sort();
+            dimensions.dedup();
+            let covers = if dimensions.is_empty() {
+                String::new()
+            } else {
+                format!(" with tables for {}", dimensions.join(", "))
+            };
+            out.push(KnownSource {
+                url: url.to_string(),
+                title: title.to_string(),
+                snippet: format!(
+                    "Held by the {species} catalogue as {id}{covers}. {}",
+                    source["use"].as_str().unwrap_or("").trim()
+                )
+                .trim_end()
+                .to_string(),
+                origin: format!("catalogue:{species}#{id}"),
+                dimensions,
+                error: None,
+            });
+        }
+    }
+    out
 }
 
 fn collect_manifests(dir: &Path, out: &mut Vec<PathBuf>) {
@@ -261,6 +323,43 @@ mod tests {
         );
         assert_eq!(sources[0].origin, "spec:fn-1-spec");
         assert!(sources[0].dimensions.is_empty());
+    }
+
+    #[test]
+    fn a_catalogued_source_is_known_by_its_species_folder_and_the_tables_it_holds() {
+        let catalogue = std::env::temp_dir().join(format!(
+            "jev-catalogue-{}-{}",
+            std::process::id(),
+            crate::ledger::new_entry_id()
+        ));
+        let species = catalogue.join("european-ash");
+        fs::create_dir_all(&species).unwrap();
+        fs::write(
+            species.join("sources.json"),
+            serde_json::to_vec(&serde_json::json!({
+                "schema": "sources", "schema_version": 1,
+                "sources": [{
+                    "id": "E1", "url": "https://example.test/ertragstafeln",
+                    "title": "Ertragstafeln", "use": "Stand height by age.",
+                    "tables": [{"dimension": "height_m"}],
+                }, {
+                    "id": "J1", "url": "https://example.test/atlas", "title": "Atlas",
+                    "use": "Species context.", "tables": [],
+                }],
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        // A folder without a bibliography is skipped, never an error.
+        fs::create_dir_all(catalogue.join("half-written")).unwrap();
+
+        let sources = catalogue_sources(&catalogue);
+        assert_eq!(sources.len(), 2, "{sources:?}");
+        assert_eq!(sources[0].origin, "catalogue:european-ash#E1");
+        assert_eq!(sources[0].dimensions, vec!["height_m"]);
+        assert!(sources[0].snippet.contains("Stand height by age."));
+        assert!(sources[1].dimensions.is_empty());
+        assert!(sources[0].error.is_none());
     }
 
     #[test]

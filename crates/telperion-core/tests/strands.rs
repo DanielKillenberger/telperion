@@ -67,7 +67,7 @@ fn preset(id: &str) -> Family {
 }
 
 fn tree(f: &Family) -> Tree {
-    specimens::tree(&f)
+    specimens::tree(f)
 }
 
 /// FNV-1a over node positions and parent links, the pattern the pins use.

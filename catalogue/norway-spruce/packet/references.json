@@ -1,0 +1,93 @@
+{
+  "reference_version": "fn19-references-v1",
+  "references": [
+    {
+      "accessed_at": "2026-09-06",
+      "age_years": null,
+      "asset_sha256": "49df5c91efafdf76d356a21a0adcac6c1d1d93cb6d86ca5cc889317cb5b8ec90",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Two landscape tree-form specimens; age unknown; right tree shown densely foliated",
+      "dimensions_m": null,
+      "id": "S-WHOLE",
+      "kept": false,
+      "kind": "real",
+      "limitations": [
+        "Image has two individuals; no exact scale; left crown edge cropped, never extract a numerical mask or infer matched dimensions.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ],
+      "matching": "qualitative",
+      "observation": "Persistent leader, conical tiers and variable openness; left specimen shows hanging secondary systems.",
+      "scale": [
+        "whole"
+      ],
+      "source_id": "OSU-SPRUCE",
+      "species_id": "norway-spruce",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab977.jpg",
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed."
+    },
+    {
+      "accessed_at": "2026-09-06",
+      "age_years": null,
+      "asset_sha256": "d3792f4dade2389e47a6f6be326bfbedd3e33a518493e4c719893cc3d1cdf800",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Attached branch system; whole-tree age/context unknown",
+      "dimensions_m": null,
+      "id": "S-BRANCH",
+      "kept": false,
+      "kind": "real",
+      "limitations": [
+        "No ruler, no bare framework, no fork-collar close-up.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ],
+      "matching": "qualitative",
+      "observation": "Upturned primary tip and hanging secondary branchlets retain visible surrounding connectivity.",
+      "scale": [
+        "attached-shoot"
+      ],
+      "source_id": "OSU-SPRUCE",
+      "species_id": "norway-spruce",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab428B.jpg",
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed."
+    },
+    {
+      "accessed_at": "2026-09-06",
+      "age_years": null,
+      "asset_sha256": "47e6c9dd3175e6a5deb0fad36da9b034a627f1ab1cb50f411fa1feee7ebd37e6",
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen page contact; individual photographer unspecified",
+      "context": "Twig montage, upper and underside views; age/context unknown",
+      "dimensions_m": null,
+      "id": "S-NEEDLE",
+      "kept": false,
+      "kind": "real",
+      "limitations": [
+        "Montage of local views; not one calibrated three-dimensional shoot.",
+        "Qualitative evidence only; appearance matching does not establish numerical botanical superiority."
+      ],
+      "matching": "qualitative",
+      "observation": "Individual needles around twig and peg attachment visible.",
+      "scale": [
+        "attached-shoot"
+      ],
+      "source_id": "OSU-SPRUCE",
+      "species_id": "norway-spruce",
+      "url": "https://landscapeplants.oregonstate.edu/sites/plantid7/files/plantimage/piab347A_0.jpg",
+      "usage": "Public viewing; copyright OSU. Local reference only; no redistribution license inferred. No image bytes committed."
+    }
+  ],
+  "sources": [
+    {
+      "attribution": "Picea abies, NC State Extension Plant Toolbox",
+      "id": "NCSU-SPRUCE",
+      "url": "https://plants.ces.ncsu.edu/plants/picea-abies/",
+      "use": "Species-form landscape spread and peg attachment. Photo cultivar captions must not silently become species targets.",
+      "verified": "2026-09-04"
+    },
+    {
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "id": "OSU-SPRUCE",
+      "url": "https://landscapeplants.oregonstate.edu/plants/picea-abies",
+      "use": "Species-form pyramidal habit, drooping secondaries, individual four-sided needles; exclude cultivars.",
+      "verified": "2026-09-06"
+    }
+  ]
+}

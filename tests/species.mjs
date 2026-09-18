@@ -24,6 +24,7 @@ if (args.includes('--help')) {
   console.log(`Species QA (run from repository root; mature presets, no generation caps).
   --draw-seeds                Record fresh seeds once, before generation/tuning
   --seeds FILE                Default .flow/evidence/fn9/seeds.json
+  --catalogue DIR             Default catalogue; a species' reference records
   --output DIR                Default new directory under OS temp
   --measure-only              Native 24-seed measurements per species
   --capture-only              Reuse measurements in --output; do not regenerate
@@ -45,10 +46,10 @@ Exit 1 for failed/missing required evidence or unassessed visual results.
 Human inspection goes in REPORT.md; this runner never awards visual approval.`);
   process.exit(0);
 }
-const known = new Set(['--draw-seeds', '--seeds', '--profiles', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms', '--quick']);
+const known = new Set(['--draw-seeds', '--seeds', '--profiles', '--catalogue', '--output', '--measure-only', '--capture-only', '--case', '--timeout-ms', '--quick']);
 for (let i = 0; i < args.length; i++) {
   if (!known.has(args[i])) throw Error(`Unknown option ${args[i]}`);
-  if (['--seeds', '--profiles', '--output', '--case', '--timeout-ms', '--quick'].includes(args[i])) {
+  if (['--seeds', '--profiles', '--catalogue', '--output', '--case', '--timeout-ms', '--quick'].includes(args[i])) {
     if (!args[++i] || args[i].startsWith('--')) throw Error('Missing option value');
   }
 }
@@ -118,11 +119,14 @@ async function capture(job) {
 const seedPath = resolve(option('--seeds') ?? '.flow/evidence/fn9/seeds.json');
 const profilesPath = resolve(option('--profiles') ?? '.flow/evidence/fn9/profiles.json');
 const profiles = await json(profilesPath);
-/* A species' reference records sit beside its profile; a record with a shot
-   block asks for a matched still. Species without records have none. */
+/* A species' reference records live in its catalogue folder, the one place a
+   species record lives; a record with a shot block asks for a matched still.
+   Species without records have none. */
+const catalogueDir = resolve(option('--catalogue') ?? 'catalogue');
+const referenceFile = id => join(catalogueDir, id, 'packet', 'references.json');
 const referencesOf = {};
 for (const p of profiles.profiles) {
-  try { referencesOf[p.id] = (await json(join(dirname(profilesPath), p.id, 'references.json'))).references.filter(r => r.shot); } catch { referencesOf[p.id] = []; }
+  try { referencesOf[p.id] = (await json(referenceFile(p.id))).references.filter(r => r.shot); } catch { referencesOf[p.id] = []; }
 }
 /* The tuning look: what a value trial needs to be seen and nothing the
    evidence needs. The same matched stills at the same height as a full round,
@@ -148,8 +152,9 @@ if (option('--quick')) {
     runs.push(run);
   }
   if (runs.some(run => run.capture_status !== 'pass')) process.exit(1);
-  const pairs = await command('uv', ['run', 'scripts/compare-references.py', '--pairs-only', '--references',
-    join(dirname(profilesPath), preset, 'references.json'), '--captures', out, '--refs', join('.refs', basename(dirname(profilesPath)), preset),
+  const pairs = await command('uv', ['run', 'scripts/compare-references.py', '--pairs-only',
+    '--references', referenceFile(preset), '--captures', out,
+    '--catalogue', catalogueDir, '--refs', join('.refs', basename(dirname(profilesPath)), preset),
     '--case', id, '--out', out]);
   process.stdout.write(pairs.stdout); process.stderr.write(pairs.stderr);
   process.exit(pairs.code === 0 ? 0 : 1);

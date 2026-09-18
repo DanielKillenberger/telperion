@@ -13,14 +13,12 @@
 //! credits and Jev calls, per stage and in total. No probability is written
 //! here, and the stills are named, never judged.
 
-use std::path::Path;
-
 use serde_json::{json, Map, Value};
 
 use crate::pipeline::canon::{file_sha256, read_json, write_atomic};
 use crate::pipeline::cost::Cost;
 use crate::pipeline::gap::metrics;
-use crate::pipeline::stage::{Context, StageError, STAGES};
+use crate::pipeline::stage::{Context, Paths, StageError, STAGES};
 
 use super::inputs;
 
@@ -37,8 +35,8 @@ pub enum Outcome {
     Ran { status: String },
 }
 
-pub fn run(dir: &Path) -> Result<Outcome, StageError> {
-    let (ctx, _) = Context::open(dir, STAGE)?;
+pub fn run(paths: &Paths) -> Result<Outcome, StageError> {
+    let (ctx, _) = Context::open(paths, STAGE)?;
     let mut read = Map::new();
     let mut pairs: Vec<(String, String)> = Vec::new();
     let mut ledger: Vec<String> = Vec::new();
