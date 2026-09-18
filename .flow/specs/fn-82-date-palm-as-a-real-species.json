@@ -1,22 +1,22 @@
 {
-  "branch_name": "fn-80-the-gap-loops-first-live-run",
+  "branch_name": "fn-82-date-palm-as-a-real-species",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-09-18T21:12:06.155499Z",
+  "created_at": "2026-09-18T21:26:24.288063Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [],
-  "id": "fn-80-the-gap-loops-first-live-run",
+  "id": "fn-82-date-palm-as-a-real-species",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
-  "spec_path": ".flow/specs/fn-80-the-gap-loops-first-live-run.md",
+  "spec_path": ".flow/specs/fn-82-date-palm-as-a-real-species.md",
   "status": "open",
-  "title": "The gap loop's first live run",
+  "title": "Date palm as a real species",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -28,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T21:26:50.371612Z"
+  "updated_at": "2026-09-18T21:26:50.874565Z"
 }

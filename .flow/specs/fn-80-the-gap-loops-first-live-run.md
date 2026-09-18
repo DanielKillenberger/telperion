@@ -5,7 +5,7 @@ fn-63 landed the gap loop on 2026-09-18 (PR #38): a species run's halt becomes t
 
 The owner decided on 2026-09-18, on being shown the six-of-seven reading, to ship the machinery and carry the live run here rather than hold the loop unmerged or drop the criterion. The reason is that holding it blocks the very run that would exercise it. [user]
 
-This spec is that run. It proves the loop when the halt is real: a species stops, the loop routes the gap, the fix lands as its own spec, the run resumes where it stopped, and the owner's checklist is reached. Its finish line is the loop's behaviour, not the species' quality. [paraphrase]
+This spec is that run, riding the date palm of fn-82. It proves the loop when the halt is real: a species stops, the loop routes the gap, the fix lands as its own spec, the run resumes where it stopped, and the owner's checklist is reached. Its finish line is the loop's behaviour, not the species' quality. [paraphrase]
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -36,8 +36,10 @@ This spec is that run. It proves the loop when the halt is real: a species stops
 ## Decision Context
 
 - The owner chose on 2026-09-18, from three options put to them, to merge fn-63 and carry its seventh criterion here. [user]
-- Which species carries the run is the owner's call and is left open below. The recommendation is the European ash of fn-56: a pipeline run for it already exists in the evidence tree, and its blocker, fn-33 flowers, cones and compound leaves as foliage organs, is a real generator gap a person identified by hand, which makes it the sharpest available test of whether the table routes a gap the way the owner already routed one. The European beech of fn-62 is the alternative. [paraphrase]
+- The species is the date palm of fn-82, chosen by the owner on 2026-09-18 as a deliberate curve ball over the recommended European ash. [user] A palm is a monocot: it does not branch, it has no secondary thickening, and its leaf is a frond, so it asks the generator for capabilities at its core rather than at its edges. The owner was told before choosing that this is not one gap and that several are likely to route to them because they touch rules shipped presets depend on. [paraphrase]
+- The consequence accepted with that choice: this spec's finish line may sit behind a chain of generator specs rather than one, and a run that stalls at the first owner route is a result the loop recorded, not a failure of the loop. [inferred]
 
 ## Open Questions
 
-- **Which species carries the first live run?** Leaning the European ash of fn-56, unconfirmed. *(owner)*
+- None. The species question was answered by the owner on 2026-09-18: the date palm of fn-82.
+
