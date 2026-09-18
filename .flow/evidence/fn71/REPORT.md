@@ -307,3 +307,81 @@ times a pixel on limbs seen at grazing angles). A dash window that walks the
 arc, the groove read once a fragment and shared by the cells, and a grain
 window capped at four cells are the reductions, follow-ups if the owner
 sets a bound.
+
+# Round 4: cost, under the accepted picture
+
+The owner accepted round three ("yea much better"). This round changes
+cost only; the invariant is the footprint sweep flat within 0.03 between
+adjacent factors on the beech base, the birch bark and the birch hero notch,
+the resolution receipts green, redraws byte-identical, no fade.
+
+## What changed
+
+- The groove is read once a fragment at the pixel's footprint and shared by
+  every cell whose footprint across the wood is over twice the groove's
+  depth; a narrower cell reads its own. The bowl is under the cell either
+  way.
+- The dash window reads exactly the rows a box can touch (a row's dashes
+  lie within their site's wander and their half-height of the row's middle,
+  so a box under two thirds of a pitch reads one row, where the round-three
+  window read three or five) and the cells across the arc within the box's
+  half-extent and a dash's reach, whole cells up.
+- The grain's window is capped at three cells (round three: six), the
+  residue past it a third of the noise's deviation, which the sweep does not
+  see.
+- The cells are sized per axis, two or three on each, so a grazing pixel,
+  long one way and a fraction of a width the other, takes its cells only
+  along its length; four cells a side are gone (the sparse mean stands at
+  six widths, unchanged).
+
+The sweep (`sweep/res8.md`) holds the invariant: the widest step between
+adjacent factors is 0.030, on the beech's 2px band from 1.5 to 2, and that
+is round three's own widest step, in the same cell. Against round three
+(`sweep/res6.md`) the curve moves in five of its seventy-two cells, by 0.01
+each: the beech at 8x on the 8px and 16px bands, the birch at 3x on 4px, the
+hero walk at 1.5 on 2px and at 3 on 8px. Every receipt is green: oak 2x
+2.23, 4x 2.84, beech 1.06, birch 2.54, grazing 2.89 and 2.70.
+
+## Cost
+
+Native hero frames, seed 7, 1600 by 1000, three rounds, `timing/round4-*`:
+
+| Preset | round 2 | round 3 | round 4 |
+|---|---|---|---|
+| Oregon white oak | 5.917, 5.904, 5.889 | 9.98, 10.02, 10.12 | 8.91, 8.92, 8.91 |
+| Silver birch | 3.976, 3.981, 3.989 | 14.96, 15.22, 14.96 | 7.00, 7.08, 7.12 |
+| European beech | 11.358, 11.357, 11.358 | 19.56, 19.48, 19.97 | 14.59, 14.63, 14.57 |
+
+By term, a row switched off with `--family` (the per-term cost line the
+friction entry asked for is this table by hand; a counter in the timing
+receipt is not cheap, the shader would have to count its own hashes):
+
+| Preset | all | no grain | no plates | no lenticels | no relief |
+|---|---|---|---|---|---|
+| Oregon white oak | 8.9 | 9.0 | 5.2 | 9.0 | 3.5 |
+| European beech | 14.6 | 13.4 | 14.7 | 12.8 | 13.7 |
+| Silver birch (round-4 first build, 9.4) | 9.4 | 7.4 | 8.6 | 5.2 | 8.1 |
+
+What holds the rest, and why it stays: the oak's 3 ms over round two is the
+plate network, twenty-seven hashes a read, read nine to sixteen times a
+fragment on limbs whose pixel spans two to six ridge widths, where round two
+read it once and drew the mean; that band is exactly the relief the owner
+asked to keep, and the sparse mean at six widths is the invariant's edge.
+The birch's 3 ms over round two is the dashes on every branch wider than two
+pixels (about 2 ms, their box integral summed over the cells the box
+reaches) and the grain's box window (about 1 ms); the beech's 3 ms is the
+same two terms on its twigs. A cheaper dash would need its cells walked
+along the arc with an exact dedupe, which is not a smaller read of the same
+integral but a different search; the grain's window is at three cells, the
+floor before its residue shows in the sweep.
+
+## Gates
+
+Re-run on this tree after the round's edits, all green: `cargo fmt --all --
+--check` (its only diffs are the three files master's fn-58 tooling commit
+left unformatted, `telperion-core/examples/species_measure.rs`,
+`telperion-core/src/params/tests.rs` and `telperion-jev/src/bin/jev.rs`,
+untouched by this branch), `cargo clippy --release --workspace --all-targets
+-- -D warnings`, `cargo test --release --workspace` (the resolution tests
+rewrote the four receipts above to the same values), `npm test` and `npm run
+typecheck`.

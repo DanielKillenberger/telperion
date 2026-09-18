@@ -164,15 +164,23 @@ fn lenticel_dash(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32
     // The cells the box reaches: across the arc in the plane the circle is
     // embedded in, where only the cells the circle passes near hold a dash
     // that reaches the surface, and along the wood row by row.
-    let reach = min(vec2<i32>(ceil(0.5 * vec2(footprint.x / across, footprint.y / pitch))) + vec2(1),
-        cells);
+    // A dash reaches its length from its site across the arc, so that is
+    // the margin the box's half-extent takes there, whole cells up; along
+    // the wood a row's dashes lie within their site's wander and their own
+    // half-height of the row's middle, so the rows read are exactly those
+    // the box can touch, one row for a box under two thirds of a pitch.
+    let reach = min(i32(ceil(0.5 * footprint.x / across + LENTICEL_REACH)), cells.x);
+    let here = fract(p.z);
+    let spread = 0.5 * footprint.y / pitch + LENTICEL_JITTER + thin / pitch;
+    let rows = vec2<i32>(max(i32(ceil(here - spread - 0.5)), -cells.y),
+        min(i32(floor(here + spread - 0.5)), cells.y));
     let ring = radius / across;
     var clear = vec2(1.0);
-    for (var y = -reach.x; y <= reach.x; y++) {
-        for (var x = -reach.x; x <= reach.x; x++) {
+    for (var y = -reach; y <= reach; y++) {
+        for (var x = -reach; x <= reach; x++) {
             let cell = base.xy + vec2(f32(x), f32(y));
             if (abs(length(cell + vec2(0.5)) - ring) > 1.5) { continue; }
-        for (var z = -reach.y; z <= reach.y; z++) {
+        for (var z = rows.x; z <= rows.y; z++) {
             let id = vec3(cell, base.z + f32(z));
             let a = bark_hash(id.xy + vec2(29.0, 13.0) * id.z + vec2(3.1, 47.9));
             let b = bark_hash(id.xy + vec2(17.0, 37.0) * id.z + vec2(71.3, 23.7));

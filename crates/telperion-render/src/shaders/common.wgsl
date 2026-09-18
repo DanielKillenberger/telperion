@@ -280,11 +280,11 @@ fn bark_basis_integral(v: f32) -> f32 {
     return 0.5 + v - v * v * v * (1.0 - 0.5 * v);
 }
 
-// The most lattice points the box below spans on one axis: a box of six
-// cells, past which the window stops growing and the value is the six-cell
-// average about the point, within a sixth of the noise's deviation of the
-// mean it converges to.
-const BARK_BOX_REACH = 7;
+// The most lattice points the box below spans on one axis: a box of three
+// cells, past which the window stops growing and the value is the
+// three-cell average about the point, within a third of the noise's
+// deviation of the mean it converges to.
+const BARK_BOX_REACH = 4;
 
 // The noise above averaged over a box of `width` cells on each axis, with
 // its gradient: the box integral of every lattice value's basis, exact, so a
