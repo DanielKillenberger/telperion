@@ -1,6 +1,9 @@
 //! The species template pipeline driver: one command per stage, the manifest
-//! and every earlier artifact at fixed paths under `--dir`, the run's command
-//! log appended on every invocation. The runbook is `docs/species-pipeline.md`.
+//! and every earlier artifact at fixed paths under `--dir`, which is the
+//! species' catalogue folder. `--run-dir` takes the scratch a run leaves - the
+//! fetch cache, the ledger, the command log and rendered stills - out of the
+//! catalogue and into the evidence tree; without it the two are one directory.
+//! The runbook is `docs/species-pipeline.md`.
 
 use std::env;
 use std::path::{Path, PathBuf};
@@ -16,7 +19,7 @@ use telperion_jev::pipeline::stages::{
 };
 use telperion_jev::pipeline::swap;
 
-const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n  stages: discover fetch extract screen quality select verify fit gate generate report";
+const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n  stages: discover fetch extract screen quality select verify fit gate generate report";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -45,7 +48,11 @@ fn main() -> ExitCode {
         eprintln!("{USAGE}");
         return ExitCode::from(2);
     };
-    let result = run(&command, &dir, &args);
+    let run_dir = flag(&args, "--run-dir")
+        .map(PathBuf::from)
+        .unwrap_or(dir.clone());
+    let paths = Paths::with_run(&dir, &run_dir);
+    let result = run(&command, &paths, &args);
     let exit = match &result {
         Ok(message) => {
             println!("{message}");
@@ -56,17 +63,17 @@ fn main() -> ExitCode {
             1
         }
     };
-    if let Err(err) = log_command(&Paths::new(&dir), &args, exit) {
+    if let Err(err) = log_command(&paths, &args, exit) {
         eprintln!("command log: {err}");
     }
     ExitCode::from(exit as u8)
 }
 
-fn run(stage: &str, dir: &Path, args: &[String]) -> Result<String, String> {
+fn run(stage: &str, paths: &Paths, args: &[String]) -> Result<String, String> {
     if !STAGES.contains(&stage) {
         return Err(format!("unknown stage {stage}\n{USAGE}"));
     }
-    let ledger_dir = Paths::new(dir).ledger().join("entries");
+    let ledger_dir = paths.ledger().join("entries");
     let transport = UreqTransport;
     let needs_jev = matches!(
         stage,
@@ -82,25 +89,28 @@ fn run(stage: &str, dir: &Path, args: &[String]) -> Result<String, String> {
         key: &key,
         ledger_dir,
     };
-    let adapter = adapter_from(args, dir);
-    let example = example_from(args, dir);
+    let adapter = adapter_from(args, paths);
+    let example = example_from(args, paths);
+    let catalogue = flag(args, "--catalogue")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("catalogue"));
     let outcome = match stage {
-        "discover" => describe(discover::run(dir, adapter.as_ref(), &judge)),
-        "fetch" => describe(fetch::run(dir, adapter.as_ref())),
-        "extract" => describe(extract::run(dir)),
-        "screen" => describe(screen::run(dir, &judge)),
-        "quality" => describe(quality::run(dir, &judge)),
-        "select" => describe(select::run(dir, &judge)),
-        "verify" => describe(verify::run(dir, &judge)),
-        "fit" => describe(fit::run(dir)),
-        "gate" => describe(gate::run(dir, &gate_checks(&example))),
+        "discover" => describe(discover::run(paths, &catalogue, adapter.as_ref(), &judge)),
+        "fetch" => describe(fetch::run(paths, adapter.as_ref())),
+        "extract" => describe(extract::run(paths)),
+        "screen" => describe(screen::run(paths, &judge)),
+        "quality" => describe(quality::run(paths, &judge)),
+        "select" => describe(select::run(paths, &judge)),
+        "verify" => describe(verify::run(paths, &judge)),
+        "fit" => describe(fit::run(paths)),
+        "gate" => describe(gate::run(paths, &gate_checks(&example))),
         "generate" => describe(generate::run(
-            dir,
+            paths,
             &judge,
             measurer(&example).as_ref(),
             example.as_ref(),
         )),
-        "report" => describe(report::run(dir)),
+        "report" => describe(report::run(paths)),
         _ => unreachable!("stage list checked above"),
     };
     outcome.map(|word| format!("{stage}: {word}"))
@@ -129,14 +139,14 @@ macro_rules! outcome {
 }
 outcome!(discover, fetch, extract, screen, quality, select, verify, fit, gate, generate, report);
 
-fn adapter_from(args: &[String], dir: &Path) -> Box<dyn FetchAdapter> {
+fn adapter_from(args: &[String], paths: &Paths) -> Box<dyn FetchAdapter> {
     match flag(args, "--adapter").as_deref() {
         Some(spec) if spec.starts_with("fixture:") => {
             Box::new(FixtureAdapter::new(spec.trim_start_matches("fixture:")))
         }
         _ => Box::new(FirecrawlCli {
             program: "firecrawl".into(),
-            cache_dir: dir.join("cache").join("firecrawl"),
+            cache_dir: paths.cache().join("firecrawl"),
             raw_from: RawSource::Direct,
         }),
     }
@@ -144,7 +154,7 @@ fn adapter_from(args: &[String], dir: &Path) -> Box<dyn FetchAdapter> {
 
 /// The measurement example and the headless renderer, when `--example` asks
 /// for them; the binaries are the release examples under `target/`.
-fn example_from(args: &[String], dir: &Path) -> Option<SpeciesExample> {
+fn example_from(args: &[String], paths: &Paths) -> Option<SpeciesExample> {
     if !args.iter().any(|a| a == "--example") {
         return None;
     }
@@ -157,7 +167,7 @@ fn example_from(args: &[String], dir: &Path) -> Option<SpeciesExample> {
         headless_binary: headless.exists().then_some(headless),
         profiles,
         profile_id: flag(args, "--profile-id").unwrap_or_default(),
-        work_dir: dir.join("cache").join("measure"),
+        work_dir: paths.cache().join("measure"),
     })
 }
 

@@ -403,8 +403,18 @@ fn every_pin_matches_its_catalogue_record() {
             "{}: instances",
             pin.id
         );
-        assert_eq!(catalogue::triple(recorded, "min", pin.id), pin.min, "{}: min", pin.id);
-        assert_eq!(catalogue::triple(recorded, "max", pin.id), pin.max, "{}: max", pin.id);
+        assert_eq!(
+            catalogue::triple(recorded, "min", pin.id),
+            pin.min,
+            "{}: min",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::triple(recorded, "max", pin.id),
+            pin.max,
+            "{}: max",
+            pin.id
+        );
         assert_eq!(
             catalogue::hash(recorded, "skeleton", pin.id),
             pin.skeleton,

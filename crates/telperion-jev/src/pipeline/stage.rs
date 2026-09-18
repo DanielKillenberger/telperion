@@ -26,16 +26,29 @@ pub const STAGES: [&str; 11] = [
     "generate", "report",
 ];
 
-/// Fixed artifact paths under the species' pipeline directory.
+/// Fixed artifact paths. `dir` is the species folder in the catalogue and holds
+/// every canonical artifact; `run` is the run directory under the evidence
+/// tree and holds the scratch a run leaves behind - the fetch cache, the
+/// ledger, the command log and rendered stills - so none of it enters the
+/// catalogue. A directory given without a run of its own is its own run
+/// directory, which is what a test and a swap trial use.
 #[derive(Debug, Clone)]
 pub struct Paths {
     pub dir: PathBuf,
+    pub run: PathBuf,
 }
 
 impl Paths {
     pub fn new(dir: &Path) -> Self {
         Self {
             dir: dir.to_path_buf(),
+            run: dir.to_path_buf(),
+        }
+    }
+    pub fn with_run(dir: &Path, run: &Path) -> Self {
+        Self {
+            dir: dir.to_path_buf(),
+            run: run.to_path_buf(),
         }
     }
     pub fn manifest(&self) -> PathBuf {
@@ -48,10 +61,10 @@ impl Paths {
         self.dir.join("resolutions.json")
     }
     pub fn command_log(&self) -> PathBuf {
-        self.dir.join("command-log.json")
+        self.run.join("command-log.json")
     }
     pub fn ledger(&self) -> PathBuf {
-        self.dir.join("ledger")
+        self.run.join("ledger")
     }
     /// One artifact per stage, named after it; the packet records and the
     /// sidecar are the select stage's outputs and sit beside it.
@@ -65,7 +78,12 @@ impl Paths {
         self.dir.join("provenance.json")
     }
     pub fn cache(&self) -> PathBuf {
-        self.dir.join("cache")
+        self.run.join("cache")
+    }
+    /// A rendered still is reproducible from the pins, so it stays in the run
+    /// directory and only its hash reaches the catalogue's stills record.
+    pub fn stills(&self) -> PathBuf {
+        self.run.join("stills")
     }
 }
 
@@ -154,8 +172,8 @@ impl Context {
     /// Loads the manifest, reconciles decisions with resolutions, and refuses
     /// to run `stage` when a global open decision stops it. Field-scoped open
     /// decisions are returned for the stage to exclude those fields.
-    pub fn open(dir: &Path, stage: &str) -> Result<(Self, Vec<String>), StageError> {
-        let paths = Paths::new(dir);
+    pub fn open(paths: &Paths, stage: &str) -> Result<(Self, Vec<String>), StageError> {
+        let paths = paths.clone();
         let manifest_path = paths.manifest();
         if !manifest_path.exists() {
             return Err(StageError::MissingInput {
@@ -326,7 +344,9 @@ mod tests {
     #[test]
     fn a_missing_manifest_names_the_stage_and_the_path() {
         let dir = scratch();
-        let err = Context::open(&dir, "fetch").unwrap_err().to_string();
+        let err = Context::open(&Paths::new(&dir), "fetch")
+            .unwrap_err()
+            .to_string();
         assert!(err.starts_with("fetch: input missing"), "{err}");
     }
 
@@ -351,19 +371,21 @@ mod tests {
             "",
         );
         append_decisions(&paths.decisions(), vec![decision]).unwrap();
-        let err = Context::open(&dir, "fetch").unwrap_err().to_string();
+        let err = Context::open(&Paths::new(&dir), "fetch")
+            .unwrap_err()
+            .to_string();
         assert_eq!(
             err,
             "fetch: open decision: oregon-white-oak/discover/manifest-proposed"
         );
-        assert!(Context::open(&dir, "discover").is_ok());
+        assert!(Context::open(&Paths::new(&dir), "discover").is_ok());
     }
 
     #[test]
     fn the_key_changes_with_every_covered_input_and_the_artifact_is_current_only_on_match() {
         let dir = scratch();
         write_manifest(&dir);
-        let (ctx, _) = Context::open(&dir, "fetch").unwrap();
+        let (ctx, _) = Context::open(&Paths::new(&dir), "fetch").unwrap();
         let inputs: BTreeMap<String, String> = [("discover.json".to_string(), "aaa".to_string())]
             .into_iter()
             .collect();

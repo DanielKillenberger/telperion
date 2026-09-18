@@ -16,7 +16,7 @@ use crate::pipeline::adapter::{
 use crate::pipeline::canon::write_atomic;
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
 use crate::pipeline::manifest::{AdmittedTable, Source};
-use crate::pipeline::stage::{Context, StageError, STAGES};
+use crate::pipeline::stage::{Context, Paths, StageError, STAGES};
 
 use super::inputs;
 
@@ -28,8 +28,8 @@ pub enum Outcome {
     Ran { decisions: Vec<String> },
 }
 
-pub fn run(dir: &Path, adapter: &dyn FetchAdapter) -> Result<Outcome, StageError> {
-    let (ctx, _) = Context::open(dir, STAGE)?;
+pub fn run(paths: &Paths, adapter: &dyn FetchAdapter) -> Result<Outcome, StageError> {
+    let (ctx, _) = Context::open(paths, STAGE)?;
     let header = ctx.header(STAGE, "sources", inputs(&[]), vec![]);
     if ctx.is_current(STAGE, &header.idempotence_key) {
         return Ok(Outcome::Current);

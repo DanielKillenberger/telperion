@@ -8,8 +8,6 @@
 //! has a sidecar entry keyed by JSON Pointer; a field with no admissible
 //! candidate is recorded as unavailable with the reason, never estimated.
 
-use std::path::Path;
-
 use serde_json::{json, Map, Value};
 
 use crate::extract::{key_terms, section_for_terms};
@@ -17,7 +15,7 @@ use crate::pipeline::canon::write_canonical;
 use crate::pipeline::judge::Judge;
 use crate::pipeline::manifest::{Described, Field, Manifest};
 use crate::pipeline::sets::{described_questions, level_from_score, DescribedLevel};
-use crate::pipeline::stage::{Context, StageError};
+use crate::pipeline::stage::{Context, Paths, StageError};
 use crate::select::select;
 
 use super::extract::cached_markdown;
@@ -32,8 +30,8 @@ pub enum Outcome {
     Ran { filled: usize, unavailable: usize },
 }
 
-pub fn run(dir: &Path, judge: &Judge<'_>) -> Result<Outcome, StageError> {
-    let (ctx, blocked) = Context::open(dir, STAGE)?;
+pub fn run(paths: &Paths, judge: &Judge<'_>) -> Result<Outcome, StageError> {
+    let (ctx, blocked) = Context::open(paths, STAGE)?;
     let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
     let (screen, screen_sha) = body(&ctx, STAGE, "screen")?;
     let (quality, quality_sha) = body(&ctx, STAGE, "quality")?;

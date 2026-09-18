@@ -14,8 +14,6 @@
 //! here: they file one `visual-unassessed` decision that blocks nothing, so
 //! the report may describe them and the owner's eye has the last word.
 
-use std::path::Path;
-
 use serde_json::{json, Map, Value};
 
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
@@ -27,7 +25,7 @@ use crate::pipeline::routes::{
     TransferOutcome,
 };
 use crate::pipeline::sets::level_from_score;
-use crate::pipeline::stage::{Context, StageError};
+use crate::pipeline::stage::{Context, Paths, StageError};
 
 mod packet;
 
@@ -111,12 +109,12 @@ impl Shipped {
 }
 
 pub fn run(
-    dir: &Path,
+    paths: &Paths,
     judge: &Judge<'_>,
     measurer: &dyn Measurer,
     example: Option<&SpeciesExample>,
 ) -> Result<Outcome, StageError> {
-    let (ctx, blocked) = Context::open(dir, STAGE)?;
+    let (ctx, blocked) = Context::open(paths, STAGE)?;
     // The capability and registry gates halt generation outright; the seeds
     // gate is answered by the specimens record this stage writes.
     let halting: Vec<String> = ctx
@@ -384,7 +382,7 @@ fn draw_stills(
     let Some(example) = example.filter(|e| e.headless_binary.is_some()) else {
         return Vec::new();
     };
-    let dir = ctx.paths.dir.join("stills");
+    let dir = ctx.paths.stills();
     let mut cases = vec![("preset".to_string(), json!({}))];
     for (dial, value) in &shipped.values {
         cases.push((dial.replace('.', "-"), family_for(dial, *value)));

@@ -17,7 +17,7 @@ use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::judge::Judge;
 use telperion_jev::pipeline::render::{Measured, Measurer, RenderError};
-use telperion_jev::pipeline::stage::Context;
+use telperion_jev::pipeline::stage::{Context, Paths};
 use telperion_jev::pipeline::stages::gate::GateChecks;
 use telperion_jev::pipeline::stages::{fit, gate, generate, inputs, report};
 
@@ -127,7 +127,7 @@ fn scratch(tag: &str, dbh_rows: usize) -> PathBuf {
     ));
     std::fs::create_dir_all(&dir).unwrap();
     write_canonical(&dir.join("manifest.json"), &manifest()).unwrap();
-    let (ctx, _) = Context::open(&dir, "fetch").unwrap();
+    let (ctx, _) = Context::open(&Paths::new(&dir), "fetch").unwrap();
     let fetch = json!({
         "sources": {"S1": {"content_type": "text/html", "final_url": "https://example.test/s1",
                            "markdown_bytes": 12, "markdown_sha256": "aa", "raw_bytes": 12,
@@ -299,7 +299,7 @@ fn pass_the_gate(dir: &Path) {
         supported: vec!["woody-axes".into()],
     };
     assert!(matches!(
-        gate::run(dir, &checks).unwrap(),
+        gate::run(&Paths::new(dir), &checks).unwrap(),
         gate::Outcome::Ran { .. }
     ));
 }
@@ -323,7 +323,7 @@ fn run_generate(
         rows,
         receipt: dir.join("cache").join("measure.jsonl"),
     };
-    generate::run(dir, &judge, &measurer, None).unwrap()
+    generate::run(&Paths::new(dir), &judge, &measurer, None).unwrap()
 }
 
 // -------------------------------------------------------------------- the fit
@@ -331,7 +331,10 @@ fn run_generate(
 #[test]
 fn the_fit_reproduces_fn30s_oak_and_files_a_tolerance_miss_per_age() {
     let dir = scratch("fit", 2);
-    assert!(matches!(fit::run(&dir).unwrap(), fit::Outcome::Ran { .. }));
+    assert!(matches!(
+        fit::run(&Paths::new(&dir)).unwrap(),
+        fit::Outcome::Ran { .. }
+    ));
     let body = body_of(&dir, "fit");
     assert_eq!(body["rate"], json!(0.032));
     assert_eq!(body["shape"], json!(2.0));
@@ -364,7 +367,7 @@ fn the_fit_reproduces_fn30s_oak_and_files_a_tolerance_miss_per_age() {
 #[test]
 fn a_one_row_table_files_missing_curve_and_the_other_dimension_still_fits() {
     let dir = scratch("missing", 1);
-    fit::run(&dir).unwrap();
+    fit::run(&Paths::new(&dir)).unwrap();
     let body = body_of(&dir, "fit");
     assert_eq!(body["rate"], json!(0.032), "the height still fits");
     assert_eq!(body["misses"], json!([]));
@@ -385,10 +388,13 @@ fn a_one_row_table_files_missing_curve_and_the_other_dimension_still_fits() {
 #[test]
 fn an_unchanged_rerun_of_the_fit_is_current_and_writes_nothing_new() {
     let dir = scratch("current", 2);
-    fit::run(&dir).unwrap();
+    fit::run(&Paths::new(&dir)).unwrap();
     let before = std::fs::read(dir.join("fit.json")).unwrap();
     let filed: Vec<Value> = decisions(&dir).iter().map(|d| d["id"].clone()).collect();
-    assert!(matches!(fit::run(&dir).unwrap(), fit::Outcome::Current));
+    assert!(matches!(
+        fit::run(&Paths::new(&dir)).unwrap(),
+        fit::Outcome::Current
+    ));
     let after = std::fs::read(dir.join("fit.json")).unwrap();
     assert_eq!(
         String::from_utf8_lossy(&before),
@@ -407,7 +413,7 @@ fn the_gate_files_onboarding_gate_for_an_unregistered_preset() {
         registered: false,
         supported: vec![],
     };
-    gate::run(&dir, &checks).unwrap();
+    gate::run(&Paths::new(&dir), &checks).unwrap();
     let body = body_of(&dir, "gate");
     assert_eq!(body["registry"], json!(false));
     assert_eq!(body["capability"]["missing"], json!(["woody-axes"]));
@@ -545,9 +551,9 @@ fn the_packets_species_record_carries_exactly_the_closed_keys() {
 #[test]
 fn the_report_is_halted_with_an_open_decision_and_complete_once_it_is_resolved() {
     let dir = scratch("report", 2);
-    fit::run(&dir).unwrap();
+    fit::run(&Paths::new(&dir)).unwrap();
     assert!(matches!(
-        report::run(&dir).unwrap(),
+        report::run(&Paths::new(&dir)).unwrap(),
         report::Outcome::Ran { .. }
     ));
     let body = body_of(&dir, "report");
@@ -582,7 +588,7 @@ fn the_report_is_halted_with_an_open_decision_and_complete_once_it_is_resolved()
     )
     .unwrap();
     assert!(matches!(
-        report::run(&dir).unwrap(),
+        report::run(&Paths::new(&dir)).unwrap(),
         report::Outcome::Ran { .. }
     ));
     assert_eq!(body_of(&dir, "report")["status"], "complete");
@@ -591,8 +597,8 @@ fn the_report_is_halted_with_an_open_decision_and_complete_once_it_is_resolved()
 #[test]
 fn the_reports_inputs_name_every_artifact_it_read() {
     let dir = scratch("report-inputs", 2);
-    fit::run(&dir).unwrap();
-    report::run(&dir).unwrap();
+    fit::run(&Paths::new(&dir)).unwrap();
+    report::run(&Paths::new(&dir)).unwrap();
     let header = read_json(&dir.join("report.json")).unwrap();
     let recorded: BTreeMap<String, String> = serde_json::from_value(header["inputs"].clone())
         .expect("the header records the inputs it read");

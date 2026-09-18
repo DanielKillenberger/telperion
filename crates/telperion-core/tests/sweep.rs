@@ -398,5 +398,8 @@ fn every_catalogue_species_leaf_band_matches_its_record() {
         assert_eq!(band[1].as_u64(), Some(high as u64), "{id}: leaf_band high");
         compared += 1;
     }
-    assert!(compared > 0, "no catalogue species was compared; is catalogue/ missing?");
+    assert!(
+        compared > 0,
+        "no catalogue species was compared; is catalogue/ missing?"
+    );
 }

@@ -10,30 +10,38 @@ the manifest a person admits or in a decision a person resolves.
 ## The runbook
 
 Run from the repository root with the key available to an interactive shell
-(`bash -ic '...'`, see `docs/typesafe.md`). `DIR` is the species' pipeline
-directory, `.flow/evidence/<species>/pipeline`, holding `manifest.json`.
+(`bash -ic '...'`, see `docs/typesafe.md`). `DIR` is the species' catalogue
+folder, `catalogue/<species>`, which holds `manifest.json` and every canonical
+artifact. `RUN` is the run directory, `.flow/evidence/<spec>/pipeline`, which
+holds the scratch a run leaves behind: the fetch cache, the ledger, the command
+log and rendered stills. Without `--run-dir` the two are one directory, which
+is what a test and a swap trial use.
 
 ```sh
 cargo build --release -p telperion-jev
 cargo build --release -p telperion-core --example species_measure --example geometry_benchmark
 cargo build --release -p telperion-render --example headless
 P=target/release/species-pipeline
-$P discover --dir DIR
-$P fetch    --dir DIR
-$P extract  --dir DIR
-$P screen   --dir DIR
-$P quality  --dir DIR
-$P select   --dir DIR
-$P verify   --dir DIR
-$P fit      --dir DIR
-$P gate     --dir DIR --example
-$P generate --dir DIR --example --profile-id <profile id>
-$P report   --dir DIR
+D="--dir DIR --run-dir RUN"
+$P discover $D
+$P fetch    $D
+$P extract  $D
+$P screen   $D
+$P quality  $D
+$P select   $D
+$P verify   $D
+$P fit      $D
+$P gate     $D --example
+$P generate $D --example --profile-id <profile id>
+$P report   $D
 ```
 
 Every command reads the manifest and the earlier artifacts at fixed paths
 under `DIR`, writes one artifact atomically to `DIR/<stage>.json`, and
-appends itself to `DIR/command-log.json`. A command whose idempotence key
+appends itself to `RUN/command-log.json`. Discovery lists every source in
+`catalogue/*/sources.json` as a candidate before it searches the web, so a
+source the repository has already verified is never rediscovered; `--catalogue
+DIR` names that directory and defaults to `catalogue`. A command whose idempotence key
 (input checksums, manifest checksum, question-set versions, model name, tool
 versions) matches the artifact on disk prints `current` and does nothing. A
 command that stops prints the stage or the decision that stopped it; the
@@ -76,10 +84,11 @@ Kinds: `manifest-proposed`, `unavailable-source`, `coverage-gap`,
 | `packet/species.json`, `packet/specimens.json` | fn19 closed records | generate |
 | `provenance.json` | provenance v1, keyed by JSON Pointer | select, generate |
 | `decisions.json`, `resolutions.json` | decisions v1 | every stage; a person |
-| `command-log.json` | command-log v1 | the driver binary |
-| `ledger/entries/`, `ledger/index.json` | fn-57 ledger entries; identity index | the caller |
+| `RUN/command-log.json` | command-log v1 | the driver binary |
+| `RUN/ledger/entries/`, `RUN/ledger/index.json` | fn-57 ledger entries; identity index | the caller |
 | `report.md` | rendered from `report.json` | report |
-| `cache/` | source bytes, markdown, measurement scratch; ignored by git | fetch, generate |
+| `RUN/cache/` | source bytes, markdown, measurement scratch; ignored by git | fetch, generate |
+| `RUN/stills/` | rendered stills, reproducible from the pins; ignored by git | generate |
 
 Every artifact is canonical JSON (sorted keys, compact, one trailing
 newline), so two runs over the same inputs are byte-identical. The sidecar

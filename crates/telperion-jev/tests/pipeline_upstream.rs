@@ -15,7 +15,7 @@ use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::judge::Judge;
-use telperion_jev::pipeline::stage::{Context, StageError};
+use telperion_jev::pipeline::stage::{Context, Paths, StageError};
 use telperion_jev::pipeline::stages::{discover, extract, fetch, quality, screen, select, verify};
 
 /// The fn-57 mock for screen, select and cite; fixed answers for the
@@ -124,7 +124,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
 
     // Discovery proposes; the decision stops fetch until a person admits.
     assert!(matches!(
-        discover::run(&dir, &adapter, &judge).unwrap(),
+        discover::run(&Paths::new(&dir), &catalogue_absent(&dir), &adapter, &judge).unwrap(),
         discover::Outcome::Ran { .. }
     ));
     let discover_body = read_json(&dir.join("discover.json")).unwrap();
@@ -132,7 +132,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
         discover_body["body"]["proposals"][0]["hits"][0]["ranked_first"],
         json!(true)
     );
-    let err = fetch::run(&dir, &adapter).unwrap_err();
+    let err = fetch::run(&Paths::new(&dir), &adapter).unwrap_err();
     assert!(matches!(err, StageError::OpenDecision { .. }), "{err}");
     let decisions = read_json(&dir.join("decisions.json")).unwrap();
     let proposed = &decisions["decisions"][0];
@@ -144,7 +144,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
     .unwrap();
 
     assert!(matches!(
-        fetch::run(&dir, &adapter).unwrap(),
+        fetch::run(&Paths::new(&dir), &adapter).unwrap(),
         fetch::Outcome::Ran { .. }
     ));
     let fetch_body = read_json(&dir.join("fetch.json")).unwrap();
@@ -154,10 +154,10 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
     assert!(dir.join("cache").join("S1.md").exists());
 
     assert!(
-        matches!(extract::run(&dir).unwrap(), extract::Outcome::Ran { candidates } if candidates > 0)
+        matches!(extract::run(&Paths::new(&dir)).unwrap(), extract::Outcome::Ran { candidates } if candidates > 0)
     );
     assert!(
-        matches!(screen::run(&dir, &judge).unwrap(), screen::Outcome::Ran { rows } if rows > 0)
+        matches!(screen::run(&Paths::new(&dir), &judge).unwrap(), screen::Outcome::Ran { rows } if rows > 0)
     );
     let screen_body = read_json(&dir.join("screen.json")).unwrap();
     let mature = screen_body["body"]["rows"]
@@ -170,7 +170,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
     assert_eq!(mature["ledger"].as_str().unwrap().len(), 24);
 
     assert!(
-        matches!(quality::run(&dir, &judge).unwrap(), quality::Outcome::Ran { decisions } if decisions.is_empty())
+        matches!(quality::run(&Paths::new(&dir), &judge).unwrap(), quality::Outcome::Ran { decisions } if decisions.is_empty())
     );
     let quality_body = read_json(&dir.join("quality.json")).unwrap();
     assert_eq!(
@@ -183,7 +183,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
     );
 
     assert!(matches!(
-        select::run(&dir, &judge).unwrap(),
+        select::run(&Paths::new(&dir), &judge).unwrap(),
         select::Outcome::Ran {
             filled: 1,
             unavailable: 0
@@ -200,7 +200,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
     assert!(!sidecar.to_string().contains("probabilit"));
 
     assert!(
-        matches!(verify::run(&dir, &judge).unwrap(), verify::Outcome::Ran { decisions } if decisions.is_empty())
+        matches!(verify::run(&Paths::new(&dir), &judge).unwrap(), verify::Outcome::Ran { decisions } if decisions.is_empty())
     );
     let verify_body = read_json(&dir.join("verify.json")).unwrap();
     assert_eq!(verify_body["body"]["claims"][0]["relation"], "supports");
@@ -209,27 +209,27 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
     // A rerun with unchanged inputs does nothing on every stage.
     let before = fs::read(dir.join("select.json")).unwrap();
     assert!(matches!(
-        fetch::run(&dir, &adapter).unwrap(),
+        fetch::run(&Paths::new(&dir), &adapter).unwrap(),
         fetch::Outcome::Current
     ));
     assert!(matches!(
-        extract::run(&dir).unwrap(),
+        extract::run(&Paths::new(&dir)).unwrap(),
         extract::Outcome::Current
     ));
     assert!(matches!(
-        screen::run(&dir, &judge).unwrap(),
+        screen::run(&Paths::new(&dir), &judge).unwrap(),
         screen::Outcome::Current
     ));
     assert!(matches!(
-        quality::run(&dir, &judge).unwrap(),
+        quality::run(&Paths::new(&dir), &judge).unwrap(),
         quality::Outcome::Current
     ));
     assert!(matches!(
-        select::run(&dir, &judge).unwrap(),
+        select::run(&Paths::new(&dir), &judge).unwrap(),
         select::Outcome::Current
     ));
     assert!(matches!(
-        verify::run(&dir, &judge).unwrap(),
+        verify::run(&Paths::new(&dir), &judge).unwrap(),
         verify::Outcome::Current
     ));
     assert_eq!(fs::read(dir.join("select.json")).unwrap(), before);
@@ -237,7 +237,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
     // A changed cache file stops the stage that reads it, by name.
     fs::write(dir.join("cache").join("S1.md"), "edited\n").unwrap();
     fs::remove_file(dir.join("extract.json")).unwrap();
-    let err = extract::run(&dir).unwrap_err();
+    let err = extract::run(&Paths::new(&dir)).unwrap_err();
     assert!(matches!(err, StageError::ChecksumChanged { .. }), "{err}");
     assert!(
         err.to_string().starts_with("extract: input changed"),
@@ -248,7 +248,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
 #[test]
 fn a_missing_earlier_artifact_names_the_stage_and_the_path() {
     let (dir, _) = scratch();
-    let err = extract::run(&dir).unwrap_err();
+    let err = extract::run(&Paths::new(&dir)).unwrap_err();
     assert_eq!(
         err.to_string(),
         format!(
@@ -256,7 +256,7 @@ fn a_missing_earlier_artifact_names_the_stage_and_the_path() {
             dir.join("fetch.json").display()
         )
     );
-    let (_, blocked) = Context::open(&dir, "select").unwrap();
+    let (_, blocked) = Context::open(&Paths::new(&dir), "select").unwrap();
     assert!(blocked.is_empty());
 }
 
@@ -286,7 +286,7 @@ fn a_field_below_the_bar_files_data_insufficient_and_select_records_it_unavailab
         key: "test-key",
         ledger_dir: dir.join("ledger").join("entries"),
     };
-    discover::run(&dir, &adapter, &judge).unwrap();
+    discover::run(&Paths::new(&dir), &catalogue_absent(&dir), &adapter, &judge).unwrap();
     let decisions = read_json(&dir.join("decisions.json")).unwrap();
     let proposed = &decisions["decisions"][0];
     write_canonical(
@@ -294,10 +294,10 @@ fn a_field_below_the_bar_files_data_insufficient_and_select_records_it_unavailab
         &json!({"resolutions": [{"id": proposed["id"], "inputs_sha256": proposed["inputs_sha256"], "option": "admit", "by": "test", "at": "2026-09-18"}]}),
     )
     .unwrap();
-    fetch::run(&dir, &adapter).unwrap();
-    extract::run(&dir).unwrap();
-    screen::run(&dir, &judge).unwrap();
-    let outcome = quality::run(&dir, &judge).unwrap();
+    fetch::run(&Paths::new(&dir), &adapter).unwrap();
+    extract::run(&Paths::new(&dir)).unwrap();
+    screen::run(&Paths::new(&dir), &judge).unwrap();
+    let outcome = quality::run(&Paths::new(&dir), &judge).unwrap();
     let quality::Outcome::Ran { decisions } = outcome else {
         panic!("ran")
     };
@@ -317,7 +317,7 @@ fn a_field_below_the_bar_files_data_insufficient_and_select_records_it_unavailab
     assert_eq!(insufficient["blocks"], json!(["select", "fit", "generate"]));
     assert!(insufficient["payload"].get("probabilities").is_none());
     assert!(matches!(
-        select::run(&dir, &judge).unwrap(),
+        select::run(&Paths::new(&dir), &judge).unwrap(),
         select::Outcome::Ran {
             filled: 0,
             unavailable: 1
@@ -327,5 +327,100 @@ fn a_field_below_the_bar_files_data_insufficient_and_select_records_it_unavailab
     assert_eq!(
         sidecar["unavailable"]["height_m"],
         "below the data-quality bar"
+    );
+}
+
+/// Discovery takes a catalogue directory; a test points it at one that does not
+/// exist, so only the adapter's hits are listed, exactly as before fn-35.
+fn catalogue_absent(dir: &std::path::Path) -> std::path::PathBuf {
+    dir.join("no-catalogue")
+}
+
+/// A catalogue holding one species folder with one source.
+fn catalogue_with_one_source(dir: &Path) -> PathBuf {
+    let catalogue = dir.join("catalogue").join("oregon-white-oak");
+    fs::create_dir_all(&catalogue).unwrap();
+    write_canonical(
+        &catalogue.join("sources.json"),
+        &json!({
+            "schema": "sources", "schema_version": 1, "species": "oregon-white-oak",
+            "sources": [{
+                "id": "USFS-OAK",
+                "url": "https://research.fs.usda.gov/silvics/oregon-white-oak-catalogued",
+                "title": "Silvics of North America",
+                "attribution": "William I. Stein, US Forest Service",
+                "rights": "US Forest Service publication, public domain",
+                "sha256": null, "verified": "2026-09-06",
+                "use": "Species and habitat context.", "tables": [],
+            }],
+        }),
+    )
+    .unwrap();
+    dir.join("catalogue")
+}
+
+/// Every source the catalogue already holds is a candidate, and it is listed
+/// before the adapter's first web hit. The first ash run spent six driver
+/// dispatches searching for a table the repository already named.
+#[test]
+fn discovery_lists_every_catalogued_source_before_it_searches_the_web() {
+    let (dir, adapter) = scratch();
+    let transport = PipelineTransport(CaseTransport);
+    let judge = judge(&transport, &dir);
+    let catalogue = catalogue_with_one_source(&dir);
+
+    discover::run(&Paths::new(&dir), &catalogue, &adapter, &judge).unwrap();
+
+    let hits = read_json(&dir.join("discover.json")).unwrap()["body"]["proposals"][0]["hits"]
+        .as_array()
+        .cloned()
+        .unwrap();
+    assert_eq!(hits[0]["kind"], json!("catalogue"), "{hits:?}");
+    assert_eq!(
+        hits[0]["url"],
+        json!("https://research.fs.usda.gov/silvics/oregon-white-oak-catalogued")
+    );
+    assert!(
+        hits[1..]
+            .iter()
+            .all(|hit| hit["kind"] != json!("catalogue")),
+        "a web hit was listed among the catalogue's own: {hits:?}"
+    );
+}
+
+/// With a run directory of its own, a stage leaves the species folder holding
+/// canonical artifacts only: the fetch cache, the ledger and the command log
+/// stay in the run, so none of a run's scratch enters the catalogue.
+#[test]
+fn a_run_directory_keeps_a_runs_scratch_out_of_the_species_folder() {
+    let (species, adapter) = scratch();
+    let run = species.join("..").join("run-elsewhere");
+    fs::create_dir_all(&run).unwrap();
+    let paths = Paths::with_run(&species, &run);
+    let transport = PipelineTransport(CaseTransport);
+    let judge = judge(&transport, &run);
+
+    discover::run(&paths, &catalogue_absent(&species), &adapter, &judge).unwrap();
+    let proposed = read_json(&species.join("decisions.json")).unwrap()["decisions"][0].clone();
+    write_canonical(
+        &species.join("resolutions.json"),
+        &json!({"resolutions": [{"id": proposed["id"], "inputs_sha256": proposed["inputs_sha256"], "option": "admit", "by": "test", "at": "2026-09-18"}]}),
+    )
+    .unwrap();
+    fetch::run(&paths, &adapter).unwrap();
+
+    for scratch_name in ["cache", "ledger", "stills", "command-log.json"] {
+        assert!(
+            !species.join(scratch_name).exists(),
+            "oregon-white-oak: {scratch_name} was written into the species folder"
+        );
+    }
+    assert!(
+        run.join("cache").join("S1.md").exists(),
+        "the run kept no cache"
+    );
+    assert!(
+        species.join("fetch.json").exists(),
+        "the species folder kept no artifact"
     );
 }

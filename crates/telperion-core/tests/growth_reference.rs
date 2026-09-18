@@ -147,7 +147,11 @@ fn every_shipped_species_growth_reference_matches_its_preset() {
         let record = catalogue::pins(id);
         let reference = &record["growth_reference"];
         let family = preset.parameters();
-        assert_eq!(catalogue::number(reference, "age", id), family.age, "{id}: age");
+        assert_eq!(
+            catalogue::number(reference, "age", id),
+            family.age,
+            "{id}: age"
+        );
         assert_eq!(
             catalogue::number(reference, "height_m", id),
             family.skeleton.envelope.height,
@@ -155,4 +159,3 @@ fn every_shipped_species_growth_reference_matches_its_preset() {
         );
     }
 }
-

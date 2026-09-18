@@ -44,7 +44,11 @@ pub fn triple(record: &Value, field: &str, species: &str) -> [f64; 3] {
     let values = record[field]
         .as_array()
         .unwrap_or_else(|| panic!("{species}: pins.json {field} is not a list"));
-    assert_eq!(values.len(), 3, "{species}: pins.json {field} is not three numbers");
+    assert_eq!(
+        values.len(),
+        3,
+        "{species}: pins.json {field} is not three numbers"
+    );
     let mut out = [0.0; 3];
     for (slot, value) in out.iter_mut().zip(values) {
         *slot = value

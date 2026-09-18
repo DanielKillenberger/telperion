@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use serde_json::{json, Value};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::read_json;
-use telperion_jev::pipeline::stage::Context;
+use telperion_jev::pipeline::stage::{Context, Paths};
 use telperion_jev::pipeline::stages::{fetch, fit, inputs};
 use telperion_jev::pipeline::swap;
 
@@ -30,10 +30,10 @@ fn prepare(species: &str) -> PathBuf {
     fs::copy(source.join("manifest.json"), dir.join("manifest.json")).unwrap();
     let adapter = FixtureAdapter::new(source.join("fixtures"));
     assert!(matches!(
-        fetch::run(&dir, &adapter).unwrap(),
+        fetch::run(&Paths::new(&dir), &adapter).unwrap(),
         fetch::Outcome::Ran { decisions } if decisions.is_empty()
     ));
-    let (ctx, _) = Context::open(&dir, "quality").unwrap();
+    let (ctx, _) = Context::open(&Paths::new(&dir), "quality").unwrap();
     let header = ctx.header("quality", "quality", inputs(&[]), vec![]);
     ctx.write(
         &header,
@@ -55,7 +55,10 @@ fn the_fit_over_the_fixtures_reproduces_fn30_for_the_oak_and_the_spruce() {
     for species in ["oregon-white-oak", "norway-spruce"] {
         let dir = prepare(species);
         assert!(
-            matches!(fit::run(&dir).unwrap(), fit::Outcome::Ran { .. }),
+            matches!(
+                fit::run(&Paths::new(&dir)).unwrap(),
+                fit::Outcome::Ran { .. }
+            ),
             "{species}"
         );
         let body = read_json(&dir.join("fit.json")).unwrap()["body"].clone();
@@ -144,8 +147,8 @@ fn the_fit_over_the_fixtures_reproduces_fn30_for_the_oak_and_the_spruce() {
 fn two_isolated_runs_over_the_same_fixtures_compare_identical() {
     let left = prepare("oregon-white-oak");
     let right = prepare("oregon-white-oak");
-    fit::run(&left).unwrap();
-    fit::run(&right).unwrap();
+    fit::run(&Paths::new(&left)).unwrap();
+    fit::run(&Paths::new(&right)).unwrap();
     let comparison = swap::compare(&left, &right);
     assert!(
         comparison.passed(),
