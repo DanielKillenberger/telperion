@@ -18,3 +18,13 @@ The commit that adds this file touches only `.flow/`; whether it starts a run is
 ## What would move the missed bound
 
 The remaining cost is test execution, serial across binaries inside one job. Two ways under six minutes, neither in this spec: run the test binaries in parallel (cargo-nextest, or one job per crate for the core suite's slow binaries), which is bounded below by the 214 s species suite plus compile at roughly five minutes; or a larger runner, which scales the species suite with its cores. The owner decides.
+
+## After the merge
+
+| Run | What | Total | receipts | rust job | node job |
+|---|---|---|---|---|---|
+| 35368731297 | first push to master, merge f52441ae, no receipt and no cache on master yet | 13 min 11 s (16:29:01Z to 16:42:12Z) | 14 s | 12 min 51 s | 5 min 34 s |
+
+Master's first run is cold because receipts and caches are branch-scoped; it saved both, so the next master push that moves a key starts warm, and later pull requests read master's receipts.
+
+The commit that adds this section and closes the spec touches only `.flow/`; whether it starts a run on master is the R1 observation, recorded in the flow report of the session that pushed it.
