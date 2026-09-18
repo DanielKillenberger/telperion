@@ -1,22 +1,24 @@
 {
-  "branch_name": "fn-35-the-species-catalogue-as-data",
+  "branch_name": "fn-77-the-species-registry-one-file-per",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-09-14T14:25:52.543978Z",
+  "created_at": "2026-09-18T18:56:15.493848Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
-  "id": "fn-35-the-species-catalogue-as-data",
+  "depends_on_epics": [
+    "fn-35-the-species-catalogue-as-data"
+  ],
+  "id": "fn-77-the-species-registry-one-file-per",
   "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "spec_path": ".flow/specs/fn-35-the-species-catalogue-as-data.md",
+  "spec_path": ".flow/specs/fn-77-the-species-registry-one-file-per.md",
   "status": "open",
-  "title": "The species catalogue as data",
+  "title": "The species registry: one file per species",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -28,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T18:56:23.298569Z"
+  "updated_at": "2026-09-18T18:56:24.065707Z"
 }

@@ -4,104 +4,112 @@
 
 > user (2026-09-14): "should we actually spec a template/pipeline that would allow contributors to add trees as templates and improve the generator to make it possible to generate all trees in the world. If this is streamlined we could just recursively have grok add trees and update the generator?"
 > user (2026-09-14): "i mean the goal should be all trees some time in the future. But ideally we just have a spec per tree species and have that follow a template"
-> user (2026-09-14, on when): "After fn-34 returns"
+> user (2026-09-18): "should we actually have a database for species documentation. Document store/wiki or smth that follows certain rules/structure => the species ingestion pipeline is much easier to consistently run. Also easier to update docs and not have them lost."
+> user (2026-09-18): "but i'd have that catalogue at a level outside of flow. Evidence in flow should refer to that wiki/catalogue. It should be at the root of the repo."
+> user (2026-09-18): "how can we have images stored there also to use as references? probably not fit to be in the repo directly?" / "we'd ideally have images in there"
+> user (2026-09-18): "is there also a way to browse this catalogue that fits this structure? for humans i mean" / "aye"
+> user (2026-09-18): "does fn-35 need planned? can we simplify it? 11 reqs seems alot" / "ok let's do the split as you proposed"
 
 ## Goal & Context
 <!-- scope: business -->
-<!-- Goal & Context: 40% [user], 40% [paraphrase], 20% [inferred] -->
+<!-- Goal & Context: 50% [user], 35% [paraphrase], 15% [inferred] -->
 
-The owner's goal is every tree species in the world, each one a spec generated from a template and implemented as a value table by a value-tier model, with the generator improved whenever a species exposes a form it cannot make. fn-34 was the first run of that loop: cursor-agent with Grok 4.6 onboarded beech and birch in 36 minutes, 48 of 48 numeric cases, on the fn-9 packet. [user]
+The owner wants one structured home for everything known about a species, so the pipeline runs the same way every time and a record is updated in place instead of lost. The first pipeline run (fn-56, 2026-09-18) showed the repository has no such home. Species knowledge is filed by spec number in four places (fn19 for the oak and spruce bibliography, fn34 for the ash, beech and birch packets, fn26, fn29 and fn32 for further reference files, and an evidence folder named after the ash for the pipeline run), in three record formats for one fact (the fn19 reference record, the profile with its dimension definitions, the manifest source with its checksum and table blocks). The ash manifest cites "fn-34 ash profile" as the rationale for its envelope height, a pointer that breaks when fn-34's evidence is superseded. Discovery searched the web before finding the yield-table source that fn-34's reference file already named, which cost six driver dispatches on a run planned for one. [user]
 
-What fn-34 also showed is that the repository is not yet shaped for a catalogue. Adding one species touched twelve hand-maintained identity sites (the enum, the id parser, the profile map, the wire catalogue, six test lists, the browser exports and the bindings count). The sweep test walks every pair of presets, so its cost grows with the square of the catalogue. A species pair committed 7 MB of judging stills. A binding fixture needed a per-species height patch. Each of those is a place a value-tier model can make a subtle mistake, and each one multiplies by the number of species. [paraphrase]
+This spec puts the catalogue at the root of the repository, outside Flow, one folder per species, holding the bibliography, the admitted manifest, the packet, the provenance, the decisions, the pins the tests read, the reference images the project may keep, and the owner's notes. Flow evidence holds runs and refers to the catalogue; it never duplicates a species record. A code check owns the folder's structure, and a generated page per species lets a person browse it on GitHub or in Obsidian with no server. [user]
 
-This spec makes a species one file and one command. A species template is a data entry the catalogue reads; every test, export and runner iterates the catalogue rather than a hand list; the sweep samples pairs; stills stay on disk with checksums in the evidence; and a species spec is rendered from a template so a contributor, human or model, needs no repository knowledge beyond the packet. [inferred]
+The registry refactor that makes a species one Rust file and stops the twelve hand-maintained identity sites is the dependent spec fn-77-the-species-registry-one-file-per; it reads the pins file this spec places. The species spec template, the one-command script and the value-tier routing line landed in PR #29 and are not restated here. [paraphrase]
 
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-- **A species is one value table in one file.** `crates/telperion-core/src/presets/species/<id>.rs` holds one function returning the `Family`, its material row beside it, and a `const ENTRY: Species` naming the catalogue id, display name, note, abi id and profile id. A registry in `presets/species/mod.rs` lists the entries once; `Preset` stays as the enum for the five synthetic and founding families and gains one `Species(&'static Species)` arm, so the enum never grows per species and no match statement is edited when one lands. `from_id`, `profile_id`, `CATALOGUE` and `parameters` all read the registry. [inferred]
-- **Every enumeration reads the catalogue.** The tests that list identities today (`sweep.rs`, `mesh.rs`, `species.rs`, `growth_reference.rs`, `identity.rs`, the specimen unit-test loops, `examples/measure.rs`, `tests/browser/bindings.mjs`) iterate `CATALOGUE` and fail on a registry entry that lacks a pin or a band, so a missing pin is a test failure with the species named rather than a silently unpinned preset. Per-species data those tests need (pins, leaf-count bands, the growth reference height by age) live in one `.flow/evidence/catalogue/<id>.json` the tests read, so a species lands with its numbers beside its table and no test source is edited. [inferred]
-- **The sweep samples.** The walk keeps every pair among the founding five and the Two Trees, and for the rest walks each species against its nearest founding family and one seeded random partner, so the walk grows linearly in the catalogue. The held-paths proof stays complete because it reads the union of moved paths across the sampled walks. [inferred]
-- **Stills stay off the repository.** The judging set renders to the ignored evidence directory; the committed `stills.json` carries each file's sha256, preset, seed and view, and the owner's verdict. fn-29's and fn-34's committed stills stay where they are; no future species commits a raster. [paraphrase]
-- **A species spec is rendered from a template.** `templates/species-spec.md` is the fn-34 body for one species with placeholders for the taxon, the catalogue id, the architectural model, the organs and the base-for legend; `node scripts/new-species-spec.mjs --id <id> --scientific "<name>" --common "<name>" --model "<Hallé model>" --organs "<list>"` renders it and creates the spec through `flowctl spec create`. The contributor guide in `docs/species-onboarding.md` gains the one-command path and the two things a species may not do: touch generator or renderer code, and hand-edit a generated file. [user]
-- **Coverage is measured against the 23 architectural models.** `.flow/evidence/catalogue/models.json` lists the Hallé and Oldeman models with, for each, whether the field expresses it today, which shipped species demonstrates it, and the spec that would close it. A species spec names its model; a model marked unsupported blocks the species spec with a gap spec named, before any value table is written. [user]
-- **The binding fixture is derived, not patched.** The browser bindings test builds its compact fixture from the family's own leader internode so no species needs a per-species height line. [inferred]
+- **The catalogue is a root directory, outside Flow.** `catalogue/<id>/` is the source of truth for one species and the only place a species record lives. It holds `sources.json` (the bibliography, one schema for every source), `manifest.json` (the admitted pipeline manifest), `packet/` (the profile, references, species and specimens records the onboarding protocol defines, unchanged), `provenance.json`, `decisions.json` and `resolutions.json` from the pipeline, `pins.json` (the identity pins, leaf band and growth reference the tests read), `stills.json` (rendered stills by hash with the owner's verdict), `refs/` (reference images the project may redistribute), `NOTES.md` (the owner's verdicts and tuning notes, the one free-text surface a person writes) and `README.md` (generated, never written by hand). Runs stay under `.flow/evidence/<spec>/`: ledger, fetch cache, driver logs, rendered stills, friction. A run refers to the catalogue by species id and copies nothing out of it. [user]
+- **A code check owns the catalogue's structure.** One test walks every species folder and fails one that is missing a required file, a required field, a source without rights text, a kept image without a hash, an image whose bytes do not match its recorded hash, a raster outside `refs/`, or a README that differs from its regeneration, naming the species and the field. Whether a source says what the packet claims stays a Jev question under the fn-58 obligations. [paraphrase]
+- **Pointers run toward the catalogue.** A manifest's engineering rationale cites source ids from `sources.json`, never a spec number. Pipeline discovery reads every `catalogue/*/sources.json` before any web or research search, which is where fn-75's discovery seed (its R4) looks once both land, in place of walking admitted manifests across the evidence tree. The species runner (fn-72) finds a preset's reference records in its catalogue folder. The pipeline's stages write their fixed-path artifacts into the species folder; no stage logic changes. [paraphrase]
+- **Reference images live in the catalogue under Git LFS.** `catalogue/<id>/refs/` holds the images whose rights allow the project to keep a copy (the owner's own photographs, and licensed images with attribution recorded), tracked as LFS objects by a `.gitattributes` rule on that path so a clone stays small and a checkout pulls them on demand. Each image is a reference record in `packet/references.json` with its sha256, rights, attribution, access date and the shot block fn-36 defines, so a matched still can be rendered against it. An image whose rights do not allow a copy is recorded by URL, hash and access date only; the fetch adapter caches it in the ignored cache directory and the runner refuses to compare against a file that is absent or does not match its hash. Rendered stills never enter the catalogue; they are reproducible from the pins and stay in the ignored evidence directory with their hashes in `stills.json`. [user]
+- **Humans browse a generated page, never an authored one.** `scripts/catalogue-pages.mjs` renders `catalogue/<id>/README.md` from the species folder (taxon and context from the packet, the architectural model, the bibliography with rights, the pins and growth reference, the kept reference images inline, the stills table with the owner's verdicts, and `NOTES.md` quoted verbatim) and `catalogue/README.md` as the index, one row per species with its model and verdict status. GitHub renders the folder as a page with LFS images inline, Obsidian opens the directory as a vault, and GNO can index it as a collection; none of them needs a server. The harness view that shows the tree beside its references is a later spec. [user]
+- **Existing records move into the catalogue once.** The fn19 oak and spruce references, the fn34 ash, beech and birch packets, and the ash run's manifest, packet, provenance and decisions move to their species folders in one commit that changes no value; the evidence folders they leave keep a one-line pointer to the new path. The fn34 report, rounds and trial tables stay where they are as run history. The oak and the spruce get folders even though their presets stay in `presets.rs`, because their fn19 records are the oldest species knowledge in the repository. [paraphrase]
+- **Pins move out of test source.** `pins.json` per species carries the identity pins, the leaf band and the growth reference height by age that `identity.rs`, `sweep.rs` and `growth_reference.rs` hold in source today. This spec places the files and adds a test that each shipped species' file matches the numbers still in source; fn-77 switches the tests to read the file and deletes the source copies. [inferred]
 
 ## API Contracts
 <!-- scope: technical -->
 
-- **Registry shape** `Species { id, name, note, abi_id, profile_id, family: fn() -> Family }` in `presets/species/mod.rs`; `CATALOGUE` in `params.rs` is derived from the founding entries plus the registry, in that order, so existing abi ids never move. [inferred]
-- **Per-species evidence file** `.flow/evidence/catalogue/<id>.json`: `pins { wood_vertices, wood_triangles, instances, min, max, skeleton, placement, element }`, `leaf_band [min, max]`, `growth_reference { age, height_m }`, `profile_path`, `profile_sha256`. Missing or malformed fails the test naming the id. [inferred]
-- **Template placeholders** `{{id}}`, `{{scientific_name}}`, `{{common_name}}`, `{{model}}`, `{{organs}}`, `{{base_for}}` (optional), `{{context}}`; unknown placeholders left in the rendered body fail the script. [inferred]
-- **Views, wire and browser metadata unchanged**; the generated catalogue gains entries as species land. [paraphrase]
+- **Species folder** `catalogue/<id>/` with required files `sources.json`, `manifest.json`, `packet/profile.json`, `packet/references.json`, `packet/species.json`, `packet/specimens.json`, `provenance.json`, `decisions.json`, `resolutions.json`, `pins.json`, `stills.json`, `NOTES.md`, `README.md`, and an optional `refs/` directory. A species that predates the pipeline (oak, spruce, beech, birch) carries `manifest.json`, `provenance.json`, `decisions.json` and `resolutions.json` as `{"schema": "<name>", "schema_version": 1, "empty": true}` until a pipeline run fills them. [inferred]
+- **Source record** in `sources.json`, one schema for every source: `id`, `url`, `title`, `attribution`, `rights`, `sha256` of the fetched bytes, `verified` (date), `use` (what the source is good for, in words), and `tables` (the admitted table records fn-75 defines, with `block`, `expected_rows`, `dimension`, `unit`, `value_column`, `condition`, `taxon`). The fn19 reference schema and the manifest source record are both rendered from this file; neither is authored by hand again. [inferred]
+- **Reference image record** in `packet/references.json`, the frozen fn19 reference schema plus `kept: true|false`; a kept image has `path` under `refs/` and `asset_sha256`, an unkept one has `url`, `asset_sha256` and `access_date` only. [inferred]
+- **Pins file** `pins.json`: `pins { wood_vertices, wood_triangles, instances, min, max, skeleton, placement, element }`, `leaf_band [min, max]`, `growth_reference { age, height_m }`, `profile_sha256`. [inferred]
+- **Structure check** `node scripts/catalogue-check.mjs`, on the workspace test commands; the failure message is `catalogue/<id>: missing <file>` or `catalogue/<id>/<file>: <field> <reason>`. It also runs the page generator in memory and reports `catalogue/<id>/README.md: differs from regeneration`. [inferred]
+- **Page generator** `node scripts/catalogue-pages.mjs` writes `catalogue/README.md` and every `catalogue/<id>/README.md`; it takes no arguments and is idempotent. [inferred]
+- **LFS rule** `.gitattributes`: `catalogue/**/refs/** filter=lfs diff=lfs merge=lfs -text`. [inferred]
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- **Byte identity across the move.** Every shipped preset's identity pins, sweep bands and browser metadata are unchanged by the registry refactor; the refactor lands as its own commit that moves no numbers. [paraphrase]
-- **Abi ids are stable.** A species keeps its abi id forever; the registry assigns the next free id and the test asserts no two entries share one. [inferred]
-- **The founding families stay in `presets.rs`.** Ordinary, the oak, the spruce, Telperion and Laurelin are not moved into the registry in this spec; they are the pattern the registry mirrors, and moving them risks the pins for no gain. A later spec may fold them. [inferred]
-- **File sizes.** One species file is about 120 lines with its material row; the registry file is a list. `presets.rs` shrinks. [paraphrase]
-- **The sweep's sampling is seeded** so the same pairs walk on every run and a failure names the pair. [inferred]
-- **Stills ignored, hashes committed.** `.gitignore` gains the catalogue evidence stills directory; a still whose sha256 does not match `stills.json` is not evidence. [paraphrase]
-- **No generator or renderer change** in this spec beyond the registry and the derived fixture; the models file is data, and a gap it names is a spec, not a task here. [paraphrase]
-- **fn-30, fn-31, fn-33 in flight.** This spec touches presets and tests; it rebases over the growth specs on landing, and fn-33's organ rows join the species file shape when they exist. [inferred]
+- **The move changes no value.** The record move is one commit; a diff of any moved JSON against its old path, keys sorted, is empty. [paraphrase]
+- **Source bytes stay outside the repository.** The catalogue holds checksums, extracted spans and table rows, never a fetched page or PDF; fn-58's rule stands. The one exception is a reference image the project may redistribute, which is an LFS object with its rights recorded. [paraphrase]
+- **LFS is a local and a hosting constraint.** `git-lfs` is not installed on the owner's machine today, which is a local setup step and not this spec's work. GitHub Free grants 10 GiB of LFS storage and 10 GiB of bandwidth a month; at about half a megabyte a photograph and ten photographs a species, three hundred species is 1.5 GiB. CI checkouts pull LFS objects only in the job that renders matched stills, so the workspace tests spend no bandwidth. [inferred]
+- **Rasters already in history stay.** master carries 507 committed rasters, 236 MB, most under `experiments/fn9-iterations` and fn19's evidence. This spec rewrites no history; it stops the growth. A raster committed under `catalogue/` outside `refs/` fails the structure check. [paraphrase]
+- **Stills ignored, hashes committed.** `.gitignore` covers the evidence stills directories; a still whose sha256 does not match `stills.json` is not evidence. [paraphrase]
+- **A hand-edited README fails the check** the same way a stale one does; the notes file is where a person writes. [inferred]
+- **No generator, renderer or preset change.** The pins test added here reads numbers that exist; it moves none. [paraphrase]
+- **fn-58 landed, fn-75 in flight.** This spec changes the paths the pipeline stages read and write and adds nothing to a stage's logic. It rebases over fn-75 on landing, and fn-75's discovery seed reads the catalogue once both are on master. [inferred]
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** A species is one file in the species registry with its value table, material row and catalogue entry, and one evidence file with its pins, band and growth reference; adding a species edits no enum arm, no match, no test source and no generated file by hand. Errors: a registry entry without an evidence file, or a duplicate id or abi id, fails a test naming it. [user]
-- **R2:** Every test, example and runner that enumerates presets reads the catalogue; the five founding families and the two fn-34 species keep byte-identical pins, bands and browser metadata through the refactor, committed as a numbers-free move. Errors: a moved pin fails the refactor commit. [paraphrase]
-- **R3:** The sweep walks every founding pair and, for each catalogue species, its nearest founding family and one seeded partner, and the held-paths proof still covers the union of moved paths. Errors: a species with no nearest founding family declared fails naming it. [inferred]
-- **R4:** Judging stills render to the ignored evidence directory and are recorded by sha256, preset, seed and view in a committed `stills.json` with the owner's verdict field; no new raster is committed. Errors: a hash mismatch is not evidence. [paraphrase]
-- **R5:** `templates/species-spec.md` and `scripts/new-species-spec.mjs` render and create a species spec from the taxon, id, model and organs in one command, and `docs/species-onboarding.md` documents that path and the two prohibitions. Errors: an unfilled placeholder fails the script naming it. [user]
-- **R6:** `.flow/evidence/catalogue/models.json` lists the 23 Hallé and Oldeman architectural models with support status, demonstrating species and closing spec, and a species spec that names an unsupported model is blocked until the closing spec is captured. Errors: a model absent from the file is unsupported. [user]
-- **R7:** The browser bindings test derives its compact fixture from the family's leader internode, and beech passes without its per-species height line. Errors: no error surface beyond the test. [inferred]
-- **R8:** Species specs route to the value tier and gap specs to the frontier tier by a line in CLAUDE.md's routing block, replacing the fn-34 exception. Errors: no error surface. [user]
+- **R1:** Every shipped species (oak, spruce, ash, beech, birch) has a folder under `catalogue/` with the required files, and the fn19, fn34 and fn-56 records live there with their old locations pointing at them; the structure check passes on every folder and is on the workspace test commands. Errors: a missing file or field, a source without rights, a kept image without a matching hash, or a raster outside `refs/` fails the check naming the species and the field. [user]
+- **R2:** A reference image the project may keep is an LFS object under `catalogue/<id>/refs/` with its record in `packet/references.json`, and `npm run species:qa` renders its matched still against it after `git lfs pull`; an image the project may not keep is recorded by URL and hash and the runner refuses to compare against an absent or mismatched file, naming the reference id. Errors: a missing `.gitattributes` rule for `catalogue/**/refs/**` fails the structure check. [user]
+- **R3:** Every species folder carries a generated `README.md` and the catalogue an index page, rendered by `scripts/catalogue-pages.mjs` with `NOTES.md` quoted verbatim, kept reference images inline and the stills table with verdicts; the pages render on GitHub and open in Obsidian with no server. Errors: the structure check fails naming a page whose committed bytes differ from its regeneration, and a hand-edited page fails the same way. [user]
+- **R4:** The pipeline's stages write their artifacts into the species folder, discovery lists every source in `catalogue/*/sources.json` as a candidate before any web search, the species runner reads a preset's reference records from its folder, and each shipped species' `pins.json` matches the pins, band and growth reference still held in test source. Errors: a stage writing outside the species folder, or a pins file that differs from source, fails a test naming the species. [paraphrase]
 
 ## Boundaries
 <!-- scope: business -->
 
-- No species onboarded here; fn-34 shipped two and species specs follow from the template. [paraphrase]
-- No generator capability; a model gap is a spec. [user]
-- The founding families stay where they are. [inferred]
-- No numeric whole-tree identity instrument; the owner's eye stays the final judge per species, sampled as the catalogue grows. [inferred]
+- No species onboarded here; species specs follow from the template. [paraphrase]
+- No registry refactor; the twelve identity sites, the sampled sweep and the derived binding fixture are fn-77's. [user]
+- No wiki and no database service; the catalogue is files in git with schemas and a code check, and the browsable view is generated. [user]
+- No harness view; a catalogue route that renders the direct build beside its references is its own spec. [user]
+- No architectural-model coverage file; the 23-model list is its own small spec when a species spec first needs to name an unsupported model. [user]
+- No change to a pipeline stage's logic, question set, threshold or value table; fn-75 owns the discovery and fetch fixes. [paraphrase]
+- No history rewrite for the rasters already committed. [inferred]
 
 ## Decision Context
 <!-- scope: both -->
 
 ### Motivation
 
-- The owner wants every tree species, each as a templated spec a value-tier model implements, with the generator improved on each gap; fn-34 proved the value tier on the packet and exposed the twelve-site, quadratic-sweep, committed-stills friction this spec removes. [user]
+- The owner wants species documentation in one structured store so the pipeline runs the same way every time and a record is updated in place rather than lost; the first ash run spent six dispatches partly on knowledge the repository already held. [user]
 
 ### Implementation Tradeoffs
 
-- A registry arm on `Preset` over a per-species enum variant: the enum is what forces twelve edits; one arm holding a static entry keeps `Preset` copyable and every match closed. [inferred]
-- Per-species evidence JSON over pins in test source: a value-tier model editing a pins array is the kind of edit that goes wrong silently; a file beside the table is checked by the test. [inferred]
-- Sampled sweep over the full walk: the full walk is the only proof that the tree space has no kind switch, and it stays complete for the founding families where the risk lives; a species is a point near a founding family, so one walk to it and one random walk keep the proof at linear cost. [inferred]
-- Stills off the repository: a 7 MB pair per species is 2 GB at three hundred species; hashes and the owner's words are the evidence, the rasters are reproducible from the pins. [paraphrase]
+- A root directory over Flow evidence: a species outlives every spec that touched it, and a spec's evidence folder is a run's history. Putting the record at the root makes the spec number an annotation on the record instead of its address. [user]
+- Files in git over a wiki or a database: the pipeline reruns stages on input checksums and canonical JSON, git gives the history and the PR is the review gate, and the dispatched Codex and Cursor workers can read a file where they cannot reach a wiki. A wiki page has no schema, no hash and no test. [paraphrase]
+- Git LFS over plain commits or an external bucket for reference images: plain commits already put 236 MB of rasters in the clone; a bucket needs credentials on every worker and CI job. LFS keeps the image beside its record, versioned, with the bytes pulled only where a still is rendered. [inferred]
+- A generated README over an authored wiki page: the records are the truth and the page is a view; a drift check keeps the two equal without a person remembering to update either. [user]
+- Two specs over one: the catalogue is scripts and JSON, the registry is a Rust refactor with a byte-identity gate; the owner found eleven requirements too many for one task, and the catalogue is what unblocks the pipeline today. [user]
 
 ## Parked unknowns
 
-- Which 23-model classification file to cite as the canonical list, and whether any model is out of scope for a game tree by policy.
-- Whether the founding families fold into the registry once its shape has held for a few species.
+- Whether the root directory is named `catalogue` or `species`; the spec uses `catalogue` to match its own title.
+- Whether the `.git/flow-artifacts` store, 20 GB on the owner's machine today, should hold rendered stills instead of the ignored evidence directories. Out of scope here; noted because it is where the local disk goes.
 
 ## Strategy Alignment
 
-- Follows "The catalogue": every species as a value table over a supported form, one spec from a template, the value tier implementing, coverage measured against the architectural models.
-- Follows "The core and integration": generated bindings and one lean core keep a new template accessible with no renderer change.
+- Follows "The catalogue": every species as a value table over a supported form, one spec from a template, the value tier implementing.
+- Follows "The core and integration": one lean core keeps a new template accessible with no renderer change.
 
 ## Resolved via Codebase
 
-- Identity sites touched by fn-34: `crates/telperion-core/src/params.rs:163` CATALOGUE, `presets.rs:13` enum, `:54` profile_id, `:62` from_id, `:73` parameters, `tests/sweep.rs:16` IDS and `:44` BANDS, `tests/mesh.rs:11`, `tests/species.rs`, `tests/growth_reference.rs`, `tests/identity.rs` PINS, `examples/measure.rs`, `tests/browser/bindings.mjs:129`, `src/browser/core.ts`, `src/index.ts`, six specimen unit-test preset loops (`branching/specimen/*tests.rs`, `contacts.rs`), `src/browser/presets.generated.ts` via `scripts/build-wasm.mjs`.
-- The sweep walks every pair: `tests/sweep.rs:97-100` `pairs()` over `IDS`, ten steps each (`:24`).
-- fn-34 committed 12 PNGs, 7.0 MB; fn-29 committed 9, 7.9 MB (`.flow/evidence/fn29/stills`).
-- The beech binding fixture patch: `tests/browser/bindings.mjs` sets a 6 m envelope for `european-beech` because a 4 m envelope is under two 2.2 m internodes.
-- `presets/species.rs` (fn-34) is 122 lines for two species; `presets.rs` 328; `presets/materials.rs` 217.
-- `crown_reference.rs` is an ignored FN6 pin list that excludes the oak and the spruce already; it is not an identity site.
+- Species records today: `.flow/evidence/fn19/references.json` and `final/sources.json` (oak, spruce), `.flow/evidence/fn34/{european-ash,european-beech,silver-birch}/{profile,references,species}.json`, `.flow/evidence/fn26/references.json`, `fn29`, `fn32`, and the fn-56 run at `.flow/evidence/european-ash/pipeline/` on the pipeline-run branch (manifest, discover, fetch, extract, screen, quality, select, verify, fit, gate, provenance, decisions, resolutions, packet, ledger, cache, six driver logs).
+- The ash manifest's engineering rows cite "fn-34 ash profile reference_height_by_age" and "the fn-34 ash profile's dbh_m range" as rationale.
+- fn-75 R4 makes discovery walk every admitted manifest in the evidence tree for known sources; with a catalogue that walk is one glob over `catalogue/*/sources.json`.
+- Pins in source today: `tests/identity.rs` PINS, `tests/sweep.rs:44` BANDS, `tests/growth_reference.rs`.
+- master as of 2026-09-18 carries 507 rasters, 236 MB: 276 under `experiments/fn9-iterations/qa-preview` (92 MB), 76 under `.flow/evidence/fn19` (54 MB), the rest across fn9, fn24, fn26, fn27, fn29, fn30, fn31, fn32, fn34 and fn55 evidence.
+- `templates/species-spec.md`, `scripts/new-species-spec.mjs` and the CLAUDE.md routing line landed in `2f628da2` (PR #29).
+- `git lfs` is not installed on the owner's machine; the repository has no `.gitattributes`.
 
 ## Requirement coverage
 
 | Requirement | Task |
 |---|---|
-| R1–R8 | TBD during planning |
+| R1–R4 | the one implicit task (direct route) |
