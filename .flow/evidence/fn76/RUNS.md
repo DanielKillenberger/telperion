@@ -29,3 +29,21 @@
 - **The caches were warm for the second run and cold for the first.** A
   master run after the merge is cold again, because receipts and build caches
   are branch-scoped; its row belongs beside these.
+
+## A receipt that was never written (found in host review, fixed)
+
+Run 35388400735, the third on this PR, ran every Rust job again although
+nothing a Rust suite reads had changed, while the Node suite skipped on its
+receipt. The cause is in the `rust-receipts` job of the named-shard commit:
+`actions/cache/restore` with `lookup-only` leaves `cache-hit` **empty** on a
+miss, the job publishes that empty value, and `read -r suite key hit result`
+collapses the empty field, so each crate's job result landed in `hit` and
+`result` stayed empty. The guard `[ "$result" = success ]` was then never
+true and no Rust receipt was ever saved. Node was unaffected because its
+receipt is written by the suite composite action, which takes the value as a
+named input instead of a whitespace-split field.
+
+The fix publishes each hit as the literal `true` or `false`
+(`cache-hit == 'true'`), so no field can be empty. The run after the fix is
+the one that proves a Rust receipt is written, and the run after that is the
+one that proves the skip.

@@ -44,12 +44,15 @@ jobs:
   # request reads master's receipts and master writes its own.
   receipts:
     runs-on: ubuntu-latest
+    # A lookup that misses leaves cache-hit empty, and an empty field collapses
+    # where a consumer splits on whitespace, so each hit is published as the
+    # literal true or false.
     outputs:
-      rust-core: ${{ steps.rust-core.outputs.cache-hit }}
-      rust-render: ${{ steps.rust-render.outputs.cache-hit }}
-      rust-wasm: ${{ steps.rust-wasm.outputs.cache-hit }}
-      rust-jev: ${{ steps.rust-jev.outputs.cache-hit }}
-      node: ${{ steps.node.outputs.cache-hit }}
+      rust-core: ${{ steps.rust-core.outputs.cache-hit == 'true' }}
+      rust-render: ${{ steps.rust-render.outputs.cache-hit == 'true' }}
+      rust-wasm: ${{ steps.rust-wasm.outputs.cache-hit == 'true' }}
+      rust-jev: ${{ steps.rust-jev.outputs.cache-hit == 'true' }}
+      node: ${{ steps.node.outputs.cache-hit == 'true' }}
       rust-all: ${{ steps.rust-core.outputs.cache-hit == 'true' && steps.rust-render.outputs.cache-hit == 'true' && steps.rust-wasm.outputs.cache-hit == 'true' && steps.rust-jev.outputs.cache-hit == 'true' }}
       rust-core-key: ${{ steps.keys.outputs.rust-core }}
       rust-render-key: ${{ steps.keys.outputs.rust-render }}
@@ -100,11 +103,11 @@ jobs:
       - name: Report the receipts
         env:
           RECEIPTS: |-
-            rust-core ${{ steps.keys.outputs.rust-core }} ${{ steps.rust-core.outputs.cache-hit }}
-            rust-render ${{ steps.keys.outputs.rust-render }} ${{ steps.rust-render.outputs.cache-hit }}
-            rust-wasm ${{ steps.keys.outputs.rust-wasm }} ${{ steps.rust-wasm.outputs.cache-hit }}
-            rust-jev ${{ steps.keys.outputs.rust-jev }} ${{ steps.rust-jev.outputs.cache-hit }}
-            node ${{ steps.keys.outputs.node }} ${{ steps.node.outputs.cache-hit }}
+            rust-core ${{ steps.keys.outputs.rust-core }} ${{ steps.rust-core.outputs.cache-hit == 'true' }}
+            rust-render ${{ steps.keys.outputs.rust-render }} ${{ steps.rust-render.outputs.cache-hit == 'true' }}
+            rust-wasm ${{ steps.keys.outputs.rust-wasm }} ${{ steps.rust-wasm.outputs.cache-hit == 'true' }}
+            rust-jev ${{ steps.keys.outputs.rust-jev }} ${{ steps.rust-jev.outputs.cache-hit == 'true' }}
+            node ${{ steps.keys.outputs.node }} ${{ steps.node.outputs.cache-hit == 'true' }}
         run: |
           while read -r suite key hit; do
             case $hit in
