@@ -1,7 +1,8 @@
-// A leaf lit as part of its crown rather than as a lone card. Every term here
-// is a pure function of directions and one row value, so a synthetic leaf can
-// be put to it with nothing else bound, and at a value of zero each returns
-// exactly what the card was lit by before the term existed.
+// A leaf lit as part of its crown rather than as a lone card, and the one
+// highlight every material glances the sun off in. Every term here is a pure
+// function of directions and one row value, so a synthetic surface can be put
+// to it with nothing else bound, and at a value of zero each returns exactly
+// what the card was lit by before the term existed.
 
 /// The crown's outward direction at a point: the gradient of the ellipsoid the
 /// placements fill, unit. Zero at the centre, where there is no outward.
@@ -53,6 +54,29 @@ fn sheen(normal: vec3<f32>, to_eye: vec3<f32>, f0: f32) -> f32 {
     let grazing = 1.0 - clamp(dot(normal, to_eye), 0.0, 1.0);
     let square = grazing * grazing;
     return f0 + (1.0 - f0) * square * square * grazing;
+}
+
+/// The sun a surface returns toward the eye as its one highlight: Schlick's
+/// Fresnel on the reflectance `f0` at the half vector, over a Blinn-Phong term
+/// normalised to the hemisphere whose width follows `roughness`, with the
+/// geometry term that cancels the microfacet denominator. `x` is the share of
+/// the sun the surface mirrors, which the diffuse gives up; `y` is that term
+/// toward the eye, to multiply by the sun's irradiance the caller has. Over
+/// every direction the eye can take the surface returns at most `x` of the
+/// sun and never more than the sun. A reflectance of zero mirrors none, and
+/// nothing reaches an eye below the surface's own horizon.
+fn highlight(n: vec3<f32>, to_sun: vec3<f32>, to_eye: vec3<f32>, f0: f32,
+    roughness: f32) -> vec2<f32> {
+    if (f0 <= 0.0 || dot(n, to_eye) <= 0.0) {
+        return vec2<f32>(0.0);
+    }
+    let half_way = normalize(to_sun + to_eye);
+    // The width is the roughness squared, and a floor keeps a mirror's
+    // exponent finite.
+    let alpha = max(roughness * roughness, 0.01);
+    let exponent = 2.0 / (alpha * alpha) - 2.0;
+    let spread = (exponent + 2.0) / 8.0 * pow(max(dot(n, half_way), 1e-6), exponent);
+    return vec2<f32>(sheen(half_way, to_eye, f0), spread);
 }
 
 /// How much crown lies ahead of a point along a direction: the chord, in

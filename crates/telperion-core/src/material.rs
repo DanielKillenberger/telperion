@@ -164,6 +164,22 @@ pub struct MaterialParams {
     /// own placements rather than from one smooth ellipsoid: a lobe's face is
     /// lit and what hangs under it falls into its shade. Zero sees none of it.
     pub lobe_shade: f64,
+    /// What the bark mirrors of the sun at normal incidence, the foot of its
+    /// one highlight by Schlick's Fresnel: 0.04 is a dielectric. What the
+    /// highlight mirrors is taken from the diffuse; zero mirrors none.
+    pub bark_reflectance: f64,
+    /// The same for the cuticle on the blade's front face; the highlight's
+    /// width follows `cuticle_gloss`.
+    pub leaf_reflectance: f64,
+    /// A grain below the relief: the size in metres of its cells. Zero
+    /// leaves the bark smooth between the relief's features.
+    pub bark_grain_scale: f64,
+    /// How far the grain varies the bark's colour and tilts its normal.
+    pub bark_grain_strength: f64,
+    /// The blade's cell grain, in cells per blade length; zero is none.
+    pub blade_grain_scale: f64,
+    /// How far that grain varies the blade's colour and tilts its normal.
+    pub blade_grain_strength: f64,
 }
 
 impl Default for MaterialParams {
@@ -257,6 +273,12 @@ impl Default for MaterialParams {
             peel_green: 0.0,
             peel_blue: 0.0,
             lobe_shade: 0.0,
+            bark_reflectance: 0.04,
+            leaf_reflectance: 0.04,
+            bark_grain_scale: 0.0,
+            bark_grain_strength: 0.0,
+            blade_grain_scale: 0.0,
+            blade_grain_strength: 0.0,
         }
     }
 }
@@ -357,6 +379,17 @@ impl MaterialParams {
             (self.peel_green, 0.0, 1.0, "bark peel green"),
             (self.peel_blue, 0.0, 1.0, "bark peel blue"),
             (self.lobe_shade, 0.0, 1.0, "leaf lobe shade"),
+            (self.bark_reflectance, 0.0, 1.0, "bark reflectance"),
+            (self.leaf_reflectance, 0.0, 1.0, "leaf reflectance"),
+            (self.bark_grain_scale, 0.0, 0.05, "bark grain scale"),
+            (self.bark_grain_strength, 0.0, 1.0, "bark grain strength"),
+            (self.blade_grain_scale, 0.0, 256.0, "leaf blade grain scale"),
+            (
+                self.blade_grain_strength,
+                0.0,
+                1.0,
+                "leaf blade grain strength",
+            ),
             (self.ridge_scale, 0.0, 1.0, "bark ridge scale"),
             (self.plate_scale, 0.0, 1.0, "bark plate scale"),
             (self.furrow_strength, 0.0, 1.0, "bark furrow strength"),

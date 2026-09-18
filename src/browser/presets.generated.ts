@@ -49,11 +49,16 @@ export interface Family {
 };
   material: {
   barkBlue: number;
+  barkGrainScale: number;
+  barkGrainStrength: number;
   barkGreen: number;
   barkMottleScale: number;
   barkMottleStrength: number;
   barkRed: number;
+  barkReflectance: number;
   barkRoughness: number;
+  bladeGrainScale: number;
+  bladeGrainStrength: number;
   bladeMottleScale: number;
   bladeMottleStrength: number;
   brightnessRangeHigh: number;
@@ -83,6 +88,7 @@ export interface Family {
   leafFrontBlue: number;
   leafFrontGreen: number;
   leafFrontRed: number;
+  leafReflectance: number;
   leafSheen: number;
   lenticelDensity: number;
   lenticelLength: number;
@@ -287,11 +293,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "material": {
         "barkBlue": 0.068,
+        "barkGrainScale": 0,
+        "barkGrainStrength": 0,
         "barkGreen": 0.105,
         "barkMottleScale": 0,
         "barkMottleStrength": 0,
         "barkRed": 0.147,
+        "barkReflectance": 0.04,
         "barkRoughness": 0.8,
+        "bladeGrainScale": 0,
+        "bladeGrainStrength": 0,
         "bladeMottleScale": 0,
         "bladeMottleStrength": 0,
         "brightnessRangeHigh": 0.12,
@@ -321,6 +332,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
+        "leafReflectance": 0.04,
         "leafSheen": 0,
         "lenticelDensity": 0,
         "lenticelLength": 0,
@@ -523,11 +535,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "material": {
         "barkBlue": 0.198,
+        "barkGrainScale": 0,
+        "barkGrainStrength": 0,
         "barkGreen": 0.218,
         "barkMottleScale": 0.8,
         "barkMottleStrength": 0.2,
         "barkRed": 0.225,
+        "barkReflectance": 0.04,
         "barkRoughness": 0.85,
+        "bladeGrainScale": 0,
+        "bladeGrainStrength": 0,
         "bladeMottleScale": 6,
         "bladeMottleStrength": 0.15,
         "brightnessRangeHigh": 0.15,
@@ -557,6 +574,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.016,
         "leafFrontGreen": 0.102,
         "leafFrontRed": 0.028,
+        "leafReflectance": 0.04,
         "leafSheen": 0,
         "lenticelDensity": 0,
         "lenticelLength": 0,
@@ -759,11 +777,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "material": {
         "barkBlue": 0.045,
+        "barkGrainScale": 0,
+        "barkGrainStrength": 0,
         "barkGreen": 0.078,
         "barkMottleScale": 0.4,
         "barkMottleStrength": 0.2,
         "barkRed": 0.147,
+        "barkReflectance": 0.04,
         "barkRoughness": 0.9,
+        "bladeGrainScale": 0,
+        "bladeGrainStrength": 0,
         "bladeMottleScale": 8,
         "bladeMottleStrength": 0,
         "brightnessRangeHigh": 0.1,
@@ -793,6 +816,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.028,
         "leafFrontGreen": 0.056,
         "leafFrontRed": 0.018,
+        "leafReflectance": 0.04,
         "leafSheen": 0,
         "lenticelDensity": 0,
         "lenticelLength": 0,
@@ -995,11 +1019,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "material": {
         "barkBlue": 0.7,
+        "barkGrainScale": 0.001,
+        "barkGrainStrength": 0,
         "barkGreen": 0.76,
         "barkMottleScale": 0.15,
         "barkMottleStrength": 0.12,
         "barkRed": 0.78,
+        "barkReflectance": 0.04,
         "barkRoughness": 0.95,
+        "bladeGrainScale": 90,
+        "bladeGrainStrength": 0.3,
         "bladeMottleScale": 5.5,
         "bladeMottleStrength": 0.2,
         "brightnessRangeHigh": 0.12,
@@ -1029,6 +1058,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.06,
         "leafFrontGreen": 0.19,
         "leafFrontRed": 0.1,
+        "leafReflectance": 0.04,
         "leafSheen": 0.06,
         "lenticelDensity": 18,
         "lenticelLength": 0.06,
@@ -1231,11 +1261,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "material": {
         "barkBlue": 0.068,
+        "barkGrainScale": 0,
+        "barkGrainStrength": 0,
         "barkGreen": 0.105,
         "barkMottleScale": 0,
         "barkMottleStrength": 0.05,
         "barkRed": 0.147,
+        "barkReflectance": 0.04,
         "barkRoughness": 0.8,
+        "bladeGrainScale": 0,
+        "bladeGrainStrength": 0,
         "bladeMottleScale": 0,
         "bladeMottleStrength": 0.04,
         "brightnessRangeHigh": 0.12,
@@ -1265,6 +1300,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
+        "leafReflectance": 0.04,
         "leafSheen": 0,
         "lenticelDensity": 0,
         "lenticelLength": 0,
@@ -1467,11 +1503,16 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
       },
       "material": {
         "barkBlue": 0.068,
+        "barkGrainScale": 0,
+        "barkGrainStrength": 0,
         "barkGreen": 0.105,
         "barkMottleScale": 0,
         "barkMottleStrength": 0.05,
         "barkRed": 0.147,
+        "barkReflectance": 0.04,
         "barkRoughness": 0.8,
+        "bladeGrainScale": 0,
+        "bladeGrainStrength": 0,
         "bladeMottleScale": 0,
         "bladeMottleStrength": 0.04,
         "brightnessRangeHigh": 0.12,
@@ -1501,6 +1542,7 @@ export const CATALOGUE: { abiId: number; id: string; name: string; note: string;
         "leafFrontBlue": 0.036,
         "leafFrontGreen": 0.195,
         "leafFrontRed": 0.068,
+        "leafReflectance": 0.04,
         "leafSheen": 0,
         "lenticelDensity": 0,
         "lenticelLength": 0,

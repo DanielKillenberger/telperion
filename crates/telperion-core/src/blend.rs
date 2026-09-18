@@ -142,6 +142,12 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         material.peel_green,
         material.peel_blue,
         material.lobe_shade,
+        material.bark_reflectance,
+        material.leaf_reflectance,
+        material.bark_grain_scale,
+        material.bark_grain_strength,
+        material.blade_grain_scale,
+        material.blade_grain_strength,
 
         shell_depth,
     );

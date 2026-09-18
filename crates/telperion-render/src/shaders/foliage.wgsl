@@ -83,6 +83,24 @@ fn vein_tone(coord: vec2<f32>) -> f32 {
         * (0.8 * vein - 0.25 * margin);
 }
 
+// The cells between the veins: filtered noise in leaf coordinates at the
+// row's count per leaf length, each leaf's own by its seed. It fades an
+// octave before the mottle above it, from two pixels a cell to one, because
+// its tilt of the normal is not linear in it.
+fn leaf_cells(coord: vec2<f32>, seed: vec2<f32>, pixel: vec2<f32>) -> f32 {
+    let across = vec2(1.0, 0.5) * u.grain.z;
+    return bark_noise2_filtered(coord * across + seed * 53.0, 2.0 * pixel * across);
+}
+
+// The grain here, and its differences over one pixel each way across the
+// screen, for the tilt of the normal.
+fn leaf_grain(coord: vec2<f32>, seed: vec2<f32>, pixel: vec2<f32>,
+    cx: vec2<f32>, cy: vec2<f32>) -> vec3<f32> {
+    let here = leaf_cells(coord, seed, pixel);
+    return vec3(here, leaf_cells(coord + cx, seed, pixel) - here,
+        leaf_cells(coord + cy, seed, pixel) - here);
+}
+
 /// The share of the sky that reaches a leaf at `world` through the crown
 /// standing over it: the chord straight up, where an overcast sky is
 /// brightest, taken at the row's shade per crown radius. All of it at zero.
@@ -98,7 +116,7 @@ fn crown_sky(world: vec3<f32>) -> f32 {
 fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
     // A leaf has no back. Nothing is culled, so the face the eye sees takes the
     // light; without the flip half the crown would read as holes.
-    let n = normalize(select(-in.normal, in.normal, front));
+    var n = normalize(select(-in.normal, in.normal, front));
     if (is_clay()) {
         return vec4<f32>(u.clay.rgb * clay_light(n), 1.0);
     }
@@ -107,11 +125,27 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
     let face = select(u.leaf_back.rgb, u.leaf_front.rgb, front);
     let scale = u.leaf_colour_detail.x;
     let pixel = fwidth(in.coord);
+    // Geometry derivatives before any row branch: WGSL wants them in
+    // uniform control flow, including in Chromium.
+    let dx = dpdx(in.world);
+    let dy = dpdy(in.world);
+    let cx = dpdx(in.coord);
+    let cy = dpdy(in.coord);
     let veins = vein_tone(in.coord);
     var modulation = 1.0;
     if (scale > 0.0 && u.leaf_colour_detail.y > 0.0) {
         let mottle = bark_noise2_filtered(in.coord * scale + in.leaf.xy * 37.0, pixel * scale);
         modulation += u.leaf_colour_detail.y * (2.0 * mottle - 1.0);
+    }
+    // The grain below the mottle: a factor on the colour and a tilt of the
+    // normal, a cell's relief a third of its width at full strength, read
+    // off how far a pixel walks the leaf against the world.
+    if (u.grain.z > 0.0 && u.grain.w > 0.0) {
+        let grain = leaf_grain(in.coord, in.leaf.xy, pixel, cx, cy);
+        modulation += u.grain.w * (2.0 * grain.x - 1.0);
+        let metres = length(dx) / max(length(cx), 1e-6);
+        let height = u.grain.w * metres / (3.0 * u.grain.z);
+        n = relief_normal(n, in.world, dx, dy, grain.y * height, grain.z * height);
     }
     let edge = max(abs(in.coord.y), in.coord.x);
     let width = max(pixel.x, pixel.y);
@@ -162,11 +196,12 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
             visibility, behind, transmittance), u.canopy.z);
     }
     let gloss = u.leaf_colour_detail.z;
-    var cuticle = 0.0;
-    // A fully shadowed or backlit face has no reflected sun to glint.
-    if (front && gloss > 0.0 && any(direct > vec3<f32>(0.0))) {
-        let half_way = normalize(to_eye + u.sun_direction.xyz);
-        cuticle = gloss * pow(max(dot(n, half_way), 0.0), exp2(3.0 + 5.0 * gloss));
+    var mirrored = vec2<f32>(0.0);
+    // A fully shadowed or backlit face has no reflected sun to glint, and
+    // the back has no cuticle. Its width follows the gloss row and its
+    // foot is the row's reflectance, taken from the diffuse.
+    if (front && u.reflectance.y > 0.0 && any(direct > vec3<f32>(0.0))) {
+        mirrored = highlight(n, u.sun_direction.xyz, to_eye, u.reflectance.y, 1.0 - gloss);
     }
     // The leaves of its own mass standing over it take their share of the
     // sky and of what passes through, so a clump's face is lit and what
@@ -177,7 +212,8 @@ fn fragment(in: Varying, @builtin(front_facing) front: bool) -> @location(0) vec
         shaded *= own;
         through *= own;
     }
-    var radiance = colour * (shaded + direct) + through + direct * cuticle;
+    var radiance = colour * (shaded + direct * (1.0 - mirrored.x)) + through
+        + direct * mirrored.x * mirrored.y;
     if (u.canopy.w > 0.0) {
         // The cuticle returns the sky its own face mirrors, most of it at
         // grazing. Reflection is the surface's, so it reads the face, as the

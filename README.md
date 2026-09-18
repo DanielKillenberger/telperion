@@ -331,12 +331,25 @@ ground, and in concave fork necks derived from the existing surface normals.
 Disconnected crossing limbs do not gain a contact term. `bladeMottleScale` (0–32 noise cells per blade length) and
 `bladeMottleStrength` (0–1) vary each blade with its placement's stable seed.
 `marginWidth` (0–0.5 of the half-blade) adds `marginRed/Green/Blue`
-(linear offsets, −1–1) at the sides and tip; `cuticleGloss` (0–1) shapes a
-shadowed sun highlight on the front face. `skyOcclusionStrength` (0–1)
+(linear offsets, −1–1) at the sides and tip; `cuticleGloss` (0–1) narrows the
+front face's one sun highlight, below. `skyOcclusionStrength` (0–1)
 cuts the sky hemisphere by crown depth on wood and leaves, preserving ground
 bounce; leaf interior darkening still multiplies the remaining ambient light.
 All nineteen of those additions default to zero. Zero scale disables mottling;
 zero width disables the margin. A needle stays matte and uniform through its row.
+
+The highlight is physical on both materials. `barkReflectance` and
+`leafReflectance` (0–1, default 0.04, a dielectric) are Schlick's reflectance
+at normal incidence, the foot of one Blinn-Phong lobe normalised to the
+hemisphere, whose width follows `barkRoughness` on wood and `cuticleGloss` on
+the blade's front face; what the lobe mirrors is taken from the sun's diffuse
+rather than added to it, so over every direction a surface returns at most its
+Fresnel share of the sun. Below the relief, `barkGrainScale` (0–0.05 metres, a
+cell) with `barkGrainStrength` (0–1), and `bladeGrainScale` (0–256 cells per
+blade length) with `bladeGrainStrength` (0–1), vary the colour and tilt the
+normal at the pixel and fade to their mean with the footprint like the mottle,
+so distant wood and leaves converge to their smooth means. Zero grain leaves
+both smooth.
 
 Plates are the field's second primitive, and structure rather than tint.
 `plateCellScale` (0-1 metres) is one plate's width across the run before girth
