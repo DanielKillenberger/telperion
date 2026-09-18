@@ -13,6 +13,9 @@ use telperion_core::{
     presets::{Family, Preset},
 };
 
+#[path = "catalogue/pins.rs"]
+mod catalogue;
+
 const IDS: [&str; 7] = [
     "ordinary",
     "oregon-white-oak",
@@ -374,4 +377,26 @@ fn the_oak_to_spruce_walk_has_no_switch_frame() {
             sections[step]
         );
     }
+}
+
+/// The band a catalogue species' record holds is the band this file holds.
+/// `ordinary`, `telperion` and `laurelin` are not catalogue species, so they
+/// have no folder and nothing to compare.
+#[test]
+fn every_catalogue_species_leaf_band_matches_its_record() {
+    let mut compared = 0;
+    for (id, low, high) in BANDS {
+        if !catalogue::catalogue().join(id).is_dir() {
+            continue;
+        }
+        let record = catalogue::pins(id);
+        let band = record["leaf_band"]
+            .as_array()
+            .unwrap_or_else(|| panic!("{id}: pins.json leaf_band is not a list"));
+        assert_eq!(band.len(), 2, "{id}: leaf_band is not a low-to-high pair");
+        assert_eq!(band[0].as_u64(), Some(low as u64), "{id}: leaf_band low");
+        assert_eq!(band[1].as_u64(), Some(high as u64), "{id}: leaf_band high");
+        compared += 1;
+    }
+    assert!(compared > 0, "no catalogue species was compared; is catalogue/ missing?");
 }

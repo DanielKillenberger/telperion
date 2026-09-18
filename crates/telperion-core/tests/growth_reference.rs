@@ -1,6 +1,9 @@
 use std::{fs, path::Path};
 use telperion_core::{branching::generate, presets::Preset, tree::NodeKind};
 
+#[path = "catalogue/pins.rs"]
+mod catalogue;
+
 #[test]
 fn beech_and_birch_record_mature_height_by_age() {
     let beech = Preset::EuropeanBeech.parameters();
@@ -129,3 +132,27 @@ fn complete_fn6_comparison() {
         assert!(max_radius < 1e-7);
     }
 }
+
+/// The height by age a catalogue species' record holds is the one its preset
+/// still states. A disagreement names the species and the field.
+#[test]
+fn every_shipped_species_growth_reference_matches_its_preset() {
+    let shipped = [
+        ("oregon-white-oak", Preset::OregonWhiteOak),
+        ("norway-spruce", Preset::NorwaySpruce),
+        ("european-beech", Preset::EuropeanBeech),
+        ("silver-birch", Preset::SilverBirch),
+    ];
+    for (id, preset) in shipped {
+        let record = catalogue::pins(id);
+        let reference = &record["growth_reference"];
+        let family = preset.parameters();
+        assert_eq!(catalogue::number(reference, "age", id), family.age, "{id}: age");
+        assert_eq!(
+            catalogue::number(reference, "height_m", id),
+            family.skeleton.envelope.height,
+            "{id}: height_m"
+        );
+    }
+}
+
