@@ -102,6 +102,40 @@ round is refused. Each round costs a landed generator spec, so the budget is
 not about compute; it is the point at which the owner decides whether this
 species is still worth the generator work it is asking for.
 
+### A late gap owes two accounts
+
+The specs land, the run resumes, and a gap is still there. That is allowed, and
+it is the case the loop exists for, but a round that names a gap the earlier
+rounds did not is the one that can spin forever: there is always one more thing
+to find. So every round after the first records two accounts, and a round that
+cannot give both stops with the owner whatever else it found.
+
+**Why it was missed.** One of three, named, with the landing or the vocabulary
+change that explains it:
+
+- `revealed-by-landing`: the earlier round could not have seen it, because the
+  capability it depends on did not exist. The palm's frond rosette is invisible
+  while the frond itself is missing.
+- `vocabulary-gained-a-term`: the generator's capability list grew a name that
+  lets the need be stated at all. The need was always there; there were no
+  words for it.
+- `earlier-assessment-erred`: the earlier round could have seen it and did not.
+
+The third is not refused, and hiding behind one of the first two is worse than
+admitting it. But it is counted, and it is the assessment's own quality signal
+rather than the species': a species accumulating more than one of these is
+telling you the assessment method or the tier running it is wrong, not that the
+species is difficult. A run whose late gaps are all `revealed-by-landing` has
+an assessment that is working.
+
+**Why the next step is worth taking.** What the species has cost so far, in
+rounds used and specs landed; what is still unmet and what each remaining item
+would take; and the case for continuing, which usually rests on whether the
+remaining capabilities serve other species or only this one. The owner reads
+this at the budget, and it is the only thing that makes the third round a
+decision rather than a reflex. A species whose remaining gaps serve nothing
+else is the one to park.
+
 
 ## Decisions
 
