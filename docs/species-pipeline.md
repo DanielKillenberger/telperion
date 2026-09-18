@@ -51,6 +51,58 @@ command that stops prints the stage or the decision that stopped it; the
 driver resolves nothing and reads nothing. `--adapter fixture:DIR` replaces
 Firecrawl with pinned fixtures for the model-swap test.
 
+## The capability assessment
+
+The pipeline's eleven commands are mechanical. Deciding what the generator
+cannot express is not, so the capability assessment is a **host step**, never
+a driver's and never a stage: reasoning and system design escalate to the host
+(`CLAUDE.md`, routing). The pipeline only checks its output.
+
+**It runs before the literature stages.** After the manifest is admitted and
+before `fetch`. A species whose form the field cannot draw is then parked for
+the cost of reading two files, instead of after the whole literature chain.
+Adding an engineering row keeps the admission and reruns nothing, so writing
+the assessment's result does not reissue the manifest proposal.
+
+Each round reads the species spec's architectural model and organs, the habit,
+element and attachment traits in `crates/telperion-core/src`, and the
+generator's capability vocabulary. For every trait the species needs it
+records one of three outcomes: a value the trait space reaches, a value the
+trait space cannot reach, or a structure no trait expresses
+(`unsupported-anatomy`, the disposition `docs/species-onboarding.md` names).
+A need an open spec already covers is recorded as depending on that spec, not
+as a new gap. A judgment the host is unsure of is recorded as unsure and never
+decided; an unsure item routes to the owner rather than into a gap.
+
+The round writes the unmet names to `manifest.json` under
+`engineering.required_capabilities` and its reasoning to
+`DIR/packet/capability.json`, which is a list of rounds, not a single record.
+
+### Rounds, because one assessment is never the last
+
+A landed gap fix changes what the generator expresses, so it can reveal a gap
+the previous round could not have seen: the palm's frond rosette is invisible
+while the frond itself is missing. The assessment is therefore a loop, and
+`gap resume` already drives it, since a landing expires the key of the halted
+stage and every stage after it, so `gate` reruns and the assessment reruns
+before it.
+
+Each round records the round number, the vocabulary version it assessed
+against, the landing that triggered it, the required set, the unmet set, the
+specs each unmet item depends on, and the unsure items.
+
+**The convergence rule.** A round is legitimate when it either shrinks the
+unmet set, or names a capability the landing itself revealed. A round that
+does neither, the same unmet set twice, or a set that grows without a landing
+to explain it, is the owner's: stop and say so. This is the rule fn-34's
+twenty-three rounds cost us, written down.
+
+**The budget is three rounds.** A fourth is refused, the way the third value
+round is refused. Each round costs a landed generator spec, so the budget is
+not about compute; it is the point at which the owner decides whether this
+species is still worth the generator work it is asking for.
+
+
 ## Decisions
 
 A stage that meets a choice a person owns files a decision in
