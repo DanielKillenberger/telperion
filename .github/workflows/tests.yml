@@ -113,13 +113,15 @@ jobs:
             esac
           done <<< "$RECEIPTS"
 
-  # The Rust suites without a receipt run as one nextest pool partitioned
-  # across standard runners; nextest is installed from its prebuilt binary at
-  # a pin. A partition is a slice of the tests of every crate, so a crate's
-  # receipt is saved only after every partition is green, in rust-receipts.
-  rust:
+  # Each Rust crate without a receipt runs under cargo-nextest on standard
+  # runners (.github/actions/nextest): the core crate as four count partitions
+  # of its tests, chosen from the runner's per-test times, the render crate
+  # whole, and the two small crates together. A crate's receipt is saved in
+  # rust-receipts when every job of that crate is green.
+  core:
+    name: core ${{ matrix.partition }}/4
     needs: receipts
-    if: needs.receipts.outputs.rust-all != 'true'
+    if: needs.receipts.outputs.rust-core != 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -127,79 +129,75 @@ jobs:
         partition: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
-
-      # rustup reads the channel, profile, components and targets from
-      # rust-toolchain.toml; the workflow names none of them.
-      - name: Install the pinned Rust toolchain
-        run: rustup toolchain install
-
-      - uses: Swatinem/rust-cache@v2
+      - uses: ./.github/actions/nextest
         with:
-          cache-on-failure: true
+          packages: telperion-core
+          partition: count:${{ matrix.partition }}/4
 
-      - name: Install cargo-nextest at its pin
-        run: curl -LsSf https://get.nexte.st/0.9.145/linux | tar zxf - -C "$HOME/.cargo/bin"
-
-      # The ci profile is release without the fat link (Cargo.toml); every
-      # package script and local command stays on release.
-      - name: Run partition ${{ matrix.partition }} of the suites without a receipt
-        env:
-          SUITES: |-
-            rust-core telperion-core ${{ needs.receipts.outputs.rust-core }}
-            rust-render telperion-render ${{ needs.receipts.outputs.rust-render }}
-            rust-wasm telperion-wasm ${{ needs.receipts.outputs.rust-wasm }}
-            rust-jev telperion-jev ${{ needs.receipts.outputs.rust-jev }}
-        run: |
-          packages=()
-          while read -r suite package hit; do
-            case $hit in
-              true) echo "Skipped $suite: receipt matched." ;;
-              *) packages+=(-p "$package") ;;
-            esac
-          done <<< "$SUITES"
-          cargo nextest run --cargo-profile ci "${packages[@]}" --no-fail-fast \
-            --partition count:${{ matrix.partition }}/4
-
-      # The fixed-specimen cache the core tests write is a per-run scratch and
-      # stays out of the build cache saved after this step.
-      - name: Leave the specimen cache out of the build cache
-        if: always()
-        run: rm -rf target/tmp/specimens
-
-  rust-receipts:
-    needs: [receipts, rust]
-    if: needs.rust.result == 'success'
+  render:
+    needs: receipts
+    if: needs.receipts.outputs.rust-render != 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Write the receipts of the suites that ran
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/nextest
+        with:
+          packages: telperion-render
+
+  wasm-jev:
+    name: wasm and jev
+    needs: receipts
+    if: needs.receipts.outputs.rust-wasm != 'true' || needs.receipts.outputs.rust-jev != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/nextest
+        with:
+          packages: >-
+            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm' || '' }}
+            ${{ needs.receipts.outputs.rust-jev != 'true' && 'telperion-jev' || '' }}
+
+  # Reached whatever the crate jobs did; a crate's receipt is written only
+  # when its jobs succeeded and it had none, so a red crate saves nothing.
+  rust-receipts:
+    needs: [receipts, core, render, wasm-jev]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write the receipts of the crates whose jobs were green
         env:
           RECEIPTS: |-
-            rust-core ${{ needs.receipts.outputs.rust-core-key }} ${{ needs.receipts.outputs.rust-core }}
-            rust-render ${{ needs.receipts.outputs.rust-render-key }} ${{ needs.receipts.outputs.rust-render }}
-            rust-wasm ${{ needs.receipts.outputs.rust-wasm-key }} ${{ needs.receipts.outputs.rust-wasm }}
-            rust-jev ${{ needs.receipts.outputs.rust-jev-key }} ${{ needs.receipts.outputs.rust-jev }}
+            rust-core ${{ needs.receipts.outputs.rust-core-key }} ${{ needs.receipts.outputs.rust-core }} ${{ needs.core.result }}
+            rust-render ${{ needs.receipts.outputs.rust-render-key }} ${{ needs.receipts.outputs.rust-render }} ${{ needs.render.result }}
+            rust-wasm ${{ needs.receipts.outputs.rust-wasm-key }} ${{ needs.receipts.outputs.rust-wasm }} ${{ needs.wasm-jev.result }}
+            rust-jev ${{ needs.receipts.outputs.rust-jev-key }} ${{ needs.receipts.outputs.rust-jev }} ${{ needs.wasm-jev.result }}
         run: |
           mkdir -p "$RUNNER_TEMP/receipts"
-          while read -r suite key hit; do
-            [ "$hit" = true ] || echo "$key" > "$RUNNER_TEMP/receipts/$suite"
+          while read -r suite key hit result; do
+            if [ "$hit" != true ] && [ "$result" = success ]; then
+              echo "$key" > "$RUNNER_TEMP/receipts/$suite"
+              echo "$suite: green, receipt $key written."
+            else
+              echo "$suite: receipt $hit, jobs $result, nothing written."
+            fi
           done <<< "$RECEIPTS"
 
-      - if: needs.receipts.outputs.rust-core != 'true'
+      - if: needs.receipts.outputs.rust-core != 'true' && needs.core.result == 'success'
         uses: actions/cache/save@v6
         with:
           path: ${{ runner.temp }}/receipts/rust-core
           key: ${{ needs.receipts.outputs.rust-core-key }}
-      - if: needs.receipts.outputs.rust-render != 'true'
+      - if: needs.receipts.outputs.rust-render != 'true' && needs.render.result == 'success'
         uses: actions/cache/save@v6
         with:
           path: ${{ runner.temp }}/receipts/rust-render
           key: ${{ needs.receipts.outputs.rust-render-key }}
-      - if: needs.receipts.outputs.rust-wasm != 'true'
+      - if: needs.receipts.outputs.rust-wasm != 'true' && needs.wasm-jev.result == 'success'
         uses: actions/cache/save@v6
         with:
           path: ${{ runner.temp }}/receipts/rust-wasm
           key: ${{ needs.receipts.outputs.rust-wasm-key }}
-      - if: needs.receipts.outputs.rust-jev != 'true'
+      - if: needs.receipts.outputs.rust-jev != 'true' && needs.wasm-jev.result == 'success'
         uses: actions/cache/save@v6
         with:
           path: ${{ runner.temp }}/receipts/rust-jev

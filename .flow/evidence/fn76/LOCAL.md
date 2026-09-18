@@ -89,3 +89,36 @@ stay ignored, as before.
   (the beech 118 s). The bound of a shard on the runner is the spruce test,
   one seed after another on one core; the sum of everything else divides by
   four cores.
+
+## After the first runner run (RUNS.md): named shards, seeds on threads
+
+The runner's per-test times (run 35385460955, `runner-durations.json` from
+its log) predict the core shards. A species test's core-seconds stay what
+they were; its chain becomes ceil(seeds / 4) rounds of the mean seed. Test
+phase per shard is the larger of core-seconds / 4 cores and the longest
+chain:
+
+| Split | shard loads, core-s / 4 | longest chain | note |
+|---|---|---|---|
+| count 3 | 118, 84, 46 s | 56 s | the spruce and the beech share shard 1 |
+| count 4 | 54, 89, 54, 51 s | 56 s | chosen; the stem trio, the oak, attachments and mesh share shard 2 |
+| count 5 | 68, 96, 9, 42, 33 s | 56 s | shard 3 nearly empty |
+| hash 4 | 55, 17, 89, 86 s | 56 s | worse than count at the same N |
+
+So the core crate runs as `core 1/4` to `core 4/4`, render as one job (8 s
+of tests), wasm and jev as one job (27 s); with a warm build cache the
+predicted rust wall is the setup and build (about 70 s warm, 135 s cold on
+this run) plus the 89 s shard.
+
+`fixed_species` runs its seeds four at a time on scoped threads
+(`SEEDS_IN_FLIGHT`), every seed and every assertion as before; each seed's
+checks run under `catch_unwind` and the outcomes are read back in seed
+order, so the failure reported is the first seed that failed however the
+threads finished. Species binary on the desk, nextest `-j 1`, load 9:
+
+| | spruce | beech | oak | birch |
+|---|---|---|---|---|
+| seeds one after another (branch, load 16 to 23) | 209 s | 173 s | 105 s | 94 s |
+| four seeds in flight | 41 s | 28 s | 21 s | 16 s |
+
+The test count is unchanged by the threads (604).
