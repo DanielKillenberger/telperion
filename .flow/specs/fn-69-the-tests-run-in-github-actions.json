@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-69-the-tests-run-in-github-actions.md",
-  "status": "open",
+  "status": "done",
   "title": "The tests run in GitHub Actions",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T13:05:18.474460Z"
+  "updated_at": "2026-09-18T14:33:38.811181Z"
 }

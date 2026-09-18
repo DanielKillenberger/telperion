@@ -1,0 +1,31 @@
+{
+  "branch_name": "fn-70-build-friction-from-fn-69-the-branch",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-18T14:10:03.610440Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-70-build-friction-from-fn-69-the-branch",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-70-build-friction-from-fn-69-the-branch.md",
+  "status": "open",
+  "title": "Build friction from fn-69: the branch base, the shared checkout, and the implementer probe",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-18T14:15:01.641609Z"
+}
