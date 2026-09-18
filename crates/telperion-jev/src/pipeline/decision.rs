@@ -4,7 +4,8 @@
 //! age, a typed payload per kind, and a status. The list is appended
 //! atomically and deduplicated by id on rerun. A resolution binds only while
 //! its input checksums match the decision's; a stale one is void and the
-//! decision reopens.
+//! decision reopens. Which stage consumes which option, and the refusal of
+//! an option no stage consumes, live in `consume`.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -13,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use super::canon::{read_json, write_canonical, CanonError};
+use super::consume::{check_resolutions, ReconcileError};
 
 pub const DECISIONS_SCHEMA_VERSION: u32 = 1;
 
@@ -42,6 +44,9 @@ pub struct Decision {
     pub note: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolution: Option<Resolution>,
+    /// The stage that acted on the resolution, once one has.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub consumed_by: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -53,6 +58,9 @@ pub struct Resolution {
     pub at: String,
     #[serde(default)]
     pub note: String,
+    /// What the option needs beside its name: `replace-source` carries `url`.
+    #[serde(default, skip_serializing_if = "Value::is_null")]
+    pub payload: Value,
 }
 
 pub struct DecisionParts<'a> {
@@ -100,6 +108,7 @@ impl Decision {
             options: options.iter().map(|s| s.to_string()).collect(),
             note: note.into(),
             resolution: None,
+            consumed_by: None,
         }
     }
 
@@ -114,6 +123,10 @@ fn decisions_value(list: &[Decision]) -> Value {
         "schema_version": DECISIONS_SCHEMA_VERSION,
         "decisions": list,
     })
+}
+
+pub fn write_decisions(path: &Path, list: &[Decision]) -> Result<(), CanonError> {
+    write_canonical(path, &decisions_value(list)).map(|_| ())
 }
 
 pub fn read_decisions(path: &Path) -> Result<Vec<Decision>, CanonError> {
@@ -191,16 +204,18 @@ pub fn apply_resolutions(decisions: &mut [Decision], resolutions: &[Resolution])
     }
 }
 
-/// Reads decisions and resolutions, applies them, and rewrites the list.
+/// Reads decisions and resolutions, refuses a resolution the kinds table
+/// refuses, applies the rest, and rewrites the list.
 pub fn reconcile(
     decisions_path: &Path,
     resolutions_path: &Path,
-) -> Result<Vec<Decision>, CanonError> {
+) -> Result<Vec<Decision>, ReconcileError> {
     let mut list = read_decisions(decisions_path)?;
     let resolutions = read_resolutions(resolutions_path)?;
+    check_resolutions(&list, &resolutions)?;
     apply_resolutions(&mut list, &resolutions);
     if !list.is_empty() {
-        write_canonical(decisions_path, &decisions_value(&list))?;
+        write_decisions(decisions_path, &list)?;
     }
     Ok(list)
 }
@@ -286,6 +301,7 @@ mod tests {
             by: "owner".into(),
             at: "2026-09-18".into(),
             note: String::new(),
+            payload: Value::Null,
         };
         apply_resolutions(&mut list, std::slice::from_ref(&good));
         assert_eq!(list[0].status, Status::Resolved);
@@ -315,6 +331,7 @@ mod tests {
             by: "owner".into(),
             at: "now".into(),
             note: String::new(),
+            payload: Value::Null,
         };
         apply_resolutions(&mut list, &[r]);
         assert_eq!(list[0].status, Status::Open);

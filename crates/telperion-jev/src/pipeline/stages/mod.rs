@@ -5,9 +5,11 @@
 //!
 //! - `discover.body`: `{"proposals": [{"field", "hits": [SearchHit + "kind"]}],
 //!   "draft_manifest": Manifest}`.
-//! - `fetch.body`: `{"sources": {"<id>": FetchRecord + {"cached": {"raw", "markdown"}}},
+//! - `fetch.body`: `{"sources": {"<id>": FetchRecord + {"cached": {"raw", "markdown"}}
+//!   with {"url", "replaced_url"} when replaced}, "dropped": {"<id>": {"url", "option"}},
 //!   "tables": {"<table id>": {"dimension", "unit", "condition", "taxon", "expected_rows",
-//!   "found_rows", "rows": [{"age_years", "value"}]}}}`.
+//!   "found_rows", "rows": [{"age_years", "value"}]} with {"block"} when the manifest names
+//!   one, and {"accepted_rows": true} or {"dropped": true} when a resolution said so}}`.
 //! - `extract.body`: `{"candidates": [{"source", "sentence", "context"}]}`.
 //! - `screen.body`: `{"rows": [{"source", "sentence", "kind", "condition",
 //!   "anchor_usable", "ledger"}]}`.
@@ -20,7 +22,8 @@
 //! - `fit.body`: the curve module's `FitReport` plus `{"points": {...}}`.
 //! - `gate.body`: `{"capability", "registry", "seeds", "unresolved": [...]}`.
 //! - `generate.body`: `{"metrics", "described": {...}, "transfers": {...}, "stills": [...]}`.
-//! - `report.body`: the report's sections, also rendered to `report.md`.
+//! - `report.body`: the report's sections, also rendered to `report.md`, with
+//!   `costs.stages.<stage>` and `costs.total` summed from every artifact's `cost`.
 
 pub mod discover;
 pub mod extract;

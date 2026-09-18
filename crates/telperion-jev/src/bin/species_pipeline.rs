@@ -9,6 +9,7 @@ use std::process::ExitCode;
 use telperion_jev::caller::{load_key, UreqTransport};
 use telperion_jev::pipeline::adapter::{FetchAdapter, FirecrawlCli, FixtureAdapter, RawSource};
 use telperion_jev::pipeline::judge::Judge;
+use telperion_jev::pipeline::known::KnownSources;
 use telperion_jev::pipeline::render::{Measurer, SpeciesExample};
 use telperion_jev::pipeline::stage::{log_command, Paths, STAGES};
 use telperion_jev::pipeline::stages::{
@@ -85,7 +86,10 @@ fn run(stage: &str, dir: &Path, args: &[String]) -> Result<String, String> {
     let adapter = adapter_from(args, dir);
     let example = example_from(args, dir);
     let outcome = match stage {
-        "discover" => describe(discover::run(dir, adapter.as_ref(), &judge)),
+        "discover" => {
+            let known = KnownSources::scan(Path::new(".flow"), &Paths::new(dir).manifest());
+            describe(discover::run(dir, adapter.as_ref(), &judge, &known))
+        }
         "fetch" => describe(fetch::run(dir, adapter.as_ref())),
         "extract" => describe(extract::run(dir)),
         "screen" => describe(screen::run(dir, &judge)),
@@ -134,11 +138,12 @@ fn adapter_from(args: &[String], dir: &Path) -> Box<dyn FetchAdapter> {
         Some(spec) if spec.starts_with("fixture:") => {
             Box::new(FixtureAdapter::new(spec.trim_start_matches("fixture:")))
         }
-        _ => Box::new(FirecrawlCli {
-            program: "firecrawl".into(),
-            cache_dir: dir.join("cache").join("firecrawl"),
-            raw_from: RawSource::Direct,
-        }),
+        _ => {
+            let mut cli = FirecrawlCli::new();
+            cli.cache_dir = dir.join("cache").join("firecrawl");
+            cli.raw_from = RawSource::Direct;
+            Box::new(cli)
+        }
     }
 }
 

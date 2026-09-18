@@ -6,9 +6,9 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 
-use super::canon::{file_sha256, read_json, CanonError};
+use super::canon::{canonical_sha256, file_sha256, read_json, CanonError};
 use super::curve::{BelowFirstRow, GouldCoefficients};
 use super::routes::{RelationLevel, ValueTable};
 
@@ -23,12 +23,16 @@ pub struct Taxon {
     pub cultivar: Option<String>,
 }
 
-/// An admitted table inside a source: which markdown table, how many
-/// age-indexed rows a person counted, and which columns carry the dimension.
+/// An admitted table inside a source: which markdown table, the label of the
+/// row that opens its block when one markdown table packs several species,
+/// how many age-indexed rows a person counted, and which columns carry the
+/// dimension.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AdmittedTable {
     pub id: String,
     pub table_index: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub block: Option<String>,
     pub expected_rows: usize,
     pub dimension: String,
     pub unit: String,
@@ -278,6 +282,25 @@ pub fn validate(m: &Manifest) -> Result<(), ManifestError> {
     Ok(())
 }
 
+/// The checksum of what a person seeds before discovery: the species, the
+/// taxon and the evidence fields with their conditions and required ages.
+/// Discovery keys on it, so admitting sources, curves or engineering rows
+/// does not rerun it; a seed edit does.
+pub fn seed_sha256(m: &Manifest) -> String {
+    let fields: Vec<Value> = m
+        .fields
+        .iter()
+        .map(|f| {
+            json!({
+                "field": f.field,
+                "condition": f.condition,
+                "required_ages_years": f.required_ages_years,
+            })
+        })
+        .collect();
+    canonical_sha256(&json!({"species": m.species, "taxon": m.taxon, "fields": fields}))
+}
+
 impl Manifest {
     pub fn source(&self, id: &str) -> Option<&Source> {
         self.sources.iter().find(|s| s.id == id)
@@ -361,6 +384,32 @@ pub(crate) mod tests {
             let err = validate(&manifest).unwrap_err().to_string();
             assert!(err.contains(expect), "{name}: {err}");
         }
+    }
+
+    #[test]
+    fn the_seed_checksum_ignores_admission_and_follows_a_seed_edit() {
+        let seed: Manifest = serde_json::from_value(minimal()).unwrap();
+        let mut admitted = seed.clone();
+        admitted.sources.push(Source {
+            id: "E1".into(),
+            url: "https://example.test/e1".into(),
+            title: "Yield table".into(),
+            sha256: None,
+            rights: "cited".into(),
+            tables: vec![],
+        });
+        admitted.fields[0].bar = Sufficiency::ProxyOnly;
+        admitted.engineering.insert(
+            "curves.mature_dbh_m".into(),
+            Engineering {
+                value: json!(0.55),
+                rationale: "midpoint".into(),
+            },
+        );
+        assert_eq!(seed_sha256(&seed), seed_sha256(&admitted));
+        let mut edited = seed.clone();
+        edited.fields[0].required_ages_years.push(50.0);
+        assert_ne!(seed_sha256(&seed), seed_sha256(&edited));
     }
 
     #[test]

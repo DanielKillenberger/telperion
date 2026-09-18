@@ -10,14 +10,23 @@
 //! 2026-09-18 returned 105,177 bytes against the 103,163 bytes curl received,
 //! differing from byte 15 on (`.flow/evidence/fn58/parked-checks.md`), so a
 //! caller that checksums the original response picks `RawSource::Direct`.
+//! That plain request trusts the host's certificate store (ureq's
+//! `native-certs`), so a page Firecrawl scraped is not refused over a chain
+//! the bundled roots do not carry, as the Missouri Botanical Garden page was
+//! on the ash run of 2026-09-18.
+//!
+//! Credits: a scrape's metadata and a search's envelope carry `creditsUsed`;
+//! the research index and parse report none, and those calls are estimated
+//! at one credit each.
 
+use std::cell::Cell;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use serde_json::Value;
 
-use super::{is_pdf, AdapterError, FetchAdapter, Scrape, SearchHit};
+use super::{is_pdf, AdapterError, FetchAdapter, Scrape, SearchHit, Spent};
 use crate::sha256_hex;
 
 /// Where a scrape's raw bytes come from.
@@ -33,6 +42,7 @@ pub struct FirecrawlCli {
     pub program: String,
     pub cache_dir: PathBuf,
     pub raw_from: RawSource,
+    meter: Cell<Spent>,
 }
 
 impl FirecrawlCli {
@@ -43,6 +53,7 @@ impl FirecrawlCli {
             program: "firecrawl".into(),
             cache_dir: PathBuf::from(".firecrawl"),
             raw_from: RawSource::Direct,
+            meter: Cell::new(Spent::default()),
         }
     }
 
@@ -51,6 +62,7 @@ impl FirecrawlCli {
             program: program.into(),
             cache_dir: cache_dir.into(),
             raw_from: RawSource::Cli,
+            meter: Cell::new(Spent::default()),
         }
     }
 
@@ -106,6 +118,9 @@ impl FirecrawlCli {
             .output()
             .map_err(|err| AdapterError::Command(format!("{}: {err}", self.program)))?;
         let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+        let mut spent = self.meter.get();
+        spent.add(credits_used(&stdout));
+        self.meter.set(spent);
         if output.status.success() {
             return Ok(stdout);
         }
@@ -113,6 +128,22 @@ impl FirecrawlCli {
         let message = format!("{stderr}{stdout}").trim().to_string();
         Err(classify(subject, &message))
     }
+}
+
+/// The credits one CLI response says it cost: the envelope's `creditsUsed`
+/// (search), or the document metadata's (scrape). Absent on research and
+/// parse output.
+pub fn credits_used(stdout: &str) -> Option<u32> {
+    let value: Value = serde_json::from_str(stdout.trim()).ok()?;
+    let credits = [
+        value.get("creditsUsed"),
+        value.pointer("/data/creditsUsed"),
+        value.pointer("/data/metadata/creditsUsed"),
+    ]
+    .into_iter()
+    .flatten()
+    .find_map(Value::as_u64)?;
+    Some(credits as u32)
 }
 
 impl Default for FirecrawlCli {
@@ -140,6 +171,10 @@ impl FetchAdapter for FirecrawlCli {
         let subject = path.display().to_string();
         let stdout = self.run(&parse_args(path), &subject)?;
         parse_markdown(&stdout, &subject)
+    }
+
+    fn spent(&self) -> Spent {
+        self.meter.get()
     }
 }
 

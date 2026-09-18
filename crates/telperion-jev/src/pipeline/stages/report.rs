@@ -8,20 +8,24 @@
 //! ledger references are the ones the artifacts' headers already carry.
 //!
 //! The status is `halted` while any decision is open and `complete` only when
-//! every one is resolved, so a run that stopped at a gap says so. No
-//! probability is written here, and the stills are named, never judged.
+//! every one is resolved, so a run that stopped at a gap says so. The cost
+//! section sums what every stage's artifact records it spent, Firecrawl
+//! credits and Jev calls, per stage and in total. No probability is written
+//! here, and the stills are named, never judged.
 
 use std::path::Path;
 
 use serde_json::{json, Map, Value};
 
 use crate::pipeline::canon::{file_sha256, read_json, write_atomic};
-use crate::pipeline::stage::{Context, StageError};
+use crate::pipeline::cost::Cost;
+use crate::pipeline::stage::{Context, StageError, STAGES};
 
 use super::inputs;
 
 pub const STAGE: &str = "report";
-/// The artifacts the report reads, in the order the run wrote them.
+/// The artifacts whose bodies the report reads, in the order the run wrote
+/// them; every stage's artifact is read for its cost.
 const EARLIER: [&str; 8] = [
     "fetch", "screen", "quality", "select", "verify", "fit", "gate", "generate",
 ];
@@ -37,14 +41,22 @@ pub fn run(dir: &Path) -> Result<Outcome, StageError> {
     let mut read = Map::new();
     let mut pairs: Vec<(String, String)> = Vec::new();
     let mut ledger: Vec<String> = Vec::new();
-    for name in EARLIER {
+    let mut costs = Map::new();
+    let mut total = Cost::default();
+    for name in STAGES.iter().filter(|name| **name != STAGE) {
         let path = ctx.paths.artifact(name);
         if !path.exists() {
             continue;
         }
         let artifact = read_json(&path)?;
-        ledger.extend(strings(&artifact["ledger"]));
+        let cost: Cost = serde_json::from_value(artifact["cost"].clone()).unwrap_or_default();
+        total.add(&cost);
+        costs.insert(name.to_string(), json!(cost));
         pairs.push((format!("{name}.json"), file_sha256(&path)?));
+        if !EARLIER.contains(name) {
+            continue;
+        }
+        ledger.extend(strings(&artifact["ledger"]));
         read.insert(name.to_string(), artifact["body"].clone());
     }
     for sidecar in [ctx.paths.decisions(), ctx.paths.sidecar()] {
@@ -79,6 +91,7 @@ pub fn run(dir: &Path) -> Result<Outcome, StageError> {
         "curves": curves(&read),
         "decisions": decisions,
         "stills": read.get("generate").map_or(json!([]), |g| g["stills"].clone()),
+        "costs": {"stages": costs, "total": total},
         "ledger": ledger,
     });
     write_atomic(&ctx.paths.dir.join("report.md"), page(&body).as_bytes())?;
@@ -277,6 +290,28 @@ fn page(body: &Value) -> String {
         })
         .collect();
     out.push_str(&table(&["Still", "Path or error"], rows));
+
+    out.push_str("\n## Cost\n\n");
+    let cost_row = |name: &str, cost: &Value| {
+        vec![
+            name.to_string(),
+            cell(&cost["runs"]),
+            cell(&cost["firecrawl_credits"]),
+            cell(&cost["firecrawl_method"]),
+            cell(&cost["jev_calls"]),
+        ]
+    };
+    let mut rows: Vec<Vec<String>> = body["costs"]["stages"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .map(|(name, cost)| cost_row(name, cost))
+        .collect();
+    rows.push(cost_row("total", &body["costs"]["total"]));
+    out.push_str(&table(
+        &["Stage", "Runs", "Firecrawl credits", "Counted", "Jev calls"],
+        rows,
+    ));
     out
 }
 

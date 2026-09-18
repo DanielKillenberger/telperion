@@ -5,6 +5,7 @@
 //! one local file. No adapter option that asks a model to answer or extract is
 //! reachable from here, so no model writes a number into the pipeline.
 
+use std::cell::Cell;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -17,7 +18,9 @@ pub mod firecrawl;
 pub mod tables;
 
 pub use firecrawl::{fetch_raw, FirecrawlCli, RawSource};
-pub use tables::{age_indexed_rows, coverage, markdown_tables, table_rows_for, AgeRow, Coverage};
+pub use tables::{
+    age_indexed_rows, block_rows, coverage, markdown_tables, table_rows_for, AgeRow, Coverage,
+};
 
 /// One candidate source from discovery.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -60,6 +63,48 @@ impl std::fmt::Display for AdapterError {
 
 impl std::error::Error for AdapterError {}
 
+/// What an adapter has spent: the calls it made, the credits the CLI priced
+/// in its responses, and the calls it did not price, estimated at one credit
+/// each. A stage records the difference across its run.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Spent {
+    pub calls: u32,
+    pub credits_reported: u32,
+    pub calls_unreported: u32,
+}
+
+impl Spent {
+    pub fn credits(&self) -> u32 {
+        self.credits_reported + self.calls_unreported
+    }
+
+    /// How the credits were counted, named per line in the report.
+    pub fn method(&self) -> &'static str {
+        if self.calls_unreported == 0 {
+            "reported by the adapter"
+        } else {
+            "estimated: one credit per call the adapter did not price"
+        }
+    }
+
+    pub fn since(&self, before: &Spent) -> Spent {
+        Spent {
+            calls: self.calls - before.calls,
+            credits_reported: self.credits_reported - before.credits_reported,
+            calls_unreported: self.calls_unreported - before.calls_unreported,
+        }
+    }
+
+    /// Adds one call, priced when the response said what it cost.
+    pub fn add(&mut self, credits: Option<u32>) {
+        self.calls += 1;
+        match credits {
+            Some(credits) => self.credits_reported += credits,
+            None => self.calls_unreported += 1,
+        }
+    }
+}
+
 /// The one contract the discovery and fetch stages call.
 pub trait FetchAdapter {
     fn search(&self, query: &str, limit: usize) -> Result<Vec<SearchHit>, AdapterError>;
@@ -68,6 +113,8 @@ pub trait FetchAdapter {
     fn scrape(&self, url: &str) -> Result<Scrape, AdapterError>;
     /// Markdown of a local PDF already on disk.
     fn parse_pdf(&self, path: &Path) -> Result<String, AdapterError>;
+    /// What the adapter has spent so far.
+    fn spent(&self) -> Spent;
 }
 
 /// What the fetch stage records for one admitted source. Raw and markdown
@@ -119,9 +166,11 @@ pub fn is_pdf(content_type: &str, url: &str) -> bool {
 }
 
 /// An adapter over files on disk. The model-swap test and every workspace
-/// test use it, so those runs reach no network.
+/// test use it, so those runs reach no network. It prices nothing, so every
+/// call it counts is estimated.
 pub struct FixtureAdapter {
     pub dir: PathBuf,
+    meter: Cell<Spent>,
 }
 
 #[derive(Deserialize, Default)]
@@ -146,7 +195,16 @@ struct FixtureScrape {
 
 impl FixtureAdapter {
     pub fn new(dir: impl Into<PathBuf>) -> Self {
-        Self { dir: dir.into() }
+        Self {
+            dir: dir.into(),
+            meter: Cell::new(Spent::default()),
+        }
+    }
+
+    fn count(&self) {
+        let mut spent = self.meter.get();
+        spent.add(None);
+        self.meter.set(spent);
     }
 
     fn index(&self) -> Result<FixtureIndex, AdapterError> {
@@ -175,6 +233,7 @@ fn unknown(key: &str) -> AdapterError {
 
 impl FetchAdapter for FixtureAdapter {
     fn search(&self, query: &str, limit: usize) -> Result<Vec<SearchHit>, AdapterError> {
+        self.count();
         let mut hits = self
             .index()?
             .search
@@ -185,6 +244,7 @@ impl FetchAdapter for FixtureAdapter {
     }
 
     fn research(&self, query: &str, limit: usize) -> Result<Vec<SearchHit>, AdapterError> {
+        self.count();
         let mut hits = self
             .index()?
             .research
@@ -195,6 +255,7 @@ impl FetchAdapter for FixtureAdapter {
     }
 
     fn scrape(&self, url: &str) -> Result<Scrape, AdapterError> {
+        self.count();
         let entry = self
             .index()?
             .scrape
@@ -211,6 +272,7 @@ impl FetchAdapter for FixtureAdapter {
     }
 
     fn parse_pdf(&self, path: &Path) -> Result<String, AdapterError> {
+        self.count();
         let name = path
             .file_name()
             .and_then(|name| name.to_str())
@@ -223,5 +285,9 @@ impl FetchAdapter for FixtureAdapter {
             .ok_or_else(|| unknown(&name))?;
         let markdown = self.file(&file)?;
         Ok(String::from_utf8_lossy(&markdown).into_owned())
+    }
+
+    fn spent(&self) -> Spent {
+        self.meter.get()
     }
 }

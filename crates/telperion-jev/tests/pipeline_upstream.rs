@@ -15,6 +15,7 @@ use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
 use telperion_jev::pipeline::adapter::FixtureAdapter;
 use telperion_jev::pipeline::canon::{read_json, write_canonical};
 use telperion_jev::pipeline::judge::Judge;
+use telperion_jev::pipeline::known::KnownSources;
 use telperion_jev::pipeline::stage::{Context, StageError};
 use telperion_jev::pipeline::stages::{discover, extract, fetch, quality, screen, select, verify};
 
@@ -52,7 +53,7 @@ impl Transport for PipelineTransport {
 }
 
 const OWIC: &str = "https://research.fs.usda.gov/silvics/oregon-white-oak";
-const QUERY: &str = "Quercus garryana height_m open_grown by age";
+const QUERY: &str = "Quercus garryana height at age, open grown";
 
 fn manifest() -> Value {
     json!({
@@ -124,7 +125,7 @@ fn the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance() 
 
     // Discovery proposes; the decision stops fetch until a person admits.
     assert!(matches!(
-        discover::run(&dir, &adapter, &judge).unwrap(),
+        discover::run(&dir, &adapter, &judge, &KnownSources::default()).unwrap(),
         discover::Outcome::Ran { .. }
     ));
     let discover_body = read_json(&dir.join("discover.json")).unwrap();
@@ -286,7 +287,7 @@ fn a_field_below_the_bar_files_data_insufficient_and_select_records_it_unavailab
         key: "test-key",
         ledger_dir: dir.join("ledger").join("entries"),
     };
-    discover::run(&dir, &adapter, &judge).unwrap();
+    discover::run(&dir, &adapter, &judge, &KnownSources::default()).unwrap();
     let decisions = read_json(&dir.join("decisions.json")).unwrap();
     let proposed = &decisions["decisions"][0];
     write_canonical(
