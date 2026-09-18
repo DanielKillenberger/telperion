@@ -32,3 +32,21 @@ What would have removed it: a spec whose acceptance separates the loop's
 machinery from its first live exercise, so the live run is a dependent spec
 with its own species and its own budget rather than a criterion the
 machinery's own task cannot close.
+
+## 2026-09-18 — the workspace suite outruns the tool's timeout
+
+`cargo test --profile ci --workspace` is the full gate, and its geometry tests
+(`fixed_oaks_…`, `fixed_spruces_…`) run past 60 seconds each with the whole run
+well past the 600 s an agent's shell call may block for. It has to be started
+in the background and polled, which means a worker cannot simply gate on it:
+it either waits without a deadline or reasons about which crates its diff
+could reach. Cost here: about 25 minutes of wall clock still running at the
+end of the task, and a gate argued rather than observed for the crates the
+diff does not touch.
+
+What would have removed it: a per-crate gate the worker can run in the
+foreground (`-p <crate>` already works and the jev crate's whole suite is
+under 10 seconds), named in the spec's Quick commands beside the full one, so
+a diff confined to one crate gates on that crate in the foreground and the
+workspace run is CI's job. The repository already has the shape for it; the
+convention is what is missing.
