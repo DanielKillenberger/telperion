@@ -20,6 +20,6 @@ Follow-ups, not built: a `timeout-minutes` bound on the job (the spec leaves the
 stage: impl-review - skipped(config: REVIEW_MODE=none)
 stage: implement - skipped(reach: gpt-6-astra unreachable, session model used)
 ## Evidence
-- Commits: 40557841707a75a77b271890d2f9b0f49f3a575d
+- Commits: 8bd3e5f9ed1dde8cdee8c288e2cab23fc3c509e9
 - Tests: cargo test --release --workspace (gate unittest, rc=0, 80 suites, 12:51:22Z to 13:00:55Z), npm test (6 files, 85 tests passed), npm run typecheck (rc=0), python3 yaml.safe_load .github/workflows/tests.yml
 - PRs:
