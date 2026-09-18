@@ -27,6 +27,10 @@ The owner's word on 2026-09-18: the drift at distance is a real problem, seen be
 - **R4:** The beech's and birch's close-ups and hero frames are rendered again at the hero distance and at 4x, the implementer answers after looking whether the bark reads the same material at both, and the owner judges in the harness on the mature path. [user]
 - **R5:** Every redraw stays byte-identical, single-stem and untouched presets keep their pins, and the frame cost is recorded beside fn-55's. [inferred] Errors: a moved pin on an untouched preset fails naming it.
 
+## Decisions
+
+- **Owner, 2026-09-18, R4 rejected on the first round.** Judged in the harness on the mature path with the two new wood terms and the beech's grain on: "it still looks much less detailed from a distance. There's a noticeable change in fidelity which shouldn't be the case. Fidelity should go down to a degree where it's not noticeable at that distance." [user] The 2x and 4x bounds passing is not the finish line; the far draw must read as the near draw minus what the eye cannot resolve, judged across a walk, and the terms that fade by amplitude an octave before a pixel are the first suspects. The task is reopened on this verdict. [paraphrase]
+
 ## Boundaries
 <!-- scope: business -->
 
