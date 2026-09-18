@@ -121,4 +121,4 @@ threads finished. Species binary on the desk, nextest `-j 1`, load 9:
 | seeds one after another (branch, load 16 to 23) | 209 s | 173 s | 105 s | 94 s |
 | four seeds in flight | 41 s | 28 s | 21 s | 16 s |
 
-The test count is unchanged by the threads (604).
+The test count is unchanged by the threads (604). Whole core suite after both follow-ups, nextest `-j 3`, load 6 to 9: 337 passed, 11 skipped, 158.4 s wall; the spruce test is 43.5 s and the tail is now the sweep walk at 34 s.
