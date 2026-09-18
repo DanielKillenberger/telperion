@@ -260,6 +260,51 @@ fn bark_noise2_filtered(p: vec2<f32>, footprint: vec2<f32>) -> f32 {
     return 0.5 + (bark_noise2(p) - 0.5) * retained;
 }
 
+// The antiderivative of the lattice basis one value of the noise above is
+// weighted by: a smoothstep rising over the cell before its point and
+// falling over the cell after, integrated from far below.
+fn bark_basis_integral(v: f32) -> f32 {
+    if (v <= -1.0) { return 0.0; }
+    if (v >= 1.0) { return 1.0; }
+    if (v < 0.0) {
+        let f = 1.0 + v;
+        return f * f * f * (1.0 - 0.5 * f);
+    }
+    return 0.5 + v - v * v * v * (1.0 - 0.5 * v);
+}
+
+// The noise above averaged over a box of `width` cells on each axis: the
+// box integral of every lattice value's basis, exact, so a half-size draw
+// reads the box mean of the four full-size samples it stands for and a
+// term linear in this noise agrees across resolution by construction. Two
+// cells of box is the most it integrates (sixteen values); a box under a
+// thousandth of a cell is the point sample, which is what it averages to.
+fn bark_noise2_box(p: vec2<f32>, width: vec2<f32>) -> f32 {
+    let w = clamp(width, vec2(0.0), vec2(2.0));
+    if (max(w.x, w.y) < 0.001) { return bark_noise2(p); }
+    let low = p - 0.5 * w;
+    let high = p + 0.5 * w;
+    let first = floor(low);
+    var weight_x: array<f32, 4>;
+    var weight_y: array<f32, 4>;
+    for (var i = 0; i < 4; i++) {
+        let site = first + f32(i);
+        weight_x[i] = bark_basis_integral(high.x - site.x) - bark_basis_integral(low.x - site.x);
+        weight_y[i] = bark_basis_integral(high.y - site.y) - bark_basis_integral(low.y - site.y);
+    }
+    var total = 0.0;
+    for (var y = 0; y < 4; y++) {
+        if (weight_y[y] <= 0.0) { continue; }
+        var row = 0.0;
+        for (var x = 0; x < 4; x++) {
+            if (weight_x[x] <= 0.0) { continue; }
+            row += weight_x[x] * bark_hash(first + vec2(f32(x), f32(y)));
+        }
+        total += weight_y[y] * row;
+    }
+    return total / max(w.x * w.y, 1e-12);
+}
+
 // Whether one of a scattered set - a lichen patch, a lenticel, a peeled
 // strip - is present, as a ramp on its own hash rather than a step, so a walk
 // between two shares fades it in rather than popping it. At a share of

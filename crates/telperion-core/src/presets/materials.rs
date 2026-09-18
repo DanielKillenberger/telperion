@@ -441,15 +441,15 @@ pub(super) fn birch() -> MaterialParams {
         crown_shade: 0.2,
         lobe_shade: 0.0,
         // fn-55: as the beech's. S-BARK's chalk white is grained at the pixel
-        // in the photograph, and the grain stays held off (fn-71): the
-        // close-up reads 2.999 against the resolution contract's 3.0 with
-        // no grain at all, its plates, peel and tints taking the margin; 1 mm
-        // cells are under a pixel at S-BARK's 1440 and show nothing, and 2 mm
-        // cells at 0.3 read 3.96. A value that breaks the bound is refused.
+        // in the photograph: 2 mm cells, two and a bit pixels at S-BARK's
+        // 1440, at 0.15 (fn-71). The close-up reads 2.90 against the
+        // resolution contract's 3.0 with the grain box-averaged over the
+        // pixel, 2.75 with none; 0.2 read 2.999 and 0.3 read 3.24, the
+        // grain's tilt of the normal being what the reduction cannot match.
         bark_reflectance: 0.04,
         leaf_reflectance: 0.04,
-        bark_grain_scale: 0.001,
-        bark_grain_strength: 0.0,
+        bark_grain_scale: 0.002,
+        bark_grain_strength: 0.15,
         blade_grain_scale: 90.0,
         blade_grain_strength: 0.3,
     }

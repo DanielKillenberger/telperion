@@ -289,6 +289,15 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     let spacing = clamp(u.bark_detail.y, u.bark_detail.x * 1.5, u.bark_detail.x * 2.0);
     let pixel = footprint / max(vec2(u.bark_detail.x, spacing), vec2(0.000001));
     let band = max(pixel.x, pixel.y);
+    // The half-range of the relief the ridge band's fade has taken out of the
+    // height this fragment reads: what the tints and the cavity are read over
+    // once the band is gone, so a far trunk keeps the furrows' mean shade
+    // rather than the rectified mean of a flat height, which is none. A
+    // furrowed field stands at its floor or its face and spans its whole
+    // range; one without furrows carries only its plate faces and flakes,
+    // and spans half of it (fn-71: the beech's near fissure reads 0.14, the
+    // uniform half-range that gives it).
+    let lost = (1.0 - bark_pass(0.5 * band)) * mix(0.5, 1.0, u.bark_detail.w);
     // Lost high-frequency slope variance remains a roughness contribution.
     // The same numeric row controls it; fully resolved and young wood add none.
     let fine = max(pixel.x / 0.19, pixel.y / 0.19 + pixel.x * 5.64);
@@ -299,14 +308,14 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // fades: the edge integral keeps the pixel's own width, so the slope
     // variance it keeps falls as sqrt(3/5) of the shoulder over the footprint.
     let shoulder = mix(0.04, 0.28, u.bark_detail.w);
-    let coarse = bark_pass(band) * sqrt(min(1.0, 0.775 * shoulder / max(pixel.x, 1e-6)));
+    let coarse = bark_pass(0.5 * band) * sqrt(min(1.0, 0.775 * shoulder / max(pixel.x, 1e-6)));
     let variance = (fine_slope * fine_slope * (1.0 - retained * retained)
         + (broad_slope * broad_slope + 0.05 * 0.05 / (0.3 * 0.3)) * (1.0 - coarse * coarse))
         * smoothstep(2.0, 5.0, 2.0 * in.radius / max(u.bark_detail.x, 0.000001))
         * select(0.0, 1.0, u.bark_detail.x > 0.0);
     // Constant height has zero gradient. Shade it once, avoiding twenty
     // redundant field evaluations and four identical lighting evaluations.
-    if (u.bark_detail.x <= 0.0 || in.radius <= u.bark_detail.x || band >= 1.0) {
+    if (u.bark_detail.x <= 0.0 || in.radius <= u.bark_detail.x || band >= 2.0) {
         // A constant field has nowhere to look down into, so the walk above
         // returned the fragment's own coordinate and this is the same height.
         let height = bark_height(seen, surface.x, in.radius, footprint);
@@ -316,7 +325,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
         if (u.grain.y > 0.0) {
             n = relief_normal(base_normal, in.world, dx, dy, grain.y, grain.z);
         }
-        return vec4<f32>(tone(bark_light(n, height, 0.0, in.world, shadow,
+        return vec4<f32>(tone(bark_light(n, height, lost, in.world, shadow,
             variance, appearance, colour_range, vec3<f32>(orientation, own, direct),
             surface_colour)), 1.0);
     }
@@ -324,7 +333,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // cell's footprint: filtering over a full pixel here and integrating the
     // cells again overfiltered the low-resolution albedo. Only wavelengths
     // below 1.33 pixels widen back to the full-pixel mean before the shortcut.
-    let cell_footprint = footprint * mix(0.5, 1.0, smoothstep(0.75, 1.0, band));
+    let cell_footprint = footprint * mix(0.5, 1.0, smoothstep(1.5, 2.0, band));
     var heights: array<f32, 9>;
     for (var y = 0; y <= 2; y++) {
         for (var x = 0; x <= 2; x++) {
@@ -349,8 +358,10 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
             let n = relief_normal(base_normal, in.world, dx, dy,
                 step.x + grain.y, step.y + grain.z);
             // Half the height the ramp across this cell spans, in the range
-            // the tints are read over: the cell's own rectified mean.
-            let spread = 0.25 * length(step) / max(colour_range.y, 1e-10);
+            // the tints are read over, and the range the band's fade has
+            // already taken out of it: the cell's own rectified mean.
+            let ramp = 0.5 * length(step) / max(colour_range.y, 1e-10);
+            let spread = sqrt(ramp * ramp + lost * lost);
             lit += bark_light(n, dot(h, vec4(0.25)), spread, in.world, shadow, variance,
                 appearance, colour_range, structure, surface_colour);
         }

@@ -76,15 +76,17 @@ fn lichen_mean(share: f32) -> f32 {
     return 1.0 - exp(-LICHEN_RATE * smooth_share(share));
 }
 
-// One octave of patches over cells of `scale` metres, faded to its mean as a
-// patch drops under two pixels or the wood under it grows too thin to hold
-// one across, which `thin` says. The outline is the sphere's own cut: a warp
+// One octave of patches over cells of `scale` metres, faded to its mean as
+// the largest patch drops from two pixels across to one (fn-71: its disc is
+// already the edge integral, so it leaves at the pixel, not an octave
+// before it) or the wood under it grows too thin to hold one across, which
+// `thin` says. The outline is the sphere's own cut: a warp
 // to fray it cost the birch's whole tree 0.07 ms and the spots read round.
 fn lichen_layer(arc: vec2<f32>, along: f32, footprint: vec2<f32>, scale: f32,
     share: f32, salt: f32, thin: f32) -> f32 {
     let mean = lichen_mean(share);
     let pixel = max(footprint.x, footprint.y) / scale;
-    let retained = bark_pass(pixel / LICHEN_REACH) * thin;
+    let retained = bark_pass(0.5 * pixel / LICHEN_REACH) * thin;
     if (retained <= 0.0) { return mean; }
     let p = vec3(arc, along) / scale + salt;
     return mix(mean, lichen_octave(p, pixel, share), retained);
@@ -140,7 +142,10 @@ fn lenticel_dash(circle: vec2<f32>, along: f32, radius: f32, footprint: vec2<f32
         * (1.0 + 0.6 * SMOOTH_RIM * SMOOTH_RIM);
     let mean = vec2(1.0 - exp(-filled), 1.0 - exp(-LENTICEL_BOWL * filled));
     let extent = max(footprint.x / half, footprint.y / thin);
-    let retained = bark_pass(0.5 * extent) * smooth_thin(footprint, radius);
+    // A dash leaves when its length drops under a pixel, not its thickness:
+    // across the thin axis its rim is the edge integral, and a line a pixel
+    // thick is still a line the eye reads (fn-71).
+    let retained = bark_pass(0.5 * footprint.x / half) * smooth_thin(footprint, radius);
     if (retained <= 0.0) { return mean; }
     let p = vec3(circle * radius / across, along / pitch);
     let base = floor(p);

@@ -95,17 +95,22 @@ fn bark_flakes(arc: vec2<f32>, along: f32, spacing: f32, pixel: vec2<f32>,
     return 0.012 * mix(mean, fine.x * face * shoulder * shoulder, band);
 }
 
-// The grain below the relief: filtered noise at the row's cell size over the
-// surface in metres, one field on each axis of the circle so the trunk has no
-// seam and no stretched tangent. It fades an octave before the mottle, from
-// two pixels a cell to one, because its tilt of the normal is not linear in
-// it: at its exact mean once a cell is a pixel across, so a half-size still
-// agrees with the full one and far wood is smooth between its features.
+// The grain below the relief: noise at the row's cell size over the surface
+// in metres, one field on each axis of the circle so the trunk has no seam
+// and no stretched tangent, box-averaged over the pixel's own extent on each
+// axis rather than faded, so the grain keeps its full contrast until the
+// pixel genuinely averages it and a half-size still reads the mean of the
+// full one's samples. Past a cell and a half of box the little that is left
+// goes to the exact mean by two cells, so far wood is smooth between its
+// features and spends no hash on the grain.
 fn bark_grain_field(surface: vec3<f32>, radius: f32, scale: f32, footprint: vec2<f32>) -> f32 {
     let p = vec3(normalize(surface.yz) * radius, surface.x) / scale;
-    let pixel = 2.0 * footprint / scale;
-    return 0.5 * (bark_noise2_filtered(p.xz, pixel)
-        + bark_noise2_filtered(p.yz + vec2(0.0, 61.7), pixel));
+    let pixel = footprint / scale;
+    let retained = 1.0 - smoothstep(1.5, 2.0, max(pixel.x, pixel.y));
+    if (retained <= 0.0) { return 0.5; }
+    let field = 0.5 * (bark_noise2_box(p.xz, pixel)
+        + bark_noise2_box(p.yz + vec2(0.0, 61.7), pixel));
+    return mix(0.5, field, retained);
 }
 
 // A factor on the colour, and the grain's height differences over one pixel
@@ -184,9 +189,15 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
         wander, plate, structure).relief;
     let plates = bark_plate_depth(plate, ridge_scale, girth) * network;
     let face_bands = 0.05 * 0.7 * 0.89 + 0.012 * 0.89 * 0.75 * 0.5;
-    // Every shorter band has also vanished here. Avoid evaluating invisible
-    // sites, especially when differentiating the height on distant runs.
-    if (scale_pixel >= 1.0) {
+    // The ridge band leaves at the pixel, not an octave before it: its edge
+    // integral is its box filter, and a column a pixel wide still leaves the
+    // pixel a share of its contrast, so the band's fade runs from one ridge
+    // width a pixel to two, where the single-edge integral no longer stands
+    // for the columns a box that wide spans (fn-71). Every shorter band has
+    // also vanished here. Avoid evaluating invisible sites, especially when
+    // differentiating the height on distant runs.
+    let survives = bark_pass(0.5 * scale_pixel);
+    if (survives <= 0.0) {
         return ridge_scale * maturity * girth * (ridge_mean + face_bands + plates);
     }
     let character = bark_noise_filtered(dot(arc, vec2(0.13, -0.17)) + along / (spacing * 9.0),
@@ -213,9 +224,8 @@ fn bark_field_filtered(circle: vec2<f32>, along: f32, radius: f32,
     let depth = bark_depth(elongated) * mix(BARK_DEPTH_RANGE.x, BARK_DEPTH_RANGE.y, character) * furrow;
     let broken = mix(0.15, 1.0,
         bark_noise_filtered(along / (spacing * 2.1) + column.y * 73.0, max(pixel.y / 2.1, pixel.x)));
-    let ridge = mix(ridge_mean, shoulder * depth * mix(broken, 1.0, elongated),
-        bark_pass(scale_pixel));
-    let plate_relief = mix(0.7 * 0.89, shoulder * scale_plate.x, bark_pass(scale_pixel));
+    let ridge = mix(ridge_mean, shoulder * depth * mix(broken, 1.0, elongated), survives);
+    let plate_relief = mix(0.7 * 0.89, shoulder * scale_plate.x, survives);
     // Finer flakes live only on the flat faces, never across a furrow or lip.
     let flake = bark_flakes(arc, along, spacing, pixel, column.y, scale_plate.y, shoulder);
     return ridge_scale * maturity * girth * (ridge + 0.05 * plate_relief + flake + plates);

@@ -1,4 +1,4 @@
 [
-  {"fixture": "OregonWhiteOak grazing", "mean": 2.9110, "p95": 9.50, "bound": 3},
-  {"fixture": "NorwaySpruce grazing", "mean": 2.7075, "p95": 7.50, "bound": 3}
+  {"fixture": "OregonWhiteOak grazing", "mean": 2.9140, "p95": 9.50, "bound": 3},
+  {"fixture": "NorwaySpruce grazing", "mean": 2.6839, "p95": 7.25, "bound": 3}
 ]
