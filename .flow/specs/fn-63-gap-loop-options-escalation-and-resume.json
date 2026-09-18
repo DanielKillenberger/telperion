@@ -1,13 +1,22 @@
 {
   "branch_name": "fn-63-gap-loop-options-escalation-and-resume",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-16T11:10:52.743289Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-58-species-template-pipeline-literature-to"
   ],
   "id": "fn-63-gap-loop-options-escalation-and-resume",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "ready": true,
   "spec_path": ".flow/specs/fn-63-gap-loop-options-escalation-and-resume.md",
   "status": "open",
   "title": "Gap loop: options, escalation and resume",
@@ -22,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-16T11:10:54.182910Z"
+  "updated_at": "2026-09-18T19:31:47.837541Z"
 }
