@@ -33,6 +33,8 @@ The owner's word on 2026-09-18: the drift at distance is a real problem, seen be
 
 - **Owner, 2026-09-18, R4 rejected on the second round.** Judged on the round-two build in the harness: "there's still a jump where the relief visibly disappears. It's a bit further away now but still there." [user] A fade window, however placed, is a jump when the walk crosses it; the relief may only leave by the box integral of its own height over the footprint, with no separate attenuation. The task is reopened for round three. [paraphrase]
 
+- **Owner, 2026-09-18, R4 accepted on the third round.** Walking the round-three build in the harness with every amplitude fade gone: "yea much better". [user] The seam is gone; the footprint sweep is flat within 0.03 between adjacent factors and the birch keeps its dashes and marks through the wheel notch. The cost went to 10.0, 15.0 and 19.6 ms on the three hero frames against round two's 5.9, 4.0 and 11.4, so the three reductions the report names run before the PR with round two's cost as the target and the flat sweep as the invariant. [paraphrase]
+
 ## Boundaries
 <!-- scope: business -->
 
