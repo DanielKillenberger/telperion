@@ -4,11 +4,61 @@ mod species_metrics;
 use serde_json::Value;
 use telperion_core::{
     branching,
-    foliage::{self, TwigPlacement},
+    foliage::{self, Instances, TwigPlacement},
     math::Vec3,
     presets::Preset,
-    surface,
+    surface::{self, SurfaceMesh},
+    tree::Tree,
 };
+
+/// The digest of every fixed seed of every species, committed beside this
+/// file. A generator change that moves one updates the value in the same
+/// commit, with the reason in the message.
+fn digests() -> Value {
+    serde_json::from_str(include_str!("species/digests.json")).unwrap()
+}
+
+/// FNV-1a over the skeleton, the wood and the placed foliage: what two
+/// generations used to be compared on, as one number a run on another machine
+/// can be compared on too.
+fn digest(tree: &Tree, wood: &SurfaceMesh, placed: &Instances) -> u64 {
+    let mut hash = 14695981039346656037_u64;
+    let mut take = |bytes: &[u8]| {
+        for byte in bytes {
+            hash = (hash ^ u64::from(*byte)).wrapping_mul(1099511628211);
+        }
+    };
+    take(&bincode::serialize(tree).unwrap());
+    for floats in [&wood.positions, &wood.normals, &wood.coords] {
+        for v in floats {
+            take(&v.to_le_bytes());
+        }
+    }
+    for i in &wood.indices {
+        take(&i.to_le_bytes());
+    }
+    for m in &placed.matrices {
+        for v in m {
+            take(&v.to_le_bytes());
+        }
+    }
+    hash
+}
+
+/// A seed whose digest is not the committed one, named with both values.
+fn check(preset: Preset, seed: u32, expected: Option<&str>, actual: u64) -> Result<(), String> {
+    let id = preset.profile_id().unwrap();
+    let actual = format!("{actual:016x}");
+    match expected {
+        Some(expected) if expected == actual => Ok(()),
+        Some(expected) => Err(format!(
+            "{id} seed {seed}: digest {actual}, the committed digest is {expected}"
+        )),
+        None => Err(format!(
+            "{id} seed {seed}: digest {actual}, no committed digest"
+        )),
+    }
+}
 
 fn profiles() -> Value {
     let mut root: Value =
@@ -165,12 +215,12 @@ fn fixed_species(preset: Preset) {
         // Original retained crown-width failure; never replace with a showcase seed.
         seeds.push(4_250_668_600);
     }
+    let expected = digests();
+    let mut moved = Vec::new();
     for seed in seeds {
         let mut family = preset.parameters();
         family.skeleton.seed = seed;
         let a = branching::generate(&family.skeleton, family.radii).unwrap();
-        let b = branching::generate(&family.skeleton, family.radii).unwrap();
-        assert_eq!(a, b, "seed {seed}: skeleton repeatability");
         a.tree.validate_solved().unwrap();
         if preset == Preset::NorwaySpruce {
             let structural = &a.tree.nodes[..a.tree.crossover];
@@ -219,9 +269,6 @@ fn fixed_species(preset: Preset) {
         }
         let wood =
             surface::build(&a.tree, family.skeleton.envelope.height, &family.surface).unwrap();
-        let repeat =
-            surface::build(&b.tree, family.skeleton.envelope.height, &family.surface).unwrap();
-        assert_eq!(wood, repeat, "seed {seed}: surface repeatability");
         assert!(!wood.indices.is_empty());
         assert!(wood
             .positions
@@ -249,21 +296,21 @@ fn fixed_species(preset: Preset) {
         let element = foliage::build_element(family.element).unwrap();
         element.validate().unwrap();
         let twig = family.skeleton.twigs.resolved().unwrap().twig;
-        let place = || {
-            foliage::place(
-                &a.tree,
-                family.skeleton.envelope,
-                seed,
-                family.canopy,
-                Some(TwigPlacement {
-                    internode_length: twig.internode_length,
-                    stations_per_internode: twig.stations_per_internode,
-                }),
-            )
-            .unwrap()
-        };
-        let placed = place();
-        assert_eq!(placed, place(), "seed {seed}: attachment repeatability");
+        let placed = foliage::place(
+            &a.tree,
+            family.skeleton.envelope,
+            seed,
+            family.canopy,
+            Some(TwigPlacement {
+                internode_length: twig.internode_length,
+                stations_per_internode: twig.stations_per_internode,
+            }),
+        )
+        .unwrap();
+        let committed = expected[preset.profile_id().unwrap()][seed.to_string()].as_str();
+        if let Err(report) = check(preset, seed, committed, digest(&a.tree, &wood, &placed)) {
+            moved.push(report);
+        }
         let kept = foliage::cull(
             &placed,
             &element,
@@ -338,6 +385,23 @@ fn fixed_species(preset: Preset) {
     assert!(
         leaf_counts.len() >= 6,
         "seeds must change retained foliage abundance"
+    );
+    assert!(moved.is_empty(), "digests moved:\n{}", moved.join("\n"));
+}
+
+#[test]
+fn a_digest_that_moved_names_the_preset_the_seed_and_both_digests() {
+    assert_eq!(
+        check(Preset::SilverBirch, 3, Some("00000000000000ff"), 255),
+        Ok(())
+    );
+    assert_eq!(
+        check(Preset::SilverBirch, 3, Some("00000000000000fe"), 255),
+        Err("silver-birch seed 3: digest 00000000000000ff, the committed digest is 00000000000000fe".into())
+    );
+    assert_eq!(
+        check(Preset::NorwaySpruce, 4_250_668_600, None, 255),
+        Err("norway-spruce seed 4250668600: digest 00000000000000ff, no committed digest".into())
     );
 }
 

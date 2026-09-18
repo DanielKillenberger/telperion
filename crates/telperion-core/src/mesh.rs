@@ -4,6 +4,7 @@ use crate::{
     math::Vec3,
     presets::Family,
     surface::{self, Bounds, SurfaceMesh},
+    tree::Tree,
     Error, Result,
 };
 
@@ -72,11 +73,16 @@ pub(crate) fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
 pub fn build(family: &Family, detail: Detail) -> Result<TreeMesh> {
     let Detail::Full = detail;
     let tree = branching::generate(&family.skeleton, family.radii)?.tree;
-    let wood = surface::build(&tree, family.skeleton.envelope.height, &family.surface)?;
+    assemble(&tree, family)
+}
+
+/// Plaits the wood surface and places the culled foliage on a grown skeleton.
+pub fn assemble(tree: &Tree, family: &Family) -> Result<TreeMesh> {
+    let wood = surface::build(tree, family.skeleton.envelope.height, &family.surface)?;
     let element = foliage::build_element(family.element)?;
     let twig = family.skeleton.twigs.resolved()?.twig;
     let placed = foliage::place_on_surface(
-        &tree,
+        tree,
         family.skeleton.envelope,
         family.skeleton.seed,
         family.canopy,

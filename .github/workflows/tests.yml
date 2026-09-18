@@ -113,10 +113,18 @@ jobs:
             esac
           done <<< "$RECEIPTS"
 
+  # The Rust suites without a receipt run as one nextest pool partitioned
+  # across standard runners; nextest is installed from its prebuilt binary at
+  # a pin. A partition is a slice of the tests of every crate, so a crate's
+  # receipt is saved only after every partition is green, in rust-receipts.
   rust:
     needs: receipts
     if: needs.receipts.outputs.rust-all != 'true'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        partition: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
 
@@ -129,32 +137,73 @@ jobs:
         with:
           cache-on-failure: true
 
+      - name: Install cargo-nextest at its pin
+        run: curl -LsSf https://get.nexte.st/0.9.145/linux | tar zxf - -C "$HOME/.cargo/bin"
+
       # The ci profile is release without the fat link (Cargo.toml); every
       # package script and local command stays on release.
-      - uses: ./.github/actions/suite
+      - name: Run partition ${{ matrix.partition }} of the suites without a receipt
+        env:
+          SUITES: |-
+            rust-core telperion-core ${{ needs.receipts.outputs.rust-core }}
+            rust-render telperion-render ${{ needs.receipts.outputs.rust-render }}
+            rust-wasm telperion-wasm ${{ needs.receipts.outputs.rust-wasm }}
+            rust-jev telperion-jev ${{ needs.receipts.outputs.rust-jev }}
+        run: |
+          packages=()
+          while read -r suite package hit; do
+            case $hit in
+              true) echo "Skipped $suite: receipt matched." ;;
+              *) packages+=(-p "$package") ;;
+            esac
+          done <<< "$SUITES"
+          cargo nextest run --cargo-profile ci "${packages[@]}" --no-fail-fast \
+            --partition count:${{ matrix.partition }}/4
+
+      # The fixed-specimen cache the core tests write is a per-run scratch and
+      # stays out of the build cache saved after this step.
+      - name: Leave the specimen cache out of the build cache
+        if: always()
+        run: rm -rf target/tmp/specimens
+
+  rust-receipts:
+    needs: [receipts, rust]
+    if: needs.rust.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write the receipts of the suites that ran
+        env:
+          RECEIPTS: |-
+            rust-core ${{ needs.receipts.outputs.rust-core-key }} ${{ needs.receipts.outputs.rust-core }}
+            rust-render ${{ needs.receipts.outputs.rust-render-key }} ${{ needs.receipts.outputs.rust-render }}
+            rust-wasm ${{ needs.receipts.outputs.rust-wasm-key }} ${{ needs.receipts.outputs.rust-wasm }}
+            rust-jev ${{ needs.receipts.outputs.rust-jev-key }} ${{ needs.receipts.outputs.rust-jev }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/receipts"
+          while read -r suite key hit; do
+            [ "$hit" = true ] || echo "$key" > "$RUNNER_TEMP/receipts/$suite"
+          done <<< "$RECEIPTS"
+
+      - if: needs.receipts.outputs.rust-core != 'true'
+        uses: actions/cache/save@v6
         with:
-          suite: rust-core
+          path: ${{ runner.temp }}/receipts/rust-core
           key: ${{ needs.receipts.outputs.rust-core-key }}
-          hit: ${{ needs.receipts.outputs.rust-core }}
-          run: cargo test --profile ci -p telperion-core
-      - uses: ./.github/actions/suite
+      - if: needs.receipts.outputs.rust-render != 'true'
+        uses: actions/cache/save@v6
         with:
-          suite: rust-render
+          path: ${{ runner.temp }}/receipts/rust-render
           key: ${{ needs.receipts.outputs.rust-render-key }}
-          hit: ${{ needs.receipts.outputs.rust-render }}
-          run: cargo test --profile ci -p telperion-render
-      - uses: ./.github/actions/suite
+      - if: needs.receipts.outputs.rust-wasm != 'true'
+        uses: actions/cache/save@v6
         with:
-          suite: rust-wasm
+          path: ${{ runner.temp }}/receipts/rust-wasm
           key: ${{ needs.receipts.outputs.rust-wasm-key }}
-          hit: ${{ needs.receipts.outputs.rust-wasm }}
-          run: cargo test --profile ci -p telperion-wasm
-      - uses: ./.github/actions/suite
+      - if: needs.receipts.outputs.rust-jev != 'true'
+        uses: actions/cache/save@v6
         with:
-          suite: rust-jev
+          path: ${{ runner.temp }}/receipts/rust-jev
           key: ${{ needs.receipts.outputs.rust-jev-key }}
-          hit: ${{ needs.receipts.outputs.rust-jev }}
-          run: cargo test --profile ci -p telperion-jev
 
   node:
     needs: receipts

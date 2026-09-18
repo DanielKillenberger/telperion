@@ -1,0 +1,6 @@
+# The workspace's tests in one pool. The species suite's fixed-seed tests are
+# the longest in the workspace, so they start first and the pool's tail is
+# short.
+[[profile.default.overrides]]
+filter = 'binary(species)'
+priority = 100
