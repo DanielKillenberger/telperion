@@ -4,19 +4,19 @@
     "type": "choice",
     "instructions": "`gap` names a capability a species needs that no value table reaches, and `options` are candidate fixes an agent wrote. From the named option's `summary` and `touches` alone, what does it change: only rows a preset already has, the generator's own rules, or the renderer's appearance?",
     "criteria": {
-      "value_table": "Only values in a species' table move; no rule, term, row or organ is added to the generator and no shader changes",
+      "value_table": "Only values a species' own table already states move, whatever they govern, colour included; no rule, term, row, axis or organ is added to the generator and no shader is rewritten",
       "generator": "The generator gains a rule, a term, a row, an axis or an organ it does not have, or one of its rules is rewritten",
-      "appearance": "Only the renderer's lighting, colour, surface or material rows change; no geometry rule moves",
+      "appearance": "The renderer's own shading changes: a lighting, surface or material term is added, rewritten or given a new row; no geometry rule moves. A species merely restating an existing colour value is not this",
       "unstated": "The summary does not say what would change"
     }
   },
   "prior_verdict": {
     "type": "choice",
-    "instructions": "`verdicts` are the owner's earlier written verdicts and rules on this species and its generator. Does one of them already decide for or against the named option?",
+    "instructions": "`verdicts` are the owner's earlier written rulings on this species and its generator. Does one of them decide for or against the named option itself? Judge each option on its own: a ruling that asks for a different option says nothing about this one unless it also rejects what this one does.",
     "criteria": {
-      "for": "A verdict asks for what the option does, or names the same fix",
-      "against": "A verdict rejects what the option does, forbids what it moves, or the option would reverse a decision a verdict took",
-      "none": "No verdict speaks to this option either way"
+      "for": "A ruling asks for what this option does, or names this same fix",
+      "against": "A ruling rejects what this option does in so many words, forbids the thing it moves, or this option would reverse a decision a ruling took. A ruling that merely prefers another option is not this",
+      "none": "No ruling speaks to this option either way, including when a ruling endorses a different option in the set or restates the problem the gap names"
     }
   },
   "generalizes": {
