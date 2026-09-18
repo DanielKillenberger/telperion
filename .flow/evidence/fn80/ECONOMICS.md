@@ -5,6 +5,16 @@ onboarded by swarms of cheap, fast agents running the `add-species` loop. The
 unit that matters is therefore cost per species at swarm scale, not the cost of
 one careful run. A loop that is correct but expensive does not reach the goal.
 
+**The axis is model cost, not scraping credits** (owner, 2026-09-18, correcting
+this file's first two entries): "i mean cheap models. Not cheap scraping
+credits. I might have to get those sorted separately." So the question every
+entry answers first is which model a step needs, whether a cheap fast one can
+do it, and how often the step escalates to a frontier model. Firecrawl credits
+are still recorded, because they are the one number the artifacts already
+carry, but they are a secondary axis the owner is sorting elsewhere. An entry
+that optimises credits while leaving a frontier model in the loop has measured
+the wrong thing.
+
 This file is the judgment the numbers do not carry. The loop already records
 gaps by route, rounds to acceptance, reversals, tokens, wall clock, Jev calls,
 Firecrawl credits and captures (`gap metrics`, fn-63 R5). What it cannot record
@@ -77,3 +87,34 @@ cheaper. A step can be fast and still be the wrong place to spend.
 - **Cheaper next time.** Three cuts, in order of swarm leverage. (1) Taxon-filter the known list so oak, spruce and fn-11 URLs never enter a palm ranking; 11 of 21 hits per field were those, and both Jev calls paid to reject them. (2) Price `research search-papers` (and search when the CLI omits `creditsUsed`) so the 6 is a real number, not an estimate. (3) Drop or cache the research index for a first-pass discover when the web hits already contain an extension page; both research lists here were off-topic or same-taxon morphology, and none ranked first.
 - **Swarm reading.** A thousand species at this seed is 6,000 estimated Firecrawl credits and 2,000 Jev calls, plus whatever fetch then spends. That discover slice is cheap enough to swarm if the later stages stay parked for unsupported forms (see the entry above). It is not cheap if every species also fetches: the ash 107 is the number that multiplies. The known-list flood is paid on every species until it is filtered, and it grows as more manifests land.
 
+
+## 2026-09-18 — the axis correction, and what the discover leg showed about models
+
+- **Step.** The whole of skill step 2, run by `cursor-agent` on
+  `cursor-grok-4.6-high-fast`: write the seed, run `discover`, read a 42-hit
+  proposal across two fields, drop Wikipedia and a wrong-taxon candidate, draft
+  the manifest, and write both notes.
+- **Cost.** Four minutes of wall clock, one bridge call, zero escalations to a
+  frontier model. The host spent nothing on the step beyond dispatching it and
+  reading the result. Token cost: **not measurable** — see below.
+- **Dominates?** No. This is the encouraging datapoint: the cheapest tier in
+  the routing block did a judgment-heavy step, rejecting a forbidden citation
+  and a sister species, and wrote two notes a person can use. Nothing here
+  needed a frontier model.
+- **Cheaper next time.** Nothing to cut on this leg. The open question is how
+  far up the stages that holds: the later stages read tables and copy measured
+  values, which is more mechanical than this was, so the cheap tier should hold
+  at least to the gate. The place to expect escalation is the gap loop's option
+  writing, where the route table itself can send a set to a stronger model.
+- **Swarm reading.** A thousand species at this rate is a thousand four-minute
+  cheap-tier calls for the manifest step, which is the shape the goal needs.
+  The threat to it is not this step; it is any step that silently needs a
+  frontier model, and the escalation share is the number to watch.
+- **Measurement gap, and it blocks the goal.** The bridge reports no token
+  count, so the driver's own model cost is invisible: `cursor-agent` returns
+  text, and the pipeline's `cost.rs` counts runs, Jev calls and Firecrawl
+  credits but has no field for the driver's tokens. Cost per species in the
+  unit that matters therefore cannot be computed today, only estimated from
+  wall clock. A swarm plan needs that number per run, per model, so a field for
+  it beside the existing three, filled by the host from whatever the bridge
+  reports, is the first thing to add.
