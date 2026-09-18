@@ -288,6 +288,12 @@ function run(root = ROOT) {
     fail('.gitattributes', `missing the rule \`${LFS_RULE}\``);
   }
 
+  // A folder that is missing a required file cannot be rendered, so the page
+  // comparison below is held back until the missing file is restored; without
+  // this the regeneration throws on the absent record and the run dies with a
+  // stack trace instead of naming the species and the file.
+  let everyFolderComplete = true;
+
   for (const id of ids) {
     const folder = join(root, CATALOGUE, id);
     const where = `${CATALOGUE}/${id}`;
@@ -299,7 +305,10 @@ function run(root = ROOT) {
         complete = false;
       }
     }
-    if (!complete) continue;
+    if (!complete) {
+      everyFolderComplete = false;
+      continue;
+    }
 
     const read = (file) => {
       try {
@@ -348,9 +357,11 @@ function run(root = ROOT) {
     rasters(folder, id);
   }
 
-  for (const [path, content] of renderPages(root)) {
-    const committed = existsSync(join(root, path)) ? readFileSync(join(root, path), 'utf8') : null;
-    if (committed !== content) fail(path, 'differs from regeneration');
+  if (everyFolderComplete) {
+    for (const [path, content] of renderPages(root)) {
+      const committed = existsSync(join(root, path)) ? readFileSync(join(root, path), 'utf8') : null;
+      if (committed !== content) fail(path, 'differs from regeneration');
+    }
   }
   return failures;
 }
