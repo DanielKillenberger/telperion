@@ -11,13 +11,15 @@
 | Preset | oregon-white-oak |
 | Profile readiness | ready |
 
+[Read the article](ARTICLE.md) — the sources distilled, every claim cited.
+
 ## Bibliography
-| Id | Source | Rights | Verified | Good for |
-|---|---|---|---|---|
-| OSU-OAK | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/quercus-garryana) | web page; cited with attribution, no redistribution inferred | 2026-09-06 | Species identity, rounded spreading crown, crooked branches, simple lobed leaves; uncalibrated imagery. |
-| OSU-OAK-ID | [Oak species, OSU Common Trees of the Pacific Northwest](https://treespnw.forestry.oregonstate.edu/broadleaf_genera/species/oak_spp.htm) | web page; cited with attribution, no redistribution inferred | 2026-09-04 | Blade width 2-5 inches; rounded irregular lobes. Distinguish the Oregon oak section from preceding California black oak. |
-| OWIC-OAK | [Oregon White Oak, Oregon Wood Innovation Center; Niemiec, Ahrens, Willits & Hibbs, Hardwoods of the Pacific Northwest, 1995](https://owic.oregonstate.edu/node/79) | web page; cited with attribution, no redistribution inferred | 2026-09-04 | Independently presented units corroborate mature sizes and width comparable to height. “May equal” is not a numerical crown-width distribution. |
-| USFS-OAK | [William I. Stein, Silvics of North America, 1990, US Forest Service](https://research.fs.usda.gov/silvics/oregon-white-oak) | US Forest Service publication, public domain; cited with attribution | 2026-09-06 | Species and habitat context; do not reinterpret known OCR unit errors as fresh measurements. |
+| Id | Source | Local copy | Rights | Verified | Good for |
+|---|---|---|---|---|---|
+| OSU-OAK | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/quercus-garryana) | [sources/OSU-OAK.md](sources/OSU-OAK.md) | web page; cited with attribution, no redistribution inferred | 2026-09-06 | Species identity, rounded spreading crown, crooked branches, simple lobed leaves; uncalibrated imagery. |
+| OSU-OAK-ID | [Oak species, OSU Common Trees of the Pacific Northwest](https://treespnw.forestry.oregonstate.edu/broadleaf_genera/species/oak_spp.htm) | [sources/OSU-OAK-ID.md](sources/OSU-OAK-ID.md) | web page; cited with attribution, no redistribution inferred | 2026-09-04 | Blade width 2-5 inches; rounded irregular lobes. Distinguish the Oregon oak section from preceding California black oak. |
+| OWIC-OAK | [Oregon White Oak, Oregon Wood Innovation Center; Niemiec, Ahrens, Willits & Hibbs, Hardwoods of the Pacific Northwest, 1995](https://owic.oregonstate.edu/node/79) | [sources/OWIC-OAK.md](sources/OWIC-OAK.md) | web page; cited with attribution, no redistribution inferred | 2026-09-04 | Independently presented units corroborate mature sizes and width comparable to height. “May equal” is not a numerical crown-width distribution. |
+| USFS-OAK | [William I. Stein, Silvics of North America, 1990, US Forest Service](https://research.fs.usda.gov/silvics/oregon-white-oak) | [sources/USFS-OAK.md](sources/USFS-OAK.md) | US Forest Service publication, public domain; cited with attribution | 2026-09-06 | Species and habitat context; do not reinterpret known OCR unit errors as fresh measurements. |
 
 ## Identity pins
 | Pin | Value |

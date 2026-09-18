@@ -70,20 +70,39 @@ describe('the structure check', () => {
     expect(run(root)).toContain(`${CATALOGUE}/${SPECIES}/sources/OSU-OAK.md: rights do not permit a full copy`);
   });
 
-  it('fails a copy whose checksum does not match its recorded source', () => {
+  it('fails a copy whose recorded source checksum has moved', () => {
     const root = sandbox();
     const sources = join(root, CATALOGUE, SPECIES, 'sources.json');
     const doc = JSON.parse(readFileSync(sources, 'utf8'));
     doc.sources.find((source) => source.id === 'OSU-OAK').sha256 = 'f'.repeat(64);
     writeFileSync(sources, `${JSON.stringify(doc, null, 1)}\n`);
     expect(run(root)).toContain(
-      `${CATALOGUE}/${SPECIES}/sources/OSU-OAK.md: sha256 does not match the checksum recorded in sources.json`);
+      `${CATALOGUE}/${SPECIES}/sources/OSU-OAK.md: source_sha256 does not match the checksum recorded in sources.json`);
   });
 
   it('fails a species folder with no source copy', () => {
     const root = sandbox();
     rmSync(sourceCopyPath(root, SPECIES, 'USFS-OAK'));
     expect(run(root)).toContain(`${CATALOGUE}/${SPECIES}: missing sources/USFS-OAK.md`);
+  });
+
+  it('fails an article whose unsupported-claim decision is still open', () => {
+    const root = sandbox();
+    const path = join(root, CATALOGUE, SPECIES, 'decisions.json');
+    writeFileSync(path, `${JSON.stringify({
+      schema: 'decisions',
+      schema_version: 1,
+      decisions: [{
+        id: `${SPECIES}/document/article-claim-unsupported/OSU-OAK`,
+        species: SPECIES,
+        stage: 'document',
+        kind: 'article-claim-unsupported',
+        status: 'open',
+        blocks: ['report'],
+      }],
+    }, null, 1)}\n`);
+    expect(run(root)).toContain(
+      `${CATALOGUE}/${SPECIES}/ARTICLE.md: decision ${SPECIES}/document/article-claim-unsupported/OSU-OAK is open (article-claim-unsupported)`);
   });
 
   it('fails an article whose record has moved', () => {

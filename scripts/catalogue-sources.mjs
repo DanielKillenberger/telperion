@@ -14,8 +14,9 @@
 // Without `--source` the command reports, per source, the shape its rights
 // require and whether a copy exists. With `--from` it writes the copy: the
 // whole fetched markdown where the rights permit it, and otherwise only the
-// passages named in `--passages` ([{location, quote}, ...]), each verified to
-// be a literal run of the fetched text so no quotation can be invented. A
+// passages named in `--passages` ([{location, quote}, ...] or, better,
+// [{location, lines: [from, to]}, ...]), each verified to be a literal run of
+// the fetched text so no quotation can be invented. A
 // source whose text cannot be fetched is recorded with `--unavailable` and
 // states the gap in place of the passages.
 import { createHash } from 'node:crypto';
@@ -134,7 +135,11 @@ export function renderSourceCopy(source, { text = null, passages = [], fetched }
     attribution: source.attribution,
     rights: source.rights,
     fetched: fetched ?? 'unavailable',
+    // Two checksums, because they pin two different things: `sha256` is the
+    // text this copy was made from, and `source_sha256` is what the record
+    // pins for the source's raw bytes - a PDF, where the copy is markdown.
     sha256: text === null ? 'null' : sha256(text),
+    source_sha256: source.sha256 ?? 'null',
     form,
   });
 
@@ -144,17 +149,62 @@ export function renderSourceCopy(source, { text = null, passages = [], fetched }
   if (form === 'full') return `${front}\n${preamble(source, form)}${text.trimEnd()}\n`;
 
   const haystack = squeeze(text);
+  const lines = text.split('\n');
   const out = [front, '\n', preamble(source, form), '## Cited passages\n'];
   for (const passage of passages) {
-    if (!haystack.includes(squeeze(passage.quote))) {
-      throw new Error(`passage "${squeeze(passage.quote).slice(0, 60)}..." is not a run of the fetched text`);
+    // A passage is named either by its text or by the lines it runs over. The
+    // line form is the safer one: the writer chooses, and code does the copying.
+    const quote = passage.lines
+      ? lines.slice(passage.lines[0] - 1, passage.lines[1]).join('\n')
+      : passage.quote;
+    if (!haystack.includes(squeeze(quote))) {
+      throw new Error(`passage "${squeeze(quote).slice(0, 60)}..." is not a run of the fetched text`);
     }
     out.push(`\n### ${passage.location}\n`);
-    for (const line of passage.quote.trim().split('\n')) out.push(`\n> ${line.trim()}`);
+    for (const line of quote.trim().split('\n')) out.push(`\n> ${line.trim()}`);
     out.push('\n');
   }
   if (passages.length === 0) out.push('\n_No passage selected yet._\n');
   return out.join('');
+}
+
+/**
+ * Every failure the source copies carry, in the check's `<path>: <reason>`
+ * voice. The repository is public, so this is where the rights rule is
+ * enforced: a full copy filed under rights that do not explicitly permit
+ * redistribution fails, and so does one the rule cannot classify.
+ */
+export function validateSourceCopies(root, id, doc) {
+  const failures = [];
+  for (const source of doc.sources ?? []) {
+    const where = `${CATALOGUE}/${id}/sources/${source.id}.md`;
+    const path = sourceCopyPath(root, id, source.id);
+    if (!existsSync(path)) {
+      failures.push(`${CATALOGUE}/${id}: missing sources/${source.id}.md`);
+      continue;
+    }
+    const { front } = readFrontMatter(readFileSync(path, 'utf8'));
+    if (!front) {
+      failures.push(`${where}: has no front matter`);
+      continue;
+    }
+    for (const field of ['source', 'url', 'title', 'attribution', 'rights']) {
+      const expected = field === 'source' ? source.id : source[field];
+      if (front[field] !== expected) failures.push(`${where}: ${field} does not match sources.json`);
+    }
+    for (const field of ['fetched', 'sha256']) {
+      if (!front[field]) failures.push(`${where}: ${field} is empty`);
+    }
+    if (front.source_sha256 !== String(source.sha256 ?? 'null')) {
+      failures.push(`${where}: source_sha256 does not match the checksum recorded in sources.json`);
+    }
+    if (front.form !== formFor(source.rights)) {
+      failures.push(front.form === 'full'
+        ? `${where}: rights do not permit a full copy`
+        : `${where}: is an extract of a source whose rights permit the full text`);
+    }
+  }
+  return failures;
 }
 
 function readSources(root, id) {

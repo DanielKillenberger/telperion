@@ -1,0 +1,224 @@
+{
+  "BALTIC-ASH": [
+    {
+      "location": "Abstract",
+      "lines": [
+        32,
+        43
+      ]
+    },
+    {
+      "location": "Introduction, European range",
+      "lines": [
+        66,
+        76
+      ]
+    },
+    {
+      "location": "Introduction, Polish stands, dieback and forest site types",
+      "lines": [
+        80,
+        97
+      ]
+    },
+    {
+      "location": "Introduction, largest recorded trees",
+      "lines": [
+        116,
+        129
+      ]
+    },
+    {
+      "location": "Results, DBH, H and V of dominant and codominant ash trees",
+      "lines": [
+        195,
+        218
+      ]
+    }
+  ],
+  "E1": [
+    {
+      "location": "Ertragstafelauszuege, what the extracts contain",
+      "lines": [
+        1,
+        3
+      ]
+    },
+    {
+      "location": "What the yield tables describe",
+      "lines": [
+        27,
+        31
+      ]
+    },
+    {
+      "location": "Hinweis zur Benutzung",
+      "lines": [
+        72,
+        82
+      ]
+    },
+    {
+      "location": "Esche, mean height by age and yield class",
+      "lines": [
+        210,
+        226
+      ]
+    }
+  ],
+  "KEW-ASH": [
+    {
+      "location": "Fraxinus excelsior L., name, status and native range",
+      "lines": [
+        71,
+        79
+      ]
+    },
+    {
+      "location": "The sections this taxon page carries",
+      "lines": [
+        126,
+        135
+      ]
+    },
+    {
+      "location": "Synonyms and accepted infraspecifics",
+      "lines": [
+        247,
+        265
+      ]
+    },
+    {
+      "location": "Classification",
+      "lines": [
+        267,
+        289
+      ]
+    },
+    {
+      "location": "Publications, the authorities POWO follows",
+      "lines": [
+        310,
+        313
+      ]
+    }
+  ],
+  "O1": [
+    {
+      "location": "Fraxinus excelsior, names and family",
+      "lines": [
+        46,
+        54
+      ]
+    },
+    {
+      "location": "Fraxinus excelsior, description",
+      "lines": [
+        76,
+        76
+      ]
+    },
+    {
+      "location": "Fraxinus excelsior, site and range",
+      "lines": [
+        78,
+        79
+      ]
+    },
+    {
+      "location": "Fraxinus excelsior, the epithet",
+      "lines": [
+        83,
+        83
+      ]
+    },
+    {
+      "location": "Fraxinus excelsior, landscape use",
+      "lines": [
+        85,
+        85
+      ]
+    }
+  ],
+  "OSU-ASH": [
+    {
+      "location": "Fraxinus excelsior, names and family",
+      "lines": [
+        46,
+        54
+      ]
+    },
+    {
+      "location": "Fraxinus excelsior, description",
+      "lines": [
+        76,
+        76
+      ]
+    },
+    {
+      "location": "Fraxinus excelsior, site and range",
+      "lines": [
+        78,
+        79
+      ]
+    },
+    {
+      "location": "Fraxinus excelsior, the epithet",
+      "lines": [
+        83,
+        83
+      ]
+    },
+    {
+      "location": "Fraxinus excelsior, landscape use",
+      "lines": [
+        85,
+        85
+      ]
+    }
+  ],
+  "THOMAS-ASH": [
+    {
+      "location": "Formal description",
+      "lines": [
+        219,
+        219
+      ]
+    },
+    {
+      "location": "5.1 Gregariousness",
+      "lines": [
+        331,
+        331
+      ]
+    },
+    {
+      "location": "5.2 Performance in various habitats",
+      "lines": [
+        335,
+        335
+      ]
+    },
+    {
+      "location": "6.1 Morphology, branching, maturity and size",
+      "lines": [
+        391,
+        391
+      ]
+    },
+    {
+      "location": "6.1 Morphology, canopy leaves",
+      "lines": [
+        393,
+        393
+      ]
+    },
+    {
+      "location": "6.1 Morphology, trunk base and bark thickness",
+      "lines": [
+        397,
+        397
+      ]
+    }
+  ]
+}

@@ -19,8 +19,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { ROOT, CATALOGUE, speciesIds, renderPages, readSpecies } from './catalogue-pages.mjs';
-import { readFrontMatter, formFor, rightsPermitFullCopy, sourceCopyPath } from './catalogue-sources.mjs';
-import { validateArticle, staleInputs } from './catalogue-article.mjs';
+import { validateSourceCopies } from './catalogue-sources.mjs';
+import { validateArticle } from './catalogue-article.mjs';
 
 const REQUIRED = [
   'sources.json',
@@ -98,61 +98,6 @@ function checkSources(where, id, doc) {
     }
   }
   return ids;
-}
-
-/**
- * The markdown copy every admitted source must carry. The repository is
- * public, so the rights statement decides the shape and this is where that
- * decision is enforced: a full copy filed under rights that do not explicitly
- * permit redistribution fails, and so does one the check cannot classify.
- */
-function checkSourceCopies(root, id, doc) {
-  for (const source of doc.sources ?? []) {
-    const where = `${CATALOGUE}/${id}/sources/${source.id}.md`;
-    const path = sourceCopyPath(root, id, source.id);
-    if (!existsSync(path)) {
-      fail(`${CATALOGUE}/${id}`, `missing sources/${source.id}.md`);
-      continue;
-    }
-    const { front } = readFrontMatter(readFileSync(path, 'utf8'));
-    if (!front) {
-      fail(where, 'has no front matter');
-      continue;
-    }
-    must(where, front, [
-      ['source', (v) => v === source.id, 'does not name its own source'],
-      ['url', (v) => v === source.url, 'does not match the url in sources.json'],
-      ['title', (v) => v === source.title, 'does not match the title in sources.json'],
-      ['attribution', (v) => v === source.attribution, 'does not match the attribution in sources.json'],
-      ['rights', (v) => v === source.rights, 'does not match the rights in sources.json'],
-      ['fetched', ...nonEmpty],
-      ['sha256', ...nonEmpty],
-      ['form', (v) => v === 'full' || v === 'extract', 'is neither "full" nor "extract"'],
-    ]);
-    if (front.form === 'full' && !rightsPermitFullCopy(source.rights)) {
-      fail(where, 'rights do not permit a full copy');
-    }
-    if (front.form === 'extract' && formFor(source.rights) === 'full') {
-      fail(where, 'is an extract of a source whose rights permit the full text');
-    }
-    if (filled(source.sha256) && front.sha256 !== source.sha256) {
-      fail(where, 'sha256 does not match the checksum recorded in sources.json');
-    }
-  }
-}
-
-/**
- * The article, and the staleness gate that stands in for regenerating it. A
- * written article cannot be compared against a fresh render, so the check asks
- * instead whether any record or source copy it was written from has moved.
- */
-function checkArticle(root, id, species) {
-  for (const message of validateArticle(root, id, species)) failures.push(message);
-  const path = join(root, CATALOGUE, id, 'ARTICLE.md');
-  if (!existsSync(path)) return;
-  for (const input of staleInputs(root, id)) {
-    fail(`${CATALOGUE}/${id}/ARTICLE.md`, `${input} changed since the article was written`);
-  }
 }
 
 function checkProfile(where, id, doc) {
@@ -416,8 +361,13 @@ function run(root = ROOT) {
     if (readFileSync(join(folder, 'NOTES.md'), 'utf8').trim() === '') {
       fail(`${where}/NOTES.md`, 'holds no note');
     }
-    checkSourceCopies(root, id, docs['sources.json']);
-    checkArticle(root, id, readSpecies(root, id));
+    // The two documentation rules live with the modules that own the files
+    // they describe; the check is where they are enforced, not where they
+    // are defined.
+    for (const message of validateSourceCopies(root, id, docs['sources.json'])) failures.push(message);
+    for (const message of validateArticle(root, id, readSpecies(root, id), docs['decisions.json'])) {
+      failures.push(message);
+    }
     rasters(folder, id);
   }
 

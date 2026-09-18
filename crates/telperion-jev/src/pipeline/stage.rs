@@ -27,9 +27,9 @@ pub const TOOL_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// The fixed sequence. Discovery proposes; every later stage reads the
 /// admitted manifest.
-pub static STAGES: [&str; 11] = [
+pub static STAGES: [&str; 12] = [
     "discover", "fetch", "extract", "screen", "quality", "select", "verify", "fit", "gate",
-    "generate", "report",
+    "generate", "document", "report",
 ];
 
 /// Fixed artifact paths. `dir` is the species folder in the catalogue and holds

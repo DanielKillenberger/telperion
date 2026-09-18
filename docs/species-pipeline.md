@@ -173,7 +173,7 @@ stage and in total under `costs` and in its `## Cost` table.
 | `fetch.json` | sources v1 | fetch |
 | `extract.json` | candidates v1 | extract |
 | `screen.json`, `quality.json`, `select.json`, `verify.json`, `fit.json`, `gate.json`, `generate.json`, `document.json`, `report.json` | one schema each, v1 | the stage of that name |
-| `sources/<source id>.md` | a full copy where the rights permit one, the cited passages where they do not | document |
+| `sources/<source id>.md` | front matter `{source, url, title, attribution, rights, fetched, sha256, source_sha256, form}`; a full copy where the rights permit one, the cited passages where they do not | document |
 | `ARTICLE.md` | the sources distilled, a citation on every claim | document |
 | `packet/profile.json`, `packet/references.json` | fn19 closed records | select |
 | `packet/species.json`, `packet/specimens.json` | fn19 closed records | generate |

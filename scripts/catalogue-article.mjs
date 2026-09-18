@@ -24,14 +24,18 @@ import { fileURLToPath } from 'node:url';
 import { ROOT, CATALOGUE, readSpecies } from './catalogue-pages.mjs';
 import { readFrontMatter, writeFrontMatter, sourceCopyPath } from './catalogue-sources.mjs';
 
-/** The entry's shape, fixed so every species reads the same way. */
+/**
+ * The entry's shape, fixed so every species reads the same way. A section is
+ * either written by the writer or rendered from the record: the gaps are the
+ * record's own, so nobody writes them by hand and they can never go stale.
+ */
 export const SECTIONS = [
   ['Identity', 'What the tree is, where it grows and how the record frames it.'],
   ['Size and growth', 'How large it grows and by what age.'],
   ['Crown and habit', 'The silhouette, the branching and how the crown fills.'],
   ['Bark', 'What the bark looks like and how it changes with age.'],
   ['Leaves', 'The blade, its attachment and its arrangement.'],
-  ['What the record does not know', 'The gaps this catalogue has not closed.'],
+  ['What the record does not know', null, 'gaps'],
 ];
 
 const PACKET = ['packet/profile.json', 'packet/references.json', 'packet/species.json', 'packet/specimens.json'];
@@ -47,23 +51,38 @@ function table(headers, rows) {
   return `${lines.join('\n')}\n`;
 }
 
-/** Every number the packet records, as the strings a reader would write. */
+// A checksum and a geometry hash are digits without being quantities; their
+// runs would otherwise admit any number a writer cared to invent.
+const OPAQUE = /^(?:[0-9a-f]{32,}|\d{10,})$/i;
+
+/**
+ * Every number the packet records as a quantity, as the strings a reader would
+ * write: the numeric values themselves and the numbers inside the record's own
+ * prose, which is where a source's units survive.
+ */
 export function packetNumbers(root, id) {
   const found = new Set();
-  for (const file of PACKET) {
-    const text = readFileSync(join(root, CATALOGUE, id, file), 'utf8');
-    for (const token of text.match(/\d+(?:\.\d+)?/g) ?? []) {
-      found.add(token);
-      // 0.025 in the record is 2.5 cm in a note and 25 mm in a source; a
-      // trailing zero is the same measurement written differently.
-      if (token.includes('.')) found.add(token.replace(/0+$/, '').replace(/\.$/, ''));
-    }
-  }
+  const add = (token) => {
+    found.add(token);
+    // 0.025 in the record is 2.5 cm in a note and 25 mm in a source; a
+    // trailing zero is the same measurement written differently.
+    if (token.includes('.')) found.add(token.replace(/0+$/, '').replace(/\.$/, ''));
+  };
+  const walk = (value) => {
+    if (typeof value === 'number') add(String(value));
+    else if (typeof value === 'string') {
+      // A url's digits are an image's file name, never a measurement.
+      if (OPAQUE.test(value) || value.includes('://')) return;
+      for (const token of value.match(/\d+(?:\.\d+)?/g) ?? []) if (!OPAQUE.test(token)) add(token);
+    } else if (Array.isArray(value)) value.forEach(walk);
+    else if (value && typeof value === 'object') Object.values(value).forEach(walk);
+  };
+  for (const file of PACKET) walk(JSON.parse(readFileSync(join(root, CATALOGUE, id, file), 'utf8')));
   return found;
 }
 
 /** The measurement table, rendered from the record and never from the writer. */
-function measurements(species) {
+function measurements({ species }) {
   const profile = species.profile.profiles?.[0] ?? {};
   const rows = Object.entries(profile.metrics ?? {})
     .filter(([, metric]) => Array.isArray(metric.range))
@@ -79,7 +98,37 @@ function measurements(species) {
   return table(['Measurement', 'Range', 'Unit', 'Standing', 'Sources', 'Note'], rows);
 }
 
-function header(species) {
+/**
+ * What the record itself admits it does not hold: the dimensions with no
+ * measured range, the ones carrying a labelled estimate rather than a
+ * measurement, and the sources whose text could not be retrieved. Rendered,
+ * because a gap a writer restates is a gap that can go quietly out of date.
+ */
+function gaps({ species, root, id }) {
+  const metrics = Object.entries(species.profile.profiles?.[0]?.metrics ?? {});
+  const unmeasured = metrics.filter(([, metric]) => !Array.isArray(metric.range));
+  const estimated = metrics.filter(([, metric]) =>
+    Array.isArray(metric.range) && (metric.confidence === 'low' || metric.confidence === 'unknown'));
+  const unreachable = (species.sources.sources ?? []).filter((source) => {
+    const path = sourceCopyPath(root, id, source.id);
+    return existsSync(path) && readFrontMatter(readFileSync(path, 'utf8')).front?.fetched === 'unavailable';
+  });
+
+  const out = ['The record is explicit about its own edges.\n'];
+  const line = (label, items) => (items.length === 0 ? null : `\n- ${label}: ${items.join(', ')}.`);
+  const lines = [
+    line('No measured range, so the generator\'s value is reported and never gated',
+      unmeasured.map(([name]) => `\`${name}\``)),
+    line('A labelled estimate rather than a measured interval',
+      estimated.map(([name, metric]) => `\`${name}\` (${metric.confidence})`)),
+    line('Source text that could not be retrieved, so its copy carries no passage',
+      unreachable.map((source) => source.id)),
+  ].filter(Boolean);
+  out.push(lines.length === 0 ? '\nEvery dimension the profile names carries a measured range from a reachable source.\n' : `${lines.join('')}\n`);
+  return out.join('');
+}
+
+function header({ species }) {
   const profile = species.profile.profiles?.[0] ?? {};
   const record = species.species;
   return [
@@ -93,7 +142,7 @@ function header(species) {
   ].join('\n');
 }
 
-function bibliography(species) {
+function bibliography({ species }) {
   const rows = (species.sources.sources ?? []).map((source) => [
     source.id,
     `[${source.title}](${source.url})`,
@@ -106,18 +155,19 @@ function bibliography(species) {
 const BLOCKS = {
   header,
   measurements,
+  gaps,
   sources: bibliography,
 };
 
-const generated = (name, species) => block(name, `${BLOCKS[name](species).trimEnd()}\n`);
+const generated = (name, at) => block(name, `${BLOCKS[name](at).trimEnd()}\n`);
 
-function scaffold(species) {
-  const parts = [generated('header', species)];
-  for (const [name, hint] of SECTIONS) {
-    parts.push(`## ${name}\n\nTODO: ${hint}`);
-    if (name === 'Size and growth') parts.push(generated('measurements', species));
+function scaffold(at) {
+  const parts = [generated('header', at)];
+  for (const [name, hint, rendered] of SECTIONS) {
+    parts.push(`## ${name}\n\n${rendered ? generated(rendered, at) : `TODO: ${hint}`}`);
+    if (name === 'Size and growth') parts.push(generated('measurements', at));
   }
-  parts.push(generated('sources', species));
+  parts.push(generated('sources', at));
   return `${parts.join('\n\n')}\n`;
 }
 
@@ -141,9 +191,11 @@ const CITATION = /\[([A-Z0-9][A-Z0-9-]*)\]\(sources\/([A-Z0-9][A-Z0-9-]*)\.md\)/
 
 /**
  * Every failure an article carries, in the check's `<path>: <reason>` voice.
- * Claims, numbers, sections and the source copies the article needs.
+ * Claims, numbers, sections, the source copies the article needs, the inputs
+ * that have moved since it was written, and any unsupported-claim decision a
+ * person has not yet answered.
  */
-export function validateArticle(root, id, species) {
+export function validateArticle(root, id, species, decisions = {}) {
   const where = `${CATALOGUE}/${id}/ARTICLE.md`;
   const failures = [];
   const path = join(root, CATALOGUE, id, 'ARTICLE.md');
@@ -158,10 +210,12 @@ export function validateArticle(root, id, species) {
       failures.push(`${where}: generated block ${name} is missing`);
     }
   }
-  for (const [name] of SECTIONS) {
+  for (const [name, , rendered] of SECTIONS) {
     const section = new RegExp(`^## ${name}\\s*$([\\s\\S]*?)(?=^## |\\Z)`, 'm').exec(body);
     if (!section) failures.push(`${where}: section "${name}" is missing`);
-    else if (authoredLines(section[1]).length === 0) failures.push(`${where}: section "${name}" is unfilled`);
+    else if (!rendered && authoredLines(section[1]).length === 0) {
+      failures.push(`${where}: section "${name}" is unfilled`);
+    }
   }
 
   const numbers = packetNumbers(root, id);
@@ -184,6 +238,16 @@ export function validateArticle(root, id, species) {
   for (const source of species.sources.sources ?? []) {
     if (!existsSync(sourceCopyPath(root, id, source.id))) {
       failures.push(`${CATALOGUE}/${id}/sources/${source.id}.md: missing, so the article cannot cite it`);
+    }
+  }
+  for (const input of staleInputs(root, id)) {
+    failures.push(`${where}: ${input} changed since the article was written`);
+  }
+  // A sentence the cited source does not support is a person's decision, not a
+  // sentence that ships: the article cannot land while one is open.
+  for (const decision of decisions.decisions ?? []) {
+    if (String(decision.kind ?? '').startsWith('article-') && decision.status === 'open') {
+      failures.push(`${where}: decision ${decision.id} is open (${decision.kind})`);
     }
   }
   return failures;
@@ -227,9 +291,10 @@ export function writeArticle(root, id) {
       `${CATALOGUE}/${id}/sources/${source.id}.md: missing, so the article cannot be written`) };
   }
 
+  const at = { species, root, id };
   const existing = existsSync(path) ? readFrontMatter(readFileSync(path, 'utf8')).body : null;
-  const body = (existing ?? scaffold(species))
-    .replace(BLOCK, (whole, name) => (BLOCKS[name] ? generated(name, species) : whole))
+  const body = (existing ?? scaffold(at))
+    .replace(BLOCK, (whole, name) => (BLOCKS[name] ? generated(name, at) : whole))
     .replace(/^\n+/, '');
 
   const front = writeFrontMatter({

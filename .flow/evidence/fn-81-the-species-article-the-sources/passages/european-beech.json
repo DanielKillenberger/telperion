@@ -1,0 +1,21 @@
+{
+  "OSU-BEECH": [
+    { "location": "Fagus sylvatica, description", "lines": [74, 74] },
+    { "location": "Fagus sylvatica, site and pruning", "lines": [76, 76] },
+    { "location": "Fagus sylvatica, range and selections", "lines": [78, 78] }
+  ],
+  "PACKHAM-BEECH": [
+    { "location": "Summary, shade tolerance and hardiness", "lines": [283, 283] },
+    { "location": "Fagus sylvatica, description", "lines": [287, 287] },
+    { "location": "Morphology, the bole and the open-grown crown", "lines": [487, 487] },
+    { "location": "Tree form", "lines": [507, 507] },
+    { "location": "Bark and the cork cambium", "lines": [511, 511] }
+  ],
+  "TSO-BEECH": [
+    { "location": "Fagus sylvatica, description", "lines": [258, 258] },
+    { "location": "Habitat", "lines": [262, 262] },
+    { "location": "Native range", "lines": [272, 272] },
+    { "location": "Longevity in Britain and Ireland", "lines": [278, 278] },
+    { "location": "Woodland-grown and open-grown trees", "lines": [282, 282] }
+  ]
+}

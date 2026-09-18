@@ -25,8 +25,8 @@ use super::inputs;
 pub const STAGE: &str = "report";
 /// The artifacts whose bodies the report reads, in the order the run wrote
 /// them; every stage's artifact is read for its cost.
-const EARLIER: [&str; 8] = [
-    "fetch", "screen", "quality", "select", "verify", "fit", "gate", "generate",
+const EARLIER: [&str; 9] = [
+    "fetch", "screen", "quality", "select", "verify", "fit", "gate", "generate", "document",
 ];
 
 #[derive(Debug)]

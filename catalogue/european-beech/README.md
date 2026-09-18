@@ -11,13 +11,15 @@
 | Preset | european-beech |
 | Profile readiness | ready |
 
+[Read the article](ARTICLE.md) — the sources distilled, every claim cited.
+
 ## Bibliography
-| Id | Source | Rights | Verified | Good for |
-|---|---|---|---|---|
-| JRC-BEECH | [Houston Durrant, T., de Rigo, D. & Caudullo, G. 2016. Fagus sylvatica in Europe: distribution, habitat, usage and threats. In: European Atlas of Forest Tree Species. Publications Office of the EU.](https://forest.jrc.ec.europa.eu/media/atlas/Fagus_sylvatica.pdf) | European Commission JRC, CC BY 4.0; cited with attribution | 2026-09-14 | Commonly 30-40 m, to 50 m; typical leaf 10 x 7 cm; lifespan 150-300 years. |
-| OSU-BEECH | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/fagus-sylvatica) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Landscape height 15-23 m, spread 12-18 m, leaf 5-10 cm, petiole 0.5-1 cm, smooth grey bark. Uncalibrated imagery. Cultivar descriptions excluded. |
-| PACKHAM-BEECH | [Packham, J.R., Thomas, P.A., Atkinson, M.D. & Degen, T. 2012. Biological Flora of the British Isles: Fagus sylvatica. Journal of Ecology 100: 1557-1608.](https://doi.org/10.1111/j.1365-2745.2012.02017.x) | published article; cited with attribution, no redistribution inferred | 2026-09-14 | Mature height 30-40 m (to 50 m), leaf 4-10 cm, petiole 5-15 mm, silver-grey bark, alternate ovate-elliptic leaves. Primary flora account. |
-| TSO-BEECH | [Trees and Shrubs Online, International Dendrology Society. Fagus sylvatica account, citing Tutin et al. 1993 and Cullen et al. 2011.](https://www.treesandshrubsonline.org/articles/fagus/fagus-sylvatica/) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Tree to 50 m x 1(-1.3?) m dbh; leaves (3-)4-10 x 2.5-4 cm; parkland trees thicker. |
+| Id | Source | Local copy | Rights | Verified | Good for |
+|---|---|---|---|---|---|
+| JRC-BEECH | [Houston Durrant, T., de Rigo, D. & Caudullo, G. 2016. Fagus sylvatica in Europe: distribution, habitat, usage and threats. In: European Atlas of Forest Tree Species. Publications Office of the EU.](https://forest.jrc.ec.europa.eu/media/atlas/Fagus_sylvatica.pdf) | [sources/JRC-BEECH.md](sources/JRC-BEECH.md) | European Commission JRC, CC BY 4.0; cited with attribution | 2026-09-14 | Commonly 30-40 m, to 50 m; typical leaf 10 x 7 cm; lifespan 150-300 years. |
+| OSU-BEECH | [Oregon State University Landscape Plants; Patrick Breen contact](https://landscapeplants.oregonstate.edu/plants/fagus-sylvatica) | [sources/OSU-BEECH.md](sources/OSU-BEECH.md) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Landscape height 15-23 m, spread 12-18 m, leaf 5-10 cm, petiole 0.5-1 cm, smooth grey bark. Uncalibrated imagery. Cultivar descriptions excluded. |
+| PACKHAM-BEECH | [Packham, J.R., Thomas, P.A., Atkinson, M.D. & Degen, T. 2012. Biological Flora of the British Isles: Fagus sylvatica. Journal of Ecology 100: 1557-1608.](https://doi.org/10.1111/j.1365-2745.2012.02017.x) | [sources/PACKHAM-BEECH.md](sources/PACKHAM-BEECH.md) | published article; cited with attribution, no redistribution inferred | 2026-09-14 | Mature height 30-40 m (to 50 m), leaf 4-10 cm, petiole 5-15 mm, silver-grey bark, alternate ovate-elliptic leaves. Primary flora account. |
+| TSO-BEECH | [Trees and Shrubs Online, International Dendrology Society. Fagus sylvatica account, citing Tutin et al. 1993 and Cullen et al. 2011.](https://www.treesandshrubsonline.org/articles/fagus/fagus-sylvatica/) | [sources/TSO-BEECH.md](sources/TSO-BEECH.md) | web page; cited with attribution, no redistribution inferred | 2026-09-14 | Tree to 50 m x 1(-1.3?) m dbh; leaves (3-)4-10 x 2.5-4 cm; parkland trees thicker. |
 
 ## Identity pins
 | Pin | Value |

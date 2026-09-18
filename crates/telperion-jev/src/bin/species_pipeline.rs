@@ -17,11 +17,12 @@ use telperion_jev::pipeline::known::{flow_root, KnownSources};
 use telperion_jev::pipeline::render::{Measurer, SpeciesExample};
 use telperion_jev::pipeline::stage::{log_command, Paths, STAGES};
 use telperion_jev::pipeline::stages::{
-    discover, extract, fetch, fit, gate, generate, quality, report, screen, select, verify,
+    discover, document, extract, fetch, fit, gate, generate, quality, report, screen, select,
+    verify,
 };
 use telperion_jev::pipeline::swap;
 
-const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n       species-pipeline gap <command> --dir DIR  (see `gap` for its own usage)\n  stages: discover fetch extract screen quality select verify fit gate generate report";
+const USAGE: &str = "usage: species-pipeline <stage> --dir DIR [--run-dir DIR] [--catalogue DIR] [--adapter firecrawl|fixture:DIR] [--example] [--profiles FILE]\n       species-pipeline swap --left DIR --right DIR\n       species-pipeline gap <command> --dir DIR  (see `gap` for its own usage)\n  stages: discover fetch extract screen quality select verify fit gate generate document report";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -86,7 +87,7 @@ fn run(stage: &str, paths: &Paths, args: &[String]) -> Result<String, String> {
     let transport = UreqTransport;
     let needs_jev = matches!(
         stage,
-        "discover" | "screen" | "quality" | "select" | "verify" | "generate"
+        "discover" | "screen" | "quality" | "select" | "verify" | "generate" | "document"
     );
     let key = if needs_jev {
         load_key().map_err(|err| err.to_string())?
@@ -130,6 +131,7 @@ fn run(stage: &str, paths: &Paths, args: &[String]) -> Result<String, String> {
             measurer(&example).as_ref(),
             example.as_ref(),
         )),
+        "document" => describe(document::run(paths, &judge)),
         "report" => describe(report::run(paths)),
         _ => unreachable!("stage list checked above"),
     };
@@ -157,7 +159,10 @@ macro_rules! outcome {
         }
     )*};
 }
-outcome!(discover, fetch, extract, screen, quality, select, verify, fit, gate, generate, report);
+outcome!(
+    discover, fetch, extract, screen, quality, select, verify, fit, gate, generate, document,
+    report
+);
 
 fn adapter_from(args: &[String], paths: &Paths) -> Box<dyn FetchAdapter> {
     match flag(args, "--adapter").as_deref() {
