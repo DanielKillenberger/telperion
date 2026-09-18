@@ -1,0 +1,126 @@
+{
+ "context": "mature open-grown Pacific Northwest savanna",
+ "curves": {
+  "dbh": {
+   "anchor_age_years": 30.0,
+   "anchor_table": "E1-oak-dg-I",
+   "below_anchor": "linear-from-zero",
+   "coefficients": {
+    "ba": -0.00204,
+    "bal": -0.00326,
+    "dbh2": -0.00154,
+    "intercept": -1.33299,
+    "ln_dbh": 1.66609,
+    "ln_si": 0.14995
+   },
+   "max_age_years": 600.0,
+   "method": "gould-integration",
+   "site_index_m": 35.0
+  },
+  "envelope_height_m": 24.0,
+  "height": {
+   "below_first_row": "linear-from-zero",
+   "method": "table",
+   "table": "E1-oak-height-II"
+  },
+  "mature_dbh_m": 0.836,
+  "reference_ages_years": [
+   26.7,
+   56.1,
+   112.0
+  ],
+  "tolerance_percent": 15.0
+ },
+ "described": [],
+ "engineering": {
+  "curves.mature_dbh_m": {
+   "rationale": "fn30 REPORT: the direct build's measured trunk DBH at seed 7 (0.836387092 m one-shot)",
+   "value": 0.836
+  }
+ },
+ "fields": [
+  {
+   "bar": "proxy_only",
+   "condition": "open_grown",
+   "field": "height_m",
+   "proxy": {
+    "source": "E1",
+    "taxon": "Quercus robur/petraea"
+   },
+   "question": "Which candidate span states the height of a mature Oregon white oak under ordinary conditions (not the maximum)?",
+   "required_ages_years": [
+    26.7,
+    56.1,
+    112.0
+   ]
+  }
+ ],
+ "growth_form": "broadleaf",
+ "model": "jev-latest",
+ "preset": "oregon-white-oak",
+ "profile_id": "oregon-white-oak",
+ "schema": "manifest",
+ "schema_version": 1,
+ "seed": 7,
+ "sources": [
+  {
+   "id": "E1",
+   "rights": "published tables; extract cited with attribution",
+   "sha256": null,
+   "tables": [
+    {
+     "condition": "stand_grown",
+     "dimension": "height_m",
+     "expected_rows": 18,
+     "id": "E1-oak-height-II",
+     "table_index": 2,
+     "taxon": "Quercus robur/petraea",
+     "unit": "m",
+     "value_column": 2
+    },
+    {
+     "condition": "stand_grown",
+     "dimension": "dbh_m",
+     "expected_rows": 18,
+     "id": "E1-oak-dg-I",
+     "table_index": 3,
+     "taxon": "Quercus robur/petraea",
+     "unit": "cm",
+     "value_column": 1
+    }
+   ],
+   "title": "Bavarian yield-table extracts, Juettner 1955 oak",
+   "url": "https://www.forstpraxis.de/sites/forstpraxis.de/files/2023-07/AFZ_FHJ_Kalender_2024_306_318_Ertragstafeln_ste_OK.pdf"
+  },
+  {
+   "id": "S1",
+   "rights": "US Forest Service, public domain",
+   "sha256": null,
+   "tables": [],
+   "title": "Stein 1990, Silvics of North America",
+   "url": "https://research.fs.usda.gov/silvics/oregon-white-oak"
+  }
+ ],
+ "species": "oregon-white-oak",
+ "taxon": {
+  "common_name": "Oregon white oak",
+  "cultivar": null,
+  "rank": "species",
+  "scientific_name": "Quercus garryana"
+ },
+ "transfers": [],
+ "versions": {
+  "question_sets": {
+   "citation": 1,
+   "described": 1,
+   "obligations": 1,
+   "ranking": 1,
+   "screen": 1,
+   "sufficiency": 1
+  },
+  "tools": {
+   "firecrawl": "fixture",
+   "fn30-curves": "transcribed"
+  }
+ }
+}

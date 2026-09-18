@@ -12,6 +12,8 @@ use telperion_jev::cite::{
     cite, format_report as format_cite, load_claim_source, parse_research, research_markdown,
 };
 use telperion_jev::ledger::SourceRef;
+use telperion_jev::pipeline::sets::cases::run_pipeline_cases;
+use telperion_jev::pipeline::sets::missed_ids;
 use telperion_jev::screen::{format_report as format_screen, screen};
 use telperion_jev::select::{format_report as format_select, select};
 use telperion_jev::sha256_hex;
@@ -128,14 +130,22 @@ fn run(cmd: &str, args: &[String]) -> Result<(), String> {
                 "answers": entry.answers,
                 "elapsed_ms": entry.elapsed_ms,
             });
-            println!("{}", serde_json::to_string_pretty(&out).map_err(|err| err.to_string())?);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&out).map_err(|err| err.to_string())?
+            );
         }
         "cases" => {
             let key = load_key().map_err(|err| err.to_string())?;
             let transport = UreqTransport;
-            let sets = run_labelled_cases(&transport, &key, &ledger).map_err(show_err)?;
+            let mut sets = run_labelled_cases(&transport, &key, &ledger).map_err(show_err)?;
+            sets.extend(run_pipeline_cases(&transport, &key, &ledger).map_err(show_err)?);
             print!("{}", format_scores(&sets));
-            if sets.iter().any(|set| !set.meets_pilot()) {
+            let missed: Vec<&_> = sets.iter().filter(|set| !set.meets_pilot()).collect();
+            for set in &missed {
+                println!("{}: missed: {}", set.name, missed_ids(set).join(", "));
+            }
+            if !missed.is_empty() {
                 return Err("one or more labelled sets missed the pilot score".into());
             }
         }

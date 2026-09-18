@@ -1,0 +1,226 @@
+//! The data-quality gate, after the screen and before select, fit and
+//! generation. For every required evidence field, code lays out the screened
+//! candidates and the admitted table rows beside the requirement, counts the
+//! measured points and the required ages they cover, and Jev scores the
+//! sufficiency level and names the dominant gap. A field below the manifest's
+//! bar files a data-insufficient decision; the stop is code on the level.
+
+use std::path::Path;
+
+use serde_json::{json, Map, Value};
+
+use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
+use crate::pipeline::judge::Judge;
+use crate::pipeline::manifest::{Field, Manifest, Sufficiency};
+use crate::pipeline::sets::{level_from_score, sufficiency_questions, SUFFICIENCY_LEVELS};
+use crate::pipeline::stage::{Context, StageError};
+
+use super::{body, inputs};
+
+pub const STAGE: &str = "quality";
+/// A required age is covered when a matching point lies within this fraction
+/// of it, or two matching points bracket it.
+const AGE_WINDOW: f64 = 0.25;
+
+#[derive(Debug)]
+pub enum Outcome {
+    Current,
+    Ran { decisions: Vec<String> },
+}
+
+pub fn run(dir: &Path, judge: &Judge<'_>) -> Result<Outcome, StageError> {
+    let (ctx, _) = Context::open(dir, STAGE)?;
+    let (fetch, fetch_sha) = body(&ctx, STAGE, "fetch")?;
+    let (screen, screen_sha) = body(&ctx, STAGE, "screen")?;
+    let mut header = ctx.header(
+        STAGE,
+        "quality",
+        inputs(&[("fetch.json", &fetch_sha), ("screen.json", &screen_sha)]),
+        vec![],
+    );
+    if ctx.is_current(STAGE, &header.idempotence_key) {
+        return Ok(Outcome::Current);
+    }
+    let manifest = &ctx.admitted.manifest;
+    let mut fields = Map::new();
+    let mut decisions = Vec::new();
+    for field in &manifest.fields {
+        let evidence = evidence_for(manifest, field, &screen, &fetch);
+        let points = measured_points(manifest, field, &evidence);
+        let (covered, uncovered) = coverage(field, &points);
+        let state = json!({
+            "requirement": {
+                "taxon": manifest.taxon.scientific_name,
+                "field": field.field,
+                "condition": field.condition,
+                "required_ages_years": field.required_ages_years,
+            },
+            "evidence": evidence,
+            "counts": {
+                "measured_points": points.len(),
+                "required_ages_covered": covered,
+                "required_ages_uncovered": uncovered,
+            },
+        });
+        let judgment = judge
+            .ask("sufficiency", None, &state, &sufficiency_questions())
+            .map_err(|err| StageError::Failed {
+                stage: STAGE.into(),
+                reason: err.to_string(),
+            })?;
+        let score = judgment.entry.score("sufficiency").unwrap_or(0.0);
+        let level = Sufficiency::from_index(level_from_score(score, SUFFICIENCY_LEVELS.len()));
+        let gap = judgment
+            .entry
+            .choice("dominant_gap")
+            .unwrap_or_else(|| "none".into());
+        let passed = level >= field.bar;
+        header.ledger.push(judgment.reference.clone());
+        fields.insert(
+            field.field.clone(),
+            json!({
+                "level": level.key(),
+                "dominant_gap": gap,
+                "points": points,
+                "required_ages_covered": covered,
+                "required_ages_uncovered": uncovered,
+                "bar": field.bar.key(),
+                "passed": passed,
+                "ledger": judgment.reference,
+            }),
+        );
+        if !passed {
+            decisions.push(insufficient(
+                manifest,
+                field,
+                level,
+                &gap,
+                &points,
+                &uncovered,
+                &judgment.reference,
+                &fetch_sha,
+            ));
+        }
+    }
+    let ids: Vec<String> = decisions.iter().map(|d| d.id.clone()).collect();
+    if !decisions.is_empty() {
+        append_decisions(&ctx.paths.decisions(), decisions)?;
+    }
+    ctx.write(&header, json!({"fields": fields}))?;
+    Ok(Outcome::Ran { decisions: ids })
+}
+
+/// Screened sentences and admitted table rows, each with its kind, condition
+/// and taxon beside the requirement.
+fn evidence_for(manifest: &Manifest, field: &Field, screen: &Value, fetch: &Value) -> Vec<Value> {
+    let mut evidence: Vec<Value> = screen["rows"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|row| {
+            json!({
+                "source": row["source"],
+                "sentence": row["sentence"],
+                "kind": row["kind"],
+                "condition": row["condition"],
+                "taxon": manifest.taxon.scientific_name,
+            })
+        })
+        .collect();
+    for (id, table) in fetch["tables"].as_object().into_iter().flatten() {
+        if table["dimension"] != field.field {
+            continue;
+        }
+        let rows = table["rows"].as_array().cloned().unwrap_or_default();
+        let ages: Vec<f64> = rows
+            .iter()
+            .filter_map(|r| r["age_years"].as_f64())
+            .collect();
+        evidence.push(json!({
+            "source": table["source"],
+            "sentence": format!(
+                "{} {} by age in {} rows from {} to {} years ({id})",
+                table["taxon"].as_str().unwrap_or(""),
+                field.field,
+                rows.len(),
+                ages.first().copied().unwrap_or(0.0),
+                ages.last().copied().unwrap_or(0.0)
+            ),
+            "kind": if rows.len() >= 2 { "measured_size_at_age" } else { "not_about_tree_size" },
+            "condition": table["condition"],
+            "taxon": table["taxon"],
+            "ages_years": ages,
+        }));
+    }
+    evidence
+}
+
+/// Evidence items that are measured sizes at an age for this taxon under the
+/// required condition, with the ages they state.
+fn measured_points(manifest: &Manifest, field: &Field, evidence: &[Value]) -> Vec<Value> {
+    evidence
+        .iter()
+        .filter(|item| {
+            item["kind"] == "measured_size_at_age"
+                && item["condition"] == field.condition
+                && item["taxon"] == manifest.taxon.scientific_name
+        })
+        .cloned()
+        .collect()
+}
+
+fn coverage(field: &Field, points: &[Value]) -> (Vec<f64>, Vec<f64>) {
+    let ages: Vec<f64> = points
+        .iter()
+        .flat_map(|p| p["ages_years"].as_array().cloned().unwrap_or_default())
+        .filter_map(|a| a.as_f64())
+        .collect();
+    field
+        .required_ages_years
+        .iter()
+        .copied()
+        .partition(|&required| {
+            let near = ages
+                .iter()
+                .any(|&a| (a - required).abs() <= AGE_WINDOW * required);
+            let below = ages.iter().any(|&a| a < required);
+            let above = ages.iter().any(|&a| a > required);
+            near || (below && above)
+        })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn insufficient(
+    manifest: &Manifest,
+    field: &Field,
+    level: Sufficiency,
+    gap: &str,
+    points: &[Value],
+    uncovered: &[f64],
+    ledger: &str,
+    fetch_sha: &str,
+) -> Decision {
+    Decision::new(
+        DecisionParts {
+            species: &manifest.species,
+            stage: STAGE,
+            kind: "data-insufficient",
+            field: Some(&field.field),
+            age_years: None,
+        },
+        &["select", "fit", "generate"],
+        [("fetch.json".to_string(), fetch_sha.to_string())].into_iter().collect(),
+        vec![ledger.to_string()],
+        json!({
+            "field": field.field,
+            "level": level.key(),
+            "bar": field.bar.key(),
+            "dominant_gap": gap,
+            "points": points,
+            "required_ages_uncovered": uncovered,
+            "sources_tried": manifest.sources.iter().map(|s| s.id.clone()).collect::<Vec<_>>(),
+        }),
+        &["admit-proxy", "add-sources", "lower-bar"],
+        "The evidence for this field is below the manifest's bar; no select, fit or render runs for it until a person admits a proxy, adds sources or lowers the bar.",
+    )
+}

@@ -7,7 +7,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use serde_json::{json, Value};
 
-use crate::ledger::{new_entry_id, write_entry, LedgerEntry, SourceRef, Usage};
+use crate::ledger::{derived_identity, new_entry_id, write_entry, LedgerEntry, SourceRef, Usage};
 use crate::sha256_hex;
 
 /// TypeSafe evaluation endpoint. Named here so the isolation guard can find it.
@@ -244,6 +244,7 @@ fn success_entry(
             output_tokens: value.get("output_tokens")?.as_u64()?,
         })
     });
+    let identity = derived_identity(state_sha256, request.questions, request_model(&parsed));
     LedgerEntry {
         id: new_entry_id(),
         tool: request.tool.to_string(),
@@ -260,6 +261,7 @@ fn success_entry(
         elapsed_ms: started.elapsed().as_millis() as u64,
         recorded_at: now_rfc3339(),
         error: None,
+        identity,
     }
 }
 
@@ -281,7 +283,12 @@ fn failure_entry(
         elapsed_ms: started.elapsed().as_millis() as u64,
         recorded_at: now_rfc3339(),
         error: Some(error),
+        identity: derived_identity(state_sha256, request.questions, MODEL),
     }
+}
+
+fn request_model(parsed: &Value) -> &str {
+    parsed.get("model").and_then(Value::as_str).unwrap_or(MODEL)
 }
 
 fn now_rfc3339() -> String {

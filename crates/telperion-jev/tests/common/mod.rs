@@ -2,6 +2,10 @@ use std::sync::Mutex;
 
 use serde_json::{json, Value};
 use telperion_jev::caller::{HttpRequest, HttpResponse, Transport};
+use telperion_jev::pipeline::sets::{
+    described_cases, described_state, obligation_cases, ranking_cases, ranking_state,
+    sufficiency_cases, sufficiency_state, SUFFICIENCY_LEVELS,
+};
 use telperion_jev::questions::{citation_cases, screen_cases, selection_cases, triage_cases};
 
 pub struct CaseTransport;
@@ -161,7 +165,93 @@ fn answers_for(body: &Value) -> Value {
             }
         });
     }
+    if questions.get("sufficiency").is_some() {
+        let case = sufficiency_cases()
+            .into_iter()
+            .find(|case| sufficiency_state(case) == body["state"])
+            .expect("a sufficiency case for this state");
+        let index = SUFFICIENCY_LEVELS
+            .iter()
+            .position(|level| *level == case.expect_level)
+            .unwrap_or(0);
+        return json!({
+            "sufficiency": score_answer(index, SUFFICIENCY_LEVELS.len()),
+            "dominant_gap": choice_answer(&case.expect_gap),
+        });
+    }
+    if questions.get("source").is_some() {
+        let case = ranking_cases()
+            .into_iter()
+            .find(|case| ranking_state(case) == body["state"])
+            .expect("a ranking case for this state");
+        return json!({ "source": choice_answer(&case.expect_source) });
+    }
+    if questions.get("level").is_some() {
+        let case = described_cases()
+            .into_iter()
+            .find(|case| described_state(case) == body["state"])
+            .expect("a described case for this state");
+        let index = case
+            .levels
+            .iter()
+            .position(|level| level.key == case.expect_level)
+            .unwrap_or(case.levels.len());
+        return json!({ "level": score_answer(index, case.levels.len() + 1) });
+    }
+    if questions.get("inspected_image").is_some() {
+        let observation = body["state"]["observation"].as_str().unwrap_or("");
+        let case = obligation_cases()
+            .inspected_image
+            .into_iter()
+            .find(|case| case.observation == observation)
+            .expect("an inspected_image case for this observation");
+        return json!({ "inspected_image": noul_answer(case.expect) });
+    }
+    if questions.get("measurement_not_invention").is_some() {
+        let statement = body["state"]["value_statement"].as_str().unwrap_or("");
+        let case = obligation_cases()
+            .measurement_not_invention
+            .into_iter()
+            .find(|case| case.value_statement == statement)
+            .expect("a measurement_not_invention case for this statement");
+        return json!({ "measurement_not_invention": noul_answer(case.expect) });
+    }
     json!({})
+}
+
+/// A Choice the labelled case admits, answered at 0.9 with 0.85 confidence.
+fn choice_answer(key: &str) -> Value {
+    json!({
+        "type": "choice",
+        "choice": key,
+        "probabilities": { key: 0.9 },
+        "confidence": 0.85
+    })
+}
+
+/// A Score at one level index, with the probability map over level indices.
+fn score_answer(index: usize, levels: usize) -> Value {
+    let rest = if levels > 1 {
+        0.1 / (levels - 1) as f64
+    } else {
+        0.0
+    };
+    let mut probabilities = serde_json::Map::new();
+    for slot in 0..levels {
+        let p = if slot == index { 0.9 } else { rest };
+        probabilities.insert(slot.to_string(), json!(p));
+    }
+    json!({
+        "type": "score",
+        "score": index as f64,
+        "probabilities": probabilities,
+        "confidence": 0.85
+    })
+}
+
+/// A Noul on the side the labelled case admits.
+fn noul_answer(yes: bool) -> Value {
+    json!({ "type": "noul", "noul": if yes { 0.9 } else { 0.1 } })
 }
 
 pub fn ledger_dir(tag: &str) -> std::path::PathBuf {

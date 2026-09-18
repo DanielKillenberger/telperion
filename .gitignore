@@ -28,3 +28,12 @@ __pycache__/
 
 # Cinematic captures: videos and frame sequences stay on disk.
 .flow/evidence/birch-cinematic/
+
+# The fetch adapter cache never enters the repository.
+.firecrawl/
+
+# Species pipeline runs: fetched source bytes, measurement scratch and
+# stills stay on disk; the checksums, rows, packet and decisions are committed.
+.flow/evidence/*/pipeline/cache/
+.flow/evidence/*/pipeline/stills/
+.flow/evidence/*/pipeline/ledger/entries/

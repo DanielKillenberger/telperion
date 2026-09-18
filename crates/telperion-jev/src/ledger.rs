@@ -50,6 +50,19 @@ pub struct LedgerEntry {
     pub recorded_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    /// Derived from the state checksum, the questions and the model name, so
+    /// identical requests share one identity across runs and drivers.
+    #[serde(default)]
+    pub identity: String,
+}
+
+/// `sha256(state checksum, canonical questions, model)`, 24 hex characters.
+pub fn derived_identity(state_sha256: &str, questions: &Value, model: &str) -> String {
+    let questions = serde_json::to_vec(questions).expect("questions serialize");
+    let digest = crate::sha256_hex(
+        format!("{state_sha256}\n{}\n{model}", crate::sha256_hex(&questions)).as_bytes(),
+    );
+    digest[..24].to_string()
 }
 
 impl LedgerEntry {
@@ -149,6 +162,7 @@ mod tests {
             elapsed_ms: 1,
             recorded_at: "2026-09-16T00:00:00Z".into(),
             error: None,
+            identity: String::new(),
         }
     }
 

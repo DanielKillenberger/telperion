@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "inspected_image": {
+    "type": "noul",
+    "instructions": "Does `observation` describe what someone saw in the image itself, rather than a page caption, a catalogue listing, or a description assembled from the literature?",
+    "criteria": {
+      "true": "The observation reports what the frame shows: the form, the parts, their arrangement or their condition, read off the picture",
+      "false": "The observation repeats a page caption, a listing or a literature description, or it says the image was never opened"
+    }
+  },
+  "measurement_not_invention": {
+    "type": "noul",
+    "instructions": "Is `value_statement` a measurement a source reports, with `source_excerpt` as the source text behind it, rather than an estimate, a rounding, a composition or an author's guess?",
+    "criteria": {
+      "true": "The source reports the value as observed or measured on real trees, and the statement repeats it",
+      "false": "The value is composed, extrapolated, interpolated, rounded, doubled, anchored, assumed or otherwise produced by the author rather than measured"
+    }
+  }
+}
