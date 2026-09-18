@@ -1,25 +1,24 @@
 {
-  "branch_name": "fn-58-species-template-pipeline-literature-to",
+  "branch_name": "fn-75-pipeline-fixes-from-the-first-ash-run",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-09-16T09:02:17.433107Z",
+  "created_at": "2026-09-18T18:18:25.710178Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-57-typesafe-usage-guidelines"
+    "fn-58-species-template-pipeline-literature-to"
   ],
-  "id": "fn-58-species-template-pipeline-literature-to",
+  "id": "fn-75-pipeline-fixes-from-the-first-ash-run",
   "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": true,
-  "spec_path": ".flow/specs/fn-58-species-template-pipeline-literature-to.md",
-  "status": "done",
-  "title": "Species template pipeline: literature to preset",
+  "spec_path": ".flow/specs/fn-75-pipeline-fixes-from-the-first-ash-run.md",
+  "status": "open",
+  "title": "Pipeline fixes from the first ash run",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -31,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T18:22:34.226096Z"
+  "updated_at": "2026-09-18T18:22:35.151663Z"
 }
