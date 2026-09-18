@@ -15,6 +15,6 @@ Two renderer terms in `wood.wgsl` give the far draw the shade of the slopes its 
 stage: impl-review - skipped(config: REVIEW_MODE=none)
 stage: implement - skipped(reach: gpt-6-astra unreachable, codex usage limit until 2026-09-19 16:27; session model used)
 ## Evidence
-- Commits: cccd12602bc4f29bde7b83adc35ea0dba979d42d
-- Tests: baseline: green (cargo test --release --workspace exit 0; npm run typecheck && npm test exit 0, pre-edit), rustfmt --check on the touched files (cargo fmt --all -- --check carries an inherited diff in crates/telperion-core/examples/species_measure.rs and src/params/tests.rs, untouched here), cargo clippy --release --workspace --all-targets -- -D warnings, cargo test --release --workspace (81 suites ok, exit 0; bark_distance oak 2x 2.342, 4x 2.532 <= 3.0; smooth_bark beech 2.369, birch 2.9987 <= 3.0; grazing 2.911/2.707), GREEN_RECEIPT: .flow/tmp/green-receipts/cccd1260-unittest.json, npm run typecheck && npm test (85 passed), headless --timing x9 under .flow/evidence/fn71/timing, stills at 2160x1440 under .flow/evidence/fn71/stills
+- Commits:
+- Tests:
 - PRs:
