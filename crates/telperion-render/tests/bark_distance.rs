@@ -149,10 +149,18 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
         eprintln!("distance {distance}x resolution: mean {mean:.6}/255, p95 {p95:.2}/255");
         agreement.push((mean, p95));
     }
+    // The 4x bound is 3.25 rather than 3.0 (owner, 2026-09-18, fn-55): the old
+    // sheen put 15% of the sun on the lit trunk, which sat the frame on the
+    // tone curve's shoulder and compressed the relief's cross-resolution error
+    // into fewer code values; base read 2.904, fn-55's physical highlight
+    // 3.134, and no highlight at all 3.167. The relief's drift at distance is
+    // fn-71's, which restores 3.0. The 2x bound and the p95 bound are as they
+    // were.
     assert!(
         agreement
             .iter()
-            .all(|&(mean, p95)| mean <= 3.0 && p95 <= 12.0),
+            .zip([3.0, 3.25])
+            .all(|(&(mean, p95), bound)| mean <= bound && p95 <= 12.0),
         "distance series aliases: {agreement:?}"
     );
 }

@@ -33,6 +33,11 @@ This spec makes the highlight physical and adds a pixel-scale grain, as renderer
 
 - No new bark or leaf pattern; fn-40's and fn-32's layers are kept as they are. [inferred]
 - No lighting model beyond the highlight; fn-52's canopy rows are kept. [paraphrase]
+- The relief's drift at distance and the bark grain's value are fn-71's. [user]
+
+## Decisions
+
+- **Owner, 2026-09-18.** The 4x distance-series bound in `bark_distance.rs` is recalibrated from 3.0 to 3.25. The old sheen put 15% of the sun on the lit trunk, sitting the frame on the tone curve's shoulder where the relief's cross-resolution error compressed into fewer code values; base read 2.904, fn-55's physical highlight 3.134, and no highlight at all 3.167. The relief's drift at distance is a real defect seen before fn-55 and is fn-71's, which restores 3.0; the 2x and p95 bounds stand. The bark grain rows stay held off in the tables until fn-71 sets their value.
 
 ## Resolved via Codebase
 

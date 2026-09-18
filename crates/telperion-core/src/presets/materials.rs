@@ -302,7 +302,8 @@ pub(super) fn beech() -> MaterialParams {
         // cells between its veins at ninety a blade. The bark's grain is
         // stated at 1 mm and held off: at B-BASE's 0.7 mm a pixel it sits on
         // the half-size still's Nyquist edge and reads 3.40 against the
-        // resolution contract's 3.0, which the owner decides.
+        // resolution contract's 3.0. Its value is set in fn-71, with the
+        // relief's own drift at distance (owner, 2026-09-18).
         bark_reflectance: 0.04,
         leaf_reflectance: 0.04,
         bark_grain_scale: 0.001,
@@ -442,7 +443,8 @@ pub(super) fn birch() -> MaterialParams {
         lobe_shade: 0.0,
         // fn-55: as the beech's. S-BARK's chalk white is grained at the pixel
         // in the photograph; at 1 mm the grain holds the resolution contract
-        // here (2.998 against 3.0) and is held off with the beech's.
+        // here (2.998 against 3.0) and is held off with the beech's until
+        // fn-71 sets both (owner, 2026-09-18).
         bark_reflectance: 0.04,
         leaf_reflectance: 0.04,
         bark_grain_scale: 0.001,
