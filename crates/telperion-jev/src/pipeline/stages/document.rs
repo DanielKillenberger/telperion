@@ -131,11 +131,15 @@ fn verified_cache(ctx: &Context, id: &str, record: &Value) -> Option<PathBuf> {
 /// pointer as the location and the span it copied as the quote, which the
 /// script verifies is a literal run of the fetched text. None when provenance
 /// holds nothing for this source, which the script writes as an empty extract.
+/// Only a `copied` route is quotable; a described value's span is the judge's
+/// paraphrase and would fail that verification for the right reason.
 fn passages_file(ctx: &Context, id: &str) -> Result<Option<PathBuf>, StageError> {
     if !ctx.paths.sidecar().exists() { return Ok(None); }
     let provenance = read_json(&ctx.paths.sidecar())?;
     let entries = provenance["entries"].as_object().into_iter().flatten();
-    let mine = entries.filter(|(_, entry)| entry["source"].as_str() == Some(id));
+    let mine = entries.filter(|(_, entry)| {
+        entry["source"].as_str() == Some(id) && entry["route"].as_str() == Some("copied")
+    });
     let passage = |(pointer, entry): (&String, &Value)| json!({"location": pointer, "quote": entry["span"]});
     let passages: Vec<Value> = mine.map(passage).collect();
     if passages.is_empty() { return Ok(None); }
