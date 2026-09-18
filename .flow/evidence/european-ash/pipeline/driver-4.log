@@ -1,0 +1,6 @@
+Commands run:
+
+1. `target/release/species-pipeline discover --dir .flow/evidence/european-ash/pipeline` — exit 0 — last line: `discover: current (idempotence key matched)`
+2. `target/release/species-pipeline fetch --dir .flow/evidence/european-ash/pipeline` — exit 1 — last line: `fetch: unavailable-source european-ash/fetch/unavailable-source/M1: fetch failed for https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxonid=282928: https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxonid=282928: Connection Failed: tls connection init failed: invalid peer certificate: UnknownIssuer`
+
+Stopped at: `target/release/species-pipeline fetch --dir .flow/evidence/european-ash/pipeline`

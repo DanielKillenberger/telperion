@@ -1,0 +1,5 @@
+`target/release/species-pipeline discover --dir .flow/evidence/european-ash/pipeline` — exit 0 — `discover: current (idempotence key matched)`
+
+`target/release/species-pipeline fetch --dir .flow/evidence/european-ash/pipeline` — exit 1 — `fetch: unavailable-source european-ash/fetch/unavailable-source/M1: fetch failed for https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxonid=282928: https://plantfinder.mobot.org/PlantFinderDetails.aspx?taxonid=282928: Connection Failed: tls connection init failed: invalid peer certificate: UnknownIssuer`
+
+Stopped at fetch.The runbook stopped at **fetch** (exit 1). Discover was already current. Fetch failed on the Missouri Botanical Garden Plant Finder page (TLS `UnknownIssuer`) and printed decision `european-ash/fetch/unavailable-source/M1`. Remaining pipeline stages were not run.

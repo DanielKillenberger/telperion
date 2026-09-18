@@ -1,0 +1,41 @@
+$P discover --dir .flow/evidence/european-ash/pipeline
+exit 0
+discover: current (idempotence key matched)
+
+$P fetch --dir .flow/evidence/european-ash/pipeline
+exit 0
+fetch: ran
+
+$P extract --dir .flow/evidence/european-ash/pipeline
+exit 0
+extract: ran
+
+$P screen --dir .flow/evidence/european-ash/pipeline
+exit 0
+screen: ran
+
+$P quality --dir .flow/evidence/european-ash/pipeline
+exit 0
+quality: ran
+
+$P select --dir .flow/evidence/european-ash/pipeline
+exit 0
+select: ran
+
+$P verify --dir .flow/evidence/european-ash/pipeline
+exit 0
+verify: ran
+
+$P fit --dir .flow/evidence/european-ash/pipeline
+exit 0
+fit: ran
+
+$P gate --dir .flow/evidence/european-ash/pipeline --example
+exit 0
+gate: ran
+
+$P generate --dir .flow/evidence/european-ash/pipeline --example --profile-id european-ash
+exit 1
+generate: open decision: european-ash/gate/onboarding-gate/registry
+
+stopped at: $P generate --dir .flow/evidence/european-ash/pipeline --example --profile-id european-ash

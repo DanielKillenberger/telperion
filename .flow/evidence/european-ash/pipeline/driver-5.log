@@ -1,0 +1,4 @@
+- `$P discover --dir .flow/evidence/european-ash/pipeline` — exit 0 — `discover: ran`
+- `$P fetch --dir .flow/evidence/european-ash/pipeline` — exit 1 — `fetch: open decision: european-ash/discover/manifest-proposed`
+
+Stopped at fetch.

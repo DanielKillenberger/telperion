@@ -1,0 +1,6 @@
+Commands run:
+
+1. `target/release/species-pipeline discover --dir .flow/evidence/european-ash/pipeline` — exit 0 — `discover: ran`
+2. `target/release/species-pipeline fetch --dir .flow/evidence/european-ash/pipeline` — exit 1 — `fetch: open decision: european-ash/discover/manifest-proposed`
+
+Stopped at fetch.
