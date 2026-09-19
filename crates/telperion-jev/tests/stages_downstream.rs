@@ -585,6 +585,26 @@ fn a_table_probe_that_errors_files_the_error_and_never_an_empty_list() {
 }
 
 #[test]
+fn an_empty_packet_list_does_not_erase_the_manifests_recorded_assessment() {
+    let dir = scratch_with("packet-placeholder", 2, requiring(&["woody-axes"]));
+    pass_the_seeds(&dir);
+    // The generate stage writes this list empty for every species, so a gate
+    // rerun after generate reads the assessment the manifest records, not the
+    // placeholder; read the other way the gate would fail closed on a species
+    // that had already passed it.
+    write_canonical(
+        &dir.join("packet").join("species.json"),
+        &json!({"required_capabilities": []}),
+    )
+    .unwrap();
+    gate::run(&Paths::new(&dir), &Checks::producing(&["woody-axes"])).unwrap();
+    let body = body_of(&dir, "gate");
+    assert_eq!(body["capability"]["required"], json!(["woody-axes"]));
+    assert_eq!(body["capability"]["expressed"], json!(["woody-axes"]));
+    assert_eq!(body["unresolved"], json!([]));
+}
+
+#[test]
 fn the_gate_files_nothing_when_every_gate_is_answered() {
     let dir = scratch("gate-pass", 2);
     pass_the_gate(&dir);

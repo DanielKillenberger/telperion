@@ -249,12 +249,21 @@ fn preset_table(
 }
 
 /// The capabilities the packet requires: the generate stage's `species.json`
-/// when it exists, else the manifest's engineering entry, else none.
+/// when it names any, else the manifest's engineering entry, else none.
+///
+/// The packet's list is written empty and is a placeholder until a species
+/// fills it, so an empty one says nothing and the manifest's row, where the
+/// assessment round writes, is read instead. Reading the placeholder as the
+/// answer would erase the assessment on every rerun after generate, and the
+/// gate fails closed, so that erasure would block a species that had passed.
 fn required_capabilities(ctx: &Context, manifest: &Manifest) -> Vec<String> {
     let species = ctx.paths.packet("species");
     if species.exists() {
         if let Ok(value) = read_json(&species) {
-            return names(&value["required_capabilities"]);
+            let recorded = names(&value["required_capabilities"]);
+            if !recorded.is_empty() {
+                return recorded;
+            }
         }
     }
     manifest

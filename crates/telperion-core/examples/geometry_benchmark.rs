@@ -97,6 +97,12 @@ fn run() -> Result<i32, String> {
         println!("{}", capabilities(args.get(1).ok_or("preset missing")?));
         return Ok(0);
     }
+    // What the generator declares it can express, for the assessment round to
+    // read and for the version it has to record.
+    if args.first().is_some_and(|a| a == "--vocabulary") {
+        println!("{}", capability::vocabulary());
+        return Ok(0);
+    }
     let script = concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/examples/geometry_benchmark/runner.py"

@@ -176,3 +176,17 @@ fn the_version_is_a_digest_of_the_declared_names() {
     );
     assert_eq!(version, capability::version(), "and it is stable");
 }
+
+#[test]
+fn the_printed_vocabulary_carries_the_version_and_every_declared_name() {
+    let printed = capability::vocabulary();
+    assert_eq!(printed["vocabulary_version"], capability::version());
+    for (key, list) in [("expressed", EXPRESSED), ("unexpressed", UNEXPRESSED)] {
+        let entries = printed[key].as_array().expect("a list of entries");
+        assert_eq!(entries.len(), list.len(), "{key} is printed whole");
+        for (entry, declared) in entries.iter().zip(list) {
+            assert_eq!(entry["name"], declared.name);
+            assert_eq!(entry["meaning"], declared.meaning);
+        }
+    }
+}

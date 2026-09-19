@@ -160,6 +160,25 @@ fn digest(expressed: &[Capability], unexpressed: &[Capability]) -> String {
     format!("v{hash:016x}")
 }
 
+/// The vocabulary as an assessment round reads it: the version the round has
+/// to record, then every declared name with the one line beside it and the
+/// list it sits in. `geometry_benchmark --vocabulary` prints this, so a round
+/// reads what the generator expresses from the generator rather than from a
+/// file it has to find, and records a version it did not have to compute.
+#[cfg(feature = "json")]
+pub fn vocabulary() -> serde_json::Value {
+    let entries = |list: &[Capability]| -> Vec<serde_json::Value> {
+        list.iter()
+            .map(|entry| serde_json::json!({"name": entry.name, "meaning": entry.meaning}))
+            .collect()
+    };
+    serde_json::json!({
+        "vocabulary_version": version(),
+        "expressed": entries(EXPRESSED),
+        "unexpressed": entries(UNEXPRESSED),
+    })
+}
+
 /// The capabilities a preset's own value table produces, as thresholds on the
 /// values it ships. This is a check over a registered preset, never a reading
 /// of what the generator can express.

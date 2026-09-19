@@ -89,6 +89,11 @@ the generator a capability moves its line from the one list to the other, in
 one line, with a test that failed before the implementation and passes after;
 that move is how a later round sees the world change.
 
+`geometry_benchmark --vocabulary` prints it: the version the round records,
+then every declared name with its one line and the list it sits in. A round
+reads the vocabulary from that command rather than from the source file, so
+the version it writes is the one the build it assessed against declares.
+
 The `gate` stage compares the required set against that list, and `gate.json`
 records `vocabulary_version`, the digest of the declared names, beside
 `required`, `expressed`, `missing` and `unrecognised`. A required name in
