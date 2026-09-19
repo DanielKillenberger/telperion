@@ -65,6 +65,27 @@ fifty-two bytes a leaf saved over four specimens predicts about 1,530 MB, and
 wood mesh, which this spec does not touch, is the larger half of what it
 holds.
 
+## R5: the digests that moved, before and after
+
+Every stored byte changed, so every committed geometry digest changed with it.
+The pairs below are seed 1 for each species, read from `3345b07f` and from the
+encoding commit; the full set is `crates/telperion-core/tests/species/digests.json`,
+recommitted in `5b49227c` alongside the four `catalogue/*/pins.json`.
+
+| species | seed | before | after |
+|---|---|---|---|
+| `european-beech` | 1 | `f160e7b5d26e8b5f` | `20f49a7c4e806880` |
+| `norway-spruce` | 1 | `ff7036aa4bcde448` | `91d4655c94fa66ac` |
+| `oregon-white-oak` | 1 | `648a3aaf8592e555` | `d2e207bdf8d77c11` |
+| `silver-birch` | 1 | `e20e3d6368f80ac2` | `cac3ef4d4fd5ca39` |
+
+**49 of 49** committed digests moved. A re-encoding that left any of them
+standing would mean a leaf whose bytes the change did not reach, so the count
+matching the total is the check, not a formality. The digests are a change
+detector rather than an identity pin: fn-53's `--pin-note` governs preset value
+tables and does not apply here, and the owner ruled on 2026-09-19 that bytes are
+expected to move while the generator is in development.
+
 ## The European ash
 
 The fifth catalogue folder has no preset, an empty `pins.json`, and no entry
