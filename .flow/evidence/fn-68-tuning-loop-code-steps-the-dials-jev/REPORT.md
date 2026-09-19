@@ -56,3 +56,20 @@ Final focused command `env -u TYPESAFE_API_KEY cargo test -p telperion-jev --bin
 R1–R4, R6 and R9–R11 have deterministic implementation and focused coverage, with the live continuation-input limitation above. R5 has the bounded calibration above. R8 has limited real whole-crown replay, not full readiness coverage. R7 live magnitude comparison and R8/R10 full-view convergence remain unmet. This checkpoint is not task completion.
 
 Tier: session (jev long_running 0.41), explicit IMPLEMENTER preserved. No implementation bridge or subagents were used in this continuation. stage: impl-review - skipped(config: REVIEW_MODE=none).
+
+## Friction disposition
+
+Every dated entry in FRICTION.md remains intact, including superseded blockers. No new spec was created.
+
+| Friction | Resolution or remaining proposal |
+| --- | --- |
+| Existing checkpoint ancestry, about2min | Host preserved branch and merged parent; fixed. Setup should explicitly report reused branches and ancestry. |
+| Missing calibration prerequisites, about5min | Host froze provenance/splits/thresholds and allowed authored magnitude cases; resolved for narrow calibration, not biological efficacy. |
+| Missing historical images, about6min scan | Authorized two-build/six-image exact reconstruction resolved it. Preserve an indexed hash-addressed archive to avoid future scans. |
+| Interrupted worker/stale handover, about4min | Existing code preserved/completed; current handovers replace stale claims. Proposal: checkpoint handover at interruption, unknown prior tokens explicit. |
+| Variadic image CLI parser, under1min | Added `--` delimiter; proven pre-model failure reservation reconciled to zero. Fixed. |
+| Visual exceeded5k reservation, about2min/19,778tokens | Measured25k/35k bounds and explicit owner revisions replaced bad estimate. Fixed without treating raw token count as model failure. |
+| Pilot refs path,26sec/1eval/4images | Corrected species subdirectory through scoped resume, retained spend. Proposal: reference-path preflight before rendering. |
+| Weak continuation Basis, about2min/23,687tokens baseline+judgments | Valid pause preserved; unresolved. Proposed concrete dial scope/bounds/verification, then separately authorized bounded retry (+5k proposed, not granted). |
+
+Host final `env -u TYPESAFE_API_KEY cargo test --release --workspace` passed exit0, log `/tmp/fn68-host-workspace.log`, on the artifact compiled before the final private ask helper. Final helper/loop code is covered by the canonical focused cargo command above; format/diff checks passed after it. No reusable full-workspace receipt is claimed for the later changed source.
