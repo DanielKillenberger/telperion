@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-85-leaf-placement-holds-one-copy.md",
-  "status": "open",
+  "status": "done",
   "title": "Leaf placement holds one copy",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T11:44:32.216440Z"
+  "updated_at": "2026-09-19T12:23:51.087039Z"
 }
