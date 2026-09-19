@@ -1,9 +1,11 @@
 import { SpecimenWire } from './specimen-wire';
 import type { Family } from './core';
+import type { LeafReference, LeafWords } from './leaf';
 
 export interface NodeIdentity { birth: number; key: { idx: number; version: number } }
 export interface PlacementIdentity { shoot: NodeIdentity; station: number }
-export interface Placement { identity: PlacementIdentity; transform: number[] }
+/** The three packed words of one leaf; `./leaf` decodes them. */
+export interface Placement { identity: PlacementIdentity; leaf: LeafWords }
 export interface Run {
   identity: NodeIdentity;
   nodes: { identity: NodeIdentity; parent: NodeIdentity | null;
@@ -17,11 +19,14 @@ export interface SpecimenRead {
   age: number; envelope: Family['skeleton']['envelope']; surfaceHeight: number;
   diagnostics: { node_capped: boolean; level_capped: boolean; attraction_capped: boolean };
   crossover: number; shed: NodeIdentity[]; nodes: NodeIdentity[]; placements: PlacementIdentity[];
-  structure: { values: Float64Array; topology: Uint32Array }; matrices: Float32Array;
+  structure: { values: Float64Array; topology: Uint32Array };
+  /** Three u32 words a leaf, in placement order, and the box they decode
+   * against - one box for the family, so every age reads the same one. */
+  leaves: Uint32Array; foliageReference: LeafReference;
 }
-/** Owned schema-2 little-endian chronicle and writer frontiers, without meshes.
+/** Owned schema-3 little-endian chronicle and writer frontiers, without meshes.
  * Caller mutation never reaches a retained specimen. */
-export interface SpecimenSnapshot { schema: 2; data: Uint8Array }
+export interface SpecimenSnapshot { schema: 3; data: Uint8Array }
 export interface SpecimenHandle {
   readonly frontier: number;
   readonly historyCap: number;
@@ -61,11 +66,11 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
     read(age) {
       const e = get();
       check(e.specimen_read(handle, age ?? this.frontier));
-      return { ...(metadata() as Omit<SpecimenRead, 'structure' | 'matrices'>), ...wire(18).identities(),
+      return { ...(metadata() as Omit<SpecimenRead, 'structure' | 'leaves'>), ...wire(18).identities(),
         structure: {
           values: new Float64Array(e.memory.buffer, e.buffer_ptr(6), e.buffer_len(6)).slice(),
           topology: new Uint32Array(e.memory.buffer, e.buffer_ptr(7), e.buffer_len(7)).slice(),
-        }, matrices: new Float32Array(e.memory.buffer, e.buffer_ptr(5), e.buffer_len(5)).slice() };
+        }, leaves: new Uint32Array(e.memory.buffer, e.buffer_ptr(5), e.buffer_len(5)).slice() };
     },
     advance(years) { check(get().specimen_advance(handle, years)); return { ...(metadata() as { frontier: number }), changes: wire(17).changes() }; },
     changes(from, to) { check(get().specimen_changes(handle, from, to)); return wire(17).changes(); },
@@ -75,7 +80,7 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
       const e = get();
       try {
         check(e.specimen_snapshot(handle));
-        return { schema: 2, data: new Uint8Array(e.memory.buffer, e.buffer_ptr(16), e.buffer_len(16)).slice() };
+        return { schema: 3, data: new Uint8Array(e.memory.buffer, e.buffer_ptr(16), e.buffer_len(16)).slice() };
       } finally { e.specimen_snapshot_release(); }
     },
     release() { check(get().specimen_release(handle)); },
@@ -94,7 +99,7 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
       return wrap((metadata() as { handle: number }).handle);
     },
     import(snapshot: SpecimenSnapshot): SpecimenHandle {
-      if (snapshot.schema !== 2 || !(snapshot.data instanceof Uint8Array)) throw Error('Invalid specimen snapshot schema/data');
+      if (snapshot.schema !== 3 || !(snapshot.data instanceof Uint8Array)) throw Error('Invalid specimen snapshot schema/data');
       const e = get();
       try {
         check(e.specimen_snapshot_alloc(snapshot.data.length));

@@ -70,9 +70,7 @@ fn ramp() -> TreeMesh {
         wood,
         foliage: Foliage {
             element: Element::default(),
-            instances: Instances {
-                matrices: Vec::new(),
-            },
+            instances: Instances::default(),
         },
         bounds: Bounds {
             min: Vec3::new(-LENGTH / 2.0, AXIS - THICK, -THICK),

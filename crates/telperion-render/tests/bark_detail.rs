@@ -67,7 +67,7 @@ fn radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceed
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = Some(20);
     let mut tree = mesh::build(&family, Detail::Full).unwrap();
-    tree.foliage.instances.matrices.clear();
+    tree.foliage.instances.leaves.clear();
     let limit = (tree.wood.positions.len() / 3 * size_of::<f32>() - 4) as u64;
     let limits = wgpu::Limits {
         max_storage_buffer_binding_size: limit,

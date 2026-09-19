@@ -13,10 +13,6 @@ use std::{
 const GOLDEN_ANGLE: f64 = 2.399_963_229_728_653;
 /// Room for the accumulated error of a run of growth units, in metres.
 const TOLERANCE: f64 = 1e-9;
-/// Growth units one axis may spend. The node ceiling is the real bound; this
-/// only keeps a vanishing step from spinning.
-const MAX_UNITS: usize = 4096;
-
 /// A stream per axis, hashed from the family seed, the parent axis and the
 /// child index, so a trait step perturbs one subtree and not the whole crown.
 fn axis_key(parent: u32, station: usize, member: usize) -> u32 {
@@ -97,9 +93,50 @@ struct Builder<'a> {
     growing_envelope: bool,
     paused: bool,
 }
+
+#[cfg(test)]
+mod limit_tests {
+    use super::*;
+    #[test]
+    fn reach_probe_budget_changes_room_in_a_wide_crown() {
+        let e = Envelope {
+            spread: 4.,
+            ..Default::default()
+        };
+        let config = default_growth(e, 0, DEFAULT_STEP);
+        let bias = GrowthBias::new(e, 1, BiasParams::NONE).unwrap();
+        let mut tree = Tree::default();
+        let mut builder = Builder {
+            tree: &mut tree,
+            envelope: e,
+            planning: e,
+            config: &config,
+            bias: &bias,
+            habit: HabitParams::default(),
+            points: &[],
+            consumed: &mut [],
+            year: 0,
+            influence_sq: 0.,
+            kill_sq: 0.,
+            point_scale: 1.,
+            growing_envelope: false,
+            paused: false,
+        };
+        let origin = Vec3::new(
+            0.,
+            e.height * (e.crown_base + (1. - e.crown_base) * e.fullness),
+            0.,
+        );
+        let first = builder.reach(origin, Vec3::X);
+        builder.habit.reach_probe_steps = 512;
+        let extended = builder.reach(origin, Vec3::X);
+        assert!(extended > first * 2.);
+        assert!(extended <= e.max_radius());
+    }
+}
 impl Builder<'_> {
     fn capped(&mut self) -> bool {
-        if self.tree.nodes.len() >= self.config.max_nodes.min(NODE_CEILING) {
+        if self.tree.nodes.len() >= self.config.max_nodes {
             self.tree.diagnostics.node_capped = true;
             true
         } else {
@@ -196,7 +233,7 @@ impl Builder<'_> {
         } else {
             rule
         };
-        let wanted = self.bias.apply(position, wanted, self.config.step_distance);
+        let wanted = self.bias.apply(position, wanted);
         colonization::limit_turn(
             Some(from),
             wanted,
@@ -213,7 +250,7 @@ impl Builder<'_> {
         } / 64.0)
             .max(1e-9);
         let mut length = 0.0;
-        for _ in 0..96 {
+        for _ in 0..self.habit.reach_probe_steps {
             let next = position + direction * (length + probe);
             if !self.planning.contains(next, 0.0, self.config.seed)
                 || next.y < self.config.trunk_height
@@ -279,7 +316,11 @@ impl Builder<'_> {
     }
     fn grow(&mut self, axis: &mut Axis, budget: &mut usize) -> Result<bool> {
         let unit = self.unit(axis.order);
-        let units = (axis.length / unit).ceil().clamp(1.0, MAX_UNITS as f64) as usize;
+        let units = (axis.length / unit).ceil().max(1.0);
+        if !units.is_finite() || units >= usize::MAX as f64 {
+            return Err(Error::InvalidInput("scaffold step count"));
+        }
+        let units = units as usize;
         let spacing = if axis.order == 0 {
             self.habit.leader_internode
         } else {

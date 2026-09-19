@@ -53,8 +53,8 @@ fn main() {
         }
     }
     for placement in placements {
-        for value in placement.transform {
-            out.write_all(&value.to_le_bytes()).unwrap();
+        for word in placement.leaf {
+            out.write_all(&word.to_le_bytes()).unwrap();
         }
     }
 }

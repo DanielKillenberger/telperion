@@ -77,3 +77,7 @@ The colour-preview worker could run calibrated captures but default and system P
 
 ### 2026-09-20 — Live QA locator mistake
 The host used a button locator for the view selector, which is a select control. This cost one 60-second timeout. Corrected to its labelled select and reduced the default timeout. Inspecting control roles in the initial snapshot would remove this avoidable delay; no repository spec proposed.
+
+### 2026-09-20 — Merge preparation
+
+Updating PR #47 onto master encountered conflicts only in fn-42's spec text/timestamp: master carried an earlier performance-scope edit already included in the accepted spec. Resolution preserves the accepted spec and integrates master's code. A checkout-based conflict resolution was blocked by the destructive-command guard; conflict files were backed up under /tmp and their specific markers resolved instead. Cost: approximately 3 minutes. An explicit safe conflict-resolution path with automatic backup would remove this friction. PR cognitive-aid validation also rejected two file groupings (exact membership, then the 200-file limit), costing approximately 1 minute; the documented prose fallback was used. A grouped evidence-directory representation would remove that artifact overhead.

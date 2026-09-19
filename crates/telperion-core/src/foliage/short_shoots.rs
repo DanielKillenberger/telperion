@@ -24,8 +24,6 @@ use std::f64::consts::TAU;
 pub const SHORT_SHOOT_SPACING: (f64, f64) = (0.01, 1000.);
 /// The most leaves one short shoot's cluster carries.
 pub const MAX_SHORT_SHOOT_LEAVES: u32 = 8;
-/// Short shoots one piece of wood may carry before the row is refused.
-const PER_WOOD: f64 = 65_536.;
 
 /// One short shoot: the wood it stands on, where it leaves the bark and where
 /// its cluster sits.
@@ -39,6 +37,7 @@ pub struct ShortShoot {
 
 /// Every row on its rail, each refused by its own name.
 pub(super) fn validate(p: &CanopyParams) -> Result<()> {
+    crate::ranges::POSITIVE_COUNT.check(p.clump_neighbours as f64, "clumpNeighbours")?;
     if p.short_shoot_spacing != 0. {
         let (low, high) = SHORT_SHOOT_SPACING;
         range(p.short_shoot_spacing, low, high, "short shoot spacing")?;
@@ -100,7 +99,7 @@ pub fn place_short_shoots_clumped(
     checked(tree, envelope, &p)?;
     range(p.limb_clumping, 0., 1., "limb clumping")?;
     clothe(tree, envelope, seed, &p, out, Some(&mut owners))?;
-    super::clumping::thin(tree, &owners, seed, p.limb_clumping, out);
+    super::clumping::thin(tree, &owners, seed, p, out);
     Ok(())
 }
 
@@ -140,11 +139,10 @@ pub(super) fn clothe(
                 let radial = bearing.rotate(Vec3::Y, across + turn);
                 let at = s.shoot.tip;
                 let lean = axis(at, radial, tangent, *p);
-                out.matrices
-                    .push(matrix(at, lean, tangent, radial, *p, &mut rng)?);
+                out.push(&matrix(at, lean, tangent, radial, *p, &mut rng)?);
             }
             if let Some(owners) = owners.as_mut() {
-                owners.resize(out.matrices.len(), s.shoot.wood as u32);
+                owners.resize(out.leaves.len(), s.shoot.wood as u32);
             }
         }
         Ok(())
@@ -201,8 +199,11 @@ fn each(
         let birth = n.identity.birth_order();
         let phase = Rng::new(key(seed, birth, u32::MAX)).next_f64();
         let count = (length / spacing - phase).ceil().max(0.);
-        if count > PER_WOOD {
-            return Err(Error::ResourceLimit("short shoot budget"));
+        if !count.is_finite()
+            || count > u32::MAX as f64
+            || count * p.short_shoot_leaves as f64 > p.max_instances as f64
+        {
+            return Err(Error::ResourceLimit("foliage instance budget"));
         }
         let tangent = (n.position - from) / length;
         let up = Vec3::Y - tangent * tangent.y;
@@ -213,6 +214,9 @@ fn each(
         };
         let binormal = tangent.cross(normal);
         shoots.clear();
+        shoots
+            .try_reserve(count as usize)
+            .map_err(|_| Error::ResourceLimit("foliage allocation"))?;
         for k in 0..count as u32 {
             let t = ((phase + f64::from(k)) * spacing / length).min(1.);
             let mut rng = Rng::new(key(seed, birth, k));

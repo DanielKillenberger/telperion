@@ -4,6 +4,8 @@ import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { FALLBACK_PROFILE_SET, PROFILE_SETS, matchedRecords, referenceFile, resolveProfileSet }
+  from '../scripts/species-profiles.mjs';
 
 /* ------------------------------------------------------------------ *
  * SPECIES QA, ON THE NATIVE RENDERER
@@ -24,6 +26,8 @@ if (args.includes('--help')) {
   console.log(`Species QA (run from repository root; mature presets, no generation caps).
   --draw-seeds                Record fresh seeds once, before generation/tuning
   --seeds FILE                Default .flow/evidence/fn9/seeds.json
+  --profiles FILE             Default: the set that carries --quick's preset,
+                              else fn-9's; the flag always wins
   --catalogue DIR             Default catalogue; a species' reference records
   --output DIR                Default new directory under OS temp
   --measure-only              Native 24-seed measurements per species
@@ -117,17 +121,19 @@ async function capture(job) {
 }
 
 const seedPath = resolve(option('--seeds') ?? '.flow/evidence/fn9/seeds.json');
-const profilesPath = resolve(option('--profiles') ?? '.flow/evidence/fn9/profiles.json');
+const catalogueDir = resolve(option('--catalogue') ?? 'catalogue');
+/* A preset is gated against the cohort that tuned it, so a named preset resolves
+   its own set; the flag overrides, and a whole run has no one preset to resolve
+   from and stays on the protocol's set. */
+const profilesPath = option('--profiles') ? resolve(option('--profiles'))
+  : option('--quick') ? resolveProfileSet(option('--quick'), { catalogue: catalogueDir })
+    : resolve(FALLBACK_PROFILE_SET);
 const profiles = await json(profilesPath);
 /* A species' reference records live in its catalogue folder, the one place a
    species record lives; a record with a shot block asks for a matched still.
    Species without records have none. */
-const catalogueDir = resolve(option('--catalogue') ?? 'catalogue');
-const referenceFile = id => join(catalogueDir, id, 'packet', 'references.json');
 const referencesOf = {};
-for (const p of profiles.profiles) {
-  try { referencesOf[p.id] = (await json(referenceFile(p.id))).references.filter(r => r.shot); } catch { referencesOf[p.id] = []; }
-}
+for (const p of profiles.profiles) referencesOf[p.id] = matchedRecords(catalogueDir, p.id);
 /* The tuning look: what a value trial needs to be seen and nothing the
    evidence needs. The same matched stills at the same height as a full round,
    so what is judged here is what the round will show; no twin, no fixed
@@ -135,7 +141,10 @@ for (const p of profiles.profiles) {
 if (option('--quick')) {
   const preset = option('--quick');
   const records = referencesOf[preset];
-  if (!records?.length) throw Error(`No matched reference records for ${preset}`);
+  if (!records?.length) {
+    const searched = option('--profiles') ? [profilesPath] : PROFILE_SETS;
+    throw Error(`No matched reference records for ${preset}; searched ${searched.join(', ')}`);
+  }
   // Under the cohort's ignored measure/ directory, so a look is never evidence.
   const out = resolve(option('--output') ?? join(dirname(profilesPath), 'measure', 'quick', preset));
   await mkdir(out, { recursive: true });
@@ -153,7 +162,7 @@ if (option('--quick')) {
   }
   if (runs.some(run => run.capture_status !== 'pass')) process.exit(1);
   const pairs = await command('uv', ['run', 'scripts/compare-references.py', '--pairs-only',
-    '--references', referenceFile(preset), '--captures', out,
+    '--references', referenceFile(catalogueDir, preset), '--captures', out,
     '--catalogue', catalogueDir, '--refs', join('.refs', basename(dirname(profilesPath)), preset),
     '--case', id, '--out', out]);
   process.stdout.write(pairs.stdout); process.stderr.write(pairs.stderr);

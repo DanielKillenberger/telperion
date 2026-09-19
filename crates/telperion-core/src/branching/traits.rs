@@ -7,6 +7,12 @@ use crate::{Error, Result};
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct HabitParams {
+    /// Samples available to find an axis's room within the crown.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_reach_probe_steps")
+    )]
+    pub reach_probe_steps: u32,
     /// How far the leader persists into the crown, 0 to 1.
     pub apical_dominance: f64,
     /// Clustering of laterals at a station against scattering along the axis.
@@ -62,6 +68,7 @@ pub struct HabitParams {
 impl Default for HabitParams {
     fn default() -> Self {
         Self {
+            reach_probe_steps: crate::ranges::default_reach_probe_steps(),
             apical_dominance: 0.5,
             whorl_strength: 0.3,
             leader_internode: 1.5,
@@ -87,6 +94,7 @@ impl Default for HabitParams {
 }
 impl HabitParams {
     pub fn validate(&self) -> Result<()> {
+        crate::ranges::POSITIVE_COUNT.check(self.reach_probe_steps as f64, "reachProbeSteps")?;
         let unit = |v: f64| v.is_finite() && (0.0..=1.0).contains(&v);
         let signed = |v: f64| v.is_finite() && (-1.0..=1.0).contains(&v);
         let positive = |v: f64| v.is_finite() && v > 0.0;

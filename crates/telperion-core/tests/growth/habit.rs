@@ -20,6 +20,7 @@ fn habit_family(habit: HabitParams) -> SkeletonParams {
 /// of the trait space, reached by numbers alone.
 fn hanging_row() -> HabitParams {
     HabitParams {
+        reach_probe_steps: 96,
         apical_dominance: 1.0,
         whorl_strength: 1.0,
         leader_internode: 0.9,
@@ -45,6 +46,7 @@ fn hanging_row() -> HabitParams {
 /// The opposite corner: the leader yields early and every axis is crooked.
 fn crooked_row() -> HabitParams {
     HabitParams {
+        reach_probe_steps: 96,
         apical_dominance: 0.1,
         whorl_strength: 0.1,
         leader_internode: 2.0,

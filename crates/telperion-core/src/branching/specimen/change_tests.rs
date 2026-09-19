@@ -169,36 +169,26 @@ fn change_record_cohort_boundary_matches_cached_and_cold_reads() {
 }
 
 #[test]
-fn change_record_preserves_transform_bits_including_signed_zero() {
+fn change_record_carries_every_word_a_leaf_moved_by() {
     let (_, s, _) = super::foliage_tests::fixture(0.0);
     let before = s.buffers().unwrap();
     let mut after = before.clone();
+    // The smallest move a stored leaf can make: one code on one axis of the
+    // position word. A record that compared anything looser than the words
+    // themselves would not see it.
     let leaf = after.placements.values_mut().next().unwrap();
-    assert_eq!(leaf.transform[3].to_bits(), 0.0_f32.to_bits());
-    leaf.transform[3] = -0.0;
+    leaf.leaf[1] ^= 1;
     let record = ChangeRecord::between(&before, &after);
     assert_eq!(
         record.moved_placements.len(),
         1,
-        "numeric equality lost changed matrix bits"
+        "a one-code move was not carried"
     );
     let mut applied = before;
     record.apply(&mut applied).unwrap();
     assert_eq!(
-        applied
-            .placements
-            .values()
-            .next()
-            .unwrap()
-            .transform
-            .map(f32::to_bits),
-        after
-            .placements
-            .values()
-            .next()
-            .unwrap()
-            .transform
-            .map(f32::to_bits)
+        applied.placements.values().next().unwrap().leaf,
+        after.placements.values().next().unwrap().leaf
     );
 }
 

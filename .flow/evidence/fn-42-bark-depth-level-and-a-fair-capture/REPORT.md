@@ -67,3 +67,9 @@ The owner accepted the appearance and live distance render and authorized squash
 
 Final live QA: species switching, bare views, zoom/orbit and invalid-seed handling passed in isolated Chromium. No P0/P1; pre-existing missing favicon is P2. Live artifacts are under .flow/tmp/qa-fn-42-bark-depth-level-and-a-fair-capture. One incorrect view-button locator cost a 60-second timeout; the labelled select fixed it. That host mistake is in FRICTION.md, with no new spec proposed.
 stage: qa - ran (jev ui 0.59; live Vite renderer; SHIP with one pre-existing P2)
+
+## Integration onto current master, 2026-09-20
+
+The owner confirmed acceptance of the warmer version. Merged current master into the feature branch; only the spec text/timestamp conflicted, and the latest accepted scope was retained (master's earlier performance decision was already present). Warm oak/spruce colour rows and the approved shallow relief are unchanged. The concurrent leaf-packing uniform additions integrated with the bark profile uniform.
+
+Integration checks passed: core material_detail (5); renderer material_shaders, bark_structure_colour, bark_resolution and bark_distance (5 total, serial); TypeScript; browser material-detail; both Wasm builds; catalogue structure. Repeated the live oak/spruce, orbit/zoom and invalid-seed scenarios with rebuilt modules: passed, only the known favicon 404. The existing QA receipt describes the preceding formal pass; this paragraph records the integration smoke separately. Native resolution/distance metric files were refreshed by their tests. Full-workspace tests were not run locally.

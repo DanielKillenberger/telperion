@@ -46,11 +46,20 @@ fn twig(f: &Family) -> Option<TwigPlacement> {
 }
 
 fn placed(f: &Family, tree: &Tree, canopy: CanopyParams) -> Instances {
-    foliage::place(tree, f.skeleton.envelope, f.skeleton.seed, canopy, twig(f)).unwrap()
+    foliage::place(
+        tree,
+        f.skeleton.envelope,
+        f.skeleton.seed,
+        canopy,
+        twig(f),
+        foliage::Reference::of(f).unwrap(),
+    )
+    .unwrap()
 }
 
+/// The crown's own bytes: the three words a leaf occupies, in order.
 fn bytes(i: &Instances) -> Vec<u32> {
-    i.matrices.iter().flatten().map(|v| v.to_bits()).collect()
+    i.leaves.iter().flatten().copied().collect()
 }
 
 fn none(p: CanopyParams) -> CanopyParams {
@@ -67,8 +76,8 @@ fn the_beech_carries_most_of_its_leaves_on_short_shoots() {
     assert!(f.canopy.short_shoot_spacing > 0.0);
     f.skeleton.growth.max_nodes = Some(40_000);
     let tree = grown(&f);
-    let all = placed(&f, &tree, f.canopy).matrices.len();
-    let own = placed(&f, &tree, none(f.canopy)).matrices.len();
+    let all = placed(&f, &tree, f.canopy).len();
+    let own = placed(&f, &tree, none(f.canopy)).len();
     assert!(all - own > own, "{own} of {all} leaves stand on twigs");
 }
 
@@ -114,10 +123,7 @@ fn a_zero_spacing_is_inert_whatever_the_other_rows_say() {
             ..f.canopy
         };
         let base = placed(&f, &tree, f.canopy);
-        assert!(
-            !base.matrices.is_empty(),
-            "seed {seed}: the beech bears nothing"
-        );
+        assert!(!base.is_empty(), "seed {seed}: the beech bears nothing");
         assert_eq!(
             bytes(&placed(&f, &tree, moved)),
             bytes(&base),
@@ -141,21 +147,27 @@ fn short_shoots_append_and_leave_every_other_leaf_its_bytes() {
         let leaves = f.canopy.short_shoot_leaves as usize;
         assert!(!shoots.is_empty(), "seed {seed}: no short shoot grew");
         assert_eq!(
-            with.matrices.len(),
-            without.matrices.len() + shoots.len() * leaves,
+            with.len(),
+            without.len() + shoots.len() * leaves,
             "seed {seed}: a cluster is not the row's leaf count"
         );
-        assert_eq!(
-            with.matrices[..without.matrices.len()],
-            without.matrices[..]
-        );
-        // Each cluster hangs at its own shoot's tip, in the order they stand.
-        let clusters = with.matrices[without.matrices.len()..].chunks(leaves);
+        assert_eq!(with.leaves[..without.len()], without.leaves[..]);
+        // Each cluster hangs at its own shoot's tip, in the order they stand:
+        // the tip's own position code, which is as near the tip as the
+        // reference box can write.
+        let clusters = with.leaves[without.len()..].chunks(leaves);
         for (shoot, cluster) in shoots.iter().zip(clusters) {
-            for m in cluster {
-                let at = [m[12], m[13], m[14]];
-                let tip = [shoot.tip.x, shoot.tip.y, shoot.tip.z].map(|v| v as f32);
-                assert_eq!(at, tip, "seed {seed}: a leaf is off its cluster");
+            let mut tip = [0.0f32; 16];
+            (tip[12], tip[13], tip[14]) =
+                (shoot.tip.x as f32, shoot.tip.y as f32, shoot.tip.z as f32);
+            let at = with.reference.pack(&tip);
+            for leaf in cluster {
+                assert_eq!(leaf[1], at[1], "seed {seed}: a leaf is off its cluster");
+                assert_eq!(
+                    leaf[2] & 0xffff,
+                    at[2] & 0xffff,
+                    "seed {seed}: a leaf is off its cluster"
+                );
             }
         }
     }
@@ -172,13 +184,9 @@ fn every_cluster_carries_the_row_s_count_of_leaves() {
             short_shoot_leaves: leaves,
             ..f.canopy
         };
-        let mut out = Instances::default();
+        let mut out = Instances::new(foliage::Reference::of(&f).unwrap());
         foliage::place_short_shoots(&tree, e, s, p, &mut out).unwrap();
-        assert_eq!(
-            out.matrices.len(),
-            shoots * leaves as usize,
-            "{leaves} leaves"
-        );
+        assert_eq!(out.len(), shoots * leaves as usize, "{leaves} leaves");
     }
 }
 
@@ -285,7 +293,15 @@ fn every_row_is_refused_by_name_off_its_rail() {
             set(&mut p, value);
             let refused = Some(Error::InvalidInput(name));
             assert_eq!(
-                foliage::place(&tree, e, s, p, twig(&f)).err(),
+                foliage::place(
+                    &tree,
+                    e,
+                    s,
+                    p,
+                    twig(&f),
+                    foliage::Reference::of(&f).unwrap()
+                )
+                .err(),
                 refused,
                 "{name} {value}"
             );
@@ -294,7 +310,7 @@ fn every_row_is_refused_by_name_off_its_rail() {
                 refused,
                 "{name} {value}"
             );
-            let mut out = Instances::default();
+            let mut out = Instances::new(foliage::Reference::of(&f).unwrap());
             let placed = foliage::place_short_shoots(&tree, e, s, p, &mut out);
             assert_eq!(placed.err(), refused, "{name} {value}");
         }
@@ -342,15 +358,24 @@ fn short_shoots_add_no_node_to_the_skeleton() {
 fn the_instance_budget_counts_short_shoot_leaves() {
     let f = beech(2);
     let tree = grown(&f);
-    let total = placed(&f, &tree, f.canopy).matrices.len();
+    let total = placed(&f, &tree, f.canopy).len();
     let at = |max_instances| CanopyParams {
         max_instances,
         ..f.canopy
     };
-    let fits = foliage::place(&tree, f.skeleton.envelope, 2, at(total), twig(&f));
-    assert_eq!(fits.unwrap().matrices.len(), total);
+    let box_of = foliage::Reference::of(&f).unwrap();
+    let fits = foliage::place(&tree, f.skeleton.envelope, 2, at(total), twig(&f), box_of);
+    assert_eq!(fits.unwrap().len(), total);
     assert_eq!(
-        foliage::place(&tree, f.skeleton.envelope, 2, at(total - 1), twig(&f)).err(),
+        foliage::place(
+            &tree,
+            f.skeleton.envelope,
+            2,
+            at(total - 1),
+            twig(&f),
+            box_of
+        )
+        .err(),
         Some(Error::ResourceLimit("foliage instance budget"))
     );
 }

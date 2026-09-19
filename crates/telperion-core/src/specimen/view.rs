@@ -68,7 +68,10 @@ impl SpecimenView {
         let element = foliage::build_element(self.family.element)?;
         let placements = self.buffers.placements.values();
         let mut instances = foliage::Instances {
-            matrices: placements.clone().map(|p| p.transform).collect(),
+            leaves: placements.clone().map(|p| p.leaf).collect(),
+            reference: foliage::Reference::of(&self.family)?,
+            #[cfg(test)]
+            unquantised: Vec::new(),
         };
         let envelope = self.specimen.envelope_at_age(self.age)?;
         // Short shoots are the wood's, not the record's: drawn from the wood

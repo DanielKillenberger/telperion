@@ -1,7 +1,7 @@
 use super::{
     clumping, range, short_shoots,
     station::{place_run, Run},
-    Instances,
+    Instances, Reference,
 };
 use crate::{
     envelope::Envelope,
@@ -51,6 +51,17 @@ pub struct CanopyParams {
     /// system's centre: each limb system then keeps a rounded leaf mass of its
     /// own. Zero, the neutral, thins nothing.
     pub limb_clumping: f64,
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_clump_system_order")
+    )]
+    pub clump_system_order: u32,
+    /// Nearest neighbours and cell crossings in the clumping approximation.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_clump_neighbours")
+    )]
+    pub clump_neighbours: u32,
     /// Hard total budget. Exceeding it returns an error, never partial foliage.
     #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::index"))]
     pub max_instances: usize,
@@ -80,6 +91,8 @@ impl Default for CanopyParams {
             short_shoot_spread: 45.,
             // Neutral: every leaf the stations and the short shoots place.
             limb_clumping: 0.,
+            clump_system_order: crate::ranges::default_clump_system_order(),
+            clump_neighbours: crate::ranges::default_clump_neighbours(),
             max_instances: usize::MAX,
         }
     }
@@ -108,8 +121,9 @@ pub fn place(
     seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
+    reference: Reference,
 ) -> Result<Instances> {
-    place_impl(tree, envelope, seed, p, twig, None)
+    place_impl(tree, envelope, seed, p, twig, None, reference)
 }
 
 /// Seat the foliage on the actual swept polygon, including fork sockets, as far
@@ -121,12 +135,13 @@ pub fn place_on_surface(
     p: CanopyParams,
     twig: Option<TwigPlacement>,
     surface: &crate::surface::SurfaceParams,
+    reference: Reference,
 ) -> Result<Instances> {
     if p.surface_contact <= 0. {
-        return place(tree, envelope, seed, p, twig);
+        return place(tree, envelope, seed, p, twig, reference);
     }
     let contacts = AttachmentSurface::new(tree, envelope.height, surface)?;
-    place_impl(tree, envelope, seed, p, twig, Some(&contacts))
+    place_impl(tree, envelope, seed, p, twig, Some(&contacts), reference)
 }
 fn place_impl(
     tree: &Tree,
@@ -135,6 +150,7 @@ fn place_impl(
     p: CanopyParams,
     twig: Option<TwigPlacement>,
     contacts: Option<&AttachmentSurface>,
+    reference: Reference,
 ) -> Result<Instances> {
     tree.validate_solved()?;
     envelope.validate()?;
@@ -169,7 +185,7 @@ fn place_impl(
         }
     }
     if tree.nodes.len() < 2 || p.size == 0. {
-        return Ok(Instances::default());
+        return Ok(Instances::new(reference));
     }
     // Bound geometry before length arithmetic and float32 conversion.
     if tree.nodes.iter().any(|n| {
@@ -185,7 +201,7 @@ fn place_impl(
     }) {
         return Err(Error::ResourceLimit("foliage coordinate range"));
     }
-    let mut out = Instances::default();
+    let mut out = Instances::new(reference);
     let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
     let runs = match twig {
         Some(_) => bearing_runs(tree, p),
@@ -210,14 +226,14 @@ fn place_impl(
             &mut out,
         )?;
         if let Some(owners) = owners.as_mut() {
-            owners.resize(out.matrices.len(), nodes[1] as u32);
+            owners.resize(out.leaves.len(), nodes[1] as u32);
         }
     }
     // A second source over the limbs and branches: short shoots draw from
     // their own wood's stream, so the leaves above keep every byte.
     short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
     if let Some(owners) = owners {
-        clumping::thin(tree, &owners, seed, p.limb_clumping, &mut out);
+        clumping::thin(tree, &owners, seed, p, &mut out);
     }
     Ok(out)
 }

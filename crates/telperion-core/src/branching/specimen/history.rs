@@ -1,6 +1,10 @@
 //! Owned views of the chronicle; reading never advances a growth frontier.
 use super::*;
-use crate::{foliage::Placement, growth::Age, tree::Diagnostics};
+use crate::{
+    foliage::{Placement, Reference},
+    growth::Age,
+    tree::Diagnostics,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SpecimenRead {
@@ -9,6 +13,9 @@ pub struct SpecimenRead {
     /// Fixed metre scale for sweeping wood, matching the foliage contact surface.
     pub surface_height: f64,
     pub placements: Vec<Placement>,
+    /// The box those placements' words are quantised against. It is the
+    /// family's own, so it is the same box at every age a reader asks for.
+    pub reference: Reference,
     /// Identities whose death stamp has been reached, in birth order.
     pub shed: Vec<NodeIdentity>,
 }
@@ -69,6 +76,7 @@ impl Specimen {
             envelope,
             surface_height: self.surface_height(),
             placements,
+            reference: t.foliage.reference(),
             shed,
         })
     }

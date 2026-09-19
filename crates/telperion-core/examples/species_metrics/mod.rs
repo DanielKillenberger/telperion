@@ -35,7 +35,7 @@ pub fn measure(
                 .all(|v| v.is_finite())
     }) || wood.iter().any(|v| !v.is_finite())
         || element.positions.iter().any(|v| !v.is_finite())
-        || kept.matrices.iter().flatten().any(|v| !v.is_finite())
+        || !kept.reference.is_finite()
     {
         return Err("non_finite: geometry or transform".into());
     }
@@ -43,7 +43,7 @@ pub fn measure(
         .map_err(|e| format!("invalid: {e:?}"))?;
     element.validate().map_err(|e| format!("invalid: {e:?}"))?;
     kept.validate().map_err(|e| format!("invalid: {e:?}"))?;
-    if !wood.len().is_multiple_of(3) || kept.matrices.len() > pre_cull {
+    if !wood.len().is_multiple_of(3) || kept.len() > pre_cull {
         return Err("invalid: wood positions or retained accounting".into());
     }
     let mut m = json!({});
@@ -205,9 +205,9 @@ pub fn measure(
     for (key, n) in [
         ("units_per_instance", 1),
         ("pre_cull_instances", pre_cull),
-        ("retained_instances", kept.matrices.len()),
-        ("foliage_units", kept.matrices.len()),
-        ("discarded_units", pre_cull - kept.matrices.len()),
+        ("retained_instances", kept.len()),
+        ("foliage_units", kept.len()),
+        ("discarded_units", pre_cull - kept.len()),
     ] {
         m[key] = scalar(n, "measured");
     }
@@ -231,7 +231,7 @@ pub fn measure(
             .unwrap_or(0.);
         hi - lo
     };
-    for mat in &kept.matrices {
+    for mat in kept.matrices() {
         let scale = |c: usize| {
             ((mat[c] as f64).powi(2) + (mat[c + 1] as f64).powi(2) + (mat[c + 2] as f64).powi(2))
                 .sqrt()
@@ -250,7 +250,7 @@ pub fn measure(
             }
             let transformed: Vec<_> = element.positions[anatomy.vertices.clone()]
                 .iter()
-                .map(|v| transform_point(mat, *v))
+                .map(|v| transform_point(&mat, *v))
                 .collect();
             let origin = transformed[0];
             let lo = transformed
@@ -285,9 +285,9 @@ pub fn measure(
             &element.indices[..]
         };
         for tri in triangles.as_chunks::<3>().0.iter() {
-            let a = transform_point(mat, element.positions[tri[0] as usize]);
-            let b = transform_point(mat, element.positions[tri[1] as usize]);
-            let c = transform_point(mat, element.positions[tri[2] as usize]);
+            let a = transform_point(&mat, element.positions[tri[0] as usize]);
+            let b = transform_point(&mat, element.positions[tri[1] as usize]);
+            let c = transform_point(&mat, element.positions[tri[2] as usize]);
             let normal = (b - a).cross(c - a);
             projected += normal.dot(view).abs() / 4.;
             let triangle = normal.length() / 2.;
@@ -335,11 +335,17 @@ pub fn measure(
         } else {
             missing("canonical projection unavailable for empty or sheared geometry")
         };
-        m["foliage_geometry_note"] = json!("One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area.");
+        m["foliage_geometry_note"] = json!(
+            "One closed needle per instance. Dimensions and external surface use actual transformed needle subset, excluding peg. Projected area is the orthographic silhouette along transformed local +Z for orthogonal instance bases; not total surface area."
+        );
     } else if element.anatomy.is_some() {
-        m["foliage_geometry_note"] = json!("One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area.");
+        m["foliage_geometry_note"] = json!(
+            "One blade per instance. Dimensions use actual transformed blade sections, excluding petiole. Sheet triangle surface area counted once, not doubled for double-sided rendering; not projected area."
+        );
     } else {
-        m["foliage_geometry_note"] = json!("Whole prototype estimates: connector exclusion unavailable. Generic element is not proof of species anatomy. Sheet triangles counted once; not projected area.");
+        m["foliage_geometry_note"] = json!(
+            "Whole prototype estimates: connector exclusion unavailable. Generic element is not proof of species anatomy. Sheet triangles counted once; not projected area."
+        );
     }
     fn has_null(v: &Value) -> bool {
         match v {

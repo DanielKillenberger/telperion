@@ -70,6 +70,9 @@ struct Uniforms {
     /// The ellipsoid the crown's placements fill, and whether there is one.
     crown_centre: [f32; 4],
     crown_radii: [f32; 4],
+    /// The box the core quantised every leaf position against.
+    leaf_box_min: [f32; 4],
+    leaf_box_extent: [f32; 4],
     fissure: [f32; 4],            // fissure RGB offsets, strength
     crest: [f32; 4],              // crest RGB offsets, strength
     bark_colour_detail: [f32; 4], // mottle scale, mottle strength, cavity strength, sky occlusion strength
@@ -105,6 +108,8 @@ pub struct Scene {
     /// The ellipsoid the submitted crown's placements fill, which a leaf's
     /// depth into the crown is measured against. None before a tree is up.
     crown: Option<Bounds>,
+    /// The box the submitted crown's leaf positions were quantised against.
+    leaf_reference: telperion_core::foliage::Reference,
     layout: wgpu::BindGroupLayout,
     bind_group: wgpu::BindGroup,
     uniforms: wgpu::Buffer,
@@ -207,6 +212,7 @@ impl Scene {
             material: MaterialParams::default(),
             section_roundness: 0.0,
             crown: None,
+            leaf_reference: telperion_core::foliage::Reference::default(),
             layout,
             bind_group,
             uniforms,
@@ -245,6 +251,17 @@ impl Scene {
     /// The ellipsoid a leaf's depth into the crown is measured against.
     pub fn set_crown(&mut self, crown: Option<Bounds>) {
         self.crown = crown;
+    }
+
+    /// The box the crown that is up was quantised against, which every shader
+    /// that reads a placement decodes positions with.
+    pub fn set_leaf_reference(&mut self, reference: telperion_core::foliage::Reference) {
+        self.leaf_reference = reference;
+    }
+
+    /// That same box, for a caller that has to hand it to another pass.
+    pub fn leaf_reference(&self) -> telperion_core::foliage::Reference {
+        self.leaf_reference
     }
 
     /// The background the frame is cleared to: the room's cool neutral, or the

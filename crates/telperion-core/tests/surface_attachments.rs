@@ -1,6 +1,6 @@
 use telperion_core::{
     envelope::Envelope,
-    foliage::{place, place_on_surface, CanopyParams, TwigPlacement},
+    foliage::{place, place_on_surface, CanopyParams, Reference, TwigPlacement},
     math::Vec3,
     surface::{build, SurfaceParams},
     tree::{Node, NodeKind, Tree},
@@ -45,6 +45,12 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
         internode_length: 0.0025,
         stations_per_internode: 1,
     });
+    // The twig run stands between these corners; a station's own code is
+    // half this box's step from where it was computed, and that half step is
+    // the slack every facet test below carries.
+    let box_of = Reference::spanning(Vec3::new(-0.05, 0.95, -0.05), Vec3::new(0.20, 1.25, 0.10));
+    let step = box_of.step();
+    let slack = step.x.max(step.y).max(step.z) / 2.;
     for (segments, lobes) in [(3, 0), (7, 0), (20, 0), (20, 5)] {
         let params = SurfaceParams {
             radial_segments: segments,
@@ -54,15 +60,15 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
             ..SurfaceParams::default()
         };
         let mesh = build(&tree, env.height, &params).unwrap();
-        let placed = place_on_surface(&tree, env, 1, canopy, twig, &params).unwrap();
-        let circular = place(&tree, env, 1, canopy, twig).unwrap();
-        assert_eq!(placed.matrices.len(), circular.matrices.len());
+        let placed = place_on_surface(&tree, env, 1, canopy, twig, &params, box_of).unwrap();
+        let circular = place(&tree, env, 1, canopy, twig, box_of).unwrap();
+        assert_eq!(placed.len(), circular.len());
         assert_ne!(
             placed, circular,
             "polygonal/socket contacts must replace circular origins"
         );
-        for m in &placed.matrices {
-            let p = Vec3::new(m[12] as f64, m[13] as f64, m[14] as f64);
+        for i in 0..placed.len() {
+            let p = placed.position(i);
             let point = |i: u32| {
                 let k = i as usize * 3;
                 Vec3::new(
@@ -77,10 +83,10 @@ fn needle_origins_touch_rendered_facets_across_bends_and_sockets() {
                     let b = point(t[1]);
                     let c = point(t[2]);
                     let n = (b - a).cross(c - a).normalized();
-                    (p - a).dot(n).abs() < 2e-7
+                    (p - a).dot(n).abs() < 2e-7 + slack
                         && [(a, b), (b, c), (c, a)]
                             .iter()
-                            .all(|(u, v)| (*v - *u).cross(p - *u).dot(n) >= -2e-8)
+                            .all(|(u, v)| (*v - *u).cross(p - *u).dot(n) >= -2e-8 - slack)
                 }),
                 "unattached origin {p:?}, polygon sides {segments}"
             );

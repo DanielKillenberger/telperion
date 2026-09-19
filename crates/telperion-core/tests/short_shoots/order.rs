@@ -47,10 +47,11 @@ fn the_same_wood_draws_the_same_short_shoots_in_any_storage_order() {
             "seed {seed}: the order did not change"
         );
         let (e, p) = (f.skeleton.envelope, f.canopy);
-        let (mut a, mut b) = (Instances::default(), Instances::default());
+        let box_of = foliage::Reference::of(&f).unwrap();
+        let (mut a, mut b) = (Instances::new(box_of), Instances::new(box_of));
         foliage::place_short_shoots(&tree, e, seed, p, &mut a).unwrap();
         foliage::place_short_shoots(&other, e, seed, p, &mut b).unwrap();
-        assert!(!a.matrices.is_empty());
+        assert!(!a.is_empty());
         assert_eq!(
             bytes(&a),
             bytes(&b),
@@ -64,8 +65,9 @@ fn a_monthly_replay_and_a_growth_view_draw_what_a_fresh_build_draws() {
     let mut f = beech(1);
     f.age = 14.0;
     let fresh = branching::Specimen::build(&f).unwrap().read().unwrap();
+    let box_of = foliage::Reference::of(&f).unwrap();
     let draw = |tree: &Tree, envelope| {
-        let mut out = Instances::default();
+        let mut out = Instances::new(box_of);
         foliage::place_short_shoots(tree, envelope, 1, f.canopy, &mut out).unwrap();
         bytes(&out)
     };
@@ -89,7 +91,8 @@ fn a_monthly_replay_and_a_growth_view_draw_what_a_fresh_build_draws() {
     let view = telperion_core::specimen::SpecimenView::build(&f).unwrap();
     let element = foliage::build_element(f.element).unwrap();
     let mut placements = Instances {
-        matrices: fresh.placements.iter().map(|p| p.transform).collect(),
+        leaves: fresh.placements.iter().map(|p| p.leaf).collect(),
+        reference: box_of,
     };
     foliage::place_short_shoots(&fresh.tree, fresh.envelope, 1, f.canopy, &mut placements).unwrap();
     let culled = foliage::cull(placements, &element, fresh.envelope, f.shell_depth).unwrap();
