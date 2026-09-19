@@ -1,7 +1,7 @@
 //! Evidence-only flat wood fixture using the complete production renderer.
 use crate::{
-    crop_mean, measure_frame, render, write_png, Camera, Gpu, Renderer, SceneRow, View,
-    STILL_FORMAT,
+    crop_mean, measure, measure_frame, render, write_png, Camera, Frame, Gpu, Renderer, SceneRow,
+    View, STILL_FORMAT,
 };
 use serde_json::json;
 use telperion_core::{
@@ -61,8 +61,10 @@ fn flat_patch_coordinates_have_the_stated_physical_scale() {
     for (p, uv) in tree
         .wood
         .positions
-        .chunks_exact(3)
-        .zip(tree.wood.coords.chunks_exact(2))
+        .as_chunks::<3>()
+        .0
+        .iter()
+        .zip(tree.wood.coords.as_chunks::<2>().0)
     {
         assert_eq!(p[2], 0.0);
         assert!((f64::from(uv[1]) * RADIUS - f64::from(p[0])).abs() < 1e-7);
@@ -129,6 +131,18 @@ fn capture_calibrated_bark() {
             still.rgba, again.rgba,
             "identical capture must be deterministic"
         );
+        let performance = if std::env::var("BARK_CAPTURE_TIMING").as_deref() == Ok("1") {
+            let frame = Frame::new(&renderer, "bark calibration timing", (SIZE, SIZE));
+            let report = measure(&mut renderer, &camera, (SIZE, SIZE), frame.target()).unwrap();
+            std::fs::write(
+                directory.join(format!("{name}-timing.json")),
+                report.to_json(),
+            )
+            .unwrap();
+            serde_json::from_str::<serde_json::Value>(&report.to_json()).unwrap()
+        } else {
+            json!({"status": "not_requested", "reason": "BARK_CAPTURE_TIMING=1 requires an idle GPU preflight"})
+        };
         let mut off = family.material;
         off.depth_strength = 0.0;
         renderer.set_material(off);
@@ -158,8 +172,14 @@ fn capture_calibrated_bark() {
                 "dark_fraction": structure.dark_fraction,
                 "furrow_period_pixels": structure.furrow_period
             },
-            "reference": {"status": "unavailable", "crop_width_metres": null,
-                "score": null, "reason": "original fn-32 source photographs unavailable"}
+            "performance": performance,
+            "reference": {"status": "qualitative_replacement", "crop_width_metres": null,
+                "colour_calibrated": false, "score": null,
+                "page": if name == "oak" { "https://selectree.calpoly.edu/tree-detail/1240" }
+                    else { "https://commons.wikimedia.org/wiki/File:Norway_Spruce_bark_detail.jpg" },
+                "limitations": if name == "oak" { "650x567 source limits fine detail; unknown scale and lighting" }
+                    else { "flash illumination; unknown physical scale" },
+                "role": "visual morphology comparison; render structure metrics are diagnostics only"}
         }));
     }
     let record = json!({"fixture": "flat production wood; explicit test-only material radius",
@@ -167,7 +187,7 @@ fn capture_calibrated_bark() {
             "field_of_view_degrees": fov, "near": 0.01, "far": 100.0},
         "scene": serde_json::from_str::<serde_json::Value>(&scene.to_json()).unwrap(),
         "samples": renderer.samples(), "captures": rows,
-        "performance": "not measured: GPU contention; capture is not timing evidence"});
+        "timing_protocol": "fn26: one initial render, 8 conditioning, 8 warmup, 120 measured; per-species reports retain validity verdict"});
     std::fs::write(
         directory.join("calibration.json"),
         serde_json::to_string_pretty(&record).unwrap() + "\n",

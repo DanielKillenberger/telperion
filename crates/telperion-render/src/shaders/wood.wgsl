@@ -92,14 +92,11 @@ fn bark_shade(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     return 1.0 - u.bark_structure.y * clamp(blocked, 0.0, 1.0);
 }
 
-// Parallax: an eye looking across a furrow sees the near wall, not the floor
-// behind it. The surface coordinate is walked towards the eye in proportion
-// to how far below the crest this fragment stands, so the relief gains the
-// depth a tilted normal alone cannot show. The mesh is untouched, so the
-// silhouette stays the smooth cylinder it has always been.
+// Approximate the below-crest intersection by walking away from the eye
+// along its tangent projection, then refining against the filtered field.
 fn bark_parallax(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     dx: vec3<f32>, dy: vec3<f32>, world: vec3<f32>, here: f32,
-    colour_range: vec2<f32>) -> vec3<f32> {
+    colour_range: vec2<f32>, radius: f32, footprint: vec2<f32>) -> vec3<f32> {
     let view = normalize(u.eye.xyz - world);
     let facing = dot(n, view);
     let across = view - n * facing;
@@ -115,9 +112,18 @@ fn bark_parallax(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     // eye travels across the surface to look down that far. The floor of a
     // grazing furrow would walk without bound, so the slope is held.
     let below = max(colour_range.x + colour_range.y - here, 0.0);
-    let walk = u.bark_structure.z * below * span / max(facing, 0.3);
+    var walk = u.bark_structure.z * below * span / max(facing, 0.3);
+    for (var correction = 0u; correction < 2u; correction += 1u) {
+        let offset = steps * walk;
+        let coord = surface - offset.x * sx - offset.y * sy;
+        let circle = normalize(coord.yz);
+        let sampled = bark_height(circle, coord.x, radius, footprint,
+            bark_groove(circle, coord.x, radius, footprint));
+        let corrected_below = max(colour_range.x + colour_range.y - sampled, 0.0);
+        walk = mix(walk, u.bark_structure.z * corrected_below * span / max(facing, 0.3), 0.5);
+    }
     let offset = steps * walk;
-    return surface + offset.x * sx + offset.y * sy;
+    return surface - offset.x * sx - offset.y * sy;
 }
 
 
@@ -257,12 +263,11 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // depth. Every field read below starts from here; the world position,
     // the geometric contact and the crown depth remain the fragment's own.
     var surface = in.surface;
-    // The one field read the walk costs is paid only where there is a walk.
     if (u.bark_structure.z > 0.0 && colour_range.y > 0.0) {
         let flat = bark_height(circle, in.surface.x, in.radius, footprint,
             bark_groove(circle, in.surface.x, in.radius, footprint));
         surface = bark_parallax(in.surface, sx, sy, base_normal, dx, dy, in.world,
-            flat, colour_range);
+            flat, colour_range, in.radius, footprint);
     }
     let seen = normalize(surface.yz);
     // The grain below the relief, once per fragment like the mottle: a

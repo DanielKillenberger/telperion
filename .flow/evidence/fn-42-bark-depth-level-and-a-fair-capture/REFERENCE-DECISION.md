@@ -13,3 +13,7 @@ Friction: one earlier unnecessary user continuation turn; one original download 
 stage: reference-search - ran (host spruce; worker oak; both complete)
 stage: implementation - skipped(policy: material reference acceptance contract unresolved)
 Next: accept reference-guided visual targets, or retain photo calibration and wait for suitable sources.
+
+## Owner resolution, 2026-09-19
+
+The owner selected option 1: continue with visual reference matching. R1/R3 now use qualitative reference-guided acceptance; render physical calibration, filtering checks and cost reporting remain mandatory. The earlier NEEDS_HUMAN is resolved. Resume implementation; final visual acceptance remains pending.

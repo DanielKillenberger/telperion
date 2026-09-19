@@ -4,8 +4,7 @@ satisfies: [R1, R2, R3, R4, R5]
 # fn-42-bark-depth-level-and-a-fair-capture.1 Implement bark depth, level and a fair capture
 
 ## Description
-TBD
-
+Implement fn-42 directly against its current R1–R5 requirements. The owner selected qualitative reference matching on 2026-09-19; the earlier missing-photo and reference-contract blockers below are historical and resolved. Work is isolated on the fn-42 branch. Correct bark parallax, tune existing oak/spruce material rows, retain all filtering bounds, and present recorded views for final owner acceptance. Timing remains pending a valid uncontended session.
 ## Acceptance
 Every R-ID in the parent spec's Acceptance Criteria is satisfied; judge this task against the spec directly.
 
@@ -46,6 +45,9 @@ Friction: one earlier unnecessary user continuation turn; one original download 
 stage: reference-search - ran (host spruce; worker oak; both complete)
 stage: implementation - skipped(policy: material reference acceptance contract unresolved)
 Next: accept reference-guided visual targets, or retain photo calibration and wait for suitable sources.
+
+Blocked:
+NEEDS_HUMAN: the bark candidate is implemented and captured for the owner's R5 visual verdict in review.html. Fn-42 remains incomplete: valid performance measurements need an idle GPU session, and the historical fn71 hero sweep cannot yet be reproduced from its archived recipe. Its reconstructed check fails for both the candidate and pre-change shader control, so it is not accepted as a green gate. All selected native regression suites and the two close-up footprint sweeps pass at unchanged bounds. See REPORT.md for exact evidence and the friction report; no further camera guesses or benchmark retries are being run. The earlier missing-photo acceptance blocker is resolved by the owner's option 1.
 ## Evidence
 - Commits:
 - Tests:

@@ -19,9 +19,9 @@ Three gaps remain, each measured in fn-32's round three and each outside that sp
 <!-- scope: technical -->
 <!-- Architecture: 50% [paraphrase], 50% [inferred] -->
 
-- **A bark-only capture at a known scale.** A still whose frame is filled with bark seen square-on at a recorded physical width, for the oak and the spruce, beside the same crop of each reference photograph at its own recorded or estimated scale. The structure score fn-32 built is then computed on comparable inputs, and the dark fraction stops measuring the cylinder. [paraphrase]
+- **A bark-only capture at a known scale.** Render square-on oak and spruce patches at a recorded physical width. Use replacement photographs as visual morphology references; their physical scale and colour calibration are unknown. Render structure metrics are diagnostics, not photo-match scores. [user decision, 2026-09-19]
 - **Depth under one continuous filter.** Improve the resolved relief and parallax while retaining fn-71's accepted contract: relief leaves the image only through averaging its height over the pixel footprint, with no separate amplitude fade or near/far material switch. First measure the current field and depth response in the calibrated capture. [inferred]
-- **The level as a row the descent may move.** fn-29's bark base colour and the fn-14 bark colour become part of the hill-climb set, with the level constraint fn-32's round three added, so the crop mean can reach the reference band without a hand-tuned guess. [paraphrase]
+- **Reference-guided colour.** Existing oak and spruce bark colour rows may move to improve exposed mature bark appearance. Judge colour under the recorded render lighting; do not fit uncalibrated photographs to an exact RGB target. [user decision, 2026-09-19]
 - **Cost.** Extra rendering cost is allowed for this fidelity pass; optimization can follow. Record fresh baseline and candidate timings under the same conditions for the trunk close-up and the whole tree. The historical 5.2142 ms and 3.9823 ms figures are context, not acceptance limits. [paraphrase]
 - **Judging.** The same order as fn-32: numbers first, the owner's eye last, four images at most per round. [paraphrase]
 
@@ -30,7 +30,7 @@ Three gaps remain, each measured in fn-32's round three and each outside that sp
 
 - **Rows:** reuse the current physical bark and depth rows; do not add the older proposal's near-footprint threshold. The fn-29 bark base colour and the fn-14 bark colour are existing rows that this spec is allowed to move on the oak and spruce presets. [inferred]
 - **The bark-only view:** one headless capture recipe per species with the camera distance and field of view chosen so the crop width in metres is recorded beside the still, added to the evidence recipe, not a new public view or command. [inferred]
-- **The reference scale:** each catalogued reference photograph gains an estimated crop width in metres in the references catalogue, with the estimate's basis stated. [inferred]
+- **The reference scale:** record source, dimensions, credit and limitations; unknown photographed widths remain unknown. Only the rendered patch carries a calibrated physical width. [user decision, 2026-09-19]
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -38,14 +38,14 @@ Three gaps remain, each measured in fn-32's round three and each outside that sp
 - **Filtering remains continuous.** Every existing distance, resolution and redraw test passes at unchanged bounds. Add close-range depth coverage without relaxing those bounds. [paraphrase]
 - **Continuity through a camera walk.** The current footprint sweep remains a hard gate; no new amplitude fade or visible detail transition is permitted. [paraphrase]
 - **Cost, both ways.** Measure and report the full-screen trunk and whole-tree costs by the fn-26 protocol, including any regression. No hard timing ceiling gates this fidelity pass. [paraphrase]
-- **References.** The same catalogued photographs, never redistributed. [paraphrase]
+- **References.** Locally cached replacement exposed-bark photographs documented in REFERENCE-DECISION.md; never redistributed. Oak resolution limits fine-detail judgment. [user decision, 2026-09-19]
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** A bark-only capture recipe renders the oak and the spruce trunk square-on with the crop's physical width recorded, and the structure score is computed on that still and on the reference photograph at its estimated scale, with both scales stated beside the numbers. Errors: a still or reference without a recorded scale does not count as evidence. [paraphrase]
+- **R1:** A bark-only recipe renders oak and spruce square-on with physical crop width, lighting and camera recorded. Report structure metrics as render diagnostics and compare exposed mature bark morphology visually with the documented replacement references. State unknown photo scale and lighting limitations; do not claim a calibrated photo score. [user decision, 2026-09-19]
 - **R2:** Resolved furrow depth improves in the calibrated close-up while retaining one continuously footprint-filtered material. No separate amplitude fade or near/far switch is introduced; every existing distance, resolution, footprint-sweep and redraw test passes at unchanged bounds. Errors: a visible detail transition, a seam above the existing per-step bound or a moved tolerance fails the criterion. [inferred]
-- **R3:** The oak trunk crop mean reaches within a stated band of its reference's 118 119 114 with the level found by the scripted hill climb over the bark colour rows, and the spruce likewise against the owner's spruce photograph. Errors: a level outside the band stops the round with the number. [paraphrase]
+- **R3:** Improve oak and spruce colour and relief readability through existing bark colour rows where needed, judged visually beside the replacement exposed-bark references and baseline under fixed render lighting. Report before/after render colour metrics without an exact photo RGB acceptance target. Owner acceptance remains R5. [user decision, 2026-09-19]
 - **R4:** Record fresh baseline and candidate timings for the whole-tree native oak frame and full-screen trunk by the fn-26 protocol, and report browser orbit frame rate. Report absolute costs and before/after differences. Extra cost is allowed for this fidelity pass, with optimization deferred; the historical native timing and 60 fps are reference targets rather than pass/fail limits. Errors: an unavailable, disjoint or contended session does not count as valid performance evidence. [paraphrase]
 - **R5:** The owner judges the bark-only stills and the eight fn-32 stills re-rendered, beside the references and beside fn-32's, answering whether the oak and the spruce bark read as real at the distance an eye would see them, and records the verdicts in this spec; the spec closes only on accepting verdicts. Errors: a rejecting verdict stops the spec with the owner's words and a one-paragraph blocker. [paraphrase]
 
@@ -70,6 +70,10 @@ Three gaps remain, each measured in fn-32's round three and each outside that sp
 
 The owner allows extra cost now and optimization later. R4 therefore requires comparable measurements and disclosure of regressions rather than a timing ceiling. Visual continuity, unchanged filtering-test bounds and the owner's final visual acceptance remain required. [paraphrase]
 
+### Reference decision, 2026-09-19
+
+The owner chose option 1, “Continue with visual reference matching,” after the original photographs could not be recovered and replacement sources lacked physical scale and calibrated RGB. This explicitly replaces R1/R3 exact-photo calibration. The calibrated render fixture, unchanged filtering gates, performance reporting and final owner visual judgment remain required.
+
 ### Implementation Tradeoffs
 <!-- scope: technical -->
 
@@ -83,7 +87,7 @@ Use an isolated branch. Only oak and spruce material rows may change for colour 
 
 ## Parked unknowns
 
-- The reference photographs' physical scale: estimated from plate sizes typical of the species until a scale is recorded for a photograph.
+- Replacement reference physical scales and colour calibration are unknown and are not acceptance claims; oak fine-detail comparison is limited by its 650 × 567 source.
 
 ## Strategy Alignment
 

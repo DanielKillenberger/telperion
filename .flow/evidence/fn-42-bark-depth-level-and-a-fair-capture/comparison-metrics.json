@@ -1,0 +1,42 @@
+{
+  "baseline": {
+    "oak": {
+      "mean_rgb": [
+        131.818675,
+        135.0295,
+        127.34333125
+      ],
+      "dark_fraction": 0.1402,
+      "depth_off_mean_absolute_rgba_difference": 3.6901484375
+    },
+    "spruce": {
+      "mean_rgb": [
+        95.89485,
+        71.7324375,
+        53.04655625
+      ],
+      "dark_fraction": 0.40608125,
+      "depth_off_mean_absolute_rgba_difference": 2.1400078125
+    }
+  },
+  "candidate": {
+    "oak": {
+      "mean_rgb": [
+        117.291,
+        119.830025,
+        111.31580625
+      ],
+      "dark_fraction": 0.25149375,
+      "depth_off_mean_absolute_rgba_difference": 4.00515625
+    },
+    "spruce": {
+      "mean_rgb": [
+        117.1146,
+        112.79491875,
+        104.39370625
+      ],
+      "dark_fraction": 0.2434,
+      "depth_off_mean_absolute_rgba_difference": 2.8639640625
+    }
+  }
+}

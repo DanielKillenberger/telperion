@@ -1,0 +1,10 @@
+{
+  "status": "unavailable",
+  "reason": "GPU contention observed before measurement; no retries",
+  "preflight_command": "nvidia-smi --query-gpu=name,utilization.gpu,memory.used --format=csv,noheader",
+  "preflight_output": "NVIDIA GeForce RTX 3080, 11 %, 984 MiB",
+  "flat_oak_ms": null,
+  "flat_spruce_ms": null,
+  "whole_oak_ms": null,
+  "browser_orbit_fps": null
+}

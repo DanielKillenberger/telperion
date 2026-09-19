@@ -1,0 +1,17 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.14s
+     Running tests/bark_parallax.rs (/home/daniel/Projects/telperion/target/debug/deps/bark_parallax-45fb80b27e661084)
+
+running 1 test
+flat, zero strength, head-on, ramp: [[-0.01, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [-0.014374999, 1.0, 0.0, 0.0]]
+ramp residual: first 0.005, refined 0.0028125
+test parallax_descends_away_from_the_eye_and_refines_the_intersection ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running tests/material_shaders.rs (/home/daniel/Projects/telperion/target/debug/deps/material_shaders-d2fffcd56bf1e5af)
+
+running 1 test
+test production_material_stages_validate_with_uniform_derivatives ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s

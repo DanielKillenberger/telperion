@@ -3,10 +3,12 @@ use crate::material::MaterialParams;
 
 pub(super) fn oak() -> MaterialParams {
     MaterialParams {
-        bark_red: 0.225,
-        bark_green: 0.218,
-        bark_blue: 0.198,
+        bark_red: 0.185,
+        bark_green: 0.175,
+        bark_blue: 0.158,
         bark_roughness: 0.85,
+        bark_grain_scale: 0.0025,
+        bark_grain_strength: 0.2,
         // Neutral: no young wood until the oak's own table states it.
         shoot_red: 0.225,
         shoot_green: 0.218,
@@ -82,10 +84,12 @@ pub(super) fn oak() -> MaterialParams {
 
 pub(super) fn spruce() -> MaterialParams {
     MaterialParams {
-        bark_red: 0.147,
-        bark_green: 0.078,
-        bark_blue: 0.045,
+        bark_red: 0.20,
+        bark_green: 0.175,
+        bark_blue: 0.148,
         bark_roughness: 0.9,
+        bark_grain_scale: 0.0018,
+        bark_grain_strength: 0.15,
         // Neutral: no young wood until the spruce's own table states it.
         shoot_red: 0.147,
         shoot_green: 0.078,

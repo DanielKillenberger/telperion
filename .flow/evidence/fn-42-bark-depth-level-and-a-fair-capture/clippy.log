@@ -1,0 +1,45 @@
+    Checking smallvec v1.16.0
+    Checking serde_json v1.0.151
+    Checking thiserror v2.0.20
+    Checking bytemuck v1.25.2
+    Checking serde v1.0.229
+    Checking naga-types v30.0.1
+    Checking gpu-allocator v0.28.0
+    Checking parking_lot_core v0.9.12
+    Checking naga v30.0.1
+    Checking wgpu-types v30.0.1
+    Checking parking_lot v0.12.5
+    Checking bincode v1.3.3
+    Checking slotmap v1.1.1
+    Checking telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+    Checking wgpu-naga-bridge v30.0.1
+    Checking wgpu-hal v30.0.1
+    Checking wgpu-core-deps-windows-linux-android v30.0.1
+    Checking wgpu-core v30.0.1
+    Checking wgpu v30.0.1
+    Checking telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+error: using `chunks_exact` with a constant chunk size
+  --> crates/telperion-render/src/wood/calibration.rs:64:10
+   |
+64 |         .chunks_exact(3)
+   |          ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<3>().0.iter()`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#chunks_exact_to_as_chunks
+   = note: `-D clippy::chunks-exact-to-as-chunks` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_to_as_chunks)]`
+
+error: using `chunks_exact` with a constant chunk size
+  --> crates/telperion-render/src/wood/calibration.rs:65:31
+   |
+65 |         .zip(tree.wood.coords.chunks_exact(2))
+   |                               ^^^^^^^^^^^^^^^
+   |
+help: consider using `as_chunks::<2>()` instead
+  --> crates/telperion-render/src/wood/calibration.rs:65:31
+   |
+65 |         .zip(tree.wood.coords.chunks_exact(2))
+   |                               ^^^^^^^^^^^^^^^
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#chunks_exact_to_as_chunks
+
+error: could not compile `telperion-render` (lib test) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...

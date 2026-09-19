@@ -1,0 +1,8 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 1.59s
+     Running unittests src/lib.rs (/home/daniel/Projects/telperion/target/ci/deps/telperion_render-4d66a6addaf4a19f)
+
+running 1 test
+test wood::calibration::flat_patch_coordinates_have_the_stated_physical_scale ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 49 filtered out; finished in 0.00s
