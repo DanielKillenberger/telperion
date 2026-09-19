@@ -74,3 +74,6 @@ The parity probe diagnosis found that compiling each shape as a different litera
 
 ### 2026-09-20 — Colour preview image metrics environment
 The colour-preview worker could run calibrated captures but default and system Python lacked Pillow for chromatic-spread metrics. Locating the host imaging environment cost about one minute. Recording the exact interpreter in the capture recipe would remove this local setup friction.
+
+### 2026-09-20 — Live QA locator mistake
+The host used a button locator for the view selector, which is a select control. This cost one 60-second timeout. Corrected to its labelled select and reduced the default timeout. Inspecting control roles in the initial snapshot would remove this avoidable delay; no repository spec proposed.

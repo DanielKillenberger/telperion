@@ -64,3 +64,6 @@ Final colour checks pass: material validation, structure-colour, material shader
 ## Acceptance, 2026-09-20
 
 The owner accepted the appearance and live distance render and authorized squash merge after the inherited hero failure had been disclosed. Birch material tuning remains separate; its authored controls already exist and were unchanged. This supersedes the pending visual/gate statuses above. The historical hero absolute result remains failed, with an acceptance exception supported by the controlled baseline comparison and owner live verdict. All other stated numerical bounds remain unchanged.
+
+Final live QA: species switching, bare views, zoom/orbit and invalid-seed handling passed in isolated Chromium. No P0/P1; pre-existing missing favicon is P2. Live artifacts are under .flow/tmp/qa-fn-42-bark-depth-level-and-a-fair-capture. One incorrect view-button locator cost a 60-second timeout; the labelled select fixed it. That host mistake is in FRICTION.md, with no new spec proposed.
+stage: qa - ran (jev ui 0.59; live Vite renderer; SHIP with one pre-existing P2)
