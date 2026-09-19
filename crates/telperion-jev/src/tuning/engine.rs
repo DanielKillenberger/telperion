@@ -118,7 +118,7 @@ impl Run {
     }
     pub fn round_basis(&self, services: &dyn Services) -> Result<Basis, String> {
         let mut basis = self.basis("targeted tuning round");
-        basis.proposed_action = format!("One bounded round, max four single-dial candidates. Existing authored dials only: {}. Code enforces bounds/integer type, measures numeric gates/node cap BEFORE render, chooses only a lower feasible five-metric score, then separately verifies all required visual cells at fixed/fresh seeds. No generator/renderer/preset changes, no shipping, no sweep. Stop or hand off if unsupported; at most {} remaining rounds.",
+        basis.proposed_action = format!("One bounded round, max four single-dial candidates. Existing authored dials only: {}. Code enforces bounds/integer type, measures numeric gates/node cap BEFORE render, chooses only a lower feasible five-metric score, then separately verifies all required visual cells at fixed/fresh seeds. No generator/renderer source changes or shipped preset edits; candidate overlays only. No shipping or sweep. Stop or hand off if unsupported; at most {} remaining rounds.",
             serde_json::to_string(&self.dials.iter().map(|d| serde_json::json!({"id":d.id,"meaning":d.meaning,"current":self.effective.pointer(&d.path),"min":d.min,"max":d.max,"integer":d.integer,"small":d.small,"substantial":d.substantial})).collect::<Vec<_>>()).unwrap(),
             self.budget.max_rounds.saturating_sub(self.budget.rounds));
         let mut finalist = self.trials[self.current.ok_or("no current trial")?].clone();

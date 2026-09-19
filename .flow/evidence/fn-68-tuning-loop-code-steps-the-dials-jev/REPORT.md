@@ -1,5 +1,15 @@
 # fn68 implementation and calibration checkpoint
 
+## Authorized follow-up,21:31 UTC
+
+The owner approved concrete bounded-plan enrichment and205,000 cumulative tokens, retaining one visual pass. The implementation now supplies actual dial values/bounds/actions and explicit measurement/selection/visual verification scope. Resume can extend only the exact named token cap, retaining spend; evidence reuse requires the original config/artifact identity, current trial identity, matching visual model and unchanged candidate/reference/anchor bytes. No generator/renderer source or shipped preset edits are allowed. Subsequent cap-only reuse without an explicit evidence lineage fails closed. Hard round limits and complete round reservations are checked before any paid boundary call.
+
+Original weak inputs/results remain preserved. Final offline preflight (`pilot-enriched-preflight-final.json`) is route3,827 + continuation4,646 + proposals9,284 + visual35,000 =52,757. Actual spend163,623 means minimum cumulative authority216,380; approved205,000 leaves41,377 and is short11,380. The earlier52,709/216,332 figures remain historical, before a48-byte wording clarification. Host asked about220,000; approval is pending. No live call, capture or candidate evaluation occurred in this follow-up. Existing run/config remain at their original200k cap until an explicit scoped extension is actually applied;205k authorization is recorded but cannot pass preflight.
+
+Focused canonical16tests passed (`/tmp/fn68-followup-final-focused.log`), including missing/wrong extension, artifact/photo/model/trial freshness, retained spend, explicit bounded plan and no paid routing after hard limits. Hard-round regression first failed for the intended extra route, then passed. Final wording regression passed separately; format/diff checks passed. No broad suite was repeated. The previous full workspace result retains its stated scope.
+
+R10's resumable-human-escalation terminal branch is demonstrated, not wholly unmet. Its live repeated-refinement-to-readiness branch remains unproven; R7 magnitude efficacy still unvalidated with zero candidates, and R8 coverage remains whole-crown-only. Task stays in_progress/NEEDS_HUMAN, not done. New friction: the proposed +5k used expected actual Jev cost instead of conservative request reservations; fix is to calculate exact request bounds before proposing allowance. No new spec or silent reservation reduction.
+
 Status: in progress, NEEDS_HUMAN. Deterministic implementation and focused tests are green. The live beech pilot reached a valid human-escalation pause before candidate dispatch; it did not establish magnitude convergence or all-cell readiness. No preset was shipped. No generator or renderer behavior was changed by this continuation.
 
 ## Recovered historical identity
