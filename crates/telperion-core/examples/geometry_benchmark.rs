@@ -6,7 +6,7 @@ mod species_metrics;
 use serde_json::{json, Value};
 use std::{fs, process::Command, time::Instant};
 use telperion_core::{
-    branching,
+    branching, capability,
     foliage::{self, TwigPlacement},
     params,
     presets::Preset,
@@ -16,31 +16,10 @@ fn capabilities(preset: &str) -> Value {
     let Some(p) = Preset::from_id(preset) else {
         return json!({"implemented":false,"profile_id":null,"capabilities":[]});
     };
-    let f = p.parameters();
-    let mut c = vec!["woody-axes"];
-    // The frozen fn-19 protocol names these capabilities; a lobed margin and
-    // a section rolled past halfway are what the names have always meant.
-    if f.element.lobe_count > 0 && f.element.lobe_depth > 0.0 {
-        c.push("lobed-blade");
-    }
-    if f.element.section_roundness >= 0.5 {
-        c.push("four-sided-needle");
-    }
-    // The frozen fn-19 protocol names these attachments; a blade that leans
-    // off its own petiole and a needle pegged into the wood are what the
-    // names have always meant.
-    if f.canopy.forward_lean > 0.0 && f.canopy.surface_contact < 0.5 {
-        c.push("alternate-petiole");
-    }
-    if f.canopy.surface_contact >= 0.5 {
-        c.push("radial-peg");
-    }
-    // The frozen fn-19 protocol names this capability; a family whose deeper
-    // axes hang is what the name has always meant.
-    if f.skeleton.habit.rise_secondary < 0.0 {
-        c.push("tiered-secondary");
-    }
-    json!({"implemented":p.profile_id().is_some(),"profile_id":p.profile_id(),"capabilities":c})
+    // What this preset's value table produces, which is not what the generator
+    // can express; that list is `capability::EXPRESSED`.
+    json!({"implemented":p.profile_id().is_some(),"profile_id":p.profile_id(),
+           "capabilities":capability::derived(p)})
 }
 fn specimen(v: &Value) -> Result<Value, String> {
     let f = params::parse(v).map_err(|e| format!("invalid-parameters: {e:?}"))?;
@@ -117,6 +96,12 @@ fn run() -> Result<i32, String> {
     }
     if args.first().is_some_and(|a| a == "--support") {
         println!("{}", capabilities(args.get(1).ok_or("preset missing")?));
+        return Ok(0);
+    }
+    // What the generator declares it can express, for the assessment round to
+    // read and for the version it has to record.
+    if args.first().is_some_and(|a| a == "--vocabulary") {
+        println!("{}", capability::vocabulary());
         return Ok(0);
     }
     let script = concat!(

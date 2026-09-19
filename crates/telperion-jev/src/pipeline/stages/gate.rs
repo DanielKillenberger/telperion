@@ -1,16 +1,24 @@
 //! The onboarding gate, in code, before anything is generated.
 //!
 //! Three gates stand between the selected evidence and generation: every
-//! capability the packet requires is one the generator supports, the preset is
-//! registered and bound to a profile, and the specimen seeds are audited. Each
-//! unresolved gate files one `onboarding-gate` decision that blocks generate,
-//! and the stage claims no measurement window of its own. Jev is not called
-//! here; the two checks run the repository's own example binaries.
+//! capability the packet requires is one the generator declares it can
+//! express, the preset is registered and bound to a profile, and the specimen
+//! seeds are audited. Each unresolved gate files one `onboarding-gate`
+//! decision that blocks generate, and the stage claims no measurement window
+//! of its own. Jev is not called here.
+//!
+//! The capability gate asks the generator, not the preset: the vocabulary is
+//! `telperion_core::capability`, a declared list no preset owns, so a species
+//! with no preset yet is read on its needs rather than on its absence. A
+//! registered preset is asked a second and different question, through the
+//! benchmark binary: whether its own value table produces the capabilities
+//! the species requires of it. That answer never reaches `missing`.
 
 use std::path::PathBuf;
 use std::process::Command;
 
 use serde_json::{json, Map, Value};
+use telperion_core::capability::{self, Support, DERIVABLE};
 
 use crate::pipeline::canon::read_json;
 use crate::pipeline::decision::{append_decisions, Decision, DecisionParts};
@@ -29,12 +37,13 @@ pub enum Outcome {
     Ran { decisions: Vec<String> },
 }
 
-/// What the capability and registry gates ask of the generator. The pipeline
-/// holds it behind a trait so a test answers without a built binary.
+/// What the registry and preset-table checks ask of the built repository. The
+/// pipeline holds them behind a trait so a test answers without a built
+/// binary. The capability vocabulary is not here: it is compiled in.
 pub trait GateChecks {
     /// True when the preset is registered and bound to a profile.
     fn registry(&self, preset: &str) -> Result<bool, String>;
-    /// The capability names the generator supports for this preset.
+    /// The capability names this preset's own value table produces.
     fn capabilities(&self, preset: &str) -> Result<Vec<String>, String>;
 }
 
@@ -89,29 +98,15 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
     let preset = manifest.preset.as_str();
     let mut unresolved: Vec<Value> = Vec::new();
 
+    // The preset check reads the registry answer, so it is asked first; its
+    // own detail is still filed after the capability gate's.
+    let registered = checks.registry(preset);
     let required = required_capabilities(&ctx, manifest);
-    let capability = match checks.capabilities(preset) {
-        Ok(supported) => {
-            let missing: Vec<String> = required
-                .iter()
-                .filter(|name| !supported.contains(name))
-                .cloned()
-                .collect();
-            if !missing.is_empty() {
-                unresolved.push(gate_detail(
-                    "capability",
-                    &format!("the generator does not support {}", missing.join(", ")),
-                ));
-            }
-            json!({"required": required, "supported": supported, "missing": missing})
-        }
-        Err(error) => {
-            unresolved.push(gate_detail("capability", &error));
-            json!({"required": required, "error": error})
-        }
-    };
+    let (capability, capability_details) =
+        capability_gate(&required, preset, matches!(registered, Ok(true)), checks);
+    unresolved.extend(capability_details);
 
-    let registry = match checks.registry(preset) {
+    let registry = match registered {
         Ok(true) => json!(true),
         Ok(false) => {
             unresolved.push(gate_detail(
@@ -154,13 +149,121 @@ pub fn run(paths: &Paths, checks: &dyn GateChecks) -> Result<Outcome, StageError
     Ok(Outcome::Ran { decisions: ids })
 }
 
+/// The capability gate: what the species requires, read against the
+/// generator's declared vocabulary and against the preset's own table.
+///
+/// A required name the vocabulary expresses is met; one it carries as
+/// unexpressed is missing; one it does not carry at all is unrecognised,
+/// which is a different report, because nobody has said what the name means.
+/// The gate fails closed: a species with no recorded requirement has had no
+/// capability assessment, and that is unresolved rather than met.
+fn capability_gate(
+    required: &[String],
+    preset: &str,
+    registered: bool,
+    checks: &dyn GateChecks,
+) -> (Value, Vec<Value>) {
+    let mut details = Vec::new();
+    let (mut expressed, mut missing, mut unrecognised) = (Vec::new(), Vec::new(), Vec::new());
+    for name in required {
+        match capability::support(name) {
+            Support::Expressed => expressed.push(name.clone()),
+            Support::Absent => missing.push(name.clone()),
+            Support::Unrecognised => unrecognised.push(name.clone()),
+        }
+    }
+    if required.is_empty() {
+        details.push(gate_detail(
+            "capability",
+            "no capability assessment is recorded: neither the packet's species.json \
+             nor the manifest's engineering row names a required capability",
+        ));
+    }
+    if !missing.is_empty() {
+        details.push(gate_detail(
+            "capability",
+            &format!("the generator does not express {}", missing.join(", ")),
+        ));
+    }
+    if !unrecognised.is_empty() {
+        details.push(gate_detail(
+            "capability",
+            &format!(
+                "{} is not a name the capability vocabulary carries",
+                unrecognised.join(", ")
+            ),
+        ));
+    }
+    let (table, table_details) = preset_table(preset, registered, &expressed, checks);
+    details.extend(table_details);
+    (
+        json!({"vocabulary_version": capability::version(), "required": required,
+               "expressed": expressed, "missing": missing, "unrecognised": unrecognised,
+               "preset": table}),
+        details,
+    )
+}
+
+/// The preset's own question: does this registered preset's value table
+/// produce the capabilities the species requires of it? Only the names the
+/// derivation reads a threshold for are asked, because a name it has no
+/// threshold for says nothing either way. An unregistered preset has no table
+/// to ask, so it is not asked, and its empty answer never reaches `missing`.
+fn preset_table(
+    preset: &str,
+    registered: bool,
+    expressed: &[String],
+    checks: &dyn GateChecks,
+) -> (Value, Vec<Value>) {
+    if !registered {
+        return (json!({"registered": false}), Vec::new());
+    }
+    match checks.capabilities(preset) {
+        Ok(derived) => {
+            let unproduced: Vec<String> = expressed
+                .iter()
+                .filter(|name| DERIVABLE.contains(&name.as_str()) && !derived.contains(name))
+                .cloned()
+                .collect();
+            let details = if unproduced.is_empty() {
+                Vec::new()
+            } else {
+                vec![gate_detail(
+                    "preset-capability",
+                    &format!(
+                        "the {preset} value table does not produce {}",
+                        unproduced.join(", ")
+                    ),
+                )]
+            };
+            (
+                json!({"registered": true, "derived": derived, "unproduced": unproduced}),
+                details,
+            )
+        }
+        Err(error) => (
+            json!({"registered": true, "error": error}),
+            vec![gate_detail("preset-capability", &error)],
+        ),
+    }
+}
+
 /// The capabilities the packet requires: the generate stage's `species.json`
-/// when it exists, else the manifest's engineering entry, else none.
+/// when it names any, else the manifest's engineering entry, else none.
+///
+/// The packet's list is written empty and is a placeholder until a species
+/// fills it, so an empty one says nothing and the manifest's row, where the
+/// assessment round writes, is read instead. Reading the placeholder as the
+/// answer would erase the assessment on every rerun after generate, and the
+/// gate fails closed, so that erasure would block a species that had passed.
 fn required_capabilities(ctx: &Context, manifest: &Manifest) -> Vec<String> {
     let species = ctx.paths.packet("species");
     if species.exists() {
         if let Ok(value) = read_json(&species) {
-            return names(&value["required_capabilities"]);
+            let recorded = names(&value["required_capabilities"]);
+            if !recorded.is_empty() {
+                return recorded;
+            }
         }
     }
     manifest

@@ -121,13 +121,18 @@ fn table(dimension: &str, unit: &str, table: &[(f64, f64)]) -> Value {
 /// profile and the fetch, quality and select artifacts a downstream stage
 /// reads. `dbh` says how many rows the Gould anchor table yields.
 fn scratch(tag: &str, dbh_rows: usize) -> PathBuf {
+    scratch_with(tag, dbh_rows, manifest())
+}
+
+/// The same directory over a manifest the caller wrote.
+fn scratch_with(tag: &str, dbh_rows: usize, manifest: Value) -> PathBuf {
     let dir = std::env::temp_dir().join(format!(
         "jev-downstream-{tag}-{}-{}",
         std::process::id(),
         telperion_jev::ledger::new_entry_id()
     ));
     std::fs::create_dir_all(&dir).unwrap();
-    write_canonical(&dir.join("manifest.json"), &manifest()).unwrap();
+    write_canonical(&dir.join("manifest.json"), &manifest).unwrap();
     let (ctx, _) = Context::open(&Paths::new(&dir), "fetch").unwrap();
     let fetch = json!({
         "sources": {"S1": {"content_type": "text/html", "final_url": "https://example.test/s1",
@@ -261,7 +266,18 @@ impl Transport for TransferTransport {
 
 struct Checks {
     registered: bool,
-    supported: Vec<String>,
+    /// What the preset's own value table produces, or why the probe that
+    /// reads it could not say.
+    derived: Result<Vec<String>, String>,
+}
+
+impl Checks {
+    fn producing(names: &[&str]) -> Self {
+        Self {
+            registered: true,
+            derived: Ok(names.iter().map(|name| (*name).to_string()).collect()),
+        }
+    }
 }
 
 impl GateChecks for Checks {
@@ -269,12 +285,23 @@ impl GateChecks for Checks {
         Ok(self.registered)
     }
     fn capabilities(&self, _preset: &str) -> Result<Vec<String>, String> {
-        Ok(self.supported.clone())
+        self.derived.clone()
     }
 }
 
 /// The gate that passes, with the audited seeds already on disk.
 fn pass_the_gate(dir: &Path) {
+    pass_the_seeds(dir);
+    let checks = Checks::producing(&["woody-axes"]);
+    assert!(matches!(
+        gate::run(&Paths::new(dir), &checks).unwrap(),
+        gate::Outcome::Ran { .. }
+    ));
+}
+
+/// The audited seeds on disk, so the seed gate answers and a test reads the
+/// capability gate on its own.
+fn pass_the_seeds(dir: &Path) {
     let cases: Vec<Value> = [1u32, 2, 3, 40, 41, 42]
         .iter()
         .enumerate()
@@ -295,14 +322,6 @@ fn pass_the_gate(dir: &Path) {
                 "generation_status": "not-run-by-this-packet", "expert_status": "unassessed"}),
     )
     .unwrap();
-    let checks = Checks {
-        registered: true,
-        supported: vec!["woody-axes".into()],
-    };
-    assert!(matches!(
-        gate::run(&Paths::new(dir), &checks).unwrap(),
-        gate::Outcome::Ran { .. }
-    ));
 }
 
 /// The generate stage over the mock measurer and one transfer answer.
@@ -407,28 +426,182 @@ fn an_unchanged_rerun_of_the_fit_is_current_and_writes_nothing_new() {
 
 // ------------------------------------------------------------------- the gate
 
+/// The date palm's recorded requirement, from
+/// `.flow/evidence/date-palm/pipeline/manifest.json` on the fn-82 branch.
+const DATE_PALM: [&str; 6] = [
+    "woody-axes",
+    "apical-rosette",
+    "pinnate-frond",
+    "acanthophyll",
+    "persistent-leaf-base",
+    "infructescence",
+];
+
+/// The manifest with another species' recorded requirement on its
+/// engineering row.
+fn requiring(names: &[&str]) -> Value {
+    let mut manifest = manifest();
+    manifest["engineering"]["required_capabilities"]["value"] = json!(names);
+    manifest
+}
+
 #[test]
 fn the_gate_files_onboarding_gate_for_an_unregistered_preset() {
     let dir = scratch("unregistered", 2);
     let checks = Checks {
         registered: false,
-        supported: vec![],
+        derived: Ok(vec![]),
     };
     gate::run(&Paths::new(&dir), &checks).unwrap();
     let body = body_of(&dir, "gate");
     assert_eq!(body["registry"], json!(false));
-    assert_eq!(body["capability"]["missing"], json!(["woody-axes"]));
+    // The generator expresses what this species requires whether or not a
+    // preset is registered for it, and the unregistered preset is not asked
+    // what its table produces.
+    assert_eq!(body["capability"]["missing"], json!([]));
+    assert_eq!(body["capability"]["expressed"], json!(["woody-axes"]));
+    assert_eq!(body["capability"]["preset"], json!({"registered": false}));
     assert_eq!(body["seeds"]["status"], "unresolved");
     let filed = of_kind(&dir, "onboarding-gate");
     let fields: Vec<&str> = filed.iter().filter_map(|d| d["field"].as_str()).collect();
-    assert_eq!(fields, vec!["capability", "registry", "seeds"]);
+    assert_eq!(fields, vec!["registry", "seeds"]);
     assert!(
         filed
             .iter()
             .all(|d| d["blocks"] == json!(["generate"])
                 && d["options"] == json!(["resolve", "waive"]))
     );
-    assert_eq!(filed[0]["payload"]["gate"], "capability");
+    assert_eq!(filed[0]["payload"]["gate"], "registry");
+}
+
+#[test]
+fn the_date_palms_recorded_needs_are_five_missing_organs_and_no_false_positive() {
+    let dir = scratch_with("date-palm", 2, requiring(&DATE_PALM));
+    let checks = Checks {
+        registered: false,
+        derived: Ok(vec![]),
+    };
+    gate::run(&Paths::new(&dir), &checks).unwrap();
+    let capability = body_of(&dir, "gate")["capability"].clone();
+    assert_eq!(capability["expressed"], json!(["woody-axes"]));
+    assert_eq!(
+        capability["missing"],
+        json!([
+            "apical-rosette",
+            "pinnate-frond",
+            "acanthophyll",
+            "persistent-leaf-base",
+            "infructescence"
+        ])
+    );
+    assert_eq!(capability["unrecognised"], json!([]));
+    let filed = of_kind(&dir, "onboarding-gate");
+    let capability_gate = filed.iter().find(|d| d["field"] == "capability").unwrap();
+    assert_eq!(
+        capability_gate["payload"]["detail"],
+        "the generator does not express apical-rosette, pinnate-frond, acanthophyll, \
+         persistent-leaf-base, infructescence"
+    );
+}
+
+#[test]
+fn the_gate_records_the_vocabulary_version_it_compared_against() {
+    let dir = scratch("vocabulary-version", 2);
+    gate::run(&Paths::new(&dir), &Checks::producing(&["woody-axes"])).unwrap();
+    assert_eq!(
+        body_of(&dir, "gate")["capability"]["vocabulary_version"],
+        json!(telperion_core::capability::version())
+    );
+}
+
+#[test]
+fn a_required_name_the_vocabulary_does_not_carry_is_unrecognised_not_missing() {
+    let dir = scratch_with("unrecognised", 2, requiring(&["woody-axes", "woody-axe"]));
+    gate::run(&Paths::new(&dir), &Checks::producing(&["woody-axes"])).unwrap();
+    let capability = body_of(&dir, "gate")["capability"].clone();
+    assert_eq!(capability["missing"], json!([]));
+    assert_eq!(capability["unrecognised"], json!(["woody-axe"]));
+    let filed = of_kind(&dir, "onboarding-gate");
+    let detail = filed
+        .iter()
+        .find(|d| d["field"] == "capability")
+        .map(|d| d["payload"]["detail"].clone())
+        .unwrap();
+    assert_eq!(
+        detail,
+        "woody-axe is not a name the capability vocabulary carries"
+    );
+}
+
+#[test]
+fn a_species_with_no_recorded_assessment_does_not_pass_the_capability_gate() {
+    let dir = scratch_with("unassessed", 2, requiring(&[]));
+    pass_the_seeds(&dir);
+    gate::run(&Paths::new(&dir), &Checks::producing(&["woody-axes"])).unwrap();
+    let filed = of_kind(&dir, "onboarding-gate");
+    let fields: Vec<&str> = filed.iter().filter_map(|d| d["field"].as_str()).collect();
+    assert_eq!(fields, vec!["capability"]);
+    assert!(filed[0]["payload"]["detail"]
+        .as_str()
+        .unwrap()
+        .starts_with("no capability assessment is recorded"));
+}
+
+#[test]
+fn a_registered_table_that_does_not_produce_what_the_species_requires_is_its_own_gate() {
+    let dir = scratch_with("table", 2, requiring(&["woody-axes", "lobed-blade"]));
+    pass_the_seeds(&dir);
+    gate::run(&Paths::new(&dir), &Checks::producing(&["woody-axes"])).unwrap();
+    let body = body_of(&dir, "gate");
+    // The generator expresses both; the oak's own table does not draw the
+    // second, which is the preset's question and never the vocabulary's.
+    assert_eq!(body["capability"]["missing"], json!([]));
+    assert_eq!(
+        body["capability"]["preset"]["unproduced"],
+        json!(["lobed-blade"])
+    );
+    let filed = of_kind(&dir, "onboarding-gate");
+    let fields: Vec<&str> = filed.iter().filter_map(|d| d["field"].as_str()).collect();
+    assert_eq!(fields, vec!["preset-capability"]);
+}
+
+#[test]
+fn a_table_probe_that_errors_files_the_error_and_never_an_empty_list() {
+    let dir = scratch("probe-error", 2);
+    pass_the_seeds(&dir);
+    let checks = Checks {
+        registered: true,
+        derived: Err("--support oregon-white-oak: no such file".into()),
+    };
+    gate::run(&Paths::new(&dir), &checks).unwrap();
+    let body = body_of(&dir, "gate");
+    assert_eq!(
+        body["capability"]["preset"],
+        json!({"registered": true, "error": "--support oregon-white-oak: no such file"})
+    );
+    let filed = of_kind(&dir, "onboarding-gate");
+    let fields: Vec<&str> = filed.iter().filter_map(|d| d["field"].as_str()).collect();
+    assert_eq!(fields, vec!["preset-capability"]);
+}
+
+#[test]
+fn an_empty_packet_list_does_not_erase_the_manifests_recorded_assessment() {
+    let dir = scratch_with("packet-placeholder", 2, requiring(&["woody-axes"]));
+    pass_the_seeds(&dir);
+    // The generate stage writes this list empty for every species, so a gate
+    // rerun after generate reads the assessment the manifest records, not the
+    // placeholder; read the other way the gate would fail closed on a species
+    // that had already passed it.
+    write_canonical(
+        &dir.join("packet").join("species.json"),
+        &json!({"required_capabilities": []}),
+    )
+    .unwrap();
+    gate::run(&Paths::new(&dir), &Checks::producing(&["woody-axes"])).unwrap();
+    let body = body_of(&dir, "gate");
+    assert_eq!(body["capability"]["required"], json!(["woody-axes"]));
+    assert_eq!(body["capability"]["expressed"], json!(["woody-axes"]));
+    assert_eq!(body["unresolved"], json!([]));
 }
 
 #[test]
