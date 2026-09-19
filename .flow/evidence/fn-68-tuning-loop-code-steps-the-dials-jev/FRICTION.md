@@ -1,5 +1,9 @@
 # Friction
 
+## 2026-09-19 - Failed numeric gate discarded measurement details
+
+The authorized candidate hit node_capped at250,000 nodes and was correctly refused before rendering, but the Trial stored only generic numeric gate failed with measurement:null. Cost: about two minutes offline diagnosis/regression repair, zero repeated evaluations or model calls. A bounded parse recovered the named cap and botanical checks into an explicitly supplemental artifact; original historical trial remains untouched. Fix: retain completed measurement before gate validation, prioritize named cap reasons, and assert failed-gate details survive while the renderer remains uncalled. This is now covered by a red-to-green test.
+
 ## 2026-09-19 - Proposed extra allowance omitted conservative request bounds
 
 The user-authorized follow-up began21:31 UTC with205,000 cumulative tokens and one visual pass left. Offline preflight found route3,827 + enriched continuation4,598 + proposals9,284 + final visual35,000 =52,709, exceeding remaining41,377 by11,332. The earlier +5k proposal estimated actual Jev usage rather than the existing conservative serialized-bytes+1024 reservations. Cost: about six minutes implementation/preflight, zero live calls/captures/tokens this follow-up. Compute exact serialized request bounds before proposing authority; do not shrink reservations to fit. Host informed immediately and owns any revised allowance. Original config identity exactly matched persisted identity with unchanged binary bytes.

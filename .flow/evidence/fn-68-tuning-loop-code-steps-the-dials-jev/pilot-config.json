@@ -39,5 +39,5 @@
   "continuation":{"manifest":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/cases/continuation.json","result":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/cases/continuation-result.json"},
   "visual_validation":{"manifest":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-replay-v2.json","result":".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-v2-result.json"},
   "vision_protocol":"scripts/tuning-vision-codex.py","convergence_run":null,"judgment_model":"jev-1.13.0","gap_specs":{},"ledger":".flow/ledger/fn68-pilot",
-  "budget":{"evaluations":0,"images":0,"tokens":139936,"rounds":0,"max_evaluations":13,"max_images":52,"max_tokens":200000,"max_rounds":1}
+  "budget":{"evaluations":0,"images":0,"tokens":139936,"rounds":0,"max_evaluations":13,"max_images":52,"max_tokens":220000,"max_rounds":1}
 }

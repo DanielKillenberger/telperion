@@ -1,5 +1,30 @@
 # fn68 implementation and calibration checkpoint
 
+## Final authorized pilot outcome,21:44 UTC
+
+The owner approved220,000 (“yea go”). The rebuilt CLI verified unchanged baseline evidence, applied the explicit200k→220k scoped extension and did not repeat baseline vision. Enriched continuation passed: tractability supported0.85, progress supported0.79, risk bounded0.91. This supports the bounded plan input, not the usefulness of every proposed magnitude.
+
+| Dial | Raw named action | Exact-action confidence | Disposition |
+| --- | --- | --- | --- |
+| limbs | small increase | 0.52 | evaluated:2→3 limbs/station |
+| irregularity | small increase | 0.45 | below frozen0.5 cut |
+| taper | small decrease | 0.45 | below cut |
+| spacing | small increase | 0.30 | below cut |
+| leaves | substantial decrease | 0.19 | below cut |
+| crookedness | insufficient evidence | 0.33 | abstained |
+
+Only one candidate ran. It was within authored numeric bounds but reached250,000 nodes with `node_capped=true`, growth truncated; all botanical gating checks passed. Measurement rejected it before rendering. Baseline had187,968 nodes; that known computational headroom was absent from the proposal summary. Original trial's generic failure/measurement:null is preserved; `pilot-failed-gate-supplement.json` explicitly recovers the named cap from its completed measurement event without reevaluation. The evaluator was fixed offline to retain failed measurements and report cap names, with a red-to-green renderer-not-called regression.
+
+Trajectory: failed setup baseline → feasible0.2432146645 baseline → infeasible limbs2→3, no numeric or visual improvement. Evaluation times26.0585s +24.2359s +9.7114s =60.0058s, excluding calibration/judgments/builds. Historical fixed-step13eval/~3min/0.154 and sweep74eval/~18min/0.145 remain comparisons only; generator/renderer versions differ, and the failed candidate provides no magnitude-efficacy result. No sweep or shipped edit occurred.
+
+Final stop: `hard round limit exhausted before routing`, after one round, without another paid route or visual call. Three evaluations; twelve image reservations, but only eight actual still/twin renders (four from the setup failure, four from valid baseline), plus two derived comparison-pair PNGs. Seven total visual passes remain used; the eighth was not spent. Added Jev usage6,689: route1,444+56, continuation1,309+134, proposal3,292+454. Cumulative actual170,312/220,000; unused49,688 is not authority for another round. Full final state digest is `pilot-final-summary.json`.
+
+Interpretation: R10's resumable-human-escalation terminal branch is demonstrated; live convergence is not. R7's failed pilot leaves magnitude routing unvalidated for unattended use. R8 evidence remains two whole-crown seed1 calibration cases and one live whole-crown failure, not six-cell readiness. The implementation currently validates action calibration but has no separate persisted pilot-efficacy qualification for arbitrary new unattended runs; this is an explicit remaining acceptance/design gap, not a done claim.
+
+Next proposals, not executed: include measured node headroom/growth feasibility in action state; separately calibrate direction and magnitude handling. Irregularity had0.54 small-increase +0.40 substantial-increase =0.94 support for increasing, despite exact-action confidence0.45: uncertainty may concern size rather than direction. One evaluated proposal does not imply no other plausible signal or prove Jev incapable. No threshold was lowered, labels changed or new action invented post hoc. Host owns qualification/design and any new authority.
+
+Final offline gate: canonical focused16tests passed, `/tmp/fn68-pilot-final-focused.log`; formatting and diff checks green. No repeated live evaluation or broad workspace gate. This operational follow-up used roughly five minutes, no subagents. Two new friction items (reservation-estimate mismatch, failed-gate detail loss) are documented; the former is resolved by exact preflight/explicit authority, the latter by preserved supplemental evidence and tested record retention. No new specs.
+
 ## Authorized follow-up,21:31 UTC
 
 The owner approved concrete bounded-plan enrichment and205,000 cumulative tokens, retaining one visual pass. The implementation now supplies actual dial values/bounds/actions and explicit measurement/selection/visual verification scope. Resume can extend only the exact named token cap, retaining spend; evidence reuse requires the original config/artifact identity, current trial identity, matching visual model and unchanged candidate/reference/anchor bytes. No generator/renderer source or shipped preset edits are allowed. Subsequent cap-only reuse without an explicit evidence lineage fails closed. Hard round limits and complete round reservations are checked before any paid boundary call.

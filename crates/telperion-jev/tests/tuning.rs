@@ -201,6 +201,12 @@ fn measurement_gates_accept_context_but_stop_failed_candidates_before_render() {
     assert!(!failed.feasible);
     assert_eq!(renderer.0.get(), 0);
     assert_eq!(failed.reason.as_deref(), Some("numeric gate failed"));
+    assert_eq!(failed.measurement["checks"]["height"]["status"], "fail");
+    event["metrics"]["growth"]["node_capped"] = json!(true);
+    assert!(gates(&event.to_string())
+        .unwrap_err()
+        .contains("node_capped"));
+    event["metrics"]["growth"]["node_capped"] = json!(false);
     event["numeric_status"] = json!("pass");
     event["checks"]["height"]["status"] = json!("pass");
     fs::write(&path, event.to_string()).unwrap();

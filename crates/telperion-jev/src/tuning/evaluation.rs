@@ -67,16 +67,25 @@ pub struct Trial {
     pub seconds: f64,
 }
 
-pub fn gates(receipt: &str) -> Result<Value, String> {
+fn completed(receipt: &str) -> Result<Value, String> {
     let events = receipt
         .lines()
         .map(serde_json::from_str::<Value>)
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| format!("incomplete measurement receipt: {e}"))?;
-    let completed = events
+    events
         .iter()
         .find(|e| e["event"] == "completed")
-        .ok_or("measurement did not complete")?;
+        .cloned()
+        .ok_or_else(|| "measurement did not complete".into())
+}
+
+fn validate_gates(completed: &Value) -> Result<(), String> {
+    for flag in ["node_capped", "level_capped", "attraction_capped"] {
+        if completed["metrics"]["growth"][flag].as_bool() != Some(false) {
+            return Err(format!("truncated or unknown measurement: {flag}"));
+        }
+    }
     if completed["numeric_status"] != "pass" {
         return Err("numeric gate failed".into());
     }
@@ -90,12 +99,13 @@ pub fn gates(receipt: &str) -> Result<Value, String> {
     {
         return Err("failed or unassessed gate".into());
     }
-    for flag in ["node_capped", "level_capped", "attraction_capped"] {
-        if completed["metrics"]["growth"][flag].as_bool() != Some(false) {
-            return Err(format!("truncated or unknown measurement: {flag}"));
-        }
-    }
-    Ok(completed.clone())
+    Ok(())
+}
+
+pub fn gates(receipt: &str) -> Result<Value, String> {
+    let value = completed(receipt)?;
+    validate_gates(&value)?;
+    Ok(value)
 }
 
 pub fn evaluate(
@@ -134,7 +144,8 @@ pub fn evaluate(
             .measure(preset, seed, &trial.overrides)
             .map_err(|e| e.to_string())?;
         let receipt = fs::read_to_string(&measured.receipt_path).map_err(|e| e.to_string())?;
-        trial.measurement = gates(&receipt)?;
+        trial.measurement = completed(&receipt)?;
+        validate_gates(&trial.measurement)?;
         trial.comparisons = renderer.render(preset, seed, &trial.overrides, &trial.key)?;
         if trial.comparisons.is_empty() {
             return Err("no matched references".into());
