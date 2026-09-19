@@ -92,7 +92,7 @@ fn a_monthly_replay_and_a_growth_view_draw_what_a_fresh_build_draws() {
         matrices: fresh.placements.iter().map(|p| p.transform).collect(),
     };
     foliage::place_short_shoots(&fresh.tree, fresh.envelope, 1, f.canopy, &mut placements).unwrap();
-    let culled = foliage::cull(&placements, &element, fresh.envelope, f.shell_depth).unwrap();
+    let culled = foliage::cull(placements, &element, fresh.envelope, f.shell_depth).unwrap();
     assert_eq!(
         view.mesh().unwrap().foliage.instances,
         culled,

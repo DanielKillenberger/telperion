@@ -7,7 +7,7 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [],
-  "id": "fn-85-leaf-placement-holds-one-copy-in-twelve",
+  "id": "fn-85-leaf-placement-holds-one-copy",
   "impl_review_rounds": {},
   "next_task": 1,
   "no_plan": true,
@@ -15,9 +15,9 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
-  "spec_path": ".flow/specs/fn-85-leaf-placement-holds-one-copy-in-twelve.md",
+  "spec_path": ".flow/specs/fn-85-leaf-placement-holds-one-copy.md",
   "status": "open",
-  "title": "Leaf placement holds one copy in twelve bytes",
+  "title": "Leaf placement holds one copy",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T10:31:17.445879Z"
+  "updated_at": "2026-09-19T11:44:32.216440Z"
 }

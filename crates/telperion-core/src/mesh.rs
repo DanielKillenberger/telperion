@@ -93,12 +93,11 @@ pub fn assemble(tree: &Tree, family: &Family) -> Result<TreeMesh> {
         &family.surface,
     )?;
     let instances = foliage::cull(
-        &placed,
+        placed,
         &element,
         family.skeleton.envelope,
         family.shell_depth,
     )?;
-    drop(placed);
     let bounds = union(wood.bounds, instances.bounds(&element)?.map(Bounds::from))
         .ok_or(Error::InvalidInput("mesh has no geometry"))?;
     Ok(TreeMesh {

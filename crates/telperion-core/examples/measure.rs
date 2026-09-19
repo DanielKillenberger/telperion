@@ -46,7 +46,7 @@ fn main() {
         .unwrap();
         let placement_ms = ms(t);
         let t = Instant::now();
-        let kept = foliage::cull(&placed, &element, f.skeleton.envelope, f.shell_depth).unwrap();
+        let kept = foliage::cull(placed, &element, f.skeleton.envelope, f.shell_depth).unwrap();
         let cull_ms = ms(t);
         let t = Instant::now();
         if !field_only {
