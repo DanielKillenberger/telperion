@@ -2,7 +2,7 @@
 
 ## 2026-09-20 — Host: duplicate evidence move requires literal paths
 
-The safety hook refused a move of the worker's three byte-identical root evidence copies into a newly allocated temporary directory because its destination used a shell variable. No command in that call ran. This cost less than a minute. Resolving the temporary directory first, then using its inspected literal path, makes the recoverable move verifiable. This is a local command-shaping issue, not a repository spec proposal.
+The safety hook refused a move of the worker's three byte-identical root evidence copies into a newly allocated temporary directory because its destination used a shell variable. No command in that call ran. The host then resolved and inspected `/tmp/fn53-duplicate-evidence.fiRgsv`, verified all three source files against their committed copies, and tried explicit literal paths. The hook also refused that move because the source is under `/home`. A normal fast-forward merge refused the untracked file collisions and left master unchanged. This cost about two minutes. NEEDS_HUMAN: move the three duplicate JSONL files to the inspected backup directory manually, or repair the local guard's treatment of narrowly scoped recoverable file moves. No files were moved or deleted, and nothing was merged or pushed. This is a local setup issue, not a repository spec proposal.
 
 ## 2026-09-20 — Review fix: overly broad debug test selection
 
