@@ -10,6 +10,11 @@ pub struct RadiusParams {
     pub trunk_radius: f64,
     pub fork_exponent: f64,
     pub length_taper: f64,
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_max_taper_exponent")
+    )]
+    pub max_taper_exponent: f64,
 }
 impl Default for RadiusParams {
     fn default() -> Self {
@@ -17,22 +22,23 @@ impl Default for RadiusParams {
             trunk_radius: 0.02,
             fork_exponent: 2.0,
             length_taper: 0.6,
+            max_taper_exponent: crate::ranges::default_max_taper_exponent(),
         }
     }
 }
 impl RadiusParams {
     pub fn resolved(self) -> Result<Self> {
+        crate::ranges::MAX_TAPER.check(self.max_taper_exponent, "maxTaperExponent")?;
+        crate::ranges::TRUNK_RADIUS.check(self.trunk_radius, "trunkRadius")?;
+        crate::ranges::FORK_EXPONENT.check(self.fork_exponent, "forkExponent")?;
+        crate::ranges::LENGTH_TAPER.check(self.length_taper, "lengthTaper")?;
         if ![self.trunk_radius, self.fork_exponent, self.length_taper]
             .iter()
             .all(|v| v.is_finite())
         {
             return Err(Error::InvalidInput("radius parameters"));
         }
-        Ok(Self {
-            trunk_radius: self.trunk_radius.max(4e-6),
-            fork_exponent: self.fork_exponent.clamp(1.0, 8.0),
-            length_taper: self.length_taper.max(0.0),
-        })
+        Ok(self)
     }
 }
 pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Result<()> {
@@ -55,7 +61,7 @@ pub fn solve(tree: &mut Tree, envelope: Envelope, params: RadiusParams) -> Resul
         shed[i] = (shed[parent]
             + p.length_taper * tree.nodes[parent].position.distance(tree.nodes[i].position)
                 / height)
-            .min(12.0);
+            .min(p.max_taper_exponent);
     }
     for i in (0..count).rev() {
         let r = if carried[i] > 0.0 {

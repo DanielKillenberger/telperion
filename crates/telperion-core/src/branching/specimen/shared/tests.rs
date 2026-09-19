@@ -1,5 +1,20 @@
 use super::*;
 #[test]
+fn placement_keys_preserve_stations_above_512() {
+    let id = |birth, station| PlacementIdentity {
+        shoot: NodeIdentity {
+            birth,
+            ..Default::default()
+        },
+        station,
+    };
+    let mut map = Map::default();
+    map.set(placement_key(id(1, 512)), Some("last"));
+    map.set(placement_key(id(2, 0)), Some("next"));
+    assert_eq!(map.get(placement_key(id(1, 512))), Some(&"last"));
+    assert_eq!(map.get(placement_key(id(2, 0))), Some(&"next"));
+}
+#[test]
 fn shared_reads_keep_unchanged_payloads_and_reconcile_every_age() {
     let mut f = crate::presets::Preset::Ordinary.parameters();
     f.age = 0.0;

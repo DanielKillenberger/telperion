@@ -6,29 +6,20 @@
 //! between two centres - so each system keeps a rounded leaf mass of its own
 //! with a gap between it and the next. The row is how far from a wall its gap
 //! reaches, as a share of the way to the centre; at zero nothing is touched.
-use super::Instances;
+use super::{CanopyParams, Instances};
 use crate::{
     math::Vec3,
     tree::{NodeKind, Tree},
 };
 
-/// The deepest scaffold order that starts a limb system of its own: the
-/// trunk is order zero, the limbs it bears one, and the axes those bear two.
-/// An axis deeper than this belongs to the system of the order-two axis that
-/// carries it, and so does every twig and branch the local layer grew on it.
-const SYSTEM_ORDER: u32 = 2;
-/// The neighbours a system's leaves are measured against. A boundary further
-/// off than the twelfth nearest centre is shared with no leaf of this system.
-const NEIGHBOURS: usize = 12;
-
 /// The system every node belongs to, named by the node its system starts at.
 /// At a scaffold fork the thickest child carries its parent's axis on and
 /// every other child opens a lateral one, an order deeper; a lateral of order
-/// two or less starts a system, and so does a stem leaving the root. Every
+/// at or below the authored maximum starts a system, as does a root stem. Every
 /// other node, and all the wood the local layer grew, is its parent's. The
 /// rule reads only the solved radii, so a tree rebuilt from its record for
 /// the growth view falls into the same systems as the one it was grown as.
-pub(super) fn systems(tree: &Tree) -> Vec<u32> {
+pub(super) fn systems(tree: &Tree, max_order: u32) -> Vec<u32> {
     let structural = |i: usize| tree.nodes[i].kind == NodeKind::Structural;
     let mut carrier = vec![u32::MAX; tree.nodes.len()];
     for (i, n) in tree.nodes.iter().enumerate().skip(1) {
@@ -50,7 +41,7 @@ pub(super) fn systems(tree: &Tree) -> Vec<u32> {
         let stem = parent == 0;
         let opens = structural(i) && (stem || carrier[parent] != i as u32);
         order[i] = order[parent] + u32::from(opens && !stem);
-        system[i] = if opens && order[i] <= SYSTEM_ORDER {
+        system[i] = if opens && order[i] <= max_order {
             i as u32
         } else {
             system[parent]
@@ -66,7 +57,7 @@ struct Cell {
     walls: Vec<(Vec3, f64, usize)>,
 }
 
-fn cells(positions: &[Vec3], owners: &[u32]) -> Vec<Option<Cell>> {
+fn cells(positions: &[Vec3], owners: &[u32], neighbours: usize) -> Vec<Option<Cell>> {
     let count = owners.iter().map(|&s| s as usize + 1).max().unwrap_or(0);
     let mut sums = vec![(Vec3::ZERO, 0usize); count];
     for (p, &s) in positions.iter().zip(owners) {
@@ -88,7 +79,7 @@ fn cells(positions: &[Vec3], owners: &[u32]) -> Vec<Option<Cell>> {
             .filter(|(d, _, _)| *d > 1e-9)
             .collect();
         near.sort_by(|a, b| a.0.total_cmp(&b.0));
-        near.truncate(NEIGHBOURS);
+        near.truncate(neighbours);
         let walls = near
             .iter()
             .map(|(d, v, o)| (*v / *d, d / 2.0, *o))
@@ -103,8 +94,8 @@ fn cells(positions: &[Vec3], owners: &[u32]) -> Vec<Option<Cell>> {
 /// the cell of the system that bore the leaf and crosses into whichever
 /// neighbour the point stands past, so a leaf that has grown into another
 /// system's room is read in that room.
-fn wall(cells: &[Option<Cell>], mut at: usize, p: Vec3) -> Option<(f64, f64)> {
-    for _ in 0..NEIGHBOURS {
+fn wall(cells: &[Option<Cell>], mut at: usize, p: Vec3, neighbours: usize) -> Option<(f64, f64)> {
+    for _ in 0..neighbours {
         let cell = cells[at].as_ref()?;
         let offset = p - cell.centre;
         let (gap, half, past) = cell
@@ -134,15 +125,28 @@ fn draw(seed: u32, index: usize) -> f64 {
 
 /// Thins the placements toward the walls between limb systems. `owners`
 /// names the node that bears each placement, in placement order.
-pub(super) fn thin(tree: &Tree, owners: &[u32], seed: u32, reach: f64, out: &mut Instances) {
+pub(super) fn thin(
+    tree: &Tree,
+    owners: &[u32],
+    seed: u32,
+    params: CanopyParams,
+    out: &mut Instances,
+) {
+    let reach = params.limb_clumping;
     if reach <= 0.0 || out.is_empty() {
         return;
     }
     debug_assert_eq!(owners.len(), out.len());
-    let system = systems(tree);
+    let system = systems(tree, params.clump_system_order);
     let systems: Vec<u32> = owners.iter().map(|&w| system[w as usize]).collect();
     let positions: Vec<Vec3> = (0..out.len()).map(|i| out.position(i)).collect();
-    let keep = kept(&positions, &systems, seed, reach);
+    let keep = kept(
+        &positions,
+        &systems,
+        seed,
+        reach,
+        params.clump_neighbours as usize,
+    );
     let mut k = 0;
     out.leaves.retain(|_| {
         k += 1;
@@ -164,11 +168,18 @@ pub(super) fn thin(tree: &Tree, owners: &[u32], seed: u32, reach: f64, out: &mut
 /// `reach` of a wall, as a share of the way from it to either centre, a leaf
 /// is kept with the chance its share of that reach gives it, squared, so the
 /// gap is empty at the wall and fills in toward both systems' centres.
-fn kept(positions: &[Vec3], systems: &[u32], seed: u32, reach: f64) -> Vec<bool> {
-    let cells = cells(positions, systems);
+fn kept(
+    positions: &[Vec3],
+    systems: &[u32],
+    seed: u32,
+    reach: f64,
+    neighbours: usize,
+) -> Vec<bool> {
+    let cells = cells(positions, systems, neighbours);
     (0..positions.len())
         .map(|k| {
-            let Some((gap, half)) = wall(&cells, systems[k] as usize, positions[k]) else {
+            let Some((gap, half)) = wall(&cells, systems[k] as usize, positions[k], neighbours)
+            else {
                 return true;
             };
             let share = gap / (reach * half);
@@ -200,7 +211,7 @@ mod tests {
     #[test]
     fn the_gap_is_empty_at_the_wall_and_the_centres_are_whole() {
         let (positions, systems) = two_rows();
-        let keep = kept(&positions, &systems, 7, 0.5);
+        let keep = kept(&positions, &systems, 7, 0.5, 12);
         for (p, kept) in positions.iter().zip(&keep) {
             if p.x.abs() < 0.02 {
                 assert!(!kept, "a leaf on the wall at {:.3} stayed", p.x);
@@ -228,7 +239,7 @@ mod tests {
     fn one_system_has_no_walls_and_keeps_every_leaf() {
         let (positions, _) = two_rows();
         let one = vec![3u32; positions.len()];
-        assert!(kept(&positions, &one, 7, 1.0).iter().all(|k| *k));
+        assert!(kept(&positions, &one, 7, 1.0, 12).iter().all(|k| *k));
     }
 
     #[test]
@@ -259,7 +270,7 @@ mod tests {
             nodes,
             ..Tree::default()
         };
-        let system = systems(&tree);
+        let system = systems(&tree, 2);
         // The stem opens a system at the root; the leader carries it on.
         assert_eq!(system[1], 1);
         assert_eq!(system[2], 1);
@@ -271,5 +282,17 @@ mod tests {
         assert_eq!(system[5], 5);
         assert_eq!(system[6], 5);
         assert_eq!(system[7], 5);
+        assert_eq!(systems(&tree, 3)[7], 7);
+        assert_eq!(systems(&tree, 0)[7], 1);
+    }
+
+    #[test]
+    fn neighbour_budget_is_honoured_above_the_old_limit() {
+        let points: Vec<_> = (0..20).map(|i| Vec3::new(i as f64, 0., 0.)).collect();
+        let owners: Vec<_> = (0..20).collect();
+        for neighbours in [1, 12, 19] {
+            let cells = cells(&points, &owners, neighbours);
+            assert!(cells.iter().flatten().all(|c| c.walls.len() == neighbours));
+        }
     }
 }

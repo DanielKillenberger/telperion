@@ -118,9 +118,16 @@ fn stations(
     let mut stations = Vec::new();
     if let Some(t) = twig {
         let internodes = (length / t.internode_length - 1e-9).ceil().max(1.);
-        if internodes > 512. / t.stations_per_internode as f64 {
-            return Err(Error::ResourceLimit("twig station budget"));
+        if !internodes.is_finite()
+            || internodes * t.stations_per_internode as f64 > p.max_instances as f64
+            || internodes * t.stations_per_internode as f64
+                >= (isize::MAX as usize / std::mem::size_of::<f64>()) as f64
+        {
+            return Err(Error::ResourceLimit("foliage instance budget"));
         }
+        stations
+            .try_reserve_exact(internodes as usize * t.stations_per_internode as usize)
+            .map_err(|_| Error::ResourceLimit("foliage allocation"))?;
         for i in 0..internodes as usize {
             for _ in 0..t.stations_per_internode {
                 stations.push(i as f64 * t.internode_length);
@@ -128,11 +135,20 @@ fn stations(
         }
         return Ok(stations);
     }
-    let spacing = (p.spacing * envelope.height.max(1e-6)).max(1e-4);
-    let count = (length / spacing).ceil();
-    if count > 512. - p.clump as f64 {
-        return Err(Error::ResourceLimit("shoot station budget"));
+    let spacing = p.spacing * envelope.height;
+    if !spacing.is_finite() || spacing <= 0.0 {
+        return Err(Error::InvalidInput("foliage spacing"));
     }
+    let count = (length / spacing).ceil();
+    if !count.is_finite()
+        || count + p.clump as f64 > p.max_instances as f64
+        || count + p.clump as f64 >= (isize::MAX as usize / std::mem::size_of::<f64>()) as f64
+    {
+        return Err(Error::ResourceLimit("foliage instance budget"));
+    }
+    stations
+        .try_reserve_exact(count as usize + p.clump as usize)
+        .map_err(|_| Error::ResourceLimit("foliage allocation"))?;
     for i in 0..count as usize {
         stations.push(i as f64 * spacing);
     }

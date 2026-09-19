@@ -12,7 +12,7 @@ test('specimen handles recover, own reads and snapshots, and expire on replaceme
   const read = s.read(), saved = read.structure.values.slice();
   expect(read.envelope.crownBase).toBeGreaterThanOrEqual(0);
   const bytes = s.snapshot();
-  expect(bytes.schema).toBe(2);
+  expect(bytes.schema).toBe(3);
   expect(() => engine.buildSpecimen({ ...family, age: -1 })).toThrow(/age/);
   expect(s.read().structure.values).toEqual(saved);
   expect(() => s.advance(-1)).toThrow(/-1/);

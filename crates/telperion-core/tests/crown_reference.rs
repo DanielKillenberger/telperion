@@ -25,7 +25,10 @@ fn ordinary_and_giant_crowns() {
         let bias = GrowthBias::new(envelope, seed, BiasParams::default()).unwrap();
         let tree = colonize(&points, Vec3::ZERO, &config, Some(&bias)).unwrap();
         tree.validate().unwrap();
-        assert!(tree.nodes.len() > 100);
+        assert!(tree.nodes.iter().any(|node| {
+            node.position.y >= config.trunk_height
+                && envelope.contains(node.position, 0.0, config.seed)
+        }));
         assert!(!tree.diagnostics.node_capped);
         assert_eq!(
             tree,
@@ -85,6 +88,7 @@ fn compare_pinned_fn6_when_requested() {
                     writhe_amplitude: b[3],
                     writhe_wavelength: b[4],
                     spiral_rate: b[5],
+                    ..Default::default()
                 },
             },
         )

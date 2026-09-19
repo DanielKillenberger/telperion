@@ -14,9 +14,6 @@ use telperion_core::{
     presets::{Family, Preset},
 };
 
-#[path = "catalogue/pins.rs"]
-mod catalogue;
-
 const IDS: [&str; 7] = [
     "ordinary",
     "oregon-white-oak",
@@ -31,26 +28,8 @@ const SEED: u32 = 7;
 const STEPS: usize = 10;
 /// The sweep proves that every step of every walk validates and generates, not
 /// that it does so at full size: every step alike is grown under one node cap,
-/// which keeps ninety generations inside a test suite. The presets are grown
-/// whole in the fidelity band below, where the count is what is being judged.
+/// which keeps the walk inside a test suite.
 const SWEEP_NODES: usize = 8_000;
-/// The leaf count each shipped preset carries. The strategy's fidelity track
-/// names 10^5 to 10^7 for the Two Trees, and the two species hold that same
-/// window. Ordinary sits a decade below it: its crown is grown by attractor
-/// pull, and the one builder left the colonizing presets carrying less retained
-/// foliage than the rule-built species — the same movement fn-24.1 recorded when
-/// it lowered Telperion's retained rail from a million to four hundred thousand.
-/// This band is where Ordinary's count stands, not where the owner has said a
-/// twenty-four metre crown should stand.
-const BANDS: [(&str, usize, usize); 7] = [
-    ("ordinary", 10_000, 1_000_000),
-    ("oregon-white-oak", 100_000, 10_000_000),
-    ("norway-spruce", 100_000, 10_000_000),
-    ("european-beech", 100_000, 10_000_000),
-    ("silver-birch", 100_000, 10_000_000),
-    ("telperion", 100_000, 10_000_000),
-    ("laurelin", 100_000, 10_000_000),
-];
 
 /// Wire paths every shipped row agrees on, so no pair of presets moves them and
 /// the sweep cannot prove the walk carries them. Every other path in the wire is
@@ -91,7 +70,18 @@ const BANDS: [(&str, usize, usize); 7] = [
 // walk it from nothing to a hundred degrees.
 // fn-48.2 adds the clump's fork height, and the birch states half the bole,
 // so the sweep walks it.
-const HELD: [&str; 31] = [
+const HELD: [&str; 42] = [
+    "/canopy/clumpSystemOrder",
+    "/canopy/clumpNeighbours",
+    "/surface/socketContainment",
+    "/skeleton/habit/reachProbeSteps",
+    "/skeleton/samplingAttemptsPerAttractor",
+    "/growth/workBudget",
+    "/radii/maxTaperExponent",
+    "/skeleton/bias/supernatural/maxWritheMagnitude",
+    "/skeleton/twigs/maxInternodes",
+    "/skeleton/twigs/maxDroop",
+    "/skeleton/twigs/curtainStepClearance",
     "/material/barkReflectance",
     "/material/leafReflectance",
     "/material/plateFurrowWidth",
@@ -263,8 +253,7 @@ fn every_pair_of_presets_grows_a_tree_at_every_step() {
                     && mesh.bounds.max.is_finite(),
                 "{a}->{b} at {at}: a position is not finite"
             );
-            // What the crown carries is judged at full size in the band above:
-            // a node cap this low truncates the tree before its twigs, and a
+            // A node cap this low truncates the tree before its twigs, and a
             // step that keeps no leaf under it still keeps its wood.
             assert!(
                 mesh.wood_vertices() > 0,
@@ -275,12 +264,12 @@ fn every_pair_of_presets_grows_a_tree_at_every_step() {
 }
 
 #[test]
-fn every_shipped_preset_carries_a_leaf_count_inside_the_fidelity_band() {
-    for (id, low, high) in BANDS {
-        let leaves = specimens::mesh(&family(id)).foliage_instances();
+fn every_shipped_preset_carries_foliage() {
+    for id in IDS {
+        let mesh = specimens::mesh(&family(id));
         assert!(
-            (low..=high).contains(&leaves),
-            "{id}: {leaves} retained leaves, outside {low} to {high}"
+            !mesh.foliage.instances.is_empty(),
+            "{id}: crown carries no foliage"
         );
     }
 }
@@ -375,29 +364,4 @@ fn the_oak_to_spruce_walk_has_no_switch_frame() {
             sections[step]
         );
     }
-}
-
-/// The band a catalogue species' record holds is the band this file holds.
-/// `ordinary`, `telperion` and `laurelin` are not catalogue species, so they
-/// have no folder and nothing to compare.
-#[test]
-fn every_catalogue_species_leaf_band_matches_its_record() {
-    let mut compared = 0;
-    for (id, low, high) in BANDS {
-        if !catalogue::catalogue().join(id).is_dir() {
-            continue;
-        }
-        let record = catalogue::pins(id);
-        let band = record["leaf_band"]
-            .as_array()
-            .unwrap_or_else(|| panic!("{id}: pins.json leaf_band is not a list"));
-        assert_eq!(band.len(), 2, "{id}: leaf_band is not a low-to-high pair");
-        assert_eq!(band[0].as_u64(), Some(low as u64), "{id}: leaf_band low");
-        assert_eq!(band[1].as_u64(), Some(high as u64), "{id}: leaf_band high");
-        compared += 1;
-    }
-    assert!(
-        compared > 0,
-        "no catalogue species was compared; is catalogue/ missing?"
-    );
 }

@@ -83,6 +83,7 @@ impl Preset {
             // Mature, open-grown Quercus garryana. Metre dimensions are
             // calibrated against the frozen profile, not inferred from seed.
             p.skeleton.habit = HabitParams {
+                reach_probe_steps: crate::ranges::default_reach_probe_steps(),
                 apical_dominance: 0.1,
                 whorl_strength: 0.1,
                 leader_internode: 2.0,
@@ -157,6 +158,7 @@ impl Preset {
             p.growth.leaf_lifetime = 6.0;
             // Open-grown landscape Picea abies; one needle per local station.
             p.skeleton.habit = HabitParams {
+                reach_probe_steps: crate::ranges::default_reach_probe_steps(),
                 apical_dominance: 1.0,
                 whorl_strength: 1.0,
                 leader_internode: 0.9,
@@ -248,6 +250,7 @@ impl Preset {
         // The Two Trees are an order of magnitude taller than a forest tree,
         // and every spacing here is a length in metres.
         p.skeleton.habit = HabitParams {
+            reach_probe_steps: crate::ranges::default_reach_probe_steps(),
             apical_dominance: 0.15,
             whorl_strength: 0.2,
             leader_internode: 10.0,
@@ -300,6 +303,7 @@ impl Preset {
                     writhe_amplitude: 0.11,
                     writhe_wavelength: 0.34,
                     spiral_rate: 2.6,
+                    ..Default::default()
                 },
             }
         } else {
@@ -311,6 +315,7 @@ impl Preset {
                     writhe_amplitude: 0.05,
                     writhe_wavelength: 0.8,
                     spiral_rate: 0.6,
+                    ..Default::default()
                 },
             }
         };
@@ -323,15 +328,18 @@ impl Preset {
                 trunk_radius: 0.05,
                 fork_exponent: 2.15,
                 length_taper: 0.75,
+                ..Default::default()
             }
         } else {
             RadiusParams {
                 trunk_radius: 0.055,
                 fork_exponent: 2.7,
                 length_taper: 0.35,
+                ..Default::default()
             }
         };
         p.surface = SurfaceParams {
+            socket_containment: crate::ranges::default_socket_containment(),
             radial_segments: 12,
             lobes: if silver { 7 } else { 4 },
             lobe_depth: if silver { 0.11 } else { 0.24 },
@@ -343,6 +351,8 @@ impl Preset {
             fork_swell: 1.35,
         };
         p.canopy = CanopyParams {
+            clump_system_order: crate::ranges::default_clump_system_order(),
+            clump_neighbours: crate::ranges::default_clump_neighbours(),
             spacing: if silver { 0.0045 } else { 0.0065 },
             divergence: if silver { 137.508 } else { 99.502 },
             clump: if silver { 6 } else { 9 },

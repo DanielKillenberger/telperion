@@ -90,7 +90,7 @@ impl Pipes {
                     + p.length_taper
                         * tree.nodes[parent].position.distance(tree.nodes[i].position)
                         / reference_height.max(1e-6))
-                .min(12.0);
+                .min(p.max_taper_exponent);
                 let mut at = Some(parent);
                 while let Some(j) = at {
                     if !dirty.insert(j) {

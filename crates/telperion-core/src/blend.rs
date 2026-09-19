@@ -51,6 +51,9 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
         skeleton.twigs.length_ratio, skeleton.twigs.ratio_power,
         skeleton.twigs.internode_factor, skeleton.twigs.limb_radius,
         skeleton.twigs.reach, skeleton.twigs.vigour_variation,
+        skeleton.twigs.max_droop, skeleton.twigs.curtain_step_clearance,
+        radii.max_taper_exponent,
+        surface.socket_containment,
         skeleton.twigs.hang, skeleton.twigs.pendulous_length,
         skeleton.twigs.pendulous_radius, skeleton.twigs.sag,
         skeleton.twigs.pendulous_variation, skeleton.twigs.curtain_drop,
@@ -165,10 +168,14 @@ pub fn families(a: &Family, b: &Family, t: f64) -> Result<Family> {
     walk!(count:
         skeleton.habit.laterals_per_station, skeleton.habit.lateral_orders,
         skeleton.habit.stems,
+        skeleton.habit.reach_probe_steps,
+        skeleton.sampling_attempts_per_attractor,
         skeleton.twigs.twig.stations_per_internode, skeleton.twigs.laterals,
         skeleton.twigs.generations,
+        skeleton.twigs.max_internodes, growth.work_budget,
         surface.radial_segments, surface.lobes,
         canopy.clump, canopy.short_shoot_leaves, element.cross_segments,
+        canopy.clump_system_order, canopy.clump_neighbours,
     );
     walk!(many: skeleton.attractors, canopy.max_instances);
     walk!(density: canopy.short_shoot_spacing);
@@ -308,6 +315,7 @@ fn supernatural(a: SupernaturalParams, b: SupernaturalParams, t: f64) -> Superna
         enabled: a.enabled || b.enabled,
         writhe_amplitude: linear(from.writhe_amplitude, to.writhe_amplitude, t),
         writhe_wavelength: linear(from.writhe_wavelength, to.writhe_wavelength, t),
+        max_writhe_magnitude: linear(a.max_writhe_magnitude, b.max_writhe_magnitude, t),
         spiral_rate: linear(from.spiral_rate, to.spiral_rate, t),
     }
 }
@@ -369,12 +377,14 @@ mod tests {
             writhe_amplitude: 9.0,
             writhe_wavelength: 9.0,
             spiral_rate: 9.0,
+            max_writhe_magnitude: 0.9,
         };
         let on = SupernaturalParams {
             enabled: true,
             writhe_amplitude: 0.1,
             writhe_wavelength: 0.5,
             spiral_rate: 2.0,
+            max_writhe_magnitude: 0.9,
         };
         let half = supernatural(off, on, 0.5);
         assert!(half.enabled);

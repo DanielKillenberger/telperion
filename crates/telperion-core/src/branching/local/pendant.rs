@@ -21,12 +21,7 @@ use super::*;
 /// The droop one shoot may take at full hang, and the rate it reaches that cap
 /// at over its own pendulous length. The hang row scales both, so a walk of
 /// the row carries the curtain down to nothing rather than switching it off.
-const DROOP_CAP: f64 = 0.35;
 const DROOP_SLOPE: f64 = 0.5;
-/// The share of its clearance above the floor one step of a pendulous shoot
-/// may spend. Never zero, so a curtain stops above its floor rather than
-/// stacking shoots on it.
-const CLEARANCE: f64 = 0.8;
 /// The salt a shoot's own share of the pendulous length is drawn with, beside
 /// the ones the local law draws a lateral's vigour and departure with.
 const RUN: u32 = 0x3c6ef372;
@@ -34,6 +29,36 @@ const RUN: u32 = 0x3c6ef372;
 /// or per crown where the crown is shorter, and the halvings that close on it.
 const SEARCH: f64 = 32.0;
 const HALVINGS: usize = 32;
+
+#[cfg(test)]
+mod limit_tests {
+    use super::*;
+    #[test]
+    fn droop_and_step_clearance_are_authored() {
+        let c = Curtain {
+            hang: 1.,
+            across: Vec3::X,
+            floor: Some(0.),
+        };
+        let mut t = TwigParams::default();
+        let first = c.direction(Vec3::Y, 10., 1., t);
+        t.max_droop = 0.7;
+        assert!(c.direction(Vec3::Y, 10., 1., t).y < first.y);
+        assert_eq!(c.clear(1., 1., 1., t), 0.8);
+        t.curtain_step_clearance = 0.4;
+        assert_eq!(c.clear(1., 1., 1., t), 0.4);
+    }
+    #[test]
+    fn lower_surface_search_closes_to_numeric_precision() {
+        let e = Envelope {
+            irregularity: 0.2,
+            ..Default::default()
+        };
+        let x = e.max_radius() * 0.5;
+        let y = lower_surface(&e, 7, Vec3::new(x, e.height, 0.), e.height).unwrap();
+        assert!((e.radius_toward(Vec3::new(x, y, 0.), 7) - x).abs() < 1e-8);
+    }
+}
 
 /// One shoot's curtain: how strongly it hangs, the bearing its laterals spread
 /// along, and the height its first descending ancestor's tip set as a floor.
@@ -99,9 +124,9 @@ impl Curtain {
 
     /// The most of `length` a step descending at `descent` may take without
     /// passing the floor, keeping a share of the clearance in hand.
-    pub fn clear(self, y: f64, descent: f64, length: f64) -> f64 {
+    pub fn clear(self, y: f64, descent: f64, length: f64, t: TwigParams) -> f64 {
         self.floor.map_or(length, |floor| {
-            length.min((y - floor).max(0.0) / descent.max(1e-9) * CLEARANCE)
+            length.min((y - floor).max(0.0) / descent.max(1e-9) * t.curtain_step_clearance)
         })
     }
 
@@ -140,10 +165,10 @@ impl Curtain {
     pub fn direction(self, upright: Vec3, y: f64, side: f64, t: TwigParams) -> Vec3 {
         let droop = self
             .floor
-            .map_or(DROOP_CAP, |floor| {
+            .map_or(t.max_droop, |floor| {
                 (y - floor) / t.pendulous_length * DROOP_SLOPE
             })
-            .clamp(0.0, DROOP_CAP)
+            .clamp(0.0, t.max_droop)
             * self.hang;
         let hung = (self.across * side - Vec3::Y * droop).normalized();
         if self.hang >= 1.0 {
@@ -241,11 +266,11 @@ fn lower_surface(shell: &Envelope, seed: u32, p: Vec3, limit: f64) -> Option<f64
     if span <= 0.0 || widest <= 0.0 || radial > widest {
         return None;
     }
-    let shoulder = shell.shoulder.max(0.1);
+    let shoulder = shell.shoulder;
     let rising = (1.0 - (radial / widest).powf_fixed(shoulder))
         .max(0.0)
         .powf_fixed(1.0 / shoulder);
-    let mut low = base + span * shell.fullness.clamp(0.001, 0.999) * (1.0 - rising);
+    let mut low = base + span * shell.fullness * (1.0 - rising);
     if !outside(low) {
         return Some(low);
     }

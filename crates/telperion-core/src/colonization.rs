@@ -43,6 +43,7 @@ impl Default for GrowthConfig {
 }
 impl GrowthConfig {
     pub fn validate(&self) -> Result<()> {
+        crate::ranges::max_nodes(self.max_nodes)?;
         if ![
             self.influence_radius,
             self.kill_distance,
@@ -56,7 +57,6 @@ impl GrowthConfig {
             || !self.influence_radius.powi(2).is_finite()
             || !self.kill_distance.powi(2).is_finite()
             || !self.step_distance.powi(2).is_finite()
-            || self.max_nodes > u32::MAX as usize
         {
             return Err(Error::InvalidInput("colonization configuration"));
         }

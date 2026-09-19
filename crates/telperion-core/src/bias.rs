@@ -8,7 +8,6 @@ use crate::{
 };
 use std::f64::consts::TAU;
 
-pub const MIN_STEPS_PER_BEND: f64 = 8.0;
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct SupernaturalParams {
@@ -16,6 +15,11 @@ pub struct SupernaturalParams {
     pub writhe_amplitude: f64,
     pub writhe_wavelength: f64,
     pub spiral_rate: f64,
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_max_writhe_magnitude")
+    )]
+    pub max_writhe_magnitude: f64,
 }
 impl Default for SupernaturalParams {
     fn default() -> Self {
@@ -28,6 +32,7 @@ impl SupernaturalParams {
         writhe_amplitude: 0.0,
         writhe_wavelength: 0.45,
         spiral_rate: 0.0,
+        max_writhe_magnitude: crate::ranges::default_max_writhe_magnitude(),
     };
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -53,6 +58,19 @@ impl BiasParams {
         supernatural: SupernaturalParams::NONE,
     };
     pub fn validate(&self) -> Result<()> {
+        crate::ranges::MAX_WRITHE
+            .check(self.supernatural.max_writhe_magnitude, "maxWritheMagnitude")?;
+        if !self.supernatural.writhe_wavelength.is_finite()
+            || self.supernatural.writhe_wavelength <= 0.0
+        {
+            return Err(Error::InvalidInput("writheWavelength"));
+        }
+        if !(TAU * self.supernatural.spiral_rate * self.supernatural.writhe_amplitude).is_finite()
+            || !(TAU * self.supernatural.writhe_amplitude / self.supernatural.writhe_wavelength)
+                .is_finite()
+        {
+            return Err(Error::InvalidInput("supernatural numeric range"));
+        }
         if ![
             self.gravitropism,
             self.lean,
@@ -97,7 +115,7 @@ impl GrowthBias {
                 || self.params.supernatural.writhe_amplitude == 0.0)
     }
     /// Inputs are finite; direction is unit length and step is positive (validated by growth).
-    pub fn apply(&self, position: Vec3, direction: Vec3, step: f64) -> Vec3 {
+    pub fn apply(&self, position: Vec3, direction: Vec3, _step: f64) -> Vec3 {
         let p = self.params;
         let effects = if p.supernatural.enabled {
             p.supernatural
@@ -105,13 +123,8 @@ impl GrowthBias {
             SupernaturalParams::NONE
         };
         let height = self.envelope.height.max(1e-6);
-        let wavelength = effects
-            .writhe_wavelength
-            .max(0.001)
-            .max(MIN_STEPS_PER_BEND * step / height);
-        let turns = effects
-            .spiral_rate
-            .min(height / (MIN_STEPS_PER_BEND * step));
+        let wavelength = effects.writhe_wavelength;
+        let turns = effects.spiral_rate;
         let stray_limit = effects.writhe_amplitude * height;
         let t = (position.y / height).clamp(0.0, 1.0);
         let mean = self.lean * (p.lean * position.y);
@@ -148,8 +161,8 @@ impl GrowthBias {
             let over = (strayed / stray_limit).min(1.0);
             writhe += stray * (-2.0 * over * over * trunkness / strayed);
         }
-        if writhe.length() > 0.9 {
-            writhe = writhe.normalized() * 0.9;
+        if writhe.length() > p.supernatural.max_writhe_magnitude {
+            writhe = writhe.normalized() * p.supernatural.max_writhe_magnitude;
         }
         let biased = direction + writhe + Vec3::Y * (p.gravitropism * (0.55 + 0.45 * (1.0 - t)));
         if biased.length() < 1e-9 {

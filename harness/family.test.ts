@@ -42,6 +42,7 @@ describe("toSkeletonParams", () => {
         enabled: DEFAULT_PARAMS.supernaturalEnabled,
         writheAmplitude: 0.13,
         writheWavelength: 0.31,
+        maxWritheMagnitude: DEFAULT_PARAMS.maxWritheMagnitude,
         spiralRate: 2.5,
       },
     });
@@ -67,6 +68,7 @@ describe("toSkeletonParams", () => {
         enabled: DEFAULT_PARAMS.supernaturalEnabled,
         writheAmplitude: 0,
         writheWavelength: DEFAULT_BIAS.supernatural.writheWavelength,
+        maxWritheMagnitude: DEFAULT_BIAS.supernatural.maxWritheMagnitude,
         spiralRate: 0,
       },
     });
@@ -79,6 +81,7 @@ describe("toSkeletonParams", () => {
         enabled: DEFAULT_PARAMS.supernaturalEnabled,
         writheAmplitude: DEFAULT_BIAS.supernatural.writheAmplitude * 2,
         writheWavelength: DEFAULT_BIAS.supernatural.writheWavelength,
+        maxWritheMagnitude: DEFAULT_BIAS.supernatural.maxWritheMagnitude,
         spiralRate: DEFAULT_BIAS.supernatural.spiralRate * 2,
       },
     });
@@ -128,6 +131,9 @@ describe("toSkeletonParams", () => {
       reach: DEFAULT_PARAMS.reach,
       laterals: 2,
       generations: DEFAULT_PARAMS.twigGenerations,
+      maxInternodes: DEFAULT_PARAMS.maxInternodes,
+      maxDroop: DEFAULT_PARAMS.maxDroop,
+      curtainStepClearance: DEFAULT_PARAMS.curtainStepClearance,
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
       internodeFactor: DEFAULT_PARAMS.internodeFactor,

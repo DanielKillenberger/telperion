@@ -59,6 +59,19 @@ fn plain() -> SurfaceParams {
     }
 }
 
+#[test]
+fn socket_containment_changes_the_authored_junction_depth() {
+    let (tree, _) = clump(false);
+    let a = plain();
+    let b = SurfaceParams {
+        socket_containment: 0.,
+        ..a
+    };
+    let first = sweep(&tree, &a);
+    let second = sweep(&tree, &b);
+    assert!(first.iter().zip(&second).any(|(a, b)| a.2[0].p != b.2[0].p));
+}
+
 /// The samples of every run: whether it is the trunk, its nodes and rings.
 fn sweep(tree: &Tree, params: &SurfaceParams) -> Vec<(bool, Vec<usize>, Vec<Sample>)> {
     let paths = paths(&tree.nodes).unwrap();

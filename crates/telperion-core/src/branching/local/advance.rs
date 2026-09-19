@@ -123,13 +123,13 @@ impl Frontier {
                 let draw = |salt| 2.0 * Rng::new(key ^ seed ^ salt).next_f64() - 1.0;
                 let ratio = if lateral && t.vigour_variation != 0.0 {
                     (t.length_ratio * (1.0 + t.vigour_variation * draw(0x68bc21eb)))
-                        .clamp(0.05, 1.0)
+                        .clamp(crate::ranges::LENGTH_RATIO.0, crate::ranges::LENGTH_RATIO.1)
                 } else {
                     t.length_ratio
                 };
                 let departure = if lateral && t.angle_variation != 0.0 {
                     (t.angle + t.angle_variation * draw(0x02e5be93))
-                        .clamp(0.0, 90.0)
+                        .clamp(crate::ranges::ANGLE.0, crate::ranges::ANGLE.1)
                         .to_radians()
                 } else {
                     tilt
@@ -160,10 +160,6 @@ impl Frontier {
                 } else {
                     s.internodes
                 };
-                if !is_twig && generation >= MAX_LEVELS {
-                    tree.diagnostics.level_capped = true;
-                    continue;
-                }
                 let wanted = if !lateral {
                     from
                 } else {
@@ -193,7 +189,7 @@ impl Frontier {
                         wanted,
                         t.twig.length,
                     );
-                    let twig_length = s.curtain.clear(position.y, -heading.y, t.twig.length);
+                    let twig_length = s.curtain.clear(position.y, -heading.y, t.twig.length, t);
                     if twig_length <= 1e-9 {
                         continue;
                     }
@@ -225,7 +221,9 @@ impl Frontier {
                     (p, heading)
                 } else {
                     if starts {
-                        let length = s.curtain.clear(position.y, -wanted.normalized().y, length);
+                        let length = s
+                            .curtain
+                            .clear(position.y, -wanted.normalized().y, length, t);
                         run = planner.run(Axis {
                             start: position,
                             first: if lateral { wanted } else { from },

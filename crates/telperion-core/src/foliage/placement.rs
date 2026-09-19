@@ -51,6 +51,17 @@ pub struct CanopyParams {
     /// system's centre: each limb system then keeps a rounded leaf mass of its
     /// own. Zero, the neutral, thins nothing.
     pub limb_clumping: f64,
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_clump_system_order")
+    )]
+    pub clump_system_order: u32,
+    /// Nearest neighbours and cell crossings in the clumping approximation.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_clump_neighbours")
+    )]
+    pub clump_neighbours: u32,
     /// Hard total budget. Exceeding it returns an error, never partial foliage.
     #[cfg_attr(feature = "json", serde(with = "crate::specimen::portable::index"))]
     pub max_instances: usize,
@@ -80,6 +91,8 @@ impl Default for CanopyParams {
             short_shoot_spread: 45.,
             // Neutral: every leaf the stations and the short shoots place.
             limb_clumping: 0.,
+            clump_system_order: crate::ranges::default_clump_system_order(),
+            clump_neighbours: crate::ranges::default_clump_neighbours(),
             max_instances: usize::MAX,
         }
     }
@@ -220,7 +233,7 @@ fn place_impl(
     // their own wood's stream, so the leaves above keep every byte.
     short_shoots::clothe(tree, envelope, seed, &p, &mut out, owners.as_mut())?;
     if let Some(owners) = owners {
-        clumping::thin(tree, &owners, seed, p.limb_clumping, &mut out);
+        clumping::thin(tree, &owners, seed, p, &mut out);
     }
     Ok(out)
 }

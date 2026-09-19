@@ -33,6 +33,12 @@ pub struct SurfaceParams {
     pub flare_falloff: f64,
     pub flare_depth: f64,
     pub fork_socket: f64,
+    /// Fraction of the parent's inscribed radius available for a socket.
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_socket_containment")
+    )]
+    pub socket_containment: f64,
     pub fork_swell: f64,
 }
 impl Default for SurfaceParams {
@@ -46,12 +52,14 @@ impl Default for SurfaceParams {
             flare_falloff: 0.022,
             flare_depth: 0.004,
             fork_socket: 0.5,
+            socket_containment: crate::ranges::default_socket_containment(),
             fork_swell: 1.35,
         }
     }
 }
 impl SurfaceParams {
     pub fn validate(&self) -> Result<()> {
+        crate::ranges::UNIT.check(self.socket_containment, "socketContainment")?;
         if !(3..=64).contains(&self.radial_segments)
             || self.lobes > 16
             || ![

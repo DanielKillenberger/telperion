@@ -107,6 +107,7 @@ export interface GrowerParams {
   writheAmplitude: number;
   /** The length of one bend, as a fraction of height. */
   writheWavelength: number;
+  maxWritheMagnitude: number;
   /** Turns about the trunk axis over the tree's full height. */
   spiralRate: number;
   /** Directional persistence: how far one growth step may turn from
@@ -136,6 +137,14 @@ export interface GrowerParams {
   laterals: number;
   /** Twig-law generations of branching: a lateral born at or past it is a twig whatever the pipe model left its radius. */
   twigGenerations: number;
+  maxInternodes: number;
+  maxDroop: number;
+  curtainStepClearance: number;
+  workBudget: number;
+  reachProbeSteps: number;
+  samplingAttemptsPerAttractor: number;
+  clumpSystemOrder: number;
+  clumpNeighbours: number;
   angleVariation: number;
   vigourVariation: number;
   twigAngle: number;
@@ -185,6 +194,7 @@ export interface GrowerParams {
    *  the longest unbranched run in the tree, so this is most of what a
    *  trunk's silhouette does between the ground and the first fork. */
   lengthTaper: number;
+  maxTaperExponent: number;
   /** Fraction of the height below which there is no crown: bare trunk.
    *  Big trees shed their lower limbs, so a tall tree wants more of
    *  this than a small one. */
@@ -219,6 +229,7 @@ export interface GrowerParams {
   /** How much wider the trunk is where it meets the ground, as a
    *  multiple of its radius there. 1 is no flare. */
   flareRadius: number;
+  socketContainment: number;
 
   /* All canopy terms survive preset round trips. shootRadius, spacing,
      clump and clumpSpan apply only without marked twig anatomy and are
@@ -304,6 +315,7 @@ export const SLIDERS: readonly SliderSpec[] = [
   { key: "lean", label: "lean", min: 0, max: 0.5, step: 0.01, unit: "" },
   { key: "writheAmplitude", label: "writhe", min: 0, max: 0.25, step: 0.01, unit: "" },
   { key: "writheWavelength", label: "bend length", min: 0.18, max: 1.2, step: 0.01, unit: "" },
+  { key: "maxWritheMagnitude", label: "maximum writhe", min: 0, max: 8, step: 0.01, unit: "" },
   { key: "spiralRate", label: "spiral", min: 0, max: 6, step: 0.1, unit: "" },
   // Stiffness, and the one dial that is a rail as well as a look: past
   // about 90 a step can turn back on the one before it and the crown
@@ -350,6 +362,12 @@ export const SLIDERS: readonly SliderSpec[] = [
      deeper twig layer it did not ask for; this row states the depth
      instead. Six is the neutral - the deepest shipped tree branches four. */
   { key: "twigGenerations", label: "twig generations", min: 1, max: 6, step: 1, unit: "" },
+  { key: "maxInternodes", label: "maximum internodes", min: 1, max: 4294967295, step: 1, unit: "" },
+  { key: "maxDroop", label: "maximum droop", min: 0, max: 10, step: 0.01, unit: "" },
+  { key: "curtainStepClearance", label: "curtain step clearance", min: 0, max: 1, step: 0.01, unit: "" },
+  { key: "workBudget", label: "growth work budget", min: 1, max: 4294967295, step: 1, unit: "" },
+  { key: "reachProbeSteps", label: "reach probe steps", min: 1, max: 4294967295, step: 1, unit: "" },
+  { key: "samplingAttemptsPerAttractor", label: "sampling attempts per attractor", min: 1, max: 4294967295, step: 1, unit: "" },
   { key: "limbRadius", label: "limbRadius", min: 0, max: 1, step: 0.005, unit: "r" },
   // Measured on Telperion: at 0 the 79 cm colonization tips end at the
   // shell and 21 m branches reach out past it, the cactus the owner saw;
@@ -402,6 +420,8 @@ export const SLIDERS: readonly SliderSpec[] = [
   // up, on exactly the trees the 400 m height ceiling was added for.
   { key: "trunkRadius", label: "trunk", min: 0.004, max: 0.085, step: 0.001, unit: "h" },
   { key: "lengthTaper", label: "length taper", min: 0, max: 2, step: 0.05, unit: "" },
+  { key: "maxTaperExponent", label: "maximum taper exponent", min: 0, max: 64, step: 0.1, unit: "" },
+  { key: "socketContainment", label: "socket containment", min: 0, max: 1, step: 0.01, unit: "" },
   { group: "envelope", key: "crownBase", label: "crown base", min: 0, max: 0.6, step: 0.01, unit: "" },
   /* The last two terms of the authored silhouette. `spread` says how
      far the crown reaches and these two say what shape it is on the
@@ -437,6 +457,8 @@ export const SLIDERS: readonly SliderSpec[] = [
      Divergence steps in thousandths to retain the authored phyllotaxis;
      the other leaf controls keep the placement stage's existing rails. */
   { group: "canopy", key: "divergence", label: "divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
+  { key: "clumpSystemOrder", label: "clump system order", min: 0, max: 4294967295, step: 1, unit: "" },
+  { key: "clumpNeighbours", label: "clump neighbours", min: 1, max: 4294967295, step: 1, unit: "" },
   { key: "outward", label: "leaf outward", min: -1, max: 1, step: 0.01, unit: "" },
   { key: "upward", label: "leaf upward", min: -1, max: 1, step: 0.01, unit: "" },
   { key: "scatter", label: "leaf scatter", min: 0, max: 90, step: 1, unit: "deg" },

@@ -167,10 +167,8 @@ impl Specimen {
         }
     }
 }
-fn placement_key(id: PlacementIdentity) -> u64 {
-    // The generator caps a shoot at 512 stations and lifetime growth at 250k
-    // units; its monotone birth counter is comfortably inside this key space.
-    id.shoot.birth_order() * 512 + u64::from(id.station)
+fn placement_key(id: PlacementIdentity) -> u128 {
+    (u128::from(id.shoot.birth_order()) << u32::BITS) | u128::from(id.station)
 }
 
 #[cfg(test)]

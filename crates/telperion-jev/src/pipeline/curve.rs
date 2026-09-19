@@ -12,7 +12,6 @@
 use serde::{Deserialize, Serialize};
 
 /// Geometric growth work available over a specimen's life, from `telperion-core`.
-const LIFETIME_UNITS: f64 = 250_000.0;
 const M_PER_FT: f64 = 0.3048;
 const M_PER_IN: f64 = 0.0254;
 const CM_PER_IN: f64 = 2.54;
@@ -302,10 +301,11 @@ pub fn reference_at(c: &Composition, age_years: f64) -> Result<f64, CurveError> 
     }
 }
 
-/// The generator's Chapman-Richards envelope fraction, on std arithmetic.
+/// The generator's Chapman-Richards fraction at the default work budget.
+/// Curve fitting does not currently author a family's workBudget.
 pub fn fraction(rate: f64, shape: f64, year: f64) -> f64 {
     let f = (1.0 - (-rate * year).exp()).powf(shape);
-    if f >= 1.0 - 0.5 / LIFETIME_UNITS {
+    if f >= 1.0 - 0.5 / telperion_core::ranges::DEFAULT_WORK_BUDGET as f64 {
         1.0
     } else {
         f

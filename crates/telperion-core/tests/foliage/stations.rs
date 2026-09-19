@@ -1,6 +1,38 @@
 use super::*;
 
 #[test]
+fn a_shoot_can_carry_more_than_512_authored_stations() {
+    let t = twig(12.);
+    let p = CanopyParams {
+        max_instances: 600,
+        ..bare()
+    };
+    let leaves = place(
+        &t,
+        Envelope::default(),
+        7,
+        p,
+        Some(TwigPlacement::default()),
+        twig_box(12.),
+    )
+    .unwrap();
+    assert_eq!(leaves.len(), 600);
+    let error = place(
+        &t,
+        Envelope::default(),
+        7,
+        CanopyParams {
+            max_instances: 599,
+            ..p
+        },
+        Some(TwigPlacement::default()),
+        twig_box(12.),
+    )
+    .unwrap_err();
+    assert!(error.to_string().contains("foliage instance budget"));
+}
+
+#[test]
 fn twig_stations_and_owned_deterministic_frames() {
     let t = twig(0.04);
     let before = t.clone();
@@ -257,7 +289,10 @@ fn fallback_folds_zero_edges_and_clumps_at_terminal_tip() {
         &crowded,
         Envelope::default(),
         7,
-        p,
+        CanopyParams {
+            max_instances: 512,
+            ..p
+        },
         Some(TwigPlacement::default()),
         Reference::spanning(Vec3::new(-1., 9., -1.), Vec3::new(1., 101., 1.))
     )

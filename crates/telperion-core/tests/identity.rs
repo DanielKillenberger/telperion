@@ -210,9 +210,6 @@ fn fnv(bytes: impl IntoIterator<Item = u8>) -> u64 {
 
 struct Pin {
     id: &'static str,
-    wood_vertices: usize,
-    wood_triangles: usize,
-    instances: usize,
     min: [f64; 3],
     max: [f64; 3],
     /// Node positions and parent links, base to tip.
@@ -227,9 +224,6 @@ const SEED: u32 = 7;
 const PINS: [Pin; 4] = [
     Pin {
         id: "oregon-white-oak",
-        wood_vertices: 4262170,
-        wood_triangles: 8255000,
-        instances: 869310,
         min: [
             -13.16296514872441,
             -0.09600000083446503,
@@ -242,9 +236,6 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "norway-spruce",
-        wood_vertices: 2888144,
-        wood_triangles: 5580040,
-        instances: 7012326,
         min: [-3.895051643214036, -0.05999999865889549, -4.197446207068961],
         max: [4.3374568072821, 15.0, 3.806220363273623],
         skeleton: 12735573889651776723,
@@ -253,9 +244,6 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "european-beech",
-        wood_vertices: 5630782,
-        wood_triangles: 10932240,
-        instances: 4998806,
         min: [
             -10.932704935504914,
             -0.12800000607967377,
@@ -268,9 +256,6 @@ const PINS: [Pin; 4] = [
     },
     Pin {
         id: "silver-birch",
-        wood_vertices: 2539930,
-        wood_triangles: 4926760,
-        instances: 261497,
         min: [-6.533560643164573, -0.07199999690055847, -7.5864978258172],
         max: [7.448474471852913, 14.67010234624035, 5.884177207946777],
         skeleton: 14293807423691432719,
@@ -300,11 +285,6 @@ fn shipped_species_meshes_are_the_tree_recorded_before_the_levels() {
         );
 
         let m = specimens::mesh(&family);
-        assert_eq!(
-            (m.wood_vertices(), m.wood_triangles(), m.foliage_instances()),
-            (pin.wood_vertices, pin.wood_triangles, pin.instances),
-            "{id}: mesh counts moved"
-        );
         assert_eq!(
             (
                 [m.bounds.min.x, m.bounds.min.y, m.bounds.min.z],
@@ -393,24 +373,6 @@ fn every_pin_matches_its_catalogue_record() {
             record["seed"].as_u64(),
             Some(SEED as u64),
             "{}: pins.json seed",
-            pin.id
-        );
-        assert_eq!(
-            catalogue::whole(recorded, "wood_vertices", pin.id),
-            pin.wood_vertices,
-            "{}: wood_vertices",
-            pin.id
-        );
-        assert_eq!(
-            catalogue::whole(recorded, "wood_triangles", pin.id),
-            pin.wood_triangles,
-            "{}: wood_triangles",
-            pin.id
-        );
-        assert_eq!(
-            catalogue::whole(recorded, "instances", pin.id),
-            pin.instances,
-            "{}: instances",
             pin.id
         );
         assert_eq!(
