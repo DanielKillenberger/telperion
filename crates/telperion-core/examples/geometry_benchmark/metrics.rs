@@ -209,7 +209,7 @@ pub fn foliage_bins(tree: &Tree, element: &Element, kept: &Instances) -> Result<
             "foliage-bins-v1",
             "individual biological units",
             0,
-            kept.matrices.len(),
+            kept.len(),
             Some(reason),
         )
     };
@@ -219,17 +219,17 @@ pub fn foliage_bins(tree: &Tree, element: &Element, kept: &Instances) -> Result<
     let Some(root) = tree.nodes.first() else {
         return Ok(unavailable("empty-tree"));
     };
-    if kept.matrices.is_empty() {
+    if kept.is_empty() {
         return Ok(unavailable("empty-foliage"));
     }
     let mut centroids = Vec::new();
     let mut ymin = f64::INFINITY;
     let mut ymax = f64::NEG_INFINITY;
     let mut radius: f64 = 0.;
-    for matrix in &kept.matrices {
+    for matrix in kept.matrices() {
         let mut centroid = telperion_core::math::Vec3::ZERO;
         for vertex in &element.positions[anatomy.vertices.clone()] {
-            let p = transform_point(matrix, *vertex);
+            let p = transform_point(&matrix, *vertex);
             if !p.is_finite() {
                 return Err("nonfinite-geometry: biological vertex".into());
             }

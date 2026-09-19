@@ -274,10 +274,28 @@ fn a_lateral_the_cap_makes_a_twig_still_bears_its_leaves() {
             stations_per_internode: t.twig.stations_per_internode,
         }),
         &f.surface,
+        // The wood is hand built, so the box is spanned over it with a metre
+        // for the stand-off a station takes from the wood it sits on.
+        foliage::Reference::spanning(
+            tree.nodes.iter().fold(Vec3::new(1e9, 1e9, 1e9), |a, n| {
+                Vec3::new(
+                    a.x.min(n.position.x - 1.),
+                    a.y.min(n.position.y - 1.),
+                    a.z.min(n.position.z - 1.),
+                )
+            }),
+            tree.nodes.iter().fold(Vec3::new(-1e9, -1e9, -1e9), |a, n| {
+                Vec3::new(
+                    a.x.max(n.position.x + 1.),
+                    a.y.max(n.position.y + 1.),
+                    a.z.max(n.position.z + 1.),
+                )
+            }),
+        ),
     )
     .expect("leaves are placed");
     assert!(
-        placed.matrices.len() > capped.len(),
+        placed.len() > capped.len(),
         "the capped twigs carry no leaves"
     );
 }

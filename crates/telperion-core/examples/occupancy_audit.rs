@@ -87,6 +87,7 @@ fn main() {
                         stations_per_internode: 1,
                     }),
                     &f.surface,
+                    foliage::Reference::of(&f).unwrap(),
                 )
                 .unwrap();
                 let element = foliage::build_element(f.element).unwrap();
@@ -238,12 +239,12 @@ fn main() {
                         .sum();
                     let count = (length / t.twig.internode_length - 1e-9).ceil().max(1.0) as usize;
                     if selected {
-                        runs.push(json!({"nodes":run,"length_m":length,"first_instance":offset,"matrices":placed.matrices[offset..offset+count]}));
+                        runs.push(json!({"nodes":run,"length_m":length,"first_instance":offset,"matrices":placed.matrices().skip(offset).take(count).collect::<Vec<_>>()}));
                     }
                     offset += count;
                 }
-                assert_eq!(offset, placed.matrices.len());
-                data["curtain"] = json!({"root":root,"socket":tree.nodes[root].parent,"origin":xyz(tree.nodes[tree.nodes[root].parent.unwrap() as usize].position),"pinned_reference":pinned,"wood_triangles":wood_triangles,"runs":runs,"prototype":element.positions.iter().map(|&p|xyz(p)).collect::<Vec<_>>(),"needle_indices":element.indices[element.anatomy.unwrap().indices].to_vec(),"total_instances":placed.matrices.len()});
+                assert_eq!(offset, placed.len());
+                data["curtain"] = json!({"root":root,"socket":tree.nodes[root].parent,"origin":xyz(tree.nodes[tree.nodes[root].parent.unwrap() as usize].position),"pinned_reference":pinned,"wood_triangles":wood_triangles,"runs":runs,"prototype":element.positions.iter().map(|&p|xyz(p)).collect::<Vec<_>>(),"needle_indices":element.indices[element.anatomy.unwrap().indices].to_vec(),"total_instances":placed.len()});
             }
             std::fs::write(
                 format!("{output}/{}-{seed}.json", preset.profile_id().unwrap()),

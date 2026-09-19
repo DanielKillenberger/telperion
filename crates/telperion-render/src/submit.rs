@@ -1,6 +1,7 @@
 //! What a tree costs before it is uploaded, and what it turned into after. The
 //! fit check is a pure function so a caller can ask before it owns a device.
 use telperion_core::{
+    foliage::Leaf,
     math::Vec3,
     mesh::{Foliage, TreeMesh},
     surface::Bounds,
@@ -29,12 +30,8 @@ pub struct Submitted {
 /// worth a pass over the whole crown to learn.
 pub fn crown_of(foliage: &Foliage) -> Option<Bounds> {
     let mut bounds: Option<Bounds> = None;
-    for placement in &foliage.instances.matrices {
-        let at = Vec3::new(
-            f64::from(placement[12]),
-            f64::from(placement[13]),
-            f64::from(placement[14]),
-        );
+    for index in 0..foliage.instances.len() {
+        let at = foliage.instances.position(index);
         bounds = Some(match bounds {
             Some(b) => Bounds {
                 min: Vec3::new(b.min.x.min(at.x), b.min.y.min(at.y), b.min.z.min(at.z)),
@@ -52,7 +49,7 @@ pub fn crown_of(foliage: &Foliage) -> Option<Bounds> {
 pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
     let bytes = |count: usize, width: usize| (count * width) as u64;
     let element = &mesh.foliage.element;
-    let instances = mesh.foliage.instances.matrices.len();
+    let instances = mesh.foliage.instances.len();
     // Selection reads the placements and writes the lists through storage
     // bindings, which the device caps on their own beside the buffer size.
     let stored = limits
@@ -96,7 +93,7 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
         ),
         (
             "foliage instances",
-            bytes(instances, size_of::<[f32; 16]>()),
+            bytes(instances, size_of::<Leaf>()),
             stored,
         ),
         ("foliage level lists", selection.lists, stored),
@@ -160,7 +157,7 @@ pub fn fits(limits: &wgpu::Limits, mesh: &TreeMesh) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use telperion_core::foliage::{Element, Instances};
+    use telperion_core::foliage::{Element, Instances, Reference};
 
     fn placement(at: [f32; 3]) -> [f32; 16] {
         let mut m = [0.0; 16];
@@ -169,21 +166,42 @@ mod tests {
         m
     }
 
+    /// The placements as a crown quantised against a box that holds them.
+    fn placed(leaves: &[[f32; 16]]) -> Instances {
+        let mut out = Instances::new(Reference::spanning(
+            Vec3::new(-4.0, 0.0, -4.0),
+            Vec3::new(4.0, 8.0, 4.0),
+        ));
+        for m in leaves {
+            out.push(m);
+        }
+        out
+    }
+
     #[test]
     fn the_crown_is_the_box_the_placements_fill_and_nothing_when_there_are_none() {
+        let instances = placed(&[
+            placement([1.0, 2.0, -3.0]),
+            placement([-1.0, 6.0, 3.0]),
+            placement([0.0, 4.0, 0.0]),
+        ]);
+        let step = instances.reference.step();
         let foliage = Foliage {
             element: Element::default(),
-            instances: Instances {
-                matrices: vec![
-                    placement([1.0, 2.0, -3.0]),
-                    placement([-1.0, 6.0, 3.0]),
-                    placement([0.0, 4.0, 0.0]),
-                ],
-            },
+            instances,
         };
         let crown = crown_of(&foliage).expect("three leaves stand somewhere");
-        assert_eq!((crown.min.x, crown.min.y, crown.min.z), (-1.0, 2.0, -3.0));
-        assert_eq!((crown.max.x, crown.max.y, crown.max.z), (1.0, 6.0, 3.0));
+        // Where a leaf stands is read back off its words, so the box the crown
+        // fills is the placements' own to within half a code on each axis.
+        let near = |got: f64, want: f64, step: f64| {
+            assert!((got - want).abs() <= step / 2.0, "{got} is not {want}");
+        };
+        near(crown.min.x, -1.0, step.x);
+        near(crown.min.y, 2.0, step.y);
+        near(crown.min.z, -3.0, step.z);
+        near(crown.max.x, 1.0, step.x);
+        near(crown.max.y, 6.0, step.y);
+        near(crown.max.z, 3.0, step.z);
         // A crown of no leaves is no interior at all, and the leaf view says so
         // by having nothing to be deep inside.
         assert!(crown_of(&Foliage {

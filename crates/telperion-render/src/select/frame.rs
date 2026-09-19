@@ -17,6 +17,9 @@ pub struct Uniforms {
     pub forward: [f32; 4],
     /// The element's bounding sphere at the origin: centre, then radius.
     pub sphere: [f32; 4],
+    /// The box the core quantised every leaf position against.
+    pub box_min: [f32; 4],
+    pub box_extent: [f32; 4],
     pub instances: u32,
     pub levels: u32,
     pub stride: u32,

@@ -180,6 +180,7 @@ fn catalogue_roundtrips_all_controls_and_identities() {
                 f.skeleton.seed,
                 f.canopy,
                 None,
+                crate::foliage::Reference::of(&f).unwrap(),
             )
             .err(),
             Some(Error::InvalidInput(message))

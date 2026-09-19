@@ -2,7 +2,7 @@
 //! a tree the device cannot hold is refused by name rather than truncated, and
 //! each view draws what its name promises.
 use telperion_core::{
-    foliage::{build_element, Element, ElementParams, Instances, Level as Section},
+    foliage::{build_element, Element, ElementParams, Instances, Level as Section, Reference},
     math::Vec3,
     mesh::{self, Detail, Foliage, TreeMesh},
     params,
@@ -11,6 +11,16 @@ use telperion_core::{
 use telperion_render::{
     fits, hero_pose, render, Level, Region, Renderer, View, GROUND_REACH, MAX_LEVELS, STILL_FORMAT,
 };
+
+/// `count` leaves at the origin, which is all a fit or a byte-count check
+/// reads of them.
+fn leaves(count: usize) -> Instances {
+    let mut out = Instances::new(Reference::default());
+    for _ in 0..count {
+        out.push(&[0.0; 16]);
+    }
+    out
+}
 
 mod common;
 use common::gpu;
@@ -35,9 +45,7 @@ fn small() -> TreeMesh {
         },
         foliage: Foliage {
             element: Element::default(),
-            instances: Instances {
-                matrices: vec![[0.0; 16]; 2],
-            },
+            instances: leaves(2),
         },
         bounds: Bounds {
             min: Vec3::ZERO,
@@ -71,7 +79,7 @@ fn crown(levels: usize, indices: usize, instances: usize) -> TreeMesh {
             .collect(),
         ..Element::default()
     };
-    mesh.foliage.instances.matrices = vec![[0.0; 16]; instances];
+    mesh.foliage.instances = leaves(instances);
     mesh
 }
 
@@ -127,7 +135,12 @@ fn every_buffer_that_will_not_fit_is_refused_by_name_and_by_size() {
         }),
         ("foliage instances", {
             let mut mesh = small();
-            mesh.foliage.instances.matrices = vec![[0.0; 16]; 100];
+            // Twelve bytes a leaf, so it takes a third as many leaves to
+            // outgrow the grant as it did at sixty-four - which is the whole
+            // point of the change, and why this count is derived from the
+            // stored width rather than written out.
+            mesh.foliage.instances =
+                leaves(granted as usize / size_of::<telperion_core::foliage::Leaf>() + 1);
             mesh
         }),
     ];
@@ -252,7 +265,7 @@ fn a_submitted_tree_is_the_tree_the_core_counted() {
             .expect("the placements were uploaded");
         assert_eq!(
             instances.used(),
-            (tree.foliage_instances() * size_of::<[f32; 16]>()) as u64,
+            (tree.foliage_instances() * size_of::<telperion_core::foliage::Leaf>()) as u64,
             "{id}: the live instance range is not the crown that was built"
         );
 

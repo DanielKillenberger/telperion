@@ -61,11 +61,7 @@ fn every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers() {
             "{id}"
         );
         assert_eq!(m.wood_triangles() * 3, m.wood.indices.len(), "{id}");
-        assert_eq!(
-            m.foliage_instances(),
-            m.foliage.instances.matrices.len(),
-            "{id}"
-        );
+        assert_eq!(m.foliage_instances(), m.foliage.instances.len(), "{id}");
         assert!(m.wood_triangles() > 0 && m.foliage_instances() > 0, "{id}");
         assert!(
             m.wood

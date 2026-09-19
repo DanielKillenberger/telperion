@@ -105,59 +105,75 @@ fn frozen_solved_tree_comparison() {
             stations_per_internode: number(&json, "stationsPerInternode") as u32,
         };
         let element = build_element(ElementParams::default()).unwrap();
+        // The frozen run predates the reference box, so one is spanned over
+        // the tree it froze, grown by a metre for the stand-off a station
+        // takes from the wood it sits on.
+        let (lo, hi) = tree.nodes.iter().fold(
+            (
+                Vec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY),
+                Vec3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY),
+            ),
+            |(lo, hi), n| {
+                let p = n.position;
+                (
+                    Vec3::new(lo.x.min(p.x), lo.y.min(p.y), lo.z.min(p.z)),
+                    Vec3::new(hi.x.max(p.x), hi.y.max(p.y), hi.z.max(p.z)),
+                )
+            },
+        );
+        let box_of = Reference::spanning(lo - Vec3::new(1., 1., 1.), hi + Vec3::new(1., 1., 1.));
         let placed = place(
             &tree,
             env,
             number(&json, "seed") as u32,
             params,
             Some(anatomy),
+            box_of,
         )
         .unwrap();
-        let placed_count = placed.matrices.len();
+        let placed_count = placed.len();
         let kept = cull(placed, &element, env, 0.45).unwrap();
         let bounds = kept.bounds(&element).unwrap();
         let old = bytes(dir, case, "foliage");
         assert_eq!(old.len() % 64, 0);
         assert_eq!(
-            kept.matrices.len(),
+            kept.len(),
             old.len() / 64,
             "{case}: retained membership/count drift"
         );
         let mut max_error = 0f64;
-        for (a, b) in kept
-            .matrices
-            .iter()
-            .flatten()
-            .zip(old.as_chunks::<4>().0.iter())
-        {
+        for (a, b) in kept.matrices().flatten().zip(old.as_chunks::<4>().0.iter()) {
             let b = f32::from_le_bytes(*b);
-            max_error = max_error.max((*a as f64 - b as f64).abs());
+            max_error = max_error.max((a as f64 - b as f64).abs());
         }
-        assert!(
-            max_error <= 8. * 2f64.powi(-23) * env.height.max(1.),
-            "{case}: matrix error {max_error}"
-        );
-        let reference = Instances {
-            matrices: old
-                .as_chunks::<64>()
-                .0
-                .iter()
-                .map(|m| {
-                    std::array::from_fn(|i| {
-                        f32::from_le_bytes(m[i * 4..i * 4 + 4].try_into().unwrap())
-                    })
-                })
-                .collect(),
-        };
+        // Quantisation is the floor now, not float drift: half a position
+        // code on the widest axis, and a rotation read back through
+        // ten-bit smallest-three components, whose worst column entry moves
+        // four code steps at the leaf's own scale.
+        let step = box_of.step();
+        let scale = kept
+            .leaves
+            .iter()
+            .map(|&leaf| box_of.scale(leaf))
+            .fold(0., f64::max);
+        let code = 2. * std::f64::consts::FRAC_1_SQRT_2 / 1023.;
+        let tolerance = (step.x.max(step.y).max(step.z) / 2.).max(4. * code * scale);
+        assert!(max_error <= tolerance, "{case}: matrix error {max_error}");
+        let mut frozen = Instances::new(box_of);
+        for m in old.as_chunks::<64>().0 {
+            frozen.push(&std::array::from_fn(|i| {
+                f32::from_le_bytes(m[i * 4..i * 4 + 4].try_into().unwrap())
+            }));
+        }
         assert_eq!(
             bounds,
-            reference.bounds(&element).unwrap(),
+            frozen.bounds(&element).unwrap(),
             "{case}: bounds drift"
         );
         println!(
             "{case}: placed={}, retained={}, max_matrix_error={max_error}, bounds={bounds:?}",
             placed_count,
-            kept.matrices.len()
+            kept.len()
         );
     }
 }

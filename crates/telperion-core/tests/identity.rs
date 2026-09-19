@@ -180,6 +180,14 @@
 //! seven at 0.55, so the interior is a crown and not a thicket. Its
 //! skeleton, placement, counts and bounds move; the element pin does not,
 //! and every other table is byte-identical.
+//! fn-86 re-pins the placement and the bounds of all four species once, and
+//! the instance count of two of them: a leaf is three words now, not sixteen
+//! floats, so the placement pin hashes the words the renderer receives and
+//! every leaf's position is read back off the reference box. Half a position
+//! code and a ten-bit rotation component move each crown box by about a tenth
+//! of a millimetre and carry two beech leaves out of the shell cull and one
+//! birch leaf into it; the oak's and the spruce's counts are unchanged. Every
+//! skeleton and every element pin is byte-identical.
 //! No device is needed; this is the core's own arithmetic.
 mod specimens;
 use telperion_core::{
@@ -209,7 +217,7 @@ struct Pin {
     max: [f64; 3],
     /// Node positions and parent links, base to tip.
     skeleton: u64,
-    /// Every retained instance matrix as the renderer receives it.
+    /// Every retained leaf's three words, as the renderer receives them.
     placement: u64,
     /// The element's positions and its whole index list.
     element: u64,
@@ -223,13 +231,13 @@ const PINS: [Pin; 4] = [
         wood_triangles: 8255000,
         instances: 869310,
         min: [
-            -13.163122928115051,
+            -13.16296514872441,
             -0.09600000083446503,
-            -13.242490423042556,
+            -13.242486306266482,
         ],
-        max: [13.217684715842124, 23.557227415847606, 13.003187181590542],
+        max: [13.217955959615209, 23.557249956180836, 13.003125025750427],
         skeleton: 14986275773972546726,
-        placement: 15624359871475047912,
+        placement: 13467347624575045185,
         element: 4207404028969543471,
     },
     Pin {
@@ -237,36 +245,36 @@ const PINS: [Pin; 4] = [
         wood_vertices: 2888144,
         wood_triangles: 5580040,
         instances: 7012326,
-        min: [-3.89500647744516, -0.05999999865889549, -4.197530933827597],
-        max: [4.337495164451377, 15.0, 3.8062214356137005],
+        min: [-3.895051643214036, -0.05999999865889549, -4.197446207068961],
+        max: [4.3374568072821, 15.0, 3.806220363273623],
         skeleton: 12735573889651776723,
-        placement: 8171270653015517335,
+        placement: 16009668874409195207,
         element: 7287062639823569932,
     },
     Pin {
         id: "european-beech",
         wood_vertices: 5630782,
         wood_triangles: 10932240,
-        instances: 4998808,
+        instances: 4998806,
         min: [
-            -10.932916729046667,
+            -10.932704935504914,
             -0.12800000607967377,
-            -10.620726570645942,
+            -10.620809443500821,
         ],
-        max: [11.738023752642789, 32.19426824035393, 11.282478529769147],
+        max: [11.737918649722355, 32.1939185820563, 11.282388017302269],
         skeleton: 18271545552042455757,
-        placement: 12375024254034778185,
+        placement: 1267229261659347364,
         element: 15097586524950800877,
     },
     Pin {
         id: "silver-birch",
         wood_vertices: 2539930,
         wood_triangles: 4926760,
-        instances: 261496,
-        min: [-6.533411344414747, -0.07199999690055847, -7.58635488410414],
-        max: [7.448466674116961, 14.669875796508304, 5.884177207946777],
+        instances: 261497,
+        min: [-6.533560643164573, -0.07199999690055847, -7.5864978258172],
+        max: [7.448474471852913, 14.67010234624035, 5.884177207946777],
         skeleton: 14293807423691432719,
-        placement: 3902580876089393132,
+        placement: 959305916660181259,
         element: 1566806128915370638,
     },
 ];
@@ -309,10 +317,10 @@ fn shipped_species_meshes_are_the_tree_recorded_before_the_levels() {
             fnv(m
                 .foliage
                 .instances
-                .matrices
+                .leaves
                 .iter()
                 .flatten()
-                .flat_map(|v| v.to_le_bytes())),
+                .flat_map(|w| w.to_le_bytes())),
             pin.placement,
             "{id}: leaf placement moved"
         );
@@ -330,12 +338,13 @@ fn shipped_species_meshes_are_the_tree_recorded_before_the_levels() {
     }
 }
 
-/// Prints every pin field for the two fn-34 species, to re-pin after a
-/// value change: `cargo test --release --test identity -- --ignored --nocapture print_pins`.
+/// Prints every pin field of every pinned species, to re-pin after a value
+/// change: `cargo test --release --test identity -- --ignored --nocapture print_pins`.
 #[test]
 #[ignore]
 fn print_pins() {
-    for id in ["european-beech", "silver-birch"] {
+    for pin in &PINS {
+        let id = pin.id;
         let mut family = Preset::from_id(id).unwrap().parameters();
         family.skeleton.seed = SEED;
         let tree = branching::generate(&family.skeleton, family.radii)
@@ -351,10 +360,10 @@ fn print_pins() {
         let placement = fnv(m
             .foliage
             .instances
-            .matrices
+            .leaves
             .iter()
             .flatten()
-            .flat_map(|v| v.to_le_bytes()));
+            .flat_map(|w| w.to_le_bytes()));
         let e = &m.foliage.element;
         let element = fnv(e
             .positions

@@ -8,15 +8,16 @@ fn twig_stations_and_owned_deterministic_frames() {
         stations_per_internode: 2,
         ..TwigPlacement::default()
     };
-    let a = place(&t, Envelope::default(), 7, bare(), Some(p)).unwrap();
-    assert_eq!(a.matrices.len(), 4);
+    let box_of = twig_box(0.04);
+    let a = place(&t, Envelope::default(), 7, bare(), Some(p), box_of).unwrap();
+    assert_eq!(a.len(), 4);
     assert_eq!(
         a,
-        place(&t, Envelope::default(), 7, bare(), Some(p)).unwrap()
+        place(&t, Envelope::default(), 7, bare(), Some(p), box_of).unwrap()
     );
     assert_eq!(t, before);
-    for (i, m) in a.matrices.iter().enumerate() {
-        let pos = transform_point(m, Vec3::ZERO);
+    for (i, m) in a.matrices().enumerate() {
+        let pos = transform_point(&m, Vec3::ZERO);
         assert!((pos.y - 10. - (i / 2) as f64 * 0.02).abs() < 1e-6);
         assert!((pos.x.hypot(pos.z) - 0.0025).abs() < 1e-6);
         let x = Vec3::new(m[0] as f64, m[1] as f64, m[2] as f64);
@@ -52,12 +53,13 @@ fn element_anatomy_and_bounds() {
             3,
             CanopyParams::default(),
             Some(TwigPlacement::default()),
+            twig_box(0.25),
         )
         .unwrap();
         let b = a.bounds(&e).unwrap().unwrap();
-        for m in &a.matrices {
+        for m in a.matrices() {
             for v in &e.positions {
-                let p = transform_point(m, *v);
+                let p = transform_point(&m, *v);
                 assert!(b.contains(p));
             }
         }
@@ -67,14 +69,21 @@ fn element_anatomy_and_bounds() {
 fn shell_membership_empty_and_invalid() {
     let e = build_element(ElementParams::default()).unwrap();
     let env = Envelope::default();
-    let a = place(&twig(0.25), env, 3, bare(), Some(TwigPlacement::default())).unwrap();
-    assert!(!a.matrices.is_empty());
-    assert!(cull(a.clone(), &e, env, 0.).unwrap().matrices.is_empty());
+    let a = place(
+        &twig(0.25),
+        env,
+        3,
+        bare(),
+        Some(TwigPlacement::default()),
+        twig_box(0.25),
+    )
+    .unwrap();
+    assert!(!a.is_empty());
+    assert!(cull(a.clone(), &e, env, 0.).unwrap().is_empty());
     assert_eq!(cull(a.clone(), &e, env, 1.).unwrap(), a);
     assert_eq!(Instances::default().bounds(&e).unwrap(), None);
-    assert!(place(&Tree::default(), env, 3, bare(), None)
+    assert!(place(&Tree::default(), env, 3, bare(), None, twig_box(0.))
         .unwrap()
-        .matrices
         .is_empty());
     for bad in [f64::NAN, f64::INFINITY, -1., 1e300] {
         assert!(place(
@@ -85,7 +94,8 @@ fn shell_membership_empty_and_invalid() {
                 size: bad,
                 ..bare()
             },
-            None
+            None,
+            twig_box(1.)
         )
         .is_err());
         assert!(build_element(ElementParams {
@@ -102,7 +112,8 @@ fn shell_membership_empty_and_invalid() {
             max_instances: 1,
             ..bare()
         },
-        Some(TwigPlacement::default())
+        Some(TwigPlacement::default()),
+        twig_box(1.)
     )
     .is_err());
     assert!(place(
@@ -113,12 +124,38 @@ fn shell_membership_empty_and_invalid() {
         Some(TwigPlacement {
             stations_per_internode: 0,
             ..TwigPlacement::default()
-        })
+        }),
+        twig_box(1.)
     )
     .is_err());
     let mut bad = twig(1.);
     bad.nodes[1].position.x = f64::MAX;
-    assert!(place(&bad, env, 1, bare(), Some(TwigPlacement::default())).is_err());
+    assert!(place(
+        &bad,
+        env,
+        1,
+        bare(),
+        Some(TwigPlacement::default()),
+        twig_box(1.)
+    )
+    .is_err());
+    // A box that is not a box is refused by name, whatever it holds.
+    let mut warped = a.clone();
+    warped.reference.extent.x = f64::NAN;
+    assert_eq!(
+        warped.validate().err(),
+        Some(Error::InvalidInput("foliage reference box"))
+    );
+    assert_eq!(
+        cull(warped, &e, env, 1.).err(),
+        Some(Error::InvalidInput("foliage reference box"))
+    );
+    let mut reversed = a.clone();
+    reversed.reference.extent.y = -1.;
+    assert_eq!(
+        cull(reversed, &e, env, 1.).err(),
+        Some(Error::InvalidInput("foliage reference box"))
+    );
 }
 
 #[test]
@@ -135,6 +172,7 @@ fn malformed_element_is_rejected_even_when_first_vertex_is_outside_shell() {
         7,
         bare(),
         Some(TwigPlacement::default()),
+        twig_box(0.04),
     )
     .unwrap();
     assert!(cull(a, &e, Envelope::default(), 1.).is_err());
@@ -152,8 +190,12 @@ fn fallback_folds_zero_edges_and_clumps_at_terminal_tip() {
         clump: 0,
         ..bare()
     };
-    let a = place(&t, Envelope::default(), 7, p, None).unwrap();
-    assert_eq!(a.matrices.len(), 9);
+    // The stem stands at x = 5 and runs to y = 4, and a station stands off it
+    // by the wood's own radius, a metre at the root. The box's y grid lands
+    // on 4 exactly, so a leaf at the tip stays at the tip.
+    let box_of = Reference::spanning(Vec3::new(3., -1., -2.), Vec3::new(7., 4., 2.));
+    let a = place(&t, Envelope::default(), 7, p, None, box_of).unwrap();
+    assert_eq!(a.len(), 9);
     let mut doubled = t.clone();
     let mut duplicate = t.nodes[0].clone();
     duplicate.parent = Some(0);
@@ -161,7 +203,10 @@ fn fallback_folds_zero_edges_and_clumps_at_terminal_tip() {
     doubled.nodes.insert(1, duplicate);
     doubled.nodes[2].parent = Some(1);
     doubled.nodes[2].branch = 2;
-    assert_eq!(place(&doubled, Envelope::default(), 7, p, None).unwrap(), a);
+    assert_eq!(
+        place(&doubled, Envelope::default(), 7, p, None, box_of).unwrap(),
+        a
+    );
     let clumped = place(
         &t,
         Envelope::default(),
@@ -172,11 +217,13 @@ fn fallback_folds_zero_edges_and_clumps_at_terminal_tip() {
             ..p
         },
         None,
+        box_of,
     )
     .unwrap();
-    assert_eq!(clumped.matrices.len(), a.matrices.len() + 4);
-    for m in &clumped.matrices[a.matrices.len()..] {
-        assert!(m[13] >= 3. && m[13] <= 4.);
+    assert_eq!(clumped.len(), a.len() + 4);
+    for i in a.len()..clumped.len() {
+        let y = clumped.position(i).y;
+        assert!((3. ..=4.).contains(&y));
     }
     assert!(place(
         &t,
@@ -186,10 +233,10 @@ fn fallback_folds_zero_edges_and_clumps_at_terminal_tip() {
             shoot_radius: 0.,
             ..p
         },
-        None
+        None,
+        box_of
     )
     .unwrap()
-    .matrices
     .is_empty());
     assert!(place(
         &t,
@@ -199,10 +246,10 @@ fn fallback_folds_zero_edges_and_clumps_at_terminal_tip() {
             shoot_radius: 0.,
             ..p
         },
-        Some(TwigPlacement::default())
+        Some(TwigPlacement::default()),
+        box_of
     )
     .unwrap()
-    .matrices
     .is_empty());
     let mut crowded = twig(1.);
     crowded.nodes[1].position.y = 100.;
@@ -211,7 +258,8 @@ fn fallback_folds_zero_edges_and_clumps_at_terminal_tip() {
         Envelope::default(),
         7,
         p,
-        Some(TwigPlacement::default())
+        Some(TwigPlacement::default()),
+        Reference::spanning(Vec3::new(-1., 9., -1.), Vec3::new(1., 101., 1.))
     )
     .is_err());
 }
@@ -223,37 +271,34 @@ fn shell_keeps_leaf_extent_and_crown_underside() {
     let m = [
         0., 1., 0., 0., 1., 0., 0., 0., 0., 0., -1., 0., 0., 15., 0., 1.,
     ];
-    let a = Instances { matrices: vec![m] };
-    assert!(cull(a.clone(), &small, env, 0.45)
-        .unwrap()
-        .matrices
-        .is_empty());
+    // The crown the two leaves below stand in: the deep one at 15 m and the
+    // one just under the crown's base at 7.21 m.
+    let box_of = Reference::spanning(Vec3::new(-1., -1., -1.), Vec3::new(1., 16., 1.));
+    let mut a = Instances::new(box_of);
+    a.push(&m);
+    assert!(cull(a.clone(), &small, env, 0.45).unwrap().is_empty());
     let long = build_element(ElementParams {
         length: 8.,
         ..ElementParams::default()
     })
     .unwrap();
     assert_eq!(cull(a.clone(), &long, env, 0.45).unwrap(), a);
-    let mut underside = m;
-    underside[13] = (env.height * env.crown_base + 0.01) as f32;
-    let underside = Instances {
-        matrices: vec![underside],
-    };
+    let mut under = m;
+    under[13] = (env.height * env.crown_base + 0.01) as f32;
+    let mut underside = Instances::new(box_of);
+    underside.push(&under);
     assert_eq!(
         cull(underside.clone(), &small, env, 0.45).unwrap(),
         underside
     );
-    let mut invalid = m;
-    invalid[15] = 0.;
-    assert!(cull(
-        Instances {
-            matrices: vec![invalid]
-        },
-        &small,
-        env,
-        0.45
-    )
-    .is_err());
+    // A leaf cannot be malformed any more - three words are three words - so
+    // what the cull refuses is a box that is not a box.
+    let mut invalid = underside.clone();
+    invalid.reference.min.y = f64::NAN;
+    assert_eq!(
+        cull(invalid, &small, env, 0.45).err(),
+        Some(Error::InvalidInput("foliage reference box"))
+    );
 }
 
 /// One copy of the crown, whatever the cull drops. The buffer handed in is the
@@ -272,21 +317,31 @@ fn cull_retains_in_the_buffer_it_was_given() {
     ];
     let mut shell = deep;
     shell[13] = (env.height * env.crown_base + 0.01) as f32;
-    let mixed = Instances {
-        matrices: vec![deep, shell],
-    };
-    let (before, capacity) = (mixed.matrices.as_ptr(), mixed.matrices.capacity());
+    let box_of = Reference::spanning(Vec3::new(-1., -1., -1.), Vec3::new(1., 16., 1.));
+    let mut mixed = Instances::new(box_of);
+    mixed.push(&deep);
+    mixed.push(&shell);
+    let survivor = mixed.leaves[1];
+    let (before, capacity) = (mixed.leaves.as_ptr(), mixed.leaves.capacity());
     let kept = cull(mixed, &e, env, 0.45).unwrap();
-    assert_eq!(kept.matrices, vec![shell], "the wrong leaf survived");
-    assert_eq!(kept.matrices.as_ptr(), before, "kept leaves moved buffer");
-    assert_eq!(kept.matrices.capacity(), capacity, "capacity was shrunk");
+    assert_eq!(kept.leaves, vec![survivor], "the wrong leaf survived");
+    assert_eq!(kept.leaves.as_ptr(), before, "kept leaves moved buffer");
+    assert_eq!(kept.leaves.capacity(), capacity, "capacity was shrunk");
 
     // A cull that drops every leaf still hands the original allocation back.
-    let a = place(&twig(0.25), env, 3, bare(), Some(TwigPlacement::default())).unwrap();
-    assert!(!a.matrices.is_empty());
-    let (before, capacity) = (a.matrices.as_ptr(), a.matrices.capacity());
+    let a = place(
+        &twig(0.25),
+        env,
+        3,
+        bare(),
+        Some(TwigPlacement::default()),
+        twig_box(0.25),
+    )
+    .unwrap();
+    assert!(!a.is_empty());
+    let (before, capacity) = (a.leaves.as_ptr(), a.leaves.capacity());
     let empty = cull(a, &e, env, 0.).unwrap();
-    assert!(empty.matrices.is_empty());
-    assert_eq!(empty.matrices.as_ptr(), before, "empty crown moved buffer");
-    assert_eq!(empty.matrices.capacity(), capacity, "capacity was shrunk");
+    assert!(empty.is_empty());
+    assert_eq!(empty.leaves.as_ptr(), before, "empty crown moved buffer");
+    assert_eq!(empty.leaves.capacity(), capacity, "capacity was shrunk");
 }

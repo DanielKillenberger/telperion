@@ -217,15 +217,15 @@ fn crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay() {
     let mut family = Preset::Ordinary.parameters();
     family.skeleton.growth.max_nodes = None;
     let tree = mesh::build(&family, Detail::Full).unwrap();
-    let placements = &tree.foliage.instances.matrices;
+    let placements = &tree.foliage.instances;
     assert!(
         placements.len() > 1000,
         "fixture must have a developed crown"
     );
     let mut min = Vec3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
     let mut max = -min;
-    for m in placements {
-        let p = Vec3::new(f64::from(m[12]), f64::from(m[13]), f64::from(m[14]));
+    for index in 0..placements.len() {
+        let p = placements.position(index);
         min = Vec3::new(min.x.min(p.x), min.y.min(p.y), min.z.min(p.z));
         max = Vec3::new(max.x.max(p.x), max.y.max(p.y), max.z.max(p.z));
     }
@@ -236,15 +236,8 @@ fn crown_occlusion_darkens_wood_and_leaves_but_not_a_single_leaf_or_clay() {
         1.0 - Vec3::new(d.x / radii.x, d.y / radii.y, d.z / radii.z).length()
     };
     assert!(
-        placements
-            .iter()
-            .filter(|m| {
-                depth(Vec3::new(
-                    f64::from(m[12]),
-                    f64::from(m[13]),
-                    f64::from(m[14]),
-                )) > 0.2
-            })
+        (0..placements.len())
+            .filter(|&index| depth(placements.position(index)) > 0.2)
             .count()
             > 1000,
         "fixture needs interior leaves"

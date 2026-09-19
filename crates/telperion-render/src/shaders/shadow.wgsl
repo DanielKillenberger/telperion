@@ -6,6 +6,8 @@ struct Light {
     matrix: mat4x4<f32>,
     caster: vec4<f32>, // stride, square-root scale, padding
     centre: vec4<f32>, // surface centre, first connector vertex
+    box_min: vec4<f32>,    // the box the core quantised leaf positions against
+    box_extent: vec4<f32>,
 };
 @group(0) @binding(0) var<uniform> light: Light;
 
@@ -18,7 +20,7 @@ fn wood(@location(0) position: vec3<f32>) -> @builtin(position) vec4<f32> {
 /// camera's: instance i reads placement i * stride, regardless of selection.
 /// The surface scales about its centre; trailing connector vertices stay put.
 /// Reordering placements changes this subset, and future motion must match it.
-@group(1) @binding(0) var<storage, read> placements: array<mat4x4<f32>>;
+@group(1) @binding(0) var<storage, read> placements: array<u32>;
 
 @vertex
 fn foliage(
@@ -28,5 +30,11 @@ fn foliage(
 ) -> @builtin(position) vec4<f32> {
     let expanded = light.centre.xyz + (position - light.centre.xyz) * light.caster.y;
     let local = select(position, expanded, vertex < u32(light.centre.w));
-    return light.matrix * placements[instance * u32(light.caster.x)] * vec4<f32>(local, 1.0);
+    let base = instance * u32(light.caster.x) * LEAF_WORDS;
+    let placement = leaf_transform(
+        vec3<u32>(placements[base], placements[base + 1u], placements[base + 2u]),
+        light.box_min.xyz,
+        light.box_extent.xyz,
+    );
+    return light.matrix * placement * vec4<f32>(local, 1.0);
 }

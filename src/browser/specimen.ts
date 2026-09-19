@@ -1,9 +1,11 @@
 import { SpecimenWire } from './specimen-wire';
 import type { Family } from './core';
+import type { LeafReference, LeafWords } from './leaf';
 
 export interface NodeIdentity { birth: number; key: { idx: number; version: number } }
 export interface PlacementIdentity { shoot: NodeIdentity; station: number }
-export interface Placement { identity: PlacementIdentity; transform: number[] }
+/** The three packed words of one leaf; `./leaf` decodes them. */
+export interface Placement { identity: PlacementIdentity; leaf: LeafWords }
 export interface Run {
   identity: NodeIdentity;
   nodes: { identity: NodeIdentity; parent: NodeIdentity | null;
@@ -17,7 +19,10 @@ export interface SpecimenRead {
   age: number; envelope: Family['skeleton']['envelope']; surfaceHeight: number;
   diagnostics: { node_capped: boolean; level_capped: boolean; attraction_capped: boolean };
   crossover: number; shed: NodeIdentity[]; nodes: NodeIdentity[]; placements: PlacementIdentity[];
-  structure: { values: Float64Array; topology: Uint32Array }; matrices: Float32Array;
+  structure: { values: Float64Array; topology: Uint32Array };
+  /** Three u32 words a leaf, in placement order, and the box they decode
+   * against - one box for the family, so every age reads the same one. */
+  leaves: Uint32Array; foliageReference: LeafReference;
 }
 /** Owned schema-2 little-endian chronicle and writer frontiers, without meshes.
  * Caller mutation never reaches a retained specimen. */
@@ -61,11 +66,11 @@ export function specimenBinding(get: () => SpecimenExports, check: (code: number
     read(age) {
       const e = get();
       check(e.specimen_read(handle, age ?? this.frontier));
-      return { ...(metadata() as Omit<SpecimenRead, 'structure' | 'matrices'>), ...wire(18).identities(),
+      return { ...(metadata() as Omit<SpecimenRead, 'structure' | 'leaves'>), ...wire(18).identities(),
         structure: {
           values: new Float64Array(e.memory.buffer, e.buffer_ptr(6), e.buffer_len(6)).slice(),
           topology: new Uint32Array(e.memory.buffer, e.buffer_ptr(7), e.buffer_len(7)).slice(),
-        }, matrices: new Float32Array(e.memory.buffer, e.buffer_ptr(5), e.buffer_len(5)).slice() };
+        }, leaves: new Uint32Array(e.memory.buffer, e.buffer_ptr(5), e.buffer_len(5)).slice() };
     },
     advance(years) { check(get().specimen_advance(handle, years)); return { ...(metadata() as { frontier: number }), changes: wire(17).changes() }; },
     changes(from, to) { check(get().specimen_changes(handle, from, to)); return wire(17).changes(); },

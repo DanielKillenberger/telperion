@@ -17,7 +17,7 @@ fn empty_and_invalid_queries() {
 mod specimens;
 use std::time::Instant;
 use telperion_core::{
-    foliage::{self, Element, Instances, TwigPlacement},
+    foliage::{self, Element, Instances, Reference, TwigPlacement},
     presets::Preset,
     tree::Node,
 };
@@ -42,11 +42,13 @@ fn tapered_wood_and_flat_leaf_cells() {
         anatomy: None,
         ..Element::default()
     };
-    let instances = Instances {
-        matrices: vec![[
-            1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 2., 0., 1.,
-        ]],
-    };
+    let mut instances = Instances::new(Reference::spanning(
+        Vec3::new(-1., 1., -1.),
+        Vec3::new(1., 3., 1.),
+    ));
+    instances.push(&[
+        1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 2., 0., 1.,
+    ]);
     let field = Field::new(&tree, Some((&instances, &element))).unwrap();
     let both = field.query(Vec3::new(0., 2., 0.), 0.).unwrap();
     assert!(both.wood && both.foliage);
@@ -71,7 +73,7 @@ fn tapered_wood_and_flat_leaf_cells() {
     )
     .is_err());
     let mut bad = instances.clone();
-    bad.matrices[0][0] = f32::NAN;
+    bad.reference.extent.x = f64::NAN;
     assert!(Field::new(&tree, Some((&bad, &element))).is_err());
     let empty = Element {
         positions: vec![],
@@ -112,6 +114,7 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
                 internode_length: family.skeleton.twigs.twig.internode_length,
                 stations_per_internode: family.skeleton.twigs.twig.stations_per_internode,
             }),
+            foliage::Reference::of(&family).unwrap(),
         )
         .unwrap();
         let retained = foliage::cull(
@@ -146,12 +149,8 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
         }
         let query = start.elapsed();
         assert!(wood > 0 && leaves > 0);
-        for m in retained
-            .matrices
-            .iter()
-            .step_by((retained.matrices.len() / 100).max(1))
-        {
-            let p = foliage::transform_point(m, element.positions[0]);
+        for m in retained.matrices().step_by((retained.len() / 100).max(1)) {
+            let p = foliage::transform_point(&m, element.positions[0]);
             assert!(field.query(p, 0.001).unwrap().foliage);
         }
         assert_eq!(
@@ -160,14 +159,24 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
                 .unwrap(),
             Default::default()
         );
-        eprintln!("nodes={} retained={} build_ms={:.2} queries={} query_ms={:.2} owned_capacity_bytes={} wood_cells={} foliage_cells={}",tree.nodes.len(),retained.matrices.len(),build.as_secs_f64()*1000.,cells*cells*cells,query.as_secs_f64()*1000.,field.storage_bytes(),wood,leaves);
+        eprintln!(
+            "nodes={} retained={} build_ms={:.2} queries={} query_ms={:.2} owned_capacity_bytes={} wood_cells={} foliage_cells={}",
+            tree.nodes.len(),
+            retained.len(),
+            build.as_secs_f64() * 1000.,
+            cells * cells * cells,
+            query.as_secs_f64() * 1000.,
+            field.storage_bytes(),
+            wood,
+            leaves
+        );
         if matches!(preset, Preset::Telperion) {
             // The giant stays a giant: a crown no one could place by hand.
             // fn-24 rebuilt the Two Trees from the habit trait table, and the
             // retired colonizer's 1_360_279 placements are 534_638 here, its
             // wood standing further inside the lit shell. fn-10 owns any
             // verdict on the Two Trees; this floor is the engineering rail.
-            assert!(retained.matrices.len() > 400_000);
+            assert!(retained.len() > 400_000);
         }
     }
 }
@@ -178,12 +187,17 @@ fn species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_un
         envelope::Envelope,
         foliage::{build_element, cull, transform_point, ElementParams},
     };
+    // One uniform scale: a packed leaf carries a rotation, a scale and a
+    // point, so the three columns are one basis at one length.
     let matrix = [
-        0., 0., 2., 0., 3., 0., 0., 0., 0., 4., 0., 0., 0., 15., 0., 1.,
+        0., 0., 3., 0., 3., 0., 0., 0., 0., 3., 0., 0., 0., 15., 0., 1.,
     ];
-    let instances = Instances {
-        matrices: vec![matrix],
-    };
+    let mut instances = Instances::new(Reference::spanning(
+        Vec3::new(-0.1, 14.9, -0.1),
+        Vec3::new(0.1, 15.1, 0.1),
+    ));
+    instances.push(&matrix);
+    let stored = instances.matrix(0);
     for section_roundness in [0.0, 1.0] {
         let element = build_element(ElementParams {
             section_roundness,
@@ -202,7 +216,7 @@ fn species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_un
         let bounds = kept.bounds(&element).unwrap().unwrap();
         let field = Field::new(&Tree::default(), Some((&kept, &element))).unwrap();
         for v in &element.positions {
-            let world = transform_point(&matrix, *v);
+            let world = transform_point(&stored, *v);
             assert!(bounds.contains(world));
             assert!(field.query(world, 0.).unwrap().foliage);
         }

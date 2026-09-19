@@ -142,6 +142,7 @@ impl Specimen {
             envelope,
             surface_height: self.surface_height(),
             placements,
+            reference: self.timeline.as_ref().unwrap().foliage.reference(),
             shed: Vec::new(),
         });
         if age == self.timeline.as_ref().unwrap().age {
