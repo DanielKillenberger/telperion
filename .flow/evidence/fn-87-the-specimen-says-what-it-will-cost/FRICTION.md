@@ -93,3 +93,25 @@ requirements. No admission decision, specification change or new task was made.
   the third agent down. The same citation habit would have caught R2's "all five
   catalogue species", where only four of the five catalogue folders have a preset.
 - **Early return:** taken. This goes up as NEEDS_HUMAN rather than a third dispatch.
+
+## 2026-09-20 - the workspace gate ran twice because no command says which profile is the gate
+
+- **Doing:** verifying the fn-87 implementation before `flowctl done`.
+- **Hindered by:** the repo names two full-suite commands and neither is marked
+  as the gate. `package.json`'s `rust:test` is `cargo test --release
+  --workspace`, `Cargo.toml`'s comment says "every package script and local
+  command stays on release", and CI runs `cargo nextest run --cargo-profile ci`
+  while this spec's own BASELINE.md was measured on the `ci` profile. I ran the
+  `ci` workspace suite green, then ran the release one as well because the
+  project instruction file names it, and the second run compiled the whole
+  workspace again under fat LTO.
+- **Cost:** 6 min 40 s for the `ci` workspace run and 10 min 22 s for the
+  release one, so about ten minutes spent re-proving a green result. The
+  release run also exceeded the harness's 600 s foreground tool timeout and had
+  to be moved to the background and waited on, which cost two more turns.
+- **What would remove it:** one line in CLAUDE.md, or a Quick commands block on
+  the spec, naming the command that is the gate and the profile it runs under.
+  The two profiles differ only in link-time optimisation, so one of the two
+  runs proved nothing the other had not.
+- **Early return:** not taken. The work was finished and green; the waste was
+  in the gate, not in the implementation.
