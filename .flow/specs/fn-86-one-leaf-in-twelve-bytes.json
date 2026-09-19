@@ -134,7 +134,7 @@
     "impl:fn-86-one-leaf-in-twelve-bytes.1": 0
   },
   "spec_path": ".flow/specs/fn-86-one-leaf-in-twelve-bytes.md",
-  "status": "open",
+  "status": "done",
   "title": "One leaf in twelve bytes",
   "tracker": {
     "baseHashFlow": null,
@@ -147,5 +147,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T21:00:56.776438Z"
+  "updated_at": "2026-09-19T21:16:50.452145Z"
 }
