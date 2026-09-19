@@ -45,10 +45,13 @@ const EXPECTED = {
 
 describe('the resolved default', () => {
   it('sends the beech and the birch to the cohort that carries their records', () => {
-    for (const preset of ['european-beech', 'silver-birch']) {
+    for (const [preset, records] of [
+      ['european-beech', ['B-WHOLE', 'B-BARE', 'B-BASE']],
+      ['silver-birch', ['S-WHOLE', 'S-BARE', 'S-BARK']],
+    ]) {
       expect(resolveProfileSet(preset)).toBe(FN34);
       expect(listed(FN34)).toContain(preset);
-      expect(matchedRecords(catalogue, preset).length).toBeGreaterThan(0);
+      expect(matchedRecords(catalogue, preset).map(record => record.id)).toEqual(records);
     }
   });
 
