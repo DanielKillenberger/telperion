@@ -57,3 +57,20 @@ Increasing the height profile exposed grazing aliasing; four shading cells per a
 ### 2026-09-20 - historical hero mask diagnosis
 
 One bounded investigation found that Clay draws foliage as well as wood, so the reconstructed R>B mask was not wood-only. Removing foliage makes the eroded hero mask empty at factor four. Historical curves omit mask counts and the capture driver, so they cannot establish the same measurement population. About one numeric sweep and one read-only worker pass. Stop guessing the historical recipe; persist mask counts and full capture metadata in future receipts. The historical gate remains unverified.
+
+### 2026-09-20 - profile means and historical hero view
+
+The narrower scale walls change the physical field mean, so the host measured its zero-footprint integral at floor rows 0, .25 and .6 before updating the rough far-profile model. The same test exposed sampling variation at the smaller spruce cell size in the unchanged smooth profile; increase independent axial samples while retaining the .02 tolerance. One primary gate invocation. Matching the historical hero mask to Whole view removed the empty mask but did not reproduce the old curves (.467 adjacent step). Stop guessing camera recipes; retain this failed reconstruction and investigate the reproducible cause independently of the material candidate. One further numeric run, no numeric sweep images viewed.
+
+### 2026-09-20 - concurrent GPU probe crash
+
+The expanded plate-mean test process terminated with SIGSEGV while independent rough and smooth probes ran concurrently. About one test invocation; no Rust assertion implicated the material. Rerun once with --test-threads=1 to separate concurrent device/driver behavior from shader failure. A repeated crash needs native diagnosis rather than a retry loop.
+
+### 2026-09-20 - optimization flag must not choose material shape
+
+Host diff review caught that the new profile depended on SMOOTH_BARK, an optimization selected by lichen/lenticel/peel presence. That would change the underlying bark when enabling a tiny smooth-material term. About one plumbing pass and a fresh verification pass. Replaced that accidental coupling with an explicit continuous plateEdgeShape value, default zero; oak and spruce opt in. Added interpolation and specialization-parity coverage. The first new parity assertion used a 1e-6 profile-unit tolerance, below observed f32 compilation-order drift of 1.1e-6; the numerical allowance is now 1e-4 profile units (under .2 micrometres here). Existing distance, resolution and spatial-mean tolerances are unchanged. No workflow spec proposed; this is a correctness issue caught before commit.
+
+The parity probe diagnosis found that compiling each shape as a different literal let f32 hash evaluation differ between programs. Fixed the fixture to supply the shape through a runtime uniform, matching production. Interpolation and specialization parity now pass at the original 1e-6 bound; the attempted 1e-4 allowance was reverted. This removes compiler-variant noise instead of weakening the regression gate.
+
+### 2026-09-20 — Colour preview image metrics environment
+The colour-preview worker could run calibrated captures but default and system Python lacked Pillow for chromatic-spread metrics. Locating the host imaging environment cost about one minute. Recording the exact interpreter in the capture recipe would remove this local setup friction.

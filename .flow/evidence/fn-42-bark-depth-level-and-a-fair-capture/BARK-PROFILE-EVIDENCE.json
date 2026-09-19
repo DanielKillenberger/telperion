@@ -1,0 +1,11 @@
+{
+  "base_commit": "d48ed69bc7390860d85d7b97cf81fe1c58d16db1",
+  "commits": [],
+  "tests": [
+    "git diff --check (passed)",
+    "Static source normalization: smooth arithmetic unchanged (passed)",
+    "Static preset comparison: exact authorized rows changed; other presets unchanged (passed)",
+    "GPU/Cargo: not run; host serialized validation pending"
+  ],
+  "prs": []
+}

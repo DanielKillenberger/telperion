@@ -77,7 +77,7 @@ fn bark_shade(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     // network became a cellular partition of the surface, whose cells are
     // smaller than the lattice they are drawn from.
     let reach = max(0.35 * u.bark_detail.x,
-        (BARK_PLATE_WALL + BARK_PLATE_FURROW * u.bark_structure.w) * u.plate.x);
+        (bark_plate_wall() + BARK_PLATE_FURROW * u.bark_structure.w) * u.plate.x);
     // Three steps rather than two: a partition of the surface puts the crest
     // that shades this floor anywhere between here and a wall away, at any
     // bearing, and two steps over that reach can stride across it.
@@ -292,9 +292,10 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // Each axis keeps its own physical footprint under the same grid.
     let plate_band = select(vec2(0.0), footprint / u.plate.x, u.plate.x > 0.0);
     let wide = max(pixel, 2.0 * plate_band);
-    // Smooth bark retains its established quadrature. The rough-bark path
-    // needs four cells per axis to resolve its steeper plate profiles.
-    let cells = select(vec2(4), select(vec2(2), vec2(3), wide >= vec2(1.0)), SMOOTH_BARK);
+    // The authored chipped-edge profile uses denser quadrature. Enabling
+    // lichen or lenticels does not change this physical material decision.
+    let cells = select(select(vec2(2), vec2(3), wide >= vec2(1.0)),
+        vec2(4), u.plate_profile.x > 0.0);
     let cell_footprint = footprint / max(vec2<f32>(cells), wide);
     let cell_pixel = pixel / max(vec2<f32>(cells), wide);
     // Wood whose pixel spans six ridge widths or three plates reads its

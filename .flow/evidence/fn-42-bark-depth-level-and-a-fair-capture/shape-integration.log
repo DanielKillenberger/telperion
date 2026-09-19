@@ -1,0 +1,304 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+    Finished `ci` profile [optimized] target(s) in 4.19s
+     Running tests/material_detail.rs (/home/daniel/Projects/telperion/target/ci/deps/material_detail-bb060d793dc8ac6d)
+
+running 5 tests
+test older_material_documents_gain_only_inert_detail_defaults ... ok
+test every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged ... ok
+test every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged ... ok
+test detail_rows_all_walk_at_an_interior_point ... ok
+test detail_rows_refuse_both_bounds_by_name_and_roundtrip_the_endpoints ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+    Finished `ci` profile [optimized] target(s) in 7.23s
+     Running unittests src/lib.rs (/home/daniel/Projects/telperion/target/ci/deps/telperion_core-930a2111ca663f0d)
+
+running 6 tests
+test material::tests::a_range_that_runs_backwards_is_refused_by_the_pairs_name ... ok
+test material::tests::the_row_every_family_starts_from_is_one_a_leaf_can_be_drawn_from ... ok
+test material::tests::a_value_off_its_range_is_refused_by_its_own_name ... ok
+test blend::tests::a_walk_between_two_material_rows_stays_a_row_a_leaf_can_be_drawn_from ... ok
+test params::tests::the_material_row_travels_the_wire_and_is_refused_by_field_name ... ok
+test branching::specimen::shared::tests::fractional_contact_advance_does_not_materialize_numeric_offsets ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 143 filtered out; finished in 0.38s
+
+     Running tests/capability.rs (/home/daniel/Projects/telperion/target/ci/deps/capability-fb9bda879eed91f8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running tests/colonization.rs (/home/daniel/Projects/telperion/target/ci/deps/colonization-8134201e82e7f156)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/crown_reference.rs (/home/daniel/Projects/telperion/target/ci/deps/crown_reference-fd858cbc3663ebcd)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/crown_retention.rs (/home/daniel/Projects/telperion/target/ci/deps/crown_retention-244d3cb344d29b64)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/drop.rs (/home/daniel/Projects/telperion/target/ci/deps/drop-57b2d23f3465d0da)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running tests/field.rs (/home/daniel/Projects/telperion/target/ci/deps/field-eeab74fe02e508ee)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/foliage.rs (/home/daniel/Projects/telperion/target/ci/deps/foliage-1f75386e87606fad)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+
+     Running tests/foliage_reference.rs (/home/daniel/Projects/telperion/target/ci/deps/foliage_reference-14455adf6715113d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running ../../tests/migration/foundation.rs (/home/daniel/Projects/telperion/target/ci/deps/foundation-3d88e572b3d81539)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+     Running tests/geometry_benchmark.rs (/home/daniel/Projects/telperion/target/ci/deps/geometry_benchmark-0f705753fca0989e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/growth.rs (/home/daniel/Projects/telperion/target/ci/deps/growth-8c57646c4163762c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.00s
+
+     Running tests/growth_reference.rs (/home/daniel/Projects/telperion/target/ci/deps/growth_reference-3bf078effde5242b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/identity.rs (/home/daniel/Projects/telperion/target/ci/deps/identity-11928bb6e5a02a66)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/limb_clumping.rs (/home/daniel/Projects/telperion/target/ci/deps/limb_clumping-9b210b62cd40e0b1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/material_detail.rs (/home/daniel/Projects/telperion/target/ci/deps/material_detail-bb060d793dc8ac6d)
+
+running 1 test
+test older_material_documents_gain_only_inert_detail_defaults ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/mesh.rs (/home/daniel/Projects/telperion/target/ci/deps/mesh-771b9ff0835c2864)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/outline.rs (/home/daniel/Projects/telperion/target/ci/deps/outline-4886ff34444b038e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/pendulous.rs (/home/daniel/Projects/telperion/target/ci/deps/pendulous-3706249e46ba99f8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/profile_distance.rs (/home/daniel/Projects/telperion/target/ci/deps/profile_distance-7f5852dc73bc49ca)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/sag.rs (/home/daniel/Projects/telperion/target/ci/deps/sag-c724eefbc6c97682)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running tests/short_shoots.rs (/home/daniel/Projects/telperion/target/ci/deps/short_shoots-17c5f1426dab0e5f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+     Running tests/species.rs (/home/daniel/Projects/telperion/target/ci/deps/species-ad1e857ace182e79)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+     Running tests/species_metrics.rs (/home/daniel/Projects/telperion/target/ci/deps/species_metrics-6095cb23e9f26d5c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/specimen_cache.rs (/home/daniel/Projects/telperion/target/ci/deps/specimen_cache-48b26a426dca7aad)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/specimen_handle.rs (/home/daniel/Projects/telperion/target/ci/deps/specimen_handle-a0fc22ed1658db6d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/specimen_view.rs (/home/daniel/Projects/telperion/target/ci/deps/specimen_view-a781a21ddf0e5b43)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/stem_fork_height.rs (/home/daniel/Projects/telperion/target/ci/deps/stem_fork_height-9d765fcb63fae8d8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/stem_lean_spread.rs (/home/daniel/Projects/telperion/target/ci/deps/stem_lean_spread-e430d82d4f65941e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/stems.rs (/home/daniel/Projects/telperion/target/ci/deps/stems-a5416f98371c9236)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running tests/strands.rs (/home/daniel/Projects/telperion/target/ci/deps/strands-1c36c5692dd0f779)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+     Running tests/surface.rs (/home/daniel/Projects/telperion/target/ci/deps/surface-595de82be6d80f16)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/surface_attachments.rs (/home/daniel/Projects/telperion/target/ci/deps/surface_attachments-040f470c32949d02)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/surface_collapse.rs (/home/daniel/Projects/telperion/target/ci/deps/surface_collapse-e3e0aee284679e58)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/surface_reference.rs (/home/daniel/Projects/telperion/target/ci/deps/surface_reference-3b05a1948e1771a6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/sweep.rs (/home/daniel/Projects/telperion/target/ci/deps/sweep-79171f74dc064833)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/terminal_taper.rs (/home/daniel/Projects/telperion/target/ci/deps/terminal_taper-4982c42633ea3511)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/twig_generations.rs (/home/daniel/Projects/telperion/target/ci/deps/twig_generations-b8be541578ab9f15)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 1.07s
+     Running tests/bark_distance.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_distance-0f992422d88c843a)
+
+running 1 test
+test resolved_scales_survive_until_the_two_pixel_boundary ... distance-series height deviation near/far: 0.0009139285741035447/0.0008364669699845517
+OregonWhiteOak 2x resolution: 10000 pixels, mean 1.951400/255, p95 5.75/255
+OregonWhiteOak 4x resolution: 5000 pixels, mean 2.541083/255, p95 6.75/255
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.57s
+
+     Running tests/bark_resolution.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_resolution-8c089c2de9f6af10)
+
+running 2 tests
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... OregonWhiteOak grazing: 6178 pixels, mean 2.531334/255, p95 7.75/255, redraw worst 0/255
+OregonWhiteOak plain grazing: (0.77034099492824, 2.0)
+NorwaySpruce grazing: 2962 pixels, mean 1.777487/255, p95 4.75/255, redraw worst 0/255
+NorwaySpruce plain grazing: (0.6917623227548954, 1.75)
+ok
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... trunk redraw worst 0/255
+trunk resolution agreement: mean 1.809105/255, p95 6.25/255
+plain trunk diagnostic (mean, p95): (0.542490243342516, 1.5)
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.89s
+
+     Running tests/smooth_bark.rs (/home/daniel/Projects/telperion/target/ci/deps/smooth_bark-217dbc934c1c28f0)
+
+running 2 tests
+test each_smooth_layer_changes_the_close_up_and_moves_no_wood ... lichen: mean 0.9673/255 over the birch's close-up
+lenticel: mean 1.5301/255 over the birch's close-up
+peel: mean 6.0332/255 over the birch's close-up
+ok
+test the_smooth_barks_hold_the_resolution_and_redraw_contracts ... EuropeanBeech close-up: 310804 pixels, mean 1.0568/255, p95 3.25/255
+SilverBirch close-up: 117234 pixels, mean 2.5596/255, p95 9.50/255
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.74s
+
+     Running tests/smooth_means.rs (/home/daniel/Projects/telperion/target/ci/deps/smooth_means-4e34f4c2e5860c00)
+
+running 1 test
+test every_smooth_layer_fades_to_the_mean_its_field_averages_to ... share 0.25: lichen 0.0304 far 0.0305, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 0.25 0.5680 far 0.5956
+share 0.5: lichen 0.0640 far 0.0641, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 0.5 0.6050 far 0.6382
+share 0.75: lichen 0.0959 far 0.0960, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 0.75 0.6594 far 0.6868
+share 1: lichen 0.1245 far 0.1246, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 1 0.7203 far 0.7371
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.15s
+
+    Checking telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+    Checking telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 7.92s

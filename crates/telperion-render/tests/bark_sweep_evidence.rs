@@ -70,17 +70,28 @@ fn replay_fn71_footprint_sweep() {
         ),
         None => hero_pose(bounds, 1.5, GROUND_REACH),
     };
-    // Clay colours foliage and wood alike. Remove foliage only for the mask,
-    // keeping the camera derived from the original whole-tree bounds.
-    let foliage = std::mem::take(&mut tree.foliage.instances);
+    // Match the mask population to the material view. Close-ups measure bare
+    // wood; the hero measures the complete tree, including foliage.
+    // Both retain the camera derived from original whole-tree bounds.
+    let foliage = if shot.is_some() {
+        Some(std::mem::take(&mut tree.foliage.instances))
+    } else {
+        None
+    };
     renderer.submit(&tree).unwrap();
     renderer.set_view(View::Clay);
     let clay = render(&mut renderer, &camera, size.0, size.1).unwrap();
     assert!(clay.has_subject());
     write_png(&directory.join(format!("{name}-clay.png")), &clay).unwrap();
-    tree.foliage.instances = foliage;
+    if let Some(foliage) = foliage {
+        tree.foliage.instances = foliage;
+    }
     renderer.submit(&tree).unwrap();
-    renderer.set_view(View::Bare);
+    renderer.set_view(if shot.is_some() {
+        View::Bare
+    } else {
+        View::Whole
+    });
     let near = render(&mut renderer, &camera, size.0, size.1).unwrap();
     assert!(near.has_subject());
     write_png(&directory.join(format!("{name}-x1.png")), &near).unwrap();
@@ -101,7 +112,7 @@ fn replay_fn71_footprint_sweep() {
         "width":size.0, "height":size.1, "shot":shot.map(|s| serde_json::from_str::<serde_json::Value>(s).unwrap()),
         "camera_recipe":if shot.is_some() { "shot_pose" } else { "hero_pose(bounds, 1.5, GROUND_REACH)" },
         "factors":factors,
-        "bounds_view":"whole", "clay_view":"clay, wood-only instances", "material_view":"bare",
+        "bounds_view":"whole", "clay_view":if shot.is_some() { "clay, wood-only instances" } else { "clay, whole-tree subject" }, "material_view":if shot.is_some() { "bare" } else { "whole" },
         "camera":{"position":[camera.position.x,camera.position.y,camera.position.z],
             "target":[camera.target.x,camera.target.y,camera.target.z],
             "field_of_view":camera.field_of_view,"near":camera.near,"far":camera.far},

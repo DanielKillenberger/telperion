@@ -28,7 +28,7 @@ Three gaps remain, each measured in fn-32's round three and each outside that sp
 ## API Contracts
 <!-- scope: technical -->
 
-- **Rows:** reuse the current physical bark and depth rows; do not add the older proposal's near-footprint threshold. The fn-29 bark base colour and the fn-14 bark colour are existing rows that this spec is allowed to move on the oak and spruce presets. [inferred]
+- **Rows:** reuse the current physical bark and depth rows, with one explicit `plateEdgeShape` blend for the newly requested thin chipped profile. Default 0 retains the rounded profile; 1 selects the revised scales; intermediate values blend their height profiles continuously. Do not add the older proposal's near-footprint threshold. The fn-29 bark base colour and the fn-14 bark colour are existing rows that this spec is allowed to move on the oak and spruce presets. [inferred]
 - **The bark-only view:** one headless capture recipe per species with the camera distance and field of view chosen so the crop width in metres is recorded beside the still, added to the evidence recipe, not a new public view or command. [inferred]
 - **The reference scale:** record source, dimensions, credit and limitations; unknown photographed widths remain unknown. Only the rendered patch carries a calibrated physical width. [user decision, 2026-09-19]
 
@@ -44,8 +44,8 @@ Three gaps remain, each measured in fn-32's round three and each outside that sp
 <!-- scope: both -->
 
 - **R1:** A bark-only recipe renders oak and spruce square-on with physical crop width, lighting and camera recorded. Report structure metrics as render diagnostics and compare exposed mature bark morphology visually with the documented replacement references. State unknown photo scale and lighting limitations; do not claim a calibrated photo score. [user decision, 2026-09-19]
-- **R2:** Resolved furrow depth improves in the calibrated close-up while retaining one continuously footprint-filtered material. No separate amplitude fade or near/far switch is introduced; every existing distance, resolution, footprint-sweep and redraw test passes at unchanged bounds. Errors: a visible detail transition, a seam above the existing per-step bound or a moved tolerance fails the criterion. [inferred]
-- **R3:** Improve oak and spruce colour and relief readability through existing bark colour rows where needed, judged visually beside the replacement exposed-bark references and baseline under fixed render lighting. Report before/after render colour metrics without an exact photo RGB acceptance target. Owner acceptance remains R5. [user decision, 2026-09-19]
+- **R2:** Scale and furrow relief matches the owner's structural feedback in the calibrated close-up: flatter faces, finer separations and irregular chipped edges rather than broad deep valleys while retaining one continuously footprint-filtered material. No separate amplitude fade or near/far switch is introduced; every existing distance, resolution, footprint-sweep and redraw test passes at unchanged bounds. Errors: a visible detail transition, a seam above the existing per-step bound or a moved tolerance fails the criterion. [inferred]
+- **R3:** Improve oak and spruce colour and relief readability, including restrained spatial red/brown variation among scales and exposed edges, through existing bark colour controls where possible, judged visually beside the replacement exposed-bark references and baseline under fixed render lighting. Report before/after render colour metrics without an exact photo RGB acceptance target. Owner acceptance remains R5. [user decision, 2026-09-19]
 - **R4:** Record fresh baseline and candidate timings for the whole-tree native oak frame and full-screen trunk by the fn-26 protocol, and report browser orbit frame rate. Report absolute costs and before/after differences. Extra cost is allowed for this fidelity pass, with optimization deferred; the historical native timing and 60 fps are reference targets rather than pass/fail limits. Errors: an unavailable, disjoint or contended session does not count as valid performance evidence. [paraphrase]
 - **R5:** The owner judges the bark-only stills and the eight fn-32 stills re-rendered, beside the references and beside fn-32's, answering whether the oak and the spruce bark read as real at the distance an eye would see them, and records the verdicts in this spec; the spec closes only on accepting verdicts. Errors: a rejecting verdict stops the spec with the owner's words and a one-paragraph blocker. [paraphrase]
 
@@ -53,7 +53,7 @@ Three gaps remain, each measured in fn-32's round three and each outside that sp
 <!-- scope: business -->
 
 - No image textures; every value is a row. [strategy:Surface and rendering at scale]
-- No change to the plate network's structure; fn-32 owns it and it was accepted. [paraphrase]
+- Preserve the cellular network topology; its scale, profile proportions and localized edge shaping may change to address the owner's 2026-09-20 rejection. Do not replace the material with textures or geometry. [paraphrase]
 - No geometry change to the skeleton or the silhouette; depth stays a shading term inside the outline. [paraphrase]
 - The Two Trees and Ordinary keep their colours; only the oak and spruce presets move under R3. [inferred]
 - No engine work; the surface split is fn-41's. [paraphrase]
@@ -102,3 +102,20 @@ Use an isolated branch. Only oak and spruce material rows may change for colour 
 > i feel the relief highlights more clearly the structural difference between the reference and our implementation. The small scales with fine lines are quite different to our deep and more wide valleys in the relief. There's also a lack of roughness around the edges.
 
 The stronger-relief candidate is not accepted. The owner identifies a morphology mismatch: small scales and fine separations in the reference versus broad deep valleys and smooth edges in the candidate. Increasing height contrast alone is not a success criterion for the next pass. Preserve the improved base colours; investigate shallower plate faces, narrow separations and irregular chipped edges. The current spec boundary preserving the accepted plate network must be reconciled with this structural feedback before a new implementation pass.
+
+### Authorized continuation, 2026-09-20
+
+The owner asks “ok so pls $flow-next-flow this to the end” after the structural correction was described. Continue the same fidelity objective with the improved colours fixed. The previous depth-only candidate and its 15%-more-height test are superseded by the explicit demand for shallower faces, fine separations and chipped edges. Preserve all existing continuity, distance and redraw tolerances. This is a refinement of the material fidelity acceptance, not authorization to waive numerical gates or invent the owner's final visual verdict.
+
+### Material independence, implementation decision 2026-09-20
+
+The thin chipped profile needs an explicit material value. Selecting it with the smooth-term optimization flag would alter bark shape when lichen or lenticels are enabled. The new plateEdgeShape row keeps that decision authored, preserves other presets at zero and lets the existing smooth shader optimization remain appearance-neutral. A runtime-uniform GPU probe checks profile interpolation and specialization parity at 1e-6 profile units. This is an implementation decision supporting the authorized structural correction.
+
+
+### Colour refinement and deferred overlap, 2026-09-20
+
+The owner says the revised shape is “much better,” then identifies more varied reference colouring with red/brown layered in and directional overlapping flakes. The owner asks to include colour in this spec and suggests separate scope for overlapping flakes. [user]
+
+Include restrained red/brown spatial colour variation for oak and spruce in R3, retaining the improved overall colour balance and current shallow chipped relief. Variation should relate to the existing scales and edges rather than uniformly warming the whole trunk. Keep the colour field continuously footprint-filtered and preserve other presets. This supersedes the earlier instruction to freeze colours during structural correction; it does not authorize another structural redesign. [paraphrase]
+
+Directional shingling, tucked-under edges and raised overlapping neighbours remain outside fn-42. They merit a separate relief-structure spec; no new spec is created by this scope decision. The favourable shape feedback is not a final R5 verdict on the forthcoming colour revision, nor a decision on the inherited hero-sweep gate. [inferred]

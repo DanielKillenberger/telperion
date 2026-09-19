@@ -1,0 +1,14 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 2.71s
+     Running tests/bark_plates.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_plates-83e764f2da7d2d65)
+
+running 4 tests
+test inspect_rough_plate_means ... ignored, explicit diagnostic for rough-profile integral calibration
+oak (furrow 0): face 0.5222 model 0.5208, dome 0.2863 model 0.2839, rim 0.3878 model 0.3891
+identity: 44626 adjacent pairs share a plate, 7227 at a plate's width, variance 0.0820
+test every_plate_carries_an_identity_of_its_own ... ok
+oak (furrow 0): face 0.7501 model 0.7540, dome 0.5647 model 0.5704, rim 0.3173 model 0.3149
+error: test failed, to rerun pass `-p telperion-render --test bark_plates`
+
+Caused by:
+  process didn't exit successfully: `/home/daniel/Projects/telperion/target/ci/deps/bark_plates-83e764f2da7d2d65 --nocapture` (signal: 11, SIGSEGV: invalid memory reference)

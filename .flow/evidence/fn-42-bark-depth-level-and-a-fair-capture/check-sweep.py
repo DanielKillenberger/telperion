@@ -19,15 +19,18 @@ for name in (sys.argv[2:] or ["beech", "birch", "birchhero"]):
     clay = np.asarray(Image.open(directory / f"{name}-clay.png").convert("RGB"), dtype=np.float64)
     wood = (clay[..., 0] > clay[..., 2]).astype(np.float64)
     ratios = []
+    pixel_counts = []
     for factor in factors:
         reduced = sweep.reduce(near, factor)
         far = sweep.luminance(directory / f"{name}-r{factor:g}.png")
         assert far.shape == reduced.shape
         mask = sweep.reduce(wood, factor) > 0.999
         mask = np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).filter(ImageFilter.MinFilter(9))) > 0
+        pixel_counts.append(int(mask.sum()))
+        assert pixel_counts[-1] > 0, f"{name} factor {factor}: empty subject mask"
         ratios.append([float(sweep.band_energy(far, mask, width) / sweep.band_energy(reduced, mask, width)) for width in sweep.BANDS])
     maximum = float(np.abs(np.diff(np.array(ratios), axis=0)).max())
-    records.append(dict(species=name, factors=factors, bands=sweep.BANDS, ratios=ratios,
+    records.append(dict(species=name, factors=factors, bands=sweep.BANDS, ratios=ratios, pixel_counts=pixel_counts,
                         max_adjacent_step=maximum, bound=0.03, passed=maximum <= 0.03))
     print(f"{name}: max adjacent step {maximum:.6f}, bound 0.03")
 (evidence / ((sys.argv[1] if len(sys.argv) > 1 else "sweep") + "-check.json")).write_text(json.dumps(records, indent=2) + "\n")

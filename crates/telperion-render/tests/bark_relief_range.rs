@@ -1,4 +1,6 @@
-//! Measure actual filtered height in metres, independent of colour and lighting.
+//! Measure filtered height independent of colour and lighting.
+//! The owner rejected the old greater-height objective on 2026-09-20. Compare
+//! revised and rejected material rows through the same current rough shader.
 mod common;
 use telperion_core::{material::MaterialParams, presets::Preset};
 
@@ -8,8 +10,10 @@ const COUNT: usize = SIDE * SIDE;
 fn sample_function(name: &str, m: MaterialParams) -> String {
     format!(
         "fn {name}(circle: vec2<f32>, along: f32) -> f32 {{\n\
+         u.plate_profile.x = {:.9};\n\
          return bark_field_filtered(circle, along, 0.4, {:.9}, {:.9}, vec2(0.001), {:.9},\n\
          vec4({:.9}, {:.9}, {:.9}, {:.9}), vec3({:.9}, {:.9}, {:.9}));\n}}\n",
+        m.plate_edge_shape,
         m.ridge_scale,
         m.plate_scale,
         m.furrow_strength,
@@ -24,18 +28,21 @@ fn sample_function(name: &str, m: MaterialParams) -> String {
 }
 
 #[test]
-fn oak_and_spruce_profiles_increase_resolved_height_range() {
+fn revised_profiles_reduce_the_rejected_broad_relief() {
     let oak = Preset::OregonWhiteOak.parameters().material;
     let spruce = Preset::NorwaySpruce.parameters().material;
     let prior_oak = MaterialParams {
-        plate_dome: 0.41875,
-        plate_edge_lift: 0.27,
-        plate_furrow_width: 0.0,
+        plate_dome: 0.85,
+        plate_edge_lift: 0.8,
+        plate_furrow_width: 0.15,
+        plate_cell_scale: 0.084,
+        furrow_strength: 1.0,
         ..oak
     };
     let prior_spruce = MaterialParams {
-        plate_dome: 0.39375,
-        plate_edge_lift: 0.5,
+        plate_dome: 0.75,
+        plate_edge_lift: 0.9,
+        plate_cell_scale: 0.028,
         plate_furrow_width: 0.0,
         ..spruce
     };
@@ -44,7 +51,10 @@ fn oak_and_spruce_profiles_increase_resolved_height_range() {
         "var<private> u: Uniforms;",
     );
     source.push_str(include_str!("../src/shaders/bark.wgsl"));
-    source.push_str(include_str!("../src/shaders/plates.wgsl"));
+    source.push_str(&include_str!("../src/shaders/plates.wgsl").replace(
+        "const SMOOTH_BARK: bool = true;",
+        "const SMOOTH_BARK: bool = false;",
+    ));
     for (name, material) in [
         ("prior_oak", prior_oak),
         ("candidate_oak", oak),
@@ -144,8 +154,8 @@ fn oak_and_spruce_profiles_increase_resolved_height_range() {
         eprintln!("{species} physical height p95-p5: before {before:.9} m, after {after:.9} m, ratio {:.6}; radius .4m, square .4m, footprint .001m, 128x128 samples", after / before);
         assert!(before > 0.0);
         assert!(
-            after > before * 1.15,
-            "{species} needs >15% greater resolved relief: {before} -> {after}"
+            after > 0.0005 && after < before * 0.9,
+            "{species} needs resolved but shallower relief than the rejected rows: {before} -> {after}"
         );
     }
 }

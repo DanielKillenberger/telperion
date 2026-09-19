@@ -1,0 +1,19 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 0.77s
+     Running tests/bark_plates.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_plates-83e764f2da7d2d65)
+
+running 1 test
+test edge_shape_blends_continuously_and_is_independent_of_smooth_terms ... 
+thread 'edge_shape_blends_continuously_and_is_independent_of_smooth_terms' (1122022) panicked at crates/telperion-render/tests/bark_plates.rs:321:13:
+profile row failed to interpolate at 37/2: rounded 0.65932643, chipped 1.474, half 1.0666621
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    edge_shape_blends_continuously_and_is_independent_of_smooth_terms
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.83s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_plates`

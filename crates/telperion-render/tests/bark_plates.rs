@@ -44,6 +44,7 @@ fn rows() -> Vec<(String, f32, f32, f32)> {
 /// still sit on one plate, which is what the identity test reads.
 const PROBE: &str = r#"
 @group(0) @binding(0) var<storage, read_write> result: array<vec4<f32>>;
+@group(0) @binding(1) var<uniform> settings: vec4<f32>;
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     let across = f32(id.x % 128u) * (SIZE * 0.31);
     let along = f32(id.x / 128u) * (SIZE * (1.0 + LONG) * 0.30);
@@ -60,7 +61,19 @@ const PROBE: &str = r#"
 "#;
 
 fn sample(size: f32, long: f32, furrow: f32) -> Vec<[f32; 4]> {
+    sample_variant(size, long, furrow, true)
+}
+
+fn sample_variant(size: f32, long: f32, furrow: f32, smooth: bool) -> Vec<[f32; 4]> {
+    sample_profile(size, long, furrow, smooth, if smooth { 0.0 } else { 1.0 })
+}
+
+fn sample_profile(size: f32, long: f32, furrow: f32, smooth: bool, shape: f32) -> Vec<[f32; 4]> {
     let probe = PROBE
+        .replace(
+            "    let across",
+            "    u.plate_profile.x = settings.x;\n    let across",
+        )
         .replace("SIZE", &format!("{size:?}"))
         .replace("LONG", &format!("{long:?}"))
         .replace("FURROW", &format!("{furrow:?}"));
@@ -70,6 +83,10 @@ fn sample(size: f32, long: f32, furrow: f32) -> Vec<[f32; 4]> {
     ) + include_str!("../src/shaders/bark.wgsl")
         + include_str!("../src/shaders/plates.wgsl")
         + &probe;
+    let source = source.replace(
+        "const SMOOTH_BARK: bool = true;",
+        &format!("const SMOOTH_BARK: bool = {smooth};"),
+    );
     let module = wgpu::naga::front::wgsl::parse_str(&source)
         .unwrap_or_else(|e| panic!("{}", e.emit_to_string(&source)));
     wgpu::naga::valid::Validator::new(
@@ -97,7 +114,9 @@ fn sample(size: f32, long: f32, furrow: f32) -> Vec<[f32; 4]> {
             compilation_options: Default::default(),
             cache: None,
         });
-    let count = 128 * 128u64;
+    // Cover more independent axial sites as authored cell sizes change;
+    // retain the original mean-error bound rather than fit sampling noise.
+    let count = 128 * 512u64;
     let bytes = count * 16;
     let output = gpu.device.create_buffer(&wgpu::BufferDescriptor {
         label: None,
@@ -111,13 +130,27 @@ fn sample(size: f32, long: f32, furrow: f32) -> Vec<[f32; 4]> {
         usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
+    let settings = gpu.device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("authored edge profile"),
+        size: 16,
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+    gpu.queue
+        .write_buffer(&settings, 0, bytemuck::cast_slice(&[shape, 0.0, 0.0, 0.0]));
     let group = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: None,
         layout: &pipeline.get_bind_group_layout(0),
-        entries: &[wgpu::BindGroupEntry {
-            binding: 0,
-            resource: output.as_entire_binding(),
-        }],
+        entries: &[
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: output.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: settings.as_entire_binding(),
+            },
+        ],
     });
     let mut encoder = gpu
         .device
@@ -147,6 +180,15 @@ fn sample(size: f32, long: f32, furrow: f32) -> Vec<[f32; 4]> {
 
 #[test]
 fn the_pinned_plate_mean_is_the_mean_the_field_averages_to() {
+    check_mean(true);
+}
+
+#[test]
+fn rough_plate_mean_matches_its_narrow_ragged_profile() {
+    check_mean(false);
+}
+
+fn check_mean(smooth: bool) {
     // The far path returns bark_plate_mean() outright and the near path
     // averages to it. A drift between them is a step in brightness as a trunk
     // recedes, which no tolerance in the distance tests would explain.
@@ -161,13 +203,33 @@ fn the_pinned_plate_mean_is_the_mean_the_field_averages_to() {
     // What the far path returns, from the six pinned numbers: a level and a
     // rate for each of face, dome and rim, the rate being how fast that level
     // falls away as the furrow floor widens.
-    let model = |dome: f64, lift: f64, width: f64| {
-        pinned("BARK_PLATE_FACE") * (-pinned("BARK_PLATE_FURROW_FACE") * width).exp()
-            + dome * pinned("BARK_PLATE_DOME") * (-pinned("BARK_PLATE_FURROW_DOME") * width).exp()
-            + lift * pinned("BARK_PLATE_RIM") * (-pinned("BARK_PLATE_FURROW_RIM") * width).exp()
+    let profile = |name: &str| {
+        pinned(&name.replace(
+            "BARK_PLATE",
+            if smooth { "BARK_PLATE" } else { "BARK_ROUGH" },
+        ))
     };
-    for (row, size, long, furrow) in rows() {
-        let values = sample(size, long, furrow);
+    let model = |dome: f64, lift: f64, width: f64| {
+        profile("BARK_PLATE_FACE") * (-profile("BARK_PLATE_FURROW_FACE") * width).exp()
+            + dome * profile("BARK_PLATE_DOME") * (-profile("BARK_PLATE_FURROW_DOME") * width).exp()
+            + lift * profile("BARK_PLATE_RIM") * (-profile("BARK_PLATE_FURROW_RIM") * width).exp()
+    };
+    // Preserve fn32's reference configurations for the unchanged smooth
+    // profile. Shipped oak/spruce rows now select the rough profile in the
+    // renderer and are checked by the companion test, not a synthetic
+    // smooth-material combination that no shipped preset uses.
+    let measured_rows = if smooth {
+        vec![
+            ("historical oak profile".into(), 0.084, 1.8, 0.0),
+            ("historical spruce profile".into(), 0.028, 0.2, 0.0),
+            ("a furrow of 0.25".into(), 0.084, 1.8, 0.25),
+            ("a furrow of 0.6".into(), 0.084, 1.8, 0.6),
+        ]
+    } else {
+        rows()
+    };
+    for (row, size, long, furrow) in measured_rows {
+        let values = sample_variant(size, long, furrow, smooth);
         if values.is_empty() {
             return;
         }
@@ -243,4 +305,55 @@ fn every_plate_carries_an_identity_of_its_own() {
         spread > 0.05,
         "the identity does not vary: variance {spread}"
     );
+}
+
+#[test]
+#[ignore = "explicit diagnostic for rough-profile integral calibration"]
+fn inspect_rough_plate_means() {
+    for (row, size, long, furrow) in rows() {
+        let values = sample_variant(size, long, furrow, false);
+        assert!(!values.is_empty(), "GPU needed for mean measurement");
+        let mean =
+            |c: usize| values.iter().map(|v| f64::from(v[c])).sum::<f64>() / values.len() as f64;
+        eprintln!(
+            "rough {row} width {furrow}: face {:.8} dome {:.8} rim {:.8}",
+            mean(0),
+            mean(1) - mean(0),
+            mean(2) - mean(0)
+        );
+    }
+}
+
+#[test]
+fn edge_shape_blends_continuously_and_is_independent_of_smooth_terms() {
+    let (_, size, long, furrow) = rows()[0].clone();
+    let rounded = sample_profile(size, long, furrow, false, 0.0);
+    let chipped = sample_profile(size, long, furrow, false, 1.0);
+    let half = sample_profile(size, long, furrow, false, 0.5);
+    let smooth_enabled = sample_profile(size, long, furrow, true, 1.0);
+    if rounded.is_empty() {
+        return;
+    }
+    assert_eq!(rounded.len(), chipped.len());
+    assert_eq!(half.len(), chipped.len());
+    assert_eq!(smooth_enabled.len(), chipped.len());
+    // Feed shape as runtime uniform data, as production does. Separate
+    // constant-folded probes would measure compiler noise in the site hashes.
+    for i in 0..rounded.len() {
+        for c in 0..3 {
+            assert!(
+                (half[i][c] - 0.5 * (rounded[i][c] + chipped[i][c])).abs() < 1e-6,
+                "profile row failed to interpolate at {i}/{c}: rounded {}, chipped {}, half {}",
+                rounded[i][c],
+                chipped[i][c],
+                half[i][c]
+            );
+            assert!(
+                (smooth_enabled[i][c] - chipped[i][c]).abs() < 1e-6,
+                "smooth optimization changed the authored profile at {i}/{c}: {} vs {}",
+                smooth_enabled[i][c],
+                chipped[i][c]
+            );
+        }
+    }
 }

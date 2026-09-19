@@ -1,0 +1,14 @@
+[
+  {
+    "species": "oak",
+    "mean_channel_difference": 0.0,
+    "max_channel_difference": 0.0,
+    "purpose": "Verify explicit material-row plumbing preserved the inspected appearance."
+  },
+  {
+    "species": "spruce",
+    "mean_channel_difference": 0.0,
+    "max_channel_difference": 0.0,
+    "purpose": "Verify explicit material-row plumbing preserved the inspected appearance."
+  }
+]

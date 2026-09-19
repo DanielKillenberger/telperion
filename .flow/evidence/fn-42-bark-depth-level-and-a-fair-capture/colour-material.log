@@ -1,0 +1,12 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+    Finished `ci` profile [optimized] target(s) in 4.13s
+     Running tests/material_detail.rs (/home/daniel/Projects/telperion/target/ci/deps/material_detail-bb060d793dc8ac6d)
+
+running 5 tests
+test older_material_documents_gain_only_inert_detail_defaults ... ok
+test every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged ... ok
+test every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged ... ok
+test detail_rows_all_walk_at_an_interior_point ... ok
+test detail_rows_refuse_both_bounds_by_name_and_roundtrip_the_endpoints ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s

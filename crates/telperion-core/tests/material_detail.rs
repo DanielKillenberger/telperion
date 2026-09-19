@@ -2,7 +2,7 @@
 use serde_json::json;
 use telperion_core::{blend, params, presets::Preset, Error};
 
-const FIELDS: [(&str, &str, f64, f64); 69] = [
+const FIELDS: [(&str, &str, f64, f64); 70] = [
     ("furrowStrength", "bark furrow strength", 0.0, 1.0),
     ("ridgeScale", "bark ridge scale", 0.0, 1.0),
     ("plateScale", "bark plate scale", 0.0, 1.0),
@@ -52,6 +52,7 @@ const FIELDS: [(&str, &str, f64, f64); 69] = [
     ("plateDome", "bark plate dome", 0.0, 1.0),
     ("plateEdgeLift", "bark plate edge lift", 0.0, 1.0),
     ("plateFurrowWidth", "bark plate furrow width", 0.0, 1.0),
+    ("plateEdgeShape", "bark plate edge shape", 0.0, 1.0),
     ("plateIdentity", "bark plate identity", 0.0, 1.0),
     ("weatheringStrength", "bark weathering strength", 0.0, 1.0),
     ("weatheringRed", "bark weathering red", -1.0, 1.0),
@@ -152,6 +153,7 @@ fn older_material_documents_gain_only_inert_detail_defaults() {
         "plateDome",
         "plateEdgeLift",
         "plateFurrowWidth",
+        "plateEdgeShape",
         "plateIdentity",
         "weatheringStrength",
         "weatheringRed",

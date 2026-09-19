@@ -91,6 +91,15 @@ fn bark_network(p: vec3<f32>, stretch: vec3<f32>) -> BarkCell {
 const BARK_PLATE_FACE = 0.5208;
 const BARK_PLATE_DOME = 0.2839;
 const BARK_PLATE_RIM = 0.3891;
+// Narrow rough-bark walls keep more flat face. Integrals measured with the
+// same zero-footprint spatial sweep as the smooth profile, at floor rows
+// 0, 0.25 and 0.6; both specializations are checked at the original 0.02 bound.
+const BARK_ROUGH_FACE = 0.7540;
+const BARK_ROUGH_DOME = 0.5795;
+const BARK_ROUGH_RIM = 0.3038;
+const BARK_ROUGH_FURROW_FACE = 1.64;
+const BARK_ROUGH_FURROW_DOME = 2.4;
+const BARK_ROUGH_FURROW_RIM = 1.44;
 // How proud a plate stands of its furrow, as a fraction of its own width,
 // and how much of that width the wall between the two takes.
 // How far the furrow row opens the floor, as a fraction of a plate's width at
@@ -126,9 +135,13 @@ fn bark_peel_lift(edge_lift: f32, curl: f32) -> f32 {
 // the plate test holds the shipped rows and a wide furrow against the curve.
 fn bark_plate_mean(dome: f32, edge_lift: f32, furrow_width: f32) -> f32 {
     let w = max(furrow_width, 0.0);
-    return BARK_PLATE_FACE * exp(-BARK_PLATE_FURROW_FACE * w)
+    let rounded = BARK_PLATE_FACE * exp(-BARK_PLATE_FURROW_FACE * w)
         + dome * BARK_PLATE_DOME * exp(-BARK_PLATE_FURROW_DOME * w)
         + edge_lift * BARK_PLATE_RIM * exp(-BARK_PLATE_FURROW_RIM * w);
+    let chipped = BARK_ROUGH_FACE * exp(-BARK_ROUGH_FURROW_FACE * w)
+        + dome * BARK_ROUGH_DOME * exp(-BARK_ROUGH_FURROW_DOME * w)
+        + edge_lift * BARK_ROUGH_RIM * exp(-BARK_ROUGH_FURROW_RIM * w);
+    return mix(rounded, chipped, u.plate_profile.x);
 }
 
 // One plate's width across the run, in metres. Girth carries it, so an old
@@ -152,6 +165,21 @@ struct BarkPlate {
     side: f32,
     kept: f32,
 };
+
+// One profile's face, dome and rim, integrated across its edge. Appearance
+// is authored by a material row, never the smooth-term optimization flag.
+fn bark_plate_profile(edge: f32, pixel: f32, floor: f32, wall: f32,
+    profile: vec3<f32>, proud: f32, lean: f32) -> f32 {
+    let face = bark_edge(floor, floor + wall, edge, pixel);
+    let ramp = clamp((edge - floor) / (floor + 2.0 * wall), 0.0, 1.0);
+    let rim = face * (1.0 - bark_edge(floor + wall, floor + 2.2 * wall, edge, pixel));
+    return face * proud + profile.x * ramp * face + profile.y * rim * proud
+        + profile.z * PEEL_LIFT * rim * smoothstep(0.0, 0.25, lean);
+}
+
+fn bark_plate_wall() -> f32 {
+    return mix(BARK_PLATE_WALL, 0.06, u.plate_profile.x);
+}
 
 // The network at a point, read at a footprint under half a plate. `structure`
 // is the identity row, the furrow width and the peel's curl.
@@ -206,29 +234,29 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     // branch and merge, and why three of its boundaries meet at a point.
     let stretch = vec3(wide, wide, elongated);
     let network = bark_network(warped, stretch);
-    let edge = network.edge;
-    // The floor of the furrow: the hairline the network cuts between two
-    // faces, widened by the row. It is a fraction of a plate's own width, so
-    // a bigger plate carries a wider furrow off one row and nothing about the
-    // structure changes with girth. The walls that climb out of it are as wide
-    // as the ridges' own shoulders - a furrow cut in a third of that distance
-    // is a feature no footprint can integrate - and both edges are integrated
-    // against the footprint, so the floor fades with everything else.
-    let floor = 0.012 + BARK_PLATE_FURROW * max(structure.y, 0.0);
-    let face = bark_edge(floor, floor + BARK_PLATE_WALL, edge, pixel);
-    let ramp = clamp((edge - floor) / (floor + 2.0 * BARK_PLATE_WALL), 0.0, 1.0);
-    let rim = face * (1.0 - bark_edge(floor + BARK_PLATE_WALL,
-        floor + 2.2 * BARK_PLATE_WALL, edge, pixel));
-    // What this plate keeps of its own: how proud it stands, and how far it
-    // leans across its own run. A scale lifted at one edge is a plate leaning.
     let own = bark_plate_own(network.seed);
     let jitter = 2.0 * own - 1.0;
     let lean = (2.0 * fract(own * 71.7) - 1.0) * clamp(network.lean, -1.0, 1.0);
     let proud = 1.0 + identity * (0.40 * jitter + 0.75 * lean);
-    var relief = face * proud + dome * ramp * face + edge_lift * rim * proud;
-    // A curling strip lifts at its lower edge, where its own site stands above.
-    // Added apart, so a row with no curl keeps the arithmetic it always had.
-    if (curl > 0.0) { relief += curl * PEEL_LIFT * rim * smoothstep(0.0, 0.25, network.lean); }
+    let floor = BARK_PLATE_FURROW * max(structure.y, 0.0);
+    let profile = vec3(dome, edge_lift, curl);
+    var edge = network.edge;
+    var relief = bark_plate_profile(edge, pixel, floor + 0.012,
+        BARK_PLATE_WALL, profile, proud, network.lean);
+    if (u.plate_profile.x > 0.0) {
+        let chip_footprint = vec2(footprint.x / span, footprint.y / size) * 8.0;
+        let chip_a = bark_noise2_filtered(
+            vec2(dot(lattice.xy, vec2(0.8, -0.6)), lattice.z * elongated) * 8.0,
+            chip_footprint);
+        let chip_b = bark_noise2_filtered(
+            vec2(dot(lattice.xy, vec2(-0.6, 0.8)), lattice.z * elongated) * 8.0
+                + vec2(17.3, 29.1), chip_footprint);
+        let chipped_edge = edge + 0.10 * (chip_a + chip_b - 1.0);
+        let chipped = bark_plate_profile(chipped_edge, pixel, floor + 0.006,
+            0.06, profile, proud, network.lean);
+        relief = mix(relief, chipped, u.plate_profile.x);
+        edge = mix(edge, chipped_edge, u.plate_profile.x);
+    }
     // The identity is one value over a whole plate and nothing between two:
     // point-sampling it at a boundary is the one step in this field a box
     // filter cannot recover. Within a footprint of an edge it is the mean,
@@ -286,5 +314,5 @@ fn bark_plate_identity(circle: vec2<f32>, along: f32, radius: f32,
 // a plate stands a fixed fraction of its own width proud of its furrow, and a
 // width is metres, so the ridge scale converts it.
 fn bark_plate_depth(plate: vec4<f32>, ridge_scale: f32, girth: f32) -> f32 {
-    return BARK_PLATE_DEPTH * bark_plate_size(plate.x, girth) / max(ridge_scale, 1e-6);
+    return mix(BARK_PLATE_DEPTH, 0.03, u.plate_profile.x) * bark_plate_size(plate.x, girth) / max(ridge_scale, 1e-6);
 }

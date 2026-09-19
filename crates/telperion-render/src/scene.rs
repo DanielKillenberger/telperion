@@ -88,6 +88,7 @@ struct Uniforms {
     peel: [f32; 4],               // inner bark RGB, curl
     reflectance: [f32; 4], // bark and cuticle reflectance at normal incidence, reserved, reserved
     grain: [f32; 4], // bark grain cell size in metres and strength, blade grain cells per blade and strength
+    plate_profile: [f32; 4], // edge shape, reserved, reserved, reserved
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform

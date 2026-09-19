@@ -22,6 +22,10 @@ const artifacts = [
   'src/browser/render/telperion_render_bg.wasm',
   'crates/telperion-core/src/presets/materials.rs',
   'crates/telperion-render/src/shaders/wood.wgsl',
+  'crates/telperion-render/src/shaders/plates.wgsl',
+  'crates/telperion-render/src/shaders/common.wgsl',
+  'crates/telperion-render/src/scene/frame.rs',
+  'crates/telperion-core/src/material.rs',
 ];
 await mkdir(directory, { recursive: true });
 const provenance = {
