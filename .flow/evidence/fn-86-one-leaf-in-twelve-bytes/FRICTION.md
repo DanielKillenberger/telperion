@@ -54,3 +54,54 @@ as their own spec that depends on it. The implementation is one coherent commit;
 the five-species QA pass, the four RSS measurements and the five stills are
 three independent campaigns that need a green tree first and nothing else from
 each other.
+
+## 2026-09-19 - the before number was not recorded anywhere
+
+Doing: R4, the retained leaf count within 0.1 percent per species.
+
+What slowed it: the criterion is a comparison and only one end of it existed.
+The catalogue pins hold a retained count for one seed per species, which is
+four numbers; the twenty-four seeds `species:qa` actually measures leave no
+count behind anywhere a later run can read. Getting the other end meant a
+second worktree at the base commit, a release build there, and the whole
+ninety-six-case measurement run a second time. Cost: about 25 minutes, and
+roughly half of it was arithmetic the first run could have written down for
+free.
+
+What would remove it: `species:qa --measure-only` writing a one-line count
+summary beside `numeric.json` - species, seed, retained count - and a flag
+that diffs a previous run's summary against this one. The numbers are already
+in each case's `output_bytes.retained_matrices`; nothing new has to be
+measured, only kept.
+
+## 2026-09-19 - the generated pages did not follow the pins
+
+Doing: `npm test`, at the end of the run.
+
+What slowed it: `catalogue:check` was red on four species. The README pages are
+generated from `pins.json`, the encoding commit moved every species' placement
+hash and bounds, and nothing regenerated the pages. The failure had been
+sitting in the tree since that commit because `npm test` needs a wasm and a
+render rebuild and the previous run had not reached it. Cost: 10 minutes, and
+a red tree that would have reached the owner. Mirror drift, the same class
+CLAUDE.md already names.
+
+What would remove it: `scripts/catalogue-pages.mjs` running from the same place
+that writes `pins.json`, so a pin cannot move without its page moving, or a
+pre-commit hook that regenerates and stages the pages when any `pins.json` is
+staged.
+
+## 2026-09-19 - /usr/bin/time is not on this machine
+
+Doing: R7, peak RSS of the four `fixed_*` tests.
+
+What slowed it: the obvious tool for a peak-RSS measurement is not installed,
+so the poll had to be written by hand: launch the test binary, read
+`/proc/<pid>/status` VmHWM in a loop until it exits, keep the maximum. Cost:
+about 5 minutes. It is a local setup problem on the owner's machine and
+belongs in no spec; it is recorded because R7's wording assumes a measurement
+tool the host does not have, and the next run will hit it too.
+
+What would remove it: the spec naming the VmHWM poll rather than a tool, which
+this one already does, plus `time` installed. The poll is four lines of shell
+and does not need a home in the repository.
