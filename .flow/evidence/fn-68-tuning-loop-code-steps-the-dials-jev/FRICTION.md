@@ -1,5 +1,13 @@
 # Friction
 
+## 2026-09-19 - Live continuation lacked a bounded plan
+
+After the numeric-good baseline and a supported tuning route, continuation received a generic `targeted tuning round` action, visible defect and recent scores, but no exact dial scope/bounds/verification plan. It correctly abstained on tractability/risk and paused. Cost: baseline visual21,154 tokens plus route/continuation2,533 tokens, two baseline evaluations/eight images including the earlier path failure, about two minutes for the successful baseline/calls. No candidate round ran. Supplying the concrete bounded plan as input before judging it would remove this ambiguity; the host owns that contract decision. Remaining36,377 cannot safely fund another question cycle plus35,000 final image reservation. The host instructed no live retry/cap extension; preserve the pause and return NEEDS_HUMAN, not a model-failure or convergence claim.
+
+## 2026-09-19 - Pilot reference directory mismatch
+
+The first live baseline passed measurement and rendered four still/twin images, then the comparison script expected `refs/fasy951.jpg` while the config pointed one directory above the species photos. Cost: 26 seconds, one evaluation and four images, zero pilot model tokens. The run paused and retained spend. Correcting the species reference directory and explicitly resuming the changed identity removes this setup issue; a preflight check of comparison-script reference resolution would have caught it before rendering. The empty-overlay measurement golden passed independently. The user interruption was recovered with process/checkpoint checks; no live call was repeated or budget reset.
+
 ## 2026-09-19 - First visual judgment exceeded its token reservation
 
 The repaired read-only Sol medium image bridge returned one assessment with 19,778 reported input/output tokens, above the 5,000 reservation and 10,000 local replay allowance. The code recorded actual spend and stopped before the positive case. The first failed CLI attempt still retains a conservative 5,000 reservation, leaving 5,222 of the 30,000 calibration/pilot ceiling under current accounting. Cost: one visual call, roughly two minutes; no new captures. The historical reconstruction used two builds and six images with all six exact historical hashes recovered. A lower-cost demonstrated image route or an explicit budget/protocol decision is needed before more live calibration. No second model call or pilot was launched; the host was notified immediately. Prior implementation/scout token cost remains unknown.

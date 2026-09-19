@@ -179,6 +179,18 @@ pub struct Live<'a> {
     pub key: &'a str,
 }
 impl Live<'_> {
+    fn visual_cells(&self, trial: &Trial) -> Vec<Cell> {
+        if trial.round != 0 {
+            return self.config.required.clone();
+        }
+        let first = self.config.required.iter().find(|c| c.seed == trial.seed);
+        self.config
+            .required
+            .iter()
+            .filter(|c| first.is_some_and(|f| c.seed == f.seed && c.view == f.view))
+            .cloned()
+            .collect()
+    }
     fn ask(&self, state: &Value, questions: &Value) -> Result<LedgerEntry, String> {
         let entry = evaluate(
             self.transport,
@@ -235,8 +247,7 @@ impl Services for Live<'_> {
             .iter()
             .map(|c| (c.reference.as_str(), trial.seed))
             .collect::<std::collections::HashSet<_>>();
-        self.config
-            .required
+        self.visual_cells(trial)
             .iter()
             .map(|c| (c.view.as_str(), c.seed))
             .collect::<std::collections::HashSet<_>>()
@@ -244,6 +255,13 @@ impl Services for Live<'_> {
             .filter(|c| !existing.contains(c))
             .count() as u64
             * 2
+    }
+    fn visual_tokens(&self, trial: &Trial) -> u64 {
+        if trial.round == 0 {
+            25000
+        } else {
+            35000
+        }
     }
     fn evaluate(
         &mut self,
@@ -265,12 +283,18 @@ impl Services for Live<'_> {
         )
     }
     fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String> {
+        let required = self.visual_cells(trial);
         let mut images = trial
             .comparisons
             .iter()
             .filter_map(|c| c.images.first().cloned())
+            .filter(|i| {
+                required
+                    .iter()
+                    .any(|c| c.view == i.view && c.seed == i.seed)
+            })
             .collect::<Vec<_>>();
-        for cell in &self.config.required {
+        for cell in &required {
             if images
                 .iter()
                 .any(|i| i.view == cell.view && i.seed == cell.seed)
@@ -295,13 +319,27 @@ impl Services for Live<'_> {
         let request = vision::Request {
             schema: "tuning-vision-v2".into(),
             identity: trial.key.clone(),
-            required: self.config.required.clone(),
+            required: required.clone(),
             images,
-            references: self.config.references.clone(),
+            references: self
+                .config
+                .references
+                .iter()
+                .filter(|i| required.iter().any(|c| c.view == i.view))
+                .cloned()
+                .collect(),
             checklist: self.config.checklist.clone(),
             quality_anchors: self.config.quality_anchors.clone(),
         };
-        let result = self.config.vision.assess(&request)?;
+        let mut result = self.config.vision.assess(&request)?;
+        for cell in &self.config.required {
+            if !required.contains(cell) {
+                result
+                    .assessment
+                    .cells
+                    .push((cell.clone(), super::state::CellStatus::Unknown));
+            }
+        }
         Ok(Answer {
             value: result.assessment,
             tokens: result

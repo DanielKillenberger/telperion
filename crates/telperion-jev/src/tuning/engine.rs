@@ -32,6 +32,9 @@ pub trait Services {
     }
     fn evaluation_images(&self) -> u64;
     fn visual_images(&self, trial: &Trial) -> u64;
+    fn visual_tokens(&self, _trial: &Trial) -> u64 {
+        25000
+    }
     fn evaluate(
         &mut self,
         overrides: Value,
@@ -148,16 +151,17 @@ impl Run {
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
         let trial = self.trials[self.current.ok_or("no feasible current candidate")?].clone();
+        let allowance = services.visual_tokens(&trial);
         self.reserve(
             0,
             services.visual_images(&trial),
-            25000,
+            allowance,
             0,
             "visual assessment",
             save,
         )?;
         let answer = services.visual(&trial)?;
-        let visual = self.settle(answer, 25000)?;
+        let visual = self.settle(answer, allowance)?;
         self.machine_ready = ready(&self.required, &trial.key, &visual);
         self.visual = Some(visual);
         save(self)
