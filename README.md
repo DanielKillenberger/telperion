@@ -10,7 +10,9 @@ const family = structuredClone(TELPERION);
 family.skeleton.seed = 7;
 const tree = engine.build(family, { surface: true, foliage: true });
 // tree.surface: Float32 positions/normals, Uint32 indices, bounds.
-// tree.foliage: one leaf mesh, column-major Float32 instance matrices, bounds.
+// tree.foliage: one leaf mesh, twelve bytes a leaf - three Uint32 words with
+// the reference box they decode against - and bounds. `leafTransform` rebuilds
+// the sixteen column-major floats for a caller that wants them.
 engine.release(); // returned arrays are owned copies and remain usable
 engine.dispose();
 ```
@@ -89,8 +91,9 @@ record, call `changes.validate(&previous_buffers, &tree.buffers()?)` before appl
 it; a mismatch names the run's birth identity. Application needs no fresh read.
 Run-buffer radii are exact canonical keyframe values; the family's resize
 tolerance controls frame creation without a separate consumer rounding grid.
-Placement matrices reconcile bit for bit, including movement caused
-by an adjacent branch changing a surface-contact polygon. A clock-only advance
+Packed placements reconcile bit for bit - the three words a record carries are
+the three a fresh read carries - including movement caused by an adjacent
+branch changing a surface-contact polygon. A clock-only advance
 returns newly reached cohorts, deriving transforms only for their shoots.
 Once those cohorts are full, clock-only advances derive no placements.
 

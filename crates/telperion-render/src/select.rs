@@ -103,6 +103,8 @@ pub struct Select {
     forced: Level,
     /// The element's bounding sphere at the origin: centre, then radius.
     sphere: [f32; 4],
+    /// The box the submitted crown's positions were quantised against.
+    reference: telperion_core::foliage::Reference,
 }
 
 impl Select {
@@ -135,6 +137,7 @@ impl Select {
             stride: 0,
             forced: Level::default(),
             sphere: [0.0; 4],
+            reference: telperion_core::foliage::Reference::default(),
         }
     }
 
@@ -151,7 +154,8 @@ impl Select {
     pub fn submit(&mut self, gpu: &Gpu, foliage: &mesh::Foliage, level: Level) {
         let element = &foliage.element;
         self.forced = level;
-        self.instances = foliage.instances.matrices.len() as u32;
+        self.instances = foliage.instances.len() as u32;
+        self.reference = foliage.instances.reference;
         self.levels = element.levels.iter().map(|l| l.indices.clone()).collect();
         self.sphere = frame::sphere(element);
         let sizes = sizes(
@@ -176,10 +180,9 @@ impl Select {
             &mut self.placements,
             "foliage placements",
             storage,
-            bytemuck::cast_slice(&foliage.instances.matrices),
+            bytemuck::cast_slice(&foliage.instances.leaves),
         );
-        let matrices = &foliage.instances.matrices;
-        let masses = crate::mass::grid(matrices, crate::submit::crown_of(foliage));
+        let masses = crate::mass::grid(&foliage.instances, crate::submit::crown_of(foliage));
         buffer::write(
             gpu,
             &mut self.masses,
@@ -328,6 +331,8 @@ impl Select {
             ),
             forward: frame::point(forward, camera.near),
             sphere: self.sphere,
+            box_min: frame::point(self.reference.min, 0.0),
+            box_extent: frame::point(self.reference.extent, 0.0),
             instances: self.instances,
             levels: self.levels.len() as u32,
             stride: self.stride / size_of::<u32>() as u32,

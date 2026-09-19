@@ -65,6 +65,13 @@ impl Specimen {
             .foliage
             .read(self.tree(), self.envelope(), timeline.age)
     }
+    /// The box this specimen's leaves are quantised against: the family's
+    /// own, so the same box at every age it is read at.
+    pub fn leaf_reference(&self) -> crate::foliage::Reference {
+        self.timeline
+            .as_ref()
+            .map_or_else(Default::default, |t| t.foliage.reference())
+    }
     pub fn age(&self) -> f64 {
         self.timeline.as_ref().map_or(0.0, |t| t.age.years())
     }

@@ -7,7 +7,7 @@
 //! where the crown's ellipsoid reads one smooth depth for both. The vertex
 //! stage looks its placement's cell up by position; nothing is recomputed a
 //! frame.
-use telperion_core::surface::Bounds;
+use telperion_core::{foliage::Instances, surface::Bounds};
 
 /// Cells along the crown's longest side, at most: a crown too sparse to put
 /// `FILL` leaves in a cell on the average gets coarser cells, so an empty cell
@@ -29,32 +29,31 @@ pub fn empty() -> Vec<f32> {
 
 /// The grid for a crown: the header, then each cell's depth in its own mass,
 /// 0 with nothing over it to 1 under a full clump, x fastest, then y, then z.
-pub fn grid(matrices: &[[f32; 16]], crown: Option<Bounds>) -> Vec<f32> {
+pub fn grid(instances: &Instances, crown: Option<Bounds>) -> Vec<f32> {
     let Some(crown) = crown else { return empty() };
     let size = crown.max - crown.min;
-    let cells = (matrices.len() as f64 / FILL)
+    let cells = (instances.len() as f64 / FILL)
         .cbrt()
         .clamp(1.0, CELLS as f64)
         .floor();
     let edge = size.x.max(size.y).max(size.z) / cells;
-    if matrices.is_empty() || !edge.is_finite() || edge <= 0.0 {
+    if instances.is_empty() || !edge.is_finite() || edge <= 0.0 {
         return empty();
     }
     let reach = ((cells * REACH).round() as usize).max(1);
     let count = |extent: f64| ((extent / edge).floor() as usize + 1).min(CELLS);
     let n = [count(size.x), count(size.y), count(size.z)];
-    let cell = |m: &[f32; 16]| {
-        let at = |k: usize, lo: f64| {
-            (((f64::from(m[12 + k]) - lo) / edge).floor().max(0.0) as usize).min(n[k] - 1)
-        };
-        at(0, crown.min.x) + n[0] * (at(1, crown.min.y) + n[1] * at(2, crown.min.z))
+    let cell = |p: telperion_core::math::Vec3| {
+        let at =
+            |v: f64, lo: f64, k: usize| (((v - lo) / edge).floor().max(0.0) as usize).min(n[k] - 1);
+        at(p.x, crown.min.x, 0) + n[0] * (at(p.y, crown.min.y, 1) + n[1] * at(p.z, crown.min.z, 2))
     };
     let mut counts = vec![0u32; n[0] * n[1] * n[2]];
-    for m in matrices {
-        counts[cell(m)] += 1;
+    for index in 0..instances.len() {
+        counts[cell(instances.position(index))] += 1;
     }
     let occupied = counts.iter().filter(|&&c| c > 0).count().max(1);
-    let mean = matrices.len() as f64 / occupied as f64;
+    let mean = instances.len() as f64 / occupied as f64;
     let mut out = Vec::with_capacity(HEADER + counts.len());
     out.extend([crown.min.x, crown.min.y, crown.min.z, edge].map(|v| v as f32));
     out.extend(n.map(|v| v as f32));
@@ -83,7 +82,21 @@ pub fn grid(matrices: &[[f32; 16]], crown: Option<Bounds>) -> Vec<f32> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use telperion_core::math::Vec3;
+    use telperion_core::{foliage::Reference, math::Vec3};
+
+    /// The crown the fixtures below stand in, as a box they all fit inside.
+    /// A test that quantises against a box of its own step would read its own
+    /// rounding rather than the grid it came to judge.
+    fn crown(leaves: &[[f32; 16]]) -> Instances {
+        let mut out = Instances::new(Reference::spanning(
+            Vec3::new(-8.0, -1.0, -8.0),
+            Vec3::new(8.0, 72.0, 8.0),
+        ));
+        for m in leaves {
+            out.push(m);
+        }
+        out
+    }
 
     fn at(x: f32, y: f32, z: f32) -> [f32; 16] {
         [
@@ -127,7 +140,7 @@ mod tests {
         // its underside reads a whole lobe's height of its own mass over it.
         let mut leaves = column(0.0, 16.0);
         leaves.extend(column(32.0, 64.0));
-        let grid = grid(&leaves, bounds(&leaves));
+        let grid = grid(&crown(&leaves), bounds(&leaves));
         let edge = grid[3];
         let under = depth(&grid, [0.0, 0.5, 0.0]);
         let face = depth(&grid, [0.0, 15.9, 0.0]);
@@ -144,10 +157,10 @@ mod tests {
 
     #[test]
     fn no_crown_and_no_leaves_read_no_depth() {
-        assert_eq!(grid(&[], None), empty());
-        assert_eq!(grid(&[], bounds(&[at(0.0, 0.0, 0.0)])), empty());
+        assert_eq!(grid(&crown(&[]), None), empty());
+        assert_eq!(grid(&crown(&[]), bounds(&[at(0.0, 0.0, 0.0)])), empty());
         // One leaf fills a box of no size, which has no cells to count into.
         let one = [at(1.0, 2.0, 3.0)];
-        assert_eq!(grid(&one, bounds(&one)), empty());
+        assert_eq!(grid(&crown(&one), bounds(&one)), empty());
     }
 }

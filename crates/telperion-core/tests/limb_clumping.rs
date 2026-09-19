@@ -37,7 +37,14 @@ fn placed(f: &Family, tree: &Tree, clumping: f64) -> Result<Instances, Error> {
         limb_clumping: clumping,
         ..f.canopy
     };
-    foliage::place(tree, f.skeleton.envelope, f.skeleton.seed, canopy, twig)
+    foliage::place(
+        tree,
+        f.skeleton.envelope,
+        f.skeleton.seed,
+        canopy,
+        twig,
+        foliage::Reference::of(f).unwrap(),
+    )
 }
 
 #[test]
@@ -48,16 +55,16 @@ fn a_clumped_crown_is_the_whole_crown_thinned_in_order() {
         let whole = placed(&f, &tree, 0.0).unwrap();
         let clumped = placed(&f, &tree, 0.5).unwrap();
         assert_eq!(clumped, placed(&f, &tree, 0.5).unwrap(), "seed {seed}");
-        let (n, m) = (whole.matrices.len(), clumped.matrices.len());
+        let (n, m) = (whole.len(), clumped.len());
         assert!(m < n * 9 / 10, "seed {seed}: {m} of {n} leaves stayed");
         assert!(m > n / 4, "seed {seed}: only {m} of {n} leaves stayed");
         // Every leaf that stays is one the whole crown placed, in its order.
-        let mut rest = whole.matrices.iter();
-        for leaf in &clumped.matrices {
+        let mut rest = whole.leaves.iter();
+        for leaf in &clumped.leaves {
             assert!(rest.any(|w| w == leaf), "seed {seed}: a leaf moved");
         }
         // A deeper gap keeps fewer.
-        assert!(placed(&f, &tree, 1.0).unwrap().matrices.len() < m);
+        assert!(placed(&f, &tree, 1.0).unwrap().len() < m);
     }
 }
 
@@ -82,8 +89,8 @@ fn the_growth_view_clumps_its_crown_as_well() {
     f.canopy.limb_clumping = 0.5;
     let clumped = SpecimenView::build(&f).unwrap().mesh().unwrap();
     let (n, m) = (
-        whole.foliage.instances.matrices.len(),
-        clumped.foliage.instances.matrices.len(),
+        whole.foliage.instances.len(),
+        clumped.foliage.instances.len(),
     );
     assert!(n > 0, "the view must carry leaves");
     assert!(m < n, "the view kept all {n} leaves");

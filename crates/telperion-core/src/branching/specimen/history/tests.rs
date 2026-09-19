@@ -15,6 +15,7 @@ fn fresh_read(s: &Specimen) -> SpecimenRead {
         tree: s.tree().clone(),
         envelope: s.envelope(),
         placements: s.placements().unwrap(),
+        reference: s.leaf_reference(),
         shed,
     }
 }

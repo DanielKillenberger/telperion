@@ -69,9 +69,14 @@ fn analytic_axes_taper_angles_and_degeneracy() {
 fn biological_centroid_bins_count_needles_and_exclude_connectors() {
     let t = tree();
     let matrix = |x, y| [1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., x, y, 0., 1.];
-    let kept = Instances {
-        matrices: vec![matrix(1., 0.), matrix(4., 4.)],
-    };
+    // The two stations are the box's own corners, so both decode to exactly
+    // where they were put.
+    let mut kept = Instances::new(foliage::Reference::spanning(
+        Vec3::new(1., 0., 0.),
+        Vec3::new(4., 4., 0.),
+    ));
+    kept.push(&matrix(1., 0.));
+    kept.push(&matrix(4., 4.));
     let p = ElementParams {
         section_roundness: 1.0,
         cross_segments: 4,
@@ -98,14 +103,19 @@ fn biological_centroid_bins_count_needles_and_exclude_connectors() {
             - m["value"]["normalization"]["ymin_m"].as_f64().unwrap()
             - 0.008)
             .abs()
-            < 1e-8
+            // The leaf axis is read back through ten bits a quaternion
+            // component, so it stands up to 0.0024 rad off true and a
+            // 8 mm shift along it measures 2e-8 short.
+            < 1e-7
     );
     assert_eq!(
         metrics::foliage_bins(&t, &e, &Instances::default()).unwrap()["status"],
         "unavailable"
     );
+    // A leaf cannot be malformed - three words are three words - so what the
+    // bins refuse is a box that is not a box.
     let mut bad = kept;
-    bad.matrices[0][0] = f32::NAN;
+    bad.reference.extent.x = f64::NAN;
     assert!(metrics::foliage_bins(&t, &e, &bad).is_err());
 }
 #[test]

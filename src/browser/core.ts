@@ -1,3 +1,4 @@
+import type { LeafReference } from "./leaf";
 import { specimenBinding, type SpecimenExports, type SpecimenHandle, type SpecimenSnapshot } from "./specimen";
 import wasmUrl from "./telperion.wasm?url";
 import { CATALOGUE, type Family } from "./presets.generated";
@@ -36,7 +37,10 @@ export interface Diagnostics {
   nodes: number; crossover: number; shed: number; capped: boolean; levelCapped: boolean;
   attractionCapped: boolean; complete: boolean; handoffs: number; generationCounts: number[];
   levelCappedHandoffs: number; twigs: number; leavesPlaced: number; instances: number;
-  surfaceBounds: Bounds | null; foliageBounds: Bounds | null; fieldBounds: Bounds | null;
+  surfaceBounds: Bounds | null; foliageBounds: Bounds | null;
+  /** The box every packed leaf position is quantised against. */
+  foliageReference: LeafReference | null;
+  fieldBounds: Bounds | null;
   fieldBytes: number; revision: number; timings: Timings;
   stages: { surface: boolean; foliage: boolean; field: boolean };
 }
@@ -54,7 +58,9 @@ export interface FieldSnapshot {
 }
 export interface TreeOutput {
   surface?: { positions: Float32Array; normals: Float32Array; indices: Uint32Array; bounds: Bounds | null };
-  foliage?: { positions: Float32Array; indices: Uint32Array; matrices: Float32Array; anatomy: FoliageAnatomy | null; bounds: Bounds | null };
+  /** Three u32 words a leaf, decoded against `reference` by `./leaf`. The
+   * sixteen-float form is never built here: twelve bytes are the storage. */
+  foliage?: { positions: Float32Array; indices: Uint32Array; leaves: Uint32Array; reference: LeafReference | null; anatomy: FoliageAnatomy | null; bounds: Bounds | null };
   /** Six f64 values per node: xyz, distal radius, proximal radius, base radius.
    * Three u32 values per node: parent (UINT32_MAX for root), branch, kind (0/1/2). */
   structure?: { values: Float64Array; topology: Uint32Array };
@@ -119,7 +125,7 @@ export class TreeEngine {
     const u32 = (slot: number) => new Uint32Array(e.memory.buffer, e.buffer_ptr(slot), e.buffer_len(slot)).slice();
     const result: TreeOutput = { diagnostics };
     if (outputs.surface) result.surface = { positions: f32(0), normals: f32(1), indices: u32(2), bounds: diagnostics.surfaceBounds };
-    if (outputs.foliage) result.foliage = { positions: f32(3), indices: u32(4), matrices: f32(5), anatomy: diagnostics.foliageAnatomy, bounds: diagnostics.foliageBounds };
+    if (outputs.foliage) result.foliage = { positions: f32(3), indices: u32(4), leaves: u32(5), reference: diagnostics.foliageReference, anatomy: diagnostics.foliageAnatomy, bounds: diagnostics.foliageBounds };
     if (outputs.structure) result.structure = { values: new Float64Array(e.memory.buffer, e.buffer_ptr(6), e.buffer_len(6)).slice(), topology: u32(7) };
     if (outputs.field) result.field = { query: cells => this.query(diagnostics.revision, cells), snapshot: () => this.snapshot(diagnostics) };
     diagnostics.timings.transferMs = performance.now() - transfer;

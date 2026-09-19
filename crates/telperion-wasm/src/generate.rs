@@ -114,8 +114,9 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
                 stations_per_internode: t.twig.stations_per_internode,
             }),
             &f.surface,
+            foliage::Reference::of(&f)?,
         )?;
-        placed_count = placed.matrices.len();
+        placed_count = placed.len();
         out.instances = foliage::cull(placed, &blade, f.skeleton.envelope, f.shell_depth)?;
         if wants("foliage") {
             anatomy = blade.anatomy.as_ref().map_or(Value::Null, |a| json!({
@@ -147,7 +148,8 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         )?);
     }
     let field_ms = if wants("field") { clock() - start } else { 0.0 };
-    let retained_count = out.instances.matrices.len();
+    let retained_count = out.instances.len();
+    let reference = out.instances.reference;
     if !wants("foliage") {
         out.instances = foliage::Instances::default();
     }
@@ -186,6 +188,12 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
         "leavesPlaced":placed_count,"instances":retained_count,
         "surfaceBounds":out.surface.as_ref().and_then(|s|s.bounds).map(|b|bounds(b.min,b.max)),
         "foliageBounds":leaf_bounds,
+        // The box every leaf position is quantised against. A reader of the
+        // placement buffer decodes its three words with nothing else.
+        "foliageReference":{
+            "min":[reference.min.x, reference.min.y, reference.min.z],
+            "extent":[reference.extent.x, reference.extent.y, reference.extent.z]
+        },
         "foliageAnatomy":anatomy,
         "biologicalUnits": if element.as_ref().is_some_and(|e| e.anatomy.is_some()) { Some(retained_count) } else { None },
         "fieldBounds":out.field.as_ref().and_then(Field::bounds).map(|b|bounds(b.min,b.max)),
@@ -279,7 +287,7 @@ mod tests {
             let expected = (
                 wood.positions.len() / 3,
                 wood.indices.len() / 3,
-                out.instances.matrices.len(),
+                out.instances.len(),
                 union_bounds(&meta),
             );
             drop(out);

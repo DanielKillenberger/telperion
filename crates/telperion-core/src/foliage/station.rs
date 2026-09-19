@@ -94,7 +94,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
                 ))?;
             point = point * (1. - p.surface_contact) + seat * p.surface_contact;
         }
-        out.matrices.push(matrix(
+        out.push(&matrix(
             point,
             axis(point, radial, tangent, p),
             tangent,
@@ -144,18 +144,18 @@ fn stations(
 
 pub(super) fn reserve(out: &mut Instances, stations: usize, p: CanopyParams) -> Result<()> {
     let total = out
-        .matrices
+        .leaves
         .len()
         .checked_add(stations)
         .ok_or(Error::ResourceLimit("foliage count overflow"))?;
     if total
-        .checked_mul(std::mem::size_of::<[f32; 16]>())
+        .checked_mul(std::mem::size_of::<super::Leaf>())
         .is_none_or(|bytes| bytes > isize::MAX as usize)
         || total > p.max_instances
     {
         return Err(Error::ResourceLimit("foliage instance budget"));
     }
-    out.matrices
+    out.leaves
         .try_reserve(stations)
         .map_err(|_| Error::ResourceLimit("foliage allocation"))
 }

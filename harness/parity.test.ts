@@ -48,7 +48,7 @@ for (const id of ['ordinary', 'oregon-white-oak', 'norway-spruce', 'telperion', 
     imported.advance(0.25);
     for (const age of [10.5, 20.25, 26]) {
       const read = imported.read(age);
-      const wasm = Buffer.concat([read.structure.values, read.structure.topology, read.matrices]
+      const wasm = Buffer.concat([read.structure.values, read.structure.topology, read.leaves]
         .map(a => Buffer.from(a.buffer, a.byteOffset, a.byteLength)));
       const native = execFileSync('target/release/examples/node_buffer', [id, String(age), '--import'], { input: snapshot.data, maxBuffer: 512 * 1024 * 1024 });
       expect(wasm.equals(native), `${id} at ${age}: ${wasm.length}/${native.length} bytes`).toBe(true);

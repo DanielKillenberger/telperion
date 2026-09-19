@@ -140,11 +140,10 @@ pub(super) fn clothe(
                 let radial = bearing.rotate(Vec3::Y, across + turn);
                 let at = s.shoot.tip;
                 let lean = axis(at, radial, tangent, *p);
-                out.matrices
-                    .push(matrix(at, lean, tangent, radial, *p, &mut rng)?);
+                out.push(&matrix(at, lean, tangent, radial, *p, &mut rng)?);
             }
             if let Some(owners) = owners.as_mut() {
-                owners.resize(out.matrices.len(), s.shoot.wood as u32);
+                owners.resize(out.leaves.len(), s.shoot.wood as u32);
             }
         }
         Ok(())

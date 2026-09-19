@@ -1,7 +1,7 @@
 use super::{
     clumping, range, short_shoots,
     station::{place_run, Run},
-    Instances,
+    Instances, Reference,
 };
 use crate::{
     envelope::Envelope,
@@ -108,8 +108,9 @@ pub fn place(
     seed: u32,
     p: CanopyParams,
     twig: Option<TwigPlacement>,
+    reference: Reference,
 ) -> Result<Instances> {
-    place_impl(tree, envelope, seed, p, twig, None)
+    place_impl(tree, envelope, seed, p, twig, None, reference)
 }
 
 /// Seat the foliage on the actual swept polygon, including fork sockets, as far
@@ -121,12 +122,13 @@ pub fn place_on_surface(
     p: CanopyParams,
     twig: Option<TwigPlacement>,
     surface: &crate::surface::SurfaceParams,
+    reference: Reference,
 ) -> Result<Instances> {
     if p.surface_contact <= 0. {
-        return place(tree, envelope, seed, p, twig);
+        return place(tree, envelope, seed, p, twig, reference);
     }
     let contacts = AttachmentSurface::new(tree, envelope.height, surface)?;
-    place_impl(tree, envelope, seed, p, twig, Some(&contacts))
+    place_impl(tree, envelope, seed, p, twig, Some(&contacts), reference)
 }
 fn place_impl(
     tree: &Tree,
@@ -135,6 +137,7 @@ fn place_impl(
     p: CanopyParams,
     twig: Option<TwigPlacement>,
     contacts: Option<&AttachmentSurface>,
+    reference: Reference,
 ) -> Result<Instances> {
     tree.validate_solved()?;
     envelope.validate()?;
@@ -169,7 +172,7 @@ fn place_impl(
         }
     }
     if tree.nodes.len() < 2 || p.size == 0. {
-        return Ok(Instances::default());
+        return Ok(Instances::new(reference));
     }
     // Bound geometry before length arithmetic and float32 conversion.
     if tree.nodes.iter().any(|n| {
@@ -185,7 +188,7 @@ fn place_impl(
     }) {
         return Err(Error::ResourceLimit("foliage coordinate range"));
     }
-    let mut out = Instances::default();
+    let mut out = Instances::new(reference);
     let mut rng = Rng::new(seed ^ 0x2c9e1a7f);
     let runs = match twig {
         Some(_) => bearing_runs(tree, p),
@@ -210,7 +213,7 @@ fn place_impl(
             &mut out,
         )?;
         if let Some(owners) = owners.as_mut() {
-            owners.resize(out.matrices.len(), nodes[1] as u32);
+            owners.resize(out.leaves.len(), nodes[1] as u32);
         }
     }
     // A second source over the limbs and branches: short shoots draw from

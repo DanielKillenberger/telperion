@@ -59,11 +59,6 @@ pub(super) fn systems(tree: &Tree) -> Vec<u32> {
     system
 }
 
-/// Where a placement stands: the translation its matrix carries.
-fn at(m: &[f32; 16]) -> Vec3 {
-    Vec3::new(f64::from(m[12]), f64::from(m[13]), f64::from(m[14]))
-}
-
 /// One system's centre, and the neighbours whose boundaries its leaves meet:
 /// each as the unit direction toward it and half the distance to it.
 struct Cell {
@@ -140,16 +135,16 @@ fn draw(seed: u32, index: usize) -> f64 {
 /// Thins the placements toward the walls between limb systems. `owners`
 /// names the node that bears each placement, in placement order.
 pub(super) fn thin(tree: &Tree, owners: &[u32], seed: u32, reach: f64, out: &mut Instances) {
-    if reach <= 0.0 || out.matrices.is_empty() {
+    if reach <= 0.0 || out.is_empty() {
         return;
     }
-    debug_assert_eq!(owners.len(), out.matrices.len());
+    debug_assert_eq!(owners.len(), out.len());
     let system = systems(tree);
     let systems: Vec<u32> = owners.iter().map(|&w| system[w as usize]).collect();
-    let positions: Vec<Vec3> = out.matrices.iter().map(at).collect();
+    let positions: Vec<Vec3> = (0..out.len()).map(|i| out.position(i)).collect();
     let keep = kept(&positions, &systems, seed, reach);
     let mut k = 0;
-    out.matrices.retain(|_| {
+    out.leaves.retain(|_| {
         k += 1;
         keep[k - 1]
     });

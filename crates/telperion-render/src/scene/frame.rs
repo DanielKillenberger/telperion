@@ -26,6 +26,15 @@ impl Scene {
             let c = (b.min + b.max) * 0.5;
             colour(c.x, c.y, c.z, 1.0)
         });
+        // The leaf view binds one placement at identity, packed against a box
+        // of no extent, so it has to be decoded against that same box: the
+        // crown's own would carry the leaf off to wherever its words land in
+        // a box thirty metres wide.
+        let leaf_box = if view == View::Leaf {
+            telperion_core::foliage::Reference::default()
+        } else {
+            self.leaf_reference
+        };
         let radii = inside.map_or([0.0; 4], |b| {
             let half = (b.max - b.min) * 0.5;
             colour(half.x, half.y, half.z, 0.0)
@@ -114,6 +123,13 @@ impl Scene {
                 ],
                 crown_centre: centre,
                 crown_radii: radii,
+                leaf_box_min: colour(leaf_box.min.x, leaf_box.min.y, leaf_box.min.z, 0.0),
+                leaf_box_extent: colour(
+                    leaf_box.extent.x,
+                    leaf_box.extent.y,
+                    leaf_box.extent.z,
+                    0.0,
+                ),
                 fissure: colour(
                     m.fissure_red,
                     m.fissure_green,

@@ -101,13 +101,13 @@ impl Field {
             instances.validate()?;
             element.validate()?;
             if let Some(local) = bounds_of(element.positions.iter().copied()) {
-                leaf_items = reserved(instances.matrices.len())?;
-                for m in &instances.matrices {
+                leaf_items = reserved(instances.len())?;
+                for m in instances.matrices() {
                     let corners = [local.min.x, local.max.x].into_iter().flat_map(|x| {
                         [local.min.y, local.max.y].into_iter().flat_map(move |y| {
                             [local.min.z, local.max.z]
                                 .into_iter()
-                                .map(move |z| transform_point(m, Vec3::new(x, y, z)))
+                                .map(move |z| transform_point(&m, Vec3::new(x, y, z)))
                         })
                     });
                     let bounds = bounds_of(corners).unwrap();
