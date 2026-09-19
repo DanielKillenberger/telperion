@@ -77,6 +77,16 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
         if old.identity != identity && decision.next_identity.as_deref() != Some(&identity) {
             return Err("changed inputs require a scoped decision naming next_identity".into());
         }
+        let previous_cap = old.budget.max_tokens;
+        if let Some(extension) = &decision.token_cap_extension {
+            if extension.previous != previous_cap
+                || extension.next != config.budget.max_tokens
+                || extension.next <= extension.previous
+            {
+                return Err("token extension must name exact previous and increased cap".into());
+            }
+            old.budget.max_tokens = extension.next;
+        }
         if old.preset != config.preset
             || [
                 old.budget.max_tokens,
@@ -103,11 +113,46 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
         if old.pending.is_some() || !old.usage_known {
             return Err("interrupted or unknown spend must be reconciled before resume".into());
         }
+        if decision.preserve_evidence {
+            let mut original = config.clone();
+            original.budget.max_tokens = previous_cap;
+            if original.identity()? != old.identity {
+                return Err(
+                    "evidence reuse requires unchanged original config and artifact bytes".into(),
+                );
+            }
+            let trial = old
+                .current
+                .and_then(|i| old.trials.get(i))
+                .ok_or("no reusable current trial")?;
+            let visual = old.visual.as_ref().ok_or("no reusable visual evidence")?;
+            if !trial.feasible
+                || visual.identity != trial.key
+                || trial.identity != old.identity
+                || trial.seed != config.seed
+                || visual.model != config.vision.model
+                || trial.comparisons.is_empty()
+            {
+                return Err("stale reusable evidence".into());
+            }
+            for image in &config.references {
+                image.verify()?;
+            }
+            for anchor in &config.quality_anchors {
+                anchor.image.verify()?;
+            }
+            for c in &trial.comparisons {
+                for image in &c.images {
+                    image.verify()?;
+                }
+            }
+        }
         old.pause = None;
         old.machine_ready = false;
-        old.visual = None;
-        // Force a fresh baseline assessment; old evaluations/spend remain in history.
-        old.current = None;
+        if !decision.preserve_evidence {
+            old.visual = None;
+            old.current = None;
+        }
         old.identity = identity.clone();
         old.seed = config.seed;
         old.dials = config.dials.clone();

@@ -100,3 +100,78 @@ fn stale_lock_file_and_partial_temp_do_not_strand_interrupted_run() {
     assert_eq!(state["pending"], Value::Null);
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
+    let root = std::env::temp_dir().join(format!(
+        "tuning-reuse-{}",
+        telperion_jev::ledger::new_entry_id()
+    ));
+    fs::create_dir(&root).unwrap();
+    let photo = root.join("photo");
+    fs::write(&photo, "photo bytes").unwrap();
+    let image = json!({"path":photo,"sha256":telperion_jev::sha256_hex(b"photo bytes"),"view":"whole","seed":1});
+    let mut config = fixture(&root);
+    config["references"] = json!([image]);
+    config["quality_anchors"] = json!([{"image":image,"provenance":"test","scope":"finish"}]);
+    let cfg = root.join("config.json");
+    let out = root.join("out");
+    write(&cfg, &config);
+    command::run(&cfg, &out, None).unwrap_err();
+    let path = out.join("run.json");
+    let mut original: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    original["budget"]["tokens"] = json!(123);
+    original["current"] = json!(0);
+    original["trials"] = json!([{"key":"trial","identity":original["identity"],"seed":1,"round":0,"label":"baseline","overrides":{},"ledger":null,"feasible":true,"reason":null,"measurement":{},"comparisons":[{"reference":"whole","reference_weight":1.0,"metric_weights":[1.,1.,1.,1.,1.],"target":[1.,1.,1.,1.,1.],"observed":[1.,1.,1.,1.,1.],"images":[image]}],"score":0.2,"seconds":1.0}]);
+    original["visual"] =
+        json!({"identity":"trial","model":"mock","ledger":"test","cells":[],"defects":["defect"]});
+    config["budget"]["max_tokens"] = json!(205000);
+    write(&cfg, &config);
+    let next: Config = serde_json::from_value(config.clone()).unwrap();
+    let decision = root.join("decision.json");
+    let d = json!({"pause_id":original["pause"]["id"],"identity":original["identity"],"action":original["pause"]["basis"]["proposed_action"],"by":"test owner","rationale":"policy-only scoped extension","next_identity":next.identity().unwrap(),"preserve_evidence":true,"token_cap_extension":{"previous":200000,"next":205000}});
+    for variant in [
+        "wrong_cap",
+        "no_extension",
+        "artifact",
+        "model",
+        "trial_identity",
+        "photo",
+        "valid",
+    ] {
+        let mut state = original.clone();
+        let mut choice = d.clone();
+        fs::write(&photo, "photo bytes").unwrap();
+        fs::write(root.join("asset"), "fixture fingerprint").unwrap();
+        match variant {
+            "wrong_cap" => choice["token_cap_extension"]["previous"] = json!(199999),
+            "no_extension" => choice["token_cap_extension"] = Value::Null,
+            "artifact" => {
+                fs::write(root.join("asset"), "changed render binary").unwrap();
+            }
+            "model" => state["visual"]["model"] = json!("other"),
+            "trial_identity" => state["trials"][0]["identity"] = json!("stale"),
+            "photo" => {
+                fs::write(&photo, "changed photo").unwrap();
+            }
+            _ => {}
+        }
+        write(&path, &state);
+        write(&decision, &choice);
+        let error = command::run(&cfg, &out, Some(&decision)).unwrap_err();
+        if variant == "valid" {
+            assert!(error.contains("calibration prerequisite"), "{error}");
+            let saved: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+            assert_eq!(saved["budget"]["tokens"], 123);
+            assert_eq!(saved["budget"]["max_tokens"], 205000);
+            assert_eq!(saved["current"], 0);
+            assert_eq!(saved["visual"]["identity"], "trial");
+        } else {
+            assert!(
+                !error.contains("calibration prerequisite"),
+                "{variant}: {error}"
+            );
+        }
+    }
+    fs::remove_dir_all(root).unwrap();
+}

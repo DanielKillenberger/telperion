@@ -1,5 +1,9 @@
 # Friction
 
+## 2026-09-19 - Proposed extra allowance omitted conservative request bounds
+
+The user-authorized follow-up began21:31 UTC with205,000 cumulative tokens and one visual pass left. Offline preflight found route3,827 + enriched continuation4,598 + proposals9,284 + final visual35,000 =52,709, exceeding remaining41,377 by11,332. The earlier +5k proposal estimated actual Jev usage rather than the existing conservative serialized-bytes+1024 reservations. Cost: about six minutes implementation/preflight, zero live calls/captures/tokens this follow-up. Compute exact serialized request bounds before proposing authority; do not shrink reservations to fit. Host informed immediately and owns any revised allowance. Original config identity exactly matched persisted identity with unchanged binary bytes.
+
 ## 2026-09-19 - Live continuation lacked a bounded plan
 
 After the numeric-good baseline and a supported tuning route, continuation received a generic `targeted tuning round` action, visible defect and recent scores, but no exact dial scope/bounds/verification plan. It correctly abstained on tractability/risk and paused. Cost: baseline visual21,154 tokens plus route/continuation2,533 tokens, two baseline evaluations/eight images including the earlier path failure, about two minutes for the successful baseline/calls. No candidate round ran. Supplying the concrete bounded plan as input before judging it would remove this ambiguity; the host owns that contract decision. Remaining36,377 cannot safely fund another question cycle plus35,000 final image reservation. The host instructed no live retry/cap extension; preserve the pause and return NEEDS_HUMAN, not a model-failure or convergence claim.

@@ -108,6 +108,17 @@ pub struct HumanDecision {
     pub next_identity: Option<String>,
     #[serde(default)]
     pub recover_interrupted: bool,
+    #[serde(default)]
+    pub preserve_evidence: bool,
+    #[serde(default)]
+    pub token_cap_extension: Option<TokenCapExtension>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TokenCapExtension {
+    pub previous: u64,
+    pub next: u64,
 }
 
 impl Pause {

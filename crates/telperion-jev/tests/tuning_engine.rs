@@ -203,3 +203,34 @@ fn baseline_capability_defect_routes_before_spending_tuning_evaluations() {
     assert!(state.execute(&mut mock, &mut |_| Ok(())).is_err());
     assert_eq!(state.budget.tokens, before);
 }
+
+#[test]
+fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
+    let mut state = run();
+    let mut mock = Mock {
+        evaluations: 0,
+        routes: 0,
+        visuals: 0,
+        capability: false,
+    };
+    state.budget.max_rounds = 0;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(mock.routes, 0);
+    assert!(state.pause.as_ref().unwrap().reason.contains("round limit"));
+    let basis = state.round_basis(&mock).unwrap();
+    assert!(basis.proposed_action.contains("max four single-dial"));
+    assert!(basis.proposed_action.contains("BEFORE render"));
+    assert!(basis.proposed_action.contains("current"));
+    assert_eq!(basis.next_tokens, Some(29000));
+    state.pause = None;
+    state.budget.max_rounds = 1;
+    state.budget.max_tokens = state.budget.tokens + 100;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(mock.routes, 0);
+    assert!(state
+        .pause
+        .as_ref()
+        .unwrap()
+        .reason
+        .contains("preflight cannot fit"));
+}

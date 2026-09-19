@@ -107,13 +107,29 @@ impl Run {
             recent_outcomes: self
                 .trials
                 .iter()
+                .rev()
+                .take(5)
                 .map(|t| format!("{}: score {:?}, reason {:?}", t.label, t.score, t.reason))
                 .collect(),
-            next_tokens: Some(30000),
-            estimate_basis:
-                "one bounded question batch and one visual pass reserved at observed cost".into(),
+            next_tokens: None,
+            estimate_basis: String::new(),
             usage_known: self.usage_known,
         }
+    }
+    pub fn round_basis(&self, services: &dyn Services) -> Result<Basis, String> {
+        let mut basis = self.basis("targeted tuning round");
+        basis.proposed_action = format!("One bounded round, max four single-dial candidates. Existing authored dials only: {}. Code enforces bounds/integer type, measures numeric gates/node cap BEFORE render, chooses only a lower feasible five-metric score, then separately verifies all required visual cells at fixed/fresh seeds. No generator/renderer/preset changes, no shipping, no sweep. Stop or hand off if unsupported; at most {} remaining rounds.",
+            serde_json::to_string(&self.dials.iter().map(|d| serde_json::json!({"id":d.id,"meaning":d.meaning,"current":self.effective.pointer(&d.path),"min":d.min,"max":d.max,"integer":d.integer,"small":d.small,"substantial":d.substantial})).collect::<Vec<_>>()).unwrap(),
+            self.budget.max_rounds.saturating_sub(self.budget.rounds));
+        let mut finalist = self.trials[self.current.ok_or("no current trial")?].clone();
+        finalist.round = self.budget.rounds + 1;
+        let next = services
+            .proposal_tokens(self)
+            .checked_add(services.visual_tokens(&finalist))
+            .ok_or("reservation overflow")?;
+        basis.next_tokens = Some(next);
+        basis.estimate_basis = format!("proposal serialized-request bound {} + all-cell visual reservation {}; actual usage may exceed estimate and then pauses", services.proposal_tokens(self), services.visual_tokens(&finalist));
+        Ok(basis)
     }
     fn reserve(
         &mut self,
@@ -208,8 +224,27 @@ impl Run {
             self.assess(services, save)?;
         }
         while !self.machine_ready {
+            if self.budget.rounds >= self.budget.max_rounds {
+                return Err("hard round limit exhausted before routing".into());
+            }
+            let basis = self.round_basis(services)?;
+            let planned = basis
+                .next_tokens
+                .unwrap()
+                .checked_add(services.continuation_tokens(&basis))
+                .and_then(|n| n.checked_add(services.route_tokens(self)))
+                .ok_or("reservation overflow")?;
+            if self
+                .budget
+                .tokens
+                .checked_add(planned)
+                .is_none_or(|n| n > self.budget.max_tokens)
+            {
+                return Err(format!(
+                    "round preflight cannot fit: need {planned} tokens before any dispatch"
+                ));
+            }
             self.route_remaining(services, save)?;
-            let basis = self.basis("targeted tuning round");
             let allowance = services.continuation_tokens(&basis);
             self.reserve(0, 0, allowance, 0, "continuation judgment", save)?;
             let answer = services.continuation(&basis)?;
@@ -301,7 +336,10 @@ impl Run {
         self.routes.push(route.clone());
         save(self)?;
         if route != "tuning" {
-            let basis = self.basis(&route);
+            let mut basis = self.basis(&route);
+            basis.next_tokens = Some(services.continuation_tokens(&basis));
+            basis.estimate_basis =
+                "bounded pre-dispatch assessment only; host owns repair estimate".into();
             let allowance = services.continuation_tokens(&basis);
             self.reserve(0, 0, allowance, 0, "pre-dispatch continuation", save)?;
             let answer = services.continuation(&basis)?;
