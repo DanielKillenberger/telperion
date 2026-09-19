@@ -21,6 +21,26 @@ pub(super) struct Run<'a> {
     pub contacts: Option<&'a AttachmentSurface>,
 }
 
+/// The points one run passes through and the distance along it to each, into
+/// scratch the caller owns; the run's own length is the last of them. The
+/// builder sweeps this walk and the count reads it, so a run is measured by
+/// one rule however many times it is read.
+pub(super) fn walk(
+    tree: &Tree,
+    nodes: &[usize],
+    points: &mut Vec<Vec3>,
+    along: &mut Vec<f64>,
+) -> f64 {
+    points.clear();
+    points.extend(nodes.iter().map(|i| tree.nodes[*i].position));
+    along.clear();
+    along.push(0.);
+    for i in 1..points.len() {
+        along.push(along[i - 1] + points[i].distance(points[i - 1]));
+    }
+    *along.last().unwrap()
+}
+
 pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result<()> {
     let Run {
         tree,
@@ -30,20 +50,13 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
         twig,
         contacts,
     } = *run;
-    let points: Vec<_> = nodes.iter().map(|i| tree.nodes[*i].position).collect();
-    let mut along = vec![0.];
-    for i in 1..points.len() {
-        along.push(along[i - 1] + points[i].distance(points[i - 1]));
-    }
-    let length = *along.last().unwrap();
-    if length == 0. {
+    let (mut points, mut along) = (Vec::new(), Vec::new());
+    let length = walk(tree, nodes, &mut points, &mut along);
+    let stations = stations(length, envelope, p, twig, rng)?;
+    if stations.is_empty() {
         return Ok(());
     }
-    if !length.is_finite() {
-        return Err(Error::ResourceLimit("shoot length overflow"));
-    }
     let frames = frames(&points);
-    let stations = stations(length, envelope, p, twig, rng)?;
     reserve(out, stations.len(), p)?;
     for (k, distance) in stations.into_iter().enumerate() {
         let mut segment = points.len() - 2;
@@ -106,8 +119,42 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
     Ok(())
 }
 
-/// Distances along the run at which leaves sit: one set per internode under a
-/// twig layer, height-relative spacing plus a terminal clump without one.
+/// Metres between leaves on a run no twig layer marks: the row's share of the
+/// tree's own height, never finer than a tenth of a millimetre.
+fn spacing(envelope: Envelope, p: CanopyParams) -> f64 {
+    (p.spacing * envelope.height.max(1e-6)).max(1e-4)
+}
+
+/// How many leaves a run of this length carries: one set per internode under a
+/// twig layer, height-relative spacing plus a terminal clump without one. The
+/// builder places exactly this many and the prediction counts them, from here.
+pub(super) fn station_count(
+    length: f64,
+    envelope: Envelope,
+    p: CanopyParams,
+    twig: Option<TwigPlacement>,
+) -> Result<usize> {
+    if length == 0. {
+        return Ok(0);
+    }
+    if !length.is_finite() {
+        return Err(Error::ResourceLimit("shoot length overflow"));
+    }
+    if let Some(t) = twig {
+        let internodes = (length / t.internode_length - 1e-9).ceil().max(1.);
+        if internodes > 512. / t.stations_per_internode as f64 {
+            return Err(Error::ResourceLimit("twig station budget"));
+        }
+        return Ok(internodes as usize * t.stations_per_internode as usize);
+    }
+    let count = (length / spacing(envelope, p)).ceil();
+    if count > 512. - p.clump as f64 {
+        return Err(Error::ResourceLimit("shoot station budget"));
+    }
+    Ok(count as usize + p.clump as usize)
+}
+
+/// Distances along the run at which those leaves sit.
 fn stations(
     length: f64,
     envelope: Envelope,
@@ -115,25 +162,22 @@ fn stations(
     twig: Option<TwigPlacement>,
     rng: &mut Rng,
 ) -> Result<Vec<f64>> {
-    let mut stations = Vec::new();
+    let total = station_count(length, envelope, p, twig)?;
+    let mut stations = Vec::with_capacity(total);
+    if total == 0 {
+        return Ok(stations);
+    }
     if let Some(t) = twig {
-        let internodes = (length / t.internode_length - 1e-9).ceil().max(1.);
-        if internodes > 512. / t.stations_per_internode as f64 {
-            return Err(Error::ResourceLimit("twig station budget"));
-        }
-        for i in 0..internodes as usize {
-            for _ in 0..t.stations_per_internode {
+        let per = t.stations_per_internode as usize;
+        for i in 0..total / per {
+            for _ in 0..per {
                 stations.push(i as f64 * t.internode_length);
             }
         }
         return Ok(stations);
     }
-    let spacing = (p.spacing * envelope.height.max(1e-6)).max(1e-4);
-    let count = (length / spacing).ceil();
-    if count > 512. - p.clump as f64 {
-        return Err(Error::ResourceLimit("shoot station budget"));
-    }
-    for i in 0..count as usize {
+    let spacing = spacing(envelope, p);
+    for i in 0..total - p.clump as usize {
         stations.push(i as f64 * spacing);
     }
     for _ in 0..p.clump {
@@ -142,21 +186,41 @@ fn stations(
     Ok(stations)
 }
 
-pub(super) fn reserve(out: &mut Instances, stations: usize, p: CanopyParams) -> Result<()> {
+/// The row's hard total, and the block the leaves would need: a crown past
+/// either is refused rather than half built.
+fn budget(out: &Instances, more: usize, p: CanopyParams) -> Result<()> {
     let total = out
         .leaves
         .len()
-        .checked_add(stations)
+        .checked_add(more)
         .ok_or(Error::ResourceLimit("foliage count overflow"))?;
     if total
-        .checked_mul(std::mem::size_of::<super::Leaf>())
+        .checked_mul(size_of::<super::Leaf>())
         .is_none_or(|bytes| bytes > isize::MAX as usize)
         || total > p.max_instances
     {
         return Err(Error::ResourceLimit("foliage instance budget"));
     }
+    Ok(())
+}
+
+/// Room for `stations` more leaves. A crown `place` has already sized finds
+/// the room there and grows nothing; a caller placing into a crown of its own,
+/// a shoot at a time, grows it as a vector grows.
+pub(super) fn reserve(out: &mut Instances, stations: usize, p: CanopyParams) -> Result<()> {
+    budget(out, stations, p)?;
     out.leaves
         .try_reserve(stations)
+        .map_err(|_| Error::ResourceLimit("foliage allocation"))
+}
+
+/// The whole crown in one block, exactly the count the prediction reads: the
+/// capacity a finished specimen keeps is then that count, whatever the cull
+/// and the clumping later retain inside it.
+pub(super) fn reserve_all(out: &mut Instances, leaves: usize, p: CanopyParams) -> Result<()> {
+    budget(out, leaves, p)?;
+    out.leaves
+        .try_reserve_exact(leaves)
         .map_err(|_| Error::ResourceLimit("foliage allocation"))
 }
 

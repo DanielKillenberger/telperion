@@ -22,6 +22,26 @@ pub struct SurfaceRun {
     pub largest_radius: f64,
 }
 
+/// The elements a tree's wood buffers hold once it is swept. `build` reserves
+/// by it and a prediction sizes the specimen by it, so the ring arithmetic is
+/// written once and read twice.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct WoodExtent {
+    /// Floats in `positions`, and the same count again in `normals`.
+    pub positions: usize,
+    /// Floats in `coords`: two a vertex.
+    pub coords: usize,
+    /// Indices in `indices`.
+    pub indices: usize,
+}
+impl WoodExtent {
+    /// Bytes the four buffers keep, each count times the size of the type
+    /// that holds it. `positions` is counted twice: `normals` is its equal.
+    pub fn bytes(&self) -> usize {
+        (self.positions * 2 + self.coords) * size_of::<f32>() + self.indices * size_of::<u32>()
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct SurfaceParams {
@@ -113,6 +133,62 @@ fn filled<T: Clone>(n: usize, value: T) -> Result<Vec<T>> {
     out.resize(n, value);
     Ok(out)
 }
+/// Radial segments a ring is cut into: never fewer than four to a lobe.
+fn segments(params: &SurfaceParams) -> usize {
+    params.radial_segments.max(params.lobes * 4) as usize
+}
+
+/// The buffers these paths fill: one ring a path node, one more at the foot of
+/// every trunk run the flare buries, two cap vertices a run, and six indices a
+/// ring segment.
+fn extent_of(paths: &paths::Paths, segments: usize, buried: bool) -> Result<WoodExtent> {
+    let feet = if buried {
+        paths.runs.iter().filter(|run| run.trunk).count()
+    } else {
+        0
+    };
+    let rings = paths
+        .nodes
+        .len()
+        .checked_add(feet)
+        .ok_or(Error::ResourceLimit("surface rings"))?;
+    let ring_vertices = rings
+        .checked_mul(segments)
+        .ok_or(Error::ResourceLimit("surface vertices"))?;
+    let vertices = paths
+        .runs
+        .len()
+        .checked_mul(2)
+        .and_then(|caps| ring_vertices.checked_add(caps))
+        .filter(|&n| n <= u32::MAX as usize)
+        .ok_or(Error::ResourceLimit("surface vertices"))?;
+    Ok(WoodExtent {
+        positions: vertices
+            .checked_mul(3)
+            .ok_or(Error::ResourceLimit("surface positions"))?,
+        coords: vertices * 2,
+        indices: ring_vertices
+            .checked_mul(6)
+            .ok_or(Error::ResourceLimit("surface indices"))?,
+    })
+}
+
+/// What `build` would fill for this tree, without sweeping it: the same paths
+/// pass and the same ring arithmetic, and no mesh.
+pub fn extent(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<WoodExtent> {
+    tree.validate()?;
+    params.validate()?;
+    if !height.is_finite() || height <= 0.0 {
+        return Err(Error::InvalidInput("surface height"));
+    }
+    let paths = paths(&tree.nodes)?;
+    if paths.runs.is_empty() {
+        return Ok(WoodExtent::default());
+    }
+    let burial = params.flare_depth * height.max(1e-6);
+    extent_of(&paths, segments(params), burial > 0.0)
+}
+
 fn vertex(out: &mut Vec<f32>, p: Vec3) -> Result<()> {
     let xyz = [p.x as f32, p.y as f32, p.z as f32];
     if !xyz.iter().all(|v| v.is_finite()) {
@@ -137,7 +213,7 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     tree.validate_solved()?;
     let height = height.max(1e-6);
     let lobes = params.lobes as f64;
-    let segments = params.radial_segments.max(params.lobes * 4) as usize;
+    let segments = segments(params);
     let depth = params.lobe_depth;
     let twist = params.twist_rate;
     let burial = params.flare_depth * height;
@@ -149,28 +225,12 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
             return Err(Error::InvalidInput("surface path length overflow"));
         }
     }
-    let rings = paths
-        .nodes
-        .len()
-        .checked_add(usize::from(burial > 0.0))
-        .ok_or(Error::ResourceLimit("surface rings"))?;
-    let vertices = rings
-        .checked_mul(segments)
-        .and_then(|n| n.checked_add(paths.runs.len().checked_mul(2)?))
-        .filter(|&n| n <= u32::MAX as usize)
-        .ok_or(Error::ResourceLimit("surface vertices"))?;
-    let positions_len = vertices
-        .checked_mul(3)
-        .ok_or(Error::ResourceLimit("surface positions"))?;
-    let indices_len = rings
-        .checked_mul(segments)
-        .and_then(|n| n.checked_mul(6))
-        .ok_or(Error::ResourceLimit("surface indices"))?;
+    let extent = extent_of(&paths, segments, burial > 0.0)?;
     let mut mesh = SurfaceMesh {
-        positions: reserved(positions_len)?,
-        normals: reserved(positions_len)?,
-        coords: reserved(vertices * 2)?,
-        indices: reserved(indices_len)?,
+        positions: reserved(extent.positions)?,
+        normals: reserved(extent.positions)?,
+        coords: reserved(extent.coords)?,
+        indices: reserved(extent.indices)?,
         bounds: None,
         runs: paths.runs.len(),
         run_table: reserved(paths.runs.len())?,

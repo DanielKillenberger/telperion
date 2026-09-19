@@ -18,6 +18,7 @@ use crate::{
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
 pub use packed::{Leaf, Reference, WORDS};
+pub(crate) use placement::leaf_count;
 pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
 pub use short_shoots::{
     place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot,
