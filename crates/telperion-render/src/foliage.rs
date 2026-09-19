@@ -89,7 +89,15 @@ impl Foliage {
         shadow: &crate::shadow::Shadow,
         surface: crate::pass::Surface,
     ) -> Self {
-        let shader = crate::pass::lit_shader(gpu, "foliage", include_str!("shaders/foliage.wgsl"));
+        let shader = crate::pass::lit_shader(
+            gpu,
+            "foliage",
+            &format!(
+                "{}\n{}",
+                include_str!("shaders/leaf.wgsl"),
+                include_str!("shaders/foliage.wgsl")
+            ),
+        );
         let vertex = |attributes, floats: u64| {
             Some(wgpu::VertexBufferLayout {
                 array_stride: floats * size_of::<f32>() as u64,

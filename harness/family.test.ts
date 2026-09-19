@@ -42,6 +42,7 @@ describe("toSkeletonParams", () => {
         enabled: DEFAULT_PARAMS.supernaturalEnabled,
         writheAmplitude: 0.13,
         writheWavelength: 0.31,
+        maxWritheMagnitude: DEFAULT_PARAMS.maxWritheMagnitude,
         spiralRate: 2.5,
       },
     });
@@ -67,6 +68,7 @@ describe("toSkeletonParams", () => {
         enabled: DEFAULT_PARAMS.supernaturalEnabled,
         writheAmplitude: 0,
         writheWavelength: DEFAULT_BIAS.supernatural.writheWavelength,
+        maxWritheMagnitude: DEFAULT_BIAS.supernatural.maxWritheMagnitude,
         spiralRate: 0,
       },
     });
@@ -79,6 +81,7 @@ describe("toSkeletonParams", () => {
         enabled: DEFAULT_PARAMS.supernaturalEnabled,
         writheAmplitude: DEFAULT_BIAS.supernatural.writheAmplitude * 2,
         writheWavelength: DEFAULT_BIAS.supernatural.writheWavelength,
+        maxWritheMagnitude: DEFAULT_BIAS.supernatural.maxWritheMagnitude,
         spiralRate: DEFAULT_BIAS.supernatural.spiralRate * 2,
       },
     });
@@ -128,6 +131,9 @@ describe("toSkeletonParams", () => {
       reach: DEFAULT_PARAMS.reach,
       laterals: 2,
       generations: DEFAULT_PARAMS.twigGenerations,
+      maxInternodes: DEFAULT_PARAMS.maxInternodes,
+      maxDroop: DEFAULT_PARAMS.maxDroop,
+      curtainStepClearance: DEFAULT_PARAMS.curtainStepClearance,
       angle: DEFAULT_PARAMS.twigAngle,
       divergence: DEFAULT_PARAMS.twigDivergence,
       internodeFactor: DEFAULT_PARAMS.internodeFactor,
@@ -222,6 +228,25 @@ describe("toRadiusParams", () => {
 });
 
 describe("presetToParams", () => {
+  it("uses working slider windows without changing larger authored values on hydration", () => {
+    const maxima = {
+      maxInternodes: 512, reachProbeSteps: 512, samplingAttemptsPerAttractor: 512,
+      clumpNeighbours: 512, clumpSystemOrder: 32, workBudget: 2_000_000,
+    };
+    for (const [key, max] of Object.entries(maxima)) {
+      expect(SLIDERS.find((slider) => slider.key === key)?.max).toBe(max);
+    }
+    const preset = structuredClone(CATALOGUE[0]);
+    preset.skeleton.twigs.maxInternodes = 513;
+    preset.skeleton.habit.reachProbeSteps = 513;
+    preset.skeleton.samplingAttemptsPerAttractor = 513;
+    preset.canopy.clumpNeighbours = 513;
+    preset.canopy.clumpSystemOrder = 33;
+    preset.growth.workBudget = 2_000_001;
+    const { id: _id, name: _name, note: _note, ...family } = preset;
+    expect(toFamily(presetToParams(preset))).toEqual(family);
+  });
+
   it.each(CATALOGUE.map((preset) => [preset.id, preset] as const))(
     "%s round-trips through the dials, term for term",
     (_id, preset) => {

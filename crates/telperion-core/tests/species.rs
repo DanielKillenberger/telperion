@@ -46,9 +46,10 @@ fn digest(tree: &Tree, wood: &SurfaceMesh, placed: &Instances) -> u64 {
     for i in &wood.indices {
         take(&i.to_le_bytes());
     }
-    for m in &placed.matrices {
-        for v in m {
-            take(&v.to_le_bytes());
+    take(&bincode::serialize(&placed.reference).unwrap());
+    for leaf in &placed.leaves {
+        for word in leaf {
+            take(&word.to_le_bytes());
         }
     }
     hash
@@ -389,10 +390,11 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
             internode_length: twig.internode_length,
             stations_per_internode: twig.stations_per_internode,
         }),
+        foliage::Reference::of(&family).unwrap(),
     )
     .unwrap();
     let digest = check(preset, seed, committed, digest(&a.tree, &wood, &placed));
-    let placed_count = placed.matrices.len();
+    let placed_count = placed.len();
     let kept = foliage::cull(
         placed,
         &element,
@@ -400,7 +402,7 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
         family.shell_depth,
     )
     .unwrap();
-    assert!(!kept.matrices.is_empty());
+    assert!(!kept.is_empty());
     let metrics =
         species_metrics::measure(&a.tree, &wood.positions, &element, placed_count, &kept).unwrap();
     let (pass, checks) = species_metrics::compare(profile, &metrics).unwrap();
@@ -408,14 +410,14 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     assert_eq!(metrics["units_per_instance"]["value"], 1);
     if preset == Preset::NorwaySpruce {
         assert_eq!(metrics["foliage_unit"], "needle");
-        assert_eq!(metrics["foliage_units"]["value"], kept.matrices.len());
+        assert_eq!(metrics["foliage_units"]["value"], kept.len());
         assert!(metrics["needle_surface_area_m2"]["value"].as_f64().unwrap() > 0.0);
         assert!(metrics["crown_base_m"]["value"].as_f64().unwrap() < 3.0);
     }
     Grown {
         height: metrics["height_m"]["value"].as_f64().unwrap(),
         width: metrics["crown_width_m"]["value"].as_f64().unwrap(),
-        leaves: kept.matrices.len(),
+        leaves: kept.len(),
         digest,
     }
 }

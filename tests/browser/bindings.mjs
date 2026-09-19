@@ -41,6 +41,9 @@ try {
     // expects one field's complaint cannot pass on another field's.
     const rejects = async (action, message, fragment) => { let failed = false; try { await action(); } catch (error) { failed = fragment === undefined || String(error).includes(fragment); } check(failed, message); };
     const { TreeEngine, ORDINARY, PRESETS, presetById } = await import('/src/browser/core.ts');
+    // The one decoder in the browser source, so this probe reads a leaf the
+    // way a consumer does rather than keeping a second copy of the layout.
+    const { leafWords, leafTransform } = await import('/src/browser/leaf.ts');
     await rejects(() => TreeEngine.create(new Response('', { status: 503 })), 'load failure');
     await rejects(() => TreeEngine.create(new Uint8Array([0, 1, 2])), 'malformed module');
     const engine = await TreeEngine.create();
@@ -125,7 +128,7 @@ try {
        and a positive pull with none to pull toward is refused. */
     const empty = structuredClone(family); empty.skeleton.growth.maxNodes = 0;
     const result = engine.build(empty, { surface: true, foliage: true });
-    check(result.surface.positions.length === 0 && result.surface.bounds === null && result.foliage.matrices.length === 0, 'valid empty outputs');
+    check(result.surface.positions.length === 0 && result.surface.bounds === null && result.foliage.leaves.length === 0, 'valid empty outputs');
     check(PRESETS.length === 6 && new Set(PRESETS.map(p => p.id)).size === 6, 'complete identity catalogue');
     await rejects(() => presetById('european-beech'), 'the beech in work is not listed');
     await rejects(() => engine.build('european-beech', {}), 'the beech in work is not built by name');
@@ -148,7 +151,10 @@ try {
       const foliage = output.foliage, d = output.diagnostics;
       check(d.complete, id + ' small binding fixture completes without truncation');
       check(!output.surface && !d.stages.surface && d.timings.surfaceMs === 0, id + ' independent foliage');
-      check(d.instances > 0 && d.biologicalUnits === d.instances && foliage.matrices.length === d.instances * 16, id + ' one biological unit per matrix');
+      // Twelve bytes a leaf: three u32 words, and one reference box the whole
+      // crown decodes against.
+      check(d.instances > 0 && d.biologicalUnits === d.instances && foliage.leaves.length === d.instances * 3, id + ' one biological unit per packed leaf');
+      check(foliage.reference && foliage.reference.min.every(Number.isFinite) && foliage.reference.extent.every(e => Number.isFinite(e) && e >= 0), id + ' foliage reference box');
       const a = foliage.anatomy;
       check(a.unit === unit && a.vertices[0] < a.vertices[1] && a.vertices[1] <= foliage.positions.length / 3, id + ' unit vertices');
       check(a.indices[0] < a.indices[1] && a.indices[1] <= foliage.indices.length && a.indices[0] % 3 === 0 && a.indices[1] % 3 === 0, id + ' unit triangles');
@@ -156,22 +162,27 @@ try {
       check(foliage.indices.every(i => i < foliage.positions.length / 3), id + ' indices in bounds');
       const b = foliage.bounds;
       // Include connectors and every transformed prototype vertex in render bounds.
-      for (let m = 0; m < foliage.matrices.length; m += 16) {
+      // The core takes its own bounds from these same decoded words, so the
+      // tolerance stays the f32 prototype-vertex one: the position quantum the
+      // reference box implies is extent/65535 per axis, under a millimetre on
+      // any fixture here, and it is already inside the reported bounds.
+      for (let i = 0; i < d.instances; i++) {
+        const m = leafTransform(leafWords(foliage.leaves, i), foliage.reference);
         for (let v = 0; v < foliage.positions.length; v += 3) {
           for (let axis = 0; axis < 3; axis++) {
-            const x = foliage.matrices[m + axis] * foliage.positions[v] + foliage.matrices[m + 4 + axis] * foliage.positions[v + 1] + foliage.matrices[m + 8 + axis] * foliage.positions[v + 2] + foliage.matrices[m + 12 + axis];
+            const x = m[axis] * foliage.positions[v] + m[4 + axis] * foliage.positions[v + 1] + m[8 + axis] * foliage.positions[v + 2] + m[12 + axis];
             check(x >= b.min[axis] - 1e-5 && x <= b.max[axis] + 1e-5, id + ' transformed bounds');
           }
         }
       }
       const original = output.structure.values.slice();
-      const savedMatrices = foliage.matrices.slice();
+      const savedLeaves = foliage.leaves.slice();
       const savedAnatomy = JSON.stringify(a);
       engine.release();
-      check(foliage.matrices.every((v, i) => v === savedMatrices[i]) && JSON.stringify(a) === savedAnatomy, id + ' released owned foliage');
+      check(foliage.leaves.every((v, i) => v === savedLeaves[i]) && JSON.stringify(a) === savedAnatomy, id + ' released owned foliage');
       await rejects(() => output.field.query(cells), id + ' released field');
       const repeat = engine.build(specimen, { foliage: true, structure: true });
-      check(repeat.structure.values.length === original.length && repeat.structure.values.every((v, i) => v === original[i]) && repeat.foliage.matrices.every((v, i) => v === savedMatrices[i]), id + ' deterministic');
+      check(repeat.structure.values.length === original.length && repeat.structure.values.every((v, i) => v === original[i]) && repeat.foliage.leaves.every((v, i) => v === savedLeaves[i]), id + ' deterministic');
       specimen.skeleton.bias.supernatural = { enabled: false, writheAmplitude: 0.1, writheWavelength: 0.3, spiralRate: 2 };
       const natural = engine.build(specimen, { structure: true });
       check(natural.structure.values.length === original.length && natural.structure.values.every((v, i) => v === original[i]), id + ' disabled stored effects');
@@ -185,7 +196,7 @@ try {
         ['crookedness', p => p.skeleton.habit.crookedness = 90],
         ['foliage connector length', p => p.element.connectorLength = -1],
         ['leaf card carries no lobes and no section roundness', p => { p.element.card = true; p.element.lobeCount = 1; }],
-        ['parameter type or range', p => p.skeleton.bias.supernatural.enabled = 1],
+        ['/skeleton/bias/supernatural/enabled', p => p.skeleton.bias.supernatural.enabled = 1],
       ]) {
         const bad = structuredClone(specimen); mutate(bad);
         await rejects(() => engine.build(bad, { foliage: true }), id + ' refuses ' + named, named);
@@ -196,7 +207,7 @@ try {
       check(!fieldOnly.foliage && fieldOnly.diagnostics.foliageAnatomy === null && fieldOnly.diagnostics.biologicalUnits === d.biologicalUnits, id + ' field-only unit counts without geometry');
       const zero = structuredClone(specimen); zero.canopy.size = 0;
       const emptyFoliage = engine.build(zero, { foliage: true });
-      check(emptyFoliage.foliage.matrices.length === 0 && emptyFoliage.foliage.bounds === null && emptyFoliage.diagnostics.biologicalUnits === 0, id + ' empty biological geometry');
+      check(emptyFoliage.foliage.leaves.length === 0 && emptyFoliage.foliage.bounds === null && emptyFoliage.diagnostics.biologicalUnits === 0, id + ' empty biological geometry');
       const limited = structuredClone(specimen); limited.canopy.maxInstances = 1;
       await rejects(() => engine.build(limited, { foliage: true }), id + ' foliage budget rejects instead of truncating');
     }

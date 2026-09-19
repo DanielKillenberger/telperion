@@ -42,11 +42,13 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
   return {
     ...params.family.skeleton,
     seed: params.seed,
+    samplingAttemptsPerAttractor: params.samplingAttemptsPerAttractor,
     /* The five clump rows, onto the habit table the preset carried. The
        rest of that table has no dial and travels through untouched, so
        this is a named override and not an assembled row. */
     habit: {
       ...params.family.skeleton.habit,
+      reachProbeSteps: params.reachProbeSteps,
       stems: params.stems,
       stemDivergence: params.stemDivergence,
       stemLean: params.stemLean,
@@ -81,6 +83,9 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
       reach: params.reach,
       laterals: params.laterals,
       generations: params.twigGenerations,
+      maxInternodes: params.maxInternodes,
+      maxDroop: params.maxDroop,
+      curtainStepClearance: params.curtainStepClearance,
       angleVariation: params.angleVariation,
       vigourVariation: params.vigourVariation,
       angle: params.twigAngle,
@@ -103,6 +108,7 @@ export function toSkeletonParams(params: GrowerParams): SkeletonParams {
         enabled: params.supernaturalEnabled,
         writheAmplitude: params.writheAmplitude * params.torsion,
         writheWavelength: params.writheWavelength,
+        maxWritheMagnitude: params.maxWritheMagnitude,
         spiralRate: params.spiralRate * params.torsion,
       },
     },
@@ -129,6 +135,7 @@ export function toRadiusParams(params: GrowerParams): RadiusParams {
     forkExponent: params.taper,
     trunkRadius: params.trunkRadius,
     lengthTaper: params.lengthTaper,
+    maxTaperExponent: params.maxTaperExponent,
   };
 }
 
@@ -151,6 +158,7 @@ export function toRadiusParams(params: GrowerParams): RadiusParams {
 export function toSurfaceParams(params: GrowerParams): SurfaceParams {
   return {
     ...params.family.surface,
+    socketContainment: params.socketContainment,
     lobes: params.lobes,
     lobeDepth: params.lobeDepth,
     twistRate: params.twistRate,
@@ -164,6 +172,7 @@ export function toSurfaceParams(params: GrowerParams): SurfaceParams {
  *  slider would overwrite. Held to `toCanopyParams` by a test, so the two
  *  cannot drift apart. */
 export const CANOPY_FROM_SLIDERS: ReadonlySet<string> = new Set([
+  "clumpSystemOrder", "clumpNeighbours",
   "shootRadius", "spacing", "divergence", "clump", "clumpSpan",
   "outward", "upward", "scatter", "size", "sizeVariation",
 ]);
@@ -181,6 +190,8 @@ export const CANOPY_FROM_SLIDERS: ReadonlySet<string> = new Set([
 export function toCanopyParams(params: GrowerParams): CanopyParams {
   return {
     ...params.family.canopy,
+    clumpSystemOrder: params.clumpSystemOrder,
+    clumpNeighbours: params.clumpNeighbours,
     shootRadius: params.shootRadius,
     spacing: params.spacing,
     divergence: params.divergence,
@@ -235,6 +246,7 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     lean: bias.lean,
     writheAmplitude: bias.supernatural.writheAmplitude,
     writheWavelength: bias.supernatural.writheWavelength,
+    maxWritheMagnitude: bias.supernatural.maxWritheMagnitude,
     spiralRate: bias.supernatural.spiralRate,
     maxTurnPerStep: preset.skeleton.growth.maxTurnPerStep,
     density: (preset.skeleton.attractors - ATTRACTORS_MIN) /
@@ -252,6 +264,12 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     reach: preset.skeleton.twigs.reach,
     laterals: preset.skeleton.twigs.laterals,
     twigGenerations: preset.skeleton.twigs.generations,
+    maxInternodes: preset.skeleton.twigs.maxInternodes,
+    maxDroop: preset.skeleton.twigs.maxDroop,
+    curtainStepClearance: preset.skeleton.twigs.curtainStepClearance,
+    workBudget: preset.growth.workBudget,
+    reachProbeSteps: preset.skeleton.habit.reachProbeSteps,
+    samplingAttemptsPerAttractor: preset.skeleton.samplingAttemptsPerAttractor,
     twigAngle: preset.skeleton.twigs.angle,
     twigDivergence: preset.skeleton.twigs.divergence,
     internodeFactor: preset.skeleton.twigs.internodeFactor,
@@ -267,11 +285,15 @@ export function presetToParams(preset: TreePreset): GrowerParams {
     taper: preset.radii.forkExponent,
     trunkRadius: preset.radii.trunkRadius,
     lengthTaper: preset.radii.lengthTaper,
+    socketContainment: preset.surface.socketContainment,
+    maxTaperExponent: preset.radii.maxTaperExponent,
     lobes: preset.surface.lobes,
     lobeDepth: preset.surface.lobeDepth,
     twistRate: preset.surface.twistRate,
     flareRadius: preset.surface.flareRadius,
     shootRadius: canopy.shootRadius,
+    clumpSystemOrder: canopy.clumpSystemOrder,
+    clumpNeighbours: canopy.clumpNeighbours,
     spacing: canopy.spacing,
     divergence: canopy.divergence,
     clump: canopy.clump,
@@ -294,6 +316,7 @@ export function presetToParams(preset: TreePreset): GrowerParams {
 export function toFamily(params: GrowerParams): Family {
   return {
     ...params.family,
+    growth: { ...params.family.growth, workBudget: params.workBudget },
     skeleton: toSkeletonParams(params),
     radii: toRadiusParams(params),
     surface: toSurfaceParams(params),

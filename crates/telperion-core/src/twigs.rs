@@ -1,7 +1,6 @@
 //! Fixed shoot anatomy and finite authoring rails for the local branch law.
 use crate::math::Transcendental;
 use crate::{Error, Result};
-pub const MAX_LEVELS: usize = 12;
 /// Top of the `generations` rail, and its neutral.
 pub const MAX_GENERATIONS: u32 = 6;
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -31,12 +30,16 @@ pub struct TwigParams {
     pub length_ratio: f64,
     pub ratio_power: f64,
     pub internode_factor: f64,
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_max_internodes")
+    )]
+    pub max_internodes: u32,
     pub laterals: u32,
     /// Twig-law generations of branching, 1 to 6. A lateral born at or past
     /// this generation is a twig whatever the pipe model left its radius, so
     /// the twig layer's depth is a row a table states rather than a
-    /// consequence of how thick the wood is. `MAX_LEVELS` stays behind it as
-    /// the structural stop the rail can no longer reach.
+    /// consequence of how thick the wood is.
     pub generations: u32,
     pub limb_radius: f64,
     pub reach: f64,
@@ -74,6 +77,13 @@ pub struct TwigParams {
     /// Metres above the ground no hanging shoot falls below, 0 to 5. Never
     /// above the crown's own base, whatever the row says.
     pub curtain_clearance: f64,
+    #[cfg_attr(feature = "json", serde(default = "crate::ranges::default_max_droop"))]
+    pub max_droop: f64,
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_curtain_step_clearance")
+    )]
+    pub curtain_step_clearance: f64,
 }
 impl Default for TwigParams {
     fn default() -> Self {
@@ -82,6 +92,7 @@ impl Default for TwigParams {
             length_ratio: 0.4,
             ratio_power: 1.3,
             internode_factor: 2.5,
+            max_internodes: crate::ranges::default_max_internodes(),
             laterals: 2,
             // Neutral: the deepest shipped tree branches four generations, so
             // the top of the rail reproduces every one of them to the byte.
@@ -107,46 +118,55 @@ impl Default for TwigParams {
             // Neutral: the shell holds the curtain, as it did before the row.
             curtain_drop: 0.0,
             curtain_clearance: 0.5,
+            max_droop: crate::ranges::default_max_droop(),
+            curtain_step_clearance: crate::ranges::default_curtain_step_clearance(),
         }
     }
 }
 impl TwigParams {
-    pub fn resolved(mut self) -> Result<Self> {
-        let t = &mut self.twig;
-        if ![
-            t.diameter,
-            t.length,
-            t.internode_length,
-            t.bearing_diameter,
-            self.length_ratio,
-            self.ratio_power,
-            self.internode_factor,
-            self.limb_radius,
-            self.reach,
-            self.angle,
-            self.angle_variation,
-            self.vigour_variation,
-            self.divergence,
-        ]
-        .iter()
-        .all(|v| v.is_finite())
-        {
-            return Err(Error::InvalidInput("twig parameters"));
+    pub fn resolved(self) -> Result<Self> {
+        use crate::ranges::*;
+        let t = &self.twig;
+        for (value, range, field) in [
+            (t.diameter, ANATOMY, "twig diameter"),
+            (t.length, ANATOMY, "twig length"),
+            (t.internode_length, ANATOMY, "twig internodeLength"),
+            (t.bearing_diameter, ANATOMY, "twig bearingDiameter"),
+            (
+                t.stations_per_internode as f64,
+                STATIONS,
+                "twig stationsPerInternode",
+            ),
+            (self.length_ratio, LENGTH_RATIO, "twig lengthRatio"),
+            (self.ratio_power, RATIO_POWER, "twig ratioPower"),
+            (
+                self.internode_factor,
+                INTERNODE_FACTOR,
+                "twig internodeFactor",
+            ),
+            (self.laterals as f64, LATERALS, "twig laterals"),
+            (self.limb_radius, UNIT, "twig limbRadius"),
+            (self.reach, REACH, "twig reach"),
+            (self.angle, ANGLE, "twig angle"),
+            (self.angle_variation, ANGLE, "twig angleVariation"),
+            (self.vigour_variation, VIGOUR, "twig vigourVariation"),
+            (
+                self.max_internodes as f64,
+                POSITIVE_COUNT,
+                "twig maxInternodes",
+            ),
+            (self.max_droop, MAX_DROOP, "twig maxDroop"),
+            (
+                self.curtain_step_clearance,
+                UNIT,
+                "twig curtainStepClearance",
+            ),
+        ] {
+            range.check(value, field)?;
         }
-        t.diameter = t.diameter.clamp(1e-6, 1e6);
-        t.length = t.length.clamp(1e-6, 1e6);
-        t.internode_length = t.internode_length.clamp(1e-6, 1e6);
-        t.bearing_diameter = t.bearing_diameter.clamp(1e-6, 1e6);
-        t.stations_per_internode = t.stations_per_internode.clamp(1, 32);
-        self.length_ratio = self.length_ratio.clamp(0.05, 1.0);
-        self.ratio_power = self.ratio_power.clamp(0.0, 8.0);
-        self.internode_factor = self.internode_factor.clamp(0.05, 32.0);
-        self.laterals = self.laterals.min(7);
-        self.limb_radius = self.limb_radius.clamp(0.0, 1.0);
-        self.reach = self.reach.clamp(0.0, 0.9);
-        self.angle = self.angle.clamp(0.0, 90.0);
-        self.angle_variation = self.angle_variation.clamp(0.0, 90.0);
-        self.vigour_variation = self.vigour_variation.clamp(0.0, 0.95);
+        if !self.divergence.is_finite() {
+            return Err(Error::InvalidInput("twig divergence"));
+        }
         // A generation count outside the rail is a table with a mistake in
         // it, not a value to round into range: the depth of the twig layer is
         // what the table is choosing here.
@@ -181,7 +201,7 @@ impl TwigParams {
         (length
             / floor
                 .max(self.internode_factor * 2.0 * radius)
-                .max(length / 32.0))
+                .max(length / self.max_internodes as f64))
         .round()
         .max(1.0) as usize
     }
@@ -191,4 +211,21 @@ pub fn branch_length(radius: f64) -> f64 {
 }
 pub fn child_radius(radius: f64, ratio: f64, power: f64) -> f64 {
     radius * ratio.powf_fixed(power)
+}
+
+#[cfg(test)]
+mod limit_tests {
+    use super::*;
+    #[test]
+    fn internode_budget_is_authored() {
+        for max_internodes in [16, 32, 64, 100] {
+            let t = TwigParams {
+                max_internodes,
+                ..Default::default()
+            }
+            .resolved()
+            .unwrap();
+            assert_eq!(t.internodes(0.1, 1000.), max_internodes as usize);
+        }
+    }
 }

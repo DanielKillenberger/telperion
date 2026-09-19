@@ -21,18 +21,14 @@ pub struct PlacementIdentity {
     pub shoot: NodeIdentity,
     pub station: u32,
 }
-#[derive(Debug, Clone)]
+/// One leaf a shoot's identity owns: where along the shoot it sits, and the
+/// three words that are the leaf. The words are the storage: a cached shoot
+/// holds twelve bytes a leaf, not sixty-four.
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
 pub struct Placement {
     pub identity: PlacementIdentity,
-    pub transform: [f32; 16],
-}
-
-impl PartialEq for Placement {
-    fn eq(&self, other: &Self) -> bool {
-        self.identity == other.identity
-            && self.transform.map(f32::to_bits) == other.transform.map(f32::to_bits)
-    }
+    pub leaf: Leaf,
 }
 
 #[derive(Clone, PartialEq)]
@@ -73,6 +69,10 @@ pub(crate) struct Foliage {
     seed: u32,
     lifetime: Age,
     bearing_radius: f64,
+    /// The box every station of this family is quantised against, from its
+    /// parameters: the same box at every age, so a leaf cached at one age
+    /// decodes correctly at the next.
+    reference: Reference,
     #[cfg_attr(feature = "json", serde(skip))]
     cache: RefCell<Cache>,
 }
@@ -92,12 +92,14 @@ impl Foliage {
             stations_per_internode: twig.stations_per_internode,
         };
         // Reuse the placement contract, including its empty-tree validation.
+        let reference = Reference::of(family)?;
         place(
             &Tree::default(),
             family.skeleton.envelope,
             family.skeleton.seed,
             family.canopy,
             Some(twig),
+            reference,
         )?;
         if family.canopy.surface_contact > 0.0 {
             family.surface.validate()?;
@@ -110,6 +112,7 @@ impl Foliage {
             seed: family.skeleton.seed,
             lifetime: Age::from_years(family.growth.leaf_lifetime)?,
             bearing_radius: family.skeleton.twigs.resolved()?.twig.bearing_diameter / 2.0,
+            reference,
             cache: RefCell::new(Cache::default()),
         })
     }
@@ -130,6 +133,7 @@ impl Foliage {
             seed: self.seed,
             lifetime: self.lifetime,
             bearing_radius: self.bearing_radius,
+            reference: self.reference,
             cache: RefCell::new(Cache::default()),
         }
         .read(tree, envelope, age)
@@ -264,7 +268,7 @@ impl Foliage {
         let n = &tree.nodes[i];
         let parent = n.parent.unwrap() as usize;
         let id = n.identity;
-        let mut instances = Instances::default();
+        let mut instances = Instances::new(self.reference);
         // Each node is the shoot born at that annual station. Extension
         // appends another shoot; it cannot renumber existing leaf sites.
         let nodes = [parent, i];
@@ -288,18 +292,25 @@ impl Foliage {
             &mut instances,
         )?;
         let placements = instances
-            .matrices
+            .leaves
             .into_iter()
             .enumerate()
-            .map(|(k, transform)| Placement {
+            .map(|(k, leaf)| Placement {
                 identity: PlacementIdentity {
                     shoot: id,
                     station: k as u32,
                 },
-                transform,
+                leaf,
             })
             .collect();
         Ok(placements)
+    }
+
+    /// The box this family's leaves are quantised against. A reader that
+    /// rebuilds an `Instances` from recorded placements needs it to decode
+    /// them.
+    pub(crate) fn reference(&self) -> Reference {
+        self.reference
     }
 
     #[cfg(test)]

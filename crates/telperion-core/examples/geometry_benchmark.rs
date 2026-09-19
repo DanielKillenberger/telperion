@@ -48,9 +48,10 @@ fn specimen(v: &Value) -> Result<Value, String> {
             stations_per_internode: twigs.twig.stations_per_internode,
         }),
         &f.surface,
+        foliage::Reference::of(&f).map_err(|e| format!("reference: {e:?}"))?,
     )
     .map_err(|e| format!("placement: {e:?}"))?;
-    let pre_cull_instances = placed.matrices.len();
+    let pre_cull_instances = placed.len();
     let kept = foliage::cull(placed, &element, f.skeleton.envelope, f.shell_depth)
         .map_err(|e| format!("cull: {e:?}"))?;
     let legacy = species_metrics::measure(

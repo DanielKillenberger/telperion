@@ -107,7 +107,14 @@ fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
         ..Default::default()
     })
     .unwrap();
-    tree.foliage.instances.matrices = (0..4)
+    // A box the four casters stand inside, so where each one stands is read
+    // back off its words as it was written.
+    tree.foliage.instances =
+        telperion_core::foliage::Instances::new(telperion_core::foliage::Reference::spanning(
+            telperion_core::math::Vec3::new(-8.0, -8.0, -8.0),
+            telperion_core::math::Vec3::new(8.0, 8.0, 8.0),
+        ));
+    for m in (0..4)
         .map(|i| {
             let scale = if i == 0 { 1.0 } else { 2.0 };
             [
@@ -129,7 +136,10 @@ fn full_casters_cover_at_least_the_default_on_separated_surfaces() {
                 1.0,
             ]
         })
-        .collect();
+        .collect::<Vec<[f32; 16]>>()
+    {
+        tree.foliage.instances.push(&m);
+    }
     tree.bounds.max.y = tree.bounds.max.y.max(28.0);
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     renderer.submit(&tree).unwrap();

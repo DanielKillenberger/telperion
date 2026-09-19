@@ -65,7 +65,7 @@ fn reads_between_advances_reconcile_after_growth_shedding_and_cap_recovery() {
     chain.set_node_ceiling(chain.tree.nodes.len()).unwrap();
     chain.advance(1.0).unwrap();
     assert!(chain.tree().diagnostics.node_capped);
-    chain.set_node_ceiling(NODE_CEILING).unwrap();
+    chain.set_node_ceiling(DEFAULT_MAX_NODES).unwrap();
     assert!(!chain.tree().diagnostics.node_capped);
     chain.advance(1.0).unwrap();
     f.age = chain.age();

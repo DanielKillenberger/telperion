@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-89-autonomous-species-conductor",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-19T18:10:19.616638Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-68-tuning-loop-code-steps-the-dials-jev"
+  ],
+  "id": "fn-89-autonomous-species-conductor",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": false,
+  "spec_path": ".flow/specs/fn-89-autonomous-species-conductor.md",
+  "status": "open",
+  "title": "Autonomous species conductor",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-19T18:38:25.932573Z"
+}

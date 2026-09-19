@@ -38,15 +38,31 @@ fn empty_caps_invalid_and_finite_rails() {
     p.step = 0.022;
     p.twigs.angle = f64::INFINITY;
     assert!(generate(&p, RadiusParams::default()).is_err());
-    let t = TwigParams {
-        length_ratio: 4.0,
-        ratio_power: -1.0,
-        laterals: 99,
-        ..Default::default()
+    for (t, field) in [
+        (
+            TwigParams {
+                length_ratio: 4.0,
+                ..Default::default()
+            },
+            "lengthRatio",
+        ),
+        (
+            TwigParams {
+                ratio_power: -1.0,
+                ..Default::default()
+            },
+            "ratioPower",
+        ),
+        (
+            TwigParams {
+                laterals: 99,
+                ..Default::default()
+            },
+            "laterals",
+        ),
+    ] {
+        assert!(t.resolved().unwrap_err().to_string().contains(field));
     }
-    .resolved()
-    .unwrap();
-    assert_eq!((t.length_ratio, t.ratio_power, t.laterals), (1.0, 0.0, 7));
     let mut malformed = crown();
     malformed.nodes[1].parent = Some(1);
     assert!(append(
@@ -120,6 +136,7 @@ fn natural_bias_is_independent_of_disabled_effects() {
         writhe_amplitude: 0.2,
         writhe_wavelength: 0.1,
         spiral_rate: 3.0,
+        ..Default::default()
     };
     assert_eq!(natural, generate(&p, RadiusParams::default()).unwrap());
     p.bias.supernatural.enabled = true;

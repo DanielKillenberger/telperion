@@ -175,6 +175,8 @@ impl Renderer {
         self.scene
             .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
         self.scene.set_crown(crown_of(&mesh.foliage));
+        self.scene
+            .set_leaf_reference(mesh.foliage.instances.reference);
         self.scene.section_roundness = mesh.foliage.element.section_roundness;
         self.bounds = Some(mesh.bounds);
         self.set_casters();
@@ -338,8 +340,13 @@ impl Renderer {
         self.scene
             .set_frame(&self.gpu, camera, aspect_of(viewport), &light, self.view);
         let stride = self.scene.row().caster_stride as u32;
-        self.shadow
-            .set_light(&self.gpu, &light, stride, self.foliage.caster_shape);
+        self.shadow.set_light(
+            &self.gpu,
+            &light,
+            stride,
+            self.foliage.caster_shape,
+            self.scene.leaf_reference(),
+        );
         let (vegetation_writes, selection_writes, shadow_writes) = match timed {
             Some(timed) => (
                 Some(timed.vegetation),

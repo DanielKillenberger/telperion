@@ -123,6 +123,7 @@ describe("carried native controls", () => {
        shows the owner these values, and a row the core moves under it is
        a different default tree than the one the harness was tuned on. */
     expect(DEFAULT_PARAMS.family.skeleton.habit).toEqual({
+      reachProbeSteps: 96,
       apicalDominance: 0.5,
       whorlStrength: 0.3,
       leaderInternode: 1.5,

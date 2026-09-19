@@ -13,11 +13,10 @@ export class SpecimenWire {
     return value;
   }
   private f64(): number { const n = this.view.getFloat64(this.offset, true); this.offset += 8; return n; }
-  private f32(): number { const n = this.view.getFloat32(this.offset, true); this.offset += 4; return n; }
   private vector<T>(read: () => T): T[] { return Array.from({ length: this.u64() }, read); }
   private node = (): NodeIdentity => ({ birth: this.u64(), key: { idx: this.u32(), version: this.u32() } });
   private identity = (): PlacementIdentity => ({ shoot: this.node(), station: this.u32() });
-  private placement = (): Placement => ({ identity: this.identity(), transform: Array.from({ length: 16 }, () => this.f32()) });
+  private placement = (): Placement => ({ identity: this.identity(), leaf: [this.u32(), this.u32(), this.u32()] });
   private run = (): Run => ({ identity: this.node(), nodes: this.vector(() => ({
     identity: this.node(), parent: this.u8() ? this.node() : null,
     position: { x: this.f64(), y: this.f64(), z: this.f64() },

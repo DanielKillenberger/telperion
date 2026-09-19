@@ -39,7 +39,7 @@ impl TreeMesh {
         self.wood.indices.len() / 3
     }
     pub fn foliage_instances(&self) -> usize {
-        self.foliage.instances.matrices.len()
+        self.foliage.instances.len()
     }
 }
 
@@ -91,6 +91,7 @@ pub fn assemble(tree: &Tree, family: &Family) -> Result<TreeMesh> {
             stations_per_internode: twig.stations_per_internode,
         }),
         &family.surface,
+        foliage::Reference::of(family)?,
     )?;
     let instances = foliage::cull(
         placed,

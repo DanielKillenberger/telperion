@@ -68,20 +68,26 @@ fn interleaved(instances: usize) -> mesh::Foliage {
                 .collect(),
             ..Element::default()
         },
-        instances: Instances {
-            matrices: (0..instances)
-                .map(|id| {
-                    let class = id % (MAX_LEVELS + 1);
-                    let scale = (1u32 << class) as f32;
-                    let mut matrix = [0.0; 16];
-                    for i in [0, 5, 10] {
-                        matrix[i] = scale;
-                    }
-                    matrix[14] = if class == MAX_LEVELS { 1.0 } else { -1.0 };
-                    matrix[15] = 1.0;
-                    matrix
-                })
-                .collect(),
+        instances: {
+            // A box a code wide on z and none at all across, so the two
+            // depths the fixture uses land on codes of their own and the
+            // leaves stand exactly where they were put.
+            let mut out = Instances::new(telperion_core::foliage::Reference::spanning(
+                telperion_core::math::Vec3::new(0.0, 0.0, -1.0),
+                telperion_core::math::Vec3::new(0.0, 0.0, 1.0),
+            ));
+            for id in 0..instances {
+                let class = id % (MAX_LEVELS + 1);
+                let scale = (1u32 << class) as f32;
+                let mut matrix = [0.0; 16];
+                for i in [0, 5, 10] {
+                    matrix[i] = scale;
+                }
+                matrix[14] = if class == MAX_LEVELS { 1.0 } else { -1.0 };
+                matrix[15] = 1.0;
+                out.push(&matrix);
+            }
+            out
         },
     }
 }

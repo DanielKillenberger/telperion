@@ -47,7 +47,7 @@ impl Clock {
 
 fn tangent_height(e: Envelope, y: f64, radial: f64) -> Option<f64> {
     let t = (y / e.height - e.crown_base) / (1.0 - e.crown_base);
-    let full = e.fullness.clamp(0.001, 0.999);
+    let full = e.fullness;
     let (p, width, sign) = if t < full {
         (1.0 - t / full, full, 1.0)
     } else {

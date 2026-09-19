@@ -35,7 +35,10 @@ pub extern "C" fn specimen_read(handle: u32, age: f64) -> u32 {
                     .topology
                     .extend([n.parent.unwrap_or(u32::MAX), n.branch, n.kind as u32]);
             }
-            output.instances.matrices = read.placements.iter().map(|p| p.transform).collect();
+            output.instances = telperion_core::foliage::Instances {
+                leaves: read.placements.iter().map(|p| p.leaf).collect(),
+                reference: read.reference,
+            };
             e.specimen_ids = bincode::serialize(&(
                 read.tree
                     .nodes
@@ -52,7 +55,12 @@ pub extern "C" fn specimen_read(handle: u32, age: f64) -> u32 {
             e.output = output;
             e.revision = e.revision.wrapping_add(1);
             Ok(
-                json!({"age":age, "envelope":{
+                json!({"age":age,
+                "foliageReference":{
+                    "min":[read.reference.min.x, read.reference.min.y, read.reference.min.z],
+                    "extent":[read.reference.extent.x, read.reference.extent.y, read.reference.extent.z]
+                },
+                "envelope":{
                     "height":read.envelope.height,"spread":read.envelope.spread,
                     "crownBase":read.envelope.crown_base,"fullness":read.envelope.fullness,"shoulder":read.envelope.shoulder
                 }, "surfaceHeight":read.surface_height,
@@ -161,7 +169,7 @@ pub extern "C" fn specimen_node_ceiling(handle: u32, limit: f64) -> u32 {
         let result = if !limit.is_finite()
             || limit < 0.0
             || limit.fract() != 0.0
-            || limit > telperion_core::branching::NODE_CEILING as f64
+            || limit > telperion_core::ranges::MAX_NODES as f64
         {
             Err(Error::InvalidValue {
                 field: "node ceiling",

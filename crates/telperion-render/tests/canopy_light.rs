@@ -67,7 +67,13 @@ fn shell() -> TreeMesh {
     let mut state = 0x9e37_79b9_u32;
     // Leaves a little inside the shell as well as on it, each a column-major
     // placement: its side, its axis and its face scaled up, then its seat.
-    let matrices = (0..6000)
+    // The shell the fixture fills, as a box that holds it.
+    let reach_box = RADIUS + 0.4;
+    let mut instances = Instances::new(telperion_core::foliage::Reference::spanning(
+        CENTRE - Vec3::new(reach_box, reach_box, reach_box),
+        CENTRE + Vec3::new(reach_box, reach_box, reach_box),
+    ));
+    let matrices: Vec<[f32; 16]> = (0..6000)
         .map(|_| {
             let at = CENTRE + unit(&mut state) * (RADIUS * (1.0 - 0.2 * next(&mut state).abs()));
             let face = unit(&mut state);
@@ -80,13 +86,13 @@ fn shell() -> TreeMesh {
             .map(|v| v as f32)
         })
         .collect();
+    for m in &matrices {
+        instances.push(m);
+    }
     let reach = RADIUS + 0.2;
     TreeMesh {
         wood: SurfaceMesh::default(),
-        foliage: Foliage {
-            element,
-            instances: Instances { matrices },
-        },
+        foliage: Foliage { element, instances },
         bounds: Bounds {
             min: CENTRE - Vec3::new(reach, reach, reach),
             max: CENTRE + Vec3::new(reach, reach, reach),

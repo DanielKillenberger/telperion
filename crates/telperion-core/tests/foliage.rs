@@ -32,6 +32,16 @@ fn twig(length: f64) -> Tree {
         ..Tree::default()
     }
 }
+/// A box around the hand-built twig trees below: one internode of at most a
+/// quarter metre from (0, 10, 0), and the 2.5 mm of wood the stations stand
+/// off it. Tight across the shoot, so a station's radial offset survives the
+/// round trip to a tenth of a micron.
+fn twig_box(length: f64) -> Reference {
+    Reference::spanning(
+        Vec3::new(-0.004, 9.996, -0.004),
+        Vec3::new(0.004, 10.004 + length, 0.004),
+    )
+}
 fn bare() -> CanopyParams {
     CanopyParams {
         outward: 0.,
@@ -140,8 +150,9 @@ fn element_hash(p: ElementParams) -> u64 {
     hash
 }
 
-/// FNV-1a over every instance matrix as the renderer receives it: where each
-/// leaf sits and how it leans, and nothing about how it was asked for.
+/// FNV-1a over the crown as the renderer receives it: the reference box and
+/// then every leaf's three words - where each leaf sits and how it leans, and
+/// nothing about how it was asked for.
 /// Along the blade and across it, base to tip and midrib to margin. The
 /// connector has no blade of its own and takes the base's pair.
 fn placement_hash(f: &Family, tree: &Tree) -> u64 {
@@ -156,14 +167,22 @@ fn placement_hash(f: &Family, tree: &Tree) -> u64 {
             stations_per_internode: twig.stations_per_internode,
         }),
         &f.surface,
+        Reference::of(f).unwrap(),
     )
     .unwrap_or_else(|err| panic!("{:?}: {err}", f.canopy));
     let mut hash = 14695981039346656037_u64;
-    for byte in placed
-        .matrices
-        .iter()
-        .flat_map(|m| m.iter().flat_map(|v| v.to_le_bytes()))
-    {
+    let r = placed.reference;
+    for byte in [
+        r.min.x, r.min.y, r.min.z, r.extent.x, r.extent.y, r.extent.z,
+    ]
+    .iter()
+    .flat_map(|v| v.to_le_bytes())
+    .chain(
+        placed
+            .leaves
+            .iter()
+            .flat_map(|leaf| leaf.iter().flat_map(|w| w.to_le_bytes())),
+    ) {
         hash = (hash ^ byte as u64).wrapping_mul(1099511628211);
     }
     hash
