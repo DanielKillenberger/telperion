@@ -68,3 +68,28 @@ finished and was reconciled before this report was staged.
 What would remove the blocker: host direction on the count source and capacity
 accounting consistent with the no-allocation, O(nodes), and unchanged-storage
 requirements. No admission decision, specification change or new task was made.
+
+## 2026-09-19 - a spec architecture claim nobody had checked cost two bridge dispatches
+
+- **Doing:** dispatching the routed implementer (codex `gpt-6-astra` at high) at
+  fn-87 under the no-plan route, then re-dispatching it with R4 deferred.
+- **Hindered by:** the spec's Architecture section states that "the tree carries
+  the station and vertex counts, so the prediction is an O(nodes) pass that
+  allocates nothing". `crates/telperion-core/src/tree.rs:76` carries `nodes`,
+  `crossover` and `diagnostics`, and nothing else. The premise R1 rests on is not
+  true of the code, and the one route that would make it true - persisting the
+  counts on `Tree` - is closed by the spec's own Boundaries, because `Tree` is
+  `bincode::serialize`d into the committed digests
+  (`crates/telperion-core/tests/species.rs:39`) and the spec changes no stored
+  byte. Two dispatches were spent reaching that: the first stopped on R4's
+  undefined reserve, the second on this.
+- **Cost:** about twenty-five minutes of wall clock, two bridged dispatches
+  (61k and 65k tokens), two wrapper agents, and no implementation. The baseline
+  measurement run that preceded them - four thread counts, about four and a half
+  minutes - was useful and is kept in BASELINE.md.
+- **What would remove it:** an architecture bullet that asserts a property of the
+  code cites the file it was read from. This claim was one `grep` from being
+  checkable, and a citation would have surfaced the gap at capture rather than at
+  the third agent down. The same citation habit would have caught R2's "all five
+  catalogue species", where only four of the five catalogue folders have a preset.
+- **Early return:** taken. This goes up as NEEDS_HUMAN rather than a third dispatch.
