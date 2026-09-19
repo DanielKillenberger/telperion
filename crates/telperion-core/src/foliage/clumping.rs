@@ -143,11 +143,13 @@ pub(super) fn thin(tree: &Tree, owners: &[u32], seed: u32, reach: f64, out: &mut
     let systems: Vec<u32> = owners.iter().map(|&w| system[w as usize]).collect();
     let positions: Vec<Vec3> = (0..out.len()).map(|i| out.position(i)).collect();
     let keep = kept(&positions, &systems, seed, reach);
+    let before = out.leaves.len();
     let mut k = 0;
     out.leaves.retain(|_| {
         k += 1;
         keep[k - 1]
     });
+    out.thinned += before - out.leaves.len();
     // The pre-quantisation transforms are indexed alongside the leaves, so a
     // clump that drops one drops both (R2's preset round trip reads the pair).
     #[cfg(test)]

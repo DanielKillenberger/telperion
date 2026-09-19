@@ -406,6 +406,8 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     .unwrap();
     let digest = check(preset, seed, committed, digest(&a.tree, &wood, &placed));
     let placed_count = placed.len();
+    // The walk's own output, read before the cull takes the crown by value.
+    let (walked, thinned) = (placed.placed(), placed.thinned);
     let kept = foliage::cull(
         placed,
         &element,
@@ -423,21 +425,41 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
         predicted, measured,
         "{name}: predicted {predicted:?}, measured {measured:?}"
     );
-    // The crown's capacity is the count placed before anything thinned it, so
-    // a family whose limb systems clump holds fewer leaves than it reserved
-    // room for; one whose systems do not holds exactly the count predicted.
-    assert!(
-        predicted.leaves >= placed_count,
-        "{name}: predicted {} leaves, placed {placed_count}",
+    // The capacity equality above is not enough on its own: the builders
+    // reserve from the prediction, so an overcount would make them reserve
+    // exactly that much and the equality would still hold. What cannot be
+    // circular is what they produced. The station walk's own output is the
+    // leaves that survived plus the ones the limb clumping dropped, and it is
+    // asserted equal for every family, clumping or not.
+    assert_eq!(
+        predicted.leaves,
+        walked,
+        "{name}: predicted {} leaves, the walk produced {walked} ({placed_count} kept, {thinned} thinned)",
         predicted.leaves
     );
-    if family.canopy.limb_clumping == 0. {
-        assert_eq!(
-            predicted.leaves, placed_count,
-            "{name}: predicted {} leaves, placed {placed_count}",
-            predicted.leaves
-        );
-    }
+    // And the wood's, which nothing compared before: three floats a vertex in
+    // positions, two in coords, one index a corner.
+    assert_eq!(
+        predicted.wood.positions,
+        wood.positions.len(),
+        "{name}: predicted {} wood position floats, swept {}",
+        predicted.wood.positions,
+        wood.positions.len()
+    );
+    assert_eq!(
+        predicted.wood.coords,
+        wood.coords.len(),
+        "{name}: predicted {} wood coord floats, swept {}",
+        predicted.wood.coords,
+        wood.coords.len()
+    );
+    assert_eq!(
+        predicted.wood.indices,
+        wood.indices.len(),
+        "{name}: predicted {} wood indices, swept {}",
+        predicted.wood.indices,
+        wood.indices.len()
+    );
     assert_eq!(
         wood.normals.capacity(),
         wood.positions.capacity(),

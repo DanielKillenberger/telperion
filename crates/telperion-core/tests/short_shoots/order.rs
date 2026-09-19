@@ -93,6 +93,7 @@ fn a_monthly_replay_and_a_growth_view_draw_what_a_fresh_build_draws() {
     let mut placements = Instances {
         leaves: fresh.placements.iter().map(|p| p.leaf).collect(),
         reference: box_of,
+        thinned: 0,
     };
     foliage::place_short_shoots(&fresh.tree, fresh.envelope, 1, f.canopy, &mut placements).unwrap();
     let culled = foliage::cull(placements, &element, fresh.envelope, f.shell_depth).unwrap();
