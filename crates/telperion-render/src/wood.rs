@@ -1,5 +1,7 @@
 //! The plaited wood surface: the core's own position, normal, coordinate and
 //! index arrays uploaded as they lie in memory, drawn as one indexed mesh.
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod calibration;
 mod radius;
 
 use telperion_core::{
