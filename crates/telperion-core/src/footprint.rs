@@ -37,7 +37,15 @@ impl Footprint {
     /// Bytes the specimen keeps: each count times the size of the type that
     /// holds it, and nothing else.
     pub fn bytes(&self) -> usize {
-        self.nodes * size_of::<Node>() + self.wood.bytes() + self.leaves * size_of::<Leaf>()
+        self.bytes_with_leaf(size_of::<Leaf>())
+    }
+
+    /// The same sum with the stored leaf at a stated size. The only caller in
+    /// production is `bytes`, handing it `size_of::<Leaf>()`; it exists so a
+    /// test can change what a leaf costs and watch the answer move, which a
+    /// test cannot do by changing the type itself.
+    pub fn bytes_with_leaf(&self, leaf: usize) -> usize {
+        self.nodes * size_of::<Node>() + self.wood.bytes() + self.leaves * leaf
     }
 }
 
@@ -111,6 +119,43 @@ mod tests {
         assert_eq!(one_more(|f| f.wood.indices = 3), 3 * size_of::<u32>());
         // And the stored leaf's own size is its words, not a number beside it.
         assert_eq!(size_of::<Leaf>(), WORDS * size_of::<u32>());
+    }
+
+    /// The stored leaf grows a word and the prediction grows with it, by the
+    /// leaves it holds times that word and by nothing else. A test cannot
+    /// resize the type, so it resizes what the sum is told a leaf costs, and
+    /// `bytes` is that same sum told `size_of::<Leaf>()`. This is the
+    /// regression the constant could not have: 350 MB stayed 350 MB while the
+    /// real figure went 941, then 470, then 88.
+    #[test]
+    fn a_leaf_that_grows_a_word_grows_the_prediction_by_that_word() {
+        let mut f = zero();
+        f.nodes = 7;
+        f.leaves = 1_000;
+        f.wood.positions = 30;
+        f.wood.coords = 20;
+        f.wood.indices = 9;
+
+        let word = size_of::<u32>();
+        assert_eq!(
+            f.bytes(),
+            f.bytes_with_leaf(WORDS * word),
+            "bytes is the sum at the leaf's own size"
+        );
+        assert_eq!(
+            f.bytes_with_leaf((WORDS + 1) * word) - f.bytes(),
+            f.leaves * word,
+            "a word on every leaf moved the answer by something else"
+        );
+        assert_eq!(
+            f.bytes() - f.bytes_with_leaf((WORDS - 1) * word),
+            f.leaves * word,
+            "shrinking the leaf did not shrink the answer by the same"
+        );
+        // Nothing but the crown moves: a specimen with no leaves is deaf to it.
+        let mut bare = f;
+        bare.leaves = 0;
+        assert_eq!(bare.bytes_with_leaf((WORDS + 9) * word), bare.bytes());
     }
 
     /// A tree with no nodes predicts nothing rather than refusing: an empty

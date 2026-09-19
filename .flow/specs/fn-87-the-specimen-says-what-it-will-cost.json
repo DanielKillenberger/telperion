@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-87-the-specimen-says-what-it-will-cost",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-87-the-specimen-says-what-it-will-cost.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
@@ -266,8 +268,19 @@
     "plan": 2,
     "plan#completion": 1
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-87-the-specimen-says-what-it-will-cost.1": 1
+  },
+  "review_reservations": {
+    "ab6eeb62f2c34767a049c91320eea19c": {
+      "artifact_sha256": "7dcde09b5500c9cd518f9494a74d43ed3bdec5fd053686597e4226d6e5079088",
+      "counter_scope": "impl:fn-87-the-specimen-says-what-it-will-cost.1",
+      "epoch": 0,
+      "exclusive": true,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "plan": 0
   },
@@ -285,5 +298,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T21:49:46.831070Z"
+  "updated_at": "2026-09-19T22:40:53.872378Z"
 }

@@ -272,18 +272,26 @@ const TRIAL_SPECIMENS: usize = 8;
 
 /// Fills the charge limit with real allocations and reports what the process
 /// reached. Each admitted specimen retains a fifteenth more than it charged,
-/// the most a prediction is allowed to underestimate by, and each in turn
-/// allocates a transient of its charge's own size beside it - the buffer a
-/// digest serialises into, the scratch a metrics pass takes.
+/// the most a prediction is allowed to underestimate by, and allocates its
+/// transient beside it - the buffer a digest serialises into, the scratch a
+/// metrics pass takes - with every specimen's transient live at once, because
+/// that is what the harness does.
+///
+/// The transient is a share of the charge rather than the whole of it. The
+/// three runs in AFTER.md measured the resident set at 1.23, 1.27 and 1.26
+/// times what was charged, so the overhead above the retained buffers is a
+/// tenth of a charge, not a charge; modelling it as a whole charge and then
+/// serialising the threads to survive it would be a test passing on a
+/// restriction the harness does not have.
 pub fn saturate() {
     let budget = Budget::with(TRIAL_CEILING, TRIAL_SPECIMENS);
     let share = budget.charge_limit() / TRIAL_SPECIMENS as u64;
     assert_eq!(budget.admission(share), TRIAL_SPECIMENS);
     let ready = std::sync::Barrier::new(TRIAL_SPECIMENS);
-    let transient = Mutex::new(());
+    let overlapped = std::sync::Barrier::new(TRIAL_SPECIMENS);
     std::thread::scope(|scope| {
         for k in 0..TRIAL_SPECIMENS {
-            let (budget, ready, transient) = (&budget, &ready, &transient);
+            let (budget, ready, overlapped) = (&budget, &ready, &overlapped);
             scope.spawn(move || {
                 let _charge = budget.charge(&format!("trial {k}"), share);
                 let mut kept = touched(share + share * 15 / 100);
@@ -291,12 +299,12 @@ pub fn saturate() {
                 // the whole charge limit, which is what the ceiling has to
                 // survive.
                 ready.wait();
-                {
-                    let _one_at_a_time = transient.lock().unwrap();
-                    let passing = touched(share);
-                    kept[0] = kept[0].wrapping_add(passing[0]);
-                }
-                std::hint::black_box(&kept);
+                let passing = touched(share / 10);
+                // And every transient is live at once beside them, with
+                // nothing serialising the threads.
+                overlapped.wait();
+                kept[0] = kept[0].wrapping_add(passing[0]);
+                std::hint::black_box((&kept, &passing));
             });
         }
     });
@@ -339,7 +347,11 @@ fn the_reserve_the_ceiling_and_the_charge_limit_are_three_numbers() {
         (8 * gib, 6 * gib),
         (64 * gib, 48 * gib),
     ] {
-        assert_eq!(ceiling_from(available), ceiling, "at {available} bytes free");
+        assert_eq!(
+            ceiling_from(available),
+            ceiling,
+            "at {available} bytes free"
+        );
         let budget = Budget::with(ceiling, 4);
         assert_eq!(budget.ceiling(), ceiling);
         assert_eq!(budget.charge_limit(), ceiling / 3 * 2);
