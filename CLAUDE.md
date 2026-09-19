@@ -2,32 +2,11 @@
 
 A runtime tree generator: space colonization for the crown, botanical rules below the crossover, one bias field for everything supernatural. Strategy lives in `STRATEGY.md`; specs and tasks in `.flow/` via `flowctl`.
 
-<!-- flow-next:model-routing:start -->
-## Model routing
+## Dispatch and escalation (owner)
 
-<!-- Grammar: <tier>: <model>   or   <tier>: <model> at <effort>
-     Resolution at each dispatch site: an explicit instruction in the moment,
-     then this block, then the agent definition's own default, then the session
-     model. A model this harness cannot reach falls back to the session model
-     with one note. -->
+One task per spec: the owner found that splitting a spec into several tasks lowers the outcome with a strong implementer, so a spec's plan lives in its body and work mints one implicit task. Generator parameters are primary; templates are reusable parameter presets, and supported parameter changes must require no renderer code changes.
 
-implementer: gpt-6-astra at high
-reviewer-note: host session checks diffs directly; no review backend
-reviewer: claude-fable-5-1
-
-Owner routing (2026-09-12, Astra quota back): dispatch Codex gpt-6-astra at high effort for all implementation through a shell-out to the codex CLI from the task's workspace; the host Fable session checks each diff itself and no cross-model review backend runs. One task per spec: the owner found that splitting a spec into several tasks lowers the outcome with a strong implementer, so a spec's plan lives in its body and work mints one implicit task. Between 2026-09-08 and 2026-09-11, while the Astra quota was exhausted, Claude Opus implemented; before that (2026-09-07) gpt-6-astra at low. Species specs (rendered from `templates/species-spec.md`, value tables over a supported form) route to the value tier: cursor-agent with `cursor-grok-4.6-high-fast`, one run on the spec's own branch with the long-task brief, the host Fable session checking the diff and running the gates; fn-34 (2026-09-14) was the first and took 36 minutes for two species. Generator gap specs, and everything else, stay on the frontier tier above; Grok is not dispatched outside species specs. Generator parameters are primary; templates are reusable parameter presets, and supported parameter changes must require no renderer code changes.
-
-Reasoning and system design escalate to the host (owner, 2026-09-19). A swarm agent executes; it does not reason about the system. The value tier carries the mechanical work of a species run: the seed and manifest draft, the literature stages, the readings the pipeline's question sets judge, the packet and the report. Anything that takes reasoning or system design stops and goes up to the host session conducting the run: the capability assessment that decides what the generator cannot express, gap analysis and the candidate fixes written for a gap, the shape of any spec a gap mints, and any judgment about how a part of the system should work. The host has the context and the authority; a swarm agent has neither, and its guess is indistinguishable from an answer once it is written into an artifact. The reason for the line sitting here: a wrong reading costs one source and the next stage catches it, while a wrong design judgment sends the swarm to build the wrong thing, or parks a species the generator could already draw. Escalation is not failure and costs nothing; a cheap driver that reaches such a step reports it and stops.
-
-<!-- The owner's choice (2026-09-05): Codex gpt-6-astra implements at low
-     effort. Per-task code review is not wanted: run work with --review=none.
-     When a code review is wanted, it is host-native on Fable (the reviewer pin
-     above, a different family from the writer). Since 2026-09-08 the plan
-     review and spec completion review also run host-native on Fable
-     (`.flow/config.json` review.backend = none since the owner asked for no cross-model review); the Codex
-     high-effort review was a major quota sink. The live QA pass
-     (pipeline.qa) is off; run /flow-next:qa by hand when a spec is ready. -->
-<!-- flow-next:model-routing:end -->
+Reasoning and system design escalate to the host (owner, 2026-09-19). A dispatched agent executes; it does not reason about the system. Such an agent carries the mechanical work of a species run: the seed and manifest draft, the literature stages, the readings the pipeline's question sets judge, the packet and the report. Anything that takes reasoning or system design stops and goes up to the host session conducting the run: the capability assessment that decides what the generator cannot express, gap analysis and the candidate fixes written for a gap, the shape of any spec a gap mints, and any judgment about how a part of the system should work. The host has the context and the authority; a dispatched agent has neither, and its guess is indistinguishable from an answer once it is written into an artifact. The reason for the line sitting here: a wrong reading costs one source and the next stage catches it, while a wrong design judgment sends the swarm to build the wrong thing, or parks a species the generator could already draw. Escalation is not failure and costs nothing; a cheap driver that reaches such a step reports it and stops.
 
 ## Token and evidence budget (owner, 2026-09-08)
 

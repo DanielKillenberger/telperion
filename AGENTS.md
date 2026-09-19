@@ -12,39 +12,6 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 - If `flowctl` is not found: your shell lacks the plugin's `scripts/` dir on PATH (only Claude Code injects it). Resolve it the way the skills do - the plugin install's `scripts/flowctl` (Claude/Droid: plugin-root env var; Codex: `${CODEX_HOME:-$HOME/.codex}/scripts/flowctl`; Cursor/Grok: two levels above any flow-next SKILL.md) - or update/reinstall the flow-next plugin. A repo with no `.flow/` yet: run `/flow-next:setup`.
 <!-- END FLOW-NEXT -->
 
-<!-- flow-next:model-routing:start -->
-## Model routing
-
-<!-- Scaffolded by /flow-next:setup as an EXAMPLE to edit. Every routing line
-     below is commented out, so nothing is routed until you uncomment one.
-     These are your preferences to fill in - never detected facts. flow-next
-     does not know which models your account serves and never writes one here. -->
-
-<!-- Grammar: <tier>: <model>   or   <tier>: <model> at <effort>
-     Name the model ids YOUR harness and account actually serve - ask the
-     harness for its list, then invoke one; ids change and vary per account. -->
-
-<!-- reviewer: <model>                  - anything grading work someone else
-     produced. Prefer a different family than the writer: a same-family review
-     is not an independent verdict. Advice, not enforcement. -->
-<!-- implementer: <model> at <effort>   - work handed to another harness (plan
-     here, implement cheaper or faster there). Absent = the session model
-     implements. -->
-<!-- fast scout: <model>                - mechanical inventory scanning, where
-     the cheapest tier is the correct one. -->
-<!-- thinking scout: <model>            - analysis that degrades badly on a
-     fast tier. -->
-
-<!-- Unset is the default and the doctrine: planning, capture, interview,
-     requirement analysis, every verdict, and the worker run on the session
-     model. Effort strings pass through to the host untranslated. -->
-
-<!-- Resolution at each dispatch site: an explicit instruction in the moment,
-     then this block, then the agent definition's own default, then the session
-     model. A model this harness cannot reach falls back to the session model
-     with one note - routing never fails closed, and nothing here is validated. -->
-<!-- flow-next:model-routing:end -->
-
 ## TypeSafe
 
 TypeSafe's Jev model (`typesafe:typesafe-ai` skill) screens source literature for measured values; it never runs in the generator, the renderer, or any path a preset reaches. The key is `$TYPESAFE_API_KEY`, reachable only through `bash -ic`; never read or echo it. Code finds and copies every number, and each is checked against its source before it reaches a preset. Full rule in `docs/typesafe.md` and in `CLAUDE.md` under "TypeSafe".
