@@ -30,11 +30,11 @@ fn branch_diagnostics(
     tree: &telperion_core::tree::Tree,
     params: twigs::TwigParams,
 ) -> Result<(Vec<usize>, usize, usize, usize)> {
-    let mut counts = vec![0usize; params.resolved()?.generations as usize + 1];
+    let t = params.resolved()?;
+    let mut counts = vec![0usize; t.generations as usize + 1];
     let mut handoffs = 0;
     let mut capped_handoffs = 0;
     let mut twig_count = 0;
-    let t = params.resolved()?;
     for (i, n) in tree.nodes.iter().enumerate().skip(tree.crossover) {
         twig_count += usize::from(n.kind == NodeKind::Twig && n.branch as usize == i);
         if n.parent.is_some_and(|p| (p as usize) < tree.crossover) {

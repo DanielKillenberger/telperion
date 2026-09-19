@@ -71,6 +71,14 @@ pub const MAX_TAPER: Range = Range(0., 64.);
 pub const TRUNK_RADIUS: Range = Range(4e-6, f64::MAX);
 pub const FORK_EXPONENT: Range = Range(1., 8.);
 pub const LENGTH_TAPER: Range = Range(0., f64::MAX);
+pub const SURFACE_RADIAL_SEGMENTS: Range = Range(3., 64.);
+pub const SURFACE_LOBES: Range = Range(0., 16.);
+pub const SURFACE_LOBE_DEPTH: Range = Range(0., 0.9);
+pub const SURFACE_TWIST_RATE: Range = Range(-64., 64.);
+pub const SURFACE_FLARE_RADIUS: Range = Range(1., 8.);
+pub const SURFACE_FLARE_FALLOFF: Range = Range(1e-4, 1.);
+pub const SURFACE_FORK_SOCKET: Range = Range(0., 0.9);
+pub const SURFACE_FORK_SWELL: Range = Range(1., 4.);
 
 pub fn max_nodes(value: usize) -> Result<()> {
     if value > MAX_NODES {

@@ -1,5 +1,9 @@
 # Friction
 
+## 2026-09-20 — Review fix: overly broad debug test selection
+
+The mechanical cleanup helper selected the whole Wasm library in the default debug profile instead of only its changed diagnostics test. The diagnostics passed, but the unrelated oak/spruce mesh fixture ran for over a minute before the helper interrupted it. That broad observation is inconclusive, not green. The exact diagnostics filter or the project's optimized `ci` profile would have avoided this minute; the final optimized broad gate covers both tests. No further debug retries were made.
+
 ## 2026-09-20 — Worker: old-contract fixtures stopped successive full runs
 
 The first full Rust run stopped at a serialized parameter pin; the next stopped at a drop fixture that authored eight laterals and depended on silently resolving to seven. Switching the next run to `--no-fail-fast` exposed the remaining old-clamp/error/schema expectations together. This added roughly five minutes of gate work before the final clean run. Using no-fail-fast for the initial broad contract migration gate, plus a bounded search for tests explicitly asserting clamped values, would avoid sequential discovery. Each failing expectation was updated to the declared new contract or its prior effective valid input; no geometry hash was repinned.

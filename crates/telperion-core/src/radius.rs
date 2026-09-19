@@ -32,12 +32,6 @@ impl RadiusParams {
         crate::ranges::TRUNK_RADIUS.check(self.trunk_radius, "trunkRadius")?;
         crate::ranges::FORK_EXPONENT.check(self.fork_exponent, "forkExponent")?;
         crate::ranges::LENGTH_TAPER.check(self.length_taper, "lengthTaper")?;
-        if ![self.trunk_radius, self.fork_exponent, self.length_taper]
-            .iter()
-            .all(|v| v.is_finite())
-        {
-            return Err(Error::InvalidInput("radius parameters"));
-        }
         Ok(self)
     }
 }

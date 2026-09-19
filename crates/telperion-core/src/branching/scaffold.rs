@@ -233,7 +233,7 @@ impl Builder<'_> {
         } else {
             rule
         };
-        let wanted = self.bias.apply(position, wanted, self.config.step_distance);
+        let wanted = self.bias.apply(position, wanted);
         colonization::limit_turn(
             Some(from),
             wanted,

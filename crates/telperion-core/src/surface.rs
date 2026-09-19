@@ -59,20 +59,21 @@ impl Default for SurfaceParams {
 }
 impl SurfaceParams {
     pub fn validate(&self) -> Result<()> {
-        crate::ranges::UNIT.check(self.socket_containment, "socketContainment")?;
-        if !(3..=64).contains(&self.radial_segments)
-            || self.lobes > 16
-            || ![
-                (self.lobe_depth, 0.0, 0.9),
-                (self.twist_rate, -64.0, 64.0),
-                (self.flare_radius, 1.0, 8.0),
-                (self.flare_falloff, 1e-4, 1.0),
-                (self.flare_depth, 0.0, 1.0),
-                (self.fork_socket, 0.0, 0.9),
-                (self.fork_swell, 1.0, 4.0),
-            ]
-            .iter()
-            .all(|&(v, lo, hi)| v.is_finite() && v >= lo && v <= hi)
+        use crate::ranges;
+        ranges::UNIT.check(self.socket_containment, "socketContainment")?;
+        if ![
+            (self.radial_segments as f64, ranges::SURFACE_RADIAL_SEGMENTS),
+            (self.lobes as f64, ranges::SURFACE_LOBES),
+            (self.lobe_depth, ranges::SURFACE_LOBE_DEPTH),
+            (self.twist_rate, ranges::SURFACE_TWIST_RATE),
+            (self.flare_radius, ranges::SURFACE_FLARE_RADIUS),
+            (self.flare_falloff, ranges::SURFACE_FLARE_FALLOFF),
+            (self.flare_depth, ranges::UNIT),
+            (self.fork_socket, ranges::SURFACE_FORK_SOCKET),
+            (self.fork_swell, ranges::SURFACE_FORK_SWELL),
+        ]
+        .iter()
+        .all(|&(v, range)| v.is_finite() && v >= range.0 && v <= range.1)
         {
             return Err(Error::InvalidInput("surface parameters"));
         }

@@ -11,7 +11,6 @@
 
 use serde::{Deserialize, Serialize};
 
-/// Geometric growth work available over a specimen's life, from `telperion-core`.
 const M_PER_FT: f64 = 0.3048;
 const M_PER_IN: f64 = 0.0254;
 const CM_PER_IN: f64 = 2.54;
@@ -328,6 +327,8 @@ pub fn mature_age(rate: f64, shape: f64) -> u64 {
 
 /// The preset's authored envelope height and the generator's measured mature
 /// trunk DBH are the two asymptotes; the tolerance comes from the manifest.
+/// Fits the default work budget only: the manifest's curve inputs carry no
+/// preset family or workBudget, and the result authors only rate and shape.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FitInput {
     pub envelope_height_m: f64,

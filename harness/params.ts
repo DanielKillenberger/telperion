@@ -362,12 +362,12 @@ export const SLIDERS: readonly SliderSpec[] = [
      deeper twig layer it did not ask for; this row states the depth
      instead. Six is the neutral - the deepest shipped tree branches four. */
   { key: "twigGenerations", label: "twig generations", min: 1, max: 6, step: 1, unit: "" },
-  { key: "maxInternodes", label: "maximum internodes", min: 1, max: 4294967295, step: 1, unit: "" },
+  { key: "maxInternodes", label: "maximum internodes", min: 1, max: 512, step: 1, unit: "" },
   { key: "maxDroop", label: "maximum droop", min: 0, max: 10, step: 0.01, unit: "" },
   { key: "curtainStepClearance", label: "curtain step clearance", min: 0, max: 1, step: 0.01, unit: "" },
-  { key: "workBudget", label: "growth work budget", min: 1, max: 4294967295, step: 1, unit: "" },
-  { key: "reachProbeSteps", label: "reach probe steps", min: 1, max: 4294967295, step: 1, unit: "" },
-  { key: "samplingAttemptsPerAttractor", label: "sampling attempts per attractor", min: 1, max: 4294967295, step: 1, unit: "" },
+  { key: "workBudget", label: "growth work budget", min: 1, max: 2_000_000, step: 1, unit: "" },
+  { key: "reachProbeSteps", label: "reach probe steps", min: 1, max: 512, step: 1, unit: "" },
+  { key: "samplingAttemptsPerAttractor", label: "sampling attempts per attractor", min: 1, max: 512, step: 1, unit: "" },
   { key: "limbRadius", label: "limbRadius", min: 0, max: 1, step: 0.005, unit: "r" },
   // Measured on Telperion: at 0 the 79 cm colonization tips end at the
   // shell and 21 m branches reach out past it, the cactus the owner saw;
@@ -457,8 +457,8 @@ export const SLIDERS: readonly SliderSpec[] = [
      Divergence steps in thousandths to retain the authored phyllotaxis;
      the other leaf controls keep the placement stage's existing rails. */
   { group: "canopy", key: "divergence", label: "divergence", min: 0, max: 180, step: 0.001, unit: "deg" },
-  { key: "clumpSystemOrder", label: "clump system order", min: 0, max: 4294967295, step: 1, unit: "" },
-  { key: "clumpNeighbours", label: "clump neighbours", min: 1, max: 4294967295, step: 1, unit: "" },
+  { key: "clumpSystemOrder", label: "clump system order", min: 0, max: 32, step: 1, unit: "" },
+  { key: "clumpNeighbours", label: "clump neighbours", min: 1, max: 512, step: 1, unit: "" },
   { key: "outward", label: "leaf outward", min: -1, max: 1, step: 0.01, unit: "" },
   { key: "upward", label: "leaf upward", min: -1, max: 1, step: 0.01, unit: "" },
   { key: "scatter", label: "leaf scatter", min: 0, max: 90, step: 1, unit: "deg" },

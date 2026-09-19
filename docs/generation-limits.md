@@ -26,6 +26,8 @@ New fields default individually when reading legacy JSON. Binary specimen snapsh
 
 Wasm generation-count diagnostics now contain `twigs.generations + 1` entries instead of thirteen slots from the removed depth constant. No reachable order is discarded; consumers should use the returned array length.
 
+The harness sliders use practical working windows, not the full core integer domains: internodes/reach/sampling/neighbours1–512, clump order0–32 and work budget1–2,000,000. Hydrating a family outside these windows preserves its authored values unchanged. The persistent growth-read foliage cache stores a dense birth map of station maps, avoiding both the old512-station key collision and the sparse wide-key index cost.
+
 ## Audit boundary
 
 `generation-limits-inventory.json` classifies the surviving limit-shaped source sites. The regression guard scans literal/named clamps, limit constants, fixed iteration budgets and literal early termination. Its mutation fixtures demonstrate detection of new literal clamps, constant ceilings and fixed-loop truncation. This focused lexical check is not proof against every possible semantic cap; a new algorithm still needs review.

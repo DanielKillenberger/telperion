@@ -114,8 +114,8 @@ impl GrowthBias {
             && (!self.params.supernatural.enabled
                 || self.params.supernatural.writhe_amplitude == 0.0)
     }
-    /// Inputs are finite; direction is unit length and step is positive (validated by growth).
-    pub fn apply(&self, position: Vec3, direction: Vec3, _step: f64) -> Vec3 {
+    /// Inputs are finite; direction is unit length (validated by growth).
+    pub fn apply(&self, position: Vec3, direction: Vec3) -> Vec3 {
         let p = self.params;
         let effects = if p.supernatural.enabled {
             p.supernatural

@@ -191,9 +191,8 @@ pub fn colonize(
     let mut attraction = Attraction::new(points.len());
     attraction.settle(&tree, points, &grid, reach * reach, kill_sq);
     let max_turn = config.max_turn_per_step.to_radians();
-    let bend = |position, direction| {
-        bias.map_or(direction, |field| field.apply(position, direction, step))
-    };
+    let bend =
+        |position, direction| bias.map_or(direction, |field| field.apply(position, direction));
     let ceiling = points.iter().map(|p| p.y).fold(f64::NEG_INFINITY, f64::max);
     while tree.nodes.len() < config.max_nodes {
         let tip = tree.nodes.len() - 1;

@@ -91,13 +91,11 @@ fn bias_and_sampling_limits_are_explicit() {
     )
     .is_err());
     let none = GrowthBias::new(e, 0, BiasParams::NONE).unwrap();
-    assert_eq!(none.apply(Vec3::ZERO, Vec3::Y, 0.5), Vec3::Y);
+    assert_eq!(none.apply(Vec3::ZERO, Vec3::Y), Vec3::Y);
     let bias = GrowthBias::new(e, 0, BiasParams::default()).unwrap();
-    for step in [0.01, 0.5, 10.0] {
-        let direction = bias.apply(Vec3::ZERO, Vec3::Y, step);
-        assert!(direction.is_finite() && direction.y > 0.0);
-        assert!((direction.length() - 1.0).abs() < 1e-12);
-    }
+    let direction = bias.apply(Vec3::ZERO, Vec3::Y);
+    assert!(direction.is_finite() && direction.y > 0.0);
+    assert!((direction.length() - 1.0).abs() < 1e-12);
     assert!((Vec3::X.rotate(Vec3::Y, std::f64::consts::FRAC_PI_2) + Vec3::Z).length() < 1e-12);
     assert_eq!(Vec3::X.distance_squared(Vec3::Y), 2.0);
 }
@@ -204,12 +202,12 @@ fn bias_preserves_scale_sampling_and_upward_progress() {
     });
     for t in [0.1, 0.35, 0.6, 0.9] {
         let p = Vec3::new(0.05 * e.height, t * e.height, 0.0);
-        assert!((short.apply(p, Vec3::Y, step) - sampled.apply(p, Vec3::Y, step)).length() > 1e-6);
-        assert!((fast.apply(p, Vec3::Y, step) - limited.apply(p, Vec3::Y, step)).length() > 1e-6);
+        assert!((short.apply(p, Vec3::Y) - sampled.apply(p, Vec3::Y)).length() > 1e-6);
+        assert!((fast.apply(p, Vec3::Y) - limited.apply(p, Vec3::Y)).length() > 1e-6);
         for height in [4.0, 24.0, 60.0, 150.0, 400.0] {
             let scaled = GrowthBias::new(Envelope { height, ..e }, 1, defaults).unwrap();
-            let direction = scaled.apply(p * (height / e.height), Vec3::Y, height * 0.022);
-            assert!((direction - field(defaults).apply(p, Vec3::Y, step)).length() < 1e-9);
+            let direction = scaled.apply(p * (height / e.height), Vec3::Y);
+            assert!((direction - field(defaults).apply(p, Vec3::Y)).length() < 1e-9);
         }
         for seed in 1..=5 {
             let extreme = GrowthBias::new(
@@ -228,7 +226,7 @@ fn bias_preserves_scale_sampling_and_upward_progress() {
                 },
             )
             .unwrap();
-            let direction = extreme.apply(p, Vec3::Y, step);
+            let direction = extreme.apply(p, Vec3::Y);
             assert!(direction.y > 0.0);
             assert!((direction.length() - 1.0).abs() < 1e-12);
         }
@@ -248,8 +246,8 @@ fn bias_preserves_scale_sampling_and_upward_progress() {
         },
         ..defaults
     });
-    assert!((longer.apply(p, Vec3::Y, step) - sampled.apply(p, Vec3::Y, step)).length() > 1e-6);
-    assert!((slower.apply(p, Vec3::Y, step) - limited.apply(p, Vec3::Y, step)).length() > 1e-6);
+    assert!((longer.apply(p, Vec3::Y) - sampled.apply(p, Vec3::Y)).length() > 1e-6);
+    assert!((slower.apply(p, Vec3::Y) - limited.apply(p, Vec3::Y)).length() > 1e-6);
 }
 
 #[test]
