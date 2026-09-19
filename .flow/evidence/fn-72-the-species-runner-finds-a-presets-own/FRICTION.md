@@ -1,5 +1,9 @@
 # Friction
 
+## 2026-09-19 — Host full gate lacked the generated Wasm artifact
+
+The host's first full Vitest run in the fresh worktree passed 96 tests and failed 11 because src/browser/telperion.wasm was absent (ENOENT). The ignored artifact had not been built. The host started npm run wasm:build before rerunning; compile cost reported at this point was 21.9 seconds. This is gate preflight friction, not evidence of a generator regression. Running the repository's prerequisite build before a direct Vitest command would avoid the failed gate pass.
+
 ## 2026-09-19 — PR skill preparation outweighed this change (host report)
 
 The host reached make-pr preparation: workflow.md alone reports 30,665 tokens, before mandatory cognitive-aid/create-finalize references. Its first read truncated after about 14k tool-output tokens. For this three-criterion path-resolution fix, the host paused that PR stage under the owner inefficiency rule. An owner-approved lightweight PR path for tiny specs would remove the cost. No friction spec was created.
