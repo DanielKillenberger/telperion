@@ -17,6 +17,7 @@ pub struct ScreenRow {
     pub anchor_probability: f64,
     pub anchor_usable: bool,
     pub ledger: String,
+    pub identity: String,
     pub kind_confidence: f64,
 }
 
@@ -93,6 +94,7 @@ pub fn screen(
                 anchor_usable: entry.noul("anchor_usable").unwrap_or(0.0)
                     >= thresholds().anchor_usable,
                 ledger: entry.reference(),
+                identity: entry.identity.clone(),
                 kind_confidence: entry.confidence("kind").unwrap_or(0.0),
             });
         }

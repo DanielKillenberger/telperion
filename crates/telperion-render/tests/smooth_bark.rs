@@ -3,6 +3,8 @@
 //! at zero draw the frame they started from byte for byte. The two tables
 //! that state them hold the resolution and redraw contracts every bark does.
 mod common;
+#[path = "common/resolution.rs"]
+mod resolution;
 use telperion_core::{
     material::MaterialParams,
     mesh::{self, Detail, TreeMesh},
@@ -120,40 +122,6 @@ fn each_smooth_layer_changes_the_close_up_and_moves_no_wood() {
     );
 }
 
-/// Pixels the clay room paints as wood, eroded clear of every silhouette: the
-/// clay is warm and the room behind it is cool, so red over blue is wood.
-fn wood_mask(clay: &Still) -> Vec<(usize, usize)> {
-    let (w, h) = (clay.width as usize, clay.height as usize);
-    let warm = |x: usize, y: usize| {
-        let at = (y * w + x) * 4;
-        clay.rgba[at] > clay.rgba[at + 2]
-    };
-    (4..h - 4)
-        .flat_map(|y| (4..w - 4).map(move |x| (x, y)))
-        .filter(|&(x, y)| (y - 4..=y + 4).all(|sy| (x - 4..=x + 4).all(|sx| warm(sx, sy))))
-        .collect()
-}
-
-/// The full-size still against the half-size one, averaged by an exact 2x2
-/// box over the mask the half-size clay gives: the contract bark_resolution
-/// states, at its bounds of three code values mean and twelve at p95.
-fn agreement(high: &Still, low: &Still, mask: &[(usize, usize)]) -> (f64, f64) {
-    let (hw, lw) = (high.width as usize, low.width as usize);
-    let mut errors = Vec::new();
-    for &(x, y) in mask {
-        for c in 0..3 {
-            let sum: u32 = (0..2)
-                .flat_map(|dy| (0..2).map(move |dx| (dx, dy)))
-                .map(|(dx, dy)| u32::from(high.rgba[((y * 2 + dy) * hw + x * 2 + dx) * 4 + c]))
-                .sum();
-            errors.push((f64::from(sum) / 4.0 - f64::from(low.rgba[(y * lw + x) * 4 + c])).abs());
-        }
-    }
-    let mean = errors.iter().sum::<f64>() / errors.len() as f64;
-    errors.sort_by(f64::total_cmp);
-    (mean, errors[errors.len() * 95 / 100])
-}
-
 #[test]
 fn the_smooth_barks_hold_the_resolution_and_redraw_contracts() {
     let Some(gpu) = common::gpu() else { return };
@@ -166,7 +134,7 @@ fn the_smooth_barks_hold_the_resolution_and_redraw_contracts() {
         let (_, camera) = staged(&mut renderer, preset, shot, (1600, 1000));
         renderer.set_view(View::Clay);
         let clay = render(&mut renderer, &camera, 800, 500).unwrap();
-        let mask = wood_mask(&clay);
+        let mask = resolution::wood_mask(&clay);
         assert!(
             mask.len() > 20_000,
             "{preset:?}: too little wood in the close-up: {}",
@@ -180,17 +148,18 @@ fn the_smooth_barks_hold_the_resolution_and_redraw_contracts() {
             low.rgba, again.rgba,
             "{preset:?}: the identical close-up changed"
         );
-        let (mean, p95) = agreement(&high, &low, &mask);
+        let (mean, p95) = resolution::masked_agreement(&high, &low, &mask);
         eprintln!(
             "{preset:?} close-up: {} pixels, mean {mean:.4}/255, p95 {p95:.2}/255",
             mask.len()
         );
-        measured.push((mean, p95));
+        measured.push((format!("{preset:?} close-up"), mean, p95, 3.0));
     }
+    resolution::record("smooth_bark", &measured);
     assert!(
         measured
             .iter()
-            .all(|&(mean, p95)| mean <= 3.0 && p95 <= 12.0),
+            .all(|(_, mean, p95, bound)| mean <= bound && *p95 <= 12.0),
         "smooth bark aliases across resolution: {measured:?}"
     );
 }

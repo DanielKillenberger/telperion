@@ -46,7 +46,8 @@ fn event(file: &mut File, value: &Value) -> Result<(), String> {
 }
 fn specimen(preset: &str, seed: u32, family: &Value) -> Result<Value, String> {
     let preset = Preset::from_id(preset).ok_or_else(|| format!("unknown preset: {preset}"))?;
-    let mut f = params::overlay(&preset.parameters(), family).map_err(|e| format!("family: {e:?}"))?;
+    let mut f =
+        params::overlay(&preset.parameters(), family).map_err(|e| format!("family: {e:?}"))?;
     f.skeleton.seed = seed;
     let total = Instant::now();
     let start = Instant::now();
@@ -76,7 +77,8 @@ fn specimen(preset: &str, seed: u32, family: &Value) -> Result<Value, String> {
         &f.surface,
     )
     .map_err(|e| format!("placement: {e:?}"))?;
-    let kept = foliage::cull(&placed, &element, f.skeleton.envelope, f.shell_depth)
+    let pre_cull_instances = placed.matrices.len();
+    let kept = foliage::cull(placed, &element, f.skeleton.envelope, f.shell_depth)
         .map_err(|e| format!("culling: {e:?}"))?;
     let foliage_ms = start.elapsed().as_secs_f64() * 1000.;
     let start = Instant::now();
@@ -84,7 +86,7 @@ fn specimen(preset: &str, seed: u32, family: &Value) -> Result<Value, String> {
         &report.tree,
         &wood.positions,
         &element,
-        placed.matrices.len(),
+        pre_cull_instances,
         &kept,
     )?;
     Ok(
@@ -111,12 +113,19 @@ fn run() -> Result<bool, String> {
             "--output" => output = Some(value),
             "--profiles" => profiles = value.into(),
             "--family" => {
-                family = serde_json::from_str(&fs::read_to_string(&value).map_err(|e| format!("family: {e}"))?)
-                    .map_err(|e| format!("family: {e}"))?
+                family = serde_json::from_str(
+                    &fs::read_to_string(&value).map_err(|e| format!("family: {e}"))?,
+                )
+                .map_err(|e| format!("family: {e}"))?
             }
             "--print-family" => {
-                let preset = Preset::from_id(&value).ok_or_else(|| format!("unknown preset: {value}"))?;
-                println!("{}", serde_json::to_string_pretty(&params::metadata(&preset.parameters())).map_err(|e| e.to_string())?);
+                let preset =
+                    Preset::from_id(&value).ok_or_else(|| format!("unknown preset: {value}"))?;
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&params::metadata(&preset.parameters()))
+                        .map_err(|e| e.to_string())?
+                );
                 return Ok(true);
             }
             _ => return Err(format!("unknown argument: {arg}")),

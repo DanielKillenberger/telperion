@@ -25,6 +25,28 @@ Before dispatch, record a single integration owner for shared paths in each Flow
 
 Generation and captures use windows coordinated with fn13/fn18: owner, UTC interval, host, resource budget and lifecycle conditions. An unassigned/overlapping exclusive window blocks qualifying measurements. Contended costs may be labeled observations only. Never stop another session, shrink mature parameters, truncate foliage or reduce fidelity to obtain a pass. Cheap schema/support checks need no mature generation window.
 
+## The pipeline
+
+`docs/species-pipeline.md` is the runbook: a fixed sequence of
+`species-pipeline` commands takes the admitted sources to the packet, the
+provenance sidecar, the fitted curves, the decision list, the species'
+documentation - a markdown copy of every admitted source and the article
+distilled from them, written by the `document` stage - and the report, with
+Jev judging every reading step through `crates/telperion-jev` and code owning
+every number. The stage handoffs above name what each artifact must carry; the
+pipeline produces them, and a person admits the manifest and resolves the
+decisions it files. A species spec runs the pipeline once and restates none of
+the method.
+
+When a stage halts on a capability the generator cannot express, the runbook's
+**The gap loop** section takes over: the agent writes candidate fixes, a
+threshold table routes the gap to the loop, to a stronger reasoning model or to
+the owner, and the chosen fix becomes its own spec the species spec depends on.
+The run resumes from the halted stage once that spec lands. `add-species` is
+the skill that walks the whole path, from "add species A" to the checklist the
+owner ticks, with the run's autonomy, quality and efficiency numbers written
+beside its report.
+
 ## One command per species
 
 A species is one spec rendered from `templates/species-spec.md`:

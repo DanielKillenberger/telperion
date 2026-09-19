@@ -1,0 +1,53 @@
+name: A nextest partition
+description: >-
+  Installs the pinned toolchain and cargo-nextest, restores the build cache,
+  and runs one nextest partition of the named packages under the ci profile.
+
+inputs:
+  packages:
+    description: The packages to test, space separated.
+    required: true
+  partition:
+    description: A nextest partition such as count:1/4; empty runs the whole.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    # rustup reads the channel, profile, components and targets from
+    # rust-toolchain.toml; the workflow names none of them.
+    - name: Install the pinned Rust toolchain
+      shell: bash
+      run: rustup toolchain install
+
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: true
+
+    # nextest is installed from its prebuilt binary at a pin, never compiled.
+    - name: Install cargo-nextest at its pin
+      shell: bash
+      run: curl -LsSf https://get.nexte.st/0.9.145/linux | tar zxf - -C "$HOME/.cargo/bin"
+
+    # The ci profile is release without the fat link (Cargo.toml); every
+    # package script and local command stays on release.
+    - name: Run the tests
+      shell: bash
+      env:
+        PACKAGES: ${{ inputs.packages }}
+        PARTITION: ${{ inputs.partition }}
+      run: |
+        packages=()
+        for package in $PACKAGES; do
+          packages+=(-p "$package")
+        done
+        cargo nextest run --cargo-profile ci "${packages[@]}" --no-fail-fast \
+          ${PARTITION:+--partition "$PARTITION"}
+
+    # The fixed-specimen cache the core tests write is a per-run scratch and
+    # stays out of the build cache saved after this step.
+    - name: Leave the specimen cache out of the build cache
+      if: always()
+      shell: bash
+      run: rm -rf target/tmp/specimens

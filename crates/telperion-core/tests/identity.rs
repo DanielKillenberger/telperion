@@ -181,11 +181,15 @@
 //! skeleton, placement, counts and bounds move; the element pin does not,
 //! and every other table is byte-identical.
 //! No device is needed; this is the core's own arithmetic.
+mod specimens;
 use telperion_core::{
     branching,
     mesh::{self, Detail},
     presets::Preset,
 };
+
+#[path = "catalogue/pins.rs"]
+mod catalogue;
 
 /// FNV-1a over the bytes, the pattern the branching audit already pins with.
 fn fnv(bytes: impl IntoIterator<Item = u8>) -> u64 {
@@ -287,7 +291,7 @@ fn shipped_species_meshes_are_the_tree_recorded_before_the_levels() {
             "{id}: skeleton moved"
         );
 
-        let m = mesh::build(&family, Detail::Full).unwrap_or_else(|e| panic!("{id}: {e}"));
+        let m = specimens::mesh(&family);
         assert_eq!(
             (m.wood_vertices(), m.wood_triangles(), m.foliage_instances()),
             (pin.wood_vertices, pin.wood_triangles, pin.instances),
@@ -365,6 +369,70 @@ fn print_pins() {
             m.foliage_instances(),
             [m.bounds.min.x, m.bounds.min.y, m.bounds.min.z],
             [m.bounds.max.x, m.bounds.max.y, m.bounds.max.z]
+        );
+    }
+}
+
+/// The catalogue is the species record, so its pins file carries the same
+/// numbers this file pins. A disagreement names the species and the pin.
+#[test]
+fn every_pin_matches_its_catalogue_record() {
+    for pin in &PINS {
+        let record = catalogue::pins(pin.id);
+        let recorded = &record["pins"];
+        assert_eq!(
+            record["seed"].as_u64(),
+            Some(SEED as u64),
+            "{}: pins.json seed",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::whole(recorded, "wood_vertices", pin.id),
+            pin.wood_vertices,
+            "{}: wood_vertices",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::whole(recorded, "wood_triangles", pin.id),
+            pin.wood_triangles,
+            "{}: wood_triangles",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::whole(recorded, "instances", pin.id),
+            pin.instances,
+            "{}: instances",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::triple(recorded, "min", pin.id),
+            pin.min,
+            "{}: min",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::triple(recorded, "max", pin.id),
+            pin.max,
+            "{}: max",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::hash(recorded, "skeleton", pin.id),
+            pin.skeleton,
+            "{}: skeleton",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::hash(recorded, "placement", pin.id),
+            pin.placement,
+            "{}: placement",
+            pin.id
+        );
+        assert_eq!(
+            catalogue::hash(recorded, "element", pin.id),
+            pin.element,
+            "{}: element",
+            pin.id
         );
     }
 }

@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-79-the-spruces-distance-fixture-and-the",
+  "created_at": "2026-09-18T20:18:27.466265Z",
+  "depends_on_epics": [],
+  "id": "fn-79-the-spruces-distance-fixture-and-the",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-79-the-spruces-distance-fixture-and-the.md",
+  "status": "open",
+  "title": "The spruce's distance fixture and the lichen's own integral",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-18T20:18:27.471954Z"
+}

@@ -86,6 +86,8 @@ struct Uniforms {
     lichen_detail: [f32; 4],      // cell size in metres, coverage, reserved, reserved
     lenticel: [f32; 4],           // rows per metre, longest dash in metres, strength, tint
     peel: [f32; 4],               // inner bark RGB, curl
+    reflectance: [f32; 4], // bark and cuticle reflectance at normal incidence, reserved, reserved
+    grain: [f32; 4], // bark grain cell size in metres and strength, blade grain cells per blade and strength
 }
 
 /// The room and the light every pipeline draws under. Owns the one uniform

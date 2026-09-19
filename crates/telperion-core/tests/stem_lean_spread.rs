@@ -3,8 +3,9 @@
 //! the stems of a grown clump leaning in their order, and the walk from an
 //! even lean to a spread one.
 //! No device is needed; this is the core's own arithmetic.
+mod specimens;
 use telperion_core::{
-    blend, branching, mesh, presets::Family, presets::Preset, tree::NodeKind, tree::Tree, Error,
+    blend, branching, presets::Family, presets::Preset, tree::NodeKind, tree::Tree, Error,
 };
 
 /// Every shipped table, so neutrality is asserted on all of them at once.
@@ -51,9 +52,7 @@ fn clump(stems: u32, spread: f64) -> Family {
 }
 
 fn grow(family: &Family) -> Tree {
-    branching::generate(&family.skeleton, family.radii)
-        .expect("the row grows a tree")
-        .tree
+    specimens::tree(family)
 }
 
 /// Degrees from vertical each stem's first edge leaves the root at, in the
@@ -75,7 +74,7 @@ fn leans(tree: &Tree) -> Vec<f64> {
 fn at_one_stem_the_spread_reaches_no_table() {
     for preset in PRESETS {
         let bytes = |f: &Family| {
-            let m = mesh::build(f, mesh::Detail::Full).expect("the table builds a tree");
+            let m = specimens::mesh(f);
             (
                 fnv(m.wood.positions.iter().flat_map(|v| v.to_le_bytes())),
                 fnv(m

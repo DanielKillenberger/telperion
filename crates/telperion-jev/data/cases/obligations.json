@@ -1,0 +1,186 @@
+{
+  "inspected_image": [
+    {
+      "id": "fn19-oak-whole",
+      "observation": "Broad uneven crown, internal windows and substantial low limbs.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "fn19-oak-bare",
+      "observation": "Crooked ascending scaffolds subdivide into fine axes; large fork continuity is visible.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "fn19-oak-leaf",
+      "observation": "Rounded lobes, narrowing petiole and visible twig attachment.",
+      "expect": true,
+      "holdout": true,
+      "negative": false
+    },
+    {
+      "id": "fn19-spruce-whole",
+      "observation": "Persistent leader, conical tiers and variable openness; left specimen shows hanging secondary systems.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "fn19-spruce-branch",
+      "observation": "Upturned primary tip and hanging secondary branchlets retain visible surrounding connectivity.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "fn19-spruce-needle",
+      "observation": "Individual needles around twig and peg attachment visible.",
+      "expect": true,
+      "holdout": true,
+      "negative": false
+    },
+    {
+      "id": "fn34-beech-base",
+      "observation": "The right half of the same diptych as B-BARE: smooth grey bark with lichen spots, filling the frame. Read from the raster for the shot block (2026-09-14).",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "fn34-beech-whole",
+      "observation": "Caption: plant habit. Literature target is a dense oval-to-rounded open-grown crown. Raster not opened in this session (four-images reading rule); qualitative matching only.",
+      "expect": false,
+      "holdout": false,
+      "negative": true
+    },
+    {
+      "id": "fn34-birch-whole",
+      "observation": "Caption: summer plant habit. Literature target is a light pyramidal-to-rounded crown with pendulous fine twigs.",
+      "expect": false,
+      "holdout": false,
+      "negative": true
+    },
+    {
+      "id": "fn34-ash-leaf",
+      "observation": "Caption: leaf. Literature: pinnate, 7-13 leaflets. This is the organ fn-33 must express.",
+      "expect": false,
+      "holdout": false,
+      "negative": true
+    },
+    {
+      "id": "fn19-speedtree-seedling",
+      "observation": "Official search-indexed listing identifies Picea abies seedling with SPM export requirements. Direct browser retrieval unavailable. Wrong age for mature cohort; no purchase or mesh access.",
+      "expect": false,
+      "holdout": true,
+      "negative": true
+    },
+    {
+      "id": "fn34-ash-bark",
+      "observation": "Caption: trunk bark. Literature: grey, furrowed when mature.",
+      "expect": false,
+      "holdout": true,
+      "negative": true
+    }
+  ],
+  "measurement_not_invention": [
+    {
+      "id": "v1-open-grown-spruce-300",
+      "value_statement": "five open-grown spruce at age 300 averaging 23 m and 0.81 m DBH",
+      "source_excerpt": "V1 also records five open-grown spruce at age 300 averaging 23 m and 0.81 m DBH, which shows why indefinite linear extrapolation cannot serve as a maturity target.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "s1-forest-grown-24m",
+      "value_statement": "forest-grown trees reach 24 m at 95 to 135 years",
+      "source_excerpt": "S1's forest-grown 24 m at 95 to 135 years motivates that class.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "iastate-75ft-50y",
+      "value_statement": "Norway spruce may grow to 75 feet in 50 years",
+      "source_excerpt": "Growth Rate: Moderate to fast, especially when young. (may grow to 75 feet in 50 years).",
+      "expect": true,
+      "holdout": true,
+      "negative": false
+    },
+    {
+      "id": "owic-mature-50-90ft",
+      "value_statement": "Mature Oregon white oaks are 50 to 90 ft tall and 24 to 40 in. in DBH",
+      "source_excerpt": "Size, Longevity, and Form Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum).",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "baltic-ash-22-30m",
+      "value_statement": "European ash dominant and codominant height is 22 to 30 m at 48 to 120 years",
+      "source_excerpt": "Forest dominant/codominant height about 22-30 m and DBH about 0.22-0.50 m at 48-120 years, by site type.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "v1-lassig-0-91m",
+      "value_statement": "V1's Laessig observation of 0.91 m DBH at age 100",
+      "source_excerpt": "At age 100 the composition gives 0.752 m DBH against V1's Laessig observation of 0.91 m, a 17.4 percent miss.",
+      "expect": true,
+      "holdout": false,
+      "negative": false
+    },
+    {
+      "id": "owic-fence-posts-18y",
+      "value_statement": "untreated fence posts lasted an average of 18 years before failure",
+      "source_excerpt": "In tests conducted by staff of the OSU Forest Products Department, untreated fence posts lasted an average of 18 years before failure.",
+      "expect": true,
+      "holdout": true,
+      "negative": false
+    },
+    {
+      "id": "fn30-oak-anchor-integration",
+      "value_statement": "the oak's 7.2 cm diameter at age 30 with one tenth of the decade change in squared DBH integrated each year",
+      "source_excerpt": "Oak DBH starts at E1 site class I's 7.2 cm at age 30. Thereafter G1's open-grown case sets BA and BAL to zero and integrates one tenth of its decade change in squared DBH each year, at Douglas-fir site index 35 m. The anchor and integration are composition choices, not measurements of a 30-year-old open-grown Garry oak.",
+      "expect": false,
+      "holdout": false,
+      "negative": true
+    },
+    {
+      "id": "fn30-oak-derived-mature-432",
+      "value_statement": "the oak's reference height of 39.48 m at age 432",
+      "source_excerpt": "The script extrapolates the final height segment past age 200 for oak and 120 for spruce, and spruce DBH past 120. The derived-mature rows below expose those extrapolations; they are not published observations at 432 or 158 years.",
+      "expect": false,
+      "holdout": false,
+      "negative": true
+    },
+    {
+      "id": "fn30-spruce-doubled-dbh",
+      "value_statement": "spruce trunk diameter is twice the stand mean diameter of Wiedemann site class I",
+      "source_excerpt": "Spruce DBH doubles that class's stand mean diameter following Sterba 1975 via V1. Height retains the stand-grown proxy; doubling DBH does not establish an open-grown height-age curve.",
+      "expect": false,
+      "holdout": true,
+      "negative": true
+    },
+    {
+      "id": "fn30-gould-rounded-2-8cm",
+      "value_statement": "the paper's rounded 2.8 cm of diameter growth per decade",
+      "source_excerpt": "Gould DBH uses the nearest integer year. Its worked 40 cm case yields 2.82 cm per decade, matching the paper's rounded 2.8 cm.",
+      "expect": false,
+      "holdout": false,
+      "negative": true
+    },
+    {
+      "id": "fn30-oak-linear-from-zero",
+      "value_statement": "the oak's height and diameter below age 30, taken as a straight line from zero to the first anchor",
+      "source_excerpt": "Before age 30 both oak dimensions extend linearly from zero to their first anchor.",
+      "expect": false,
+      "holdout": true,
+      "negative": true
+    }
+  ]
+}

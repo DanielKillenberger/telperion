@@ -1,0 +1,35 @@
+{
+  "branch_name": "fn-81-the-species-article-the-sources",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-18T21:22:47.341303Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-35-the-species-catalogue-as-data"
+  ],
+  "id": "fn-81-the-species-article-the-sources",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-81-the-species-article-the-sources.md",
+  "status": "done",
+  "title": "The species article: the sources distilled, every claim cited",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-18T23:09:50.926373Z"
+}

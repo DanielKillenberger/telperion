@@ -1,0 +1,211 @@
+{
+  "schema": "stills",
+  "schema_version": 1,
+  "species": "norway-spruce",
+  "stills": [
+    {
+      "camera": {
+        "far": 1000.0,
+        "field_of_view": 38.0,
+        "near": 0.01,
+        "position": {
+          "x": 1.2635428870893457,
+          "y": 0.8666073520724593,
+          "z": -1.2635428870893457
+        },
+        "target": {
+          "x": 0.0,
+          "y": 0.65,
+          "z": 0.0
+        }
+      },
+      "capture": 3,
+      "fork": null,
+      "owner_feedback": null,
+      "path": ".flow/evidence/fn29/stills/spruce-trunk.png",
+      "preset": "norway-spruce",
+      "reference": "OWNER-NORWAY-SPRUCE (bark); lower trunk below first fork",
+      "scale": "trunk",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 135.0,
+        "sunBlue": 2.6,
+        "sunElevation": 55.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "session": 3,
+      "sha256": "4d76cc4be48b0dba5a1cdf9135713df90417e731c58c1d7c9e68b68cd9348e5a",
+      "species": "Norway spruce",
+      "view": "Bare",
+      "visual_status": "unassessed"
+    },
+    {
+      "camera": {
+        "far": 1000.0,
+        "field_of_view": 38.0,
+        "near": 0.01,
+        "position": {
+          "x": 1.2547536652568412,
+          "y": 1.9882130497885262,
+          "z": 0.0
+        },
+        "target": {
+          "x": 0.0,
+          "y": 1.8,
+          "z": 0.0
+        }
+      },
+      "capture": 3,
+      "fork": {
+        "height": 1.8,
+        "index": 6,
+        "radius": 0.2091256108761402
+      },
+      "owner_feedback": null,
+      "path": ".flow/evidence/fn29/stills/spruce-branch.png",
+      "preset": "norway-spruce",
+      "reference": "S-BRANCH",
+      "scale": "branch",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 135.0,
+        "sunBlue": 2.6,
+        "sunElevation": 55.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "session": 3,
+      "sha256": "55cf3fe252e02aacd7706a29d5da163d3e87b32dd4d5bd6c8fbc84550f53fbab",
+      "species": "Norway spruce",
+      "view": "Bare",
+      "visual_status": "unassessed"
+    },
+    {
+      "camera": {
+        "far": 800.0330668218027,
+        "field_of_view": 38.0,
+        "near": 0.016533410901357883,
+        "position": {
+          "x": 0.01695085733251238,
+          "y": 0.01715522558662856,
+          "z": 0.028088292435503495
+        },
+        "target": {
+          "x": 0.0,
+          "y": 0.009499999694526196,
+          "z": 0.0007481999637093395
+        }
+      },
+      "capture": 3,
+      "fork": null,
+      "owner_feedback": null,
+      "path": ".flow/evidence/fn29/stills/spruce-needle-frontlit.png",
+      "preset": "norway-spruce",
+      "reference": "S-NEEDLE",
+      "scale": "needle-frontlit",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 0.0,
+        "sunBlue": 2.6,
+        "sunElevation": 10.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "session": 3,
+      "sha256": "481b664de48658046905a5ae39673b701067c1ee6f43c6be4cbdf182c8282923",
+      "species": "Norway spruce",
+      "view": "Leaf",
+      "visual_status": "unassessed"
+    },
+    {
+      "camera": {
+        "far": 800.0330668218027,
+        "field_of_view": 38.0,
+        "near": 0.016533410901357883,
+        "position": {
+          "x": 0.01695085733251238,
+          "y": 0.01715522558662856,
+          "z": 0.028088292435503495
+        },
+        "target": {
+          "x": 0.0,
+          "y": 0.009499999694526196,
+          "z": 0.0007481999637093395
+        }
+      },
+      "capture": 3,
+      "fork": null,
+      "owner_feedback": null,
+      "path": ".flow/evidence/fn29/stills/spruce-needle-backlit.png",
+      "preset": "norway-spruce",
+      "reference": "S-NEEDLE",
+      "scale": "needle-backlit",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 180.0,
+        "sunBlue": 2.6,
+        "sunElevation": 10.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "session": 3,
+      "sha256": "42c4e4c8a60750fce6125d45679f768b22e64f2fcb87126493c6b979a9364eae",
+      "species": "Norway spruce",
+      "view": "Leaf",
+      "visual_status": "unassessed"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-78-build-friction-from-fn-71-a-test-that",
+  "created_at": "2026-09-18T20:09:39.507548Z",
+  "depends_on_epics": [],
+  "id": "fn-78-build-friction-from-fn-71-a-test-that",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-78-build-friction-from-fn-71-a-test-that.md",
+  "status": "open",
+  "title": "Build friction from fn-71: a test that pins a mechanism, and a cost with no term on it",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-18T20:09:39.513465Z"
+}

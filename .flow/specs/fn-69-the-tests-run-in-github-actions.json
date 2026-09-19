@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-69-the-tests-run-in-github-actions",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-18T13:05:18.474448Z",
+  "created_at": "2026-09-18T12:42:44.584898Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-69-the-tests-run-in-github-actions",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "ready": true,
+  "spec_path": ".flow/specs/fn-69-the-tests-run-in-github-actions.md",
+  "status": "done",
+  "title": "The tests run in GitHub Actions",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-18T14:33:38.811181Z"
+}

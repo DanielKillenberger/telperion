@@ -116,7 +116,7 @@ pub(crate) fn generate(v: Value) -> Result<(Output, Value)> {
             &f.surface,
         )?;
         placed_count = placed.matrices.len();
-        out.instances = foliage::cull(&placed, &blade, f.skeleton.envelope, f.shell_depth)?;
+        out.instances = foliage::cull(placed, &blade, f.skeleton.envelope, f.shell_depth)?;
         if wants("foliage") {
             anatomy = blade.anatomy.as_ref().map_or(Value::Null, |a| json!({
                 "unit": match a.unit { foliage::FoliageUnit::Leaf => "leaf", foliage::FoliageUnit::Needle => "needle" },

@@ -120,39 +120,64 @@ fn resolved_scales_survive_until_the_two_pixel_boundary() {
 
     drop(mapped);
     readback.unmap();
-    let mut family = Preset::OregonWhiteOak.parameters();
-    family.skeleton.seed = 7;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
-    renderer.submit(&tree).unwrap();
-    renderer.set_material(family.material);
-    renderer.set_view(View::Bare);
-    let mut agreement = Vec::new();
-    for distance in [2, 4] {
-        let target = Vec3::new(0.0, 2.0, 0.0);
-        let camera = Camera {
-            target,
-            position: target
-                + Vec3::new(1.7307636095778745, 0.2967023330704928, -1.7307636095778745)
-                    * distance as f64,
-            field_of_view: 38.0,
-            near: 0.01,
-            far: 1000.0,
-        };
-        let high = render(&mut renderer, &camera, 1600, 1000).unwrap();
-        let low = render(&mut renderer, &camera, 800, 500).unwrap();
-        // Fixed physical trunk strip about y=2, excluding silhouette and ground.
-        let mask = (200..300)
-            .flat_map(|y| (400 - 100 / distance..400 + 100 / distance).map(move |x| (x, y)))
-            .collect::<Vec<_>>();
-        let (mean, p95) = resolution::masked_agreement(&high, &low, &mask);
-        eprintln!("distance {distance}x resolution: mean {mean:.6}/255, p95 {p95:.2}/255");
-        agreement.push((mean, p95));
+    let mut rows = Vec::new();
+    // The oak alone: the spruce's bare crown throws twig shadows over its
+    // trunk at every height the series can frame, and a strip through them
+    // measures shadow edges, not bark (fn-71: plain wood reads 6.2 at 2x).
+    for (preset, height) in [(Preset::OregonWhiteOak, 2.0)] {
+        let mut family = preset.parameters();
+        family.skeleton.seed = 7;
+        let tree = mesh::build(&family, Detail::Full).unwrap();
+        renderer.submit(&tree).unwrap();
+        renderer.set_material(family.material);
+        for distance in [2, 4] {
+            let target = Vec3::new(0.0, height, 0.0);
+            let camera = Camera {
+                target,
+                position: target
+                    + Vec3::new(1.7307636095778745, 0.2967023330704928, -1.7307636095778745)
+                        * distance as f64,
+                field_of_view: 38.0,
+                near: 0.01,
+                far: 1000.0,
+            };
+            // A fixed physical trunk strip about the target, on the wood the clay
+            // room paints there and clear of silhouette and ground, so a
+            // thinner trunk than the oak's is measured on its own pixels.
+            renderer.set_view(View::Clay);
+            let clay = render(&mut renderer, &camera, 800, 500).unwrap();
+            let strip = 400 - 100 / distance..400 + 100 / distance;
+            let mask = resolution::wood_mask(&clay)
+                .into_iter()
+                .filter(|&(x, y)| (200..300).contains(&y) && strip.contains(&x))
+                .collect::<Vec<_>>();
+            assert!(
+                mask.len() > 1000,
+                "{preset:?} {distance}x: too little trunk: {}",
+                mask.len()
+            );
+            renderer.set_view(View::Bare);
+            let high = render(&mut renderer, &camera, 1600, 1000).unwrap();
+            let low = render(&mut renderer, &camera, 800, 500).unwrap();
+            let (mean, p95) = resolution::masked_agreement(&high, &low, &mask);
+            eprintln!("{preset:?} {distance}x resolution: {} pixels, mean {mean:.6}/255, p95 {p95:.2}/255", mask.len());
+            rows.push((format!("{preset:?} {distance}x"), mean, p95, 3.0));
+        }
     }
-    assert!(
-        agreement
-            .iter()
-            .all(|&(mean, p95)| mean <= 3.0 && p95 <= 12.0),
-        "distance series aliases: {agreement:?}"
-    );
+    resolution::record("bark_distance", &rows);
+    // Three code values mean at every distance again. Between fn-55 and
+    // fn-71 the 4x bound stood at 3.25 (owner, 2026-09-18): the old sheen had
+    // put 15% of the sun on the lit trunk and sat the frame on the tone
+    // curve's shoulder, where the relief's cross-resolution error compressed
+    // into fewer code values; base read 2.904, fn-55's physical highlight
+    // 3.134, no highlight at all 3.167. fn-71 found the error a bias, the far
+    // draw lighter than the near one reduced, and gave the far draw the shade
+    // of the slopes its footprint lost; the oak reads 2.53 at 4x since.
+    for (fixture, mean, p95, bound) in &rows {
+        assert!(
+            mean <= bound && *p95 <= 12.0,
+            "distance series aliases on the {fixture}: mean {mean:.4}, p95 {p95:.2}"
+        );
+    }
 }

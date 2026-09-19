@@ -4,6 +4,7 @@
 //! hem rather than a level one and one seed is one curtain however it grows.
 //! Neutral is fn-44's curtain of one length, byte for byte.
 //! No device is needed; this is the core's own arithmetic.
+mod specimens;
 use std::collections::BTreeMap;
 use std::f64::consts::FRAC_PI_2;
 
@@ -66,9 +67,7 @@ fn preset(id: &str) -> Family {
 }
 
 fn tree(f: &Family) -> Tree {
-    branching::generate(&f.skeleton, f.radii)
-        .expect("the row grows a tree")
-        .tree
+    specimens::tree(f)
 }
 
 /// FNV-1a over node positions and parent links, the pattern the pins use.

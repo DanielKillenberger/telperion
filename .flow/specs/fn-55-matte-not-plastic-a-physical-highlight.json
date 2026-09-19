@@ -16,7 +16,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-55-matte-not-plastic-a-physical-highlight.md",
-  "status": "open",
+  "status": "done",
   "title": "Matte, not plastic: a physical highlight and a pixel grain",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T12:35:19.430001Z"
+  "updated_at": "2026-09-18T15:58:57.511005Z"
 }

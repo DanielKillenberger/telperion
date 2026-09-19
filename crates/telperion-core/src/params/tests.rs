@@ -18,6 +18,8 @@ fn the_material_row_travels_the_wire_and_is_refused_by_field_name() {
             ("hueRangeLow", json!(-0.2)),
             ("brightnessRangeHigh", json!(0.4)),
             ("interiorDarkening", json!(0.9)),
+            ("barkReflectance", json!(0.1)),
+            ("bladeGrainScale", json!(120.0)),
         ] {
             value["material"][trait_name] = set;
             assert_eq!(value, metadata(&parse(&value).unwrap()));
@@ -32,6 +34,8 @@ fn the_material_row_travels_the_wire_and_is_refused_by_field_name() {
         ("interiorDarkening", json!(1.4), "leaf interior darkening"),
         ("hueRangeLow", json!(0.4), "leaf hue range"),
         ("brightnessRangeLow", json!(0.9), "leaf brightness range"),
+        ("leafReflectance", json!(1.5), "leaf reflectance"),
+        ("bladeGrainScale", json!(300.0), "leaf blade grain scale"),
     ] {
         let mut value = metadata(&preset(0).unwrap());
         value["material"][trait_name] = bad;
@@ -320,7 +324,10 @@ fn an_overlay_moves_the_rows_it_names_and_nothing_else() {
     expected["skeleton"]["habit"]["lateralPitch"] = json!(51.0);
     expected["radii"]["forkExponent"] = json!(2.5);
     assert_eq!(metadata(&moved), expected);
-    assert_eq!(metadata(&overlay(&base, &json!({})).unwrap()), metadata(&base));
+    assert_eq!(
+        metadata(&overlay(&base, &json!({})).unwrap()),
+        metadata(&base)
+    );
     assert_eq!(
         overlay(&base, &json!({"skeleton": {"habit": {"pitch": 1.0}}})).err(),
         Some(Error::InvalidInput("unknown family parameter"))

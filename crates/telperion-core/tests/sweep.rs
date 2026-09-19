@@ -3,6 +3,7 @@
 //! the oak-to-spruce walk with no frame where the tree changes kind; and every
 //! wire parameter a preset moves proved to be walked at all. No device is
 //! needed; this is the core's own arithmetic.
+mod specimens;
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
@@ -12,6 +13,9 @@ use telperion_core::{
     params,
     presets::{Family, Preset},
 };
+
+#[path = "catalogue/pins.rs"]
+mod catalogue;
 
 const IDS: [&str; 7] = [
     "ordinary",
@@ -87,7 +91,9 @@ const BANDS: [(&str, usize, usize); 7] = [
 // walk it from nothing to a hundred degrees.
 // fn-48.2 adds the clump's fork height, and the birch states half the bole,
 // so the sweep walks it.
-const HELD: [&str; 29] = [
+const HELD: [&str; 31] = [
+    "/material/barkReflectance",
+    "/material/leafReflectance",
     "/material/plateFurrowWidth",
     "/canopy/maxInstances",
     "/element/card",
@@ -271,9 +277,7 @@ fn every_pair_of_presets_grows_a_tree_at_every_step() {
 #[test]
 fn every_shipped_preset_carries_a_leaf_count_inside_the_fidelity_band() {
     for (id, low, high) in BANDS {
-        let leaves = mesh::build(&family(id), Detail::Full)
-            .unwrap_or_else(|e| panic!("{id}: {e}"))
-            .foliage_instances();
+        let leaves = specimens::mesh(&family(id)).foliage_instances();
         assert!(
             (low..=high).contains(&leaves),
             "{id}: {leaves} retained leaves, outside {low} to {high}"
@@ -371,4 +375,29 @@ fn the_oak_to_spruce_walk_has_no_switch_frame() {
             sections[step]
         );
     }
+}
+
+/// The band a catalogue species' record holds is the band this file holds.
+/// `ordinary`, `telperion` and `laurelin` are not catalogue species, so they
+/// have no folder and nothing to compare.
+#[test]
+fn every_catalogue_species_leaf_band_matches_its_record() {
+    let mut compared = 0;
+    for (id, low, high) in BANDS {
+        if !catalogue::catalogue().join(id).is_dir() {
+            continue;
+        }
+        let record = catalogue::pins(id);
+        let band = record["leaf_band"]
+            .as_array()
+            .unwrap_or_else(|| panic!("{id}: pins.json leaf_band is not a list"));
+        assert_eq!(band.len(), 2, "{id}: leaf_band is not a low-to-high pair");
+        assert_eq!(band[0].as_u64(), Some(low as u64), "{id}: leaf_band low");
+        assert_eq!(band[1].as_u64(), Some(high as u64), "{id}: leaf_band high");
+        compared += 1;
+    }
+    assert!(
+        compared > 0,
+        "no catalogue species was compared; is catalogue/ missing?"
+    );
 }

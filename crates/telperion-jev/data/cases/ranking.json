@@ -1,0 +1,156 @@
+[
+  {
+    "id": "oak-height-at-age",
+    "requirement": {"taxon": "Quercus garryana (Oregon white oak)", "field": "height at age", "condition": "stand-grown"},
+    "candidates": [
+      {"id": "OWIC-OAK", "title": "Oregon Wood Innovation Center: Oregon white oak", "snippet": "Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in.", "kind": "typical_growth_rate"},
+      {"id": "S1", "title": "Stein 1990, Silvics of North America: Quercus garryana", "snippet": "forest-grown trees reach 24 m at 95 to 135 years", "kind": "measured_size_at_age"},
+      {"id": "U1", "title": "Urban Tree Database report GTR-253", "snippet": "Quercus garryana appears only as a biomass-equation assignment; no age-indexed height is listed.", "kind": "not_about_tree_size"},
+      {"id": "G1", "title": "Gould, Harrington and Devine 2011: Growth of Oregon white oak", "snippet": "the large-tree equation gives 2.8 cm of diameter growth per decade for an open-grown tree at 40 cm", "kind": "typical_growth_rate"}
+    ],
+    "expect_source": "S1",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "oak-diameter-at-age",
+    "requirement": {"taxon": "Quercus garryana (Oregon white oak)", "field": "trunk diameter at age", "condition": "open-grown"},
+    "candidates": [
+      {"id": "G1", "title": "Gould, Harrington and Devine 2011: Growth of Oregon white oak", "snippet": "the large-tree equation with basal area and basal area in larger trees set to zero gives the open-grown diameter increment", "kind": "measured_size_at_age"},
+      {"id": "E1", "title": "Juettner 1955 Ertragstafeln: oak site class I and II", "snippet": "Quercus robur/petraea site class I: diameter by age 30 to 200 in ten-year rows", "kind": "measured_size_at_age"},
+      {"id": "OWIC-OAK", "title": "Oregon Wood Innovation Center: Oregon white oak", "snippet": "Mature Oregon white oaks are 24 to 40 in. in DBH (97 in. maximum).", "kind": "mature_size_range"},
+      {"id": "S1", "title": "Stein 1990, Silvics of North America: Quercus garryana", "snippet": "Oregon white oak is usually found at lower elevations in the interior valleys.", "kind": "not_about_tree_size"}
+    ],
+    "expect_source": "G1",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "spruce-open-grown-height",
+    "requirement": {"taxon": "Picea abies (Norway spruce)", "field": "height at age", "condition": "open-grown"},
+    "candidates": [
+      {"id": "IASTATE-SPRUCE", "title": "Iowa State Extension: Norway spruce", "snippet": "Growth Rate: Moderate to fast, especially when young. (may grow to 75 feet in 50 years).", "kind": "measured_size_at_age"},
+      {"id": "NCTA-SPRUCE", "title": "National Christmas Tree Association: Norway spruce", "snippet": "8 to 11 years are required to grow a 6-7 foot tree after field planting", "kind": "measured_size_at_age"},
+      {"id": "E1", "title": "Wiedemann Ertragstafel: Picea abies site class I", "snippet": "Picea abies site class I: height by age 20 to 120 in ten-year rows", "kind": "measured_size_at_age"},
+      {"id": "V1", "title": "Vospernik, Monserud and Sterba 2010", "snippet": "five open-grown spruce at age 300 averaging 23 m and 0.81 m DBH", "kind": "measured_size_at_age"}
+    ],
+    "expect_source": "V1",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "ash-open-grown-mature-height",
+    "requirement": {"taxon": "Fraxinus excelsior (European ash)", "field": "mature height", "condition": "open-grown"},
+    "candidates": [
+      {"id": "THOMAS-ASH", "title": "Thomas 2016, Biological Flora: Fraxinus excelsior", "snippet": "British typical 12-18 m, exceptionally 43 m", "kind": "mature_size_range"},
+      {"id": "OSU-ASH", "title": "Oregon State University Landscape Plants: Fraxinus excelsior", "snippet": "Landscape to 25 (30+) m, equal or greater width", "kind": "mature_size_range"},
+      {"id": "KEW-ASH", "title": "Plants of the World Online: Fraxinus excelsior", "snippet": "Deciduous tree up to 40 m", "kind": "mature_size_range"},
+      {"id": "BALTIC-ASH", "title": "Baltic Forestry 26(1): biometric features of European ash", "snippet": "Forest dominant and codominant height about 22-30 m at 48-120 years, by site type", "kind": "measured_size_at_age"}
+    ],
+    "expect_source": "OSU-ASH",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "ash-stand-height-at-age",
+    "requirement": {"taxon": "Fraxinus excelsior (European ash)", "field": "height at age", "condition": "stand-grown"},
+    "candidates": [
+      {"id": "BALTIC-ASH", "title": "Baltic Forestry 26(1): biometric features of European ash", "snippet": "Forest dominant and codominant height about 22-30 m and DBH about 0.22-0.50 m at 48-120 years, by site type", "kind": "measured_size_at_age"},
+      {"id": "THOMAS-ASH", "title": "Thomas 2016, Biological Flora: Fraxinus excelsior", "snippet": "opposite pinnate leaves to 30 cm; up to 13 leaflets usually c. 7 cm", "kind": "not_about_tree_size"},
+      {"id": "OSU-ASH", "title": "Oregon State University Landscape Plants: Fraxinus excelsior", "snippet": "Landscape to 25 (30+) m, equal or greater width", "kind": "mature_size_range"},
+      {"id": "KEW-ASH", "title": "Plants of the World Online: Fraxinus excelsior", "snippet": "Deciduous tree up to 40 m; leaves 20-25 cm", "kind": "mature_size_range"}
+    ],
+    "expect_source": "BALTIC-ASH",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "beech-leaf-length",
+    "requirement": {"taxon": "Fagus sylvatica (European beech)", "field": "leaf blade length", "condition": "any"},
+    "candidates": [
+      {"id": "PACKHAM-BEECH", "title": "Packham and others 2012, Biological Flora: Fagus sylvatica", "snippet": "leaf 4-10 cm, petiole 5-15 mm, alternate ovate-elliptic leaves", "kind": "organ_dimension"},
+      {"id": "JRC-BEECH", "title": "European Atlas of Forest Tree Species: Fagus sylvatica", "snippet": "typical leaf 10 x 7 cm; lifespan 150-300 years", "kind": "organ_dimension"},
+      {"id": "OSU-BEECH", "title": "Oregon State University Landscape Plants: Fagus sylvatica", "snippet": "Landscape height 15-23 m, spread 12-18 m", "kind": "mature_size_range"},
+      {"id": "TSO-BEECH", "title": "Trees and Shrubs Online: Fagus sylvatica", "snippet": "Tree to 50 m x 1 m dbh; parkland trees thicker", "kind": "mature_size_range"}
+    ],
+    "expect_source": "PACKHAM-BEECH",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "birch-leaf-length",
+    "requirement": {"taxon": "Betula pendula (silver birch)", "field": "leaf blade length", "condition": "any"},
+    "candidates": [
+      {"id": "TSO-BIRCH", "title": "Trees and Shrubs Online: Betula pendula", "snippet": "leaves 50-75 x 45-60 mm; petiole 20-30 mm", "kind": "organ_dimension"},
+      {"id": "JRC-BIRCH", "title": "European Atlas of Forest Tree Species: Betula spp.", "snippet": "B. pendula to 30 m; drooping branches", "kind": "mature_size_range"},
+      {"id": "OSU-BIRCH", "title": "Oregon State University Landscape Plants: Betula pendula", "snippet": "Landscape 12-15 (24) m; pendulous branching", "kind": "mature_size_range"},
+      {"id": "ATKINSON-BIRCH", "title": "Atkinson 1992, Biological Flora No. 175: Betula pendula", "snippet": "Height-diameter table for this context not extracted from the paywalled body", "kind": "not_about_tree_size"}
+    ],
+    "expect_source": "TSO-BIRCH",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "birch-crown-habit",
+    "requirement": {"taxon": "Betula pendula (silver birch)", "field": "crown habit", "condition": "open-grown"},
+    "candidates": [
+      {"id": "OSU-BIRCH", "title": "Oregon State University Landscape Plants: Betula pendula", "snippet": "Landscape 12-15 (24) m; pendulous branching on open-grown specimens", "kind": "qualitative_description"},
+      {"id": "FNA-BIRCH", "title": "Flora of North America: Betula pendula", "snippet": "Trees to 25 m; leaf blade 3-7 x 2.5-5 cm, apex acuminate", "kind": "organ_dimension"},
+      {"id": "ATKINSON-BIRCH", "title": "Atkinson 1992, Biological Flora No. 175: Betula pendula", "snippet": "Tree to 30 m; silvery-white bark", "kind": "mature_size_range"},
+      {"id": "IASTATE-SPRUCE", "title": "Iowa State Extension: Norway spruce", "snippet": "Mature Shape: Pyramidal with branches that hang down", "kind": "qualitative_description"}
+    ],
+    "expect_source": "OSU-BIRCH",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "oak-height-at-age-no-candidate",
+    "requirement": {"taxon": "Quercus garryana (Oregon white oak)", "field": "height at age", "condition": "open-grown"},
+    "candidates": [
+      {"id": "U1", "title": "Urban Tree Database report GTR-253", "snippet": "Quercus garryana appears only as a biomass-equation assignment.", "kind": "not_about_tree_size"},
+      {"id": "OWIC-ELEVATION", "title": "Oregon Wood Innovation Center: elevation section", "snippet": "It grows from sea level to 3800 ft in the north and at elevations of up to 7500 ft at the southern end of its range.", "kind": "not_about_tree_size"},
+      {"id": "OWIC-DURABILITY", "title": "Oregon Wood Innovation Center: durability section", "snippet": "untreated fence posts lasted an average of 18 years before failure.", "kind": "not_about_tree_size"},
+      {"id": "E1", "title": "Wiedemann Ertragstafel: Picea abies site class I", "snippet": "Picea abies site class I: height by age 20 to 120 in ten-year rows", "kind": "measured_size_at_age"}
+    ],
+    "expect_source": "none",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "spruce-crown-width-no-candidate",
+    "requirement": {"taxon": "Picea abies (Norway spruce)", "field": "crown width at age", "condition": "open-grown"},
+    "candidates": [
+      {"id": "NCTA-RANGE", "title": "National Christmas Tree Association: range section", "snippet": "It is a cool climate species and is found at elevations of 3,300 feet to 7,500 feet.", "kind": "not_about_tree_size"},
+      {"id": "IASTATE-NEEDLE", "title": "Iowa State Extension: needles", "snippet": "The needles are single, angular or four-sided, 1/2 to 1 inch long and slightly curved.", "kind": "organ_dimension"},
+      {"id": "IASTATE-CONE", "title": "Iowa State Extension: cone", "snippet": "The cone is 4 to 7 inches long; light brown; hanging down.", "kind": "not_about_tree_size"}
+    ],
+    "expect_source": "none",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "beech-height-at-age-no-candidate",
+    "requirement": {"taxon": "Fagus sylvatica (European beech)", "field": "height at age", "condition": "open-grown"},
+    "candidates": [
+      {"id": "JRC-BEECH", "title": "European Atlas of Forest Tree Species: Fagus sylvatica", "snippet": "lifespan 150-300 years", "kind": "not_about_tree_size"},
+      {"id": "PACKHAM-BEECH", "title": "Packham and others 2012, Biological Flora: Fagus sylvatica", "snippet": "silver-grey bark, alternate ovate-elliptic leaves", "kind": "not_about_tree_size"},
+      {"id": "BALTIC-ASH", "title": "Baltic Forestry 26(1): biometric features of European ash", "snippet": "Forest dominant and codominant height about 22-30 m at 48-120 years", "kind": "measured_size_at_age"}
+    ],
+    "expect_source": "none",
+    "holdout": true,
+    "negative": true
+  },
+  {
+    "id": "spruce-diameter-at-age",
+    "requirement": {"taxon": "Picea abies (Norway spruce)", "field": "trunk diameter at age", "condition": "stand-grown"},
+    "candidates": [
+      {"id": "E1", "title": "Wiedemann Ertragstafel: Picea abies site class I", "snippet": "Picea abies site class I: stand mean diameter by age 20 to 120 in ten-year rows", "kind": "measured_size_at_age"},
+      {"id": "NCTA-SPRUCE", "title": "National Christmas Tree Association: Norway spruce", "snippet": "Diameter may reach as much as two feet on older trees.", "kind": "mature_size_range"},
+      {"id": "V1", "title": "Vospernik, Monserud and Sterba 2010", "snippet": "five open-grown spruce at age 300 averaging 23 m and 0.81 m DBH", "kind": "measured_size_at_age"},
+      {"id": "IASTATE-SPRUCE", "title": "Iowa State Extension: Norway spruce", "snippet": "Height: 75-100 feet  Width: 40-50 feet", "kind": "mature_size_range"}
+    ],
+    "expect_source": "E1",
+    "holdout": true,
+    "negative": false
+  }
+]

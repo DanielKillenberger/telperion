@@ -14,9 +14,9 @@ fn empty_and_invalid_queries() {
     }
 }
 
+mod specimens;
 use std::time::Instant;
 use telperion_core::{
-    branching,
     foliage::{self, Element, Instances, TwigPlacement},
     presets::Preset,
     tree::Node,
@@ -101,9 +101,7 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
     }
     for preset in [Preset::Ordinary, Preset::Telperion] {
         let family = preset.parameters();
-        let tree = branching::generate(&family.skeleton, family.radii)
-            .unwrap()
-            .tree;
+        let tree = specimens::tree(&family);
         let element = foliage::build_element(family.element).unwrap();
         let placed = foliage::place(
             &tree,
@@ -117,7 +115,7 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
         )
         .unwrap();
         let retained = foliage::cull(
-            &placed,
+            placed,
             &element,
             family.skeleton.envelope,
             family.shell_depth,
@@ -199,7 +197,7 @@ fn species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_un
             ..ElementParams::default()
         })
         .unwrap();
-        let kept = cull(&instances, &element, Envelope::default(), 1.).unwrap();
+        let kept = cull(instances.clone(), &element, Envelope::default(), 1.).unwrap();
         assert_eq!(kept, instances);
         let bounds = kept.bounds(&element).unwrap().unwrap();
         let field = Field::new(&Tree::default(), Some((&kept, &element))).unwrap();

@@ -1,0 +1,33 @@
+{
+  "growth_reference": {
+    "age": 100.0,
+    "height_m": 15.0
+  },
+  "leaf_band": [
+    100000,
+    10000000
+  ],
+  "pins": {
+    "element": "7287062639823569932",
+    "instances": 7012326,
+    "max": [
+      4.337495164451377,
+      15.0,
+      3.8062214356137005
+    ],
+    "min": [
+      -3.89500647744516,
+      -0.05999999865889549,
+      -4.197530933827597
+    ],
+    "placement": "8171270653015517335",
+    "skeleton": "12735573889651776723",
+    "wood_triangles": 5580040,
+    "wood_vertices": 2888144
+  },
+  "profile_sha256": "bfbb03f8edff8a6657b0c76290e4ed56c602134dac47de20cd82957b5ee55cf2",
+  "schema": "pins",
+  "schema_version": 1,
+  "seed": 7,
+  "species": "norway-spruce"
+}

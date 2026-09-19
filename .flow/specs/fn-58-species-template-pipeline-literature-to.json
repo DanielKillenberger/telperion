@@ -18,7 +18,7 @@
   "plan_reviewed_at": null,
   "ready": true,
   "spec_path": ".flow/specs/fn-58-species-template-pipeline-literature-to.md",
-  "status": "open",
+  "status": "done",
   "title": "Species template pipeline: literature to preset",
   "tracker": {
     "baseHashFlow": null,
@@ -31,5 +31,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T12:32:54.345754Z"
+  "updated_at": "2026-09-18T18:22:34.226096Z"
 }

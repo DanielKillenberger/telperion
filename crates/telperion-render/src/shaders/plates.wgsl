@@ -153,9 +153,8 @@ struct BarkPlate {
     kept: f32,
 };
 
-// Faded to the mean on both axes: a plate too small to resolve costs no
-// hash, carries no aliasing, and leaves the mean exactly. `structure` is the
-// identity row, the furrow width and the peel's curl.
+// The network at a point, read at a footprint under half a plate. `structure`
+// is the identity row, the furrow width and the peel's curl.
 fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     footprint: vec2<f32>, wander: vec2<f32>, plate: vec4<f32>,
     structure: vec3<f32>) -> BarkPlate {
@@ -181,15 +180,11 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     // the cell it fills, which is a width across and a run along. Its walls
     // are measured in widths in both directions once the elongation below has
     // brought the cross-cut back, so their footprint is a width in both.
-    let band = max(footprint.x / span, footprint.y / run);
     let pixel = max(footprint.x, footprint.y) / size;
-    // A plate leaves the picture on its own band, converging to a mean the
-    // colour range below knows, so nothing steps as a trunk recedes. The wall
-    // inside it is integrated by its own edge rather than faded: a band that
-    // fades on a footprint two renders disagree about is a band that aliases
-    // between them, however exactly its mean is preserved.
-    let retained = bark_pass(band);
-    if (retained <= 0.0) { return far; }
+    // A plate leaves the picture by its walls' edge integrals alone (fn-71):
+    // the caller keeps every footprint it reads the network at under half a
+    // plate, where an edge's integral stands for the wall it crosses, and
+    // averages more reads across a wider pixel instead of fading the band.
     let elongated = 1.0 + max(plate.y, 0.0);
     // Where the surface stands in the network's own space: the circle
     // embedding in plate widths, and the trunk's run in cells of one plate.
@@ -239,9 +234,9 @@ fn bark_plate_field(arc: vec2<f32>, along: f32, ridge_scale: f32, girth: f32,
     // filter cannot recover. Within a footprint of an edge it is the mean,
     // which is what a pixel straddling two plates actually averages to.
     let inside = clamp(edge / max(pixel, 1e-5), 0.0, 1.0);
-    return BarkPlate(mix(mean, relief, retained), mix(0.5, own, inside * retained), own,
+    return BarkPlate(relief, mix(0.5, own, inside), own,
         select(vec3(0.5), warped + network.next / stretch, SMOOTH_BARK),
-        clamp(0.5 + edge / max(pixel, PEEL_FRAY), 0.5, 1.0), retained);
+        clamp(0.5 + edge / max(pixel, PEEL_FRAY), 0.5, 1.0), 1.0);
 }
 
 // One plate's own value in 0..1, from its site's seed.

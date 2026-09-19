@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "level": {
+    "type": "score",
+    "instructions": "The lines in `sentences` are copied from admitted sources and describe one species. Which level describes `trait` as those sentences state it? Judge only what the sentences say, not what the species is known for.",
+    "unstated": "The sentences do not describe this trait"
+  }
+}

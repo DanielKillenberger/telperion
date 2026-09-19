@@ -1,0 +1,229 @@
+[
+  {
+    "id": "garry-oak-young-height",
+    "requirement": {
+      "taxon": "Quercus garryana (Oregon white oak)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [1, 5, 10, 25]
+    },
+    "evidence": [
+      {"source": "OWIC", "sentence": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum)", "kind": "mature_size_range", "condition": "unstated"},
+      {"source": "OWIC", "sentence": "Sustained height growth of 1 to 2 ft per year for trees 10 to 30 years old", "kind": "site_quality_criterion", "condition": "stand_grown"},
+      {"source": "OWIC", "sentence": "Height growth is usually less than 1 ft per year", "kind": "typical_growth_rate", "condition": "stand_grown"},
+      {"source": "OWIC", "sentence": "Stump sprouts may grow as much as 3 ft per year during the first 3 years", "kind": "sprout_cultivar_or_nursery", "condition": "stand_grown"},
+      {"source": "OWIC", "sentence": "The shoot of natural seedlings often remains small and shrubby for many years", "kind": "qualitative_description", "condition": "unstated"},
+      {"source": "Stein 1990 Silvics", "sentence": "forest-grown trees reach 24 m at 95 to 135 years", "kind": "measured_size_at_age", "condition": "stand_grown"},
+      {"source": "Juettner 1955 yield table", "sentence": "Quercus robur/petraea site class II: height by age 30 to 200 in ten-year rows", "kind": "measured_size_at_age", "condition": "stand_grown", "taxon": "Quercus robur/petraea (proxy)"}
+    ],
+    "counts": {"measured_points": 2, "required_ages_covered": [], "required_ages_uncovered": [1, 5, 10, 25]},
+    "expect_level": "proxy_only",
+    "expect_gap": "wrong_condition",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "douglas-fir-open-grown-control",
+    "requirement": {
+      "taxon": "Pseudotsuga menziesii (Douglas-fir)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [10, 20, 40]
+    },
+    "evidence": [
+      {"source": "hypothetical open-grown study", "sentence": "open-grown Douglas-fir on the site averaged 4.1 m at 10 years, 11.8 m at 20 years and 24.0 m at 40 years", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [10, 20, 40]},
+      {"source": "hypothetical open-grown study", "sentence": "at 30 years the open-grown trees averaged 18.5 m", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [30]}
+    ],
+    "counts": {"measured_points": 4, "required_ages_covered": [10, 20, 40], "required_ages_uncovered": []},
+    "expect_level": "sufficient",
+    "expect_gap": "none",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "norway-spruce-open-grown-young",
+    "requirement": {
+      "taxon": "Picea abies (Norway spruce)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [5, 14, 27, 37]
+    },
+    "evidence": [
+      {"source": "Iowa State Extension", "sentence": "may grow to 75 feet in 50 years", "kind": "measured_size_at_age", "condition": "unstated", "ages_years": [50]},
+      {"source": "NCTA", "sentence": "8 to 11 years are required to grow a 6-7 foot tree after field planting", "kind": "measured_size_at_age", "condition": "plantation_or_nursery", "ages_years": [8, 11]},
+      {"source": "Iowa State Extension", "sentence": "Norway spruce grow 75 to 100 feet tall", "kind": "mature_size_range", "condition": "unstated"},
+      {"source": "Wiedemann yield table", "sentence": "Picea abies site class I: height by age 20 to 120 in ten-year rows", "kind": "measured_size_at_age", "condition": "stand_grown"},
+      {"source": "Vospernik 2010", "sentence": "five open-grown spruce at age 300 averaging 23 m", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [300]}
+    ],
+    "counts": {"measured_points": 4, "required_ages_covered": [], "required_ages_uncovered": [5, 14, 27, 37]},
+    "expect_level": "proxy_only",
+    "expect_gap": "wrong_condition",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "garry-oak-no-evidence-at-all",
+    "requirement": {
+      "taxon": "Quercus garryana (Oregon white oak)",
+      "field": "crown width at age",
+      "condition": "open-grown",
+      "required_ages_years": [10, 25, 50]
+    },
+    "evidence": [],
+    "counts": {"measured_points": 0, "required_ages_covered": [], "required_ages_uncovered": [10, 25, 50]},
+    "expect_level": "none",
+    "expect_gap": "no_age_indexed_points",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "oregon-white-oak-mature-and-rates-only",
+    "requirement": {
+      "taxon": "Quercus garryana (Oregon white oak)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [10, 30]
+    },
+    "evidence": [
+      {"source": "OWIC", "sentence": "Mature Oregon white oaks are 50 to 90 ft tall (120 ft maximum) and 24 to 40 in. in DBH (97 in. maximum).", "kind": "mature_size_range", "condition": "unstated"},
+      {"source": "OWIC", "sentence": "Oregon white oaks may live 500 years.", "kind": "not_about_tree_size", "condition": "unstated"},
+      {"source": "OWIC", "sentence": "Height growth is usually less than 1 ft per year and diameter growth is often 15 to 20 rings/in.", "kind": "typical_growth_rate", "condition": "stand_grown"},
+      {"source": "OWIC", "sentence": "Open-grown trees develop very broad, rounded crowns.", "kind": "qualitative_description", "condition": "open_grown"}
+    ],
+    "counts": {"measured_points": 0, "required_ages_covered": [], "required_ages_uncovered": [10, 30]},
+    "expect_level": "none",
+    "expect_gap": "no_age_indexed_points",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "douglas-fir-open-grown-age-gap",
+    "requirement": {
+      "taxon": "Pseudotsuga menziesii (Douglas-fir)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [10, 20, 40]
+    },
+    "evidence": [
+      {"source": "hypothetical open-grown study", "sentence": "open-grown Douglas-fir on the site averaged 4.1 m at 10 years", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [10]},
+      {"source": "hypothetical open-grown study", "sentence": "the same open-grown trees averaged 11.8 m at 20 years", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [20]}
+    ],
+    "counts": {"measured_points": 2, "required_ages_covered": [10, 20], "required_ages_uncovered": [40]},
+    "expect_level": "partial",
+    "expect_gap": "age_range_uncovered",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "norway-spruce-proxy-taxon-only",
+    "requirement": {
+      "taxon": "Picea abies (Norway spruce)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [20, 40, 60]
+    },
+    "evidence": [
+      {"source": "hypothetical open-grown study", "sentence": "open-grown Sitka spruce averaged 7.5 m at 20 years, 16.2 m at 40 years and 23.1 m at 60 years", "kind": "measured_size_at_age", "condition": "open_grown", "taxon": "Picea sitchensis (proxy)", "ages_years": [20, 40, 60]},
+      {"source": "Iowa State Extension", "sentence": "Norway spruce grow 75 to 100 feet tall", "kind": "mature_size_range", "condition": "unstated"}
+    ],
+    "counts": {"measured_points": 3, "required_ages_covered": [], "required_ages_uncovered": [20, 40, 60]},
+    "expect_level": "proxy_only",
+    "expect_gap": "wrong_taxon",
+    "holdout": false,
+    "negative": true
+  },
+  {
+    "id": "european-ash-stand-table-only",
+    "requirement": {
+      "taxon": "Fraxinus excelsior (European ash)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [10, 25, 50]
+    },
+    "evidence": [
+      {"source": "BALTIC-ASH", "sentence": "Forest dominant and codominant height is about 22 to 30 m and DBH about 0.22 to 0.50 m at 48 to 120 years, by site type.", "kind": "measured_size_at_age", "condition": "stand_grown", "ages_years": [48, 120]},
+      {"source": "KEW-ASH", "sentence": "Deciduous tree up to 40 m.", "kind": "mature_size_range", "condition": "unstated"},
+      {"source": "OSU-ASH", "sentence": "Landscape to 25 (30+) m, equal or greater width.", "kind": "mature_size_range", "condition": "open_grown"}
+    ],
+    "counts": {"measured_points": 2, "required_ages_covered": [], "required_ages_uncovered": [10, 25, 50]},
+    "expect_level": "proxy_only",
+    "expect_gap": "wrong_condition",
+    "holdout": true,
+    "negative": true
+  },
+  {
+    "id": "silver-birch-open-grown-covered",
+    "requirement": {
+      "taxon": "Betula pendula (silver birch)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [10, 20, 30]
+    },
+    "evidence": [
+      {"source": "hypothetical open-grown study", "sentence": "open-grown silver birch on the lawn averaged 5.2 m at 10 years", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [10]},
+      {"source": "hypothetical open-grown study", "sentence": "the same trees averaged 10.4 m at 20 years and 14.1 m at 30 years", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [20, 30]},
+      {"source": "TSO-BIRCH", "sentence": "Usually 10-15 m, to 25 m.", "kind": "mature_size_range", "condition": "unstated"}
+    ],
+    "counts": {"measured_points": 3, "required_ages_covered": [10, 20, 30], "required_ages_uncovered": []},
+    "expect_level": "sufficient",
+    "expect_gap": "none",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "european-beech-open-grown-partial",
+    "requirement": {
+      "taxon": "Fagus sylvatica (European beech)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [20, 40, 80]
+    },
+    "evidence": [
+      {"source": "hypothetical parkland survey", "sentence": "open-grown beech in the parkland averaged 9.0 m at 20 years and 17.5 m at 40 years", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [20, 40]},
+      {"source": "JRC-BEECH", "sentence": "Commonly 30-40 m, to 50 m.", "kind": "mature_size_range", "condition": "unstated"},
+      {"source": "PACKHAM-BEECH", "sentence": "Lifespan 150 to 300 years.", "kind": "not_about_tree_size", "condition": "unstated"}
+    ],
+    "counts": {"measured_points": 2, "required_ages_covered": [20, 40], "required_ages_uncovered": [80]},
+    "expect_level": "partial",
+    "expect_gap": "age_range_uncovered",
+    "holdout": true,
+    "negative": true
+  },
+  {
+    "id": "silver-birch-descriptions-only",
+    "requirement": {
+      "taxon": "Betula pendula (silver birch)",
+      "field": "trunk diameter at age",
+      "condition": "open-grown",
+      "required_ages_years": [15, 30]
+    },
+    "evidence": [
+      {"source": "TSO-BIRCH", "sentence": "Usually 10-15 m, to 25 m; pendulous outer branchlets.", "kind": "mature_size_range", "condition": "unstated"},
+      {"source": "JRC-BIRCH", "sentence": "Betula pendula to 30 m; drooping branches.", "kind": "mature_size_range", "condition": "unstated"},
+      {"source": "ATKINSON-BIRCH", "sentence": "Silvery-white bark; biserrate leaves.", "kind": "not_about_tree_size", "condition": "unstated"}
+    ],
+    "counts": {"measured_points": 0, "required_ages_covered": [], "required_ages_uncovered": [15, 30]},
+    "expect_level": "none",
+    "expect_gap": "no_age_indexed_points",
+    "holdout": true,
+    "negative": true
+  },
+  {
+    "id": "oregon-white-oak-open-grown-covered",
+    "requirement": {
+      "taxon": "Quercus garryana (Oregon white oak)",
+      "field": "height at age",
+      "condition": "open-grown",
+      "required_ages_years": [5, 10, 25]
+    },
+    "evidence": [
+      {"source": "hypothetical prairie-oak survey", "sentence": "open-grown Oregon white oak on the prairie averaged 1.8 m at 5 years and 3.6 m at 10 years", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [5, 10]},
+      {"source": "hypothetical prairie-oak survey", "sentence": "at 25 years the same open-grown trees averaged 7.9 m", "kind": "measured_size_at_age", "condition": "open_grown", "ages_years": [25]}
+    ],
+    "counts": {"measured_points": 3, "required_ages_covered": [5, 10, 25], "required_ages_uncovered": []},
+    "expect_level": "sufficient",
+    "expect_gap": "none",
+    "holdout": false,
+    "negative": false
+  }
+]

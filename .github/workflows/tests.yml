@@ -1,0 +1,245 @@
+name: Tests
+
+# A push or pull request that touches only flow bookkeeping, documentation or
+# markdown starts no run. The paths listed after the exclusions are test inputs
+# that live under those trees: the species profiles and the benchmark protocol
+# the core tests read, the spec the citation parser is tested on, and the
+# catalogue, whose generated pages are markdown the structure check gates.
+on:
+  push:
+    branches: [master]
+    paths:
+      - '**'
+      - '!.flow/**'
+      - '!docs/**'
+      - '!**.md'
+      - '.flow/evidence/fn9/profiles.json'
+      - '.flow/evidence/fn34/profiles.json'
+      - '.flow/evidence/fn19/protocol.json'
+      - '.flow/specs/fn-11-growth-over-time.md'
+      - 'catalogue/**'
+  pull_request:
+    paths:
+      - '**'
+      - '!.flow/**'
+      - '!docs/**'
+      - '!**.md'
+      - '.flow/evidence/fn9/profiles.json'
+      - '.flow/evidence/fn34/profiles.json'
+      - '.flow/evidence/fn19/protocol.json'
+      - '.flow/specs/fn-11-growth-over-time.md'
+      - 'catalogue/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Each suite's key is a hash of its inputs (scripts/ci-key.mjs); a green run
+  # saved a receipt under the key, and a receipt found here skips the suite.
+  # GitHub restores a cache from the same branch or from master, so a pull
+  # request reads master's receipts and master writes its own.
+  receipts:
+    runs-on: ubuntu-latest
+    # A lookup that misses leaves cache-hit empty, and an empty field collapses
+    # where a consumer splits on whitespace, so each hit is published as the
+    # literal true or false.
+    outputs:
+      rust-core: ${{ steps.rust-core.outputs.cache-hit == 'true' }}
+      rust-render: ${{ steps.rust-render.outputs.cache-hit == 'true' }}
+      rust-wasm: ${{ steps.rust-wasm.outputs.cache-hit == 'true' }}
+      rust-jev: ${{ steps.rust-jev.outputs.cache-hit == 'true' }}
+      node: ${{ steps.node.outputs.cache-hit == 'true' }}
+      rust-all: ${{ steps.rust-core.outputs.cache-hit == 'true' && steps.rust-render.outputs.cache-hit == 'true' && steps.rust-wasm.outputs.cache-hit == 'true' && steps.rust-jev.outputs.cache-hit == 'true' }}
+      rust-core-key: ${{ steps.keys.outputs.rust-core }}
+      rust-render-key: ${{ steps.keys.outputs.rust-render }}
+      rust-wasm-key: ${{ steps.keys.outputs.rust-wasm }}
+      rust-jev-key: ${{ steps.keys.outputs.rust-jev }}
+      node-key: ${{ steps.keys.outputs.node }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: keys
+        name: Compute the receipt keys
+        run: |
+          for suite in rust-core rust-render rust-wasm rust-jev node; do
+            echo "$suite=$(node scripts/ci-key.mjs "$suite")" >> "$GITHUB_OUTPUT"
+          done
+
+      - id: rust-core
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-core
+          key: ${{ steps.keys.outputs.rust-core }}
+          lookup-only: true
+      - id: rust-render
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-render
+          key: ${{ steps.keys.outputs.rust-render }}
+          lookup-only: true
+      - id: rust-wasm
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-wasm
+          key: ${{ steps.keys.outputs.rust-wasm }}
+          lookup-only: true
+      - id: rust-jev
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-jev
+          key: ${{ steps.keys.outputs.rust-jev }}
+          lookup-only: true
+      - id: node
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/receipts/node
+          key: ${{ steps.keys.outputs.node }}
+          lookup-only: true
+
+      - name: Report the receipts
+        env:
+          RECEIPTS: |-
+            rust-core ${{ steps.keys.outputs.rust-core }} ${{ steps.rust-core.outputs.cache-hit == 'true' }}
+            rust-render ${{ steps.keys.outputs.rust-render }} ${{ steps.rust-render.outputs.cache-hit == 'true' }}
+            rust-wasm ${{ steps.keys.outputs.rust-wasm }} ${{ steps.rust-wasm.outputs.cache-hit == 'true' }}
+            rust-jev ${{ steps.keys.outputs.rust-jev }} ${{ steps.rust-jev.outputs.cache-hit == 'true' }}
+            node ${{ steps.keys.outputs.node }} ${{ steps.node.outputs.cache-hit == 'true' }}
+        run: |
+          while read -r suite key hit; do
+            case $hit in
+              true) echo "$suite: receipt $key found, the suite is skipped." ;;
+              *) echo "$suite: receipt $key missing, the suite runs." ;;
+            esac
+          done <<< "$RECEIPTS"
+
+  # Each Rust crate without a receipt runs under cargo-nextest on standard
+  # runners (.github/actions/nextest): the core crate as four count partitions
+  # of its tests, chosen from the runner's per-test times, the render crate
+  # whole, and the two small crates together. A crate's receipt is saved in
+  # rust-receipts when every job of that crate is green.
+  core:
+    name: core ${{ matrix.partition }}/4
+    needs: receipts
+    if: needs.receipts.outputs.rust-core != 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        partition: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/nextest
+        with:
+          packages: telperion-core
+          partition: count:${{ matrix.partition }}/4
+
+  render:
+    needs: receipts
+    if: needs.receipts.outputs.rust-render != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/nextest
+        with:
+          packages: telperion-render
+
+  wasm-jev:
+    name: wasm and jev
+    needs: receipts
+    if: needs.receipts.outputs.rust-wasm != 'true' || needs.receipts.outputs.rust-jev != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/nextest
+        with:
+          packages: >-
+            ${{ needs.receipts.outputs.rust-wasm != 'true' && 'telperion-wasm' || '' }}
+            ${{ needs.receipts.outputs.rust-jev != 'true' && 'telperion-jev' || '' }}
+
+  # Reached whatever the crate jobs did; a crate's receipt is written only
+  # when its jobs succeeded and it had none, so a red crate saves nothing.
+  rust-receipts:
+    needs: [receipts, core, render, wasm-jev]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write the receipts of the crates whose jobs were green
+        env:
+          RECEIPTS: |-
+            rust-core ${{ needs.receipts.outputs.rust-core-key }} ${{ needs.receipts.outputs.rust-core }} ${{ needs.core.result }}
+            rust-render ${{ needs.receipts.outputs.rust-render-key }} ${{ needs.receipts.outputs.rust-render }} ${{ needs.render.result }}
+            rust-wasm ${{ needs.receipts.outputs.rust-wasm-key }} ${{ needs.receipts.outputs.rust-wasm }} ${{ needs.wasm-jev.result }}
+            rust-jev ${{ needs.receipts.outputs.rust-jev-key }} ${{ needs.receipts.outputs.rust-jev }} ${{ needs.wasm-jev.result }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/receipts"
+          while read -r suite key hit result; do
+            if [ "$hit" != true ] && [ "$result" = success ]; then
+              echo "$key" > "$RUNNER_TEMP/receipts/$suite"
+              echo "$suite: green, receipt $key written."
+            else
+              echo "$suite: receipt $hit, jobs $result, nothing written."
+            fi
+          done <<< "$RECEIPTS"
+
+      - if: needs.receipts.outputs.rust-core != 'true' && needs.core.result == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-core
+          key: ${{ needs.receipts.outputs.rust-core-key }}
+      - if: needs.receipts.outputs.rust-render != 'true' && needs.render.result == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-render
+          key: ${{ needs.receipts.outputs.rust-render-key }}
+      - if: needs.receipts.outputs.rust-wasm != 'true' && needs.wasm-jev.result == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-wasm
+          key: ${{ needs.receipts.outputs.rust-wasm-key }}
+      - if: needs.receipts.outputs.rust-jev != 'true' && needs.wasm-jev.result == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ runner.temp }}/receipts/rust-jev
+          key: ${{ needs.receipts.outputs.rust-jev-key }}
+
+  node:
+    needs: receipts
+    if: needs.receipts.outputs.node != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      # The version Cargo.lock pins for the wasm-bindgen crate; render:build
+      # refuses any other CLI. The binary is restored by the cache above.
+      - name: Install wasm-bindgen-cli at the crate's pin
+        run: cargo install wasm-bindgen-cli --version "$(cargo pkgid wasm-bindgen | sed 's/.*@//')"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - run: npm ci
+
+      - uses: ./.github/actions/suite
+        with:
+          suite: node
+          key: ${{ needs.receipts.outputs.node-key }}
+          hit: ${{ needs.receipts.outputs.node }}
+          run: |
+            npm test
+            npm run typecheck

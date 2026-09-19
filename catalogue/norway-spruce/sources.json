@@ -1,0 +1,29 @@
+{
+  "schema": "sources",
+  "schema_version": 1,
+  "sources": [
+    {
+      "attribution": "Picea abies, NC State Extension Plant Toolbox",
+      "id": "NCSU-SPRUCE",
+      "rights": "web page; cited with attribution, no redistribution inferred",
+      "sha256": null,
+      "tables": [],
+      "title": "Picea abies, NC State Extension Plant Toolbox",
+      "url": "https://plants.ces.ncsu.edu/plants/picea-abies/",
+      "use": "Species-form landscape spread and peg attachment. Photo cultivar captions must not silently become species targets.",
+      "verified": "2026-09-04"
+    },
+    {
+      "attribution": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "id": "OSU-SPRUCE",
+      "rights": "web page; cited with attribution, no redistribution inferred",
+      "sha256": null,
+      "tables": [],
+      "title": "Oregon State University Landscape Plants; Patrick Breen contact",
+      "url": "https://landscapeplants.oregonstate.edu/plants/picea-abies",
+      "use": "Species-form pyramidal habit, drooping secondaries, individual four-sided needles; exclude cultivars.",
+      "verified": "2026-09-06"
+    }
+  ],
+  "species": "norway-spruce"
+}

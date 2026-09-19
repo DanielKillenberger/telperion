@@ -1,0 +1,836 @@
+[
+  {
+    "id": "fn-37-pendulous-shoots",
+    "gap": {
+      "id": "silver-birch/gate/onboarding-gate/capability",
+      "species": "silver-birch",
+      "capability": "pendulous shoots",
+      "detail": "Long unbranched shoots hang in a curtain to the ground. The generator flips a pendant mode when the secondary rise crosses zero, but the droop is a constant, a hanging shoot's length is borrowed from the twig anatomy, and no leaf may point downward."
+    },
+    "verdicts": [],
+    "options": [
+      {
+        "gap": "silver-birch/gate/onboarding-gate/capability",
+        "option": "curtain-rows",
+        "change_kind": "generator",
+        "touches": "twig layer, canopy orientation rails",
+        "moves_pin": true,
+        "changes_preset_output": [
+          "norway-spruce",
+          "silver-birch"
+        ],
+        "serves_species": [
+          "silver-birch",
+          "weeping-willow"
+        ],
+        "reversible": true,
+        "summary": "The twig layer gains hang, pendulous length, pendulous radius and curtain separation as rows, replacing the constants, and the canopy's orientation rails widen to signed values so a leaf may point down."
+      },
+      {
+        "gap": "silver-birch/gate/onboarding-gate/capability",
+        "option": "bias-field-gravity",
+        "change_kind": "generator",
+        "touches": "bias field",
+        "moves_pin": true,
+        "changes_preset_output": [
+          "oregon-white-oak",
+          "norway-spruce"
+        ],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": false,
+        "summary": "A gravity term in the bias field pulls every node downward by height, so hanging shoots fall out of the field rather than out of the twig rows."
+      },
+      {
+        "gap": "silver-birch/gate/onboarding-gate/capability",
+        "option": "raise-the-droop-constant",
+        "change_kind": "value_table",
+        "touches": "twig droop cap",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "The birch's table moves its existing secondary rise further below zero, so the pendant mode the generator already has droops as far as its cap allows."
+      }
+    ],
+    "expect_prior_verdict": {
+      "curtain-rows": "none",
+      "bias-field-gravity": "none",
+      "raise-the-droop-constant": "none"
+    },
+    "expect_best_match": "curtain-rows",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "fn-38-multi-stem-trees",
+    "gap": {
+      "id": "silver-birch/gate/onboarding-gate/capability",
+      "species": "silver-birch",
+      "capability": "multi-stem trees",
+      "detail": "Two stems rise from the base, one leaning. The generator grows one leader from the origin and every downstream stage assumes one root node: the radius solve, the flare, the DBH rule and the identity pins."
+    },
+    "verdicts": [],
+    "options": [
+      {
+        "gap": "silver-birch/gate/onboarding-gate/capability",
+        "option": "stems-as-order-zero-axes",
+        "change_kind": "generator",
+        "touches": "scaffold frontier, radius solve",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch",
+          "hazel",
+          "oregon-white-oak"
+        ],
+        "reversible": true,
+        "summary": "Stems, stem divergence and stem lean become habit rows that enqueue that many order-zero axes at the root; each stem is swept as its own trunk run with a buried root and flare, and the DBH rule reports the largest stem and the count. One stem is the neutral value and reproduces today's tree."
+      },
+      {
+        "gap": "silver-birch/gate/onboarding-gate/capability",
+        "option": "basal-fork-as-lateral",
+        "change_kind": "generator",
+        "touches": "bole gates, lateral birth",
+        "moves_pin": true,
+        "changes_preset_output": [
+          "oregon-white-oak"
+        ],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": false,
+        "summary": "The second stem is born as a lateral low on the bole and the bole gates that forbid a crown axis inside the bole are relaxed to let it through."
+      }
+    ],
+    "expect_prior_verdict": {
+      "stems-as-order-zero-axes": "none",
+      "basal-fork-as-lateral": "none"
+    },
+    "expect_best_match": "stems-as-order-zero-axes",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "fn-39-crown-outline-irregularity",
+    "gap": {
+      "id": "european-beech/gate/onboarding-gate/capability",
+      "species": "european-beech",
+      "capability": "crown outline irregularity",
+      "detail": "The crown outline is lumpy and asymmetric in the photograph and a smooth oval in every render. The envelope is an exact axisymmetric superellipse with no seed and no noise, so every seed fills it to the same outline."
+    },
+    "verdicts": [],
+    "options": [
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "perturbed-envelope-radius",
+        "change_kind": "generator",
+        "touches": "envelope radius, containment",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech",
+          "silver-birch",
+          "oregon-white-oak"
+        ],
+        "reversible": true,
+        "summary": "The envelope gains a radius by height and bearing beside its radius by height, perturbed per seed by low-frequency noise under an amplitude row and a wavelength row. Containment and growth read the perturbed shell; the two-dimensional profile stays smooth. A zero amplitude is today's shell."
+      },
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "shade-out-limbs",
+        "change_kind": "generator",
+        "touches": "limb mortality",
+        "moves_pin": true,
+        "changes_preset_output": [
+          "oregon-white-oak",
+          "norway-spruce"
+        ],
+        "serves_species": [
+          "european-beech"
+        ],
+        "reversible": false,
+        "summary": "Limbs that are shaded or die are removed during growth, so the silhouette goes ragged where a limb system was lost."
+      },
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "loosen-the-crown-rows",
+        "change_kind": "value_table",
+        "touches": "crown width, shedding",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech"
+        ],
+        "reversible": true,
+        "summary": "The beech's table widens its crown index and loosens its shedding rows so more branches survive near the shell and the outline reads less regular."
+      }
+    ],
+    "expect_prior_verdict": {
+      "perturbed-envelope-radius": "none",
+      "shade-out-limbs": "none",
+      "loosen-the-crown-rows": "none"
+    },
+    "expect_best_match": "perturbed-envelope-radius",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "fn-40-smooth-bark",
+    "gap": {
+      "id": "european-beech/gate/onboarding-gate/capability",
+      "species": "european-beech",
+      "capability": "smooth bark with lichen, lenticels and peel",
+      "detail": "The beech's bark reads flat grey with no lichen spots and the birch's flat white with no lenticel bands or peel. The bark field models ridges, plates and flakes and has no term for any of the three."
+    },
+    "verdicts": [],
+    "options": [
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "three-row-sets-one-shader",
+        "change_kind": "appearance",
+        "touches": "bark material shader",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech",
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "The bark material gains lichen scale, coverage, colour and strength; lenticel density, length, strength and tint; and a peel curl with a tint, all on the existing bark shader. The wood mesh bytes are unchanged with the rows on and off."
+      },
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "second-smooth-bark-shader",
+        "change_kind": "appearance",
+        "touches": "bark shader selection",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech",
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "A second bark shader is written for smooth-barked species and a species picks which of the two shaders draws its trunk."
+      }
+    ],
+    "expect_prior_verdict": {
+      "three-row-sets-one-shader": "none",
+      "second-smooth-bark-shader": "none"
+    },
+    "expect_best_match": "three-row-sets-one-shader",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "fn-44-curtain-hangs-under-gravity",
+    "gap": {
+      "id": "silver-birch/generate/level-miss/curtain_hang",
+      "species": "silver-birch",
+      "capability": "hanging shoots that bend toward vertical",
+      "detail": "The curtain's shoots are straight rods in a fixed direction. No term turns a hanging shoot's heading toward vertical along its run, so the curtain reads as a spray of sticks rather than strands."
+    },
+    "verdicts": [
+      "The strands have to fall, not point."
+    ],
+    "options": [
+      {
+        "gap": "silver-birch/generate/level-miss/curtain_hang",
+        "option": "sag-row",
+        "change_kind": "generator",
+        "touches": "pendant twig run",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch",
+          "weeping-willow"
+        ],
+        "reversible": true,
+        "summary": "A sag row from zero to one turns each step's heading toward straight down along the run, steepest near the attachment. At zero the spruce and the birch are the trees the curtain rows already give."
+      },
+      {
+        "gap": "silver-birch/generate/level-miss/curtain_hang",
+        "option": "degrees-per-metre",
+        "change_kind": "generator",
+        "touches": "pendant twig run",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "The bend is stated as degrees of turn per metre of run, so a long strand curls further than a short one at the same value."
+      }
+    ],
+    "expect_prior_verdict": {
+      "sag-row": "for",
+      "degrees-per-metre": "none"
+    },
+    "expect_best_match": "sag-row",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "fn-45-twig-budget",
+    "gap": {
+      "id": "european-beech/gate/onboarding-gate/capability",
+      "species": "european-beech",
+      "capability": "few big limbs under the node ceiling",
+      "detail": "The beech needs a thick trunk carrying few large limbs. Raising the pipe-model fork exponent thickens the wood, which pushes it above the twig-diameter threshold for one more generation and takes the tree over the node ceiling. No row bounds twig depth independently of the radius."
+    },
+    "verdicts": [
+      "The node ceiling does not move; it is a cost line for every consumer."
+    ],
+    "options": [
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "twig-generations-row",
+        "change_kind": "generator",
+        "touches": "twig-law generation cap",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech",
+          "oregon-white-oak"
+        ],
+        "reversible": true,
+        "summary": "A twig generations row caps the twig law's depth whatever the radius says, so a species may state its girth and its twig cost separately. The neutral value reproduces every shipped tree."
+      },
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "raise-the-node-ceiling",
+        "change_kind": "generator",
+        "touches": "node ceiling constant",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech",
+          "oregon-white-oak",
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "The node ceiling is raised so the beech's extra twig generation fits under it and no new row is needed."
+      },
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "thin-the-beech-twigs",
+        "change_kind": "value_table",
+        "touches": "twig density, leaf size",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech"
+        ],
+        "reversible": true,
+        "summary": "The beech's table thins its twig density and lengthens its internodes so the extra generation costs fewer nodes and the tree stays under the ceiling."
+      }
+    ],
+    "expect_prior_verdict": {
+      "twig-generations-row": "none",
+      "raise-the-node-ceiling": "against",
+      "thin-the-beech-twigs": "none"
+    },
+    "expect_best_match": "twig-generations-row",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "fn-46-young-shoot-colour",
+    "gap": {
+      "id": "silver-birch/generate/level-miss/shoot_colour",
+      "species": "silver-birch",
+      "capability": "young shoots with their own colour",
+      "detail": "Every piece of wood takes one bark colour, so the birch's fine hanging shoots read white where its twigs are dark brown. No term gives young wood a colour that blends to the bark colour as the wood thickens."
+    },
+    "verdicts": [
+      "The young shoots take their own colour by radius; that is a row, and the right one."
+    ],
+    "options": [
+      {
+        "gap": "silver-birch/generate/level-miss/shoot_colour",
+        "option": "shoot-colour-by-radius",
+        "change_kind": "appearance",
+        "touches": "wood material shader",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch",
+          "european-beech",
+          "oregon-white-oak"
+        ],
+        "reversible": true,
+        "summary": "The material gains a shoot colour and a shoot radius, and the wood shader blends the shoot colour into the bark colour across the vertex's own radius. The mesh bytes do not move, because colour is not geometry."
+      },
+      {
+        "gap": "silver-birch/generate/level-miss/shoot_colour",
+        "option": "shoot-colour-by-branch-order",
+        "change_kind": "appearance",
+        "touches": "wood material shader",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "The blend is keyed on branch order instead, so every axis of the last order takes the shoot colour and every earlier order takes the bark colour."
+      }
+    ],
+    "expect_prior_verdict": {
+      "shoot-colour-by-radius": "for",
+      "shoot-colour-by-branch-order": "none"
+    },
+    "expect_best_match": "shoot-colour-by-radius",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "fn-47-curtain-strand-length",
+    "gap": {
+      "id": "silver-birch/generate/level-miss/curtain_hem",
+      "species": "silver-birch",
+      "capability": "hanging strands of differing length",
+      "detail": "Every hanging strand runs the same pendulous length, so the curtain ends in one level hem all round and the tree reads as a ball on a stick. No row varies a shoot's run length."
+    },
+    "verdicts": [],
+    "options": [
+      {
+        "gap": "silver-birch/generate/level-miss/curtain_hem",
+        "option": "pendulous-variation-row",
+        "change_kind": "generator",
+        "touches": "pendant shoot length",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch",
+          "weeping-willow"
+        ],
+        "reversible": true,
+        "summary": "A pendulous variation row draws each shoot's run length from its own identity, and the sag arc spends over that shorter run, so the hem follows the limbs it hangs from. Zero variation is today's level hem."
+      },
+      {
+        "gap": "silver-birch/generate/level-miss/curtain_hem",
+        "option": "per-side-hem-term",
+        "change_kind": "generator",
+        "touches": "pendant shoot length",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "A per-side term lowers the hem on the leaning side of the crown and raises it on the other, stated as a bearing and a depth."
+      }
+    ],
+    "expect_prior_verdict": {
+      "pendulous-variation-row": "none",
+      "per-side-hem-term": "none"
+    },
+    "expect_best_match": "pendulous-variation-row",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "fn-48-clump-lean-spread",
+    "gap": {
+      "id": "silver-birch/generate/level-miss/stem_lean",
+      "species": "silver-birch",
+      "capability": "a clump whose stems lean unequally",
+      "detail": "The clump's stems are spread symmetrically about one bearing by one lean angle, so the pair reads as a V. The photograph has one near-vertical stem and the others pushed aside."
+    },
+    "verdicts": [],
+    "options": [
+      {
+        "gap": "silver-birch/generate/level-miss/stem_lean",
+        "option": "stem-lean-spread-row",
+        "change_kind": "generator",
+        "touches": "multi-stem lean",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch",
+          "hazel"
+        ],
+        "reversible": true,
+        "summary": "A stem lean spread row from zero to one scales each stem's lean by its place in the clump, so the first stem may stand upright while the last leans by the full angle. Zero is the even spread the clump has today."
+      },
+      {
+        "gap": "silver-birch/generate/level-miss/stem_lean",
+        "option": "lean-each-stem-by-hand",
+        "change_kind": "value_table",
+        "touches": "multi-stem lean",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "The table states a lean angle per stem as a list, so the birch writes zero for the upright stem and the full angle for the other."
+      }
+    ],
+    "expect_prior_verdict": {
+      "stem-lean-spread-row": "none",
+      "lean-each-stem-by-hand": "none"
+    },
+    "expect_best_match": "stem-lean-spread-row",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "fn-49-collapsed-triangle",
+    "gap": {
+      "id": "silver-birch/gate/onboarding-gate/capability",
+      "species": "silver-birch",
+      "capability": "a tree that builds at every seed",
+      "detail": "About one seed in a hundred fails to build at all: a triangle rounded to zero area in single precision makes the surface builder fail the whole tree rather than tolerate one local defect."
+    },
+    "verdicts": [
+      "A seed is never dropped from the audited list to hide a build failure."
+    ],
+    "options": [
+      {
+        "gap": "silver-birch/gate/onboarding-gate/capability",
+        "option": "drop-the-degenerate-triangle",
+        "change_kind": "generator",
+        "touches": "surface mesh builder",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch",
+          "european-beech",
+          "oregon-white-oak",
+          "norway-spruce"
+        ],
+        "reversible": true,
+        "summary": "A triangle of zero area is dropped from the index buffer before the normals accumulate and an orphaned vertex takes a normal derived from its ring; a non-finite position still fails. Every preset at every seed that builds today produces the same mesh bytes."
+      },
+      {
+        "gap": "silver-birch/gate/onboarding-gate/capability",
+        "option": "reseed-past-the-failure",
+        "change_kind": "value_table",
+        "touches": "seed list",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "The seeds that fail are dropped from the species' audited seed list and replaced with seeds that build."
+      }
+    ],
+    "expect_prior_verdict": {
+      "drop-the-degenerate-triangle": "none",
+      "reseed-past-the-failure": "against"
+    },
+    "expect_best_match": "drop-the-degenerate-triangle",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "fn-50-short-shoots",
+    "gap": {
+      "id": "european-beech/gate/onboarding-gate/capability",
+      "species": "european-beech",
+      "capability": "leaves on the interior limbs",
+      "detail": "Leaves grow only where the wood is thin enough to be twig, so the crown's interior limbs are bare and the foliage sits in a shell. A broadleaf clothes its thicker limbs with short spur shoots, and a skeleton node per leaf would cost more than the ceiling allows."
+    },
+    "verdicts": [
+      "The node ceiling does not move; it is a cost line for every consumer."
+    ],
+    "options": [
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "short-shoots-as-placements",
+        "change_kind": "generator",
+        "touches": "foliage placement",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech",
+          "oregon-white-oak"
+        ],
+        "reversible": true,
+        "summary": "A short shoot is a placement on existing wood below a radius row, a point, a direction, a small length and a cluster of leaves, and never a skeleton node or a surface run. Spacing, radius, length, leaf count and spread are canopy rows; zero spacing grows none."
+      },
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "a-node-per-short-shoot",
+        "change_kind": "generator",
+        "touches": "skeleton growth",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech",
+          "oregon-white-oak"
+        ],
+        "reversible": true,
+        "summary": "Short shoots grow as ordinary twig axes from the interior limbs, each with its own skeleton nodes and surface run, so the existing twig law places their leaves."
+      },
+      {
+        "gap": "european-beech/gate/onboarding-gate/capability",
+        "option": "raise-the-interior-density",
+        "change_kind": "value_table",
+        "touches": "canopy density",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech"
+        ],
+        "reversible": true,
+        "summary": "The beech's table raises its leaves per station and widens its twig-diameter threshold, so more of the interior counts as twig and carries leaves."
+      }
+    ],
+    "expect_prior_verdict": {
+      "short-shoots-as-placements": "none",
+      "a-node-per-short-shoot": "against",
+      "raise-the-interior-density": "none"
+    },
+    "expect_best_match": "short-shoots-as-placements",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "fn-51-curtain-below-the-crown",
+    "gap": {
+      "id": "silver-birch/generate/level-miss/crown_base",
+      "species": "silver-birch",
+      "capability": "a curtain that falls below the crown",
+      "detail": "Every node is held inside the envelope's shell, so the curtain stops at the shell's lower surface and the crown base sits at 0.20 where the photograph has 0.08. A weeping tree's strands fall below the crown's own shape, near the ground."
+    },
+    "verdicts": [
+      "Letting the curtain hang past the shell's lower surface to a ground clearance is right."
+    ],
+    "options": [
+      {
+        "gap": "silver-birch/generate/level-miss/crown_base",
+        "option": "curtain-drop-band",
+        "change_kind": "generator",
+        "touches": "envelope containment",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch",
+          "weeping-willow"
+        ],
+        "reversible": true,
+        "summary": "Curtain drop and curtain clearance rows let a hanging shoot's nodes fall past the shell's lower surface into a band down to a ground clearance, and the containment invariant widens to hold inside the envelope or inside that band. Zero drop is today's shell."
+      },
+      {
+        "gap": "silver-birch/generate/level-miss/crown_base",
+        "option": "bunch-the-curtain-per-limb",
+        "change_kind": "generator",
+        "touches": "pendant attachment",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "The curtain is bunched under each limb rather than let past the shell, so the strands gather in falls whose depth is stated per limb and containment is untouched."
+      },
+      {
+        "gap": "silver-birch/generate/level-miss/crown_base",
+        "option": "lower-the-crown-base-row",
+        "change_kind": "value_table",
+        "touches": "crown base",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "The birch's table lowers its crown base so the whole envelope starts nearer the ground and the curtain's hem comes down with it."
+      }
+    ],
+    "expect_prior_verdict": {
+      "curtain-drop-band": "for",
+      "bunch-the-curtain-per-limb": "none",
+      "lower-the-crown-base-row": "none"
+    },
+    "expect_best_match": "curtain-drop-band",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "fn-52-leaf-mass-lit-as-a-canopy",
+    "gap": {
+      "id": "european-beech/generate/level-miss/foliage_brightness",
+      "species": "european-beech",
+      "capability": "a leaf mass lit as a canopy",
+      "detail": "One percent of the render's leaf pixels are above half brightness where the photograph has twenty. The crown reads as a spray of unlit cards, and no term makes a leaf mass read as a lit volume."
+    },
+    "verdicts": [
+      "A fault in a lighting term is fixed, never tuned around."
+    ],
+    "options": [
+      {
+        "gap": "european-beech/generate/level-miss/foliage_brightness",
+        "option": "canopy-lighting-rows",
+        "change_kind": "appearance",
+        "touches": "foliage shader lighting",
+        "moves_pin": true,
+        "changes_preset_output": [
+          "european-beech",
+          "oregon-white-oak",
+          "silver-birch"
+        ],
+        "serves_species": [
+          "european-beech",
+          "oregon-white-oak",
+          "silver-birch"
+        ],
+        "reversible": true,
+        "summary": "Each lighting term is isolated first and any fault in it is fixed; then the canopy gains a shading normal bent toward the crown's outward direction, a light wrap, a forward transmission and a sheen, as material rows. A fixed fault moves the pinned stills once, with the fault named."
+      },
+      {
+        "gap": "european-beech/generate/level-miss/foliage_brightness",
+        "option": "brighten-the-leaf-colour",
+        "change_kind": "value_table",
+        "touches": "leaf colour rows",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech"
+        ],
+        "reversible": true,
+        "summary": "The beech's leaf front and back colours are raised until the render's bright-pixel share matches the photograph's, leaving the lighting terms as they are."
+      }
+    ],
+    "expect_prior_verdict": {
+      "canopy-lighting-rows": "for",
+      "brighten-the-leaf-colour": "against"
+    },
+    "expect_best_match": "canopy-lighting-rows",
+    "holdout": true,
+    "negative": false
+  },
+  {
+    "id": "fn-54-beech-crown-from-limb-systems",
+    "gap": {
+      "id": "european-beech/generate/level-miss/crown_mass",
+      "species": "european-beech",
+      "capability": "a crown built from its limb systems",
+      "detail": "After eighteen value rounds the beech's crown will not break into lobed limb-system masses with shade pockets between them: the envelope samples attractors uniformly, so every limb shares one leaf cloud, and the leaf shader reads one smooth ellipsoid with no local depth."
+    },
+    "verdicts": [
+      "The beech only; the birch is approaching good and is not touched.",
+      "The leader runs through the crown is withdrawn."
+    ],
+    "options": [
+      {
+        "gap": "european-beech/generate/level-miss/crown_mass",
+        "option": "measure-then-clump",
+        "change_kind": "value_table",
+        "touches": "habit, envelope and radius rows",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech"
+        ],
+        "reversible": true,
+        "summary": "The beech's habit, envelope and radius rows are measured again from the bare pair and set from those numbers first, and only a measured shortfall escalates to a clumping term."
+      },
+      {
+        "gap": "european-beech/generate/level-miss/crown_mass",
+        "option": "limb-attractor-clumps",
+        "change_kind": "generator",
+        "touches": "attractor sampling",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-beech",
+          "oregon-white-oak"
+        ],
+        "reversible": true,
+        "summary": "A clumping row lets each first-order limb claim its own cluster of attractors, so the crown grows as several masses rather than one cloud. Zero clumping is today's uniform sampling."
+      },
+      {
+        "gap": "european-beech/generate/level-miss/crown_mass",
+        "option": "retune-every-broadleaf",
+        "change_kind": "value_table",
+        "touches": "habit rows of every broadleaf",
+        "moves_pin": true,
+        "changes_preset_output": [
+          "silver-birch",
+          "oregon-white-oak"
+        ],
+        "serves_species": [
+          "european-beech",
+          "silver-birch",
+          "oregon-white-oak"
+        ],
+        "reversible": true,
+        "summary": "Every broadleaf's habit rows are retuned together against the same pairs, so the beech, the birch and the oak all take the new crown shape at once."
+      }
+    ],
+    "expect_prior_verdict": {
+      "measure-then-clump": "none",
+      "limb-attractor-clumps": "none",
+      "retune-every-broadleaf": "against"
+    },
+    "expect_best_match": "measure-then-clump",
+    "holdout": false,
+    "negative": false
+  },
+  {
+    "id": "negative-no-option-answers-the-capability",
+    "gap": {
+      "id": "european-ash/gate/onboarding-gate/capability",
+      "species": "european-ash",
+      "capability": "opposite pinnate compound leaves",
+      "detail": "The ash carries pinnate compound leaves in opposite pairs. The canopy places single blades at a station and has no leaflet, no rachis and no opposite phyllotaxy, so no arrangement of the blades it has reads as one compound leaf."
+    },
+    "verdicts": [],
+    "options": [
+      {
+        "gap": "european-ash/gate/onboarding-gate/capability",
+        "option": "widen-the-leaf-blade",
+        "change_kind": "value_table",
+        "touches": "leaf blade rows",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-ash"
+        ],
+        "reversible": true,
+        "summary": "The ash's table lengthens and narrows its leaf blade so a single blade reads about the size of a whole compound leaf."
+      },
+      {
+        "gap": "european-ash/gate/onboarding-gate/capability",
+        "option": "darken-the-ash-foliage",
+        "change_kind": "appearance",
+        "touches": "leaf material colour",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-ash"
+        ],
+        "reversible": true,
+        "summary": "The ash's leaf front and back colours are darkened so its crown reads closer to the photograph's tone at a distance."
+      },
+      {
+        "gap": "european-ash/gate/onboarding-gate/capability",
+        "option": "raise-the-leaves-per-station",
+        "change_kind": "value_table",
+        "touches": "canopy density",
+        "moves_pin": false,
+        "changes_preset_output": [],
+        "serves_species": [
+          "european-ash"
+        ],
+        "reversible": true,
+        "summary": "The ash's table raises its leaves per station so a station carries a spray of blades where the tree carries one compound leaf."
+      }
+    ],
+    "expect_prior_verdict": {
+      "widen-the-leaf-blade": "none",
+      "darken-the-ash-foliage": "none",
+      "raise-the-leaves-per-station": "none"
+    },
+    "expect_best_match": "none",
+    "holdout": true,
+    "negative": true
+  }
+]

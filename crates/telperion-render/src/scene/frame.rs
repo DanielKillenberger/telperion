@@ -180,6 +180,13 @@ impl Scene {
                     m.lenticel_tint,
                 ),
                 peel: colour(m.peel_red, m.peel_green, m.peel_blue, m.peel_curl),
+                reflectance: colour(m.bark_reflectance, m.leaf_reflectance, 0.0, 0.0),
+                grain: colour(
+                    m.bark_grain_scale,
+                    m.bark_grain_strength,
+                    m.blade_grain_scale,
+                    m.blade_grain_strength,
+                ),
             }),
         );
     }

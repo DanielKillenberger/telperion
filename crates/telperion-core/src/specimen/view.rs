@@ -94,7 +94,7 @@ impl SpecimenView {
         } else {
             foliage::place_short_shoots(&tree, envelope, seed, f.canopy, &mut instances)?;
         }
-        let instances = foliage::cull(&instances, &element, envelope, f.shell_depth)?;
+        let instances = foliage::cull(instances, &element, envelope, f.shell_depth)?;
         let bounds = mesh::union(wood.bounds, instances.bounds(&element)?.map(Into::into))
             .unwrap_or(surface::Bounds {
                 min: crate::math::Vec3::ZERO,
