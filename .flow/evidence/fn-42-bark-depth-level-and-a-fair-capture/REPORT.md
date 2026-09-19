@@ -60,3 +60,7 @@ The quick colour pass changes existing fissure RGB rows for oak and spruce only;
 The final colour patch changes mean RGB by (+3.66, -0.59, -2.47) for oak and (+1.21, -0.32, -1.41) for spruce in 8-bit image codes. The mean is slightly warmer, not numerically identical. Spruce channel-difference spread increases; oak spread decreases despite its warmer recessed patches. These are diagnostics, not claims of greater colour diversity in every metric or a photo-match score. See colour-final/comparison.json.
 
 Final colour checks pass: material validation, structure-colour, material shaders, distance/resolution, deterministic calibration redraw, browser material round-trip, and Wasm/catalogue generation. Commands and receipts are in COLOUR-HANDOVER.md. The colour worker spent about one minute locating an image-metrics interpreter; preserve its exact invocation in future capture recipes. This is local setup friction, not a proposed repository spec.
+
+## Acceptance, 2026-09-20
+
+The owner accepted the appearance and live distance render and authorized squash merge after the inherited hero failure had been disclosed. Birch material tuning remains separate; its authored controls already exist and were unchanged. This supersedes the pending visual/gate statuses above. The historical hero absolute result remains failed, with an acceptance exception supported by the controlled baseline comparison and owner live verdict. All other stated numerical bounds remain unchanged.
