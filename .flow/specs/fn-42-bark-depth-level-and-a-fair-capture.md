@@ -96,3 +96,9 @@ Use an isolated branch. Only oak and spruce material rows may change for colour 
 ## Strategy Alignment
 
 - Follows "Surface and rendering at scale": continuous surfaces, foliage and bark that make the structure legible from close views, without species-specific paths or hand-modelled assets, judged with measured runtime cost; hierarchy and continuous rendering representations keep rendering within game budgets from a hero tree to a forest, without visible stepping, thinning or shimmer.
+
+### Owner visual verdict, 2026-09-20
+
+> i feel the relief highlights more clearly the structural difference between the reference and our implementation. The small scales with fine lines are quite different to our deep and more wide valleys in the relief. There's also a lack of roughness around the edges.
+
+The stronger-relief candidate is not accepted. The owner identifies a morphology mismatch: small scales and fine separations in the reference versus broad deep valleys and smooth edges in the candidate. Increasing height contrast alone is not a success criterion for the next pass. Preserve the improved base colours; investigate shallower plate faces, narrow separations and irregular chipped edges. The current spec boundary preserving the accepted plate network must be reconciled with this structural feedback before a new implementation pass.

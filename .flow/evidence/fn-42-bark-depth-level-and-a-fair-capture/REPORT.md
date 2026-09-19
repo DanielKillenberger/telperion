@@ -50,3 +50,7 @@ R1 is implemented. R2 has a measured relief improvement and passing native/close
 - Historical hero curves lack sufficient mask/capture provenance. The bounded diagnosis found foliage contamination and then an empty wood-only mask. Proposed evidence-tooling work would persist exact masks, pixel counts, camera, view, dimensions, seed, source hashes and command with every curve. The owner decides whether this becomes a line in an open spec; none was created.
 
 Route: fn-42 → qualitative references → fixed-colour relief implementation → measured candidate. Automated review remains disabled by review.backend=none; the host reviewed the implementation diff. Native captures and browser timing ran. R2 historical evidence and R5 owner verdicts remain open. Tracker sync is not applicable.
+
+## Subsequent owner verdict, 2026-09-20
+
+The owner rejects the direction of the stronger relief. It emphasizes broad deep valleys while the reference has small scales, fine lines and rough edges. See OWNER-RELIEF-VERDICT.md for the exact words and required change of direction. R5 is no longer awaiting first feedback; the candidate requires revision.
