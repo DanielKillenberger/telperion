@@ -69,16 +69,18 @@ fn a_rotation_round_trips_inside_the_stated_bound() {
             }
         }
     }
-    // MEASURED, and it is not the number the spec asked for. Ten bits a
+    // The bound is the measured worst case, not the typical one. Ten bits a
     // component over a sweep of 4,096 orientations is 0.00250 rad at worst
     // with the encoder choosing the nearest of its cell's eight corners, and
-    // 0.00316 rad with each component rounded on its own. The spec's R2 asks
-    // for 0.002 rad; the layout cannot reach it, because what the dropped
+    // 0.00316 rad with each component rounded on its own. Thirty bits cannot
+    // reach the 0.002 rad the spec first asked for, because what the dropped
     // component reconstructs to is amplified by one over itself and that is
-    // as large as two near half a turn. The bound held here is the measured
-    // one, so a later change that makes the encoding worse still fails. The
-    // gap is the host's to rule on: either the bound moves to 0.0026 or the
-    // rotation needs a bit more than thirty.
+    // as large as two near half a turn; the owner moved R2 to 0.0026 on
+    // 2026-09-19 rather than widen the rotation, since the twelve bytes are
+    // what this encoding exists for. At 0.149 degrees it carries a 70 mm
+    // leaf's tip 0.18 mm, inside the position budget already allowed. The
+    // number held here is the measured one, so a later change that makes the
+    // encoding worse still fails.
     assert!(worst <= 2.6e-3, "worst rotation error {worst} rad");
 }
 
