@@ -19,3 +19,11 @@ The calibration fixture reused the root target directory to avoid a new dependen
 ### 2026-09-19 — flat fixture lighting orientation
 
 The first explicit capture completed in 7.71 seconds, but numerical inspection showed very dark material and dark fractions above 0.97. The default sun at azimuth 135° faces negative Z while the initial square-on patch normal faces positive Z. Escalated the evidence lighting choice to the host before a second capture. About one minute; a fixture orientation contract stated beside the camera/light rows would have removed this mismatch.
+
+## 2026-09-19 - reference search continuation
+
+After rejecting low-resolution or growth-covered photographs, the host had ended the turn instead of continuing retrieval; the owner had to prompt continuation. Cost: one extra user turn. Keep the accepted search objective active through source rejection; return with selected inspected candidates or a concrete bounded blocker. A third Wikimedia original returned HTTP 429 after two originals downloaded; stopped that request without a retry loop. The two downloaded originals are sufficient to assess the spruce structural reference.
+
+### 2026-09-19 — oak source metadata versus useful pixels
+
+The bounded oak reference search reached three source families. SelecTree's labelled original bark file is only 650 × 567; three high-resolution Commons originals proved to be whole-tree or leaf subjects. Burke's organ-tag search returned none and its taxon listing omits organ descriptions. Approximately 7 minutes, four image inspections. Stopped without calling the poor-resolution source success. A catalogue linking original-resolution bark photographs with subject labels and physical scale would remove this retrieval friction. Python image/helper modules were absent; standard JPEG identification and text parsing avoided installing tools.
