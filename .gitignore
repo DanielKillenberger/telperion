@@ -10,6 +10,9 @@ dist
 .flow/evidence/fn34/measure/
 # Jev ledger entries are per-run records, not source.
 .flow/ledger/
+# Per-run worker scratch: the base commit a task was dispatched from, the
+# summary and evidence it hands back. None of it is a record of the repo.
+.flow/tmp/
 
 # Rust outputs and reproducible migration artifacts.
 /target/

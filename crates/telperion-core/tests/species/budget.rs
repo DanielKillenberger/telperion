@@ -59,9 +59,7 @@ struct State {
 impl Budget {
     /// The three numbers this host's free memory gives, read once.
     pub fn of_host() -> Self {
-        let available = available_bytes().unwrap_or(0);
-        let reserve = RESERVE_FLOOR.max(available / 4);
-        Self::with(available.saturating_sub(reserve), cores())
+        Self::with(ceiling_from(available_bytes().unwrap_or(0)), cores())
     }
 
     /// A budget on a stated ceiling, for a test that drives it rather than
@@ -232,6 +230,14 @@ impl Drop for Seat<'_> {
     }
 }
 
+/// What a machine with this much free memory leaves this process: it keeps the
+/// larger of two gibibytes and a quarter of what it has, and the rest is the
+/// ceiling. A machine with less than the reserve leaves nothing, which admits
+/// one specimen at a time and says so of every one of them.
+fn ceiling_from(available: u64) -> u64 {
+    available.saturating_sub(RESERVE_FLOOR.max(available / 4))
+}
+
 /// Memory this machine can hand out without swapping, in bytes.
 fn available_bytes() -> Option<u64> {
     field("/proc/meminfo", "MemAvailable:")
@@ -316,4 +322,54 @@ fn touched(bytes: u64) -> Vec<u8> {
         page[0] = 1;
     }
     block
+}
+
+/// The machine's reserve, the process ceiling and the charge limit are three
+/// numbers, and each is a stated share of the one before it.
+#[test]
+fn the_reserve_the_ceiling_and_the_charge_limit_are_three_numbers() {
+    let gib = 1_u64 << 30;
+    // Under four times the floor the machine keeps the floor; above it, the
+    // quarter is the larger and the machine keeps that.
+    for (available, ceiling) in [
+        (0, 0),
+        (gib, 0),
+        (2 * gib, 0),
+        (4 * gib, 2 * gib),
+        (8 * gib, 6 * gib),
+        (64 * gib, 48 * gib),
+    ] {
+        assert_eq!(ceiling_from(available), ceiling, "at {available} bytes free");
+        let budget = Budget::with(ceiling, 4);
+        assert_eq!(budget.ceiling(), ceiling);
+        assert_eq!(budget.charge_limit(), ceiling / 3 * 2);
+        assert!(
+            budget.charge_limit() < budget.ceiling() || ceiling == 0,
+            "the charge limit is the smaller of the two"
+        );
+    }
+}
+
+/// A specimen larger than the whole charge limit is admitted rather than
+/// refused - one seed always runs - it is named where it happens, and that
+/// one state, and only it, waives the ceiling the rest of the run is held to.
+#[test]
+fn a_specimen_over_the_whole_limit_runs_alone_and_says_so() {
+    let budget = Budget::with(1 << 20, 4);
+    assert_eq!(budget.admission(budget.charge_limit() * 4), 1);
+    {
+        let _charge = budget.charge("a tree too large", budget.charge_limit() * 4);
+        assert_eq!(budget.charged(), budget.charge_limit() * 4);
+    }
+    let outside = budget.outside();
+    assert_eq!(outside.len(), 1);
+    assert!(
+        outside[0].contains("a tree too large") && outside[0].contains("charge limit"),
+        "the report names neither the specimen nor the limit: {}",
+        outside[0]
+    );
+    // Its peak stands over the ceiling, and the run says why rather than
+    // failing an assertion nobody could have met.
+    assert!(budget.peak() > budget.ceiling());
+    budget.hold_to_the_ceiling();
 }
