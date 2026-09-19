@@ -121,8 +121,18 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
 
 /// Metres between leaves on a run no twig layer marks: the row's share of the
 /// tree's own height, never finer than a tenth of a millimetre.
-fn spacing(envelope: Envelope, p: CanopyParams) -> f64 {
-    (p.spacing * envelope.height.max(1e-6)).max(1e-4)
+fn spacing(envelope: Envelope, p: CanopyParams) -> Result<f64> {
+    let spacing = p.spacing * envelope.height;
+    if !spacing.is_finite() || spacing <= 0.0 {
+        return Err(Error::InvalidInput("foliage spacing"));
+    }
+    Ok(spacing)
+}
+
+/// The most stations a run may hold before the vector that carries them would
+/// outgrow what an index can address.
+fn addressable() -> f64 {
+    (isize::MAX as usize / std::mem::size_of::<f64>()) as f64
 }
 
 /// How many leaves a run of this length carries: one set per internode under a
@@ -141,15 +151,22 @@ pub(super) fn station_count(
         return Err(Error::ResourceLimit("shoot length overflow"));
     }
     if let Some(t) = twig {
+        let per = t.stations_per_internode as f64;
         let internodes = (length / t.internode_length - 1e-9).ceil().max(1.);
-        if internodes > 512. / t.stations_per_internode as f64 {
-            return Err(Error::ResourceLimit("twig station budget"));
+        if !internodes.is_finite()
+            || internodes * per > p.max_instances as f64
+            || internodes * per >= addressable()
+        {
+            return Err(Error::ResourceLimit("foliage instance budget"));
         }
         return Ok(internodes as usize * t.stations_per_internode as usize);
     }
-    let count = (length / spacing(envelope, p)).ceil();
-    if count > 512. - p.clump as f64 {
-        return Err(Error::ResourceLimit("shoot station budget"));
+    let count = (length / spacing(envelope, p)?).ceil();
+    if !count.is_finite()
+        || count + p.clump as f64 > p.max_instances as f64
+        || count + p.clump as f64 >= addressable()
+    {
+        return Err(Error::ResourceLimit("foliage instance budget"));
     }
     Ok(count as usize + p.clump as usize)
 }
@@ -163,10 +180,15 @@ fn stations(
     rng: &mut Rng,
 ) -> Result<Vec<f64>> {
     let total = station_count(length, envelope, p, twig)?;
-    let mut stations = Vec::with_capacity(total);
+    let mut stations = Vec::new();
     if total == 0 {
         return Ok(stations);
     }
+    // The count is the builder's and the prediction's alike, and the block it
+    // asks for is asked for once and may be refused.
+    stations
+        .try_reserve_exact(total)
+        .map_err(|_| Error::ResourceLimit("foliage allocation"))?;
     if let Some(t) = twig {
         let per = t.stations_per_internode as usize;
         for i in 0..total / per {
@@ -176,7 +198,7 @@ fn stations(
         }
         return Ok(stations);
     }
-    let spacing = spacing(envelope, p);
+    let spacing = spacing(envelope, p)?;
     for i in 0..total - p.clump as usize {
         stations.push(i as f64 * spacing);
     }

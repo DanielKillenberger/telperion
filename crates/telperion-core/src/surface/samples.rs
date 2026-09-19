@@ -109,7 +109,7 @@ fn branch_run(
     let pr = nodes[attach].radius;
     let away = (nodes[first].position - nodes[attach].position).normalized();
     let inscribed = pr * (1.0 - depth) * (std::f64::consts::PI / segments as f64).cos_fixed();
-    let sink = (params.fork_socket * pr).min(0.9 * inscribed);
+    let sink = (params.fork_socket * pr).min(params.socket_containment * inscribed);
     let contained = (inscribed * inscribed - sink * sink).max(0.0).sqrt() / (1.0 + depth);
     samples.push(Sample {
         p: nodes[attach].position + away * (-sink),

@@ -29,12 +29,12 @@ fn bounds(min: Vec3, max: Vec3) -> Value {
 fn branch_diagnostics(
     tree: &telperion_core::tree::Tree,
     params: twigs::TwigParams,
-) -> Result<([usize; twigs::MAX_LEVELS + 1], usize, usize, usize)> {
-    let mut counts = [0usize; twigs::MAX_LEVELS + 1];
+) -> Result<(Vec<usize>, usize, usize, usize)> {
+    let t = params.resolved()?;
+    let mut counts = vec![0usize; t.generations as usize + 1];
     let mut handoffs = 0;
     let mut capped_handoffs = 0;
     let mut twig_count = 0;
-    let t = params.resolved()?;
     for (i, n) in tree.nodes.iter().enumerate().skip(tree.crossover) {
         twig_count += usize::from(n.kind == NodeKind::Twig && n.branch as usize == i);
         if n.parent.is_some_and(|p| (p as usize) < tree.crossover) {
@@ -238,7 +238,8 @@ mod tests {
         assert_eq!(handoffs, 4);
         assert_eq!(twigs, 2);
         assert_eq!(capped, 0);
-        assert_eq!(counts, [1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(counts.len(), params.generations as usize + 1);
+        assert_eq!(counts, [1, 1, 0, 1, 0, 1, 0]);
         assert_eq!(
             branch_diagnostics(
                 &tree,
@@ -254,7 +255,7 @@ mod tests {
         tree.nodes.truncate(2);
         assert_eq!(
             branch_diagnostics(&tree, params).unwrap(),
-            ([0; 13], 0, 0, 0)
+            (vec![0; params.generations as usize + 1], 0, 0, 0)
         );
     }
 

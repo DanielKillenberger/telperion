@@ -15,9 +15,11 @@ macro_rules! fields {
         $op!($f, $v, "growth", "shape"; growth.shape);
         $op!($f, $v, "growth", "leafLifetime"; growth.leaf_lifetime);
         $op!($f, $v, "growth", "resizeTolerance"; growth.resize_tolerance);
+        $op!($f, $v, "growth", "workBudget"; growth.work_budget);
         $op!($f, $v, "growth", "sheddingTolerance"; growth.shedding_tolerance);
         $op!($f, $v, "growth", "apicalControlLoss"; growth.apical_control_loss);
         $op!($f, $v, "skeleton", "habit", "apicalDominance"; skeleton.habit.apical_dominance);
+        $op!($f, $v, "skeleton", "habit", "reachProbeSteps"; skeleton.habit.reach_probe_steps);
         $op!($f, $v, "skeleton", "habit", "whorlStrength"; skeleton.habit.whorl_strength);
         $op!($f, $v, "skeleton", "habit", "leaderInternode"; skeleton.habit.leader_internode);
         $op!($f, $v, "skeleton", "habit", "lateralsPerStation"; skeleton.habit.laterals_per_station);
@@ -40,6 +42,7 @@ macro_rules! fields {
         $op!($f, $v, "element", "connectorLength"; element.connector_length);
         $op!($f, $v, "skeleton", "seed"; skeleton.seed);
         $op!($f, $v, "skeleton", "attractors"; skeleton.attractors);
+        $op!($f, $v, "skeleton", "samplingAttemptsPerAttractor"; skeleton.sampling_attempts_per_attractor);
         $op!($f, $v, "skeleton", "step"; skeleton.step);
         $op!($f, $v, "skeleton", "envelope", "height"; skeleton.envelope.height);
         $op!($f, $v, "skeleton", "envelope", "crownBase"; skeleton.envelope.crown_base);
@@ -53,6 +56,7 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "bias", "supernatural", "enabled"; skeleton.bias.supernatural.enabled);
         $op!($f, $v, "skeleton", "bias", "supernatural", "writheAmplitude"; skeleton.bias.supernatural.writhe_amplitude);
         $op!($f, $v, "skeleton", "bias", "supernatural", "writheWavelength"; skeleton.bias.supernatural.writhe_wavelength);
+        $op!($f, $v, "skeleton", "bias", "supernatural", "maxWritheMagnitude"; skeleton.bias.supernatural.max_writhe_magnitude);
         $op!($f, $v, "skeleton", "bias", "supernatural", "spiralRate"; skeleton.bias.supernatural.spiral_rate);
         $op!($f, $v, "skeleton", "twigs", "twig", "diameter"; skeleton.twigs.twig.diameter);
         $op!($f, $v, "skeleton", "twigs", "twig", "length"; skeleton.twigs.twig.length);
@@ -64,6 +68,9 @@ macro_rules! fields {
         $op!($f, $v, "skeleton", "twigs", "internodeFactor"; skeleton.twigs.internode_factor);
         $op!($f, $v, "skeleton", "twigs", "laterals"; skeleton.twigs.laterals);
         $op!($f, $v, "skeleton", "twigs", "generations"; skeleton.twigs.generations);
+        $op!($f, $v, "skeleton", "twigs", "maxInternodes"; skeleton.twigs.max_internodes);
+        $op!($f, $v, "skeleton", "twigs", "maxDroop"; skeleton.twigs.max_droop);
+        $op!($f, $v, "skeleton", "twigs", "curtainStepClearance"; skeleton.twigs.curtain_step_clearance);
         $op!($f, $v, "skeleton", "twigs", "limbRadius"; skeleton.twigs.limb_radius);
         $op!($f, $v, "skeleton", "twigs", "reach"; skeleton.twigs.reach);
         $op!($f, $v, "skeleton", "twigs", "angle"; skeleton.twigs.angle);
@@ -87,6 +94,7 @@ macro_rules! fields {
         $op!($f, $v, "radii", "trunkRadius"; radii.trunk_radius);
         $op!($f, $v, "radii", "forkExponent"; radii.fork_exponent);
         $op!($f, $v, "radii", "lengthTaper"; radii.length_taper);
+        $op!($f, $v, "radii", "maxTaperExponent"; radii.max_taper_exponent);
         $op!($f, $v, "surface", "radialSegments"; surface.radial_segments);
         $op!($f, $v, "surface", "lobes"; surface.lobes);
         $op!($f, $v, "surface", "lobeDepth"; surface.lobe_depth);
@@ -95,6 +103,7 @@ macro_rules! fields {
         $op!($f, $v, "surface", "flareFalloff"; surface.flare_falloff);
         $op!($f, $v, "surface", "flareDepth"; surface.flare_depth);
         $op!($f, $v, "surface", "forkSocket"; surface.fork_socket);
+        $op!($f, $v, "surface", "socketContainment"; surface.socket_containment);
         $op!($f, $v, "surface", "forkSwell"; surface.fork_swell);
         $op!($f, $v, "canopy", "shootRadius"; canopy.shoot_radius);
         $op!($f, $v, "canopy", "spacing"; canopy.spacing);
@@ -115,6 +124,8 @@ macro_rules! fields {
         $op!($f, $v, "canopy", "shortShootLeaves"; canopy.short_shoot_leaves);
         $op!($f, $v, "canopy", "shortShootSpread"; canopy.short_shoot_spread);
         $op!($f, $v, "canopy", "limbClumping"; canopy.limb_clumping);
+        $op!($f, $v, "canopy", "clumpSystemOrder"; canopy.clump_system_order);
+        $op!($f, $v, "canopy", "clumpNeighbours"; canopy.clump_neighbours);
         $op!($f, $v, "canopy", "maxInstances"; canopy.max_instances);
         $op!($f, $v, "element", "length"; element.length);
         $op!($f, $v, "element", "width"; element.width);
@@ -305,7 +316,8 @@ pub fn parse(v: &Value) -> Result<Family> {
     macro_rules! read {
         ($f:ident, $v:ident, $($key:literal),+; $($field:ident).+) => {
             if let Some(value) = $v.pointer(concat!($("/", $key),+)) {
-                $f.$($field).+ = Wire::decode(value.clone())?;
+                $f.$($field).+ = Wire::decode(value.clone())
+                    .map_err(|_| Error::InvalidInput(concat!($("/", $key),+)))?;
             }
         };
     }

@@ -31,7 +31,6 @@ impl Specimen {
         family.growth.validate()?;
         let mut specimen = Self::new(&family.skeleton, family.radii)?;
         specimen.retention.cap = cap;
-        specimen.config.max_nodes = specimen.config.max_nodes.min(NODE_CEILING);
         specimen.timeline = Some(Timeline {
             age: Age::default(),
             years: Vec::new(),
@@ -180,7 +179,8 @@ impl Specimen {
     /// Raising a ceiling unblocks the rolled-back frontier; limits are resources,
     /// not growth traits, and do not change the annual budget.
     pub fn set_node_ceiling(&mut self, limit: usize) -> Result<()> {
-        if limit > NODE_CEILING || limit < self.tree.nodes.len() + self.retention.dead.len() {
+        crate::ranges::max_nodes(limit)?;
+        if limit < self.tree.nodes.len() + self.retention.dead.len() {
             return Err(Error::InvalidValue {
                 field: "node ceiling",
                 value: limit.to_string(),

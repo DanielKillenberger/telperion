@@ -44,7 +44,7 @@ for (const id of ['ordinary', 'oregon-white-oak', 'norway-spruce', 'telperion', 
     specimen.advance(5.5);
     const snapshot = specimen.snapshot();
     const nativeSnapshot = execFileSync('target/release/examples/node_buffer', [id, '25.75', '--export'], { maxBuffer: 512 * 1024 * 1024 });
-    const imported = engine.importSpecimen({ schema: 2, data: nativeSnapshot });
+    const imported = engine.importSpecimen({ schema: 3, data: nativeSnapshot });
     imported.advance(0.25);
     for (const age of [10.5, 20.25, 26]) {
       const read = imported.read(age);

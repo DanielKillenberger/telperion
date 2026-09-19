@@ -44,6 +44,21 @@ impl<V: Clone> Map<V> {
             }
         }
     }
+    pub fn get_mut(&mut self, key: u64) -> Option<&mut V> {
+        self.get(key)?;
+        let mut page = &mut self.root;
+        let mut level = self.level;
+        loop {
+            let index = ((key >> (level * BITS)) & (SIZE as u64 - 1)) as usize;
+            match Arc::make_mut(page) {
+                Page::Leaf(values) => return values[index].as_mut().map(Arc::make_mut),
+                Page::Branch(children) => {
+                    page = children[index].as_mut()?;
+                    level -= 1;
+                }
+            }
+        }
+    }
     pub fn set(&mut self, key: u64, value: Option<V>) {
         let existed = self.get(key).is_some();
         if value.is_none() && !existed {
@@ -62,6 +77,20 @@ impl<V: Clone> Map<V> {
         Iter {
             stack: vec![(&self.root, 0)],
         }
+    }
+    #[cfg(test)]
+    pub fn collect_pages(&self, pages: &mut std::collections::BTreeSet<usize>) {
+        fn collect<V: Clone>(page: &Arc<Page<V>>, pages: &mut std::collections::BTreeSet<usize>) {
+            if !pages.insert(Arc::as_ptr(page) as usize) {
+                return;
+            }
+            if let Page::Branch(children) = page.as_ref() {
+                for child in children.iter().flatten() {
+                    collect(child, pages);
+                }
+            }
+        }
+        collect(&self.root, pages);
     }
 }
 fn write<V: Clone>(page: &mut Arc<Page<V>>, level: u32, key: u64, value: Option<Arc<V>>) {

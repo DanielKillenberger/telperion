@@ -179,7 +179,7 @@ fn annual_node_cap_rolls_back_a_partial_slice_and_resumes_after_raise() {
         s.advance(1.0),
         Err(Error::ResourceLimit("node ceiling reached"))
     );
-    s.set_node_ceiling(NODE_CEILING).unwrap();
+    s.set_node_ceiling(DEFAULT_MAX_NODES).unwrap();
     s.advance(1.0).unwrap();
     assert!(
         bytes(&s.tree) == bytes(&full.tree),
@@ -269,7 +269,7 @@ fn annual_zero_ceiling_keeps_an_empty_seedling_and_recovers() {
         s.advance(1.0),
         Err(Error::ResourceLimit("node ceiling reached"))
     );
-    s.set_node_ceiling(NODE_CEILING).unwrap();
+    s.set_node_ceiling(DEFAULT_MAX_NODES).unwrap();
     s.advance(1.0).unwrap();
     f.skeleton.growth.max_nodes = None;
     let fresh = Specimen::build(&f).unwrap();

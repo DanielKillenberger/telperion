@@ -73,6 +73,13 @@ fn stem_root(node: &Node) -> bool {
 
 impl Specimen {
     pub fn new(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
+        crate::ranges::POSITIVE_COUNT.check(
+            params.sampling_attempts_per_attractor as f64,
+            "samplingAttemptsPerAttractor",
+        )?;
+        if params.attractors > crate::ranges::MAX_ATTRACTORS {
+            return Err(Error::InvalidInput("attractors"));
+        }
         params.envelope.validate()?;
         params.bias.validate()?;
         params.habit.validate()?;
@@ -86,7 +93,12 @@ impl Specimen {
         }
         let inner = inner_envelope(params.envelope, twigs.reach);
         let points = if params.habit.attractor_weight > 0.0 {
-            inner.sample(params.attractors, &mut Rng::new(params.seed), params.seed)?
+            inner.sample_with_attempts(
+                params.attractors,
+                &mut Rng::new(params.seed),
+                params.seed,
+                params.sampling_attempts_per_attractor,
+            )?
         } else {
             Vec::new()
         };
@@ -260,12 +272,6 @@ impl Specimen {
     pub fn grow(params: &SkeletonParams, radii: RadiusParams) -> Result<Self> {
         let mut s = Self::new(params, radii)?;
         s.step(usize::MAX, 0)?;
-        let twigs = params.twigs.resolved()?;
-        s.config.max_nodes = s
-            .config
-            .max_nodes
-            .min(NODE_CEILING)
-            .min(s.tree.nodes.len() + headroom(&s.tree, &s.config, twigs));
         s.step(0, usize::MAX)?;
         debug_assert!(s.finished() || !s.tree.diagnostics.complete());
         s.shed = finish(&mut s.tree, params, radii)?;

@@ -43,6 +43,7 @@ impl Default for GrowthConfig {
 }
 impl GrowthConfig {
     pub fn validate(&self) -> Result<()> {
+        crate::ranges::max_nodes(self.max_nodes)?;
         if ![
             self.influence_radius,
             self.kill_distance,
@@ -56,7 +57,6 @@ impl GrowthConfig {
             || !self.influence_radius.powi(2).is_finite()
             || !self.kill_distance.powi(2).is_finite()
             || !self.step_distance.powi(2).is_finite()
-            || self.max_nodes > u32::MAX as usize
         {
             return Err(Error::InvalidInput("colonization configuration"));
         }
@@ -191,9 +191,8 @@ pub fn colonize(
     let mut attraction = Attraction::new(points.len());
     attraction.settle(&tree, points, &grid, reach * reach, kill_sq);
     let max_turn = config.max_turn_per_step.to_radians();
-    let bend = |position, direction| {
-        bias.map_or(direction, |field| field.apply(position, direction, step))
-    };
+    let bend =
+        |position, direction| bias.map_or(direction, |field| field.apply(position, direction));
     let ceiling = points.iter().map(|p| p.y).fold(f64::NEG_INFINITY, f64::max);
     while tree.nodes.len() < config.max_nodes {
         let tip = tree.nodes.len() - 1;

@@ -156,6 +156,7 @@ fn frozen_parameters_resolve_without_default_substitution() {
         // fn-11 added age and growth traits, and the frozen file is a geometry
         // protocol that predates the timeline: it never stated an age or growth
         // curve, so these are not stated geometry parameters silently defaulted in.
+        assert_eq!(emitted["growth"]["workBudget"].as_u64(), Some(250000));
         for field in ["age", "growth"] {
             emitted
                 .as_object_mut()
@@ -239,6 +240,27 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .unwrap()
                 .remove(row)
                 .expect("the envelope publishes its outline rows");
+        }
+        // fn-53 names formerly hidden budgets without changing their defaults.
+        // Assert those exact historical values before comparing the older schema.
+        for (path, key, expected) in [
+            ("/canopy", "clumpSystemOrder", 2.),
+            ("/canopy", "clumpNeighbours", 12.),
+            ("/radii", "maxTaperExponent", 12.),
+            ("/surface", "socketContainment", 0.9),
+            ("/skeleton", "samplingAttemptsPerAttractor", 64.),
+            ("/skeleton/habit", "reachProbeSteps", 96.),
+            ("/skeleton/twigs", "maxInternodes", 32.),
+            ("/skeleton/twigs", "maxDroop", 0.35),
+            ("/skeleton/twigs", "curtainStepClearance", 0.8),
+            ("/skeleton/bias/supernatural", "maxWritheMagnitude", 0.9),
+        ] {
+            let object = emitted.pointer_mut(path).unwrap().as_object_mut().unwrap();
+            assert_eq!(
+                object.remove(key).unwrap().as_f64(),
+                Some(expected),
+                "{path}/{key}"
+            );
         }
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);

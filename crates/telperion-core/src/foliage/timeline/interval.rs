@@ -19,23 +19,26 @@ impl Foliage {
 impl Foliage {
     fn counts(&self, tree: &Tree, age: Age) -> Result<SecondaryMap<NodeKey, (usize, usize)>> {
         let mut counts = SecondaryMap::new();
-        let mut total = 0;
+        let mut total = 0usize;
         for i in self.living(tree, age)? {
             let n = &tree.nodes[i];
             let length = n
                 .position
                 .distance(tree.nodes[n.parent.unwrap() as usize].position);
             let stations = if length == 0.0 {
-                0
+                0.0
             } else {
-                (length / self.twig.internode_length - 1e-9).ceil().max(1.0) as usize
-                    * self.twig.stations_per_internode as usize
+                (length / self.twig.internode_length - 1e-9).ceil().max(1.0)
+                    * self.twig.stations_per_internode as f64
             };
-            if stations > 512 {
-                return Err(Error::ResourceLimit("twig station budget"));
+            if !stations.is_finite() || stations > u32::MAX as f64 {
+                return Err(Error::ResourceLimit("foliage station identity overflow"));
             }
+            let stations = stations as usize;
             let count = self.visible(Age::from_years(n.shoot.birth_year)?, age, stations);
-            total += count;
+            total = total
+                .checked_add(count)
+                .ok_or(Error::ResourceLimit("foliage count overflow"))?;
             if total > self.canopy.max_instances {
                 return Err(Error::ResourceLimit("foliage instance budget"));
             }

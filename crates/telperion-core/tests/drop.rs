@@ -111,7 +111,7 @@ fn curtain(drop: f64) -> Family {
     // rows that decide the shoot count are held where they were read.
     f.skeleton.habit.laterals_per_station = 4;
     f.skeleton.habit.lateral_pitch = 62.0;
-    f.skeleton.twigs.laterals = 8;
+    f.skeleton.twigs.laterals = 7;
     f.skeleton.twigs.length_ratio = 0.6;
     f
 }

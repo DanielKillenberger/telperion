@@ -172,7 +172,7 @@ pub extern "C" fn specimen_node_ceiling(handle: u32, limit: f64) -> u32 {
         let result = if !limit.is_finite()
             || limit < 0.0
             || limit.fract() != 0.0
-            || limit > telperion_core::branching::NODE_CEILING as f64
+            || limit > telperion_core::ranges::MAX_NODES as f64
         {
             Err(Error::InvalidValue {
                 field: "node ceiling",

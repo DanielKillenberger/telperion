@@ -196,7 +196,7 @@ try {
         ['crookedness', p => p.skeleton.habit.crookedness = 90],
         ['foliage connector length', p => p.element.connectorLength = -1],
         ['leaf card carries no lobes and no section roundness', p => { p.element.card = true; p.element.lobeCount = 1; }],
-        ['parameter type or range', p => p.skeleton.bias.supernatural.enabled = 1],
+        ['/skeleton/bias/supernatural/enabled', p => p.skeleton.bias.supernatural.enabled = 1],
       ]) {
         const bad = structuredClone(specimen); mutate(bad);
         await rejects(() => engine.build(bad, { foliage: true }), id + ' refuses ' + named, named);

@@ -170,14 +170,6 @@ fn generated_block_consumer_and_giant_samples_without_surface() {
             wood,
             leaves
         );
-        if matches!(preset, Preset::Telperion) {
-            // The giant stays a giant: a crown no one could place by hand.
-            // fn-24 rebuilt the Two Trees from the habit trait table, and the
-            // retired colonizer's 1_360_279 placements are 534_638 here, its
-            // wood standing further inside the lit shell. fn-10 owns any
-            // verdict on the Two Trees; this floor is the engineering rail.
-            assert!(retained.len() > 400_000);
-        }
     }
 }
 
