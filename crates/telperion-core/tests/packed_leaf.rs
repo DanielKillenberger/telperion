@@ -2,8 +2,11 @@
 //! made up for it: the box every species is quantised against, that the box
 //! does not move with age, and that no station the generator places falls
 //! outside it.
+use std::collections::BTreeMap;
 use telperion_core::{
-    foliage::{Leaf, Reference},
+    branching::{Specimen, SpecimenRead},
+    foliage::{Instances, Leaf, PlacementIdentity, Reference},
+    math::Vec3,
     mesh::{self, Detail},
     params, presets,
     specimen::SpecimenView,
@@ -127,4 +130,149 @@ fn the_position_step_is_under_a_quarter_millimetre_for_every_species() {
             reference.extent
         );
     }
+}
+
+/// R6's growth half: a leaf the growth path cached at one age decodes to the
+/// same station at a later one.
+///
+/// This is the criterion the parameter-derived box exists for. `timeline`
+/// writes a shoot's twelve bytes once and hands the same three words back at
+/// every later age the shoot's wood has not changed under, while the tree
+/// around them grows. The test takes only those leaves - the ones whose words
+/// at the later age are byte-identical to the ones written at the earlier age,
+/// so they were served from the cache and not re-derived - and asks three
+/// things of them: that they decode to the same point, that the point still
+/// stands off the wood its identity names at the same distance it did when it
+/// was written, and that the point is still inside the box.
+///
+/// The last third says what a tree-derived box would have cost. The crown's
+/// own bounds are not the same at the two ages, and the same cached words read
+/// against the older crown's bounds land orders of magnitude further from the
+/// station than the quarter millimetre R2 allows: that displacement is the
+/// requantisation pass over every cached leaf that the family's box removes.
+#[test]
+fn a_leaf_cached_at_one_age_decodes_at_a_later_one() {
+    let mut f = family("silver-birch");
+    f.age = 16.0;
+    let reference = Reference::of(&f).unwrap();
+
+    let mut specimen = Specimen::build(&f).unwrap();
+    let young = specimen.read().unwrap();
+    assert!(
+        !young.placements.is_empty(),
+        "the young birch cached no leaf"
+    );
+    assert_eq!(
+        young.reference, reference,
+        "the read's box is not the family's"
+    );
+
+    specimen.advance(2.0).unwrap();
+    let older = specimen.read().unwrap();
+    assert_eq!(
+        older.reference, reference,
+        "the box moved as the tree grew, so cached words decode against another one"
+    );
+    assert!(
+        older.placements.len() > young.placements.len(),
+        "the birch grew no leaves between the two ages"
+    );
+
+    // Only the leaves the cache carried forward unchanged. A shoot whose wood
+    // thickened is re-derived and says nothing about decoding an old word.
+    let written: BTreeMap<_, _> = young
+        .placements
+        .iter()
+        .map(|p| (p.identity, p.leaf))
+        .collect();
+    let carried: Vec<PlacementIdentity> = older
+        .placements
+        .iter()
+        .filter(|p| written.get(&p.identity) == Some(&p.leaf))
+        .map(|p| p.identity)
+        .collect();
+    assert!(
+        carried.len() * 2 > written.len(),
+        "only {} of {} leaves written at the earlier age were carried forward \
+         unchanged, so the decode was barely exercised",
+        carried.len(),
+        written.len()
+    );
+
+    let standoff = |read: &SpecimenRead, id: PlacementIdentity, at: Vec3| {
+        let i = read
+            .tree
+            .nodes
+            .iter()
+            .position(|n| n.identity == id.shoot)
+            .unwrap_or_else(|| panic!("{id:?}: no shoot of that identity"));
+        let node = &read.tree.nodes[i];
+        let from = read.tree.nodes[node.parent.unwrap() as usize].position;
+        let along = node.position - from;
+        let t = ((at - from).dot(along) / along.length_squared().max(1e-12)).clamp(0.0, 1.0);
+        (at - (from + along * t)).length()
+    };
+    let decode = |leaf: Leaf| Instances {
+        leaves: vec![leaf],
+        reference,
+    };
+    let mut worst_standoff = 0.0_f64;
+    for &id in &carried {
+        let leaf = written[&id];
+        // The same three words and the same box at both ages, so one decode.
+        // What differs between the ages is the tree it is measured against.
+        let at = decode(leaf).position(0);
+        assert!(
+            reference.contains(at),
+            "{id:?}: the cached leaf decodes outside the box at the later age"
+        );
+        let moved = (standoff(&older, id, at) - standoff(&young, id, at)).abs();
+        worst_standoff = worst_standoff.max(moved);
+        assert!(
+            moved <= 2.5e-4,
+            "{id:?}: the cached leaf stands {moved} m further off its own wood \
+             at the later age"
+        );
+    }
+
+    // What a tree-derived box would have cost.
+    let crown = |read: &SpecimenRead| {
+        let instances = Instances {
+            leaves: read.placements.iter().map(|p| p.leaf).collect(),
+            reference,
+        };
+        let mut lo = instances.position(0);
+        let mut hi = lo;
+        for i in 0..instances.len() {
+            let p = instances.position(i);
+            lo = Vec3::new(lo.x.min(p.x), lo.y.min(p.y), lo.z.min(p.z));
+            hi = Vec3::new(hi.x.max(p.x), hi.y.max(p.y), hi.z.max(p.z));
+        }
+        Reference::spanning(lo, hi)
+    };
+    let older_crown = crown(&older);
+    assert_ne!(
+        crown(&young),
+        older_crown,
+        "the crown's own bounds did not move, so this comparison proves nothing"
+    );
+    let drift = carried
+        .iter()
+        .map(|&id| {
+            let leaf = written[&id];
+            (older_crown.position(leaf) - decode(leaf).position(0)).length()
+        })
+        .fold(0.0_f64, f64::max);
+    assert!(
+        drift > 2.5e-4,
+        "reading the cached words against the older crown's own box drifts only \
+         {drift} m, so a tree-derived box would have been harmless here"
+    );
+    println!(
+        "{} of {} leaves carried forward unchanged, standing at most {worst_standoff:.2e} m \
+         further off their wood; against the older crown's own box they would \
+         drift up to {drift:.3} m",
+        carried.len(),
+        written.len()
+    );
 }
