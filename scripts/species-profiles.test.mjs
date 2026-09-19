@@ -4,9 +4,10 @@
 // once in reading the evidence tree. These cases pin the resolution, the
 // fallback and the flag that still wins.
 import { describe, expect, it } from 'vitest';
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { readFileSync, mkdtempSync, mkdirSync, copyFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 import { ROOT, FALLBACK_PROFILE_SET, matchedRecords, resolveProfileSet } from './species-profiles.mjs';
 
@@ -88,6 +89,30 @@ describe('the resolved default', () => {
 });
 
 describe('the flag', () => {
+  it('bypasses discovery when default profile files are unavailable', () => {
+    const root = mkdtempSync(join(tmpdir(), 'species-profile-override-'));
+    try {
+      for (const file of ['tests/species.mjs', 'scripts/species-profiles.mjs']) {
+        mkdirSync(join(root, file.split('/')[0]), { recursive: true });
+        copyFileSync(join(ROOT, file), join(root, file));
+      }
+      const run = spawnSync('node', ['tests/species.mjs', '--quick', 'european-beech',
+        '--profiles', FN9], { cwd: root, encoding: 'utf8' });
+      expect(run.status).toBe(1);
+      expect(run.stderr).toContain('No matched reference records for european-beech');
+      expect(run.stderr).not.toContain('Unreadable profile set');
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
+  it('names the preset and all searched sets on the CLI missing-record path', () => {
+    const run = spawnSync('node', ['tests/species.mjs', '--quick', 'unknown-preset'],
+      { cwd: ROOT, encoding: 'utf8' });
+    expect(run.status).toBe(1);
+    expect(run.stderr).toContain('unknown-preset');
+    expect(run.stderr).toContain('.flow/evidence/fn9/profiles.json');
+    expect(run.stderr).toContain('.flow/evidence/fn34/profiles.json');
+  });
+
   // The override is the runner's own wiring, so it is read off the runner: the
   // beech under the fn-9 set has no matched record, which only the flag can
   // arrange. Nothing here reaches the GPU.

@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { FALLBACK_PROFILE_SET, matchedRecords, referenceFile, resolveProfileSet }
+import { FALLBACK_PROFILE_SET, PROFILE_SETS, matchedRecords, referenceFile, resolveProfileSet }
   from '../scripts/species-profiles.mjs';
 
 /* ------------------------------------------------------------------ *
@@ -141,7 +141,10 @@ for (const p of profiles.profiles) referencesOf[p.id] = matchedRecords(catalogue
 if (option('--quick')) {
   const preset = option('--quick');
   const records = referencesOf[preset];
-  if (!records?.length) throw Error(`No matched reference records for ${preset}`);
+  if (!records?.length) {
+    const searched = option('--profiles') ? [profilesPath] : PROFILE_SETS;
+    throw Error(`No matched reference records for ${preset}; searched ${searched.join(', ')}`);
+  }
   // Under the cohort's ignored measure/ directory, so a look is never evidence.
   const out = resolve(option('--output') ?? join(dirname(profilesPath), 'measure', 'quick', preset));
   await mkdir(out, { recursive: true });
