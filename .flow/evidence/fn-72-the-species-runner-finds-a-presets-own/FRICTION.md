@@ -1,5 +1,13 @@
 # Friction
 
+## 2026-09-20 — Receipt conflict was only its final newline
+
+On renewed owner direction to merge, an exact comparison showed the add/add task-receipt conflict was solely a missing final newline on the PR branch. The main checkout's concurrent merge was also cleared. Normalizing the receipt's final newline preserves all evidence and avoids manual content selection. Diagnosis took less than a minute; normalizing generated receipt files at write time would prevent this landing interruption. No new spec was created.
+
+## 2026-09-20 — Landing held by concurrent checkout work and a receipt conflict
+
+The owner requested a squash merge of PR #45. CI has three passing and three skipped checks. GitHub reports DIRTY; a read-only merge-tree check identifies only an add/add conflict in `.flow/tasks/fn-72-the-species-runner-finds-a-presets-own.1.md`. Meanwhile another session started an fn-87 merge in the master checkout, with unresolved source conflicts. The host left that session's work untouched and did not merge or push fn-72. Diagnosis cost roughly two minutes, beyond the landing skill's instruction read. NEEDS_HUMAN: reconcile the receipt on fn-72 and finish the other session's use of master, then re-check and squash-merge PR #45. Serializing merges into the shared checkout and reconciling task receipts before landing would remove this friction. No new spec was created; fn-68 remains paused for tomorrow.
+
 ## 2026-09-19 — Host full gate lacked the generated Wasm artifact
 
 The host's first full Vitest run in the fresh worktree passed 96 tests and failed 11 because src/browser/telperion.wasm was absent (ENOENT). The ignored artifact had not been built. The host started npm run wasm:build before rerunning; compile cost reported at this point was 21.9 seconds. This is gate preflight friction, not evidence of a generator regression. Running the repository's prerequisite build before a direct Vitest command would avoid the failed gate pass.
