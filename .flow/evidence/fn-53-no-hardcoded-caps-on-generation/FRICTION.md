@@ -1,5 +1,9 @@
 # Friction
 
+## 2026-09-20 — Host: duplicate evidence move requires literal paths
+
+The safety hook refused a move of the worker's three byte-identical root evidence copies into a newly allocated temporary directory because its destination used a shell variable. No command in that call ran. This cost less than a minute. Resolving the temporary directory first, then using its inspected literal path, makes the recoverable move verifiable. This is a local command-shaping issue, not a repository spec proposal.
+
 ## 2026-09-20 — Review fix: overly broad debug test selection
 
 The mechanical cleanup helper selected the whole Wasm library in the default debug profile instead of only its changed diagnostics test. The diagnostics passed, but the unrelated oak/spruce mesh fixture ran for over a minute before the helper interrupted it. That broad observation is inconclusive, not green. The exact diagnostics filter or the project's optimized `ci` profile would have avoided this minute; the final optimized broad gate covers both tests. No further debug retries were made.
