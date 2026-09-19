@@ -148,6 +148,16 @@ pub(super) fn thin(tree: &Tree, owners: &[u32], seed: u32, reach: f64, out: &mut
         k += 1;
         keep[k - 1]
     });
+    // The pre-quantisation transforms are indexed alongside the leaves, so a
+    // clump that drops one drops both (R2's preset round trip reads the pair).
+    #[cfg(test)]
+    {
+        let mut k = 0;
+        out.unquantised.retain(|_| {
+            k += 1;
+            keep[k - 1]
+        });
+    }
 }
 
 /// Which leaves stay, each standing at its position in its system. Within

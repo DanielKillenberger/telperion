@@ -59,6 +59,11 @@ impl Bounds {
 pub struct Instances {
     pub leaves: Vec<Leaf>,
     pub reference: Reference,
+    /// Every transform handed to `push`, kept only in test builds so a round
+    /// trip can be measured against what the constructor actually produced
+    /// rather than against a constructed case (R2).
+    #[cfg(test)]
+    pub(crate) unquantised: Vec<[f32; 16]>,
 }
 /// The point a column-major affine transform carries `p` to. Arithmetic in
 /// f64, as everything before storage is.
@@ -75,6 +80,8 @@ impl Instances {
         Self {
             leaves: Vec::new(),
             reference,
+            #[cfg(test)]
+            unquantised: Vec::new(),
         }
     }
     pub fn len(&self) -> usize {
@@ -88,6 +95,8 @@ impl Instances {
     pub fn push(&mut self, m: &[f32; 16]) {
         let leaf = self.reference.pack(m);
         self.leaves.push(leaf);
+        #[cfg(test)]
+        self.unquantised.push(*m);
     }
     /// The transform one stored leaf stands for.
     pub fn matrix(&self, index: usize) -> [f32; 16] {

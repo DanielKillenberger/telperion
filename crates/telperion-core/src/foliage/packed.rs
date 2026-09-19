@@ -369,9 +369,13 @@ fn half_value(bits: u16) -> f32 {
         }
         // A subnormal half is a normal single: shift the leading one up out
         // of the mantissa and pay for it in the exponent.
+        // The leading one sits at bit `9 - shift`, and a subnormal half is
+        // `mantissa * 2^-24`, so the single's exponent is `127 + (9 - shift) - 24`
+        // and the shift that carries the leading one out of the field is
+        // `shift`, not one more. Taking either a bit further halves the value.
         let shift = mantissa.leading_zeros() - 21;
-        let exponent = 127 - 15 - shift;
-        let mantissa = (mantissa << (shift + 1)) & 0x03ff;
+        let exponent = 127 - 14 - shift;
+        let mantissa = (mantissa << shift) & 0x03ff;
         return f32::from_bits(sign | (exponent << 23) | (mantissa << 13));
     }
     if exponent == 0x1f {

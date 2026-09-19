@@ -10,13 +10,75 @@
     "fn-85-leaf-placement-holds-one-copy"
   ],
   "id": "fn-86-one-leaf-in-twelve-bytes",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-86-one-leaf-in-twelve-bytes.1": 1
+  },
   "next_task": 1,
   "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "ready": true,
+  "review_attempts": [
+    {
+      "artifact_sha256": "5a2c9b2f6a1652441a4dad6611d13d70510c3e4e91a430275a4a518274d4af74",
+      "backend": "codex",
+      "base_sha": "3345b07fd48616fe278eb58971458ff85407b2b9",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-578bce4231622861f614217abab0e5de",
+            "classification": "introduced",
+            "findingId": "finding-578bce4231622861f614217abab0e5de",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ce60c99122819d99e2d807745fcebe3e",
+            "classification": "introduced",
+            "findingId": "finding-ce60c99122819d99e2d807745fcebe3e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "96c91c6dd11a55dd5170086329d92f77b95f7af2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 2505,
+      "output_sha256": "cc754a6626f030d5e9e35009fd622195ff69e7428793c87222befb40fff2f293",
+      "reservation_id": "2a920036a72b4b57a787997a82d6dfd0",
+      "round_consumed": true,
+      "scope": "impl:fn-86-one-leaf-in-twelve-bytes.1",
+      "superseded_by": null,
+      "task": "fn-86-one-leaf-in-twelve-bytes.1",
+      "timestamp": "2026-09-19T20:44:45.848716Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-86-one-leaf-in-twelve-bytes.1": 0
+  },
   "spec_path": ".flow/specs/fn-86-one-leaf-in-twelve-bytes.md",
   "status": "open",
   "title": "One leaf in twelve bytes",
@@ -31,5 +93,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T17:47:28.510406Z"
+  "updated_at": "2026-09-19T20:44:45.851330Z"
 }
