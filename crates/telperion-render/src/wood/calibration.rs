@@ -1,13 +1,13 @@
 //! Evidence-only flat wood fixture using the complete production renderer.
 use crate::{
-    crop_mean, measure, measure_frame, render, write_png, Camera, Frame, Gpu, Renderer, SceneRow,
-    View, STILL_FORMAT,
+    crop_mean, hero_pose, measure, measure_frame, render, write_png, Camera, Frame, Gpu, Renderer,
+    SceneRow, View, GROUND_REACH, STILL_FORMAT,
 };
 use serde_json::json;
 use telperion_core::{
     foliage::{Element, Instances},
     math::Vec3,
-    mesh::{Foliage, TreeMesh},
+    mesh::{self, Detail, Foliage, TreeMesh},
     presets::Preset,
     surface::{Bounds, SurfaceMesh, SurfaceRun},
 };
@@ -18,9 +18,13 @@ const SIZE: u32 = 400;
 const STRIPS: u32 = 128;
 
 fn patch() -> TreeMesh {
+    patch_with_width(WIDTH)
+}
+
+fn patch_with_width(horizontal: f64) -> TreeMesh {
     let bounds = Bounds {
-        min: Vec3::new(-WIDTH / 2.0, 2.0 - WIDTH / 2.0, 0.0),
-        max: Vec3::new(WIDTH / 2.0, 2.0 + WIDTH / 2.0, 0.0),
+        min: Vec3::new(-horizontal / 2.0, 2.0 - WIDTH / 2.0, 0.0),
+        max: Vec3::new(horizontal / 2.0, 2.0 + WIDTH / 2.0, 0.0),
     };
     let mut wood = SurfaceMesh {
         bounds: Some(bounds),
@@ -29,7 +33,7 @@ fn patch() -> TreeMesh {
     };
     for y in [bounds.min.y, bounds.max.y] {
         for i in 0..=STRIPS {
-            let x = -WIDTH / 2.0 + WIDTH * f64::from(i) / f64::from(STRIPS);
+            let x = -horizontal / 2.0 + horizontal * f64::from(i) / f64::from(STRIPS);
             wood.positions.extend([x as f32, y as f32, 0.0]);
             wood.normals.extend([0.0, 0.0, 1.0]);
             wood.coords.extend([y as f32, (x / RADIUS) as f32]);
@@ -51,6 +55,29 @@ fn patch() -> TreeMesh {
             element: Element::default(),
             instances: Instances::default(),
         },
+    }
+}
+
+fn submit_patch(renderer: &mut Renderer, tree: &TreeMesh) {
+    renderer.submit(tree).unwrap();
+    // The production uploader infers radius from complete rings. This fixture
+    // is flat, so explicitly supplies its stated material radius after upload.
+    let radius_buffer = renderer.wood.radii.as_ref().unwrap();
+    renderer.gpu.queue.write_buffer(
+        radius_buffer.buffer(),
+        0,
+        bytemuck::cast_slice(&vec![RADIUS as f32; tree.wood_vertices()]),
+    );
+}
+
+fn patch_camera() -> Camera {
+    let fov = 38.0_f64;
+    Camera {
+        position: Vec3::new(0.0, 2.0, WIDTH / (2.0 * (fov.to_radians() / 2.0).tan())),
+        target: Vec3::new(0.0, 2.0, 0.0),
+        field_of_view: fov,
+        near: 0.01,
+        far: 100.0,
     }
 }
 
@@ -90,15 +117,7 @@ fn capture_calibrated_bark() {
     let gpu = pollster::block_on(Gpu::request(None)).expect("hardware GPU required for evidence");
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
     let tree = patch();
-    renderer.submit(&tree).unwrap();
-    // The production uploader infers radius from complete rings. This fixture
-    // is flat, so explicitly supplies its stated material radius after upload.
-    let radius_buffer = renderer.wood.radii.as_ref().unwrap();
-    renderer.gpu.queue.write_buffer(
-        radius_buffer.buffer(),
-        0,
-        bytemuck::cast_slice(&vec![RADIUS as f32; tree.wood_vertices()]),
-    );
+    submit_patch(&mut renderer, &tree);
     renderer.set_view(View::Bare);
     renderer.set_figure(false);
     let scene = SceneRow {
@@ -106,15 +125,9 @@ fn capture_calibrated_bark() {
         ..SceneRow::default()
     };
     renderer.set_scene(scene);
-    let fov = 38.0_f64;
-    let distance = WIDTH / (2.0 * (fov.to_radians() / 2.0).tan());
-    let camera = Camera {
-        position: Vec3::new(0.0, 2.0, distance),
-        target: Vec3::new(0.0, 2.0, 0.0),
-        field_of_view: fov,
-        near: 0.01,
-        far: 100.0,
-    };
+    let camera = patch_camera();
+    let fov = camera.field_of_view;
+    let distance = camera.position.z;
     let mut rows = Vec::new();
     for (name, preset) in [
         ("oak", Preset::OregonWhiteOak),
@@ -191,6 +204,131 @@ fn capture_calibrated_bark() {
     std::fs::write(
         directory.join("calibration.json"),
         serde_json::to_string_pretty(&record).unwrap() + "\n",
+    )
+    .unwrap();
+}
+
+#[test]
+#[ignore = "explicit fn26 native timing; BARK_TIMING_DIR required"]
+fn time_fullscreen_bark_and_mature_oak() {
+    let directory = std::path::PathBuf::from(
+        std::env::var_os("BARK_TIMING_DIR").expect("BARK_TIMING_DIR required"),
+    );
+    std::fs::create_dir_all(&directory).unwrap();
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let git = |args: &[&str]| {
+        let result = std::process::Command::new("git")
+            .current_dir(&root)
+            .args(args)
+            .output()
+            .expect("git required for timing provenance");
+        assert!(result.status.success());
+        String::from_utf8(result.stdout).unwrap().trim().to_owned()
+    };
+    let commit = git(&["rev-parse", "HEAD"]);
+    let status = git(&["status", "--porcelain"]);
+    let size = (1600, 1000);
+    let gpu = pollster::block_on(Gpu::request(None)).expect("hardware GPU required for timing");
+    let mut renderer = Renderer::new(gpu, STILL_FORMAT);
+    let mut family = Preset::OregonWhiteOak.parameters();
+    family.skeleton.seed = 7;
+    let trunk_only = std::env::var("BARK_TIMING_TRUNK_ONLY").as_deref() == Ok("1");
+    let record_timing = |renderer: &mut Renderer, camera: &Camera, filename: &str| {
+        let initial = render(renderer, camera, size.0, size.1).unwrap();
+        assert!(initial.has_subject());
+        let frame = Frame::new(renderer, filename, size);
+        let report = measure(renderer, camera, size, frame.target()).unwrap();
+        std::fs::write(directory.join(filename), report.to_json()).unwrap();
+        report
+    };
+    let flat_scene = SceneRow {
+        sun_azimuth: 45.0,
+        ..SceneRow::default()
+    };
+    let flat_camera = patch_camera();
+    let flat_report = if trunk_only {
+        None
+    } else {
+        let flat = patch_with_width(0.64);
+        submit_patch(&mut renderer, &flat);
+        renderer.set_material(family.material);
+        renderer.set_figure(false);
+        renderer.set_view(View::Bare);
+        renderer.set_scene(flat_scene);
+        Some(record_timing(
+            &mut renderer,
+            &flat_camera,
+            "oak-flat-fullscreen-timing.json",
+        ))
+    };
+    let tree = mesh::build(&family, Detail::Full).unwrap();
+    renderer.submit(&tree).unwrap();
+    renderer.set_material(family.material);
+    let whole_scene = SceneRow::default();
+    renderer.set_scene(whole_scene);
+    renderer.set_figure(true);
+    renderer.set_view(View::Whole);
+    let whole_camera = hero_pose(renderer.bounds().unwrap(), 1.6, GROUND_REACH);
+    let whole_report = if trunk_only {
+        None
+    } else {
+        Some(record_timing(
+            &mut renderer,
+            &whole_camera,
+            "oak-whole-timing.json",
+        ))
+    };
+    renderer.set_view(View::Bare);
+    renderer.set_figure(false);
+    let target = Vec3::new(0.0, 2.0, 0.0);
+    let trunk_camera = Camera {
+        position: target
+            + Vec3::new(1.7307636095778745, 0.2967023330704928, -1.7307636095778745).normalized()
+                * 0.75,
+        target,
+        field_of_view: 38.0,
+        near: 0.01,
+        far: 1000.0,
+    };
+    let trunk_report = record_timing(
+        &mut renderer,
+        &trunk_camera,
+        "oak-trunk-fullscreen-timing.json",
+    );
+    let camera_json = |c: Camera| {
+        json!({
+            "position":[c.position.x,c.position.y,c.position.z],
+            "target":[c.target.x,c.target.y,c.target.z],
+            "field_of_view":c.field_of_view,"near":c.near,"far":c.far,
+        })
+    };
+    let metadata = json!({
+        "source_commit":commit,"source_status":status,"preset":"oregon-white-oak","seed":7,
+        "material_debug":format!("{:?}",family.material),"size":[size.0,size.1],
+        "samples":renderer.samples(),"protocol":{"initial_render":1,"conditioning":crate::CONDITIONING,
+            "warmup":crate::WARMUP,"measured":crate::MEASURED},
+        "flat":{"label":"flat full-screen bark cost; not cylindrical trunk geometry",
+            "physical_width_metres":0.64,"physical_height_metres":WIDTH,"radius_metres":RADIUS,
+            "horizontal_strips":STRIPS,"camera":camera_json(flat_camera),"figure":false,"view":"bare",
+            "scene":serde_json::from_str::<serde_json::Value>(&flat_scene.to_json()).unwrap(),
+            "report":"oak-flat-fullscreen-timing.json","verdict":flat_report.as_ref().map(|r| r.verdict().name()),"measured_this_run":!trunk_only},
+        "whole":{"label":"direct mature whole-tree oak cost","camera":camera_json(whole_camera),
+            "figure":true,"view":"whole","scene":serde_json::from_str::<serde_json::Value>(&whole_scene.to_json()).unwrap(),
+            "report":"oak-whole-timing.json","verdict":whole_report.as_ref().map(|r| r.verdict().name()),"measured_this_run":!trunk_only},
+        "trunk":{"label":"cylindrical mature trunk full-screen cost",
+            "camera":camera_json(trunk_camera),"centre_distance_metres":0.75,
+            "figure":false,"view":"bare", "scene":serde_json::from_str::<serde_json::Value>(&whole_scene.to_json()).unwrap(),
+            "report":"oak-trunk-fullscreen-timing.json","verdict":trunk_report.verdict().name()},
+        "trunk_only":trunk_only,
+        "comparison":"host assigns baseline/candidate from revision; only valid reports support cost comparisons"
+    });
+    std::fs::write(
+        directory.join(if trunk_only {
+            "trunk-timing-metadata.json"
+        } else {
+            "timing-metadata.json"
+        }),
+        serde_json::to_string_pretty(&metadata).unwrap() + "\n",
     )
     .unwrap();
 }

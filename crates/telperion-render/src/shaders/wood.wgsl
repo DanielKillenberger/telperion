@@ -286,18 +286,19 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // over the footprint and nothing else (owner, fn-71). The field's edge
     // integrals stand for that box while a read spans under a ridge width
     // and under half a plate, so a pixel wider than that is shaded as more
-    // cells, each read at a footprint the integrals hold for: two a side
-    // while the pixel is under a ridge width, three beyond, and past three
-    // widths the cells stand apart and sample the pixel where they stand.
-    // Each axis on its own: a grazing pixel is long one way and a fraction
-    // of a width the other, and needs its cells only along its length.
+    // cells, each read at a footprint the integrals hold for: four a side
+    // to resolve the steeper relief before averaging its lighting. Beyond
+    // four widths the cells stand apart and sample the pixel where they stand.
+    // Each axis keeps its own physical footprint under the same grid.
     let plate_band = select(vec2(0.0), footprint / u.plate.x, u.plate.x > 0.0);
     let wide = max(pixel, 2.0 * plate_band);
-    let cells = select(vec2(2), vec2(3), wide >= vec2(1.0));
+    // Smooth bark retains its established quadrature. The rough-bark path
+    // needs four cells per axis to resolve its steeper plate profiles.
+    let cells = select(vec2(4), select(vec2(2), vec2(3), wide >= vec2(1.0)), SMOOTH_BARK);
     let cell_footprint = footprint / max(vec2<f32>(cells), wide);
     let cell_pixel = pixel / max(vec2<f32>(cells), wide);
     // Wood whose pixel spans six ridge widths or three plates reads its
-    // means: three cells a side stand two widths apart there, and their
+    // means: the sparse footprint spans several complete features, and its
     // estimate's own noise is above the box's residue, a sixth of the
     // relief's deviation. So does a twig whose pixel spans its own radius,
     // whose box is its whole lit side.
@@ -372,7 +373,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     }
     // The cells share a lattice of heights, each read at the cell's footprint.
     let side = cells + vec2(1);
-    var heights: array<f32, 16>;
+    var heights: array<f32, 25>;
     for (var y = 0; y < side.y; y++) {
         for (var x = 0; x < side.x; x++) {
             let coord = surface + (f32(x) / f32(cells.x) - 0.5) * sx
@@ -386,8 +387,8 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
                 groove_there);
         }
     }
-    // The walk towards the sun starts from the fragment's own centre height,
-    // which the lattice already carries: two more field samples, not eleven.
+    // The rough-bark lattice carries the exact centre for the sun walk;
+    // smooth bark keeps its established lattice sample.
     let centre = heights[(cells.y / 2) * side.x + cells.x / 2];
     let direct = bark_shade(surface, sx, sy, base_normal, dx, dy, in.radius,
         cell_footprint, centre, colour_range.y, groove);

@@ -74,6 +74,10 @@ The owner allows extra cost now and optimization later. R4 therefore requires co
 
 The owner chose option 1, “Continue with visual reference matching,” after the original photographs could not be recovered and replacement sources lacked physical scale and calibrated RGB. This explicitly replaces R1/R3 exact-photo calibration. The calibrated render fixture, unchanged filtering gates, performance reporting and final owner visual judgment remain required.
 
+### Owner feedback on the first candidate, 2026-09-19
+
+The owner says “colors look better” for spruce and oak, but expected added relief. This accepts the direction of the colour change, not R2 or final R5 completion. Keep those colour rows fixed during the depth pass; measure actual height contrast as well as rendered differences. The host resumes the unfinished spec after stopping at too narrow a worker checkpoint.
+
 ### Implementation Tradeoffs
 <!-- scope: technical -->
 

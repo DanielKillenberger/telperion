@@ -50,7 +50,7 @@ fn replay_fn71_footprint_sweep() {
     let source_status = git(&root, &["status", "--porcelain"]);
     let mut family = preset.parameters();
     family.skeleton.seed = 1;
-    let tree = mesh::build(&family, Detail::Full).unwrap();
+    let mut tree = mesh::build(&family, Detail::Full).unwrap();
     let gpu = pollster::block_on(Gpu::request(None)).expect("hardware GPU required for evidence");
     let adapter = format!("{:?}", gpu.adapter);
     let mut renderer = Renderer::new(gpu, STILL_FORMAT);
@@ -70,10 +70,16 @@ fn replay_fn71_footprint_sweep() {
         ),
         None => hero_pose(bounds, 1.5, GROUND_REACH),
     };
+    // Clay colours foliage and wood alike. Remove foliage only for the mask,
+    // keeping the camera derived from the original whole-tree bounds.
+    let foliage = std::mem::take(&mut tree.foliage.instances);
+    renderer.submit(&tree).unwrap();
     renderer.set_view(View::Clay);
     let clay = render(&mut renderer, &camera, size.0, size.1).unwrap();
     assert!(clay.has_subject());
     write_png(&directory.join(format!("{name}-clay.png")), &clay).unwrap();
+    tree.foliage.instances = foliage;
+    renderer.submit(&tree).unwrap();
     renderer.set_view(View::Bare);
     let near = render(&mut renderer, &camera, size.0, size.1).unwrap();
     assert!(near.has_subject());
@@ -95,7 +101,7 @@ fn replay_fn71_footprint_sweep() {
         "width":size.0, "height":size.1, "shot":shot.map(|s| serde_json::from_str::<serde_json::Value>(s).unwrap()),
         "camera_recipe":if shot.is_some() { "shot_pose" } else { "hero_pose(bounds, 1.5, GROUND_REACH)" },
         "factors":factors,
-        "bounds_view":"whole", "clay_view":"clay", "material_view":"bare",
+        "bounds_view":"whole", "clay_view":"clay, wood-only instances", "material_view":"bare",
         "camera":{"position":[camera.position.x,camera.position.y,camera.position.z],
             "target":[camera.target.x,camera.target.y,camera.target.z],
             "field_of_view":camera.field_of_view,"near":camera.near,"far":camera.far},

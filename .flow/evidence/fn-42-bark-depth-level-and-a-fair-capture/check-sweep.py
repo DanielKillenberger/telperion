@@ -1,6 +1,7 @@
 """Re-evaluate fn71's band metric at full precision; run from the repo root."""
 import importlib.util
 import json
+import sys
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageFilter
@@ -10,8 +11,8 @@ sweep = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sweep)
 evidence = Path(__file__).parent
 records = []
-for name in ["beech", "birch", "birchhero"]:
-    directory = evidence / "sweep" / name
+for name in (sys.argv[2:] or ["beech", "birch", "birchhero"]):
+    directory = evidence / (sys.argv[1] if len(sys.argv) > 1 else "sweep") / name
     provenance = json.loads((directory / f"{name}-sweep.json").read_text())
     factors = [row["factor"] for row in provenance["reductions"]]
     near = sweep.luminance(directory / f"{name}-x1.png")
@@ -29,5 +30,5 @@ for name in ["beech", "birch", "birchhero"]:
     records.append(dict(species=name, factors=factors, bands=sweep.BANDS, ratios=ratios,
                         max_adjacent_step=maximum, bound=0.03, passed=maximum <= 0.03))
     print(f"{name}: max adjacent step {maximum:.6f}, bound 0.03")
-(evidence / "sweep-check.json").write_text(json.dumps(records, indent=2) + "\n")
+(evidence / ((sys.argv[1] if len(sys.argv) > 1 else "sweep") + "-check.json")).write_text(json.dumps(records, indent=2) + "\n")
 assert all(record["passed"] for record in records), "footprint continuity regression"

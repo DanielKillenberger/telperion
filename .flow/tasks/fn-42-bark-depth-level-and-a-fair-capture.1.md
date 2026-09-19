@@ -48,6 +48,9 @@ Next: accept reference-guided visual targets, or retain photo calibration and wa
 
 Blocked:
 NEEDS_HUMAN: the bark candidate is implemented and captured for the owner's R5 visual verdict in review.html. Fn-42 remains incomplete: valid performance measurements need an idle GPU session, and the historical fn71 hero sweep cannot yet be reproduced from its archived recipe. Its reconstructed check fails for both the candidate and pre-change shader control, so it is not accepted as a green gate. All selected native regression suites and the two close-up footprint sweeps pass at unchanged bounds. See REPORT.md for exact evidence and the friction report; no further camera guesses or benchmark retries are being run. The earlier missing-photo acceptance blocker is resolved by the owner's option 1.
+
+Blocked:
+Added relief is implemented and verified by native and close-up gates; see REPORT.md and review.html. R2 historical hero evidence remains unverified because its mask/capture recipe is incomplete. R5 owner visual verdicts are pending. No further blind capture reconstruction is justified. The task remains open at these concrete boundaries.
 ## Evidence
 - Commits:
 - Tests:

@@ -1,0 +1,7 @@
+    Finished `ci` profile [optimized] target(s) in 0.08s
+     Running unittests src/lib.rs (/home/daniel/Projects/telperion/target/ci/deps/telperion_render-4d66a6addaf4a19f)
+
+running 1 test
+test wood::calibration::time_fullscreen_bark_and_mature_oak ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 50 filtered out; finished in 14.73s
