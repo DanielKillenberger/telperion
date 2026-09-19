@@ -97,8 +97,14 @@ impl Instances {
     }
 }
 /// Keeps a leaf unless every vertex lies deeper than the shell fraction.
+///
+/// Takes the crown it filters and hands the same allocation back with the
+/// leaves that stay. A crown of seven million leaves is 470 MB, and a second
+/// buffer at the input's own length doubled that whatever the cull dropped;
+/// retaining in place leaves one copy resident. Capacity is not shrunk: the
+/// vector keeps the block it was handed.
 pub fn cull(
-    instances: &Instances,
+    mut instances: Instances,
     element: &Element,
     envelope: Envelope,
     shell_depth: f64,
@@ -109,42 +115,46 @@ pub fn cull(
     range(shell_depth, 0., 1., "shell depth")?;
     let shell = shell_depth * envelope.max_radius();
     let profile = envelope.profile();
-    let mut out = Instances::default();
-    out.matrices
-        .try_reserve(instances.matrices.len())
-        .map_err(|_| Error::ResourceLimit("foliage allocation"))?;
     let extent = element.positions.iter().fold(Vec3::ZERO, |a, p| {
         Vec3::new(a.x.max(p.x.abs()), a.y.max(p.y.abs()), a.z.max(p.z.abs()))
     });
-    for m in &instances.matrices {
+    // `retain` has no way to refuse, so an overflowing leaf is remembered and
+    // the whole crown is dropped with the error below. Leaves after it keep
+    // their places: the vector is discarded unread on that path.
+    let mut overflow = false;
+    instances.matrices.retain(|m| {
+        if overflow {
+            return true;
+        }
         for row in 0..3 {
             let bound = (m[row] as f64).abs() * extent.x
                 + (m[row + 4] as f64).abs() * extent.y
                 + (m[row + 8] as f64).abs() * extent.z
                 + (m[row + 12] as f64).abs();
             if bound > f32::MAX as f64 {
-                return Err(Error::ResourceLimit("foliage transform overflow"));
+                overflow = true;
+                return true;
             }
         }
-        let mut keep = false;
         for v in &element.positions {
             let p = transform_point(m, *v);
             if !p.is_finite() || [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {
-                return Err(Error::ResourceLimit("foliage transform overflow"));
+                overflow = true;
+                return true;
             }
             let r = p.x.hypot_fixed(p.z);
             if envelope.radius_at(p.y) - r <= shell
                 || distance_to_profile(&profile, r, p.y) <= shell
             {
-                keep = true;
-                break;
+                return true;
             }
         }
-        if keep {
-            out.matrices.push(*m)
-        }
+        false
+    });
+    if overflow {
+        return Err(Error::ResourceLimit("foliage transform overflow"));
     }
-    Ok(out)
+    Ok(instances)
 }
 fn range(v: f64, lo: f64, hi: f64, name: &'static str) -> Result<()> {
     if !v.is_finite() || v < lo || v > hi {

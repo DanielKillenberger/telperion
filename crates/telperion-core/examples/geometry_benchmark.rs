@@ -71,13 +71,14 @@ fn specimen(v: &Value) -> Result<Value, String> {
         &f.surface,
     )
     .map_err(|e| format!("placement: {e:?}"))?;
-    let kept = foliage::cull(&placed, &element, f.skeleton.envelope, f.shell_depth)
+    let pre_cull_instances = placed.matrices.len();
+    let kept = foliage::cull(placed, &element, f.skeleton.envelope, f.shell_depth)
         .map_err(|e| format!("cull: {e:?}"))?;
     let legacy = species_metrics::measure(
         &report.tree,
         &wood.positions,
         &element,
-        placed.matrices.len(),
+        pre_cull_instances,
         &kept,
     )?;
     let axes = metrics::axes(&report.tree)?;

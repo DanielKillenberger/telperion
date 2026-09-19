@@ -69,8 +69,8 @@ fn shell_membership_empty_and_invalid() {
     let env = Envelope::default();
     let a = place(&twig(0.25), env, 3, bare(), Some(TwigPlacement::default())).unwrap();
     assert!(!a.matrices.is_empty());
-    assert!(cull(&a, &e, env, 0.).unwrap().matrices.is_empty());
-    assert_eq!(cull(&a, &e, env, 1.).unwrap(), a);
+    assert!(cull(a.clone(), &e, env, 0.).unwrap().matrices.is_empty());
+    assert_eq!(cull(a.clone(), &e, env, 1.).unwrap(), a);
     assert_eq!(Instances::default().bounds(&e).unwrap(), None);
     assert!(place(&Tree::default(), env, 3, bare(), None)
         .unwrap()
@@ -137,7 +137,7 @@ fn malformed_element_is_rejected_even_when_first_vertex_is_outside_shell() {
         Some(TwigPlacement::default()),
     )
     .unwrap();
-    assert!(cull(&a, &e, Envelope::default(), 1.).is_err());
+    assert!(cull(a, &e, Envelope::default(), 1.).is_err());
 }
 
 #[test]
@@ -224,23 +224,29 @@ fn shell_keeps_leaf_extent_and_crown_underside() {
         0., 1., 0., 0., 1., 0., 0., 0., 0., 0., -1., 0., 0., 15., 0., 1.,
     ];
     let a = Instances { matrices: vec![m] };
-    assert!(cull(&a, &small, env, 0.45).unwrap().matrices.is_empty());
+    assert!(cull(a.clone(), &small, env, 0.45)
+        .unwrap()
+        .matrices
+        .is_empty());
     let long = build_element(ElementParams {
         length: 8.,
         ..ElementParams::default()
     })
     .unwrap();
-    assert_eq!(cull(&a, &long, env, 0.45).unwrap(), a);
+    assert_eq!(cull(a.clone(), &long, env, 0.45).unwrap(), a);
     let mut underside = m;
     underside[13] = (env.height * env.crown_base + 0.01) as f32;
     let underside = Instances {
         matrices: vec![underside],
     };
-    assert_eq!(cull(&underside, &small, env, 0.45).unwrap(), underside);
+    assert_eq!(
+        cull(underside.clone(), &small, env, 0.45).unwrap(),
+        underside
+    );
     let mut invalid = m;
     invalid[15] = 0.;
     assert!(cull(
-        &Instances {
+        Instances {
             matrices: vec![invalid]
         },
         &small,
@@ -248,4 +254,39 @@ fn shell_keeps_leaf_extent_and_crown_underside() {
         0.45
     )
     .is_err());
+}
+
+/// One copy of the crown, whatever the cull drops. The buffer handed in is the
+/// buffer handed back: a second one at the input's own length is 470 MB on the
+/// spruce, resident for as long as the first.
+#[test]
+fn cull_retains_in_the_buffer_it_was_given() {
+    let e = build_element(ElementParams::default()).unwrap();
+    let env = Envelope::default();
+
+    // Deep inside the crown, and just under its base: the first is dropped at
+    // this shell and the second stays, so survivors have to move down inside
+    // the block the caller's vector already owned.
+    let deep = [
+        0., 1., 0., 0., 1., 0., 0., 0., 0., 0., -1., 0., 0., 15., 0., 1.,
+    ];
+    let mut shell = deep;
+    shell[13] = (env.height * env.crown_base + 0.01) as f32;
+    let mixed = Instances {
+        matrices: vec![deep, shell],
+    };
+    let (before, capacity) = (mixed.matrices.as_ptr(), mixed.matrices.capacity());
+    let kept = cull(mixed, &e, env, 0.45).unwrap();
+    assert_eq!(kept.matrices, vec![shell], "the wrong leaf survived");
+    assert_eq!(kept.matrices.as_ptr(), before, "kept leaves moved buffer");
+    assert_eq!(kept.matrices.capacity(), capacity, "capacity was shrunk");
+
+    // A cull that drops every leaf still hands the original allocation back.
+    let a = place(&twig(0.25), env, 3, bare(), Some(TwigPlacement::default())).unwrap();
+    assert!(!a.matrices.is_empty());
+    let (before, capacity) = (a.matrices.as_ptr(), a.matrices.capacity());
+    let empty = cull(a, &e, env, 0.).unwrap();
+    assert!(empty.matrices.is_empty());
+    assert_eq!(empty.matrices.as_ptr(), before, "empty crown moved buffer");
+    assert_eq!(empty.matrices.capacity(), capacity, "capacity was shrunk");
 }

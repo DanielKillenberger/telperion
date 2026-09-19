@@ -392,22 +392,17 @@ fn grow_and_check(preset: Preset, profile: &Value, seed: u32, committed: Option<
     )
     .unwrap();
     let digest = check(preset, seed, committed, digest(&a.tree, &wood, &placed));
+    let placed_count = placed.matrices.len();
     let kept = foliage::cull(
-        &placed,
+        placed,
         &element,
         family.skeleton.envelope,
         family.shell_depth,
     )
     .unwrap();
     assert!(!kept.matrices.is_empty());
-    let metrics = species_metrics::measure(
-        &a.tree,
-        &wood.positions,
-        &element,
-        placed.matrices.len(),
-        &kept,
-    )
-    .unwrap();
+    let metrics =
+        species_metrics::measure(&a.tree, &wood.positions, &element, placed_count, &kept).unwrap();
     let (pass, checks) = species_metrics::compare(profile, &metrics).unwrap();
     assert!(pass, "seed {seed}: {checks:#}");
     assert_eq!(metrics["units_per_instance"]["value"], 1);

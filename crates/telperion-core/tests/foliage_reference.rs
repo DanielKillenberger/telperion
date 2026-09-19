@@ -113,7 +113,8 @@ fn frozen_solved_tree_comparison() {
             Some(anatomy),
         )
         .unwrap();
-        let kept = cull(&placed, &element, env, 0.45).unwrap();
+        let placed_count = placed.matrices.len();
+        let kept = cull(placed, &element, env, 0.45).unwrap();
         let bounds = kept.bounds(&element).unwrap();
         let old = bytes(dir, case, "foliage");
         assert_eq!(old.len() % 64, 0);
@@ -155,7 +156,7 @@ fn frozen_solved_tree_comparison() {
         );
         println!(
             "{case}: placed={}, retained={}, max_matrix_error={max_error}, bounds={bounds:?}",
-            placed.matrices.len(),
+            placed_count,
             kept.matrices.len()
         );
     }

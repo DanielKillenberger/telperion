@@ -251,7 +251,7 @@ fn species_empty_degenerate_and_invalid_controls_are_explicit() {
         ]],
     };
     assert!(
-        cull(&instances, &Element::default(), Envelope::default(), 1.)
+        cull(instances, &Element::default(), Envelope::default(), 1.)
             .unwrap()
             .matrices
             .is_empty()

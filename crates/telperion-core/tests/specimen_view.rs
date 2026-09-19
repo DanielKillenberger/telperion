@@ -30,7 +30,7 @@ fn specimen_view_scrubs_advances_and_rebuilds_one_chronicle() {
         let placed = foliage::Instances {
             matrices: read.placements.iter().map(|p| p.transform).collect(),
         };
-        let instances = foliage::cull(&placed, &element, read.envelope, fresh.shell_depth).unwrap();
+        let instances = foliage::cull(placed, &element, read.envelope, fresh.shell_depth).unwrap();
         let mesh = view.mesh().unwrap();
         assert_eq!(mesh.wood, wood);
         assert_eq!(mesh.foliage.instances, instances);
