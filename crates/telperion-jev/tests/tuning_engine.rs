@@ -135,6 +135,8 @@ fn run() -> Run {
         owner_notes: "irregular outline".into(),
         required: vec![cell()],
         budget: Budget {
+            visual_passes: Some(0),
+            max_visual_passes: Some(5),
             evaluations: 0,
             images: 0,
             tokens: 0,
@@ -152,6 +154,7 @@ fn run() -> Run {
         machine_ready: false,
         pending: None,
         routes: vec![],
+        authorizations: vec![],
     }
 }
 
@@ -233,4 +236,32 @@ fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
         .unwrap()
         .reason
         .contains("preflight cannot fit"));
+}
+
+#[test]
+fn stale_finalists_are_excluded_and_resource_history_is_revision_tagged() {
+    let mut state = run();
+    let mut mock = Mock {
+        evaluations: 0,
+        routes: 0,
+        visuals: 0,
+        capability: false,
+    };
+    let mut old = mock.evaluate(json!({}), 0, "old", None);
+    old.identity = "old-revision".into();
+    old.score = Some(0.001);
+    let mut current = mock.evaluate(json!({}), 0, "new", None);
+    current.measurement =
+        json!({"metrics":{"nodes":{"value":187968},"growth":{"node_capped":false}}});
+    state.trials = vec![old, current];
+    state.current = Some(1);
+    assert_eq!(state.finalists().len(), 1);
+    assert_eq!(state.finalists()[0].label, "new");
+    let summary = telperion_jev::tuning::judgments::summary(&state);
+    assert_eq!(summary["recent_attempts"][1]["current_revision"], false);
+    assert_eq!(summary["resource_limit"]["current_nodes"], 187968);
+    assert!(state.pilot_authority().unwrap_err().contains("unvalidated"));
+    state.budget.visual_passes = Some(5);
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert_eq!(mock.visuals, 0);
 }

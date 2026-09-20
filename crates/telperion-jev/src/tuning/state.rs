@@ -81,9 +81,25 @@ pub struct Budget {
     pub max_images: u64,
     pub max_tokens: u64,
     pub max_rounds: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub visual_passes: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_visual_passes: Option<u64>,
 }
 
 impl Budget {
+    pub fn reserve_visual(&mut self) -> Result<(), String> {
+        let next = self
+            .visual_passes
+            .ok_or("visual usage requires reconciliation")?
+            .checked_add(1)
+            .ok_or("visual usage overflow")?;
+        if next > self.max_visual_passes.ok_or("missing visual ceiling")? {
+            return Err("visual pass limit exhausted".into());
+        }
+        self.visual_passes = Some(next);
+        Ok(())
+    }
     pub fn reserve(
         &mut self,
         evaluations: u64,

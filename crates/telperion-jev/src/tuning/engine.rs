@@ -67,6 +67,8 @@ pub struct Run {
     pub machine_ready: bool,
     pub pending: Option<String>,
     pub routes: Vec<String>,
+    #[serde(default)]
+    pub authorizations: Vec<continuation::HumanDecision>,
 }
 
 fn merge(target: &mut Value, patch: &Value) {
@@ -83,6 +85,13 @@ fn merge(target: &mut Value, patch: &Value) {
 }
 
 impl Run {
+    pub fn pilot_authority(&self) -> Result<(), String> {
+        self.authorizations
+            .last()
+            .and_then(|d| d.experimental_pilot.as_ref())
+            .ok_or("magnitude live efficacy unvalidated")?
+            .verify(&self.identity, &self.budget)
+    }
     fn stop(&mut self, reason: String, action: &str) {
         self.machine_ready = false;
         self.pause = Some(Pause {
@@ -168,14 +177,12 @@ impl Run {
     ) -> Result<(), String> {
         let trial = self.trials[self.current.ok_or("no feasible current candidate")?].clone();
         let allowance = services.visual_tokens(&trial);
-        self.reserve(
-            0,
-            services.visual_images(&trial),
-            allowance,
-            0,
-            "visual assessment",
-            save,
-        )?;
+        let mut budget = self.budget.clone();
+        budget.reserve_visual()?;
+        budget.reserve(0, services.visual_images(&trial), allowance, 0)?;
+        self.budget = budget;
+        self.pending = Some("visual assessment".into());
+        save(self)?;
         let answer = services.visual(&trial)?;
         let visual = self.settle(answer, allowance)?;
         self.machine_ready = ready(&self.required, &trial.key, &visual);
@@ -224,6 +231,14 @@ impl Run {
             self.assess(services, save)?;
         }
         while !self.machine_ready {
+            if self
+                .budget
+                .visual_passes
+                .zip(self.budget.max_visual_passes)
+                .is_none_or(|(used, cap)| used >= cap)
+            {
+                return Err("visual pass limit exhausted before routing".into());
+            }
             if self.budget.rounds >= self.budget.max_rounds {
                 return Err("hard round limit exhausted before routing".into());
             }
@@ -355,7 +370,7 @@ impl Run {
         let mut trials = self
             .trials
             .iter()
-            .filter(|t| t.feasible && t.score.is_some())
+            .filter(|t| t.identity == self.identity && t.feasible && t.score.is_some())
             .collect::<Vec<_>>();
         trials.sort_by(|a, b| a.score.unwrap().total_cmp(&b.score.unwrap()));
         trials.truncate(3);

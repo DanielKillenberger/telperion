@@ -1,10 +1,19 @@
 use super::{calibration::Manifest, engine::Run, live::Validation};
 use serde_json::{json, Value};
 pub fn summary(state: &Run) -> Value {
-    let recent=state.trials.iter().rev().take(5).map(|t|json!({"label":t.label,"feasible":t.feasible,
+    let recent=state.trials.iter().rev().take(5).map(|t|json!({"label":t.label,"identity":t.identity,"current_revision":t.identity==state.identity,"feasible":t.feasible,
+        "resource_feasibility":{"nodes":t.measurement["metrics"]["nodes"],"growth":t.measurement["metrics"]["growth"]},
         "score":t.score,"reason":t.reason,"views":t.comparisons.iter().map(|c|json!({"reference":c.reference,
         "target":c.target,"observed":c.observed})).collect::<Vec<_>>()})).collect::<Vec<_>>();
-    json!({"owner_notes":state.owner_notes,"visual":state.visual,"recent_attempts":recent,
+    let nodes = state
+        .current
+        .and_then(|i| state.trials.get(i))
+        .and_then(|t| t.measurement["metrics"]["nodes"]["value"].as_u64());
+    let cap = state
+        .effective
+        .pointer("/skeleton/growth/maxNodes")
+        .and_then(Value::as_u64);
+    json!({"current_identity":state.identity,"resource_limit":{"meaning":"computational feasibility, not botanical character","max_nodes":cap,"current_nodes":nodes,"remaining_nodes":cap.zip(nodes).map(|(c,n)|c.saturating_sub(n))},"owner_notes":state.owner_notes,"visual":state.visual,"recent_attempts":recent,
         "dials":state.dials.iter().map(|d|json!({"id":d.id,"meaning":d.meaning,"current":state.effective.pointer(&d.path)})).collect::<Vec<_>>()})
 }
 pub fn proposals(state: &Run) -> Result<Value, String> {

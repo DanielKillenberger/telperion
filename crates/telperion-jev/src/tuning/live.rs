@@ -260,7 +260,7 @@ impl Services for Live<'_> {
         if trial.round == 0 {
             25000
         } else {
-            35000
+            40000
         }
     }
     fn evaluate(

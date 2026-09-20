@@ -61,6 +61,8 @@ fn readiness_requires_every_checklist_view_seed_and_no_defects() {
 #[test]
 fn budgets_reserve_before_work_and_never_reset() {
     let mut budget = Budget {
+        visual_passes: Some(0),
+        max_visual_passes: Some(2),
         evaluations: 0,
         images: 0,
         tokens: 0,
@@ -76,6 +78,12 @@ fn budgets_reserve_before_work_and_never_reset() {
     assert!(resumed.reserve(1, 1, 1, 0).is_err());
     assert_eq!(resumed.images, 4);
     assert_eq!(resumed.tokens, 30);
+    resumed.reserve_visual().unwrap();
+    resumed.reserve_visual().unwrap();
+    assert!(resumed.reserve_visual().is_err());
+    assert_eq!(resumed.visual_passes, Some(2));
+    resumed.visual_passes = None;
+    assert!(resumed.reserve_visual().is_err());
 }
 
 #[test]
@@ -104,6 +112,8 @@ fn authored_actions_preserve_integer_bounds_and_abstention() {
 fn continuation_rejects_stale_unknown_or_unjustified_work() {
     use telperion_jev::tuning::continuation::{assess, Assessment, Basis};
     let budget = Budget {
+        visual_passes: Some(0),
+        max_visual_passes: Some(2),
         evaluations: 0,
         images: 0,
         tokens: 20,

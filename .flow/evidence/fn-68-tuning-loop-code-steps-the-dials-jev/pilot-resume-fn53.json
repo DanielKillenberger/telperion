@@ -1,0 +1,53 @@
+{
+  "pause_id": "18d6d6f877f9633c-ef21f-13",
+  "identity": "75275bc77aebcbf9590b05a713ecd2b939411834fc2e9651384699a2666ca7db",
+  "action": "reassess or diagnose",
+  "by": "owner approval option1, relayed by host 2026-09-20",
+  "rationale": "Resume after merged fn53 with explicit caller maxNodes1m; one further round and two visual passes. Preserve all prior spend, invalidate old generator baseline and visual evidence. No shipping or threshold changes.",
+  "next_identity": "d0927490f65348a7e5487338dceaff12e255ed3e41972edf8c59966d5e1b552c",
+  "token_cap_extension": {
+    "previous": 220000,
+    "next": 270000
+  },
+  "round_cap_extension": {
+    "previous": 1,
+    "next": 2
+  },
+  "visual_cap_extension": {
+    "previous": 8,
+    "next": 9
+  },
+  "visual_reconciliation": {
+    "previous_cap": 8,
+    "paid_ledgers": [
+      ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d3247b35e271-c8969-0.json",
+      ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d360e0e2c7c7-cae38-0.json",
+      ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d3831f8e2066-cc291-0.json",
+      ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d3853a72f402-cc291-1.json",
+      ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d444d7f9a0f2-d2f2a-0.json",
+      ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d446f95c663e-d2f2a-1.json",
+      ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/vision-ledger/18d6d590a5488d90-e0326-9.json"
+    ],
+    "reason": "Seven paid visual attempts in preserved ledgers; no failed/unknown paid attempts omitted. Ledger18d6d31af4ead4df-c8624-0 was proven pre-model missing-stdin-prompt CLI rejection with empty stdout and is explicitly excluded as reconciled in PROTOCOL."
+  },
+  "baseline_amendment": {
+    "previous": {},
+    "next": {
+      "skeleton": {
+        "growth": {
+          "maxNodes": 1000000
+        }
+      }
+    }
+  },
+  "experimental_pilot": {
+    "purpose": "One owner-authorized experimental magnitude round after fn53",
+    "reason": "Prior pilot hit hidden node ceiling; new caller limit is explicit. General magnitude efficacy remains unvalidated. Frozen calibrations/thresholds and all-cell visual gate still mandatory.",
+    "next_identity": "d0927490f65348a7e5487338dceaff12e255ed3e41972edf8c59966d5e1b552c",
+    "max_tokens": 270000,
+    "max_rounds": 2,
+    "max_evaluations": 13,
+    "max_images": 52,
+    "max_visual_passes": 9
+  }
+}

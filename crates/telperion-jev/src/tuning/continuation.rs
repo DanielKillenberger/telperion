@@ -112,6 +112,58 @@ pub struct HumanDecision {
     pub preserve_evidence: bool,
     #[serde(default)]
     pub token_cap_extension: Option<TokenCapExtension>,
+    #[serde(default)]
+    pub round_cap_extension: Option<TokenCapExtension>,
+    #[serde(default)]
+    pub visual_cap_extension: Option<TokenCapExtension>,
+    #[serde(default)]
+    pub visual_reconciliation: Option<VisualReconciliation>,
+    #[serde(default)]
+    pub baseline_amendment: Option<BaselineAmendment>,
+    #[serde(default)]
+    pub experimental_pilot: Option<PilotAuthority>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VisualReconciliation {
+    pub previous_cap: u64,
+    pub paid_ledgers: Vec<std::path::PathBuf>,
+    pub reason: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BaselineAmendment {
+    pub previous: Value,
+    pub next: Value,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PilotAuthority {
+    pub purpose: String,
+    pub reason: String,
+    pub next_identity: String,
+    pub max_tokens: u64,
+    pub max_rounds: u64,
+    pub max_evaluations: u64,
+    pub max_images: u64,
+    pub max_visual_passes: u64,
+}
+impl PilotAuthority {
+    pub fn verify(&self, identity: &str, budget: &Budget) -> Result<(), String> {
+        if self.purpose.trim().is_empty()
+            || self.reason.trim().is_empty()
+            || self.next_identity != identity
+            || self.max_tokens != budget.max_tokens
+            || self.max_rounds != budget.max_rounds
+            || self.max_evaluations != budget.max_evaluations
+            || self.max_images != budget.max_images
+            || Some(self.max_visual_passes) != budget.max_visual_passes
+        {
+            return Err("experimental pilot authority mismatch".into());
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

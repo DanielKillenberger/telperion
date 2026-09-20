@@ -1,5 +1,13 @@
 # Friction
 
+## 2026-09-20 - Overnight scratch evidence unavailable at restart
+
+Offline qualification preflight failed before any live call because historical whole-view replay PNGs and pinned profile/reference JSON under `/tmp/fn68-reconstruction-*` no longer exist. Shared model ledgers remain present. Cost: about one minute bounded path checks, zero model tokens/evaluations/captures. Durable storage for the small hash-identified calibration image set would avoid rebuilding it after temporary-directory cleanup. Host notified; no repeated broad image search or reconstruction budget reset. Profile/reference JSON can be recovered from pinned git revisions; image recovery or narrowly authorized reconstruction is still required by the existing verification contract.
+
+## 2026-09-20 - Host-reported resume instruction overhead
+
+The host reports that conductor resumption required reloading long skill references; combined reads repeatedly truncated and needed narrower rereads. Cost: several minutes before dispatch, zero pilot model tokens. Proposed fix: bounded resume-specific skill instructions. This is host orchestration overhead, separate from implementation; owner decides whether to create any spec, and none was created.
+
 ## 2026-09-19 - Failed numeric gate discarded measurement details
 
 The authorized candidate hit node_capped at250,000 nodes and was correctly refused before rendering, but the Trial stored only generic numeric gate failed with measurement:null. Cost: about two minutes offline diagnosis/regression repair, zero repeated evaluations or model calls. A bounded parse recovered the named cap and botanical checks into an explicitly supplemental artifact; original historical trial remains untouched. Fix: retain completed measurement before gate validation, prioritize named cap reasons, and assert failed-gate details survive while the renderer remains uncalled. This is now covered by a red-to-green test.

@@ -175,3 +175,96 @@ fn scoped_cap_extension_reuses_only_unchanged_verified_evidence() {
     }
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn experimental_revision_amendment_is_scoped_and_preserves_history() {
+    let root = std::env::temp_dir().join(format!(
+        "tuning-amend-{}",
+        telperion_jev::ledger::new_entry_id()
+    ));
+    fs::create_dir(&root).unwrap();
+    let cfg = root.join("config.json");
+    let out = root.join("out");
+    let mut config = fixture(&root);
+    write(&cfg, &config);
+    command::run(&cfg, &out, None).unwrap_err();
+    let path = out.join("run.json");
+    let mut state: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    state["budget"]["tokens"] = json!(170312);
+    state["budget"]["rounds"] = json!(1);
+    state["budget"]["max_rounds"] = json!(1);
+    state["budget"]["visual_passes"] = json!(7);
+    state["budget"]["max_visual_passes"] = json!(8);
+    state["visual"] =
+        json!({"identity":"old","model":"mock","ledger":"old","cells":[],"defects":[]});
+    let overlay = json!({"skeleton":{"growth":{"maxNodes":1000000}}});
+    config["initial_overrides"] = overlay.clone();
+    config["budget"]["max_tokens"] = json!(270000);
+    config["budget"]["max_rounds"] = json!(2);
+    config["budget"]["max_visual_passes"] = json!(9);
+    write(&cfg, &config);
+    let next: Config = serde_json::from_value(config.clone()).unwrap();
+    let identity = next.identity().unwrap();
+    let authority = json!({"purpose":"bounded experiment","reason":"owner approved repaired generator","next_identity":identity,"max_tokens":270000,"max_rounds":2,"max_evaluations":13,"max_images":52,"max_visual_passes":9});
+    let d = json!({"pause_id":state["pause"]["id"],"identity":state["identity"],"action":state["pause"]["basis"]["proposed_action"],"by":"owner","rationale":"scoped repaired baseline","next_identity":identity,"token_cap_extension":{"previous":200000,"next":270000},"round_cap_extension":{"previous":1,"next":2},"visual_cap_extension":{"previous":8,"next":9},"baseline_amendment":{"previous":{},"next":overlay},"experimental_pilot":authority});
+    let decision = root.join("decision.json");
+    for variant in [
+        "no_amendment",
+        "wrong_round",
+        "wrong_authority",
+        "preserve",
+        "valid",
+    ] {
+        let mut choice = d.clone();
+        match variant {
+            "no_amendment" => choice["baseline_amendment"] = Value::Null,
+            "wrong_round" => choice["round_cap_extension"]["previous"] = json!(0),
+            "wrong_authority" => choice["experimental_pilot"]["max_tokens"] = json!(999999),
+            "preserve" => choice["preserve_evidence"] = json!(true),
+            _ => {}
+        }
+        write(&path, &state);
+        write(&decision, &choice);
+        let error = command::run(&cfg, &out, Some(&decision)).unwrap_err();
+        if variant == "valid" {
+            assert!(error.contains("calibration prerequisite"), "{error}");
+            let saved: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+            assert_eq!(saved["budget"]["tokens"], 170312);
+            assert_eq!(saved["budget"]["rounds"], 1);
+            assert_eq!(saved["budget"]["visual_passes"], 7);
+            assert_eq!(saved["overrides"], overlay);
+            assert_eq!(saved["visual"], Value::Null);
+            assert_eq!(saved["current"], Value::Null);
+            assert_eq!(saved["authorizations"].as_array().unwrap().len(), 1);
+            let parsed: telperion_jev::tuning::engine::Run = serde_json::from_value(saved).unwrap();
+            assert!(parsed.pilot_authority().is_ok());
+        } else {
+            assert!(
+                !error.contains("calibration prerequisite"),
+                "{variant}:{error}"
+            );
+        }
+    }
+    let mut accepted: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    accepted["overrides"]["skeleton"]["habit"] = json!({"crookedness":4.0});
+    write(&path, &accepted);
+    let mut resume = d.clone();
+    resume["pause_id"] = accepted["pause"]["id"].clone();
+    resume["identity"] = accepted["identity"].clone();
+    resume["action"] = accepted["pause"]["basis"]["proposed_action"].clone();
+    for field in [
+        "token_cap_extension",
+        "round_cap_extension",
+        "visual_cap_extension",
+        "baseline_amendment",
+    ] {
+        resume[field] = Value::Null;
+    }
+    write(&decision, &resume);
+    let error = command::run(&cfg, &out, Some(&decision)).unwrap_err();
+    assert!(error.contains("calibration prerequisite"), "{error}");
+    let saved: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(saved["overrides"], accepted["overrides"]);
+    assert_eq!(saved["authorizations"].as_array().unwrap().len(), 2);
+    fs::remove_dir_all(root).unwrap();
+}

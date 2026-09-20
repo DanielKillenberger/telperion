@@ -87,6 +87,62 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
             }
             old.budget.max_tokens = extension.next;
         }
+        if let Some(reconciliation) = &decision.visual_reconciliation {
+            if old.budget.visual_passes.is_some()
+                || old.budget.max_visual_passes.is_some()
+                || reconciliation.reason.trim().is_empty()
+                || reconciliation.paid_ledgers.is_empty()
+            {
+                return Err(
+                    "visual accounting reconciliation is initial and evidence-backed only".into(),
+                );
+            }
+            let mut unique = std::collections::HashSet::new();
+            for path in &reconciliation.paid_ledgers {
+                if !unique.insert(fs::canonicalize(path).map_err(|e| e.to_string())?) {
+                    return Err("duplicate visual ledger".into());
+                }
+                let record: Value =
+                    serde_json::from_slice(&fs::read(path).map_err(|e| e.to_string())?)
+                        .map_err(|e| e.to_string())?;
+                if record.get("status").is_none() {
+                    return Err("not a visual attempt ledger".into());
+                }
+            }
+            let spent = unique.len() as u64;
+            if spent > reconciliation.previous_cap {
+                return Err("prior visual cap exceeded".into());
+            }
+            old.budget.visual_passes = Some(spent);
+            old.budget.max_visual_passes = Some(reconciliation.previous_cap);
+        }
+        for (label, extension, previous, next) in [
+            (
+                "round",
+                decision.round_cap_extension.as_ref(),
+                old.budget.max_rounds,
+                config.budget.max_rounds,
+            ),
+            (
+                "visual",
+                decision.visual_cap_extension.as_ref(),
+                old.budget.max_visual_passes.unwrap_or(0),
+                config.budget.max_visual_passes.unwrap_or(0),
+            ),
+        ] {
+            if let Some(extension) = extension {
+                if extension.previous != previous || extension.next != next || next <= previous {
+                    return Err(format!(
+                        "{label} extension must name exact previous and increased cap"
+                    ));
+                }
+                if label == "round" {
+                    old.budget.max_rounds = next;
+                } else {
+                    old.budget.max_visual_passes = Some(next);
+                }
+            }
+        }
         if old.preset != config.preset
             || [
                 old.budget.max_tokens,
@@ -101,6 +157,42 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
             ]
         {
             return Err("resume cannot silently change species or budget caps".into());
+        }
+        if old.budget.max_visual_passes != config.budget.max_visual_passes {
+            return Err("resume cannot silently change visual cap".into());
+        }
+        if let Some(amendment) = &decision.baseline_amendment {
+            if decision.preserve_evidence
+                || amendment.previous != old.overrides
+                || amendment.next != config.initial_overrides
+            {
+                return Err(
+                    "baseline amendment requires exact old/new overlay and fresh evidence".into(),
+                );
+            }
+            let base =
+                telperion_core::presets::Preset::from_id(&config.preset).ok_or("unknown preset")?;
+            telperion_core::params::overlay(&base.parameters(), &amendment.next)
+                .map_err(|e| format!("baseline amendment: {e:?}"))?;
+            old.overrides = amendment.next.clone();
+        } else if config.initial_overrides
+            != *old
+                .authorizations
+                .iter()
+                .rev()
+                .find_map(|d| d.baseline_amendment.as_ref().map(|a| &a.next))
+                .or_else(|| {
+                    old.trials
+                        .iter()
+                        .find(|t| t.label == "baseline")
+                        .map(|t| &t.overrides)
+                })
+                .unwrap_or(&old.overrides)
+        {
+            return Err("changed baseline overlay requires explicit amendment".into());
+        }
+        if let Some(authority) = &decision.experimental_pilot {
+            authority.verify(&identity, &old.budget)?;
         }
         if decision.recover_interrupted
             && matches!(
@@ -163,6 +255,7 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
         let family = telperion_core::params::overlay(&base.parameters(), &old.overrides)
             .map_err(|e| format!("resumed family: {e:?}"))?;
         old.effective = telperion_core::params::metadata(&family);
+        old.authorizations.push(decision);
         old
     } else {
         if resume.is_some() {
@@ -190,6 +283,7 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
             machine_ready: false,
             pending: None,
             routes: vec![],
+            authorizations: vec![],
         }
     };
     let mut save = |state: &Run| -> Result<(), String> {
@@ -209,6 +303,15 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
             decision_requested:"Supply frozen calibration and a scoped resume decision. No unattended work is authorized.".into()});
         save(&state)?;
         return Err("paused: calibration prerequisite unavailable; see run.json".into());
+    }
+    if let Err(reason) = state.pilot_authority() {
+        state.pause=Some(Pause {id:crate::ledger::new_entry_id(),identity:identity.clone(),reason,
+            basis:Basis {identity,proposed_action:"authorize bounded experimental pilot".into(),evidence:vec![],recent_outcomes:vec![],next_tokens:None,estimate_basis:String::new(),usage_known:state.usage_known},
+            decision_requested:"Provide explicit scoped experimental authority; general magnitude efficacy remains unvalidated.".into()});
+        save(&state)?;
+        return Err(
+            "magnitude live efficacy unvalidated; scoped experimental authority required".into(),
+        );
     }
     let key = load_key().map_err(|e| e.to_string())?;
     let mut services = Live {

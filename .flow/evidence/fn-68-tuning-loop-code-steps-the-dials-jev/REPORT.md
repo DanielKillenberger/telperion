@@ -1,5 +1,19 @@
 # fn68 implementation and calibration checkpoint
 
+## Post-fn53 restart preparation,2026-09-20
+
+Integrated parent30317714 includes merged fn53/fn72. Owner approved270,000 cumulative tokens,9visual passes and2rounds, retaining170,312tokens/7passes/3evaluations/12image reservations/1round already spent. New scoped authorization prepares token220k→270k, round1→2, visual8→9 and validated baseline overlay `{skeleton:{growth:{maxNodes:1000000}}}`. These are caller experiment limits, not shipped preset changes. Resume now appends authorization history, invalidates changed-generator/current visual evidence, preserves spend, rejects unauthorized amendments, and cannot silently discard an accepted tuned overlay on ordinary resume.
+
+General unattended magnitude use now fails closed: calibration alone cannot enable the command. Explicit experimental authority must match identity and every cumulative ceiling; all existing calibration checks still apply. No generic efficacy-proof API or validated boolean was added. Visual attempts are reserved before dispatch, including failed/unknown paid attempts; historical counter migration lists all7paid ledgers and explicitly excludes the previously proven pre-model CLI failure. Old-identity finalists are excluded, but historical failures remain revision-tagged in judgment state. Node counts/growth/headroom are explicit computational feasibility evidence, not botanical gap labels.
+
+Focused18tests passed (`/tmp/fn68-fn53-final-focused.log`), followed by full key-unset telperion-jev package pass (`/tmp/fn68-fn53-package.log`), release binary build and format/diff checks. Host attempted baseline overlapped initializer edits and was inconclusive, not an inherited red or claimed pass. No model call/evaluation/capture occurred in this restart.
+
+Prepared new config identity `d0927490f65348a7e5487338dceaff12e255ed3e41972edf8c59966d5e1b552c`; config/decision are `pilot-config-fn53.json` and `pilot-resume-fn53.json`, not yet applied. Conservative whole-attempt provision95,000 fits99,688 remaining:25k baseline visual +30k Jev/new-prose headroom +40k final six-cell pack. Existing-observation serialized bounds are route4,844/continuation4,705/proposal10,301; fresh prose is unknown, so those are sizing context, not a claim about future exact requests. Recompute exact bounds after fresh baseline before round calls.
+
+Qualification is currently blocked: two historical replay PNGs disappeared from `/tmp`. Host found no durable copies and asked the owner about exactly two reconstruction renders; no recovery authority yet. Original calibration manifests/hashes/results remain unchanged. Pinned profile/reference JSON was recovered byte-for-byte from4e6d903c into durable `assets/`, with provenance and hash comparison. New pilot images will use ignored durable `local/pilot-fn53`, never git. Prepared CLI command must not run until exact replay assets are restored and qualification passes. This boundary is NEEDS_HUMAN, not permission to reset reconstruction spend or weaken verification.
+
+New friction dispositions: missing scratch calibration assets → durable image storage plus explicitly approved exact recovery; host instruction-reload/truncation overhead → proposed bounded resume-specific skill instructions, owner decides any spec. No new spec was created. Task remains in_progress; prior failed-pilot magnitude efficacy remains unvalidated, and R10's human-pause branch remains demonstrated.
+
 ## Final authorized pilot outcome,21:44 UTC
 
 The owner approved220,000 (“yea go”). The rebuilt CLI verified unchanged baseline evidence, applied the explicit200k→220k scoped extension and did not repeat baseline vision. Enriched continuation passed: tractability supported0.85, progress supported0.79, risk bounded0.91. This supports the bounded plan input, not the usefulness of every proposed magnitude.
