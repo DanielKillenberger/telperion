@@ -172,6 +172,104 @@ pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> 
     Ok(result)
 }
 
+pub(super) async fn read_leaves_async(
+    gpu: &Gpu,
+    source: &wgpu::Buffer,
+    count: u32,
+) -> Result<Vec<[u32; 3]>> {
+    read_leaves_chunked(gpu, source, count as usize, 4 * 1024 * 1024).await
+}
+
+pub(super) fn reserve_leaves(count: usize) -> Result<Vec<[u32; 3]>> {
+    let mut leaves = Vec::new();
+    leaves
+        .try_reserve_exact(count)
+        .map_err(|e| error(e.to_string()))?;
+    Ok(leaves)
+}
+
+pub(super) async fn read_leaves_chunked(
+    gpu: &Gpu,
+    source: &wgpu::Buffer,
+    count: usize,
+    chunk_limit: u64,
+) -> Result<Vec<[u32; 3]>> {
+    if count == 0 {
+        return Ok(Vec::new());
+    }
+    let bytes = u64::try_from(count)
+        .ok()
+        .and_then(|n| n.checked_mul(12))
+        .ok_or_else(|| error("leaf readback size overflow".into()))?;
+    if bytes > source.size() || !source.usage().contains(wgpu::BufferUsages::COPY_SRC) {
+        return Err(error("invalid leaf readback source".into()));
+    }
+    let chunk_bytes = bytes
+        .min(chunk_limit)
+        .min(4 * 1024 * 1024)
+        .min(gpu.device.limits().max_buffer_size)
+        / 12
+        * 12;
+    if chunk_bytes == 0 {
+        return Err(error(
+            "leaf readback staging limit is smaller than one leaf".into(),
+        ));
+    }
+    if let Some(error) = gpu.lost() {
+        return Err(error);
+    }
+    let mut leaves = reserve_leaves(count)?;
+    let scopes = scope(gpu);
+    let result = async {
+        let target = gpu.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bounded leaf readback"),
+            size: chunk_bytes,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let mut offset = 0;
+        while offset < bytes {
+            let length = chunk_bytes.min(bytes - offset);
+            let mut encoder = gpu.device.create_command_encoder(&Default::default());
+            encoder.copy_buffer_to_buffer(source, offset, &target, 0, length);
+            gpu.queue.submit([encoder.finish()]);
+            let (send, receive) = futures_channel::oneshot::channel();
+            target
+                .slice(..length)
+                .map_async(wgpu::MapMode::Read, move |result| {
+                    let _ = send.send(result);
+                });
+            #[cfg(not(target_arch = "wasm32"))]
+            gpu.device
+                .poll(wgpu::PollType::wait_indefinitely())
+                .map_err(|e| error(e.to_string()))?;
+            receive
+                .await
+                .map_err(|e| error(e.to_string()))?
+                .map_err(|e| error(e.to_string()))?;
+            let view = target
+                .slice(..length)
+                .get_mapped_range()
+                .map_err(|e| error(e.to_string()))?;
+            leaves.extend(view.chunks_exact(12).map(|b| {
+                [
+                    u32::from_ne_bytes(b[0..4].try_into().unwrap()),
+                    u32::from_ne_bytes(b[4..8].try_into().unwrap()),
+                    u32::from_ne_bytes(b[8..12].try_into().unwrap()),
+                ]
+            }));
+            drop(view);
+            target.unmap();
+            offset += length;
+        }
+        Ok(leaves)
+    }
+    .await;
+    let checked = errors(gpu, scopes).await;
+    checked?;
+    result
+}
+
 pub(super) async fn errors(gpu: &Gpu, scopes: [wgpu::ErrorScopeGuard; 2]) -> Result<()> {
     let [validation, memory] = scopes;
     let memory = memory.pop().await;

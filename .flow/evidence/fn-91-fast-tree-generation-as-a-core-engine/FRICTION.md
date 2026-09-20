@@ -90,3 +90,7 @@ The four-image browser close capture completed, but both CPU screenshots were wh
 Implementation, smoke, matrix and focused checks were complete while the host owned the separate close-view capture/retry. The worker held the commit for roughly two minutes (estimate), as requested, without repeating builds or measurements. A settled-canvas capture helper would remove the retry; the host records the concrete capture failure and remedy separately. This was a bounded handoff wait, not another implementation attempt.
 
 Close-capture retry outcome: waiting two initial animation frames produced four nonblank images. Preserve initial resize settling in the capture harness; the views remain limited for contact inspection.
+
+## 2026-09-20 — task .2 build queue
+
+The candidate example build waited for the focused library-test release build's Cargo lock (under one minute; exact lock wait was not timed). The builds remained serialized and no measurements ran during compilation. Starting the example command only after the test command exits would avoid a queued command, though it would not reduce the required compilation work. The bounded task used one fresh baseline example and one candidate example build.

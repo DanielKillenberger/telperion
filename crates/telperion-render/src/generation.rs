@@ -220,23 +220,8 @@ impl Generator {
         if delivery == Delivery::Cpu {
             let start = Clock::now();
             let output = resident.take().unwrap();
-            let bytes = io::read_async(
-                &self.gpu,
-                output.leaves.buffer(),
-                u64::from(output.count) * 12,
-            )
-            .await?;
-            instances.leaves = bytes
-                .chunks_exact(12)
-                .map(|b| {
-                    [
-                        u32::from_ne_bytes(b[0..4].try_into().unwrap()),
-                        u32::from_ne_bytes(b[4..8].try_into().unwrap()),
-                        u32::from_ne_bytes(b[8..12].try_into().unwrap()),
-                    ]
-                })
-                .collect();
-            drop(bytes);
+            instances.leaves =
+                io::read_leaves_async(&self.gpu, output.leaves.buffer(), output.count).await?;
             drop(output);
             instances.validate()?;
             metrics.readback_ms = start.elapsed_ms();
@@ -297,19 +282,8 @@ impl Generator {
             return Err(telperion_core::Error::InvalidInput("generation renderer mismatch").into());
         }
         if let Some(r) = &prepared.resident {
-            let bytes =
-                io::read_async(&self.gpu, r.leaves.buffer(), u64::from(r.count) * 12).await?;
             let mut out = Instances::new(prepared.mesh.foliage.instances.reference);
-            out.leaves = bytes
-                .chunks_exact(12)
-                .map(|b| {
-                    [
-                        u32::from_ne_bytes(b[0..4].try_into().unwrap()),
-                        u32::from_ne_bytes(b[4..8].try_into().unwrap()),
-                        u32::from_ne_bytes(b[8..12].try_into().unwrap()),
-                    ]
-                })
-                .collect();
+            out.leaves = io::read_leaves_async(&self.gpu, r.leaves.buffer(), r.count).await?;
             Ok(out)
         } else {
             Ok(prepared.mesh.foliage.instances.clone())
@@ -383,3 +357,6 @@ fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
 mod standalone_tests;
 #[cfg(test)]
 mod tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod readback_tests;

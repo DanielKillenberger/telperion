@@ -298,3 +298,18 @@ are separate from internal slices and are not a change-record update benchmark.
 The experimental shared GPU browser path is measured only by explicit opt-in:
 `GENERATION_GPU=1 GENERATION_COMPLETED=1 GENERATION_OUTPUT=<file> node scripts/benchmarks/mature-generation.mjs`.
 It awaits `setTreeGpu`, retains the existing hero/queue-completion boundary, and records backend, preparation stages, explicit buffer counts and whole-module Wasm memory. The default remains synchronous CPU generation. Run `GENERATION_OUTPUT=<file> node scripts/benchmarks/generation-gpu-smoke.mjs` for bounded browser lifecycle validation before the full fixture matrix.
+
+### Bounded GPU CPU-output readback
+
+GPU CPU delivery and explicit resident verification share a chunked asynchronous
+readback. It reserves the final packed leaf vector once and uses staging capped at
+4,194,300 bytes (4 MiB rounded down to 12-byte records, respecting device limits).
+No full-size intermediate byte vector is retained. Count the final vector, staging,
+and still-live source separately; these limits do not measure whole-process or
+GPU-driver memory. The old staging was released before final decoding, so the old
+peak had two full readback copies, not three simultaneously.
+
+Task fn-91.2's matched seed-1 native comparison is recorded in
+`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/READBACK.md`, with the
+fresh-process wait4 protocol in `readback-measure.py`. Hash verification runs in
+separate processes so its extra verification clone is excluded from timing/RSS.
