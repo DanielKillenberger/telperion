@@ -1,4 +1,16 @@
-## Current: host review corrections — whole R7 stages, birch R8 positive, broad materials
+## Current: dispatch-ready offline R7/R8 proof packet, pending one approval
+
+Runnable dry command: `python3 .flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/run-proof-preflight.py`. `--execute` refused. No `AUTHORITY.json`. Browse `visual-review.html#approved-priorities`. Owner ranking already recorded; not re-asked.
+
+Birch-round26 S-WHOLE framing is complete (margins all sides; hash `2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e`). Matching refs `bepe339A` / `bepe340A`. Stage A birch inventory request is assembled. Stage B birch-positive binds that inventory after Stage A and uses birch-specific goals, not beech owner priorities. Stage B beech-negative reuses pinned `reference-first-inventory.json` against round22 `7e69fda3…`. R7 current uses reframed limbs-only plus owner-priority cells. R7 final is a template until one overlay exists.
+
+Per-stage ceilings, stop-before-exceed, not granted: Stage A 25,000; each Stage B 40,000; each R7 visual 45,000; route 28,000; continuation 32,000; magnitude 36,000. Sum 291,000 of a 350,000 additional envelope. Proposed token cap 843,431. Visual +5 to cap 25. Evaluations +4. Images +20 stay inside 52. Direction not added.
+
+Acceptance frozen in `proof/ACCEPTANCE.md`. R8 then R7 only if it qualifies. Numeric plus visible approved-gap improvement is separate. Two views are not six-cell readiness. Required unused scope: seed 1 B-BASE and seed 42 B-WHOLE/B-BARE/B-BASE. Not applied to the original run. Runtime SHA `d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e` unchanged.
+
+Verification: existing `reference-first-codex.prepare` on four envelopes; image SHA-256 match; execute path exit 2; `git diff --check`. No 207-package rerun. No paid call or capture.
+
+## Previous: host review corrections — whole R7 stages, birch R8 positive, broad materials
 
 Owner ranking remains a separate event in `priority-approval.json`. Quotation unchanged: the 1,2,3 yes. IDs: owner-crown-foliage, owner-hanging-foliage, owner-materials. Priority 3 is materials on B-WHOLE and B-BARE, including foliage material as assessable or unknown, not a bark-only cell. Checkpoint `dcc6a63fbfa782fb4970fb5a9fbf0a1228c39a65b6ec3c1a9736e7c6e02a8010` and scope `903276d3348f3e5f40aa2c8ec25659c7d16f3880e61c559d2fabef33c985bed3` re-verified after the edit. Browse `visual-review.html#approved-priorities`. Packet `approval` remains null. Seed 1 only. Not applied to runtime.
 

@@ -1,0 +1,117 @@
+{
+  "stage": "comparison",
+  "expected_ready": true,
+  "label": "birch-round26 owner-accepted species; whole-crown seed1 only",
+  "prompt": "Compare the candidate jointly against the frozen reference-only inventory and supplied photographs at the catalogue finish floor. Account explicitly for every core trait using its exact trait ID, citing render and reference evidence. Pass requires a supported match, fail a defining mismatch, unknown missing/clipped/ambiguous evidence. Do not silently dismiss a core reference trait as non-photorealism or downgrade an uncertain trait. Distinguish optional refinement and acceptable variation from defining reference character. Inventory statements are attributed interpretations, not infallible facts: if contradicted or unassessable, report unknown with grounds. Keep observations separate from causal hypotheses; no particular mechanism is required. Relative improvement is not absolute readiness. A clean candidate can pass with supported evidence for every core trait and no blockers.",
+  "prompt_sha256": "847dd718e56258447ec5fcc89fdaadc9701165d02eab0b51001e616ebc1a0329",
+  "inventory_bind": {
+    "status": "after_stage_a",
+    "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/stage-a-birch-inventory.json",
+    "dispatchable_only_after_bind": true
+  },
+  "request": {
+    "inventory": null,
+    "comparison": {
+      "schema": "tuning-vision-v3",
+      "target_species": "Silver birch / Betula pendula",
+      "identity": "birch-round26-0f2c2f6a-seed1-whole",
+      "checklist": "Recognizable mature silver birch at the established catalogue finish floor: light irregular crown and fine pendulous branching and foliage character. Block only wrong species character, an obvious construction artifact, or finish below the independent spruce anchor. Photographs establish species character, not photorealism. Do not apply European-beech owner priorities. Missing, clipped or ambiguous evidence is unknown.",
+      "images": [
+        {
+          "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/replay-images/silver-birch-S-WHOLE.png",
+          "sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+          "view": "S-WHOLE",
+          "seed": 1
+        }
+      ],
+      "references": [
+        {
+          "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/silver-birch/bepe339A.jpg",
+          "sha256": "cae1627afa33d8a881fe927090b222a37fc0dfa2febffa3e3f1edcc52aa309be",
+          "view": "S-WHOLE",
+          "seed": 1
+        },
+        {
+          "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/silver-birch/bepe340A.jpg",
+          "sha256": "097c70624dd9a75df67d82b07857794b7bf082581544ee08789e2e8562063f6c",
+          "view": "S-BARE",
+          "seed": 1
+        }
+      ],
+      "quality_anchors": [
+        {
+          "image": {
+            "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+            "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+            "view": "whole",
+            "seed": 1
+          },
+          "provenance": "established catalogue anchor image sha256:8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+          "scope": "finish/style only; not species morphology"
+        }
+      ],
+      "required": [
+        {
+          "item": "reference_character",
+          "view": "S-WHOLE",
+          "seed": 1
+        }
+      ],
+      "joint": {
+        "inputs": [
+          {
+            "id": "render-0",
+            "role": "render",
+            "view": "S-WHOLE",
+            "seed": 1,
+            "sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+            "render_identity": "birch-round26-0f2c2f6a-seed1-whole",
+            "geometry_group": "birch-round26-0f2c2f6a-seed1-whole:seed:1",
+            "condition": "historical_reconstructed_still",
+            "visibility": "shown",
+            "framing": "complete"
+          },
+          {
+            "id": "reference-0",
+            "role": "reference",
+            "view": "S-WHOLE",
+            "seed": 1,
+            "sha256": "cae1627afa33d8a881fe927090b222a37fc0dfa2febffa3e3f1edcc52aa309be",
+            "render_identity": null,
+            "geometry_group": null,
+            "condition": "unknown",
+            "visibility": "unknown",
+            "framing": "unknown"
+          },
+          {
+            "id": "reference-1",
+            "role": "reference",
+            "view": "S-BARE",
+            "seed": 1,
+            "sha256": "097c70624dd9a75df67d82b07857794b7bf082581544ee08789e2e8562063f6c",
+            "render_identity": null,
+            "geometry_group": null,
+            "condition": "unknown",
+            "visibility": "unknown",
+            "framing": "unknown"
+          },
+          {
+            "id": "anchor-0",
+            "role": "anchor",
+            "view": "whole",
+            "seed": 1,
+            "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+            "render_identity": null,
+            "geometry_group": null,
+            "condition": "unknown",
+            "visibility": "unknown",
+            "framing": "unknown"
+          }
+        ],
+        "reference_relation": "unknown",
+        "relation_source": null
+      }
+    }
+  },
+  "request_sha256": "ba4370ce199a5cdef27146238bb2ca3734a2f3280cfde4a58403e44aff9d34a1"
+}

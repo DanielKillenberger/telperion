@@ -1,0 +1,34 @@
+{
+  "birch_positive": {
+    "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/replay-images/silver-birch-S-WHOLE.png",
+    "sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+    "expected": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+    "provenance": "Owner accepted round26 silver birch as species. Recovery 0f2c2f6a S-WHOLE seed1 exact reconstructed still.",
+    "framing": "complete",
+    "inspection": "2026-09-20 host-session inspection of the reconstructed still: crown, hanging twigs and ground plane visible with sky margin on all sides. Not the fill-0.93 clipped limbs-only beech series.",
+    "blocker": null
+  },
+  "beech_negative": {
+    "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/replay-images/european-beech-B-WHOLE.png",
+    "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
+    "expected": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
+    "provenance": "Owner rejected round22. Recovery 4e6d903c B-WHOLE seed1 exact reconstructed still.",
+    "framing": "complete",
+    "inspection": "2026-09-20 inspection: full oval crown inside frame, ground visible.",
+    "blocker": null
+  },
+  "r7_current": {
+    "whole": "e0d5bc93369f281dc39e9fa008a1cec647b2c040de47baa89e11bc31d1fe6f68",
+    "bare": "9c64f46459c824458951c465832feead33a730182cfcffdd8ab5a786d7fe9dde",
+    "framing": "complete",
+    "source": "framefit-result.json; authored complete after fill 0.604/0.623"
+  },
+  "cannot_reuse": [
+    "tuning-vision-v2 replay: different protocol",
+    "spent Stage B beech: invalid cardinality then different uncropped candidate",
+    "reframed-b receipt: different required cells/checklist than owner-priority R7"
+  ],
+  "reused": [
+    "reference-first-inventory.json for beech Stage B negative and R7"
+  ]
+}

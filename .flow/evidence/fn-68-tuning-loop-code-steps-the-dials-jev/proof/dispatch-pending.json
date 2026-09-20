@@ -1,0 +1,11 @@
+{
+  "status": "pending_one_scope_budget_approval",
+  "authority": null,
+  "applied_to_runtime": false,
+  "execute_forbidden_until": "separate owner scope and budget approval file that this packet does not contain",
+  "original_runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "packet_approval_field_still_null": true,
+  "one_useful_round": true,
+  "retries": false,
+  "calibration_fail": "stop, do not redesign"
+}

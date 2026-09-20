@@ -1,0 +1,108 @@
+{
+  "meaning": "Conservative per-stage ceilings. Stop before exceed. Not granted. Not an exact future-text sum.",
+  "planning_envelope_additional_tokens": 350000,
+  "current": {
+    "tokens": 552431,
+    "token_cap": 570000,
+    "visual": 20,
+    "visual_cap": 20,
+    "evaluations": 6,
+    "evaluation_cap": 13,
+    "images": 28,
+    "image_cap": 52
+  },
+  "prior_serialized": {
+    "route": 22778,
+    "continuation": 25220,
+    "proposal_magnitude": 28235,
+    "visual_owner_priority": 41411
+  },
+  "stages": [
+    {
+      "id": "stage-a-birch",
+      "kind": "visual",
+      "ceiling": 25000,
+      "justification": "Same reserve as spent beech Stage A (actual 20276). Two birch reference photos.",
+      "visual_passes": 1,
+      "captures": 0,
+      "dispatchable_now": true
+    },
+    {
+      "id": "stage-b-birch-positive",
+      "kind": "visual",
+      "ceiling": 40000,
+      "justification": "Above spent Stage B 35000/28569; four images; unknown inventory text after Stage A.",
+      "visual_passes": 1,
+      "captures": 0,
+      "dispatchable_now": false,
+      "needs": "stage-a-birch-inventory.json"
+    },
+    {
+      "id": "stage-b-beech-negative",
+      "kind": "visual",
+      "ceiling": 40000,
+      "justification": "Same ceiling as birch Stage B; four images; existing beech inventory pinned.",
+      "visual_passes": 1,
+      "captures": 0,
+      "dispatchable_now": true
+    },
+    {
+      "id": "r7-current",
+      "kind": "visual",
+      "ceiling": 45000,
+      "justification": "Serialized owner-priority visual 41411 plus margin; five existing reframed/reference/anchor images.",
+      "visual_passes": 1,
+      "captures": 0,
+      "dispatchable_now": false,
+      "needs": "R8 qualify"
+    },
+    {
+      "id": "r7-final",
+      "kind": "visual",
+      "ceiling": 45000,
+      "justification": "Same coverage as r7-current on a new overlay; images bound after evaluation.",
+      "visual_passes": 1,
+      "captures": 4,
+      "dispatchable_now": false,
+      "needs": "numeric winner"
+    },
+    {
+      "id": "route",
+      "kind": "jev",
+      "ceiling": 28000,
+      "justification": "Serialized 22778 plus stop-before-exceed margin.",
+      "in_execute_inner": true
+    },
+    {
+      "id": "continuation",
+      "kind": "jev",
+      "ceiling": 32000,
+      "justification": "Serialized 25220 plus margin for unknown next-tokens string.",
+      "in_execute_inner": true
+    },
+    {
+      "id": "proposal-magnitude",
+      "kind": "jev",
+      "ceiling": 36000,
+      "justification": "Serialized 28235 plus margin. One propose() over all authored dials.",
+      "in_execute_inner": true
+    }
+  ],
+  "direction_not_in_execute": {
+    "serialized": 25690,
+    "ceiling_not_added": true
+  },
+  "evaluations_max": 4,
+  "evaluation_images_max": 16,
+  "sum_stage_ceilings": 291000,
+  "proposed_not_granted": {
+    "additional_tokens": 291000,
+    "proposed_token_cap": 843431,
+    "visual_passes": 5,
+    "proposed_visual_cap": 25,
+    "evaluations": 4,
+    "images_add": 20,
+    "resulting_image_reservations": 48,
+    "image_cap_unchanged": 52
+  }
+}
