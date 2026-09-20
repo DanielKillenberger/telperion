@@ -1,0 +1,8 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 35.48s
+────────────
+ Nextest run ID 80a5b4d1-8e20-4665-ab79-44995afed309 with nextest profile: default
+    Starting 18 tests across 1 binary (53 tests skipped)
+        PASS [   0.004s] ( 1/18) telperion-render generation::tests::compact_position_candidate_does_not_override_station_capability
+        PASS [   0.004s] ( 2/18) telperion-render generation::request::tests::invalidation_keeps_busy_until_guard_drops_and_errors_release_it
+        PASS [   0.023s] ( 3/18) telperion-render generation::tests::preparation_capabilities_and_failures_are_explicit

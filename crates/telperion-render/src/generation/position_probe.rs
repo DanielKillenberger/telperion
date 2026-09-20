@@ -408,3 +408,6 @@ fn compact_position_mature_measurement() {
     }
     pollster::block_on(io::errors(&g.gpu, scopes)).unwrap();
 }
+
+#[path = "position_tests.rs"]
+mod production;

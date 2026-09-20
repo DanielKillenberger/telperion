@@ -1,4 +1,4 @@
-//! Experimental ring inputs for the isolated GPU position feasibility probe.
+//! Compact ring inputs. Consumers must admit emitted geometry before use.
 //! This does not admit geometry: the consumer must validate emitted triangles.
 use super::*;
 
@@ -18,6 +18,67 @@ pub struct CompactSurface {
 }
 
 pub fn prepare(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<CompactSurface> {
+    prepare_inner(tree, height, params, None)
+}
+
+/// Conservative capability bound for the GPU position path, not an engine limit.
+pub fn qualified_ring(centre: [f32; 3], radius: f32) -> bool {
+    let maximum = centre.iter().map(|v| v.abs()).fold(1.0_f32, f32::max);
+    centre.iter().all(|v| v.is_finite() && v.abs() <= 64.0)
+        && radius.is_finite()
+        && radius <= 32.0
+        && radius >= maximum / 131072.0
+}
+impl CompactSurface {
+    pub fn qualified(&self) -> bool {
+        (self.lobes == 0 || self.depth == 0.0)
+            && self.rings.iter().all(|r| {
+                qualified_ring([r[0], r[1], r[2]].map(f32::from_bits), f32::from_bits(r[3]))
+            })
+    }
+}
+
+/// Contact ranges index the packed GPU vertices emitted from this exact preparation.
+pub struct CompactWithContacts<'a> {
+    pub(crate) surface: CompactSurface,
+    pub(crate) tree: &'a Tree,
+    pub(crate) params: &'a SurfaceParams,
+    pub(crate) height: f64,
+    pub(crate) edges: Vec<Option<[usize; 4]>>,
+}
+impl CompactWithContacts<'_> {
+    pub fn surface(&self) -> &CompactSurface {
+        &self.surface
+    }
+    pub fn into_surface(self) -> CompactSurface {
+        self.surface
+    }
+    pub fn contact_bytes(&self) -> usize {
+        self.edges.capacity() * size_of::<Option<[usize; 4]>>()
+    }
+}
+pub fn prepare_with_contacts<'a>(
+    tree: &'a Tree,
+    height: f64,
+    params: &'a SurfaceParams,
+) -> Result<CompactWithContacts<'a>> {
+    tree.validate()?;
+    let mut edges = filled(tree.nodes.len(), None)?;
+    let surface = prepare_inner(tree, height, params, Some(&mut edges))?;
+    Ok(CompactWithContacts {
+        surface,
+        tree,
+        params,
+        height,
+        edges,
+    })
+}
+fn prepare_inner(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
+    mut contacts: Option<&mut Vec<Option<[usize; 4]>>>,
+) -> Result<CompactSurface> {
     tree.validate()?;
     params.validate()?;
     if !height.is_finite() || height <= 0.0 {
@@ -105,6 +166,17 @@ pub fn prepare(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Compa
             rings: count,
             index_count: count * segments * 6,
         };
+        if let Some(edges) = contacts.as_deref_mut() {
+            let offset = usize::from(path.trunk && params.flare_depth > 0.0);
+            for (i, &node) in paths.nodes[path.start..path.end].iter().enumerate().skip(1) {
+                edges[node] = Some([
+                    base as usize + (i - 1 + offset) * segments as usize,
+                    base as usize + (i + offset) * segments as usize,
+                    base as usize,
+                    base as usize + (samples.len() - 1) * segments as usize,
+                ]);
+            }
+        }
         for (i, s) in samples.iter().enumerate() {
             let (n, b) = frame[i];
             let floats = [

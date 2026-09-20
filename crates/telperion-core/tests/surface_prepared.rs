@@ -150,6 +150,21 @@ fn shared_contacts_preserve_station_stream_and_rounded_rings() {
         )
         .unwrap()
         .unwrap();
+        let compact = surface::compact::prepare_with_contacts(&tree, 4.0, &family.surface).unwrap();
+        let compact_stations = foliage::prepared::prepare_compact_stations(
+            &compact,
+            family.skeleton.envelope,
+            family.canopy,
+            twig,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(compact_stations.count, borrowed.count);
+        assert_eq!(compact_stations.ring_size, borrowed.ring_size);
+        assert_eq!(
+            format!("{:?}", compact_stations.segments),
+            format!("{:?}", borrowed.segments)
+        );
         assert_eq!(original.count, borrowed.count);
         assert!(original.count > 0);
         assert_eq!(original.segments.len(), borrowed.segments.len());
@@ -229,4 +244,22 @@ fn shared_empty_and_validation_outcomes_are_explicit() {
         twig
     )
     .is_err());
+}
+
+#[test]
+fn compact_precision_domain_boundaries() {
+    use surface::compact::qualified_ring;
+    for (centre, radius, expected) in [
+        (0.0, 1.0 / 131072.0, true),
+        (0.0, 0.5 / 131072.0, false),
+        (64.0, 64.0 / 131072.0, true),
+        (64.0001, 1.0, false),
+        (25.0, 0.0001, false),
+        (0.0, 32.0, true),
+        (0.0, 32.0001, false),
+        (f32::INFINITY, 1.0, false),
+        (0.0, f32::NAN, false),
+    ] {
+        assert_eq!(qualified_ring([centre, -centre, centre], radius), expected);
+    }
 }

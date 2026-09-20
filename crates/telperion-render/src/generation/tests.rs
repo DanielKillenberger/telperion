@@ -442,3 +442,136 @@ fn gpu_extrema_order_preserves_signed_zero_and_finite_signs() {
     assert_eq!(values[2].to_bits(), (-0.0f32).to_bits());
     assert_eq!(values[3].to_bits(), 0.0f32.to_bits());
 }
+
+#[test]
+fn compact_positions_seat_contacts_on_the_rendered_surface() {
+    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
+    let g = Generator::new(&renderer).unwrap();
+    let scopes = io::scope(&g.gpu);
+    let tree = fixture(0.73);
+    let mut f = Family::default();
+    f.surface.lobes = 0;
+    f.skeleton.envelope.height = 2.0;
+    f.skeleton.envelope.spread = 0.5;
+    f.shell_depth = 1.0;
+    f.canopy.surface_contact = 1.0;
+    f.canopy.short_shoot_spacing = 0.0;
+    f.canopy.limb_clumping = 0.0;
+    let twig = TwigPlacement {
+        internode_length: 0.07,
+        stations_per_internode: 3,
+    };
+    let reference = Reference::spanning(Vec3::new(-2.0, -1.0, -2.0), Vec3::new(2.0, 3.0, 2.0));
+    let element = foliage::build_element(f.element).unwrap();
+    let shared = surface::compact::prepare_with_contacts(&tree, 2.0, &f.surface).unwrap();
+    let p = foliage::prepared::prepare_compact_stations(
+        &shared,
+        f.skeleton.envelope,
+        f.canopy,
+        Some(twig),
+    )
+    .unwrap()
+    .unwrap();
+    let mut metrics = Metrics::default();
+    let wood = pollster::block_on(g.emit_positions(shared.into_surface(), &mut metrics))
+        .unwrap()
+        .unwrap();
+    let positions = wood.positions.clone();
+    let p = foliage::prepared::PreparedStations {
+        segments: p.segments,
+        count: p.count,
+        ring_size: p.ring_size,
+        rings: std::borrow::Cow::Borrowed(&positions),
+    };
+    let leaves =
+        pollster::block_on(g.compute_buffer_async(p, &f, twig, &element, reference, &mut metrics))
+            .unwrap();
+    let mut actual = Instances::new(reference);
+    actual.leaves = pollster::block_on(io::read_leaves_async(
+        &g.gpu,
+        leaves.leaves.buffer(),
+        leaves.count,
+    ))
+    .unwrap();
+    actual.validate().unwrap();
+    assert!(!actual.is_empty());
+    let wood = pollster::block_on(g.expand_uploaded_wood(wood, &mut metrics))
+        .unwrap()
+        .unwrap();
+    assert_eq!(wood.positions.buffer(), &positions);
+    let xyz: Vec<f32> = io::read(&g.gpu, &positions, wood.vertices as u64 * 12)
+        .unwrap()
+        .chunks_exact(4)
+        .map(|b| f32::from_le_bytes(b.try_into().unwrap()))
+        .collect();
+    let indices: Vec<u32> = io::read(&g.gpu, wood.indices.buffer(), wood.index_count as u64 * 4)
+        .unwrap()
+        .chunks_exact(4)
+        .map(|b| u32::from_le_bytes(b.try_into().unwrap()))
+        .collect();
+    let point = |i: u32| {
+        Vec3::new(
+            xyz[i as usize * 3] as f64,
+            xyz[i as usize * 3 + 1] as f64,
+            xyz[i as usize * 3 + 2] as f64,
+        )
+    };
+    let tolerance = reference.step().length() * 2.0 + 32.0 * f32::EPSILON as f64 * 4.0;
+    for i in 0..actual.len() {
+        let p = actual.position(i);
+        let nearest = indices
+            .chunks_exact(3)
+            .map(|t| {
+                let [a, b, c] = [point(t[0]), point(t[1]), point(t[2])];
+                let normal = (b - a).cross(c - a).normalized();
+                let projected = p - normal * (p - a).dot(normal);
+                let inside = [(a, b), (b, c), (c, a)]
+                    .into_iter()
+                    .all(|(x, y)| (y - x).cross(projected - x).dot(normal) >= -1e-12);
+                if inside {
+                    return p.distance(projected);
+                }
+                [(a, b), (b, c), (c, a)]
+                    .into_iter()
+                    .map(|(x, y)| {
+                        let edge = y - x;
+                        p.distance(
+                            x + edge * ((p - x).dot(edge) / edge.length_squared()).clamp(0.0, 1.0),
+                        )
+                    })
+                    .fold(f64::INFINITY, f64::min)
+            })
+            .fold(f64::INFINITY, f64::min);
+        assert!(nearest <= tolerance, "contact {i}: {nearest} > {tolerance}");
+    }
+    pollster::block_on(io::errors(&g.gpu, scopes)).unwrap();
+}
+
+#[test]
+fn compact_position_candidate_does_not_override_station_capability() {
+    let tree = fixture(0.0);
+    let mut f = Family::default();
+    f.surface.lobes = 0;
+    f.canopy.surface_contact = 0.0;
+    f.canopy.short_shoot_spacing = 0.0;
+    f.canopy.limb_clumping = 0.0;
+    f.canopy.divergence = 1e9;
+    assert!(
+        surface::compact::prepare(&tree, f.skeleton.envelope.height, &f.surface)
+            .unwrap()
+            .qualified()
+    );
+    assert!(foliage::prepared::prepare_stations(
+        &tree,
+        f.skeleton.envelope,
+        f.canopy,
+        Some(TwigPlacement {
+            internode_length: 1e-6,
+            stations_per_internode: 1
+        }),
+        &f.surface
+    )
+    .unwrap()
+    .is_none());
+}

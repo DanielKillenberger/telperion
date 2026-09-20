@@ -119,3 +119,12 @@ Task .6 baseline clarification: the renderer debug run subsequently completed 14
 ## 2026-09-20 — fn-91.7 finite positions with overflowing triangle arithmetic
 
 The GPU position probe's added numeric-range test emits finite coordinates near 1e30, but the shader's post-cross exponent-bit check does not report nonfinite triangle arithmetic. The focused gate is red (14 pass, 1 fail). Discovery cost one 45-second release link plus the 6-second focused suite; the host was notified immediately and implementation paused for the task's mandated numeric-failure decision. An explicit supported arithmetic range checked before cross products, with a focused regression, would remove reliance on GPU overflow results. Separately the deliberately far-origin tiny-tip case honestly reports six newly collapsed faces; no threshold was relaxed or geometry compacted.
+
+## 2026-09-20 — .8 first production test compile
+The focused production test invocation stopped at an ambiguous `bytemuck::cast_slice` output type (roughly one second; no GPU observations). An explicit `<f32, u8>` annotation fixes the test harness; the next run remains the first actual numeric gate. Compile checking new test code before a release invocation avoids this minor failed gate.
+
+## 2026-09-20 — .8 synthetic collapse fixture
+The first production edge run passed emitted geometry/radius/normal comparisons but failed the intended collapsed-ring rejection. The fixture had equal centres but different frames, so its rings were not coincident. Corrected the synthetic input to duplicate centre, radius and frame while retaining output offsets. Cost: one release link (~47 seconds); no production workaround or threshold change. A fixture sanity check against emitted corners would catch this before asserting rejection.
+
+## 2026-09-20 — .8 host review before measurement
+Direct host review caught a workgroup flag read/write race between admission reductions and two rejected-candidate lifetime/accounting gaps. The fix snapshots each shared flag before an unconditional barrier, drops accepted positions before a later CPU station fallback, and retains the maximum of nonoverlapping preparation snapshots. A new late-fallback regression is run red before the correction. Cost: one extra focused release test/link; no delivery measurements discarded. A documented reduction helper contract and a fallback ownership test would have removed this pass.

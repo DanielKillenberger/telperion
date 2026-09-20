@@ -29,17 +29,36 @@ impl ResidentWood {
 }
 pub(super) struct UploadedWood {
     pub positions: wgpu::Buffer,
-    pub metadata: Vec<u32>,
-    config: [u32; 8],
-    sizes: [u64; 6],
-    vertices: usize,
-    index_count: u32,
-    runs: Vec<SurfaceRun>,
-    bounds: Option<Bounds>,
+    pub metadata: WoodMetadata,
+    pub(super) config: [u32; 8],
+    pub(super) sizes: [u64; 6],
+    pub(super) vertices: usize,
+    pub(super) index_count: u32,
+    pub(super) runs: Vec<SurfaceRun>,
+    pub(super) bounds: Option<Bounds>,
+}
+pub(super) enum WoodMetadata {
+    Cpu(Vec<u32>),
+    Gpu(wgpu::Buffer),
+}
+impl WoodMetadata {
+    fn cpu_bytes(&self) -> u64 {
+        match self {
+            Self::Cpu(v) => v.capacity() as u64 * 4,
+            Self::Gpu(_) => 0,
+        }
+    }
 }
 impl UploadedWood {
+    pub fn gpu_metadata_bytes(&self) -> u64 {
+        match &self.metadata {
+            WoodMetadata::Gpu(b) => b.size(),
+            _ => 0,
+        }
+    }
+
     pub fn metadata_bytes(&self) -> u64 {
-        (self.metadata.capacity() * 4 + self.runs.capacity() * size_of::<SurfaceRun>()) as u64
+        self.metadata.cpu_bytes() + (self.runs.capacity() * size_of::<SurfaceRun>()) as u64
     }
 }
 impl Generator {
@@ -110,7 +129,7 @@ impl Generator {
         metrics.wood_upload_dispatch_ms = start.elapsed_ms();
         Ok(Some(UploadedWood {
             positions,
-            metadata,
+            metadata: WoodMetadata::Cpu(metadata),
             config: cfg,
             sizes,
             vertices,
@@ -144,12 +163,17 @@ impl Generator {
             wgpu::BufferUsages::UNIFORM,
             bytemuck::cast_slice(&config),
         )?;
-        let meta = make(
-            "wood expansion metadata",
-            sizes[5],
-            storage,
-            bytemuck::cast_slice(&metadata),
-        )?;
+        let candidate = matches!(metadata, WoodMetadata::Gpu(_));
+        metrics.wood_metadata_cpu_bytes = metadata.cpu_bytes();
+        let meta = match metadata {
+            WoodMetadata::Cpu(words) => make(
+                "wood expansion metadata",
+                sizes[5],
+                storage,
+                bytemuck::cast_slice(&words),
+            )?,
+            WoodMetadata::Gpu(buffer) => buffer,
+        };
         let normals = make(
             "resident wood normals",
             sizes[1],
@@ -184,14 +208,17 @@ impl Generator {
                 .run(&mut encoder, &bind, 0, config[0]);
         }
         self.gpu.queue.submit([encoder.finish()]);
-        metrics.wood_metadata_cpu_bytes = metadata.capacity() as u64 * 4;
         metrics.wood_gpu_peak_bytes = sizes.iter().map(|&n| n.max(16)).sum::<u64>() + 64;
         metrics.wood_upload_dispatch_ms += start.elapsed_ms();
-        drop(metadata);
         let wait = Clock::now();
         let result = io::read_async(&self.gpu, &status, 4).await?;
         metrics.wood_wait_ms = wait.elapsed_ms();
         if result != [0, 0, 0, 0] {
+            if candidate {
+                return Err(
+                    telperion_core::Error::InvalidInput("admitted GPU normal changed").into(),
+                );
+            }
             metrics.wood_fallback = Some("GPU normal unusable");
             return Ok(None);
         }

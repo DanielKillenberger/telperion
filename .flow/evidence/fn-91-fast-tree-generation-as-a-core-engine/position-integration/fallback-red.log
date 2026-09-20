@@ -1,0 +1,29 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 35.58s
+────────────
+ Nextest run ID 6eacb376-9e5b-446c-ae17-282dfecced45 with nextest profile: default
+    Starting 1 test across 1 binary (70 tests skipped)
+        FAIL [   0.493s] (1/1) telperion-render generation::tests::late_station_fallback_releases_the_accepted_position_candidate
+  stdout ───
+
+    running 1 test
+    test generation::tests::late_station_fallback_releases_the_accepted_position_candidate ... FAILED
+
+    failures:
+
+    failures:
+        generation::tests::late_station_fallback_releases_the_accepted_position_candidate
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 70 filtered out; finished in 0.48s
+
+  stderr ───
+
+    thread 'generation::tests::late_station_fallback_releases_the_accepted_position_candidate' (865938) panicked at crates/telperion-render/src/generation/tests.rs:558:56:
+    called `Result::unwrap()` on an `Err` value: Generation(InvalidInput("divergence"))
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+  Cancelling due to test failure: 
+────────────
+     Summary [   0.494s] 1 test run: 0 passed, 1 failed, 70 skipped
+        FAIL [   0.493s] (1/1) telperion-render generation::tests::late_station_fallback_releases_the_accepted_position_candidate
+error: test run failed

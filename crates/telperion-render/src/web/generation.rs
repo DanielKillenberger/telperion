@@ -44,7 +44,7 @@ impl WebRenderer {
             request.check().map_err(JsError::new)?;
             let backend = format!("{:?}", prepared.backend);
             let metrics = &prepared.metrics;
-            let stages = json!({"skeletonMs":metrics.skeleton_ms,"descriptorsMs":metrics.descriptors_ms,
+            let stages = json!({"positionPrepareMs":metrics.position_prepare_ms,"positionUploadMs":metrics.position_upload_ms,"positionWaitMs":metrics.position_wait_ms,"positionCpuBytes":metrics.position_cpu_bytes,"positionGpuPeakBytes":metrics.position_gpu_peak_bytes,"positionRetainedMetadataBytes":metrics.position_retained_metadata_bytes,"positionFallback":metrics.position_fallback,"gpuPositions":metrics.gpu_positions,"skeletonMs":metrics.skeleton_ms,"descriptorsMs":metrics.descriptors_ms,
                 "uploadDispatchMs":metrics.upload_dispatch_ms,"placementWaitMs":metrics.placement_wait_ms,
                 "compactMs":metrics.compact_ms,"massMs":metrics.mass_ms,"readbackMs":metrics.readback_ms,
                 "woodMs":metrics.wood_ms,"woodPrepareMs":metrics.wood_prepare_ms,"woodUploadDispatchMs":metrics.wood_upload_dispatch_ms,"woodWaitMs":metrics.wood_wait_ms,"woodPreparedCpuBytes":metrics.wood_prepared_cpu_bytes,"woodMetadataCpuBytes":metrics.wood_metadata_cpu_bytes,"woodGpuPeakBytes":metrics.wood_gpu_peak_bytes,"woodBackend":metrics.wood_backend.map(|b| format!("{b:?}")),"woodFallback":metrics.wood_fallback,"totalMs":metrics.total_ms,

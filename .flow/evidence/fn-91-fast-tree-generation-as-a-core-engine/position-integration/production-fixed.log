@@ -1,0 +1,9 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
+    Finished `release` profile [optimized] target(s) in 34.45s
+────────────
+ Nextest run ID b87b34fa-7434-49a6-9f48-dbeac7cf1bdb with nextest profile: default
+    Starting 2 tests across 1 binary (68 tests skipped)
+        PASS [   0.527s] (1/2) telperion-render generation::wood_tests::position_probe::production_positions_admit_geometry_and_reject_unsupported_inputs
+        PASS [   0.527s] (2/2) telperion-render generation::tests::compact_positions_seat_contacts_on_the_rendered_surface
+────────────
+     Summary [   0.527s] 2 tests run: 2 passed, 68 skipped
