@@ -16,7 +16,7 @@ for p in ev.rglob('*.md'):
   dest=(p.parent/target.split('#')[0]).resolve()
   if not dest.exists():missing.append((str(p.relative_to(root)),target))
 assert not missing,missing
-changed=subprocess.check_output(['git','diff','--name-only'],text=True).splitlines()
+changed=subprocess.check_output(['git','diff',m['source_revision'],'--name-only'],text=True).splitlines()
 assert not any(x.startswith(('crates/','src/','harness/','tests/','.github/','demo-video/')) for x in changed)
 assert not subprocess.check_output(['git','ls-files','demo-video'],text=True).strip()
 print(f"PASS: {len(m['files'])} archived files verified; ignore rules, retained Markdown links and code/test/media exclusions checked")
