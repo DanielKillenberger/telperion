@@ -1,6 +1,7 @@
 //! Independent, closed swept shells over solved tree paths. Buffers are caller-owned.
 use crate::math::Transcendental;
 use crate::{math::Vec3, tree::Tree, Error, Result};
+mod angular;
 mod attachment;
 mod dependencies;
 mod frames;
@@ -145,9 +146,8 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     }
     tree.validate_solved()?;
     let height = height.max(1e-6);
-    let lobes = params.lobes as f64;
     let segments = params.radial_segments.max(params.lobes * 4) as usize;
-    let depth = params.lobe_depth;
+    let angular = angular::samples(segments, params)?;
     let twist = params.twist_rate;
     let burial = params.flare_depth * height;
     let mut distance = filled(nodes.len(), 0.0)?;
@@ -215,17 +215,13 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
         for (i, s) in samples.iter().enumerate() {
             let (normal, binormal) = frame[i];
             let phase = std::f64::consts::TAU * twist * (s.d / height);
-            for k in 0..segments {
-                let angle = (k as f64 / segments as f64) * std::f64::consts::TAU;
-                let profile = if lobes == 0.0 {
-                    1.0
-                } else {
-                    1.0 + depth * (lobes * (angle + phase)).cos_fixed()
-                };
+            for sample in &angular {
+                let angle = sample.angle;
+                let profile = sample.profile(params, phase);
                 let width = s.r * profile;
                 vertex(
                     &mut mesh.positions,
-                    s.p + (normal * (angle.cos_fixed()) + binormal * (angle.sin_fixed())) * (width),
+                    s.p + (normal * sample.cos + binormal * sample.sin) * (width),
                 )?;
                 mesh.coords.extend([s.d as f32, angle as f32]);
             }

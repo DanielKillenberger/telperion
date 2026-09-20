@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let gpu_mode = mode.starts_with("gpu");
     let render_mode = mode.ends_with("render");
     let init = Instant::now();
-    let mut renderer = if gpu_mode || render_mode {
+    let mut renderer = if render_mode {
         Some(Renderer::new(
             pollster::block_on(Gpu::request(None))?,
             STILL_FORMAT,
@@ -34,8 +34,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         None
     };
+    let mut adapter = renderer.as_ref().map(|r| r.gpu().adapter.name.clone());
     let generator = if gpu_mode {
-        Some(Generator::new(renderer.as_ref().unwrap())?)
+        Some(if let Some(renderer) = &renderer {
+            Generator::new(renderer)?
+        } else {
+            let gpu = pollster::block_on(Gpu::request(None))?;
+            adapter = Some(gpu.adapter.name.clone());
+            Generator::for_cpu_output(gpu)?
+        })
     } else {
         None
     };
@@ -50,7 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     println!(
         "{}",
-        json!({"event":"provenance","preset":id,"seed":1,"mode":mode,"samples":samples,"initializationMs":init.elapsed().as_secs_f64()*1000.0,"adapter":renderer.as_ref().map(|r|&r.gpu().adapter.name),"viewport":[1280,720],"camera":"hero","boundary":"GPU queue/device completion for rendering; owned geometry for output","family":telperion_core::params::metadata(&family)})
+        json!({"event":"provenance","preset":id,"seed":1,"mode":mode,"samples":samples,"initializationMs":init.elapsed().as_secs_f64()*1000.0,"adapter":adapter,"viewport":[1280,720],"camera":"hero","boundary":"GPU queue/device completion for rendering; owned geometry for output","family":telperion_core::params::metadata(&family)})
     );
     for sample in 0..samples {
         let start = Instant::now();

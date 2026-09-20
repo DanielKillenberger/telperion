@@ -74,6 +74,7 @@ impl Prepared {
 /// Device/pipeline ownership survives independently of the renderer. Creating
 /// this once warms pipelines, never generated specimens.
 pub struct Generator {
+    resident_allowed: bool,
     gpu: Gpu,
     identity: Arc<()>,
     place: io::Pass,
@@ -86,7 +87,14 @@ impl Generator {
         renderer.wood.allocated_bytes() + renderer.foliage.allocated_bytes()
     }
     pub fn new(renderer: &Renderer) -> Result<Self> {
-        let gpu = renderer.gpu.clone();
+        Self::create(renderer.gpu.clone(), renderer.identity.clone(), true)
+    }
+    /// Experimental owned CPU output without renderer resources. Resident delivery
+    /// is rejected before generation; use `new` for renderer-bound results.
+    pub fn for_cpu_output(gpu: Gpu) -> Result<Self> {
+        Self::create(gpu, Arc::new(()), false)
+    }
+    fn create(gpu: Gpu, identity: Arc<()>, resident_allowed: bool) -> Result<Self> {
         let scopes = io::scope(&gpu);
         let leaf = include_str!("shaders/leaf.wgsl");
         let place = io::Pass::new(
@@ -116,13 +124,20 @@ impl Generator {
         io::errors(&gpu, scopes)?;
         Ok(Self {
             gpu,
-            identity: renderer.identity.clone(),
+            identity,
+            resident_allowed,
             place,
             compact,
             mass,
         })
     }
     pub fn prepare(&self, family: &Family, delivery: Delivery) -> Result<Prepared> {
+        if delivery == Delivery::Resident && !self.resident_allowed {
+            return Err(telperion_core::Error::InvalidInput(
+                "standalone generation requires CPU delivery",
+            )
+            .into());
+        }
         let total = Instant::now();
         let mut metrics = Metrics::default();
         let started = Instant::now();
@@ -337,5 +352,7 @@ fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
         (a, b) => a.or(b),
     }
 }
+#[cfg(test)]
+mod standalone_tests;
 #[cfg(test)]
 mod tests;

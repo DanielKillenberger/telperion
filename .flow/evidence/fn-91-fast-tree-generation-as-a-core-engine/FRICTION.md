@@ -72,3 +72,9 @@ The package-wide binary build hit its 300 s limit (exit 124) while linking rende
 The explicit-target build recovery completed in 43.58 s. Isolated execution then completed in 79.701 s: 214/215 passed, with no GPU crash. The sole failure was the existing renderer family-table conformance guard: the experimental orchestrator imports the generic parameter bundle through `presets::Family`. No preset lookup or species branch exists, but the top-level import crosses the guard's stated module boundary. The host was asked to resolve the parameter-type boundary; the guard remains unchanged and the failed run is retained. All five new GPU tests and the generation-limit inventory passed in that run.
 
 The final renderer suite again wrote the historical fn71 smooth-bark receipt (SilverBirch mean 2.5604 / p95 9.50). The fresh receipt is preserved as gpu-renderer-smooth-bark.json; only that observed legacy-row change is restored to its previous value. This repeats the already recorded test-output routing friction, not a new generator change.
+
+## 2026-09-20 — Invocation 4 context and external contention
+Initial handoff reconstruction and bounded source reads consumed about four minutes before editing. Reuse the compact source map and saved binaries for subsequent checkpoints. Another session is running a workspace CI-profile suite; timed comparisons will wait for its CPU load to end, without interrupting that session.
+
+## 2026-09-20 — Follow-up summary schema
+The local summary script assumed `count` where the existing benchmark uses `instances`; the first aggregation failed immediately (under one minute), without repeating any measurements. Corrected the field against the retained JSONL. A shared typed measurement schema would prevent this small adapter mismatch; no new framework was added.
