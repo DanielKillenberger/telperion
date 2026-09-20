@@ -84,6 +84,12 @@ impl From<telperion_core::Error> for RenderError {
 
 pub type Result<T> = std::result::Result<T, RenderError>;
 
+/// Held while an instance is made and its adapter chosen. The platform's
+/// Vulkan loader does not survive two threads of one process doing that at
+/// once; a second request waits here instead.
+#[cfg(not(target_arch = "wasm32"))]
+static ACQUIRING: Mutex<()> = Mutex::new(());
+
 /// A live GPU device with the adapter it came from. One per canvas, one per
 /// headless render; it owns nothing about trees.
 pub struct Gpu {
@@ -104,6 +110,11 @@ impl Gpu {
     /// Asks the platform for a hardware device, with the adapter's own maximum
     /// buffer size so a full-detail tree fits, and timestamps when offered.
     pub async fn request(compatible_surface: Option<&wgpu::Surface<'_>>) -> Result<Self> {
+        // A request that panicked under the lock has not harmed the next one.
+        #[cfg(not(target_arch = "wasm32"))]
+        let acquiring = ACQUIRING
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         let instance =
             wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle_from_env());
         let adapter = instance
@@ -115,6 +126,8 @@ impl Gpu {
             })
             .await
             .map_err(|error| RenderError::WebGpuUnavailable(error.to_string()))?;
+        #[cfg(not(target_arch = "wasm32"))]
+        drop(acquiring);
 
         let info = adapter.get_info();
         if info.device_type == wgpu::DeviceType::Cpu {
