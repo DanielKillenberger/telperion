@@ -1,0 +1,154 @@
+{
+  "date": "2026-09-20T11:37:30.156Z",
+  "browser": "152.0.7977.82",
+  "checks": {
+    "valid": {
+      "cpu": {
+        "bounds": {
+          "max": [
+            12.980718519230662,
+            22.99530721729869,
+            13.115770824588706
+          ],
+          "min": [
+            -12.802977506908798,
+            -0.09600000083446503,
+            -12.301333068296596
+          ]
+        },
+        "foliageInstances": 807079,
+        "woodTriangles": 8045080,
+        "woodVertices": 4147774
+      },
+      "gpu": {
+        "backend": "Gpu",
+        "bounds": {
+          "max": [
+            12.980719566345217,
+            22.99530601501465,
+            13.115772247314451
+          ],
+          "min": [
+            -12.802977561950684,
+            -0.09600000083446504,
+            -12.3013334274292
+          ]
+        },
+        "foliageInstances": 807079,
+        "stages": {
+          "baseCpuBytes": 48251072,
+          "compactMs": 2.800000000745058,
+          "descriptorCpuBytes": 21053824,
+          "descriptorsMs": 25.09999999962747,
+          "gpuComputePeakBytes": 30561880,
+          "massMs": 2.400000000372529,
+          "placementWaitMs": 8.299999998882413,
+          "readbackMs": 0,
+          "retainedGpuBytes": 9987660,
+          "skeletonMs": 76.30000000074506,
+          "totalMs": 358.80000000074506,
+          "uploadDispatchMs": 2.700000001117587,
+          "woodCpuBytes": 230271600,
+          "woodMs": 240.7000000011176
+        },
+        "treeGpuBytes": 345683712,
+        "woodTriangles": 8045080,
+        "woodVertices": 4147774
+      }
+    },
+    "invalid": "Error: the parameters are not JSON: EOF while parsing an object at line 1 column 1",
+    "fallback": {
+      "backend": "CpuFallback",
+      "bounds": {
+        "max": [
+          12.98083296014863,
+          22.995139370619004,
+          13.17366610502433
+        ],
+        "min": [
+          -12.802804891857528,
+          -0.09600000083446504,
+          -12.301255820676968
+        ]
+      },
+      "foliageInstances": 1329256,
+      "stages": {
+        "baseCpuBytes": 0,
+        "compactMs": 0,
+        "descriptorCpuBytes": 0,
+        "descriptorsMs": 0,
+        "gpuComputePeakBytes": 0,
+        "massMs": 0,
+        "placementWaitMs": 0,
+        "readbackMs": 0,
+        "retainedGpuBytes": 0,
+        "skeletonMs": 97.59999999962747,
+        "totalMs": 1088.800000000745,
+        "uploadDispatchMs": 0,
+        "woodCpuBytes": 0,
+        "woodMs": 0
+      },
+      "treeGpuBytes": 374591348,
+      "woodTriangles": 8045080,
+      "woodVertices": 4147774
+    },
+    "overlap": "Error: GPU generation is busy",
+    "stale": "Error: GPU generation is stale or disposed",
+    "replacement": {
+      "submitted": {
+        "bounds": {
+          "max": [
+            13.217955959615209,
+            23.557249956180836,
+            13.003125025750427
+          ],
+          "min": [
+            -13.16296514872441,
+            -0.09600000083446503,
+            -13.242486306266482
+          ]
+        },
+        "foliageInstances": 869310,
+        "woodTriangles": 8255000,
+        "woodVertices": 4262170
+      },
+      "before": {
+        "position": [
+          21.777159657541805,
+          21.553053994748982,
+          34.960422992155536
+        ],
+        "target": [
+          0.02749540544539908,
+          11.730624977673186,
+          -0.11968064025802772
+        ]
+      },
+      "after": {
+        "position": [
+          21.777159657541805,
+          21.553053994748982,
+          34.960422992155536
+        ],
+        "target": [
+          0.02749540544539908,
+          11.730624977673186,
+          -0.11968064025802772
+        ]
+      },
+      "beforeStats": {
+        "drawCalls": 9,
+        "instances": 869310,
+        "triangles": 157776961
+      },
+      "afterStats": {
+        "drawCalls": 9,
+        "instances": 869310,
+        "triangles": 157776961
+      }
+    },
+    "disposal": "Error: GPU generation is stale or disposed",
+    "liveDevices": 0
+  },
+  "passed": true
+}

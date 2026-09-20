@@ -294,3 +294,7 @@ No renewal, seasonal flush, altered lifetime, production routing or re-pin has
 been added to conceal it. The placement reads include lazy skeleton packing,
 validation and, for spruce, construction of the contact surface; these costs
 are separate from internal slices and are not a change-record update benchmark.
+
+The experimental shared GPU browser path is measured only by explicit opt-in:
+`GENERATION_GPU=1 GENERATION_COMPLETED=1 GENERATION_OUTPUT=<file> node scripts/benchmarks/mature-generation.mjs`.
+It awaits `setTreeGpu`, retains the existing hero/queue-completion boundary, and records backend, preparation stages, explicit buffer counts and whole-module Wasm memory. The default remains synchronous CPU generation. Run `GENERATION_OUTPUT=<file> node scripts/benchmarks/generation-gpu-smoke.mjs` for bounded browser lifecycle validation before the full fixture matrix.

@@ -83,7 +83,6 @@ pub struct Foliage {
 }
 
 impl Foliage {
-    #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn allocated_bytes(&self) -> u64 {
         [&self.positions, &self.normals, &self.coords, &self.indices]
             .into_iter()

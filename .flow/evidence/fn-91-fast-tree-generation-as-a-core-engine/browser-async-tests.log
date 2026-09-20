@@ -1,0 +1,12 @@
+────────────
+ Nextest run ID beb1b93d-67d1-4581-9291-9d1e5730a175 with nextest profile: default
+    Starting 7 tests across 1 binary (51 tests skipped)
+        PASS [   0.004s] (1/7) telperion-render generation::request::tests::invalidation_keeps_busy_until_guard_drops_and_errors_release_it
+        PASS [   0.742s] (2/7) telperion-render generation::tests::gpu_extrema_order_preserves_signed_zero_and_finite_signs
+        PASS [   0.997s] (3/7) telperion-render generation::standalone_tests::standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh
+        PASS [   0.004s] (4/7) telperion-render generation::tests::preparation_capabilities_and_failures_are_explicit
+        PASS [   3.272s] (5/7) telperion-render generation::tests::compact_gpu_foliage_is_repeatable_seated_and_bounded
+        PASS [   3.313s] (6/7) telperion-render generation::tests::foreign_prepared_result_preserves_the_live_tree
+        PASS [   2.778s] (7/7) telperion-render generation::tests::huge_phases_fall_back_but_supported_large_ordinals_keep_orientation
+────────────
+     Summary [   3.524s] 7 tests run: 7 passed, 51 skipped

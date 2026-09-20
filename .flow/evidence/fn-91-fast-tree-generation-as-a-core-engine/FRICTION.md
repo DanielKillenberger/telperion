@@ -78,3 +78,15 @@ Initial handoff reconstruction and bounded source reads consumed about four minu
 
 ## 2026-09-20 — Follow-up summary schema
 The local summary script assumed `count` where the existing benchmark uses `instances`; the first aggregation failed immediately (under one minute), without repeating any measurements. Corrected the field against the retained JSONL. A shared typed measurement schema would prevent this small adapter mismatch; no new framework was added.
+
+## 2026-09-20 — Browser async target exposure
+The first Wasm check found the existing allocation-accounting helpers were native-only (under one minute). Exposed those same read-only helpers on Wasm so browser evidence can retain buffer counts; no new accounting algorithm. Native check passed before this target-specific finding.
+
+### 2026-09-20 — initial canvas resize cleared close capture
+
+The four-image browser close capture completed, but both CPU screenshots were white while GPU screenshots contained trees. The likely cause is the initial ResizeObserver callback resetting canvas dimensions after synchronous CPU generation and drawing; GPU awaits gave that callback time to run first. The host preserved the failed images, script and metadata and will make one bounded retry after two initial animation frames settle resizing. This cost about two minutes. A capture helper should settle initial canvas sizing before its single draw. No production renderer behavior or completed-queue timing claim is changed; compositor delivery was never claimed.
+
+## 2026-09-20 — Final checkpoint waits for capture ownership
+Implementation, smoke, matrix and focused checks were complete while the host owned the separate close-view capture/retry. The worker held the commit for roughly two minutes (estimate), as requested, without repeating builds or measurements. A settled-canvas capture helper would remove the retry; the host records the concrete capture failure and remedy separately. This was a bounded handoff wait, not another implementation attempt.
+
+Close-capture retry outcome: waiting two initial animation frames produced four nonblank images. Preserve initial resize settling in the capture harness; the views remain limited for contact inspection.

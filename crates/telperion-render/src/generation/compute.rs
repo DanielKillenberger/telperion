@@ -1,6 +1,6 @@
+use super::clock::Clock;
 use super::{data, io, Generator, Metrics, Resident};
 use crate::{buffer::Held, Gpu, Result};
-use std::time::Instant;
 use telperion_core::{
     foliage::{prepared::PreparedStations, Element, Reference, TwigPlacement},
     math::Vec3,
@@ -44,7 +44,7 @@ fn bounds(summary: &[u32], offset: usize) -> Bounds {
     }
 }
 impl Generator {
-    pub(super) fn compute(
+    pub(super) async fn compute_async(
         &self,
         p: PreparedStations,
         f: &Family,
@@ -53,7 +53,7 @@ impl Generator {
         r: Reference,
         m: &mut Metrics,
     ) -> Result<Resident> {
-        let started = Instant::now();
+        let started = Clock::now();
         let gpu = &self.gpu;
         let count = p.count;
         let groups = count.div_ceil(256);
@@ -123,10 +123,10 @@ impl Generator {
         self.place.run(&mut encoder, &bind, 0, groups);
         self.place.run(&mut encoder, &bind, 1, 1);
         gpu.queue.submit([encoder.finish()]);
-        m.upload_dispatch_ms = started.elapsed().as_secs_f64() * 1000.0;
-        let wait = Instant::now();
-        let bytes = io::read(gpu, &summary, 64)?;
-        m.placement_wait_ms = wait.elapsed().as_secs_f64() * 1000.0;
+        m.upload_dispatch_ms = started.elapsed_ms();
+        let wait = Clock::now();
+        let bytes = io::read_async(gpu, &summary, 64).await?;
+        m.placement_wait_ms = wait.elapsed_ms();
         let values: Vec<u32> = bytes
             .chunks_exact(4)
             .map(|b| u32::from_ne_bytes(b.try_into().unwrap()))
@@ -142,7 +142,7 @@ impl Generator {
         m.instances = survivors;
         let crown = (survivors > 0).then(|| bounds(&values, 2));
         let full = (survivors > 0).then(|| bounds(&values, 8));
-        let start = Instant::now();
+        let start = Clock::now();
         let leaves = io::buffer(
             gpu,
             "generated foliage",
@@ -162,10 +162,8 @@ impl Generator {
         let mut encoder = gpu.device.create_command_encoder(&Default::default());
         self.compact.run(&mut encoder, &compact_bind, 0, groups);
         gpu.queue.submit([encoder.finish()]);
-        gpu.device
-            .poll(wgpu::PollType::wait_indefinitely())
-            .map_err(|e| io::error(e.to_string()))?;
-        m.compact_ms = start.elapsed().as_secs_f64() * 1000.0;
+        io::complete(gpu).await?;
+        m.compact_ms = start.elapsed_ms();
         m.gpu_compute_peak_bytes = live + leaves.size() + compact_config.size() + 64;
         drop((
             bind,
@@ -179,9 +177,9 @@ impl Generator {
             summary,
             compact_config,
         ));
-        let start = Instant::now();
-        let masses = self.mass(&leaves, survivors, crown, r, m)?;
-        m.mass_ms = start.elapsed().as_secs_f64() * 1000.0;
+        let start = Clock::now();
+        let masses = self.mass(&leaves, survivors, crown, r, m).await?;
+        m.mass_ms = start.elapsed_ms();
         Ok(Resident {
             leaves: Held::resident(leaves, u64::from(survivors) * 12, "generated foliage"),
             masses: Held::resident(masses.0, masses.1, "generated foliage masses"),
@@ -190,7 +188,7 @@ impl Generator {
             full,
         })
     }
-    fn mass(
+    async fn mass(
         &self,
         leaves: &wgpu::Buffer,
         count: u32,
@@ -250,12 +248,25 @@ impl Generator {
         self.mass.run(&mut encoder, &bind, 0, count.div_ceil(256));
         self.mass.run(&mut encoder, &bind, 1, total.div_ceil(256));
         gpu.queue.submit([encoder.finish()]);
-        gpu.device
-            .poll(wgpu::PollType::wait_indefinitely())
-            .map_err(|e| io::error(e.to_string()))?;
+        io::complete(gpu).await?;
         m.gpu_compute_peak_bytes = m
             .gpu_compute_peak_bytes
             .max(leaves.size() + config.size() + counts.size() + masses.size());
         Ok((masses, u64::from(total + 8) * 4))
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+impl Generator {
+    pub(super) fn compute(
+        &self,
+        p: PreparedStations,
+        f: &Family,
+        t: TwigPlacement,
+        e: &Element,
+        r: Reference,
+        m: &mut Metrics,
+    ) -> Result<Resident> {
+        pollster::block_on(self.compute_async(p, f, t, e, r, m))
     }
 }

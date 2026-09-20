@@ -134,7 +134,7 @@ impl Pass {
     }
 }
 
-pub(super) fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
+pub(super) async fn read_async(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
     if bytes == 0 {
         return Ok(Vec::new());
     }
@@ -148,17 +148,18 @@ pub(super) fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u
     let mut encoder = gpu.device.create_command_encoder(&Default::default());
     encoder.copy_buffer_to_buffer(source, 0, &target, 0, bytes);
     gpu.queue.submit([encoder.finish()]);
-    let (send, receive) = std::sync::mpsc::channel();
+    let (send, receive) = futures_channel::oneshot::channel();
     target
         .slice(..bytes)
         .map_async(wgpu::MapMode::Read, move |result| {
             let _ = send.send(result);
         });
+    #[cfg(not(target_arch = "wasm32"))]
     gpu.device
         .poll(wgpu::PollType::wait_indefinitely())
         .map_err(|e| error(e.to_string()))?;
     receive
-        .recv()
+        .await
         .map_err(|e| error(e.to_string()))?
         .map_err(|e| error(e.to_string()))?;
     let view = target
@@ -171,10 +172,10 @@ pub(super) fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u
     Ok(result)
 }
 
-pub(super) fn errors(gpu: &Gpu, scopes: [wgpu::ErrorScopeGuard; 2]) -> Result<()> {
+pub(super) async fn errors(gpu: &Gpu, scopes: [wgpu::ErrorScopeGuard; 2]) -> Result<()> {
     let [validation, memory] = scopes;
-    let memory = pollster::block_on(memory.pop());
-    let validation = pollster::block_on(validation.pop());
+    let memory = memory.pop().await;
+    let validation = validation.pop().await;
     if let Some(error) = memory.or(validation) {
         return Err(self::error(error.to_string()));
     }
@@ -194,4 +195,25 @@ pub(super) fn error(detail: String) -> RenderError {
         requirement: "experimental foliage".into(),
         detail,
     }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(test)]
+pub(super) fn read(gpu: &Gpu, source: &wgpu::Buffer, bytes: u64) -> Result<Vec<u8>> {
+    pollster::block_on(read_async(gpu, source, bytes))
+}
+pub(super) async fn complete(gpu: &Gpu) -> Result<()> {
+    let (send, receive) = futures_channel::oneshot::channel();
+    gpu.queue.on_submitted_work_done(move || {
+        let _ = send.send(());
+    });
+    #[cfg(not(target_arch = "wasm32"))]
+    gpu.device
+        .poll(wgpu::PollType::wait_indefinitely())
+        .map_err(|e| error(e.to_string()))?;
+    receive.await.map_err(|e| error(e.to_string()))?;
+    if let Some(error) = gpu.lost() {
+        return Err(error);
+    }
+    Ok(())
 }

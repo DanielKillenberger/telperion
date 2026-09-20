@@ -54,7 +54,6 @@ pub struct Wood {
 }
 
 impl Wood {
-    #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn allocated_bytes(&self) -> u64 {
         [
             &self.positions,

@@ -1,10 +1,14 @@
-//! Optional native GPU foliage experiment. The pure core and browser build paths
+//! Optional shared GPU foliage experiment. The existing pure-core build paths
 //! remain available; every request explicitly states its delivery mode.
+mod clock;
 mod compute;
+use clock::Clock;
 mod data;
 mod io;
+#[cfg(any(target_arch = "wasm32", test))]
+pub(crate) mod request;
 use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
-use std::{sync::Arc, time::Instant};
+use std::sync::Arc;
 use telperion_core::{
     branching,
     foliage::{self, Instances, Reference, TwigPlacement},
@@ -86,15 +90,27 @@ impl Generator {
     pub fn tree_buffer_bytes(renderer: &Renderer) -> u64 {
         renderer.wood.allocated_bytes() + renderer.foliage.allocated_bytes()
     }
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn new(renderer: &Renderer) -> Result<Self> {
-        Self::create(renderer.gpu.clone(), renderer.identity.clone(), true)
+        pollster::block_on(Self::new_async(renderer))
     }
-    /// Experimental owned CPU output without renderer resources. Resident delivery
-    /// is rejected before generation; use `new` for renderer-bound results.
+    /// Experimental constructor whose future owns its device context.
+    pub fn new_async(
+        renderer: &Renderer,
+    ) -> impl std::future::Future<Output = Result<Self>> + 'static {
+        let gpu = renderer.gpu.clone();
+        let identity = renderer.identity.clone();
+        async move { Self::create(gpu, identity, true).await }
+    }
+    /// Experimental owned CPU output without renderer resources.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn for_cpu_output(gpu: Gpu) -> Result<Self> {
-        Self::create(gpu, Arc::new(()), false)
+        pollster::block_on(Self::for_cpu_output_async(gpu))
     }
-    fn create(gpu: Gpu, identity: Arc<()>, resident_allowed: bool) -> Result<Self> {
+    pub async fn for_cpu_output_async(gpu: Gpu) -> Result<Self> {
+        Self::create(gpu, Arc::new(()), false).await
+    }
+    async fn create(gpu: Gpu, identity: Arc<()>, resident_allowed: bool) -> Result<Self> {
         let scopes = io::scope(&gpu);
         let leaf = include_str!("shaders/leaf.wgsl");
         let place = io::Pass::new(
@@ -121,7 +137,7 @@ impl Generator {
             &[true, false, false],
             &["occupancy", "depth"],
         );
-        io::errors(&gpu, scopes)?;
+        io::errors(&gpu, scopes).await?;
         Ok(Self {
             gpu,
             identity,
@@ -131,19 +147,23 @@ impl Generator {
             mass,
         })
     }
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn prepare(&self, family: &Family, delivery: Delivery) -> Result<Prepared> {
+        pollster::block_on(self.prepare_async(family, delivery))
+    }
+    pub async fn prepare_async(&self, family: &Family, delivery: Delivery) -> Result<Prepared> {
         if delivery == Delivery::Resident && !self.resident_allowed {
             return Err(telperion_core::Error::InvalidInput(
                 "standalone generation requires CPU delivery",
             )
             .into());
         }
-        let total = Instant::now();
+        let total = Clock::now();
         let mut metrics = Metrics::default();
-        let started = Instant::now();
+        let started = Clock::now();
         let tree = branching::generate(&family.skeleton, family.radii)?.tree;
-        metrics.skeleton_ms = started.elapsed().as_secs_f64() * 1000.0;
-        let started = Instant::now();
+        metrics.skeleton_ms = started.elapsed_ms();
+        let started = Clock::now();
         let element = foliage::build_element(family.element)?;
         element.validate()?;
         let twig = family.skeleton.twigs.resolved()?.twig;
@@ -164,7 +184,7 @@ impl Generator {
         )?
         else {
             let mesh = mesh::assemble(&tree, family)?;
-            metrics.total_ms = total.elapsed().as_secs_f64() * 1000.0;
+            metrics.total_ms = total.elapsed_ms();
             return Ok(Prepared {
                 identity: self.identity.clone(),
                 mesh,
@@ -181,14 +201,15 @@ impl Generator {
                 * 4
             + element.levels.capacity() * size_of::<foliage::Level>())
             as u64;
-        metrics.descriptors_ms = started.elapsed().as_secs_f64() * 1000.0;
+        metrics.descriptors_ms = started.elapsed_ms();
         let scopes = io::scope(&self.gpu);
         let computed = if stations.count == 0 {
             self.empty()
         } else {
-            self.compute(stations, family, twig, &element, reference, &mut metrics)
+            self.compute_async(stations, family, twig, &element, reference, &mut metrics)
+                .await
         };
-        let errors = io::errors(&self.gpu, scopes);
+        let errors = io::errors(&self.gpu, scopes).await;
         let mut resident = Some(computed?);
         errors?;
         let full = resident.as_ref().unwrap().full;
@@ -197,13 +218,14 @@ impl Generator {
         });
         let mut instances = Instances::new(reference);
         if delivery == Delivery::Cpu {
-            let start = Instant::now();
+            let start = Clock::now();
             let output = resident.take().unwrap();
-            let bytes = io::read(
+            let bytes = io::read_async(
                 &self.gpu,
                 output.leaves.buffer(),
                 u64::from(output.count) * 12,
-            )?;
+            )
+            .await?;
             instances.leaves = bytes
                 .chunks_exact(12)
                 .map(|b| {
@@ -217,12 +239,12 @@ impl Generator {
             drop(bytes);
             drop(output);
             instances.validate()?;
-            metrics.readback_ms = start.elapsed().as_secs_f64() * 1000.0;
+            metrics.readback_ms = start.elapsed_ms();
         }
         // No descriptor, contact, rank or raw GPU buffer crosses into wood construction.
-        let started = Instant::now();
+        let started = Clock::now();
         let wood = surface::build(&tree, family.skeleton.envelope.height, &family.surface)?;
-        metrics.wood_ms = started.elapsed().as_secs_f64() * 1000.0;
+        metrics.wood_ms = started.elapsed_ms();
         metrics.wood_cpu_bytes = ((wood.positions.capacity()
             + wood.normals.capacity()
             + wood.coords.capacity()
@@ -238,7 +260,7 @@ impl Generator {
             bounds,
         };
         crate::submit::fits_count(&self.gpu.device.limits(), &mesh, metrics.instances as usize)?;
-        metrics.total_ms = total.elapsed().as_secs_f64() * 1000.0;
+        metrics.total_ms = total.elapsed_ms();
         Ok(Prepared {
             identity: self.identity.clone(),
             mesh,
@@ -266,12 +288,17 @@ impl Generator {
         })
     }
     /// Explicit verification readback; callers keep it outside resident delivery timing.
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn read_instances(&self, prepared: &Prepared) -> Result<Instances> {
+        pollster::block_on(self.read_instances_async(prepared))
+    }
+    pub async fn read_instances_async(&self, prepared: &Prepared) -> Result<Instances> {
         if !Arc::ptr_eq(&self.identity, &prepared.identity) {
             return Err(telperion_core::Error::InvalidInput("generation renderer mismatch").into());
         }
         if let Some(r) = &prepared.resident {
-            let bytes = io::read(&self.gpu, r.leaves.buffer(), u64::from(r.count) * 12)?;
+            let bytes =
+                io::read_async(&self.gpu, r.leaves.buffer(), u64::from(r.count) * 12).await?;
             let mut out = Instances::new(prepared.mesh.foliage.instances.reference);
             out.leaves = bytes
                 .chunks_exact(12)

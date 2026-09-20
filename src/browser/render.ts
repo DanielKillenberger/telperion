@@ -110,6 +110,8 @@ export interface GrowthSubmitted extends Submitted { age: number; frontier: numb
 
 export interface Renderer {
   setTree(family: string): Submitted;
+  /** Experimental GPU foliage; unsupported inputs report CpuFallback. */
+  setTreeGpu(family: string): Promise<Submitted & { backend: "Gpu" | "CpuFallback" }>;
   buildSpecimen(family: string, age: number): GrowthSubmitted;
   seekSpecimen(age: number): GrowthSubmitted;
   setView(view: View): void;
@@ -160,6 +162,10 @@ export async function createRenderer(canvas: HTMLCanvasElement): Promise<Rendere
 
   return {
     setTree: (family) => JSON.parse(renderer.setTree(family)) as Submitted,
+    setTreeGpu: async (family) => {
+      if (disposed) throw new Error("the renderer is disposed");
+      return JSON.parse(await renderer.setTreeGpu(family));
+    },
     buildSpecimen: (family, age) => JSON.parse(renderer.buildSpecimen(family, age)) as GrowthSubmitted,
     seekSpecimen: age => JSON.parse(renderer.seekSpecimen(age)) as GrowthSubmitted,
     setView: (view) => renderer.setView(view),

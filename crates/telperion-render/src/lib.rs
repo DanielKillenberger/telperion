@@ -8,7 +8,6 @@ mod buffer;
 mod camera;
 mod device;
 mod foliage;
-#[cfg(not(target_arch = "wasm32"))]
 pub mod generation;
 #[cfg(not(target_arch = "wasm32"))]
 mod headless;
