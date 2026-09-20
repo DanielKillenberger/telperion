@@ -424,3 +424,239 @@ fn preflight_plans_the_sequence_without_writing_state_or_taking_a_lock() {
     assert_eq!(plan["totals"]["visual_passes"]["spent"], 2);
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn opening_balance_over_its_own_caps_is_refused_fresh_and_on_resume() {
+    let root = std::env::temp_dir().join(format!(
+        "tuning-balance-{}",
+        telperion_jev::ledger::new_entry_id()
+    ));
+    fs::create_dir(&root).unwrap();
+    let cfg = root.join("config.json");
+    let out = root.join("out");
+    let mut config = fixture(&root);
+    config["budget"]["tokens"] = json!(200_001);
+    write(&cfg, &config);
+    let error = command::run(&cfg, &out, None).unwrap_err();
+    assert!(error.contains("opening balance"), "{error}");
+    assert!(!out.join("run.json").exists(), "refused run left state");
+
+    // An opening balance inside its caps is carried, not reset.
+    config["budget"]["tokens"] = json!(688_550 - 19_456);
+    config["budget"]["max_tokens"] = json!(902_431);
+    config["budget"]["visual_passes"] = json!(24);
+    config["budget"]["max_visual_passes"] = json!(26);
+    write(&cfg, &config);
+    command::run(&cfg, &out, None).unwrap_err();
+    let path = out.join("run.json");
+    let saved: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(saved["budget"]["tokens"], 669_094);
+    assert_eq!(saved["budget"]["visual_passes"], 24);
+
+    // A resume may not carry a balance past its caps either.
+    let mut over = saved.clone();
+    over["budget"]["images"] = json!(53);
+    write(&path, &over);
+    let decision = root.join("decision.json");
+    write(
+        &decision,
+        &json!({"pause_id":saved["pause"]["id"],"identity":saved["identity"],
+            "action":saved["pause"]["basis"]["proposed_action"],"by":"owner","rationale":"resume"}),
+    );
+    let error = command::run(&cfg, &out, Some(&decision)).unwrap_err();
+    assert!(error.contains("opening balance"), "{error}");
+    fs::remove_dir_all(root).unwrap();
+}
+
+/// A ledger entry another tool really wrote, shaped so `ExternalUsage` accepts it.
+fn external_ledger(dir: &Path, id: &str, tokens: u64) -> (std::path::PathBuf, String) {
+    let questions = json!({"q":{"type":"choice","criteria":{"a":"a","b":"b"}}});
+    let state_sha256 = telperion_jev::sha256_hex(b"external state");
+    let model = "jev-1.13.0";
+    let entry = json!({"id":id,"tool":"screen","state_sha256":state_sha256,"source":null,
+        "model":model,"questions":questions,"answers":{"q":{"choice":"a","confidence":0.9}},
+        "usage":{"input_tokens":tokens,"output_tokens":0},"elapsed_ms":1,
+        "recorded_at":"2026-09-20T00:00:00Z",
+        "identity":telperion_jev::ledger::derived_identity(&state_sha256, &questions, model)});
+    let path = dir.join(format!("{id}.json"));
+    let bytes = serde_json::to_vec_pretty(&entry).unwrap();
+    fs::write(&path, &bytes).unwrap();
+    (path, telperion_jev::sha256_hex(&bytes))
+}
+
+#[test]
+fn preparation_and_external_usage_are_charged_once_across_repeated_resume() {
+    use telperion_jev::tuning::reference_first::{charge_preparation, PreparationCharge};
+    use telperion_jev::tuning::state::Budget;
+
+    // An opening balance that excludes preparation ends at opening + preparation
+    // exactly once, however many times the run is resumed.
+    let mut budget: Budget = serde_json::from_value(
+        json!({"evaluations":6,"images":30,"tokens":688_550 - 19_456,"rounds":2,
+            "max_evaluations":13,"max_images":52,"max_tokens":902_431,"max_rounds":3,
+            "visual_passes":24,"max_visual_passes":26}),
+    )
+    .unwrap();
+    let charge = PreparationCharge {
+        inventory_sha256: "a".repeat(64),
+        preparation_sha256: "b".repeat(64),
+        tokens: 19_456,
+        visual_attempts: 1,
+    };
+    let mut record = None;
+    charge_preparation(&mut budget, &mut record, &charge).unwrap();
+    assert_eq!(budget.tokens, 688_550, "audited total is restored exactly");
+    assert_eq!(budget.visual_passes, Some(25));
+    assert_eq!(record.as_ref(), Some(&charge));
+    for _ in 0..2 {
+        charge_preparation(&mut budget, &mut record, &charge).unwrap();
+        assert_eq!(budget.tokens, 688_550, "preparation was charged twice");
+        assert_eq!(budget.visual_passes, Some(25));
+    }
+    // A different preparation cannot be swapped in over a recorded one.
+    let mut other = charge.clone();
+    other.tokens = 1;
+    assert!(charge_preparation(&mut budget, &mut record, &other).is_err());
+    assert_eq!(budget.tokens, 688_550);
+
+    // The same external ledger cannot be imported twice.
+    let root = std::env::temp_dir().join(format!(
+        "tuning-import-{}",
+        telperion_jev::ledger::new_entry_id()
+    ));
+    fs::create_dir(&root).unwrap();
+    let cfg = root.join("config.json");
+    let out = root.join("out");
+    write(&cfg, &fixture(&root));
+    command::run(&cfg, &out, None).unwrap_err();
+    let path = out.join("run.json");
+    let saved: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let (ledger, sha256) = external_ledger(&root, "outside-1", 8_109);
+    let usage = json!({"previous_tokens":0,"next_tokens":8_109,"reason":"prior screening run",
+        "ledgers":[{"path":ledger,"sha256":sha256,"id":"outside-1","tool":"screen",
+            "model":"jev-1.13.0","identity":telperion_jev::ledger::derived_identity(
+                &telperion_jev::sha256_hex(b"external state"),
+                &json!({"q":{"type":"choice","criteria":{"a":"a","b":"b"}}}),
+                "jev-1.13.0")}]});
+    let decision = root.join("decision.json");
+    let mut d = json!({"pause_id":saved["pause"]["id"],"identity":saved["identity"],
+        "action":saved["pause"]["basis"]["proposed_action"],"by":"owner",
+        "rationale":"import audited outside spend","external_usage":usage});
+    write(&decision, &d);
+    command::run(&cfg, &out, Some(&decision)).unwrap_err();
+    let after: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(after["budget"]["tokens"], 8_109);
+
+    // Re-submitting the same import is refused and changes nothing.
+    let before = fs::read(&path).unwrap();
+    d["pause_id"] = after["pause"]["id"].clone();
+    d["identity"] = after["identity"].clone();
+    d["external_usage"]["previous_tokens"] = json!(8_109);
+    d["external_usage"]["next_tokens"] = json!(16_218);
+    write(&decision, &d);
+    let error = command::run(&cfg, &out, Some(&decision)).unwrap_err();
+    assert!(error.contains("duplicate"), "{error}");
+    assert_eq!(fs::read(&path).unwrap(), before);
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn priority_approval_resume_must_re_carry_exact_cap_pilot_authority() {
+    use telperion_jev::tuning::{
+        command::{prepare, Prepared},
+        engine::Run,
+        evaluation::Image,
+        priority::{Checkpoint, Evidence},
+        state::Visual,
+    };
+    let root = std::env::temp_dir().join(format!(
+        "tuning-authority-{}",
+        telperion_jev::ledger::new_entry_id()
+    ));
+    fs::create_dir(&root).unwrap();
+    let mut config_value = fixture(&root);
+    config_value["budget"]["visual_passes"] = json!(0);
+    config_value["budget"]["max_visual_passes"] = json!(5);
+    let config: Config = serde_json::from_value(config_value.clone()).unwrap();
+    let cfg = root.join("config.json");
+    write(&cfg, &config_value);
+    let out = root.join("out");
+    command::run(&cfg, &out, None).unwrap_err();
+    let path = out.join("run.json");
+    let mut state: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let image = Image {
+        path: root.join("asset"),
+        sha256: telperion_jev::sha256_hex(&fs::read(root.join("asset")).unwrap()),
+        view: "whole".into(),
+        seed: 1,
+    };
+    let visual: Visual = serde_json::from_value(
+        json!({"identity":"candidate","model":"mock","ledger":"fixture","cells":[],"defects":[],"findings":[]}),
+    )
+    .unwrap();
+    let checkpoint = Checkpoint::new(
+        &state.identity,
+        &config.priority_scope(&state),
+        visual,
+        vec![
+            Evidence {
+                id: "render-0".into(),
+                role: "render".into(),
+                image: image.clone(),
+            },
+            Evidence {
+                id: "reference-0".into(),
+                role: "reference".into(),
+                image,
+            },
+        ],
+    )
+    .unwrap();
+    state.priority_checkpoints.push(checkpoint.clone());
+    state.pause.as_mut().unwrap().basis.proposed_action = "approve gap priorities".into();
+    write(&path, &serde_json::to_value(&state).unwrap());
+    let before = fs::read(&path).unwrap();
+    let identity = config.identity().unwrap();
+    let pause = state.pause.as_ref().unwrap();
+    let mut decision = json!({"pause_id":pause.id,"identity":state.identity,
+        "action":"approve gap priorities","by":"test owner","rationale":"owner ranked the gaps",
+        "priority_approval":{"checkpoint_sha256":checkpoint.hash(),
+            "scope_sha256":checkpoint.scope_sha256,"ordered":[]}});
+    let decision_path = root.join("decision.json");
+    write(&decision_path, &decision);
+
+    // The approval decision becomes the last authorization, so it must itself
+    // carry the experimental authority the pilot check reads.
+    let Prepared::Ready(resumed) =
+        prepare(&config, &path, Some(&decision_path), &identity).unwrap()
+    else {
+        panic!("unexpected interruption")
+    };
+    let error = resumed.pilot_authority().unwrap_err();
+    assert!(error.contains("unvalidated"), "{error}");
+    assert_eq!(fs::read(&path).unwrap(), before, "preparation wrote state");
+
+    // Wrong caps are refused just as firmly as no authority at all.
+    let authority = json!({"purpose":"bounded experiment","reason":"owner approved pilot",
+        "next_identity":identity,"max_tokens":200000,"max_rounds":3,"max_evaluations":13,
+        "max_images":52,"max_visual_passes":5});
+    let mut wrong = authority.clone();
+    wrong["max_tokens"] = json!(999999);
+    decision["experimental_pilot"] = wrong;
+    write(&decision_path, &decision);
+    let error = command::run(&cfg, &out, Some(&decision_path)).unwrap_err();
+    assert!(error.contains("authority mismatch"), "{error}");
+    assert_eq!(fs::read(&path).unwrap(), before);
+
+    // Exact caps clear the authority check and the run proceeds past it.
+    decision["experimental_pilot"] = authority;
+    write(&decision_path, &decision);
+    let Prepared::Ready(resumed) =
+        prepare(&config, &path, Some(&decision_path), &identity).unwrap()
+    else {
+        panic!("unexpected interruption")
+    };
+    resumed.pilot_authority().unwrap();
+    assert_eq!(resumed.authorizations.len(), 1);
+    fs::remove_dir_all(root).unwrap();
+}

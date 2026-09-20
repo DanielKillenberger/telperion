@@ -38,6 +38,7 @@ pub fn prepare(
     identity: &str,
 ) -> Result<Prepared, String> {
     let identity = identity.to_string();
+    config.budget.validate()?;
     let state: Run = if path.exists() {
         let mut old: Run = serde_json::from_slice(&fs::read(&path).map_err(|e| e.to_string())?)
             .map_err(|e| e.to_string())?;
@@ -278,6 +279,7 @@ pub fn prepare(
         old.effective = telperion_core::params::metadata(&family);
         old.authorizations.push(decision);
         old.verify_diagnoses()?;
+        old.budget.validate()?;
         old
     } else {
         if resume.is_some() {

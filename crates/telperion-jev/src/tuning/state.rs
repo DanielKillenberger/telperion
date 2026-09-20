@@ -107,6 +107,23 @@ pub struct Budget {
 }
 
 impl Budget {
+    /// An opening balance carried from audited prior spend must already fit its
+    /// own caps; otherwise the first reservation would fail with prior cost
+    /// silently blamed on this run.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.evaluations > self.max_evaluations
+            || self.images > self.max_images
+            || self.tokens > self.max_tokens
+            || self.rounds > self.max_rounds
+            || self
+                .visual_passes
+                .zip(self.max_visual_passes)
+                .is_some_and(|(used, cap)| used > cap)
+        {
+            return Err("opening balance exceeds its own caps".into());
+        }
+        Ok(())
+    }
     pub fn reserve_visual(&mut self) -> Result<(), String> {
         let next = self
             .visual_passes
