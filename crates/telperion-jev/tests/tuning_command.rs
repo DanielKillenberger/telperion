@@ -980,3 +980,105 @@ fn the_real_command_reaches_the_priority_pause_then_routes_and_writes_handoffs()
     }
     f.cleanup();
 }
+
+/// Answers every dial question with a supported adjustment.
+struct EveryDial;
+impl telperion_jev::caller::Transport for EveryDial {
+    fn send(
+        &self,
+        request: &telperion_jev::caller::HttpRequest,
+    ) -> Result<telperion_jev::caller::HttpResponse, String> {
+        let body: Value = serde_json::from_slice(request.body.as_ref().unwrap()).unwrap();
+        let answers = body["questions"]
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(|k| {
+                (
+                    k.clone(),
+                    json!({"choice":"small_increase","confidence":0.9}),
+                )
+            })
+            .collect::<serde_json::Map<_, _>>();
+        Ok(telperion_jev::caller::HttpResponse {
+            status: 200,
+            body: serde_json::to_vec(&json!({"model":fixture::JUDGMENT_MODEL,
+                "answers":answers,"usage":{"input_tokens":5,"output_tokens":5}}))
+            .unwrap(),
+        })
+    }
+}
+
+#[test]
+fn max_candidates_is_validated_and_bounds_one_round() {
+    use telperion_jev::tuning::{
+        actions::Dial,
+        engine::{Run, Services},
+        live::Live,
+        state::Budget,
+    };
+    let f = fixture::verifying_fixture(opening());
+    let mut config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+
+    // Validation: only 1..=4, and absence keeps today's behaviour.
+    config.verify().unwrap();
+    for bad in [0u64, 5, 99] {
+        config.max_candidates = Some(bad);
+        let error = config.verify().unwrap_err();
+        assert!(error.contains("max_candidates"), "{bad}: {error}");
+    }
+    config.max_candidates = Some(1);
+    config.verify().unwrap();
+
+    // The bound is what stops the round, in dial-table order.
+    let dials: Vec<Dial> = serde_json::from_value(json!([
+        {"id":"limbs","path":"/skeleton/habit/lateralsPerStation","meaning":"limbs born at each station","min":1,"max":4,"integer":true,"small":1,"substantial":2},
+        {"id":"leaves","path":"/canopy/shortShootLeaves","meaning":"leaves per cluster","min":2,"max":12,"integer":true,"small":2,"substantial":4},
+        {"id":"spacing","path":"/canopy/shortShootSpacing","meaning":"metres between leaf clusters","min":0.01,"max":0.08,"integer":false,"small":0.01,"substantial":0.02},
+        {"id":"irregularity","path":"/skeleton/envelope/irregularity","meaning":"crown envelope lobes and hollows","min":0,"max":0.5,"integer":false,"small":0.08,"substantial":0.16}
+    ]))
+    .unwrap();
+    let effective = telperion_core::params::metadata(
+        &telperion_core::presets::Preset::from_id("european-beech")
+            .unwrap()
+            .parameters(),
+    );
+    let state = Run {
+        identity: "id".into(),
+        preset: "european-beech".into(),
+        seed: 1,
+        effective,
+        overrides: json!({}),
+        dials: dials.clone(),
+        owner_notes: "notes".into(),
+        required: config.required.clone(),
+        budget: serde_json::from_value::<Budget>(opening()).unwrap(),
+        usage_known: true,
+        trials: vec![],
+        current: None,
+        visual: None,
+        pause: None,
+        machine_ready: false,
+        pending: None,
+        routes: vec![],
+        authorizations: vec![],
+        preparation_charge: None,
+        priority_checkpoints: vec![],
+        handoffs: vec![],
+        judgment_inputs: vec![],
+    };
+    for (bound, expected) in [(Some(1u64), 1usize), (Some(2), 2), (None, 4)] {
+        let mut bounded = config.clone();
+        bounded.max_candidates = bound;
+        let mut live = Live {
+            config: &bounded,
+            transport: &EveryDial,
+            key: "unused",
+        };
+        let proposals = live.propose(&state).unwrap().value;
+        assert_eq!(proposals.len(), expected, "bound {bound:?}");
+        // Order follows the dial table, so a bound of one takes the first dial.
+        assert_eq!(proposals[0].dial, "limbs");
+    }
+    f.cleanup();
+}

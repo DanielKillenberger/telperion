@@ -19,6 +19,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
 
+/// The engine refuses more than this many candidates in one round.
+pub const CANDIDATE_LIMIT: u64 = 4;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Validation {
@@ -51,6 +54,10 @@ pub struct Config {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reference_first: Option<super::reference_first::RuntimeConfig>,
     pub convergence_run: Option<PathBuf>,
+    /// Upper bound on candidates evaluated in one round. `None` keeps the
+    /// engine's own limit of four; a lower bound buys a cheaper round.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_candidates: Option<u64>,
     pub judgment_model: String,
     #[serde(default)]
     pub gap_specs: std::collections::BTreeMap<String, String>,
@@ -129,6 +136,12 @@ impl Config {
         }
         for dial in &self.dials {
             dial.validate()?;
+        }
+        if self
+            .max_candidates
+            .is_some_and(|n| !(1..=CANDIDATE_LIMIT).contains(&n))
+        {
+            return Err("max_candidates must be between 1 and 4".into());
         }
         let table = sha256_hex(&serde_json::to_vec(&self.dials).unwrap());
         for (v, kind, version) in [
@@ -610,7 +623,7 @@ impl Services for Live<'_> {
                 action,
                 ledger: entry.reference(),
             });
-            if proposals.len() == 4 {
+            if proposals.len() as u64 == self.config.max_candidates.unwrap_or(CANDIDATE_LIMIT) {
                 break;
             }
         }

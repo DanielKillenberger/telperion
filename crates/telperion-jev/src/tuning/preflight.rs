@@ -21,7 +21,15 @@ impl Transport for NoTransport {
     }
 }
 
-const CANDIDATES: [u64; 2] = [4, 1];
+/// The worst case the config permits, and the leanest round.
+fn candidate_counts(config: &Config) -> [u64; 2] {
+    [
+        config
+            .max_candidates
+            .unwrap_or(super::live::CANDIDATE_LIMIT),
+        1,
+    ]
+}
 
 fn step(label: &str, evaluations: u64, images: u64, tokens: u64, visual: u64) -> Value {
     json!({"step":label,"evaluations":evaluations,"images":images,"tokens":tokens,"visual_passes":visual})
@@ -153,8 +161,9 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
             summed(steps, "visual_passes"),
         )
     };
-    let steps = sequence(CANDIDATES[0]);
-    let lean = sequence(CANDIDATES[1]);
+    let counts = candidate_counts(&config);
+    let steps = sequence(counts[0]);
+    let lean = sequence(counts[1]);
     Ok(json!({
         "meaning":"Worst-case reservations for the full sequence. No state was written, no lock taken, no key loaded and nothing dispatched.",
         "identity":identity,
