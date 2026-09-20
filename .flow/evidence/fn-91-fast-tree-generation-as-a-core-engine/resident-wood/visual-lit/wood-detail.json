@@ -1,0 +1,364 @@
+{
+  "date": "2026-09-20T14:29:12.360Z",
+  "browser": "152.0.7977.82",
+  "flags": [
+    "--no-sandbox",
+    "--enable-unsafe-webgpu",
+    "--enable-features=Vulkan",
+    "--use-angle=vulkan",
+    "--disable-vulkan-surface",
+    "--ignore-gpu-blocklist"
+  ],
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "seed": 1,
+  "view": "bare",
+  "framing": "exterior hero",
+  "wasmSha256": "34e8010886da246579c2d9a13cd5c7f5fbbf30172c28cbbd3f7831c77ce63b11",
+  "captures": [
+    {
+      "preset": "oregon-white-oak",
+      "mode": "cpu",
+      "pose": {
+        "position": [
+          21.154044691413294,
+          21.356680598520448,
+          34.200279895041305
+        ],
+        "target": [
+          -0.3141201231957398,
+          11.661380359664754,
+          -0.4257923865861688
+        ]
+      },
+      "hero": {
+        "position": [
+          21.154044691413294,
+          21.356680598520448,
+          34.200279895041305
+        ],
+        "target": [
+          -0.3141201231957398,
+          11.661380359664754,
+          -0.4257923865861688
+        ]
+      },
+      "view": "bare",
+      "scene": {
+        "casterStride": 4,
+        "casterTexels": 1,
+        "groundBlue": 0.45,
+        "groundGreen": 0.45,
+        "groundRed": 0.45,
+        "shadowFilterTexels": 1,
+        "shadowNormalOffset": 1,
+        "skyHorizonBlue": 1.5,
+        "skyHorizonGreen": 1.5,
+        "skyHorizonRed": 1.5,
+        "skyZenithBlue": 1.5,
+        "skyZenithGreen": 1.5,
+        "skyZenithRed": 1.5,
+        "sunAzimuth": 31.798912824294405,
+        "sunBlue": 5,
+        "sunElevation": 25,
+        "sunGreen": 5,
+        "sunRed": 5
+      },
+      "submitted": {
+        "bounds": {
+          "max": [
+            12.304285049438477,
+            23.418760720163974,
+            12.365335278020916
+          ],
+          "min": [
+            -12.932525295829956,
+            -0.09600000083446503,
+            -13.216920051193254
+          ]
+        },
+        "foliageInstances": 715065,
+        "woodTriangles": 7227360,
+        "woodVertices": 3724874
+      },
+      "stats": {
+        "drawCalls": 3,
+        "instances": 0,
+        "triangles": 7228001
+      },
+      "image": "wood-detail-oregon-white-oak-cpu.png"
+    },
+    {
+      "preset": "oregon-white-oak",
+      "mode": "gpu",
+      "pose": {
+        "position": [
+          21.154044691413294,
+          21.356680598520448,
+          34.200279895041305
+        ],
+        "target": [
+          -0.3141201231957398,
+          11.661380359664754,
+          -0.4257923865861688
+        ]
+      },
+      "hero": {
+        "position": [
+          21.154044274486655,
+          21.35668027652418,
+          34.20027966524573
+        ],
+        "target": [
+          -0.3141202926635742,
+          11.661380149424076,
+          -0.42579221725463867
+        ]
+      },
+      "view": "bare",
+      "scene": {
+        "casterStride": 4,
+        "casterTexels": 1,
+        "groundBlue": 0.45,
+        "groundGreen": 0.45,
+        "groundRed": 0.45,
+        "shadowFilterTexels": 1,
+        "shadowNormalOffset": 1,
+        "skyHorizonBlue": 1.5,
+        "skyHorizonGreen": 1.5,
+        "skyHorizonRed": 1.5,
+        "skyZenithBlue": 1.5,
+        "skyZenithGreen": 1.5,
+        "skyZenithRed": 1.5,
+        "sunAzimuth": 31.798912824294405,
+        "sunBlue": 5,
+        "sunElevation": 25,
+        "sunGreen": 5,
+        "sunRed": 5
+      },
+      "submitted": {
+        "backend": "Gpu",
+        "bounds": {
+          "max": [
+            12.304285049438477,
+            23.418760299682617,
+            12.36533546447754
+          ],
+          "min": [
+            -12.932525634765623,
+            -0.09600000083446504,
+            -13.216919898986816
+          ]
+        },
+        "foliageInstances": 715065,
+        "previousTreeGpuBytes": 0,
+        "stages": {
+          "baseCpuBytes": 24133824,
+          "compactMs": 2.800000000745058,
+          "descriptorCpuBytes": 20147840,
+          "descriptorsMs": 27.699999999254942,
+          "gpuComputePeakBytes": 27078068,
+          "massMs": 2.599999997764826,
+          "placementWaitMs": 10,
+          "readbackMs": 0,
+          "retainedGpuBytes": 229673876,
+          "skeletonMs": 96.60000000149012,
+          "totalMs": 434,
+          "uploadDispatchMs": 6.599999997764826,
+          "woodBackend": "Gpu",
+          "woodCpuBytes": 0,
+          "woodFallback": null,
+          "woodGpuPeakBytes": 223158952,
+          "woodMetadataCpuBytes": 2335104,
+          "woodMs": 286.6000000014901,
+          "woodPrepareMs": 220.19999999925494,
+          "woodPreparedCpuBytes": 48145532,
+          "woodUploadDispatchMs": 33.69999999925494,
+          "woodWaitMs": 32.400000002235174
+        },
+        "treeGpuBytes": 254810296,
+        "woodTriangles": 7227360,
+        "woodVertices": 3724874
+      },
+      "stats": {
+        "drawCalls": 3,
+        "instances": 0,
+        "triangles": 7228001
+      },
+      "image": "wood-detail-oregon-white-oak-gpu.png"
+    },
+    {
+      "preset": "norway-spruce",
+      "mode": "cpu",
+      "pose": {
+        "position": [
+          13.57473829946572,
+          13.541941250066508,
+          21.619805599965808
+        ],
+        "target": [
+          0.13119238518033738,
+          7.470662450066657,
+          -0.0633329714622275
+        ]
+      },
+      "hero": {
+        "position": [
+          13.57473829946572,
+          13.541941250066508,
+          21.619805599965808
+        ],
+        "target": [
+          0.13119238518033738,
+          7.470662450066657,
+          -0.0633329714622275
+        ]
+      },
+      "view": "bare",
+      "scene": {
+        "casterStride": 4,
+        "casterTexels": 1,
+        "groundBlue": 0.45,
+        "groundGreen": 0.45,
+        "groundRed": 0.45,
+        "shadowFilterTexels": 1,
+        "shadowNormalOffset": 1,
+        "skyHorizonBlue": 1.5,
+        "skyHorizonGreen": 1.5,
+        "skyHorizonRed": 1.5,
+        "skyZenithBlue": 1.5,
+        "skyZenithGreen": 1.5,
+        "skyZenithRed": 1.5,
+        "sunAzimuth": 31.798912824294405,
+        "sunBlue": 5,
+        "sunElevation": 25,
+        "sunGreen": 5,
+        "sunRed": 5
+      },
+      "submitted": {
+        "bounds": {
+          "max": [
+            4.308882561470891,
+            15.001324898792209,
+            4.185833114017423
+          ],
+          "min": [
+            -4.046497791110216,
+            -0.05999999865889549,
+            -4.312499056941878
+          ]
+        },
+        "foliageInstances": 7353754,
+        "woodTriangles": 5893480,
+        "woodVertices": 3050636
+      },
+      "stats": {
+        "drawCalls": 3,
+        "instances": 0,
+        "triangles": 5894121
+      },
+      "image": "wood-detail-norway-spruce-cpu.png"
+    },
+    {
+      "preset": "norway-spruce",
+      "mode": "gpu",
+      "pose": {
+        "position": [
+          13.57473829946572,
+          13.541941250066508,
+          21.619805599965808
+        ],
+        "target": [
+          0.13119238518033738,
+          7.470662450066657,
+          -0.0633329714622275
+        ]
+      },
+      "hero": {
+        "position": [
+          13.574737529619792,
+          13.541940167944427,
+          21.619803812978503
+        ],
+        "target": [
+          0.13119268417358398,
+          7.470661850646138,
+          -0.06333303451538086
+        ]
+      },
+      "view": "bare",
+      "scene": {
+        "casterStride": 4,
+        "casterTexels": 1,
+        "groundBlue": 0.45,
+        "groundGreen": 0.45,
+        "groundRed": 0.45,
+        "shadowFilterTexels": 1,
+        "shadowNormalOffset": 1,
+        "skyHorizonBlue": 1.5,
+        "skyHorizonGreen": 1.5,
+        "skyHorizonRed": 1.5,
+        "skyZenithBlue": 1.5,
+        "skyZenithGreen": 1.5,
+        "skyZenithRed": 1.5,
+        "sunAzimuth": 31.798912824294405,
+        "sunBlue": 5,
+        "sunElevation": 25,
+        "sunGreen": 5,
+        "sunRed": 5
+      },
+      "submitted": {
+        "backend": "Gpu",
+        "bounds": {
+          "max": [
+            4.308883190155029,
+            15.001323699951172,
+            4.185832977294922
+          ],
+          "min": [
+            -4.046497821807861,
+            -0.05999999865889549,
+            -4.312499046325684
+          ]
+        },
+        "foliageInstances": 7353754,
+        "previousTreeGpuBytes": 0,
+        "stages": {
+          "baseCpuBytes": 24120352,
+          "compactMs": 3.899999998509884,
+          "descriptorCpuBytes": 155994528,
+          "descriptorsMs": 130.19999999925494,
+          "gpuComputePeakBytes": 265081248,
+          "massMs": 2.600000001490116,
+          "placementWaitMs": 40.899999998509884,
+          "readbackMs": 0,
+          "retainedGpuBytes": 269169128,
+          "skeletonMs": 88.39999999850988,
+          "totalMs": 522.1999999992549,
+          "uploadDispatchMs": 55.30000000074506,
+          "woodBackend": "Gpu",
+          "woodCpuBytes": 0,
+          "woodFallback": null,
+          "woodGpuPeakBytes": 182554664,
+          "woodMetadataCpuBytes": 2009944,
+          "woodMs": 200.39999999850988,
+          "woodPrepareMs": 174.39999999850988,
+          "woodPreparedCpuBytes": 39656536,
+          "woodUploadDispatchMs": 5,
+          "woodWaitMs": 20.600000001490116
+        },
+        "treeGpuBytes": 416821772,
+        "woodTriangles": 5893480,
+        "woodVertices": 3050636
+      },
+      "stats": {
+        "drawCalls": 3,
+        "instances": 0,
+        "triangles": 5894121
+      },
+      "image": "wood-detail-norway-spruce-gpu.png"
+    }
+  ]
+}

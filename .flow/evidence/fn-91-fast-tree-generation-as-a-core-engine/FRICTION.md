@@ -100,3 +100,7 @@ The scratch-only wood profile completed its requested control/instrumented matri
 
 ### 2026-09-20 — task .4 shader validation rebuild
 First resident-wood test reached WGSL validation only after a 44-second release library rebuild; `meta` is a reserved WGSL name. Renamed the binding to `metadata`. Cost: about one minute and one focused failed test run. A fast standalone shader-validation command would have caught this before the LTO test rebuild; no gate was bypassed.
+
+## 2026-09-20 - owner rejected shaded interior captures
+
+The owner could not inspect the resident-wood images because the spruce camera was inside the needles and both trunks were shaded. The previous capture and review consumed several minutes and another owner turn without usable acceptance evidence. The host is replacing these with one four-image set using an exterior whole-tree camera, the existing bare-wood view, and camera-facing sun plus brighter fill. Prevention: inspect framing, occlusion and illumination before presenting a visual comparison; a nonblank image alone is insufficient. No generator change or new performance run is needed.
