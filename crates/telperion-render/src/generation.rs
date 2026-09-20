@@ -303,3 +303,20 @@ mod readback_tests;
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod wood_tests;
+
+/// Match the integration tests: unavailable hardware is explicit, while a
+/// device that exists but fails for another reason still fails the test.
+#[cfg(test)]
+fn test_gpu() -> Option<crate::Gpu> {
+    match pollster::block_on(crate::Gpu::request(None)) {
+        Ok(gpu) => Some(gpu),
+        Err(
+            error @ (crate::RenderError::WebGpuUnavailable(_)
+            | crate::RenderError::FallbackOnly { .. }),
+        ) => {
+            println!("skipped: {error}");
+            None
+        }
+        Err(error) => panic!("the device was there and still refused: {error}"),
+    }
+}

@@ -343,7 +343,9 @@ mod pending_tests {
 
     #[test]
     fn read_is_submitted_and_mapped_before_completion_is_polled() {
-        let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+        let Some(gpu) = crate::generation::test_gpu() else {
+            return;
+        };
         let source = buffer(
             &gpu,
             "pending fixture",

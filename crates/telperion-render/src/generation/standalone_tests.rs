@@ -2,7 +2,9 @@ use super::*;
 
 #[test]
 fn standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let generator = Generator::for_cpu_output(gpu).unwrap();
     let mut family = Family::default();
     family.canopy.size = f64::NAN;

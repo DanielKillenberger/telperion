@@ -1,8 +1,10 @@
-use super::{io, Gpu};
+use super::io;
 
 #[test]
 fn leaf_readback_preserves_words_across_chunk_boundaries() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let words: Vec<[u32; 3]> = (0..11).map(|i| [i, 0x80000000 | i, u32::MAX - i]).collect();
     let bytes: Vec<u8> = words
         .iter()
@@ -25,7 +27,9 @@ fn leaf_readback_preserves_words_across_chunk_boundaries() {
 
 #[test]
 fn leaf_readback_rejects_invalid_buffers_and_allocation() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let source = io::buffer(
         &gpu,
         "invalid readback",
@@ -51,7 +55,9 @@ fn leaf_readback_rejects_invalid_buffers_and_allocation() {
 
 #[test]
 fn leaf_readback_device_loss_returns_no_output() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let source = io::buffer(
         &gpu,
         "lost device readback",

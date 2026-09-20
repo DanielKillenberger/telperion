@@ -31,7 +31,9 @@ fn floats(g: &Generator, b: &Held) -> Vec<f32> {
 }
 #[test]
 fn resident_wood_matches_cpu_and_remains_writable_after_adoption() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let mut renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     for rings in [2, 4, 1025] {
@@ -86,7 +88,9 @@ fn resident_wood_matches_cpu_and_remains_writable_after_adoption() {
 
 #[test]
 fn multirow_empty_and_unusable_normals_have_explicit_outcomes() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     let params = SurfaceParams {
@@ -183,7 +187,9 @@ fn digest(mesh: &surface::SurfaceMesh) -> String {
 
 #[test]
 fn measured_specimens_keep_all_cpu_fields_and_gpu_surface_contracts() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     for species in ["oregon-white-oak", "norway-spruce"] {
@@ -244,7 +250,9 @@ fn compute_limits_and_device_failure_never_return_partial_wood() {
     assert!(wood::compute_fits(&limits, &[128], 4));
     assert!(!wood::compute_fits(&limits, &[129], 4));
     assert!(!wood::compute_fits(&limits, &[128], 5));
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     let p = surface::prepared::prepare(&tree(2), 1.0, &SurfaceParams::default())

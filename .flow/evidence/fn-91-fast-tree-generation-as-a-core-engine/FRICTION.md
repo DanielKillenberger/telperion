@@ -191,3 +191,7 @@ Finishing the approved PR found four conflicts with master's new pre-generation 
 ## 2026-09-20 — Historical view fixture follows a changed default
 
 The combined Rust gate passed 749/750 tests; the historical clay comparison failed because it implicitly followed the intentionally changed hero camera. Cost: about one minute to pin the fixture's original shot and rerun its comparison successfully. Four historical bark receipts were also rewritten by tests and restored. Explicit fixture cameras and isolated evidence outputs avoid these false regressions; no new spec is proposed.
+
+## 2026-09-20 — CI runner has no GPU
+
+Seventeen new device-backed tests unwrapped adapter acquisition and failed on the GPU-less CI runner, although the established integration-test helper treats hardware absence as an explicit skip. Diagnosis and fix cost about two minutes plus CI turnaround. New generation tests now use the same narrow hardware-absence policy; other device errors still panic. Verify both GPU-present and GPU-absent setup before pushing device-backed tests. No new spec is proposed.

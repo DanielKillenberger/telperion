@@ -262,7 +262,9 @@ fn pass(g: &Generator) -> io::Pass {
 
 #[test]
 fn compact_position_edge_cases() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     let scopes = io::scope(&g.gpu);
@@ -346,7 +348,9 @@ fn compact_position_edge_cases() {
 #[test]
 #[ignore = "isolated four-fixture release feasibility measurement"]
 fn compact_position_mature_measurement() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     let scopes = io::scope(&g.gpu);

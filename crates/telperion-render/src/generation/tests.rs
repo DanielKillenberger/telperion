@@ -35,7 +35,9 @@ fn fixture(angle: f64) -> Tree {
 }
 #[test]
 fn compact_gpu_foliage_is_repeatable_seated_and_bounded() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let generator = Generator::new(&renderer).unwrap();
     let mut f = Family::default();
@@ -266,7 +268,9 @@ fn preparation_capabilities_and_failures_are_explicit() {
 
 #[test]
 fn foreign_prepared_result_preserves_the_live_tree() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let source = Renderer::new(gpu.clone(), crate::STILL_FORMAT);
     let mut destination = Renderer::new(gpu, crate::STILL_FORMAT);
     let f = Family::default();
@@ -303,7 +307,9 @@ fn foreign_prepared_result_preserves_the_live_tree() {
 
 #[test]
 fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let generator = Generator::new(&renderer).unwrap();
     let tree = fixture(0.0);
@@ -386,7 +392,9 @@ fn huge_phases_fall_back_but_supported_large_ordinals_keep_orientation() {
 
 #[test]
 fn gpu_extrema_order_preserves_signed_zero_and_finite_signs() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let source = format!(
         "{}\n{}",
         include_str!("order.wgsl"),
@@ -445,7 +453,9 @@ fn gpu_extrema_order_preserves_signed_zero_and_finite_signs() {
 
 #[test]
 fn compact_positions_seat_contacts_on_the_rendered_surface() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     let scopes = io::scope(&g.gpu);
@@ -602,7 +612,9 @@ pub(super) fn late_station_result<T>(
 
 #[test]
 fn late_station_capability_and_error_join_positions_before_reusing_generator() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     let mut f = Family::default();

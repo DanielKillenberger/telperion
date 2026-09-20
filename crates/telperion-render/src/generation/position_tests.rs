@@ -105,7 +105,9 @@ fn production_contract(
 
 #[test]
 fn production_positions_admit_geometry_and_reject_unsupported_inputs() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     let scopes = io::scope(&g.gpu);
@@ -187,7 +189,9 @@ fn production_positions_admit_geometry_and_reject_unsupported_inputs() {
 #[test]
 #[ignore = "isolated production four-fixture geometry screening"]
 fn production_position_mature_contracts() {
-    let gpu = pollster::block_on(Gpu::request(None)).unwrap();
+    let Some(gpu) = crate::generation::test_gpu() else {
+        return;
+    };
     let renderer = Renderer::new(gpu, crate::STILL_FORMAT);
     let g = Generator::new(&renderer).unwrap();
     let scopes = io::scope(&g.gpu);
