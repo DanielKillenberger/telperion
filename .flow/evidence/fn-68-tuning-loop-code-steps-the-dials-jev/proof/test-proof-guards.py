@@ -149,7 +149,9 @@ class Guards(unittest.TestCase):
             text=True,
         )
         self.assertEqual(run.returncode, 2)
-        self.assertIn("host review not released", run.stderr)
+        self.assertTrue(
+            "host review not released" in run.stderr or "terminal needs_human" in run.stderr
+        )
 
     def test_positive_requires_pass_and_supported_coverage(self):
         required = [{"item": "reference_character", "view": "S-WHOLE", "seed": 1}]

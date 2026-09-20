@@ -1,4 +1,6 @@
-# Dispatch-ready proof packet
+# Proof packet — calibration contaminated, paid work stopped
+
+Narrow birch-positive is observed PASS. Beech-negative is INCONCLUSIVE/contaminated (expected-label leak in the actual dispatched checklist). R7 was not dispatched. R8 is not claimed. See `CLOSEOUT.md` and `run-state.json`.
 
 Dry command, existing adapter, no live call:
 

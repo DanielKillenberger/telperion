@@ -1,6 +1,8 @@
-# Frozen acceptance — before any call
+# Frozen acceptance — closeout 2026-09-20
 
-Owner grant `ok approved` is recorded. Paid dispatch still waits on host review of `.flow/tmp/cursor-fn68-ready.json`. One useful round. No retries. Calibration fail stops; do not redesign.
+Paid work and R7 are stopped. Terminal `needs_human` / `calibration_contaminated`. Narrow birch-positive remains observed PASS. Beech-negative is INCONCLUSIVE/contaminated because the actual dispatched checklist contained `This case is the known negative; a pass is false-ready.` Raw request and results stay byte-for-byte. No retry. Unspent grant does not authorize a replacement. R8 is not claimed.
+
+Owner grant `ok approved` remains on file. One useful round. No retries. Calibration fail stops; do not redesign.
 
 1. Stage A birch must settle under its ceiling. Inventory is birch-specific factual morphology from the S-WHOLE photo only, not beech owner priorities and not bare/bark core traits.
 2. Stage B birch-positive assesses the camera-reframed still `5c0112df…` under the disclosed historical-geometry label. Host viewed that raster as complete framing and accepts the label for narrow whole-crown calibration only, not new owner aesthetic approval. Code success is every required cell PASS plus a supported finding that cites render and reference. A failing positive stops every later stage.

@@ -1,4 +1,12 @@
-## Current: whole-only Stage A and releasable runner, still no paid call
+## Current: birch PASS observed; negative contaminated; no R8
+
+Paid work and R7 are stopped. `run-state.json` is terminal `needs_human` / `calibration_contaminated`. Cumulative 622967 tokens, additional 70536 from 552431, visual 23, actual captures 26, reserved 30, evaluations 6, round 2. Runtime `d93259cd…` unchanged.
+
+Stage A used 19456 and bound a real inventory. Narrow birch-positive used 25153 and remains observed PASS (`positive_calibration_ok`). Beech-negative used 25927. Its actual dispatched prompt `1ab2752b…` contains `This case is the known negative; a pass is false-ready.` The reviewer cited the supplied designation. That leak makes the negative INCONCLUSIVE/contaminated. Grounded morphology findings do not qualify it. Raw request `6bdf3e2c…` and stdout stay byte-for-byte. No retry. Remaining 279464 tokens / 2 visual do not authorize a replacement.
+
+Future proposal only: keep expected labels grader-only, assert their absence in the actual dispatched prompt, then one explicitly authorized blind negative replacement. Not implemented in this closeout.
+
+## Previous: whole-only Stage A and releasable runner, still no paid call
 
 Stage A birch now inventories only `bepe339A` (S-WHOLE). The generic inventory prompt is unchanged (`b977396b…`). Bare and bark photos stay present unused so they cannot mint core traits that a whole-only Stage B cannot see. Stage B positive references are S-WHOLE only. Re-prepare dropped Stage A from 2 images / 1476 prompt bytes to 1 / 1231, and Stage B from 4 / 4273 to 3 / 3892. Stage ceilings stay 291,000 inside 350,000.
 

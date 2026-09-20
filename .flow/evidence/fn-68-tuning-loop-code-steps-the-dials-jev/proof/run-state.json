@@ -1,5 +1,5 @@
 {
-  "status": "stage_settled",
+  "status": "terminal",
   "tokens": 622967,
   "token_cap": 902431,
   "visual": 23,
@@ -8,6 +8,10 @@
   "visual_max": 5,
   "reserved": 30,
   "actual_captures": 26,
+  "evaluations": 6,
+  "round": 2,
+  "previous_tokens": 552431,
+  "additional_tokens": 70536,
   "settled": [
     "stage-a-birch",
     "stage-b-birch-positive",
@@ -36,7 +40,20 @@
       "status": "ok"
     }
   ],
-  "terminal": null,
+  "terminal": {
+    "reason": "needs_human",
+    "code": "calibration_contaminated",
+    "stage": "stage-b-beech-negative",
+    "overrides": "stage_settled",
+    "r7": "not_dispatched"
+  },
+  "qualifier": {
+    "positive": "PASS",
+    "negative": "INCONCLUSIVE/contaminated",
+    "r8": false,
+    "semantic_qualification": false
+  },
   "outstanding_reservation": null,
-  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e"
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "applied_to_runtime": false
 }

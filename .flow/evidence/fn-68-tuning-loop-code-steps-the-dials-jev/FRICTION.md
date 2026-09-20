@@ -1,3 +1,7 @@
+## 2026-09-20 — expected-label leak in actual dispatched negative checklist
+
+What it was doing: host-released Stage A then B+/B− Astra-medium calibration. What slowed it: the actual dispatched beech-negative prompt `1ab2752b307e8cee19d5f204180abc6f7aadef047fe77c1c10d313c3e0b76f8f` included `comparison.checklist` text `This case is the known negative; a pass is false-ready.` The reviewer wrote that the supplied known-negative designation is not visual evidence. Independent negative calibration is contaminated. Cost: 25927 known tokens and 54.665 s on that call; packet additional 70536 from 552431 to 622967; visual 23; no R7. Worker and host both missed the leak before dispatch. Shared accountability, not sole worker blame. Owner unspent remainder 279464 tokens / 2 visual does not permit retry under the no-retry grant. What would remove it: keep expected labels grader-only, assert their absence in the actual dispatched prompt, then one explicitly authorized blind negative replacement. Not implemented here. No new spec.
+
 ## 2026-09-20 — evidence rustc compile against existing rlib
 
 Assembling the frozen priority packet needed `Checkpoint::hash` from the already-built crate. `ls` of `target/debug/deps/*.rlib` printed eza metadata instead of paths, so the first rustc invocation failed before any packet write. Cost: about one minute, zero paid tokens. `find -printf '%p\\n'` resolved the rlibs. A one-line compile helper that records crate rlib names would remove this. No new spec.

@@ -41,9 +41,7 @@ def ceilings():
     return load("ceilings.json")
 
 
-def state_or_init():
-    if STATE.exists():
-        return json.loads(STATE.read_text())
+def fresh_state():
     grant = load("owner-grant.json")
     counts = accounting()
     return {
@@ -62,6 +60,12 @@ def state_or_init():
         "outstanding_reservation": None,
         "runtime_sha256": RUNTIME_SHA,
     }
+
+
+def state_or_init():
+    if STATE.exists():
+        return json.loads(STATE.read_text())
+    return fresh_state()
 
 
 def write_state(state):
@@ -136,7 +140,9 @@ def execute(stage, **paths):
     def load_state():
         if state_file.exists():
             return json.loads(state_file.read_text())
-        return state_or_init()
+        if state_file == STATE:
+            return state_or_init()
+        return fresh_state()
 
     def save_state(state):
         state_file.write_text(json.dumps(state, indent=2) + "\n")
