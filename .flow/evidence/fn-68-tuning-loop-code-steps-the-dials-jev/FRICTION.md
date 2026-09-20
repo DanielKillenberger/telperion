@@ -49,6 +49,10 @@ The worker checked the R5/R7/R8 prerequisites before implementing the loop. The 
 The manager reused an existing fn-68 branch at b4c1a390 instead of starting from the requested fn-72 base. The host preserved it by merging fn-72. Three conflicts were formatting and updated help text; the current parent versions preserved the checkpoint functionality. Cost was about two minutes of inspection and resolution, no pilot tick. Explicit existing-branch reporting and ancestry checks in worktree setup would avoid the surprise. A diff check initially included unrelated historical whitespace; comparison against the actual fn-72 base passed. No historical source text was changed.
 # 2026-09-20 — Resume integration bookkeeping
 
+## 2026-09-20 — Independent admissibility still abstains on development replay
+
+One approved v4 batch cost1,596tokens and zero images/rounds. Fresh explicit candidate cases all selected safely, but birth-reduction replay Nouls0.40/0.62 did not meet frozen0.8, leaving coverage3/4. No missing data or tooling error; full evidence retained. Do not respond with automatic retries or lower thresholds. Host can distinguish evidence sufficiency from action-label competition using the preserved cross-study cases; any further policy/evidence work requires its own explicit bounded decision.
+
 ## 2026-09-20 — v3 preflight resolved; low-confidence size withheld
 
 Before answers, host-approved concise direct criteria reduced11,128→10,888 without dropping policy/effect/observation semantics; shared Rust canonical bytes verified. Two approved calls cost3,515tokens. Direction8/8 and safe composition worked, but one expected substantial action had confidence0.45, leaving actionablecoverage3/4 below frozen0.8. No post-answer retune or runtime activation. Remaining decision is policy qualification/abstention tolerance on representative evidence, not automatic additional budget; full probabilities preserved for host review.

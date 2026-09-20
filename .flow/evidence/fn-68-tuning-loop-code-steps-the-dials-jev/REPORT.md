@@ -1,5 +1,13 @@
 # fn68 implementation and calibration checkpoint
 
+## v4 independent admissibility: safe fresh cases, replay abstention
+
+One host-released text batch evaluated ten independent Nouls at frozen0.8, not Choice confidence. Exact serde_json reservation5,807 fit8k authority; actual1,596tokens, cumulative214,018. No renders/vision/rounds/runtime changes. Separate study spend8,109 must reconcile against untouched runtime205,909 before any future authorized resume.
+
+Candidate accuracy8/10=.8; falseyes0/falseno2; invalid0; accepted actions3/3acceptable; unsafe0; actionablecoverage3/4=.75 fails. Fresh authored groups all selected correctly: both informative candidates0.91/0.91→small; harmful small0.07/larger0.85→substantial; useful small0.87/harmful large0.09→small; neither0.12/0.12→abstain. V3 birth-reduction replay returned small0.40/substantial0.62→abstain. Manifest froze both replay candidates admissible because prior smaller probes helped, not proved futile; this new construct does not relabel or repair v3's preferred-size result. No threshold adjustment or further call followed.
+
+`v4-generated/`, preparation/scoring/one-shot-run scripts, `v4-policy-result.json` and `v4-calibration-accounting.json` preserve labels, complete probabilities, hashes and spend. Synthetic selection/malformed/missing/threshold/bounds/wrong-direction checks passed. Four fresh authored scenarios plus one development replay are not biological efficacy evidence or independent heldout qualification. Frozen coverage gate remains unmet; no production activation or task completion.
+
 ## v3 two-stage authored study: coverage gate still fails
 
 Host-approved concise direct option descriptions preserved semantics and reduced final exact serde_json reservation to10,888 (direction5,327 +worst-size5,561), inside the owner-approved11k. After host release, two calls ran with persisted reservations and immutable ledger verification; no retunes/retries. V3 artifacts and effect definitions are frozen under v3-generated; manifest SHA6464fa00354b5e4ccf529bb45c7b3e6aa6703aa3bd5be3b42d621ec1f6f031f8. These are fresh authored development variants closely related to v2, not independent biological heldout evidence.

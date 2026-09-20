@@ -1,0 +1,11 @@
+{
+  "previous_tokens": 212422,
+  "additional_max_tokens": 8000,
+  "cumulative_max_tokens": 270000,
+  "new_actual_tokens": 1596,
+  "cumulative_actual_tokens": 214018,
+  "pending": null,
+  "host_release": "one call after offline corrections",
+  "runtime_untouched": true,
+  "ledger": ".flow/ledger/fn68-v4-calibration/2026-09-20T104735Z-fn68-v4-candidates-18d701b56461eae6-3615a-0.json"
+}

@@ -1,0 +1,9 @@
+{
+  "reservation": 5807,
+  "hashes": {
+    "manifest": "8e99236f6bfe068da1073e4324993076e25f6d89a316845eb93d6f7b821fb866",
+    "state": "1e82b14c3ea0372365069474e78a055b0ddbf6399a525920015792aa4b6105df",
+    "questions": "8cdbbd696a9ddfbf46fabd2ced9f8ff622c24edf002286e8c64106dc4561a07c"
+  },
+  "dispatch_authorized": false
+}
