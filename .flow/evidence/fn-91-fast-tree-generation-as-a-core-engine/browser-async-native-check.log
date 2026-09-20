@@ -1,8 +1,0 @@
-    Checking futures-core v0.3.34
-    Checking serde_core v1.0.229
-    Checking slotmap v1.1.1
-    Checking futures-channel v0.3.34
-    Checking telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
-    Checking serde_json v1.0.151
-    Checking telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
-    Finished `release` profile [optimized] target(s) in 1.84s

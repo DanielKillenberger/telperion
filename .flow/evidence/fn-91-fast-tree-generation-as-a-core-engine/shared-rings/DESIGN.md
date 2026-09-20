@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Shared canonical contacts
 
 Host approved this design before implementation. `surface.rs:227–290` emits sorted wood runs. An optional contact map records each distal node's lower, upper, first and last ring vertex offsets from that run's vertex base, sample count and trunk burial offset, following `surface/attachment.rs:94–103`. Caps stay outside every contact range. Ordinary surface preparation and CPU building request no map and retain their allocations.

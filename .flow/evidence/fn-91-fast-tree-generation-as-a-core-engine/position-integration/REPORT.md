@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Qualified resident GPU positions
 
 The candidate meets the task’s incremental browser target: oak seeds 1/7 improve 44.47%/45.05% in completed-frame delivery, with no increase in the explicit joint-capacity envelopes. All four mature fixtures use GPU positions without fallback. This does not complete the parent goal: oak remains below 10×, every fixture remains above 100 ms, and phone, cold-start and complete peak-memory qualification remain open.

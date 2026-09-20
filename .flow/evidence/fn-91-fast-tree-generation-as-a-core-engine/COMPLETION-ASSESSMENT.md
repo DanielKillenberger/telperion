@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Retained generation improvements and closure gaps
 
 The retained browser path delivers the four mature desktop fixtures in 158.1–180.8 ms, compared with 1,570.0–7,628.6 ms originally. Oak improves 9.93/10.30 times and spruce 42.64/44.97 times. These are completed renderer-queue observations with an initialized renderer, not cold website startup. The original fn-91 acceptance is not yet fully satisfied.

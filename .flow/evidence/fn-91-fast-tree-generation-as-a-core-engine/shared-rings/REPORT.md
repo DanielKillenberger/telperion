@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Shared canonical ring preparation
 
 The candidate removes repeated contact-ring emission on resident requests with positive surface contact. Spruce's native completed-frame median improves 16.71%, clearing this task's 15% aim. Oak is the zero-contact control: its native median increases 2.00% with overlapping sample ranges, while browser delivery improves slightly. No parent target is waived: oak remains below 10×, every fixture remains above 100 ms, and whole-memory, cold-start and phone qualification remain open.

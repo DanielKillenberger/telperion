@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Bounded native surface candidate
 
 The proposed ordinary CPU wood path uses eight workers at most, selected once from available_parallelism, with a minimum of 250,000 vertices and two workers. PreparedSurface and contacts continue on the existing serial path. Wasm excludes the module at compilation. Threads have explicit 64 KiB requested stacks and nonrecursive kernels. No external dependency or unsafe output initialization is needed.

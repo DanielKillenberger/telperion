@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # CPU-owned surface boundary — source analysis, not implementation
 
 The .8 GPU-assisted CPU-owned oak control spends roughly185–188ms in ordinary CPU wood construction, while resident GPU delivery avoids that expansion. This remains a distinct bottleneck after shared skeleton improvements. The .3 diagnostic attributes comparable shares to vertex/index emission and normal accumulation; its intrusive timings are approximate, not current production per-stage costs.

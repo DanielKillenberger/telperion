@@ -70,3 +70,7 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 - Substantial replies (reports, reviews, multi-section answers): invoke `/flow-next:prose` BEFORE drafting — the artifact prose contract applies to chat replies too. Short conversational turns skip it.
 - If `flowctl` is not found: your shell lacks the plugin's `scripts/` dir on PATH (only Claude Code injects it). Resolve it the way the skills do - the plugin install's `scripts/flowctl` (Claude/Droid: plugin-root env var; Codex: `${CODEX_HOME:-$HOME/.codex}/scripts/flowctl`; Cursor/Grok: two levels above any flow-next SKILL.md) - or update/reinstall the flow-next plugin. A repo with no `.flow/` yet: run `/flow-next:setup`.
 <!-- END FLOW-NEXT -->
+
+## Evidence retention
+
+Follow `docs/evidence-retention.md` when collecting or staging evidence. Keep final summaries and reusable verification sources; put raw run output in ignored `.flow/evidence/<spec>/raw/`. Inspect evidence count and size before a PR. Never remove executable test fixtures as if they were generated output.

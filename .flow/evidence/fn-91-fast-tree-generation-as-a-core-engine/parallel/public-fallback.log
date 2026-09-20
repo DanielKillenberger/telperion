@@ -1,8 +1,0 @@
-   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
-    Finished `release` profile [optimized] target(s) in 43.60s
-────────────
- Nextest run ID b2736163-30bb-4159-9c16-03accc52b1ac with nextest profile: default
-    Starting 1 test across 1 binary (182 tests skipped)
-        PASS [   0.496s] (1/1) telperion-core surface::parallel::tests::admitted_public_build_retries_once_after_started_worker_spawn_failure
-────────────
-     Summary [   0.496s] 1 test run: 1 passed, 182 skipped

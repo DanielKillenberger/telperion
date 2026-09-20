@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Final validation
 
 The optimization search has ended. Browser completed-frame medians are 158.1/180.8 ms for oak seeds 1/7 (9.93×/10.30× the original baseline) and 178.9/164.2 ms for spruce (42.64×/44.97×). Oak seed 1 misses strict 10× by 1.1 ms; it was not retimed to claim a crossing. These measurements use an initialized desktop renderer at 1280×720, not cold page startup.

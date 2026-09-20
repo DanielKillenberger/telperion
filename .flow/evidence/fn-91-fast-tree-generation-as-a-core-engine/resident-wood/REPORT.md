@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Resident wood experiment
 
 Native and browser consumers that explicitly request GPU-resident delivery now keep expanded wood buffers on the GPU. The final native seed-1 completed-frame medians improve from 449.55 to 232.95 ms for oak and 458.84 to 262.88 ms for spruce. All four browser fixtures also improve over the prior GPU foliage candidate. The default CPU surface retains all four complete-field hashes. Task .4's implementation and measurements are complete; the host's scoped visual capture is complete and the owner verdict is accepted in [visual-lit/VERDICT.md](visual-lit/VERDICT.md). Task .1 and parent R1-R5 remain open.

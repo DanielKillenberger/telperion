@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Angular cache and standalone CPU output
 
 Invocation 4 starts at 880db513. The shared surface helper caches the existing fixed sine/cosine expressions once per build and the existing profile expression for zero twist. Nonzero twist retains per-ring phase/profile evaluation. The helper uses checked reservation; its transient allocation is 40 bytes per angular sample on this native target (three f64 values and Option<f64>), released when each surface/attachment build returns. No output buffers or GPU algorithms change.

@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Shared CPU preparation attribution
 
 The next bounded experiment is a radius-only compact ordering pass. The current pass costs 5.61/6.85 ms on native oak seeds 1/7 and 4.19/4.04 ms on spruce. It constructs full samples merely to find their maximum radius, then constructs them again for emission. Share the radius calculation with emission and avoid the first pass's centre/attachment-direction work and sample writes. Those measured times are ceilings; computing radii still costs work, so achievable savings are smaller and unmeasured. A cheap exact-output screen should reject the experiment if the gain is negligible.

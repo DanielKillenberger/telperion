@@ -1,4 +1,0 @@
-   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
-   Compiling telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-wasm)
-   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
-    Finished `release` profile [optimized] target(s) in 17.16s

@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../../README.md).
+
 # Lit exterior wood comparison
 
 The owner rejected the previous shaded, interior views as unjudgeable. Those captures are retained as failed presentation evidence, not acceptance.

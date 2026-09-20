@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Reproduce the bounded candidate
 
 Start from e453ac51b2a9024ac2e54ff42cb2d72b84f32bff in a disposable checkout with its own Cargo target directory. The baseline source capacity probe is capacity.patch plus parallel_capacity.rs copied into crates/telperion-core/examples. Build and run that example in release mode to recover capacity.log.

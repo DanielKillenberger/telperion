@@ -1,5 +1,0 @@
-   Compiling futures-core v0.3.34
-   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
-   Compiling futures-channel v0.3.34
-   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-render)
-    Finished `release` profile [optimized] target(s) in 43.22s

@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Shared async GPU generation in the browser
 
 Invocation 5 begins at 1e30cf22. The shared GPU preparation, shaders, contact, stable compaction, bounds and canopy mass implementation now runs through awaited readback, queue completion and error-scope completion. Native synchronous entry points wrap this same implementation. The platform clock uses native Instant or global performance.now, including worker globals.

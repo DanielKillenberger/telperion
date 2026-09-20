@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # GPU foliage boundary investigation
 
 Host investigation, 2026-09-20. Design evidence, not an implemented candidate or a performance result.

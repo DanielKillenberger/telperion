@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Compact position feasibility probe
 
 The host approved this boundary before implementation. The default CPU builder and canonical prepared positions remain unchanged. The isolated `surface::compact` API repeats the canonical path validation, stable descending-radius run order, sampling and frames, but emits 64 bytes per ring plus angular/run metadata instead of positions, normals, coordinates or indices. Centres, frames and radius are converted to float32; angular cosine/sine retain CPU-precomputed values rounded to float32, while the lobed profile cosine runs in WGSL. This is ordinary float32 expansion, not double emulation.

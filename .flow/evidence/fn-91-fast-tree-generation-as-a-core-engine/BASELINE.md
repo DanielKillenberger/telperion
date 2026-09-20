@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Mature generation baseline — native checkpoint
 
 Revision `507d3ef1`; release Rust on Linux / Ryzen 9 5950X. Exact parameters, binary hash, runtime and raw samples are beside this report. Full CPU wood geometry and compact foliage placements, without rendering. One first-process build followed by five warmed builds per case. Shared machine; no CPU isolation. No Quick commands are defined in the spec (`baseline: none`).

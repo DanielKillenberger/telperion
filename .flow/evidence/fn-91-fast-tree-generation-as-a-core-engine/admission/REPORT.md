@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Admission traversal experiment
 
 The host retained the small, allocation-free traversal change: four fixtures improve preparation by 9.69–11.97%, and native seed-1 completed-frame delivery improves by 3.51% for oak and 4.15% for spruce. Both completed-frame results miss the 5% aim; oak 1 and spruce 1 narrowly miss the 10% preparation aim. This hypothesis stops here. The host explicitly stopped expansion to browser measurements because the native gain missed 5%; no browser speedup is claimed. Task .1 and the parent 10×, 100 ms, cold-start, phone and whole-peak-memory requirements remain open.

@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Bounded leaf readback
 
 Task .2 replaces both CPU delivery and explicit resident verification readback with one shared asynchronous helper. It reserves the final `Vec<[u32; 3]>` fallibly once, copies sequential chunks into one reusable staging buffer, and decodes mapped words directly into the final vector. The production chunk is 4,194,300 bytes (4 MiB rounded down to a multiple of 12), further limited by the source length and device buffer limit. Zero leaves returns before allocation or GPU work. Source size/usage, allocation, mapping, device loss and scoped GPU errors return an error; the owned partial vector never escapes. Dropping the future drops its local output and staging resources. Native polling is cfg-excluded from Wasm.

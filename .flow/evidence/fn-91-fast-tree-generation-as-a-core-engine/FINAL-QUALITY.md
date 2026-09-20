@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Final quality audit
 
 Base: `0d98f5d06c2a059e8436ee5b8f5858ce6cea66a8`. Reports below are preserved verbatim. They reviewed the production working tree while final aggregate validation ran; neither auditor ran builds or timing.

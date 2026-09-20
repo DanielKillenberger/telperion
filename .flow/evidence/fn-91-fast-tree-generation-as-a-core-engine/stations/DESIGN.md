@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Station preparation candidate
 
 Host approved the shared stage on 2026-09-20 before production edits. Child membership is represented by count and last child; the last index is consumed only for a sole child. Node enumeration, bearing classification, branch equality and run order stay unchanged.
