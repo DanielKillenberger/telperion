@@ -21,7 +21,7 @@ use crate::device::{RenderError, Result};
 macro_rules! fields {
     ($op:ident) => {
         $op! {
-            ("azimuth", azimuth, 0.0, 360.0, 31.799, "azimuth"),
+            ("azimuth", azimuth, 0.0, 360.0, 115.0, "azimuth"),
             ("elevation", elevation, -20.0, 80.0, 13.415, "elevation"),
             ("fill", fill, 0.2, 20.0, 0.8696, "fill"),
             ("targetHeight", target_height, 0.0, 1.0, 0.5, "targetHeight"),

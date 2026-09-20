@@ -20,7 +20,7 @@ macro_rules! fields {
     ($op:ident) => {
         $op! {
             ("sunAzimuth", sun_azimuth, 0.0, 360.0, 135.0, "sun azimuth"),
-            ("sunElevation", sun_elevation, 0.0, 90.0, 55.0, "sun elevation"),
+            ("sunElevation", sun_elevation, 0.0, 90.0, 30.0, "sun elevation"),
             ("sunRed", sun_red, 0.0, 10.0, 3.0, "sun red"),
             ("sunGreen", sun_green, 0.0, 10.0, 2.85, "sun green"),
             ("sunBlue", sun_blue, 0.0, 10.0, 2.6, "sun blue"),

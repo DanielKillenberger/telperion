@@ -31,7 +31,7 @@ pub struct Light {
 
 /// The direction from the scene towards the sun. Azimuth is degrees clockwise
 /// from +Z seen from above, elevation degrees above the horizon, so the default
-/// row's midday sun stands high and behind the camera's right shoulder.
+/// row's sun stands at 30 degrees, just beside the default camera direction.
 fn sun(row: &SceneRow) -> Vec3 {
     towards(row.sun_azimuth, row.sun_elevation)
 }
