@@ -20,9 +20,17 @@ Touches: crates/telperion-core/src/surface.rs, crates/telperion-core/src/surface
 
 
 ## Done summary
-TBD
+The single radius-only surface ordering candidate was rejected after missing the 5% compact-preparation gain on both oak seeds. Warm compact changes were +9.80/-1.67% for oak and +0.12/-0.24% for spruce; complete wood/compact/contact byte comparisons and all repeats passed. Production source is restored exactly, and the host reviewed and approved rejection before completion.
 
+Report, raw samples, provenance, candidate patch and reproduction scripts: `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/radius-order/REPORT.md`. The single paired screen completed without tuning or browser qualification. Baseline/candidate native builds and exact comparisons passed; final diff is evidence-only. Parent delivery, memory, cold and phone requirements remain open.
+
+baseline: green via .8 handoff (core20/20, renderer18/18, mature production1/1, Wasm, TypeScript, browser lifecycle).
+GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
+Tier: session (jev intelligent 0.33; explicit IMPLEMENTER preserved).
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+Rollback-hook friction cost about one minute and is recorded in FRICTION.md. The archived patch enabled a recoverable reverse application. Host approved no additional tests/builds after exact production restoration.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7b031c1babfb139dfc3828ecf653976b849dbfc1
+- Tests: baseline: green via .8 handoff (core20/20, renderer18/18, mature production1/1, Wasm, TypeScript, browser lifecycle), cargo build --release -p telperion-core --example radius_order (baseline and candidate scratch builds, both exit 0), timeout 600s bash .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/radius-order/screen.sh (exit 0; 4 complete baseline/candidate cmp and 24 repeat comparisons), python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/radius-order/analyze.py (assertions pass; oak performance target false), git diff --exit-code -- crates/telperion-core/src/surface.rs crates/telperion-core/src/surface/samples.rs crates/telperion-core/src/surface/compact.rs (exact production restoration), rustfmt --edition 2021 --check .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/radius-order/radius_order.rs, bash -n .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/radius-order/screen.sh, git diff --check, GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
