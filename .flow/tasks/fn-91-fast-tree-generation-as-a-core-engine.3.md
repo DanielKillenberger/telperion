@@ -20,9 +20,18 @@ The host owns the next implementation design. Return measurements and a bounded 
 
 
 ## Done summary
-TBD
+Measured native release wood stages for oak/spruce seeds 1/7 with scratch-only instrumentation. All 32 builds match complete surface hashes; report, raw data, reproducible driver and source patch live in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/wood-profile/REPORT.md`. Material observed overhead of 6.5–21.3% limits exact attribution; parent performance acceptance remains open.
 
+baseline: none (no Quick commands; task excludes whole-workspace suites).
+Verification: control and instrumented release builds passed; analyzer checked 32 samples, four fixture hashes and bounded stage accounting; Bash/Python syntax and git diff checks passed. Gate classify returned docs-only; no defined full gate was skipped or fabricated.
+
+Tier: session (jev long_running 0.14) (explicit IMPLEMENTER preserved).
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+Frictions are recorded in FRICTION.md; host-authored FRICTION-REVIEW.md included. Product source/API/default behavior is unchanged. The host owns next-boundary design and parent .1 remains in_progress.
+
+Host direct inspection completed; corrected the oak upper-bound wording to include other preparation plus submission (255/287 ms after removing wood). No review backend was dispatched.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 92d1c025641de2efccdce73bb2e79cc34994ed09
+- Tests: baseline: none, bash .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/wood-profile/run.sh (control and instrumented release builds; 32 samples), python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/wood-profile/analyze.py (32 samples; four full-surface parity hashes; stage accounting passed), bash -n .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/wood-profile/run.sh, python3 -m py_compile .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/wood-profile/analyze.py .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/wood-profile/instrument.py, git diff --check, flowctl gate classify --base b0c38c259bb733f1b85b137f4cf36916e4352724 (TIER_B; no defined full gates)
 - PRs:
