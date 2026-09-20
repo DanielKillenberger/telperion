@@ -35,6 +35,14 @@
       "raw_stderr": "stage-b-beech-negative-blind-stderr.txt",
       "r7": "not_dispatched",
       "semantic_qualification": false
+    },
+    {
+      "when": "2026-09-20T19:55:00+02:00",
+      "event": "host_qualified_blind_negative_and_released_r7_current",
+      "paid_call": false,
+      "stage": "r7-current",
+      "packet_max": 6,
+      "ceiling": 45000
     }
   ]
 }

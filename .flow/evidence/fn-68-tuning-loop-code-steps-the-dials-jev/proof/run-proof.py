@@ -37,7 +37,9 @@ ENVELOPES = {
     "r7-current": "stage-r7-current-request.json",
 }
 REPLACEMENT_RELEASE = WORKTREE / ".flow/tmp/cursor-fn68-replacement-release.json"
+R7_RELEASE = WORKTREE / ".flow/tmp/cursor-fn68-r7-release.json"
 RESUME = PROOF / "authorization-resume.json"
+QUALIFICATION = PROOF / "host-qualification-blind-negative.json"
 
 
 def ceilings():
@@ -54,7 +56,7 @@ def fresh_state():
         "visual": grant["previous_actual"]["visual_passes"],
         "visual_cap": grant["granted_not_spent"]["visual_cap"],
         "visual_this_packet": 0,
-        "visual_max": 5,
+        "visual_max": 6,
         "reserved": counts["reserved"],
         "actual_captures": counts["actual_captures"],
         "settled": [],
@@ -92,6 +94,19 @@ def replacement_released(stage):
         and auth.get("stage") == stage
         and release.get("stage") == stage
         and release.get("retries") is False
+    )
+
+
+def r7_released():
+    if not R7_RELEASE.exists() or not QUALIFICATION.exists():
+        return False
+    release = json.loads(R7_RELEASE.read_text())
+    qual = json.loads(QUALIFICATION.read_text())
+    return (
+        release.get("stage") == "r7-current"
+        and release.get("retries") is False
+        and qual.get("qualification", {}).get("negative") == "FAIL"
+        and qual.get("semantic_qualification") is True
     )
 
 
@@ -174,7 +189,7 @@ def execute(stage, **paths):
     if stage == "stage-b-beech-negative":
         print("execute refused: contaminated request is immutable; use stage-b-beech-negative-blind", file=sys.stderr)
         return 2
-    if stage == "r7-current":
+    if stage == "r7-current" and not r7_released():
         print("execute refused: r7 waits on host inspection of comparison findings", file=sys.stderr)
         return 2
     state = load_state()
@@ -182,7 +197,9 @@ def execute(stage, **paths):
         if stage == "stage-b-beech-negative-blind" and not replacement_released(stage):
             print("execute refused: replacement not released", file=sys.stderr)
             return 2
-        if stage != "stage-b-beech-negative-blind" or not replacement_released(stage):
+        if stage == "r7-current" and r7_released():
+            pass
+        elif stage != "stage-b-beech-negative-blind" or not replacement_released(stage):
             print(f"execute refused: terminal {state['terminal']['reason']}", file=sys.stderr)
             return 2
     if state.get("outstanding_reservation"):

@@ -1,4 +1,14 @@
-## Current: inventory-exact blinded payload ready; no paid replacement yet
+## Current: R7 current valid not ready; continuation unjustified; no final
+
+Host read the blinded raw answer and accepted a narrow negative FAIL: repeated upright narrow foliage versus irregular lateral sprays and masses. Clipping is separate UNKNOWN. Birch PASS plus that negative is a limited representative protocol, not R8 readiness. Packet max 5 became 6 from the same owner ye grant. Visual 26 unchanged.
+
+R7 current used 28654 on the existing Astra-medium adapter. Request `64460610…`. Seven required cells, two views seed 1. The receipt is valid and not ready. Blockers are foliage organization and hanging outer foliage. Materials are required_unknown. Lower droop is not a blocker.
+
+Original run `d93259cd…` was not written. Scoped resume of that journal cannot carry this current review. Side journal `.flow/tmp/fn68-r7-side` reused the baseline identity and injected the actual current visual. Live route used 5810 and chose tuning. Continuation used 5493 and returned insufficient_evidence on tractability and progress, risk bounded. `continuation::assess` stopped typed. No magnitude, no evaluations, no r7-final.
+
+Spend 688550 / 902431. Visual 25 / 26. Packet 5 / 6. Eval 6 / 13. Reserved images 30. Round 2 / 3. Contaminated terminal preserved. No machine-ready. No retry.
+
+## Previous: inventory-exact blinded payload ready; no paid replacement yet
 
 Owner YES then owner ye, same chat. Contaminated raw and terminal stay. Spend 622967 / visual 23. Token cap 902431. Visual cap 26.
 

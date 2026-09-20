@@ -1,0 +1,41 @@
+{
+  "event": "scoped host qualification of blinded negative raw answer",
+  "dated": "2026-09-20T19:54:00+02:00",
+  "source": "host read complete blinded raw answer in this chat",
+  "stage": "stage-b-beech-negative-blind",
+  "raw_stdout": "stage-b-beech-negative-blind-stdout.json",
+  "raw_stderr": "stage-b-beech-negative-blind-stderr.txt",
+  "pins": {
+    "request_sha256": "b23ffb6064f860b617d7a55428cd5f72c25e2d4912752db3687ec995cd49a6e4",
+    "dispatched_prompt_sha256": "a4b300ceab31122e285a7959be3366b44f5f3533169ecffecc17c2ba290596a2",
+    "schema_sha256": "40b44f74e2832e0e52874cb964ff3f11b714cc6333ecca85f93378397c38d7cc"
+  },
+  "used": 25626,
+  "cumulative": {
+    "tokens": 648593,
+    "visual": 24
+  },
+  "qualification": {
+    "negative": "FAIL",
+    "ground": "repeated upright narrow foliage versus irregular lateral sprays and masses",
+    "clipping": "separate UNKNOWN; not the basis",
+    "expected_label_mentions": false,
+    "scope": "narrow negative calibration",
+    "protocol": "limited representative protocol for bounded pilot",
+    "not": [
+      "universal calibration",
+      "fixed fresh R8 readiness",
+      "complete owner alignment"
+    ],
+    "lower_droop": "still PASS on the prior birch positive; does not complete owner alignment"
+  },
+  "prior_positive": "PASS",
+  "r8": false,
+  "semantic_qualification": true,
+  "preserve_contaminated_terminal": true,
+  "contaminated_terminal": {
+    "reason": "needs_human",
+    "code": "calibration_contaminated",
+    "stage": "stage-b-beech-negative"
+  }
+}

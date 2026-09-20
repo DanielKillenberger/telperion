@@ -14,7 +14,9 @@
     "round_cap": 3,
     "retries": false
   },
-  "meaning": "Current visual 23 leaves 3 for replacement + current + final. Token cap unchanged. No new budget question.",
+  "packet_max": {"from": 5, "to": 6},
+  "packet_max_source": "host clarification 2026-09-20: ye cap 26 also derives packet max 6",
+  "meaning": "Host maps ye visual cap 26 to packet max 6. After replacement, 24/26 and 4/6 leave current plus final.",
   "no_reset": true,
   "applied_to_runtime": false,
   "original_runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e"

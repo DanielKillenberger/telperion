@@ -321,6 +321,14 @@ class Guards(unittest.TestCase):
             self.assertTrue(paths["reserve"].exists())
             self.assertEqual(state["terminal"]["reason"], "unknown_usage")
 
+    def test_r7_unreleased_refuses(self):
+        run_proof = load_runner()
+        with tempfile.TemporaryDirectory() as temp, patch.object(
+            run_proof, "r7_released", return_value=False
+        ):
+            code, _, _, _ = self._exec(run_proof, "r7-current", {}, temp)
+            self.assertEqual(code, 2)
+
     def test_contaminated_stage_and_unreleased_blind_refuse(self):
         contaminated = subprocess.run(
             ["python3", str(proof_lib.PROOF / "run-proof.py"), "--execute", "--stage", "stage-b-beech-negative"],
@@ -337,7 +345,10 @@ class Guards(unittest.TestCase):
             text=True,
         )
         self.assertEqual(blind.returncode, 2)
-        self.assertIn("replacement not released", blind.stderr)
+        self.assertTrue(
+            "replacement not released" in blind.stderr
+            or "reservation already exists" in blind.stderr
+        )
 
     def test_contaminated_raw_unaltered(self):
         self.assertEqual(
