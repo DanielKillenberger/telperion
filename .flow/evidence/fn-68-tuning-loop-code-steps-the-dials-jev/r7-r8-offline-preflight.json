@@ -1,236 +1,164 @@
 {
   "approval": "priority-approval.json",
   "current_caps": {
+    "evaluation_cap": 13,
+    "evaluations": 6,
+    "image_cap": 52,
+    "images": 28,
     "remaining": 17569,
     "token_cap": 570000,
     "tokens": 552431,
     "visual": 20,
     "visual_cap": 20
   },
-  "negative_fixtures": [
-    {
+  "proposed_not_granted": {
+    "meaning": "Proposal only. This file grants nothing. One automatic round: route + continuation + magnitude proposals + up to four evaluations + one final coverage visual.",
+    "r7_whole_attempt": {
+      "continuation_tokens": 25220,
+      "direction_not_added": 25690,
+      "evaluation_images": 16,
+      "evaluations": 4,
+      "final_coverage_images": 4,
+      "images_add": 20,
+      "proposal_magnitude_tokens": 28235,
+      "proposed_image_cap": 48,
+      "proposed_token_cap": 670075,
+      "proposed_visual_cap": 21,
+      "route_tokens": 22778,
+      "token_add": 117644,
+      "visual_passes": 1,
+      "visual_tokens": 41411
+    },
+    "r8_representative": {
+      "blocked": false,
+      "captures": 0,
+      "proposed_token_cap_if_only_r8": 634905,
+      "proposed_visual_cap": 22,
+      "token_add": 82474,
+      "visual_passes": 2
+    }
+  },
+  "r8_representative": {
+    "assembly": {
+      "beech_seed1_visual_tokens": 41411,
+      "birch_whole_visual_tokens": 41063,
+      "captures": 0,
+      "note": "Reuse existing stills. Two separate visual reservations, one per case.",
+      "token_add": 82474,
+      "visual_passes": 2
+    },
+    "beech_progress": {
+      "assessed_against": [
+        "owner-crown-foliage",
+        "owner-hanging-foliage",
+        "owner-materials"
+      ],
       "expected_ready": false,
       "id": "current-reframed-beech",
-      "note": "Current failing limbs-only beech. Not a positive.",
-      "sha256": "e0d5bc93369f281dc39e9fa008a1cec647b2c040de47baa89e11bc31d1fe6f68"
+      "not": "Not a positive fixture. Progress against approved goals only.",
+      "sha256_whole": "e0d5bc93369f281dc39e9fa008a1cec647b2c040de47baa89e11bc31d1fe6f68"
     },
-    {
-      "durable_path": "local/fixtures/beech-round22-B-WHOLE.png",
+    "blocked": false,
+    "meaning": "Generic protocol can use accepted birch as the known-positive with matching birch references. Beech is assessed against approved goals; it is not required to be a finished-beech positive.",
+    "missing_exact_assets": [
+      "No reconstructed owner-accepted silver-birch S-BARE still. Recovery licensed S-WHOLE only. Birch-positive cannot cover bare or materials-on-bare cells.",
+      "No reconstructed birch bark-close-up render matching S-BARK."
+    ],
+    "negative": {
       "expected_ready": false,
       "id": "beech-round22-whole",
-      "provenance": "Owner rejected round22. Exact reconstructed still.",
-      "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490"
-    }
-  ],
-  "positive_fixture": {
-    "durable_path": "local/fixtures/birch-round26-S-WHOLE.png",
-    "expected_ready": true,
-    "id": "birch-round26-whole",
-    "not": "Not a European-beech owner-priority positive. Not reference-first. Not hanging/bark/fresh-seed coverage. P1/P2 were desired target outcomes, not this fixture.",
-    "protocol": "tuning-vision-v2 whole-crown seed1 only",
-    "provenance": "Owner accepted round26 silver birch as species. Exact reconstructed still matches round26-birch-crown. vision-replay-v2.json; REPORT recovered historical SHA 2745f4c3…",
-    "sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e"
-  },
-  "proposed_not_granted": {
-    "meaning": "Proposal only. This file grants nothing.",
-    "r7": {
-      "evaluations": 1,
-      "images": 4,
-      "jev_route_tokens": 5281,
-      "proposed_token_cap": 598986,
-      "proposed_visual_cap": 21,
-      "token_add": 46555,
-      "visual_passes": 1,
-      "visual_tokens": 41274
-    },
-    "r8_owner_priority": {
-      "blocked": true,
-      "reason": "missing beech-positive fixture for approved cells"
-    },
-    "r8_v2_replay_already_done": {
-      "blocked_as_new_qualification": true,
-      "reason": "v2 birch-accept/beech-reject already spent; replay would not qualify owner-priority or fresh-seed protocol"
-    }
-  },
-  "r8_blocker": "No owner-accepted European beech render exists for the approved owner-priority cells. Birch-round26 is a genuine known-positive for v2 silver-birch whole-crown seed1 only. Always-reject cannot pass PROTOCOL. Owner-priority R8 qualification is blocked until a beech-positive fixture exists.",
-  "route_request": {
-    "questions": {
-      "route": {
-        "criteria": {
-          "appearance": "An appearance issue outside these dials needs investigation.",
-          "insufficient_evidence": "No supported diagnosis yet.",
-          "new_capability": "A new capability investigation is required.",
-          "tuning": "Existing authored dials can address the defect with a supported adjustment."
-        },
-        "instructions": "Route remaining visible defects using authored dial meanings and prior outcomes. Numeric stall alone proves no generator gap. Choose an existing spec only when its stated scope matches the defect.",
-        "type": "choice"
+      "label": "Owner rejected round22",
+      "render": {
+        "path": "local/fixtures/beech-round22-B-WHOLE.png",
+        "seed": 1,
+        "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
+        "view": "B-WHOLE"
       }
     },
-    "state": {
-      "dials": [
-        {
-          "id": "limbs",
-          "integer": true,
-          "max": 4,
-          "meaning": "limbs born at each station",
-          "min": 1,
-          "path": "/skeleton/habit/lateralsPerStation",
-          "small": 1,
-          "substantial": 2
-        },
-        {
-          "id": "leaves",
-          "integer": true,
-          "max": 12,
-          "meaning": "leaves per cluster",
-          "min": 2,
-          "path": "/canopy/shortShootLeaves",
-          "small": 2,
-          "substantial": 4
-        },
-        {
-          "id": "spacing",
-          "integer": false,
-          "max": 0.08,
-          "meaning": "metres between leaf clusters",
-          "min": 0.01,
-          "path": "/canopy/shortShootSpacing",
-          "small": 0.01,
-          "substantial": 0.02
-        },
-        {
-          "id": "irregularity",
-          "integer": false,
-          "max": 0.5,
-          "meaning": "crown envelope lobes and hollows",
-          "min": 0,
-          "path": "/skeleton/envelope/irregularity",
-          "small": 0.08,
-          "substantial": 0.16
-        },
-        {
-          "id": "crookedness",
-          "integer": false,
-          "max": 15,
-          "meaning": "limb turning and zigzag amount",
-          "min": 0,
-          "path": "/skeleton/habit/crookedness",
-          "small": 3,
-          "substantial": 6
-        },
-        {
-          "id": "taper",
-          "integer": false,
-          "max": 0.6,
-          "meaning": "remaining wood thickness toward the crown edge; lower means thinner tips",
-          "min": 0.05,
-          "path": "/skeleton/habit/twigTipTaper",
-          "small": 0.1,
-          "substantial": 0.2
-        }
-      ],
-      "owner_priorities": {
-        "approval": {
-          "checkpoint_sha256": "dcc6a63fbfa782fb4970fb5a9fbf0a1228c39a65b6ec3c1a9736e7c6e02a8010",
-          "ordered": [
-            {
-              "evidence_ids": [
-                "render-0",
-                "render-1",
-                "reference-0",
-                "reference-1"
-              ],
-              "id": "owner-crown-foliage",
-              "observation": "Crown shape and foliage organization",
-              "views": [
-                "B-WHOLE",
-                "B-BARE"
-              ]
-            },
-            {
-              "evidence_ids": [
-                "render-0",
-                "reference-0"
-              ],
-              "id": "owner-hanging-foliage",
-              "observation": "Hanging outer foliage",
-              "views": [
-                "B-WHOLE"
-              ]
-            },
-            {
-              "evidence_ids": [
-                "render-1",
-                "reference-1"
-              ],
-              "id": "owner-bark-material",
-              "observation": "Materials with clearer bark evidence where needed",
-              "views": [
-                "B-BARE"
-              ]
-            }
-          ],
-          "scope_sha256": "903276d3348f3e5f40aa2c8ec25659c7d16f3880e61c559d2fabef33c985bed3"
-        },
-        "authority": "Explicit owner ranking outranks model severity. It selects objectives, not implementation or resolved status; all original findings remain below."
+    "positive": {
+      "expected_ready": true,
+      "id": "birch-round26-whole",
+      "label": "Owner accepted round26 silver birch as species",
+      "reference": {
+        "caption": "plant habit, summer",
+        "id": "S-WHOLE",
+        "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/silver-birch/bepe339A.jpg",
+        "sha256": "cae1627afa33d8a881fe927090b222a37fc0dfa2febffa3e3f1edcc52aa309be"
       },
-      "preserved_findings": [
-        {
-          "evidence_ids": [
-            "render-0",
-            "render-1",
-            "reference-0"
-          ],
-          "impact": "blocker",
-          "observation": "The largest defining gap is foliage organization: ascending, streak-like masses dominate the candidate, while both leafy references show overlapping lateral sprays and irregular masses with recesses between them. Candidate shading and openings provide depth, but do not fully establish the required layering.",
-          "uncertain": false
-        },
-        {
-          "evidence_ids": [
-            "render-0",
-            "render-1",
-            "reference-1"
-          ],
-          "impact": "required_unknown",
-          "observation": "Repeated horizontal dark markings are visible on the candidate trunk. The reference close-up establishes a largely smooth, continuous surface; the whole-tree renders cannot reliably distinguish shallow coloration from surface relief or establish a supported texture match.",
-          "uncertain": true
-        },
-        {
-          "evidence_ids": [
-            "render-0",
-            "render-1",
-            "reference-0",
-            "reference-1"
-          ],
-          "impact": "optional",
-          "observation": "The candidate's modestly widened base is unusually regular, and its lower foliage has less hanging reach than the photographed crowns. These are secondary refinements rather than independent defining blockers.",
-          "uncertain": false
-        },
-        {
-          "evidence_ids": [
-            "render-0",
-            "render-1",
-            "anchor-0"
-          ],
-          "impact": "supported",
-          "observation": "Fine rendered foliage and simplified presentation are compatible with the supplied catalogue anchor. That finish allowance does not substitute for the required crown organization or bark evidence.",
-          "uncertain": false
-        },
-        {
-          "evidence_ids": [
-            "render-0",
-            "render-1",
-            "reference-0",
-            "reference-1"
-          ],
-          "impact": "blocker",
-          "observation": "Code-derived reference-first coverage gate: core trait coverage is Fail; this is a joint readiness constraint, not a new per-view model verdict. Inventory f98f4325752a95103c510cc3f1871af2fcd12a2053a9359e6f770b128853c20f",
-          "uncertain": false
-        }
-      ],
-      "scope": "seed-1 packet only; fresh seed 42 is not in this approval"
-    }
+      "render": {
+        "path": "local/fixtures/birch-round26-S-WHOLE.png",
+        "seed": 1,
+        "sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+        "view": "S-WHOLE"
+      }
+    },
+    "present_unused_without_matching_render": [
+      {
+        "caption": "plant habit, winter",
+        "file": "bepe340A.jpg",
+        "id": "S-BARE",
+        "sha256": "097c70624dd9a75df67d82b07857794b7bf082581544ee08789e2e8562063f6c"
+      },
+      {
+        "caption": "trunk, bark",
+        "file": "bepe3243.jpg",
+        "id": "S-BARK",
+        "sha256": "72d282e3ea593d2568aae43bc9da924626c2c965bae4b177edfb63f1db30f7ec"
+      }
+    ],
+    "protocol_adaptation": [
+      "Species view IDs: S-WHOLE for birch, B-WHOLE/B-BARE for beech",
+      "Birch case uses birch references, not beech photographs",
+      "Owner-priority cells attach only to views present on that case",
+      "Checklist language is the approved goals, not a finished-beech requirement",
+      "v2 replay already spent; a new owner-priority request is required for this qualification"
+    ]
   },
   "seed_scope": "This approval binds seed 1 views in the frozen packet. Pilot-config still lists B-WHOLE/B-BARE/B-BASE at seeds 1 and 42. Adding seed 42 or B-BASE would change scope and invalidate this approval. Fixed/fresh verification remains a separate R8 gate, not automatic qualification.",
-  "status": "offline preflight, not authorization"
+  "stages": {
+    "continuation": {
+      "in_execute_inner": true,
+      "questions_bytes": 1291,
+      "state_bytes": 22905,
+      "tokens": 25220
+    },
+    "direction": {
+      "in_execute_inner": false,
+      "note": "Direction questions exist and are serialized here. execute_inner does not dispatch a separate direction call.",
+      "questions_bytes": 3446,
+      "tokens": 25690
+    },
+    "evaluations": {
+      "images_each": 4,
+      "images_max": 16,
+      "max": 4,
+      "token_reservation": 0
+    },
+    "final_coverage": {
+      "images": 4,
+      "note": "visual_tokens_for depends on approval and required cells, not future result text.",
+      "visual_passes": 1,
+      "visual_tokens": 41411
+    },
+    "proposal_magnitude": {
+      "in_execute_inner": true,
+      "note": "Live propose() is one magnitude call over all authored dials.",
+      "questions_bytes": 5991,
+      "tokens": 28235
+    },
+    "route": {
+      "in_execute_inner": true,
+      "questions_bytes": 534,
+      "state_bytes": 21220,
+      "tokens": 22778
+    }
+  },
+  "status": "offline preflight, not authorization",
+  "unresolved_bytes": {
+    "conservative_second_round_state_bytes": 16105,
+    "current_visual_bytes": 13777,
+    "label": "One-round whole-attempt is exact from current overlay. A stall second loop would re-serialize summary with an unknown new Visual and up to four new trial summaries. Those bytes are not invented here.",
+    "largest_recent_attempt_bytes": 582,
+    "not_included_in_proposed_cap": true
+  }
 }
