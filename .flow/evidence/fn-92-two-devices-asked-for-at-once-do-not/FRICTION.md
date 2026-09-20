@@ -19,3 +19,21 @@ written around it; what `bark_plates` adds beyond a bare request is not known.
 Doing: capturing suite output to scratchpad logs. Slowed by: the local `dcg`
 hook blocks `>` redirects to any shell-expanded path, including the session
 scratchpad. Cost: one rejected command. Local setup, reported only.
+
+## 2026-09-20, worker, R5 baseline on the base commit
+
+Doing: timing the render crate on base `device.rs`. Slowed by: the local `dcg`
+hook blocks `git restore --worktree` even on a clean tree, so the base was
+built in a detached scratch worktree instead, sharing this target directory.
+Cost: one rejected command and a second build of the workspace crates. Local
+setup, reported only.
+
+## 2026-09-20, worker, a shared target directory poisoned R2
+
+Doing: R2's five runs, straight after timing the base from a scratch worktree
+that shared this target directory to save a build. Slowed by: my own shortcut.
+Test binary names do not depend on the checkout path, cargo did not rebuild at
+HEAD, and four of five runs crashed on what was most likely the base binary.
+Cost: about 12 minutes to suspect, force a rebuild, add an `nm` symbol check
+and rerun. Would remove it: never share a target directory between two
+checkouts of the same crate; a second build costs less than this did.
