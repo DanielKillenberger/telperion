@@ -256,3 +256,6 @@ fn compute_limits_and_device_failure_never_return_partial_wood() {
     let error = pollster::block_on(io::errors(&g.gpu, scopes));
     assert!(result.is_err() || error.is_err());
 }
+
+#[path = "position_probe.rs"]
+mod position_probe;

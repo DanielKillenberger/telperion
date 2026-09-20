@@ -3,6 +3,8 @@ use crate::math::Transcendental;
 use crate::{math::Vec3, tree::Tree, Error, Result};
 mod angular;
 mod attachment;
+#[doc(hidden)]
+pub mod compact;
 mod dependencies;
 mod frames;
 mod normals;
