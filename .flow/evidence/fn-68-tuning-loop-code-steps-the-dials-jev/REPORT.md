@@ -1,5 +1,13 @@
 # fn68 implementation and calibration checkpoint
 
+## One structural development trial: diagnostic, not accepted
+
+Host inspected both reference pairs: lower foliage broader and diamond taper reduced, but coarse angular downward elbows/arching major branches introduced; hanging fine leafy sprays remain absent. Both frames clip outer crown/branches horizontally, so complete silhouette readiness is unassessable. These are host observations, not owner/Sol verdicts. No promotion; original best unchanged. Next minimum capability direction is finer-scale leaf-bearing trajectory rather than stronger major-axis bend. Existing pendant twig pathway might help but needs an explicit bearing/leaf-placement mapping test; evidence does not establish its inability. Current radial short-shoot placements lack their own curvature parameter. No new feature or render authorized.
+
+Exact host-approved risePrimary0/riseSecondary−0.3/fullness0.2/shoulder2.2 with limbs1/cap1m passed numeric feasibility;96143nodes,no growth caps,14.68seconds,four actual still/twin images. Score0.2304008987 worsens versus limbs-only0.1856220449, improves versus original0.2432487129. This is not proof of shape improvement; host inspection is required for lower skirt, broken spreading mass, weighted leafy trajectory and bare regressions. No Sol assessment of this candidate.
+
+Initial full-config preflight rejected changed visual protocol before any reservation/evaluation; guard is correct. Host then authorized measurement-only harness retaining evaluator gates, no visual qualification/production guard change. Journal/protocol pins all artifacts and original runtimehash. Cumulative6eval24reservedimages/20actualimages,301517tokens/11visual unchanged; future side import80334tokens+2eval8image reservations+3visual. No further candidate authorized.
+
 ## Owner correction: defining architecture precedes material
 
 Owner rejects Sol's classification of upright crown/limited droop as variation. Source diagnosis and exact unexecuted overlay are owner-reference-correction.md and owner-structural-proposal.json. Existing support-axis rise and envelope width-distribution controls can test a broader lower skirt; true short-shoot curvature/load is not parameterized in the radial rosette path. Current six-dial autonomous table excludes these controls. No feature/preset change or new trial.

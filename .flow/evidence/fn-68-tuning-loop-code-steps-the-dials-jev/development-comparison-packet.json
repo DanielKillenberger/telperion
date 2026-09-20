@@ -35,9 +35,9 @@
   },
   "cumulative": {
     "tokens": 301517,
-    "evaluations": 5,
-    "image_reservations": 20,
-    "actual_pilot_still_twins": 16,
+    "evaluations": 6,
+    "image_reservations": 24,
+    "actual_pilot_still_twins": 20,
     "visual_passes": 11
   },
   "runtime_unchanged": {
@@ -48,8 +48,8 @@
   },
   "future_import": {
     "tokens": 80334,
-    "evaluations": 1,
-    "image_reservations": 4,
+    "evaluations": 2,
+    "image_reservations": 8,
     "visual_passes": 3
   },
   "corrected_comparison": {
@@ -67,5 +67,12 @@
     "scope": "two views only; no six-cell readiness",
     "main_reported_blocker": "white horizontally marked bark reads birch rather than beech",
     "twig_nuance": "defect says artifact; observation says optional after bark correction; no automatic action"
+  },
+  "structural_candidate": {
+    "journal": "development-structure-journal.json",
+    "judged_by": "host",
+    "status": "diagnostic_not_accepted",
+    "observations": "broader lower foliage, reduced diamond taper; coarse angular major-branch elbows, no fine hanging leafy sprays; both views horizontally clipped, full silhouette unassessable",
+    "sol_judgment": null
   }
 }

@@ -1,0 +1,132 @@
+{
+  "actual_images": 4,
+  "actual_model_tokens": 0,
+  "config_sha256": "95ff06d5eff2258ecfae91ee26f05f33216bc3840634bfb4a9efe08c0114f465",
+  "cumulative_evaluations": 6,
+  "cumulative_image_reservations": 24,
+  "identity": "524b7cb170ad8fcbb70c00cedf51ab045fc284abf43e73ec8def1afe96835081",
+  "original_run_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "prior_actual_tokens": 301517,
+  "prior_evaluations": 5,
+  "prior_image_reservations": 20,
+  "protocol_sha256": "1af4db71459d5862d060063456947299c31ae90978205bd26a07e72636d08db3",
+  "reserved_evaluations": 1,
+  "reserved_images": 4,
+  "status": "evaluation_complete_waiting_host_visual",
+  "trial": {
+    "comparisons": [
+      {
+        "images": [
+          {
+            "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/73dbe683303c4445ab89cc183e037469290534ab90b6d8a62e16c70b30645c99-18d70bf508b20241-83293-0/73dbe683303c4445ab89cc183e037469290534ab90b6d8a62e16c70b30645c99-B-WHOLE.png",
+            "seed": 1,
+            "sha256": "fc3600118e0a84c657c7bd601f2ce3ed8967bd833f209ffce9f455ef86d6b1be",
+            "view": "B-WHOLE"
+          },
+          {
+            "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/73dbe683303c4445ab89cc183e037469290534ab90b6d8a62e16c70b30645c99-18d70bf508b20241-83293-0/73dbe683303c4445ab89cc183e037469290534ab90b6d8a62e16c70b30645c99-B-WHOLE-twin.png",
+            "seed": 1,
+            "sha256": "b4f0865ac32f242e42009cbb1d56b899196870e18653a87d27e112ff1fcf68c3",
+            "view": "B-WHOLE"
+          }
+        ],
+        "metric_weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "observed": [
+          0.7471,
+          0.0951,
+          0.5367,
+          0.1404,
+          72.1
+        ],
+        "reference": "B-WHOLE",
+        "reference_weight": 1.0,
+        "target": [
+          0.6965,
+          0.12,
+          0.4566,
+          0.2274,
+          79.7
+        ]
+      },
+      {
+        "images": [
+          {
+            "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/73dbe683303c4445ab89cc183e037469290534ab90b6d8a62e16c70b30645c99-18d70bf508b20241-83293-0/73dbe683303c4445ab89cc183e037469290534ab90b6d8a62e16c70b30645c99-B-BARE.png",
+            "seed": 1,
+            "sha256": "681e854204cc68b200ca5ff2cf6f05826cd372bcb3c891ca3d39ac94b336313c",
+            "view": "B-BARE"
+          },
+          {
+            "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/73dbe683303c4445ab89cc183e037469290534ab90b6d8a62e16c70b30645c99-18d70bf508b20241-83293-0/73dbe683303c4445ab89cc183e037469290534ab90b6d8a62e16c70b30645c99-B-BARE-twin.png",
+            "seed": 1,
+            "sha256": "d46729aca7e11f010e3c6de9491a661b3410c8e07de098a1c45cb7d2b1ce5a99",
+            "view": "B-BARE"
+          }
+        ],
+        "metric_weights": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "observed": [
+          0.7341,
+          0.3005,
+          0.3343,
+          0.1244,
+          139.2
+        ],
+        "reference": "B-BARE",
+        "reference_weight": 1.0,
+        "target": [
+          0.7417,
+          0.25,
+          0.2813,
+          0.2937,
+          99.9
+        ]
+      }
+    ],
+    "feasible": true,
+    "growth": {
+      "attraction_capped": false,
+      "level_capped": false,
+      "node_capped": false,
+      "status": "complete"
+    },
+    "identity": "524b7cb170ad8fcbb70c00cedf51ab045fc284abf43e73ec8def1afe96835081",
+    "key": "73dbe683303c4445ab89cc183e037469290534ab90b6d8a62e16c70b30645c99",
+    "nodes": {
+      "status": "measured",
+      "value": 96143
+    },
+    "numeric_status": "pass",
+    "overrides": {
+      "skeleton": {
+        "envelope": {
+          "fullness": 0.2,
+          "shoulder": 2.2
+        },
+        "growth": {
+          "maxNodes": 1000000
+        },
+        "habit": {
+          "lateralsPerStation": 1,
+          "risePrimary": 0,
+          "riseSecondary": -0.3
+        }
+      }
+    },
+    "raw_local_receipt": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/development-structure-trial.json",
+    "reason": null,
+    "score": 0.23040089874440253,
+    "seconds": 14.680186259
+  }
+}
