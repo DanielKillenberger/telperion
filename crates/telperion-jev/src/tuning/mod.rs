@@ -9,6 +9,7 @@ pub mod joint;
 pub mod judgments;
 pub mod live;
 pub mod matched;
+pub mod priority;
 pub mod reference_first;
 pub mod state;
 pub mod vision;

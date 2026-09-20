@@ -1,4 +1,14 @@
-## Current: reframed comparison and opt-in reference-first runtime
+## Current: human gap-priority checkpoint implemented offline
+
+The owner-approved workflow now pauses after the initial review—even a model PASS—and presents a hash-bound packet with proposed top-three gaps, linked images and the complete original findings. The owner confirms/reorders/adds objectives conversationally; the host records the existing typed resume decision. No owner ranking was invented or applied to the current beech run. See `priority-checkpoint.md` for the exact transport example.
+
+Approval is scoped to species, objectives/checklist, required view/seed criteria, references and finish anchors, not each candidate rerender. It gates proposal/fix routing and readiness without resetting spend or rewriting model findings. Owner goals appear in routing/continuation and explicit relevant-view assessment cells; added goals require fresh coverage using cached images where valid. Missing, stale or invalid approval blocks. All findings survive beyond the proposed three. Final acceptance and all qualification/risk/budget gates remain separate.
+
+fn-68 R12 and fn-89 R9 record the decision; the implicit fn-68 task's satisfies list was updated through flowctl. Both specs validate. This changes the initial priority policy to human-assisted, not the empirical qualification result. R7 automatic magnitude efficacy and R8 reliable visual assessment still remain open. Blind calibration and the original paused runtime are unchanged. **No calls or captures: cumulative paid usage remains 552,431 / 570,000.**
+
+Verification: the new contract test first failed on the absent module; focused tests then passed (priority1, engine7, CLI5, reference-first4). The package suite passed207 tests; the final log is `/tmp/fn68-priority-final-package.log`, including the convergence-proof use of expanded owner criteria. The initial-PASS test checks every saved snapshot, then explicit approval and fresh relevant-view coverage; the Live subprocess stub verifies whole and bark views are actually assessed without recapture. CLI missing/stale decisions leave the persisted journal unchanged. Format/diff checks and both spec validations passed. These are offline contract tests, not new model qualification.
+
+## Previous checkpoint: reframed comparison and opt-in reference-first runtime
 
 One authorized framing repair completed with unchanged candidate family, seed, lighting and reference crops. CPU projection of mesh bounds selected camera fill0.604203537649362 (whole) and0.6231628633914461 (bare), replacing0.93/0.95. All projected bounds lie within0.95 NDC. Four diagnostic still/twin images were captured; no new measurement or candidate. Whole ground-plane visibility changed; old pixel scores are not comparable to these reframed views. See framefit-result.json and reframed-capture-journal.json.
 

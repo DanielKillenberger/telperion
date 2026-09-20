@@ -14,6 +14,32 @@ struct Mock {
     capability: bool,
 }
 impl Services for Mock {
+    fn priority_references(&self) -> Vec<telperion_jev::tuning::evaluation::Image> {
+        vec![priority_image("whole"), priority_image("bark")]
+    }
+    fn priority_evidence(
+        &self,
+        _: &Trial,
+        visual: &Visual,
+    ) -> Result<Vec<telperion_jev::tuning::priority::Evidence>, String> {
+        telperion_jev::tuning::priority::evidence(
+            visual,
+            &[priority_image("whole"), priority_image("bark")],
+            &self.priority_references(),
+            &[],
+        )
+    }
+    fn visual_for(
+        &mut self,
+        trial: &Trial,
+        required: &[Cell],
+        _: Option<&telperion_jev::tuning::priority::Approval>,
+    ) -> Result<Answer<Visual>, String> {
+        let mut answer = self.visual(trial)?;
+        let status = answer.value.cells[0].1;
+        answer.value.cells = required.iter().cloned().map(|c| (c, status)).collect();
+        Ok(answer)
+    }
     fn evaluation_images(&self) -> u64 {
         4
     }
@@ -57,7 +83,7 @@ impl Services for Mock {
                 joint: None,
                 cells: vec![(
                     cell(),
-                    if self.visuals == 3 {
+                    if self.visuals >= 3 {
                         CellStatus::Pass
                     } else {
                         CellStatus::Fail
@@ -105,6 +131,32 @@ impl Services for Mock {
             .into(),
         })
     }
+}
+
+fn priority_image(view: &str) -> telperion_jev::tuning::evaluation::Image {
+    static PATH: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
+    let path = PATH.get_or_init(|| {
+        let p = std::env::temp_dir().join(telperion_jev::ledger::new_entry_id());
+        std::fs::write(&p, b"priority fixture").unwrap();
+        p
+    });
+    telperion_jev::tuning::evaluation::Image {
+        path: path.clone(),
+        sha256: telperion_jev::sha256_hex(b"priority fixture"),
+        view: view.into(),
+        seed: 1,
+    }
+}
+fn approve_priorities(state: &mut Run, mock: &Mock, ordered: serde_json::Value) {
+    let checkpoint = state.priority_checkpoints.last().unwrap();
+    let pause = state.pause.as_ref().unwrap();
+    let decision:telperion_jev::tuning::continuation::HumanDecision=serde_json::from_value(json!({"pause_id":pause.id,"identity":state.identity,"action":pause.basis.proposed_action,"by":"explicit test owner","rationale":"reviewed ranking fixture","preserve_evidence":true,"priority_approval":{"checkpoint_sha256":checkpoint.hash(),"scope_sha256":checkpoint.scope_sha256,"ordered":ordered}})).unwrap();
+    pause.resume(&decision).unwrap();
+    state
+        .accept_priorities(&decision, &mock.priority_scope(state))
+        .unwrap();
+    state.authorizations.push(decision);
+    state.pause = None;
 }
 fn cell() -> Cell {
     Cell {
@@ -159,6 +211,7 @@ fn run() -> Run {
         routes: vec![],
         authorizations: vec![],
         preparation_charge: None,
+        priority_checkpoints: vec![],
     }
 }
 
@@ -180,6 +233,89 @@ fn joint_observations_and_findings_survive_state_and_judgment_projection() {
 }
 
 #[test]
+fn initial_pass_still_pauses_and_owner_goals_require_scoped_fresh_coverage() {
+    let mut state = run();
+    state.required = vec![
+        cell(),
+        Cell {
+            item: "material".into(),
+            view: "bark".into(),
+            seed: 1,
+        },
+        Cell {
+            item: "character".into(),
+            view: "whole".into(),
+            seed: 42,
+        },
+        Cell {
+            item: "material".into(),
+            view: "bark".into(),
+            seed: 42,
+        },
+    ];
+    let mut mock = Mock {
+        evaluations: 0,
+        routes: 0,
+        visuals: 2,
+        capability: false,
+    };
+    let mut snapshots = vec![];
+    state
+        .execute(&mut mock, &mut |s| {
+            snapshots.push(s.machine_ready);
+            Ok(())
+        })
+        .unwrap();
+    assert!(snapshots.iter().all(|ready| !*ready));
+    assert_eq!(mock.routes, 0);
+    assert_eq!(mock.evaluations, 1);
+    assert_eq!(mock.visuals, 3);
+    assert!(state
+        .visual
+        .as_ref()
+        .unwrap()
+        .cells
+        .iter()
+        .all(|(_, s)| *s == CellStatus::Pass));
+    let spent = serde_json::to_value(&state.budget).unwrap();
+    assert!(state.execute(&mut mock, &mut |_| Ok(())).is_err());
+    assert_eq!(serde_json::to_value(&state.budget).unwrap(), spent);
+    approve_priorities(
+        &mut state,
+        &mock,
+        json!([
+            {"id":"owner-leafy","observation":"Defining leafy form","evidence_ids":["render-0","reference-0"],"views":["whole"]},
+            {"id":"owner-material","observation":"Defining material","evidence_ids":["render-1","reference-1"],"views":["bark"]}
+        ]),
+    );
+    assert_eq!(serde_json::to_value(&state.budget).unwrap(), spent);
+    assert!(!state.machine_ready);
+    let required = state.required_cells();
+    assert_eq!(required.len(), 8);
+    assert!(!required
+        .iter()
+        .any(|c| c.item.contains("owner-leafy") && c.view == "bark"));
+    assert!(state
+        .round_basis(&mock)
+        .unwrap()
+        .evidence
+        .join(" ")
+        .contains("owner-leafy"));
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert!(state.machine_ready);
+    assert_eq!(mock.visuals, 4);
+    assert_eq!(mock.evaluations, 1);
+    assert_eq!(mock.routes, 0);
+    let spent = state.budget.tokens;
+    state.owner_notes = "changed objectives".into();
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    assert!(!state.machine_ready);
+    assert!(state.pause.is_some());
+    assert_eq!(state.priority_checkpoints.len(), 2);
+    assert_eq!(state.budget.tokens, spent);
+}
+
+#[test]
 fn numeric_wins_keep_refining_until_visual_cells_pass() {
     let mut state = run();
     let mut mock = Mock {
@@ -189,6 +325,15 @@ fn numeric_wins_keep_refining_until_visual_cells_pass() {
         capability: false,
     };
     let mut checkpoints = vec![];
+    state
+        .execute(&mut mock, &mut |s| {
+            checkpoints.push(serde_json::to_string(s).unwrap());
+            Ok(())
+        })
+        .unwrap();
+    assert!(state.pause.as_ref().unwrap().reason.contains("priority"));
+    assert_eq!(mock.routes, 0);
+    approve_priorities(&mut state, &mock, json!([]));
     state
         .execute(&mut mock, &mut |s| {
             checkpoints.push(serde_json::to_string(s).unwrap());
@@ -216,6 +361,8 @@ fn baseline_capability_defect_routes_before_spending_tuning_evaluations() {
         capability: true,
     };
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, json!([]));
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.evaluations, 1);
     assert!(state
         .pause
@@ -238,6 +385,8 @@ fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
         capability: false,
     };
     state.budget.max_rounds = 0;
+    state.execute(&mut mock, &mut |_| Ok(())).unwrap();
+    approve_priorities(&mut state, &mock, json!([]));
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     assert_eq!(mock.routes, 0);
     assert!(state.pause.as_ref().unwrap().reason.contains("round limit"));

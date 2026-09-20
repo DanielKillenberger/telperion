@@ -368,8 +368,74 @@ print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256
     state.visual = None;
     let before = state.budget.tokens;
     state.execute(&mut live, &mut |_| Ok(())).unwrap();
-    assert!(state.pause.unwrap().reason.contains("preparation charge"));
+    assert!(state
+        .pause
+        .as_ref()
+        .unwrap()
+        .reason
+        .contains("preparation charge"));
     assert_eq!(state.budget.tokens, before);
+    let mut ranked_config = config.clone();
+    ranked_config.reference_first = None;
+    let mut bark = r.images[0].clone();
+    bark.view = "bark".into();
+    ranked_config.references.push(bark.clone());
+    ranked_config
+        .required
+        .push(telperion_jev::tuning::state::Cell {
+            item: "material".into(),
+            view: "bark".into(),
+            seed: 1,
+        });
+    let ranked_script = dir.join("ranked.py");
+    std::fs::write(&ranked_script,r#"import json,sys
+e=json.load(sys.stdin);r=e['request']
+assert len(r['required'])==4 and {i['view'] for i in r['images']}=={'whole','bark'}
+assert all('leafy' not in c['item'] for c in r['required'] if c['view']=='bark')
+assert 'Owner-approved priorities' in r['checklist']
+findings=[{'observation':'Supported '+i['view'],'evidence_ids':['render-'+str(n),'reference-'+str(n)],'impact':'supported','uncertain':False,'causal_hypothesis':None} for n,i in enumerate(r['images'])]
+print(json.dumps({'request_sha256':e['request_sha256'],'assessment':{'identity':r['identity'],'model':'mock','ledger':'stub','cells':[[c,'pass'] for c in r['required']],'defects':[],'findings':findings},'effort':'medium','usage':{'input_tokens':10,'output_tokens':2},'observations':[]}))
+"#).unwrap();
+    ranked_config.vision.args = vec![ranked_script.to_string_lossy().into_owned()];
+    std::fs::write(&shots,b"{\"references\":[{\"id\":\"whole\",\"shot\":{\"foliage\":\"leaf-on\"}},{\"id\":\"bark\",\"shot\":{\"foliage\":\"hidden\"}}]}").unwrap();
+    let mut ranked_trial = trial.clone();
+    ranked_trial.round = 0;
+    let mut comparison = ranked_trial.comparisons[0].clone();
+    comparison.reference = "bark".into();
+    comparison.images = vec![bark];
+    ranked_trial.comparisons.push(comparison);
+    let approval:telperion_jev::tuning::priority::Approval=serde_json::from_value(json!({"checkpoint_sha256":"fixture","scope_sha256":"fixture","ordered":[{"id":"owner-leafy","observation":"leafy form","evidence_ids":["render-0","reference-0"],"views":["whole"]},{"id":"owner-bark","observation":"material","evidence_ids":["render-1","reference-1"],"views":["bark"]}]})).unwrap();
+    let required =
+        telperion_jev::tuning::priority::requirements(&ranked_config.required, Some(&approval));
+    let mut ranked_live = Live {
+        config: &ranked_config,
+        transport: &Never,
+        key: "never-used",
+    };
+    assert_eq!(
+        ranked_live.visual_images_for(&ranked_trial, &required, Some(&approval)),
+        0
+    );
+    assert_eq!(
+        ranked_live.visual_tokens_for(&ranked_trial, Some(&approval)),
+        40000
+            + serde_json::to_vec(&approval.ordered).unwrap().len() as u64
+            + serde_json::to_vec(&required).unwrap().len() as u64
+            + 256
+    );
+    let ranked = ranked_live
+        .visual_for(&ranked_trial, &required, Some(&approval))
+        .unwrap();
+    assert!(ready(&required, &ranked_trial.key, &ranked.value));
+    let scope = ranked_config.priority_scope(&state);
+    ranked_config.checklist.push_str(" changed objective");
+    assert_ne!(scope, ranked_config.priority_scope(&state));
+    // Restore the original source fixture for the independent stale-adapter check.
+    std::fs::write(
+        &shots,
+        b"{\"references\":[{\"id\":\"whole\",\"shot\":{\"foliage\":\"leaf-on\"}}]}",
+    )
+    .unwrap();
     std::fs::write(&protocol, format!("{script}\n# changed")).unwrap();
     assert_ne!(identity, config.identity().unwrap());
     assert!(live

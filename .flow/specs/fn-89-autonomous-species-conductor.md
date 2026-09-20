@@ -24,7 +24,7 @@
 
 The owner asks for one species and returns to a convincing mature-tree template, its botanical documentation, and a compact review packet. The system carries the research, routine choices, generator-gap work, tuning and validation without asking the owner to manage intermediate steps. A cheap conductor runs routine work while Jev supplies bounded semantic judgments and routing. Complex design goes to a high-reasoning model at medium/high effort. Once the design exists, Jev reassesses the remaining implementation complexity and selects a cheap implementer or a high-reasoning implementer initially at low effort. The owner supplies final acceptance. [paraphrase]
 
-The current machinery already provides research stages, typed decisions, gap records, capability vocabulary, catalogue records and matched renders. This change connects those mechanisms into one persistent run and replaces routine owner stops with policy-driven continuation. It does not rebuild them. [inferred]
+The current machinery already provides research stages, typed decisions, gap records, capability vocabulary, catalogue records and matched renders. This change connects those mechanisms into one persistent run. After initial evidence review the owner confirms/reorders/adds priorities once, then routine work continues under policy without asking the owner to choose implementation mechanics. Final acceptance and risk/stall/scope-change escalation remain human boundaries. [user decision, 2026-09-20, relayed by host]
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -71,6 +71,8 @@ The current machinery already provides research stages, typed decisions, gap rec
 
 - **R8:** Before each further tuning round or design/implementation dispatch, evaluate whether the proposed attempt has a credible prospect of success within a reasonable token allowance using evidence, progress, cost bounds and risk. High uncertainty, unusually high complexity, implementation risk or repeated no-progress routes to a resumable human handoff before another unjustified attempt, even with budget remaining. Errors: a hard-limit breach, missing basis for a bounded attempt or an unavailable/unvalidated continuation judgment pauses the run; no mandatory frontier detour, automatic retry or budget reset bypasses the pause. [inferred]
 
+- **R9:** Consume fn-68's explicit human gap-priority checkpoint before proposal or fix dispatch, including initial model PASS. Present the proposed top three with reference/render evidence and retain all findings; record owner confirmation/reordering/additions scoped to the initial packet, species and objectives. The owner chooses what matters, while the conductor handles implementation mechanics under existing qualification, continuation and budget gates. Errors: missing/stale approval blocks; changed objectives/reference or finish standard requires renewed approval; ordinary rerenders preserve it; approval cannot resolve a gap, bypass explicit relevant-view coverage, reset spend or supply final acceptance. [user and host design, 2026-09-20]
+
 ## Boundaries
 <!-- scope: business -->
 
@@ -82,6 +84,11 @@ The current machinery already provides research stages, typed decisions, gap rec
 - No specific species or missing organ is implemented as part of the machinery. fn-82 owns the palm and fn-80 owns its end-to-end proof. [inferred]
 
 ## Decision Context
+
+### Human priority selection, 2026-09-20
+
+- The owner approved a conversational checkpoint after initial visual discovery: show the proposed top three gaps and evidence, accept confirmation/reordering/missed-gap additions, then autonomously plan, implement, tune and verify those objectives under existing gates. This supersedes fully unattended initial priority selection, not final acceptance. The host records the scoped decision; the owner need not hand-author transport JSON. [user, relayed by host]
+- fn-68 owns the hash-bound packet, explicit approval and relevant-view verification contract. The conductor preserves all findings, treats owner priority as authoritative over model severity, and returns for scope change, risk, stall or final approval. Approval never proves a gap resolved or a reviewer qualified. Independent blind calibration remains separate. [host design]
 
 ### Provisional role routing, 2026-09-20
 

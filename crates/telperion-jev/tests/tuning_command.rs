@@ -22,6 +22,71 @@ fn fixture(root: &Path) -> Value {
         "budget":{"evaluations":0,"images":0,"tokens":0,"rounds":0,"max_evaluations":13,"max_images":52,"max_tokens":200000,"max_rounds":3}})
 }
 #[test]
+fn priority_resume_refuses_missing_or_stale_owner_decision_without_mutating_journal() {
+    use telperion_jev::tuning::{
+        engine::Run,
+        evaluation::Image,
+        priority::{Checkpoint, Evidence},
+        state::Visual,
+    };
+    let root = std::env::temp_dir().join(telperion_jev::ledger::new_entry_id());
+    fs::create_dir(&root).unwrap();
+    let config_value = fixture(&root);
+    let config: Config = serde_json::from_value(config_value.clone()).unwrap();
+    let config_path = root.join("config.json");
+    write(&config_path, &config_value);
+    let out = root.join("out");
+    command::run(&config_path, &out, None).unwrap_err();
+    let path = out.join("run.json");
+    let mut state: Run = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    let image = Image {
+        path: root.join("asset"),
+        sha256: telperion_jev::sha256_hex(&fs::read(root.join("asset")).unwrap()),
+        view: "whole".into(),
+        seed: 1,
+    };
+    let visual:Visual=serde_json::from_value(json!({"identity":"candidate","model":"mock","ledger":"fixture","cells":[],"defects":[],"findings":[]})).unwrap();
+    let checkpoint = Checkpoint::new(
+        &state.identity,
+        &config.priority_scope(&state),
+        visual,
+        vec![
+            Evidence {
+                id: "render-0".into(),
+                role: "render".into(),
+                image: image.clone(),
+            },
+            Evidence {
+                id: "reference-0".into(),
+                role: "reference".into(),
+                image,
+            },
+        ],
+    )
+    .unwrap();
+    state.priority_checkpoints.push(checkpoint.clone());
+    state.pause.as_mut().unwrap().basis.proposed_action = "approve gap priorities".into();
+    write(&path, &serde_json::to_value(&state).unwrap());
+    let original = fs::read(&path).unwrap();
+    let pause = state.pause.as_ref().unwrap();
+    let mut decision = json!({"pause_id":pause.id,"identity":state.identity,"action":"approve gap priorities","by":"test owner","rationale":"reviewed priorities"});
+    let decision_path = root.join("decision.json");
+    write(&decision_path, &decision);
+    assert!(command::run(&config_path, &out, Some(&decision_path))
+        .unwrap_err()
+        .contains("priority approval required"));
+    assert_eq!(fs::read(&path).unwrap(), original);
+    decision["priority_approval"] =
+        json!({"checkpoint_sha256":"stale","scope_sha256":checkpoint.scope_sha256,"ordered":[]});
+    write(&decision_path, &decision);
+    assert!(command::run(&config_path, &out, Some(&decision_path))
+        .unwrap_err()
+        .contains("stale owner priority"));
+    assert_eq!(fs::read(&path).unwrap(), original);
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn cli_pauses_without_key_and_scoped_changed_revision_preserves_spend() {
     let root = std::env::temp_dir().join(format!(
         "tuning-command-{}",

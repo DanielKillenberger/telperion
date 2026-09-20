@@ -59,6 +59,9 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn priority_scope(&self, state: &Run) -> String {
+        sha256_hex(&serde_json::to_vec(&json!({"base":state.priority_scope(&self.references),"checklist":self.checklist,"finish_anchors":self.quality_anchors.iter().map(|a|json!({"sha256":a.image.sha256,"scope":a.scope})).collect::<Vec<_>>()})).unwrap())
+    }
     fn verify_reference_protocol(&self) -> Result<(), String> {
         if self.reference_first.is_some() {
             let replay: super::reference_first::Replay = serde_json::from_slice(
@@ -217,7 +220,8 @@ impl Config {
                 || proof.pause.is_some()
                 || !trial.feasible
                 || visual.model != self.vision.model
-                || !super::state::ready(&self.required, &trial.key, visual)
+                || proof.required != self.required
+                || !super::state::ready(&proof.required_cells(), &trial.key, visual)
                 || !proof.usage_known
                 || proof.budget.tokens > proof.budget.max_tokens
                 || proof.budget.images > proof.budget.max_images
@@ -262,103 +266,11 @@ impl Live<'_> {
             .cloned()
             .collect()
     }
-    fn ask(&self, state: &Value, questions: &Value) -> Result<LedgerEntry, String> {
-        self.config.preparation()?;
-        let entry = evaluate(
-            self.transport,
-            self.key,
-            EvaluateRequest {
-                tool: "tuning",
-                source: None,
-                state,
-                questions,
-                ledger_dir: &self.config.ledger,
-            },
-        )
-        .map_err(|e| e.to_string())?;
-        if entry.model != self.config.judgment_model {
-            return Err("runtime judgment model differs from calibrated role".into());
-        }
-        Ok(entry)
-    }
-    fn answer<T>(entry: &LedgerEntry, value: T) -> Answer<T> {
-        Answer {
-            value,
-            tokens: entry
-                .usage
-                .as_ref()
-                .and_then(|u| u.input_tokens.checked_add(u.output_tokens)),
-        }
-    }
-}
-impl Services for Live<'_> {
-    fn preparation(&self) -> Result<Option<super::reference_first::PreparationCharge>, String> {
-        self.config.preparation()
-    }
-    fn proposal_tokens(&self, state: &Run) -> u64 {
-        super::judgments::allowance(
-            &super::judgments::summary(state),
-            &super::judgments::proposals(state).unwrap_or(Value::Null),
-        )
-    }
-    fn continuation_tokens(&self, basis: &Basis) -> u64 {
-        super::judgments::allowance(
-            &serde_json::to_value(basis).unwrap(),
-            &continuation::questions(),
-        )
-    }
-    fn route_tokens(&self, state: &Run) -> u64 {
-        super::judgments::allowance(
-            &super::judgments::summary(state),
-            &super::judgments::routes(&self.config.gap_specs),
-        )
-    }
-    fn evaluation_images(&self) -> u64 {
-        (self.config.matched.numeric_references.len() * 2) as u64
-    }
-    fn visual_images(&self, trial: &Trial) -> u64 {
-        let existing = trial
-            .comparisons
-            .iter()
-            .map(|c| (c.reference.as_str(), trial.seed))
-            .collect::<std::collections::HashSet<_>>();
-        self.visual_cells(trial)
-            .iter()
-            .map(|c| (c.view.as_str(), c.seed))
-            .collect::<std::collections::HashSet<_>>()
-            .iter()
-            .filter(|c| !existing.contains(c))
-            .count() as u64
-            * 2
-    }
-    fn visual_tokens(&self, trial: &Trial) -> u64 {
-        if trial.round == 0 && self.config.reference_first.is_none() {
-            25000
-        } else {
-            40000
-        }
-    }
-    fn evaluate(
+    fn assess_visual(
         &mut self,
-        overrides: Value,
-        round: u64,
-        label: &str,
-        ledger: Option<String>,
-    ) -> Trial {
-        evaluation::evaluate(
-            &self.config.measurer(),
-            &self.config.matched,
-            &self.config.preset,
-            &self.config.identity().unwrap_or_default(),
-            self.config.seed,
-            round,
-            label,
-            overrides,
-            ledger,
-        )
-    }
-    fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String> {
-        let required = self.visual_cells(trial);
+        trial: &Trial,
+        required: Vec<Cell>,
+    ) -> Result<Answer<Visual>, String> {
         let mut images = trial
             .comparisons
             .iter()
@@ -444,6 +356,204 @@ impl Services for Live<'_> {
                 .usage
                 .and_then(|u| u.input_tokens.checked_add(u.output_tokens)),
         })
+    }
+    fn ask(&self, state: &Value, questions: &Value) -> Result<LedgerEntry, String> {
+        self.config.preparation()?;
+        let entry = evaluate(
+            self.transport,
+            self.key,
+            EvaluateRequest {
+                tool: "tuning",
+                source: None,
+                state,
+                questions,
+                ledger_dir: &self.config.ledger,
+            },
+        )
+        .map_err(|e| e.to_string())?;
+        if entry.model != self.config.judgment_model {
+            return Err("runtime judgment model differs from calibrated role".into());
+        }
+        Ok(entry)
+    }
+    fn answer<T>(entry: &LedgerEntry, value: T) -> Answer<T> {
+        Answer {
+            value,
+            tokens: entry
+                .usage
+                .as_ref()
+                .and_then(|u| u.input_tokens.checked_add(u.output_tokens)),
+        }
+    }
+}
+impl Services for Live<'_> {
+    fn priority_scope(&self, state: &Run) -> String {
+        self.config.priority_scope(state)
+    }
+    fn visual_tokens_for(
+        &self,
+        trial: &Trial,
+        priorities: Option<&super::priority::Approval>,
+    ) -> u64 {
+        if let Some(approval) = priorities {
+            let required = super::priority::requirements(&self.config.required, Some(approval));
+            40000
+                + serde_json::to_vec(&approval.ordered).unwrap().len() as u64
+                + serde_json::to_vec(&required).unwrap().len() as u64
+                + 256
+        } else {
+            self.visual_tokens(trial)
+        }
+    }
+    fn visual_images_for(
+        &self,
+        trial: &Trial,
+        required: &[Cell],
+        priorities: Option<&super::priority::Approval>,
+    ) -> u64 {
+        if priorities.is_none() {
+            return self.visual_images(trial);
+        }
+        let existing = trial
+            .comparisons
+            .iter()
+            .map(|c| (c.reference.as_str(), trial.seed))
+            .collect::<std::collections::HashSet<_>>();
+        required
+            .iter()
+            .map(|c| (c.view.as_str(), c.seed))
+            .collect::<std::collections::HashSet<_>>()
+            .iter()
+            .filter(|pair| !existing.contains(pair))
+            .count() as u64
+            * 2
+    }
+    fn priority_references(&self) -> Vec<Image> {
+        self.config.references.clone()
+    }
+    fn priority_evidence(
+        &self,
+        trial: &Trial,
+        visual: &Visual,
+    ) -> Result<Vec<super::priority::Evidence>, String> {
+        let mut renders = trial
+            .comparisons
+            .iter()
+            .filter_map(|c| c.images.first().cloned())
+            .collect::<Vec<_>>();
+        if let Ok(bytes) = fs::read(&visual.ledger) {
+            if let Ok(record) = serde_json::from_slice::<Value>(&bytes) {
+                let request = record
+                    .pointer("/request/comparison")
+                    .or_else(|| record.get("request"));
+                if let Some(images) = request.and_then(|r| r.get("images")) {
+                    let images: Vec<Image> =
+                        serde_json::from_value(images.clone()).map_err(|e| e.to_string())?;
+                    renders.extend(images);
+                }
+            }
+        }
+        super::priority::evidence(
+            visual,
+            &renders,
+            &self.config.references,
+            &self
+                .config
+                .quality_anchors
+                .iter()
+                .map(|a| a.image.clone())
+                .collect::<Vec<_>>(),
+        )
+    }
+    fn visual_for(
+        &mut self,
+        trial: &Trial,
+        required: &[Cell],
+        priorities: Option<&super::priority::Approval>,
+    ) -> Result<Answer<Visual>, String> {
+        let mut config = self.config.clone();
+        config.required = required.to_vec();
+        if let Some(approval) = priorities {
+            config.checklist=format!("Owner-approved priorities, in order (authoritative over model severity; not evidence of resolution): {}\n{}",serde_json::to_string(&approval.ordered).unwrap(),config.checklist);
+        }
+        let mut live = Live {
+            config: &config,
+            transport: self.transport,
+            key: self.key,
+        };
+        if priorities.is_some() {
+            live.assess_visual(trial, required.to_vec())
+        } else {
+            live.visual(trial)
+        }
+    }
+    fn preparation(&self) -> Result<Option<super::reference_first::PreparationCharge>, String> {
+        self.config.preparation()
+    }
+    fn proposal_tokens(&self, state: &Run) -> u64 {
+        super::judgments::allowance(
+            &super::judgments::summary(state),
+            &super::judgments::proposals(state).unwrap_or(Value::Null),
+        )
+    }
+    fn continuation_tokens(&self, basis: &Basis) -> u64 {
+        super::judgments::allowance(
+            &serde_json::to_value(basis).unwrap(),
+            &continuation::questions(),
+        )
+    }
+    fn route_tokens(&self, state: &Run) -> u64 {
+        super::judgments::allowance(
+            &super::judgments::summary(state),
+            &super::judgments::routes(&self.config.gap_specs),
+        )
+    }
+    fn evaluation_images(&self) -> u64 {
+        (self.config.matched.numeric_references.len() * 2) as u64
+    }
+    fn visual_images(&self, trial: &Trial) -> u64 {
+        let existing = trial
+            .comparisons
+            .iter()
+            .map(|c| (c.reference.as_str(), trial.seed))
+            .collect::<std::collections::HashSet<_>>();
+        self.visual_cells(trial)
+            .iter()
+            .map(|c| (c.view.as_str(), c.seed))
+            .collect::<std::collections::HashSet<_>>()
+            .iter()
+            .filter(|c| !existing.contains(c))
+            .count() as u64
+            * 2
+    }
+    fn visual_tokens(&self, trial: &Trial) -> u64 {
+        if trial.round == 0 && self.config.reference_first.is_none() {
+            25000
+        } else {
+            40000
+        }
+    }
+    fn evaluate(
+        &mut self,
+        overrides: Value,
+        round: u64,
+        label: &str,
+        ledger: Option<String>,
+    ) -> Trial {
+        evaluation::evaluate(
+            &self.config.measurer(),
+            &self.config.matched,
+            &self.config.preset,
+            &self.config.identity().unwrap_or_default(),
+            self.config.seed,
+            round,
+            label,
+            overrides,
+            ledger,
+        )
+    }
+    fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String> {
+        self.assess_visual(trial, self.visual_cells(trial))
     }
     fn continuation(&mut self, basis: &Basis) -> Result<Answer<Assessment>, String> {
         let entry = self.ask(

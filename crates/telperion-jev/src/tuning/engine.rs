@@ -21,6 +21,47 @@ pub struct Answer<T> {
 }
 
 pub trait Services {
+    fn priority_scope(&self, state: &Run) -> String {
+        state.priority_scope(&self.priority_references())
+    }
+    fn visual_tokens_for(
+        &self,
+        trial: &Trial,
+        _priorities: Option<&super::priority::Approval>,
+    ) -> u64 {
+        self.visual_tokens(trial)
+    }
+    fn visual_images_for(
+        &self,
+        trial: &Trial,
+        _required: &[Cell],
+        _priorities: Option<&super::priority::Approval>,
+    ) -> u64 {
+        self.visual_images(trial)
+    }
+    fn priority_references(&self) -> Vec<super::evaluation::Image> {
+        vec![]
+    }
+    fn priority_evidence(
+        &self,
+        trial: &Trial,
+        visual: &Visual,
+    ) -> Result<Vec<super::priority::Evidence>, String> {
+        let renders = trial
+            .comparisons
+            .iter()
+            .filter_map(|c| c.images.first().cloned())
+            .collect::<Vec<_>>();
+        super::priority::evidence(visual, &renders, &self.priority_references(), &[])
+    }
+    fn visual_for(
+        &mut self,
+        trial: &Trial,
+        _required: &[Cell],
+        _priorities: Option<&super::priority::Approval>,
+    ) -> Result<Answer<Visual>, String> {
+        self.visual(trial)
+    }
     fn preparation(&self) -> Result<Option<super::reference_first::PreparationCharge>, String> {
         Ok(None)
     }
@@ -74,6 +115,8 @@ pub struct Run {
     pub authorizations: Vec<continuation::HumanDecision>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub preparation_charge: Option<super::reference_first::PreparationCharge>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub priority_checkpoints: Vec<super::priority::Checkpoint>,
 }
 
 fn merge(target: &mut Value, patch: &Value) {
@@ -90,6 +133,86 @@ fn merge(target: &mut Value, patch: &Value) {
 }
 
 impl Run {
+    pub fn priority_scope(&self, references: &[super::evaluation::Image]) -> String {
+        super::priority::scope(&self.preset, &self.owner_notes, &self.required, references)
+    }
+    pub fn approved_priorities(&self) -> Option<&super::priority::Approval> {
+        let checkpoint = self.priority_checkpoints.last()?;
+        self.authorizations
+            .iter()
+            .rev()
+            .filter_map(|d| d.priority_approval.as_ref())
+            .find(|a| a.checkpoint_sha256 == checkpoint.hash())
+    }
+    pub fn required_cells(&self) -> Vec<Cell> {
+        super::priority::requirements(&self.required, self.approved_priorities())
+    }
+    pub fn accept_priorities(
+        &mut self,
+        decision: &continuation::HumanDecision,
+        scope: &str,
+    ) -> Result<(), String> {
+        if let Some(approval) = &decision.priority_approval {
+            if decision.by.trim().is_empty() || decision.rationale.trim().is_empty() {
+                return Err("missing owner priority attribution".into());
+            }
+            let checkpoint = self
+                .priority_checkpoints
+                .last()
+                .ok_or("no proposed priority checkpoint")?;
+            approval.verify(checkpoint, scope)?;
+            if approval.ordered.iter().any(|g| {
+                g.views
+                    .iter()
+                    .any(|v| !self.required.iter().any(|c| &c.view == v))
+            }) {
+                return Err("priority view outside configured scope".into());
+            }
+            self.machine_ready = false;
+        }
+        Ok(())
+    }
+    fn priority_gate(
+        &mut self,
+        services: &dyn Services,
+        save: &mut dyn FnMut(&Self) -> Result<(), String>,
+    ) -> Result<bool, String> {
+        let references = services.priority_references();
+        for image in &references {
+            image.verify()?;
+        }
+        let scope = services.priority_scope(self);
+        if self
+            .priority_checkpoints
+            .last()
+            .is_none_or(|p| p.scope_sha256 != scope)
+        {
+            let trial = self
+                .current
+                .and_then(|i| self.trials.get(i))
+                .ok_or("no current priority evidence")?;
+            let visual = self.visual.clone().ok_or("missing initial visual review")?;
+            let evidence = services.priority_evidence(trial, &visual)?;
+            self.priority_checkpoints
+                .push(super::priority::Checkpoint::new(
+                    &self.identity,
+                    &scope,
+                    visual,
+                    evidence,
+                )?);
+        }
+        if let Some(approval) = self.approved_priorities() {
+            approval.verify(self.priority_checkpoints.last().unwrap(), &scope)?;
+            return Ok(true);
+        }
+        self.stop(
+            "Owner gap-priority review required; model readiness is not owner approval".into(),
+            "approve gap priorities",
+        );
+        self.pause.as_mut().unwrap().decision_requested="Review priority-review.json, confirm/reorder/add gaps in priority_approval, and submit a scoped --resume JSON. This chooses objectives, not mechanics or final acceptance.".into();
+        save(self)?;
+        Ok(false)
+    }
     pub fn pilot_authority(&self) -> Result<(), String> {
         self.authorizations
             .last()
@@ -119,6 +242,8 @@ impl Run {
         evidence.push(
             serde_json::json!({
                 "current_identity":projection["current_identity"],
+                "owner_priorities":projection["owner_priorities"],
+                "visual_evidence":projection["visual"],
                 "resource_limit":projection["resource_limit"],
             "resource_amendments":projection["resource_amendments"],
             "agent_diagnoses":projection["agent_diagnoses"],
@@ -150,10 +275,10 @@ impl Run {
         finalist.round = self.budget.rounds + 1;
         let next = services
             .proposal_tokens(self)
-            .checked_add(services.visual_tokens(&finalist))
+            .checked_add(services.visual_tokens_for(&finalist, self.approved_priorities()))
             .ok_or("reservation overflow")?;
         basis.next_tokens = Some(next);
-        basis.estimate_basis = format!("proposal serialized-request bound {} + all-cell visual reservation {}; actual usage may exceed estimate and then pauses", services.proposal_tokens(self), services.visual_tokens(&finalist));
+        basis.estimate_basis = format!("proposal serialized-request bound {} + all-cell visual reservation {}; actual usage may exceed estimate and then pauses", services.proposal_tokens(self), services.visual_tokens_for(&finalist,self.approved_priorities()));
         Ok(basis)
     }
     fn reserve(
@@ -211,17 +336,31 @@ impl Run {
     ) -> Result<(), String> {
         self.verify_diagnoses()?;
         let trial = self.trials[self.current.ok_or("no feasible current candidate")?].clone();
-        let allowance = services.visual_tokens(&trial);
+        let scope = services.priority_scope(self);
+        let approval = self
+            .approved_priorities()
+            .filter(|a| a.scope_sha256 == scope)
+            .cloned();
+        if let Some(approval) = &approval {
+            approval.verify(self.priority_checkpoints.last().unwrap(), &scope)?;
+        }
+        let required = super::priority::requirements(&self.required, approval.as_ref());
+        let allowance = services.visual_tokens_for(&trial, approval.as_ref());
         let mut budget = self.budget.clone();
         budget.reserve_visual()?;
-        budget.reserve(0, services.visual_images(&trial), allowance, 0)?;
+        budget.reserve(
+            0,
+            services.visual_images_for(&trial, &required, approval.as_ref()),
+            allowance,
+            0,
+        )?;
         self.budget = budget;
         self.pending = Some("visual assessment".into());
         save(self)?;
         self.verify_diagnoses()?;
-        let answer = services.visual(&trial)?;
+        let answer = services.visual_for(&trial, &required, approval.as_ref())?;
         let visual = self.settle(answer, allowance)?;
-        self.machine_ready = ready(&self.required, &trial.key, &visual);
+        self.machine_ready = approval.is_some() && ready(&required, &trial.key, &visual);
         self.visual = Some(visual);
         save(self)
     }
@@ -253,6 +392,7 @@ impl Run {
         services: &mut dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
+        self.verify_diagnoses()?;
         let expected = services.preparation()?;
         super::reference_first::verify_preparation(
             expected.as_ref(),
@@ -271,7 +411,29 @@ impl Run {
             self.current = Some(self.trials.len() - 1);
             self.assess(services, save)?;
         }
+        if self.visual.is_none() {
+            self.assess(services, save)?;
+        }
+        if !self.priority_gate(services, save)? {
+            return Ok(());
+        }
+        let required = self.required_cells();
+        if self.visual.as_ref().is_none_or(|v| {
+            required
+                .iter()
+                .any(|c| !v.cells.iter().any(|(got, _)| got == c))
+        }) {
+            self.assess(services, save)?;
+        } else {
+            self.machine_ready = self
+                .current
+                .zip(self.visual.as_ref())
+                .is_some_and(|(i, v)| ready(&required, &self.trials[i].key, v));
+        }
         while !self.machine_ready {
+            if !self.priority_gate(services, save)? {
+                return Ok(());
+            }
             if self
                 .budget
                 .visual_passes
@@ -385,6 +547,9 @@ impl Run {
         services: &mut dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
+        if !self.priority_gate(services, save)? {
+            return Err("owner priority approval required before fix routing".into());
+        }
         let allowance = services.route_tokens(self);
         self.reserve(0, 0, allowance, 0, "defect routing", save)?;
         let answer = services.route(self)?;

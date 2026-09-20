@@ -74,6 +74,14 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
             .as_ref()
             .ok_or("run is not paused")?
             .resume(&decision)?;
+        if old
+            .pause
+            .as_ref()
+            .is_some_and(|p| p.basis.proposed_action == "approve gap priorities")
+            && decision.priority_approval.is_none()
+        {
+            return Err("explicit owner priority approval required".into());
+        }
         if let Some(diagnosis) = &decision.diagnosis {
             diagnosis.verify(&identity)?;
         }
@@ -266,6 +274,7 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
         old.dials = config.dials.clone();
         old.owner_notes = config.owner_notes.clone();
         old.required = config.required.clone();
+        old.accept_priorities(&decision, &config.priority_scope(&old))?;
         let base =
             telperion_core::presets::Preset::from_id(&config.preset).ok_or("unknown preset")?;
         let family = telperion_core::params::overlay(&base.parameters(), &old.overrides)
@@ -302,10 +311,17 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
             routes: vec![],
             authorizations: vec![],
             preparation_charge: None,
+            priority_checkpoints: vec![],
         }
     };
     let mut save = |state: &Run| -> Result<(), String> {
         write(&path, &serde_json::to_value(state).unwrap())?;
+        if let Some(checkpoint) = state.priority_checkpoints.last() {
+            write(
+                &out.join("priority-review.json"),
+                &json!({"checkpoint_sha256":checkpoint.hash(),"checkpoint":checkpoint,"approval":state.approved_priorities(),"ordering":"First three eligible findings in reviewer source order, not a new model ranking or owner approval","meaning":"Owner chooses what matters. Approval is neither readiness nor final acceptance; all other findings remain in checkpoint.visual."}),
+            )?;
+        }
         write(
             &out.join("finalists.json"),
             &json!({"owner_acceptance":"pending",

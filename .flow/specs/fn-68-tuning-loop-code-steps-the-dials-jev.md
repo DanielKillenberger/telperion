@@ -79,6 +79,8 @@ This spec turns the probe into the loop a species round runs: code steps the dia
 
 - **R11:** At each round boundary and before a proposed fix dispatch, apply the shared fn-89 continuation policy to observed defects, progress, failed attempts, expected next-attempt token spend, remaining budget and risk. Pause with a resumable human handoff when uncertainty, unusual complexity, implementation risk or no-progress makes another attempt unjustified. Errors: missing assessment or exhausted hard limits cannot start another round; resuming preserves spent budgets and requires the scoped human decision. [inferred]
 
+- **R12:** Before subsequent proposal/fix dispatch or reporting machine readiness, persist and present a hash-bound initial gap-priority packet and obtain explicit scoped owner confirmation/reordering/additions. Preserve all review findings and original statuses; approval is neither gap resolution nor final acceptance. Propagate approved objectives to routing and explicit relevant-view/fixed-fresh-seed verification. Errors: missing/stale/invalid approval blocks; changed objectives/references/finish scope invalidates it; ordinary rerenders do not require repeated approval; resume retains spend. [user and host design, 2026-09-20]
+
 ## Boundaries
 <!-- scope: business -->
 
@@ -90,6 +92,13 @@ This spec turns the probe into the loop a species round runs: code steps the dia
 - Growth stays hidden. The loop tunes the direct build the harness shows. [paraphrase]
 
 ## Decision Context
+
+### Human gap-priority checkpoint, 2026-09-20
+
+- The owner approved a human checkpoint after initial review: present the top three proposed gaps with reference/render evidence; the owner confirms, reorders or adds missed gaps. The owner chooses **what matters**, not parameter values, implementation mechanics or each small tuning step. This supersedes fully unattended initial priority selection, not final owner acceptance. [user, relayed by host]
+- Freeze the complete initial review and evidence identities, retaining every finding beyond the proposed three. A source-order proposal must be labeled as such rather than claimed as a fresh ranking judgment. An explicit owner decision binds that packet, species and objective/reference/finish scope. Existing beech feedback is sourced history, never approval of a new packet. [host design]
+- Approval gates subsequent proposal/fix dispatch and machine readiness, including an initial model PASS. Approved priorities reach routing, continuation and visual verification, outranking model severity without rewriting raw findings. Added requirements need fresh explicit assessment on relevant views at the configured fixed/fresh seeds; irrelevant views are not manufactured requirements. Routine rerenders preserve approval, while changed objectives or reference/finish scope require renewed review. Missing, stale or invalid approval pauses without resetting budgets. [host design]
+- Owner interaction is conversational: review the evidence and say confirm/reorder/add. The host records the typed resume decision for audit; the owner need not author JSON. After approval the loop plans, tunes and verifies within existing gates, returning for final acceptance or risk, stall or scope change. Human-assisted priority selection is not proof that the visual role is independently qualified. Blind calibration remains separate and unchanged. [paraphrase and host design]
 
 ### Reference-first review and role routing, 2026-09-20
 

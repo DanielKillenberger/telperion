@@ -126,6 +126,8 @@ pub struct HumanDecision {
     pub diagnosis: Option<Diagnosis>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub external_usage: Option<ExternalUsage>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub priority_approval: Option<super::priority::Approval>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
