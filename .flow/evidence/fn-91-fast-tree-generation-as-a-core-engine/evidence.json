@@ -1,0 +1,16 @@
+{
+  "base_commit": "507d3ef13b883136af32d1bc966225b7906dcb81",
+  "commits": [],
+  "tests": [
+    "baseline: none (no spec Quick commands)",
+    "cargo build --release -p telperion-core --example generation_stages",
+    "npm run wasm:build",
+    "npm run render:build",
+    "rustfmt --edition 2021 --check crates/telperion-core/examples/generation_stages.rs",
+    "node --check scripts/benchmarks/mature-generation.mjs",
+    "4 CLI error controls passed (initial invalid-seed message expectation corrected)",
+    "24 native preset builds and 4 native diagnostic builds complete",
+    "48 browser builds complete; GPU completion unmeasured"
+  ],
+  "prs": []
+}

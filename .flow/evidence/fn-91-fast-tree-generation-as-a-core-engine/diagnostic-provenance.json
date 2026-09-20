@@ -1,0 +1,4 @@
+{
+  "binary_sha256": "916b3650423fdbb58db16db79233c862ed0ce2a2b99a8414aa8a09bdf8508e9a",
+  "method": "contact=0 changed-workload diagnostic; one first build plus one warmed build, seed1 only; not an optimization or acceptance result"
+}
