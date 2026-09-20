@@ -1,0 +1,34 @@
+[
+  {
+    "species": "Picea abies",
+    "page": "https://commons.wikimedia.org/wiki/File:Picea_abies_bark_2.jpg",
+    "author": "Syrio",
+    "license": "CC BY-SA 4.0",
+    "dimensions_pixels": [
+      4000,
+      3000
+    ],
+    "local_path": ".refs/fn42-candidates/spruce-candidate-1.jpg",
+    "sha256": "210fbfa8ac469cf8028ecd48d5f855adeb3b63c167e3a5a243f2a273af9df4a6",
+    "assessment": "secondary morphology: exposed peeling edges, oblique view and shallow focus; no scale/colour calibration",
+    "physical_width_metres": null,
+    "colour_calibrated": false,
+    "owner_accepted": false
+  },
+  {
+    "species": "Picea abies",
+    "page": "https://commons.wikimedia.org/wiki/File:Norway_Spruce_bark_detail.jpg",
+    "author": "MONGO",
+    "license": "public domain",
+    "dimensions_pixels": [
+      2816,
+      2112
+    ],
+    "local_path": ".refs/fn42-candidates/spruce-candidate-2.jpg",
+    "sha256": "5accf327a26cbc47b6c2f4842bc7f9d72d3f325702c14af183fdbd68cde7ee96",
+    "assessment": "preferred structure candidate: mostly exposed bark and frame-filling plate detail; flash, physical scale unknown",
+    "physical_width_metres": null,
+    "colour_calibrated": false,
+    "owner_accepted": false
+  }
+]

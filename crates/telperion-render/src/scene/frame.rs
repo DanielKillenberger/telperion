@@ -203,6 +203,7 @@ impl Scene {
                     m.blade_grain_scale,
                     m.blade_grain_strength,
                 ),
+                plate_profile: colour(m.plate_edge_shape, 0.0, 0.0, 0.0),
             }),
         );
     }

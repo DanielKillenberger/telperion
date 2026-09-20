@@ -1,0 +1,8 @@
+beech: max adjacent step 0.027001, bound 0.03
+birch: max adjacent step 0.028661, bound 0.03
+birchhero: max adjacent step 0.467411, bound 0.03
+Traceback (most recent call last):
+  File "/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/.flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/check-sweep.py", line 37, in <module>
+    assert all(record["passed"] for record in records), "footprint continuity regression"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: footprint continuity regression

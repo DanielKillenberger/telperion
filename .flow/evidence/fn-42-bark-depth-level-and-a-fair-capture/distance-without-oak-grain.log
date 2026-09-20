@@ -1,0 +1,12 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.03s
+     Running tests/bark_distance.rs (/home/daniel/Projects/telperion/target/debug/deps/bark_distance-d509423f75fb22ff)
+
+running 1 test
+distance-series height deviation near/far: 0.0009139285741035447/0.0008364669699845517
+OregonWhiteOak 2x resolution: 10000 pixels, mean 2.031067/255, p95 6.00/255
+OregonWhiteOak 4x resolution: 5000 pixels, mean 2.492250/255, p95 7.00/255
+test resolved_scales_survive_until_the_two_pixel_boundary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.48s

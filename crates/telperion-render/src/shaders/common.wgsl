@@ -88,6 +88,7 @@ struct Uniforms {
     /// The grain below the relief: the bark's cell size in metres and its
     /// strength, the leaf's cells per leaf length and its strength.
     grain: vec4<f32>,
+    plate_profile: vec4<f32>, // edge shape, reserved, reserved, reserved
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

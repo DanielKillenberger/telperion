@@ -1,0 +1,17 @@
+{
+  "adapter": "NVIDIA GeForce RTX 3080; comparison filtering: Linear",
+  "driver": "NVIDIA 610.57.04",
+  "backend": "vulkan",
+  "conditioning": 8,
+  "warmup": 8,
+  "measured": 120,
+  "samples": 120,
+  "verdict": "valid",
+  "p50_ms": 38.4031,
+  "p95_ms": 38.8321,
+  "shadow_p50_ms": 0.0195,
+  "shadow_p95_ms": 0.0205,
+  "multisample": 4,
+  "caster_triangles": 90760,
+  "caster_instances": 0
+}

@@ -1,0 +1,20 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.37s
+     Running tests/bark_parallax.rs (/home/daniel/Projects/telperion/target/debug/deps/bark_parallax-45fb80b27e661084)
+
+running 1 test
+flat, zero strength, head-on, ramp: [[0.01, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.01, 1.0, 0.0, 0.0]]
+
+thread 'parallax_descends_away_from_the_eye_and_refines_the_intersection' (912197) panicked at crates/telperion-render/tests/bark_parallax.rs:109:5:
+flat floor must move away from eye
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test parallax_descends_away_from_the_eye_and_refines_the_intersection ... FAILED
+
+failures:
+
+failures:
+    parallax_descends_away_from_the_eye_and_refines_the_intersection
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.56s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_parallax`

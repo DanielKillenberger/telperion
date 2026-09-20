@@ -1,0 +1,4 @@
+[
+  {"fixture": "OregonWhiteOak grazing", "mean": 2.5313, "p95": 7.75, "bound": 3},
+  {"fixture": "NorwaySpruce grazing", "mean": 1.7775, "p95": 4.75, "bound": 3}
+]

@@ -1,0 +1,32 @@
+{
+  "parent_commit": "fe86a7a7bf991c0834b5a7d0ad712f955207dda3",
+  "source_sha256": {
+    "crates/telperion-core/src/presets/materials.rs": "ca0737b567553f8f45c07a09d7d9318678971cc70c5a45ba88294fbe7de82a68",
+    "crates/telperion-render/src/shaders/wood.wgsl": "e7a204fa26bce75d68d6bb41440574a7e5634fa5f62a23b78c6aa13fb48c9612",
+    "crates/telperion-render/src/shaders/bark.wgsl": "c3e7ac06a02b57e032f3faf24c17d00156d5017e5e72f21a16b415138664f30d",
+    "crates/telperion-render/src/shaders/canopy.wgsl": "c9c3dff5518b63171375faa0b8c2c17efdba3f969296aa8c82a59f593770d3c0",
+    "crates/telperion-render/src/shaders/common.wgsl": "2f58b33862187890b0a6aba3e532fa38cc475b05107e666d045ea54d1f7720a0",
+    "crates/telperion-render/src/shaders/foliage.wgsl": "06e14e2b0b312f7cc22aa02b2cb6c387354b88d0ecdff8eb5050f69b81408e10",
+    "crates/telperion-render/src/shaders/plates.wgsl": "c04caa5a14b571eabb3d6f6e26f8bc179523c60499a7e92ab316019ff7809694",
+    "crates/telperion-render/src/shaders/scene.wgsl": "38a7bf4ce6ef648627bd0a64e06c511d440d1b83d425293edacec791b8f72a6c",
+    "crates/telperion-render/src/shaders/select.wgsl": "f671252f9b425bd80a6fb3fe6ef088bfc092043bea612ec59697632f7b609d64",
+    "crates/telperion-render/src/shaders/shadow.wgsl": "4ed2c1d25f422e7d55207eebc55a85b6bf7687c5a319711fe722f225b626d429",
+    "crates/telperion-render/src/shaders/sky.wgsl": "9ddc5d461094153d6e14c95d9bd6f7e2693d56de82b7fdbc57300821ac97d40e",
+    "crates/telperion-render/src/shaders/smooth.wgsl": "e17d25c9a9fa9fc205776bf06f64e77ba907126d53e981785b8d1be37fb844b6",
+    "crates/telperion-render/src/shaders/transmission.wgsl": "2f559904ce3bbe23bcc6f245df9c0a8c9e6697dcc31ca712389da85415b48409"
+  },
+  "capture_sha256": {
+    "oak-flat.png": "3693f72c3c0777c2e7bcb0a2fe6b7f9d54365a7db8b2cb7603572fbe013f29ee",
+    "spruce-flat.png": "a7721fb3bb12da9e82a771a1cf70512809da4245970ed2dc39c549e0a7ac5e53",
+    "oak-trunk.png": "6808c55afdd2a8986d2401c2f748dabd743bb48467fa2030ad06eeee2c96f7d7",
+    "oak-branch.png": "05b443ff306ddf18e06b2d06202a4f62a3f865458ff49e41243218bfdacb7ea4",
+    "oak-leaf-frontlit.png": "318c148940511b81457199a0b9bfb7544e9f1555a6381521470a55da97c8f079",
+    "oak-leaf-backlit.png": "9dc7f26a268b4b5f320887c7a2b03fded6a1bfb3139ebdf854032a4241e2b5d9",
+    "spruce-trunk.png": "db4f6231fcb2662d2f19c171cf993c43163abfaecdb304c896c3d769711af986",
+    "spruce-branch.png": "6d159d91cea3887389de98a027c551eb895f2a4cbe26e4b209ee919be4190c2a",
+    "spruce-needle-frontlit.png": "1370fa12b398c817f298f39785f573dc49f9aee3b42db9ba26b3b144f641c0f6",
+    "spruce-needle-backlit.png": "32e74d65b9a8c1269f642e7e6634f9d13ad3c7dda8c0f5978738589f4edebca4"
+  },
+  "inspection": "Host viewed both flat candidates and oak/spruce trunk and branch images; no sweep images viewed. Leaf images available for owner review.",
+  "note": "Two grain strengths rejected by unchanged bounds; final strength oak .20, spruce .15. Coordinate test-only iterator changed after capture for clippy; rendering code unchanged."
+}

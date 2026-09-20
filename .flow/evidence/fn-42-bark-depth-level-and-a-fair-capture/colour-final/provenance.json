@@ -1,0 +1,27 @@
+{
+  "commit": "d48ed69bc7390860d85d7b97cf81fe1c58d16db1",
+  "sources": {
+    "crates/telperion-core/src/presets/materials.rs": "249270376831fbd486da6fc69cd425f53850c0a7498879ccfadf1e9f6b0135b9",
+    "crates/telperion-render/src/wood/calibration.rs": "e07f2ab56c57a96507c9dfd622b1c643cb9edfb52a75ed1e180bb94e72287c72",
+    "crates/telperion-render/src/shaders/bark.wgsl": "c3e7ac06a02b57e032f3faf24c17d00156d5017e5e72f21a16b415138664f30d",
+    "crates/telperion-render/src/shaders/canopy.wgsl": "c9c3dff5518b63171375faa0b8c2c17efdba3f969296aa8c82a59f593770d3c0",
+    "crates/telperion-render/src/shaders/common.wgsl": "a6354f4e85a8432ae4d8b1eb5cf36f0691efd7b7408157dbeee1fbbe0450d6c1",
+    "crates/telperion-render/src/shaders/foliage.wgsl": "06e14e2b0b312f7cc22aa02b2cb6c387354b88d0ecdff8eb5050f69b81408e10",
+    "crates/telperion-render/src/shaders/plates.wgsl": "63f62c8ea07f3f6ec62bada22531721ccb1ffbaec9c4f3f204155f4d083b9b50",
+    "crates/telperion-render/src/shaders/scene.wgsl": "38a7bf4ce6ef648627bd0a64e06c511d440d1b83d425293edacec791b8f72a6c",
+    "crates/telperion-render/src/shaders/select.wgsl": "f671252f9b425bd80a6fb3fe6ef088bfc092043bea612ec59697632f7b609d64",
+    "crates/telperion-render/src/shaders/shadow.wgsl": "4ed2c1d25f422e7d55207eebc55a85b6bf7687c5a319711fe722f225b626d429",
+    "crates/telperion-render/src/shaders/sky.wgsl": "9ddc5d461094153d6e14c95d9bd6f7e2693d56de82b7fdbc57300821ac97d40e",
+    "crates/telperion-render/src/shaders/smooth.wgsl": "e17d25c9a9fa9fc205776bf06f64e77ba907126d53e981785b8d1be37fb844b6",
+    "crates/telperion-render/src/shaders/transmission.wgsl": "2f559904ce3bbe23bcc6f245df9c0a8c9e6697dcc31ca712389da85415b48409",
+    "crates/telperion-render/src/shaders/wood.wgsl": "3f9ce7d69b418949809da4e53a47842aec31a58726c3183f6a66ecb3d4877da1"
+  },
+  "captures": {
+    "oak-flat.png": "b7a62dd1575dbc447a5f50dd5e6de6ccb667f530dec07f3f69de9aaa26b80305",
+    "spruce-flat.png": "b1ad2b30dcabc203a6eaaaeca12551e76a36ad3256858d453519625e6774a626"
+  },
+  "status": "colour preview, owner verdict pending",
+  "baseline": "../shape-final",
+  "initial_candidate": "../colour-subtle",
+  "capture_command": "BARK_CAPTURE_DIR=\"$PWD/.flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/colour-final\" CARGO_TARGET_DIR=/home/daniel/Projects/telperion/target cargo test --profile ci -p telperion-render --lib capture_calibrated_bark -- --ignored --nocapture"
+}

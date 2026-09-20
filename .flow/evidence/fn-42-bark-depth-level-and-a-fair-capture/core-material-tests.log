@@ -1,0 +1,13 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+    Finished `ci` profile [optimized] target(s) in 8.78s
+     Running unittests src/lib.rs (/home/daniel/Projects/telperion/target/ci/deps/telperion_core-930a2111ca663f0d)
+
+running 6 tests
+test material::tests::a_value_off_its_range_is_refused_by_its_own_name ... ok
+test material::tests::a_range_that_runs_backwards_is_refused_by_the_pairs_name ... ok
+test material::tests::the_row_every_family_starts_from_is_one_a_leaf_can_be_drawn_from ... ok
+test blend::tests::a_walk_between_two_material_rows_stays_a_row_a_leaf_can_be_drawn_from ... ok
+test params::tests::the_material_row_travels_the_wire_and_is_refused_by_field_name ... ok
+test branching::specimen::shared::tests::fractional_contact_advance_does_not_materialize_numeric_offsets ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 143 filtered out; finished in 0.35s

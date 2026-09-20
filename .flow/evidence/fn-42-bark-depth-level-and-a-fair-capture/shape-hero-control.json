@@ -1,0 +1,10 @@
+{
+  "baseline_revision": "fe86a7a7",
+  "baseline_step": 0.46709338810274237,
+  "candidate_step": 0.4674110917290608,
+  "max_band_ratio_change": 0.0009259476002134726,
+  "absolute_bound": 0.03,
+  "absolute_gate_passed": false,
+  "candidate_source": "final explicit plateEdgeShape material row",
+  "note": "No absolute tolerance changed; owner decision pending on inherited failure."
+}

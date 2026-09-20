@@ -1,0 +1,61 @@
+{
+  "branch": "fn-42-bark-depth-level-and-a-fair-capture",
+  "evidence_dir": ".flow/tmp/qa-fn-42-bark-depth-level-and-a-fair-capture",
+  "findings": {
+    "backend": "interactive",
+    "headSha": "9a3a319b5a8778b3803ce4e7a9f214f355fcc210",
+    "items": [
+      {
+        "body": "Fresh harness sessions log a 404; direct favicon GET confirms it. Rendering and controls work. Evidence: .flow/tmp/qa-fn-42-bark-depth-level-and-a-fair-capture/live-console.log.",
+        "classification": "pre_existing",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-74569dd356acf6cdbfae2d92ced8458e6c94e4acf02f5c3671bce3143eeacccb",
+        "id": "finding-eb24ce7f9f63552b81bcab3de9d43475",
+        "lastSeenReceiptId": "review-74569dd356acf6cdbfae2d92ced8458e6c94e4acf02f5c3671bce3143eeacccb",
+        "ordinal": 1,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "title": "Harness favicon request returns 404"
+      }
+    ],
+    "reviewKind": "qa",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-74569dd356acf6cdbfae2d92ced8458e6c94e4acf02f5c3671bce3143eeacccb"
+  },
+  "head_sha": "9a3a319b5a8778b3803ce4e7a9f214f355fcc210",
+  "id": "fn-42-bark-depth-level-and-a-fair-capture",
+  "mode": "interactive",
+  "open_p0p1": [],
+  "qa_outcome": "SHIP",
+  "rid_coverage": {
+    "covered": 5,
+    "rids": [
+      {
+        "coverage": "backend_cli",
+        "id": "R1"
+      },
+      {
+        "coverage": "live",
+        "id": "R2"
+      },
+      {
+        "coverage": "live",
+        "id": "R3"
+      },
+      {
+        "coverage": "backend_cli",
+        "id": "R4"
+      },
+      {
+        "coverage": "live",
+        "id": "R5"
+      }
+    ],
+    "total": 5
+  },
+  "timestamp": "2026-09-19T23:20:23.372419+00:00",
+  "type": "qa_verdict",
+  "verdict": "SHIP"
+}

@@ -1,0 +1,102 @@
+{
+  "adapter": "AdapterInfo { name: \"NVIDIA GeForce RTX 3080\", vendor: 4318, device: 8710, device_type: DiscreteGpu, device_pci_bus_id: \"0000:07:00.0\", driver: \"NVIDIA\", driver_info: \"610.57.04\", backend: Vulkan, subgroup_min_size: 32, subgroup_max_size: 32, transient_saves_memory: Some(false), limit_bucket: None }",
+  "bounds_view": "whole",
+  "camera": {
+    "far": 801.2,
+    "field_of_view": 45.0,
+    "near": 0.1,
+    "position": [
+      0.5999999999999999,
+      1.1614608238424255,
+      1.0392304845413265
+    ],
+    "target": [
+      0.0,
+      1.1614608238424255,
+      0.0
+    ]
+  },
+  "camera_moved": false,
+  "clay_view": "clay",
+  "figure": false,
+  "generator": "direct mature mesh::build",
+  "height": 1440,
+  "material_debug": "MaterialParams { bark_red: 0.54, bark_green: 0.5, bark_blue: 0.44, bark_roughness: 0.95, shoot_red: 0.14, shoot_green: 0.13, shoot_blue: 0.085, shoot_radius: 0.004, leaf_front_red: 0.08, leaf_front_green: 0.15, leaf_front_blue: 0.05, leaf_back_red: 0.21, leaf_back_green: 0.28, leaf_back_blue: 0.15, hue_range_low: -0.02, hue_range_high: 0.02, brightness_range_low: -0.1, brightness_range_high: 0.1, interior_darkening: 0.35, ridge_scale: 0.002, plate_scale: 0.04, furrow_strength: 0.0, roughness_detail: 0.08, vein_scale: 7.0, vein_contrast: 0.4, transmission_strength: 0.5, transmission_red: 0.22, transmission_green: 0.5, transmission_blue: 0.08, thickness: 0.6, fissure_red: -0.04, fissure_green: -0.03, fissure_blue: -0.02, fissure_strength: 0.0, crest_red: 0.06, crest_green: 0.055, crest_blue: 0.045, crest_strength: 0.0, bark_mottle_scale: 0.12, bark_mottle_strength: 0.1, cavity_strength: 0.35, blade_mottle_scale: 5.0, blade_mottle_strength: 0.1, margin_width: 0.04, margin_red: 0.02, margin_green: 0.04, margin_blue: 0.008, cuticle_gloss: 0.18, sky_occlusion_strength: 0.35, plate_cell_scale: 0.0, plate_elongation: 0.0, plate_dome: 0.0, plate_edge_lift: 0.0, plate_furrow_width: 0.0, plate_identity: 0.0, weathering_strength: 0.0, weathering_red: 0.0, weathering_green: 0.0, weathering_blue: 0.0, orientation_strength: 0.0, orientation_red: 0.0, orientation_green: 0.0, orientation_blue: 0.0, directional_occlusion: 0.0, depth_strength: 0.0, canopy_normal: 0.8, light_wrap: 0.4, diffuse_transmission: 1.0, leaf_sheen: 0.08, crown_shade: 0.1, lichen_scale: 0.04, lichen_coverage: 0.5, lichen_red: 0.8, lichen_green: 0.82, lichen_blue: 0.76, lichen_strength: 1.0, lenticel_density: 6.0, lenticel_length: 0.08, lenticel_strength: 0.25, lenticel_tint: -0.3, peel_curl: 0.0, peel_red: 0.0, peel_green: 0.0, peel_blue: 0.0, lobe_shade: 0.7, bark_reflectance: 0.04, leaf_reflectance: 0.04, bark_grain_scale: 0.002, bark_grain_strength: 0.3, blade_grain_scale: 90.0, blade_grain_strength: 0.3 }",
+  "material_view": "bare",
+  "metric_command": "uv run --with numpy --with pillow .flow/evidence/fn71/sweep.py /home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/.flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/sweep/beech beech",
+  "preset": "EuropeanBeech",
+  "protocol": ".flow/evidence/fn71/sweep.py",
+  "purpose": "numeric footprint diagnostics only",
+  "reductions": [
+    {
+      "factor": 1.5,
+      "file": "beech-r1.5.png",
+      "height": 960,
+      "width": 1440
+    },
+    {
+      "factor": 2.0,
+      "file": "beech-r2.png",
+      "height": 720,
+      "width": 1080
+    },
+    {
+      "factor": 3.0,
+      "file": "beech-r3.png",
+      "height": 480,
+      "width": 720
+    },
+    {
+      "factor": 4.0,
+      "file": "beech-r4.png",
+      "height": 360,
+      "width": 540
+    },
+    {
+      "factor": 6.0,
+      "file": "beech-r6.png",
+      "height": 240,
+      "width": 360
+    },
+    {
+      "factor": 8.0,
+      "file": "beech-r8.png",
+      "height": 180,
+      "width": 270
+    }
+  ],
+  "samples": 4,
+  "scene": {
+    "casterStride": 4.0,
+    "casterTexels": 1.0,
+    "groundBlue": 0.07,
+    "groundGreen": 0.12,
+    "groundRed": 0.11,
+    "shadowFilterTexels": 1.0,
+    "shadowNormalOffset": 1.0,
+    "skyHorizonBlue": 0.8,
+    "skyHorizonGreen": 0.66,
+    "skyHorizonRed": 0.55,
+    "skyZenithBlue": 0.62,
+    "skyZenithGreen": 0.3,
+    "skyZenithRed": 0.18,
+    "sunAzimuth": 135.0,
+    "sunBlue": 2.6,
+    "sunElevation": 55.0,
+    "sunGreen": 2.85,
+    "sunRed": 3.0
+  },
+  "seed": 1,
+  "shot": {
+    "azimuth": 30,
+    "distance": 1.2,
+    "elevation": 0,
+    "fill": 1,
+    "fov": 45,
+    "targetHeight": 0.04
+  },
+  "source_commit": "fe86a7a7bf991c0834b5a7d0ad712f955207dda3",
+  "source_status": "M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/FRICTION.md\n M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/REFERENCE-DECISION.md\n M .flow/evidence/fn71/resolution/bark_distance.json\n M .flow/evidence/fn71/resolution/bark_resolution_grazing.json\n M .flow/evidence/fn71/resolution/bark_resolution_trunk.json\n M .flow/evidence/fn71/resolution/smooth_bark.json\n M .flow/specs/fn-42-bark-depth-level-and-a-fair-capture.json\n M .flow/specs/fn-42-bark-depth-level-and-a-fair-capture.md\n M .flow/tasks/fn-42-bark-depth-level-and-a-fair-capture.1.json\n M .flow/tasks/fn-42-bark-depth-level-and-a-fair-capture.1.md\n M crates/telperion-core/src/presets/materials.rs\n M crates/telperion-render/src/shaders/wood.wgsl\n M crates/telperion-render/src/wood/calibration.rs\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/CANDIDATE.md\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/PARALLAX.md\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/TIMING.md\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/beech-sweep.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/candidate-capture.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/candidate-gates-final.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/candidate-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/candidate/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/distance-without-oak-grain.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/oak-views.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/parallax-green.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/parallax-red.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/remaining-gates.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/review.html\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/spruce-views.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/timing-baseline-status.json\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/timing-helper-test.log\n?? crates/telperion-render/tests/bark_evidence.rs\n?? crates/telperion-render/tests/bark_parallax.rs\n?? crates/telperion-render/tests/bark_sweep_evidence.rs",
+  "species": "beech",
+  "width": 2160
+}

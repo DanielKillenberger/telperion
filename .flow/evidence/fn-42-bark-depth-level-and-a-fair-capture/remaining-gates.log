@@ -1,0 +1,76 @@
+   Compiling serde_derive v1.0.229
+   Compiling serde v1.0.229
+   Compiling slotmap v1.1.1
+   Compiling bincode v1.3.3
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 8.38s
+     Running tests/bark_resolution.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_resolution-8c089c2de9f6af10)
+
+running 2 tests
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... OregonWhiteOak grazing: 6178 pixels, mean 2.697367/255, p95 8.75/255, redraw worst 0/255
+OregonWhiteOak plain grazing: (0.77034099492824, 2.0)
+NorwaySpruce grazing: 2962 pixels, mean 2.980475/255, p95 8.25/255, redraw worst 0/255
+NorwaySpruce plain grazing: (0.6917623227548954, 1.75)
+ok
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... trunk redraw worst 0/255
+trunk resolution agreement: mean 1.790967/255, p95 6.00/255
+plain trunk diagnostic (mean, p95): (0.542490243342516, 1.5)
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.13s
+
+     Running tests/bark_structure.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_structure-8dc677db8f6794ed)
+
+running 1 test
+test mature_girth_strengthens_an_axial_field ... mature trunk/branch height deviation 3.081483286328609; across/along slope 2.077718358156895
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+
+     Running tests/bark_structure_colour.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_structure_colour-e48e9a8d70a1dedb)
+
+running 1 test
+test each_structure_colour_row_changes_the_picture_and_moves_no_wood ... weathering: mean 0.8013/255 over the trunk frame
+orientation: mean 0.7947/255 over the trunk frame
+plate identity: mean 2.0921/255 over the trunk frame
+the oak's shipped row against the same row before fn-32: mean 4.7664/255
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.44s
+
+     Running tests/grain.rs (/home/daniel/Projects/telperion/target/ci/deps/grain-d7f9aae62a7252c7)
+
+running 2 tests
+test bark_grain_shows_near_and_is_its_mean_far ... distance 0.5: 756903 channels moved, worst 44, mean 3.9124
+distance 8: 90003 channels moved, worst 21, mean 0.1405
+ok
+test blade_grain_shows_near_and_is_its_mean_far ... distance 0.12: 91468 channels moved, worst 19, mean 1.1440
+distance 6: 0 channels moved, worst 0, mean 0.0000
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.77s
+
+     Running tests/smooth_bark.rs (/home/daniel/Projects/telperion/target/ci/deps/smooth_bark-217dbc934c1c28f0)
+
+running 2 tests
+test each_smooth_layer_changes_the_close_up_and_moves_no_wood ... lichen: mean 0.9673/255 over the birch's close-up
+lenticel: mean 1.5301/255 over the birch's close-up
+peel: mean 6.0332/255 over the birch's close-up
+ok
+test the_smooth_barks_hold_the_resolution_and_redraw_contracts ... EuropeanBeech close-up: 310804 pixels, mean 1.0568/255, p95 3.25/255
+SilverBirch close-up: 117234 pixels, mean 2.5596/255, p95 9.50/255
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 21.71s
+
+     Running tests/smooth_means.rs (/home/daniel/Projects/telperion/target/ci/deps/smooth_means-4e34f4c2e5860c00)
+
+running 1 test
+test every_smooth_layer_fades_to_the_mean_its_field_averages_to ... share 0.25: lichen 0.0304 far 0.0305, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 0.25 0.5680 far 0.5956
+share 0.5: lichen 0.0640 far 0.0641, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 0.5 0.6050 far 0.6382
+share 0.75: lichen 0.0959 far 0.0960, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 0.75 0.6594 far 0.6868
+share 1: lichen 0.1245 far 0.1246, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 1 0.7203 far 0.7371
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.28s

@@ -1,0 +1,107 @@
+{
+  "comparison": "host assigns baseline/candidate from revision; only valid reports support cost comparisons",
+  "flat": {
+    "camera": {
+      "far": 100.0,
+      "field_of_view": 38.0,
+      "near": 0.01,
+      "position": [
+        0.0,
+        2.0,
+        0.5808421755351646
+      ],
+      "target": [
+        0.0,
+        2.0,
+        0.0
+      ]
+    },
+    "figure": false,
+    "horizontal_strips": 128,
+    "label": "flat full-screen bark cost; not cylindrical trunk geometry",
+    "physical_height_metres": 0.4,
+    "physical_width_metres": 0.64,
+    "radius_metres": 0.4,
+    "report": "oak-flat-fullscreen-timing.json",
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 45.0,
+      "sunBlue": 2.6,
+      "sunElevation": 55.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "verdict": "valid",
+    "view": "bare"
+  },
+  "material_debug": "MaterialParams { bark_red: 0.225, bark_green: 0.218, bark_blue: 0.198, bark_roughness: 0.85, shoot_red: 0.225, shoot_green: 0.218, shoot_blue: 0.198, shoot_radius: 0.0, leaf_front_red: 0.028, leaf_front_green: 0.102, leaf_front_blue: 0.016, leaf_back_red: 0.153, leaf_back_green: 0.254, leaf_back_blue: 0.112, hue_range_low: -0.03, hue_range_high: 0.03, brightness_range_low: -0.15, brightness_range_high: 0.15, interior_darkening: 0.55, ridge_scale: 0.032, plate_scale: 0.055, furrow_strength: 1.0, roughness_detail: 0.12, vein_scale: 7.0, vein_contrast: 0.45, transmission_strength: 0.55, transmission_red: 0.24, transmission_green: 0.52, transmission_blue: 0.07, thickness: 0.65, fissure_red: -0.1, fissure_green: -0.05, fissure_blue: 0.005, fissure_strength: 0.65, crest_red: 0.1, crest_green: 0.085, crest_blue: 0.055, crest_strength: 0.5, bark_mottle_scale: 0.8, bark_mottle_strength: 0.2, cavity_strength: 0.6, blade_mottle_scale: 6.0, blade_mottle_strength: 0.15, margin_width: 0.08, margin_red: 0.025, margin_green: 0.035, margin_blue: 0.006, cuticle_gloss: 0.35, sky_occlusion_strength: 0.5, plate_cell_scale: 0.084, plate_elongation: 1.8, plate_dome: 0.41875, plate_edge_lift: 0.27, plate_furrow_width: 0.0, plate_identity: 0.5, weathering_strength: 0.425, weathering_red: 0.0225, weathering_green: 0.035, weathering_blue: 0.00575, orientation_strength: 0.40625, orientation_red: -0.062, orientation_green: 0.009, orientation_blue: -0.1535, directional_occlusion: 1.0, depth_strength: 0.5375, canopy_normal: 0.0, light_wrap: 0.0, diffuse_transmission: 0.0, leaf_sheen: 0.0, crown_shade: 0.0, lichen_scale: 0.0, lichen_coverage: 0.0, lichen_red: 0.0, lichen_green: 0.0, lichen_blue: 0.0, lichen_strength: 0.0, lenticel_density: 0.0, lenticel_length: 0.0, lenticel_strength: 0.0, lenticel_tint: 0.0, peel_curl: 0.0, peel_red: 0.0, peel_green: 0.0, peel_blue: 0.0, lobe_shade: 0.0, bark_reflectance: 0.04, leaf_reflectance: 0.04, bark_grain_scale: 0.0, bark_grain_strength: 0.0, blade_grain_scale: 0.0, blade_grain_strength: 0.0 }",
+  "preset": "oregon-white-oak",
+  "protocol": {
+    "conditioning": 8,
+    "initial_render": 1,
+    "measured": 120,
+    "warmup": 8
+  },
+  "samples": 4,
+  "seed": 7,
+  "size": [
+    1600,
+    1000
+  ],
+  "source_commit": "aec1a7dc4a5faa01c60186f47d1679df85ee19ae",
+  "source_status": "M .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/FRICTION.md\n M .flow/evidence/fn71/resolution/bark_distance.json\n M .flow/evidence/fn71/resolution/bark_resolution_grazing.json\n M .flow/evidence/fn71/resolution/bark_resolution_trunk.json\n M .flow/specs/fn-42-bark-depth-level-and-a-fair-capture.json\n M .flow/specs/fn-42-bark-depth-level-and-a-fair-capture.md\n M .flow/tasks/fn-42-bark-depth-level-and-a-fair-capture.1.json\n M crates/telperion-core/src/presets/materials.rs\n M crates/telperion-render/src/shaders/wood.wgsl\n M crates/telperion-render/src/wood/calibration.rs\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-before.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/native-before/\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-capture.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-dense-filtering.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-filtering.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-parallax-isolation.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief-range.log\n?? .flow/evidence/fn-42-bark-depth-level-and-a-fair-capture/relief/\n?? crates/telperion-render/tests/bark_relief_range.rs",
+  "whole": {
+    "camera": {
+      "far": 842.428055559569,
+      "field_of_view": 38.0,
+      "near": 0.1,
+      "position": [
+        21.776934397820636,
+        21.55303787058397,
+        34.96043467597899
+      ],
+      "target": [
+        0.02728089386353627,
+        11.73061370750657,
+        -0.11965162072600677
+      ]
+    },
+    "figure": true,
+    "label": "direct mature whole-tree oak cost",
+    "report": "oak-whole-timing.json",
+    "scene": {
+      "casterStride": 4.0,
+      "casterTexels": 1.0,
+      "groundBlue": 0.07,
+      "groundGreen": 0.12,
+      "groundRed": 0.11,
+      "shadowFilterTexels": 1.0,
+      "shadowNormalOffset": 1.0,
+      "skyHorizonBlue": 0.8,
+      "skyHorizonGreen": 0.66,
+      "skyHorizonRed": 0.55,
+      "skyZenithBlue": 0.62,
+      "skyZenithGreen": 0.3,
+      "skyZenithRed": 0.18,
+      "sunAzimuth": 135.0,
+      "sunBlue": 2.6,
+      "sunElevation": 55.0,
+      "sunGreen": 2.85,
+      "sunRed": 3.0
+    },
+    "verdict": "valid",
+    "view": "whole"
+  }
+}

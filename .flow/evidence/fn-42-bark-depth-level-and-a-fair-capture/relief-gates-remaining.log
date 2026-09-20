@@ -1,0 +1,101 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 6.04s
+     Running tests/bark_plates.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_plates-83e764f2da7d2d65)
+
+running 2 tests
+test every_plate_carries_an_identity_of_its_own ... identity: 11159 adjacent pairs share a plate, 1743 at a plate's width, variance 0.0833
+ok
+test the_pinned_plate_mean_is_the_mean_the_field_averages_to ... oak (furrow 0.15): face 0.4035 model 0.4009, dome 0.1995 model 0.1988, rim 0.3065 model 0.3052
+spruce (furrow 0): face 0.5291 model 0.5208, dome 0.2875 model 0.2839, rim 0.3992 model 0.3891
+a furrow of 0.25 (furrow 0.25): face 0.3389 model 0.3368, dome 0.1568 model 0.1567, rim 0.2607 model 0.2596
+a furrow of 0.6 (furrow 0.6): face 0.1794 model 0.1829, dome 0.0654 model 0.0682, rim 0.1457 model 0.1473
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.23s
+
+     Running tests/bark_relief_range.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_relief_range-5e5432dfd13d584c)
+
+running 1 test
+test oak_and_spruce_profiles_increase_resolved_height_range ... oak physical height p95-p5: before 0.005170198 m, after 0.006104920 m, ratio 1.180790; radius .4m, square .4m, footprint .001m, 128x128 samples
+spruce physical height p95-p5: before 0.002778761 m, after 0.003443931 m, ratio 1.239377; radius .4m, square .4m, footprint .001m, 128x128 samples
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s
+
+     Running tests/bark_resolution.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_resolution-8c089c2de9f6af10)
+
+running 2 tests
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... OregonWhiteOak grazing: 6178 pixels, mean 2.476678/255, p95 7.75/255, redraw worst 0/255
+OregonWhiteOak plain grazing: (0.77034099492824, 2.0)
+NorwaySpruce grazing: 2962 pixels, mean 2.807084/255, p95 8.00/255, redraw worst 0/255
+NorwaySpruce plain grazing: (0.6917623227548954, 1.75)
+ok
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... trunk redraw worst 0/255
+trunk resolution agreement: mean 1.528771/255, p95 5.50/255
+plain trunk diagnostic (mean, p95): (0.542490243342516, 1.5)
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.64s
+
+     Running tests/bark_structure.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_structure-8dc677db8f6794ed)
+
+running 1 test
+test mature_girth_strengthens_an_axial_field ... mature trunk/branch height deviation 3.081483286328609; across/along slope 2.077718358156895
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+     Running tests/bark_structure_colour.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_structure_colour-e48e9a8d70a1dedb)
+
+running 1 test
+test each_structure_colour_row_changes_the_picture_and_moves_no_wood ... weathering: mean 1.2192/255 over the trunk frame
+orientation: mean 0.8204/255 over the trunk frame
+plate identity: mean 1.9518/255 over the trunk frame
+the oak's shipped row against the same row before fn-32: mean 5.7084/255
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.74s
+
+     Running tests/grain.rs (/home/daniel/Projects/telperion/target/ci/deps/grain-d7f9aae62a7252c7)
+
+running 2 tests
+test bark_grain_shows_near_and_is_its_mean_far ... distance 0.5: 756229 channels moved, worst 45, mean 3.8738
+distance 8: 89981 channels moved, worst 21, mean 0.1398
+ok
+test blade_grain_shows_near_and_is_its_mean_far ... distance 0.12: 91468 channels moved, worst 19, mean 1.1440
+distance 6: 0 channels moved, worst 0, mean 0.0000
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.51s
+
+     Running tests/material_shaders.rs (/home/daniel/Projects/telperion/target/ci/deps/material_shaders-9efc940a1c677f0b)
+
+running 1 test
+test production_material_stages_validate_with_uniform_derivatives ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/smooth_bark.rs (/home/daniel/Projects/telperion/target/ci/deps/smooth_bark-217dbc934c1c28f0)
+
+running 2 tests
+test each_smooth_layer_changes_the_close_up_and_moves_no_wood ... lichen: mean 0.9688/255 over the birch's close-up
+lenticel: mean 1.5357/255 over the birch's close-up
+peel: mean 6.1041/255 over the birch's close-up
+ok
+test the_smooth_barks_hold_the_resolution_and_redraw_contracts ... EuropeanBeech close-up: 310804 pixels, mean 1.0186/255, p95 3.25/255
+SilverBirch close-up: 117234 pixels, mean 2.3676/255, p95 8.50/255
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 20.67s
+
+     Running tests/smooth_means.rs (/home/daniel/Projects/telperion/target/ci/deps/smooth_means-4e34f4c2e5860c00)
+
+running 1 test
+test every_smooth_layer_fades_to_the_mean_its_field_averages_to ... share 0.25: lichen 0.0304 far 0.0305, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 0.25 0.5680 far 0.5956
+share 0.5: lichen 0.0640 far 0.0641, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 0.5 0.6050 far 0.6382
+share 0.75: lichen 0.0959 far 0.0960, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 0.75 0.6594 far 0.6868
+share 1: lichen 0.1245 far 0.1246, lenticel 0.0960 far 0.0978, its groove 0.0955 far 0.0978, a strip curled 1 0.7203 far 0.7371
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.78s

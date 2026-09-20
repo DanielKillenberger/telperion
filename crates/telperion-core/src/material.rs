@@ -92,6 +92,8 @@ pub struct MaterialParams {
     /// own width, so a bigger plate carries a wider furrow off one row. Zero
     /// leaves the hairline the network has always cut between two faces.
     pub plate_furrow_width: f64,
+    /// Blend from rounded plate edges to narrow chipped scales; independent of lichen/lenticel/peel.
+    pub plate_edge_shape: f64,
     /// How much of its own a plate keeps: how proud it stands, how it leans,
     /// and the value and cast it holds against its neighbours.
     pub plate_identity: f64,
@@ -242,6 +244,7 @@ impl Default for MaterialParams {
             plate_dome: 0.0,
             plate_edge_lift: 0.0,
             plate_furrow_width: 0.0,
+            plate_edge_shape: 0.0,
             plate_identity: 0.0,
             weathering_strength: 0.0,
             weathering_red: 0.0,
@@ -328,6 +331,7 @@ impl MaterialParams {
             (self.plate_dome, 0.0, 1.0, "bark plate dome"),
             (self.plate_edge_lift, 0.0, 1.0, "bark plate edge lift"),
             (self.plate_furrow_width, 0.0, 1.0, "bark plate furrow width"),
+            (self.plate_edge_shape, 0.0, 1.0, "bark plate edge shape"),
             (self.plate_identity, 0.0, 1.0, "bark plate identity"),
             (
                 self.weathering_strength,
