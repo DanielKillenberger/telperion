@@ -1,6 +1,19 @@
+mod fixture;
+
 use serde_json::{json, Value};
 use std::{fs, path::Path};
 use telperion_jev::tuning::{command, live::Config};
+
+/// Never reached in these tests: the key source fails first, by design.
+struct NoDispatch;
+impl telperion_jev::caller::Transport for NoDispatch {
+    fn send(
+        &self,
+        _: &telperion_jev::caller::HttpRequest,
+    ) -> Result<telperion_jev::caller::HttpResponse, String> {
+        panic!("a pre-dispatch test dispatched")
+    }
+}
 
 fn write(path: &Path, value: &Value) {
     fs::write(path, serde_json::to_vec_pretty(value).unwrap()).unwrap();
@@ -660,4 +673,117 @@ fn priority_approval_resume_must_re_carry_exact_cap_pilot_authority() {
     resumed.pilot_authority().unwrap();
     assert_eq!(resumed.authorizations.len(), 1);
     fs::remove_dir_all(root).unwrap();
+}
+
+/// The audited opening balance the canonical run would carry.
+fn opening() -> Value {
+    json!({"evaluations":6,"images":30,"tokens":688_550,"rounds":2,
+        "max_evaluations":13,"max_images":52,"max_tokens":902_431,"max_rounds":3,
+        "visual_passes":25,"max_visual_passes":26})
+}
+
+#[test]
+fn a_verifying_config_pauses_for_authority_then_charges_preparation_exactly_once() {
+    let f = fixture::verifying_fixture(opening());
+    let config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    config
+        .verify()
+        .expect("the fixture must pass the real Config::verify");
+    let identity = config.identity().unwrap();
+    let no_key = || Err::<String, String>("fixture stops before dispatch".into());
+
+    // (i) Calibration is satisfied, so the run stops on authority, not calibration.
+    let error = command::run_with(&f.config_path, &f.out, None, &NoDispatch, &no_key).unwrap_err();
+    assert!(error.contains("scoped experimental authority"), "{error}");
+    let state = f.run_json();
+    assert_eq!(
+        state["pause"]["basis"]["proposed_action"],
+        "authorize bounded experimental pilot"
+    );
+    assert_eq!(state["preparation_charge"], Value::Null);
+    assert_eq!(state["budget"]["tokens"], 688_550);
+    assert_eq!(state["budget"]["visual_passes"], 25);
+
+    // (ii) Scoped authority lets the run reach preparation, which is charged once.
+    let decision = f.root.join("authority.json");
+    let authority = json!({"purpose":"bounded offline fixture","reason":"synthetic",
+        "next_identity":identity,"max_tokens":902_431,"max_rounds":3,"max_evaluations":13,
+        "max_images":52,"max_visual_passes":26});
+    let mut d = json!({"pause_id":state["pause"]["id"],"identity":state["identity"],
+        "action":"authorize bounded experimental pilot","by":"fixture owner",
+        "rationale":"synthetic scoped authority","experimental_pilot":authority});
+    write(&decision, &d);
+    let error = command::run_with(
+        &f.config_path,
+        &f.out,
+        Some(&decision),
+        &NoDispatch,
+        &no_key,
+    )
+    .unwrap_err();
+    assert!(error.contains("fixture stops before dispatch"), "{error}");
+    let charged = f.run_json();
+    let opening_tokens = 688_550u64;
+    let charge = charged["preparation_charge"].clone();
+    assert!(charge.is_object(), "preparation was not charged");
+    let tokens = charge["tokens"].as_u64().unwrap();
+    assert_eq!(charge["visual_attempts"], 1);
+    assert_eq!(charged["budget"]["tokens"], opening_tokens + tokens);
+    assert_eq!(charged["budget"]["visual_passes"], 26);
+
+    // A repeated resume re-verifies the same pins without charging again.
+    for _ in 0..2 {
+        let paused = f.run_json();
+        d["pause_id"] = paused["pause"]["id"].clone();
+        d["identity"] = paused["identity"].clone();
+        d["action"] = paused["pause"]["basis"]["proposed_action"].clone();
+        write(&decision, &d);
+        command::run_with(
+            &f.config_path,
+            &f.out,
+            Some(&decision),
+            &NoDispatch,
+            &no_key,
+        )
+        .unwrap_err();
+        let again = f.run_json();
+        assert_eq!(again["budget"]["tokens"], opening_tokens + tokens);
+        assert_eq!(again["budget"]["visual_passes"], 26);
+        assert_eq!(again["preparation_charge"], charge);
+    }
+
+    // An interrupted attempt is recorded, and recovering it changes no counter.
+    let mut interrupted = f.run_json();
+    interrupted["pending"] = json!("candidate evaluation");
+    interrupted["pause"] = Value::Null;
+    write(&f.out.join("run.json"), &interrupted);
+    let error = command::run_with(
+        &f.config_path,
+        &f.out,
+        Some(&decision),
+        &NoDispatch,
+        &no_key,
+    )
+    .unwrap_err();
+    assert!(error.contains("interruption recorded"), "{error}");
+    let recorded = f.run_json();
+    assert_eq!(recorded["budget"]["tokens"], opening_tokens + tokens);
+    d["pause_id"] = recorded["pause"]["id"].clone();
+    d["identity"] = recorded["identity"].clone();
+    d["action"] = recorded["pause"]["basis"]["proposed_action"].clone();
+    d["recover_interrupted"] = json!(true);
+    write(&decision, &d);
+    command::run_with(
+        &f.config_path,
+        &f.out,
+        Some(&decision),
+        &NoDispatch,
+        &no_key,
+    )
+    .unwrap_err();
+    let recovered = f.run_json();
+    assert_eq!(recovered["budget"]["tokens"], opening_tokens + tokens);
+    assert_eq!(recovered["budget"]["visual_passes"], 26);
+    assert_eq!(recovered["preparation_charge"], charge);
+    f.cleanup();
 }
