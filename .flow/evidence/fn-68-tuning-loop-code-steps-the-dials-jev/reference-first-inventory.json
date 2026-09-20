@@ -1,0 +1,143 @@
+{
+  "effort": "medium",
+  "ledger": ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/reference-first-a-receipt.json#sha256:f1b1384d6c6b300e3cdffeb783973f2b72f2a2406b1d17096c878b4a01f69014",
+  "model": "gpt-6-astra",
+  "observations": [
+    "Ranking reflects visible recognition cues in these references, not proof that any individual trait uniquely identifies the species.",
+    "The relationships among the photographed trees and the bark detail are unknown; no shared specimen or causal change is assumed.",
+    "Leaf arrangement, precise leaf shape, buds, flowers, and fruit are not sufficiently visible for a confident inventory.",
+    "Descriptions record appearance only; age, season, growing conditions, pruning history, and causes of surface markings are not established."
+  ],
+  "prompt_sha256": "b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911",
+  "request": {
+    "protocol": "reference-first-v1",
+    "references": [
+      {
+        "id": "reference-0",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+          "seed": 1,
+          "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+          "view": "B-WHOLE"
+        }
+      },
+      {
+        "id": "reference-1",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+          "seed": 1,
+          "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+          "view": "B-BARE"
+        }
+      }
+    ],
+    "specimen_relationship": "unknown",
+    "target_species": "European beech / Fagus sylvatica"
+  },
+  "request_sha256": "e05cfaf3d7f67a0bbb5b632a14786adba7e35774d23c47178745815392c94591",
+  "traits": [
+    {
+      "id": "crown_outline",
+      "observation": "Tall, substantial crown with a broad lower-to-middle spread and a narrowing, softly irregular top. Overall outlines range from broadly tapered to rounded upright; many fine projecting tips soften the perimeter.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0",
+        "reference-1"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "branch_architecture",
+      "observation": "Strong upright trunk framework divides into ascending limbs, with lateral branches extending broadly outward. The bare crown shows repeated subdivision into a dense network of fine twigs; outer branches become increasingly slender.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0",
+        "reference-1"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "bark_surface",
+      "observation": "The bark close-up shows a gray, largely smooth and continuous surface with fine texture and subdued shallow markings, without prominent deep furrows or thick plates.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-1"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "foliage_layering",
+      "observation": "Foliage forms numerous overlapping sprays and irregular leafy masses. The left leafy view has especially clear lateral shelves; the right has fuller, more interlocking masses. Dark recesses and small openings preserve visible depth within the crown.",
+      "priority": "core",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "foliage_visual_grain",
+      "observation": "Leaves read as small, numerous broadleaf elements relative to the large crown, producing a fine, busy surface rather than a few coarse leaf clusters. Individual leaf outlines, margins, and venation are insufficiently resolved.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": true
+    },
+    {
+      "id": "trunk_base",
+      "observation": "Exposed lower trunks are stout and widen at ground contact into modest spreading root flares. Their bases are irregular rather than perfectly cylindrical.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0",
+        "reference-1"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "lower_branch_reach",
+      "observation": "Lower leafy branches reach well beyond the trunk, with some outer sprays slanting or hanging downward. Foliage descends relatively low around portions of the crown while leaving the trunk base visible.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "bark_mottling",
+      "observation": "The close-up contains scattered pale gray to whitish spots and irregular patches over a darker gray background, with faint linear marks. The image does not establish the material or cause of these patches.",
+      "priority": "secondary",
+      "reference_ids": [
+        "reference-1"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "foliage_color_range",
+      "observation": "Visible foliage ranges from muted yellow-green and medium green on exposed sprays to deep green in recessed areas. Color is uneven across each crown; its causes cannot be separated from these images alone.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "framework_variation",
+      "observation": "The leafy views include a visibly divided lower framework on the left and a more dominant single exposed trunk on the right. Crown symmetry, apparent density, and the prominence of horizontal layers also differ.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0"
+      ],
+      "uncertain": false
+    },
+    {
+      "id": "foliage_presence",
+      "observation": "Both densely leafy crowns and a bare, finely branched crown are supplied. The bare view exposes a tapered upright framework and extensive twig ramification. No transition between these photographed states is established.",
+      "priority": "variation",
+      "reference_ids": [
+        "reference-0",
+        "reference-1"
+      ],
+      "uncertain": false
+    }
+  ]
+}

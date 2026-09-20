@@ -91,6 +91,12 @@ This spec turns the probe into the loop a species round runs: code steps the dia
 
 ## Decision Context
 
+### Reference-first review and role routing, 2026-09-20
+
+- The owner accepted Astra medium for initial gap discovery and final readiness, Opus for cheaper targeted intermediate checks, and Jev for text routing/progress. Astra remains provisional pending independent gap-detection evidence; a relative ranking is not role qualification. [user, relayed by host]
+- First inventory the reference-defining visible morphology without candidate images or owner assessments. Then compare the candidate against the frozen attributed inventory, explicitly accounting for every core trait. Unknown or missing core evidence cannot be silently downgraded; supported positive coverage must have a reachable finish. This is a new unqualified visual protocol, not activation of an old calibration receipt. [host design]
+- The owner authorized one two-stage Astra-medium development experiment, two existing reference images followed by the existing five-image comparison, no renders or retries; cumulative ceiling550000, combined reservations60000. It remains a known beech development case, not held-out generalization. [user, relayed by host]
+
 ### Joint visual diagnosis and independent evaluation, 2026-09-20
 
 - The owner asks to build the pipeline so the reviewer identifies important gaps from its evidence and instructions without being given the owner's assessment as the answer. This clarifies R8-R10. [user]

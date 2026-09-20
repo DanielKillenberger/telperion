@@ -1,0 +1,10 @@
+{
+  "authority": "Owner answered YES to raise cumulative ceiling520000 to550000 for two-stage Astra-medium test, max60000 combined reservations, existing images, no retries",
+  "prior_actual_tokens": 475672,
+  "reserve": 25000,
+  "cap": 550000,
+  "attempted_visual_passes": 18,
+  "frozen_sha256": "c43f792da7c929571188e4db3c2b88699b6a680c8a6983e125385b646532759b",
+  "status": "reserved_before_dispatch",
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e"
+}

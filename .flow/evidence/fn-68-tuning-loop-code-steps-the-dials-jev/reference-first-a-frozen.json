@@ -1,0 +1,75 @@
+{
+  "request_sha256": "e05cfaf3d7f67a0bbb5b632a14786adba7e35774d23c47178745815392c94591",
+  "request_file_sha256": "1bdd55ddbc7cf3fa2d9e866732189f0f963867bc774132f696092cd2dfc48423",
+  "adapter_sha256": "0fe7e0dde45ed3c7ee9a080c1061906069e533db388d96542be456bc56128f28",
+  "prompt": "Inspect only the supplied reference images of the factual target species. Inventory the visible morphology that most defines recognition and believable reference character, ranked by importance. Use stable trait IDs; distinguish core recognition traits, secondary traits and acceptable variation. Cite reference IDs for each observed trait, mark uncertainty, and separate observations from possible causes. Do not infer that photographs show the same specimen or a causal change; their relationship is unknown. Do not assume a candidate, its defects, or any owner's assessment. Do not require photorealism or exact pixel matching. Inventory visible evidence rather than proposing a generator mechanism. Missing or ambiguous evidence must remain uncertain.\nDo not use tools or inspect files. Attached images follow metadata order. Return JSON only.\n{\"protocol\": \"reference-first-v1\", \"references\": [{\"id\": \"reference-0\", \"image\": {\"path\": \"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg\", \"seed\": 1, \"sha256\": \"855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6\", \"view\": \"B-WHOLE\"}}, {\"id\": \"reference-1\", \"image\": {\"path\": \"/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg\", \"seed\": 1, \"sha256\": \"7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d\", \"view\": \"B-BARE\"}}], \"specimen_relationship\": \"unknown\", \"target_species\": \"European beech / Fagus sylvatica\"}",
+  "prompt_sha256": "1f3ef7299f83d02e7ee7c78c21cbdcfa30c91d0bfd8b6565185ebc1a33bff7c1",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "traits": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "priority": {
+              "type": "string",
+              "enum": [
+                "core",
+                "secondary",
+                "variation"
+              ]
+            },
+            "observation": {
+              "type": "string"
+            },
+            "reference_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "uncertain": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "priority",
+            "observation",
+            "reference_ids",
+            "uncertain"
+          ]
+        }
+      },
+      "observations": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "traits",
+      "observations"
+    ]
+  },
+  "schema_sha256": "4c13c160206ee1491a194676a627beccdc5e53d97adad294646e2d74ab3f74f5",
+  "images": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+      "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+      "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d"
+    }
+  ],
+  "model": "gpt-6-astra",
+  "effort": "medium"
+}

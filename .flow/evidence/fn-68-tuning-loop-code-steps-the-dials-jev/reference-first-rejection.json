@@ -1,0 +1,12 @@
+{
+  "status": "invalid_comparison_cardinality",
+  "required_cells": 2,
+  "returned_passes": [
+    "fail"
+  ],
+  "actual_tokens": 28569,
+  "cumulative_actual_tokens": 524517,
+  "raw_unchanged": true,
+  "no_retry": true,
+  "interpretation": "Findings and11trait dispositions are exploratory; not a valid bound comparison or readiness result."
+}

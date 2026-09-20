@@ -83,6 +83,10 @@ The current machinery already provides research stages, typed decisions, gap rec
 
 ## Decision Context
 
+### Provisional role routing, 2026-09-20
+
+- Owner-selected roles: Astra medium for initial gap discovery and final readiness, Opus for cheaper targeted intermediate checks, Jev for text routing/progress. Astra is provisional until independent detection is established. fn-68 owns the reference-first inventory/comparison evidence contract; this does not authorize this conductor to bypass qualification, uncertainty, cost or resume gates. [user and host clarification]
+
 ### Joint-review handoff, 2026-09-20
 
 - The owner asks for independent issue discovery from multiple references and renderings, without supplying the reviewer's expected conclusions. fn-68 owns the joint evidence packet, cross-view findings and blind evaluation. This conductor consumes those attributed findings under R1, R3-R6 and R8. [paraphrase]

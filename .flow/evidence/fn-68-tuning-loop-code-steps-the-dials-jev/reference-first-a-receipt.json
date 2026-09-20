@@ -1,0 +1,137 @@
+{
+  "request_sha256": "e05cfaf3d7f67a0bbb5b632a14786adba7e35774d23c47178745815392c94591",
+  "prompt_sha256": "b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911",
+  "dispatched_prompt_sha256": "1f3ef7299f83d02e7ee7c78c21cbdcfa30c91d0bfd8b6565185ebc1a33bff7c1",
+  "schema_sha256": "4c13c160206ee1491a194676a627beccdc5e53d97adad294646e2d74ab3f74f5",
+  "model": "gpt-6-astra",
+  "model_identity_basis": "requested command argument; actual resolved identity not exposed",
+  "effort": "medium",
+  "status": "ok",
+  "forbidden_tools": [],
+  "usage": {
+    "input_tokens": 19240,
+    "cached_input_tokens": 0,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1036,
+    "reasoning_output_tokens": 0
+  },
+  "answer": {
+    "traits": [
+      {
+        "id": "crown_outline",
+        "priority": "core",
+        "observation": "Tall, substantial crown with a broad lower-to-middle spread and a narrowing, softly irregular top. Overall outlines range from broadly tapered to rounded upright; many fine projecting tips soften the perimeter.",
+        "reference_ids": [
+          "reference-0",
+          "reference-1"
+        ],
+        "uncertain": false
+      },
+      {
+        "id": "branch_architecture",
+        "priority": "core",
+        "observation": "Strong upright trunk framework divides into ascending limbs, with lateral branches extending broadly outward. The bare crown shows repeated subdivision into a dense network of fine twigs; outer branches become increasingly slender.",
+        "reference_ids": [
+          "reference-0",
+          "reference-1"
+        ],
+        "uncertain": false
+      },
+      {
+        "id": "bark_surface",
+        "priority": "core",
+        "observation": "The bark close-up shows a gray, largely smooth and continuous surface with fine texture and subdued shallow markings, without prominent deep furrows or thick plates.",
+        "reference_ids": [
+          "reference-1"
+        ],
+        "uncertain": false
+      },
+      {
+        "id": "foliage_layering",
+        "priority": "core",
+        "observation": "Foliage forms numerous overlapping sprays and irregular leafy masses. The left leafy view has especially clear lateral shelves; the right has fuller, more interlocking masses. Dark recesses and small openings preserve visible depth within the crown.",
+        "reference_ids": [
+          "reference-0"
+        ],
+        "uncertain": false
+      },
+      {
+        "id": "foliage_visual_grain",
+        "priority": "secondary",
+        "observation": "Leaves read as small, numerous broadleaf elements relative to the large crown, producing a fine, busy surface rather than a few coarse leaf clusters. Individual leaf outlines, margins, and venation are insufficiently resolved.",
+        "reference_ids": [
+          "reference-0"
+        ],
+        "uncertain": true
+      },
+      {
+        "id": "trunk_base",
+        "priority": "secondary",
+        "observation": "Exposed lower trunks are stout and widen at ground contact into modest spreading root flares. Their bases are irregular rather than perfectly cylindrical.",
+        "reference_ids": [
+          "reference-0",
+          "reference-1"
+        ],
+        "uncertain": false
+      },
+      {
+        "id": "lower_branch_reach",
+        "priority": "secondary",
+        "observation": "Lower leafy branches reach well beyond the trunk, with some outer sprays slanting or hanging downward. Foliage descends relatively low around portions of the crown while leaving the trunk base visible.",
+        "reference_ids": [
+          "reference-0"
+        ],
+        "uncertain": false
+      },
+      {
+        "id": "bark_mottling",
+        "priority": "secondary",
+        "observation": "The close-up contains scattered pale gray to whitish spots and irregular patches over a darker gray background, with faint linear marks. The image does not establish the material or cause of these patches.",
+        "reference_ids": [
+          "reference-1"
+        ],
+        "uncertain": false
+      },
+      {
+        "id": "foliage_color_range",
+        "priority": "variation",
+        "observation": "Visible foliage ranges from muted yellow-green and medium green on exposed sprays to deep green in recessed areas. Color is uneven across each crown; its causes cannot be separated from these images alone.",
+        "reference_ids": [
+          "reference-0"
+        ],
+        "uncertain": false
+      },
+      {
+        "id": "framework_variation",
+        "priority": "variation",
+        "observation": "The leafy views include a visibly divided lower framework on the left and a more dominant single exposed trunk on the right. Crown symmetry, apparent density, and the prominence of horizontal layers also differ.",
+        "reference_ids": [
+          "reference-0"
+        ],
+        "uncertain": false
+      },
+      {
+        "id": "foliage_presence",
+        "priority": "variation",
+        "observation": "Both densely leafy crowns and a bare, finely branched crown are supplied. The bare view exposes a tapered upright framework and extensive twig ramification. No transition between these photographed states is established.",
+        "reference_ids": [
+          "reference-0",
+          "reference-1"
+        ],
+        "uncertain": false
+      }
+    ],
+    "observations": [
+      "Ranking reflects visible recognition cues in these references, not proof that any individual trait uniquely identifies the species.",
+      "The relationships among the photographed trees and the bark detail are unknown; no shared specimen or causal change is assumed.",
+      "Leaf arrangement, precise leaf shape, buds, flowers, and fruit are not sufficiently visible for a confident inventory.",
+      "Descriptions record appearance only; age, season, growing conditions, pruning history, and causes of surface markings are not established."
+    ]
+  },
+  "stderr": "Reading additional input from stdin...\n",
+  "image_sha256": [
+    "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+    "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d"
+  ],
+  "raw_events_sha256": "f6e6179d7e228ca6c19959d502ccc4a60052b31278027d67776848a908d5384b"
+}

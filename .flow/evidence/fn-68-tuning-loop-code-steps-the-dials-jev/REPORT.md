@@ -1,3 +1,11 @@
+## Current: reference-first protocol seam and bounded experiment
+
+Typed reference-only projection, attributed hash-bound inventory, blind comparison, trait/source coverage, uncertainty failclosed and reachable positive finish implemented; inventory/dispositions survive in Visual observations. Tests reproduce missingmodule and missingcell errors beforefix. Dedicated adapter/runner only: Live/Config production wiring remains next work, not completed pipeline. Routing decision recorded in fn68/fn89.
+
+StageA20276tokens38.08s; StageB28569tokens58.15s; cumulative524517. StageB raw one fail for two requiredcells rejected; all11trait dispositions exploratory only. Corearchitecture/layering/material mismatches found; lowerhangingtrait independently inventoried assecondary and laterunknown dueclipping. No ownerpriority promotion, no qualification. Source/schema correction offline changes adapterhash; oldsource saved as reference-first-dispatched-adapter.py. Page#reference-first.
+
+Camera diagnosis: shot_pose fits verticaledges only, authored fill.93/.95 permits clipping. Existing --camera supports lowerfill without rendererchanges. Proposed CPUbounds/projection solve then atmost4diagnosticcaptures; sameparameters/lighting/references/seed, changedcamera means oldpixelmetrics notcomparable. No captures yet in this checkpoint.
+
 ## Current: owner-agreement text grading completed
 
 One anonymized24-Score batch, single-shot transport (second HTTP send blocked), Jev1.13.0. Actual10455input+382output=10837; cumulative475672/520000. Visual attempts remain17; no images/renders or runtime change. Frozen42,249 reservation settled by immutable ledger.

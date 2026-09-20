@@ -1,3 +1,7 @@
+## 2026-09-20 — reference-first comparison cardinality
+
+StageB spent28569 known tokens and58.15seconds but returned one aggregate pass for two requiredcells. Typed evidence driver rejected it. Outputschema had not constrained listlength or explicitorder; fixed minItems/maxItems, orderedcellinstruction and parser/binder tests offline, no retry/relabel. Rawreceipt and dispatchedadapter source retained. New regression failed beforefix then passed. Final package also exposed same-PID temporary-image race between two new tests; unique existing ledger IDs fix isolation, package rerun required (minutes measured in gate logs; no paid tokens). Proposed removal: exact schema cardinality at every model boundary and unique test fixtures; both implemented, no new spec.
+
 ## 2026-09-20 — resolved model identity guard
 
 Single authorized Grok assessment completed in approximately249s but reported grok-4.6-build for requested grok-4.6. Exact-name parser rejected it after raw receipt preservation. Known33863 token usage settled; guard remains failed, no retry or retroactive qualification. Proposed removal: documented alias-to-resolved-model identity binding before dispatch. No new spec.
@@ -131,3 +135,8 @@ About8minutes read-only CLI/docs/source verification plus offline harness, zero 
 ## 2026-09-20 — owner-agreement grading preparation
 
 Live TypeSafe pages include large interactive source blocks; combined output truncated, requiring targeted prose reads (about1minute, no model tokens). Existing repo uses ES modules; initial offline preparation used CommonJS require and failed before any call, corrected to native imports (under1minute). Full six literal verdicts plus24 independent Scores require a42,249-token conservative byte-based reservation, despite likely much lower actual token usage. Same serde_json serializer confirms25,366 state bytes and15,859 question bytes. No reservation reduction or paid dispatch. Proposed removal: compact prose-only docs and reusable offline request preflight, not a new spec.
+## 2026-09-20 — reference-first whole-attempt bound
+
+Two-stage design could not honestly fit44328 remaining under520000: reference inventory25000 plus five-image comparison35000 requires60000 reserved. Reported before dispatch; owner explicitly approved550000 while useful offline implementation continued. No paid tokens spent waiting. Initial evidence runner syntax typo fixed before execution (under1minute); no call/retry. Existing isolated CLI scaffolding dominates small image-review calls. Proposed removal: a dedicated low-overhead isolated image transport with measured per-pack bounds, not reduced safety reservations or a new spec here.
+
+Validation CLI positional spec syntax was rejected; `validate --help` clarified `--spec`, both changed specs then validated (under1minute, no paid spend). This is invocation friction, not a repository feature request.

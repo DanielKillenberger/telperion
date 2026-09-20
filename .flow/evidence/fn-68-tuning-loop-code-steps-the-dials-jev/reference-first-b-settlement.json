@@ -1,0 +1,17 @@
+{
+  "status": "settled",
+  "actual_tokens": 28569,
+  "cumulative_actual_tokens": 524517,
+  "elapsed_seconds": 58.14665158700154,
+  "receipt_sha256": "88067a3487de6cdd408ff9100d9801014afd689f7d8b1fc8ac6616cb43aace1f",
+  "usage": {
+    "input_tokens": 26804,
+    "cached_input_tokens": 0,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1765,
+    "reasoning_output_tokens": 86
+  },
+  "model": "gpt-6-astra",
+  "model_identity_basis": "requested command argument; actual resolved identity not exposed",
+  "effort": "medium"
+}

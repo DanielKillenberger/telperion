@@ -1,0 +1,13 @@
+# Reference-first development experiment
+
+Owner authority, relayed by host: **YES** to cumulative ceiling520000→550000 for two-stage Astra-medium test; at most60000 combined reservations, existing images, no retries. Previous actual475672 remains. Stage A25000, Stage B35000. No images rendered, no Jev calls, no tuning or original-runtime resume. Visual attempts17→18→19 only if dispatched.
+
+Stage A supplies only two original reference photographs, factual target species and explicit unknown specimen relationship. The generic inventory instruction contains no owner assessment, candidate, crown/droop answer cues, prior results or leaf-load theory. Freeze request, exact dispatched prompt, schema, image hashes and adapter source before dispatch. The ordered inventory is an attributed model interpretation, not ground truth.
+
+Stage B uses the existing uncropped limbs-only candidate whole/bare, the same two references and the spruce finish-only anchor. It receives the untouched frozen inventory and an allowlisted blind joint packet. Every core trait requires an explicit cited disposition. Missing, uncertain or clipped evidence cannot establish readiness. An inventory contradiction must be unknown with grounds, not silently discarded. Supported complete core coverage and existing joint positive evidence can finish. Two-cell success would not establish all-view/fresh-seed species readiness.
+
+Proceed from A to B only if schema/source/hash/model-command/known usage checks pass and at least one useful certain core trait exists. Do not require a particular owner-expected trait as admission. Never rewrite inventory to make B notice the expected answer. Stop on over-reservation, unknown usage, unexpected tools or malformed output; no retry. The adapter records requested model/effort from command arguments, not an invented observed resolved identity.
+
+Offline production seam: `tuning::reference_first` verifies provenance and coverage and preserves attributed inventory/dispositions in Visual observations for downstream Jev. The dedicated experiment runner is not enabled in `tuning-loop` and carries no inherited v3 qualification. General runtime admission/integration and fresh role calibration remain unfinished; these offline tests are not biological or model efficacy proof.
+
+Assessment after both outputs compares independent detection with existing owner priorities without requiring exact words or a physical mechanism. Report crown organization/envelope, hanging leafy form and material separately, evidence fidelity and uncertainty; overall FAIL is not adequate detection by itself. Original joint and provider-study receipts remain unchanged.

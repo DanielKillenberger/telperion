@@ -1,0 +1,31 @@
+{
+  "prompt": "Inspect only the supplied reference images of the factual target species. Inventory the visible morphology that most defines recognition and believable reference character, ranked by importance. Use stable trait IDs; distinguish core recognition traits, secondary traits and acceptable variation. Cite reference IDs for each observed trait, mark uncertainty, and separate observations from possible causes. Do not infer that photographs show the same specimen or a causal change; their relationship is unknown. Do not assume a candidate, its defects, or any owner's assessment. Do not require photorealism or exact pixel matching. Inventory visible evidence rather than proposing a generator mechanism. Missing or ambiguous evidence must remain uncertain.",
+  "prompt_sha256": "b977396bce80653bb49b01ba0711ae5f59325eab09c2c5a681f87fff43ab3911",
+  "request": {
+    "protocol": "reference-first-v1",
+    "references": [
+      {
+        "id": "reference-0",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+          "seed": 1,
+          "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+          "view": "B-WHOLE"
+        }
+      },
+      {
+        "id": "reference-1",
+        "image": {
+          "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+          "seed": 1,
+          "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+          "view": "B-BARE"
+        }
+      }
+    ],
+    "specimen_relationship": "unknown",
+    "target_species": "European beech / Fagus sylvatica"
+  },
+  "request_sha256": "e05cfaf3d7f67a0bbb5b632a14786adba7e35774d23c47178745815392c94591",
+  "stage": "inventory"
+}
