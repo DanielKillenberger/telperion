@@ -1,11 +1,13 @@
 {
-  "status": "pending_one_scope_budget_approval",
-  "authority": null,
+  "status": "pending_host_review_of_ready_json",
+  "authority": "owner-grant.json quotation ok approved; paid dispatch blocked until host review signal",
   "applied_to_runtime": false,
-  "execute_forbidden_until": "separate owner scope and budget approval file that this packet does not contain",
+  "execute_forbidden_until": "host review of .flow/tmp/cursor-fn68-ready.json; wrapper resumes same chat",
+  "paid_calls_this_invocation": 0,
   "original_runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
   "packet_approval_field_still_null": true,
   "one_useful_round": true,
   "retries": false,
-  "calibration_fail": "stop, do not redesign"
+  "calibration_fail": "stop, do not redesign",
+  "host_confirm": "Stage B uses disclosed reframe of owner-accepted historical geometry. If a new owner label on 5c0112df is required, that is the blocker."
 }

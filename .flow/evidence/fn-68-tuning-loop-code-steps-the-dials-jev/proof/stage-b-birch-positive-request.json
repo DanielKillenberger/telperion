@@ -1,7 +1,7 @@
 {
   "stage": "comparison",
   "expected_ready": true,
-  "label": "birch-round26 owner-accepted species; whole-crown seed1 only",
+  "label": "birch-round26 owner-accepted species on historical geometry; assessed raster is camera-reframe, not owner-accepted",
   "prompt": "Compare the candidate jointly against the frozen reference-only inventory and supplied photographs at the catalogue finish floor. Account explicitly for every core trait using its exact trait ID, citing render and reference evidence. Pass requires a supported match, fail a defining mismatch, unknown missing/clipped/ambiguous evidence. Do not silently dismiss a core reference trait as non-photorealism or downgrade an uncertain trait. Distinguish optional refinement and acceptable variation from defining reference character. Inventory statements are attributed interpretations, not infallible facts: if contradicted or unassessable, report unknown with grounds. Keep observations separate from causal hypotheses; no particular mechanism is required. Relative improvement is not absolute readiness. A clean candidate can pass with supported evidence for every core trait and no blockers.",
   "prompt_sha256": "847dd718e56258447ec5fcc89fdaadc9701165d02eab0b51001e616ebc1a0329",
   "inventory_bind": {
@@ -18,8 +18,8 @@
       "checklist": "Recognizable mature silver birch at the established catalogue finish floor: light irregular crown and fine pendulous branching and foliage character. Block only wrong species character, an obvious construction artifact, or finish below the independent spruce anchor. Photographs establish species character, not photorealism. Do not apply European-beech owner priorities. Missing, clipped or ambiguous evidence is unknown.",
       "images": [
         {
-          "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/replay-images/silver-birch-S-WHOLE.png",
-          "sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+          "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/birch-reframed/S-WHOLE.png",
+          "sha256": "5c0112df0a647fdfa5eb6ad8816a45c92061206b919a772535646861c69e382e",
           "view": "S-WHOLE",
           "seed": 1
         }
@@ -64,10 +64,10 @@
             "role": "render",
             "view": "S-WHOLE",
             "seed": 1,
-            "sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+            "sha256": "5c0112df0a647fdfa5eb6ad8816a45c92061206b919a772535646861c69e382e",
             "render_identity": "birch-round26-0f2c2f6a-seed1-whole",
             "geometry_group": "birch-round26-0f2c2f6a-seed1-whole:seed:1",
-            "condition": "historical_reconstructed_still",
+            "condition": "historical_reconstructed_still_camera_reframe",
             "visibility": "shown",
             "framing": "complete"
           },
@@ -113,5 +113,14 @@
       }
     }
   },
-  "request_sha256": "ba4370ce199a5cdef27146238bb2ca3734a2f3280cfde4a58403e44aff9d34a1"
+  "request_sha256": "1c1a75e6092ce6592b76ce521f5a4f2288445b25681a1fb35f4d1c4d7cfd8056",
+  "render_provenance": {
+    "historical_geometry_owner_accepted_sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+    "historical_geometry_framing": "clipped",
+    "assessed_raster_sha256": "5c0112df0a647fdfa5eb6ad8816a45c92061206b919a772535646861c69e382e",
+    "assessed_raster_owner_accepted": false,
+    "repair": "historical headless 0f2c2f6a; fill 1.0 to 0.6523243308151884; same seed/preset/light; camera only",
+    "twin_sha256": "100da16cb38ad5d515d149a96acd90aa979befad98059f69a2bb5fb811254880",
+    "twin_not_in_stage_b": true
+  }
 }

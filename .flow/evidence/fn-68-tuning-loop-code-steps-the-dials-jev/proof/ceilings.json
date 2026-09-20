@@ -1,15 +1,17 @@
 {
-  "meaning": "Conservative per-stage ceilings. Stop before exceed. Not granted. Not an exact future-text sum.",
+  "meaning": "Conservative per-stage ceilings. Stop before exceed. Not an exact future-text sum. Owner grant recorded in owner-grant.json.",
   "planning_envelope_additional_tokens": 350000,
   "current": {
     "tokens": 552431,
-    "token_cap": 570000,
+    "token_cap": 902431,
     "visual": 20,
-    "visual_cap": 20,
+    "visual_cap": 25,
     "evaluations": 6,
     "evaluation_cap": 13,
-    "images": 28,
-    "image_cap": 52
+    "images": 30,
+    "image_cap": 52,
+    "rounds": 2,
+    "round_cap": 3
   },
   "prior_serialized": {
     "route": 22778,
@@ -95,14 +97,19 @@
   "evaluations_max": 4,
   "evaluation_images_max": 16,
   "sum_stage_ceilings": 291000,
-  "proposed_not_granted": {
-    "additional_tokens": 291000,
-    "proposed_token_cap": 843431,
+  "granted": {
+    "quotation": "ok approved",
+    "additional_tokens": 350000,
+    "token_cap": 902431,
     "visual_passes": 5,
-    "proposed_visual_cap": 25,
+    "visual_cap": 25,
     "evaluations": 4,
-    "images_add": 20,
-    "resulting_image_reservations": 48,
-    "image_cap_unchanged": 52
+    "evaluation_cap": 13,
+    "tuning_rounds": 1,
+    "retries": false,
+    "image_reservations_now": 30,
+    "image_remaining": 22,
+    "image_cap_unchanged": 52,
+    "scheduled_sum_inside_envelope": 291000
   }
 }

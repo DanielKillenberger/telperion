@@ -1,0 +1,38 @@
+{
+  "bounds_max": [
+    5.958314741520338,
+    15.889994621276855,
+    6.04632243958959
+  ],
+  "bounds_min": [
+    -6.593632808719273,
+    -0.07199999690055847,
+    -6.632355881149779
+  ],
+  "method": "Historical silver-birch mesh::build; shot_pose 8 corners; maxabsXY<=.95; fill<=.8; no pixels",
+  "preset": "silver-birch",
+  "revision": "0f2c2f6a",
+  "seed": 1,
+  "shot": {
+    "camera": {
+      "azimuth": 30,
+      "elevation": -12,
+      "fill": 0.6523243308151884,
+      "fov": 40,
+      "targetHeight": 0.5
+    },
+    "id": "S-WHOLE",
+    "light": {
+      "overcast": 0.0,
+      "sunAzimuth": 300,
+      "sunElevation": 55
+    },
+    "new_max_corner_ndc": 0.9499998783966135,
+    "old_fill": 1.0,
+    "old_max_corner_ndc": 1.6014743663426472,
+    "size": [
+      1378,
+      1440
+    ]
+  }
+}

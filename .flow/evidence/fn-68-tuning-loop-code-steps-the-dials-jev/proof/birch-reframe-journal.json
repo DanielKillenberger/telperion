@@ -1,0 +1,69 @@
+{
+  "authority": "Owner ok approved: in-scope historical-geometry camera repair; 2 stills; no generator change; no new candidate; no sweep; no recapture fishing",
+  "grant_quotation": "ok approved",
+  "prior_image_reservations": 28,
+  "image_reservations": 30,
+  "image_cap": 52,
+  "remaining_after_reserve": 22,
+  "prior_actual_images": 20,
+  "actual_images": 22,
+  "attempted_captures": 2,
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "clipped_owner_accepted_sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+  "new_raster_owner_accepted": false,
+  "headless_sha256": "3fd349d6bc862c67ddf730a3526ad99003adef99277a4afba67f04f5d4a371d1",
+  "framefit_sha256": "cd9ea142219dadbd79805c3605ca8c8e283adb08cc87e38095f450c8d12fc450",
+  "historical_revision": "0f2c2f6a",
+  "fill": 0.6523243308151884,
+  "commands": [
+    [
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/historical-birch/target/release/examples/headless",
+      "--preset",
+      "silver-birch",
+      "--seed",
+      "1",
+      "--view",
+      "whole",
+      "--size",
+      "1378x1440",
+      "--out",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/birch-reframed/S-WHOLE.png",
+      "--camera",
+      "{\"azimuth\": 30, \"elevation\": -12, \"fill\": 0.6523243308151884, \"fov\": 40, \"targetHeight\": 0.5}",
+      "--scene",
+      "{\"sunAzimuth\": 300, \"sunElevation\": 55, \"sunRed\": 3.0, \"sunGreen\": 2.85, \"sunBlue\": 2.6, \"skyZenithRed\": 0.18, \"skyZenithGreen\": 0.3, \"skyZenithBlue\": 0.62}",
+      "--no-figure"
+    ],
+    [
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/historical-birch/target/release/examples/headless",
+      "--preset",
+      "silver-birch",
+      "--seed",
+      "1",
+      "--view",
+      "whole",
+      "--size",
+      "1378x1440",
+      "--out",
+      "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/birch-reframed/S-WHOLE-twin.png",
+      "--camera",
+      "{\"azimuth\": 30, \"elevation\": -12, \"fill\": 0.6523243308151884, \"fov\": 40, \"targetHeight\": 0.5}",
+      "--scene",
+      "{\"sunAzimuth\": 210, \"sunElevation\": 5, \"sunRed\": 3.0, \"sunGreen\": 2.85, \"sunBlue\": 2.6, \"skyZenithRed\": 0.18, \"skyZenithGreen\": 0.3, \"skyZenithBlue\": 0.62}",
+      "--no-figure"
+    ]
+  ],
+  "captures": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/birch-reframed/S-WHOLE.png",
+      "sha256": "5c0112df0a647fdfa5eb6ad8816a45c92061206b919a772535646861c69e382e",
+      "seconds": 2.9679772589988715
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/birch-reframed/S-WHOLE-twin.png",
+      "sha256": "100da16cb38ad5d515d149a96acd90aa979befad98059f69a2bb5fb811254880",
+      "seconds": 3.0424667019979097
+    }
+  ],
+  "status": "two_captures_complete"
+}

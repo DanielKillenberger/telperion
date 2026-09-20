@@ -167,6 +167,14 @@ Owner, relayed by host: I could use billions. Grok via Cursor tokens are effecti
 
 Offline fixture search found birch-round26 whole `2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e` as a genuine known-positive for v2 silver-birch whole-crown seed 1 only. No owner-accepted European beech render exists for the approved owner-priority cells. That is a supported R8 blocker, not a missing label. Inventing a beech-positive from the current failing candidate or from P1/P2 desired outcomes would have been the faster false path. Cost: a few minutes of provenance checks, zero paid tokens. Removal: an owner-accepted beech still on the approved views, not a calibration weakening.
 
+## 2026-09-20 — False complete-framing claim on birch 2745f4c3
+
+This session asserted complete margins on silver-birch S-WHOLE `2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e`. Host viewed the 1378x1440 raster: branch/foliage touch or cross the top edge. A pale-sky threshold (r>160) then counted 1371/1378 row-0 samples as non-sky; those samples are darker blue sky (~138,163,195), so that count is not framing evidence. Host view plus the full-resolution top-80-row crop remain the proof of clip. Hash match is provenance, not framing. Cost: a wrong readiness path and a correction pass. Remedy: mark clipped, preserve the owner label on the original raster, no readiness from it, inspect the actual image or an edge crop before any framing claim.
+
+## 2026-09-20 — Pale-sky heuristic is not framing
+
+A color threshold used to "confirm" the birch clip treated birch and B-BARE sky as foliage. Cost: minutes of a false pixel narrative on top of the host correction. Removal: view the raster or a full-resolution edge crop; keep thresholds out of readiness.
+
 ## 2026-09-20 — Repeated partial preflight handoffs
 
 Owner said continue. Returning another reservation memo while Stage A/B requests, framing check, dry command and acceptance freeze were still unbuilt was friction. Cost: extra host/wrapper turns and a qualifying commit that could only label totals incomplete. Remedy this increment: dispatch-ready `proof/` artifacts, `run-proof-preflight.py` dry command, per-stage ceilings, frozen acceptance, and `.flow/tmp/cursor-fn68-progress.md`. Do not hand off another budget-only report while that packet can still be assembled offline.

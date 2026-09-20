@@ -46,13 +46,27 @@ def main():
     assert approval["quotation"] == "the 1,2,3 yes"
     assert approval["applied_to_runtime"] is False
 
+    grant = load("owner-grant.json")
+    assert grant["quotation"] == "ok approved"
+    assert grant["granted_not_spent"]["token_cap"] == 902431
+    assert grant["granted_not_spent"]["visual_cap"] == 25
+    assert grant["granted_not_spent"]["retries"] is False
+    assert grant["applied_to_runtime"] is False
+
     framing = load("framing.json")
     assert framing["birch_positive"]["sha256"] == framing["birch_positive"]["expected"]
     assert framing["beech_negative"]["sha256"] == framing["beech_negative"]["expected"]
-    assert framing["birch_positive"]["framing"] == "complete"
+    assert framing["birch_positive"]["framing"] == "clipped"
+    assert framing["birch_positive"]["owner_accepted"] is True
     assert framing["beech_negative"]["framing"] == "complete"
     assert digest(framing["birch_positive"]["path"]) == framing["birch_positive"]["expected"]
     assert digest(framing["beech_negative"]["path"]) == framing["beech_negative"]["expected"]
+    reframed = framing["birch_positive_reframed"]
+    assert reframed["framing"] == "complete"
+    assert reframed["owner_accepted"] is False
+    assert reframed["new_raster_owner_accepted"] is False
+    assert digest(reframed["path"]) == reframed["sha256"]
+    assert digest(reframed["twin_path"]) == reframed["twin_sha256"]
 
     ad = adapter()
     prepared = {}
@@ -75,7 +89,10 @@ def main():
     birch_b = load("stage-b-birch-positive-request.json")
     assert birch_b["request"]["inventory"] is None
     assert not Path(birch_b["inventory_bind"]["path"]).exists()
-    assert "European-beech owner priorities" in birch_b["request"]["comparison"]["checklist"] or "Do not apply European-beech owner priorities" in birch_b["request"]["comparison"]["checklist"]
+    assert "Do not apply European-beech owner priorities" in birch_b["request"]["comparison"]["checklist"]
+    assert birch_b["request"]["comparison"]["images"][0]["sha256"] == framing["birch_positive_reframed"]["sha256"]
+    assert birch_b["render_provenance"]["assessed_raster_owner_accepted"] is False
+    assert birch_b["render_provenance"]["historical_geometry_owner_accepted_sha256"] == framing["birch_positive"]["expected"]
 
     final = load("stage-r7-final-template.json")
     assert final["request"]["comparison"]["images"] == []
@@ -84,6 +101,9 @@ def main():
     ceilings = load("ceilings.json")
     assert ceilings["sum_stage_ceilings"] == 291000
     assert ceilings["sum_stage_ceilings"] <= ceilings["planning_envelope_additional_tokens"]
+    assert ceilings["current"]["token_cap"] == 902431
+    assert ceilings["granted"]["quotation"] == "ok approved"
+    assert ceilings["granted"]["retries"] is False
     prior = json.loads((ROOT / "r7-r8-offline-preflight.json").read_text())["stages"]
     by_id = {s["id"]: s["ceiling"] for s in ceilings["stages"]}
     assert by_id["route"] >= prior["route"]["tokens"]
@@ -96,6 +116,14 @@ def main():
     assert scope["owner_approval"]["applied_to_original_run"] is False
     assert len(scope["required_scope_extension_not_in_packet"]) == 4
 
+    ready = json.loads((WORKTREE / ".flow/tmp/cursor-fn68-ready.json").read_text())
+    assert ready["stop_dispatch"] is True
+    assert ready["paid_calls_this_invocation"] == 0
+    assert ready["first_paid_stage"] == "stage-a-birch"
+    assert ready["grant"]["quotation"] == "ok approved"
+    assert ready["framing"]["birch_owner_accepted"]["framing"] == "clipped"
+    assert ready["framing"]["birch_assessed"]["owner_accepted"] is False
+
     out = {
         "status": "dry-ok",
         "execute": False,
@@ -103,11 +131,12 @@ def main():
         "prepared": prepared,
         "stage_ceilings": ceilings["stages"],
         "sum_stage_ceilings": 291000,
-        "proposed_not_granted": ceilings["proposed_not_granted"],
+        "granted": ceilings["granted"],
         "dispatch": load("dispatch-pending.json")["status"],
         "r8_order": ["stage-a-birch", "stage-b-birch-positive", "stage-b-beech-negative"],
         "r7_order": ["r7-current", "route", "continuation", "proposal-magnitude", "up-to-4-eval", "r7-final"],
         "stop": "calibration fail or ceiling exceed stops; no retry; no redesign",
+        "ready": str(WORKTREE / ".flow/tmp/cursor-fn68-ready.json"),
     }
     print(json.dumps(out, indent=2))
     return 0

@@ -1,0 +1,19 @@
+{
+  "status": "reserved_before_capture",
+  "reserved_at": "2026-09-20T19:20:00+02:00",
+  "authority": "Owner ok approved: in-scope historical-geometry camera repair; no generator change; no new candidate; no sweep; no recapture fishing",
+  "grant_quotation": "ok approved",
+  "views": ["S-WHOLE", "S-WHOLE-twin"],
+  "count": 2,
+  "prior_image_reservations": 28,
+  "image_reservations": 30,
+  "image_cap": 52,
+  "remaining_after_reserve": 22,
+  "historical_revision": "0f2c2f6a",
+  "preset": "silver-birch",
+  "seed": 1,
+  "fill": 0.6523243308151884,
+  "clipped_owner_accepted_sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
+  "new_raster_owner_accepted": false,
+  "original_runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e"
+}

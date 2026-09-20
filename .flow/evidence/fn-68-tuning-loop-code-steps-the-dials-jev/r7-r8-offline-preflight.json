@@ -4,12 +4,17 @@
     "evaluation_cap": 13,
     "evaluations": 6,
     "image_cap": 52,
-    "images": 28,
-    "remaining": 17569,
-    "token_cap": 570000,
+    "images": 30,
+    "remaining_comment": "superseded by owner-grant.json; old remainder 17569 under 570000 is historical",
+    "token_cap": 902431,
     "tokens": 552431,
     "visual": 20,
-    "visual_cap": 20
+    "visual_cap": 25
+  },
+  "owner_grant": {
+    "quotation": "ok approved",
+    "source": "proof/owner-grant.json",
+    "supersedes_proposed_not_granted_caps": true
   },
   "proposed_not_granted": {
     "meaning": "Proposal only. This file grants nothing. One automatic round: route + continuation + magnitude proposals + up to four evaluations + one final coverage visual.",
@@ -89,7 +94,11 @@
         "path": "local/fixtures/birch-round26-S-WHOLE.png",
         "seed": 1,
         "sha256": "2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e",
-        "view": "S-WHOLE"
+        "view": "S-WHOLE",
+        "framing": "clipped",
+        "owner_accepted": true,
+        "assessed_instead": "local/birch-reframed/S-WHOLE.png#sha256:5c0112df0a647fdfa5eb6ad8816a45c92061206b919a772535646861c69e382e",
+        "assessed_owner_accepted": false
       }
     },
     "present_unused_without_matching_render": [
