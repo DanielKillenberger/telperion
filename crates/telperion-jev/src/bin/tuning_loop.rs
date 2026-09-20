@@ -21,8 +21,16 @@ fn run() -> Result<(), String> {
             .ok_or_else(|| format!("missing {name}"))
     };
     let command = args.first().ok_or(
-        "usage: tuning-loop <run|preflight> --config FILE --out DIR [--resume FILE]\n       tuning-loop <calibrate|vision-replay> --manifest FILE --out FILE [--adapter FILE]",
+        "usage: tuning-loop <run|preflight> --config FILE --out DIR [--resume FILE]\n       tuning-loop inventory --config FILE --out DIR\n       tuning-loop <calibrate|vision-replay> --manifest FILE --out FILE [--adapter FILE]",
     )?;
+    if command == "inventory" {
+        let config: telperion_jev::tuning::live::Config =
+            serde_json::from_slice(&fs::read(flag("--config")?).map_err(|e| e.to_string())?)
+                .map_err(|e| e.to_string())?;
+        let path = telperion_jev::tuning::inventory::run(&config, &flag("--out")?)?;
+        println!("{}", path.display());
+        return Ok(());
+    }
     if command == "run" || command == "preflight" {
         let resume = args
             .windows(2)

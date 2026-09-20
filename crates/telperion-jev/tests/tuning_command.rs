@@ -1082,3 +1082,83 @@ fn max_candidates_is_validated_and_bounds_one_round() {
     }
     f.cleanup();
 }
+
+#[test]
+fn the_inventory_command_emits_what_the_runtime_pins_and_charges() {
+    use telperion_jev::tuning::{
+        inventory,
+        reference_first::{FilePin, Inventory, RuntimeConfig},
+    };
+    let f = fixture::verifying_fixture(opening());
+    let mut config: Config = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+
+    // A three-reference species, which is what the canonical config carries.
+    let raw: Value = serde_json::from_slice(&fs::read(&f.config_path).unwrap()).unwrap();
+    let one = raw["references"][0].clone();
+    let mut references = vec![];
+    for view in ["B-WHOLE", "B-BARE", "B-BASE"] {
+        let mut image = one.clone();
+        image["view"] = json!(view);
+        references.push(image);
+    }
+    config.references = serde_json::from_value(json!(references)).unwrap();
+    config.reference_first = None;
+
+    let out = f.root.join("stage-a");
+    let path = inventory::run(&config, &out).unwrap();
+    assert_eq!(path, out.join("inventory.json"));
+
+    // The species field is the preset id, exactly as the comparison path sends.
+    let produced: Inventory = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    produced.verify().unwrap();
+    assert_eq!(produced.request.target_species, fixture::PRESET);
+    assert_eq!(produced.request.references.len(), 3);
+    assert!(
+        produced.ledger.contains("#sha256:"),
+        "inventory must cite a real ledger, got {}",
+        produced.ledger
+    );
+
+    // The pair loads through the runtime's own gate and is accepted for this config.
+    let pin = |p: std::path::PathBuf| FilePin {
+        sha256: telperion_jev::sha256_hex(&fs::read(&p).unwrap()),
+        path: p,
+    };
+    let prepared = RuntimeConfig {
+        inventory: pin(path.clone()),
+        preparation: pin(out.join("preparation.json")),
+    };
+    let (loaded, charge) = prepared
+        .load(&config.vision.model, &config.vision.effort)
+        .unwrap();
+    assert_eq!(loaded.hash(), produced.hash());
+    assert_eq!(charge.tokens, 1000);
+    assert_eq!(charge.visual_attempts, 1);
+    config.reference_first = Some(prepared);
+    let accepted = config.preparation().unwrap().unwrap();
+    assert_eq!(accepted, charge);
+
+    // The journal records the settled attempt, and the output is never rewritten.
+    let journal: Value =
+        serde_json::from_slice(&fs::read(out.join("inventory-journal.json")).unwrap()).unwrap();
+    assert_eq!(journal["status"], "settled");
+    assert_eq!(journal["attempts"], 1);
+    assert_eq!(journal["retries"], false);
+    assert_eq!(journal["usage"]["input_tokens"], 700);
+    let error = inventory::run(&config, &out).unwrap_err();
+    assert!(error.contains("refusing to overwrite"), "{error}");
+
+    // A failing adapter still leaves a charged attempt on the record.
+    let mut broken = config.clone();
+    broken.vision.args = vec!["-c".into(), "raise SystemExit(3)".into()];
+    let failed_out = f.root.join("stage-a-failed");
+    let error = inventory::run(&broken, &failed_out).unwrap_err();
+    assert!(error.contains("charged"), "{error}");
+    let journal: Value =
+        serde_json::from_slice(&fs::read(failed_out.join("inventory-journal.json")).unwrap())
+            .unwrap();
+    assert_eq!(journal["status"], "failed");
+    assert_eq!(journal["attempts"], 1);
+    assert!(!failed_out.join("inventory.json").exists());
+    f.cleanup();
+}

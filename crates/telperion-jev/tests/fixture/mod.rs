@@ -133,10 +133,19 @@ fn calibration_pair(root: &PathBuf, kind: &str, version: &str, table: &str) -> V
 const ADAPTER: &str = r#"import json, sys
 e = json.load(sys.stdin)
 r = e["request"]
-c = r["comparison"]
-inv = r["inventory"]
 model = sys.argv[sys.argv.index("--model") + 1]
 effort = sys.argv[sys.argv.index("--effort") + 1]
+if e["stage"] == "inventory":
+    print(json.dumps({"status": "ok", "request_sha256": e["request_sha256"],
+        "prompt_sha256": e["prompt_sha256"], "model": model, "effort": effort,
+        "usage": {"input_tokens": 700, "output_tokens": 300},
+        "answer": {"traits": [{"id": "trait-core", "priority": "core",
+            "observation": "synthetic core recognition trait",
+            "reference_ids": [r["references"][0]["id"]], "uncertain": False}],
+            "observations": ["synthetic fixture observation"]}}))
+    raise SystemExit
+c = r["comparison"]
+inv = r["inventory"]
 cov = [{"trait_id": t["id"], "status": "pass",
         "evidence_ids": ["render-0", "reference-0"],
         "explanation": "synthetic fixture disposition"} for t in inv["traits"]]
