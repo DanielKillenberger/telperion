@@ -391,7 +391,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-87-the-specimen-says-what-it-will-cost.md",
-  "status": "open",
+  "status": "done",
   "title": "The specimen says what it will cost",
   "tracker": {
     "baseHashFlow": null,
@@ -404,5 +404,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-19T23:10:15.151773Z"
+  "updated_at": "2026-09-20T10:39:59.051556Z"
 }
