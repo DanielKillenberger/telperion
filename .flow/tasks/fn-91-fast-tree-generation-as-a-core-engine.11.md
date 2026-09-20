@@ -20,9 +20,15 @@ Touches: crates/telperion-core/src/bias.rs, crates/telperion-core/src/bias/** (f
 
 
 ## Done summary
-TBD
+Rejected the single inactive growth-bias specialization after both oak seeds missed the 10% skeleton admission target: warm changes -3.02%/+0.47%; spruce -1.82%/+0.42%. Production is restored exactly, with the experiment, raw measurements and oracle preserved in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/bias/REPORT.md`.
 
+All four complete tree comparisons and 24 repeats were bitwise equal; eight focused release tests passed after the oracle caught a naïve signed-zero regression. Host reviewed and approved rejection before completion. No browser qualification or new imagery followed; parent10x/100ms, memory, cold and phone requirements remain open.
+
+baseline: green via .8 handoff (core20/20, renderer18/18, mature production1/1, Wasm, TypeScript and browser lifecycle); .9 evidence-only, .10 reverted.
+GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
+Tier: session (jev moderate 0.79; explicit IMPLEMENTER preserved).
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1eff0b9609168b4e3e9841f7b7aa19c95427afb5
+- Tests: baseline: green via .8 handoff, naive normalization oracle red: signed-zero mismatch (expected, oracle-red.log), /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-core --lib --test foundation --test growth -E "test(bias::tests) | test(bias_) | test(natural_bias) | test(whole_build_replays) | test(local_resume_preserves) | test(scaffold_resume_preserves)" (8 passed), python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/bias/setup.py (baseline/candidate release builds passed), bash .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/bias/screen.sh (4 exact pairs, 24 exact repeats passed), python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/bias/analyze.py (screen target missed; candidate reverted), git diff --exit-code -- crates/telperion-core/src/bias.rs (exact restoration), rustfmt --check --edition 2021 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/bias/bias_screen.rs, bash -n .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/bias/screen.sh, GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
