@@ -1,5 +1,13 @@
 # fn68 implementation and calibration checkpoint
 
+## Final diagnosed v1 attempt: terminal uncertainty, no retry
+
+Tooling-only release build passed46.33seconds. Scoped resume verified baseline/source identities, applied300k/3round ceilings and additively reconciled all five external study ledgers8109tokens. No baseline replay or v3/v4 activation. Route selected tuning0.86; continuation tractability supported0.66 and risk bounded0.94, but progress supported confidence0.37 (probabilities supported0.58/repeated_failure0.34/insufficient0.08) did not meet unchanged0.5. The loop correctly paused before proposals. No new candidate, evaluation, image, visual call or round was consumed.
+
+New7,165tokens (route3,688,continuation3,477), settled cumulative221,183 including all studies. Counters4evaluations/16reservedimages versus12actual pilot still-twins/8visualpasses/2rounds. Remaining capacity78,817tokens/one round/one visual does not authorize a retry: owner scope explicitly ends on terminal uncertainty. `pilot-final-diagnosed-outcome.json` contains full typed probabilities, usage, scoped authorization and pause. Existing actual baseline score remains0.2432487129; no tuning efficacy or all-cell readiness was established. R7/R8 remain incomplete; R10 resumable human-escalation branch is demonstrated. Task stays in_progress, no done or rollout approval.
+
+This final sourced evidence explains parameter semantics and historical resource failure but supplies no new successful intervention or measurable visual progress. The pause is not a reason to weaken confidence or buy repeated identical judgments. Further work requires a new owner/design decision with genuinely new evidence or changed policy validation, not unused budget alone.
+
 ## Final diagnosed attempt preparation
 
 Owner authorized one final round under300k cumulative tokens/3rounds, existing9visual cap. New optional external-usage reconciliation validates exact old/new totals and full-file-pinned typed ledgers, expected IDs/tool/model/derived identity, known successful usage, additive sum/overflow/cap, duplicate IDs across prior imports and native tuning exclusion. It cannot reset spend. Resume artifact normalization restores previous explicitly changed token/round/visual caps for identity comparison, without rewriting historical trial identities; shared evidence includes verified reuse lineage.

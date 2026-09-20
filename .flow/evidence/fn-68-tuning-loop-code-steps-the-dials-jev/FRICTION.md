@@ -49,6 +49,10 @@ The worker checked the R5/R7/R8 prerequisites before implementing the loop. The 
 The manager reused an existing fn-68 branch at b4c1a390 instead of starting from the requested fn-72 base. The host preserved it by merging fn-72. Three conflicts were formatting and updated help text; the current parent versions preserved the checkpoint functionality. Cost was about two minutes of inspection and resolution, no pilot tick. Explicit existing-branch reporting and ancestry checks in worktree setup would avoid the surprise. A diff check initially included unrelated historical whitespace; comparison against the actual fn-72 base passed. No historical source text was changed.
 # 2026-09-20 — Resume integration bookkeeping
 
+## 2026-09-20 — Final sourced attempt pauses on uncertain progress
+
+The final explicitly approved diagnosed v1 attempt spent7,165tokens and no images. Parameter semantics and historical cap evidence were verified, but progress confidence0.37 did not meet frozen0.5. It stopped before proposals; no retry follows. This is a valid uncertainty boundary, not a tooling error or proof of improvement. Remaining next step requires genuinely new intervention/progress evidence or an owner-reviewed policy change with fresh validation, not repeated wording or automatic budget extension. Additive reconciliation now prevents external studies disappearing from runtime totals; all221,183tokens remain recorded.
+
 ## 2026-09-20 — Independent admissibility still abstains on development replay
 
 One approved v4 batch cost1,596tokens and zero images/rounds. Fresh explicit candidate cases all selected safely, but birth-reduction replay Nouls0.40/0.62 did not meet frozen0.8, leaving coverage3/4. No missing data or tooling error; full evidence retained. Do not respond with automatic retries or lower thresholds. Host can distinguish evidence sufficiency from action-label competition using the preserved cross-study cases; any further policy/evidence work requires its own explicit bounded decision.
