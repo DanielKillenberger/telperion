@@ -1,4 +1,18 @@
+## Current: provider comparison complete
+
+Host final grading: Grok crown priority MISS, hanging MISS, bark HIT. Fable closest among the requested three on this single case, still missing envelope/hanging; Astra medium also caught architecture. No general winner established. Proposed next scope only: neutral reference-only morphology inventory, then candidate comparison, to test generic natural-variation relaxation. No new call or implementation authorized here.
+
+Fable medium13996 + Opus high36672 + Grok high33863 actual tokens; cumulative464835/520000,17 attempted visual passes. Grok requested `grok-4.6`, actual `grok-4.6-build`: original exact-model guard failed after one completed call; known usage settled separately, result unqualified, no retry. Grok FAIL/FAIL prioritizes bark, accepts regular crown as variation, misses hanging form. Raw answer and usage pinned in joint-blind-grok-journal.json. Native provider system scaffolding differs despite identical user prompt/schema/five images.
+
+Fable describes lower crown/tiering more faithfully; Opus sparse/transparent and wider-than-tall claims are host-flagged reliability concerns. None establishes complete independent discovery or general readiness. Original runtime unchanged; future import243652 tokens,9 visual attempts,2 evaluations,8 image reservations. Actual pilot captures20 vs24 reserved. No new renders or production edits.
+
 # fn68 implementation and calibration checkpoint
+
+## Same-input Claude comparisons: Fable and Opus
+
+Owner explicitly approved520k cumulative/three40k provider calls, no retries/renders. Fable medium actualclaude-fable-5-1 returnedFAIL/FAIL in20.50s: rodlike blunt bare framework, brush/spoke foliage versus low layered tiers, barkbands. Cached-inclusive usage2uncached+12507cachecreate+0cacheread+1487output=13996; total394300. Opus high actualclaude-opus-5 returnedFAIL/FAIL in77.09s: insufficient fine ramification, purported sparse transparent canopy and barkseams. Usage4uncached+17162cachecreate+12934cacheread+6572output=36672; total430972. Both below40k, aliases resolved to requested families, separate rawreceipts pinned.
+
+Host grades separate from literal outputs: Fable crownorganizationHIT, envelopeaccepted, hangingformnotclear, barkHITuncertain; morefaithful onthiscase. Opus tierspartial but sparse/transparent/dots description overstates image, “wider-than-tall”unsupported by tall visibleenvelope; hangingnotfound,barkHIT. Reliability concern, not successful calibration. Same userprompt61d328c3/schema205c1b30 andfivebytes/order, provider-system contextsnecessarilydiffer. No previousverdict/gradinginput. Grok reserved next from430972 under520k; no additional calls after authorizedsingleGrok.
 
 ## Cross-provider harness prepared offline; dispatch paused
 

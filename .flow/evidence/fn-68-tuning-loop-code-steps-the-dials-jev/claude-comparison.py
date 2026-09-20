@@ -109,8 +109,10 @@ def main():
     prior_bytes=Path(authority["prior_journal"]).read_bytes()
     assert digest(prior_bytes)==authority["prior_journal_sha256"]
     assert json.loads(prior_bytes)["cumulative_actual_tokens"]==authority["prior_tokens"]
+    assert json.loads(prior_bytes)["attempted_visual_passes"]+1==authority["attempted_visual_passes"]
     journal = ROOT / f"joint-blind-{args.model}-journal.json"
     manifest.update(authority=authority, status="reserved_before_dispatch")
+    manifest["attempted_visual_passes"]=authority["attempted_visual_passes"]
     runtime=WORKTREE/".flow/tmp/fn68-pilot-run/run.json"
     manifest["original_runtime_sha256"]=digest(runtime.read_bytes())
     with journal.open("x") as handle:
@@ -123,6 +125,8 @@ def main():
         content.append({"type": "image", "source": {"type": "base64", "media_type": media,
                         "data": base64.b64encode(Path(path).read_bytes()).decode()}})
     message = {"type": "user", "message": {"role": "user", "content": content}, "parent_tool_use_id": None}
+    import time
+    started=time.monotonic()
     with tempfile.TemporaryDirectory(prefix="fn68-claude-blind-") as scratch:
         command = ["claude", "-p", "--safe-mode", "--tools", "", "--strict-mcp-config",
                    "--no-session-persistence", "--input-format", "stream-json", "--output-format", "stream-json",
@@ -147,11 +151,13 @@ def main():
         assert type(finding["uncertain"]) is bool and finding["observation"].strip()
     assert digest(runtime.read_bytes())==manifest["original_runtime_sha256"]
     manifest.update(parsed, cumulative_actual_tokens=authority["prior_tokens"] + parsed["actual_tokens"],
+                    elapsed_seconds=time.monotonic()-started,
                     raw_response_sha256=digest(result.stdout.encode()),
                     status="settled" if parsed["actual_tokens"] <= 40000 else "over_reservation_stop")
     journal.write_text(json.dumps(manifest, indent=2))
     print(json.dumps({k: manifest[k] for k in ("status", "actual_model", "usage", "actual_tokens", "cumulative_actual_tokens")}))
     assert parsed["actual_tokens"]<=40000,"over reservation: stop"
+    assert args.model in parsed["actual_model"].lower(),"wrong actual model family: stop"
 
 
 if __name__ == "__main__":

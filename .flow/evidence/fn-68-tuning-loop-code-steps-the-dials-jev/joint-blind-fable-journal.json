@@ -1,0 +1,161 @@
+{
+  "requested_model": "fable",
+  "effort": "medium",
+  "request_sha256": "c82e452cf172c97481433192b34db4833d9213abca5499055d45c196e8275f87",
+  "protocol_sha256": "d3d17c0f98d48a9e2543807127bc414d3bf7fedd0c605325359a7be9f1c137cb",
+  "user_prompt_sha256": "61d328c368f40283b4ea1ddcc1e23ac03f620257515befa2874b5289477e7b70",
+  "output_schema_sha256": "205c1b303b9c60149345614cbd09a18a2fc8042e63842f7fb14cf3b7588b70a6",
+  "images": [
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-WHOLE.png",
+      "sha256": "da02e6fdf2b64c6ba6a0caf1ed2e0990a316fd9e5ac426099381e0f65254d047"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/pilot-fn53/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-18d702f88cf72766-4ca86-0/c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57-B-BARE.png",
+      "sha256": "8bf6b32d6961bbc667e622b39b9484ec885b9ee3f4b3f9cf941c59372b599630"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg",
+      "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg",
+      "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d"
+    },
+    {
+      "path": "/home/daniel/Projects/telperion/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+      "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1"
+    }
+  ],
+  "full_system_prompt_identical": false,
+  "system_difference": "Provider CLI/system scaffolding differs; exact shared user prompt/schema/image bytes only.",
+  "status": "settled",
+  "authority": {
+    "scope": "one-frozen-claude-comparison",
+    "requested_model": "fable",
+    "effort": "medium",
+    "request_sha256": "c82e452cf172c97481433192b34db4833d9213abca5499055d45c196e8275f87",
+    "view_issue_resolved": true,
+    "prior_tokens": 380304,
+    "reserved_tokens": 40000,
+    "cumulative_cap": 520000,
+    "attempted_visual_passes": 15,
+    "owner_authorization": "Owner explicitly YES to520k ceiling/Fable medium,Opus high,Grok3x40k,one each,no retries/new renders; host releases sequential Claude calls",
+    "prior_journal": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/joint-blind-astra-high-journal.json",
+    "prior_journal_sha256": "3ff12b1231d7e9f5ea224d3500b696f99f34289cf16fa5d79f618eb9d1534858"
+  },
+  "attempted_visual_passes": 15,
+  "original_runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "answer": {
+    "passes": [
+      "fail",
+      "fail"
+    ],
+    "defects": [
+      "B-BARE seed 1 (render-1): limbs and secondary branches are straight, stiff, uniformly thick rods ending in blunt truncated tips with a sparse fringe of hair-like straight twigs; reference-1 shows beech branching tapering progressively into a dense, fine, zig-zag twig mesh forming a soft haze at the crown edge. Obvious construction artifact and wrong fine-branch character.",
+      "B-WHOLE seed 1 (render-0): foliage reads as fan/brush-like sprays streaming along straight radiating spokes with blunt stick ends poking through the canopy top; reference-0 shows dense layered, horizontally tiered foliage masses with the crown reaching low and branch structure mostly concealed. Crown reads like a generic broom/vase tree rather than beech.",
+      "B-WHOLE/B-BARE seed 1 (render-0, render-1): trunk shows regular horizontal ring banding reminiscent of birch/cherry; reference-1 bark close-up shows smooth grey bark with irregular pale lichen mottling and no banding."
+    ],
+    "observations": [
+      "Acceptable variation: overall ovoid-rounded crown outline, short bole dividing into several ascending limbs, and pale smooth grey bark colour are compatible with open-grown beech in reference-0/reference-1.",
+      "Acceptable variation: slight crown asymmetry and lower left limb spread.",
+      "Optional: leaf colour is somewhat blue-green and uniform; warmer green and more tonal variation would help but does not block.",
+      "Optional: root flare and subtle bark lichen patches would add realism.",
+      "Finish relative to anchor-0: leaf density and shading are at or above the anchor floor; the failure is in species structural character and visible truncated branch ends, not general finish."
+    ],
+    "findings": [
+      {
+        "observation": "Bare view shows straight rod-like branches with little taper, blunt cut-off ends and sparse straight needle-like twigs; reference shows fine, dense, progressively tapering twig mesh filling the crown outline.",
+        "evidence_ids": [
+          "render-1",
+          "reference-1"
+        ],
+        "impact": "blocker",
+        "uncertain": false,
+        "causal_hypothesis": "Possibly too few branching orders, low taper toward tips, and no curvature/zig-zag in terminal levels."
+      },
+      {
+        "observation": "Leafed crown shows brush-like foliage sprays along radiating straight spokes, visible stick ends at crown top, and an open lower crown; reference shows layered horizontal foliage tiers, concealed structure and foliage reaching low.",
+        "evidence_ids": [
+          "render-0",
+          "reference-0",
+          "render-1"
+        ],
+        "impact": "blocker",
+        "uncertain": false,
+        "causal_hypothesis": "Leaves may be attached only along sparse straight twigs shared with the bare geometry, so lack of fine planar spray structure propagates into the leafed view."
+      },
+      {
+        "observation": "Trunk carries regular horizontal ring bands in both views; reference bark is smooth grey with irregular mottling and no banding.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-1"
+        ],
+        "impact": "blocker",
+        "uncertain": true,
+        "causal_hypothesis": "Bark texture may have a periodic horizontal pattern or tiling seam."
+      },
+      {
+        "observation": "Overall crown silhouette (broad ovoid), short trunk with low multi-limb division and pale grey bark tone match the references.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "reference-0",
+          "reference-1"
+        ],
+        "impact": "supported",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "Rendering finish (shading, leaf density, shadows) is not below the catalogue anchor floor.",
+        "evidence_ids": [
+          "render-0",
+          "render-1",
+          "anchor-0"
+        ],
+        "impact": "supported",
+        "uncertain": false,
+        "causal_hypothesis": null
+      },
+      {
+        "observation": "Leaf colour is cool and uniform compared with the reference foliage.",
+        "evidence_ids": [
+          "render-0",
+          "reference-0"
+        ],
+        "impact": "optional",
+        "uncertain": true,
+        "causal_hypothesis": null
+      }
+    ]
+  },
+  "actual_model": "claude-fable-5-1",
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 12507,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 1487
+  },
+  "actual_tokens": 13996,
+  "model_usage": {
+    "claude-fable-5-1": {
+      "inputTokens": 2,
+      "outputTokens": 1487,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 12507,
+      "webSearchRequests": 0,
+      "costUSD": 0.32451,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-fable-5-1",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "cumulative_actual_tokens": 394300,
+  "elapsed_seconds": 20.501674973002082,
+  "raw_response_sha256": "a9bbe8ed95b5a9a1790ee751339e6ec7b00a605c09bfeb6eb510ff22cd87d32d"
+}

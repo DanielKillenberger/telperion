@@ -1,3 +1,7 @@
+## 2026-09-20 — resolved model identity guard
+
+Single authorized Grok assessment completed in approximately249s but reported grok-4.6-build for requested grok-4.6. Exact-name parser rejected it after raw receipt preservation. Known33863 token usage settled; guard remains failed, no retry or retroactive qualification. Proposed removal: documented alias-to-resolved-model identity binding before dispatch. No new spec.
+
 # Friction
 
 ## 2026-09-20 - Overnight scratch evidence unavailable at restart
@@ -121,3 +125,6 @@ One authorized call25686tokens, about1minute, no renders. Joint packet elicited 
 # 2026-09-20 — Experiment priority changed after dispatch
 
 Second authorized Astra effort diagnostic was already dispatched when owner requested other model families. Preserved active result rather than duplicating work;26622tokens, zero renders. No further model launched. Medium26479/high26622 both identify structural gaps but hanging-form detection remains absent/partial and material classification varies. Keep model/effort and per-dimension grades separate; aggregate FAIL is not qualification. No prompt/rubric changes or retries.
+# 2026-09-20 — Grok native-image transport preflight
+
+About8minutes read-only CLI/docs/source verification plus offline harness, zero model tokens during preparation. Needed ACPimage field spelling, prompt-file JSON transport, memory-v2 opt-out precedence, empty-tools pitfall and structured-output usage emitter before one image review. Resolved via official sources/local docs: --no-memory disables both memory generations; explicit tool filtering plus denies; native image blocks and modelCalls accounting. Reusable documented image-review transport/isolation support would remove this overhead; no new spec created. One authorized call launched afterward, no retry.

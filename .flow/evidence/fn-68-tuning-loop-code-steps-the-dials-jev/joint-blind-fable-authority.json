@@ -1,0 +1,14 @@
+{
+  "scope": "one-frozen-claude-comparison",
+  "requested_model": "fable",
+  "effort": "medium",
+  "request_sha256": "c82e452cf172c97481433192b34db4833d9213abca5499055d45c196e8275f87",
+  "view_issue_resolved": true,
+  "prior_tokens": 380304,
+  "reserved_tokens": 40000,
+  "cumulative_cap": 520000,
+  "attempted_visual_passes": 15,
+  "owner_authorization": "Owner explicitly YES to520k ceiling/Fable medium,Opus high,Grok3x40k,one each,no retries/new renders; host releases sequential Claude calls",
+  "prior_journal": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/joint-blind-astra-high-journal.json",
+  "prior_journal_sha256": "3ff12b1231d7e9f5ea224d3500b696f99f34289cf16fa5d79f618eb9d1534858"
+}
