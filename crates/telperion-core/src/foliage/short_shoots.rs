@@ -111,6 +111,20 @@ fn checked(tree: &Tree, envelope: Envelope, p: &CanopyParams) -> Result<()> {
     validate(p)
 }
 
+/// How many leaves this family's short shoots carry on this tree: the same
+/// walk `clothe` hangs them on, counted rather than drawn.
+pub(super) fn count(tree: &Tree, envelope: Envelope, seed: u32, p: &CanopyParams) -> Result<usize> {
+    let leaves = p.short_shoot_leaves as usize;
+    let mut total = 0_usize;
+    each(tree, envelope, seed, p, |_, shoots| {
+        total = total
+            .checked_add(shoots.len() * leaves)
+            .ok_or(Error::ResourceLimit("foliage count overflow"))?;
+        Ok(())
+    })?;
+    Ok(total)
+}
+
 pub(super) fn clothe(
     tree: &Tree,
     envelope: Envelope,

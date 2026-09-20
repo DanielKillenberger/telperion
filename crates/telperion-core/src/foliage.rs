@@ -18,6 +18,7 @@ use crate::{
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
 pub use packed::{Leaf, Reference, WORDS};
+pub(crate) use placement::leaf_count;
 pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
 pub use short_shoots::{
     place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot,
@@ -59,6 +60,10 @@ impl Bounds {
 pub struct Instances {
     pub leaves: Vec<Leaf>,
     pub reference: Reference,
+    /// Leaves the limb clumping dropped after placement sized the crown. The
+    /// placed count plus this is what the station walk produced, which is the
+    /// number a prediction is held to; the length alone is what survived.
+    pub thinned: usize,
     /// Every transform handed to `push`, kept only in test builds so a round
     /// trip can be measured against what the constructor actually produced
     /// rather than against a constructed case (R2).
@@ -80,6 +85,7 @@ impl Instances {
         Self {
             leaves: Vec::new(),
             reference,
+            thinned: 0,
             #[cfg(test)]
             unquantised: Vec::new(),
         }
@@ -97,6 +103,10 @@ impl Instances {
         self.leaves.push(leaf);
         #[cfg(test)]
         self.unquantised.push(*m);
+    }
+    /// What the station walk produced, before the limb clumping thinned it.
+    pub fn placed(&self) -> usize {
+        self.leaves.len() + self.thinned
     }
     /// The transform one stored leaf stands for.
     pub fn matrix(&self, index: usize) -> [f32; 16] {

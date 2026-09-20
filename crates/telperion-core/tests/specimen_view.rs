@@ -30,6 +30,7 @@ fn specimen_view_scrubs_advances_and_rebuilds_one_chronicle() {
         let placed = foliage::Instances {
             leaves: read.placements.iter().map(|p| p.leaf).collect(),
             reference: foliage::Reference::of(&fresh).unwrap(),
+            thinned: 0,
         };
         let instances = foliage::cull(placed, &element, read.envelope, fresh.shell_depth).unwrap();
         let mesh = view.mesh().unwrap();
