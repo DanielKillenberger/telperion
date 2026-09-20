@@ -1,0 +1,17 @@
+{
+  "stage": "stage-b-beech-negative-blind",
+  "release": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/tmp/cursor-fn68-release.json",
+  "release_sha256": "bad627e2b25eac87aef5aef7487bdcf6d8ef8eb517012225b6c7de836587c9d3",
+  "ceiling": 40000,
+  "prior_tokens": 622967,
+  "model": "gpt-6-astra",
+  "effort": "medium",
+  "protocol": "reference-first-v1",
+  "request_sha256": "b23ffb6064f860b617d7a55428cd5f72c25e2d4912752db3687ec995cd49a6e4",
+  "request_file_sha256": "8aa7f85a5989162038a628da36581bd0a21aeac244a13d5d069e1c2f55338ee6",
+  "adapter_sha256": "b0418acb2245a0cd7fb3ee1687c9121ccc7ca0531bc119d1270d14fc7136eea0",
+  "schema_sha256": "40b44f74e2832e0e52874cb964ff3f11b714cc6333ecca85f93378397c38d7cc",
+  "dispatched_prompt_sha256": "a4b300ceab31122e285a7959be3366b44f5f3533169ecffecc17c2ba290596a2",
+  "status": "reserved_before_dispatch",
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e"
+}
