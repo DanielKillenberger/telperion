@@ -354,6 +354,7 @@ fn every_bias_term_reaches_every_shipped_preset() {
             writhe_amplitude: 0.05,
             writhe_wavelength: 0.45,
             spiral_rate: 0.6,
+            ..Default::default()
         };
         let mut lit = family.clone();
         lit.skeleton.bias.supernatural = field;

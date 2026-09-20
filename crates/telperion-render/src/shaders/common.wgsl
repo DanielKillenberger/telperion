@@ -45,6 +45,10 @@ struct Uniforms {
     /// crown to be deep in - one leaf on its own is not an interior.
     crown_centre: vec4<f32>,
     crown_radii: vec4<f32>,
+    /// The box the core quantised every leaf position against, which
+    /// `leaf.wgsl` decodes the crown's three-word placements with.
+    leaf_box_min: vec4<f32>,
+    leaf_box_extent: vec4<f32>,
     fissure: vec4<f32>, // fissure RGB offsets, strength
     crest: vec4<f32>, // crest RGB offsets, strength
     bark_colour_detail: vec4<f32>, // mottle scale, mottle strength, cavity strength, sky occlusion strength

@@ -17,6 +17,9 @@ struct Selection {
     forward: vec4<f32>,
     // The element's own bounding sphere at the origin: centre, then radius.
     sphere: vec4<f32>,
+    // The box the core quantised every leaf position against.
+    box_min: vec4<f32>,
+    box_extent: vec4<f32>,
     instances: u32,
     levels: u32,
     // The u32 slots each level's list is given in the shared buffer.
@@ -26,7 +29,7 @@ struct Selection {
 };
 
 @group(0) @binding(0) var<uniform> u: Selection;
-@group(0) @binding(1) var<storage, read> placements: array<mat4x4<f32>>;
+@group(0) @binding(1) var<storage, read> placements: array<u32>;
 /// One deviation in metres per level, coarsest first, the finest exactly zero.
 @group(0) @binding(2) var<storage, read> deviations: array<f32>;
 /// Every level's list end to end, `u.stride` slots each.
@@ -64,14 +67,14 @@ fn group_slot(level: u32, group: u32) -> u32 {
 /// The coarsest level whose deviation stays under half a pixel at this leaf's
 /// depth, or the unseen bucket for a leaf whose sphere is outside the frame.
 fn level_of(instance: u32) -> u32 {
-    let placement = placements[instance];
-    let centre = (placement * vec4<f32>(u.sphere.xyz, 1.0)).xyz;
-    // The placement scales the element, so the sphere it stands in and the
-    // deviation it is judged on both travel through the longest column.
-    let scale = max(
-        length(placement[0].xyz),
-        max(length(placement[1].xyz), length(placement[2].xyz)),
-    );
+    let base = instance * LEAF_WORDS;
+    let words = vec3<u32>(placements[base], placements[base + 1u], placements[base + 2u]);
+    // The placement scales the element, and the scale is a word of its own
+    // now: the sphere the leaf stands in and the deviation it is judged on
+    // both read it directly rather than measuring a column to find it.
+    let scale = leaf_scale(words);
+    let centre = leaf_position(words, u.box_min.xyz, u.box_extent.xyz)
+        + leaf_rotation(words.x) * (u.sphere.xyz * scale);
     let radius = u.sphere.w * scale;
     for (var plane = 0u; plane < 6u; plane = plane + 1u) {
         if dot(u.planes[plane].xyz, centre) + u.planes[plane].w < -radius {

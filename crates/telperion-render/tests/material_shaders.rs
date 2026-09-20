@@ -20,7 +20,13 @@ fn production_material_stages_validate_with_uniform_derivatives() {
             bark.as_str(),
             include_str!("../src/shaders/wood.wgsl"),
         ),
-        ("foliage", "", include_str!("../src/shaders/foliage.wgsl")),
+        (
+            "foliage",
+            // The crown's stage decodes a placement, so it is validated with
+            // the decoder in front of it, exactly as the pipeline builds it.
+            include_str!("../src/shaders/leaf.wgsl"),
+            include_str!("../src/shaders/foliage.wgsl"),
+        ),
     ] {
         let source = format!("{prelude}\n{transmission}\n{canopy}\n{detail}\n{stage}");
         let module = wgsl::parse_str(&source)

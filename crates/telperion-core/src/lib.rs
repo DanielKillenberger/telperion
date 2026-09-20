@@ -16,6 +16,7 @@ pub mod noise;
 pub mod params;
 pub mod presets;
 pub mod radius;
+pub mod ranges;
 pub mod rng;
 pub mod surface;
 pub mod tree;

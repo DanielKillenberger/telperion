@@ -42,6 +42,7 @@ fn main() {
                 internode_length: twigs.twig.internode_length,
                 stations_per_internode: twigs.twig.stations_per_internode,
             }),
+            foliage::Reference::of(&f).unwrap(),
         )
         .unwrap();
         let placement_ms = ms(t);
@@ -89,9 +90,9 @@ fn main() {
             serde_json::json!({
                 "subject": name, "sample": sample, "fieldOnly": field_only,
                 "nodes": report.tree.nodes.len(), "vertices": mesh.as_ref().map_or(0, |m| m.positions.len()/3),
-                "triangles": mesh.as_ref().map_or(0, |m| m.indices.len()/3), "leaves": kept.matrices.len(),
+                "triangles": mesh.as_ref().map_or(0, |m| m.indices.len()/3), "leaves": kept.len(),
                 "woodBytes": mesh.as_ref().map_or(0, |m| (m.positions.len()+m.normals.len()+m.indices.len())*4),
-                "matrixBytes": kept.matrices.len()*64,
+                "matrixBytes": kept.len()*std::mem::size_of::<foliage::Leaf>(),
                 "growthMs": growth_ms, "surfaceMs": surface_ms, "placementMs": placement_ms,
                 "cullMs": cull_ms, "boundsMs": bounds_ms, "fieldMs": field_ms, "buildMs": build_ms,
                 "queryMs": query_ms, "occupied": occupied, "fieldBytes": field.as_ref().map_or(0, Field::storage_bytes)

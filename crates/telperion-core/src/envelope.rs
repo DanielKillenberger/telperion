@@ -76,8 +76,8 @@ impl Envelope {
         if t <= 0.0 || t >= 1.0 {
             return 0.0;
         }
-        let fullness = self.fullness.clamp(0.001, 0.999);
-        let shoulder = self.shoulder.max(0.1);
+        let fullness = self.fullness;
+        let shoulder = self.shoulder;
         let p = if t < fullness {
             1.0 - t / fullness
         } else {
@@ -132,17 +132,43 @@ impl Envelope {
             && p.x.hypot_fixed(p.z) <= self.radius_toward(p, seed) + tolerance
     }
     pub fn sample(&self, count: usize, rng: &mut Rng, seed: u32) -> Result<Vec<Vec3>> {
+        self.sample_with_attempts(
+            count,
+            rng,
+            seed,
+            crate::ranges::default_sampling_attempts_per_attractor(),
+        )
+    }
+    pub fn sample_with_attempts(
+        &self,
+        count: usize,
+        rng: &mut Rng,
+        seed: u32,
+        attempts_per_attractor: u32,
+    ) -> Result<Vec<Vec3>> {
         self.validate()?;
-        if count > 1_000_000 {
-            return Err(Error::ResourceLimit("attractors"));
+        crate::ranges::POSITIVE_COUNT.check(
+            attempts_per_attractor as f64,
+            "samplingAttemptsPerAttractor",
+        )?;
+        if count > crate::ranges::MAX_ATTRACTORS {
+            return Err(Error::InvalidInput("attractors"));
         }
         let r = self.max_radius();
         let base = self.height * self.crown_base;
         if r <= 0.0 || self.height <= base {
             return Ok(Vec::new());
         }
-        let mut out = Vec::with_capacity(count);
-        for _ in 0..count * 64 {
+        let attempts =
+            count
+                .checked_mul(attempts_per_attractor as usize)
+                .ok_or(Error::ResourceLimit(
+                    "samplingAttemptsPerAttractor overflow",
+                ))?;
+        let mut out = Vec::new();
+        out.try_reserve_exact(count)
+            .map_err(|_| Error::ResourceLimit("attractor allocation"))?;
+        for _ in 0..attempts {
             if out.len() == count {
                 return Ok(out);
             }
@@ -158,7 +184,7 @@ impl Envelope {
         if out.len() == count {
             Ok(out)
         } else {
-            Err(Error::ResourceLimit("envelope sampling attempts"))
+            Err(Error::ResourceLimit("samplingAttemptsPerAttractor"))
         }
     }
     /// The smooth two-dimensional outline, and deliberately smooth: shedding

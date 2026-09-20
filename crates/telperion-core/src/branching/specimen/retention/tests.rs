@@ -119,7 +119,7 @@ fn history_cap_build_and_node_ceiling_keep_the_same_complete_slice() {
             .unwrap_err()
             .to_string()
             .contains("node ceiling"));
-        s.set_node_ceiling(NODE_CEILING).unwrap();
+        s.set_node_ceiling(DEFAULT_MAX_NODES).unwrap();
     }
     assert_eq!(capped.advance(5.0).unwrap(), full.advance(5.0).unwrap());
     assert_eq!(capped.read().unwrap(), full.read().unwrap());

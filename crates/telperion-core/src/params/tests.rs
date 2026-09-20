@@ -54,8 +54,7 @@ fn catalogue_roundtrips_all_controls_and_identities() {
         let mut value = metadata(&preset(abi).unwrap());
         assert_eq!(value, metadata(&parse(&json!(id)).unwrap()));
         assert_eq!(value, metadata(&parse(&value).unwrap()));
-        value["skeleton"]["bias"]["supernatural"] =
-            json!({"enabled":false,"writheAmplitude":0.12,"writheWavelength":0.4,"spiralRate":3.0});
+        value["skeleton"]["bias"]["supernatural"] = json!({"enabled":false,"writheAmplitude":0.12,"writheWavelength":0.4,"spiralRate":3.0,"maxWritheMagnitude":0.9});
         value["element"]["connectorLength"] = json!(0.002);
         // Every habit trait is a flat numeric row, set one at a time.
         for (trait_name, set) in [
@@ -180,6 +179,7 @@ fn catalogue_roundtrips_all_controls_and_identities() {
                 f.skeleton.seed,
                 f.canopy,
                 None,
+                crate::foliage::Reference::of(&f).unwrap(),
             )
             .err(),
             Some(Error::InvalidInput(message))

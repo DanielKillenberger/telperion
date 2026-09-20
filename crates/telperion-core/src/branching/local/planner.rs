@@ -44,9 +44,9 @@ impl Planner<'_> {
     }
     pub(super) fn heading(&self, at: Vec3, from: Vec3, wanted: Vec3, distance: f64) -> Vec3 {
         let c = self.config;
-        let wanted = self.bias.map_or(wanted.normalized(), |b| {
-            b.apply(at, wanted, c.step_distance)
-        });
+        let wanted = self
+            .bias
+            .map_or(wanted.normalized(), |b| b.apply(at, wanted));
         colonization::limit_turn(
             Some(from),
             wanted,

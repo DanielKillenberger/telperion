@@ -3,7 +3,7 @@ mod species_metrics;
 use serde_json::json;
 use species_metrics::{compare, measure};
 use telperion_core::{
-    foliage::{Element, Instances},
+    foliage::{Element, Instances, Reference},
     math::Vec3,
     tree::{Node, NodeKind, Tree},
 };
@@ -49,11 +49,16 @@ fn fixture() -> (Tree, Element, Instances) {
         anatomy: None,
         ..Element::default()
     };
-    let instances = Instances {
-        matrices: vec![[
-            2., 0., 0., 0., 0., 3., 0., 0., 0., 0., 1., 0., 1., 5., 0., 1.,
-        ]],
-    };
+    // One rotation, one uniform scale and a point: what a stored leaf carries.
+    // The crown is the single station at (1, 5, 0), so the box is that point
+    // and the position survives the round trip exactly.
+    let mut instances = Instances::new(Reference::spanning(
+        Vec3::new(1., 5., 0.),
+        Vec3::new(1., 5., 0.),
+    ));
+    instances.push(&[
+        2., 0., 0., 0., 0., 2., 0., 0., 0., 0., 2., 0., 1., 5., 0., 1.,
+    ]);
     (tree, element, instances)
 }
 #[test]
@@ -61,7 +66,9 @@ fn analytic_units_dbh_axes_and_retained_area() {
     let (t, e, i) = fixture();
     let m = measure(&t, &[0., 0., 0., 0., 4.25, 0.], &e, 2, &i).unwrap();
     assert!((m["dbh_m"]["value"].as_f64().unwrap() - 0.74).abs() < 1e-12);
-    assert_eq!(m["height_m"]["value"], 11.);
+    // The rotation is read back through ten bits a component, so the leaf's
+    // own tip stands a micron from where it was asked for.
+    assert!((m["height_m"]["value"].as_f64().unwrap() - 9.).abs() < 1e-5);
     assert_eq!(m["wood_height_m"]["value"], 4.25);
     assert_eq!(m["branch_count"]["value"], 1);
     assert_eq!(m["branch_lengths_m"]["value"], json!([4.]));
@@ -69,9 +76,11 @@ fn analytic_units_dbh_axes_and_retained_area() {
     assert_eq!(m["twig_count"]["value"], 1);
     assert_eq!(m["foliage_units"]["value"], 1);
     assert_eq!(m["discarded_units"]["value"], 1);
-    assert_eq!(m["leaf_area_m2"]["value"], 6.);
-    assert_eq!(m["foliage_length_m"]["max"], 6.);
-    assert_eq!(m["foliage_width_m"]["max"], 2.);
+    // A rotation and one scale keep an area and a length; what moves is the
+    // last bits of the columns the decoder writes back as f32.
+    assert!((m["leaf_area_m2"]["value"].as_f64().unwrap() - 4.).abs() < 1e-7);
+    assert!((m["foliage_length_m"]["max"].as_f64().unwrap() - 4.).abs() < 1e-7);
+    assert!((m["foliage_width_m"]["max"].as_f64().unwrap() - 2.).abs() < 1e-7);
     assert_eq!(
         m,
         measure(&t, &[0., 0., 0., 0., 4.25, 0.], &e, 2, &i).unwrap()
@@ -148,11 +157,12 @@ fn overflow_and_degenerate_geometry_fail_explicitly() {
 #[test]
 fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
     use telperion_core::foliage::{build_element, ElementParams};
-    let (t, _, mut instances) = fixture();
-    // Rotate the nonuniform X/Y/Z scales into world Z/X/Y.
-    instances.matrices[0] = [
-        0., 0., 2., 0., 3., 0., 0., 0., 0., 4., 0., 0., 1., 5., 0., 1.,
-    ];
+    let (t, _, fixed) = fixture();
+    // Rotate the leaf's own axes into world Z/X/Y.
+    let mut instances = Instances::new(fixed.reference);
+    instances.push(&[
+        0., 0., 3., 0., 3., 0., 0., 0., 0., 3., 0., 0., 1., 5., 0., 1.,
+    ]);
     // A flat blade and a shaft rolled shut, each with a station on its widest
     // point so the authored width is the measured one.
     for section_roundness in [0.0, 1.0] {
@@ -174,7 +184,7 @@ fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
         assert_eq!(m["foliage_length_m"]["status"], "measured");
         assert!((m["foliage_length_m"]["max"].as_f64().unwrap() - 0.06).abs() < 1e-8);
         // The blade is measured across its face, the shaft across its section.
-        let expected_width = if section_roundness > 0. { 0.008 } else { 0.004 };
+        let expected_width = 0.006;
         assert!((m["foliage_width_m"]["max"].as_f64().unwrap() - expected_width).abs() < 1e-8);
         let longer_connector = build_element(ElementParams {
             connector_length: 0.009,
@@ -197,8 +207,8 @@ fn measured_species_subsets_exclude_connectors_and_use_transformed_geometry() {
             assert!(
                 // Five equal intervals; the outline profile at 0, .2, .4, .6,
                 // .8, 1 is 0, 1, .98429, .933033, .825217, 0, a trapezoidal
-                // mean of .748508 across (.002 * 2) by (.02 * 3).
-                (projected - 0.000179641_898).abs() < 1e-9,
+                // mean of .748508 across (.002 * 3) by (.02 * 3).
+                (projected - 0.000269462_866).abs() < 1e-9,
                 "canonical projected polygon area, got {projected}"
             );
             assert_eq!(m["foliage_unit"], "needle");

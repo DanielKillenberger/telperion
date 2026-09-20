@@ -4,7 +4,9 @@
 //! that level's own offset.
 use crate::{buffer::Held, device::Gpu};
 
-/// Column-major, the same layout the core's instance matrices use.
+/// Column-major, the transform the leaf view's single placement carries. It
+/// is packed through the core's own encoder, so the one leaf on stage is read
+/// by exactly the arithmetic the crown's millions are.
 const IDENTITY: [f32; 16] = [
     1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
 ];
@@ -117,7 +119,8 @@ pub fn leaf_group(gpu: &Gpu, layout: &wgpu::BindGroupLayout) -> wgpu::BindGroup 
         gpu.queue.write_buffer(&buffer, 0, bytes);
         buffer
     };
-    let placements = held("leaf placement", bytemuck::cast_slice(&IDENTITY));
+    let leaf = telperion_core::foliage::Reference::default().pack(&IDENTITY);
+    let placements = held("leaf placement", bytemuck::cast_slice(&leaf));
     let list = held("leaf list", bytemuck::cast_slice(&[0u32]));
     let masses = held("leaf masses", bytemuck::cast_slice(&crate::mass::empty()));
     gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -176,7 +179,17 @@ fn storage(
 pub fn pipelines(gpu: &Gpu, bind: &wgpu::BindGroupLayout) -> [wgpu::ComputePipeline; 3] {
     let shader = gpu
         .device
-        .create_shader_module(wgpu::include_wgsl!("../shaders/select.wgsl"));
+        .create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("select"),
+            source: wgpu::ShaderSource::Wgsl(
+                format!(
+                    "{}\n{}",
+                    include_str!("../shaders/leaf.wgsl"),
+                    include_str!("../shaders/select.wgsl")
+                )
+                .into(),
+            ),
+        });
     let layout = gpu
         .device
         .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

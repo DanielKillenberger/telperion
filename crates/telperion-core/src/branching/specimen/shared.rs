@@ -19,7 +19,8 @@ pub struct PackedRead {
     structural: Map<PackedNode>,
     local: Map<PackedNode>,
     runs: Map<Run>,
-    foliage: Map<Placement>,
+    foliage: Map<Map<Placement>>,
+    placement_count: usize,
     pub envelope: Envelope,
     pub surface_height: f64,
 }
@@ -34,7 +35,7 @@ impl PackedRead {
         self.structural.len()
     }
     pub fn placements(&self) -> impl Iterator<Item = &Placement> {
-        self.foliage.iter()
+        self.foliage.iter().flat_map(Map::iter)
     }
     pub fn node(&self, id: NodeIdentity) -> Option<&PackedNode> {
         self.structural
@@ -44,11 +45,12 @@ impl PackedRead {
     }
     pub fn placement(&self, id: PlacementIdentity) -> Option<&Placement> {
         self.foliage
-            .get(placement_key(id))
+            .get(id.shoot.birth_order())?
+            .get(u64::from(id.station))
             .filter(|p| p.identity == id)
     }
     pub fn placement_count(&self) -> usize {
-        self.foliage.len()
+        self.placement_count
     }
 
     fn from_read(read: SpecimenRead) -> Self {
@@ -61,7 +63,7 @@ impl PackedRead {
             out.put_run(run);
         }
         for p in read.placements {
-            out.foliage.set(placement_key(p.identity), Some(p));
+            out.put_placement(p);
         }
         out
     }
@@ -87,14 +89,39 @@ impl PackedRead {
             self.put_run(run.clone());
         }
         for &id in &record.shed_placements {
-            self.foliage.set(placement_key(id), None);
+            self.remove_placement(id);
         }
         for p in record
             .born_placements
             .iter()
             .chain(&record.moved_placements)
         {
-            self.foliage.set(placement_key(p.identity), Some(p.clone()));
+            self.put_placement(p.clone());
+        }
+    }
+    fn put_placement(&mut self, placement: Placement) {
+        let birth = placement.identity.shoot.birth_order();
+        let station = u64::from(placement.identity.station);
+        if let Some(stations) = self.foliage.get_mut(birth) {
+            self.placement_count += usize::from(stations.get(station).is_none());
+            stations.set(station, Some(placement));
+        } else {
+            let mut stations = Map::default();
+            stations.set(station, Some(placement));
+            self.foliage.set(birth, Some(stations));
+            self.placement_count += 1;
+        }
+    }
+    fn remove_placement(&mut self, id: PlacementIdentity) {
+        if self.placement(id).is_none() {
+            return;
+        }
+        let birth = id.shoot.birth_order();
+        let stations = self.foliage.get_mut(birth).unwrap();
+        stations.set(u64::from(id.station), None);
+        self.placement_count -= 1;
+        if stations.len() == 0 {
+            self.foliage.set(birth, None);
         }
     }
     fn put_run(&mut self, run: Run) {
@@ -142,6 +169,7 @@ impl Specimen {
             envelope,
             surface_height: self.surface_height(),
             placements,
+            reference: self.timeline.as_ref().unwrap().foliage.reference(),
             shed: Vec::new(),
         });
         if age == self.timeline.as_ref().unwrap().age {
@@ -166,11 +194,5 @@ impl Specimen {
         }
     }
 }
-fn placement_key(id: PlacementIdentity) -> u64 {
-    // The generator caps a shoot at 512 stations and lifetime growth at 250k
-    // units; its monotone birth counter is comfortably inside this key space.
-    id.shoot.birth_order() * 512 + u64::from(id.station)
-}
-
 #[cfg(test)]
 mod tests;

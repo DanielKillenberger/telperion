@@ -84,10 +84,10 @@ fn at_one_stem_the_fork_height_reaches_no_table() {
                 fnv(m
                     .foliage
                     .instances
-                    .matrices
+                    .leaves
                     .iter()
                     .flatten()
-                    .flat_map(|v| v.to_le_bytes())),
+                    .flat_map(|w| w.to_le_bytes())),
             )
         };
         let was = bytes(&family(preset, |f| f.skeleton.habit.stems = 1));

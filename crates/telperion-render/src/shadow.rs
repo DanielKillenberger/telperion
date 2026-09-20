@@ -109,7 +109,7 @@ impl Shadow {
 
         let light = gpu.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("light"),
-            size: size_of::<[f32; 24]>() as u64,
+            size: size_of::<[f32; 32]>() as u64,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
@@ -148,7 +148,17 @@ impl Shadow {
             light_layout,
             module: gpu
                 .device
-                .create_shader_module(wgpu::include_wgsl!("shaders/shadow.wgsl")),
+                .create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: Some("shadow"),
+                    source: wgpu::ShaderSource::Wgsl(
+                        format!(
+                            "{}\n{}",
+                            include_str!("shaders/leaf.wgsl"),
+                            include_str!("shaders/shadow.wgsl")
+                        )
+                        .into(),
+                    ),
+                }),
         }
     }
 
@@ -169,12 +179,22 @@ impl Shadow {
 
     /// Stands the sun where the scene row puts it, for the frame about to be
     /// drawn.
-    pub fn set_light(&self, gpu: &Gpu, light: &Light, stride: u32, shape: [f32; 4]) {
-        let mut uniform = [0.0f32; 24];
+    pub fn set_light(
+        &self,
+        gpu: &Gpu,
+        light: &Light,
+        stride: u32,
+        shape: [f32; 4],
+        reference: telperion_core::foliage::Reference,
+    ) {
+        let mut uniform = [0.0f32; 32];
         uniform[..16].copy_from_slice(&light.view_projection);
         uniform[16] = stride as f32;
         uniform[17] = (stride as f32).sqrt();
-        uniform[20..].copy_from_slice(&shape);
+        uniform[20..24].copy_from_slice(&shape);
+        let vector = |v: telperion_core::math::Vec3| [v.x as f32, v.y as f32, v.z as f32, 0.0];
+        uniform[24..28].copy_from_slice(&vector(reference.min));
+        uniform[28..].copy_from_slice(&vector(reference.extent));
         gpu.queue
             .write_buffer(&self.light, 0, bytemuck::cast_slice(&uniform));
     }

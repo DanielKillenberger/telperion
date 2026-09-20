@@ -4,6 +4,7 @@ mod local;
 mod scaffold;
 mod specimen;
 mod traits;
+use crate::ranges::DEFAULT_MAX_NODES;
 use crate::{
     bias::{BiasParams, GrowthBias},
     colonization::{self, GrowthConfig},
@@ -12,7 +13,7 @@ use crate::{
     radius::{self, RadiusParams},
     rng::Rng,
     tree::{Node, NodeKind, Tree},
-    twigs::{branch_length, child_radius, TwigParams, MAX_LEVELS},
+    twigs::{branch_length, child_radius, TwigParams},
     Error, Result,
 };
 pub use local::{append, in_band as in_curtain_band};
@@ -20,7 +21,6 @@ pub use specimen::{
     ChangeRecord, PackedNode, PackedRead, Run, RunNode, Specimen, SpecimenBuffers, SpecimenRead,
 };
 pub use traits::HabitParams;
-pub const NODE_CEILING: usize = 250_000;
 pub const DEFAULT_STEP: f64 = 0.022;
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "json", derive(serde::Serialize, serde::Deserialize))]
@@ -29,6 +29,11 @@ pub struct SkeletonParams {
     pub habit: HabitParams,
     pub envelope: Envelope,
     pub attractors: usize,
+    #[cfg_attr(
+        feature = "json",
+        serde(default = "crate::ranges::default_sampling_attempts_per_attractor")
+    )]
+    pub sampling_attempts_per_attractor: u32,
     pub step: f64,
     pub bias: BiasParams,
     pub twigs: TwigParams,
@@ -41,6 +46,8 @@ impl Default for SkeletonParams {
             habit: HabitParams::default(),
             envelope: Envelope::default(),
             attractors: 500,
+            sampling_attempts_per_attractor: crate::ranges::default_sampling_attempts_per_attractor(
+            ),
             step: DEFAULT_STEP,
             bias: BiasParams::default(),
             twigs: TwigParams::default(),
@@ -92,7 +99,7 @@ pub struct GrowthReport {
     pub shed: usize,
 }
 pub fn inner_envelope(e: Envelope, reach: f64) -> Envelope {
-    let share = 1.0 - reach.clamp(0.0, 0.9);
+    let share = 1.0 - reach;
     let base = e.height * e.crown_base;
     let height = base + (e.height - base) * share;
     if height <= 0.0 {
@@ -126,71 +133,10 @@ pub fn default_growth(e: Envelope, attractors: usize, step: f64) -> GrowthConfig
         kill_distance: distance * 2.0,
         influence_radius: influence_radius(e, distance, attractors),
         trunk_height: e.height * e.crown_base,
-        max_nodes: NODE_CEILING,
+        max_nodes: DEFAULT_MAX_NODES,
         shell: Some(e),
         ..Default::default()
     }
-}
-fn headroom(tree: &Tree, c: &GrowthConfig, t: TwigParams) -> usize {
-    fn nodes_for(radius: f64, length: f64, generation: usize, t: TwigParams, ratio: f64) -> usize {
-        // The row bounds the depth before any radius does, so the estimate
-        // counts the same generations the law grows.
-        if radius <= t.twig.diameter / 2.0
-            || length < t.twig.internode_length
-            || generation >= t.generations as usize
-        {
-            return 1;
-        }
-        if generation >= MAX_LEVELS {
-            return 0;
-        }
-        if radius <= t.twig.bearing_diameter / 2.0 {
-            return 64;
-        }
-        let offspring = if t.laterals == 0 {
-            0
-        } else {
-            t.laterals as usize
-                * nodes_for(
-                    child_radius(radius, ratio, t.ratio_power),
-                    length * ratio,
-                    generation + 1,
-                    t,
-                    ratio,
-                )
-        };
-        (33 + offspring).clamp(64, NODE_CEILING)
-    }
-    let ratio = (t.length_ratio * (1.0 + t.vigour_variation)).min(1.0);
-    let mut children = vec![0; tree.nodes.len()];
-    for n in tree.nodes.iter().skip(1) {
-        children[n.parent.unwrap() as usize] += 1
-    }
-    let stem = tree.stem_radius(|i| tree.nodes[i].radius);
-    let mut estimate = 0;
-    for (i, n) in tree.nodes.iter().enumerate().skip(1) {
-        if n.position.y < c.trunk_height {
-            continue;
-        }
-        let length = branch_length(n.radius);
-        if children[i] == 0 {
-            estimate += nodes_for(n.radius, length, 0, t, ratio)
-        }
-        if n.radius < t.limb_radius * stem {
-            estimate += t.laterals as usize
-                * nodes_for(
-                    child_radius(n.radius, ratio, t.ratio_power),
-                    length * ratio,
-                    1,
-                    t,
-                    ratio,
-                )
-        }
-        if estimate >= NODE_CEILING {
-            return NODE_CEILING;
-        }
-    }
-    estimate
 }
 /// Retain illuminated subtrees and complete leader runs; remap every parent and run ID.
 pub fn shed(tree: &mut Tree, envelope: Envelope, shell_depth: f64) -> Result<usize> {

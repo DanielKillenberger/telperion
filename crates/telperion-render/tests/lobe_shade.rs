@@ -34,7 +34,13 @@ fn lobes() -> TreeMesh {
     })
     .unwrap();
     let mut state = 0x2545_f491_u32;
-    let matrices = (0..160_000)
+    // The crown the fixture fills, as a box that holds it: the leaves stand
+    // between minus one and one across and up to three and a half high.
+    let mut instances = Instances::new(telperion_core::foliage::Reference::spanning(
+        Vec3::new(-2.0, 0.0, -2.0),
+        Vec3::new(2.0, 4.0, 2.0),
+    ));
+    let matrices: Vec<[f32; 16]> = (0..160_000)
         .map(|k| {
             let base = if k % 2 == 0 { 1.0 } else { 2.5 };
             let at = Vec3::new(
@@ -49,12 +55,12 @@ fn lobes() -> TreeMesh {
             .map(|v: f64| v as f32)
         })
         .collect();
+    for m in &matrices {
+        instances.push(m);
+    }
     TreeMesh {
         wood: SurfaceMesh::default(),
-        foliage: Foliage {
-            element,
-            instances: Instances { matrices },
-        },
+        foliage: Foliage { element, instances },
         bounds: Bounds {
             min: Vec3::new(-1.2, 0.8, -1.2),
             max: Vec3::new(1.2, 3.7, 1.2),

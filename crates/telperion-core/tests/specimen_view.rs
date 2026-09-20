@@ -28,7 +28,8 @@ fn specimen_view_scrubs_advances_and_rebuilds_one_chronicle() {
         let wood = surface::build(&read.tree, read.surface_height, &fresh.surface).unwrap();
         let element = foliage::build_element(fresh.element).unwrap();
         let placed = foliage::Instances {
-            matrices: read.placements.iter().map(|p| p.transform).collect(),
+            leaves: read.placements.iter().map(|p| p.leaf).collect(),
+            reference: foliage::Reference::of(&fresh).unwrap(),
         };
         let instances = foliage::cull(placed, &element, read.envelope, fresh.shell_depth).unwrap();
         let mesh = view.mesh().unwrap();

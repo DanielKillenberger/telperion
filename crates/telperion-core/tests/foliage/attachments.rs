@@ -8,6 +8,13 @@ fn species_attachment_uses_local_twig_and_connected_origins() {
         internode_length: 0.01,
         stations_per_internode: 1,
     };
+    // The shoot runs along +X from (0, 10, 0); across it the stations stand
+    // 2.5 mm off the wood, and the box is drawn tight there so the radial
+    // survives the round trip well inside the micron asserted below.
+    let box_of = Reference::spanning(
+        Vec3::new(-0.001, 9.996, -0.004),
+        Vec3::new(0.081, 10.004, 0.004),
+    );
     for (p, shape) in [
         (
             CanopyParams {
@@ -27,26 +34,25 @@ fn species_attachment_uses_local_twig_and_connected_origins() {
             four_sided_needle(),
         ),
     ] {
-        let instances = place(&t, Envelope::default(), 4, p, Some(stations)).unwrap();
-        assert_eq!(instances.matrices.len(), 8);
+        let instances = place(&t, Envelope::default(), 4, p, Some(stations), box_of).unwrap();
+        assert_eq!(instances.len(), 8);
         assert_eq!(
             instances,
-            place(&t, Envelope::default(), 4, p, Some(stations)).unwrap()
+            place(&t, Envelope::default(), 4, p, Some(stations), box_of).unwrap()
         );
         let e = build_element(shape).unwrap();
         let mut upper = 0;
         let mut lower = 0;
-        for (k, m) in instances.matrices.iter().enumerate() {
-            let root = transform_point(m, Vec3::ZERO);
+        for (k, m) in instances.matrices().enumerate() {
+            let root = transform_point(&m, Vec3::ZERO);
             let center = t.nodes[0].position + Vec3::new(k as f64 * 0.01, 0., 0.);
             let radial = (root - center).normalized();
             assert!(((root - center).length() - 0.0025).abs() < 1e-6);
             let axis = Vec3::new(m[4] as f64, m[5] as f64, m[6] as f64);
             if p.lean_rise == 0. {
                 if k > 0 {
-                    let prev = &instances.matrices[k - 1];
-                    let prev_radial =
-                        Vec3::new(0., prev[13] as f64 - 10., prev[14] as f64).normalized();
+                    let prev = instances.position(k - 1);
+                    let prev_radial = Vec3::new(0., prev.y - 10., prev.z).normalized();
                     assert!(radial.dot(prev_radial) < -0.999);
                 }
             } else if radial.y > 0.5 {
@@ -78,11 +84,14 @@ fn a_signed_lean_turns_the_leaf_back_down_its_shoot_and_toward_the_ground() {
         internode_length: 0.01,
         stations_per_internode: 1,
     };
+    let box_of = Reference::spanning(
+        Vec3::new(-0.001, 9.996, -0.004),
+        Vec3::new(0.081, 10.004, 0.004),
+    );
     let axes = |p| {
-        place(&t, Envelope::default(), 4, p, Some(stations))
+        place(&t, Envelope::default(), 4, p, Some(stations), box_of)
             .unwrap()
-            .matrices
-            .iter()
+            .matrices()
             .map(|m| Vec3::new(m[4] as f64, m[5] as f64, m[6] as f64))
             .collect::<Vec<_>>()
     };
@@ -198,7 +207,8 @@ fn species_empty_degenerate_and_invalid_controls_are_explicit() {
                 Envelope::default(),
                 1,
                 bad,
-                Some(TwigPlacement::default())
+                Some(TwigPlacement::default()),
+                twig_box(0.04)
             )
             .err(),
             Some(Error::InvalidInput(message))
@@ -220,10 +230,10 @@ fn species_empty_degenerate_and_invalid_controls_are_explicit() {
             Some(TwigPlacement {
                 stations_per_internode: 2,
                 ..TwigPlacement::default()
-            })
+            }),
+            twig_box(0.04)
         )
         .unwrap()
-        .matrices
         .len(),
         4
     );
@@ -233,27 +243,27 @@ fn species_empty_degenerate_and_invalid_controls_are_explicit() {
         1,
         p,
         Some(TwigPlacement::default()),
+        twig_box(0.),
     )
     .unwrap();
-    assert!(empty.matrices.is_empty());
+    assert!(empty.is_empty());
     let zero = place(
         &twig(0.04),
         Envelope::default(),
         1,
         CanopyParams { size: 0., ..p },
         Some(TwigPlacement::default()),
+        twig_box(0.04),
     )
     .unwrap();
-    assert!(zero.matrices.is_empty());
-    let instances = Instances {
-        matrices: vec![[
-            1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 10., 0., 1.,
-        ]],
-    };
+    assert!(zero.is_empty());
+    let mut instances = Instances::new(twig_box(0.));
+    instances.push(&[
+        1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 10., 0., 1.,
+    ]);
     assert!(
         cull(instances, &Element::default(), Envelope::default(), 1.)
             .unwrap()
-            .matrices
             .is_empty()
     );
 }
@@ -274,8 +284,16 @@ fn leaned_stations_continue_across_subdivided_twig_runs() {
         internode_length: 0.01,
         stations_per_internode: 1,
     });
-    let split = place(&t, Envelope::default(), 3, p, stations).unwrap();
-    let whole = place(&twig(0.03), Envelope::default(), 3, p, stations).unwrap();
+    let split = place(&t, Envelope::default(), 3, p, stations, twig_box(0.03)).unwrap();
+    let whole = place(
+        &twig(0.03),
+        Envelope::default(),
+        3,
+        p,
+        stations,
+        twig_box(0.03),
+    )
+    .unwrap();
     assert_eq!(split, whole);
 }
 
@@ -289,8 +307,9 @@ fn shoot_radius_alone_clothes_slender_supports_and_spares_thick_limbs() {
         shoot_radius: 0.005,
         ..bare()
     };
-    let placed = place(&t, Envelope::default(), 1, clothing, stations).unwrap();
-    assert_eq!(placed.matrices.len(), 4);
+    let box_of = twig_box(0.08);
+    let placed = place(&t, Envelope::default(), 1, clothing, stations, box_of).unwrap();
+    assert_eq!(placed.len(), 4);
     // The same wood, the same leaf: at zero the trait clothes nothing beyond
     // the runs the twig layer marked, and this branch is not one of them.
     assert!(place(
@@ -301,16 +320,17 @@ fn shoot_radius_alone_clothes_slender_supports_and_spares_thick_limbs() {
             shoot_radius: 0.,
             ..clothing
         },
-        stations
+        stations,
+        box_of
     )
     .unwrap()
-    .matrices
     .is_empty());
     t.nodes[1].start_radius = 0.006;
-    assert!(place(&t, Envelope::default(), 1, clothing, stations)
-        .unwrap()
-        .matrices
-        .is_empty());
+    assert!(
+        place(&t, Envelope::default(), 1, clothing, stations, box_of)
+            .unwrap()
+            .is_empty()
+    );
 }
 
 #[test]

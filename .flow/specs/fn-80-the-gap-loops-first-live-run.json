@@ -6,14 +6,18 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-89-autonomous-species-conductor",
+    "fn-68-tuning-loop-code-steps-the-dials-jev"
+  ],
   "id": "fn-80-the-gap-loops-first-live-run",
   "impl_review_rounds": {},
   "next_task": 1,
+  "no_plan": true,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "ready": true,
+  "ready": false,
   "spec_path": ".flow/specs/fn-80-the-gap-loops-first-live-run.md",
   "status": "open",
   "title": "The gap loop's first live run",
@@ -28,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-18T21:26:50.371612Z"
+  "updated_at": "2026-09-19T18:38:32.307028Z"
 }

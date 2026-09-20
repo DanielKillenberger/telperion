@@ -28,6 +28,7 @@ pub(super) fn european_beech(p: &mut Family) {
     // leave it level with its own heading, which is what widens the lower
     // crown: the limbs themselves stay close to the core.
     p.skeleton.habit = HabitParams {
+        reach_probe_steps: crate::ranges::default_reach_probe_steps(),
         apical_dominance: 0.8,
         whorl_strength: 0.15,
         leader_internode: 2.6,
@@ -155,6 +156,7 @@ pub(super) fn silver_birch(p: &mut Family) {
     // reference at 70 yr; oak growth traits, pendulous laterals.
     oak_growth(p, 70.0);
     p.skeleton.habit = HabitParams {
+        reach_probe_steps: crate::ranges::default_reach_probe_steps(),
         apical_dominance: 0.45,
         whorl_strength: 0.2,
         leader_internode: 1.6,

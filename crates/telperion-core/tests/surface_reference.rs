@@ -43,6 +43,7 @@ fn final_fn6_geometry_comparison() {
             flare_depth: c[7],
             fork_socket: c[8],
             fork_swell: c[9],
+            ..Default::default()
         };
         let positions = f64s(dir, id, "positions");
         let radius = f64s(dir, id, "radius");

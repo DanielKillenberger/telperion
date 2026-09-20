@@ -1,11 +1,89 @@
 {
   "branch_name": "fn-53-no-hardcoded-caps-on-generation",
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-09-19T23:00:17.551439Z",
   "created_at": "2026-09-15T19:28:57.975193Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-53-no-hardcoded-caps-on-generation",
+  "impl_review_rounds": {
+    "fn-53-no-hardcoded-caps-on-generation.1": 0
+  },
   "next_task": 1,
+  "no_plan": true,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "4fa860184b01af3e513ffe450682a36e0d669dc3e79711be3ca4108e3aed9827",
+      "backend": "claude",
+      "base_sha": "38e6c57f1ee00836a6e44e667dd468dfebed51ce",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "320c3d028843ee8d4a8d21a39e7ecf753d604f9a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 7987,
+      "output_sha256": "3c2a9012b815c0f932d482a0fb1e479c5ac73c8b0f3611024be8cacfc9f984c3",
+      "reservation_id": "23f2022da8ce4ef4b62714a8918c1ce3",
+      "round_consumed": true,
+      "scope": "impl:fn-53-no-hardcoded-caps-on-generation.1",
+      "superseded_by": null,
+      "task": "fn-53-no-hardcoded-caps-on-generation.1",
+      "timestamp": "2026-09-19T22:44:27.336742Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "a172f482e152db47ca589a9d751ec514d55d1c3980d6134917c454ffae3eb1b8",
+      "backend": "claude",
+      "base_sha": "38e6c57f1ee00836a6e44e667dd468dfebed51ce",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "08c5357df45ebdcfa3bb54cc52cc013b650ff19d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2497,
+      "output_sha256": "606dd9546b33769289ee5cb6e8e63b28321783be727f56d64a7c9d52886ffe53",
+      "reservation_id": "332ac999192c4a38b0da86a137032fca",
+      "round_consumed": true,
+      "scope": "impl:fn-53-no-hardcoded-caps-on-generation.1",
+      "superseded_by": null,
+      "task": "fn-53-no-hardcoded-caps-on-generation.1",
+      "timestamp": "2026-09-19T22:58:47.152912Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-53-no-hardcoded-caps-on-generation.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-53-no-hardcoded-caps-on-generation.1": 0
+  },
   "spec_path": ".flow/specs/fn-53-no-hardcoded-caps-on-generation.md",
   "status": "open",
   "title": "No hardcoded caps on generation",
@@ -20,5 +98,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-15T19:28:58.848333Z"
+  "updated_at": "2026-09-19T23:00:17.551449Z"
 }

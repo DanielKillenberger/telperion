@@ -69,9 +69,14 @@ fn analytic_axes_taper_angles_and_degeneracy() {
 fn biological_centroid_bins_count_needles_and_exclude_connectors() {
     let t = tree();
     let matrix = |x, y| [1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., x, y, 0., 1.];
-    let kept = Instances {
-        matrices: vec![matrix(1., 0.), matrix(4., 4.)],
-    };
+    // The two stations are the box's own corners, so both decode to exactly
+    // where they were put.
+    let mut kept = Instances::new(foliage::Reference::spanning(
+        Vec3::new(1., 0., 0.),
+        Vec3::new(4., 4., 0.),
+    ));
+    kept.push(&matrix(1., 0.));
+    kept.push(&matrix(4., 4.));
     let p = ElementParams {
         section_roundness: 1.0,
         cross_segments: 4,
@@ -98,14 +103,19 @@ fn biological_centroid_bins_count_needles_and_exclude_connectors() {
             - m["value"]["normalization"]["ymin_m"].as_f64().unwrap()
             - 0.008)
             .abs()
-            < 1e-8
+            // The leaf axis is read back through ten bits a quaternion
+            // component, so it stands up to 0.0024 rad off true and a
+            // 8 mm shift along it measures 2e-8 short.
+            < 1e-7
     );
     assert_eq!(
         metrics::foliage_bins(&t, &e, &Instances::default()).unwrap()["status"],
         "unavailable"
     );
+    // A leaf cannot be malformed - three words are three words - so what the
+    // bins refuse is a box that is not a box.
     let mut bad = kept;
-    bad.matrices[0][0] = f32::NAN;
+    bad.reference.extent.x = f64::NAN;
     assert!(metrics::foliage_bins(&t, &e, &bad).is_err());
 }
 #[test]
@@ -146,6 +156,7 @@ fn frozen_parameters_resolve_without_default_substitution() {
         // fn-11 added age and growth traits, and the frozen file is a geometry
         // protocol that predates the timeline: it never stated an age or growth
         // curve, so these are not stated geometry parameters silently defaulted in.
+        assert_eq!(emitted["growth"]["workBudget"].as_u64(), Some(250000));
         for field in ["age", "growth"] {
             emitted
                 .as_object_mut()
@@ -229,6 +240,27 @@ fn frozen_parameters_resolve_without_default_substitution() {
                 .unwrap()
                 .remove(row)
                 .expect("the envelope publishes its outline rows");
+        }
+        // fn-53 names formerly hidden budgets without changing their defaults.
+        // Assert those exact historical values before comparing the older schema.
+        for (path, key, expected) in [
+            ("/canopy", "clumpSystemOrder", 2.),
+            ("/canopy", "clumpNeighbours", 12.),
+            ("/radii", "maxTaperExponent", 12.),
+            ("/surface", "socketContainment", 0.9),
+            ("/skeleton", "samplingAttemptsPerAttractor", 64.),
+            ("/skeleton/habit", "reachProbeSteps", 96.),
+            ("/skeleton/twigs", "maxInternodes", 32.),
+            ("/skeleton/twigs", "maxDroop", 0.35),
+            ("/skeleton/twigs", "curtainStepClearance", 0.8),
+            ("/skeleton/bias/supernatural", "maxWritheMagnitude", 0.9),
+        ] {
+            let object = emitted.pointer_mut(path).unwrap().as_object_mut().unwrap();
+            assert_eq!(
+                object.remove(key).unwrap().as_f64(),
+                Some(expected),
+                "{path}/{key}"
+            );
         }
         for key in ["element", "canopy", "radii", "surface"] {
             same_numbers(&emitted[key], &given[key]);

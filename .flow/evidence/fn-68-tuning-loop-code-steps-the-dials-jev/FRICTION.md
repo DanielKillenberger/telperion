@@ -39,3 +39,6 @@ The worker checked the R5/R7/R8 prerequisites before implementing the loop. The 
 ## 2026-09-19 - Existing checkpoint branch during worktree setup
 
 The manager reused an existing fn-68 branch at b4c1a390 instead of starting from the requested fn-72 base. The host preserved it by merging fn-72. Three conflicts were formatting and updated help text; the current parent versions preserved the checkpoint functionality. Cost was about two minutes of inspection and resolution, no pilot tick. Explicit existing-branch reporting and ancestry checks in worktree setup would avoid the surprise. A diff check initially included unrelated historical whitespace; comparison against the actual fn-72 base passed. No historical source text was changed.
+# 2026-09-20 — Resume integration bookkeeping
+
+Bringing merged fn-53/fn-72 into the retained fn-68 branch produced conflicts only in fn-72's update timestamp and receipt final newline; the existing friction resolution retained both histories. Resolving those took about two minutes, zero pilot calls. Canonical receipt formatting would prevent this repeated integration conflict. Root checkout instruction edits were left untouched.

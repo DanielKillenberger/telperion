@@ -178,10 +178,8 @@ fn shedding_keeps_whole_runs_and_terminal_transition() {
     assert_eq!(tree.nodes[4].parent, Some(3));
     assert_eq!(tree.nodes[4].kind, NodeKind::Twig);
 }
-/// The generation limit is the `generations` row, not the structural
-/// `MAX_LEVELS` stop behind it: laterals whose radius never falls become
-/// twigs at the row's generation, and the tree is complete rather than
-/// truncated. `MAX_LEVELS` stays as the stop the rail can no longer reach.
+/// Laterals whose radius never falls become twigs at the authored generation,
+/// and the tree completes without an independent depth ceiling.
 #[test]
 fn generation_limit_is_explicit() {
     let mut tree = crown();

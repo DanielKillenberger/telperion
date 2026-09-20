@@ -4,7 +4,9 @@ mod clumping;
 mod element;
 mod levels;
 mod outline;
+pub(crate) mod packed;
 mod placement;
+mod reference;
 mod short_shoots;
 mod station;
 pub(crate) mod timeline;
@@ -15,6 +17,7 @@ use crate::{
 };
 pub use element::{build_element, AnatomyGeometry, Element, ElementParams, FoliageUnit};
 pub use levels::Level;
+pub use packed::{Leaf, Reference, WORDS};
 pub use placement::{place, place_on_surface, CanopyParams, TwigPlacement};
 pub use short_shoots::{
     place_short_shoots, place_short_shoots_clumped, short_shoots, ShortShoot,
@@ -49,12 +52,21 @@ impl Bounds {
         );
     }
 }
+/// The crown's leaves, three words each, and the box their positions are
+/// quantised against. Twelve bytes a leaf on the CPU and twelve in the GPU
+/// storage buffer: the buffer is the bytes written here.
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Instances {
-    /// Column-major affine matrices: side, leaf axis (+Y), face (+Z), petiole.
-    /// Packed directly for Three.js; arithmetic before storage uses f64.
-    pub matrices: Vec<[f32; 16]>,
+    pub leaves: Vec<Leaf>,
+    pub reference: Reference,
+    /// Every transform handed to `push`, kept only in test builds so a round
+    /// trip can be measured against what the constructor actually produced
+    /// rather than against a constructed case (R2).
+    #[cfg(test)]
+    pub(crate) unquantised: Vec<[f32; 16]>,
 }
+/// The point a column-major affine transform carries `p` to. Arithmetic in
+/// f64, as everything before storage is.
 pub fn transform_point(m: &[f32; 16], p: Vec3) -> Vec3 {
     Vec3::new(
         m[0] as f64 * p.x + m[4] as f64 * p.y + m[8] as f64 * p.z + m[12] as f64,
@@ -63,15 +75,48 @@ pub fn transform_point(m: &[f32; 16], p: Vec3) -> Vec3 {
     )
 }
 impl Instances {
+    /// An empty crown quantised against this box.
+    pub fn new(reference: Reference) -> Self {
+        Self {
+            leaves: Vec::new(),
+            reference,
+            #[cfg(test)]
+            unquantised: Vec::new(),
+        }
+    }
+    pub fn len(&self) -> usize {
+        self.leaves.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.leaves.is_empty()
+    }
+    /// Stores one transform. The three words are what the crown keeps; the
+    /// sixteen floats are a stack temporary the constructor hands over.
+    pub fn push(&mut self, m: &[f32; 16]) {
+        let leaf = self.reference.pack(m);
+        self.leaves.push(leaf);
+        #[cfg(test)]
+        self.unquantised.push(*m);
+    }
+    /// The transform one stored leaf stands for.
+    pub fn matrix(&self, index: usize) -> [f32; 16] {
+        self.reference.unpack(self.leaves[index])
+    }
+    /// Every stored leaf's transform, rebuilt one at a time. A reader that
+    /// wants only where a leaf stands takes `position` and pays for no
+    /// rotation.
+    pub fn matrices(&self) -> impl Iterator<Item = [f32; 16]> + '_ {
+        self.leaves.iter().map(|&leaf| self.reference.unpack(leaf))
+    }
+    /// Where one stored leaf stands.
+    pub fn position(&self, index: usize) -> Vec3 {
+        self.reference.position(self.leaves[index])
+    }
+    /// The box has to be a box: a crown quantised against a reversed or
+    /// unmeasurable one decodes to nothing anyone can draw.
     pub fn validate(&self) -> Result<()> {
-        if self.matrices.iter().any(|m| {
-            !m.iter().all(|v| v.is_finite())
-                || m[3] != 0.
-                || m[7] != 0.
-                || m[11] != 0.
-                || m[15] != 1.
-        }) {
-            return Err(Error::InvalidInput("foliage transform"));
+        if !self.reference.is_finite() {
+            return Err(Error::InvalidInput("foliage reference box"));
         }
         Ok(())
     }
@@ -80,9 +125,9 @@ impl Instances {
         self.validate()?;
         element.validate()?;
         let mut bounds: Option<Bounds> = None;
-        for m in &self.matrices {
+        for m in self.matrices() {
             for v in &element.positions {
-                let p = transform_point(m, *v);
+                let p = transform_point(&m, *v);
                 if !p.is_finite() || [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {
                     return Err(Error::ResourceLimit("foliage bounds overflow"));
                 }
@@ -122,10 +167,12 @@ pub fn cull(
     // the whole crown is dropped with the error below. Leaves after it keep
     // their places: the vector is discarded unread on that path.
     let mut overflow = false;
-    instances.matrices.retain(|m| {
+    let reference = instances.reference;
+    instances.leaves.retain(|&leaf| {
         if overflow {
             return true;
         }
+        let m = reference.unpack(leaf);
         for row in 0..3 {
             let bound = (m[row] as f64).abs() * extent.x
                 + (m[row + 4] as f64).abs() * extent.y
@@ -137,7 +184,7 @@ pub fn cull(
             }
         }
         for v in &element.positions {
-            let p = transform_point(m, *v);
+            let p = transform_point(&m, *v);
             if !p.is_finite() || [p.x, p.y, p.z].iter().any(|v| !(*v as f32).is_finite()) {
                 overflow = true;
                 return true;

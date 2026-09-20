@@ -74,10 +74,10 @@ fn one_stem_is_every_shipped_tree_exactly_as_it_was() {
                 fnv(m
                     .foliage
                     .instances
-                    .matrices
+                    .leaves
                     .iter()
                     .flatten()
-                    .flat_map(|v| v.to_le_bytes())),
+                    .flat_map(|w| w.to_le_bytes())),
             )
         };
         let was = bytes(&base);
