@@ -21,9 +21,13 @@ Quick: explicit core surface/prepared/collapse/attachment test targets using exi
 
 
 ## Done summary
-TBD
+Retained the allocation-free nested wood admission traversal with exact prepared fields and default CPU surface hashes. Evidence and the host retention decision are in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/admission/REPORT.md`: preparation gains 9.69–11.97%, native completed-frame gains 3.51/4.15%, below the 5% aim; browser expansion stopped and parent targets remain open.
 
+baseline: green (17 focused integration tests and correctly scoped edition-2021 rustfmt). Final 17 integration and 15 surface unit tests, Wasm compile check, formatting and whitespace checks pass. Enumeration test first failed for missing helper. Host direct diff review completed before completion; no shader/allocation/default-CPU changes. RSS oak increase and prior CPU timing attribution remain unresolved. No subagents dispatched.
+
+Tier: session (jev intelligent 0.41; explicit IMPLEMENTER preserved)
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ef52e093347544a39640ced5306339b5e69d5cc9
+- Tests: baseline: green (17 integration tests; edition-2021 scoped rustfmt), /tmp/telperion-fn91-tools/cargo-nextest nextest run -p telperion-core --test surface --test surface_prepared --test surface_collapse --test surface_attachments (17 passed), /tmp/telperion-fn91-tools/cargo-nextest nextest run -p telperion-core --lib --test surface --test surface_prepared --test surface_collapse --test surface_attachments -E test(surface) (15 passed, 179 skipped; surface unit selection only), cargo check --target wasm32-unknown-unknown -p telperion-render, rustfmt --check --edition 2021 --config skip_children=true crates/telperion-core/src/surface.rs crates/telperion-core/src/surface/prepared.rs crates/telperion-core/tests/surface_prepared.rs, git diff --check, release preparation control/candidate: four fixtures, first+5warm, all prepared hashes and capacities exact; all CPU hashes exact, python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/admission/measure-native.py
 - PRs:
