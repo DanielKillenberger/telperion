@@ -21,7 +21,7 @@ impl Transport for NoTransport {
     }
 }
 
-const CANDIDATES: u64 = 4;
+const CANDIDATES: [u64; 2] = [4, 1];
 
 fn step(label: &str, evaluations: u64, images: u64, tokens: u64, visual: u64) -> Value {
     json!({"step":label,"evaluations":evaluations,"images":images,"tokens":tokens,"visual_passes":visual})
@@ -71,9 +71,10 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
     let authority = state.pilot_authority();
     let opening = state.budget.clone();
     let mut post = opening.clone();
-    let preparation = config.preparation()?;
+    // A blocker is reported as a field; the reservations are still worth having.
+    let preparation = config.preparation();
     let mut charge_record = state.preparation_charge.clone();
-    if let Some(charge) = &preparation {
+    if let Ok(Some(charge)) = &preparation {
         super::reference_first::charge_preparation(&mut post, &mut charge_record, charge)?;
     }
 
@@ -104,43 +105,56 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
         .and_then(|n| n.checked_add(services.proposal_tokens(&state)))
         .ok_or("reservation overflow")?;
 
-    let steps = vec![
-        step("baseline evaluation", 1, services.evaluation_images(), 0, 0),
-        step(
-            "initial visual",
-            0,
-            services.visual_images(&trial),
-            services.visual_tokens(&trial),
-            1,
-        ),
-        step(
-            "post-approval all-cell visual",
-            0,
-            all_cell_images,
-            all_cell_tokens,
-            1,
-        ),
-        step(
-            "one round, four candidates",
-            CANDIDATES,
-            CANDIDATES * services.evaluation_images(),
-            round_tokens,
-            0,
-        ),
-        step(
-            "closing all-cell visual",
-            0,
-            all_cell_images,
-            all_cell_tokens,
-            1,
-        ),
-    ];
-    let sum = |field: &str| -> u64 {
+    let sequence = |candidates: u64| {
+        vec![
+            step("baseline evaluation", 1, services.evaluation_images(), 0, 0),
+            step(
+                "initial visual",
+                0,
+                services.visual_images(&trial),
+                services.visual_tokens(&trial),
+                1,
+            ),
+            step(
+                "post-approval all-cell visual",
+                0,
+                all_cell_images,
+                all_cell_tokens,
+                1,
+            ),
+            step(
+                &format!("one round, {candidates} candidates"),
+                candidates,
+                candidates * services.evaluation_images(),
+                round_tokens,
+                0,
+            ),
+            step(
+                "closing all-cell visual",
+                0,
+                all_cell_images,
+                all_cell_tokens,
+                1,
+            ),
+        ]
+    };
+    let summed = |steps: &[Value], field: &str| -> u64 {
         steps
             .iter()
             .filter_map(|s| s[field].as_u64())
             .fold(0, u64::saturating_add)
     };
+    let totals_for = |steps: &[Value]| {
+        totals(
+            &post,
+            summed(steps, "evaluations"),
+            summed(steps, "images"),
+            summed(steps, "tokens"),
+            summed(steps, "visual_passes"),
+        )
+    };
+    let steps = sequence(CANDIDATES[0]);
+    let lean = sequence(CANDIDATES[1]);
     Ok(json!({
         "meaning":"Worst-case reservations for the full sequence. No state was written, no lock taken, no key loaded and nothing dispatched.",
         "identity":identity,
@@ -156,9 +170,11 @@ pub fn plan(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<Val
         "required_cells":{"base":base.len(),"with_approval":approved_cells.len(),
             "approved_priorities":priorities,"cells":approved_cells},
         "balances":{"opening":opening,"post_preparation":post,
-            "preparation_charge":preparation},
+            "preparation_charge":preparation.as_ref().ok().cloned().flatten(),
+            "preparation_error":preparation.as_ref().err()},
         "steps":steps,
-        "totals":totals(&post, sum("evaluations"), sum("images"), sum("tokens"), sum("visual_passes")),
+        "totals":totals_for(&steps),
+        "totals_one_candidate":totals_for(&lean),
     }))
 }
 

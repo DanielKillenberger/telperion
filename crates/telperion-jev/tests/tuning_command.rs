@@ -389,6 +389,7 @@ fn preflight_plans_the_sequence_without_writing_state_or_taking_a_lock() {
     assert_eq!(steps.len(), 5);
     assert_eq!(steps[0]["step"], "baseline evaluation");
     assert_eq!(steps[3]["evaluations"], 4);
+    assert_eq!(plan["totals_one_candidate"]["evaluations"]["needed"], 2);
     // Totals are the engine's own estimators summed against the opening caps.
     assert_eq!(plan["totals"]["evaluations"]["needed"], 5);
     assert_eq!(plan["totals"]["visual_passes"]["needed"], 3);
