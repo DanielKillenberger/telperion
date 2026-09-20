@@ -59,9 +59,38 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let bounds = instances.bounds(&element)?;
         let bounds_ms = start.elapsed().as_secs_f64() * 1000.;
         let elapsed = total.elapsed().as_secs_f64() * 1000.;
+        let mut hash = 14695981039346656037_u64;
+        for byte in wood
+            .positions
+            .iter()
+            .flat_map(|v| v.to_le_bytes())
+            .chain(wood.indices.iter().flat_map(|v| v.to_le_bytes()))
+            .chain(
+                instances
+                    .leaves
+                    .iter()
+                    .flat_map(|leaf| leaf.iter().flat_map(|w| w.to_le_bytes())),
+            )
+            .chain(
+                element
+                    .positions
+                    .iter()
+                    .flat_map(|p| [p.x, p.y, p.z])
+                    .flat_map(|v| v.to_le_bytes()),
+            )
+            .chain(element.indices.iter().flat_map(|v| v.to_le_bytes()))
+            .chain(
+                bounds
+                    .iter()
+                    .flat_map(|b| [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z])
+                    .flat_map(|v| v.to_le_bytes()),
+            )
+        {
+            hash = (hash ^ byte as u64).wrapping_mul(1099511628211);
+        }
         println!(
             "{}",
-            json!({"event":"sample","sample":sample,"cold_process_first_build":sample==0,
+            json!({"event":"sample","output_fnv1a64":format!("{hash:016x}"),"sample":sample,"cold_process_first_build":sample==0,
             "preset":preset,"seed":seed,"height_m":f.skeleton.envelope.height,
             "complete":report.tree.diagnostics.complete(),"nodes":report.tree.nodes.len(),
             "placed":placed_count,"retained":instances.len(),"wood_vertices":wood.positions.len()/3,

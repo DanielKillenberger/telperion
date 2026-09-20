@@ -1,0 +1,50 @@
+[
+  {
+    "case": "cpu-bounds-oregon-white-oak-1",
+    "samples": 6,
+    "reference_fnv1a64": "94abae63f92f82d3",
+    "all_equal": true,
+    "all_complete": true,
+    "wood_dropped": 0
+  },
+  {
+    "case": "cpu-candidate-oregon-white-oak-1",
+    "samples": 6,
+    "reference_fnv1a64": "94abae63f92f82d3",
+    "all_equal": true,
+    "all_complete": true,
+    "wood_dropped": 0
+  },
+  {
+    "case": "cpu-candidate-oregon-white-oak-7",
+    "samples": 6,
+    "reference_fnv1a64": "08e12dde55361de5",
+    "all_equal": true,
+    "all_complete": true,
+    "wood_dropped": 0
+  },
+  {
+    "case": "cpu-bounds-norway-spruce-1",
+    "samples": 6,
+    "reference_fnv1a64": "9de204f696703019",
+    "all_equal": true,
+    "all_complete": true,
+    "wood_dropped": 0
+  },
+  {
+    "case": "cpu-candidate-norway-spruce-1",
+    "samples": 6,
+    "reference_fnv1a64": "9de204f696703019",
+    "all_equal": true,
+    "all_complete": true,
+    "wood_dropped": 0
+  },
+  {
+    "case": "cpu-candidate-norway-spruce-7",
+    "samples": 6,
+    "reference_fnv1a64": "ce62d7a2658b2d1b",
+    "all_equal": true,
+    "all_complete": true,
+    "wood_dropped": 0
+  }
+]

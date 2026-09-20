@@ -1,0 +1,1062 @@
+    Finished `release` profile [optimized] target(s) in 0.12s
+     Running unittests src/lib.rs (target/release/deps/telperion_core-2370e3112608dad4)
+
+running 175 tests
+test blend::tests::a_field_that_is_off_walks_up_from_nothing ... ok
+test branching::audit::retained_supports ... ignored, mature stage audit; run explicitly with --nocapture
+test branching::audit::scaffold_directions ... ignored, mature scaffold direction audit
+test branching::audit::shape_report ... ignored, calibration read-out
+test blend::tests::a_walk_rounds_each_kind_of_number_the_way_its_rule_demands ... ok
+test branching::local::monthly_tests::monthly_deferred_shoot_does_not_starve_a_younger_live_shoot ... ok
+test branching::local::monthly_tests::monthly_local_station_is_reconsidered_when_it_becomes_eligible ... ok
+test branching::local::monthly_tests::monthly_terminal_birth_does_not_retire_unborn_lateral_buds ... ok
+test branching::local::monthly_tests::monthly_run_keeps_stations_waiting_beyond_the_current_envelope ... ok
+test branching::local::pendant::limit_tests::lower_surface_search_closes_to_numeric_precision ... ok
+test branching::local::pendant::limit_tests::droop_and_step_clearance_are_authored ... ok
+test branching::local::pendant::tests::only_a_hanging_curtain_is_let_into_the_band ... ok
+test blend::tests::a_walk_between_two_material_rows_stays_a_row_a_leaf_can_be_drawn_from ... ok
+test branching::local::waiting::frontier_tests::sleeping_terminal_receives_no_visits_and_wakes_at_crown_entry ... ok
+test branching::local::waiting::frontier_tests::unchanged_frontier_keeps_its_identity_order_without_visiting_shoots ... ok
+test branching::local::waiting::tests::fixed_candidate_waits_until_the_crown_can_reach_it ... ok
+test branching::scaffold::frontier::tests::annual_blocked_axes_leave_the_budget_for_live_shoots ... ok
+test branching::scaffold::frontier::tests::attractor_consumption_keeps_the_first_year ... ok
+test branching::scaffold::limit_tests::reach_probe_budget_changes_room_in_a_wide_crown ... ok
+test branching::scaffold::stems::tests::a_clump_is_spread_about_its_bearing_and_leans_out_of_it ... ok
+test branching::scaffold::stems::tests::no_spread_is_the_even_lean_to_the_bit ... ok
+test branching::scaffold::stems::tests::a_spread_leans_the_clump_in_its_order ... ok
+test branching::scaffold::stems::tests::one_stem_is_the_upright_axis_the_tree_always_had ... ok
+test branching::scaffold::stems::tests::stems_that_share_a_heading_are_refused_by_the_stem_that_is_wrong ... ok
+test branching::local::waiting::frontier_tests::a_shoot_beyond_all_reach_of_the_rising_trunk_is_not_replanned ... ok
+test branching::specimen::change_tests::change_record_carries_every_word_a_leaf_moved_by ... ok
+test branching::specimen::change_tests::change_record_bad_placement_is_atomic_and_names_its_run ... ok
+test branching::specimen::change_tests::change_record_preserves_run_position_bits ... ok
+test branching::specimen::change_tests::change_record_includes_contact_motion_from_sibling_growth ... ok
+test branching::specimen::change_tests::change_record_rejects_missing_and_wrong_runs_naming_identity_without_mutation ... ok
+test branching::specimen::change_tests::change_record_fresh_reads_reuse_contacts_until_neighbor_geometry_changes ... ok
+test branching::specimen::cohort_tests::cohort_budget_counts_visible_stations_and_failed_fill_keeps_age ... ok
+test branching::specimen::change_tests::change_record_cohort_boundary_matches_cached_and_cold_reads ... ok
+test branching::specimen::cohort_tests::thickened_shoot_stops_bearing_at_anatomical_diameter ... ok
+test branching::specimen::cohort_tests::young_cohorts_fill_annually_and_keep_station_identities ... ok
+test branching::specimen::change_tests::change_record_tolerance_suppresses_noise_without_drift ... ok
+test branching::specimen::cost_tests::inactive_wood_is_not_evaluated_when_shedding_is_disabled ... ok
+test branching::specimen::crown::tests::an_unsampled_crown_does_not_rebuild_its_profile ... ok
+test branching::specimen::foliage_tests::cohort_fill_preserves_integer_ticks_near_the_maximum_age ... ok
+test branching::specimen::foliage_tests::changed_neighboring_contact_polygons_move_an_unchanged_surviving_shoot ... ok
+test branching::specimen::foliage_tests::leaves_hold_across_the_exact_lifetime_boundary_without_wood_growth ... ok
+test branching::specimen::foliage_tests::leaf_lifetime_zero_fractional_and_maximum_are_valid ... ok
+test branching::specimen::foliage_tests::placement_identities_survive_thickening_and_match_fresh_surface_contacts ... ok
+test branching::specimen::foliage_tests::foliage_rederives_only_shoots_whose_wood_or_contact_changed ... ok
+test branching::specimen::foliage_tests::surviving_leaf_randomness_is_independent_of_compaction_and_retired_generations ... ok
+test branching::specimen::interval::tests::envelope_growth_without_wood_keyframes_moves_no_placement ... ok
+test branching::specimen::interval::tests::interval_advance_cannot_reuse_older_cached_cohort_transforms ... ok
+test branching::specimen::history::tests::default_read_keeps_exact_frontier_ticks_near_maximum_age ... ok
+test branching::specimen::history::tests::historical_read_refuses_invalid_ages_and_names_the_frontier ... ok
+test branching::specimen::interval::tests::interval_records_follow_sibling_growth_and_removal_contacts ... ok
+test branching::specimen::interval::tests::interval_records_validate_both_ages_without_running_simulation ... ok
+test branching::local::waiting::prediction_tests::wake_bound_never_skips_an_eligible_slice_on_either_side_of_the_crown ... ok
+test branching::specimen::chronicle_tests::shedding_keeps_storage_and_keys_but_packs_only_living_wood ... ok
+test branching::specimen::cost_tests::crown_cache_reuses_geometry_and_matches_exhaustive_profile ... ok
+test branching::scaffold::frontier::tests::annual_laterals_extend_before_the_leader_finishes ... ok
+test branching::specimen::history::tests::historical_read_keeps_zero_budget_envelopes_and_saturated_cohorts ... ok
+test branching::specimen::keyframes::tests::unread_annual_frames_queue_each_output_only_once ... ok
+test branching::specimen::chronicle_tests::vigour_records_preserve_every_earlier_observation_and_counter ... ok
+test branching::specimen::measurement::monthly_cost_report ... ok
+test branching::specimen::measurement::spruce_contact_motion_report ... ok
+test branching::specimen::measurement::tolerance_cost_report ... ok
+test branching::specimen::keyframes::tests::resize_tolerance_accumulates_from_last_frame_without_rewriting_it ... ok
+test branching::specimen::keyframes::tests::annual_keyframes_do_not_finalize_stored_output_radii ... ok
+test branching::specimen::monthly_tests::annual_blends_preserve_valid_age_and_rate_boundaries ... ok
+test branching::specimen::measurement::mature_stage_profile ... ok
+test branching::specimen::history::tests::ten_year_jump_and_yearly_advances_keep_all_intermediate_reads ... ok
+test branching::specimen::keyframes::tests::radius_history_is_monotone_through_extension_forks_and_shedding ... ok
+test branching::specimen::keyframes::tests::unchanged_canonical_parents_do_not_walk_local_descendants ... ok
+test branching::specimen::monthly_tests::annual_pause_and_subyear_remainder_do_not_grow_early ... ok
+test branching::specimen::monthly_tests::annual_node_cap_rolls_back_a_partial_slice_and_resumes_after_raise ... ok
+test branching::specimen::cost_tests::structural_births_do_not_move_existing_local_storage_inside_a_slice ... ok
+test branching::specimen::monthly_tests::annual_time_errors_name_values_and_preserve_the_specimen ... ok
+test branching::specimen::cost_tests::packing_keeps_append_headroom_for_the_next_slice ... ok
+test branching::specimen::monthly_tests::annual_zero_ceiling_keeps_an_empty_seedling_and_recovers ... ok
+test branching::specimen::cost_tests::packing_between_advances_does_not_change_grown_and_shed_tree_bytes ... ok
+test branching::specimen::read_tests::unread_advances_do_not_pack_and_reads_preserve_internal_indices ... ok
+test branching::specimen::interval::tests::interval_records_are_canonical_for_every_intermediate_year ... ok
+test branching::specimen::read_tests::finalizing_grown_and_shed_records_ignores_stored_output_widths ... ok
+test branching::specimen::keyframes::tests::ten_year_jump_retains_every_annual_radius_read_and_interval ... ok
+test branching::specimen::monthly_tests::annual_growth_traits_and_age_are_numeric_family_dimensions ... ok
+test branching::specimen::shared::tests::packed_placement_cost_measurement ... ignored, bounded packed-cache cost measurement; run without competing suites
+test branching::specimen::shared::tests::packed_placement_pages_are_dense_in_birth_order ... ok
+test branching::specimen::retention::tests::history_cap_refuses_expired_ages_and_invalid_settings_atomically ... ok
+test branching::specimen::shared::tests::placement_edits_preserve_owned_snapshots_counts_and_order ... ok
+test branching::specimen::shared::tests::placement_keys_preserve_stations_above_512 ... ok
+test branching::specimen::read_tests::reads_between_advances_reconcile_after_growth_shedding_and_cap_recovery ... ok
+test branching::specimen::contacts::tests::indexed_contacts_match_both_endpoint_sweep_dependencies ... ok
+test branching::specimen::history::tests::every_prior_read_matches_fresh_growth_including_shedding_and_contacts ... ok
+test branching::specimen::tests::retired_generation_cannot_resolve_a_reused_slot ... ok
+test branching::specimen::shared::tests::shared_reads_keep_unchanged_payloads_and_reconcile_every_age ... ok
+test branching::specimen::retention::tests::history_cap_compacts_dead_wood_and_preserves_every_retained_read ... ok
+test branching::specimen::tests::shedding_compacts_siblings_without_reusing_birth_identities ... ok
+test branching::specimen::thickening_tests::live_shedding_replays_shoot_state_and_surviving_radii_exactly ... ok
+test branching::specimen::tests::scaffold_resume_preserves_each_axis_stream_and_spent_attractors ... ok
+test branching::specimen::thickening_tests::shedding_waits_for_tolerance_and_retires_only_the_dark_subtree ... ok
+test branching::specimen::thickening_tests::snapshot_cuts_are_capped_and_remove_new_descendants_without_reusing_ids ... ok
+test branching::specimen::thickening_tests::structural_forks_and_cuts_preserve_surviving_widths_and_pipe_cache ... ok
+test branching::specimen::thickening_tests::threshold_equality_recovers_and_restarts_the_tolerance_clock ... ok
+test branching::specimen::interval::stem_tests::every_read_of_a_clump_keeps_its_stems ... ok
+test branching::specimen::widths::tests::width_queue_keeps_birth_order_across_bucket_boundaries_and_new_children ... ok
+test capability::tests::the_version_changes_when_a_name_is_added ... ok
+test capability::tests::the_version_changes_when_a_name_moves_into_the_vocabulary ... ok
+test capability::tests::the_version_ignores_the_meanings_and_reads_only_the_names ... ok
+test foliage::bounds_tests::bounds_keep_empty_signed_zero_and_overflow_contracts ... ok
+test branching::specimen::thickening_tests::tolerance_and_apical_loss_are_validated_blended_numeric_traits ... ok
+test foliage::bounds_tests::transformed_box_encloses_points_with_identical_sum_order ... ok
+test foliage::clumping::tests::a_trunk_its_limbs_and_their_axes_are_systems_and_deeper_wood_is_not ... ok
+test foliage::clumping::tests::neighbour_budget_is_honoured_above_the_old_limit ... ok
+test foliage::clumping::tests::one_system_has_no_walls_and_keeps_every_leaf ... ok
+test foliage::clumping::tests::the_gap_is_empty_at_the_wall_and_the_centres_are_whole ... ok
+test foliage::packed::tests::a_box_of_no_extent_decodes_every_leaf_to_its_corner ... ok
+test foliage::packed::tests::a_box_with_a_nan_side_is_not_a_box ... ok
+test foliage::packed::tests::a_half_float_round_trips_every_scale_a_leaf_can_carry ... ok
+test foliage::packed::tests::a_leaf_is_twelve_bytes ... ok
+test foliage::packed::tests::a_position_round_trips_inside_half_a_step ... ok
+test foliage::packed::tests::a_reversed_span_is_read_in_the_order_that_makes_a_box ... ok
+test foliage::packed::tests::a_rotation_round_trips_inside_the_stated_bound ... ok
+test foliage::bounds_tests::exact_bounds_match_randomized_curved_elements_and_packed_frames ... ok
+test foliage::packed::tests::every_subnormal_half_decodes_to_its_ieee_value ... ok
+test foliage::packed::tests::the_columns_come_back_in_the_order_they_went_in ... ok
+test foliage::packed::tests::the_scale_is_read_back_off_the_word_that_carries_it ... ok
+test foliage::station::tests::prepared_frames_match_station_arithmetic_including_zero_spans ... ok
+test growth::clock::tests::annual_boundary_keeps_the_original_submonth_resolution ... ok
+test growth::limit_tests::lifetime_work_uses_the_authored_budget ... ok
+test material::tests::a_range_that_runs_backwards_is_refused_by_the_pairs_name ... ok
+test material::tests::a_value_off_its_range_is_refused_by_its_own_name ... ok
+test material::tests::the_row_every_family_starts_from_is_one_a_leaf_can_be_drawn_from ... ok
+test params::tests::a_table_in_work_is_reserved_unlisted_and_not_built_by_name ... ok
+test params::tests::age_and_growth_round_trip_and_refuse_invalid_values ... ok
+test params::tests::an_overlay_moves_the_rows_it_names_and_nothing_else ... ok
+test branching::specimen::foliage_tests::annual_leaf_buffers_replay_exactly_across_reads_for_all_presets_and_a_blend ... ok
+test params::tests::leaf_lifetime_is_a_validated_blended_family_trait ... ok
+test params::tests::resize_tolerance_is_a_validated_blended_wire_trait ... ok
+test params::tests::the_material_row_travels_the_wire_and_is_refused_by_field_name ... ok
+test radius::history::tests::historical_maximum_survives_scale_falls_and_later_recovery ... ok
+test radius::incremental::tests::rising_scale_does_not_visit_wood_below_its_previous_width ... ok
+test branching::specimen::cost_tests::identity_maintenance_without_structural_birth_visits_only_new_locals ... ok
+test branching::specimen::cost_tests::an_internal_slice_does_not_finalize_existing_local_widths ... ok
+test surface::fork_tests::socket_containment_changes_the_authored_junction_depth ... ok
+test surface::fork_tests::the_trunk_carries_on_into_the_straighter_stem_not_the_wider ... ok
+test surface::fork_tests::the_trunks_girth_eases_into_the_stem_over_the_forks_diameter ... ok
+test surface::tests::allocation_failure_is_explicit ... ok
+test tree::tests::a_clump_is_measured_by_its_largest_stem_wherever_it_parts ... ok
+test twigs::limit_tests::internode_budget_is_authored ... ok
+test surface::fork_tests::a_grown_clump_parts_cleanly_and_one_at_the_ground_is_untouched ... ok
+test branching::specimen::tests::whole_build_replays_the_retained_frontiers_exactly ... ok
+test surface::fork_tests::a_clump_that_parts_at_the_ground_sweeps_as_it_did_without_the_flag ... ok
+test branching::specimen::contacts::tests::contacts_carry_on_into_the_stem_the_surface_does ... ok
+test branching::specimen::chronicle_tests::dead_records_stay_frozen_and_slots_are_never_reused_by_later_growth ... ok
+test branching::audit::trait_extremes_are_trees ... ok
+test branching::specimen::shared::tests::fractional_contact_advance_does_not_materialize_numeric_offsets ... ok
+test branching::specimen::retention::tests::history_cap_build_and_node_ceiling_keep_the_same_complete_slice ... ok
+test branching::specimen::history::tests::historical_read_cannot_poison_clock_only_cohort_changes ... ok
+test branching::specimen::thickening_tests::local_wood_thickens_with_its_parent_and_never_shrinks ... ok
+test branching::specimen::tests::retained_frontiers_grow_structure_after_twigs_without_changing_identities ... ok
+test branching::audit::shipped_scaffolds_are_reproducible ... ok
+test branching::specimen::monthly_tests::annual_frontier_storage_permutations_do_not_change_birth_order ... ok
+test branching::specimen::monthly_tests::annual_build_and_irregular_fractional_replay_have_identical_bytes ... ok
+test branching::specimen::change_tests::change_record_reconciles_birth_extension_shedding_and_expiry ... ok
+test branching::specimen::retention::tests::history_cap_preserves_future_growth_identities_and_records ... ok
+test params::tests::catalogue_roundtrips_all_controls_and_identities ... ok
+test branching::specimen::interval::tests::empty_late_interval_visits_no_unrelated_chronicle_nodes ... ok
+test branching::specimen::change_tests::change_record_replay_buffers_match_fresh_build_for_every_preset_and_blend ... ok
+test branching::specimen::monthly_tests::annual_cached_local_runs_obey_the_current_crown_boundary ... ok
+test branching::specimen::history::tests::historical_reads_cover_every_preset_blends_and_do_not_change_future_growth ... ok
+test branching::audit::every_bias_term_reaches_every_shipped_preset ... ok
+test branching::specimen::interval::tests::interval_records_reconcile_all_age_pairs_presets_and_blend ... ok
+test branching::specimen::storage::tests::sparse_advance_updates_the_existing_packed_tree ... ok
+test branching::specimen::tests::local_resume_preserves_pending_runs_across_irregular_budgets ... ok
+test branching::specimen::monthly_tests::annual_growth_expands_the_envelope_and_retains_wood ... ok
+test branching::specimen::monthly_tests::annual_saturated_age_jumps_without_visiting_the_intervening_slices ... ok
+test foliage::packed::tests::every_preset_placement_round_trips_inside_r2 ... ok
+test branching::audit::every_habit_trait_moves_every_shipped_preset ... ok
+test branching::specimen::cohort_tests::mature_cohorts_hold_for_twice_the_lifetime ... ok
+test branching::specimen::interval::tests::sparse_spruce_projects_only_changed_contact_paths ... ok
+
+test result: ok. 171 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 12.11s
+
+     Running tests/capability.rs (target/release/deps/capability-ea8107284400846e)
+
+running 9 tests
+test every_name_is_declared_once_and_carries_one_line_of_meaning ... ok
+test a_name_nobody_has_declared_is_unrecognised ... ok
+test the_date_palms_recorded_needs_read_as_one_met_and_five_absent ... ok
+test the_derivation_produces_no_name_the_vocabulary_does_not_carry ... ok
+test the_printed_vocabulary_carries_the_version_and_every_declared_name ... ok
+test the_shipped_presets_derive_what_they_derive_today ... ok
+test the_six_names_the_derivation_produces_are_all_in_the_vocabulary ... ok
+test the_version_is_a_digest_of_the_declared_names ... ok
+test the_catalogue_requires_no_name_the_vocabulary_lacks ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/colonization.rs (target/release/deps/colonization-bcbcf6c51b565871)
+
+running 5 tests
+test crown_edges_and_outside_approach ... ok
+test oversized_climb_step_cannot_skip_the_entire_crown ... ok
+test empty_caps_and_invalid_inputs ... ok
+test fill_measures_only_classified_shell_wood_and_crown_tips ... ok
+test deterministic_forking_and_termination ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/crown_reference.rs (target/release/deps/crown_reference-11420368570fc313)
+
+running 2 tests
+test compare_pinned_fn6_when_requested ... ignored, requires pinned FN6 export; run crown_reference.mjs
+test ordinary_and_giant_crowns ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/crown_retention.rs (target/release/deps/crown_retention-a4823d6b47f24fbd)
+
+running 3 tests
+test oak_infill_reaches_the_retained_seed_two_window ... ok
+test spruce_bearing_shoots_follow_the_secondary_span ... ok
+test spreading_crown_retains_generated_interior_subdivisions ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/drop.rs (target/release/deps/drop-ada9404e133a5c47)
+
+running 9 tests
+test print_neutral ... ignored
+test the_rows_ride_the_wire_and_are_refused_by_name_off_their_rails ... ok
+test every_shipped_preset_at_neutral_drop_is_the_tree_the_row_never_reached ... ok
+test no_shoot_falls_below_the_clearance_nor_the_clearance_above_the_crown_base ... ok
+test only_hanging_wood_falls_and_it_falls_from_the_shell ... ok
+test a_hanging_curtain_falls_into_its_band_at_half_and_whole_drop ... ok
+test a_drop_never_reaches_a_table_that_hangs_nothing ... ok
+test one_seed_is_one_band_however_it_grows ... ok
+test a_walk_of_the_drop_row_lowers_the_curtain_continuously ... ok
+
+test result: ok. 8 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.15s
+
+     Running tests/field.rs (target/release/deps/field-08177060f61939b3)
+
+running 5 tests
+test empty_and_invalid_queries ... ok
+test portable_snapshot_is_optional_owned_and_preserves_index ... ok
+test tapered_wood_and_flat_leaf_cells ... ok
+test species_geometry_bounds_culling_and_field_cover_transformed_connectors_and_units ... ok
+test generated_block_consumer_and_giant_samples_without_surface ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.81s
+
+     Running tests/foliage.rs (target/release/deps/foliage-5b10777462fedbe8)
+
+running 21 tests
+test attachments::leaned_stations_continue_across_subdivided_twig_runs ... ok
+test attachments::a_signed_lean_turns_the_leaf_back_down_its_shoot_and_toward_the_ground ... ok
+test elements::a_blade_carries_a_coordinate_in_the_unit_square_at_every_vertex ... ok
+test attachments::shoot_radius_alone_clothes_slender_supports_and_spares_thick_limbs ... ok
+test attachments::species_empty_degenerate_and_invalid_controls_are_explicit ... ok
+test attachments::species_attachment_uses_local_twig_and_connected_origins ... ok
+test elements::needles_retain_shaft_width_before_the_distal_point ... ok
+test elements::a_margin_with_more_lobes_than_sections_is_rejected_by_both_names ... ok
+test stations::element_anatomy_and_bounds ... ok
+test stations::malformed_element_is_rejected_even_when_first_vertex_is_outside_shell ... ok
+test stations::fallback_folds_zero_edges_and_clumps_at_terminal_tip ... ok
+test elements::one_routine_builds_a_lobed_margin_and_a_four_sided_shaft ... ok
+test stations::a_shoot_can_carry_more_than_512_authored_stations ... ok
+test stations::twig_stations_and_owned_deterministic_frames ... ok
+test levels::a_level_list_that_is_not_nested_detail_is_rejected_by_name ... ok
+test stations::shell_keeps_leaf_extent_and_crown_underside ... ok
+test stations::cull_retains_in_the_buffer_it_was_given ... ok
+test stations::shell_membership_empty_and_invalid ... ok
+test elements::every_element_trait_moves_every_shipped_preset ... ok
+test levels::levels_nest_from_the_widest_section_down_to_the_whole_element ... ok
+test attachments::every_attachment_trait_moves_every_shipped_preset ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 27.92s
+
+     Running tests/foliage_reference.rs (target/release/deps/foliage_reference-e7377839e441cdd5)
+
+running 1 test
+test frozen_solved_tree_comparison ... ignored, requires REFERENCE_DIRECTORY exported with REFERENCE_BUFFERS=1
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running ../../tests/migration/foundation.rs (target/release/deps/foundation-a3f08078dd8f60f9)
+
+running 8 tests
+test bias_and_sampling_limits_are_explicit ... ok
+test bias_preserves_scale_sampling_and_upward_progress ... ok
+test seeded_stream_matches_reference ... ok
+test envelope_boundaries_and_invalid_values ... ok
+test envelope_profile_has_authored_maximum_and_continuous_shoulder ... ok
+test vector_and_noise_boundaries ... ok
+test tree_validation_rejects_bad_topology_and_nonfinite_storage ... ok
+test noise_seed_range_flow_and_feature_scale ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/generation_limit_guard.rs (target/release/deps/generation_limit_guard-d2ae8869fd58a683)
+
+running 3 tests
+test list_candidates ... ignored, inventory review helper
+test new_literal_limits_are_detected ... ok
+test generation_limits_are_classified ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/generation_limits.rs (target/release/deps/generation_limits-8aff3e2071eb929c)
+
+running 7 tests
+test envelope_endpoints_and_small_shoulders_take_effect ... ok
+test out_of_range_node_budget_names_the_field ... ok
+test sampling_budget_is_explicit_and_exhaustion_is_named ... ok
+test old_snapshots_are_refused_and_missing_new_json_fields_get_defaults ... ok
+test new_limits_are_named_validated_and_walked ... ok
+test a_fine_scaffold_step_reaches_the_authored_height ... ok
+test caller_budget_above_old_ceiling_grows_the_complete_beech ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/geometry_benchmark.rs (target/release/deps/geometry_benchmark-e088723190412cc5)
+
+running 4 tests
+test analytic_axes_taper_angles_and_degeneracy ... ok
+test biological_centroid_bins_count_needles_and_exclude_connectors ... ok
+test frozen_parameters_resolve_without_default_substitution ... ok
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.023s
+
+OK
+test receipt_manifest_and_replay_controls ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/growth.rs (target/release/deps/growth-1cc9bb2a9141707e)
+
+running 14 tests
+test anatomy::fork_conservation_and_appended_radius_independence ... ok
+test anatomy::generation_limit_is_explicit ... ok
+test anatomy::shedding_keeps_whole_runs_and_terminal_transition ... ok
+test anatomy::local_anatomy_attachment_taper_and_resolution ... ok
+test anatomy::shedding_remaps_runs_preserves_transitions_and_caps ... ok
+test habit::clipped_local_axis_still_subdivides_before_its_terminal_twig ... ok
+test habit::every_habit_trait_is_a_range_and_names_itself ... ok
+test habit::a_persistent_leader_carries_hanging_wood ... ok
+test limits::empty_caps_invalid_and_finite_rails ... ok
+test habit::a_crooked_row_subdivides_substantial_axes_without_effects ... ok
+test habit::habit_topology_bounds_seeds_and_limits_are_explicit ... ok
+test limits::natural_bias_is_independent_of_disabled_effects ... ok
+test limits::family_and_seed_controls_rederive_growth ... ok
+test complete_presets_are_deterministic_and_solved ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.33s
+
+     Running tests/growth_reference.rs (target/release/deps/growth_reference-0887e8e8274c3c03)
+
+running 3 tests
+test complete_fn6_comparison ... ignored, requires pinned FN6 export: GROWTH_REFERENCE_DIR=<directory> cargo test --test growth_reference -- --ignored --nocapture
+test beech_and_birch_record_mature_height_by_age ... ok
+test every_shipped_species_growth_reference_matches_its_preset ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/identity.rs (target/release/deps/identity-ed96ece68e2436aa)
+
+running 3 tests
+test print_pins ... ignored
+test every_pin_matches_its_catalogue_record ... ok
+test shipped_species_meshes_are_the_tree_recorded_before_the_levels ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 11.91s
+
+     Running tests/limb_clumping.rs (target/release/deps/limb_clumping-f7277891506c8006)
+
+running 3 tests
+test a_value_off_the_rail_is_refused_by_name ... ok
+test a_clumped_crown_is_the_whole_crown_thinned_in_order ... ok
+test the_growth_view_clumps_its_crown_as_well ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.94s
+
+     Running tests/material_detail.rs (target/release/deps/material_detail-ad26747c0cc1a120)
+
+running 5 tests
+test older_material_documents_gain_only_inert_detail_defaults ... ok
+test every_shipped_canopy_row_crosses_the_wire_the_page_sends_unchanged ... ok
+test every_shipped_young_wood_row_crosses_the_wire_the_page_sends_unchanged ... ok
+test detail_rows_all_walk_at_an_interior_point ... ok
+test detail_rows_refuse_both_bounds_by_name_and_roundtrip_the_endpoints ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/mesh.rs (target/release/deps/mesh-799537d49036fd79)
+
+running 2 tests
+test a_family_the_generator_rejects_surfaces_its_own_message ... ok
+test every_preset_builds_a_mesh_whose_counts_and_bounds_describe_its_buffers ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.76s
+
+     Running tests/outline.rs (target/release/deps/outline-cdc0085a4c3fd277)
+
+running 7 tests
+test the_outline_rows_are_refused_by_their_own_names ... ok
+test a_blend_walks_the_amplitude_and_the_wavelength ... ok
+test a_shell_with_an_amplitude_is_not_the_smooth_shell ... ok
+test one_seed_is_one_outline_and_two_seeds_are_two ... ok
+test the_perturbed_radius_stays_within_the_amplitude ... ok
+test a_neutral_amplitude_is_the_smooth_radius_to_the_byte ... ok
+test every_crown_node_lies_inside_the_shell_its_seed_shapes ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/packed_leaf.rs (target/release/deps/packed_leaf-ac3c5a3fd4c47f37)
+
+running 5 tests
+test the_position_step_is_under_a_quarter_millimetre_for_every_species ... ok
+test a_leaf_cached_at_one_age_decodes_at_a_later_one ... ok
+test a_crown_is_twelve_bytes_a_leaf ... ok
+test the_reference_box_does_not_move_with_age ... ok
+test no_station_of_any_shipped_species_falls_outside_its_box ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.23s
+
+     Running tests/pendulous.rs (target/release/deps/pendulous-3ef64325d1aabe5b)
+
+running 5 tests
+test each_curtain_row_is_refused_by_its_own_name ... ok
+test the_spruce_states_the_values_that_reproduce_the_constants ... ok
+test a_family_at_hang_zero_is_the_tree_the_curtain_never_reached ... ok
+test the_floor_holds_under_every_hang_and_the_curtain_does_not_stack_on_it ... ok
+test the_curtain_grows_in_from_nothing_rather_than_switching_on ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.18s
+
+     Running tests/profile_distance.rs (target/release/deps/profile_distance-5fc4e14964d685d7)
+
+running 1 test
+test nearest_profile_distance_preserves_scale_and_projection ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/sag.rs (target/release/deps/sag-49dcc40ee202324e)
+
+running 9 tests
+test print_neutral ... ignored
+test every_shipped_preset_at_neutral_sag_is_the_tree_the_row_never_reached ... ok
+test arc::a_hanging_shoot_turns_toward_the_ground_and_never_back ... ok
+test arc::a_shoot_of_its_full_pendulous_length_turns_the_stated_fraction ... ok
+test arc::the_lower_half_of_a_shoot_at_full_sag_hangs_all_but_straight_down ... ok
+test arc::a_sag_carries_a_shoot_past_what_holds_a_stiff_one_back ... ok
+test a_sag_never_reaches_a_table_that_hangs_nothing ... ok
+test a_walk_of_the_sag_row_bends_the_curtain_continuously ... ok
+test the_same_seed_and_row_grow_the_same_curtain ... ok
+
+test result: ok. 8 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 3.22s
+
+     Running tests/short_shoots.rs (target/release/deps/short_shoots-366667d4e591d1a5)
+
+running 12 tests
+test every_table_but_the_beech_grows_none ... ok
+test order::a_monthly_replay_and_a_growth_view_draw_what_a_fresh_build_draws ... ok
+test every_row_is_refused_by_name_off_its_rail ... ok
+test a_short_shoot_stands_only_on_limb_and_branch_wood_under_the_row ... ok
+test a_zero_spacing_is_inert_whatever_the_other_rows_say ... ok
+test the_instance_budget_counts_short_shoot_leaves ... ok
+test order::a_walk_from_none_thins_in_and_closes_continuously ... ok
+test short_shoots_append_and_leave_every_other_leaf_its_bytes ... ok
+test order::the_same_wood_draws_the_same_short_shoots_in_any_storage_order ... ok
+test the_beech_carries_most_of_its_leaves_on_short_shoots ... ok
+test every_cluster_carries_the_row_s_count_of_leaves ... ok
+test short_shoots_add_no_node_to_the_skeleton ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.32s
+
+     Running tests/species.rs (target/release/deps/species-48ef87b577f84874)
+
+running 10 tests
+test a_digest_that_moved_names_the_preset_the_seed_and_both_digests ... ok
+test birch_identity_resolves_to_frozen_profile_and_native_anatomy ... ok
+test beech_identity_resolves_to_frozen_profile_and_native_anatomy ... ok
+test oak_identity_resolves_to_frozen_profile_and_native_anatomy ... ok
+test spruce_identity_resolves_to_frozen_profile_and_native_anatomy ... ok
+test scaffold_reaches_and_hanging_secondaries_subdivide_before_their_tips ... ok
+test fixed_birches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens ... ok
+test fixed_oaks_pass_geometry_and_profile_gates_with_repeatable_varied_specimens ... ok
+test fixed_beeches_pass_geometry_and_profile_gates_with_repeatable_varied_specimens ... ok
+test fixed_spruces_pass_geometry_and_profile_gates_with_repeatable_varied_specimens ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 41.18s
+
+     Running tests/species_metrics.rs (target/release/deps/species_metrics-50bb1bec4f2af52c)
+
+running 6 tests
+test a_fork_below_breast_height_is_two_stems_there_and_above_it_one ... ok
+test overflow_and_degenerate_geometry_fail_explicitly ... ok
+test gates_do_not_pass_estimates_missing_values_or_outliers ... ok
+test measured_species_subsets_exclude_connectors_and_use_transformed_geometry ... ok
+test analytic_units_dbh_axes_and_retained_area ... ok
+test missing_multi_stemmed_truncated_and_nonfinite_are_distinct ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/specimen_cache.rs (target/release/deps/specimen_cache-5baa920c7fd515e3)
+
+running 4 tests
+test a_stored_specimen_that_differs_from_the_fresh_one_fails_by_its_path ... ok
+test the_cache_directory_is_ignored_by_git ... ok
+test a_family_that_is_not_a_shipped_table_is_built_and_never_stored ... ok
+test a_key_miss_generates_and_stores_and_the_next_read_is_the_stored_specimen ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/specimen_handle.rs (target/release/deps/specimen_handle-7973b9be72a5ae25)
+
+running 4 tests
+test specimen_snapshot_detects_payload_corruption_and_keeps_the_handle ... ok
+test specimen_handle_recovery_and_ownership ... ok
+test specimen_snapshot_round_trip_reads_and_continuation ... ok
+test specimen_handle_ceiling_can_resume_and_snapshot_keeps_compacted_history ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/specimen_view.rs (target/release/deps/specimen_view-a597adfa82c7496d)
+
+running 3 tests
+test specimen_view_scrubs_advances_and_rebuilds_one_chronicle ... ok
+test scrubbed_view_can_advance_beyond_its_old_history_window ... ok
+test a_clump_that_parts_above_the_ground_is_viewed_as_it_is_read ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.84s
+
+     Running tests/stem_fork_height.rs (target/release/deps/stem_fork_height-0a2fe6352147c7cd)
+
+running 6 tests
+test the_rail_is_refused_by_the_name_of_the_row ... ok
+test the_girth_below_the_fork_is_the_pipe_models_sum ... ok
+test the_later_stem_leaves_the_first_at_the_fork_height ... ok
+test a_stem_born_on_a_stem_leaves_from_a_socket_not_the_ground ... ok
+test the_walk_from_the_ground_lifts_the_fork ... ok
+test at_one_stem_the_fork_height_reaches_no_table ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.13s
+
+     Running tests/stem_lean_spread.rs (target/release/deps/stem_lean_spread-3a83239186553e9e)
+
+running 4 tests
+test the_rail_is_refused_by_the_name_of_the_row ... ok
+test a_spread_clump_grows_its_stems_leaning_in_order ... ok
+test the_walk_from_an_even_lean_to_a_spread_one_stands_the_first_stem_up ... ok
+test at_one_stem_the_spread_reaches_no_table ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.42s
+
+     Running tests/stems.rs (target/release/deps/stems-c020d3ef616b1404)
+
+running 9 tests
+test each_rail_is_refused_by_the_name_of_the_row_that_is_wrong ... ok
+test a_clump_that_cannot_be_placed_names_the_stem_that_is_wrong ... ok
+test a_stems_own_root_is_never_shed ... ok
+test the_diameter_proxy_reports_the_largest_stem_and_how_many_there_were ... ok
+test the_stems_share_the_base_through_the_pipe_model ... ok
+test the_walk_from_one_stem_to_two_opens_the_clump_rather_than_switching_it ... ok
+test a_clump_grows_one_axis_per_stem_inside_the_shell_and_clear_of_each_other ... ok
+test every_stem_is_swept_as_a_trunk_run ... ok
+test one_stem_is_every_shipped_tree_exactly_as_it_was ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.95s
+
+     Running tests/strands.rs (target/release/deps/strands-4e3d7ef92c990275)
+
+running 8 tests
+test print_neutral ... ignored
+test the_row_rides_the_wire_and_is_refused_by_name_off_its_rail ... ok
+test a_short_strand_under_a_full_sag_ends_hanging_straight_down ... ok
+test the_runs_spread_between_the_pendulous_length_and_its_shortened_share ... ok
+test one_seed_is_one_curtain_whatever_order_it_grows_in ... ok
+test a_variation_never_reaches_a_table_that_hangs_nothing ... ok
+test a_walk_of_the_variation_row_shortens_the_curtain_continuously ... ok
+test every_shipped_preset_at_neutral_variation_is_the_tree_the_row_never_reached ... ok
+
+test result: ok. 7 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.91s
+
+     Running tests/surface.rs (target/release/deps/surface-1e17042e37b79695)
+
+running 6 tests
+test empty_degenerate_and_invalid_are_atomic ... ok
+test every_vertex_carries_how_far_along_and_how_far_around_it_lies ... ok
+test reversed_path_keeps_finite_frames ... ok
+test fork_socket_is_contained_and_thickest_child_continues ... ok
+test root_only_and_float32_limits ... ok
+test tapered_closed_surface_has_normals_and_bounds ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/surface_attachments.rs (target/release/deps/surface_attachments-ed67c24aadf60f23)
+
+running 1 test
+test needle_origins_touch_rendered_facets_across_bends_and_sockets ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/surface_collapse.rs (target/release/deps/surface_collapse-5c4233b44b3b481a)
+
+running 7 tests
+test a_position_float32_cannot_hold_is_still_an_error ... ok
+test a_ring_collapsed_to_one_point_drops_the_strips_that_meet_it ... ok
+test a_tip_below_float32_resolution_far_out_drops_its_cap ... ok
+test a_vertex_left_without_a_triangle_faces_out_from_its_ring ... ok
+test the_run_table_shrinks_only_the_run_that_dropped ... ok
+test past_two_rings_worth_the_tree_fails_naming_the_count ... ok
+test the_reproducing_beech_builds_and_drops_two_triangles ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+
+     Running tests/surface_reference.rs (target/release/deps/surface_reference-78c6910de70ddbaf)
+
+running 1 test
+test final_fn6_geometry_comparison ... ignored, run node crates/telperion-core/tests/surface_reference.mjs to export pinned FN6 inputs
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/sweep.rs (target/release/deps/sweep-f7127d14e6bda4d6)
+
+running 6 tests
+test the_ends_of_a_walk_are_the_rows_themselves_and_a_row_walked_with_itself_holds ... ok
+test every_wire_parameter_a_preset_moves_is_walked ... ok
+test the_oak_to_spruce_walk_has_no_switch_frame ... ok
+test the_oak_to_birch_walk_ramps_the_curtain_up_from_nothing ... ok
+test every_shipped_preset_carries_foliage ... ok
+test every_pair_of_presets_grows_a_tree_at_every_step ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 31.69s
+
+     Running tests/terminal_taper.rs (target/release/deps/terminal_taper-aed420ebba8bedc9)
+
+running 1 test
+test only_childless_species_structure_gets_terminal_taper ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/twig_generations.rs (target/release/deps/twig_generations-87d8fedf6420944d)
+
+running 8 tests
+test a_lateral_the_cap_makes_a_twig_still_bears_its_leaves ... ok
+test no_lateral_is_born_past_the_cap_whatever_the_radii ... ok
+test the_rail_is_one_to_six_and_refused_by_name ... ok
+test a_blend_walks_the_count_in_integer_steps ... ok
+test the_neutral_reaches_no_shipped_preset ... ok
+test authored_generations_complete_within_the_caller_budget ... ok
+test the_beech_stays_at_its_stated_depth_whatever_its_radii ... ok
+test the_same_seed_and_rows_grow_the_same_tree ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.38s
+
+     Running unittests src/lib.rs (target/release/deps/telperion_jev-66e7fdd1aa15ca6d)
+
+running 59 tests
+test caller::date_tests::known_day ... ok
+test caller::date_tests::epoch_is_1970_01_01 ... ok
+test ledger::tests::ids_are_unique_and_used_as_the_reference ... ok
+test ledger::tests::write_refuses_to_overwrite ... ok
+test pipeline::canon::tests::a_number_read_back_from_its_canonical_bytes_writes_the_same_bytes ... ok
+test pipeline::canon::tests::read_json_names_the_path_on_a_missing_file ... ok
+test pipeline::canon::tests::canonical_bytes_sort_keys_and_end_with_one_newline ... ok
+test pipeline::consume::tests::a_replace_source_without_a_url_is_refused ... ok
+test pipeline::canon::tests::write_canonical_returns_the_checksum_of_the_bytes_on_disk ... ok
+test pipeline::consume::tests::an_option_no_stage_consumes_is_refused_naming_the_kind_and_the_consumed_ones ... ok
+test pipeline::canon::tests::write_atomic_leaves_no_temporary_file_and_replaces_the_target ... ok
+test pipeline::consume::tests::the_consuming_stage_is_recorded_once_and_a_rejected_proposal_stops_later_stages ... ok
+test pipeline::decision::tests::a_stale_resolution_is_void_and_the_decision_reopens ... ok
+test pipeline::decision::tests::an_unknown_option_does_not_resolve ... ok
+test pipeline::decision::tests::id_is_species_stage_kind_field_age ... ok
+test pipeline::decision::tests::open_for_stage_splits_global_and_field_scoped ... ok
+test pipeline::gap::cli::tests::every_command_names_the_flag_it_lacks_before_it_reads_anything ... ok
+test pipeline::decision::tests::append_deduplicates_by_id_and_sorts ... ok
+test pipeline::gap::cli::tests::the_verdict_file_reads_a_bare_list_or_one_under_verdicts ... ok
+test pipeline::gap::option::tests::a_set_holds_two_to_four_options_for_its_own_gap ... ok
+test pipeline::gap::option::tests::an_empty_agent_set_goes_to_the_stronger_model_and_an_empty_stronger_set_to_the_owner ... ok
+test pipeline::gap::option::tests::the_owner_flags_default_to_false_when_the_file_omits_them ... ok
+test pipeline::gap::option::tests::the_stronger_model_never_writes_first_and_the_agent_never_twice ... ok
+test pipeline::gap::questions::tests::the_questions_ask_four_per_option_and_one_best_match_with_a_no_match_key ... ok
+test pipeline::gap::metrics::tests::autonomy_counts_every_route_and_the_share_the_loop_took ... ok
+test pipeline::gap::questions::tests::every_case_is_answerable_and_the_set_carries_a_no_match_case ... ok
+test pipeline::gap::metrics::tests::an_owner_resolution_naming_another_option_is_the_reversal_the_record_carries ... ok
+test pipeline::gap::questions::tests::the_state_leaves_the_declared_kind_and_pin_out ... ok
+test pipeline::gap::metrics::tests::a_gap_the_owner_took_is_never_a_reversal_and_the_record_carries_all_three_numbers ... ok
+test pipeline::gap::route::tests::a_judged_pin_counts_like_a_declared_one_and_no_match_keeps_every_signal ... ok
+test pipeline::gap::table::tests::a_clear_winner_proceeds_and_each_owner_signal_overrides_it ... ok
+test pipeline::gap::rounds::tests::two_rounds_are_allowed_and_the_third_is_refused_for_the_owner ... ok
+test pipeline::gap::table::tests::a_missing_signal_routes_to_the_owner_by_rule ... ok
+test pipeline::gap::table::tests::a_close_spread_or_no_match_goes_to_the_stronger_model ... ok
+test pipeline::gap::table::tests::the_shipped_table_parses_and_ends_in_a_catch_all_row ... ok
+test pipeline::judge::tests::the_identity_depends_on_state_questions_and_model_only ... ok
+test pipeline::known::root_tests::the_flow_root_is_the_nearest_dot_flow_ancestor ... ok
+test pipeline::known::tests::merging_widens_dimensions_and_keeps_an_error ... ok
+test pipeline::gap::rounds::tests::a_second_verdict_keeps_its_own_count_and_acceptance_is_recorded_per_verdict ... ok
+test pipeline::gap::route::tests::the_signals_are_the_top_options_with_the_spread_read_from_the_distribution ... ok
+test pipeline::gap::route::tests::an_empty_answer_set_still_records_a_full_signal_row ... ok
+test pipeline::known::tests::a_catalogued_source_is_known_by_its_species_folder_and_the_tables_it_holds ... ok
+test pipeline::manifest::tests::sufficiency_levels_order_none_below_sufficient ... ok
+test pipeline::manifest::tests::a_minimal_manifest_loads_with_its_file_checksum ... ok
+test pipeline::manifest::tests::validation_names_the_broken_entry ... ok
+test pipeline::stages::discover::tests::the_query_reads_the_field_in_words_not_its_id ... ok
+test pipeline::stage::tests::a_missing_manifest_names_the_stage_and_the_path ... ok
+test pipeline::manifest::tests::the_seed_checksum_ignores_admission_and_follows_a_seed_edit ... ok
+test pipeline::stage::tests::the_command_log_keeps_every_argv_in_order ... ok
+test pipeline::judge::tests::the_index_keeps_the_first_entry_per_identity ... ok
+test pipeline::stage::tests::the_key_changes_with_every_covered_input_and_the_artifact_is_current_only_on_match ... ok
+test pipeline::gap::tests::the_slug_drops_the_species_and_joins_the_rest ... ok
+test pipeline::stage::tests::a_global_open_decision_stops_the_stage_by_id ... ok
+test pipeline::swap::tests::a_command_outside_the_runbook_fails_the_trial_and_names_it ... ok
+test pipeline::swap::tests::an_absent_artifact_on_one_side_is_one_difference_at_the_root ... ok
+test pipeline::stages::document::tests::a_claim_is_a_body_line_per_cited_source_and_never_a_generated_block ... ok
+test pipeline::stages::select::tests::a_span_yields_its_numbers_in_metres ... ok
+test pipeline::swap::tests::identical_artifacts_pass_and_a_changed_leaf_is_named_by_pointer ... ok
+test pipeline::known::tests::the_research_section_ends_at_the_next_heading_and_urls_lose_trailing_punctuation ... ok
+
+test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/jev.rs (target/release/deps/jev-1e263a1660ca265a)
+
+running 1 test
+test tests::triage_requires_standard_before_the_key ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/species_pipeline.rs (target/release/deps/species_pipeline-6d0872825391a8a8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/adapter.rs (target/release/deps/adapter-2ed4ee79495d4f0c)
+
+running 11 tests
+test a_flattened_table_is_a_coverage_gap ... ok
+test a_pdf_scrape_names_a_file_under_the_cache_directory ... ok
+test checksums_separate_the_raw_response_from_the_markdown ... ok
+test fixture_adapter_fails_on_an_unknown_url ... ok
+test credits_are_read_where_the_cli_prices_a_call_and_estimated_where_it_does_not ... ok
+test fixture_adapter_round_trips_scrape_search_research_and_parse ... ok
+test is_pdf_reads_the_content_type_then_the_url ... ok
+test the_spruce_table_yields_eleven_age_indexed_rows_with_commas_converted ... ok
+test a_merged_table_is_a_coverage_gap_and_its_block_yields_the_species_rows ... ok
+test the_cli_adapter_builds_its_arguments_and_reads_the_output ... ok
+test a_rejected_credential_is_unauthenticated_and_every_other_failure_is_failed ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/caller.rs (target/release/deps/caller-95d7b0adbaaea443)
+
+running 6 tests
+test missing_key_names_bashrc_and_never_prints_a_secret ... ok
+test malformed_json_records_a_failure_entry ... ok
+test transport_error_writes_a_ledger_entry ... ok
+test same_state_writes_distinct_ids_and_files ... ok
+test retries_429_then_records_success ... ok
+test exhausted_retries_record_failure_and_error ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.00s
+
+     Running tests/cite_triage.rs (target/release/deps/cite_triage-4b13704ad37209f7)
+
+running 11 tests
+test citation_unreachable_and_no_section ... ok
+test triage_writes_only_the_ledger ... ok
+test unmatched_observation_returns_new_spec ... ok
+test unassessable_observation_is_unassessed ... ok
+test citation_parses_research_bullets ... ok
+test whole_spec_uses_only_the_research_section ... ok
+test parse_research_keeps_url_less_bullets_and_reuses_same_paper ... ok
+test low_confidence_measured_size_is_listed_with_both_ledgers ... ok
+test citation_lists_o1_and_passes_the_six_true_claims ... ok
+test triage_routes_eight_of_eight_and_ranks_true_pairs ... ok
+test labelled_cases_meet_pilot_offline ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/curve.rs (target/release/deps/curve-0f4a9a51ef6d15ae)
+
+running 15 tests
+test a_table_of_one_row_is_too_few_points ... ok
+test below_the_first_row_is_unavailable_when_the_manifest_says_so ... ok
+test gould_worked_case_grows_2_82_cm_per_decade_at_40_cm ... ok
+test interpolation_is_linear_between_rows ... ok
+test mature_age_is_the_first_saturated_integer_year ... ok
+test the_gould_composition_stops_at_its_last_age ... ok
+test unit_conversion_runs_in_code ... ok
+test unsorted_duplicate_or_non_finite_rows_are_rejected ... ok
+test an_age_beyond_the_last_row_is_unavailable_never_extrapolated ... ok
+test a_dimension_with_too_few_points_is_skipped_not_fitted ... ok
+test a_tie_keeps_the_first_minimum_in_grid_order ... ok
+test height_and_diameter_misses_are_independent ... ok
+test oak_fit_matches_fn30 ... ok
+test spruce_fit_matches_fn30 ... ok
+test a_miss_beyond_tolerance_is_filed_and_one_inside_it_is_not ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/extract.rs (target/release/deps/extract-8f0df0ac981cb347)
+
+running 7 tests
+test key_terms_missing_section_is_none ... ok
+test long_sentence_splits_with_a_bounded_neighbourhood ... ok
+test empty_source_yields_no_sentence ... ok
+test html_tags_do_not_enter_candidate_text ... ok
+test recall_covers_foot_the_pilot_missed ... ok
+test selection_cases_all_have_their_expected_span_or_none ... ok
+test unicode_offsets_stay_on_char_boundaries ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/gap.rs (target/release/deps/gap-c514aafddb2f5522)
+
+running 5 tests
+test a_decision_that_is_not_a_halt_never_starts_the_loop ... ok
+test a_gap_spec_reviewed_needs_work_twice_files_for_the_owner ... ok
+test a_fix_that_moves_a_pin_is_the_owners_and_lands_only_with_the_pin_note ... ok
+test a_reroute_reads_the_recorded_signals_again_and_an_owner_override_is_a_reversal ... ok
+test an_empty_agent_set_escalates_and_the_stronger_models_set_routes_proceeds_and_resumes ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/isolation.rs (target/release/deps/isolation-f514d437f3e677d1)
+
+running 3 tests
+test failure_names_the_file_and_the_rule ... ok
+test a_render_subdirectory_of_the_browser_source_is_scanned ... ok
+test generation_path_does_not_import_the_caller_or_name_the_endpoint ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/pipeline_fixes.rs (target/release/deps/pipeline_fixes-883a81867cfb0f0e)
+
+running 6 tests
+test discovery_lists_the_repository_sources_first_and_never_proposes_one_with_a_fetch_error ... ok
+test a_page_the_store_rejects_files_unavailable_source_with_the_error_verbatim ... ok
+test the_report_sums_cost_per_stage_and_a_rerun_shows_one_discovery ... ok
+test admitting_the_manifest_does_not_rerun_discovery_and_a_seed_edit_does ... ok
+test each_unavailable_source_option_changes_the_next_fetch_and_the_rest_are_refused ... ok
+test a_merged_table_and_a_missing_block_file_coverage_gap_and_its_options_are_consumed ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/pipeline_upstream.rs (target/release/deps/pipeline_upstream-757484a12fd05875)
+
+running 5 tests
+test a_missing_earlier_artifact_names_the_stage_and_the_path ... ok
+test discovery_lists_every_catalogued_source_before_it_searches_the_web ... ok
+test a_run_directory_keeps_a_runs_scratch_out_of_the_species_folder ... ok
+test a_field_below_the_bar_files_data_insufficient_and_select_records_it_unavailable ... ok
+test the_upstream_chain_runs_over_fixtures_and_fills_the_packet_with_provenance ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/routes.rs (target/release/deps/routes-24644ccb0f7107a5)
+
+running 18 tests
+test routes::a_described_entry_round_trips_and_carries_no_probability ... ok
+test routes::described_keeps_the_others_selectable_past_a_measurement_error ... ok
+test routes::described_breaks_a_tie_by_table_order ... ok
+test routes::described_measures_every_candidate_exactly_once ... ok
+test routes::described_with_a_reversed_range_is_unavailable ... ok
+test routes::described_ships_the_in_range_candidate_nearest_the_midpoint ... ok
+test routes::described_with_an_unknown_level_is_unavailable ... ok
+test routes::described_with_no_candidate_in_range_is_a_level_miss ... ok
+test routes::described_with_no_candidate_values_is_unavailable ... ok
+test routes::family_for_nests_a_dotted_dial ... ok
+test routes::metric_reads_every_shape_the_species_example_writes ... ok
+test routes::ranking_puts_in_range_first_then_distance_then_table_order ... ok
+test routes::transfer_files_no_reference_when_the_manifest_forbids_the_other_growth_form ... ok
+test routes::transfer_computes_the_candidate_from_the_reference_and_the_level ... ok
+test routes::transfer_interpolates_between_two_bracketing_references ... ok
+test routes::transfer_outside_the_levels_range_is_unavailable ... ok
+test routes::transfer_takes_another_growth_form_when_the_manifest_allows_it ... ok
+test routes::transfer_with_a_nearest_answer_of_none_files_no_reference ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/screen.rs (target/release/deps/screen-d62d898d261f4c91)
+
+running 7 tests
+test questions_always_offer_a_no_match ... ok
+test empty_source_prints_checksum_and_no_rows ... ok
+test forged_span_is_a_contract_failure ... ok
+test spread_none_prints_the_candidate_list ... ok
+test screen_state_fields_stay_within_the_limit ... ok
+test selection_scores_five_of_five ... ok
+test screen_scores_twelve_of_twelve_and_o1_is_a_site_criterion ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/sets.rs (target/release/deps/sets-2856eef23c2638d7)
+
+running 5 tests
+test built_questions_keep_the_table_order_and_offer_a_no_match_answer ... ok
+test level_from_score_rounds_to_the_nearest_level_and_clamps ... ok
+test missed_ids_names_the_cases_a_set_missed ... ok
+test every_set_is_version_one_and_its_cases_carry_the_fields_the_runner_reads ... ok
+test the_runner_scores_every_set_labelled_and_held_out_against_its_bound ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/stages_downstream.rs (target/release/deps/stages_downstream-37a850aefc579cee)
+
+running 18 tests
+test a_registered_table_that_does_not_produce_what_the_species_requires_is_its_own_gate ... ok
+test a_required_name_the_vocabulary_does_not_carry_is_unrecognised_not_missing ... ok
+test an_empty_packet_list_does_not_erase_the_manifests_recorded_assessment ... ok
+test a_table_probe_that_errors_files_the_error_and_never_an_empty_list ... ok
+test a_species_with_no_recorded_assessment_does_not_pass_the_capability_gate ... ok
+test the_gate_files_nothing_when_every_gate_is_answered ... ok
+test the_date_palms_recorded_needs_are_five_missing_organs_and_no_false_positive ... ok
+test the_gate_records_the_vocabulary_version_it_compared_against ... ok
+test the_gate_files_onboarding_gate_for_an_unregistered_preset ... ok
+test generate_files_level_miss_when_no_candidate_lands_in_range ... ok
+test generate_files_no_reference_when_the_nearest_answer_is_none ... ok
+test generate_ships_a_described_value_into_the_sidecar_at_the_dials_pointer ... ok
+test the_packets_species_record_carries_exactly_the_closed_keys ... ok
+test a_one_row_table_files_missing_curve_and_the_other_dimension_still_fits ... ok
+test an_unchanged_rerun_of_the_fit_is_current_and_writes_nothing_new ... ok
+test the_fit_reproduces_fn30s_oak_and_files_a_tolerance_miss_per_age ... ok
+test the_reports_inputs_name_every_artifact_it_read ... ok
+test the_report_is_halted_with_an_open_decision_and_complete_once_it_is_resolved ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/validation_fn30.rs (target/release/deps/validation_fn30-761d2a98c063d906)
+
+running 2 tests
+test the_fit_over_the_fixtures_reproduces_fn30_for_the_oak_and_the_spruce ... ok
+test two_isolated_runs_over_the_same_fixtures_compare_identical ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/release/deps/telperion_render-f3f25e70f32351ce)
+
+running 51 tests
+test buffer::tests::a_submit_that_outgrows_the_headroom_allocates_again ... ok
+test buffer::tests::a_second_smaller_submit_reuses_the_allocation ... ok
+test buffer::tests::an_allocation_carries_headroom_above_what_it_holds ... ok
+test buffer::tests::an_empty_tree_asks_for_nothing ... ok
+test camera::tests::a_shot_aims_where_it_says_and_never_sinks_underground ... ok
+test camera::tests::a_close_up_aims_at_the_stem_and_a_framed_shot_at_the_bounds ... ok
+test camera::tests::a_sweep_turns_the_eye_about_the_subject_and_keeps_its_height ... ok
+test camera::tests::a_walk_keeps_the_subject_and_the_stand_off_between_its_ends ... ok
+test camera::tests::a_walk_stands_at_a_hero_pose_at_each_of_its_ends ... ok
+test camera::tests::a_whole_sweep_comes_back_to_the_pose_it_left ... ok
+test camera::tests::an_orbit_keeps_the_hero_height_and_the_hero_distance ... ok
+test camera::tests::the_camera_never_stands_underground ... ok
+test camera::tests::the_default_shot_looks_from_where_the_hero_pose_does ... ok
+test camera::tests::a_subject_smaller_than_a_person_still_fills_its_frame ... ok
+test camera::tests::the_far_plane_clears_the_ground_disc ... ok
+test device::tests::a_generator_rejection_keeps_its_own_words ... ok
+test foliage::tests::a_leaf_carries_a_normal_off_its_own_face ... ok
+test device::tests::every_condition_names_itself ... ok
+test camera::tests::a_shot_fills_the_frame_it_states_on_any_aspect ... ok
+test camera::tests::the_margin_is_the_only_air_around_the_crown ... ok
+test foliage::tests::an_element_at_the_origin_bounds_itself ... ok
+test camera::tests::the_whole_crown_sits_inside_the_frame ... ok
+test headless::tests::a_still_of_one_colour_has_no_subject ... ok
+test headless::tests::an_unwritable_path_names_itself ... ok
+test mass::tests::no_crown_and_no_leaves_read_no_depth ... ok
+test pass::tests::a_target_that_will_not_multisample_takes_the_whole_frame_down_to_one_sample ... ok
+test scene::room::tests::the_disc_is_wound_one_way_and_covers_its_whole_circle ... ok
+test scene::room::tests::the_figure_stands_one_point_eight_metres_tall_on_the_ground ... ok
+test scene::row::tests::the_default_is_a_row_the_renderer_will_have ... ok
+test scene::row::tests::a_row_the_renderer_will_not_have_says_what_was_wrong_with_it ... ok
+test scene::tests::sky_and_ground_light_bracket_the_hemisphere_term ... ok
+test scene::row::tests::the_row_survives_its_own_json_in_both_directions ... ok
+test select::frame::tests::a_metre_spans_the_frame_it_fills ... ok
+test select::frame::tests::a_leaf_stands_in_a_sphere_that_holds_all_of_it ... ok
+test select::frame::tests::the_frustum_holds_what_the_camera_frames_and_nothing_behind_it ... ok
+test select::frame::tests::the_planes_measure_in_metres ... ok
+test select::tests::every_level_is_given_a_list_the_whole_crown_could_fill ... ok
+test shadow::fit::tests::a_lower_sun_is_given_a_longer_map_and_a_sun_on_the_horizon_is_not ... ok
+test shadow::fit::tests::the_map_holds_the_subject_and_the_shadow_it_throws ... ok
+test shadow::fit::tests::the_sun_stands_where_its_two_angles_put_it ... ok
+test shot::tests::the_default_shot_is_the_hero_pose ... ok
+test shot::tests::the_shot_survives_its_own_json_and_refuses_what_it_cannot_frame ... ok
+test submit::tests::the_crown_is_the_box_the_placements_fill_and_nothing_when_there_are_none ... ok
+test wood::calibration::capture_calibrated_bark ... ignored, explicit evidence capture; requires hardware GPU and BARK_CAPTURE_DIR
+test wood::calibration::time_fullscreen_bark_and_mature_oak ... ignored, explicit fn26 native timing; BARK_TIMING_DIR required
+test view::tests::every_name_the_usage_line_offers_resolves_and_nothing_else_does ... ok
+test wood::calibration::flat_patch_coordinates_have_the_stated_physical_scale ... ok
+test wood::radius::tests::translated_tapered_rings_keep_their_metric_radius_and_caps_are_smooth ... ok
+test mass::tests::a_leaf_under_its_own_lobe_is_deeper_than_one_on_its_face ... ok
+test shadow::kernel_test::kernel_averages_comparisons_and_offsets_the_receiver ... ok
+test select::tests::compaction_preserves_placement_order_at_every_level ... ok
+
+test result: ok. 49 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.55s
+
+     Running tests/bark_depth.rs (target/release/deps/bark_depth-6d7a943e991b1a5b)
+
+running 1 test
+test the_depth_row_moves_no_wood_and_changes_the_picture ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.47s
+
+     Running tests/bark_detail.rs (target/release/deps/bark_detail-39a4b29cb1b5a382)
+
+running 2 tests
+test radius_storage_is_refused_before_upload_when_only_its_binding_limit_is_exceeded ... ok
+test relief_moves_the_light_while_every_wood_mesh_byte_holds ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.28s
+
+     Running tests/bark_distance.rs (target/release/deps/bark_distance-32ab94e06a796ae9)
+
+running 1 test
+test resolved_scales_survive_until_the_two_pixel_boundary ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.34s
+
+     Running tests/bark_evidence.rs (target/release/deps/bark_evidence-9c84e24db939ab98)
+
+running 1 test
+test replay_recorded_bark_views ... ignored, explicit GPU evidence; BARK_EVIDENCE_SPECIES=oak|spruce and BARK_CAPTURE_DIR required
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/bark_field.rs (target/release/deps/bark_field-79c81f9c0663bfaf)
+
+running 1 test
+test surface_lengths_young_wood_wrap_and_plate_drift ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+
+     Running tests/bark_filter.rs (target/release/deps/bark_filter-c0ec6e1197ee121e)
+
+running 1 test
+test either_unresolved_axis_leaves_little_relief_and_furrows_can_close ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running tests/bark_occlusion.rs (target/release/deps/bark_occlusion-7d902db2ef7fd604)
+
+running 2 tests
+test the_row_at_zero_leaves_the_frame_exactly_as_it_was ... ok
+test the_darkened_side_of_a_furrow_follows_the_sun ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.76s
+
+     Running tests/bark_parallax.rs (target/release/deps/bark_parallax-9c0367cb0e50feb2)
+
+running 1 test
+test parallax_descends_away_from_the_eye_and_refines_the_intersection ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+     Running tests/bark_plates.rs (target/release/deps/bark_plates-704915c70cf9a4e9)
+
+running 5 tests
+test inspect_rough_plate_means ... ignored, explicit diagnostic for rough-profile integral calibration
+test every_plate_carries_an_identity_of_its_own ... ok
+error: test failed, to rerun pass `-p telperion-render --test bark_plates`
+
+Caused by:
+  process didn't exit successfully: `/home/daniel/Projects/telperion/target/release/deps/bark_plates-704915c70cf9a4e9` (signal: 11, SIGSEGV: invalid memory reference)

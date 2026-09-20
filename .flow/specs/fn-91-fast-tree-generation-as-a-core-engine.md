@@ -63,7 +63,7 @@ Measure the current path before selecting a mechanism. Separate skeleton generat
 ## Parked unknowns
 
 - Accepted first desktop matrix: current mature oak and spruce at seeds 1 and 7, native CPU output and browser delivery, using the recorded baseline hardware. Warm latency target is 10x, with 100 ms as a stretch goal and no increase in accounted peak memory. Full cold-start and phone qualification remain separate evidence gaps; no phone performance bound has been set.
-- Current stage shares and the achievable GPU gain are unmeasured. The baseline resolves these; historical species costs cannot qualify the new path.
+- The fresh desktop baseline is recorded in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/BASELINE.md`: bounds and wood dominate oak, while placement with surface contact dominates spruce. Achievable GPU gain remains unmeasured; the boundary investigation in `GPU-PATH.md` identifies required preparation, contact, bounds and canopy-lighting work without claiming a speedup.
 
 ## Strategy Alignment
 

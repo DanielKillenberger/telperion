@@ -42,7 +42,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
     if !length.is_finite() {
         return Err(Error::ResourceLimit("shoot length overflow"));
     }
-    let frames = frames(&points);
+    let frames = station_frames(&points, &along);
     let stations = stations(length, envelope, p, twig, rng)?;
     reserve(out, stations.len(), p)?;
     for (k, distance) in stations.into_iter().enumerate() {
@@ -64,16 +64,7 @@ pub(super) fn place_run(run: &Run, rng: &mut Rng, out: &mut Instances) -> Result
             tree.nodes[nodes[segment]].radius
         };
         let wood = base * (1. - t) + distal.radius * t;
-        let (mut tangent, mut normal, mut binormal) = frames[segment];
-        if span > 1e-12 {
-            tangent = (points[segment + 1] - points[segment]) / span;
-            normal -= tangent * normal.dot(tangent);
-            if normal.length_squared() <= 1e-12 {
-                normal = tangent.perpendicular();
-            }
-            normal = normal.normalized();
-            binormal = tangent.cross(normal).normalized();
-        }
+        let (tangent, normal, binormal) = frames[segment];
         let turn = if let Some(a) = twig {
             (k / a.stations_per_internode as usize) as f64 * p.divergence * PI / 180.
                 + (k % a.stations_per_internode as usize) as f64 * TAU
@@ -215,9 +206,10 @@ pub(super) fn matrix(
         let ring = (1. - z * z).max(0.).sqrt();
         let jitter = Vec3::new(ring * phi.cos_fixed(), z, ring * phi.sin_fixed());
         let angle = p.scatter * PI / 180. * rng.next_f64();
-        axis = axis.rotate(jitter, angle);
-        face = face.rotate(jitter, angle);
-        side = side.rotate(jitter, angle);
+        let sin_cos = angle.sin_cos_fixed();
+        axis = axis.rotate_sin_cos(jitter, sin_cos);
+        face = face.rotate_sin_cos(jitter, sin_cos);
+        side = side.rotate_sin_cos(jitter, sin_cos);
     }
     let scale = p.size * (1. + p.size_variation * rng.range(-1., 1.));
     let matrix = [
@@ -243,6 +235,24 @@ pub(super) fn matrix(
         return Err(Error::ResourceLimit("foliage transform overflow"));
     }
     Ok(matrix)
+}
+
+fn station_frames(points: &[Vec3], along: &[f64]) -> Vec<(Vec3, Vec3, Vec3)> {
+    let mut frames = frames(points);
+    for (segment, (tangent, normal, binormal)) in frames[..points.len() - 1].iter_mut().enumerate()
+    {
+        let span = along[segment + 1] - along[segment];
+        if span > 1e-12 {
+            *tangent = (points[segment + 1] - points[segment]) / span;
+            *normal -= *tangent * normal.dot(*tangent);
+            if normal.length_squared() <= 1e-12 {
+                *normal = tangent.perpendicular();
+            }
+            *normal = normal.normalized();
+            *binormal = tangent.cross(*normal).normalized();
+        }
+    }
+    frames
 }
 
 /// A rotation-minimising frame at every point of the run.
@@ -292,4 +302,41 @@ fn frames(points: &[Vec3]) -> Vec<(Vec3, Vec3, Vec3)> {
         result.push((t, normal, t.cross(normal).normalized()));
     }
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn prepared_frames_match_station_arithmetic_including_zero_spans() {
+        for points in [
+            vec![Vec3::ZERO, Vec3::Y, Vec3::Y, Vec3::ZERO, Vec3::X],
+            vec![Vec3::ZERO, Vec3::new(1e-14, 0., 0.), Vec3::new(1., 2., -3.)],
+        ] {
+            let mut along = vec![0.];
+            for p in points.windows(2) {
+                along.push(along.last().unwrap() + p[1].distance(p[0]));
+            }
+            let actual = station_frames(&points, &along);
+            let original = frames(&points);
+            for segment in 0..points.len() - 1 {
+                let (mut tangent, mut normal, mut binormal) = original[segment];
+                let span = along[segment + 1] - along[segment];
+                if span > 1e-12 {
+                    tangent = (points[segment + 1] - points[segment]) / span;
+                    normal -= tangent * normal.dot(tangent);
+                    if normal.length_squared() <= 1e-12 {
+                        normal = tangent.perpendicular();
+                    }
+                    normal = normal.normalized();
+                    binormal = tangent.cross(normal).normalized();
+                }
+                let bits = |(a, b, c): (Vec3, Vec3, Vec3)| {
+                    [a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z].map(f64::to_bits)
+                };
+                assert_eq!(bits(actual[segment]), bits((tangent, normal, binormal)));
+            }
+        }
+    }
 }
