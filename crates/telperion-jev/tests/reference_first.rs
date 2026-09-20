@@ -54,6 +54,17 @@ fn candidate_owner_isolation_and_reference_hash_binding() {
     i.verify().unwrap();
     i.traits[0].reference_ids = vec!["render-0".into()];
     assert!(i.verify().is_err());
+    let r = request();
+    let blind = ComparisonRequest::new(&r, inventory(&r));
+    let production = ComparisonRequest::production(&r, inventory(&r));
+    production.verify().unwrap();
+    assert!(!serde_json::to_string(&blind.comparison)
+        .unwrap()
+        .contains("OWNER_SECRET"));
+    assert!(serde_json::to_string(&production.comparison)
+        .unwrap()
+        .contains("OWNER_SECRET"));
+    assert_ne!(blind.hash(), production.hash());
     let mut i = inventory(&request());
     i.prompt_sha256 = "stale".into();
     assert!(i.verify().is_err());
@@ -91,6 +102,40 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
     good.bind(&request).unwrap();
     assert_eq!(first_bound, serde_json::to_value(&good).unwrap());
     assert!(ready(&r.required, &r.identity, &good.visual.assessment));
+    let replay = Replay {
+        schema: "reference-first-replay-v1".into(),
+        model: "mock".into(),
+        effort: "medium".into(),
+        protocol_sha256: sha256_hex(b"adapter"),
+        cases: vec![ReplayCase {
+            id: "positive".into(),
+            provenance: "authored positive control, not model calibration".into(),
+            expected_ready: true,
+            request: request.clone(),
+        }],
+    };
+    let bytes = serde_json::to_vec(&replay).unwrap();
+    let receipt = ReplayResult {
+        manifest_sha256: sha256_hex(&bytes),
+        results: vec![base.clone()],
+    };
+    assert_eq!(
+        replay_score(&bytes, &receipt).unwrap().1.false_rejections,
+        0
+    );
+    let mut wrong_role = replay.clone();
+    wrong_role.cases[0].request.inventory.model = "another-model".into();
+    let role_bytes = serde_json::to_vec(&wrong_role).unwrap();
+    let mut role_result = receipt.clone();
+    role_result.manifest_sha256 = sha256_hex(&role_bytes);
+    role_result.results[0].request_sha256 = wrong_role.cases[0].request.hash();
+    assert!(replay_score(&role_bytes, &role_result).is_err());
+    let mut legacy = serde_json::to_value(&replay).unwrap();
+    legacy["schema"] = json!("tuning-vision-v3");
+    let bytes = serde_json::to_vec(&legacy).unwrap();
+    let mut legacy_result = receipt.clone();
+    legacy_result.manifest_sha256 = sha256_hex(&bytes);
+    assert!(replay_score(&bytes, &legacy_result).is_err());
     assert!(good
         .visual
         .assessment
@@ -102,7 +147,19 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
         bad.coverage[0].status = status;
         bad.bind(&request).unwrap();
         assert!(!ready(&r.required, &r.identity, &bad.visual.assessment));
+        assert_eq!(
+            bad.visual.assessment.cells, base.visual.assessment.cells,
+            "global coverage does not rewrite per-view observations"
+        );
     }
+    let mut per_view_unknown = base.clone();
+    per_view_unknown.visual.assessment.cells[0].1 = CellStatus::Unknown;
+    per_view_unknown.coverage[0].status = CellStatus::Fail;
+    per_view_unknown.bind(&request).unwrap();
+    assert_eq!(
+        per_view_unknown.visual.assessment.cells[0].1,
+        CellStatus::Unknown
+    );
     let mut missing = base.clone();
     missing.coverage.clear();
     missing.bind(&request).unwrap();
@@ -138,4 +195,192 @@ fn coverage_unknown_and_positive_finish_are_enforced() {
         &r.identity,
         &uncertain.visual.assessment
     ));
+}
+
+#[test]
+fn preparation_is_verified_charged_once_and_never_inferred_from_a_floor() {
+    let r = request();
+    let inventory = inventory(&r);
+    let dir = std::env::temp_dir().join(telperion_jev::ledger::new_entry_id());
+    std::fs::create_dir(&dir).unwrap();
+    let ip = dir.join("inventory.json");
+    let pp = dir.join("preparation.json");
+    let receipt = json!({"status":"ok","model":"mock","effort":"medium","request_sha256":inventory.request_sha256,"prompt_sha256":inventory.prompt_sha256,"usage":{"input_tokens":7,"output_tokens":3},"answer":{"traits":inventory.traits,"observations":inventory.observations}});
+    std::fs::write(&ip, serde_json::to_vec(&inventory).unwrap()).unwrap();
+    std::fs::write(&pp, serde_json::to_vec(&receipt).unwrap()).unwrap();
+    let config = RuntimeConfig {
+        inventory: FilePin {
+            path: ip.clone(),
+            sha256: sha256_hex(&std::fs::read(&ip).unwrap()),
+        },
+        preparation: FilePin {
+            path: pp.clone(),
+            sha256: sha256_hex(&std::fs::read(&pp).unwrap()),
+        },
+    };
+    let (_, charge) = config.load("mock", "medium").unwrap();
+    let mut budget:telperion_jev::tuning::state::Budget=serde_json::from_value(json!({"evaluations":0,"images":0,"tokens":100,"rounds":0,"max_evaluations":2,"max_images":8,"max_tokens":120,"max_rounds":1,"visual_passes":0,"max_visual_passes":2})).unwrap();
+    let mut proof = None;
+    assert!(verify_preparation(Some(&charge), proof.as_ref()).is_err());
+    charge_preparation(&mut budget, &mut proof, &charge).unwrap();
+    assert_eq!(budget.tokens, 110);
+    assert_eq!(budget.visual_passes, Some(1));
+    charge_preparation(&mut budget, &mut proof, &charge).unwrap();
+    assert_eq!(budget.tokens, 110);
+    let mut changed = charge.clone();
+    changed.preparation_sha256 = sha256_hex(b"different");
+    assert!(charge_preparation(&mut budget, &mut proof, &changed).is_err());
+    assert_eq!(budget.tokens, 110);
+    let mut low = budget.clone();
+    low.max_tokens = 115;
+    let mut empty = None;
+    assert!(charge_preparation(&mut low, &mut empty, &charge).is_err());
+    assert_eq!(low.tokens, 110);
+    assert!(empty.is_none());
+    std::fs::write(&pp, b"changed").unwrap();
+    assert!(config.load("mock", "medium").is_err());
+    let mut unknown = receipt.clone();
+    unknown["usage"] = serde_json::Value::Null;
+    std::fs::write(&pp, serde_json::to_vec(&unknown).unwrap()).unwrap();
+    let mut unknown_config = config;
+    unknown_config.preparation.sha256 = sha256_hex(&std::fs::read(&pp).unwrap());
+    assert!(unknown_config.load("mock", "medium").is_err());
+    assert!(verify_preparation(None, None).is_ok());
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn live_reference_first_preserves_owner_requirements_and_projects_trait_evidence() {
+    use telperion_jev::tuning::{
+        engine::Services,
+        evaluation::{Comparison, Trial},
+        live::{Config, Live},
+    };
+    struct Never;
+    impl telperion_jev::caller::Transport for Never {
+        fn send(
+            &self,
+            _: &telperion_jev::caller::HttpRequest,
+        ) -> Result<telperion_jev::caller::HttpResponse, String> {
+            panic!("no paid text request")
+        }
+    }
+    let r = request();
+    let i = inventory(&r);
+    let dir = std::env::temp_dir().join(telperion_jev::ledger::new_entry_id());
+    std::fs::create_dir(&dir).unwrap();
+    let inv = dir.join("inventory.json");
+    let prep = dir.join("prep.json");
+    let shots = dir.join("shots.json");
+    let protocol = dir.join("adapter.py");
+    std::fs::write(&inv, serde_json::to_vec(&i).unwrap()).unwrap();
+    std::fs::write(&prep,serde_json::to_vec(&json!({"status":"ok","model":"mock","effort":"medium","request_sha256":i.request_sha256,"prompt_sha256":i.prompt_sha256,"usage":{"input_tokens":7,"output_tokens":3},"answer":{"traits":i.traits,"observations":i.observations}})).unwrap()).unwrap();
+    std::fs::write(
+        &shots,
+        b"{\"references\":[{\"id\":\"whole\",\"shot\":{\"foliage\":\"leaf-on\"}}]}",
+    )
+    .unwrap();
+    let script = r#"import json,sys
+e=json.load(sys.stdin);r=e['request'];c=r['comparison']
+assert r['production_requirements'] is True
+assert 'OWNER_SECRET' in c['checklist'] and 'authoritative goal' in c['checklist']
+assert c['required'][0]['item']=='OWNER_SECRET'
+print(json.dumps({'status':'ok','model':'mock','effort':'medium','request_sha256':e['request_sha256'],'prompt_sha256':e['prompt_sha256'],'usage':{'input_tokens':11,'output_tokens':3},'answer':{'passes':['pass'],'defects':[],'observations':['literal joint observation'],'findings':[{'observation':'Supported reference match','evidence_ids':['render-0','reference-0'],'impact':'supported','uncertain':False,'causal_hypothesis':None}],'coverage':[{'trait_id':'trait-1','status':'pass','evidence_ids':['render-0','reference-0'],'explanation':'visible match'}]}}))
+"#;
+    std::fs::write(&protocol, script).unwrap();
+    let pin =
+        |p: &std::path::Path| json!({"path":p,"sha256":sha256_hex(&std::fs::read(p).unwrap())});
+    let validation =
+        json!({"manifest":dir.join("not-qualified"),"result":dir.join("not-qualified")});
+    let mut config:Config=serde_json::from_value(json!({"preset":r.target_species,"seed":1,"initial_overrides":{},"dials":[],"owner_notes":"authoritative goal","measure_binary":protocol,"profiles":shots,"profile_id":"unused","matched":{"headless":protocol,"compare_script":protocol,"references":shots,"refs":dir,"catalogue":dir,"scratch":dir,"height":1440,"numeric_references":["whole"]},"vision":{"program":"python3","args":[protocol],"model":"mock","effort":"medium","timeout_seconds":10,"ledger":dir.join("ledger")},"references":r.references,"required":r.required,"checklist":r.checklist,"quality_anchors":r.quality_anchors,"adjustments":validation,"direction":validation,"continuation":validation,"visual_validation":validation,"vision_protocol":protocol,"reference_first":{"inventory":pin(&inv),"preparation":pin(&prep)},"convergence_run":null,"judgment_model":"mock","ledger":dir,"budget":{"evaluations":0,"images":0,"tokens":0,"rounds":0,"max_evaluations":13,"max_images":52,"max_tokens":100000,"max_rounds":3,"visual_passes":0,"max_visual_passes":5}})).unwrap();
+    std::fs::write(
+        &config.visual_validation.manifest,
+        serde_json::to_vec(&Replay {
+            schema: "reference-first-replay-v1".into(),
+            model: "mock".into(),
+            effort: "medium".into(),
+            protocol_sha256: sha256_hex(script.as_bytes()),
+            cases: vec![],
+        })
+        .unwrap(),
+    )
+    .unwrap();
+    let identity = config.identity().unwrap();
+    let trial = Trial {
+        key: r.identity.clone(),
+        identity: identity.clone(),
+        seed: 1,
+        round: 1,
+        label: "mock".into(),
+        overrides: json!({}),
+        ledger: None,
+        feasible: true,
+        reason: None,
+        measurement: json!({}),
+        comparisons: vec![Comparison {
+            reference: "whole".into(),
+            reference_weight: 1.,
+            metric_weights: [1.; 5],
+            target: [0.; 5],
+            observed: [Some(0.); 5],
+            images: r.images.clone(),
+        }],
+        score: Some(0.),
+        seconds: 0.,
+    };
+    let mut live = Live {
+        config: &config,
+        transport: &Never,
+        key: "never-used",
+    };
+    let result = live.visual(&trial).unwrap();
+    assert_eq!(result.tokens, Some(14));
+    assert!(ready(&config.required, &trial.key, &result.value));
+    verify_convergence(
+        &config.vision,
+        config.reference_first.as_ref().unwrap(),
+        &result.value,
+    )
+    .unwrap();
+    let mut legacy = result.value.clone();
+    legacy.ledger = shots.to_string_lossy().into_owned();
+    assert!(verify_convergence(
+        &config.vision,
+        config.reference_first.as_ref().unwrap(),
+        &legacy
+    )
+    .is_err());
+    assert!(result
+        .value
+        .observations
+        .iter()
+        .any(|s| s.contains("trait-1")));
+    assert!(result
+        .value
+        .observations
+        .iter()
+        .any(|s| s.contains("literal joint observation")));
+    let mut state:telperion_jev::tuning::engine::Run=serde_json::from_value(json!({"identity":identity,"preset":"fixture","seed":1,"effective":{},"overrides":{},"dials":[],"owner_notes":"authoritative goal","required":config.required,"budget":config.budget,"usage_known":true,"trials":[],"current":null,"visual":result.value,"pause":null,"machine_ready":false,"pending":null,"routes":[]})).unwrap();
+    let projection = telperion_jev::tuning::judgments::summary(&state);
+    assert!(projection["visual"]["observations"]
+        .to_string()
+        .contains("trait-1"));
+    state.visual = None;
+    let before = state.budget.tokens;
+    state.execute(&mut live, &mut |_| Ok(())).unwrap();
+    assert!(state.pause.unwrap().reason.contains("preparation charge"));
+    assert_eq!(state.budget.tokens, before);
+    std::fs::write(&protocol, format!("{script}\n# changed")).unwrap();
+    assert_ne!(identity, config.identity().unwrap());
+    assert!(live
+        .visual(&trial)
+        .err()
+        .unwrap()
+        .contains("protocol changed"));
+    std::fs::write(&inv, b"changed").unwrap();
+    assert!(config.identity().is_err());
+    assert!(config.preparation().is_err());
+    config.reference_first = None;
+    assert!(config.preparation().unwrap().is_none());
+    std::fs::remove_dir_all(dir).unwrap();
 }

@@ -301,6 +301,7 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
             pending: None,
             routes: vec![],
             authorizations: vec![],
+            preparation_charge: None,
         }
     };
     let mut save = |state: &Run| -> Result<(), String> {
@@ -329,6 +330,14 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
         return Err(
             "magnitude live efficacy unvalidated; scoped experimental authority required".into(),
         );
+    }
+    if let Some(charge) = config.preparation()? {
+        super::reference_first::charge_preparation(
+            &mut state.budget,
+            &mut state.preparation_charge,
+            &charge,
+        )?;
+        save(&state)?;
     }
     let key = load_key().map_err(|e| e.to_string())?;
     let mut services = Live {

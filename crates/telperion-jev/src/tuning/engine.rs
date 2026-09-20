@@ -21,6 +21,9 @@ pub struct Answer<T> {
 }
 
 pub trait Services {
+    fn preparation(&self) -> Result<Option<super::reference_first::PreparationCharge>, String> {
+        Ok(None)
+    }
     fn proposal_tokens(&self, _state: &Run) -> u64 {
         4000
     }
@@ -69,6 +72,8 @@ pub struct Run {
     pub routes: Vec<String>,
     #[serde(default)]
     pub authorizations: Vec<continuation::HumanDecision>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preparation_charge: Option<super::reference_first::PreparationCharge>,
 }
 
 fn merge(target: &mut Value, patch: &Value) {
@@ -248,6 +253,11 @@ impl Run {
         services: &mut dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
     ) -> Result<(), String> {
+        let expected = services.preparation()?;
+        super::reference_first::verify_preparation(
+            expected.as_ref(),
+            self.preparation_charge.as_ref(),
+        )?;
         if self.current.is_none() {
             self.reserve(1, services.evaluation_images(), 0, 0, "baseline", save)?;
             let trial = services.evaluate(self.overrides.clone(), 0, "baseline", None);

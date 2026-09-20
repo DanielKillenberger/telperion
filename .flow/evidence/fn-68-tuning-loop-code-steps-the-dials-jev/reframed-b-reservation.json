@@ -1,0 +1,10 @@
+{
+  "authority": "Owner YES to570000, up to4camera repair captures and ONE corrected comparison, no retries",
+  "prior_actual_tokens": 524517,
+  "reserve": 35000,
+  "cap": 570000,
+  "attempted_visual_passes": 20,
+  "frozen_sha256": "d6f5795c1f95318341aae06f3d287583826f9d2c537892d738250eaea5e4db54",
+  "status": "reserved_before_dispatch",
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e"
+}

@@ -158,6 +158,7 @@ fn run() -> Run {
         pending: None,
         routes: vec![],
         authorizations: vec![],
+        preparation_charge: None,
     }
 }
 
