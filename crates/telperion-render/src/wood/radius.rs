@@ -7,10 +7,6 @@ pub fn radii(mesh: &SurfaceMesh) -> Vec<f32> {
     if mesh.coords.len() != count * 2 {
         return radii;
     }
-    let point = |i: usize| {
-        let p = &mesh.positions[i * 3..i * 3 + 3];
-        telperion_core::math::Vec3::new(p[0].into(), p[1].into(), p[2].into())
-    };
     let mut start = 0;
     while start < count {
         let mut end = start + 1;
@@ -23,13 +19,9 @@ pub fn radii(mesh: &SurfaceMesh) -> Vec<f32> {
         // Complete rings start at zero and sweep past pi. Caps and absent
         // coordinates have no defined circumferential metric: leave them smooth.
         if end - start >= 3 && mesh.coords[(end - 1) * 2 + 1] > std::f32::consts::PI {
-            let centre = (start..end)
-                .map(point)
-                .fold(telperion_core::math::Vec3::ZERO, |sum, p| sum + p)
-                / (end - start) as f64;
             let radius =
-                (start..end).map(|i| point(i).distance(centre)).sum::<f64>() / (end - start) as f64;
-            radii[start..end].fill(radius as f32);
+                telperion_core::surface::prepared::ring_radius(&mesh.positions[start * 3..end * 3]);
+            radii[start..end].fill(radius);
         }
         start = end;
     }

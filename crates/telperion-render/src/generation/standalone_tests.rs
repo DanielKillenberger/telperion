@@ -20,6 +20,7 @@ fn standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh() {
     let prepared = generator.prepare(&family, Delivery::Cpu).unwrap();
     assert_eq!(prepared.backend, Backend::Gpu);
     assert!(prepared.cpu_mesh().is_some());
+    assert!(generator.wood.is_none());
     assert!(prepared.count() > 0);
     assert_eq!(
         generator.read_instances(&prepared).unwrap().len(),

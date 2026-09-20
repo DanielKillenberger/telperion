@@ -26,6 +26,8 @@ try {
   const cpu=renderer.setTree(text);
   const gpu=await renderer.setTreeGpu(text);
   assert(gpu.backend==='Gpu','GPU backend');
+  assert(gpu.stages.woodBackend==='Gpu','resident wood backend');
+  assert(gpu.stages.woodCpuBytes===0 && gpu.stages.woodPreparedCpuBytes>0,'resident wood accounting');
   assert(gpu.foliageInstances===cpu.foliageInstances && gpu.woodVertices===cpu.woodVertices,'count mismatch');
   assert([...gpu.bounds.min,...gpu.bounds.max].every(Number.isFinite),'finite bounds');
   checks.valid={cpu,gpu};

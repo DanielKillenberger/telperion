@@ -7,6 +7,7 @@ mod dependencies;
 mod frames;
 mod normals;
 mod paths;
+pub mod prepared;
 mod samples;
 pub(crate) use attachment::AttachmentSurface;
 pub(crate) use dependencies::affected as affected_contacts;
@@ -134,6 +135,15 @@ fn vertex(out: &mut Vec<f32>, p: Vec3) -> Result<()> {
 
 /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
 pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<SurfaceMesh> {
+    build_inner(tree, height, params, None)
+}
+
+fn build_inner(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
+    mut prepared: Option<&mut prepared::PreparedSurface>,
+) -> Result<SurfaceMesh> {
     tree.validate()?;
     params.validate()?;
     if !height.is_finite() || height <= 0.0 {
@@ -161,7 +171,11 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     let rings = paths
         .nodes
         .len()
-        .checked_add(usize::from(burial > 0.0))
+        .checked_add(if burial > 0.0 {
+            paths.runs.iter().filter(|r| r.trunk).count()
+        } else {
+            0
+        })
         .ok_or(Error::ResourceLimit("surface rings"))?;
     let vertices = rings
         .checked_mul(segments)
@@ -177,14 +191,21 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
         .ok_or(Error::ResourceLimit("surface indices"))?;
     let mut mesh = SurfaceMesh {
         positions: reserved(positions_len)?,
-        normals: reserved(positions_len)?,
-        coords: reserved(vertices * 2)?,
-        indices: reserved(indices_len)?,
+        normals: reserved(if prepared.is_some() { 0 } else { positions_len })?,
+        coords: reserved(if prepared.is_some() { 0 } else { vertices * 2 })?,
+        indices: reserved(if prepared.is_some() { 0 } else { indices_len })?,
         bounds: None,
         runs: paths.runs.len(),
         run_table: reserved(paths.runs.len())?,
         dropped: 0,
     };
+    if let Some(p) = prepared.as_deref_mut() {
+        p.segments = segments as u32;
+        p.rings = reserved(rings)?;
+        p.runs = reserved(paths.runs.len())?;
+        p.angles = reserved(segments)?;
+        p.angles.extend(angular.iter().map(|a| a.angle as f32));
+    }
     let longest = paths
         .runs
         .iter()
@@ -206,8 +227,12 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
     }
     ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
     for (path, largest_radius) in ordered {
-        let first_index = u32::try_from(mesh.indices.len())
-            .map_err(|_| Error::ResourceLimit("surface indices"))?;
+        let first_index = u32::try_from(
+            prepared
+                .as_ref()
+                .map_or(mesh.indices.len(), |p| p.index_count as usize),
+        )
+        .map_err(|_| Error::ResourceLimit("surface indices"))?;
         sample_path(tree, height, params, &paths, path, &distance, &mut samples);
         frames(&samples, &mut segments_scratch, &mut frame);
         let base = (mesh.positions.len() / 3) as u32;
@@ -223,61 +248,105 @@ pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<Surface
                     &mut mesh.positions,
                     s.p + (normal * sample.cos + binormal * sample.sin) * (width),
                 )?;
-                mesh.coords.extend([s.d as f32, angle as f32]);
+                if prepared.is_none() {
+                    mesh.coords.extend([s.d as f32, angle as f32]);
+                }
             }
         }
-        for i in 0..samples.len() - 1 {
-            let lower = base + i as u32 * seg;
-            let upper = lower + seg;
+        vertex(&mut mesh.positions, samples[0].p)?;
+        // A cap sits on the axis, where the angle around it is undefined.
+        if prepared.is_none() {
+            mesh.coords.extend([samples[0].d as f32, 0.0]);
+        }
+        let last = *samples.last().unwrap();
+        vertex(&mut mesh.positions, last.p)?;
+        if prepared.is_none() {
+            mesh.coords.extend([last.d as f32, 0.0]);
+        }
+        let run = prepared::Run {
+            base,
+            first_index,
+            ring_start: prepared.as_ref().map_or(0, |p| p.rings.len() as u32),
+            rings: samples.len() as u32,
+            index_count: u32::try_from(samples.len() * segments * 6)
+                .map_err(|_| Error::ResourceLimit("surface indices"))?,
+        };
+        let end = first_index
+            .checked_add(run.index_count)
+            .ok_or(Error::ResourceLimit("surface indices"))?;
+        if let Some(p) = prepared.as_deref_mut() {
+            for face in 0..run.index_count / 3 {
+                if !prepared::admitted(&mesh.positions, run.triangle(face, seg))? {
+                    p.fallback = true;
+                }
+            }
+            for (i, sample) in samples.iter().enumerate() {
+                let start = base as usize + i * segments;
+                p.rings.push([
+                    sample.d as f32,
+                    prepared::ring_radius(&mesh.positions[start * 3..(start + segments) * 3]),
+                ]);
+            }
+            p.runs.push(run);
+            p.index_count = end;
+        } else {
+            for i in 0..samples.len() - 1 {
+                let lower = base + i as u32 * seg;
+                let upper = lower + seg;
+                for k in 0..seg {
+                    let next = (k + 1) % seg;
+                    mesh.indices.extend([
+                        lower + k,
+                        lower + next,
+                        upper + k,
+                        lower + next,
+                        upper + next,
+                        upper + k,
+                    ]);
+                }
+            }
+            let bottom = base + samples.len() as u32 * seg;
+            let top_ring = bottom - seg;
             for k in 0..seg {
                 let next = (k + 1) % seg;
                 mesh.indices.extend([
-                    lower + k,
-                    lower + next,
-                    upper + k,
-                    lower + next,
-                    upper + next,
-                    upper + k,
+                    bottom,
+                    base + next,
+                    base + k,
+                    bottom + 1,
+                    top_ring + k,
+                    top_ring + next,
                 ]);
             }
+            mesh.normals.resize(mesh.positions.len(), 0.0);
+            mesh.dropped += normals::shade(
+                &mesh.positions,
+                &mut mesh.indices,
+                &mut mesh.normals,
+                (first_index as usize, base as usize),
+                |j| facing(&frame, segments, j),
+            )?;
         }
-        let bottom = (mesh.positions.len() / 3) as u32;
-        vertex(&mut mesh.positions, samples[0].p)?;
-        // A cap sits on the axis, where the angle around it is undefined.
-        mesh.coords.extend([samples[0].d as f32, 0.0]);
-        let top = bottom + 1;
-        let last = *samples.last().unwrap();
-        vertex(&mut mesh.positions, last.p)?;
-        mesh.coords.extend([last.d as f32, 0.0]);
-        let top_ring = base + (samples.len() as u32 - 1) * seg;
-        for k in 0..seg {
-            let next = (k + 1) % seg;
-            mesh.indices.extend([
-                bottom,
-                base + next,
-                base + k,
-                top,
-                top_ring + k,
-                top_ring + next,
-            ]);
-        }
-        mesh.normals.resize(mesh.positions.len(), 0.0);
-        mesh.dropped += normals::shade(
-            &mesh.positions,
-            &mut mesh.indices,
-            &mut mesh.normals,
-            (first_index as usize, base as usize),
-            |j| facing(&frame, segments, j),
+        let end = prepared.as_ref().map_or_else(
+            || {
+                u32::try_from(mesh.indices.len())
+                    .map_err(|_| Error::ResourceLimit("surface indices"))
+            },
+            |_| Ok(end),
         )?;
-        let end = u32::try_from(mesh.indices.len())
-            .map_err(|_| Error::ResourceLimit("surface indices"))?;
         mesh.run_table.push(SurfaceRun {
             first_index,
             index_count: end - first_index,
             largest_radius,
         });
     }
-    finish(mesh, segments)
+    let mut mesh = finish(mesh, segments)?;
+    if let Some(p) = prepared {
+        p.positions = std::mem::take(&mut mesh.positions);
+        p.run_table = std::mem::take(&mut mesh.run_table);
+        p.bounds = mesh.bounds;
+    }
+    Ok(mesh)
 }
 
 /// The way run vertex `j` faces when no triangle is left to say: out from the

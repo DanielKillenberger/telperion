@@ -290,7 +290,7 @@ pub(super) fn scope(gpu: &Gpu) -> [wgpu::ErrorScopeGuard; 2] {
 }
 pub(super) fn error(detail: String) -> RenderError {
     RenderError::DeviceRefused {
-        requirement: "experimental foliage".into(),
+        requirement: "experimental generation".into(),
         detail,
     }
 }

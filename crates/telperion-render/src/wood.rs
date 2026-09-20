@@ -2,7 +2,7 @@
 //! index arrays uploaded as they lie in memory, drawn as one indexed mesh.
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod calibration;
-mod radius;
+pub(crate) mod radius;
 
 use telperion_core::{
     material::MaterialParams,
@@ -208,6 +208,48 @@ impl Wood {
             wgpu::BufferUsages::INDEX,
             bytemuck::cast_slice(&mesh.indices),
         );
+    }
+
+    pub(crate) fn submit_resident(
+        &mut self,
+        gpu: &Gpu,
+        positions: Held,
+        normals: Held,
+        coords: Held,
+        indices: Held,
+        radii: Held,
+        index_count: u32,
+        runs: Vec<SurfaceRun>,
+    ) {
+        self.index_count = index_count;
+        self.caster_index_count = index_count;
+        self.runs = runs;
+        if index_count == 0 {
+            self.positions = None;
+            self.normals = None;
+            self.coords = None;
+            self.indices = None;
+            self.radii = None;
+            self.radius_group = None;
+            return;
+        }
+        self.radius_group = Some(gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("resident wood radii"),
+            layout: &self.radius_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                    buffer: radii.buffer(),
+                    offset: 0,
+                    size: std::num::NonZeroU64::new(radii.region().used()),
+                }),
+            }],
+        }));
+        self.positions = Some(positions);
+        self.normals = Some(normals);
+        self.coords = Some(coords);
+        self.indices = Some(indices);
+        self.radii = Some(radii);
     }
 
     /// Which of the two lit pipelines the material draws through.

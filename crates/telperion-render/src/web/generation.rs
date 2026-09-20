@@ -47,17 +47,19 @@ impl WebRenderer {
             let stages = json!({"skeletonMs":metrics.skeleton_ms,"descriptorsMs":metrics.descriptors_ms,
                 "uploadDispatchMs":metrics.upload_dispatch_ms,"placementWaitMs":metrics.placement_wait_ms,
                 "compactMs":metrics.compact_ms,"massMs":metrics.mass_ms,"readbackMs":metrics.readback_ms,
-                "woodMs":metrics.wood_ms,"totalMs":metrics.total_ms,
+                "woodMs":metrics.wood_ms,"woodPrepareMs":metrics.wood_prepare_ms,"woodUploadDispatchMs":metrics.wood_upload_dispatch_ms,"woodWaitMs":metrics.wood_wait_ms,"woodPreparedCpuBytes":metrics.wood_prepared_cpu_bytes,"woodMetadataCpuBytes":metrics.wood_metadata_cpu_bytes,"woodGpuPeakBytes":metrics.wood_gpu_peak_bytes,"woodBackend":metrics.wood_backend.map(|b| format!("{b:?}")),"woodFallback":metrics.wood_fallback,"totalMs":metrics.total_ms,
                 "baseCpuBytes":metrics.base_cpu_bytes,"woodCpuBytes":metrics.wood_cpu_bytes,
                 "descriptorCpuBytes":metrics.descriptor_cpu_bytes,"gpuComputePeakBytes":metrics.gpu_compute_peak_bytes,
                 "retainedGpuBytes":metrics.retained_gpu_bytes});
             let mut live = borrow(&live)?;
+            let previous_tree_gpu_bytes = Generator::tree_buffer_bytes(&live.renderer);
             let submitted = live.renderer.submit_prepared(prepared).map_err(js_error)?;
             live.renderer.set_material(family.material);
             let mut value: serde_json::Value =
                 serde_json::from_str(&submitted_json(&submitted)).expect("submitted JSON");
             value["backend"] = json!(backend);
             value["stages"] = stages;
+            value["previousTreeGpuBytes"] = json!(previous_tree_gpu_bytes);
             value["treeGpuBytes"] = json!(Generator::tree_buffer_bytes(&live.renderer));
             Ok(JsValue::from_str(&value.to_string()))
         })

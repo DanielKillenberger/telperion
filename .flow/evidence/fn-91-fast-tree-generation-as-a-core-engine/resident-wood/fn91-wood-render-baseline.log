@@ -1,0 +1,18 @@
+    Finished `release` profile [optimized] target(s) in 0.05s
+────────────
+ Nextest run ID 73f1f3be-2e77-4830-9849-035f29da05c6 with nextest profile: default
+    Starting 12 tests across 1 binary (49 tests skipped)
+        PASS [   0.005s] ( 1/12) telperion-render wood::calibration::flat_patch_coordinates_have_the_stated_physical_scale
+        PASS [   0.005s] ( 2/12) telperion-render generation::request::tests::invalidation_keeps_busy_until_guard_drops_and_errors_release_it
+        PASS [   0.018s] ( 3/12) telperion-render generation::tests::preparation_capabilities_and_failures_are_explicit
+        PASS [   0.018s] ( 4/12) telperion-render wood::radius::tests::translated_tapered_rings_keep_their_metric_radius_and_caps_are_smooth
+        PASS [   1.686s] ( 5/12) telperion-render generation::readback_tests::leaf_readback_device_loss_returns_no_output
+        PASS [   1.713s] ( 6/12) telperion-render generation::tests::gpu_extrema_order_preserves_signed_zero_and_finite_signs
+        PASS [   1.725s] ( 7/12) telperion-render generation::readback_tests::leaf_readback_preserves_words_across_chunk_boundaries
+        PASS [   1.739s] ( 8/12) telperion-render generation::tests::huge_phases_fall_back_but_supported_large_ordinals_keep_orientation
+        PASS [   1.742s] ( 9/12) telperion-render generation::readback_tests::leaf_readback_rejects_invalid_buffers_and_allocation
+        PASS [   1.753s] (10/12) telperion-render generation::tests::foreign_prepared_result_preserves_the_live_tree
+        PASS [   1.772s] (11/12) telperion-render generation::standalone_tests::standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh
+        PASS [   1.773s] (12/12) telperion-render generation::tests::compact_gpu_foliage_is_repeatable_seated_and_bounded
+────────────
+     Summary [   1.773s] 12 tests run: 12 passed, 49 skipped

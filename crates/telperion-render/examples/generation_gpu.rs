@@ -60,6 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         json!({"event":"provenance","preset":id,"seed":1,"mode":mode,"samples":samples,"initializationMs":init.elapsed().as_secs_f64()*1000.0,"adapter":adapter,"viewport":[1280,720],"camera":"hero","boundary":"GPU queue/device completion for rendering; owned geometry for output","family":telperion_core::params::metadata(&family)})
     );
     for sample in 0..samples {
+        let previous_tree_gpu_bytes = renderer.as_ref().map_or(0, Generator::tree_buffer_bytes);
         let start = Instant::now();
         let (count, bounds, stages, prepared, cpu) = if let Some(generator) = &generator {
             let prepared = generator.prepare(
@@ -71,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 },
             )?;
             let m = &prepared.metrics;
-            let stages = json!({"backend":format!("{:?}",prepared.backend),"skeletonMs":m.skeleton_ms,"descriptorsMs":m.descriptors_ms,"uploadDispatchMs":m.upload_dispatch_ms,"placementWaitMs":m.placement_wait_ms,"compactMs":m.compact_ms,"massMs":m.mass_ms,"readbackMs":m.readback_ms,"woodMs":m.wood_ms,"inputInstances":m.input_instances,"baseCpuBytes":m.base_cpu_bytes,"woodCpuBytes":m.wood_cpu_bytes,"retainedGpuBytes":m.retained_gpu_bytes,"descriptorCpuBytes":m.descriptor_cpu_bytes,"gpuComputePeakBytes":m.gpu_compute_peak_bytes});
+            let stages = json!({"backend":format!("{:?}",prepared.backend),"skeletonMs":m.skeleton_ms,"descriptorsMs":m.descriptors_ms,"uploadDispatchMs":m.upload_dispatch_ms,"placementWaitMs":m.placement_wait_ms,"compactMs":m.compact_ms,"massMs":m.mass_ms,"readbackMs":m.readback_ms,"woodMs":m.wood_ms,"woodPrepareMs":m.wood_prepare_ms,"woodUploadDispatchMs":m.wood_upload_dispatch_ms,"woodWaitMs":m.wood_wait_ms,"woodPreparedCpuBytes":m.wood_prepared_cpu_bytes,"woodMetadataCpuBytes":m.wood_metadata_cpu_bytes,"woodGpuPeakBytes":m.wood_gpu_peak_bytes,"woodBackend":m.wood_backend.map(|b| format!("{b:?}")),"woodFallback":m.wood_fallback,"inputInstances":m.input_instances,"baseCpuBytes":m.base_cpu_bytes,"woodCpuBytes":m.wood_cpu_bytes,"retainedGpuBytes":m.retained_gpu_bytes,"descriptorCpuBytes":m.descriptor_cpu_bytes,"gpuComputePeakBytes":m.gpu_compute_peak_bytes});
             (
                 prepared.count(),
                 prepared.bounds(),
@@ -141,7 +142,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         println!(
             "{}",
-            json!({"event":"sample","sample":sample,"cold":sample==0,"prepareMs":prepare_ms,"deliveryMs":delivery_ms,"totalMs":prepare_ms+delivery_ms,"instances":count,"bounds":[[bounds.min.x,bounds.min.y,bounds.min.z],[bounds.max.x,bounds.max.y,bounds.max.z]],"hash":hash,"treeGpuBytes":renderer.as_ref().map(Generator::tree_buffer_bytes),"stages":stages})
+            json!({"event":"sample","sample":sample,"cold":sample==0,"prepareMs":prepare_ms,"deliveryMs":delivery_ms,"totalMs":prepare_ms+delivery_ms,"instances":count,"bounds":[[bounds.min.x,bounds.min.y,bounds.min.z],[bounds.max.x,bounds.max.y,bounds.max.z]],"hash":hash,"previousTreeGpuBytes":previous_tree_gpu_bytes,"treeGpuBytes":renderer.as_ref().map(Generator::tree_buffer_bytes),"stages":stages})
         );
     }
     Ok(())

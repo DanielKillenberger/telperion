@@ -97,3 +97,6 @@ The candidate example build waited for the focused library-test release build's 
 
 ## 2026-09-20 wood-stage observer overhead
 The scratch-only wood profile completed its requested control/instrumented matrix in one pass. Per-run timers and altered optimization increased warm medians by 6.5–21.3% (9.34–37.68 ms), limiting exact stage attribution. Cost was two release builds of about 15 seconds each and one matrix; no additional profiling ticks or tuning runs were spent. A lower-overhead profiler or coarse production-neutral sampling would remove this measurement limitation; no profiler was installed. The report retains approximate stage shares and explicitly separates observer overhead.
+
+### 2026-09-20 — task .4 shader validation rebuild
+First resident-wood test reached WGSL validation only after a 44-second release library rebuild; `meta` is a reserved WGSL name. Renamed the binding to `metadata`. Cost: about one minute and one focused failed test run. A fast standalone shader-validation command would have caught this before the LTO test rebuild; no gate was bypassed.

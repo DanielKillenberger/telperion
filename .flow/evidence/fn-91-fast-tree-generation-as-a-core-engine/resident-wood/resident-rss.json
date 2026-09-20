@@ -1,0 +1,34 @@
+[
+  {
+    "revision": "baseline",
+    "species": "oregon-white-oak",
+    "exit": 0,
+    "seconds": 4.217223597999691,
+    "maxRssKiB": 579424,
+    "executableSha256": "712018723addd5f642781d55086f073b4bc9c9b4da95d08b0cc7341a8d256a81"
+  },
+  {
+    "revision": "candidate",
+    "species": "oregon-white-oak",
+    "exit": 0,
+    "seconds": 3.4540574419988843,
+    "maxRssKiB": 352592,
+    "executableSha256": "a1d044d8675b257d8cc78ac967dc5bb85360d2d58f2162b0248d11edd3a917aa"
+  },
+  {
+    "revision": "baseline",
+    "species": "norway-spruce",
+    "exit": 0,
+    "seconds": 2.152048403000663,
+    "maxRssKiB": 484052,
+    "executableSha256": "712018723addd5f642781d55086f073b4bc9c9b4da95d08b0cc7341a8d256a81"
+  },
+  {
+    "revision": "candidate",
+    "species": "norway-spruce",
+    "exit": 0,
+    "seconds": 1.3296499729985953,
+    "maxRssKiB": 387988,
+    "executableSha256": "a1d044d8675b257d8cc78ac967dc5bb85360d2d58f2162b0248d11edd3a917aa"
+  }
+]

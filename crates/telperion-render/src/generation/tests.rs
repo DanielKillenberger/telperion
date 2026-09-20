@@ -228,7 +228,15 @@ fn foreign_prepared_result_preserves_the_live_tree() {
     destination.submit(&mesh).unwrap();
     let previous = destination.bounds();
     let previous_region = destination.foliage_region();
+    let generator = Generator::new(&source).unwrap();
+    let compact = surface::prepared::prepare(&tree, f.skeleton.envelope.height, &f.surface)
+        .unwrap()
+        .unwrap();
+    let wood = pollster::block_on(generator.expand_wood(compact, &mut Metrics::default())).unwrap();
+    assert!(wood.is_some());
+    let previous_wood = destination.wood.regions();
     let prepared = Prepared {
+        wood,
         identity: source.identity.clone(),
         mesh,
         resident: None,
@@ -241,6 +249,7 @@ fn foreign_prepared_result_preserves_the_live_tree() {
             telperion_core::Error::InvalidInput("generation renderer mismatch")
         ))
     ));
+    assert_eq!(destination.wood.regions(), previous_wood);
     assert_eq!(destination.bounds(), previous);
     assert_eq!(destination.foliage_region(), previous_region);
 }

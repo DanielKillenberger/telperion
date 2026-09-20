@@ -5,6 +5,9 @@ mod compute;
 use clock::Clock;
 mod data;
 mod io;
+mod submit;
+mod wood;
+use wood::ResidentWood;
 #[cfg(any(target_arch = "wasm32", test))]
 pub(crate) mod request;
 use crate::{buffer::Held, Gpu, Renderer, Result, Submitted};
@@ -24,6 +27,7 @@ pub enum Delivery {
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Backend {
+    Cpu,
     Gpu,
     CpuFallback,
 }
@@ -37,6 +41,14 @@ pub struct Metrics {
     pub mass_ms: f64,
     pub readback_ms: f64,
     pub wood_ms: f64,
+    pub wood_prepare_ms: f64,
+    pub wood_upload_dispatch_ms: f64,
+    pub wood_wait_ms: f64,
+    pub wood_prepared_cpu_bytes: u64,
+    pub wood_metadata_cpu_bytes: u64,
+    pub wood_gpu_peak_bytes: u64,
+    pub wood_backend: Option<Backend>,
+    pub wood_fallback: Option<&'static str>,
     pub total_ms: f64,
     pub base_cpu_bytes: u64,
     pub wood_cpu_bytes: u64,
@@ -59,6 +71,7 @@ pub struct Prepared {
     identity: Arc<()>,
     mesh: TreeMesh,
     resident: Option<Resident>,
+    wood: Option<ResidentWood>,
     pub backend: Backend,
     pub metrics: Metrics,
 }
@@ -67,6 +80,16 @@ impl Prepared {
         self.resident
             .as_ref()
             .map_or(self.mesh.foliage_instances(), |r| r.count as usize)
+    }
+    pub fn wood_vertices(&self) -> usize {
+        self.wood
+            .as_ref()
+            .map_or(self.mesh.wood_vertices(), |w| w.vertices)
+    }
+    pub fn wood_triangles(&self) -> usize {
+        self.wood
+            .as_ref()
+            .map_or(self.mesh.wood_triangles(), |w| w.index_count as usize / 3)
     }
     pub fn bounds(&self) -> Bounds {
         self.mesh.bounds
@@ -84,6 +107,7 @@ pub struct Generator {
     place: io::Pass,
     compact: io::Pass,
     mass: io::Pass,
+    wood: Option<io::Pass>,
 }
 impl Generator {
     /// Live tree buffers only; excludes textures, pipelines and driver allocations.
@@ -137,6 +161,14 @@ impl Generator {
             &[true, false, false],
             &["occupancy", "depth"],
         );
+        let wood = resident_allowed.then(|| {
+            io::Pass::new(
+                &gpu,
+                include_str!("generation/wood.wgsl").into(),
+                &[true, true, false, false, false, false, false],
+                &["expand"],
+            )
+        });
         io::errors(&gpu, scopes).await?;
         Ok(Self {
             gpu,
@@ -145,6 +177,7 @@ impl Generator {
             place,
             compact,
             mass,
+            wood,
         })
     }
     #[cfg(not(target_arch = "wasm32"))]
@@ -184,11 +217,16 @@ impl Generator {
         )?
         else {
             let mesh = mesh::assemble(&tree, family)?;
+            metrics.wood_backend = Some(Backend::CpuFallback);
+            metrics.wood_fallback = Some("CPU foliage preparation fallback");
+            metrics.wood_cpu_bytes = wood::cpu_bytes(&mesh.wood);
+            metrics.instances = mesh.foliage_instances() as u32;
             metrics.total_ms = total.elapsed_ms();
             return Ok(Prepared {
                 identity: self.identity.clone(),
                 mesh,
                 resident: None,
+                wood: None,
                 backend: Backend::CpuFallback,
                 metrics,
             });
@@ -228,28 +266,65 @@ impl Generator {
         }
         // No descriptor, contact, rank or raw GPU buffer crosses into wood construction.
         let started = Clock::now();
-        let wood = surface::build(&tree, family.skeleton.envelope.height, &family.surface)?;
+        let mut resident_wood = None;
+        if delivery == Delivery::Resident {
+            let compact = surface::prepared::prepare(
+                &tree,
+                family.skeleton.envelope.height,
+                &family.surface,
+            )?;
+            metrics.wood_prepare_ms = started.elapsed_ms();
+            if let Some(compact) = compact {
+                let scopes = io::scope(&self.gpu);
+                let result = self.expand_wood(compact, &mut metrics).await;
+                let errors = io::errors(&self.gpu, scopes).await;
+                resident_wood = result?;
+                errors?;
+            } else {
+                metrics.wood_fallback = Some("CPU triangle admission");
+            }
+        }
+        metrics.wood_backend = Some(if delivery == Delivery::Cpu {
+            Backend::Cpu
+        } else if resident_wood.is_some() {
+            Backend::Gpu
+        } else {
+            Backend::CpuFallback
+        });
+        let wood = if resident_wood.is_some() {
+            surface::SurfaceMesh::default()
+        } else {
+            surface::build(&tree, family.skeleton.envelope.height, &family.surface)?
+        };
         metrics.wood_ms = started.elapsed_ms();
-        metrics.wood_cpu_bytes = ((wood.positions.capacity()
-            + wood.normals.capacity()
-            + wood.coords.capacity()
-            + wood.indices.capacity())
-            * 4
-            + wood.run_table.capacity() * size_of::<surface::SurfaceRun>())
-            as u64;
-        let bounds = union(wood.bounds, full)
-            .ok_or(telperion_core::Error::InvalidInput("mesh has no geometry"))?;
+        metrics.wood_cpu_bytes = wood::cpu_bytes(&wood);
+        if let Some(w) = &resident_wood {
+            metrics.retained_gpu_bytes += w.bytes();
+        }
+        let bounds = union(
+            resident_wood.as_ref().map_or(wood.bounds, |w| w.bounds),
+            full,
+        )
+        .ok_or(telperion_core::Error::InvalidInput("mesh has no geometry"))?;
         let mesh = TreeMesh {
             wood,
             foliage: mesh::Foliage { element, instances },
             bounds,
         };
-        crate::submit::fits_count(&self.gpu.device.limits(), &mesh, metrics.instances as usize)?;
+        crate::submit::fits_wood_counts(
+            &self.gpu.device.limits(),
+            &mesh,
+            metrics.instances as usize,
+            resident_wood
+                .as_ref()
+                .map(|w| (w.vertices, w.index_count, w.runs.as_slice())),
+        )?;
         metrics.total_ms = total.elapsed_ms();
         Ok(Prepared {
             identity: self.identity.clone(),
             mesh,
             resident,
+            wood: resident_wood,
             backend: Backend::Gpu,
             metrics,
         })
@@ -290,52 +365,7 @@ impl Generator {
         }
     }
 }
-impl Renderer {
-    pub fn submit_prepared(&mut self, prepared: Prepared) -> Result<Submitted> {
-        if !Arc::ptr_eq(&self.identity, &prepared.identity) {
-            return Err(telperion_core::Error::InvalidInput("generation renderer mismatch").into());
-        }
-        if let Some(error) = self.gpu.lost() {
-            return Err(error);
-        }
-        let count = prepared.count();
-        crate::submit::fits_count(&self.gpu.device.limits(), &prepared.mesh, count)?;
-        let Some(resident) = prepared.resident else {
-            return self.submit(&prepared.mesh);
-        };
-        let mesh = prepared.mesh;
-        self.wood.submit(&self.gpu, &mesh.wood);
-        self.foliage.submit_resident(
-            &self.gpu,
-            &mesh.foliage.element,
-            mesh.foliage.instances.reference,
-            resident.count,
-            resident.leaves,
-            resident.masses,
-        );
-        self.scene
-            .place_figure(&self.gpu, mesh.bounds.max.y - mesh.bounds.min.y);
-        self.scene.set_crown(resident.crown);
-        self.scene
-            .set_leaf_reference(mesh.foliage.instances.reference);
-        self.scene.section_roundness = mesh.foliage.element.section_roundness;
-        self.bounds = Some(mesh.bounds);
-        self.set_casters();
-        self.level_deviations = mesh
-            .foliage
-            .element
-            .levels
-            .iter()
-            .map(|l| l.deviation)
-            .collect();
-        Ok(Submitted {
-            wood_vertices: mesh.wood_vertices(),
-            wood_triangles: mesh.wood_triangles(),
-            foliage_instances: count,
-            bounds: mesh.bounds,
-        })
-    }
-}
+
 fn union(a: Option<Bounds>, b: Option<Bounds>) -> Option<Bounds> {
     match (a, b) {
         (Some(a), Some(b)) => Some(Bounds {
@@ -360,3 +390,6 @@ mod tests;
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod readback_tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod wood_tests;
