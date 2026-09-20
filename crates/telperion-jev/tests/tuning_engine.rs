@@ -4,6 +4,7 @@ use telperion_jev::tuning::{
     continuation::{Assessment, Basis},
     engine::{Answer, Proposal, Run, Services},
     evaluation::Trial,
+    handoff::PriorityRoute,
     state::{Budget, Cell, CellStatus, Visual},
 };
 
@@ -12,6 +13,21 @@ struct Mock {
     routes: u64,
     visuals: u64,
     capability: bool,
+    /// Per approved priority, in order: the raw choice and its confidence.
+    route_plan: Vec<(String, f64)>,
+    /// Continuation verdict per call, consumed in order; empty means supported.
+    continuations: Vec<bool>,
+}
+
+fn mock() -> Mock {
+    Mock {
+        evaluations: 0,
+        routes: 0,
+        visuals: 0,
+        capability: false,
+        route_plan: vec![],
+        continuations: vec![],
+    }
 }
 impl Services for Mock {
     fn priority_references(&self) -> Vec<telperion_jev::tuning::evaluation::Image> {
@@ -98,12 +114,21 @@ impl Services for Mock {
         })
     }
     fn continuation(&mut self, basis: &Basis) -> Result<Answer<Assessment>, String> {
+        let supported = if self.continuations.is_empty() {
+            true
+        } else {
+            self.continuations.remove(0)
+        };
         Ok(Answer {
             tokens: Some(20),
             value: Assessment {
                 identity: basis.identity.clone(),
                 ledger: "jev:1".into(),
-                tractability: "supported".into(),
+                tractability: if supported {
+                    "supported".into()
+                } else {
+                    "insufficient_evidence".into()
+                },
                 progress: "supported".into(),
                 risk: "bounded".into(),
             },
@@ -119,16 +144,55 @@ impl Services for Mock {
             }],
         })
     }
-    fn route(&mut self, _: &Run) -> Result<Answer<String>, String> {
+    fn route(&mut self, state: &Run) -> Result<Answer<Vec<PriorityRoute>>, String> {
         self.routes += 1;
+        let fallback = if self.capability {
+            "new_capability"
+        } else {
+            "tuning"
+        };
+        let ordered = state
+            .approved_priorities()
+            .map(|a| a.ordered.clone())
+            .filter(|o| !o.is_empty());
+        let value = match ordered {
+            None => vec![PriorityRoute {
+                gap_id: None,
+                rank: 1,
+                route: fallback.into(),
+                raw_choice: Some(fallback.into()),
+                confidence: Some(0.9),
+                threshold: 0.5,
+                ledger: "jev:route".into(),
+            }],
+            Some(ordered) => ordered
+                .iter()
+                .enumerate()
+                .map(|(i, gap)| {
+                    let (raw, confidence) = self
+                        .route_plan
+                        .get(i)
+                        .cloned()
+                        .unwrap_or_else(|| (fallback.to_string(), 0.9));
+                    PriorityRoute {
+                        gap_id: Some(gap.id.clone()),
+                        rank: i + 1,
+                        route: if confidence >= 0.5 {
+                            raw.clone()
+                        } else {
+                            "insufficient_evidence".into()
+                        },
+                        raw_choice: Some(raw),
+                        confidence: Some(confidence),
+                        threshold: 0.5,
+                        ledger: "jev:route".into(),
+                    }
+                })
+                .collect(),
+        };
         Ok(Answer {
             tokens: Some(20),
-            value: if self.capability {
-                "new_capability"
-            } else {
-                "tuning"
-            }
-            .into(),
+            value,
         })
     }
 }
@@ -212,6 +276,8 @@ fn run() -> Run {
         authorizations: vec![],
         preparation_charge: None,
         priority_checkpoints: vec![],
+        handoffs: vec![],
+        judgment_inputs: vec![],
     }
 }
 
@@ -254,10 +320,8 @@ fn initial_pass_still_pauses_and_owner_goals_require_scoped_fresh_coverage() {
         },
     ];
     let mut mock = Mock {
-        evaluations: 0,
-        routes: 0,
         visuals: 2,
-        capability: false,
+        ..mock()
     };
     let mut snapshots = vec![];
     state
@@ -318,12 +382,7 @@ fn initial_pass_still_pauses_and_owner_goals_require_scoped_fresh_coverage() {
 #[test]
 fn numeric_wins_keep_refining_until_visual_cells_pass() {
     let mut state = run();
-    let mut mock = Mock {
-        evaluations: 0,
-        routes: 0,
-        visuals: 0,
-        capability: false,
-    };
+    let mut mock = mock();
     let mut checkpoints = vec![];
     state
         .execute(&mut mock, &mut |s| {
@@ -355,10 +414,8 @@ fn numeric_wins_keep_refining_until_visual_cells_pass() {
 fn baseline_capability_defect_routes_before_spending_tuning_evaluations() {
     let mut state = run();
     let mut mock = Mock {
-        evaluations: 0,
-        routes: 0,
-        visuals: 0,
         capability: true,
+        ..mock()
     };
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_priorities(&mut state, &mock, json!([]));
@@ -378,12 +435,7 @@ fn baseline_capability_defect_routes_before_spending_tuning_evaluations() {
 #[test]
 fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
     let mut state = run();
-    let mut mock = Mock {
-        evaluations: 0,
-        routes: 0,
-        visuals: 0,
-        capability: false,
-    };
+    let mut mock = mock();
     state.budget.max_rounds = 0;
     state.execute(&mut mock, &mut |_| Ok(())).unwrap();
     approve_priorities(&mut state, &mock, json!([]));
@@ -411,12 +463,7 @@ fn bounded_plan_and_round_limit_are_checked_before_paid_routing() {
 #[test]
 fn stale_finalists_are_excluded_and_resource_history_is_revision_tagged() {
     let mut state = run();
-    let mut mock = Mock {
-        evaluations: 0,
-        routes: 0,
-        visuals: 0,
-        capability: false,
-    };
+    let mut mock = mock();
     let mut old = mock.evaluate(json!({}), 0, "old", None);
     old.identity = "old-revision".into();
     old.score = Some(0.001);
@@ -459,12 +506,7 @@ fn attributed_diagnosis_projects_to_both_judgments_and_rechecks_sources() {
     ));
     std::fs::write(&source, "source observation").unwrap();
     let mut state = run();
-    let mut mock = Mock {
-        evaluations: 0,
-        routes: 0,
-        visuals: 0,
-        capability: false,
-    };
+    let mut mock = mock();
     state
         .trials
         .push(mock.evaluate(json!({}), 0, "baseline", None));

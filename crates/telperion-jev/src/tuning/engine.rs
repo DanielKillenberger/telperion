@@ -74,6 +74,17 @@ pub trait Services {
     fn route_tokens(&self, _state: &Run) -> u64 {
         2000
     }
+    /// The exact state value this service will transmit for each judgment.
+    fn route_state(&self, state: &Run) -> Value {
+        super::judgments::summary(state)
+    }
+    fn proposal_state(&self, state: &Run) -> Value {
+        super::judgments::summary(state)
+    }
+    /// The question set the router was shown, used to quote the chosen criterion.
+    fn route_questions(&self, state: &Run) -> Value {
+        super::judgments::routes(&Default::default(), state.approved_priorities())
+    }
     fn evaluation_images(&self) -> u64;
     fn visual_images(&self, trial: &Trial) -> u64;
     fn visual_tokens(&self, _trial: &Trial) -> u64 {
@@ -89,8 +100,10 @@ pub trait Services {
     fn visual(&mut self, trial: &Trial) -> Result<Answer<Visual>, String>;
     fn continuation(&mut self, basis: &Basis) -> Result<Answer<Assessment>, String>;
     fn propose(&mut self, state: &Run) -> Result<Answer<Vec<Proposal>>, String>;
-    fn route(&mut self, state: &Run) -> Result<Answer<String>, String>;
+    fn route(&mut self, state: &Run) -> Result<Answer<Vec<super::handoff::PriorityRoute>>, String>;
 }
+
+pub use super::judgments::JudgmentInput;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Run {
@@ -117,6 +130,10 @@ pub struct Run {
     pub preparation_charge: Option<super::reference_first::PreparationCharge>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub priority_checkpoints: Vec<super::priority::Checkpoint>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub handoffs: Vec<super::handoff::Handoff>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub judgment_inputs: Vec<JudgmentInput>,
 }
 
 fn merge(target: &mut Value, patch: &Value) {
@@ -172,7 +189,7 @@ impl Run {
         }
         Ok(())
     }
-    fn priority_gate(
+    pub(super) fn priority_gate(
         &mut self,
         services: &dyn Services,
         save: &mut dyn FnMut(&Self) -> Result<(), String>,
@@ -220,7 +237,7 @@ impl Run {
             .ok_or("magnitude live efficacy unvalidated")?
             .verify(&self.identity, &self.budget)
     }
-    fn stop(&mut self, reason: String, action: &str) {
+    pub(super) fn stop(&mut self, reason: String, action: &str) {
         self.machine_ready = false;
         self.pause = Some(Pause {
             id: crate::ledger::new_entry_id(),
@@ -232,7 +249,7 @@ impl Run {
             ),
         });
     }
-    fn basis(&self, action: &str) -> Basis {
+    pub(super) fn basis(&self, action: &str) -> Basis {
         let projection = super::judgments::summary(self);
         let mut evidence = self
             .visual
@@ -281,7 +298,7 @@ impl Run {
         basis.estimate_basis = format!("proposal serialized-request bound {} + all-cell visual reservation {}; actual usage may exceed estimate and then pauses", services.proposal_tokens(self), services.visual_tokens_for(&finalist,self.approved_priorities()));
         Ok(basis)
     }
-    fn reserve(
+    pub(super) fn reserve(
         &mut self,
         evaluations: u64,
         images: u64,
@@ -312,7 +329,7 @@ impl Run {
         }
         Ok(())
     }
-    fn settle<T>(&mut self, answer: Answer<T>, reserved: u64) -> Result<T, String> {
+    pub(super) fn settle<T>(&mut self, answer: Answer<T>, reserved: u64) -> Result<T, String> {
         let Some(actual) = answer.tokens else {
             self.usage_known = false;
             return Err("unknown judgment usage".into());
@@ -360,7 +377,9 @@ impl Run {
         self.verify_diagnoses()?;
         let answer = services.visual_for(&trial, &required, approval.as_ref())?;
         let visual = self.settle(answer, allowance)?;
-        self.machine_ready = approval.is_some() && ready(&required, &trial.key, &visual);
+        self.machine_ready = approval.is_some()
+            && ready(&required, &trial.key, &visual)
+            && !self.handoff_unresolved(&visual);
         self.visual = Some(visual);
         save(self)
     }
@@ -446,11 +465,19 @@ impl Run {
                 return Err("hard round limit exhausted before routing".into());
             }
             let basis = self.round_basis(services)?;
+            let per_priority = self.approved_priorities().map_or(0, |a| a.ordered.len()) as u64;
             let planned = basis
                 .next_tokens
                 .unwrap()
                 .checked_add(services.continuation_tokens(&basis))
                 .and_then(|n| n.checked_add(services.route_tokens(self)))
+                .and_then(|n| {
+                    n.checked_add(
+                        services
+                            .continuation_tokens(&basis)
+                            .checked_mul(per_priority)?,
+                    )
+                })
                 .ok_or("reservation overflow")?;
             if self
                 .budget
@@ -464,14 +491,21 @@ impl Run {
             }
             self.route_remaining(services, save)?;
             let allowance = services.continuation_tokens(&basis);
+            self.push_judgment_input(
+                "continuation judgment",
+                serde_json::to_value(&basis).unwrap(),
+            );
             self.reserve(0, 0, allowance, 0, "continuation judgment", save)?;
             let answer = services.continuation(&basis)?;
             let assessment = self.settle(answer, allowance)?;
+            self.record_ledger(Some(assessment.ledger.clone()));
             continuation::assess(&basis, &self.budget, Some(&assessment), true)?;
             let allowance = services.proposal_tokens(self);
+            self.push_judgment_input("targeted proposals", services.proposal_state(self));
             self.reserve(0, 0, allowance, 1, "targeted proposals", save)?;
             let answer = services.propose(self)?;
             let proposals = self.settle(answer, allowance)?;
+            self.record_ledger(proposals.first().map(|p| p.ledger.clone()));
             if proposals.is_empty() {
                 return Err("no supported proposal; bounded diagnosis required".into());
             }
@@ -541,36 +575,6 @@ impl Run {
             }
         }
         save(self)
-    }
-    fn route_remaining(
-        &mut self,
-        services: &mut dyn Services,
-        save: &mut dyn FnMut(&Self) -> Result<(), String>,
-    ) -> Result<(), String> {
-        if !self.priority_gate(services, save)? {
-            return Err("owner priority approval required before fix routing".into());
-        }
-        let allowance = services.route_tokens(self);
-        self.reserve(0, 0, allowance, 0, "defect routing", save)?;
-        let answer = services.route(self)?;
-        let route = self.settle(answer, allowance)?;
-        self.routes.push(route.clone());
-        save(self)?;
-        if route != "tuning" {
-            let mut basis = self.basis(&route);
-            basis.next_tokens = Some(services.continuation_tokens(&basis));
-            basis.estimate_basis =
-                "bounded pre-dispatch assessment only; host owns repair estimate".into();
-            let allowance = services.continuation_tokens(&basis);
-            self.reserve(0, 0, allowance, 0, "pre-dispatch continuation", save)?;
-            let answer = services.continuation(&basis)?;
-            let assessment = self.settle(answer, allowance)?;
-            continuation::assess(&basis, &self.budget, Some(&assessment), true)?;
-            return Err(format!(
-                "fn-89 handoff: {route}; await verified repair then reassess"
-            ));
-        }
-        Ok(())
     }
     pub fn finalists(&self) -> Vec<&Trial> {
         let mut trials = self

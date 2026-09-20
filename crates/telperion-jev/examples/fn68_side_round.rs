@@ -1,5 +1,9 @@
 //! Evidence-only one-round Jev harness. Original run.json is not written.
 //! Calls existing Live route/continuation/propose/evaluate. No execute().
+//!
+//! ARCHIVED. The body below is preserved verbatim as evidence and is compiled
+//! out: an invalid diagnostic harness must never constrain the production API.
+#![allow(unused_imports, dead_code)]
 use serde_json::Value;
 use std::{fs, path::Path};
 use telperion_jev::{
@@ -23,6 +27,7 @@ const CONFIG: &str =
     ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/pilot-config-final-diagnosed.json";
 const OUT: &str = ".flow/tmp/fn68-r7-side/jev-round.json";
 
+#[cfg(any())]
 fn write(path: &str, value: &Value) {
     fs::write(path, serde_json::to_vec_pretty(value).unwrap()).unwrap();
 }
@@ -32,6 +37,7 @@ fn main() {
     std::process::exit(2);
 }
 
+#[cfg(any())]
 fn run() -> Result<(), String> {
     assert_eq!(
         sha256_hex(&fs::read(RUNTIME).map_err(|e| e.to_string())?),
@@ -294,6 +300,7 @@ fn run() -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(any())]
 fn merge(dst: &mut Value, patch: &Value) {
     match (dst, patch) {
         (Value::Object(d), Value::Object(p)) => {

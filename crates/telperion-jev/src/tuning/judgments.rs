@@ -1,5 +1,38 @@
-use super::{calibration::Manifest, engine::Run, live::Validation};
+use super::{
+    calibration::Manifest, engine::Run, handoff::PriorityRoute, live::Validation,
+    priority::Approval,
+};
+use crate::ledger::LedgerEntry;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+
+/// The exact value transmitted for one judgment, checkpointed before dispatch
+/// so an interrupted attempt still shows what the judgment was asked.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct JudgmentInput {
+    pub label: String,
+    pub state_sha256: String,
+    pub state: Value,
+    pub ledger: Option<String>,
+}
+
+impl Run {
+    pub(super) fn push_judgment_input(&mut self, label: &str, state: Value) {
+        let state_sha256 = crate::sha256_hex(&serde_json::to_vec(&state).unwrap());
+        self.judgment_inputs.push(JudgmentInput {
+            label: label.into(),
+            state_sha256,
+            state,
+            ledger: None,
+        });
+    }
+    pub(super) fn record_ledger(&mut self, ledger: Option<String>) {
+        if let Some(input) = self.judgment_inputs.last_mut() {
+            input.ledger = ledger;
+        }
+    }
+}
 pub fn summary(state: &Run) -> Value {
     let reuse=state.authorizations.iter().filter(|a|a.preserve_evidence).map(|a|json!({"previous_identity":a.identity,"next_identity":a.next_identity.as_deref().unwrap_or(&a.identity),"preserve_evidence":true,"token_cap_extension":a.token_cap_extension,"round_cap_extension":a.round_cap_extension,"visual_cap_extension":a.visual_cap_extension,"meaning":"accepted scoped resume verified unchanged configuration except explicit caps and rechecked artifact/image bytes; historical trial identity unchanged"})).collect::<Vec<_>>();
     let recent=state.trials.iter().rev().take(5).map(|t|json!({"label":t.label,"identity":t.identity,"current_revision":t.identity==state.identity,"feasible":t.feasible,
@@ -40,15 +73,110 @@ pub fn proposals(state: &Run) -> Result<Value, String> {
     }
     Ok(Value::Object(questions))
 }
-pub fn routes(gaps: &std::collections::BTreeMap<String, String>) -> Value {
-    let mut q = json!({"route":{"type":"choice","instructions":"Route remaining visible defects using authored dial meanings and prior outcomes. Numeric stall alone proves no generator gap. Choose an existing spec only when its stated scope matches the defect.",
+const ROUTE_INSTRUCTIONS: &str = "Route remaining visible defects using authored dial meanings and prior outcomes. Numeric stall alone proves no generator gap. Choose an existing spec only when its stated scope matches the defect.";
+
+fn route_question(
+    gaps: &std::collections::BTreeMap<String, String>,
+    scoped: Option<String>,
+) -> Value {
+    let instructions = match scoped {
+        Some(extra) => format!("{ROUTE_INSTRUCTIONS} {extra}"),
+        None => ROUTE_INSTRUCTIONS.into(),
+    };
+    let mut q = json!({"type":"choice","instructions":instructions,
         "criteria":{"tuning":"Existing authored dials can address the defect with a supported adjustment.",
             "new_capability":"A new capability investigation is required.","appearance":"An appearance issue outside these dials needs investigation.",
-            "insufficient_evidence":"No supported diagnosis yet."}}});
+            "insufficient_evidence":"No supported diagnosis yet."}});
     for (id, scope) in gaps {
-        q["route"]["criteria"][format!("existing:{id}")] = json!(scope);
+        q["criteria"][format!("existing:{id}")] = json!(scope);
     }
     q
+}
+
+/// One question per approved priority, else the single unscoped route question.
+pub fn routes(
+    gaps: &std::collections::BTreeMap<String, String>,
+    priorities: Option<&Approval>,
+) -> Value {
+    let ordered = priorities.map(|a| &a.ordered).filter(|o| !o.is_empty());
+    let Some(ordered) = ordered else {
+        return json!({ "route": route_question(gaps, None) });
+    };
+    let mut q = serde_json::Map::new();
+    for (i, gap) in ordered.iter().enumerate() {
+        let scoped = format!(
+            "Judge only owner priority {} of {}: {}",
+            i + 1,
+            ordered.len(),
+            gap.observation
+        );
+        q.insert(
+            format!("route:{}", gap.id),
+            route_question(gaps, Some(scoped)),
+        );
+    }
+    Value::Object(q)
+}
+
+/// A choice at or above the frozen threshold, else explicit insufficiency.
+pub fn thresholded(entry: &LedgerEntry, question: &str, threshold: f64) -> String {
+    if entry
+        .confidence(question)
+        .is_some_and(|c| c.is_finite() && c >= threshold && c <= 1.)
+    {
+        entry
+            .choice(question)
+            .unwrap_or_else(|| "insufficient_evidence".into())
+    } else {
+        "insufficient_evidence".into()
+    }
+}
+
+/// Projects the routing answer. A below-threshold or absent choice is never an
+/// authorized route; its raw choice is retained only as diagnostic.
+pub fn priority_routes(
+    entry: &LedgerEntry,
+    priorities: Option<&Approval>,
+    threshold: f64,
+) -> Vec<PriorityRoute> {
+    let ordered = priorities.map(|a| &a.ordered).filter(|o| !o.is_empty());
+    let Some(ordered) = ordered else {
+        return vec![PriorityRoute {
+            gap_id: None,
+            rank: 1,
+            route: thresholded(entry, "route", threshold),
+            raw_choice: entry.choice("route"),
+            confidence: entry.confidence("route"),
+            threshold,
+            ledger: entry.reference(),
+        }];
+    };
+    ordered
+        .iter()
+        .enumerate()
+        .map(|(i, gap)| {
+            let key = format!("route:{}", gap.id);
+            PriorityRoute {
+                gap_id: Some(gap.id.clone()),
+                rank: i + 1,
+                route: thresholded(entry, &key, threshold),
+                raw_choice: entry.choice(&key),
+                confidence: entry.confidence(&key),
+                threshold,
+                ledger: entry.reference(),
+            }
+        })
+        .collect()
+}
+
+/// The criterion text the router selected, for the handoff's investigation line.
+pub fn criterion(questions: &Value, question: &str, route: &str) -> Option<String> {
+    questions
+        .get(question)?
+        .get("criteria")?
+        .get(route)?
+        .as_str()
+        .map(str::to_string)
 }
 pub fn threshold(v: &Validation) -> Result<f64, String> {
     let m: Manifest =

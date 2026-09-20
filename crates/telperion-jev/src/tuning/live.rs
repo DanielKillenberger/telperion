@@ -505,8 +505,11 @@ impl Services for Live<'_> {
     fn route_tokens(&self, state: &Run) -> u64 {
         super::judgments::allowance(
             &super::judgments::summary(state),
-            &super::judgments::routes(&self.config.gap_specs),
+            &self.route_questions(state),
         )
+    }
+    fn route_questions(&self, state: &Run) -> Value {
+        super::judgments::routes(&self.config.gap_specs, state.approved_priorities())
     }
     fn evaluation_images(&self) -> u64 {
         (self.config.matched.numeric_references.len() * 2) as u64
@@ -613,27 +616,18 @@ impl Services for Live<'_> {
         }
         Ok(Self::answer(&entry, proposals))
     }
-    fn route(&mut self, state: &Run) -> Result<Answer<String>, String> {
-        let questions = super::judgments::routes(&self.config.gap_specs);
-        let entry = self.ask(&super::judgments::summary(state), &questions)?;
-        let route = supported(
+    fn route(&mut self, state: &Run) -> Result<Answer<Vec<super::handoff::PriorityRoute>>, String> {
+        let questions = self.route_questions(state);
+        let entry = self.ask(&self.route_state(state), &questions)?;
+        let routes = super::judgments::priority_routes(
             &entry,
-            "route",
+            state.approved_priorities(),
             super::judgments::threshold(&self.config.continuation)?,
         );
-        Ok(Self::answer(&entry, route))
+        Ok(Self::answer(&entry, routes))
     }
 }
 
 fn supported(entry: &LedgerEntry, question: &str, threshold: f64) -> String {
-    if entry
-        .confidence(question)
-        .is_some_and(|c| c.is_finite() && c >= threshold && c <= 1.)
-    {
-        entry
-            .choice(question)
-            .unwrap_or_else(|| "insufficient_evidence".into())
-    } else {
-        "insufficient_evidence".into()
-    }
+    super::judgments::thresholded(entry, question, threshold)
 }

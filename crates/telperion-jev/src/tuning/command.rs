@@ -328,6 +328,8 @@ pub fn run_with(
             authorizations: vec![],
             preparation_charge: None,
             priority_checkpoints: vec![],
+            handoffs: vec![],
+            judgment_inputs: vec![],
         }
     };
     let mut save = |state: &Run| -> Result<(), String> {
@@ -336,6 +338,13 @@ pub fn run_with(
             write(
                 &out.join("priority-review.json"),
                 &json!({"checkpoint_sha256":checkpoint.hash(),"checkpoint":checkpoint,"approval":state.approved_priorities(),"ordering":"First three eligible findings in reviewer source order, not a new model ranking or owner approval","meaning":"Owner chooses what matters. Approval is neither readiness nor final acceptance; all other findings remain in checkpoint.visual."}),
+            )?;
+        }
+        if !state.handoffs.is_empty() {
+            write(
+                &out.join("handoffs.json"),
+                &json!({"meaning":"Evidence-backed gap handoffs for fn-89. An outstanding gap is never machine readiness, and an unauthorized handoff dispatches nothing.",
+                "unresolved_priorities":state.unresolved_priorities(),"handoffs":state.handoffs}),
             )?;
         }
         write(
