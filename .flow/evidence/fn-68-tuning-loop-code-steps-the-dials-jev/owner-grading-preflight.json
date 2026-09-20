@@ -1,0 +1,21 @@
+{
+  "status": "OFFLINE_HOST_REVIEW_REQUIRED",
+  "prior_actual_tokens": 464835,
+  "cumulative_cap": 520000,
+  "max_calls": 1,
+  "state_bytes": 25366,
+  "questions_bytes": 15859,
+  "reservation": 42249,
+  "state_sha256": "9cc6bb0612a91ff8c32e0a2debf9276fa86491a0c9a7230090a394a7bd1347fa",
+  "questions_sha256": "f1042f4aee53cdd2b60c01cbf0967c4ca67504287bf92eb6f88e6fd212ef3b0d",
+  "ranking": "Primary mean=(crown+hanging)/2; secondary material and acceptance-standard shown independently. Sort by primary mean, then secondary mean only for exact ties. No pass cutoff, no automatic role qualification. Report all distributions/confidences; near scores are not proven differences.",
+  "disclosure": "Single known development specimen, text agreement with owner, not image re-evaluation. Fixed shuffled anonymous order; mapping excluded from request. No owner causal hypothesis required.",
+  "invocation": "bash -ic: /tmp/fn68-owner-grading <evidence directory>; same shared caller with single-shot Transport",
+  "accounting": "Persist reservation before one dispatch; settle immutable shared caller ledger input+output usage and resolved model; unknown/error retains reservation and stops. Evidence-only Once transport blocks any second HTTP send; no retries.",
+  "docs": [
+    "https://docs.typesafe.ai/primitives/score.md",
+    "https://docs.typesafe.ai/patterns/composite-scoring.md",
+    "https://docs.typesafe.ai/confidence.md",
+    "https://docs.typesafe.ai/api.md"
+  ]
+}

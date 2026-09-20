@@ -1,3 +1,11 @@
+## Current: owner-agreement text grading completed
+
+One anonymized24-Score batch, single-shot transport (second HTTP send blocked), Jev1.13.0. Actual10455input+382output=10837; cumulative475672/520000. Visual attempts remain17; no images/renders or runtime change. Frozen42,249 reservation settled by immutable ledger.
+
+Primary mean crown/hanging: Astra medium1.835, Astra high1.760, Opus1.265, Fable1.100, Grok0.670, Sol0.585 on0–3 descriptive scale. Astra gap0.075 is not decisive; Opus/Fable crown confidence.05/.23 makes their ordering unstable. Every hanging score remains near absence/ambiguity rather than major-gap discovery. Jev text ranking differs from host image-fidelity preference; neither rewritten and no reconciliation call. No general winner or automatic qualification. Full distributions/quotes/source hashes in owner-grading-ranking.json/state.json/map.json/result.json. Page#owner-agreement.
+
+Offline checks: same-serde canonical byte counts, anonymous input leak checks,24Score shapes, source hashes, request identity, usage sums, primary-dominance/missing-answer mocks, single-shot transport test. Original runtime SHA unchanged. Side import now254489tokens+9visual+2eval+8image reservations.
+
 ## Current: provider comparison complete
 
 Host final grading: Grok crown priority MISS, hanging MISS, bark HIT. Fable closest among the requested three on this single case, still missing envelope/hanging; Astra medium also caught architecture. No general winner established. Proposed next scope only: neutral reference-only morphology inventory, then candidate comparison, to test generic natural-variation relaxation. No new call or implementation authorized here.
