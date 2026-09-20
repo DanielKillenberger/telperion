@@ -1,0 +1,11 @@
+   Compiling telperion-core v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-core)
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 6.01s
+     Running tests/bark_relief_range.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_relief_range-5e5432dfd13d584c)
+
+running 1 test
+oak physical height p95-p5: before 0.005170198 m, after 0.006104920 m, ratio 1.180790; radius .4m, square .4m, footprint .001m, 128x128 samples
+spruce physical height p95-p5: before 0.002778761 m, after 0.003475554 m, ratio 1.250757; radius .4m, square .4m, footprint .001m, 128x128 samples
+test oak_and_spruce_profiles_increase_resolved_height_range ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s

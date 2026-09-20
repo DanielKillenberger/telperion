@@ -1,0 +1,17 @@
+{
+  "source_commit": "3345b07fd48616fe278eb58971458ff85407b2b9",
+  "fixture_sources": {
+    "crates/telperion-render/src/wood/calibration.rs": "2827e777b1596a28f7a376598fec5293f5636ae6b33ac8e95bab7398c875491b",
+    "crates/telperion-render/src/wood.rs": "3f1c91fde524ceb0d6cfc49f67b5ebe73c0f8ea2b5e4252afac63e772b420148"
+  },
+  "png_sha256": {
+    "oak-flat.png": "3af0349ee08dc9b9e2b3daabb4dbe76c32814c72445c1dbc3530e6831f1ced1f",
+    "spruce-flat.png": "3d7bd905109928c1324ccada74000560e0802a7eb387f7bc8c840fd84a7531d3"
+  },
+  "reference_status": "unavailable",
+  "image_inspection": "Host inspected both corrected images; usable calibration baselines only, no reference or owner acceptance.",
+  "baseline": "no Quick commands in spec; coordinate test and explicit capture passed",
+  "lighting_correction": "host-approved sun azimuth 45 degrees; previous backlit images overwritten",
+  "post_capture_change": "cargo fmt reordered wood.rs module declarations only; captured source hashes above remain the source at capture time.",
+  "checkpoint_wood_rs_sha256": "01c1da90c71092b809b26d8060dda165f81f46dbbff9cdb890bdee0b5df1a7d6"
+}

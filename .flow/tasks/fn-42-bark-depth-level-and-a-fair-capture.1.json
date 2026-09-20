@@ -1,0 +1,12 @@
+{
+  "created_at": "2026-09-19T20:29:44.839690Z",
+  "depends_on": [],
+  "id": "fn-42-bark-depth-level-and-a-fair-capture.1",
+  "implicit_owner": true,
+  "priority": null,
+  "spec": "fn-42-bark-depth-level-and-a-fair-capture",
+  "spec_path": ".flow/tasks/fn-42-bark-depth-level-and-a-fair-capture.1.md",
+  "status": "todo",
+  "title": "Implement bark depth, level and a fair capture",
+  "updated_at": "2026-09-19T22:22:23.679267Z"
+}

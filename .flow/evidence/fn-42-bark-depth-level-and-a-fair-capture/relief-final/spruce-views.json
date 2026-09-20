@@ -1,0 +1,182 @@
+{
+  "generator": "direct mature build",
+  "source": "fn32/stills.json",
+  "stills": [
+    {
+      "camera": {
+        "far": 1000.0,
+        "field_of_view": 38.0,
+        "near": 0.01,
+        "position": {
+          "x": 1.2635428870893457,
+          "y": 0.8666073520724593,
+          "z": -1.2635428870893457
+        },
+        "target": {
+          "x": 0.0,
+          "y": 0.65,
+          "z": 0.0
+        }
+      },
+      "height": 1000,
+      "material_debug": "MaterialParams { bark_red: 0.2, bark_green: 0.175, bark_blue: 0.148, bark_roughness: 0.9, shoot_red: 0.147, shoot_green: 0.078, shoot_blue: 0.045, shoot_radius: 0.0, leaf_front_red: 0.018, leaf_front_green: 0.056, leaf_front_blue: 0.028, leaf_back_red: 0.109, leaf_back_green: 0.195, leaf_back_blue: 0.138, hue_range_low: -0.02, hue_range_high: 0.02, brightness_range_low: -0.1, brightness_range_high: 0.1, interior_darkening: 0.7, ridge_scale: 0.02, plate_scale: 0.03, furrow_strength: 0.025, roughness_detail: 0.16, vein_scale: 8.0, vein_contrast: 0.0, transmission_strength: 0.01, transmission_red: 0.12, transmission_green: 0.24, transmission_blue: 0.08, thickness: 3.5, fissure_red: -0.035, fissure_green: -0.03, fissure_blue: -0.02, fissure_strength: 0.4, crest_red: 0.05, crest_green: 0.025, crest_blue: 0.01, crest_strength: 0.3, bark_mottle_scale: 0.4, bark_mottle_strength: 0.2, cavity_strength: 0.6, blade_mottle_scale: 8.0, blade_mottle_strength: 0.0, margin_width: 0.0, margin_red: 0.01, margin_green: 0.015, margin_blue: 0.002, cuticle_gloss: 0.05, sky_occlusion_strength: 0.6, plate_cell_scale: 0.028, plate_elongation: 0.2, plate_dome: 0.75, plate_edge_lift: 0.9, plate_furrow_width: 0.0, plate_identity: 0.375, weathering_strength: 0.6, weathering_red: 0.015, weathering_green: 0.03, weathering_blue: 0.02975, orientation_strength: 0.44375, orientation_red: -0.014, orientation_green: 0.026, orientation_blue: -0.0155, directional_occlusion: 0.7, depth_strength: 0.45625, canopy_normal: 0.0, light_wrap: 0.0, diffuse_transmission: 0.0, leaf_sheen: 0.0, crown_shade: 0.0, lichen_scale: 0.0, lichen_coverage: 0.0, lichen_red: 0.0, lichen_green: 0.0, lichen_blue: 0.0, lichen_strength: 0.0, lenticel_density: 0.0, lenticel_length: 0.0, lenticel_strength: 0.0, lenticel_tint: 0.0, peel_curl: 0.0, peel_red: 0.0, peel_green: 0.0, peel_blue: 0.0, lobe_shade: 0.0, bark_reflectance: 0.04, leaf_reflectance: 0.04, bark_grain_scale: 0.0018, bark_grain_strength: 0.15, blade_grain_scale: 0.0, blade_grain_strength: 0.0 }",
+      "name": "spruce-trunk",
+      "preset": "norway-spruce",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 135.0,
+        "sunBlue": 2.6,
+        "sunElevation": 55.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "view": "Bare",
+      "width": 1600
+    },
+    {
+      "camera": {
+        "far": 1000.0,
+        "field_of_view": 38.0,
+        "near": 0.01,
+        "position": {
+          "x": 1.2547536652568412,
+          "y": 1.9882130497885264,
+          "z": 0.0
+        },
+        "target": {
+          "x": 0.0,
+          "y": 1.8,
+          "z": 0.0
+        }
+      },
+      "height": 1000,
+      "material_debug": "MaterialParams { bark_red: 0.2, bark_green: 0.175, bark_blue: 0.148, bark_roughness: 0.9, shoot_red: 0.147, shoot_green: 0.078, shoot_blue: 0.045, shoot_radius: 0.0, leaf_front_red: 0.018, leaf_front_green: 0.056, leaf_front_blue: 0.028, leaf_back_red: 0.109, leaf_back_green: 0.195, leaf_back_blue: 0.138, hue_range_low: -0.02, hue_range_high: 0.02, brightness_range_low: -0.1, brightness_range_high: 0.1, interior_darkening: 0.7, ridge_scale: 0.02, plate_scale: 0.03, furrow_strength: 0.025, roughness_detail: 0.16, vein_scale: 8.0, vein_contrast: 0.0, transmission_strength: 0.01, transmission_red: 0.12, transmission_green: 0.24, transmission_blue: 0.08, thickness: 3.5, fissure_red: -0.035, fissure_green: -0.03, fissure_blue: -0.02, fissure_strength: 0.4, crest_red: 0.05, crest_green: 0.025, crest_blue: 0.01, crest_strength: 0.3, bark_mottle_scale: 0.4, bark_mottle_strength: 0.2, cavity_strength: 0.6, blade_mottle_scale: 8.0, blade_mottle_strength: 0.0, margin_width: 0.0, margin_red: 0.01, margin_green: 0.015, margin_blue: 0.002, cuticle_gloss: 0.05, sky_occlusion_strength: 0.6, plate_cell_scale: 0.028, plate_elongation: 0.2, plate_dome: 0.75, plate_edge_lift: 0.9, plate_furrow_width: 0.0, plate_identity: 0.375, weathering_strength: 0.6, weathering_red: 0.015, weathering_green: 0.03, weathering_blue: 0.02975, orientation_strength: 0.44375, orientation_red: -0.014, orientation_green: 0.026, orientation_blue: -0.0155, directional_occlusion: 0.7, depth_strength: 0.45625, canopy_normal: 0.0, light_wrap: 0.0, diffuse_transmission: 0.0, leaf_sheen: 0.0, crown_shade: 0.0, lichen_scale: 0.0, lichen_coverage: 0.0, lichen_red: 0.0, lichen_green: 0.0, lichen_blue: 0.0, lichen_strength: 0.0, lenticel_density: 0.0, lenticel_length: 0.0, lenticel_strength: 0.0, lenticel_tint: 0.0, peel_curl: 0.0, peel_red: 0.0, peel_green: 0.0, peel_blue: 0.0, lobe_shade: 0.0, bark_reflectance: 0.04, leaf_reflectance: 0.04, bark_grain_scale: 0.0018, bark_grain_strength: 0.15, blade_grain_scale: 0.0, blade_grain_strength: 0.0 }",
+      "name": "spruce-branch",
+      "preset": "norway-spruce",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 135.0,
+        "sunBlue": 2.6,
+        "sunElevation": 55.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "view": "Bare",
+      "width": 1600
+    },
+    {
+      "camera": {
+        "far": 800.0330668218027,
+        "field_of_view": 38.0,
+        "near": 0.016533410901357883,
+        "position": {
+          "x": 0.01695085733251238,
+          "y": 0.01715522558662856,
+          "z": 0.028088292435503495
+        },
+        "target": {
+          "x": 0.0,
+          "y": 0.009499999694526196,
+          "z": 0.0007481999637093395
+        }
+      },
+      "height": 1000,
+      "material_debug": "MaterialParams { bark_red: 0.2, bark_green: 0.175, bark_blue: 0.148, bark_roughness: 0.9, shoot_red: 0.147, shoot_green: 0.078, shoot_blue: 0.045, shoot_radius: 0.0, leaf_front_red: 0.018, leaf_front_green: 0.056, leaf_front_blue: 0.028, leaf_back_red: 0.109, leaf_back_green: 0.195, leaf_back_blue: 0.138, hue_range_low: -0.02, hue_range_high: 0.02, brightness_range_low: -0.1, brightness_range_high: 0.1, interior_darkening: 0.7, ridge_scale: 0.02, plate_scale: 0.03, furrow_strength: 0.025, roughness_detail: 0.16, vein_scale: 8.0, vein_contrast: 0.0, transmission_strength: 0.01, transmission_red: 0.12, transmission_green: 0.24, transmission_blue: 0.08, thickness: 3.5, fissure_red: -0.035, fissure_green: -0.03, fissure_blue: -0.02, fissure_strength: 0.4, crest_red: 0.05, crest_green: 0.025, crest_blue: 0.01, crest_strength: 0.3, bark_mottle_scale: 0.4, bark_mottle_strength: 0.2, cavity_strength: 0.6, blade_mottle_scale: 8.0, blade_mottle_strength: 0.0, margin_width: 0.0, margin_red: 0.01, margin_green: 0.015, margin_blue: 0.002, cuticle_gloss: 0.05, sky_occlusion_strength: 0.6, plate_cell_scale: 0.028, plate_elongation: 0.2, plate_dome: 0.75, plate_edge_lift: 0.9, plate_furrow_width: 0.0, plate_identity: 0.375, weathering_strength: 0.6, weathering_red: 0.015, weathering_green: 0.03, weathering_blue: 0.02975, orientation_strength: 0.44375, orientation_red: -0.014, orientation_green: 0.026, orientation_blue: -0.0155, directional_occlusion: 0.7, depth_strength: 0.45625, canopy_normal: 0.0, light_wrap: 0.0, diffuse_transmission: 0.0, leaf_sheen: 0.0, crown_shade: 0.0, lichen_scale: 0.0, lichen_coverage: 0.0, lichen_red: 0.0, lichen_green: 0.0, lichen_blue: 0.0, lichen_strength: 0.0, lenticel_density: 0.0, lenticel_length: 0.0, lenticel_strength: 0.0, lenticel_tint: 0.0, peel_curl: 0.0, peel_red: 0.0, peel_green: 0.0, peel_blue: 0.0, lobe_shade: 0.0, bark_reflectance: 0.04, leaf_reflectance: 0.04, bark_grain_scale: 0.0018, bark_grain_strength: 0.15, blade_grain_scale: 0.0, blade_grain_strength: 0.0 }",
+      "name": "spruce-needle-frontlit",
+      "preset": "norway-spruce",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 0.0,
+        "sunBlue": 2.6,
+        "sunElevation": 10.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "view": "Leaf",
+      "width": 1600
+    },
+    {
+      "camera": {
+        "far": 800.0330668218027,
+        "field_of_view": 38.0,
+        "near": 0.016533410901357883,
+        "position": {
+          "x": 0.01695085733251238,
+          "y": 0.01715522558662856,
+          "z": 0.028088292435503495
+        },
+        "target": {
+          "x": 0.0,
+          "y": 0.009499999694526196,
+          "z": 0.0007481999637093395
+        }
+      },
+      "height": 1000,
+      "material_debug": "MaterialParams { bark_red: 0.2, bark_green: 0.175, bark_blue: 0.148, bark_roughness: 0.9, shoot_red: 0.147, shoot_green: 0.078, shoot_blue: 0.045, shoot_radius: 0.0, leaf_front_red: 0.018, leaf_front_green: 0.056, leaf_front_blue: 0.028, leaf_back_red: 0.109, leaf_back_green: 0.195, leaf_back_blue: 0.138, hue_range_low: -0.02, hue_range_high: 0.02, brightness_range_low: -0.1, brightness_range_high: 0.1, interior_darkening: 0.7, ridge_scale: 0.02, plate_scale: 0.03, furrow_strength: 0.025, roughness_detail: 0.16, vein_scale: 8.0, vein_contrast: 0.0, transmission_strength: 0.01, transmission_red: 0.12, transmission_green: 0.24, transmission_blue: 0.08, thickness: 3.5, fissure_red: -0.035, fissure_green: -0.03, fissure_blue: -0.02, fissure_strength: 0.4, crest_red: 0.05, crest_green: 0.025, crest_blue: 0.01, crest_strength: 0.3, bark_mottle_scale: 0.4, bark_mottle_strength: 0.2, cavity_strength: 0.6, blade_mottle_scale: 8.0, blade_mottle_strength: 0.0, margin_width: 0.0, margin_red: 0.01, margin_green: 0.015, margin_blue: 0.002, cuticle_gloss: 0.05, sky_occlusion_strength: 0.6, plate_cell_scale: 0.028, plate_elongation: 0.2, plate_dome: 0.75, plate_edge_lift: 0.9, plate_furrow_width: 0.0, plate_identity: 0.375, weathering_strength: 0.6, weathering_red: 0.015, weathering_green: 0.03, weathering_blue: 0.02975, orientation_strength: 0.44375, orientation_red: -0.014, orientation_green: 0.026, orientation_blue: -0.0155, directional_occlusion: 0.7, depth_strength: 0.45625, canopy_normal: 0.0, light_wrap: 0.0, diffuse_transmission: 0.0, leaf_sheen: 0.0, crown_shade: 0.0, lichen_scale: 0.0, lichen_coverage: 0.0, lichen_red: 0.0, lichen_green: 0.0, lichen_blue: 0.0, lichen_strength: 0.0, lenticel_density: 0.0, lenticel_length: 0.0, lenticel_strength: 0.0, lenticel_tint: 0.0, peel_curl: 0.0, peel_red: 0.0, peel_green: 0.0, peel_blue: 0.0, lobe_shade: 0.0, bark_reflectance: 0.04, leaf_reflectance: 0.04, bark_grain_scale: 0.0018, bark_grain_strength: 0.15, blade_grain_scale: 0.0, blade_grain_strength: 0.0 }",
+      "name": "spruce-needle-backlit",
+      "preset": "norway-spruce",
+      "scene": {
+        "casterStride": 4.0,
+        "casterTexels": 1.0,
+        "groundBlue": 0.07,
+        "groundGreen": 0.12,
+        "groundRed": 0.11,
+        "shadowFilterTexels": 1.0,
+        "shadowNormalOffset": 1.0,
+        "skyHorizonBlue": 0.8,
+        "skyHorizonGreen": 0.66,
+        "skyHorizonRed": 0.55,
+        "skyZenithBlue": 0.62,
+        "skyZenithGreen": 0.3,
+        "skyZenithRed": 0.18,
+        "sunAzimuth": 180.0,
+        "sunBlue": 2.6,
+        "sunElevation": 10.0,
+        "sunGreen": 2.85,
+        "sunRed": 3.0
+      },
+      "seed": 7,
+      "view": "Leaf",
+      "width": 1600
+    }
+  ]
+}

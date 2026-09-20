@@ -1,0 +1,29 @@
+{
+  "base_commit": "d48ed69bc7390860d85d7b97cf81fe1c58d16db1",
+  "dirty": true,
+  "source_sha256": {
+    "crates/telperion-core/src/material.rs": "3d7bfb6666c2cdc0edcf766e78a9e49132d2bc2b3fb2cbd73d307e5499f16682",
+    "crates/telperion-core/src/params.rs": "969c1c50dd01ef4df7aeecc7e9bb186a0652b4c8345c5e148c3673084075dae3",
+    "crates/telperion-core/src/blend.rs": "0704fa38bc1c5e0e7875f701fe0c2e6a4a804cba7274358beb0de51418a833ec",
+    "crates/telperion-core/src/presets/materials.rs": "ec4e251e2022b58e5316ee92aee3e8c8427858d05313766837b0871e531a0b2d",
+    "crates/telperion-render/src/scene.rs": "25f2cf664c8e572a1b418df9d60720e2f626e4a91524dc0edaf9ce9dcdbc5a28",
+    "crates/telperion-render/src/scene/frame.rs": "8b3654e65c003e40f992f46526bc0f96ee7f3c6cc1575b82515098dc11d90035",
+    "crates/telperion-render/src/shaders/common.wgsl": "a6354f4e85a8432ae4d8b1eb5cf36f0691efd7b7408157dbeee1fbbe0450d6c1",
+    "crates/telperion-render/src/shaders/plates.wgsl": "63f62c8ea07f3f6ec62bada22531721ccb1ffbaec9c4f3f204155f4d083b9b50",
+    "crates/telperion-render/src/shaders/wood.wgsl": "3f9ce7d69b418949809da4e53a47842aec31a58726c3183f6a66ecb3d4877da1",
+    "src/browser/presets.generated.ts": "a5a6b02d84aa64fb1f71bd894202a01021aabf9db7b7f173678c043dbae584c1"
+  },
+  "images_sha256": {
+    "oak-flat.png": "b5dcf30b202999cf5c56c99eed910589d2d57c2237fcceceaebdd55e3ed8cfcc",
+    "spruce-flat.png": "184bee0bb4353e5ba1cc722f6d6db328bb7e37dc87d54db335fd9da9bedf91f3",
+    "oak-trunk.png": "9b618b6cb3926d312fc84420a1e1ea47c8ab5380bd5ee121e69b23a978eb7e9d",
+    "oak-branch.png": "907f8f674c4e96695e4d30a1b07d1fdcec76b4e389f3ea6bfcc912c8c93a0d4b",
+    "oak-leaf-frontlit.png": "318c148940511b81457199a0b9bfb7544e9f1555a6381521470a55da97c8f079",
+    "oak-leaf-backlit.png": "9dc7f26a268b4b5f320887c7a2b03fded6a1bfb3139ebdf854032a4241e2b5d9",
+    "spruce-trunk.png": "a9653e60df1acb08201db9f525c91102c13612e9f5a2b064e1ecb979c3680e07",
+    "spruce-branch.png": "200658e7506aef04b66ec6cbfe635a3774ec2c879a0ab9ffe2be06bfc30924d7",
+    "spruce-needle-frontlit.png": "1370fa12b398c817f298f39785f573dc49f9aee3b42db9ba26b3b144f641c0f6",
+    "spruce-needle-backlit.png": "32e74d65b9a8c1269f642e7e6634f9d13ad3c7dda8c0f5978738589f4edebca4"
+  },
+  "scope": "Final explicit plateEdgeShape row; images byte-identical to the inspected pre-plumbing candidate; owner verdict pending."
+}

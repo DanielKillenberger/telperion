@@ -77,7 +77,7 @@ fn bark_shade(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     // network became a cellular partition of the surface, whose cells are
     // smaller than the lattice they are drawn from.
     let reach = max(0.35 * u.bark_detail.x,
-        (BARK_PLATE_WALL + BARK_PLATE_FURROW * u.bark_structure.w) * u.plate.x);
+        (bark_plate_wall() + BARK_PLATE_FURROW * u.bark_structure.w) * u.plate.x);
     // Three steps rather than two: a partition of the surface puts the crest
     // that shades this floor anywhere between here and a wall away, at any
     // bearing, and two steps over that reach can stride across it.
@@ -92,14 +92,11 @@ fn bark_shade(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     return 1.0 - u.bark_structure.y * clamp(blocked, 0.0, 1.0);
 }
 
-// Parallax: an eye looking across a furrow sees the near wall, not the floor
-// behind it. The surface coordinate is walked towards the eye in proportion
-// to how far below the crest this fragment stands, so the relief gains the
-// depth a tilted normal alone cannot show. The mesh is untouched, so the
-// silhouette stays the smooth cylinder it has always been.
+// Approximate the below-crest intersection by walking away from the eye
+// along its tangent projection, then refining against the filtered field.
 fn bark_parallax(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     dx: vec3<f32>, dy: vec3<f32>, world: vec3<f32>, here: f32,
-    colour_range: vec2<f32>) -> vec3<f32> {
+    colour_range: vec2<f32>, radius: f32, footprint: vec2<f32>) -> vec3<f32> {
     let view = normalize(u.eye.xyz - world);
     let facing = dot(n, view);
     let across = view - n * facing;
@@ -115,9 +112,18 @@ fn bark_parallax(surface: vec3<f32>, sx: vec3<f32>, sy: vec3<f32>, n: vec3<f32>,
     // eye travels across the surface to look down that far. The floor of a
     // grazing furrow would walk without bound, so the slope is held.
     let below = max(colour_range.x + colour_range.y - here, 0.0);
-    let walk = u.bark_structure.z * below * span / max(facing, 0.3);
+    var walk = u.bark_structure.z * below * span / max(facing, 0.3);
+    for (var correction = 0u; correction < 2u; correction += 1u) {
+        let offset = steps * walk;
+        let coord = surface - offset.x * sx - offset.y * sy;
+        let circle = normalize(coord.yz);
+        let sampled = bark_height(circle, coord.x, radius, footprint,
+            bark_groove(circle, coord.x, radius, footprint));
+        let corrected_below = max(colour_range.x + colour_range.y - sampled, 0.0);
+        walk = mix(walk, u.bark_structure.z * corrected_below * span / max(facing, 0.3), 0.5);
+    }
     let offset = steps * walk;
-    return surface + offset.x * sx + offset.y * sy;
+    return surface - offset.x * sx - offset.y * sy;
 }
 
 
@@ -257,12 +263,11 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // depth. Every field read below starts from here; the world position,
     // the geometric contact and the crown depth remain the fragment's own.
     var surface = in.surface;
-    // The one field read the walk costs is paid only where there is a walk.
     if (u.bark_structure.z > 0.0 && colour_range.y > 0.0) {
         let flat = bark_height(circle, in.surface.x, in.radius, footprint,
             bark_groove(circle, in.surface.x, in.radius, footprint));
         surface = bark_parallax(in.surface, sx, sy, base_normal, dx, dy, in.world,
-            flat, colour_range);
+            flat, colour_range, in.radius, footprint);
     }
     let seen = normalize(surface.yz);
     // The grain below the relief, once per fragment like the mottle: a
@@ -281,18 +286,20 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     // over the footprint and nothing else (owner, fn-71). The field's edge
     // integrals stand for that box while a read spans under a ridge width
     // and under half a plate, so a pixel wider than that is shaded as more
-    // cells, each read at a footprint the integrals hold for: two a side
-    // while the pixel is under a ridge width, three beyond, and past three
-    // widths the cells stand apart and sample the pixel where they stand.
-    // Each axis on its own: a grazing pixel is long one way and a fraction
-    // of a width the other, and needs its cells only along its length.
+    // cells, each read at a footprint the integrals hold for: four a side
+    // to resolve the steeper relief before averaging its lighting. Beyond
+    // four widths the cells stand apart and sample the pixel where they stand.
+    // Each axis keeps its own physical footprint under the same grid.
     let plate_band = select(vec2(0.0), footprint / u.plate.x, u.plate.x > 0.0);
     let wide = max(pixel, 2.0 * plate_band);
-    let cells = select(vec2(2), vec2(3), wide >= vec2(1.0));
+    // The authored chipped-edge profile uses denser quadrature. Enabling
+    // lichen or lenticels does not change this physical material decision.
+    let cells = select(select(vec2(2), vec2(3), wide >= vec2(1.0)),
+        vec2(4), u.plate_profile.x > 0.0);
     let cell_footprint = footprint / max(vec2<f32>(cells), wide);
     let cell_pixel = pixel / max(vec2<f32>(cells), wide);
     // Wood whose pixel spans six ridge widths or three plates reads its
-    // means: three cells a side stand two widths apart there, and their
+    // means: the sparse footprint spans several complete features, and its
     // estimate's own noise is above the box's residue, a sixth of the
     // relief's deviation. So does a twig whose pixel spans its own radius,
     // whose box is its whole lit side.
@@ -367,7 +374,7 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
     }
     // The cells share a lattice of heights, each read at the cell's footprint.
     let side = cells + vec2(1);
-    var heights: array<f32, 16>;
+    var heights: array<f32, 25>;
     for (var y = 0; y < side.y; y++) {
         for (var x = 0; x < side.x; x++) {
             let coord = surface + (f32(x) / f32(cells.x) - 0.5) * sx
@@ -381,8 +388,8 @@ fn fragment(in: Varying) -> @location(0) vec4<f32> {
                 groove_there);
         }
     }
-    // The walk towards the sun starts from the fragment's own centre height,
-    // which the lattice already carries: two more field samples, not eleven.
+    // The rough-bark lattice carries the exact centre for the sun walk;
+    // smooth bark keeps its established lattice sample.
     let centre = heights[(cells.y / 2) * side.x + cells.x / 2];
     let direct = bark_shade(surface, sx, sy, base_normal, dx, dy, in.radius,
         cell_footprint, centre, colour_range.y, groove);

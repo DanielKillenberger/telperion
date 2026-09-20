@@ -1,0 +1,8 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 0.64s
+     Running tests/bark_sweep_evidence.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_sweep_evidence-6c3813cf9e359225)
+
+running 1 test
+test replay_fn71_footprint_sweep ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.38s

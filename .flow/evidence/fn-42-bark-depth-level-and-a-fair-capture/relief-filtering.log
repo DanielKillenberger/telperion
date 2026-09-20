@@ -1,0 +1,37 @@
+   Compiling telperion-render v0.1.0 (/home/daniel/Projects/telperion/.worktrees/fn-42-bark-depth-level-and-a-fair-capture/crates/telperion-render)
+    Finished `ci` profile [optimized] target(s) in 0.77s
+     Running tests/bark_distance.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_distance-0f992422d88c843a)
+
+running 1 test
+test resolved_scales_survive_until_the_two_pixel_boundary ... distance-series height deviation near/far: 0.0009139285741035447/0.0008364669699845517
+OregonWhiteOak 2x resolution: 10000 pixels, mean 2.516750/255, p95 7.75/255
+OregonWhiteOak 4x resolution: 5000 pixels, mean 2.987367/255, p95 8.50/255
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.54s
+
+     Running tests/bark_resolution.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_resolution-8c089c2de9f6af10)
+
+running 2 tests
+test grazing_trunks_agree_with_a_box_reduction_at_half_resolution ... OregonWhiteOak grazing: 6178 pixels, mean 3.635616/255, p95 12.75/255, redraw worst 0/255
+OregonWhiteOak plain grazing: (0.77034099492824, 2.0)
+NorwaySpruce grazing: 2962 pixels, mean 3.735708/255, p95 10.75/255, redraw worst 0/255
+NorwaySpruce plain grazing: (0.6917623227548954, 1.75)
+
+thread 'grazing_trunks_agree_with_a_box_reduction_at_half_resolution' (988614) panicked at crates/telperion-render/tests/bark_resolution.rs:130:5:
+grazing bark aliases across resolution: [("OregonWhiteOak grazing", 3.635615625337218, 12.75, 3.0), ("NorwaySpruce grazing", 3.735707855052892, 10.75, 3.0)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+test trunk_agrees_with_a_box_reduction_at_half_resolution ... trunk redraw worst 0/255
+trunk resolution agreement: mean 2.108488/255, p95 7.75/255
+plain trunk diagnostic (mean, p95): (0.542490243342516, 1.5)
+ok
+
+failures:
+
+failures:
+    grazing_trunks_agree_with_a_box_reduction_at_half_resolution
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.68s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_resolution`

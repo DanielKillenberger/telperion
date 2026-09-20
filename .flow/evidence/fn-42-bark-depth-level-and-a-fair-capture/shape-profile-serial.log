@@ -1,0 +1,28 @@
+    Finished `ci` profile [optimized] target(s) in 0.17s
+     Running tests/bark_plates.rs (/home/daniel/Projects/telperion/target/ci/deps/bark_plates-83e764f2da7d2d65)
+
+running 4 tests
+test every_plate_carries_an_identity_of_its_own ... identity: 44626 adjacent pairs share a plate, 7227 at a plate's width, variance 0.0820
+ok
+test inspect_rough_plate_means ... ignored, explicit diagnostic for rough-profile integral calibration
+test rough_plate_mean_matches_its_narrow_ragged_profile ... oak (furrow 0): face 0.7501 model 0.7540, dome 0.5647 model 0.5704, rim 0.3173 model 0.3149
+spruce (furrow 0): face 0.7589 model 0.7540, dome 0.5764 model 0.5704, rim 0.3139 model 0.3149
+a furrow of 0.25 (furrow 0.25): face 0.4937 model 0.4929, dome 0.3133 model 0.3107, rim 0.2113 model 0.2119
+a furrow of 0.6 (furrow 0.6): face 0.2719 model 0.2719, dome 0.1311 model 0.1327, rim 0.1246 model 0.1217
+ok
+test the_pinned_plate_mean_is_the_mean_the_field_averages_to ... oak (furrow 0): face 0.5222 model 0.5208, dome 0.2863 model 0.2839, rim 0.3878 model 0.3891
+spruce (furrow 0): face 0.5346 model 0.5208, dome 0.2929 model 0.2839, rim 0.3989 model 0.3891
+
+thread 'the_pinned_plate_mean_is_the_mean_the_field_averages_to' (1095046) panicked at crates/telperion-render/tests/bark_plates.rs:215:9:
+spruce: a domed face: far 0.8047 against 0.8275; a lifted rim: far 0.9099 against 0.9335
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+FAILED
+
+failures:
+
+failures:
+    the_pinned_plate_mean_is_the_mean_the_field_averages_to
+
+test result: FAILED. 2 passed; 1 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.84s
+
+error: test failed, to rerun pass `-p telperion-render --test bark_plates`

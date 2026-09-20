@@ -1,0 +1,15 @@
+{
+  "source_sha256": {
+    "crates/telperion-core/src/material.rs": "3d7bfb6666c2cdc0edcf766e78a9e49132d2bc2b3fb2cbd73d307e5499f16682",
+    "crates/telperion-core/src/params.rs": "969c1c50dd01ef4df7aeecc7e9bb186a0652b4c8345c5e148c3673084075dae3",
+    "crates/telperion-core/src/blend.rs": "0704fa38bc1c5e0e7875f701fe0c2e6a4a804cba7274358beb0de51418a833ec",
+    "crates/telperion-core/src/presets/materials.rs": "ec4e251e2022b58e5316ee92aee3e8c8427858d05313766837b0871e531a0b2d",
+    "crates/telperion-render/src/scene.rs": "25f2cf664c8e572a1b418df9d60720e2f626e4a91524dc0edaf9ce9dcdbc5a28",
+    "crates/telperion-render/src/scene/frame.rs": "8b3654e65c003e40f992f46526bc0f96ee7f3c6cc1575b82515098dc11d90035",
+    "crates/telperion-render/src/shaders/common.wgsl": "a6354f4e85a8432ae4d8b1eb5cf36f0691efd7b7408157dbeee1fbbe0450d6c1",
+    "crates/telperion-render/src/shaders/plates.wgsl": "63f62c8ea07f3f6ec62bada22531721ccb1ffbaec9c4f3f204155f4d083b9b50",
+    "crates/telperion-render/src/shaders/wood.wgsl": "3f9ce7d69b418949809da4e53a47842aec31a58726c3183f6a66ecb3d4877da1",
+    "src/browser/presets.generated.ts": "a5a6b02d84aa64fb1f71bd894202a01021aabf9db7b7f173678c043dbae584c1"
+  },
+  "session": "Native then browser serialized; valid under existing fn26 classifier; baseline native-before; no simultaneous GPU job owned by this session."
+}

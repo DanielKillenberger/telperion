@@ -1,0 +1,1 @@
+Added relief is implemented and verified by native and close-up gates; see REPORT.md and review.html. R2 historical hero evidence remains unverified because its mask/capture recipe is incomplete. R5 owner visual verdicts are pending. No further blind capture reconstruction is justified. The task remains open at these concrete boundaries.
