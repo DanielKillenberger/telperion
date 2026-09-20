@@ -155,4 +155,8 @@ Live integration exposed two evidence-contract gaps during offline review: globa
 
 ## 2026-09-20 — Human-priority gate integration
 
+## 2026-09-20 — Cursor packet preparation overhead
+
+Cursor selector cursor-grok-4.6-high-fast prepared the evidence packet in duration_ms490467. Its result reports verbatim usage fields inputTokens190966, outputTokens53101, cacheReadTokens5154560, cacheWriteTokens0; billing semantics and resolved model were not exposed. This is separate from unchanged experiment spend552431. The overhead is disproportionate for a packet/preflight, and the proposal still lacks a genuine positive fixture and quantified whole-proof allowance. Stopped without another bridge. A narrowly supplied evidence manifest and constrained packet-only execution would remove repeated context exploration; no new spec or efficiency claim.
+
 Offline integration required distinguishing priority approval from both raw model PASS and final acceptance. Review caught two potentially misleading shortcuts before activation: applying a leafy goal to every view would prevent a finish, and reusing the baseline first-view shortcut would leave added goals unassessed. Relevant-view cells, full approved reassessment and matching reservations now cover these cases. Existing mock loops needed explicit simulated owner decisions rather than an automatic bypass. Approximately25minutes implementation/testing, zero paid tokens or captures; two patch-order errors and a borrowed test value correction cost about2minutes. Re-anchor output also required narrow rereads after truncation (about1minute). A smaller resume instruction bundle remains the proposed orchestration improvement; no new spec was created.
