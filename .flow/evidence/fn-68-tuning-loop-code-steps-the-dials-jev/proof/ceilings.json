@@ -46,7 +46,18 @@
       "justification": "Same ceiling as birch Stage B; four images; existing beech inventory pinned.",
       "visual_passes": 1,
       "captures": 0,
-      "dispatchable_now": true
+      "dispatchable_now": false,
+      "immutable_contaminated": true
+    },
+    {
+      "id": "stage-b-beech-negative-blind",
+      "kind": "visual",
+      "ceiling": 40000,
+      "justification": "Authorized replacement of the contaminated negative. Same 40000 Astra-medium ceiling. Charge is additional against remaining 279464.",
+      "visual_passes": 1,
+      "captures": 0,
+      "dispatchable_now": false,
+      "needs": "host replacement release after payload review"
     },
     {
       "id": "r7-current",

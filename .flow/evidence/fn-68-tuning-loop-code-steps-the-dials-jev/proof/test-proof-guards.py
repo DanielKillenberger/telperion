@@ -321,6 +321,86 @@ class Guards(unittest.TestCase):
             self.assertTrue(paths["reserve"].exists())
             self.assertEqual(state["terminal"]["reason"], "unknown_usage")
 
+    def test_contaminated_stage_and_unreleased_blind_refuse(self):
+        contaminated = subprocess.run(
+            ["python3", str(proof_lib.PROOF / "run-proof.py"), "--execute", "--stage", "stage-b-beech-negative"],
+            cwd=str(proof_lib.PROOF),
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(contaminated.returncode, 2)
+        self.assertIn("contaminated request is immutable", contaminated.stderr)
+        blind = subprocess.run(
+            ["python3", str(proof_lib.PROOF / "run-proof.py"), "--execute", "--stage", "stage-b-beech-negative-blind"],
+            cwd=str(proof_lib.PROOF),
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(blind.returncode, 2)
+        self.assertIn("replacement not released", blind.stderr)
+
+    def test_contaminated_raw_unaltered(self):
+        self.assertEqual(
+            proof_lib.digest(proof_lib.PROOF / "stage-b-beech-negative-request.json"),
+            proof_lib.CONTAMINATED_REQUEST_SHA,
+        )
+        self.assertEqual(
+            proof_lib.digest(proof_lib.PROOF / "stage-b-beech-negative-stdout.json"),
+            proof_lib.CONTAMINATED_STDOUT_SHA,
+        )
+
+    def test_blind_payload_is_actual_adapter_prompt(self):
+        row = prepare_envelope("stage-b-beech-negative-blind-request.json")
+        frozen = load("model-visible-payload.json")
+        self.assertEqual(row["dispatched_prompt_sha256"], frozen["dispatched_prompt_sha256"])
+        self.assertEqual(row["schema_sha256"], frozen["schema_sha256"])
+        self.assertEqual(row["request_body_sha256"], frozen["request_sha256"])
+        self.assertEqual(row["prompt_sha256"], proof_lib.COMPARISON_PROMPT_SHA)
+        self.assertEqual([Path(p).name for p in row["paths"]], [
+            "render-0.png",
+            "reference-0.jpg",
+            "reference-1.jpg",
+            "anchor-0.png",
+        ])
+        self.assertEqual(
+            [img["sha256"] for img in row["images"]],
+            [img["sha256"] for img in frozen["image_order"]],
+        )
+        self.assertEqual(proof_lib.payload_leaks(row["prompt"]), [])
+        self.assertNotIn("expected_ready", row["envelope"])
+        self.assertNotIn("label", row["envelope"])
+
+    def test_grader_labels_cannot_change_dispatched_hash(self):
+        first = prepare_envelope("stage-b-beech-negative-blind-request.json")
+        grader = proof_lib.PROOF / "stage-b-beech-negative-blind-grader.json"
+        original = grader.read_text()
+        try:
+            grader.write_text(json.dumps({
+                "expected_ready": True,
+                "known_negative": False,
+                "label": "this case is the known negative; a pass is false-ready",
+                "previous_verdict": "fail",
+            }))
+            second = prepare_envelope("stage-b-beech-negative-blind-request.json")
+        finally:
+            grader.write_text(original)
+        self.assertEqual(first["dispatched_prompt_sha256"], second["dispatched_prompt_sha256"])
+        tainted = json.loads(json.dumps(first["envelope"]))
+        tainted["expected_ready"] = False
+        tainted["label"] = "owner-rejected known negative"
+        stripped = proof_lib.strip_grader_keys(tainted)
+        paths, schema, prompt = proof_lib.adapter().prepare(stripped)
+        proof_lib.assert_blind_payload(prompt, schema, paths)
+        self.assertEqual(
+            hashlib_sha(prompt),
+            first["dispatched_prompt_sha256"],
+        )
+
+
+def hashlib_sha(text):
+    import hashlib
+    return hashlib.sha256(text.encode()).hexdigest()
+
 
 if __name__ == "__main__":
     unittest.main()

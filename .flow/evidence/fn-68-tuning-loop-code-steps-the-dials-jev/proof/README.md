@@ -1,6 +1,6 @@
-# Proof packet — calibration contaminated, paid work stopped
+# Proof packet — blinded-negative payload ready for host review
 
-Narrow birch-positive is observed PASS. Beech-negative is INCONCLUSIVE/contaminated (expected-label leak in the actual dispatched checklist). R7 was not dispatched. R8 is not claimed. See `CLOSEOUT.md` and `run-state.json`.
+Narrow birch-positive is observed PASS. Contaminated beech-negative remains INCONCLUSIVE. The replacement envelope is `stage-b-beech-negative-blind-request.json`. Actual dispatched hashes are in `model-visible-payload.json`. No paid replacement until `.flow/tmp/cursor-fn68-replacement-release.json`. See `authorization-resume.json`.
 
 Dry command, existing adapter, no live call:
 

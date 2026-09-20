@@ -47,6 +47,13 @@
     "overrides": "stage_settled",
     "r7": "not_dispatched"
   },
+  "resume": {
+    "authorization": "authorization-resume.json",
+    "stage": "stage-b-beech-negative-blind",
+    "status": "payload_ready_for_host_review",
+    "replacement_released": false,
+    "paid_call_this_turn": false
+  },
   "qualifier": {
     "positive": "PASS",
     "negative": "INCONCLUSIVE/contaminated",

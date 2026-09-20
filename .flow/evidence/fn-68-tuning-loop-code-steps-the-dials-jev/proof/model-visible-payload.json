@@ -1,0 +1,189 @@
+{
+  "status": "payload_ready_for_host_review",
+  "paid_calls_this_turn": 0,
+  "generic_prompt_sha256": "847dd718e56258447ec5fcc89fdaadc9701165d02eab0b51001e616ebc1a0329",
+  "request_sha256": "e16363103650822d1da7c9e5544eab5a5456c190dfaea16ca7ac84e7e10405ea",
+  "request_file_sha256": "faa73621cb15aa20c351785700222345d6956fd19d9f99e1a71a9978e7cc60e1",
+  "request_body_sha256": "e16363103650822d1da7c9e5544eab5a5456c190dfaea16ca7ac84e7e10405ea",
+  "dispatched_prompt_sha256": "0476110aa3489b2054b06938395a92f4db10caf87ae618700b7d0b156d133603",
+  "schema_sha256": "40b44f74e2832e0e52874cb964ff3f11b714cc6333ecca85f93378397c38d7cc",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "passes": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 1,
+        "items": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "unknown"
+          ]
+        }
+      },
+      "defects": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "observations": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "observation": {
+              "type": "string"
+            },
+            "evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "impact": {
+              "type": "string",
+              "enum": [
+                "supported",
+                "blocker",
+                "required_unknown",
+                "variation",
+                "optional"
+              ]
+            },
+            "uncertain": {
+              "type": "boolean"
+            },
+            "causal_hypothesis": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "observation",
+            "evidence_ids",
+            "impact",
+            "uncertain",
+            "causal_hypothesis"
+          ]
+        }
+      },
+      "coverage": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "trait_id": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "pass",
+                "fail",
+                "unknown"
+              ]
+            },
+            "evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "explanation": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "trait_id",
+            "status",
+            "evidence_ids",
+            "explanation"
+          ]
+        }
+      }
+    },
+    "required": [
+      "passes",
+      "defects",
+      "observations",
+      "findings",
+      "coverage"
+    ]
+  },
+  "image_order": [
+    {
+      "order": 0,
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/render-0.png",
+      "name": "render-0.png",
+      "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490"
+    },
+    {
+      "order": 1,
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/reference-0.jpg",
+      "name": "reference-0.jpg",
+      "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6"
+    },
+    {
+      "order": 2,
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/reference-1.jpg",
+      "name": "reference-1.jpg",
+      "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d"
+    },
+    {
+      "order": 3,
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/anchor-0.png",
+      "name": "anchor-0.png",
+      "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1"
+    }
+  ],
+  "model_visible_paths": [
+    "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/render-0.png",
+    "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/reference-0.jpg",
+    "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/reference-1.jpg",
+    "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/anchor-0.png"
+  ],
+  "grader_file": "stage-b-beech-negative-blind-grader.json",
+  "contaminated_request_unaltered": true,
+  "neutral_images": [
+    {
+      "name": "render-0.png",
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/render-0.png",
+      "sha256": "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
+      "source": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/local/replay-images/european-beech-B-WHOLE.png"
+    },
+    {
+      "name": "reference-0.jpg",
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/reference-0.jpg",
+      "sha256": "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+      "source": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg"
+    },
+    {
+      "name": "reference-1.jpg",
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/reference-1.jpg",
+      "sha256": "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+      "source": "/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg"
+    },
+    {
+      "name": "anchor-0.png",
+      "path": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/proof/blind-images/anchor-0.png",
+      "sha256": "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+      "source": "/home/daniel/Projects/telperion/.worktrees/fn-68-tuning-loop-code-steps-the-dials-jev/.flow/evidence/fn9/final/preview/norway-spruce-1-whole.png"
+    }
+  ],
+  "dispatched_prompt_bytes": 9975,
+  "forbidden_markers_present": []
+}

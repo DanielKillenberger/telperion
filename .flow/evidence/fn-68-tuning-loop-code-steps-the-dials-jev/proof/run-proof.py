@@ -33,8 +33,11 @@ ENVELOPES = {
     "stage-a-birch": "stage-a-birch-request.json",
     "stage-b-birch-positive": "stage-b-birch-positive-request.json",
     "stage-b-beech-negative": "stage-b-beech-negative-request.json",
+    "stage-b-beech-negative-blind": "stage-b-beech-negative-blind-request.json",
     "r7-current": "stage-r7-current-request.json",
 }
+REPLACEMENT_RELEASE = WORKTREE / ".flow/tmp/cursor-fn68-replacement-release.json"
+RESUME = PROOF / "authorization-resume.json"
 
 
 def ceilings():
@@ -77,6 +80,19 @@ def stage_ceiling(stage):
         if row["id"] == stage:
             return row["ceiling"]
     raise KeyError(stage)
+
+
+def replacement_released(stage):
+    if not RESUME.exists() or not REPLACEMENT_RELEASE.exists():
+        return False
+    auth = json.loads(RESUME.read_text())
+    release = json.loads(REPLACEMENT_RELEASE.read_text())
+    return (
+        auth.get("quotation") == "YES"
+        and auth.get("stage") == stage
+        and release.get("stage") == stage
+        and release.get("retries") is False
+    )
 
 
 def bind_stage_b(envelope):
@@ -155,13 +171,20 @@ def execute(stage, **paths):
     if stage not in ENVELOPES:
         print(f"execute refused: {stage} is a template or not a visual stage", file=sys.stderr)
         return 2
+    if stage == "stage-b-beech-negative":
+        print("execute refused: contaminated request is immutable; use stage-b-beech-negative-blind", file=sys.stderr)
+        return 2
     if stage == "r7-current":
         print("execute refused: r7 waits on host inspection of comparison findings", file=sys.stderr)
         return 2
     state = load_state()
     if state.get("terminal"):
-        print(f"execute refused: terminal {state['terminal']['reason']}", file=sys.stderr)
-        return 2
+        if stage == "stage-b-beech-negative-blind" and not replacement_released(stage):
+            print("execute refused: replacement not released", file=sys.stderr)
+            return 2
+        if stage != "stage-b-beech-negative-blind" or not replacement_released(stage):
+            print(f"execute refused: terminal {state['terminal']['reason']}", file=sys.stderr)
+            return 2
     if state.get("outstanding_reservation"):
         print("execute refused: outstanding unknown-usage reservation blocks later stages", file=sys.stderr)
         return 2
@@ -256,7 +279,7 @@ def execute(stage, **paths):
             save_state(state)
             print(f"execute stopped: {judged['status']}; later stages blocked", file=sys.stderr)
             return 2
-    if stage == "stage-b-beech-negative":
+    if stage in ("stage-b-beech-negative", "stage-b-beech-negative-blind"):
         judged = judge_negative(receipt.get("answer") or {})
         judgment_path.write_text(json.dumps(judged, indent=2) + "\n")
         if judged["status"] != "negative_code_guard_ok":
@@ -289,8 +312,13 @@ def dry():
     require_runtime()
     assert_whole_only_stage_a(load("stage-a-birch-request.json"))
     assert_whole_only_stage_b(load("stage-b-birch-positive-request.json"))
-    assert not INVENTORY.exists(), "placeholder inventory must not exist"
-    prepared = {name: prepare_envelope(ENVELOPES[name]) for name in ENVELOPES}
+    if INVENTORY.exists():
+        bind_inventory(json.loads(INVENTORY.read_text()), load("stage-a-birch-request.json"))
+    prepared = {
+        name: prepare_envelope(ENVELOPES[name])
+        for name in ENVELOPES
+        if name != "stage-b-beech-negative"
+    }
     out = {
         "status": "dry-ok",
         "release": None if release_path() is None else str(release_path()),

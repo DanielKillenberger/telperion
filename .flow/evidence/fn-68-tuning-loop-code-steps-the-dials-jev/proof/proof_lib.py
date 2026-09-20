@@ -21,9 +21,57 @@ VISUAL_STAGES = (
     "stage-a-birch",
     "stage-b-birch-positive",
     "stage-b-beech-negative",
+    "stage-b-beech-negative-blind",
     "r7-current",
     "r7-final",
 )
+GRADER_ENVELOPE_KEYS = frozenset(
+    {
+        "expected_ready",
+        "label",
+        "grader",
+        "expected",
+        "known_negative",
+        "previous_verdict",
+        "authorization",
+    }
+)
+FORBIDDEN_PAYLOAD_MARKERS = (
+    "known negative",
+    "known-negative",
+    "false-ready",
+    "false ready",
+    "expected_ready",
+    "owner-rejected",
+    "previous verdict",
+    "owner answers",
+)
+BLIND_IMAGES = PROOF / "blind-images"
+NEUTRAL_IMAGE_SOURCES = (
+    (
+        "render-0.png",
+        ROOT / "local/replay-images/european-beech-B-WHOLE.png",
+        "7e69fda3e95b317fcb9d89e15e32179c54fdd316a57d1c3223d6e26639b8b490",
+    ),
+    (
+        "reference-0.jpg",
+        Path("/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy951.jpg"),
+        "855fddf7d2974aff8f0bd9421223fdec990f9b6b9d229e714e511082e81157e6",
+    ),
+    (
+        "reference-1.jpg",
+        Path("/home/daniel/Projects/telperion/.worktrees/lichen-trial/.refs/fn34/european-beech/fasy896.jpg"),
+        "7a269a2b43154bf2641fde94aba6853a8d5459d997e1fda29bf2d80733134e1d",
+    ),
+    (
+        "anchor-0.png",
+        WORKTREE / ".flow/evidence/fn9/final/preview/norway-spruce-1-whole.png",
+        "8e10ac1cf993a4cc005f7a1374e5763274c5dc636f42204e140464242ba027f1",
+    ),
+)
+CONTAMINATED_REQUEST_SHA = "2cb8319c54dd9f61c84e603a8157a5ad4fea64e6e26358d7429783a8267eaed5"
+CONTAMINATED_STDOUT_SHA = "3f6af87b0595430887502db2fd1b5d3ae3bdb037d0d46d5d4de1f9c03e77918a"
+COMPARISON_PROMPT_SHA = "847dd718e56258447ec5fcc89fdaadc9701165d02eab0b51001e616ebc1a0329"
 
 
 def digest(path):
@@ -53,9 +101,57 @@ def require_runtime():
         raise ValueError("original runtime SHA changed")
 
 
+def ensure_neutral_images():
+    BLIND_IMAGES.mkdir(exist_ok=True)
+    placed = []
+    for name, source, expected in NEUTRAL_IMAGE_SOURCES:
+        dest = BLIND_IMAGES / name
+        if hashlib.sha256(source.read_bytes()).hexdigest() != expected:
+            raise ValueError(f"source hash mismatch for {name}")
+        if dest.exists() or dest.is_symlink():
+            dest.unlink()
+        try:
+            dest.hardlink_to(source)
+        except OSError:
+            dest.write_bytes(source.read_bytes())
+        if hashlib.sha256(dest.read_bytes()).hexdigest() != expected:
+            raise ValueError(f"neutral path hash mismatch for {name}")
+        placed.append({"name": name, "path": str(dest), "sha256": expected, "source": str(source)})
+    return placed
+
+
+def strip_grader_keys(envelope):
+    visible = json.loads(json.dumps(envelope))
+    for key in GRADER_ENVELOPE_KEYS:
+        visible.pop(key, None)
+    return visible
+
+
+def payload_leaks(text):
+    lowered = text.lower()
+    return [marker for marker in FORBIDDEN_PAYLOAD_MARKERS if marker in lowered]
+
+
+def assert_blind_payload(prompt, schema, paths):
+    leaks = payload_leaks(prompt)
+    leaks += payload_leaks(json.dumps(schema))
+    leaks += payload_leaks(" ".join(str(p) for p in paths))
+    if leaks:
+        raise ValueError("model-visible payload contains grader labels: " + ", ".join(leaks))
+
+
+def request_body_sha256(request):
+    return hashlib.sha256(json.dumps(request).encode()).hexdigest()
+
+
 def prepare_envelope(name):
     envelope = load(name)
+    if name == "stage-b-beech-negative-blind-request.json":
+        ensure_neutral_images()
+        envelope = strip_grader_keys(envelope)
     paths, schema, prompt = adapter().prepare(envelope)
+    if name == "stage-b-beech-negative-blind-request.json":
+        assert_blind_payload(prompt, schema, paths)
     return {
         "name": name,
         "envelope": envelope,
@@ -67,6 +163,7 @@ def prepare_envelope(name):
         "schema_sha256": hashlib.sha256(json.dumps(schema).encode()).hexdigest(),
         "request_file_sha256": digest(PROOF / name),
         "adapter_sha256": digest(ADAPTER),
+        "request_body_sha256": request_body_sha256(envelope["request"]),
         "images": [{"path": str(p), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in paths],
     }
 

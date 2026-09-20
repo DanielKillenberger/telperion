@@ -1,0 +1,21 @@
+{
+  "event": "resume",
+  "dated": "2026-09-20T19:43:00+02:00",
+  "source": "owner YES relayed by host in this chat",
+  "quotation": "YES",
+  "from_commit": "20f5aee1c125fd21e40d909ee02f4ea99589dc56",
+  "stage": "stage-b-beech-negative-blind",
+  "scope": "grader/model label separation, test actual dispatched prompt blind, one blinded negative replacement within existing 902431, continue previous approved round if it passes",
+  "retries": false,
+  "token_cap": 902431,
+  "visual_cap": 25,
+  "replacement_ceiling": 40000,
+  "model": "gpt-6-astra",
+  "effort": "medium",
+  "prior_contaminated_raw": "immutable",
+  "erase_old_spend_or_terminal": false,
+  "applied_to_runtime": false,
+  "runtime_sha256": "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e",
+  "paid_call_this_turn": false,
+  "replacement_release": ".flow/tmp/cursor-fn68-replacement-release.json"
+}

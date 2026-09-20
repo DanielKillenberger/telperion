@@ -1,6 +1,6 @@
-# Frozen acceptance — closeout 2026-09-20
+# Frozen acceptance — blinded replacement pending host review
 
-Paid work and R7 are stopped. Terminal `needs_human` / `calibration_contaminated`. Narrow birch-positive remains observed PASS. Beech-negative is INCONCLUSIVE/contaminated because the actual dispatched checklist contained `This case is the known negative; a pass is false-ready.` Raw request and results stay byte-for-byte. No retry. Unspent grant does not authorize a replacement. R8 is not claimed.
+Owner YES authorizes one blinded negative replacement after this payload review. Terminal `needs_human` / `calibration_contaminated` stays on the old stage. Contaminated raw stays byte-for-byte. Narrow birch-positive remains observed PASS. R8 is not claimed. Host owns semantic qualification. Grounded visible morphology FAIL is required. UNKNOWN or clipping alone is abstention.
 
 Owner grant `ok approved` remains on file. One useful round. No retries. Calibration fail stops; do not redesign.
 

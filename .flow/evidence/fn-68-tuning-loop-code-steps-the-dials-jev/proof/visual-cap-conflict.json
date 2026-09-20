@@ -1,0 +1,20 @@
+{
+  "visual_now": 23,
+  "visual_cap": 25,
+  "visual_remaining": 2,
+  "visual_this_packet": 3,
+  "visual_max": 5,
+  "packet_remaining": 2,
+  "replacement": 1,
+  "current": 1,
+  "final": 1,
+  "after_replacement": {"visual": 24, "packet": 4, "remaining_to_cap": 1},
+  "after_replacement_then_current": {"visual": 25, "packet": 5, "remaining_to_cap": 0},
+  "final_after_those": {"visual": 26, "packet": 6, "blocked_by": ["visual_cap 25", "visual_this_packet 5"]},
+  "cap_raised": false,
+  "current_receipt_covers_owner_goals": false,
+  "current_receipt_inspection": "No existing receipt contains the seven r7-current required cells (reference_character B-WHOLE/B-BARE plus owner-crown-foliage, owner-hanging-foliage, owner-materials). reframed-b-receipt.json is two cells only, request d7be94ac, not 64460610. Coverage was not manufactured.",
+  "report_before_paid_final": true,
+  "token_remaining": 279464,
+  "token_cap": 902431
+}

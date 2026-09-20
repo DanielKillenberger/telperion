@@ -1,4 +1,12 @@
-## Current: birch PASS observed; negative contaminated; no R8
+## Current: blinded-negative payload ready; no paid replacement yet
+
+Owner YES to grader/model label separation, relayed by host 2026-09-20T19:43+02:00 from `20f5aee1`. Prior contaminated raw is immutable. Terminal `needs_human` / `calibration_contaminated` is preserved. Spend stays 622967 / visual 23.
+
+Actual adapter-prepared payload for the replacement is in `proof/model-visible-payload.json`. Request `e1636310…`. Dispatched prompt `0476110a…`. Schema `40b44f74…`. Image order: render-0 / reference-0 / reference-1 / anchor-0 at the same byte hashes as the historical stills. Generic prompt `847dd718…` unchanged. Grader labels live only in `stage-b-beech-negative-blind-grader.json`. Changing them does not change the dispatched hash. No paid call this turn.
+
+Visual arithmetic, cap not raised: 23/25 leaves 2. Replacement uses 1. After that only current fits. No existing receipt covers the seven owner-priority cells on r7-current `64460610…`. Final would be visual 26 / packet 6 and is blocked before any paid final. Token remaining 279464.
+
+## Previous: birch PASS observed; negative contaminated; no R8
 
 Paid work and R7 are stopped. `run-state.json` is terminal `needs_human` / `calibration_contaminated`. Cumulative 622967 tokens, additional 70536 from 552431, visual 23, actual captures 26, reserved 30, evaluations 6, round 2. Runtime `d93259cd…` unchanged.
 
