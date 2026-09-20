@@ -139,3 +139,7 @@ The browser smoke reached successful candidate generation but its old accounting
 
 ### 2026-09-20 — .9 local-growth attribution tooling
 The coarse profile isolated local growth, but `perf` is absent on the owner's PATH (gdb is present; perf_event_paranoid=2). Checking availability cost under one minute. Avoided installation/setup and selected a bounded scratch diagnostic sampling whole planner calls instead. A preinstalled native sampling profiler would remove the custom sampling step; this is local setup, not a proposed repository spec.
+
+## 2026-09-20 — Task .10 candidate rejection rollback
+
+The radius-only screen missed both oak targets. The safety hook blocked a combined patch-save and `git restore` command despite the task explicitly requiring rejection rollback. Cost: about one minute and two extra tool calls. Saving and inspecting the patch separately, then reversing that archived patch, keeps the rollback recoverable; recognizing an explicitly authorized scoped rollback with an existing patch would remove this friction.
