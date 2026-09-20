@@ -44,4 +44,16 @@ Approved goals become explicit additional visual cells, not just prompt prose. A
 
 ## This checkpoint's evidence
 
-Offline only; no actual owner ranking has been applied to the beech packet or paused runtime. Earlier owner crown/hanging/material feedback remains sourced history, not approval of a new packet. Blind calibration fixtures and receipts are unchanged. R12's interface and fail-closed behavior are tested; R7 magnitude efficacy and R8 empirical visual adequacy remain open under this human-assisted policy. Cumulative paid usage remains 552,431 / 570,000.
+Frozen offline packet from the last valid reframed result: `priority-review.json`. Browse `visual-review.html#priority-review`. No owner ranking has been applied. Confirming this packet does not resume `.flow/tmp/fn68-pilot-run`.
+
+| Identity | SHA-256 |
+| --- | --- |
+| checkpoint | `dcc6a63fbfa782fb4970fb5a9fbf0a1228c39a65b6ec3c1a9736e7c6e02a8010` |
+| scope | `903276d3348f3e5f40aa2c8ec25659c7d16f3880e61c559d2fabef33c985bed3` |
+| candidate | `c1781092148dc4c69cbf4b60c37be26a59dcd59f6e43d014f409f0c29c269d57` |
+| bound result | `bdb13daa0bb9fb9e0bc8cc6d0d73c1fd35e2188a39de7943c85c47608971998f` |
+| raw receipt | `97ae88cb7c716ed2c99df28f5e651004679b3f14035b84342b6568e39547656f` |
+| inventory | `f98f4325752a95103c510cc3f1871af2fcd12a2053a9359e6f770b128853c20f` |
+| original runtime | `d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e` |
+
+Proposed source order, not a new ranking: finding-0 foliage organization, finding-1 bark required-unknown, finding-2 hanging reach and regular base. Preserved: finding-4 joint coverage constraint and the supported finish finding. Owner crown/hanging/material notes remain sourced history, not approval of this packet. Blind calibration fixtures and receipts are unchanged. R7 magnitude efficacy and R8 empirical visual adequacy remain open. Cumulative paid usage remains 552,431 / 570,000. Visual 20 / 20 exhausted. See `r7-r8-proof-proposal.md`.
