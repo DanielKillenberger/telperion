@@ -1,5 +1,9 @@
 # Remaining R7/R8 proof proposal
 
+## Host review correction — not dispatch-ready
+
+The totals below are lower bounds, not exact whole-attempt authority requests. Existing engine logic can require approval reassessment before route/continuation/proposals because approved cells are absent from the old Visual. The birch reference-first representative also needs matching Stage A inventory/preparation unless a compatible pinned artifact is verified; the two comparison estimates omit that. Historical accepted-image provenance does not establish complete framing or new-protocol qualification. These prerequisites and their reservations remain unresolved. Do not dispatch or request a cap increase from these incomplete totals. No further bridge/call was run to fill them in this increment.
+
 This is a preflight, not authorization. No paid call, capture, cap increase, or runtime resume is granted here. Owner ranking is recorded in `priority-approval.json`. Browse `visual-review.html#approved-priorities`. Exact serialized numbers are in `r7-r8-offline-preflight.json`.
 
 Packet checkpoint `dcc6a63fbfa782fb4970fb5a9fbf0a1228c39a65b6ec3c1a9736e7c6e02a8010`. Scope `903276d3348f3e5f40aa2c8ec25659c7d16f3880e61c559d2fabef33c985bed3`. Owner quotation: the 1,2,3 yes. Priority 3 is broad materials on whole and bare. Spend 552,431 / 570,000. Remainder 17,569. Visual 20 / 20 exhausted.
