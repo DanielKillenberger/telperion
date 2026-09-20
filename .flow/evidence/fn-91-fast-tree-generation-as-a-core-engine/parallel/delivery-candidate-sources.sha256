@@ -1,0 +1,4 @@
+438ab77eb9f039255984f4a9025ea2ebac92c4fc82178241ed868dc68fb86df5  crates/telperion-core/src/surface.rs
+7d1e5931374da0c3afb79a271a9bb6f0527d3a6fe8c7d633f897f63b04d7f752  crates/telperion-core/src/surface/parallel.rs
+75429da9ad2019c77c9f446dcb4fe832079a540e9d9f06fa179124b5b10327b4  crates/telperion-core/src/surface/normals.rs
+88a867b60480b3b2d1a91f1e6bbb65941aa453b1a08864f9dec038c41f9f9f36  crates/telperion-render/examples/generation_gpu.rs

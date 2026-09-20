@@ -1,0 +1,10 @@
+--- a/crates/telperion-core/src/surface.rs
++++ b/crates/telperion-core/src/surface.rs
+@@ -229,6 +229,7 @@
+         ordered.push((path, radius));
+     }
+     ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
++    eprintln!("CAPACITY nodes={} paths_nodes={} paths_runs={} forks={} distance={} ordered={} samples={} frame={} segments_scratch={} angular={} positions={} normals={} coords={} indices={} run_table={} longest={} runs={} rings={}", nodes.len(), paths.nodes.capacity()*8, paths.runs.capacity()*std::mem::size_of::<paths::Run>(), paths.forks.capacity(), distance.capacity()*8, ordered.capacity()*16, samples.capacity()*std::mem::size_of::<Sample>(), frame.capacity()*48, segments_scratch.capacity()*24, angular.capacity()*std::mem::size_of::<angular::Angular>(), mesh.positions.capacity()*4, mesh.normals.capacity()*4, mesh.coords.capacity()*4, mesh.indices.capacity()*4, mesh.run_table.capacity()*std::mem::size_of::<SurfaceRun>(), longest, paths.runs.len(), rings);
+     for (path, largest_radius) in ordered {
+         let first_index = u32::try_from(
+             prepared

@@ -17,7 +17,9 @@ pub(super) fn shade(
     (first, base): (usize, usize),
     facing: impl Fn(usize) -> Vec3,
 ) -> Result<usize> {
-    let dropped = accumulate(positions, indices, normals, first)?;
+    let count = indices.len();
+    let dropped = accumulate(positions, &mut indices[first..], normals, 0)?;
+    indices.truncate(count - dropped * 3);
     normalize(&mut normals[base * 3..], facing)?;
     Ok(dropped)
 }
@@ -32,19 +34,19 @@ fn corner(positions: &[f32], index: u32) -> Result<Vec3> {
 
 /// Adds each triangle's float64 cross product of its float32 corners into its
 /// three vertices, in index order, and closes the gaps the dropped ones leave.
-fn accumulate(
+pub(super) fn accumulate(
     positions: &[f32],
-    indices: &mut Vec<u32>,
+    indices: &mut [u32],
     normals: &mut [f32],
-    first: usize,
+    base: u32,
 ) -> Result<usize> {
-    let mut kept = first;
-    for read in (first..indices.len()).step_by(3) {
+    let mut kept = 0;
+    for read in (0..indices.len()).step_by(3) {
         let t = [indices[read], indices[read + 1], indices[read + 2]];
         let [a, b, c] = [
-            corner(positions, t[0])?,
-            corner(positions, t[1])?,
-            corner(positions, t[2])?,
+            corner(positions, t[0] - base)?,
+            corner(positions, t[1] - base)?,
+            corner(positions, t[2] - base)?,
         ];
         let normal = (c - b).cross(a - b);
         if !normal.is_finite() {
@@ -54,7 +56,7 @@ fn accumulate(
             continue;
         }
         for &index in &t {
-            let n = &mut normals[index as usize * 3..index as usize * 3 + 3];
+            let n = &mut normals[(index - base) as usize * 3..(index - base) as usize * 3 + 3];
             for (k, v) in [normal.x, normal.y, normal.z].into_iter().enumerate() {
                 n[k] = (n[k] as f64 + v) as f32;
             }
@@ -63,13 +65,12 @@ fn accumulate(
         kept += 3;
     }
     let dropped = (indices.len() - kept) / 3;
-    indices.truncate(kept);
     Ok(dropped)
 }
 
 /// Unit normals for the run's vertices; one with nothing left to sum faces
 /// the way its ring does.
-fn normalize(normals: &mut [f32], facing: impl Fn(usize) -> Vec3) -> Result<()> {
+pub(super) fn normalize(normals: &mut [f32], facing: impl Fn(usize) -> Vec3) -> Result<()> {
     for (j, n) in normals.as_chunks_mut::<3>().0.iter_mut().enumerate() {
         let mut v = Vec3::new(n[0] as f64, n[1] as f64, n[2] as f64);
         if !v.is_finite() {

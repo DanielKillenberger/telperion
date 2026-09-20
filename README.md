@@ -435,13 +435,22 @@ production GPU query candidate**. All cold workloads were slower and f32 contact
 results differed from the f64 CPU reference. A giant 64³ resident query improved
 locally, but did not qualify a complete lifecycle or the general precision contract.
 Skeleton and field-construction GPU performance remain inconclusive; only their
-CPU stages and code dependencies were examined. Production generation and queries
-remain synchronous CPU operations, with no automatic backend selection or new GPU
-entry point. The rejected WebGPU implementation, runner and dedicated tests have
+CPU stages and code dependencies were examined. That experiment introduced no
+production GPU query entry point. The rejected WebGPU implementation, runner and dedicated tests have
 been removed. The report retains final timing and correctness evidence from Linux
 Chromium 151 and an RTX 3080. The snapshot API and
 [CPU reproduction tools](scripts/benchmarks/generation.md) remain in use by the
 field-generation follow-up's correctness checks and measurements.
+
+The separate [fn-91 generation path](scripts/benchmarks/generation.md#qualified-gpu-positions)
+expands compact foliage and qualified wood inputs into GPU-resident buffers shared
+by native `Delivery::Resident` and browser `setTreeGpu`. CPU-owned output remains
+available, and the default browser path remains synchronous CPU generation.
+The [retained desktop measurements](.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/position-integration/REPORT.md)
+record completed-frame delivery of 179.1–203.7 ms for mature oak and spruce seeds
+1/7 with an initialized renderer. These results do not qualify cold page startup,
+phone performance or complete process/GPU peak memory. This GPU expansion path
+does not revive fn-12's rejected spatial-query implementation.
 
 The archived [FN7 surface experiment](experiments/rust-surface-benchmark/REPORT.md) measured a narrower and older workload. Its numbers are historical, not a full-engine migration result. Further botanical realism and species visual QA remain future work. Bark and foliage are now judged lit - colour, sun, shadow and the crown's own depth, beside the reference photographs - and the clay view remains for judging geometry alone; procedural bark relief, leaf veins and two-sided leaf transmission are implemented, with owner judgments at the close-up scales still pending. Full lifecycle simulation is not implemented.
 

@@ -114,7 +114,7 @@ fn-12 tested GPU queries over CPU-built spatial indices, with output read back t
 
 A new rendering experiment should upload compact structural inputs, generate placements into buffers the renderer consumes, and avoid full-result readback on the timed display path. Measure the complete path to a finished frame, including CPU preparation, setup, allocation, upload and all GPU passes; report cold page startup separately from an initialized renderer. Compare multiple seeds on a broadleaf and a needle-bearing tree, including a phone-class device, and record peak memory and visual/attachment correctness. Readback for validation is allowed but must not be hidden if production requires it.
 
-Start by profiling current wood construction, attachment preparation, leaf placement, culling, bounds and upload separately. Test foliage expansion before committing to GPU wood or botanical growth. Set the target and bounded experiment scope before building; if end-to-end latency fails to improve or fidelity fails, report the limiting stage and stop that candidate. A fast isolated kernel does not qualify the path. No current GPU-generation speedup or near-instant startup has been established.
+Start by profiling current wood construction, attachment preparation, leaf placement, culling, bounds and upload separately. Test foliage expansion before committing to GPU wood or botanical growth. Set the target and bounded experiment scope before building; if end-to-end latency fails to improve or fidelity fails, report the limiting stage and stop that candidate. A fast isolated kernel does not qualify the path. The later fn-91 resident-expansion measurements below establish desktop warm-delivery gains; near-instant cold startup remains unqualified.
 
 ## Skeleton feasibility
 
@@ -381,3 +381,20 @@ shared positions count once. See
 `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/position-integration/REPORT.md`
 for paired delivery, CPU controls, numerical qualification, visual scope and
 remaining cold/device/memory gaps.
+
+### Native CPU surface expansion
+
+Ordinary CPU wood construction on Linux x86_64 can use up to eight scoped workers
+for independent runs, writing into disjoint slices of the final arrays. Admission
+requires at least 250,000 vertices, multiple available workers and an explicit
+capacity envelope no larger than the serial builder's. These are scheduling
+conditions; smaller or unsupported requests still receive the serial builder.
+Prepared surfaces and contact preparation retain their existing path.
+
+Position/coordinate emission finishes before preparation storage is released and
+normals/indices are allocated. Each run retains canonical calculation order.
+Worker failure, collapsed triangles or unusable normals join all started workers
+and release candidate arrays before one serial retry. Wasm requires no threads.
+The accounting includes requested stacks and a runtime allowance, but does not
+prove allocator, thread-cache or whole-process peak memory. Complete CPU-output
+latency and observed RSS are reported separately from the isolated wood speedup.

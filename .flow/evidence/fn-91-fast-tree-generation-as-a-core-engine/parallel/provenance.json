@@ -1,0 +1,22 @@
+{
+  "base": "e453ac51b2a9024ac2e54ff42cb2d72b84f32bff",
+  "platform": "Linux x86_64",
+  "hardware": "AMD Ryzen 9 5950X 16-Core Processor / NVIDIA RTX 3080",
+  "pageBytes": 4096,
+  "pthreadMinStackBytes": 16384,
+  "workers": 8,
+  "stackBytes": 65536,
+  "guardAllowanceBytes": 4096,
+  "runtimeAllowancePerWorkerBytes": 65536,
+  "fixedControlBytes": 16384,
+  "baseline": "green via .8 handoff; .9 evidence-only and .10-.12 reverted",
+  "screen": "first + 3 warm all4 full CPU wood, full field bit comparison",
+  "delivery": "first + 3 warm all4 cpu-output and gpu-output",
+  "limitations": [
+    "Opaque runtime allowance is not a whole-process memory proof",
+    "Positive RSS deltas retained",
+    "No browser timing rerun",
+    "No phone/cold qualification",
+    "6x wood aspiration missed; native10x and100ms unmet"
+  ]
+}

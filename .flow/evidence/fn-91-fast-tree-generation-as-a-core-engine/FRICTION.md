@@ -151,3 +151,13 @@ The standalone numeric oracle example attempted to import the core's private `Tr
 ## 2026-09-20 fn-91.12 rollback guard
 
 After the host rejected retention, the command guard blocked scoped `git restore` because it could discard uncommitted edits. The candidate already existed as an archived patch. Reviewing the diff, checking that patch in reverse, then applying its exact inverse restored only the candidate successfully. Cost was one rejected tool call and less than one minute. Using a checked inverse patch directly would avoid this friction and preserve the explicit rollback scope.
+
+## 2026-09-20 fn-91 finish boundary
+
+The owner asked when the spec would finish after the host extended execution through attribution and three rejected CPU experiments, with a fourth candidate entering design. Each experiment had a local bound, but the host had not set a boundary for the overall optimization search. Cost is at least four additional task dispatches and this owner intervention; no reconstructed elapsed-time estimate is asserted. The host has limited this run to the already claimed .13 experiment followed by validation and an explicit completion assessment. No further optimization task will be added in this run. Unmet acceptance requirements remain visible unless the owner explicitly changes scope. A run-level experiment budget and a shipping decision at its boundary would prevent the repeated extension; no new friction spec was created.
+
+## 2026-09-20 - .13 scratch baseline redirection guard
+Preparing the fresh seeded native baseline was blocked before execution because the shell used a dynamic scratch output path for git show. Cost was one rejected tool call, under a minute. The already resolved scratch directory permits literal-path redirections, which remove the guard ambiguity without requiring owner intervention.
+
+## 2026-09-20 - .13 shared Cargo target reused the scratch executable
+The candidate native build returned in 0.05s after a scratch baseline build used the repository target cache. SHA256 inspection caught identical baseline/candidate executables before any delivery timing. Cargo's shared output/fingerprint paths had reused the scratch result. Cost was one invalid build observation and a required rebuild, about one minute. The worker invalidated both known source mtimes before rebuilding the root candidate and will require different binary hashes. A dedicated target directory avoids this ambiguity but recompiles the renderer dependency graph.

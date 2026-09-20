@@ -19,7 +19,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("invalid mode".into());
     }
     let mut family = Preset::from_id(id).ok_or("unknown preset")?.parameters();
-    family.skeleton.seed = 1;
+    family.skeleton.seed = std::env::var("GENERATION_SEED")
+        .unwrap_or_else(|_| "1".into())
+        .parse()?;
     let samples: usize = std::env::var("GENERATION_SAMPLES")
         .unwrap_or_else(|_| "4".into())
         .parse()?;
@@ -57,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     println!(
         "{}",
-        json!({"event":"provenance","preset":id,"seed":1,"mode":mode,"samples":samples,"initializationMs":init.elapsed().as_secs_f64()*1000.0,"adapter":adapter,"viewport":[1280,720],"camera":"hero","boundary":"GPU queue/device completion for rendering; owned geometry for output","family":telperion_core::params::metadata(&family)})
+        json!({"event":"provenance","preset":id,"seed":family.skeleton.seed,"mode":mode,"samples":samples,"initializationMs":init.elapsed().as_secs_f64()*1000.0,"adapter":adapter,"viewport":[1280,720],"camera":"hero","boundary":"GPU queue/device completion for rendering; owned geometry for output","family":telperion_core::params::metadata(&family)})
     );
     for sample in 0..samples {
         let previous_tree_gpu_bytes = renderer.as_ref().map_or(0, Generator::tree_buffer_bytes);

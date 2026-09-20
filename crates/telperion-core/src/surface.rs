@@ -8,6 +8,8 @@ pub mod compact;
 mod dependencies;
 mod frames;
 mod normals;
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+mod parallel;
 mod paths;
 pub mod prepared;
 mod samples;
@@ -126,15 +128,6 @@ fn filled<T: Clone>(n: usize, value: T) -> Result<Vec<T>> {
     out.resize(n, value);
     Ok(out)
 }
-fn vertex(out: &mut Vec<f32>, p: Vec3) -> Result<()> {
-    let xyz = [p.x as f32, p.y as f32, p.z as f32];
-    if !xyz.iter().all(|v| v.is_finite()) {
-        return Err(Error::InvalidInput("surface float32 position overflow"));
-    }
-    out.extend(xyz);
-    Ok(())
-}
-
 /// Builds only wood geometry. Invalid input or allocation failure returns no partial mesh.
 pub fn build(tree: &Tree, height: f64, params: &SurfaceParams) -> Result<SurfaceMesh> {
     build_inner(tree, height, params, None, None)
@@ -144,8 +137,19 @@ fn build_inner(
     tree: &Tree,
     height: f64,
     params: &SurfaceParams,
+    prepared: Option<&mut prepared::PreparedSurface>,
+    contacts: Option<&mut Vec<Option<[usize; 4]>>>,
+) -> Result<SurfaceMesh> {
+    build_mode(tree, height, params, prepared, contacts, true)
+}
+
+fn build_mode(
+    tree: &Tree,
+    height: f64,
+    params: &SurfaceParams,
     mut prepared: Option<&mut prepared::PreparedSurface>,
     mut contacts: Option<&mut Vec<Option<[usize; 4]>>>,
+    parallel_allowed: bool,
 ) -> Result<SurfaceMesh> {
     tree.validate()?;
     params.validate()?;
@@ -161,7 +165,6 @@ fn build_inner(
     let height = height.max(1e-6);
     let segments = params.radial_segments.max(params.lobes * 4) as usize;
     let angular = angular::samples(segments, params)?;
-    let twist = params.twist_rate;
     let burial = params.flare_depth * height;
     let mut distance = filled(nodes.len(), 0.0)?;
     for i in 1..nodes.len() {
@@ -192,6 +195,58 @@ fn build_inner(
         .checked_mul(segments)
         .and_then(|n| n.checked_mul(6))
         .ok_or(Error::ResourceLimit("surface indices"))?;
+    let longest = paths
+        .runs
+        .iter()
+        .map(|p| p.end - p.start)
+        .max()
+        .unwrap_or(0)
+        .checked_add(1)
+        .ok_or(Error::ResourceLimit("surface samples"))?;
+    let mut samples = reserved(longest)?;
+    let mut frame = reserved(longest)?;
+    let mut segments_scratch = reserved(longest)?;
+    // Sample once to rank the runs, then reuse the same scratch for emission.
+    // Ties retain path order, so the permutation is deterministic.
+    let mut ordered = reserved(paths.runs.len())?;
+    for (path_id, path) in paths.runs.iter().enumerate() {
+        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
+        let radius = samples.iter().map(|s| s.r).fold(0.0, f64::max);
+        ordered.push((path_id, radius));
+    }
+    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    if parallel_allowed && prepared.is_none() && contacts.is_none() {
+        if let Some(workers) = parallel::admitted(
+            &paths,
+            &distance,
+            &ordered,
+            &angular,
+            longest,
+            vertices,
+            indices_len,
+        ) {
+            drop((samples, frame, segments_scratch));
+            return match parallel::build(
+                tree,
+                height,
+                params,
+                paths,
+                distance,
+                ordered,
+                angular,
+                longest,
+                vertices,
+                indices_len,
+                workers,
+            ) {
+                Ok(mesh) => Ok(mesh),
+                Err(_) => build_mode(tree, height, params, None, None, false),
+            };
+        }
+    }
+    #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
+    let _ = parallel_allowed;
     let mut mesh = SurfaceMesh {
         positions: reserved(positions_len)?,
         normals: reserved(if prepared.is_some() { 0 } else { positions_len })?,
@@ -209,27 +264,8 @@ fn build_inner(
         p.angles = reserved(segments)?;
         p.angles.extend(angular.iter().map(|a| a.angle as f32));
     }
-    let longest = paths
-        .runs
-        .iter()
-        .map(|p| p.end - p.start)
-        .max()
-        .unwrap_or(0)
-        .checked_add(1)
-        .ok_or(Error::ResourceLimit("surface samples"))?;
-    let mut samples = reserved(longest)?;
-    let mut frame = reserved(longest)?;
-    let mut segments_scratch = reserved(longest)?;
-    // Sample once to rank the runs, then reuse the same scratch for emission.
-    // Ties retain path order, so the permutation is deterministic.
-    let mut ordered = reserved(paths.runs.len())?;
-    for path in &paths.runs {
-        sample_path(tree, height, params, &paths, path, &distance, &mut samples);
-        let radius = samples.iter().map(|s| s.r).fold(0.0, f64::max);
-        ordered.push((path, radius));
-    }
-    ordered.sort_by(|a, b| b.1.total_cmp(&a.1));
-    for (path, largest_radius) in ordered {
+    for (path_id, largest_radius) in ordered {
+        let path = &paths.runs[path_id];
         let first_index = u32::try_from(
             prepared
                 .as_ref()
@@ -251,32 +287,12 @@ fn build_inner(
                 ]);
             }
         }
-        for (i, s) in samples.iter().enumerate() {
-            let (normal, binormal) = frame[i];
-            let phase = std::f64::consts::TAU * twist * (s.d / height);
-            for sample in &angular {
-                let angle = sample.angle;
-                let profile = sample.profile(params, phase);
-                let width = s.r * profile;
-                vertex(
-                    &mut mesh.positions,
-                    s.p + (normal * sample.cos + binormal * sample.sin) * (width),
-                )?;
-                if prepared.is_none() {
-                    mesh.coords.extend([s.d as f32, angle as f32]);
-                }
+        emit_run(&samples, &frame, &angular, params, height, |xyz, coord| {
+            mesh.positions.extend(xyz);
+            if prepared.is_none() {
+                mesh.coords.extend(coord);
             }
-        }
-        vertex(&mut mesh.positions, samples[0].p)?;
-        // A cap sits on the axis, where the angle around it is undefined.
-        if prepared.is_none() {
-            mesh.coords.extend([samples[0].d as f32, 0.0]);
-        }
-        let last = *samples.last().unwrap();
-        vertex(&mut mesh.positions, last.p)?;
-        if prepared.is_none() {
-            mesh.coords.extend([last.d as f32, 0.0]);
-        }
+        })?;
         let run = prepared::Run {
             base,
             first_index,
@@ -362,6 +378,38 @@ fn build_inner(
         p.bounds = mesh.bounds;
     }
     Ok(mesh)
+}
+
+fn emit_run(
+    samples: &[Sample],
+    frame: &[(Vec3, Vec3)],
+    angular: &[angular::Angular],
+    params: &SurfaceParams,
+    height: f64,
+    mut emit: impl FnMut([f32; 3], [f32; 2]),
+) -> Result<()> {
+    let mut vertex = |p: Vec3, coord: [f32; 2]| {
+        let xyz = [p.x as f32, p.y as f32, p.z as f32];
+        if !xyz.iter().all(|v| v.is_finite()) {
+            return Err(Error::InvalidInput("surface float32 position overflow"));
+        }
+        emit(xyz, coord);
+        Ok(())
+    };
+    for (i, s) in samples.iter().enumerate() {
+        let (normal, binormal) = frame[i];
+        let phase = std::f64::consts::TAU * params.twist_rate * (s.d / height);
+        for sample in angular {
+            let width = s.r * sample.profile(params, phase);
+            vertex(
+                s.p + (normal * sample.cos + binormal * sample.sin) * width,
+                [s.d as f32, sample.angle as f32],
+            )?;
+        }
+    }
+    vertex(samples[0].p, [samples[0].d as f32, 0.0])?;
+    let last = samples.last().unwrap();
+    vertex(last.p, [last.d as f32, 0.0])
 }
 
 /// The way run vertex `j` faces when no triangle is left to say: out from the
