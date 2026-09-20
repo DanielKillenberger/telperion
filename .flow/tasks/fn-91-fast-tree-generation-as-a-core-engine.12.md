@@ -23,9 +23,15 @@ Host decision after the single native screen (2026-09-20): the20% per-oak target
 - Misses are retained explicitly. The documented host exception permits one browser/CPU-output qualification for the measured14–24% oak gain despite seed7 missing20%; final retention requires delivered value and honest memory/regression limits, with parent gaps explicit.
 - Host decision precedes verified Flow completion and receipt commit.
 ## Done summary
-TBD
+Rejected prepared envelope admission after the one native screen and host-authorized guarded delivery qualification. Native oak improved24.22/14.39% (seed7 missed20%); browser oak gains1.31/3.92% and owned-output gains did not justify the filter complexity, observed spruce regressions and unexplained41,824KiB GPU-assisted oak RSS increase. Production source/tests and the .8 browser module are restored exactly. Full evidence and both patches are in `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/envelope/REPORT.md`.
 
+All four original and guarded Tree/shed comparisons passed;24 screen repeats matched. Seventeen focused release tests,8192-point numeric oracle, Wasm build, browser qualification and native controls completed. Host reviewed and approved rejection before completion. Parent10x/100ms, full-memory, cold and phone gaps remain. The retained-only renderer gate was not run after rejection. Rollback guard friction was resolved by a checked inverse of the archived patch.
+
+baseline: green via .8 handoff (core20/20, renderer18/18, mature production1/1, Wasm, TypeScript, browser lifecycle); .9 evidence-only, .10/.11 reverted.
+GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
+Tier: session (jev intelligent 0.78; explicit IMPLEMENTER preserved).
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 812df7be578b7b7e70c01066165e3e3af0c112f6
+- Tests: baseline: green via .8 handoff (core20/20, renderer18/18, mature production1/1, Wasm, TypeScript, browser lifecycle); .9 evidence only, .10/.11 reverted, /tmp/telperion-fn91-tools/cargo-nextest nextest run --release -p telperion-core --lib --test growth -E 'test(prepared_admission) | test(branching::local) | test(local_resume) | test(whole_build_replays)' (17 passed final), bash .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/envelope/screen.sh (all4 full outputs and24 repeats exact), python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/envelope/numeric_oracle.py (8192 samples), python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/envelope/diagnostic.py, python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/envelope/final-output-check.py (guarded all4 outputs exact, untimed), npm run render:build, GENERATION_COMPLETED=1 GENERATION_GPU=1 GENERATION_OUTPUT=<baseline/candidate.json> node scripts/benchmarks/mature-generation.mjs (first+5 warm all4, GPUpositions/no fallback), python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/envelope/measure.py cpu-output, python3 .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/envelope/measure.py gpu-output, scoped rustfmt --check; git diff --check; shell/Python syntax checks, production source diff against base empty; restored .8 Wasm sha256 69822d4aa605eaa819e8e27bc68c2651d613358c577da4c3ab8faf3c9620ed44, GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
