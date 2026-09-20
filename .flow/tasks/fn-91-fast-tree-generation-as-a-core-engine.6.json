@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-20T14:50:33.368626Z",
+  "depends_on": [
+    "fn-91-fast-tree-generation-as-a-core-engine.5"
+  ],
+  "id": "fn-91-fast-tree-generation-as-a-core-engine.6",
+  "priority": null,
+  "spec": "fn-91-fast-tree-generation-as-a-core-engine",
+  "spec_path": ".flow/tasks/fn-91-fast-tree-generation-as-a-core-engine.6.md",
+  "status": "todo",
+  "title": "Share canonical ring preparation across GPU foliage and wood",
+  "updated_at": "2026-09-20T14:50:33.368626Z"
+}
