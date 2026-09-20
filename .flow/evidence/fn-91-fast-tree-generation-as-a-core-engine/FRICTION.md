@@ -104,3 +104,7 @@ First resident-wood test reached WGSL validation only after a 44-second release 
 ## 2026-09-20 - owner rejected shaded interior captures
 
 The owner could not inspect the resident-wood images because the spruce camera was inside the needles and both trunks were shaded. The previous capture and review consumed several minutes and another owner turn without usable acceptance evidence. The host is replacing these with one four-image set using an exterior whole-tree camera, the existing bare-wood view, and camera-facing sun plus brighter fill. Prevention: inspect framing, occlusion and illumination before presenting a visual comparison; a nonblank image alone is insufficient. No generator change or new performance run is needed.
+
+## 2026-09-20 - acknowledged continuation without executing
+
+After the owner accepted the lit comparison, the host said it would continue but ended the turn without recording acceptance or resuming work. Cost: another owner prompt and no progress between turns. Record acceptance, close the completed task, and begin the next authorized task before reporting continuation.

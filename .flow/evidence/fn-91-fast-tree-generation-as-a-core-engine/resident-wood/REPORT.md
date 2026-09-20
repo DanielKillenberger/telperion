@@ -1,6 +1,6 @@
 # Resident wood experiment
 
-Native and browser consumers that explicitly request GPU-resident delivery now keep expanded wood buffers on the GPU. The final native seed-1 completed-frame medians improve from 449.55 to 232.95 ms for oak and 458.84 to 262.88 ms for spruce. All four browser fixtures also improve over the prior GPU foliage candidate. The default CPU surface retains all four complete-field hashes. Task .4's implementation and measurements are complete; the host's scoped visual capture is complete and the owner verdict is pending in [visual-lit/VERDICT.md](visual-lit/VERDICT.md). Task .1 and parent R1-R5 remain open.
+Native and browser consumers that explicitly request GPU-resident delivery now keep expanded wood buffers on the GPU. The final native seed-1 completed-frame medians improve from 449.55 to 232.95 ms for oak and 458.84 to 262.88 ms for spruce. All four browser fixtures also improve over the prior GPU foliage candidate. The default CPU surface retains all four complete-field hashes. Task .4's implementation and measurements are complete; the host's scoped visual capture is complete and the owner verdict is accepted in [visual-lit/VERDICT.md](visual-lit/VERDICT.md). Task .1 and parent R1-R5 remain open.
 
 ## Comparable measurements
 
@@ -72,6 +72,6 @@ Baseline was green for 14 core tests and 12 renderer generation/wood tests, plus
 
 Final focused gates pass 17 core tests (one pre-existing skipped reference test) and 17 renderer tests. Build receipts are in the task handover and accompanying logs. Wasm/glue build, Wasm check, TypeScript, browser lifecycle smoke and the completed-frame matrix pass. The historical unrelated full-workspace Vulkan/LTO test failure remains outside this task's explicit gates and is not reported green.
 
-The host captured and inspected four scoped images and opened the comparison gallery. The remaining task .4 acceptance is the recorded owner verdict in [visual-lit/VERDICT.md](visual-lit/VERDICT.md). Earlier owner approvals cover the previous candidate only. Supported motion, wider views, phone hardware, full cold startup and whole CPU/GPU peak memory remain parent qualification gaps. Task .1 and parent targets are unchanged.
+The host captured and inspected four scoped images and opened the comparison gallery. Task .4 visual acceptance is recorded in [visual-lit/VERDICT.md](visual-lit/VERDICT.md). Earlier owner approvals cover the previous candidate only. Supported motion, wider views, phone hardware, full cold startup and whole CPU/GPU peak memory remain parent qualification gaps. Task .1 and parent targets are unchanged.
 
-The owner rejected the first interior shaded capture set as unjudgeable. The host replaced it with four exterior bare-wood images under camera-side lighting, inspected them and opened a full-width slider gallery. The replacement has 12 changed oak pixels and 8 changed spruce pixels out of 921,600 each. The owner verdict is still pending; the failed set is retained.
+The owner rejected the first interior shaded capture set as unjudgeable. The host replaced it with four exterior bare-wood images under camera-side lighting, inspected them and opened a full-width slider gallery. The replacement has 12 changed oak pixels and 8 changed spruce pixels out of 921,600 each. The owner accepted the replacement as looking identical; the failed set is retained.
