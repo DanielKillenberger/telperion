@@ -22,9 +22,14 @@ Quick: focused release diagnostic and canonical output hash checks; scoped forma
 
 
 ## Done summary
-TBD
+Attributed native mature oak/spruce seeds 1/7 shared preparation with coarse phase timers and one sparse planner follow-up, all confined to an archived scratch checkout. The host reviewed and retained the evidence; production source is unchanged. The next bounded experiment is task .10's radius-only compact ordering screen, whose whole-pass native ceiling is 4.0–6.9 ms and does not close the parent's oak delivery gap.
 
+Report and raw results: `.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/cpu-profile/REPORT.md`, `summary.json`, `followup-summary.json`, provenance and JSONL files. Primary observed shared instrumentation delta is -0.75/+0.62/-0.11/+3.62%; sampled estimates and noise limitations remain explicit. All 32 canonical CPU hashes and 64 compact repetitions match, including historical CPU hashes. Four scoped release diagnostic builds and `check.sh` pass; gate classification is tier-B evidence-only. No broad suite or new visual/GPU matrix was required. Perf absence is reported as local setup friction and was reviewed by the host.
+
+baseline: green via .8 handoff (core20/20, renderer18/18, mature production1/1, Wasm, TypeScript, Naga and browser lifecycle smoke).
+Tier: session (jev intelligent 0.82; explicit IMPLEMENTER preserved).
+stage: impl-review - skipped(config: REVIEW_MODE=none)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 84d33bd73c20d99aa0a98b05157a04ef134fc337
+- Tests: baseline: green via .8 handoff, bash .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/cpu-profile/run.sh (control and instrumented release builds; first+3 warm, four fixtures), bash .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/cpu-profile/followup.sh (one bounded coarse/sampled planner follow-up), timeout 600s bash .flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/cpu-profile/check.sh (exit 0; 32 canonical CPU hashes, 64 compact hashes, scoped Rust formatting, script syntax and scratch transformations), flowctl gate classify --base 0ade56601bb4d7dfc55952a73be4d7f36d3f2eeb (TIER_B: docs-only), git diff --quiet -- crates scripts (exit 0 before commit), Host direct findings review: retained; no backend implementation-review verdict
 - PRs:
