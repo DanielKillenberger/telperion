@@ -1,5 +1,9 @@
 # fn68 implementation and calibration checkpoint
 
+## Cross-provider harness prepared offline; dispatch paused
+
+Fable-medium/Opus-high evidence harness extracts exact frozen Codex user prompt/schema via mocked dispatch, verifies all five image bytes/order and builds Claude streaming image blocks in fresh scratch with safe-mode/no tools/strict MCP/no session persistence. User prompt61d328c3… and schema205c1b30… persisted; full provider system scaffolding necessarily differs. Actual model and cache-inclusive usage required, pinned prior journal/additive reservation before any execution. Offline parser/prompt test passed; zero provider calls. No authorization file exists. All dispatch remains paused while host resolves owner's report of an unclear/shadowed view; frozen evidence has not changed. Current380304/400000 unchanged. See cross-provider-preparation.md; no production code change.
+
 ## Final authorized effort diagnostic: Astra high
 
 Host released the second/final400k-bound experiment with identical frozen request/protocol/images, changing only Astra medium→high. Dispatch preceded the owner's new Fable/Opus/Grok comparison priority; active call was preserved, no duplicate or additional comparison launched. Literal FAIL/FAIL: broom-like ascending framework/upright foliage columns versus spreading lateral masses; repeated blunt tips. Shared geometry/visibility-not-loading and unknown reference relationship explicit. No hanging/weighted-form finding; bark markings now optional refinement. Left silhouette clipping remains unknown. Full result and separate immutable journal preserved; no qualification from repeated aggregate failure.

@@ -1,0 +1,79 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "passes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "pass",
+          "fail",
+          "unknown"
+        ]
+      }
+    },
+    "defects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "observation": {
+            "type": "string"
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "impact": {
+            "type": "string",
+            "enum": [
+              "supported",
+              "blocker",
+              "required_unknown",
+              "variation",
+              "optional"
+            ]
+          },
+          "uncertain": {
+            "type": "boolean"
+          },
+          "causal_hypothesis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "observation",
+          "evidence_ids",
+          "impact",
+          "uncertain",
+          "causal_hypothesis"
+        ]
+      }
+    }
+  },
+  "required": [
+    "passes",
+    "defects",
+    "observations",
+    "findings"
+  ]
+}
