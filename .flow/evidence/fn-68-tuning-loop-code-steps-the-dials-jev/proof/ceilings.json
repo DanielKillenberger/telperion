@@ -24,7 +24,7 @@
       "id": "stage-a-birch",
       "kind": "visual",
       "ceiling": 25000,
-      "justification": "Same reserve as spent beech Stage A (actual 20276). Two birch reference photos.",
+      "justification": "Same reserve as spent beech Stage A (actual 20276). One S-WHOLE birch reference photo. Ceiling kept.",
       "visual_passes": 1,
       "captures": 0,
       "dispatchable_now": true
@@ -33,7 +33,7 @@
       "id": "stage-b-birch-positive",
       "kind": "visual",
       "ceiling": 40000,
-      "justification": "Above spent Stage B 35000/28569; four images; unknown inventory text after Stage A.",
+      "justification": "Above spent Stage B 35000/28569; three images after whole-only scope; unknown inventory text after Stage A.",
       "visual_passes": 1,
       "captures": 0,
       "dispatchable_now": false,

@@ -1,10 +1,22 @@
-## Current: host-ready schedule after clipped-birch correction
+## Current: whole-only Stage A and releasable runner, still no paid call
+
+Stage A birch now inventories only `bepe339A` (S-WHOLE). The generic inventory prompt is unchanged (`b977396b…`). Bare and bark photos stay present unused so they cannot mint core traits that a whole-only Stage B cannot see. Stage B positive references are S-WHOLE only. Re-prepare dropped Stage A from 2 images / 1476 prompt bytes to 1 / 1231, and Stage B from 4 / 4273 to 3 / 3892. Stage ceilings stay 291,000 inside 350,000.
+
+Negative calibration is FAIL plus a grounded blocker finding. UNKNOWN or clipping-only abstention is reported separately and is not success. The rule is frozen before answers.
+
+Capture actuals were 24, not 20. This birch pair makes actual 26 and reserved 30. Side import is 14 reservations against the original runtime's 16. Runtime `d93259cd…` is unchanged. No re-render.
+
+`proof/run-proof.py --execute --stage stage-a-birch` is the paid path. Without `.flow/tmp/cursor-fn68-release.json` it exits 2. After host release it reserves, calls the existing Astra-medium adapter, settles known usage, and fail-closes on ceiling, model, protocol, or hash. Stage B binds only a code-validated Stage A receipt. No placeholder inventory exists.
+
+Ready file `.flow/tmp/cursor-fn68-ready.json` carries the exact Stage A prompt, schema, and source hashes. Owner 1-2-3 stays approved. No new owner question. No paid call in this guard pass.
+
+## Previous: host-ready schedule after clipped-birch correction
 
 Host viewed birch `2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e` at 1378x1440. Branch and foliage meet the top edge. That hash is provenance, not framing. The owner species label stays on that raster. It is not a complete-frame positive and gives no readiness.
 
 Owner quotation `ok approved` is recorded in `proof/owner-grant.json`. Cumulative 552,431 tokens stay. Cap is now 902,431. Visual 20 of 25. One tuning round. No retries. Grok worker budget is separate. Nothing was imported into the original runtime `d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c02670941f151e885e`.
 
-One reserved still+twin used historical `0f2c2f6a` headless and fill 0.6523243308151884. New still `5c0112df0a647fdfa5eb6ad8816a45c92061206b919a772535646861c69e382e` and twin `100da16cb38ad5d515d149a96acd90aa979befad98059f69a2bb5fb811254880`. Viewed both full rasters and the top-80-row crops: sky only at the top. The new raster is not owner-accepted. Image reservations 28 to 30. Remaining 22 of 52.
+One reserved still+twin used historical `0f2c2f6a` headless and fill 0.6523243308151884. New still `5c0112df0a647fdfa5eb6ad8816a45c92061206b919a772535646861c69e382e` and twin `100da16cb38ad5d515d149a96acd90aa979befad98059f69a2bb5fb811254880`. Viewed both full rasters and the top-80-row crops: sky only at the top. The new raster is not owner-accepted. Prior actual captures were later corrected from 20 to 24; this pair is 26 actual / 30 reserved.
 
 Stage B birch-positive now points at the reframed still under the original label, with disclosed reframe provenance. Beech-negative is unchanged `7e69fda3…`. Birch goals stay birch-specific.
 

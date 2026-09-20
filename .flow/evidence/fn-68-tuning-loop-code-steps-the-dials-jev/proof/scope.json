@@ -11,7 +11,7 @@
     "applied_to_original_run": false
   },
   "this_packet": {
-    "birch_r8": "S-WHOLE seed 1 with birch-specific factual goals; not beech owner priorities. Owner-accepted raster 2745f4c3 is clipped. Assessed raster is camera-reframe 5c0112df, not owner-accepted.",
+    "birch_r8": "S-WHOLE seed 1 only. Stage A inventories the whole-habit photo. Stage B assesses the whole-habit reframe. Bare and bark photos are present unused. Not beech owner priorities. Owner-accepted raster 2745f4c3 is clipped. Assessed raster is camera-reframe 5c0112df, not owner-accepted.",
     "beech_r8_negative": "B-WHOLE seed 1 historical round22",
     "r7_current": "B-WHOLE and B-BARE seed 1 reframed limbs-only plus owner-priority cells"
   },

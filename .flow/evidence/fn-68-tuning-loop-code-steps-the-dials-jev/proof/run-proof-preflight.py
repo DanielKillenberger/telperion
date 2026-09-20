@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -35,9 +36,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--execute", action="store_true")
     args = parser.parse_args()
-    if args.execute or AUTHORITY.exists():
-        print("execute refused: no live authority in this packet", file=sys.stderr)
-        return 2
+    if args.execute:
+        runner = PROOF / "run-proof.py"
+        return subprocess.run(
+            [sys.executable, str(runner), "--execute", "--stage", "stage-a-birch"],
+            cwd=str(PROOF),
+        ).returncode
 
     assert digest(RUNTIME) == RUNTIME_SHA, "original runtime SHA changed"
     packet = json.loads((ROOT / "priority-review.json").read_text())
@@ -86,13 +90,20 @@ def main():
             "schema_bytes": len(json.dumps(schema).encode()),
         }
 
+    birch_a = load("stage-a-birch-request.json")
+    assert [r["image"]["view"] for r in birch_a["request"]["references"]] == ["S-WHOLE"]
+    assert birch_a["factual_scope"]["views"] == ["S-WHOLE"]
     birch_b = load("stage-b-birch-positive-request.json")
     assert birch_b["request"]["inventory"] is None
     assert not Path(birch_b["inventory_bind"]["path"]).exists()
     assert "Do not apply European-beech owner priorities" in birch_b["request"]["comparison"]["checklist"]
+    assert [r["view"] for r in birch_b["request"]["comparison"]["references"]] == ["S-WHOLE"]
     assert birch_b["request"]["comparison"]["images"][0]["sha256"] == framing["birch_positive_reframed"]["sha256"]
     assert birch_b["render_provenance"]["assessed_raster_owner_accepted"] is False
     assert birch_b["render_provenance"]["historical_geometry_owner_accepted_sha256"] == framing["birch_positive"]["expected"]
+    negative = load("negative-acceptance.json")
+    assert negative["success"] == "fail_with_grounded_finding"
+    assert negative["unknown_or_clipping_only"] == "report_separately_not_success"
 
     final = load("stage-r7-final-template.json")
     assert final["request"]["comparison"]["images"] == []
@@ -116,6 +127,13 @@ def main():
     assert scope["owner_approval"]["applied_to_original_run"] is False
     assert len(scope["required_scope_extension_not_in_packet"]) == 4
 
+    counts = json.loads((PROOF / "capture-accounting.json").read_text())
+    assert counts["prior_actual_captures"] == 24
+    assert counts["actual_captures"] == 26
+    assert counts["reserved"] == 30
+    assert counts["side_import_reservations"] == 14
+    assert counts["original_runtime_reservations"] == 16
+
     ready = json.loads((WORKTREE / ".flow/tmp/cursor-fn68-ready.json").read_text())
     assert ready["stop_dispatch"] is True
     assert ready["paid_calls_this_invocation"] == 0
@@ -123,6 +141,9 @@ def main():
     assert ready["grant"]["quotation"] == "ok approved"
     assert ready["framing"]["birch_owner_accepted"]["framing"] == "clipped"
     assert ready["framing"]["birch_assessed"]["owner_accepted"] is False
+    assert ready["stage_a"]["scope"]["views"] == ["S-WHOLE"]
+    assert ready["accounting"]["actual_captures"] == 26
+    assert ready["execute"]["without_release"] == 2
 
     out = {
         "status": "dry-ok",

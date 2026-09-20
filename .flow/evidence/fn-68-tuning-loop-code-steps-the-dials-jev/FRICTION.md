@@ -171,6 +171,10 @@ Offline fixture search found birch-round26 whole `2745f4c37a4410236f2adfb0d6b0c3
 
 This session asserted complete margins on silver-birch S-WHOLE `2745f4c37a4410236f2adfb0d6b0c3903c7312bd8a15872ef8e58d4c35293d1e`. Host viewed the 1378x1440 raster: branch/foliage touch or cross the top edge. A pale-sky threshold (r>160) then counted 1371/1378 row-0 samples as non-sky; those samples are darker blue sky (~138,163,195), so that count is not framing evidence. Host view plus the full-resolution top-80-row crop remain the proof of clip. Hash match is provenance, not framing. Cost: a wrong readiness path and a correction pass. Remedy: mark clipped, preserve the owner label on the original raster, no readiness from it, inspect the actual image or an edge crop before any framing claim.
 
+## 2026-09-20 — Capture actuals written as 20 instead of 24
+
+The birch reframe journal copied `prior_actual_images: 20` from an older script constant. Host source is 24 actual / 28 reserved before this pair. Cost: a wrong 22/30 reading and a guard pass. Remedy: correct the script and this journal to 24→26 actual / 30 reserved, side import 14 vs original 16, no re-render and no reset.
+
 ## 2026-09-20 — Pale-sky heuristic is not framing
 
 A color threshold used to "confirm" the birch clip treated birch and B-BARE sky as foliage. Cost: minutes of a false pixel narrative on top of the host correction. Removal: view the raster or a full-resolution edge crop; keep thresholds out of readiness.
