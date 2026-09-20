@@ -1,5 +1,13 @@
 # fn68 implementation and calibration checkpoint
 
+## Corrected development comparison: partial improvement verified
+
+Owner authorized one additional comparison after opening the same images, extending only visual cap9→10; cumulative300k unchanged. The frozen corrected request explicitly asks to reduce EXCESSIVE density/overlap while retaining credible mature-beech fullness, not increase density. Same seven image hashes, Sol medium, no new captures, measurements, candidates or numerical/host verdict input. Initial ambiguous request/result remain byte-for-byte intact.
+
+Sol returned literal PASS for both development cells: whole visibly less congested while retaining full coherent mature-beech silhouette/character; bare less congested without material branch-character loss. Upright/narrow crown and limited weighted droop remain unresolved. This verifies bounded partial improvement of the owner-directed limbs2→1 candidate, not full readiness or autonomous magnitude strategy efficacy. No shipped preset change or automatic-gate override; R7/R8 remain open.
+
+Input27805+output321=28126tokens; cumulative277432,visual10/10,5eval20reservedimages/16actual pilot images. Original paused runtime remains unchanged221183/4eval16images8visual. Separate development future import is56249tokens+1eval+4image reservations+2visual attempts. Request SHA2a1ed948bde1b16ad1fd652764b7ee2fe1f37d648bd1a2d07da072feed11826c; full result development-corrected-visual-result.json. No further call authorized. Harness compiled/executed successfully; evidence-only change, no repeated production gates.
+
 ## One owner-directed development candidate: numeric gain, ambiguous automated comparison
 
 This experiment was separately authorized, not an automatic continuation override. Frozen protocol selected limbs2→1 with1mcap,seed1,unchanged verified generator/render/reference/camera. Hypothesis: fewer overlapping primary branch systems; no promise of droop or complete readiness. Existing evaluator measured first, passed all numeric gates and produced exactly four matched still/twin images in17.187seconds. Nodes187,968→107,908; combined score0.2432487129→0.1856220449 (about23.69% lower). Whole occupancy0.5321→0.4782; bare0.4115→0.3353. No other parameter or shipped preset changed.

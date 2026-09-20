@@ -34,11 +34,11 @@
     "machine_ready": false
   },
   "cumulative": {
-    "tokens": 249306,
+    "tokens": 277432,
     "evaluations": 5,
     "image_reservations": 20,
     "actual_pilot_still_twins": 16,
-    "visual_passes": 9
+    "visual_passes": 10
   },
   "runtime_unchanged": {
     "tokens": 221183,
@@ -47,9 +47,16 @@
     "visual_passes": 8
   },
   "future_import": {
-    "tokens": 28123,
+    "tokens": 56249,
     "evaluations": 1,
     "image_reservations": 4,
-    "visual_passes": 1
+    "visual_passes": 2
+  },
+  "corrected_comparison": {
+    "result": "PASS/PASS",
+    "scope": "verified partial improvement only; not full readiness",
+    "request_sha256": "2a1ed948bde1b16ad1fd652764b7ee2fe1f37d648bd1a2d07da072feed11826c",
+    "result_file": "development-corrected-visual-result.json",
+    "remaining": "upright narrow crown and limited weighted lateral droop"
   }
 }
