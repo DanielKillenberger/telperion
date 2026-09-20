@@ -49,6 +49,18 @@ The worker checked the R5/R7/R8 prerequisites before implementing the loop. The 
 The manager reused an existing fn-68 branch at b4c1a390 instead of starting from the requested fn-72 base. The host preserved it by merging fn-72. Three conflicts were formatting and updated help text; the current parent versions preserved the checkpoint functionality. Cost was about two minutes of inspection and resolution, no pilot tick. Explicit existing-branch reporting and ancestry checks in worktree setup would avoid the surprise. A diff check initially included unrelated historical whitespace; comparison against the actual fn-72 base passed. No historical source text was changed.
 # 2026-09-20 — Resume integration bookkeeping
 
+## 2026-09-20 — v3 preflight resolved; low-confidence size withheld
+
+Before answers, host-approved concise direct criteria reduced11,128→10,888 without dropping policy/effect/observation semantics; shared Rust canonical bytes verified. Two approved calls cost3,515tokens. Direction8/8 and safe composition worked, but one expected substantial action had confidence0.45, leaving actionablecoverage3/4 below frozen0.8. No post-answer retune or runtime activation. Remaining decision is policy qualification/abstention tolerance on representative evidence, not automatic additional budget; full probabilities preserved for host review.
+
+## 2026-09-20 — Final v3 source precision adds128 to approved reservation
+
+Host review corrected lateral births to leader stations, keeping other axes one, and clarified direct criteria. Final shared serde_json reservation11,128 exceeds newly approved11,000 by128. Both Python and actual Rust serialization agree. No calls; about two minutes verification. Resolve this bounded preflight gap before dispatch rather than reducing reservations or concealing semantic detail.
+
+## 2026-09-20 — v3 offline reservation exceeds text-study allowance
+
+Prepared eight new authored cases with direct option semantics and distinct direction-versus-experiment safety. Exact conservative reservations are4,958direction +5,424worst-size =10,382, exceeding6,000additional authority. Stopped offline before host dispatch review; about four minutes preparation, zero model tokens/renders. Host can review scope/packaging or authority before any call; no reservation formula or labels changed to fit.
+
 ## 2026-09-20 — v2 preflight compaction resolved; study abstentions retained
 
 Before model calls, host-directed applicable-policy-only state and computed availability removed redundant bounds/deltas/opposite candidates, reducing conservative reservation15,966→11,512 without changing cases/observations/labels or reservation formula. Preparation took about three minutes, zero model tokens. The subsequent two approved text calls cost2,998tokens; direction abstained on two expected-positive cases, so declared qualification failed. No retry/prompt adjustment follows these answers. Full distribution evidence supports host review of question semantics rather than automatic budget extension.

@@ -1,5 +1,19 @@
 # fn68 implementation and calibration checkpoint
 
+## v3 two-stage authored study: coverage gate still fails
+
+Host-approved concise direct option descriptions preserved semantics and reduced final exact serde_json reservation to10,888 (direction5,327 +worst-size5,561), inside the owner-approved11k. After host release, two calls ran with persisted reservations and immutable ledger verification; no retunes/retries. V3 artifacts and effect definitions are frozen under v3-generated; manifest SHA6464fa00354b5e4ccf529bb45c7b3e6aa6703aa3bd5be3b42d621ec1f6f031f8. These are fresh authored development variants closely related to v2, not independent biological heldout evidence.
+
+Direction8/8; conditional size4/5=.8; unconditional expected size4/5=.8; strict-stage7/8=.875; composed7/8=.875; actionablecoverage3/4=.75; unsafe0. The declared coverage gate fails. Sole blocked action: birth_reduction selected expected substantial with confidence0.45, probabilities substantial0.63/small0.35/insufficient0.02. Frozen0.5 cut correctly withheld it. Harmful_steps correctly separated supported increase0.70 from no useful size0.99; lobes_probe selected increase0.91/small0.97. Full distributions remain in v3-policy-result.json. Do not replace confidence with summed probability or lower the cut after this result.
+
+Actual3,515tokens (direction2,020,size1,495), cumulative212,422. Separate v2+v3 study spend6,513 must be reconciled before any future runtime resume; original run.json stays205,909 and rounds2/2. No renderer/vision/tuning calls or runtime activation. Scorer synthetic checks and schema/availability checks passed; evidence-only diff check passed. V1/v2 labels/results unchanged. No further call authorized; task remains in_progress with R7 efficacy/R8 all-cell proof incomplete.
+
+## v3 offline preparation, awaiting dispatch review
+
+`prepare-v3-study.py`, `score-v3-study.py` and `v3-generated/` contain eight fresh authored variants closely related to v2, not independent heldout or biological evidence. Direction now asks supported semantic correction, never action permission; size separately judges each available probe and unresolved harm. Explicit parameter effects are source-linked, including leader-only lateral birth counts. All six accuracy/coverage gates remain0.8, confidence0.5 and unsafe0. Composed disposition and strict-stage fidelity are separate, so premature abstention on harmful_steps can be safely no-action while failing direction/size fidelity.
+
+Offline checks pass all-good, premature harmful abstention, harmful larger gap probe, opposite direction, missing/invalid/nonfinite/low-confidence/unknown answers, bounds/dedup and label isolation. These are study-scoring checks, not production regressions or model qualification. No model call occurred. Exact shared serde_json serialization confirms5,567direction+5,561worst-size=11,128. Owner approved11,000 after the initial6k shortfall; the final source-precision correction adds128 beyond that authority, so dispatch remains blocked pending host resolution. Cumulative actual208,907 unchanged; v2 files/results unchanged. No renderer/runtime/source changes.
+
 ## Text-only v2 policy study: declared gates not met
 
 Eight new authored cases were frozen before calls in proposal-v2-policy.json (SHA8a020502e43deac7c74e455d264f3e52a55a0e07c7ac32839a9ef54182de79c0). Initial packaging exceeded12k conservative reservation; before any answer, host-directed removal of redundant fields reduced direction+worst-size reservation to11,512. Policies/observations/labels stayed unchanged. Compact artifacts and SHA are in v2-generated-compact; unavailable numeric candidates were computed with the same IEEE current±step bounds semantics, no rounding/clamping. Null option descriptions refer to shared explicit policy definitions. No expected labels/provenance entered model state.
