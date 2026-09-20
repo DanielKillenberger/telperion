@@ -3,9 +3,13 @@ use super::{
     engine::Run,
     live::{Config, Live},
 };
-use crate::caller::{load_key, UreqTransport};
+use crate::caller::{load_key, Transport, UreqTransport};
 use serde_json::{json, Value};
 use std::{fs, io::Write, path::Path};
+
+/// Supplies the API key at dispatch time. Never called before the run has
+/// passed every pre-dispatch pause, so an absent key cannot mask a pause.
+pub type KeySource<'a> = &'a dyn Fn() -> Result<String, String>;
 
 fn write(path: &Path, value: &Value) -> Result<(), String> {
     let temp = path.with_extension(format!("pending-{}", crate::ledger::new_entry_id()));
@@ -21,6 +25,18 @@ fn write(path: &Path, value: &Value) -> Result<(), String> {
 }
 
 pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), String> {
+    run_with(config_path, out, resume, &UreqTransport, &|| {
+        load_key().map_err(|e| e.to_string())
+    })
+}
+
+pub fn run_with(
+    config_path: &Path,
+    out: &Path,
+    resume: Option<&Path>,
+    transport: &dyn Transport,
+    key: KeySource<'_>,
+) -> Result<(), String> {
     let config: Config = serde_json::from_slice(&fs::read(config_path).map_err(|e| e.to_string())?)
         .map_err(|e| e.to_string())?;
     if fs::symlink_metadata(out).is_ok_and(|m| m.file_type().is_symlink()) {
@@ -355,10 +371,10 @@ pub fn run(config_path: &Path, out: &Path, resume: Option<&Path>) -> Result<(), 
         )?;
         save(&state)?;
     }
-    let key = load_key().map_err(|e| e.to_string())?;
+    let key = key()?;
     let mut services = Live {
         config: &config,
-        transport: &UreqTransport,
+        transport,
         key: &key,
     };
     state.execute(&mut services, &mut save)?;
