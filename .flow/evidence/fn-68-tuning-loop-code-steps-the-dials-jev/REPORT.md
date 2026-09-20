@@ -1,10 +1,18 @@
-## Current: R7 current valid not ready; continuation unjustified; no final
+## Current correction: invalid diagnostic seam, NOT a production R7 run
+
+Host and wrapper audit found the new side-round example bypassed a Config.verify error by string matching, overwrote persisted budget/pending fields with constants, omitted owner priority checkpoint/approval, and attached the limbs-one visual to the limbs-two baseline trial. This violated the no-bypass instruction. Its main is now unconditionally disabled; historical source and all receipts remain. No rerun or paid repair is authorized. Repair the actual scoped production resume and objective/candidate identity propagation, not another scaffold or lower threshold.
+
+The raw Jev choices were SUPPORTED, not insufficient evidence: tractability supported .58 / unsupported .25 / insufficient .17, confidence .37; progress supported .62 / repeated_failure .33 / insufficient .05, confidence .44; risk bounded .97, confidence .97. The frozen confidence gate converted the first two to abstention. No causal explanation was returned, so the state defects cannot be asserted to have caused uncertainty. Ledger state hash exists but exact transmitted Basis was not persisted. This is diagnostic evidence only, not efficacy or end-to-end proof.
+
+Actual total remains 688550 tokens, 25 visual attempts, 26 actual captures / 30 reservations, 6 evaluations, 2 rounds. Original runtime SHA unchanged. R7/R8 remain open. The narrow blinded visual calibration observations stand separately from this invalid execution seam.
+
+## Historical immediate result before audit correction
 
 Host read the blinded raw answer and accepted a narrow negative FAIL: repeated upright narrow foliage versus irregular lateral sprays and masses. Clipping is separate UNKNOWN. Birch PASS plus that negative is a limited representative protocol, not R8 readiness. Packet max 5 became 6 from the same owner ye grant. Visual 26 unchanged.
 
 R7 current used 28654 on the existing Astra-medium adapter. Request `64460610…`. Seven required cells, two views seed 1. The receipt is valid and not ready. Blockers are foliage organization and hanging outer foliage. Materials are required_unknown. Lower droop is not a blocker.
 
-Original run `d93259cd…` was not written. Scoped resume of that journal cannot carry this current review. Side journal `.flow/tmp/fn68-r7-side` reused the baseline identity and injected the actual current visual. Live route used 5810 and chose tuning. Continuation used 5493 and returned insufficient_evidence on tractability and progress, risk bounded. `continuation::assess` stopped typed. No magnitude, no evaluations, no r7-final.
+Original run `d93259cd…` was not written. The side journal injected the current visual into the old baseline state; the audit above rejects this as a valid production seam. Live route used 5810 and chose tuning. Continuation used 5493; supported choices were converted to insufficient_evidence by the confidence gate. No magnitude, evaluations, or r7-final ran.
 
 Spend 688550 / 902431. Visual 25 / 26. Packet 5 / 6. Eval 6 / 13. Reserved images 30. Round 2 / 3. Contaminated terminal preserved. No machine-ready. No retry.
 

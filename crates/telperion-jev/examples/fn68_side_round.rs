@@ -19,7 +19,8 @@ const RUNTIME_SHA: &str = "d93259cd3e6980a19b09c3a1644d9f6114012ad7345bb0c026709
 const SIDE: &str = ".flow/tmp/fn68-r7-side/run.json";
 const VISUAL: &str = ".flow/tmp/fn68-r7-side/visual.json";
 const REQUIRED: &str = ".flow/tmp/fn68-r7-side/required.json";
-const CONFIG: &str = ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/pilot-config-final-diagnosed.json";
+const CONFIG: &str =
+    ".flow/evidence/fn-68-tuning-loop-code-steps-the-dials-jev/pilot-config-final-diagnosed.json";
 const OUT: &str = ".flow/tmp/fn68-r7-side/jev-round.json";
 
 fn write(path: &str, value: &Value) {
@@ -27,14 +28,15 @@ fn write(path: &str, value: &Value) {
 }
 
 fn main() {
-    if let Err(e) = run() {
-        eprintln!("{e}");
-        std::process::exit(2);
-    }
+    eprintln!("Archived invalid diagnostic experiment: execution disabled. This harness bypassed Config.verify, reset persisted spend, omitted owner priority approval, and paired a baseline trial with a different candidate visual. Repair the production scoped-resume path; do not rerun this example.");
+    std::process::exit(2);
 }
 
 fn run() -> Result<(), String> {
-    assert_eq!(sha256_hex(&fs::read(RUNTIME).map_err(|e| e.to_string())?), RUNTIME_SHA);
+    assert_eq!(
+        sha256_hex(&fs::read(RUNTIME).map_err(|e| e.to_string())?),
+        RUNTIME_SHA
+    );
     let visual: Visual = serde_json::from_slice(&fs::read(VISUAL).map_err(|e| e.to_string())?)
         .map_err(|e| format!("visual: {e}"))?;
     let required: Vec<Cell> =
@@ -131,7 +133,9 @@ fn run() -> Result<(), String> {
             OUT,
             &serde_json::json!({"status":"stop_before_call","stage":"continuation","serialized_plus_1024":cont_need,"ceiling":32000}),
         );
-        return Err(format!("continuation serialized+1024 {cont_need} exceeds 32000"));
+        return Err(format!(
+            "continuation serialized+1024 {cont_need} exceeds 32000"
+        ));
     }
     basis.next_tokens = Some(
         live.proposal_tokens(&state)
@@ -165,7 +169,9 @@ fn run() -> Result<(), String> {
             OUT,
             &serde_json::json!({"status":"stop_before_call","stage":"proposal-magnitude","serialized_plus_1024":prop_need,"ceiling":36000}),
         );
-        return Err(format!("proposal serialized+1024 {prop_need} exceeds 36000"));
+        return Err(format!(
+            "proposal serialized+1024 {prop_need} exceeds 36000"
+        ));
     }
     state.budget.reserve(0, 0, prop_need, 1)?;
     state.pending = Some("targeted proposals".into());
@@ -211,7 +217,12 @@ fn run() -> Result<(), String> {
             .iter()
             .find(|d| d.id == proposal.dial)
             .ok_or("unsupported dial")?;
-        let patch = match candidate(&state.preset, &state.effective, dial, proposal.action.clone()) {
+        let patch = match candidate(
+            &state.preset,
+            &state.effective,
+            dial,
+            proposal.action.clone(),
+        ) {
             Ok(p) => p,
             Err(reason) => {
                 evals.push(serde_json::json!({"dial":proposal.dial,"invalid":reason}));
