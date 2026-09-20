@@ -356,3 +356,28 @@ The reproducible native comparison and four-fixture browser results are in
 Native comparison isolates task .6 against the saved .5 executable. Browser
 comparison against the saved .4 module includes both .5 and .6. Whole-process
 RSS and Wasm capacity remain distinct from simultaneous explicit buffer counts.
+
+### Qualified GPU positions
+
+Task .8 admits compact GPU positions before resident foliage. The initial fast
+path covers unmodulated profiles (`lobes == 0` or `lobe_depth == 0`), centres
+within 64 m per component, radii at most 32 m and radii at least
+`max(1 m, max(abs(centre))) / 131072`. Other valid inputs retain the canonical
+resident path; these are capability bounds, not engine parameter limits.
+
+Position emission, pre-arithmetic triangle checks, normal admission and enclosing
+bounds complete before contacts consume the buffer. Actual corner-derived ring
+radii use offsets from the first corner to avoid large-coordinate cancellation.
+The same immutable positions feed foliage and final wood; full attributes are
+allocated only after foliage. Geometry rejection drops the candidate before
+canonical preparation, while device errors preserve the existing request contract.
+Standalone owned CPU output creates no position pipeline.
+
+`gpuPositions` identifies actual candidate delivery; `positionFallback` names
+rejected attempts even when the canonical resident path remains GPU-backed.
+Position preparation/upload/completion and CPU/GPU capacities are separate from
+foliage and final expansion. Retained GPU metadata is counted through foliage;
+shared positions count once. See
+`.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/position-integration/REPORT.md`
+for paired delivery, CPU controls, numerical qualification, visual scope and
+remaining cold/device/memory gaps.

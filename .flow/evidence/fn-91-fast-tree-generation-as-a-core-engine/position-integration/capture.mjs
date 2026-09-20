@@ -17,7 +17,7 @@ try {
       const page = await browser.newPage({ viewport: result.viewport });
       await page.route(url + "/", route => route.fulfill({ contentType: "text/html", body: '<style>html,body{margin:0}canvas{width:1280px;height:720px;display:block}</style><canvas></canvas>' }));
       await page.goto(url);
-      const capture = await page.evaluate(async ({ preset, mode, pose }) => {
+      const capture = await page.evaluate(async ({ preset, mode, pose, revision }) => {
         const { createRenderer } = await import("/src/browser/render.ts");
         const { presetById } = await import("/src/browser/core.ts");
         const { familyJson, presetToParams } = await import("/harness/family.ts");
@@ -31,6 +31,7 @@ try {
         await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const submitted = mode === "gpu" ? await renderer.setTreeGpu(family) : renderer.setTree(family);
         if (mode === "gpu" && (submitted.backend !== "Gpu" || submitted.stages.woodBackend !== "Gpu")) throw Error("unexpected CPU fallback");
+        if (revision === "candidate" && submitted.stages.gpuPositions !== true) throw Error("position candidate fell back");
         const hero = renderer.hero();
         if (!pose) pose = hero;
         renderer.setCamera(pose);
@@ -47,7 +48,7 @@ try {
         await new Promise(resolve => requestAnimationFrame(resolve));
         window.captureRenderer = renderer;
         return { preset, mode, pose, hero, view: "bare", scene: renderer.scene(), submitted, stats: renderer.stats() };
-      }, { preset, mode, pose });
+      }, { preset, mode, pose, revision });
       pose = capture.pose;
       capture.image = `hero-${preset}-${revision}.png`;
       await page.locator("canvas").screenshot({ path: `${directory}/${capture.image}` });

@@ -6,3 +6,20 @@
         PASS [   0.004s] ( 1/18) telperion-render generation::tests::compact_position_candidate_does_not_override_station_capability
         PASS [   0.004s] ( 2/18) telperion-render generation::request::tests::invalidation_keeps_busy_until_guard_drops_and_errors_release_it
         PASS [   0.023s] ( 3/18) telperion-render generation::tests::preparation_capabilities_and_failures_are_explicit
+        PASS [   3.089s] ( 4/18) telperion-render generation::tests::gpu_extrema_order_preserves_signed_zero_and_finite_signs
+        PASS [   3.104s] ( 5/18) telperion-render generation::readback_tests::leaf_readback_preserves_words_across_chunk_boundaries
+        PASS [   3.105s] ( 6/18) telperion-render generation::readback_tests::leaf_readback_rejects_invalid_buffers_and_allocation
+        PASS [   3.117s] ( 7/18) telperion-render generation::standalone_tests::standalone_rejects_resident_before_generation_and_delivers_owned_cpu_mesh
+        PASS [   3.148s] ( 8/18) telperion-render generation::tests::compact_positions_seat_contacts_on_the_rendered_surface
+        PASS [   3.168s] ( 9/18) telperion-render generation::readback_tests::leaf_readback_device_loss_returns_no_output
+        PASS [   3.215s] (10/18) telperion-render generation::wood_tests::position_probe::production::production_positions_admit_geometry_and_reject_unsupported_inputs
+        PASS [   3.212s] (11/18) telperion-render generation::tests::huge_phases_fall_back_but_supported_large_ordinals_keep_orientation
+        PASS [   3.260s] (12/18) telperion-render generation::tests::compact_gpu_foliage_is_repeatable_seated_and_bounded
+        PASS [   3.264s] (13/18) telperion-render generation::wood_tests::multirow_empty_and_unusable_normals_have_explicit_outcomes
+        PASS [   3.304s] (14/18) telperion-render generation::wood_tests::compute_limits_and_device_failure_never_return_partial_wood
+        PASS [   3.294s] (15/18) telperion-render generation::wood_tests::resident_wood_matches_cpu_and_remains_writable_after_adoption
+        PASS [   3.295s] (16/18) telperion-render generation::wood_tests::position_probe::compact_position_edge_cases
+        PASS [   5.480s] (17/18) telperion-render generation::tests::foreign_prepared_result_preserves_the_live_tree
+        PASS [   5.695s] (18/18) telperion-render generation::wood_tests::measured_specimens_keep_all_cpu_fields_and_gpu_surface_contracts
+────────────
+     Summary [   5.712s] 18 tests run: 18 passed, 53 skipped
