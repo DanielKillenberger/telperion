@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Shared CPU candidate
 
 The exact-bounds broad phase and station reuse improve all four native fixtures while preserving their output fingerprints. This is an incremental improvement, not the accepted 10x result. GPU construction is not implemented.

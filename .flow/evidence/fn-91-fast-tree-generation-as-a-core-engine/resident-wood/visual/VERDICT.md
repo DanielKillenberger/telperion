@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../../README.md).
+
 # Resident wood visual review — 2026-09-20
 
 Exactly four new browser captures compare default CPU and GPU foliage plus resident GPU wood for oak and spruce seed 1. Matching cameras target the lower trunk, with the existing lighting and 1280×720 viewport. `wood-detail.json` records the Wasm hash, camera, device flags and actual GPU wood backend. The renderer queue completed before each screenshot. These images do not change the previously accepted foliage captures.

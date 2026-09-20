@@ -44,3 +44,17 @@ __pycache__/
 
 # fn-71 distance sweeps: the stills stay on disk, the measured curves are committed.
 .flow/evidence/fn71/sweep/**/*.png
+
+# Evidence retention: raw runs and demo media are local artifacts.
+/.flow/evidence/*/raw/
+/demo-video/
+
+# fn-91 historical output has a checksum manifest and pinned Git recovery.
+/.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.log
+/.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.stderr
+/.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.jsonl
+/.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.png
+/.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.txt
+/.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.html
+/.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.csv
+/.flow/evidence/fn-91-fast-tree-generation-as-a-core-engine/**/*.sha256

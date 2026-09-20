@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Shared station preparation screen
 
 The host provisionally retained shared station streaming and zero-contact GPU-admission overlap after one browser qualification. Warm completed-frame medians are158.1/180.8ms for oak and178.9/164.2ms for spruce. Oak seed1 remains1.1ms above its strict10× target; its9.93× result is not relabeled10×. The host chose to stop optimization and finish validation, without another timing sample or candidate.

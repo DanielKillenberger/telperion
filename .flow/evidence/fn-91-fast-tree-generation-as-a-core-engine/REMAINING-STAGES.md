@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Remaining delivery costs after shared rings
 
 Read-only analysis of the committed task .6 browser samples. No new benchmark, implementation or acceptance. Warm medians below use the five recorded samples; subtraction is paired per sample before taking the median. Hypothetically removing one measured stage does not predict the behavior of a new implementation.

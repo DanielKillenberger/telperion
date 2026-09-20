@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # GPU wood-position feasibility
 
 The four mature fixtures pass the fixed numeric screen. Combined compact preparation, upload and GPU position/validity/bounds completion is 2.70×/2.83× faster than canonical preparation for oak seeds 1/7, exceeding the preselected 2× bound. Counted simultaneous allocations are lower. The host approved retaining this isolated probe and advancing a separate, explicitly bounded integration task. This is not delivered rendering acceleration or completion of the parent 10×/100 ms goal.

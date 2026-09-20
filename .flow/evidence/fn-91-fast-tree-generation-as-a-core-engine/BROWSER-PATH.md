@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Browser proof through the shared GPU generator
 
 Host design for invocation 5, after 1e30cf22. The native foliage experiment has an end-to-end gain. This permits a bounded browser integration experiment; it does not qualify the memory target or authorize a new GPU wood algorithm. Retain the current acceptance criteria.

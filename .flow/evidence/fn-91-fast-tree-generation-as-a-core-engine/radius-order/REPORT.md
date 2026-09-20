@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Radius-only ordering screen rejected
 
 The single radius-only candidate missed the required 5% compact-preparation improvement on both oak seeds. The host reviewed the results and rejected retention. Production source has been restored exactly to `b822fcd10ab44e2d0f0b7688e9fa506b3b9f717f`; `candidate.patch` preserves the experiment. No browser matrix, new images or tuning run followed the rejection. The parent's 10x, 100 ms, cold-start, phone and complete peak-memory requirements remain open.

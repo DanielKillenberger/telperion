@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Completed-frame browser comparison
 
 The CPU candidate improves measured end-to-end delivery but does not meet the 10x target. The benchmark now waits for the actual renderer GPU queue after submission, including pending uploads and drawing. It does not measure the display compositor or the instant pixels become visible.

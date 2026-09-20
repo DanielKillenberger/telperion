@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Prepared envelope admission candidate rejected
 
 The single native screen missed its required 20% gain on both oak seeds. Oak seeds 1/7 improved 24.22%/14.39%, while spruce regressed 4.03%/1.74%. The host explicitly authorized one delivery qualification because oak saved 16.222/10.669 ms. The threshold remains missed. The guarded candidate then improved browser completed-frame oak delivery 1.31%/3.92%, with spruce regressions of 2.98%/3.93%. The host rejected retention. The delivered gains do not justify the numerical filter complexity, observed spruce regressions and unresolved memory increase. Production source, tests and the generated browser module are restored exactly to .8 production; both candidate phases and all evidence remain archived.

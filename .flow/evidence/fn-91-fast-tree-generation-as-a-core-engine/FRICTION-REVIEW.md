@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Host friction review — 2026-09-20
 
 Reviewed every entry in FRICTION.md before this checkpoint. The task remains open. The proposals below are for owner consideration; no new friction specs were created.

@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Host boundary analysis before wood profiling
 
 Existing browser completed-frame results include preparation, submission and queue completion. Subtracting independently computed medians below is only a rough stage-budget illustration, not a matched-sample decomposition or a prediction.

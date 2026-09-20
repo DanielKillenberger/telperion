@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Native GPU foliage experiment — 2026-09-20
 
 This experiment improves native seed-1 latency, but does not complete fn-91. The matched CPU reference is the current CPU candidate at f2c7e81c, not the original pre-fn91 implementation. Spruce resident completed rendering is 10.13× faster in this small native sample; oak is 1.57×. CPU-output and oak resident process-RSS results fail to establish the no-memory-increase requirement. Other seeds, browser GPU adoption, phone hardware, motion/close-up quality remain open; the owner accepted the four shown hero views only.

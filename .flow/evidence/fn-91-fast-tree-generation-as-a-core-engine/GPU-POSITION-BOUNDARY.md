@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Next position-expansion boundary
 
 This is a host design analysis, not measured implementation or acceptance. Task .6 is still implementing shared contact rings. It primarily benefits the surface-contact workload; the current oak fixtures have surfaceContact = 0 and need a different reduction.

@@ -1,9 +1,0 @@
-    Checking serde_core v1.0.229
-    Checking libm v0.2.16
-    Checking serde v1.0.229
-    Checking serde_json v1.0.151
-    Checking bincode v1.3.3
-    Checking slotmap v1.1.1
-    Checking telperion-core v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-core)
-    Checking telperion-wasm v0.1.0 (/home/daniel/Projects/telperion/crates/telperion-wasm)
-    Finished `release` profile [optimized] target(s) in 3.09s

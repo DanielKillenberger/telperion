@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Interactive renderer integration
 
 The mature harness now calls the resident GPU API. A per-stage queue allows one active build and one replaceable pending request; effect cleanup and disposal suppress stale UI callbacks, and only the latest completed request updates statistics and camera framing. The unused synchronous Stage forwarding method is removed. CPU fallback/output and opt-in growth remain engine capabilities.

@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Owner visual verdict
 
 On 2026-09-20 the owner viewed the side-by-side seed-1 oak and spruce CPU/GPU hero images and said, "they look the same to me".

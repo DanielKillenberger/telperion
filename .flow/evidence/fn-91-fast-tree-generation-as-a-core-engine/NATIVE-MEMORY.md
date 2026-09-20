@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Preliminary native process memory
 
 Linux wait4 reports each fresh child process peak resident set. Each process makes two sequential native CPU builds. There is no renderer or GPU device in these measurements. Binary SHA-256 identifiers and raw values are in native-peak-rss.json; rss-*.jsonl retain the specimen records.

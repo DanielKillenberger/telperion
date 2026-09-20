@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Native CPU-owned surface expansion
 
 Native Linux x86_64 consumers now receive the same wood mesh through at most eight bounded workers. The single full-wood screen improved both oak medians by more than 2.57x and passed its 2x admission target. The 6x aspiration was missed. All four full-field baseline/candidate comparisons and 24 warm repeat checks matched bitwise, including positions, normals, coordinates, indices, bounds, dropped counts, sorted run tables and unaffected compact/contact records. Every candidate screen had four parallel attempts and zero fallbacks.

@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Inactive growth-bias screen rejected
 
 The single no-active-effect specialization missed the required 10% skeleton gain on both oak seeds. Production `bias.rs` is restored exactly to the pre-task commit; the candidate and its oracle test remain in `candidate.patch`. No tuning, CPU foliage expansion, browser rebuild or new visual captures followed the failed screen. This rejected experiment does not deliver the parent's fast-generation requirements.

@@ -6,6 +6,8 @@ The body tells the owner what changed, what proves it and where to look, in one 
 
 Do not read make-pr's `workflow.md`, `pr-cognitive-aid.md`, `create-and-finalize.md`, `mermaid-rules.md` or `html-lens.md`. No cognitive-aid artifact, no mermaid, no `pr.html`.
 
+Before staging evidence, follow [evidence-retention.md](evidence-retention.md): keep summaries and reusable verification sources; leave raw output in ignored storage.
+
 1. Pre-flight: `gh auth status` passes, HEAD is ahead of the base (default `origin/master`), and `gh pr view --json state -q .state` is not `OPEN` for this branch.
 2. One call: `flowctl spec export-cognitive-aid <spec-id> --base <ref> --json`. It is the only source for the body, together with the spec's FRICTION.md and QA verdict when they exist.
 3. Write the body below to the scratchpad. Title is the spec title verbatim.

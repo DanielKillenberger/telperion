@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 
 ## 2026-09-20 — baseline tooling build
 

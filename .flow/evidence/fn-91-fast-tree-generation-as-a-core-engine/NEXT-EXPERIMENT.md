@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](README.md).
+
 # Bounded follow-up after native foliage checkpoint
 
 Host design, 2026-09-20. Run only after the first GPU candidate has its correctness checks, four hero images and checkpoint. This does not relax R1-R5 or count as qualification.

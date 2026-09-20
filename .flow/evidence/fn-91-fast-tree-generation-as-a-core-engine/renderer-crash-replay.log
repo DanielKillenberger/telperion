@@ -1,5 +1,0 @@
-
-running 5 tests
-test inspect_rough_plate_means ... ignored, explicit diagnostic for rough-profile integral calibration
-test every_plate_carries_an_identity_of_its_own ... ok
-timeout: the monitored command dumped core

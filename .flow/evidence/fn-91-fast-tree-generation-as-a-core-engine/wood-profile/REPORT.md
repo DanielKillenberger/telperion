@@ -1,3 +1,5 @@
+> Historical raw-output references: see the [archive and recovery instructions](../README.md).
+
 # Wood stage profile at b0c38c25
 
 The native control builds wood in 144–205 ms warm across the four fixtures. Normal accumulation/normalization is the largest measured single group (49–72 ms instrumented); vertex/coordinate plus index/cap emission together is comparable (52–76 ms). Moving only normal computation leaves most construction and submission work. The host retains the next boundary decision. This diagnostic does not qualify parent R1, R2 or R5.
