@@ -71,3 +71,5 @@ The reusable changes worth considering for follow-up are a cheap-first gate prot
 - Final aggregate compilation caught an over-broad parameter rename in a native-only test after Wasm validation. The host restored the local name and the 742-test aggregate run passed. Use a contextual patch for warning cleanup and compile the affected cfg/test branch; no performance retiming or new spec was needed.
 
 - The final API documentation edit hit the local shell guard on Markdown backticks before any edit ran. The dedicated patch tool applied it safely, costing one rejected call and about one minute. Use structured patches for such text. This is local tooling friction, not a repository spec.
+
+- The served mature harness bypassed the new GPU API, discovered by the owner. Task .15 fixes the actual consumer and adds queue tests plus a real UI route check. Probe setup then cost about four minutes due to blank navigation, timestamped Vite URLs and a wrong seed field; fail-fast setup assertions and schema-derived instrumentation prevent the repeat. These fixes are included in this task; no new friction spec was created.

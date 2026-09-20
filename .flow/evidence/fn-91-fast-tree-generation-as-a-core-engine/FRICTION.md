@@ -178,3 +178,8 @@ The full Rust gate passed 742 tests but the smooth-bark test rewrote fn-71's com
 
 ### 2026-09-20 — .14 API documentation edit guard
 The API documentation/type follow-up's literal Python heredoc contained Markdown backticks and was rejected by the shell guard as an unverifiable shell launcher. No edit ran. The worker used the dedicated apply_patch tool successfully without changing the guard. Cost: one rejected tool call and about one minute. Use apply_patch directly for documentation edits containing shell-like syntax; no machine policy change is needed.
+
+### 2026-09-20 — interactive harness bypass and live QA diagnostics
+The owner found the served renderer slow because the mature UI still called the synchronous CPU API. Existing benchmarks and lifecycle checks exercised the GPU API directly, missing its use by the real harness. Task .15 wires that consumer and tests request scheduling. The first live UI probe timed out after 60 seconds waiting for instrumented GPU completion without printing page errors; the probe now records page errors, URL and DOM on failure. Prevention: include an actual consumer-route smoke check and failure diagnostics in the first probe.
+
+The probe diagnosis found an initial about:blank navigation, a Vite timestamp query that bypassed the instrumentation route, and a top-level seed read where the schema uses skeleton.seed. Correcting the probe produced a passing actual-UI run with no production changes. Total probe setup cost was about four minutes. Assert navigation/instrumentation immediately and derive field paths from the existing family schema before waiting for completion.
